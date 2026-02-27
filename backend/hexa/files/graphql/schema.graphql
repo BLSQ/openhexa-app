@@ -146,6 +146,41 @@ type CreateBucketFolderResult {
   folder: BucketObject
 }
 
+enum ReadFileContentError {
+  NOT_FOUND
+  PERMISSION_DENIED
+  FILE_TOO_LARGE
+  NOT_A_FILE
+  NOT_UTF8
+}
+
+type ReadFileContentResult {
+  success: Boolean!
+  errors: [ReadFileContentError!]!
+  content: String
+  size: Int
+}
+
+input WriteFileContentInput {
+  workspaceSlug: String!
+  filePath: String!
+  content: String!
+  overwrite: Boolean = false
+}
+
+enum WriteFileContentError {
+  NOT_FOUND
+  PERMISSION_DENIED
+  ALREADY_EXISTS
+}
+
+type WriteFileContentResult {
+  success: Boolean!
+  errors: [WriteFileContentError!]!
+  filePath: String
+  size: Int
+}
+
 extend type Mutation {
   """
   Delete an object from a workspace's bucket.
@@ -166,6 +201,11 @@ extend type Mutation {
   Create a folder in a workspace's bucket.
   """
   createBucketFolder(input: CreateBucketFolderInput!): CreateBucketFolderResult!
+
+  """
+  Write text content to a file in a workspace's bucket. Use the overwrite flag to replace an existing file.
+  """
+  writeFileContent(input: WriteFileContentInput!): WriteFileContentResult! @loginRequired
 }
 
 extend type Query {
@@ -173,6 +213,11 @@ extend type Query {
   Get a file by its path within a workspace.
   """
   getFileByPath(workspaceSlug: String!, path: String!): BucketObject @loginRequired
+
+  """
+  Read the text content of a file from a workspace's bucket.
+  """
+  readFileContent(workspaceSlug: String!, filePath: String!): ReadFileContentResult! @loginRequired
 }
 
 extend type WorkspacePermissions {

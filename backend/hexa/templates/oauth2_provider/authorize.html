@@ -1,0 +1,102 @@
+{% load static i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OpenHEXA — Authorize</title>
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="shortcut icon" href="{% static 'img/favicon.png' %}">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+        body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 1rem; background: #fff; }
+        .container { width: 100%; max-width: 28rem; display: flex; flex-direction: column; gap: 1.5rem; }
+        .logo { height: 4rem; width: auto; display: block; margin: 0 auto; }
+        h2 { margin-top: 1.5rem; text-align: center; font-size: 1.875rem; font-weight: 800; color: #111827; }
+        .subtitle { text-align: center; font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem; }
+        .scopes { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem 1.25rem; }
+        .scopes h3 { font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.75rem; }
+        .scopes ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        .scopes li { display: flex; align-items: baseline; font-size: 0.875rem; color: #4b5563; line-height: 1.4; }
+        .scopes li svg { width: 1rem; height: 1rem; color: #2563eb; margin-right: 0.5rem; flex-shrink: 0; position: relative; top: 0.15rem; }
+        .tool-name { font-weight: 600; font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace; font-size: 0.8125rem; color: #111827; white-space: nowrap; }
+        .tool-desc { color: #6b7280; }
+        .actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
+        .btn { flex: 1; padding: 0.625rem 1rem; border-radius: 0.125rem; font-size: 0.875rem; font-weight: 500; font-family: inherit; cursor: pointer; transition: background 0.15s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .btn-secondary { background: #fff; color: #374151; border: 1px solid #d1d5db; }
+        .btn-secondary:hover { background: #f9fafb; }
+        .btn-secondary:focus { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6; }
+        .btn-primary { background: #2563eb; color: #fff; border: 1px solid transparent; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-primary:focus { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6; }
+        .error-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem; padding: 1rem; }
+        .error-box h3 { font-size: 0.875rem; font-weight: 500; color: #991b1b; }
+        .error-box p { font-size: 0.875rem; color: #b91c1c; margin-top: 0.25rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div>
+            <img src="{% static 'img/logo/logo.svg' %}" alt="OpenHEXA" class="logo">
+            {% if not error %}
+                <h2>Authorize {{ application.name }}</h2>
+                <p class="subtitle">This application is requesting access to your OpenHEXA account.</p>
+            {% endif %}
+        </div>
+
+        {% if not error %}
+            {% if tools %}
+            <div class="scopes">
+                <h3>This application will be able to call the following tools:</h3>
+                <ul>
+                    {% for tool in tools %}
+                        <li>
+                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span><span class="tool-name">{{ tool.name }}</span>{% if tool.description %} <span class="tool-desc">— {{ tool.description }}</span>{% endif %}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% else %}
+            <div class="scopes">
+                <h3>This application is requesting the following permissions:</h3>
+                <ul>
+                    {% for scope in scopes %}
+                        <li>
+                            <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="tool-name">{{ scope }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <form id="authorizationForm" method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                    {% if field.is_hidden %}
+                        {{ field }}
+                    {% endif %}
+                {% endfor %}
+
+                {{ form.errors }}
+                {{ form.non_field_errors }}
+
+                <div class="actions">
+                    <button type="submit" name="allow" value="Authorize" class="btn btn-primary" style="flex:1;">Authorize</button>
+                </div>
+            </form>
+        {% else %}
+            <div class="error-box">
+                <h3>Error: {{ error.error }}</h3>
+                <p>{{ error.description }}</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

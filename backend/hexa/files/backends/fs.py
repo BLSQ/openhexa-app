@@ -342,6 +342,13 @@ class FileSystemStorage(Storage):
 
         return f"{host}{endpoint}"
 
+    def read_object(self, bucket_name: str, file_path: str) -> bytes:
+        full_path = self.path(bucket_name, file_path)
+        if not self.exists(full_path):
+            raise self.exceptions.NotFound(f"Object {file_path} not found")
+        with open(full_path, "rb") as f:
+            return f.read()
+
     def get_bucket_mount_config(self, bucket_name):
         return {
             "WORKSPACE_STORAGE_MOUNT_PATH": str(

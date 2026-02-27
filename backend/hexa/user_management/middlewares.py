@@ -1,6 +1,7 @@
 import logging
 from functools import cache
 from typing import Callable
+from urllib.parse import quote
 
 from django.conf import settings
 from django.http.request import HttpRequest
@@ -43,6 +44,8 @@ def is_protected_routes(request: HttpRequest) -> bool:
     """
     Is the URL should be behind login screen? Must the user accept the TOS to get this page?
     """
+    if request.path_info.startswith("/.well-known/"):
+        return False
     return get_view_name(request) not in get_anonymous_urls()
 
 
@@ -91,7 +94,9 @@ def login_required_middleware(
                 request.method == "GET"
                 or request.META.get("CONTENT_TYPE") != "application/json"
             ):
-                return redirect(f"{reverse(settings.LOGIN_URL)}?next={request.path}")
+                return redirect(
+                    f"{reverse(settings.LOGIN_URL)}?next={quote(request.get_full_path())}"
+                )
             else:
                 return HttpResponse(status=401)
 

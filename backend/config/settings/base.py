@@ -129,7 +129,7 @@ if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
         ","
     )
 
-CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$"
+CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$|^/mcp/|^/oauth/|^/\.well-known/"
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -243,6 +243,8 @@ INSTALLED_APPS = [
     "hexa.superset",
     "hexa.webapps",
     "hexa.shortcuts",
+    "oauth2_provider",
+    "hexa.mcp",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
@@ -263,6 +265,7 @@ MIDDLEWARE = [
     "hexa.pipelines.middlewares.pipeline_run_authentication_middleware",
     "hexa.workspaces.middlewares.workspace_token_authentication_middleware",
     "hexa.user_management.middlewares.service_account_token_middleware",
+    "hexa.core.middlewares.oauth2_token_authentication_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",
@@ -541,3 +544,15 @@ if os.environ.get("STORAGE", "local") == "google-cloud":
 ACCESSMOD_BUCKET_NAME = os.environ.get("ACCESSMOD_BUCKET_NAME")
 ACCESSMOD_MANAGE_REQUESTS_URL = os.environ.get("ACCESSMOD_MANAGE_REQUESTS_URL")
 ACCESSMOD_SET_PASSWORD_URL = os.environ.get("ACCESSMOD_SET_PASSWORD_URL")
+
+# OAuth2 Provider (django-oauth-toolkit)
+OAUTH2_PROVIDER = {
+    "PKCE_REQUIRED": True,
+    "SCOPES": {"openhexa:mcp": "Access the OpenHEXA MCP server"},
+    "DEFAULT_SCOPES": ["openhexa:mcp"],
+    "ACCESS_TOKEN_EXPIRE_SECONDS": int(
+        os.environ.get("OAUTH2_ACCESS_TOKEN_EXPIRE_SECONDS", 3600)
+    ),
+    "REFRESH_TOKEN_EXPIRE_SECONDS": 86400,
+    "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"],
+}

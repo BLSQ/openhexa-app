@@ -1,0 +1,120 @@
+query ListWorkspaces($query: String, $page: Int, $perPage: Int) {
+  workspaces(query: $query, page: $page, perPage: $perPage) {
+    pageNumber
+    totalPages
+    totalItems
+    items {
+      slug
+      name
+      description
+      createdAt
+      updatedAt
+    }
+  }
+}
+
+query GetWorkspace($slug: String!) {
+  workspace(slug: $slug) {
+    slug
+    name
+    description
+    createdAt
+    updatedAt
+  }
+}
+
+query ListPipelines($workspaceSlug: String, $page: Int, $perPage: Int) {
+  pipelines(workspaceSlug: $workspaceSlug, page: $page, perPage: $perPage) {
+    pageNumber
+    totalPages
+    totalItems
+    items {
+      id
+      code
+      name
+      description
+      createdAt
+      updatedAt
+      workspace {
+        slug
+      }
+    }
+  }
+}
+
+query ListDatasets($workspaceSlug: String!, $query: String, $page: Int, $perPage: Int) {
+  workspace(slug: $workspaceSlug) {
+    datasets(query: $query, page: $page, perPage: $perPage) {
+      pageNumber
+      totalPages
+      totalItems
+      items {
+        dataset {
+          id
+          slug
+          name
+          description
+          createdAt
+          updatedAt
+          workspace {
+            slug
+          }
+        }
+      }
+    }
+  }
+}
+
+query GetDatasetLink($workspaceSlug: String!, $datasetSlug: String!) {
+  datasetLinkBySlug(workspaceSlug: $workspaceSlug, datasetSlug: $datasetSlug) {
+    dataset {
+      id
+      slug
+      name
+      description
+      createdAt
+      updatedAt
+      workspace {
+        slug
+      }
+    }
+  }
+}
+
+query ListFiles($workspaceSlug: String!, $prefix: String, $page: Int, $perPage: Int) {
+  workspace(slug: $workspaceSlug) {
+    bucket {
+      objects(prefix: $prefix, page: $page, perPage: $perPage, ignoreHiddenFiles: false) {
+        hasNextPage
+        hasPreviousPage
+        pageNumber
+        items {
+          name
+          key
+          path
+          type
+          size
+          updatedAt
+        }
+      }
+    }
+  }
+}
+
+query ReadFileContent($workspaceSlug: String!, $filePath: String!) {
+  readFileContent(workspaceSlug: $workspaceSlug, filePath: $filePath) {
+    success
+    errors
+    content
+    size
+  }
+}
+
+mutation WriteFileContent($input: WriteFileContentInput!) {
+  writeFileContent(input: $input) {
+    success
+    errors
+    filePath
+    size
+  }
+}

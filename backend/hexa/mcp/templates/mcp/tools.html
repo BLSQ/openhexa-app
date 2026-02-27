@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OpenHEXA — MCP Tools</title>
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <link rel="shortcut icon" href="{% static 'img/favicon.png' %}">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+        body { min-height: 100vh; padding: 3rem 1rem; background: #fff; color: #111827; }
+        .container { width: 100%; max-width: 52rem; margin: 0 auto; }
+        .header { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+        .logo { height: 3rem; width: auto; }
+        h1 { font-size: 1.5rem; font-weight: 700; }
+        .subtitle { color: #6b7280; font-size: 0.875rem; margin-top: 0.25rem; }
+        .server-info { font-size: 0.75rem; color: #9ca3af; margin-bottom: 2rem; }
+        .tool-card { border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.25rem; margin-bottom: 1rem; transition: border-color 0.15s; }
+        .tool-card:hover { border-color: #3b82f6; }
+        .tool-name { font-size: 1rem; font-weight: 600; font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace; color: #2563eb; }
+        .tool-desc { margin-top: 0.5rem; font-size: 0.875rem; color: #374151; line-height: 1.5; }
+        .params { margin-top: 0.75rem; }
+        .params-title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; margin-bottom: 0.375rem; }
+        .param { display: inline-flex; align-items: center; gap: 0.25rem; margin-right: 0.5rem; margin-bottom: 0.375rem; padding: 0.25rem 0.5rem; background: #f3f4f6; border-radius: 0.25rem; font-size: 0.8125rem; font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace; }
+        .param-name { color: #111827; }
+        .param-type { color: #6b7280; }
+        .param-required { color: #dc2626; font-size: 0.6875rem; font-weight: 600; }
+        .param-optional { color: #9ca3af; font-size: 0.6875rem; }
+        .badge { display: inline-block; padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.6875rem; font-weight: 500; background: #dbeafe; color: #1d4ed8; margin-left: 0.5rem; }
+        .empty { text-align: center; padding: 3rem; color: #9ca3af; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="{% static 'img/logo/logo.svg' %}" alt="OpenHEXA" class="logo">
+            <div>
+                <h1>MCP Tools</h1>
+                <p class="subtitle">Tools exposed by the OpenHEXA MCP server</p>
+            </div>
+        </div>
+
+        <p class="server-info">
+            {{ server_name }} v{{ server_version }} &middot; Protocol {{ protocol_version }} &middot; {{ tools|length }} tool{{ tools|length|pluralize }}
+        </p>
+
+        {% if tools %}
+            {% for tool in tools %}
+            <div class="tool-card">
+                <span class="tool-name">{{ tool.name }}</span>
+                <span class="badge">{{ tool.param_count }} param{{ tool.param_count|pluralize }}</span>
+                {% if tool.description %}
+                    <p class="tool-desc">{{ tool.description }}</p>
+                {% endif %}
+                {% if tool.params %}
+                <div class="params">
+                    <div class="params-title">Parameters</div>
+                    {% for param in tool.params %}
+                    <span class="param">
+                        <span class="param-name">{{ param.name }}</span>
+                        <span class="param-type">{{ param.type }}</span>
+                        {% if param.required %}
+                            <span class="param-required">required</span>
+                        {% else %}
+                            <span class="param-optional">optional</span>
+                        {% endif %}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty">No tools registered.</div>
+        {% endif %}
+    </div>
+</body>
+</html>
