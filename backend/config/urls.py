@@ -22,7 +22,7 @@ from django.contrib import admin
 from django.urls import include, path, re_path
 
 from hexa.app import get_hexa_app_configs
-from hexa.mcp.views import mcp_endpoint, openid_configuration
+from hexa.mcp.views import mcp_endpoint
 from hexa.user_management.views import LogoutView
 
 from .schema import schema
@@ -41,16 +41,11 @@ urlpatterns = [
     path("files/", include("hexa.files.urls", namespace="files")),
     path("analytics/", include("hexa.analytics.urls", namespace="analytics")),
     path("superset/", include("hexa.superset.urls", namespace="superset")),
-    path("oauth/", include("hexa.mcp.oauth_urls")),
+    path("oauth/", include("hexa.oauth.urls")),
     path("oauth/", include("oauth2_provider.urls", namespace="oauth2_provider")),
-    path(
-        "oauth/token/.well-known/openid-configuration",
-        openid_configuration,
-        name="oauth_token_openid_configuration",
-    ),
     path("mcp", mcp_endpoint, name="mcp_endpoint_no_slash"),
     path("mcp/", include("hexa.mcp.urls", namespace="mcp")),
-    path(".well-known/", include("hexa.mcp.wellknown_urls")),
+    path(".well-known/", include("hexa.oauth.wellknown_urls")),
     # Order matters, we override the default logout view defined later
     # We do this to logout the user from jupyterhub at the end of the openhexa
     # session. the jupyterhub will redirect to the openhexa login after it

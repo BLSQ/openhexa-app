@@ -9,8 +9,8 @@ class McpConfig(CoreAppConfig):
     ANONYMOUS_URLS = [
         "mcp_endpoint_no_slash",
         "mcp:mcp_endpoint",
-        "mcp:dynamic_client_registration",
-        "mcp:dynamic_client_registration_no_slash",
+        "dynamic_client_registration",
+        "dynamic_client_registration_no_slash",
         "oauth2_provider:token",
         "oauth_token_openid_configuration",
     ]
