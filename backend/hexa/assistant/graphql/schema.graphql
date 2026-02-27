@@ -1,0 +1,59 @@
+type AssistantConversation {
+  id: UUID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  model: String!
+  totalInputTokens: Int!
+  totalOutputTokens: Int!
+  cost: Float!
+  messages: [AssistantMessage!]!
+  toolInvocations: [AssistantToolInvocation!]!
+}
+
+type AssistantMessage {
+  id: UUID!
+  createdAt: DateTime!
+  role: String!
+  content: String!
+  inputTokens: Int
+  outputTokens: Int
+}
+
+type AssistantToolInvocation {
+  id: UUID!
+  createdAt: DateTime!
+  toolName: String!
+  toolInput: JSON!
+  toolOutput: JSON
+  success: Boolean!
+}
+
+extend type Workspace {
+  assistantConversations: [AssistantConversation!]!
+}
+
+input CreateAssistantConversationInput {
+  workspaceSlug: String!
+  model: String
+}
+
+input SendAssistantMessageInput {
+  conversationId: UUID!
+  message: String!
+}
+
+type SendAssistantMessageResult {
+  success: Boolean!
+  errors: [String!]!
+  conversation: AssistantConversation
+  message: AssistantMessage
+}
+
+extend type Mutation {
+  createAssistantConversation(input: CreateAssistantConversationInput!): AssistantConversation
+  sendAssistantMessage(input: SendAssistantMessageInput!): SendAssistantMessageResult!
+}
+
+extend type Query {
+  assistantConversation(id: UUID!): AssistantConversation
+}

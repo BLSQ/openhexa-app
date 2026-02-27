@@ -84,3 +84,6 @@ filetype
 # Azure
 azure-storage-blob
 azure-identity
+
+# AI assistant
+pydantic-ai-slim[anthropic]==1.63.0

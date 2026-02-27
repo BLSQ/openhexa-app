@@ -43,6 +43,7 @@ from hexa.webapps.schema import (
     webapps_bindables,
     webapps_type_defs,
 )
+from hexa.assistant.schema import assistant_bindables, assistant_type_defs
 from hexa.workspaces.schema import workspaces_bindables, workspaces_type_def
 
 uuid_scalar = ScalarType("UUID")
@@ -105,6 +106,7 @@ schema = make_executable_schema(
         files_type_def,
         config_type_defs,
         datasets_type_defs,
+        assistant_type_defs,
     ],
     [
         uuid_scalar,
@@ -127,6 +129,7 @@ schema = make_executable_schema(
         *files_bindables,
         *datasets_bindables,
         *config_bindables,
+        *assistant_bindables,
         snake_case_fallback_resolvers,
     ],
     convert_names_case=True,
