@@ -120,7 +120,7 @@ def list_files(
 
 @tool
 def read_file(user, workspace_slug: str, file_path: str) -> dict:
-    """Read the content of a file from a workspace bucket. The file must be valid UTF-8 text and smaller than 1 MB."""
+    """Read the content of a file from a workspace bucket."""
     data = _execute_graphql(
         user,
         "ReadFileContent",
