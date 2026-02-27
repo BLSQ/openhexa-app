@@ -2,6 +2,8 @@ import inspect
 import json
 import logging
 
+from hexa.mcp.models import ToolCall
+
 logger = logging.getLogger(__name__)
 
 MCP_SERVER_NAME = "OpenHEXA"
@@ -47,8 +49,18 @@ def call_tool(name, arguments, user):
     func = _TOOLS.get(name)
     if not func:
         raise ValueError(f"Unknown tool: {name}")
-    arguments["user"] = user
-    return func(**arguments)
+    try:
+        arguments["user"] = user
+        result = func(**arguments)
+        ToolCall.objects.create(
+            user=user, tool_name=name, arguments=arguments, success=True
+        )
+        return result
+    except Exception as e:
+        ToolCall.objects.create(
+            user=user, tool_name=name, arguments=arguments, success=False, error=str(e)
+        )
+        raise
 
 
 def handle_jsonrpc(body: bytes, user) -> dict | None:

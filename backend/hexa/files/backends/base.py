@@ -122,5 +122,9 @@ class Storage(ABC):
         pass
 
     @abstractmethod
+    def read_object(self, bucket_name: str, file_path: str) -> bytes:
+        pass
+
+    @abstractmethod
     def get_bucket_mount_config(self, bucket_name) -> dict:
         pass

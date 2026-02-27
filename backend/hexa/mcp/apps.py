@@ -4,6 +4,7 @@ from hexa.app import CoreAppConfig
 class McpConfig(CoreAppConfig):
     name = "hexa.mcp"
     label = "mcp"
+    default_auto_field = "django.db.models.BigAutoField"
 
     ANONYMOUS_URLS = [
         "mcp_endpoint_no_slash",

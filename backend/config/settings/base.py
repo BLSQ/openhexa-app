@@ -265,7 +265,7 @@ MIDDLEWARE = [
     "hexa.pipelines.middlewares.pipeline_run_authentication_middleware",
     "hexa.workspaces.middlewares.workspace_token_authentication_middleware",
     "hexa.user_management.middlewares.service_account_token_middleware",
-    "hexa.mcp.middlewares.oauth2_token_authentication_middleware",
+    "hexa.core.middlewares.oauth2_token_authentication_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",
@@ -550,7 +550,9 @@ OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": True,
     "SCOPES": {"openhexa:mcp": "Access the OpenHEXA MCP server"},
     "DEFAULT_SCOPES": ["openhexa:mcp"],
-    "ACCESS_TOKEN_EXPIRE_SECONDS": 3600,
+    "ACCESS_TOKEN_EXPIRE_SECONDS": int(
+        os.environ.get("OAUTH2_ACCESS_TOKEN_EXPIRE_SECONDS", 3600)
+    ),
     "REFRESH_TOKEN_EXPIRE_SECONDS": 86400,
     "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"],
 }

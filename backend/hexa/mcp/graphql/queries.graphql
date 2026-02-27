@@ -80,3 +80,41 @@ query GetDatasetLink($workspaceSlug: String!, $datasetSlug: String!) {
     }
   }
 }
+
+query ListFiles($workspaceSlug: String!, $prefix: String, $page: Int, $perPage: Int) {
+  workspace(slug: $workspaceSlug) {
+    bucket {
+      objects(prefix: $prefix, page: $page, perPage: $perPage, ignoreHiddenFiles: false) {
+        hasNextPage
+        hasPreviousPage
+        pageNumber
+        items {
+          name
+          key
+          path
+          type
+          size
+          updatedAt
+        }
+      }
+    }
+  }
+}
+
+query ReadFileContent($workspaceSlug: String!, $filePath: String!) {
+  readFileContent(workspaceSlug: $workspaceSlug, filePath: $filePath) {
+    success
+    errors
+    content
+    size
+  }
+}
+
+mutation WriteFileContent($input: WriteFileContentInput!) {
+  writeFileContent(input: $input) {
+    success
+    errors
+    filePath
+    size
+  }
+}
