@@ -1,0 +1,23 @@
+query AssistantPage($workspaceSlug: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    ...WorkspaceLayout_workspace
+    assistantConversations {
+      id
+      createdAt
+      model
+    }
+  }
+}
+
+query AssistantConversationMessages($id: UUID!) {
+  assistantConversation(id: $id) {
+    id
+    messages {
+      id
+      role
+      content
+      createdAt
+    }
+  }
+}

@@ -407,6 +407,36 @@ type ArchiveWorkspaceResult {
   success: Boolean!
 }
 
+type AssistantConversation {
+  cost: Float!
+  createdAt: DateTime!
+  id: UUID!
+  messages: [AssistantMessage!]!
+  model: String!
+  toolInvocations: [AssistantToolInvocation!]!
+  totalInputTokens: Int!
+  totalOutputTokens: Int!
+  updatedAt: DateTime!
+}
+
+type AssistantMessage {
+  content: String!
+  createdAt: DateTime!
+  id: UUID!
+  inputTokens: Int
+  outputTokens: Int
+  role: String!
+}
+
+type AssistantToolInvocation {
+  createdAt: DateTime!
+  id: UUID!
+  success: Boolean!
+  toolInput: JSON!
+  toolName: String!
+  toolOutput: JSON
+}
+
 """The Avatar type represents the avatar of a user."""
 type Avatar {
   """The color of the user's avatar."""
@@ -681,6 +711,11 @@ type CreateAccessmodZonalStatisticsResult {
   analysis: AccessmodZonalStatistics
   errors: [CreateAccessmodZonalStatisticsError!]!
   success: Boolean!
+}
+
+input CreateAssistantConversationInput {
+  model: String
+  workspaceSlug: String!
 }
 
 """Errors that can occur when creating a folder in a workspace's bucket."""
@@ -2704,6 +2739,7 @@ type Mutation {
   createAccessmodProject(input: CreateAccessmodProjectInput!): CreateAccessmodProjectResult!
   createAccessmodProjectMember(input: CreateAccessmodProjectMemberInput!): CreateAccessmodProjectMemberResult!
   createAccessmodZonalStatistics(input: CreateAccessmodZonalStatisticsInput): CreateAccessmodZonalStatisticsResult!
+  createAssistantConversation(input: CreateAssistantConversationInput!): AssistantConversation
 
   """Create a folder in a workspace's bucket."""
   createBucketFolder(input: CreateBucketFolderInput!): CreateBucketFolderResult!
@@ -2855,6 +2891,7 @@ type Mutation {
 
   """Runs a pipeline."""
   runPipeline(input: RunPipelineInput): RunPipelineResult!
+  sendAssistantMessage(input: SendAssistantMessageInput!): SendAssistantMessageResult!
   setDAGRunFavorite(input: SetDAGRunFavoriteInput!): SetDAGRunFavoriteResult
 
   """Set a custom metadata attribute to an object instance"""
@@ -3666,6 +3703,7 @@ type Query {
   accessmodFilesets(mode: AccessmodFilesetMode, page: Int, perPage: Int, projectId: String!, roleId: String, term: String): AccessmodFilesetPage!
   accessmodProject(id: String): AccessmodProject
   accessmodProjects(countries: [String!], orderBy: AccessmodProjectOrder, page: Int, perPage: Int, teams: [String!], term: String): AccessmodProjectPage!
+  assistantConversation(id: UUID!): AssistantConversation
   boundaries(country_code: String!, level: String!): [WHOBoundary!]!
 
   """Retrieves the configuration of the system."""
@@ -4023,6 +4061,18 @@ type S3ObjectPage {
 
 interface SearchResult {
   score: Float!
+}
+
+input SendAssistantMessageInput {
+  conversationId: UUID!
+  message: String!
+}
+
+type SendAssistantMessageResult {
+  conversation: AssistantConversation
+  errors: [String!]!
+  message: AssistantMessage
+  success: Boolean!
 }
 
 enum SetDAGRunFavoriteError {
@@ -5210,6 +5260,8 @@ type WebappsPage {
 Represents a workspace. A workspace is a shared environment where users can collaborate on data projects.
 """
 type Workspace {
+  assistantConversations: [AssistantConversation!]!
+
   """File storage of the workspace represented as a bucket"""
   bucket: Bucket!
   configuration: JSON!
