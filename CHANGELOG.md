@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.4.0](https://github.com/BLSQ/openhexa-app/compare/4.3.0...4.4.0) (2026-02-27)
+
+
+### Features
+
+* add SubscriptionLimitTooltip and disable Workspace button at limit (HEXA-1524) ([#1643](https://github.com/BLSQ/openhexa-app/issues/1643)) ([5e33f62](https://github.com/BLSQ/openhexa-app/commit/5e33f6278cc453412aeed60b5e85e681e6585133))
+
+
+### Bug Fixes
+
+* Update GH action to allow adding prefix ENV vars... ([#1651](https://github.com/BLSQ/openhexa-app/issues/1651)) ([ef8ce7b](https://github.com/BLSQ/openhexa-app/commit/ef8ce7b59dbb8e792d913dff67f29fb7100776df))
+
 ## [4.3.0](https://github.com/BLSQ/openhexa-app/compare/4.2.0...4.3.0) (2026-02-26)
 
 
