@@ -50,8 +50,7 @@ def call_tool(name, arguments, user):
     if not func:
         raise ValueError(f"Unknown tool: {name}")
     try:
-        arguments["user"] = user
-        result = func(**arguments)
+        result = func(user=user, **arguments)
         ToolCall.objects.create(
             user=user, tool_name=name, arguments=arguments, success=True
         )
