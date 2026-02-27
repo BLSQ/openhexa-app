@@ -243,6 +243,7 @@ INSTALLED_APPS = [
     "hexa.superset",
     "hexa.webapps",
     "hexa.shortcuts",
+    "hexa.assistant",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
@@ -439,6 +440,9 @@ PIPELINE_DEFAULT_CONTAINER_MEMORY_REQUEST = os.environ.get(
 )
 PIPELINE_RUN_DEFAULT_TIMEOUT = os.environ.get("PIPELINE_RUN_DEFAULT_TIMEOUT", 14400)
 PIPELINE_RUN_MAX_TIMEOUT = os.environ.get("PIPELINE_RUN_MAX_TIMEOUT", 43200)
+
+# AI Assistant
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"
