@@ -63,3 +63,7 @@
     background-color: rgb(148 163 184);
   }
 }
+
+button {
+    cursor: pointer;
+}

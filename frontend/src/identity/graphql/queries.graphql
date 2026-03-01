@@ -36,6 +36,12 @@ query AccountPage {
       id
       email
       language
+      aiSettings {
+        enabled
+        provider
+        model
+        apiKey
+      }
       ...User_user
     }
   }

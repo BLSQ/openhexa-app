@@ -67,6 +67,13 @@ export type UpdateUserMutationVariables = Types.Exact<{
 
 export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'UpdateUserResult', success: boolean, errors: Array<Types.UpdateUserError>, user?: { __typename?: 'User', id: string, language: string, firstName?: string | null, lastName?: string | null } | null } };
 
+export type UpdateUserAiSettingsMutationVariables = Types.Exact<{
+  input: Types.UpdateUserAiSettingsInput;
+}>;
+
+
+export type UpdateUserAiSettingsMutation = { __typename?: 'Mutation', updateUserAiSettings: { __typename?: 'UpdateUserAiSettingsResult', success: boolean, errors: Array<Types.UpdateUserAiSettingsError>, user?: { __typename?: 'User', aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null, provider?: Types.AiProvider | null, model?: Types.AiModel | null, apiKey?: string | null } | null } | null } };
+
 export type SignupMutationVariables = Types.Exact<{
   input: Types.SignupInput;
 }>;
@@ -417,6 +424,48 @@ export function useUpdateUserMutation(baseOptions?: Apollo.MutationHookOptions<U
 export type UpdateUserMutationHookResult = ReturnType<typeof useUpdateUserMutation>;
 export type UpdateUserMutationResult = Apollo.MutationResult<UpdateUserMutation>;
 export type UpdateUserMutationOptions = Apollo.BaseMutationOptions<UpdateUserMutation, UpdateUserMutationVariables>;
+export const UpdateUserAiSettingsDocument = gql`
+    mutation UpdateUserAiSettings($input: UpdateUserAiSettingsInput!) {
+  updateUserAiSettings(input: $input) {
+    success
+    errors
+    user {
+      aiSettings {
+        enabled
+        provider
+        model
+        apiKey
+      }
+    }
+  }
+}
+    `;
+export type UpdateUserAiSettingsMutationFn = Apollo.MutationFunction<UpdateUserAiSettingsMutation, UpdateUserAiSettingsMutationVariables>;
+
+/**
+ * __useUpdateUserAiSettingsMutation__
+ *
+ * To run a mutation, you first call `useUpdateUserAiSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateUserAiSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateUserAiSettingsMutation, { data, loading, error }] = useUpdateUserAiSettingsMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateUserAiSettingsMutation(baseOptions?: Apollo.MutationHookOptions<UpdateUserAiSettingsMutation, UpdateUserAiSettingsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateUserAiSettingsMutation, UpdateUserAiSettingsMutationVariables>(UpdateUserAiSettingsDocument, options);
+      }
+export type UpdateUserAiSettingsMutationHookResult = ReturnType<typeof useUpdateUserAiSettingsMutation>;
+export type UpdateUserAiSettingsMutationResult = Apollo.MutationResult<UpdateUserAiSettingsMutation>;
+export type UpdateUserAiSettingsMutationOptions = Apollo.BaseMutationOptions<UpdateUserAiSettingsMutation, UpdateUserAiSettingsMutationVariables>;
 export const SignupDocument = gql`
     mutation Signup($input: SignupInput!) {
   signup(input: $input) {

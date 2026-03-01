@@ -73,6 +73,21 @@ mutation UpdateUser($input: UpdateUserInput!) {
   }
 }
 
+mutation UpdateUserAiSettings($input: UpdateUserAiSettingsInput!) {
+  updateUserAiSettings(input: $input) {
+    success
+    errors
+    user {
+      aiSettings {
+        enabled
+        provider
+        model
+        apiKey
+      }
+    }
+  }
+}
+
 mutation Signup($input: SignupInput!) {
   signup(input: $input) {
     success

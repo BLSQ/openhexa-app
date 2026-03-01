@@ -2,24 +2,14 @@ import { ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
 import Block from "core/components/Block";
 import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
-import DateProperty from "core/components/DataCard/DateProperty";
-import { OnSaveFn } from "core/components/DataCard/FormSection";
-import TextProperty from "core/components/DataCard/TextProperty";
 import { BaseColumn } from "core/components/DataGrid";
 import DataGrid from "core/components/DataGrid/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
-import DescriptionList, {
-  DescriptionListDisplayMode,
-} from "core/components/DescriptionList";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
-import useToggle from "core/hooks/useToggle";
 import BackLayout from "core/layouts/back";
 import { WorkspaceInvitation, WorkspaceInvitationStatus } from "graphql/types";
-import DisableTwoFactorDialog from "identity/features/DisableTwoFactorDialog";
-import EnableTwoFactorDialog from "identity/features/EnableTwoFactorDialog";
-import { useUpdateUserMutation } from "identity/graphql/mutations.generated";
 import {
   AccountPageDocument,
   AccountPageQuery,
@@ -33,12 +23,13 @@ import {
 } from "workspaces/graphql/mutations.generated";
 import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
 import { toast } from "react-toastify";
+import AccountProfileSettings from "identity/features/AccountProfileSettings";
+import AccountSecuritySettings from "identity/features/AccountSecuritySettings";
+import AccountAiSettings from "identity/features/AccountAiSettings";
 
 function AccountPage() {
   const { t } = useTranslation();
-  const { data } = useAccountPageQuery();
-  const [showTwoFactorDialog, { toggle: toggleTwoFactorDialog }] = useToggle();
-  const [updateUser] = useUpdateUserMutation();
+  const { data, refetch } = useAccountPageQuery();
 
   const [joinWorkspace] = useJoinWorkspaceMutation();
   const [declineWorkspaceInvitation] = useDeclineWorkspaceInvitationMutation();
@@ -70,17 +61,6 @@ function AccountPage() {
     return null;
   }
 
-  const onSave: OnSaveFn = async (values) => {
-    await updateUser({
-      variables: {
-        input: {
-          firstName: values.firstName,
-          lastName: values.lastName,
-        },
-      },
-    });
-  };
-
   const { user } = data.me;
   return (
     <Page title={t("Account")}>
@@ -100,58 +80,9 @@ function AccountPage() {
         }
       >
         <DataCard item={user} className="divide-y divide-gray-100">
-          <DataCard.FormSection
-            title={user.displayName}
-            onSave={onSave}
-            collapsible={false}
-            displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
-            columns={2}
-          >
-            <TextProperty
-              label={t("First name")}
-              accessor="firstName"
-              required
-              id="firstName"
-            />
-            <TextProperty
-              label={t("Last name")}
-              accessor="lastName"
-              required
-              id="lastName"
-            />
-            <TextProperty
-              label={t("Email")}
-              accessor="email"
-              id="email"
-              readonly
-            />
-            <DateProperty
-              relative
-              label={t("Joined")}
-              accessor="dateJoined"
-              id="dateJoined"
-              readonly
-            />
-          </DataCard.FormSection>
-          <Block.Section title={t("Security")} collapsible={false}>
-            <DescriptionList
-              columns={2}
-              displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
-            >
-              <DescriptionList.Item label={t("Two-Factor Authentication")}>
-                {data.me.hasTwoFactorEnabled
-                  ? t("Currently enabled")
-                  : t("Currently disabled")}
-                <Button
-                  size="sm"
-                  className="ml-2"
-                  onClick={toggleTwoFactorDialog}
-                >
-                  {data.me.hasTwoFactorEnabled ? t("Disable") : t("Enable")}
-                </Button>
-              </DescriptionList.Item>
-            </DescriptionList>
-          </Block.Section>
+          <AccountProfileSettings user={user} />
+          <AccountSecuritySettings hasTwoFactorEnabled={data.me.hasTwoFactorEnabled} />
+          <AccountAiSettings refetch={refetch} settings={user.aiSettings}/>
         </DataCard>
 
         {data.pendingWorkspaceInvitations.totalItems > 0 ? (
@@ -228,18 +159,6 @@ function AccountPage() {
           </Block>
         ) : null}
       </BackLayout>
-
-      {data.me.hasTwoFactorEnabled ? (
-        <DisableTwoFactorDialog
-          open={showTwoFactorDialog}
-          onClose={toggleTwoFactorDialog}
-        />
-      ) : (
-        <EnableTwoFactorDialog
-          open={showTwoFactorDialog}
-          onClose={toggleTwoFactorDialog}
-        />
-      )}
     </Page>
   );
 }

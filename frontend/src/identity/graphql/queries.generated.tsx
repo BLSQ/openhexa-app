@@ -13,7 +13,7 @@ export type GetUserQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasT
 export type AccountPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, user?: { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, displayName: string, id: string, email: string, language: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }, pendingWorkspaceInvitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: string, status: Types.WorkspaceInvitationStatus, role: Types.WorkspaceMembershipRole, createdAt: any, invitedBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
+export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, user?: { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, displayName: string, id: string, email: string, language: string, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null, provider?: Types.AiProvider | null, model?: Types.AiModel | null, apiKey?: string | null } | null, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }, pendingWorkspaceInvitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: string, status: Types.WorkspaceInvitationStatus, role: Types.WorkspaceMembershipRole, createdAt: any, invitedBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
 
 export type RegisterPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
@@ -98,6 +98,12 @@ export const AccountPageDocument = gql`
       id
       email
       language
+      aiSettings {
+        enabled
+        provider
+        model
+        apiKey
+      }
       ...User_user
     }
   }

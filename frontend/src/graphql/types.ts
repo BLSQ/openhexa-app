@@ -408,6 +408,26 @@ export type AddWebappToShortcutsResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Represents the available AI models. */
+export enum AiModel {
+  Haiku = 'Haiku',
+  Opus = 'Opus',
+  Sonnet = 'Sonnet'
+}
+
+/** Represents the available AI providers. */
+export enum AiProvider {
+  Anthropic = 'anthropic'
+}
+
+export type AiSettings = {
+  __typename?: 'AiSettings';
+  apiKey?: Maybe<Scalars['String']['output']>;
+  enabled?: Maybe<Scalars['Boolean']['output']>;
+  model?: Maybe<AiModel>;
+  provider?: Maybe<AiProvider>;
+};
+
 export enum ApproveAccessmodAccessRequestError {
   Invalid = 'INVALID'
 }
@@ -2862,6 +2882,8 @@ export type Mutation = {
   updateTemplateVersion: UpdateTemplateVersionResult;
   /** Updates the profile of the currently authenticated user. */
   updateUser: UpdateUserResult;
+  /** Updates the AI settings of the currently authenticated user. */
+  updateUserAiSettings: UpdateUserAiSettingsResult;
   updateWebapp: UpdateWebappResult;
   updateWorkspace: UpdateWorkspaceResult;
   updateWorkspaceMember: UpdateWorkspaceMemberResult;
@@ -3451,6 +3473,11 @@ export type MutationUpdateTemplateVersionArgs = {
 
 export type MutationUpdateUserArgs = {
   input: UpdateUserInput;
+};
+
+
+export type MutationUpdateUserAiSettingsArgs = {
+  input: UpdateUserAiSettingsInput;
 };
 
 
@@ -5709,6 +5736,34 @@ export type UpdateTemplateVersionResult = {
   templateVersion?: Maybe<PipelineTemplateVersion>;
 };
 
+/** The UpdateUserAiSettingsError enum represents the possible errors that can occur during the updateUser mutation. */
+export enum UpdateUserAiSettingsError {
+  /** Indicates that the user does not have permission to update their profile. */
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/** The UpdateUserAiSettingsInput type represents the input for the updateAiSettings mutation. */
+export type UpdateUserAiSettingsInput = {
+  /** Indicates the AI API KEY */
+  apiKey?: InputMaybe<Scalars['String']['input']>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Indicates the AI model from the provider used */
+  model?: InputMaybe<Scalars['String']['input']>;
+  /** Indicates the AI provider used */
+  provider?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** The UpdateUserAiSettingsResult type represents the result of the updateUser mutation. */
+export type UpdateUserAiSettingsResult = {
+  __typename?: 'UpdateUserAiSettingsResult';
+  /** The list of errors that occurred during the updateUser mutation. */
+  errors: Array<UpdateUserAiSettingsError>;
+  /** Indicates whether the user update was successful. */
+  success: Scalars['Boolean']['output'];
+  /** The updated user object. */
+  user?: Maybe<User>;
+};
+
 /** The UpdateUserError enum represents the possible errors that can occur during the updateUser mutation. */
 export enum UpdateUserError {
   /** Indicates that the provided language is invalid. */
@@ -5864,6 +5919,8 @@ export type UploadPipelineResult = {
 /** The User type represents a user in the system. */
 export type User = {
   __typename?: 'User';
+  /** User AI settings. */
+  aiSettings?: Maybe<AiSettings>;
   /** The avatar of the user. */
   avatar: Avatar;
   /** The date when the user joined the system. */

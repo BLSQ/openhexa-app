@@ -46,6 +46,11 @@ type User {
     The date of the user's last login.
     """
     lastLogin: DateTime
+
+    """
+    User AI settings.
+    """
+    aiSettings: AiSettings
 }
 
 """
@@ -394,6 +399,81 @@ enum UpdateUserError {
     INVALID_LANGUAGE
 }
 
+"""
+The UpdateUserAiSettingsInput type represents the input for the updateAiSettings mutation.
+"""
+input UpdateUserAiSettingsInput {
+    enabled: Boolean
+
+    """
+    Indicates the AI provider used
+    """
+    provider: String
+
+    """
+    Indicates the AI model from the provider used
+    """
+    model: String
+
+    """
+    Indicates the AI API KEY
+    """
+    apiKey: String
+}
+
+"""
+The UpdateUserAiSettingsResult type represents the result of the updateUser mutation.
+"""
+type UpdateUserAiSettingsResult {
+    """
+    Indicates whether the user update was successful.
+    """
+    success: Boolean!
+
+    """
+    The updated user object.
+    """
+    user: User
+
+    """
+    The list of errors that occurred during the updateUser mutation.
+    """
+    errors: [UpdateUserAiSettingsError!]!
+}
+
+"""
+The UpdateUserAiSettingsError enum represents the possible errors that can occur during the updateUser mutation.
+"""
+enum UpdateUserAiSettingsError {
+    """
+    Indicates that the user does not have permission to update their profile.
+    """
+    PERMISSION_DENIED
+}
+
+type AiSettings {
+  enabled: Boolean
+  provider: AiProvider
+  model: AiModel
+  apiKey: String
+}
+
+"""
+Represents the available AI providers.
+"""
+enum AiProvider {
+  anthropic
+}
+
+"""
+Represents the available AI models.
+"""
+enum AiModel {
+  Opus,
+  Sonnet,
+  Haiku,
+}
+
 extend type Mutation {
     """
     Registers a new user.
@@ -424,6 +504,11 @@ extend type Mutation {
     Updates the profile of the currently authenticated user.
     """
     updateUser(input: UpdateUserInput!): UpdateUserResult! @loginRequired
+
+    """
+    Updates the AI settings of the currently authenticated user.
+    """
+    updateUserAiSettings(input: UpdateUserAiSettingsInput!): UpdateUserAiSettingsResult! @loginRequired
 
     """
     Verifies a device for two-factor authentication.
