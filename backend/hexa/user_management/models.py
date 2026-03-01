@@ -114,6 +114,11 @@ class User(AbstractUser, UserInterface):
 
         return self.email[:2].upper()
 
+    @property
+    def ai_settings_safe(self) -> AiSettings:
+        obj, _ = AiSettings.objects.get_or_create(user=self)
+        return obj
+
     def has_feature_flag(self, code: str) -> bool:
         return (
             Feature.objects.are_enabled_for_user(user=self).filter(code=code).exists()
@@ -162,6 +167,25 @@ class User(AbstractUser, UserInterface):
             return f"{self.first_name} {self.last_name}".strip() + f" ({self.email})"
 
         return self.email
+
+
+class AiSettings(models.Model):
+
+    class Provider(models.TextChoices):
+        ANTHROPIC = "anthropic"
+
+    user = models.OneToOneField(
+        User,
+        primary_key=True,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="ai_settings",
+    )
+    enabled = models.BooleanField(default=False)
+    provider = models.CharField(max_length=20, choices=Provider.choices, null=True)
+    model = models.CharField(max_length=100, null=True)
+    api_key = models.CharField(max_length=255, null=True)
 
 
 class OrganizationType(models.TextChoices):

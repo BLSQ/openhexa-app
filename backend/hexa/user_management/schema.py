@@ -48,7 +48,7 @@ from hexa.user_management.models import (
     SignupRequestStatus,
     Team,
     User,
-    UsersLimitReached,
+    UsersLimitReached, AiSettings,
 )
 from hexa.utils.base64_image_encode_decode import (
     decode_base64_image,
@@ -1090,6 +1090,20 @@ def resolve_update_user(_, info, **kwargs):
         user.language = mutation_input["language"]
 
     user.save()
+    return {"success": True, "errors": [], "user": user}
+
+
+@identity_mutations.field("updateUserAiSettings")
+def resolve_update_user_ai_settings(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+    user = request.user
+    ai_settings = user.ai_settings_safe
+    for field_name in ["enabled", "provider", "model", "api_key"]:
+        if field_name in mutation_input:
+            setattr(ai_settings, field_name, mutation_input[field_name])
+
+    ai_settings.save()
     return {"success": True, "errors": [], "user": user}
 
 

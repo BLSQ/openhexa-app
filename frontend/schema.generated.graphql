@@ -375,6 +375,25 @@ type AddWebappToShortcutsResult {
   success: Boolean!
 }
 
+"""Represents the available AI models."""
+enum AiModel {
+  Haiku
+  Opus
+  Sonnet
+}
+
+"""Represents the available AI providers."""
+enum AiProvider {
+  anthropic
+}
+
+type AiSettings {
+  apiKey: String
+  enabled: Boolean
+  model: AiModel
+  provider: AiProvider
+}
+
 enum ApproveAccessmodAccessRequestError {
   INVALID
 }
@@ -2913,6 +2932,9 @@ type Mutation {
 
   """Updates the profile of the currently authenticated user."""
   updateUser(input: UpdateUserInput!): UpdateUserResult!
+
+  """Updates the AI settings of the currently authenticated user."""
+  updateUserAiSettings(input: UpdateUserAiSettingsInput!): UpdateUserAiSettingsResult!
   updateWebapp(input: UpdateWebappInput!): UpdateWebappResult!
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult!
@@ -4915,6 +4937,45 @@ type UpdateTemplateVersionResult {
 }
 
 """
+The UpdateUserAiSettingsError enum represents the possible errors that can occur during the updateUser mutation.
+"""
+enum UpdateUserAiSettingsError {
+  """
+  Indicates that the user does not have permission to update their profile.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The UpdateUserAiSettingsInput type represents the input for the updateAiSettings mutation.
+"""
+input UpdateUserAiSettingsInput {
+  """Indicates the AI API KEY"""
+  apiKey: String
+  enabled: Boolean
+
+  """Indicates the AI model from the provider used"""
+  model: String
+
+  """Indicates the AI provider used"""
+  provider: String
+}
+
+"""
+The UpdateUserAiSettingsResult type represents the result of the updateUser mutation.
+"""
+type UpdateUserAiSettingsResult {
+  """The list of errors that occurred during the updateUser mutation."""
+  errors: [UpdateUserAiSettingsError!]!
+
+  """Indicates whether the user update was successful."""
+  success: Boolean!
+
+  """The updated user object."""
+  user: User
+}
+
+"""
 The UpdateUserError enum represents the possible errors that can occur during the updateUser mutation.
 """
 enum UpdateUserError {
@@ -5085,6 +5146,9 @@ type UploadPipelineResult {
 
 """The User type represents a user in the system."""
 type User {
+  """User AI settings."""
+  aiSettings: AiSettings
+
   """The avatar of the user."""
   avatar: Avatar!
 

@@ -25,10 +25,11 @@ import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
 import { toast } from "react-toastify";
 import AccountProfileSettings from "identity/features/AccountProfileSettings";
 import AccountSecuritySettings from "identity/features/AccountSecuritySettings";
+import AccountAiSettings from "identity/features/AccountAiSettings";
 
 function AccountPage() {
   const { t } = useTranslation();
-  const { data } = useAccountPageQuery();
+  const { data, refetch } = useAccountPageQuery();
 
   const [joinWorkspace] = useJoinWorkspaceMutation();
   const [declineWorkspaceInvitation] = useDeclineWorkspaceInvitationMutation();
@@ -81,6 +82,7 @@ function AccountPage() {
         <DataCard item={user} className="divide-y divide-gray-100">
           <AccountProfileSettings user={user} />
           <AccountSecuritySettings hasTwoFactorEnabled={data.me.hasTwoFactorEnabled} />
+          <AccountAiSettings refetch={refetch} settings={user.aiSettings}/>
         </DataCard>
 
         {data.pendingWorkspaceInvitations.totalItems > 0 ? (
