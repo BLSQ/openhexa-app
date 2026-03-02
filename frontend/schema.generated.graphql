@@ -377,9 +377,9 @@ type AddWebappToShortcutsResult {
 
 """Represents the available AI models."""
 enum AiModel {
-  Haiku
-  Opus
-  Sonnet
+  HAIKU
+  OPUS
+  SONNET
 }
 
 """Represents the available AI providers."""

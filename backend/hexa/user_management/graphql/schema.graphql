@@ -472,9 +472,9 @@ enum AiProvider {
 Represents the available AI models.
 """
 enum AiModel {
-  Opus,
-  Sonnet,
-  Haiku,
+  OPUS,
+  SONNET,
+  HAIKU,
 }
 
 extend type Mutation {

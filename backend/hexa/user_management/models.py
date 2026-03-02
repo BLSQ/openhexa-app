@@ -174,9 +174,9 @@ class AiSettings(models.Model):
         ANTHROPIC = "anthropic"
 
     class Model(models.TextChoices):
-        Haiku = "Haiku"
-        Opus = "Opus"
-        Sonnet = "Sonnet"
+        HAIKU = "HAIKU"
+        OPUS = "OPUS"
+        SONNET = "SONNET"
 
     user = models.OneToOneField(
         User,

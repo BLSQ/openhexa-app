@@ -410,9 +410,9 @@ export type AddWebappToShortcutsResult = {
 
 /** Represents the available AI models. */
 export enum AiModel {
-  Haiku = 'Haiku',
-  Opus = 'Opus',
-  Sonnet = 'Sonnet'
+  Haiku = 'HAIKU',
+  Opus = 'OPUS',
+  Sonnet = 'SONNET'
 }
 
 /** Represents the available AI providers. */

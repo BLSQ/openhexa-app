@@ -52,11 +52,11 @@ const AccountAiSettings = (props: AccountAiSettingsProps) => {
   const getModelLabel = (type: AiModel | string): string => {
     switch (type) {
       case AiModel.Opus:
-        return "Claude Opus 4.6";
+        return "Claude OPUS 4.6";
       case AiModel.Sonnet:
-        return "Claude Sonnet 4.6";
+        return "Claude SONNET 4.6";
       case AiModel.Haiku:
-        return "Claude Haiku 4.6";
+        return "Claude HAIKU 4.6";
       default:
         return String(type);
     }
@@ -80,7 +80,7 @@ const AccountAiSettings = (props: AccountAiSettingsProps) => {
         id="provider"
         accessor="aiSettings.provider"
         label={t("Provider")}
-        options={[AiProvider.Anthropic]}
+        options={[AiProvider.ANTHROPIC]}
         getOptionLabel={getProviderLabel}
         onChange={(value: string) => { setProvider(value); }}
         visible={(_, __, values) =>
