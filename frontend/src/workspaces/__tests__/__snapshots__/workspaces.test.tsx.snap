@@ -50,7 +50,7 @@ exports[`Workspaces renders the workspace page 1`] = `
             class="flex-1 space-y-1 px-0 pb-4"
           >
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/test"
               rel="noopener noreferrer"
             >
@@ -80,7 +80,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               </span>
             </a>
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/test/files"
               rel="noopener noreferrer"
             >
@@ -110,7 +110,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               </span>
             </a>
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/test/databases"
               rel="noopener noreferrer"
             >
@@ -140,7 +140,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               </span>
             </a>
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/test/datasets"
               rel="noopener noreferrer"
             >
@@ -170,7 +170,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               </span>
             </a>
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/test/connections"
               rel="noopener noreferrer"
             >
@@ -200,7 +200,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               </span>
             </a>
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/test/pipelines"
               rel="noopener noreferrer"
             >
@@ -230,7 +230,7 @@ exports[`Workspaces renders the workspace page 1`] = `
               </span>
             </a>
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/test/webapps"
               rel="noopener noreferrer"
             >
@@ -480,7 +480,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
             class="flex-1 space-y-1 px-0 pb-4"
           >
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63"
               rel="noopener noreferrer"
             >
@@ -510,7 +510,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               </span>
             </a>
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/files"
               rel="noopener noreferrer"
             >
@@ -540,7 +540,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               </span>
             </a>
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/databases"
               rel="noopener noreferrer"
             >
@@ -570,7 +570,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               </span>
             </a>
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/datasets"
               rel="noopener noreferrer"
             >
@@ -600,7 +600,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               </span>
             </a>
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/connections"
               rel="noopener noreferrer"
             >
@@ -630,7 +630,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               </span>
             </a>
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/pipelines"
               rel="noopener noreferrer"
             >
@@ -660,7 +660,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               </span>
             </a>
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/notebooks"
               rel="noopener noreferrer"
             >
@@ -690,7 +690,7 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
               </span>
             </a>
             <a
-              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium  text-gray-300 hover:bg-gray-700 hover:text-white"
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
               href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/webapps"
               rel="noopener noreferrer"
             >

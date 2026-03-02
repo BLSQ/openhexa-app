@@ -173,6 +173,11 @@ class AiSettings(models.Model):
     class Provider(models.TextChoices):
         ANTHROPIC = "anthropic"
 
+    class Model(models.TextChoices):
+        Haiku = "Haiku"
+        Opus = "Opus"
+        Sonnet = "Sonnet"
+
     user = models.OneToOneField(
         User,
         primary_key=True,
@@ -183,7 +188,7 @@ class AiSettings(models.Model):
     )
     enabled = models.BooleanField(default=False)
     provider = models.CharField(max_length=20, choices=Provider.choices, null=True)
-    model = models.CharField(max_length=100, null=True)
+    model = models.CharField(max_length=100, choices=Model.choices, null=True)
     api_key = models.CharField(max_length=255, null=True)
 
 
