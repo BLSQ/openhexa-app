@@ -58,7 +58,7 @@
   "Advanced settings": "Configurations avancées",
   "After creating a new URL, you will have to update all the services/applications that are using the current webhook URK.": "Après avoir créé une nouvelle URL, vous devrez mettre à jour tous les services/applications qui utilisent l'URL de webhook actuelle.",
   "After regenerating the password, you will have to:": "Après avoir régénéré le mot de passe, vous devrez :",
-  "AI Agents": "",
+  "AI Agents": "Agents IA",
   "Airflow Data": "Données sur le débit d'air",
   "Airflow pipelines": "Pipelines Airflow",
   "Airflow Pipelines": "Pipelines Airflow",
