@@ -48,7 +48,7 @@ from hexa.user_management.models import (
     SignupRequestStatus,
     Team,
     User,
-    UsersLimitReached, AiSettings,
+    UsersLimitReached,
 )
 from hexa.utils.base64_image_encode_decode import (
     decode_base64_image,

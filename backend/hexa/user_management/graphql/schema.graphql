@@ -403,6 +403,9 @@ enum UpdateUserError {
 The UpdateUserAiSettingsInput type represents the input for the updateAiSettings mutation.
 """
 input UpdateUserAiSettingsInput {
+    """
+    Indicates if AI is enabled
+    """
     enabled: Boolean
 
     """

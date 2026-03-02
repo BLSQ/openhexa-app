@@ -170,7 +170,6 @@ class User(AbstractUser, UserInterface):
 
 
 class AiSettings(models.Model):
-
     class Provider(models.TextChoices):
         ANTHROPIC = "anthropic"
 

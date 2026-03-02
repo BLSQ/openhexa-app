@@ -9,20 +9,20 @@ import { useState } from "react";
 import { AiModel, AiProvider, AiSettings, User } from "graphql/types";
 import SwitchProperty from "core/components/DataCard/SwitchProperty";
 
-const MODELS: Record<string, AiModel[]> = {
-  anthropic: [AiModel.Opus, AiModel.Sonnet, AiModel.Haiku],
+const MODELS: Record<string, string[]> = {
+  anthropic: ["", AiModel.Opus, AiModel.Sonnet, AiModel.Haiku],
 };
 
 type AccountAiSettingsProps = {
-  settings?: AiSettings;
+  settings?: AiSettings | null;
   refetch: any;
 };
 
 const AccountAiSettings = (props: AccountAiSettingsProps) => {
   const { settings, refetch } = props;
   const [updateUserAiSettings] = useUpdateUserAiSettingsMutation();
-  const [provider, setProvider] = useState<string | undefined>(settings?.provider);
-  const modelOptions: AiModel[] = provider ? (MODELS[provider] ?? []) : [];
+  const [provider, setProvider] = useState<string | null | undefined>(settings?.provider);
+  const modelOptions: string[] = provider ? (MODELS[provider] ?? []) : [];
 
   const { t } = useTranslation();
 

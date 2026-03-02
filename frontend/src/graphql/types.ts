@@ -5733,6 +5733,7 @@ export enum UpdateUserAiSettingsError {
 export type UpdateUserAiSettingsInput = {
   /** Indicates the AI API KEY */
   apiKey?: InputMaybe<Scalars['String']['input']>;
+  /** Indicates if AI is enabled */
   enabled?: InputMaybe<Scalars['Boolean']['input']>;
   /** Indicates the AI model from the provider used */
   model?: InputMaybe<Scalars['String']['input']>;

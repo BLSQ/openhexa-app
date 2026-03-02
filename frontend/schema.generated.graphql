@@ -4952,6 +4952,8 @@ The UpdateUserAiSettingsInput type represents the input for the updateAiSettings
 input UpdateUserAiSettingsInput {
   """Indicates the AI API KEY"""
   apiKey: String
+
+  """Indicates if AI is enabled"""
   enabled: Boolean
 
   """Indicates the AI model from the provider used"""
