@@ -64,7 +64,7 @@ const AccountAiSettings = (props: AccountAiSettingsProps) => {
 
   return (
     <DataCard.FormSection
-      title={"AI Agents"}
+      title={t("AI Agents")}
       onSave={onSave}
       collapsible={false}
       displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
@@ -79,7 +79,7 @@ const AccountAiSettings = (props: AccountAiSettingsProps) => {
       <SimpleSelectProperty
         id="provider"
         accessor="aiSettings.provider"
-        label="Provider"
+        label={t("Provider")}
         options={[AiProvider.Anthropic]}
         getOptionLabel={getProviderLabel}
         onChange={(value: string) => { setProvider(value); }}
@@ -91,7 +91,7 @@ const AccountAiSettings = (props: AccountAiSettingsProps) => {
       <SimpleSelectProperty
         id="model"
         accessor="aiSettings.model"
-        label="Model"
+        label={t("Model")}
         options={modelOptions}
         getOptionLabel={getModelLabel}
         visible={(_, __, values) =>
@@ -102,7 +102,7 @@ const AccountAiSettings = (props: AccountAiSettingsProps) => {
       <TextProperty
         id="apiKey"
         accessor="aiSettings.apiKey"
-        label={"API Key"}
+        label={t("API Key")}
         visible={(_, __, values) =>
           Boolean(values.enableAI)
         }
