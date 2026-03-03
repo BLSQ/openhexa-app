@@ -102,6 +102,9 @@ def resolve_create_bucket_folder(_, info, **kwargs):
         return {"success": False, "errors": ["NOT_FOUND"]}
 
 
+MAX_WRITE_SIZE = 1024 * 1024
+
+
 @mutations.field("writeFileContent")
 def resolve_write_file_content(_, info, **kwargs):
     request = info.context["request"]
@@ -121,6 +124,11 @@ def resolve_write_file_content(_, info, **kwargs):
     if not request.user.has_perm("files.create_object", workspace):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
+    encoded = content.encode("utf-8")
+
+    if len(encoded) > MAX_WRITE_SIZE:
+        return {"success": False, "errors": ["FILE_TOO_LARGE"]}
+
     if not overwrite:
         try:
             storage.get_bucket_object(workspace.bucket_name, file_path)
@@ -128,7 +136,6 @@ def resolve_write_file_content(_, info, **kwargs):
         except NotFound:
             pass
 
-    encoded = content.encode("utf-8")
     storage.save_object(workspace.bucket_name, file_path, io.BytesIO(encoded))
     return {
         "success": True,
