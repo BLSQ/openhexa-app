@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.4.1](https://github.com/BLSQ/openhexa-app/compare/4.4.0...4.4.1) (2026-03-03)
+
+
+### Bug Fixes
+
+* Also take into account backend prefix for static assets ([#1658](https://github.com/BLSQ/openhexa-app/issues/1658)) ([11f3db1](https://github.com/BLSQ/openhexa-app/commit/11f3db14ef654aa9107f0c2ef713052fadcaf335))
+
 ## [4.4.0](https://github.com/BLSQ/openhexa-app/compare/4.3.0...4.4.0) (2026-03-03)
 
 
