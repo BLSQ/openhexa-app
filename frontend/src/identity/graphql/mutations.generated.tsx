@@ -72,7 +72,7 @@ export type UpdateUserAiSettingsMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateUserAiSettingsMutation = { __typename?: 'Mutation', updateUserAiSettings: { __typename?: 'UpdateUserAiSettingsResult', success: boolean, errors: Array<Types.UpdateUserAiSettingsError>, user?: { __typename?: 'User', aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null, provider?: Types.AiProvider | null, model?: Types.AiModel | null, apiKey?: string | null } | null } | null } };
+export type UpdateUserAiSettingsMutation = { __typename?: 'Mutation', updateUserAiSettings: { __typename?: 'UpdateUserAiSettingsResult', success: boolean, errors: Array<Types.UpdateUserAiSettingsError>, user?: { __typename?: 'User', aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null, provider?: Types.AiProvider | null, model?: Types.AiModel | null, hasApiKey?: string | null } | null } | null } };
 
 export type SignupMutationVariables = Types.Exact<{
   input: Types.SignupInput;
@@ -434,7 +434,7 @@ export const UpdateUserAiSettingsDocument = gql`
         enabled
         provider
         model
-        apiKey
+        hasApiKey
       }
     }
   }

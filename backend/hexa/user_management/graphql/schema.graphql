@@ -458,7 +458,7 @@ type AiSettings {
   enabled: Boolean
   provider: AiProvider
   model: AiModel
-  apiKey: String
+  hasApiKey: String
 }
 
 """

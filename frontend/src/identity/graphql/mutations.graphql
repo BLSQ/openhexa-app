@@ -82,7 +82,7 @@ mutation UpdateUserAiSettings($input: UpdateUserAiSettingsInput!) {
         enabled
         provider
         model
-        apiKey
+        hasApiKey
       }
     }
   }

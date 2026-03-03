@@ -40,7 +40,7 @@ query AccountPage {
         enabled
         provider
         model
-        apiKey
+        hasApiKey
       }
       ...User_user
     }

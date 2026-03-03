@@ -192,6 +192,10 @@ class AiSettings(models.Model):
     model = models.CharField(max_length=100, choices=Model.choices, null=True)
     api_key = EncryptedTextField(max_length=255, null=True)
 
+    @property
+    def has_api_key(self) -> bool:
+        return bool(self.api_key)
+
 
 class OrganizationType(models.TextChoices):
     CORPORATE = "CORPORATE", _("Corporate")

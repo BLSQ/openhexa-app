@@ -388,8 +388,8 @@ enum AiProvider {
 }
 
 type AiSettings {
-  apiKey: String
   enabled: Boolean
+  hasApiKey: String
   model: AiModel
   provider: AiProvider
 }

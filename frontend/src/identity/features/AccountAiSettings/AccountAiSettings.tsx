@@ -101,7 +101,7 @@ const AccountAiSettings = (props: AccountAiSettingsProps) => {
       />
       <TextProperty
         id="apiKey"
-        accessor="aiSettings.apiKey"
+        accessor={(item: User) => { if (item?.aiSettings?.hasApiKey) return "*******"}}
         label={t("API Key")}
         visible={(_, __, values) =>
           Boolean(values.enableAI)

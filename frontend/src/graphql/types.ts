@@ -422,8 +422,8 @@ export enum AiProvider {
 
 export type AiSettings = {
   __typename?: 'AiSettings';
-  apiKey?: Maybe<Scalars['String']['output']>;
   enabled?: Maybe<Scalars['Boolean']['output']>;
+  hasApiKey?: Maybe<Scalars['String']['output']>;
   model?: Maybe<AiModel>;
   provider?: Maybe<AiProvider>;
 };
