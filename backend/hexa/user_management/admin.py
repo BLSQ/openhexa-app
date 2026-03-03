@@ -12,6 +12,7 @@ from django.utils.safestring import mark_safe
 from hexa.core.admin import GlobalObjectsModelAdmin, country_list
 
 from .models import (
+    AiSettings,
     Feature,
     FeatureFlag,
     Membership,
@@ -66,6 +67,23 @@ class FeatureFlagInline(admin.TabularInline):
     extra = 0
 
 
+class AiSettingsAdminForm(forms.ModelForm):
+    class Meta:
+        model = AiSettings
+        fields = "__all__"
+        widgets = {
+            "api_key": forms.PasswordInput(render_value=True),
+        }
+
+
+class AiSettingsInline(admin.StackedInline):
+    model = AiSettings
+    form = AiSettingsAdminForm
+    can_delete = False
+    extra = 1
+    max_num = 1
+
+
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     list_display = (
@@ -80,7 +98,7 @@ class CustomUserAdmin(UserAdmin):
 
     list_filter = ("last_login", "is_staff", "is_superuser", "is_active")
     filter_horizontal = ("user_permissions",)
-    inlines = [MembershipInline, FeatureFlagInline]
+    inlines = [MembershipInline, FeatureFlagInline, AiSettingsInline]
     fieldsets = (
         (
             None,
@@ -182,6 +200,27 @@ class CustomUserAdmin(UserAdmin):
                 case_insensitive_email=Collate("email", "und-x-icu"),
             )
         )
+
+
+@admin.register(AiSettings)
+class AiSettingsAdmin(admin.ModelAdmin):
+    form = AiSettingsAdminForm
+    list_display = (
+        "user",
+        "enabled",
+        "provider",
+        "model",
+        "has_api_key",
+    )
+
+    list_filter = ("provider", "enabled", "model")
+    search_fields = ("user__username", "user__email")
+
+    def has_api_key(self, obj):
+        return bool(obj.api_key)
+
+    has_api_key.boolean = True
+    has_api_key.short_description = "API Key Set"
 
 
 class OrganizationMembershipInline(admin.TabularInline):
