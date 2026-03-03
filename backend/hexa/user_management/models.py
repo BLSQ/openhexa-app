@@ -18,6 +18,7 @@ from django_countries.fields import CountryField
 
 from hexa.core.models import Base, Invitation, InvitationManager
 from hexa.core.models.base import BaseQuerySet
+from hexa.core.models.cryptography import EncryptedTextField
 from hexa.core.models.soft_delete import (
     DefaultSoftDeletedManager,
     IncludeSoftDeletedManager,
@@ -189,7 +190,7 @@ class AiSettings(models.Model):
     enabled = models.BooleanField(default=False)
     provider = models.CharField(max_length=20, choices=Provider.choices, null=True)
     model = models.CharField(max_length=100, choices=Model.choices, null=True)
-    api_key = models.CharField(max_length=255, null=True)
+    api_key = EncryptedTextField(max_length=255, null=True)
 
 
 class OrganizationType(models.TextChoices):
