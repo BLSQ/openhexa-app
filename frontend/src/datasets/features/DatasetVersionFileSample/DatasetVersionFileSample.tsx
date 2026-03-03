@@ -44,6 +44,10 @@ function getCodeLang(filename: string): string | null {
   return ext ? (CODE_LANG_BY_EXTENSION[ext] ?? null) : null;
 }
 
+function canSmartPreview(file: DatasetVersionFileSample_FileFragment): boolean {
+  return getCodeLang(file.filename) !== null;
+}
+
 const CodePreviewer = ({
   url,
   lang,
@@ -174,6 +178,7 @@ export const DatasetVersionFileSample: ApolloComponent<
     variables: {
       id: file.id,
     },
+    skip: canSmartPreview(file),
   });
 
   useEffect(() => {
