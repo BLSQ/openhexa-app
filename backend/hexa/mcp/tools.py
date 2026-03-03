@@ -133,7 +133,7 @@ def read_file(user, workspace_slug: str, file_path: str) -> dict:
 
 @tool
 def write_file(user, workspace_slug: str, file_path: str, content: str) -> dict:
-    """Write text content to a new file in a workspace bucket. Fails if the file already exists."""
+    """Write text content to a new file in a workspace bucket. Fails if the file already exists. Requires the createObject permission on the workspace."""
     data = _execute_graphql(
         user,
         "WriteFileContent",

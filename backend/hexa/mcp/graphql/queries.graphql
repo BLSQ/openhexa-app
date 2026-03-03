@@ -6,9 +6,12 @@ query ListWorkspaces($query: String, $page: Int, $perPage: Int) {
     items {
       slug
       name
-      description
       createdAt
       updatedAt
+      permissions {
+        createObject
+        update
+      }
     }
   }
 }
@@ -20,6 +23,10 @@ query GetWorkspace($slug: String!) {
     description
     createdAt
     updatedAt
+    permissions {
+      createObject
+      update
+    }
   }
 }
 
