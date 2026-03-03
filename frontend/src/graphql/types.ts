@@ -4691,6 +4691,7 @@ export type QueryWorkspacesArgs = {
 
 export enum ReadFileContentError {
   FileTooLarge = 'FILE_TOO_LARGE',
+  InvalidPath = 'INVALID_PATH',
   NotAFile = 'NOT_A_FILE',
   NotFound = 'NOT_FOUND',
   NotUtf8 = 'NOT_UTF8',
@@ -6172,6 +6173,8 @@ export type WorkspaceRef = {
 
 export enum WriteFileContentError {
   AlreadyExists = 'ALREADY_EXISTS',
+  FileTooLarge = 'FILE_TOO_LARGE',
+  InvalidPath = 'INVALID_PATH',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }

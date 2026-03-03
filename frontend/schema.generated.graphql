@@ -3775,6 +3775,7 @@ type Query {
 
 enum ReadFileContentError {
   FILE_TOO_LARGE
+  INVALID_PATH
   NOT_A_FILE
   NOT_FOUND
   NOT_UTF8
@@ -5391,6 +5392,8 @@ type WorkspaceRef {
 
 enum WriteFileContentError {
   ALREADY_EXISTS
+  FILE_TOO_LARGE
+  INVALID_PATH
   NOT_FOUND
   PERMISSION_DENIED
 }

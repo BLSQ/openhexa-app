@@ -5,6 +5,7 @@ from ariadne import MutationType
 from hexa.analytics.api import track
 from hexa.files import storage
 from hexa.files.backends.exceptions import NotFound
+from hexa.files.utils import is_safe_path
 from hexa.workspaces.models import Workspace
 
 mutations = MutationType()
@@ -113,6 +114,9 @@ def resolve_write_file_content(_, info, **kwargs):
     file_path = mutation_input["file_path"]
     content = mutation_input["content"]
     overwrite = mutation_input.get("overwrite", False)
+
+    if not is_safe_path(file_path):
+        return {"success": False, "errors": ["INVALID_PATH"]}
 
     try:
         workspace = Workspace.objects.filter_for_user(request.user).get(

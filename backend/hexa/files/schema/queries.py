@@ -4,6 +4,7 @@ from django.http import HttpRequest
 
 from hexa.files import storage
 from hexa.files.backends.exceptions import NotFound
+from hexa.files.utils import is_safe_path
 from hexa.workspaces.models import Workspace
 
 files_queries = QueryType()
@@ -14,6 +15,9 @@ MAX_READ_SIZE = 1024 * 1024
 @files_queries.field("getFileByPath")
 def resolve_get_file_by_path(_, info, workspace_slug, path):
     request: HttpRequest = info.context["request"]
+
+    if not is_safe_path(path):
+        return None
 
     try:
         workspace = Workspace.objects.filter_for_user(request.user).get(
@@ -36,6 +40,9 @@ def resolve_read_file_content(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     workspace_slug = kwargs["workspace_slug"]
     file_path = kwargs["file_path"]
+
+    if not is_safe_path(file_path):
+        return {"success": False, "errors": ["INVALID_PATH"]}
 
     try:
         workspace = Workspace.objects.filter_for_user(request.user).get(

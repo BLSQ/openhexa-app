@@ -152,6 +152,7 @@ enum ReadFileContentError {
   FILE_TOO_LARGE
   NOT_A_FILE
   NOT_UTF8
+  INVALID_PATH
 }
 
 type ReadFileContentResult {
@@ -172,6 +173,8 @@ enum WriteFileContentError {
   NOT_FOUND
   PERMISSION_DENIED
   ALREADY_EXISTS
+  FILE_TOO_LARGE
+  INVALID_PATH
 }
 
 type WriteFileContentResult {
