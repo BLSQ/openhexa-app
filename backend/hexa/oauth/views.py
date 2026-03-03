@@ -2,7 +2,6 @@ import json
 import uuid
 
 from django.http import HttpRequest, JsonResponse
-from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from oauth2_provider.models import Application
@@ -118,7 +117,6 @@ def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
     return JsonResponse(response_data, status=201)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class OAuthAuthorizeView(AuthorizationView):
     login_url = "/login"
 
