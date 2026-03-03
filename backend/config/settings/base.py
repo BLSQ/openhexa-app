@@ -556,3 +556,15 @@ OAUTH2_PROVIDER = {
     "REFRESH_TOKEN_EXPIRE_SECONDS": 86400,
     "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"] if DEBUG else ["https"],
 }
+
+OAUTH2_ALLOWED_REDIRECT_URI_HOSTS = {
+    "localhost",
+    "127.0.0.1",
+    "claude.ai",
+    "chatgpt.com",
+    "chat.openai.com",
+}
+if "OAUTH2_ALLOWED_REDIRECT_URI_HOSTS" in os.environ:
+    OAUTH2_ALLOWED_REDIRECT_URI_HOSTS.update(
+        os.environ["OAUTH2_ALLOWED_REDIRECT_URI_HOSTS"].split(",")
+    )

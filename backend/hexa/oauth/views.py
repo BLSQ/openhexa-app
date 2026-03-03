@@ -1,6 +1,8 @@
 import json
 import uuid
+from urllib.parse import urlparse
 
+from django.conf import settings
 from django.http import HttpRequest, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -83,6 +85,18 @@ def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
             },
             status=400,
         )
+
+    allowed_hosts = settings.OAUTH2_ALLOWED_REDIRECT_URI_HOSTS
+    for uri in redirect_uris:
+        host = urlparse(uri).hostname
+        if host not in allowed_hosts:
+            return JsonResponse(
+                {
+                    "error": "invalid_redirect_uri",
+                    "error_description": f"Redirect URI host '{host}' is not allowed",
+                },
+                status=400,
+            )
 
     client_id = uuid.uuid4().hex
     token_endpoint_auth_method = data.get("token_endpoint_auth_method", "none")
