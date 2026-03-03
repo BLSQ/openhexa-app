@@ -4,11 +4,13 @@ import OrganizationLayout from "organizations/layouts/OrganizationLayout";
 import { useTranslation } from "next-i18next";
 import Page from "core/components/Page";
 import { PlusIcon } from "@heroicons/react/24/outline";
+import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import {
   OrganizationDocument,
   OrganizationQuery,
   useOrganizationWorkspacesQuery,
 } from "organizations/graphql/queries.generated";
+import { CreateWorkspacePermissionReason } from "graphql/types";
 import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
 import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
@@ -89,14 +91,21 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
           </div>
         }
         headerActions={
-          <Button
-            variant="primary"
-            onClick={() => setIsCreateDialogOpen(true)}
-            leadingIcon={<PlusIcon className="w-4" />}
-            disabled={!organization.permissions.createWorkspace}
+          <SubscriptionLimitTooltip
+            isLimitReached={organization.permissions.createWorkspace.reasons.includes(
+              CreateWorkspacePermissionReason.WorkspacesLimitReached,
+            )}
+            title={t("You have reached the maximum number of workspaces for your plan.")}
           >
-            {t("Create Workspace")}
-          </Button>
+            <Button
+              variant="primary"
+              onClick={() => setIsCreateDialogOpen(true)}
+              leadingIcon={<PlusIcon className="w-4" />}
+              disabled={!organization.permissions.createWorkspace.isAllowed}
+            >
+              {t("Create Workspace")}
+            </Button>
+          </SubscriptionLimitTooltip>
         }
       >
         <WorkspacesHeader

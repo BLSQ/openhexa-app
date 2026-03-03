@@ -19,7 +19,7 @@ const MOCK_ORGANIZATION = {
   shortName: "test-org",
   permissions: {
     manageMembers: true,
-    createWorkspace: true,
+    createWorkspace: { isAllowed: true, reasons: [] },
     archiveWorkspace: true,
     manageOwners: true,
     update: true,

@@ -19,7 +19,7 @@ export type WebappAccessQueryVariables = Types.Exact<{
 }>;
 
 
-export type WebappAccessQuery = { __typename?: 'Query', webapp?: { __typename?: 'Webapp', slug: string, url: string, name: string, type: Types.WebappType, workspace: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: boolean } } | null } } | null };
+export type WebappAccessQuery = { __typename?: 'Query', webapp?: { __typename?: 'Webapp', slug: string, url: string, name: string, type: Types.WebappType, workspace: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } } | null } } | null };
 
 export const WebappPlay_WebappFragmentDoc = gql`
     fragment WebappPlay_webapp on Webapp {

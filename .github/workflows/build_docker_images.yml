@@ -6,6 +6,17 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      NEXT_PUBLIC_BASE_PATH:
+        description: "Base path for the frontend (e.g. /openhexa)"
+        required: true
+      NEXT_PUBLIC_API_BASE_PATH:
+        description: "Base path for the backend API (e.g. /api)"
+        required: true
+      tag:
+        description: "Docker image tag to push (e.g. path-prefix)"
+        required: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -152,3 +163,17 @@ jobs:
             blsq/openhexa-frontend:main
             blsq/openhexa-frontend:latest
           cache-from: type=registry,ref=blsq/openhexa-frontend:buildcache
+
+      - name: Build and push (manual, with path prefix)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          file: frontend/Dockerfile
+          push: true
+          tags: |
+            blsq/openhexa-frontend:${{ inputs.tag }}
+          cache-from: type=registry,ref=blsq/openhexa-frontend:buildcache
+          build-args: |
+            "NEXT_PUBLIC_BASE_PATH=${{ inputs.NEXT_PUBLIC_BASE_PATH }}"
+            "NEXT_PUBLIC_API_BASE_PATH=${{ inputs.NEXT_PUBLIC_API_BASE_PATH }}"

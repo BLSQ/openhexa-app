@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.3.0](https://github.com/BLSQ/openhexa-app/compare/4.2.0...4.3.0) (2026-02-26)
+
+
+### Features
+
+* allow users to publish webapps to the world (HEXA-1426, HEXA-1427, HEXA-1528) ([#1634](https://github.com/BLSQ/openhexa-app/issues/1634)) ([35531e8](https://github.com/BLSQ/openhexa-app/commit/35531e86cd135fbfcb2afdf2a912de4e50ecb419))
+
+
+### Bug Fixes
+
+* as a Django admin, I cannot view/edit the pod limits on an organization subscription (HEXA-1525) ([#1641](https://github.com/BLSQ/openhexa-app/issues/1641)) ([40d9fce](https://github.com/BLSQ/openhexa-app/commit/40d9fce7e99fc75e1ebd99e8bdcaaeea5aece114))
+* changing error handling to prevent test connection errors to go to sentry ([#1637](https://github.com/BLSQ/openhexa-app/issues/1637)) ([565ea4a](https://github.com/BLSQ/openhexa-app/commit/565ea4ab1dddead9af381c2291cedfd04ec831e6))
+* no dropdown for superset instance when there is only one (HEXA-1527) ([#1639](https://github.com/BLSQ/openhexa-app/issues/1639)) ([b2b1e42](https://github.com/BLSQ/openhexa-app/commit/b2b1e42112a6fbe350c462656679c21880b9d62d))
+
 ## [4.2.0](https://github.com/BLSQ/openhexa-app/compare/4.1.0...4.2.0) (2026-02-23)
 
 
