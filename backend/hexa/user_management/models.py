@@ -171,6 +171,21 @@ class User(AbstractUser, UserInterface):
 
 
 class AiSettings(models.Model):
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                name="ai_settings_enabled_requires_full_config",
+                check=(
+                    Q(enabled=False)
+                    | (
+                        Q(provider__isnull=False)
+                        & Q(model__isnull=False)
+                        & Q(api_key__isnull=False)
+                    )
+                ),
+            )
+        ]
+
     class Provider(models.TextChoices):
         ANTHROPIC = "anthropic", _("Anthropic")
 
