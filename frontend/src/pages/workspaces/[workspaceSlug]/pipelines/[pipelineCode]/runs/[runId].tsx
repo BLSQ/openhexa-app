@@ -27,6 +27,7 @@ import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import RunLogs from "pipelines/features/RunLogs";
 import RunMessages from "pipelines/features/RunMessages";
+import usePipelineRunMessages from "pipelines/hooks/usePipelineRunMessages/usePipelineRunMessages";
 import { useCallback, useMemo, useState } from "react";
 import RunOutputsTable from "workspaces/features/RunOutputsTable";
 import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
@@ -61,17 +62,22 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
     [data],
   );
 
+  const runStatus = data?.pipelineRun?.status;
+  const runId_ = data?.pipelineRun?.id ?? runId;
+
+  const { messages: sseMessages, isStreaming } = usePipelineRunMessages(runId_);
+
   const refreshInterval = useMemo(() => {
-    switch (data?.pipelineRun?.status) {
+    switch (runStatus) {
       case PipelineRunStatus.Queued:
       case PipelineRunStatus.Terminating:
-        return 0.5 * 1000; // 2 times per second
+        return 0.5 * 1000;
       case PipelineRunStatus.Running:
-        return 0.25 * 1000; // 4 times per second
+        return 0.25 * 1000;
       default:
         return null;
     }
-  }, [data]);
+  }, [runStatus]);
 
   const [isStopPipelineDialogOpen, setIsStopPipelineDialogOpen] =
     useState(false);
@@ -348,7 +354,12 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
             )}
             <Block.Section title={t("Messages")}>
               {/* Set a ref to the component to recreate it completely when the run id changes.  */}
-              <RunMessages key={run.id} run={run} />
+              <RunMessages
+                key={run.id}
+                run={run}
+                messages={sseMessages}
+                isStreaming={isStreaming}
+              />
             </Block.Section>
             <Block.Section title={t("Logs")} collapsible defaultOpen={false}>
               <RunLogs run={run} />
