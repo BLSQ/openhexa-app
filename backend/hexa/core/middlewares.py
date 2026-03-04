@@ -66,7 +66,8 @@ def oauth2_token_authentication_middleware(get_response):
                     token=token
                 )
                 if access_token.expires >= timezone.now():
-                    request.user = access_token.user
+                    if request.path.startswith("/mcp") and "openhexa:mcp" in access_token.scope:
+                        request.user = access_token.user
         except KeyError:
             pass
         except ValueError:
