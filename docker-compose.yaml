@@ -164,6 +164,7 @@ services:
     environment:
       - GIT_SERVER_ADMIN_USERNAME=${GIT_SERVER_ADMIN_USERNAME:-openhexa-admin}
       - GIT_SERVER_ADMIN_PASSWORD=${GIT_SERVER_ADMIN_PASSWORD:-openhexa}
+      - FORGEJO__service__DISABLE_REGISTRATION=true
     volumes:
       - forgejo_data:/data
       - ./forgejo/entrypoint.sh:/custom-entrypoint.sh:ro
