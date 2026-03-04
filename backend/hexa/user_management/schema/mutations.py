@@ -9,7 +9,7 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 from django.utils.http import urlsafe_base64_decode
 from django_otp import devices_for_user
@@ -496,7 +496,16 @@ def resolve_update_user_ai_settings(_, info, **kwargs):
         if field_name in mutation_input:
             setattr(ai_settings, field_name, mutation_input[field_name])
 
-    ai_settings.save()
+    if ai_settings.enabled and not (
+        ai_settings.provider and ai_settings.model and ai_settings.api_key
+    ):
+        return {"success": False, "errors": ["INCOMPLETE_CONFIG"]}
+
+    try:
+        ai_settings.save()
+    except IntegrityError:
+        return {"success": False, "errors": ["INCOMPLETE_CONFIG"]}
+
     return {"success": True, "errors": [], "user": user}
 
 

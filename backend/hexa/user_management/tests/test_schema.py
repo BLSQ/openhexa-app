@@ -1772,7 +1772,7 @@ class SignupTest(GraphQLTestCase):
         )
 
     @override_settings(ALLOW_SELF_REGISTRATION=True)
-    @patch("hexa.user_management.schema.send_signup_email")
+    @patch("hexa.user_management.schema.mutations.send_signup_email")
     def test_signup_success(self, mock_send_email):
         """Test successful signup request."""
         r = self.run_query(
@@ -1832,7 +1832,7 @@ class SignupTest(GraphQLTestCase):
         self.assertEqual(r["data"]["signup"], {"success": True, "errors": []})
 
     @override_settings(ALLOW_SELF_REGISTRATION=True)
-    @patch("hexa.user_management.schema.send_signup_email")
+    @patch("hexa.user_management.schema.mutations.send_signup_email")
     def test_signup_existing_pending_request(self, mock_send_email):
         """Test signup with existing pending request resends email."""
         existing_request = SignupRequest.objects.create(email="pending@email.com")
@@ -1859,7 +1859,7 @@ class SignupTest(GraphQLTestCase):
         self.assertEqual(called_request.id, existing_request.id)
 
     @override_settings(ALLOW_SELF_REGISTRATION=True)
-    @patch("hexa.user_management.schema.send_signup_email")
+    @patch("hexa.user_management.schema.mutations.send_signup_email")
     def test_signup_email_normalized(self, mock_send_email):
         """Test that email is normalized (lowercase, trimmed)."""
         r = self.run_query(
@@ -1945,8 +1945,10 @@ class UpdateUserAiSettingsTest(GraphQLTestCase):
             {"input": {"enabled": True, "provider": AiSettings.Provider.ANTHROPIC}},
         )
 
-        self.assertIsNotNone(r.get("errors"))
-        self.assertIsNone(r["data"]["updateUserAiSettings"])
+        self.assertEqual(
+            r["data"]["updateUserAiSettings"],
+            {"success": False, "errors": ["INCOMPLETE_CONFIG"], "user": None},
+        )
 
     def test_update_ai_settings_api_key_not_exposed(self):
         self.client.force_login(self.USER)
@@ -1966,6 +1968,5 @@ class UpdateUserAiSettingsTest(GraphQLTestCase):
             self.UPDATE_AI_SETTINGS_MUTATION,
             {"input": {"enabled": True}},
         )
-
         self.assertIsNotNone(r.get("errors"))
-        self.assertIsNone(r["data"]["updateUserAiSettings"])
+        self.assertIsNone(r["data"])

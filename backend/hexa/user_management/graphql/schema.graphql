@@ -452,6 +452,11 @@ enum UpdateUserAiSettingsError {
     Indicates that the user does not have permission to update their profile.
     """
     PERMISSION_DENIED
+
+    """
+    Indicates that enabling AI requires provider, model, and api_key to all be set.
+    """
+    INCOMPLETE_CONFIG
 }
 
 type AiSettings {
