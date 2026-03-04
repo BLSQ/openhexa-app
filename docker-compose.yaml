@@ -164,6 +164,8 @@ services:
     environment:
       - GIT_SERVER_ADMIN_USERNAME=${GIT_SERVER_ADMIN_USERNAME:-openhexa-admin}
       - GIT_SERVER_ADMIN_PASSWORD=${GIT_SERVER_ADMIN_PASSWORD:-openhexa}
+      - FORGEJO__database__DB_TYPE=sqlite3
+      - FORGEJO__security__INSTALL_LOCK=true
       - FORGEJO__service__DISABLE_REGISTRATION=true
     volumes:
       - forgejo_data:/data

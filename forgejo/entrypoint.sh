@@ -10,9 +10,9 @@ until curl -sf http://localhost:3000/api/v1/version > /dev/null 2>&1; do
 done
 echo "Forgejo is ready."
 
-if ! forgejo admin user list --admin 2>/dev/null | grep -q "$GIT_SERVER_ADMIN_USERNAME"; then
+if ! su-exec git forgejo admin user list --admin 2>/dev/null | grep -q "$GIT_SERVER_ADMIN_USERNAME"; then
     echo "Creating admin user '$GIT_SERVER_ADMIN_USERNAME'..."
-    forgejo admin user create \
+    su-exec git forgejo admin user create \
         --admin \
         --username "$GIT_SERVER_ADMIN_USERNAME" \
         --password "$GIT_SERVER_ADMIN_PASSWORD" \
