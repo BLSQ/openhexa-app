@@ -5751,6 +5751,8 @@ export type UpdateTemplateVersionResult = {
 
 /** The UpdateUserAiSettingsError enum represents the possible errors that can occur during the updateUser mutation. */
 export enum UpdateUserAiSettingsError {
+  /** Indicates that enabling AI requires provider, model, and api_key to all be set. */
+  IncompleteConfig = 'INCOMPLETE_CONFIG',
   /** Indicates that the user does not have permission to update their profile. */
   PermissionDenied = 'PERMISSION_DENIED'
 }

@@ -4964,6 +4964,11 @@ The UpdateUserAiSettingsError enum represents the possible errors that can occur
 """
 enum UpdateUserAiSettingsError {
   """
+  Indicates that enabling AI requires provider, model, and api_key to all be set.
+  """
+  INCOMPLETE_CONFIG
+
+  """
   Indicates that the user does not have permission to update their profile.
   """
   PERMISSION_DENIED
