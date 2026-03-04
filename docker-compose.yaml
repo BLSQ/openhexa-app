@@ -155,6 +155,23 @@ services:
       - "10002:10002"
 
 
+  # Git server
+  #############
+
+  forgejo:
+    image: codeberg.org/forgejo/forgejo:14
+    entrypoint: /custom-entrypoint.sh
+    environment:
+      - GIT_SERVER_ADMIN_USERNAME=${GIT_SERVER_ADMIN_USERNAME:-openhexa-admin}
+      - GIT_SERVER_ADMIN_PASSWORD=${GIT_SERVER_ADMIN_PASSWORD:-openhexa}
+    volumes:
+      - forgejo_data:/data
+      - ./forgejo/entrypoint.sh:/custom-entrypoint.sh:ro
+    ports:
+      - "3100:3000"
+    networks:
+      - openhexa
+
   # Legacy services
   ################
 
@@ -176,3 +193,4 @@ networks:
 volumes:
   pgdata:
   minio_data:
+  forgejo_data:
