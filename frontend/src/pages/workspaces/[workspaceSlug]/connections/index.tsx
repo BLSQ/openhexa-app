@@ -6,6 +6,7 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
+import Image from "next/image";
 import { useState } from "react";
 import CreateConnectionDialog from "workspaces/features/CreateConnectionDialog";
 import {
@@ -95,10 +96,12 @@ const WorkspaceConnectionsPage: NextPageWithLayout = (props: Props) => {
                     title={
                       <div className="flex items-center gap-x-2">
                         {Connections[connection.type].iconSrc && (
-                          <img
+                          <Image
                             src={Connections[connection.type].iconSrc!}
                             className="h-6 w-6"
                             alt=""
+                            width={24}
+                            height={24}
                           />
                         )}
                         {connection.name}
