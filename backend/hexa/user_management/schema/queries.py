@@ -72,6 +72,7 @@ def resolve_users(
             "You must specify either a workspaceSlug or an organizationId"
         )
 
+    # If workspace_slug is provided, exclude current members of that workspace
     if workspace_slug:
         try:
             workspace = Workspace.objects.filter_for_user(request.user).get(
@@ -81,12 +82,14 @@ def resolve_users(
             if not request.user.has_perm("workspaces.manage_members", workspace):
                 raise PermissionDenied
 
+            # Exclude current members of the workspace
             users = users.exclude(id__in=workspace.members.values_list("id", flat=True))
         except PermissionDenied:
             return []
         except Workspace.DoesNotExist:
             return []
 
+    # If organization_id is provided, exclude current members of that organization
     if organization_id:
         try:
             organization = Organization.objects.filter_for_user(request.user).get(
@@ -107,6 +110,7 @@ def resolve_users(
         except Organization.DoesNotExist:
             return []
 
+    # Explicitly collate the email field to allow case-insensitive LIKE queries
     users = users.annotate(case_insensitive_email=Collate("email", "und-x-icu"))
 
     users = users.filter(

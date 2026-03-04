@@ -19,7 +19,7 @@ from hexa.user_management.models import (
     OrganizationInvitationStatus,
     OrganizationMembership,
     OrganizationSubscription,
-    User,
+    User, Team,
 )
 from hexa.utils.base64_image_encode_decode import encode_base64_image
 from hexa.workspaces.models import (
@@ -139,7 +139,7 @@ team_object = ObjectType("Team")
 
 
 @team_object.field("memberships")
-def resolve_team_memberships(team, *_, **kwargs):
+def resolve_team_memberships(team: Team, *_, **kwargs):
     return result_page(
         queryset=team.membership_set.all(),
         page=kwargs.get("page", 1),
@@ -148,7 +148,7 @@ def resolve_team_memberships(team, *_, **kwargs):
 
 
 @team_object.field("permissions")
-def resolve_team_permissions(team, info):
+def resolve_team_permissions(team: Team, info):
     return team
 
 
@@ -156,19 +156,19 @@ team_permissions_object = ObjectType("TeamPermissions")
 
 
 @team_permissions_object.field("update")
-def resolve_team_permissions_update(team, info):
+def resolve_team_permissions_update(team: Team, info):
     request: HttpRequest = info.context["request"]
     return request.user.has_perm("user_management.update_team", team)
 
 
 @team_permissions_object.field("delete")
-def resolve_team_permissions_delete(team, info):
+def resolve_team_permissions_delete(team: Team, info):
     request: HttpRequest = info.context["request"]
     return request.user.has_perm("user_management.delete_team", team)
 
 
 @team_permissions_object.field("createMembership")
-def resolve_team_permissions_create_membership(team, info):
+def resolve_team_permissions_create_membership(team: Team, info):
     request: HttpRequest = info.context["request"]
     return request.user.has_perm("user_management.create_membership", team)
 
@@ -233,6 +233,7 @@ def resolve_members(organization: Organization, info, **kwargs):
     role = kwargs.get("role")
 
     if term:
+        # Annotate with collated email field to handle case-insensitive email search
         qs = qs.annotate(case_insensitive_email=Collate("user__email", "und-x-icu"))
         qs = qs.filter(
             Q(user__first_name__icontains=term)
@@ -254,6 +255,7 @@ def resolve_members(organization: Organization, info, **kwargs):
 def resolve_external_collaborators(organization: Organization, info, **kwargs):
     request: HttpRequest = info.context["request"]
 
+    # Return empty result if user doesn't have manageMembers permission
     if not request.user.has_perm("user_management.manage_members", organization):
         return result_page(
             queryset=WorkspaceMembership.objects.none(),
@@ -279,10 +281,12 @@ def resolve_external_collaborators(organization: Organization, info, **kwargs):
             | Q(case_insensitive_email__icontains=term)
         )
 
+    # Get IDs of earliest membership per user
     earliest_membership_ids = (
         qs.order_by("user_id", "created_at").distinct("user_id").values("id")
     )
 
+    # Query again with proper email ordering for pagination
     memberships_qs = (
         WorkspaceMembership.objects.filter(id__in=earliest_membership_ids)
         .select_related("user")
@@ -296,6 +300,7 @@ def resolve_external_collaborators(organization: Organization, info, **kwargs):
         per_page=kwargs.get("per_page", 10),
     )
 
+    # Add organization reference for workspace_memberships resolver
     for m in page_result["items"]:
         m.organization = organization
 
@@ -458,6 +463,7 @@ def resolve_organization_dataset_links(
     if accessible_workspaces:
         first_workspace = next(iter(accessible_workspaces))
         for obj in page_result["items"]:
+            # If the dataset link is shared with the organization but the user has no access to the workspace, set it to the first accessible workspace
             if (
                 obj.dataset.shared_with_organization
                 and obj.workspace not in accessible_workspaces

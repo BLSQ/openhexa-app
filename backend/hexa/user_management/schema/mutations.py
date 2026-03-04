@@ -570,6 +570,7 @@ def resolve_delete_external_collaborator(_, info, **kwargs):
         if not principal.has_perm("user_management.manage_members", organization):
             raise PermissionDenied()
 
+        # Delete all workspace memberships for this user within the organization
         WorkspaceMembership.objects.filter(
             user=user, workspace__organization=organization
         ).delete()
@@ -877,6 +878,7 @@ def resolve_update_organization(_, info, **kwargs):
                         "errors": ["INVALID_LOGO"],
                     }
             else:
+                # Empty string means remove logo
                 organization.logo = None
 
         organization.save()
@@ -907,6 +909,7 @@ def resolve_delete_organization(_, info, **kwargs):
         if not principal.has_perm("user_management.delete_organization", organization):
             raise PermissionDenied
 
+        # Perform soft delete (which will also archive all workspaces)
         organization.delete()
 
         return {"success": True, "errors": []}
@@ -1007,7 +1010,7 @@ def resolve_create_organization(_, info, **kwargs):
             role=OrganizationMembershipRole.OWNER,
         )
         send_organization_invite(invitation)
-        user = None
+        user = None  # User will be created when they accept the invitation
 
     return {
         "success": True,
