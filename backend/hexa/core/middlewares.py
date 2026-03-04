@@ -65,9 +65,12 @@ def oauth2_token_authentication_middleware(get_response):
                 access_token = AccessToken.objects.select_related("user").get(
                     token=token
                 )
-                if access_token.expires >= timezone.now():
-                    if request.path.startswith("/mcp") and "openhexa:mcp" in access_token.scope:
-                        request.user = access_token.user
+                if (
+                    access_token.expires >= timezone.now()
+                    and request.path.startswith("/mcp")
+                    and "openhexa:mcp" in access_token.scope
+                ):  # Only allow MCP access for now, users authorized this scope for MCP access, not for GraphQL or other endpoints. We can later add more scopes for other endpoints if needed.
+                    request.user = access_token.user
         except KeyError:
             pass
         except ValueError:
