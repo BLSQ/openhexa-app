@@ -129,7 +129,7 @@ if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
         ","
     )
 
-CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$|^/mcp/|^/oauth/|^/\.well-known/"
+CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$|^/mcp/|^/oauth/|^/\.well-known/|^/pipelines/runs/[^/]+/messages/stream/"
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -294,6 +294,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "config.wsgi.application"
+ASGI_APPLICATION = "config.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
