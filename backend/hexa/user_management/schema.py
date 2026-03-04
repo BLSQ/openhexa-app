@@ -48,7 +48,7 @@ from hexa.user_management.models import (
     SignupRequestStatus,
     Team,
     User,
-    UsersLimitReached,
+    UsersLimitReached, AiSettings,
 )
 from hexa.utils.base64_image_encode_decode import (
     decode_base64_image,
@@ -177,6 +177,24 @@ def resolve_me_permissions(_, info):
 @identity_query.field("me")
 def resolve_me(_, info):
     return me_object
+
+
+ai_labels_object = ObjectType("AiLabels")
+
+
+@ai_labels_object.field("providers")
+def resolve_ai_labels_providers(_, info):
+    return AiSettings.provider_choices()
+
+
+@ai_labels_object.field("models")
+def resolve_ai_labels_models(_, info):
+    return AiSettings.model_choices()
+
+
+@identity_query.field("aiLabels")
+def resolve_ai_labels(_, info):
+    return ai_labels_object
 
 
 @identity_query.field("team")
@@ -1821,6 +1839,7 @@ identity_bindables = [
     organization_invitation_object,
     subscription_object,
     identity_mutations,
+    ai_labels_object,
 ]
 
 identity_directives = {"loginRequired": LoginRequiredDirective}

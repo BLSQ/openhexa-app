@@ -455,26 +455,40 @@ enum UpdateUserAiSettingsError {
 }
 
 type AiSettings {
-  enabled: Boolean
-  provider: AiProvider
-  model: AiModel
-  hasApiKey: String
+    enabled: Boolean
+    provider: AiProvider
+    model: AiModel
+    hasApiKey: Boolean
 }
 
 """
 Represents the available AI providers.
 """
 enum AiProvider {
-  anthropic
+    anthropic
 }
 
 """
 Represents the available AI models.
 """
 enum AiModel {
-  OPUS,
-  SONNET,
-  HAIKU,
+    OPUS,
+    SONNET,
+    HAIKU,
+}
+
+extend type Query {
+    aiLabels: AiLabels!
+}
+
+type AiLabels {
+    providers: [AiLabel!]!
+    models: [AiLabel!]!
+}
+
+type AiLabel {
+    value: String!
+    label: String!
 }
 
 extend type Mutation {

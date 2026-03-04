@@ -408,6 +408,18 @@ export type AddWebappToShortcutsResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export type AiLabel = {
+  __typename?: 'AiLabel';
+  label: Scalars['String']['output'];
+  value: Scalars['String']['output'];
+};
+
+export type AiLabels = {
+  __typename?: 'AiLabels';
+  models: Array<AiLabel>;
+  providers: Array<AiLabel>;
+};
+
 /** Represents the available AI models. */
 export enum AiModel {
   Haiku = 'HAIKU',
@@ -423,7 +435,7 @@ export enum AiProvider {
 export type AiSettings = {
   __typename?: 'AiSettings';
   enabled?: Maybe<Scalars['Boolean']['output']>;
-  hasApiKey?: Maybe<Scalars['String']['output']>;
+  hasApiKey?: Maybe<Scalars['Boolean']['output']>;
   model?: Maybe<AiModel>;
   provider?: Maybe<AiProvider>;
 };
@@ -4322,6 +4334,7 @@ export type Query = {
   accessmodFilesets: AccessmodFilesetPage;
   accessmodProject?: Maybe<AccessmodProject>;
   accessmodProjects: AccessmodProjectPage;
+  aiLabels: AiLabels;
   boundaries: Array<WhoBoundary>;
   /** Retrieves the configuration of the system. */
   config: Config;

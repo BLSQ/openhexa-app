@@ -375,6 +375,16 @@ type AddWebappToShortcutsResult {
   success: Boolean!
 }
 
+type AiLabel {
+  label: String!
+  value: String!
+}
+
+type AiLabels {
+  models: [AiLabel!]!
+  providers: [AiLabel!]!
+}
+
 """Represents the available AI models."""
 enum AiModel {
   HAIKU
@@ -389,7 +399,7 @@ enum AiProvider {
 
 type AiSettings {
   enabled: Boolean
-  hasApiKey: String
+  hasApiKey: Boolean
   model: AiModel
   provider: AiProvider
 }
@@ -3700,6 +3710,7 @@ type Query {
   accessmodFilesets(mode: AccessmodFilesetMode, page: Int, perPage: Int, projectId: String!, roleId: String, term: String): AccessmodFilesetPage!
   accessmodProject(id: String): AccessmodProject
   accessmodProjects(countries: [String!], orderBy: AccessmodProjectOrder, page: Int, perPage: Int, teams: [String!], term: String): AccessmodProjectPage!
+  aiLabels: AiLabels!
   boundaries(country_code: String!, level: String!): [WHOBoundary!]!
 
   """Retrieves the configuration of the system."""

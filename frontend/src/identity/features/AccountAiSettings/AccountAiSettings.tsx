@@ -6,7 +6,15 @@ import { useUpdateUserAiSettingsMutation } from "identity/graphql/mutations.gene
 import SimpleSelectProperty from "core/components/DataCard/SimpleSelectProperty";
 import { useTranslation } from "next-i18next";
 import { useState } from "react";
-import { AiModel, AiProvider, AiSettings, User } from "graphql/types";
+import {
+  AiLabel,
+  AiLabels,
+  AiModel,
+  AiProvider,
+  AiSettings,
+  Maybe,
+  User,
+} from "graphql/types";
 import SwitchProperty from "core/components/DataCard/SwitchProperty";
 
 const MODELS: Record<string, string[]> = {
@@ -14,15 +22,25 @@ const MODELS: Record<string, string[]> = {
 };
 
 type AccountAiSettingsProps = {
-  settings?: AiSettings | null;
+  settings?: Maybe<AiSettings>;
+  labels: AiLabels;
   refetch: any;
 };
 
 const AccountAiSettings = (props: AccountAiSettingsProps) => {
-  const { settings, refetch } = props;
+  const { settings, labels, refetch } = props;
   const [updateUserAiSettings] = useUpdateUserAiSettingsMutation();
   const [provider, setProvider] = useState<string | null | undefined>(settings?.provider);
   const modelOptions: string[] = provider ? (MODELS[provider] ?? []) : [];
+
+  const providersMap = Object.fromEntries(
+    labels.providers.map(({ value, label }: AiLabel) => [value, label])
+  );
+  const modelsMap = Object.fromEntries(
+    labels.models.map(({ value, label }: AiLabel) => [value, label])
+  );
+  const getProviderLabel = (type: AiProvider | string): string => providersMap[type] || String(type);
+  const getModelLabel = (type: AiModel | string): string => modelsMap[type] || String(type);
 
   const { t } = useTranslation();
 
@@ -38,28 +56,6 @@ const AccountAiSettings = (props: AccountAiSettingsProps) => {
       },
     });
     await refetch();
-  };
-
-  const getProviderLabel = (type: AiProvider | string): string => {
-    switch (type) {
-      case AiProvider.Anthropic:
-        return "Anthropic";
-      default:
-        return String(type);
-    }
-  };
-
-  const getModelLabel = (type: AiModel | string): string => {
-    switch (type) {
-      case AiModel.Opus:
-        return "Claude Opus 4.6";
-      case AiModel.Sonnet:
-        return "Claude Sonnet 4.6";
-      case AiModel.Haiku:
-        return "Claude Haiku 4.6";
-      default:
-        return String(type);
-    }
   };
 
   return (

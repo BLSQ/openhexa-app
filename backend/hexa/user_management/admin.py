@@ -217,7 +217,7 @@ class AiSettingsAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "user__email")
 
     def has_api_key(self, obj):
-        return bool(obj.api_key)
+        return obj.has_api_key
 
     has_api_key.boolean = True
     has_api_key.short_description = "API Key Set"

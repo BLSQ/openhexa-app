@@ -172,12 +172,12 @@ class User(AbstractUser, UserInterface):
 
 class AiSettings(models.Model):
     class Provider(models.TextChoices):
-        ANTHROPIC = "anthropic"
+        ANTHROPIC = "anthropic", _("Anthropic")
 
     class Model(models.TextChoices):
-        HAIKU = "HAIKU"
-        OPUS = "OPUS"
-        SONNET = "SONNET"
+        HAIKU = "claude-haiku-4-5-20251001", _("Claude Haiku 4.5")
+        OPUS = "claude-opus-4-6", _("Claude Opus 4.6")
+        SONNET = "claude-sonnet-4-6", _("Claude Sonnet 4.6")
 
     user = models.OneToOneField(
         User,
@@ -189,12 +189,26 @@ class AiSettings(models.Model):
     )
     enabled = models.BooleanField(default=False)
     provider = models.CharField(max_length=20, choices=Provider.choices, null=True)
-    model = models.CharField(max_length=100, choices=Model.choices, null=True)
+    model = models.CharField(max_length=30, choices=Model.choices, null=True)
     api_key = EncryptedTextField(max_length=255, null=True)
 
     @property
     def has_api_key(self) -> bool:
         return bool(self.api_key)
+
+    @staticmethod
+    def provider_choices() -> list[dict[str, str]]:
+        return [
+            {"value": choice[0], "label": choice[1]}
+            for choice in AiSettings.Provider.choices
+        ]
+
+    @staticmethod
+    def model_choices() -> list[dict[str, str]]:
+        return [
+            {"value": choice[0], "label": choice[1]}
+            for choice in AiSettings.Model.choices
+        ]
 
 
 class OrganizationType(models.TextChoices):

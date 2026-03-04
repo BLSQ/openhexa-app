@@ -46,6 +46,17 @@ query AccountPage {
     }
   }
 
+  aiLabels {
+    providers {
+      value
+      label
+    }
+    models {
+      value
+      label
+    }
+  }
+
   pendingWorkspaceInvitations {
     totalItems
     items {
