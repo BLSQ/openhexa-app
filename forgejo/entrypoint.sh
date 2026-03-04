@@ -5,7 +5,7 @@ set -e
 FORGEJO_PID=$!
 
 echo "Waiting for Forgejo to be ready..."
-until curl -sf http://localhost:3000/api/v1/version > /dev/null 2>&1; do
+until curl -so /dev/null -w '%{http_code}' http://localhost:3000/api/v1/version 2>/dev/null | grep -qE '200|403'; do
     sleep 1
 done
 echo "Forgejo is ready."
