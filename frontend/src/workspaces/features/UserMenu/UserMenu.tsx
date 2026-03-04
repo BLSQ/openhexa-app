@@ -143,14 +143,13 @@ const UserMenu = (props: UserMenuProps) => {
               ) : null}
             </Link>
             {me.permissions.adminPanel && (
-              <Link
-                href="/admin"
-                noStyle
+              <a
+                href={`${process.env.NEXT_PUBLIC_API_BASE_PATH ?? ""}/admin`}
                 className="group flex gap-2 px-4 py-2.5 text-gray-700 transition-all hover:bg-gray-100 hover:text-gray-800"
               >
                 <Cog6ToothIcon className="h-5 w-5 text-gray-400 transition-all group-hover:text-gray-600" />
                 {t("Administration")}
-              </Link>
+              </a>
             )}
             <Link
               href="https://docs.openhexa.com/#user-manual"
