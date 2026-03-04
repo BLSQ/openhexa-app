@@ -23,7 +23,7 @@ const MODELS: Record<string, string[]> = {
 
 type AccountAiSettingsProps = {
   settings?: Maybe<AiSettings>;
-  labels: AiLabels;
+  labels: Maybe<AiLabels>;
   refetch: any;
 };
 
@@ -33,12 +33,17 @@ const AccountAiSettings = (props: AccountAiSettingsProps) => {
   const [provider, setProvider] = useState<string | null | undefined>(settings?.provider);
   const modelOptions: string[] = provider ? (MODELS[provider] ?? []) : [];
 
-  const providersMap = Object.fromEntries(
-    labels.providers.map(({ value, label }: AiLabel) => [value, label])
-  );
-  const modelsMap = Object.fromEntries(
-    labels.models.map(({ value, label }: AiLabel) => [value, label])
-  );
+  const createLabelsMap = (labels: Maybe<AiLabel[]> | undefined): {[k:string]: string} => {
+    if (labels != null) {
+      return Object.fromEntries(
+        labels.map(({ value, label }: AiLabel) => [value, label])
+      )
+    } else {
+      return {}
+    }
+  };
+  const providersMap = createLabelsMap(labels?.providers)
+  const modelsMap = createLabelsMap(labels?.models);
   const getProviderLabel = (type: AiProvider | string): string => providersMap[type] || String(type);
   const getModelLabel = (type: AiModel | string): string => modelsMap[type] || String(type);
 

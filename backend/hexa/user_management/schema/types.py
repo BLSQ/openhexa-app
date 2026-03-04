@@ -1,4 +1,3 @@
-import django_otp
 from ariadne import ObjectType, SchemaDirectiveVisitor
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
@@ -19,7 +18,8 @@ from hexa.user_management.models import (
     OrganizationInvitationStatus,
     OrganizationMembership,
     OrganizationSubscription,
-    User, Team,
+    Team,
+    User,
 )
 from hexa.utils.base64_image_encode_decode import encode_base64_image
 from hexa.workspaces.models import (
