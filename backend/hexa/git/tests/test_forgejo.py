@@ -286,7 +286,7 @@ class ForgejoClientCreateOrganizationTest(TestCase):
         )
 
         client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
-        result = client.create_organization("ws-my-workspace")
+        result = client.create_organization("ws-my-workspace", "My Workspace")
 
         self.assertEqual(result["username"], "ws-my-workspace")
 
@@ -305,9 +305,39 @@ class ForgejoClientCreateOrganizationTest(TestCase):
         )
 
         client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
-        result = client.create_organization("ws-my-workspace")
+        result = client.create_organization("ws-my-workspace", "My Workspace")
 
         self.assertEqual(result["username"], "ws-my-workspace")
+
+
+class ForgejoClientRenameOrganizationTest(TestCase):
+    @responses.activate
+    def test_rename_organization_success(self):
+        _setup_token()
+        responses.patch(
+            f"{FORGEJO_URL}/api/v1/orgs/old-name",
+            json={"id": 1, "username": "new-name", "full_name": "new-name"},
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        result = client.rename_organization("old-name", "new-name", "New Name")
+
+        self.assertEqual(result["username"], "new-name")
+
+    @responses.activate
+    def test_rename_organization_not_found(self):
+        _setup_token()
+        responses.patch(
+            f"{FORGEJO_URL}/api/v1/orgs/missing-org",
+            json={"message": "not found"},
+            status=404,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        result = client.rename_organization("missing-org", "new-name", "New Name")
+
+        self.assertIsNone(result)
 
 
 class ForgejoClientDeleteOrganizationTest(TestCase):
@@ -417,7 +447,7 @@ class ForgejoClientGetFilesTreeWithOwnerTest(TestCase):
         )
 
         client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
-        tree = client.get_files_tree("my-repo", owner="ws-myworkspace")
+        tree = client.get_files_tree("my-repo", org_slug="ws-myworkspace")
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0]["path"], "index.html")
@@ -449,7 +479,7 @@ class ForgejoClientGetFileWithOwnerTest(TestCase):
         )
 
         client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
-        data = client.get_file("my-repo", "index.html", owner="ws-myworkspace")
+        data = client.get_file("my-repo", "index.html", org_slug="ws-myworkspace")
 
         self.assertEqual(data, b"<h1>Hello</h1>")
 
@@ -476,7 +506,7 @@ class ForgejoClientCommitFilesWithOwnerTest(TestCase):
             "initial commit",
             "Test User",
             "test@example.com",
-            owner="ws-myworkspace",
+            org_slug="ws-myworkspace",
         )
 
         self.assertEqual(sha, "newsha456")
@@ -552,6 +582,87 @@ class ForgejoClientGetCommitsTest(TestCase):
         get_call = responses.calls[2]
         self.assertIn("page=2", get_call.request.url)
         self.assertIn("limit=5", get_call.request.url)
+
+
+class ForgejoClientListOrgRepositoriesTest(TestCase):
+    @responses.activate
+    def test_list_org_repositories(self):
+        _setup_token()
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/orgs/org-abc123/repos",
+            json=[
+                {"name": "repo-1", "archived": False},
+                {"name": "repo-2", "archived": True},
+            ],
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        repos = client.list_org_repositories("org-abc123")
+
+        self.assertEqual(len(repos), 2)
+        self.assertEqual(repos[0]["name"], "repo-1")
+        self.assertEqual(repos[1]["name"], "repo-2")
+
+    @responses.activate
+    def test_list_org_repositories_with_pagination(self):
+        _setup_token()
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/orgs/org-abc123/repos",
+            json=[{"name": "repo-1", "archived": False}],
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client.list_org_repositories("org-abc123", page=2, limit=10)
+
+        get_call = responses.calls[2]
+        self.assertIn("page=2", get_call.request.url)
+        self.assertIn("limit=10", get_call.request.url)
+
+    @responses.activate
+    def test_list_org_repositories_not_found(self):
+        _setup_token()
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/orgs/org-missing/repos",
+            json={"message": "not found"},
+            status=404,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        repos = client.list_org_repositories("org-missing")
+
+        self.assertEqual(repos, [])
+
+
+class ForgejoClientUnarchiveRepositoryTest(TestCase):
+    @responses.activate
+    def test_unarchive_repository(self):
+        _setup_token()
+        responses.patch(
+            f"{FORGEJO_URL}/api/v1/repos/org-abc123/webapp-1",
+            json={"name": "webapp-1", "archived": False},
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        result = client.unarchive_repository("org-abc123", "webapp-1")
+
+        self.assertFalse(result["archived"])
+
+    @responses.activate
+    def test_unarchive_repository_not_found(self):
+        _setup_token()
+        responses.patch(
+            f"{FORGEJO_URL}/api/v1/repos/org-abc123/missing-repo",
+            json={"message": "not found"},
+            status=404,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        result = client.unarchive_repository("org-abc123", "missing-repo")
+
+        self.assertIsNone(result)
 
 
 class ForgejoClientGetForgejoClientTest(TestCase):

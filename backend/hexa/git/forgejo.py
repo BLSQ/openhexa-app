@@ -4,6 +4,8 @@ import logging
 import requests
 from django.conf import settings
 
+from hexa.git.client import GitClient
+
 logger = logging.getLogger(__name__)
 
 TOKEN_NAME = "openhexa-api"
@@ -18,7 +20,7 @@ class ForgejoAPIError(Exception):
         super().__init__(f"{method} {url}: {status_code} {detail}")
 
 
-class ForgejoClient:
+class ForgejoClient(GitClient):
     def __init__(self, *, url: str, username: str, password: str):
         self._url = url.rstrip("/")
         self._username = username
@@ -70,30 +72,49 @@ class ForgejoClient:
             )
         return response
 
-    def create_organization(self, org_name: str) -> dict:
+    def create_organization(self, org_slug: str, display_name: str) -> dict:
         try:
             response = self._request(
                 "POST",
                 "/orgs",
                 json={
-                    "username": org_name,
+                    "username": org_slug,
+                    "full_name": display_name,
                     "visibility": "private",
                 },
             )
             return response.json()
         except ForgejoAPIError as e:
             if e.status_code == 409:
-                logger.info("Organization %s already exists", org_name)
-                return self._request("GET", f"/orgs/{org_name}").json()
+                logger.info("Organization %s already exists", org_slug)
+                return self._request("GET", f"/orgs/{org_slug}").json()
             raise
 
-    def delete_organization(self, org_name: str) -> None:
+    def rename_organization(
+        self, old_slug: str, new_slug: str, display_name: str
+    ) -> dict | None:
         try:
-            self._request("DELETE", f"/orgs/{org_name}")
+            response = self._request(
+                "PATCH",
+                f"/orgs/{old_slug}",
+                json={"username": new_slug, "full_name": display_name},
+            )
+            return response.json()
         except ForgejoAPIError as e:
             if e.status_code == 404:
                 logger.info(
-                    "Organization %s does not exist, nothing to delete", org_name
+                    "Organization %s does not exist, nothing to rename", old_slug
+                )
+                return None
+            raise
+
+    def delete_organization(self, org_slug: str) -> None:
+        try:
+            self._request("DELETE", f"/orgs/{org_slug}")
+        except ForgejoAPIError as e:
+            if e.status_code == 404:
+                logger.info(
+                    "Organization %s does not exist, nothing to delete", org_slug
                 )
                 return
             raise
@@ -118,11 +139,11 @@ class ForgejoClient:
                 ).json()
             raise
 
-    def create_org_repository(self, org_name: str, repo_name: str) -> dict:
+    def create_org_repository(self, org_slug: str, repo_name: str) -> dict:
         try:
             response = self._request(
                 "POST",
-                f"/orgs/{org_name}/repos",
+                f"/orgs/{org_slug}/repos",
                 json={
                     "name": repo_name,
                     "auto_init": True,
@@ -132,28 +153,62 @@ class ForgejoClient:
             return response.json()
         except ForgejoAPIError as e:
             if e.status_code == 409:
-                logger.info("Repository %s/%s already exists", org_name, repo_name)
-                return self._request("GET", f"/repos/{org_name}/{repo_name}").json()
+                logger.info("Repository %s/%s already exists", org_slug, repo_name)
+                return self._request("GET", f"/repos/{org_slug}/{repo_name}").json()
             raise
 
-    def delete_repository(self, owner: str, repo_name: str) -> None:
+    def delete_repository(self, org_slug: str, repo_name: str) -> None:
         try:
-            self._request("DELETE", f"/repos/{owner}/{repo_name}")
+            self._request("DELETE", f"/repos/{org_slug}/{repo_name}")
         except ForgejoAPIError as e:
             if e.status_code == 404:
                 logger.info(
                     "Repository %s/%s does not exist, nothing to delete",
-                    owner,
+                    org_slug,
                     repo_name,
                 )
                 return
             raise
 
-    def archive_repository(self, owner: str, repo_name: str) -> dict | None:
+    def list_org_repositories(
+        self, org_slug: str, page: int = 1, limit: int = 50
+    ) -> list[dict]:
+        try:
+            response = self._request(
+                "GET",
+                f"/orgs/{org_slug}/repos",
+                params={"page": page, "limit": limit},
+            )
+            return response.json()
+        except ForgejoAPIError as e:
+            if e.status_code == 404:
+                logger.info("Organization %s does not exist", org_slug)
+                return []
+            raise
+
+    def unarchive_repository(self, org_slug: str, repo_name: str) -> dict | None:
         try:
             response = self._request(
                 "PATCH",
-                f"/repos/{owner}/{repo_name}",
+                f"/repos/{org_slug}/{repo_name}",
+                json={"archived": False},
+            )
+            return response.json()
+        except ForgejoAPIError as e:
+            if e.status_code == 404:
+                logger.info(
+                    "Repository %s/%s does not exist, nothing to unarchive",
+                    org_slug,
+                    repo_name,
+                )
+                return None
+            raise
+
+    def archive_repository(self, org_slug: str, repo_name: str) -> dict | None:
+        try:
+            response = self._request(
+                "PATCH",
+                f"/repos/{org_slug}/{repo_name}",
                 json={"archived": True},
             )
             return response.json()
@@ -161,30 +216,35 @@ class ForgejoClient:
             if e.status_code == 404:
                 logger.info(
                     "Repository %s/%s does not exist, nothing to archive",
-                    owner,
+                    org_slug,
                     repo_name,
                 )
                 return None
             raise
 
     def get_files_tree(
-        self, repo_name: str, ref: str = "main", *, owner: str | None = None
+        self, repo_name: str, ref: str = "main", *, org_slug: str | None = None
     ) -> list[dict]:
-        owner = owner or self._username
+        org_slug = org_slug or self._username
         response = self._request(
             "GET",
-            f"/repos/{owner}/{repo_name}/git/trees/{ref}",
+            f"/repos/{org_slug}/{repo_name}/git/trees/{ref}",
             params={"recursive": "true"},
         )
         return response.json().get("tree", [])
 
     def get_file(
-        self, repo_name: str, path: str, ref: str = "main", *, owner: str | None = None
+        self,
+        repo_name: str,
+        path: str,
+        ref: str = "main",
+        *,
+        org_slug: str | None = None,
     ) -> bytes:
-        owner = owner or self._username
+        org_slug = org_slug or self._username
         response = self._request(
             "GET",
-            f"/repos/{owner}/{repo_name}/contents/{path}",
+            f"/repos/{org_slug}/{repo_name}/contents/{path}",
             params={"ref": ref},
         )
         content = response.json().get("content", "")
@@ -198,11 +258,11 @@ class ForgejoClient:
         author_name: str,
         author_email: str,
         *,
-        owner: str | None = None,
+        org_slug: str | None = None,
     ) -> str:
-        owner = owner or self._username
+        org_slug = org_slug or self._username
         existing_tree = {
-            entry["path"] for entry in self.get_files_tree(repo_name, owner=owner)
+            entry["path"] for entry in self.get_files_tree(repo_name, org_slug=org_slug)
         }
 
         operations = []
@@ -218,7 +278,7 @@ class ForgejoClient:
 
         response = self._request(
             "POST",
-            f"/repos/{owner}/{repo_name}/contents",
+            f"/repos/{org_slug}/{repo_name}/contents",
             json={
                 "branch": "main",
                 "message": message,
@@ -233,7 +293,7 @@ class ForgejoClient:
 
     def get_commits(
         self,
-        owner: str,
+        org_slug: str,
         repo_name: str,
         ref: str = "main",
         page: int = 1,
@@ -241,13 +301,13 @@ class ForgejoClient:
     ) -> list[dict]:
         response = self._request(
             "GET",
-            f"/repos/{owner}/{repo_name}/commits",
+            f"/repos/{org_slug}/{repo_name}/commits",
             params={"sha": ref, "page": page, "limit": limit},
         )
         return response.json()
 
 
-def get_forgejo_client() -> ForgejoClient:
+def get_forgejo_client() -> GitClient:
     return ForgejoClient(
         url=settings.GIT_SERVER_URL,
         username=settings.GIT_SERVER_ADMIN_USERNAME,
