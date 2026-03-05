@@ -190,9 +190,9 @@ class AiSettings(models.Model):
         ANTHROPIC = "anthropic", _("Anthropic")
 
     class Model(models.TextChoices):
-        HAIKU = "claude-haiku-4-5-20251001", _("Claude Haiku 4.5")
-        OPUS = "claude-opus-4-6", _("Claude Opus 4.6")
-        SONNET = "claude-sonnet-4-6", _("Claude Sonnet 4.6")
+        HAIKU = "haiku", _("Claude Haiku 4.5")
+        OPUS = "opus", _("Claude Opus 4.6")
+        SONNET = "sonnet", _("Claude Sonnet 4.6")
 
     user = models.OneToOneField(
         User,

@@ -37,9 +37,9 @@ class Migration(migrations.Migration):
                     "model",
                     models.CharField(
                         choices=[
-                            ("claude-haiku-4-5-20251001", "Claude Haiku 4.5"),
-                            ("claude-opus-4-6", "Claude Opus 4.6"),
-                            ("claude-sonnet-4-6", "Claude Sonnet 4.6"),
+                            ("haiku", "Claude Haiku 4.5"),
+                            ("opus", "Claude Opus 4.6"),
+                            ("sonnet", "Claude Sonnet 4.6"),
                         ],
                         max_length=30,
                         null=True,

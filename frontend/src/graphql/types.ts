@@ -422,9 +422,9 @@ export type AiLabels = {
 
 /** Represents the available AI models. */
 export enum AiModel {
-  Haiku = 'HAIKU',
-  Opus = 'OPUS',
-  Sonnet = 'SONNET'
+  Haiku = 'haiku',
+  Opus = 'opus',
+  Sonnet = 'sonnet'
 }
 
 /** Represents the available AI providers. */

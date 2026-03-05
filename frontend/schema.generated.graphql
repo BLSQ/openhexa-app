@@ -387,9 +387,9 @@ type AiLabels {
 
 """Represents the available AI models."""
 enum AiModel {
-  HAIKU
-  OPUS
-  SONNET
+  haiku
+  opus
+  sonnet
 }
 
 """Represents the available AI providers."""

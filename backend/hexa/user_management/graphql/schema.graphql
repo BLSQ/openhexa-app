@@ -477,9 +477,9 @@ enum AiProvider {
 Represents the available AI models.
 """
 enum AiModel {
-    OPUS,
-    SONNET,
-    HAIKU,
+    haiku,
+    opus,
+    sonnet,
 }
 
 extend type Query {
