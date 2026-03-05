@@ -206,7 +206,9 @@ class GitWebapp(Webapp, GitRepoMixin):
             repository=f"{workspace.slug}-webapp-{webapp_slug}",
         )
 
-        webapp.create_repo()
+        initial_sha = webapp.create_repo()
+        webapp.published_commit = initial_sha
+        webapp.save()
 
         return webapp
 
