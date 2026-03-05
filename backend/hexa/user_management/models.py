@@ -187,12 +187,12 @@ class AiSettings(models.Model):
         ]
 
     class Provider(models.TextChoices):
-        ANTHROPIC = "anthropic", _("Anthropic")
+        ANTHROPIC = "anthropic", "Anthropic"
 
     class Model(models.TextChoices):
-        HAIKU = "haiku", _("Claude Haiku 4.5")
-        OPUS = "opus", _("Claude Opus 4.6")
-        SONNET = "sonnet", _("Claude Sonnet 4.6")
+        HAIKU = "haiku", "Claude Haiku 4.5"
+        OPUS = "opus", "Claude Opus 4.6"
+        SONNET = "sonnet", "Claude Sonnet 4.6"
 
     user = models.OneToOneField(
         User,
