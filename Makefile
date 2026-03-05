@@ -1,3 +1,7 @@
+b build:
+	@echo "Building the docker image"
+	docker compose build
+
 r run:
 	@echo "Running backend with pipelines and dataset workers"
 	docker compose --profile pipelines --profile dataset_worker up
