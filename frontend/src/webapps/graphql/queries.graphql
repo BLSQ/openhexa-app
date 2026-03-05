@@ -21,3 +21,42 @@ query WebappAccess($workspaceSlug: String!, $webappSlug: String!) {
     }
   }
 }
+
+fragment WebappVersion_version on WebappVersion {
+  id
+  message
+  authorName
+  authorEmail
+  date
+}
+
+query WebappVersions(
+  $workspaceSlug: String!
+  $webappSlug: String!
+  $page: Int
+  $perPage: Int
+) {
+  webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
+    id
+    source {
+      ... on GitSource {
+        publishedVersion
+      }
+    }
+    versions(page: $page, perPage: $perPage) {
+      items {
+        ...WebappVersion_version
+      }
+      page
+    }
+  }
+}
+
+query WebappFiles($workspaceSlug: String!, $webappSlug: String!, $ref: String) {
+  webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
+    id
+    files(ref: $ref) {
+      ...FilesEditor_file
+    }
+  }
+}
