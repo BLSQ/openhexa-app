@@ -14,7 +14,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
-from hexa.git.mixins import GitRepoMixin
+from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
 from hexa.user_management.models import User
@@ -163,17 +163,18 @@ class GitWebapp(Webapp, GitRepoMixin):
     published_commit = models.CharField(max_length=64, blank=True, null=True)
 
     @property
-    def org_name(self):
-        return (
-            self.workspace.organization.slug
-            if self.workspace.organization
-            else "no-org"
-        )
+    def org(self):
+        if self.workspace.organization:
+            return GitOrg(
+                slug=self.workspace.organization.slug,
+                display_name=self.workspace.organization.name,
+            )
+        return GitOrg(slug="no-org", display_name="No Organization")
 
     def delete_if_has_perm(self, principal):
         if not principal.has_perm("webapps.delete_webapp", self):
             raise PermissionDenied
-        self.delete_repo()
+        self.archive_repo()
         self.delete()
 
     @classmethod
@@ -185,7 +186,6 @@ class GitWebapp(Webapp, GitRepoMixin):
         name,
         created_by,
         webapp_type,
-        repository,
         description="",
         icon=None,
         is_public=False,
@@ -193,17 +193,22 @@ class GitWebapp(Webapp, GitRepoMixin):
         if not principal.has_perm("webapps.create_webapp", workspace):
             raise PermissionDenied
 
-        return cls.objects.create(
+        webapp_slug = create_webapp_slug(name, workspace)
+        webapp = cls.objects.create(
             workspace=workspace,
             type=webapp_type,
-            slug=create_webapp_slug(name, workspace),
+            slug=webapp_slug,
             name=name,
             description=description,
             icon=icon,
             is_public=is_public,
             created_by=created_by,
-            repository=repository,
+            repository=f"{workspace.slug}-webapp-{webapp_slug}",
         )
+
+        webapp.create_repo()
+
+        return webapp
 
 
 class SupersetWebapp(Webapp):
