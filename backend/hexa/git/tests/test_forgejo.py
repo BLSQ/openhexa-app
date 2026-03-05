@@ -1,9 +1,9 @@
 import base64
 
 import responses
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
-from hexa.git.forgejo import ForgejoAPIError, ForgejoClient
+from hexa.git.forgejo import ForgejoAPIError, ForgejoClient, get_forgejo_client
 
 FORGEJO_URL = "http://forgejo-test:3000"
 USERNAME = "testuser"
@@ -129,7 +129,7 @@ class ForgejoClientDeleteRepositoryTest(TestCase):
         )
 
         client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
-        client.delete_repository("my-repo")
+        client.delete_repository(USERNAME, "my-repo")
 
         self.assertEqual(len(responses.calls), 3)  # 2 for token setup + 1 DELETE
 
@@ -143,7 +143,7 @@ class ForgejoClientDeleteRepositoryTest(TestCase):
         )
 
         client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
-        client.delete_repository("my-repo")  # Should not raise
+        client.delete_repository(USERNAME, "my-repo")  # Should not raise
 
         self.assertEqual(len(responses.calls), 3)  # 2 for token setup + 1 DELETE
 
@@ -273,3 +273,281 @@ class ForgejoAPIErrorTest(TestCase):
 
             self.assertEqual(ctx.exception.status_code, 404)
             self.assertEqual(ctx.exception.method, "GET")
+
+
+class ForgejoClientCreateOrganizationTest(TestCase):
+    @responses.activate
+    def test_create_organization_success(self):
+        _setup_token()
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/orgs",
+            json={"id": 1, "username": "ws-my-workspace"},
+            status=201,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        result = client.create_organization("ws-my-workspace")
+
+        self.assertEqual(result["username"], "ws-my-workspace")
+
+    @responses.activate
+    def test_create_organization_already_exists(self):
+        _setup_token()
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/orgs",
+            json={"message": "organization already exists"},
+            status=409,
+        )
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/orgs/ws-my-workspace",
+            json={"id": 1, "username": "ws-my-workspace"},
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        result = client.create_organization("ws-my-workspace")
+
+        self.assertEqual(result["username"], "ws-my-workspace")
+
+
+class ForgejoClientDeleteOrganizationTest(TestCase):
+    @responses.activate
+    def test_delete_organization_success(self):
+        _setup_token()
+        responses.delete(
+            f"{FORGEJO_URL}/api/v1/orgs/ws-my-workspace",
+            status=204,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client.delete_organization("ws-my-workspace")
+
+        self.assertEqual(len(responses.calls), 3)
+
+
+class ForgejoClientCreateOrgRepositoryTest(TestCase):
+    @responses.activate
+    def test_create_org_repository_success(self):
+        _setup_token()
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/orgs/ws-myworkspace/repos",
+            json={
+                "id": 1,
+                "name": "webapp-abc123",
+                "full_name": "ws-myworkspace/webapp-abc123",
+            },
+            status=201,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        result = client.create_org_repository("ws-myworkspace", "webapp-abc123")
+
+        self.assertEqual(result["name"], "webapp-abc123")
+
+    @responses.activate
+    def test_create_org_repository_already_exists(self):
+        _setup_token()
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/orgs/ws-myworkspace/repos",
+            json={"message": "repository already exists"},
+            status=409,
+        )
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/webapp-abc123",
+            json={
+                "id": 1,
+                "name": "webapp-abc123",
+                "full_name": "ws-myworkspace/webapp-abc123",
+            },
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        result = client.create_org_repository("ws-myworkspace", "webapp-abc123")
+
+        self.assertEqual(result["name"], "webapp-abc123")
+
+
+class ForgejoClientDeleteOrgRepositoryTest(TestCase):
+    @responses.activate
+    def test_delete_org_repository(self):
+        _setup_token()
+        responses.delete(
+            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/webapp-abc123",
+            status=204,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client.delete_repository("ws-myworkspace", "webapp-abc123")
+
+        delete_call = responses.calls[2]
+        self.assertIn("/repos/ws-myworkspace/webapp-abc123", delete_call.request.url)
+
+
+class ForgejoClientGetFilesTreeWithOwnerTest(TestCase):
+    @responses.activate
+    def test_get_files_tree_with_owner(self):
+        _setup_token()
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/my-repo/git/trees/main",
+            json={
+                "sha": "abc123",
+                "tree": [
+                    {"path": "index.html", "type": "blob"},
+                    {"path": "style.css", "type": "blob"},
+                ],
+            },
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        tree = client.get_files_tree("my-repo", owner="ws-myworkspace")
+
+        self.assertEqual(len(tree), 2)
+        self.assertEqual(tree[0]["path"], "index.html")
+
+    @responses.activate
+    def test_get_files_tree_defaults_to_username(self):
+        _setup_token()
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/git/trees/main",
+            json={"sha": "abc", "tree": [{"path": "file.txt", "type": "blob"}]},
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        tree = client.get_files_tree("my-repo")
+
+        self.assertEqual(len(tree), 1)
+
+
+class ForgejoClientGetFileWithOwnerTest(TestCase):
+    @responses.activate
+    def test_get_file_with_owner(self):
+        _setup_token()
+        content = base64.b64encode(b"<h1>Hello</h1>").decode()
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/my-repo/contents/index.html",
+            json={"content": content, "name": "index.html"},
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        data = client.get_file("my-repo", "index.html", owner="ws-myworkspace")
+
+        self.assertEqual(data, b"<h1>Hello</h1>")
+
+
+class ForgejoClientCommitFilesWithOwnerTest(TestCase):
+    @responses.activate
+    def test_commit_files_with_owner(self):
+        _setup_token()
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/my-repo/git/trees/main",
+            json={"sha": "abc123", "tree": []},
+            status=200,
+        )
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/my-repo/contents",
+            json={"commit": {"sha": "newsha456"}},
+            status=201,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        sha = client.commit_files(
+            "my-repo",
+            [{"path": "index.html", "content": "<h1>Hello</h1>"}],
+            "initial commit",
+            "Test User",
+            "test@example.com",
+            owner="ws-myworkspace",
+        )
+
+        self.assertEqual(sha, "newsha456")
+        post_call = responses.calls[3]
+        self.assertIn(b'"operation": "create"', post_call.request.body)
+        self.assertIn("/repos/ws-myworkspace/my-repo/contents", post_call.request.url)
+
+
+class ForgejoClientGetCommitsTest(TestCase):
+    @responses.activate
+    def test_get_commits(self):
+        _setup_token()
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/my-repo/commits",
+            json=[
+                {
+                    "sha": "abc123",
+                    "commit": {
+                        "message": "initial commit",
+                        "author": {
+                            "name": "Test User",
+                            "email": "test@example.com",
+                            "date": "2024-01-01T00:00:00Z",
+                        },
+                    },
+                },
+                {
+                    "sha": "def456",
+                    "commit": {
+                        "message": "second commit",
+                        "author": {
+                            "name": "Other User",
+                            "email": "other@example.com",
+                            "date": "2024-01-02T00:00:00Z",
+                        },
+                    },
+                },
+            ],
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        commits = client.get_commits("ws-myworkspace", "my-repo")
+
+        self.assertEqual(len(commits), 2)
+        self.assertEqual(commits[0]["sha"], "abc123")
+        self.assertEqual(commits[0]["commit"]["message"], "initial commit")
+
+    @responses.activate
+    def test_get_commits_with_pagination(self):
+        _setup_token()
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/my-repo/commits",
+            json=[
+                {
+                    "sha": "abc",
+                    "commit": {
+                        "message": "msg",
+                        "author": {
+                            "name": "u",
+                            "email": "e",
+                            "date": "2024-01-01T00:00:00Z",
+                        },
+                    },
+                }
+            ],
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client.get_commits("ws-myworkspace", "my-repo", page=2, limit=5)
+
+        get_call = responses.calls[2]
+        self.assertIn("page=2", get_call.request.url)
+        self.assertIn("limit=5", get_call.request.url)
+
+
+class ForgejoClientGetForgejoClientTest(TestCase):
+    @override_settings(
+        GIT_SERVER_URL="http://test-forgejo:3000",
+        GIT_SERVER_ADMIN_USERNAME="admin",
+        GIT_SERVER_ADMIN_PASSWORD="secret",
+    )
+    def test_get_forgejo_client(self):
+        client = get_forgejo_client()
+
+        self.assertIsInstance(client, ForgejoClient)
+        self.assertEqual(client._url, "http://test-forgejo:3000")
+        self.assertEqual(client._username, "admin")
+        self.assertEqual(client._password, "secret")
