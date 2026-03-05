@@ -580,7 +580,7 @@ class GitWebappModelTest(TestCase):
         self.mock_client_patcher = patch("hexa.git.mixins.get_forgejo_client")
         self.mock_get_client = self.mock_client_patcher.start()
         self.mock_git_client = MagicMock()
-        self.mock_git_client.get_commits.return_value = [{"sha": self.INITIAL_SHA}]
+        self.mock_git_client.get_commits.return_value = [{"id": self.INITIAL_SHA}]
         self.mock_get_client.return_value = self.mock_git_client
 
         self.workspace = Workspace.objects.create(

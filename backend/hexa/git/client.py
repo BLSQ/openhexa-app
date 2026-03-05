@@ -82,3 +82,13 @@ class GitClient(ABC):
         limit: int = 20,
     ) -> list[dict]:
         ...
+
+    @abstractmethod
+    def get_repository_files(
+        self,
+        repo_name: str,
+        ref: str = "main",
+        *,
+        org_slug: str | None = None,
+    ) -> list[dict]:
+        ...
