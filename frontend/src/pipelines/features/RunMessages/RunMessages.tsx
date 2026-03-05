@@ -127,6 +127,11 @@ RunMessages.fragments = {
     fragment RunMessages_run on PipelineRun {
       id
       status
+      messages {
+        message
+        timestamp
+        priority
+      }
     }
   `,
 };

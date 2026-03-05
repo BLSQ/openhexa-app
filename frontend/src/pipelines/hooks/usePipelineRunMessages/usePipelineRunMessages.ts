@@ -1,3 +1,4 @@
+import { getPublicEnv } from "core/helpers/runtimeConfig";
 import { useEffect, useState } from "react";
 
 export type SseMessage = {
@@ -16,7 +17,9 @@ function usePipelineRunMessages(runId: string): UsePipelineRunMessagesReturn {
   const [isStreaming, setIsStreaming] = useState(false);
 
   useEffect(() => {
-    const apiBasePath = process.env.NEXT_PUBLIC_API_BASE_PATH ?? "";
+    const apiBasePath =
+      process.env.NEXT_PUBLIC_API_BASE_PATH ??
+      getPublicEnv().OPENHEXA_BACKEND_URL;
     const url = `${apiBasePath}/pipelines/runs/${runId}/messages/stream/`;
     const source = new EventSource(url, { withCredentials: true });
 
