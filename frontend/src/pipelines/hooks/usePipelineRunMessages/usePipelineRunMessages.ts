@@ -23,6 +23,7 @@ function usePipelineRunMessages(runId: string): UsePipelineRunMessagesReturn {
     const url = `${apiBasePath}/pipelines/runs/${runId}/messages/stream/`;
     const source = new EventSource(url, { withCredentials: true });
 
+    setMessages([]);
     setIsStreaming(true);
 
     source.addEventListener("message", (e: MessageEvent) => {
