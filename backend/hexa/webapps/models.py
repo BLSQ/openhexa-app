@@ -14,6 +14,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
+from hexa.git.mixins import GitRepoMixin
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
 from hexa.user_management.models import User
@@ -110,7 +111,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         Workspace, on_delete=models.CASCADE, related_name="webapps"
     )
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    url = models.URLField()
+    url = models.URLField(blank=True, default="")
     type = models.CharField(
         max_length=20, choices=WebappType.choices, default=WebappType.IFRAME
     )
@@ -139,6 +140,8 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
             dashboard = SupersetDashboard.objects.get(webapp__pk=self.pk)
             self.delete()
             dashboard.delete()
+        elif self.type in (Webapp.WebappType.HTML, Webapp.WebappType.BUNDLE):
+            GitWebapp.objects.get(pk=self.pk).delete_if_has_perm(principal)
         else:
             self.delete()
 
@@ -154,6 +157,53 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
     def __repr__(self) -> str:
         return f"<Webapp: {self.name}>"
+
+
+class GitWebapp(Webapp, GitRepoMixin):
+    published_commit = models.CharField(max_length=64, blank=True, null=True)
+
+    @property
+    def org_name(self):
+        return (
+            self.workspace.organization.slug
+            if self.workspace.organization
+            else "no-org"
+        )
+
+    def delete_if_has_perm(self, principal):
+        if not principal.has_perm("webapps.delete_webapp", self):
+            raise PermissionDenied
+        self.delete_repo()
+        self.delete()
+
+    @classmethod
+    def create_if_has_perm(
+        cls,
+        principal,
+        workspace,
+        *,
+        name,
+        created_by,
+        webapp_type,
+        repository,
+        description="",
+        icon=None,
+        is_public=False,
+    ):
+        if not principal.has_perm("webapps.create_webapp", workspace):
+            raise PermissionDenied
+
+        return cls.objects.create(
+            workspace=workspace,
+            type=webapp_type,
+            slug=create_webapp_slug(name, workspace),
+            name=name,
+            description=description,
+            icon=icon,
+            is_public=is_public,
+            created_by=created_by,
+            repository=repository,
+        )
 
 
 class SupersetWebapp(Webapp):
