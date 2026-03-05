@@ -13,7 +13,14 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.signing import BadSignature, Signer, TimestampSigner
-from django.http import Http404, HttpRequest, HttpResponse, HttpResponseNotAllowed, JsonResponse, StreamingHttpResponse
+from django.http import (
+    Http404,
+    HttpRequest,
+    HttpResponse,
+    HttpResponseNotAllowed,
+    JsonResponse,
+    StreamingHttpResponse,
+)
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
@@ -25,7 +32,14 @@ from hexa.core.views_utils import disable_cors
 from hexa.pipelines.models import Environment, PipelineRunLogLevel
 
 from .credentials import PipelinesCredentials
-from .models import Pipeline, PipelineRun, PipelineRunState, PipelineRunTrigger, PipelineType, PipelineVersion
+from .models import (
+    Pipeline,
+    PipelineRun,
+    PipelineRunState,
+    PipelineRunTrigger,
+    PipelineType,
+    PipelineVersion,
+)
 from .queue import environment_sync_queue
 
 logger = getLogger(__name__)
@@ -220,7 +234,7 @@ _TERMINAL_STATES = {
 }
 
 _SSE_POLL_INTERVAL = 0.3  # seconds between DB polls
-_SSE_PING_INTERVAL = 10   # seconds between keepalive pings
+_SSE_PING_INTERVAL = 10  # seconds between keepalive pings
 
 
 def _format_sse(event_type: str, data: dict) -> str:
