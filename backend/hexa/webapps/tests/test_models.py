@@ -647,6 +647,29 @@ class GitWebappModelTest(TestCase):
             webapp.repository, f"{self.workspace.slug}-webapp-{webapp.slug}"
         )
 
+    def test_create_if_has_perm_with_files(self):
+        self.mock_git_client.commit_files.return_value = "files-commit-sha"
+
+        files = [{"path": "index.html", "content": "<h1>Hello</h1>"}]
+        webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="HTML With Files",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.HTML,
+            files=files,
+        )
+
+        self.assertEqual(webapp.published_commit, "files-commit-sha")
+        self.mock_git_client.commit_files.assert_called_once_with(
+            webapp.repository,
+            files,
+            "Initial content",
+            self.user_admin.display_name or self.user_admin.email,
+            self.user_admin.email,
+            org_slug="no-org",
+        )
+
     def test_create_if_has_perm_denied(self):
         with self.assertRaises(PermissionDenied):
             GitWebapp.create_if_has_perm(

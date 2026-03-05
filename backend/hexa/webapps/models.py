@@ -189,6 +189,7 @@ class GitWebapp(Webapp, GitRepoMixin):
         description="",
         icon=None,
         is_public=False,
+        files=None,
     ):
         if not principal.has_perm("webapps.create_webapp", workspace):
             raise PermissionDenied
@@ -207,7 +208,19 @@ class GitWebapp(Webapp, GitRepoMixin):
         )
 
         initial_sha = webapp.create_repo()
-        webapp.published_commit = initial_sha
+
+        webapp.published_commit = (
+            webapp.client.commit_files(
+                webapp.repository,
+                files,
+                "Initial content",
+                principal.display_name or principal.email,
+                principal.email,
+                org_slug=webapp.org.slug,
+            )
+            if files
+            else initial_sha
+        )
         webapp.save()
 
         return webapp
