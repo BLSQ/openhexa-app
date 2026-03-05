@@ -15,6 +15,7 @@ from django.db.models import EmailField, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
+from slugify import slugify
 
 from hexa.core.models import Base, Invitation, InvitationManager
 from hexa.core.models.base import BaseQuerySet
@@ -24,6 +25,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
+from hexa.git.forgejo import get_forgejo_client
 
 
 class UsersLimitReached(Exception):
@@ -228,18 +230,23 @@ class Organization(Base, SoftDeletedModel):
     objects = DefaultSoftDeletedManager.from_queryset(OrganizationQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(OrganizationQuerySet)()
 
+    @property
+    def slug(self):
+        return slugify(self.name)
+
     def delete(self):
         """
-        Soft delete the organization and archive all related workspaces.
+        Soft delete the organization, archive the git org and archive all related workspaces.
         """
         super().delete()
         self.workspaces.filter(archived=False).update(
             archived=True, archived_at=timezone.now()
         )
+        self._archive_git_org()
 
     def restore(self):
         """
-        Restore the organization and unarchive workspaces that were archived
+        Restore the organization, unarchive the git org and unarchive workspaces that were archived
         at the same time as the organization deletion.
         """
         if self.deleted_at:
@@ -248,6 +255,17 @@ class Organization(Base, SoftDeletedModel):
                 archived=True, archived_at__gte=time_threshold
             ).update(archived=False, archived_at=None)
         super().restore()
+        self._unarchive_git_org()
+
+    def _archive_git_org(self):
+        client = get_forgejo_client()
+        for repo in client.list_org_repositories(self.slug):
+            client.archive_repository(self.slug, repo["name"])
+
+    def _unarchive_git_org(self):
+        client = get_forgejo_client()
+        for repo in client.list_org_repositories(self.slug):
+            client.unarchive_repository(self.slug, repo["name"])
 
     def filter_workspaces_for_user(self, user):
         workspaces = self.workspaces.exclude(archived=True)
