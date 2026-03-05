@@ -1,10 +1,30 @@
 import base64
 import logging
+import os
 
 import requests
 from django.conf import settings
 
 from hexa.git.client import GitClient
+
+LANGUAGE_MAP = {
+    ".py": "python",
+    ".js": "javascript",
+    ".ts": "typescript",
+    ".tsx": "typescript",
+    ".jsx": "javascript",
+    ".html": "html",
+    ".css": "css",
+    ".json": "json",
+    ".md": "markdown",
+    ".yaml": "yaml",
+    ".yml": "yaml",
+    ".xml": "xml",
+    ".svg": "xml",
+    ".sh": "shell",
+    ".r": "r",
+    ".sql": "sql",
+}
 
 logger = logging.getLogger(__name__)
 
@@ -291,6 +311,63 @@ class ForgejoClient(GitClient):
         )
         return response.json().get("commit", {}).get("sha", "")
 
+    def get_repository_files(
+        self,
+        repo_name: str,
+        ref: str = "main",
+        *,
+        org_slug: str | None = None,
+    ) -> list[dict]:
+        """Fetch the full file tree and return a flat list of directory/file nodes
+        with content and metadata.
+        """
+        tree = self.get_files_tree(repo_name, ref, org_slug=org_slug)
+        nodes: list[dict] = []
+
+        for entry in tree:
+            path = entry.get("path", "")
+            parent = "/".join(path.split("/")[:-1]) or None
+            entry_type = entry.get("type", "")
+
+            if entry_type == "tree":
+                nodes.append(
+                    {
+                        "id": path,
+                        "name": path.split("/")[-1],
+                        "path": path,
+                        "type": "directory",
+                        "content": None,
+                        "parent_id": parent,
+                        "auto_select": False,
+                        "language": None,
+                        "line_count": None,
+                    }
+                )
+            elif entry_type == "blob":
+                content = None
+                try:
+                    raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
+                    content = raw.decode("utf-8", errors="replace")
+                except (ForgejoAPIError, UnicodeDecodeError):
+                    pass
+
+                extension = os.path.splitext(path)[1].lower()
+                nodes.append(
+                    {
+                        "id": path,
+                        "name": path.split("/")[-1],
+                        "path": path,
+                        "type": "file",
+                        "content": content,
+                        "parent_id": parent,
+                        "auto_select": path == "index.html",
+                        "language": LANGUAGE_MAP.get(extension),
+                        "line_count": content.count("\n") + 1 if content else None,
+                    }
+                )
+
+        return nodes
+
     def get_commits(
         self,
         org_slug: str,
@@ -304,7 +381,16 @@ class ForgejoClient(GitClient):
             f"/repos/{org_slug}/{repo_name}/commits",
             params={"sha": ref, "page": page, "limit": limit},
         )
-        return response.json()
+        return [
+            {
+                "id": c["sha"],
+                "message": c["commit"]["message"],
+                "author_name": c["commit"]["author"]["name"],
+                "author_email": c["commit"]["author"]["email"],
+                "date": c["commit"]["author"]["date"],
+            }
+            for c in response.json()
+        ]
 
 
 def get_forgejo_client() -> GitClient:
