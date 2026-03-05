@@ -171,6 +171,19 @@ class GitWebapp(Webapp, GitRepoMixin):
             )
         return GitOrg(slug="no-org", display_name="No Organization")
 
+    def save_files(self, files, message, user):
+        sha = self.client.commit_files(
+            self.repository,
+            files,
+            message,
+            user.display_name or user.email,
+            user.email,
+            org_slug=self.org.slug,
+        )
+        self.published_commit = sha
+        self.save()
+        return sha
+
     def delete_if_has_perm(self, principal):
         if not principal.has_perm("webapps.delete_webapp", self):
             raise PermissionDenied
@@ -209,19 +222,11 @@ class GitWebapp(Webapp, GitRepoMixin):
 
         initial_sha = webapp.create_repo()
 
-        webapp.published_commit = (
-            webapp.client.commit_files(
-                webapp.repository,
-                files,
-                "Initial content",
-                principal.display_name or principal.email,
-                principal.email,
-                org_slug=webapp.org.slug,
-            )
-            if files
-            else initial_sha
-        )
-        webapp.save()
+        if files:
+            webapp.save_files(files, "Initial content", principal)
+        else:
+            webapp.published_commit = initial_sha
+            webapp.save()
 
         return webapp
 
