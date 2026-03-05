@@ -319,6 +319,7 @@ query WorkspacePipelineRunPage($workspaceSlug: String!, $runId: UUID!) {
     }
     ...RunOutputsTable_run
     ...RunPipelineDialog_run
+    ...RunMessages_run
     ...RunLogs_run
     ...PipelineRunStatusBadge_run
   }
