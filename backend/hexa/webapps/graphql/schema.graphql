@@ -181,6 +181,7 @@ enum UpdateWebappError {
   TYPE_MISMATCH
   INVALID_URL
   SAVE_FAILED
+  VERSION_NOT_FOUND
 }
 
 """

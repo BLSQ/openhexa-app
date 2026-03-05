@@ -177,7 +177,14 @@ def resolve_update_webapp(_, info, **kwargs):
                 return {"success": False, "errors": ["SAVE_FAILED"], "webapp": None}
 
         if input.get("published_version_id") is not None:
-            git_webapp.published_commit = input["published_version_id"]
+            try:
+                git_webapp.publish_version(input["published_version_id"])
+            except ValueError:
+                return {
+                    "success": False,
+                    "errors": ["VERSION_NOT_FOUND"],
+                    "webapp": None,
+                }
 
         webapp = git_webapp
 

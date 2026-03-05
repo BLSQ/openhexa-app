@@ -5752,6 +5752,7 @@ export enum UpdateWebappError {
   SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
   SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
   TypeMismatch = 'TYPE_MISMATCH',
+  VersionNotFound = 'VERSION_NOT_FOUND',
   WebappNotFound = 'WEBAPP_NOT_FOUND'
 }
 

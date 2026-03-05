@@ -368,6 +368,15 @@ class ForgejoClient(GitClient):
 
         return nodes
 
+    def commit_exists(self, org_slug: str, repo_name: str, sha: str) -> bool:
+        try:
+            self._request("GET", f"/repos/{org_slug}/{repo_name}/git/commits/{sha}")
+            return True
+        except ForgejoAPIError as e:
+            if e.status_code == 404:
+                return False
+            raise
+
     def get_commits(
         self,
         org_slug: str,

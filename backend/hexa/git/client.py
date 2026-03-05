@@ -84,6 +84,15 @@ class GitClient(ABC):
         ...
 
     @abstractmethod
+    def commit_exists(
+        self,
+        org_slug: str,
+        repo_name: str,
+        sha: str,
+    ) -> bool:
+        ...
+
+    @abstractmethod
     def get_repository_files(
         self,
         repo_name: str,

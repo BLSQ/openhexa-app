@@ -190,6 +190,12 @@ class GitWebapp(Webapp, GitRepoMixin):
         except ForgejoAPIError:
             return []
 
+    def publish_version(self, version_id):
+        if not self.client.commit_exists(self.org.slug, self.repository, version_id):
+            raise ValueError(f"Version {version_id} not found")
+        self.published_commit = version_id
+        self.save()
+
     def save_files(self, files, message, user):
         sha = self.client.commit_files(
             self.repository,
