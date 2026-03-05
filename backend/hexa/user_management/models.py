@@ -225,6 +225,10 @@ class AiSettings(models.Model):
             for choice in AiSettings.Model.choices
         ]
 
+    def validate(self):
+        if self.enabled and not (self.provider and self.model and self.api_key):
+            raise ValidationError("Incomplete config")
+
 
 class OrganizationType(models.TextChoices):
     CORPORATE = "CORPORATE", _("Corporate")

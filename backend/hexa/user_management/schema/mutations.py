@@ -18,6 +18,7 @@ from django_otp.plugins.otp_email.models import EmailDevice
 from hexa.analytics.api import track
 from hexa.core.string import generate_short_name, remove_whitespace
 from hexa.user_management.models import (
+    AiSettings,
     AlreadyExists,
     CannotDelete,
     CannotDowngradeRole,
@@ -491,19 +492,15 @@ def resolve_update_user_ai_settings(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     mutation_input = kwargs["input"]
     user = request.user
-    ai_settings = user.ai_settings_safe
+    ai_settings: AiSettings = user.ai_settings_safe
     for field_name in ["enabled", "provider", "model", "api_key"]:
         if field_name in mutation_input:
             setattr(ai_settings, field_name, mutation_input[field_name])
 
-    if ai_settings.enabled and not (
-        ai_settings.provider and ai_settings.model and ai_settings.api_key
-    ):
-        return {"success": False, "errors": ["INCOMPLETE_CONFIG"]}
-
     try:
+        ai_settings.validate()
         ai_settings.save()
-    except IntegrityError:
+    except (IntegrityError, ValidationError):
         return {"success": False, "errors": ["INCOMPLETE_CONFIG"]}
 
     return {"success": True, "errors": [], "user": user}
