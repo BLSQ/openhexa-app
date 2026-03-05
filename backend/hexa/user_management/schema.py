@@ -31,6 +31,7 @@ from hexa.core.graphql import result_page
 from hexa.core.string import generate_short_name, remove_whitespace
 from hexa.core.templatetags.colors import hash_color
 from hexa.datasets.models import Dataset, DatasetLink
+from hexa.git.forgejo import get_forgejo_client
 from hexa.tags.models import Tag
 from hexa.user_management.models import (
     AlreadyExists,
@@ -1488,7 +1489,14 @@ def resolve_update_organization(_, info, **kwargs):
                     "organization": None,
                     "errors": ["NAME_DUPLICATE"],
                 }
+            old_name = organization.name
+            old_slug = organization.slug
             organization.name = new_name
+            client = get_forgejo_client()
+            if organization.name != old_name or organization.slug != old_slug:
+                client.rename_organization(
+                    old_slug, organization.slug, organization.name
+                )
 
         if "short_name" in update_input:
             short_name_input = update_input["short_name"]
