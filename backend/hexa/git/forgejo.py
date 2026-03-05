@@ -149,6 +149,24 @@ class ForgejoClient:
                 return
             raise
 
+    def archive_repository(self, owner: str, repo_name: str) -> dict | None:
+        try:
+            response = self._request(
+                "PATCH",
+                f"/repos/{owner}/{repo_name}",
+                json={"archived": True},
+            )
+            return response.json()
+        except ForgejoAPIError as e:
+            if e.status_code == 404:
+                logger.info(
+                    "Repository %s/%s does not exist, nothing to archive",
+                    owner,
+                    repo_name,
+                )
+                return None
+            raise
+
     def get_files_tree(
         self, repo_name: str, ref: str = "main", *, owner: str | None = None
     ) -> list[dict]:

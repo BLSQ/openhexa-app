@@ -384,6 +384,22 @@ class ForgejoClientDeleteOrgRepositoryTest(TestCase):
         self.assertIn("/repos/ws-myworkspace/webapp-abc123", delete_call.request.url)
 
 
+class ForgejoClientArchiveRepositoryTest(TestCase):
+    @responses.activate
+    def test_archive_repository(self):
+        _setup_token()
+        responses.patch(
+            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/webapp-abc123",
+            json={"name": "webapp-abc123", "archived": True},
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        result = client.archive_repository("ws-myworkspace", "webapp-abc123")
+
+        self.assertTrue(result["archived"])
+
+
 class ForgejoClientGetFilesTreeWithOwnerTest(TestCase):
     @responses.activate
     def test_get_files_tree_with_owner(self):
