@@ -6,7 +6,6 @@ authors = [
 ]
 
 [tool.ruff]
-ignore = ["E501"]
 exclude =[".git",".eggs","node_modules", ".local", ".vscode", ".cache"] # exclude a few common directories in the root of the project
 
 [tool.ruff.lint]
@@ -17,6 +16,7 @@ extend-select = [
     "ANN", # flake8-annotations
 ]
 ignore = [
+    "E501",
     # Disable all "missing docstrings" and "missing type annotations" rules for now
     # TODO: Enable progressively the following rules
     "ANN001",

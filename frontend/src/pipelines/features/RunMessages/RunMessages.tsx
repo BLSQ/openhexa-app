@@ -9,6 +9,7 @@ import Linkify from "linkify-react";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import { useRef } from "react";
+import { SseMessage } from "pipelines/hooks/usePipelineRunMessages/usePipelineRunMessages";
 import {
   RunMessages_DagRunFragment,
   RunMessages_RunFragment,
@@ -16,6 +17,9 @@ import {
 
 type RunMessagesProps = {
   run: RunMessages_DagRunFragment | RunMessages_RunFragment;
+  // When provided, replaces run.messages entirely (used for live SSE streaming)
+  messages?: SseMessage[];
+  isStreaming?: boolean;
 };
 
 function getBadgeClassName(priority: string) {
@@ -35,26 +39,32 @@ function getBadgeClassName(priority: string) {
 
 const RunMessages = (props: RunMessagesProps) => {
   const { t } = useTranslation();
-  const { run } = props;
+  const { run, messages: messagesOverride, isStreaming } = props;
   const ref = useRef<HTMLDivElement>(null);
   useAutoScroll(ref, "smooth");
+
+  const messages = messagesOverride !== undefined ? messagesOverride : run.messages;
+
+  const isTerminal = [
+    PipelineRunStatus.Failed,
+    PipelineRunStatus.Success,
+    PipelineRunStatus.Stopped,
+    PipelineRunStatus.Skipped,
+  ].includes(run.status as PipelineRunStatus);
+
+  const showWaiting =
+    isStreaming ?? run.status === PipelineRunStatus.Running;
 
   return (
     <>
       <div className="max-h-96 overflow-y-auto">
         <div ref={ref}>
-          {run.messages.length === 0 &&
-          [
-            PipelineRunStatus.Failed,
-            PipelineRunStatus.Success,
-            PipelineRunStatus.Stopped,
-            PipelineRunStatus.Skipped,
-          ].includes(run.status as PipelineRunStatus) ? (
+          {messages.length === 0 && isTerminal ? (
             <p className="text-sm italic text-gray-600">{t("No messages")}</p>
           ) : (
             <table className="table-fixed">
               <tbody>
-                {run.messages.map((message, index) => (
+                {messages.map((message, index) => (
                   <tr key={index}>
                     <td className="p-1">
                       <Badge className={getBadgeClassName(message.priority)}>
@@ -91,7 +101,7 @@ const RunMessages = (props: RunMessagesProps) => {
           )}
         </div>
       </div>
-      {run.status === PipelineRunStatus.Running && (
+      {showWaiting && (
         <div className="flex items-center gap-1.5 text-gray-400 text-sm px-2 py-2">
           <Spinner size="xs" />
           {t("Waiting for messages...")}

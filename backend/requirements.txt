@@ -552,6 +552,8 @@ urllib3==2.6.3
     #   requests
     #   responses
     #   sentry-sdk
+uvicorn==0.34.0
+    # via -r requirements.in
 websocket-client==1.8.0
     # via kubernetes
 werkzeug==3.1.6
