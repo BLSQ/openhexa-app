@@ -42,7 +42,8 @@ def resolve_workspace(webapp: Webapp, info, **kwargs):
 @webapp_object.field("url")
 def resolve_url(webapp: Webapp, info, **kwargs):
     if webapp.type in (Webapp.WebappType.HTML, Webapp.WebappType.BUNDLE):
-        return f"/webapps/{webapp.id}/"
+        request = info.context["request"]
+        return request.build_absolute_uri(f"/webapps/{webapp.id}/")
     return webapp.url
 
 
