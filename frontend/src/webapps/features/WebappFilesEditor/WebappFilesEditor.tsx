@@ -114,7 +114,7 @@ const WebappFilesEditor = ({
     <div className="space-y-4">
       {isEditable && (
         <Dropzone
-          className="h-48 bg-slate-100"
+          className="h-48"
           label={t("Drop files here to upload")}
           onChange={handleFileDrop}
         />
