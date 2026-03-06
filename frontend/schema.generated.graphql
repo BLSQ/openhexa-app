@@ -5192,7 +5192,7 @@ type Webapp {
   slug: String!
   source: WebappSource!
   type: WebappType!
-  url: String
+  url: String!
   versions(page: Int, perPage: Int): WebappVersionsPage
   workspace: Workspace!
 }

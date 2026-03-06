@@ -56,7 +56,7 @@ type Webapp {
   slug: String!
   name: String!
   description: String
-  url: String
+  url: String!
   type: WebappType!
   icon: String
   workspace: Workspace!
