@@ -2,7 +2,7 @@ from ariadne import MutationType
 
 from hexa.assistant.agent import AssistantAgent
 from hexa.assistant.models import Conversation
-from hexa.user_management.models import User, AiSettings
+from hexa.user_management.models import AiSettings, User
 from hexa.workspaces.models import Workspace
 
 assistant_mutations = MutationType()

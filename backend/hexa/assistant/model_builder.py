@@ -17,6 +17,7 @@ _PROVIDER_FACTORIES = {
     AiSettings.Provider.ANTHROPIC: _build_anthropic,
 }
 
+
 def get_api_name(model: AiSettings.Model) -> str:
     model_to_api = {
         AiSettings.Model.HAIKU: "claude-haiku-4-5-20251001",
@@ -51,7 +52,9 @@ class AiModelBuilder:
             raise AssistantException("AI settings are not enabled")
         return (
             cls()
-            .provider(ai_settings.provider) # TODO what happens if user changes provider
+            .provider(
+                ai_settings.provider
+            )  # TODO what happens if user changes provider
             .model(conversation.model)
             .api_key(ai_settings.api_key)
         )

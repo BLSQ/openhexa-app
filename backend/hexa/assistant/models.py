@@ -26,7 +26,7 @@ class Conversation(SoftDeletedModel, Base):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
 
-    model = models.CharField(max_length=30, choices=AiSettings.Model.choices, null=False)
+    model = models.CharField(max_length=30, choices=AiSettings.Model.choices)
     total_input_tokens = models.IntegerField(default=0)
     total_output_tokens = models.IntegerField(default=0)
     cost = models.DecimalField(max_digits=12, decimal_places=6, default=0)
