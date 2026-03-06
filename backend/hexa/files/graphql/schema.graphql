@@ -58,6 +58,7 @@ Errors that can occur when deleting an object from a workspace's bucket.
 enum DeleteBucketObjectError {
   NOT_FOUND
   PERMISSION_DENIED
+  INVALID_PATH
 }
 
 """
@@ -80,6 +81,7 @@ Errors that can occur when preparing to download an object from a workspace's bu
 enum PrepareObjectDownloadError {
   NOT_FOUND
   PERMISSION_DENIED
+  INVALID_PATH
 }
 
 """
@@ -106,6 +108,7 @@ Errors that can occur when preparing to upload an object to a workspace's bucket
 """
 enum PrepareObjectUploadError {
   PERMISSION_DENIED
+  INVALID_PATH
 }
 
 """
@@ -135,6 +138,7 @@ enum CreateBucketFolderError {
   ALREADY_EXISTS
   NOT_FOUND
   PERMISSION_DENIED
+  INVALID_PATH
 }
 
 """
@@ -144,6 +148,44 @@ type CreateBucketFolderResult {
   success: Boolean!
   errors: [CreateBucketFolderError!]!
   folder: BucketObject
+}
+
+enum ReadFileContentError {
+  NOT_FOUND
+  PERMISSION_DENIED
+  FILE_TOO_LARGE
+  NOT_A_FILE
+  NOT_UTF8
+  INVALID_PATH
+}
+
+type ReadFileContentResult {
+  success: Boolean!
+  errors: [ReadFileContentError!]!
+  content: String
+  size: Int
+}
+
+input WriteFileContentInput {
+  workspaceSlug: String!
+  filePath: String!
+  content: String!
+  overwrite: Boolean = false
+}
+
+enum WriteFileContentError {
+  NOT_FOUND
+  PERMISSION_DENIED
+  ALREADY_EXISTS
+  FILE_TOO_LARGE
+  INVALID_PATH
+}
+
+type WriteFileContentResult {
+  success: Boolean!
+  errors: [WriteFileContentError!]!
+  filePath: String
+  size: Int
 }
 
 extend type Mutation {
@@ -166,6 +208,11 @@ extend type Mutation {
   Create a folder in a workspace's bucket.
   """
   createBucketFolder(input: CreateBucketFolderInput!): CreateBucketFolderResult!
+
+  """
+  Write text content to a file in a workspace's bucket. Use the overwrite flag to replace an existing file.
+  """
+  writeFileContent(input: WriteFileContentInput!): WriteFileContentResult! @loginRequired
 }
 
 extend type Query {
@@ -173,6 +220,11 @@ extend type Query {
   Get a file by its path within a workspace.
   """
   getFileByPath(workspaceSlug: String!, path: String!): BucketObject @loginRequired
+
+  """
+  Read the text content of a file from a workspace's bucket.
+  """
+  readFileContent(workspaceSlug: String!, filePath: String!): ReadFileContentResult! @loginRequired
 }
 
 extend type WorkspacePermissions {

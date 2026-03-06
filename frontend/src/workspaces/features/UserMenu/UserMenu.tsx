@@ -17,6 +17,8 @@ import useFeature from "identity/hooks/useFeature";
 import useMe from "identity/hooks/useMe";
 import useToggle from "core/hooks/useToggle";
 import { useTranslation } from "next-i18next";
+import Image from "next/image";
+import logoWithTextBlack from "public/images/logo_with_text_black.svg";
 import { useRouter } from "next/router";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { usePopper } from "react-popper";
@@ -115,10 +117,12 @@ const UserMenu = (props: UserMenuProps) => {
         >
           <section className="flex justify-center py-3 px-4 bg-gray-50 rounded-t">
             <Link noStyle href="/" className="flex h-7 items-center">
-              <img
-                className="h-full"
-                src="/images/logo_with_text_black.svg"
+              <Image
+                className="h-full w-auto"
+                src={logoWithTextBlack}
                 alt="OpenHEXA logo"
+                width={140}
+                height={28}
               />
             </Link>
           </section>
@@ -139,14 +143,13 @@ const UserMenu = (props: UserMenuProps) => {
               ) : null}
             </Link>
             {me.permissions.adminPanel && (
-              <Link
-                href="/admin"
-                noStyle
+              <a
+                href={`${process.env.NEXT_PUBLIC_API_BASE_PATH ?? ""}/admin`}
                 className="group flex gap-2 px-4 py-2.5 text-gray-700 transition-all hover:bg-gray-100 hover:text-gray-800"
               >
                 <Cog6ToothIcon className="h-5 w-5 text-gray-400 transition-all group-hover:text-gray-600" />
                 {t("Administration")}
-              </Link>
+              </a>
             )}
             <Link
               href="https://docs.openhexa.com/#user-manual"

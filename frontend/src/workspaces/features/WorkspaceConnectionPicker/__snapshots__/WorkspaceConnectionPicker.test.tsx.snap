@@ -109,9 +109,13 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
                 <img
                   alt="Connection logo"
                   class="sr-hidden mr-2"
+                  data-nimg="1"
+                  decoding="async"
                   height="11"
                   loading="lazy"
-                  src="/images/dhis2.svg"
+                  src="/_next/image?url=%2Fimg.jpg&w=32&q=75"
+                  srcset="/_next/image?url=%2Fimg.jpg&w=16&q=75 1x, /_next/image?url=%2Fimg.jpg&w=32&q=75 2x"
+                  style="color: transparent;"
                   width="16"
                 />
                 dhis2-dev
@@ -142,9 +146,13 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
                 <img
                   alt="Connection logo"
                   class="sr-hidden mr-2"
+                  data-nimg="1"
+                  decoding="async"
                   height="11"
                   loading="lazy"
-                  src="/images/dhis2.svg"
+                  src="/_next/image?url=%2Fimg.jpg&w=32&q=75"
+                  srcset="/_next/image?url=%2Fimg.jpg&w=16&q=75 1x, /_next/image?url=%2Fimg.jpg&w=32&q=75 2x"
+                  style="color: transparent;"
                   width="16"
                 />
                 dhis2-staging
@@ -175,9 +183,13 @@ exports[`WorkspaceConnectionPicker display all connections 1`] = `
                 <img
                   alt="Connection logo"
                   class="sr-hidden mr-2"
+                  data-nimg="1"
+                  decoding="async"
                   height="11"
                   loading="lazy"
-                  src="/images/iaso.svg"
+                  src="/_next/image?url=%2Fimg.jpg&w=32&q=75"
+                  srcset="/_next/image?url=%2Fimg.jpg&w=16&q=75 1x, /_next/image?url=%2Fimg.jpg&w=32&q=75 2x"
+                  style="color: transparent;"
                   width="16"
                 />
                 iaso-dev

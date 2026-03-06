@@ -40,10 +40,10 @@ const NavItem = ({
       noStyle
       className={clsx(
         className,
-        "text-md group relative flex items-center gap-3 px-2 py-2 font-medium",
+        "text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white",
         isCurrent
           ? "text-white"
-          : "text-gray-300 hover:bg-gray-700 hover:text-white",
+          : "text-gray-300",
         compact && "justify-center",
       )}
     >

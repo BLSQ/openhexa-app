@@ -1,4 +1,5 @@
 import { FormInstance } from "core/hooks/useForm";
+import dhis2Icon from "public/images/dhis2.svg";
 import { ConnectionForm } from "./utils";
 import { useTranslation } from "next-i18next";
 import Field from "core/components/forms/Field/Field";
@@ -51,7 +52,7 @@ function DHIS2Form(props: { form: FormInstance<ConnectionForm> }) {
 export default {
   label: "DHIS2 Instance",
   color: "bg-pink-300",
-  iconSrc: "/images/dhis2.svg",
+  iconSrc: dhis2Icon,
   Form: DHIS2Form,
   fields: [
     { code: "url", name: "URL", required: true },

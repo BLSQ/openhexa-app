@@ -19,6 +19,7 @@ from slugify import slugify
 
 from hexa.core.models import Base, Invitation, InvitationManager
 from hexa.core.models.base import BaseQuerySet
+from hexa.core.models.cryptography import EncryptedTextField
 from hexa.core.models.soft_delete import (
     DefaultSoftDeletedManager,
     IncludeSoftDeletedManager,
@@ -116,6 +117,11 @@ class User(AbstractUser, UserInterface):
 
         return self.email[:2].upper()
 
+    @property
+    def ai_settings_safe(self) -> AiSettings:
+        obj, _ = AiSettings.objects.get_or_create(user=self)
+        return obj
+
     def has_feature_flag(self, code: str) -> bool:
         return (
             Feature.objects.are_enabled_for_user(user=self).filter(code=code).exists()
@@ -164,6 +170,66 @@ class User(AbstractUser, UserInterface):
             return f"{self.first_name} {self.last_name}".strip() + f" ({self.email})"
 
         return self.email
+
+
+class AiSettings(models.Model):
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                name="ai_settings_enabled_requires_full_config",
+                check=(
+                    Q(enabled=False)
+                    | (
+                        Q(provider__isnull=False)
+                        & Q(model__isnull=False)
+                        & Q(api_key__isnull=False)
+                    )
+                ),
+            )
+        ]
+
+    class Provider(models.TextChoices):
+        ANTHROPIC = "anthropic", "Anthropic"
+
+    class Model(models.TextChoices):
+        HAIKU = "haiku", "Claude Haiku 4.5"
+        OPUS = "opus", "Claude Opus 4.6"
+        SONNET = "sonnet", "Claude Sonnet 4.6"
+
+    user = models.OneToOneField(
+        User,
+        primary_key=True,
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="ai_settings",
+    )
+    enabled = models.BooleanField(default=False)
+    provider = models.CharField(max_length=20, choices=Provider.choices, null=True)
+    model = models.CharField(max_length=30, choices=Model.choices, null=True)
+    api_key = EncryptedTextField(max_length=255, null=True)
+
+    @property
+    def has_api_key(self) -> bool:
+        return bool(self.api_key)
+
+    @staticmethod
+    def provider_choices() -> list[dict[str, str]]:
+        return [
+            {"value": choice[0], "label": choice[1]}
+            for choice in AiSettings.Provider.choices
+        ]
+
+    @staticmethod
+    def model_choices() -> list[dict[str, str]]:
+        return [
+            {"value": choice[0], "label": choice[1]}
+            for choice in AiSettings.Model.choices
+        ]
+
+    def validate(self):
+        if self.enabled and not (self.provider and self.model and self.api_key):
+            raise ValidationError("Incomplete config")
 
 
 class OrganizationType(models.TextChoices):

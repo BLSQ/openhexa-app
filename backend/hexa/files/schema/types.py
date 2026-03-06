@@ -4,6 +4,7 @@ from django.http import HttpRequest
 
 from hexa.files import storage
 from hexa.files.backends.base import StorageObject
+from hexa.files.utils import is_safe_path
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
@@ -53,6 +54,13 @@ def resolve_bucket_objects(
 ):
     if workspace.bucket_name is None:
         raise ImproperlyConfigured("Workspace does not have a bucket")
+    if prefix and not is_safe_path(prefix):
+        return {
+            "has_previous_page": False,
+            "has_next_page": False,
+            "page_number": 1,
+            "items": [],
+        }
     page = storage.list_bucket_objects(
         workspace.bucket_name,
         prefix=prefix,
@@ -69,6 +77,8 @@ def resolve_bucket_objects(
 def resolve_bucket_object(workspace, info, key, **kwargs):
     if workspace.bucket_name is None:
         raise ImproperlyConfigured("Workspace does not have a bucket")
+    if not is_safe_path(key):
+        return None
     try:
         return storage.get_bucket_object(workspace.bucket_name, key)
     except storage.exceptions.NotFound:

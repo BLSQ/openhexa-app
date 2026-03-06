@@ -171,6 +171,10 @@ class AzureBlobStorage(Storage):
 
         return f"{blob_client.url}?{sas_token}", headers
 
+    def read_object(self, bucket_name: str, file_path: str) -> bytes:
+        blob_client = self.client.get_blob_client(container=bucket_name, blob=file_path)
+        return blob_client.download_blob().readall()
+
     def get_bucket_object(self, bucket_name, object_key):
         blob_client = self.client.get_blob_client(
             container=bucket_name, blob=object_key

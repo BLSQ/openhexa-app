@@ -20,6 +20,9 @@
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": "./src",
+    "paths": {
+      "public/*": ["../public/*"]
+    },
     "plugins": [
       {
         "name": "next"

@@ -14,6 +14,10 @@ t tests:
 	@echo "Running tests"
 	docker compose run -u $(id -u):$(id -g) app coveraged-test
 
+tf tests_frontend:
+	@echo "Running frontend tests"
+	npm run test:ci --prefix frontend
+
 lb lint_backend:
 	@echo "Executing lint in backend code (pre-commit)"
 	pre-commit run --show-diff-on-failure --color=always --all-files

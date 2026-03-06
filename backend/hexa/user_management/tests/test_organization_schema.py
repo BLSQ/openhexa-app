@@ -322,7 +322,7 @@ class OrganizationInvitationTest(GraphQLTestCase, OrganizationTestMixin):
             "Some workspace description",
         )
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_invite_organization_member(self, mock_send_invite):
         self.client.force_login(self.owner)
         r = self.run_query(
@@ -496,7 +496,7 @@ class OrganizationInvitationTest(GraphQLTestCase, OrganizationTestMixin):
             r["data"]["deleteOrganizationInvitation"],
         )
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_resend_organization_invitation(self, mock_send_invite):
         invitation = OrganizationInvitation.objects.create(
             email="invitee@blsq.org",
@@ -531,7 +531,7 @@ class OrganizationInvitationTest(GraphQLTestCase, OrganizationTestMixin):
         )
         mock_send_invite.assert_called_once()
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_resend_organization_invitation_unauthorized(self, mock_send_invite):
         invitation = OrganizationInvitation.objects.create(
             email="invitee@blsq.org",
@@ -1139,7 +1139,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         )
         self.regular_user = self.create_user("regular@blsq.org")
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_create_organization_success(self, mock_send_invite):
         """Test superuser can create organization with new user (invitation flow)."""
         self.client.force_login(self.superuser)
@@ -1205,7 +1205,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(invitation.role, OrganizationMembershipRole.OWNER)
         mock_send_invite.assert_called_once_with(invitation)
 
-    @patch("hexa.user_management.schema.send_organization_add_user_email")
+    @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
     def test_create_organization_with_existing_user(self, mock_send_email):
         """Test creating organization with an existing user as owner."""
         self.client.force_login(self.superuser)
@@ -1336,7 +1336,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
             r["data"]["createOrganization"],
         )
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_create_organization_with_service_account_permission(
         self, mock_send_invite
     ):
@@ -1379,7 +1379,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertTrue(r["data"]["createOrganization"]["success"])
         self.assertEqual(r["data"]["createOrganization"]["errors"], [])
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_create_organization_with_custom_short_name(self, mock_send_invite):
         """Test creating organization with a custom short name."""
         self.client.force_login(self.superuser)
@@ -1948,7 +1948,7 @@ class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
             pipeline_runs_limit=5,
         )
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_invite_member_at_user_limit(self, mock_send_invite):
         """Test that inviting a member when at user limit returns error."""
         member = self.create_user("member@blsq.org")
@@ -1982,7 +1982,7 @@ class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
         )
         mock_send_invite.assert_not_called()
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_invite_member_under_user_limit(self, mock_send_invite):
         """Test that inviting a member when under limit succeeds."""
         self.client.force_login(self.owner)
@@ -2011,7 +2011,7 @@ class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
         )
         mock_send_invite.assert_called_once()
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_invite_member_no_subscription(self, mock_send_invite):
         """Test that inviting works without subscription (self-hosted mode)."""
         owner2 = self.create_user("owner2@blsq.org")
