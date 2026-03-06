@@ -105,7 +105,7 @@ class ForgejoClient(GitClient):
             )
             return response.json()
         except ForgejoAPIError as e:
-            if e.status_code == 409:
+            if e.status_code in (409, 422) and "already exists" in str(e):
                 logger.info("Organization %s already exists", org_slug)
                 return self._request("GET", f"/orgs/{org_slug}").json()
             raise
@@ -152,7 +152,7 @@ class ForgejoClient(GitClient):
             )
             return response.json()
         except ForgejoAPIError as e:
-            if e.status_code == 409:
+            if e.status_code in (409, 422) and "already exists" in str(e):
                 logger.info("Repository %s already exists", repo_name)
                 return self._request(
                     "GET", f"/repos/{self._username}/{repo_name}"
@@ -172,7 +172,7 @@ class ForgejoClient(GitClient):
             )
             return response.json()
         except ForgejoAPIError as e:
-            if e.status_code == 409:
+            if e.status_code in (409, 422) and "already exists" in str(e):
                 logger.info("Repository %s/%s already exists", org_slug, repo_name)
                 return self._request("GET", f"/repos/{org_slug}/{repo_name}").json()
             raise
@@ -288,11 +288,16 @@ class ForgejoClient(GitClient):
         operations = []
         for file in files:
             action = "update" if file["path"] in existing_tree else "create"
+            content = file["content"]
+            if isinstance(content, str):
+                content = base64.b64encode(content.encode()).decode()
+            elif isinstance(content, bytes):
+                content = base64.b64encode(content).decode()
             operations.append(
                 {
                     "operation": action,
                     "path": file["path"],
-                    "content": file["content"],
+                    "content": content,
                 }
             )
 
