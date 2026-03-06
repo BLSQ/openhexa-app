@@ -15,7 +15,7 @@ const organization = {
   name: "Test Organization",
   shortName: "Test Org",
   permissions: {
-    createWorkspace: true,
+    createWorkspace: { isAllowed: true, reasons: [] },
     archiveWorkspace: true,
     manageMembers: true,
     manageOwners: true,
@@ -60,7 +60,11 @@ const mocks = [
           shortName: "Test Org",
           permissions: {
             __typename: "OrganizationPermissions",
-            createWorkspace: true,
+            createWorkspace: {
+              __typename: "CreateWorkspacePermission",
+              isAllowed: true,
+              reasons: [],
+            },
             archiveWorkspace: true,
             manageMembers: true,
             manageOwners: true,

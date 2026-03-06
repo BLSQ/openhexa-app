@@ -33,7 +33,7 @@ const mockWorkspace = {
     name: "Test Organization",
     shortName: "Test Organization",
     permissions: {
-      createWorkspace: true,
+      createWorkspace: { isAllowed: true, reasons: [] },
     },
   },
   permissions: {

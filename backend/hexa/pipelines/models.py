@@ -786,6 +786,10 @@ class PipelineRun(Base, WithStatus):
         indexes = [
             models.Index(fields=["access_token"]),
             models.Index(fields=["pipeline", "-execution_date"]),
+            models.Index(fields=["state"], name="idx_pipelinerun_state"),
+            models.Index(
+                fields=["execution_date"], name="idx_pipelinerun_execution_date"
+            ),
         ]
 
     user = models.ForeignKey(

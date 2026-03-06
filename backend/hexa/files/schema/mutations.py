@@ -1,7 +1,11 @@
+import io
+
 from ariadne import MutationType
 
 from hexa.analytics.api import track
 from hexa.files import storage
+from hexa.files.backends.exceptions import NotFound
+from hexa.files.utils import is_safe_path
 from hexa.workspaces.models import Workspace
 
 mutations = MutationType()
@@ -17,7 +21,8 @@ def resolve_delete_bucket_object(_, info, **kwargs):
         )
         if not request.user.has_perm("files.delete_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
-
+        if not is_safe_path(mutation_input["object_key"]):
+            return {"success": False, "errors": ["INVALID_PATH"]}
         storage.delete_object(workspace.bucket_name, mutation_input["object_key"])
         return {"success": True, "errors": []}
     except (storage.exceptions.NotFound, Workspace.DoesNotExist):
@@ -36,6 +41,8 @@ def resolve_prepare_download_object(_, info, **kwargs):
         if not request.user.has_perm("files.download_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
         object_key = mutation_input["object_key"]
+        if not is_safe_path(object_key):
+            return {"success": False, "errors": ["INVALID_PATH"]}
         download_url = storage.generate_download_url(
             bucket_name=workspace.bucket_name,
             target_key=object_key,
@@ -64,6 +71,8 @@ def resolve_prepare_upload_object(_, info, **kwargs):
         if not request.user.has_perm("files.create_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
         object_key = mutation_input["object_key"]
+        if not is_safe_path(object_key):
+            return {"success": False, "errors": ["INVALID_PATH"]}
         upload_url, headers = storage.generate_upload_url(
             bucket_name=workspace.bucket_name,
             target_key=object_key,
@@ -92,11 +101,59 @@ def resolve_create_bucket_folder(_, info, **kwargs):
         if not request.user.has_perm("files.create_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
         folder_key = mutation_input["folder_key"]
+        if not is_safe_path(folder_key):
+            return {"success": False, "errors": ["INVALID_PATH"]}
         folder_object = storage.create_bucket_folder(workspace.bucket_name, folder_key)
 
         return {"success": True, "folder": folder_object, "errors": []}
     except (storage.exceptions.NotFound, Workspace.DoesNotExist):
         return {"success": False, "errors": ["NOT_FOUND"]}
+
+
+MAX_WRITE_SIZE = 1024 * 1024
+
+
+@mutations.field("writeFileContent")
+def resolve_write_file_content(_, info, **kwargs):
+    request = info.context["request"]
+    mutation_input = kwargs["input"]
+    workspace_slug = mutation_input["workspace_slug"]
+    file_path = mutation_input["file_path"]
+    content = mutation_input["content"]
+    overwrite = mutation_input.get("overwrite", False)
+
+    if not is_safe_path(file_path):
+        return {"success": False, "errors": ["INVALID_PATH"]}
+
+    try:
+        workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=workspace_slug
+        )
+    except Workspace.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
+
+    if not request.user.has_perm("files.create_object", workspace):
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+    encoded = content.encode("utf-8")
+
+    if len(encoded) > MAX_WRITE_SIZE:
+        return {"success": False, "errors": ["FILE_TOO_LARGE"]}
+
+    if not overwrite:
+        try:
+            storage.get_bucket_object(workspace.bucket_name, file_path)
+            return {"success": False, "errors": ["ALREADY_EXISTS"]}
+        except NotFound:
+            pass
+
+    storage.save_object(workspace.bucket_name, file_path, io.BytesIO(encoded))
+    return {
+        "success": True,
+        "errors": [],
+        "file_path": file_path,
+        "size": len(encoded),
+    }
 
 
 bindables = [

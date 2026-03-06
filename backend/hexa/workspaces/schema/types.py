@@ -11,7 +11,7 @@ from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.tags.models import Tag
 from hexa.user_management.models import OrganizationMembership
-from hexa.user_management.schema import me_permissions_object
+from hexa.user_management.schema.types import me_permissions_object
 
 from ..models import (
     Connection,

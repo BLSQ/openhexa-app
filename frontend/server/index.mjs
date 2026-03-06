@@ -19,6 +19,9 @@ const API_PATHS = [
   "/files/up",
   "/files/dl",
   "/superset",
+  "/mcp/",
+  "/oauth/",
+  "/.well-known/",
 ];
 
 app.prepare().then(async () => {

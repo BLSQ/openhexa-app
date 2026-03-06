@@ -321,7 +321,7 @@ class OrganizationInvitationTest(GraphQLTestCase, OrganizationTestMixin):
             "Some workspace description",
         )
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_invite_organization_member(self, mock_send_invite):
         self.client.force_login(self.owner)
         r = self.run_query(
@@ -495,7 +495,7 @@ class OrganizationInvitationTest(GraphQLTestCase, OrganizationTestMixin):
             r["data"]["deleteOrganizationInvitation"],
         )
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_resend_organization_invitation(self, mock_send_invite):
         invitation = OrganizationInvitation.objects.create(
             email="invitee@blsq.org",
@@ -530,7 +530,7 @@ class OrganizationInvitationTest(GraphQLTestCase, OrganizationTestMixin):
         )
         mock_send_invite.assert_called_once()
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_resend_organization_invitation_unauthorized(self, mock_send_invite):
         invitation = OrganizationInvitation.objects.create(
             email="invitee@blsq.org",
@@ -1131,7 +1131,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         )
         self.regular_user = self.create_user("regular@blsq.org")
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_create_organization_success(self, mock_send_invite):
         """Test superuser can create organization with new user (invitation flow)."""
         self.client.force_login(self.superuser)
@@ -1197,7 +1197,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(invitation.role, OrganizationMembershipRole.OWNER)
         mock_send_invite.assert_called_once_with(invitation)
 
-    @patch("hexa.user_management.schema.send_organization_add_user_email")
+    @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
     def test_create_organization_with_existing_user(self, mock_send_email):
         """Test creating organization with an existing user as owner."""
         self.client.force_login(self.superuser)
@@ -1328,7 +1328,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
             r["data"]["createOrganization"],
         )
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_create_organization_with_service_account_permission(
         self, mock_send_invite
     ):
@@ -1371,7 +1371,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertTrue(r["data"]["createOrganization"]["success"])
         self.assertEqual(r["data"]["createOrganization"]["errors"], [])
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_create_organization_with_custom_short_name(self, mock_send_invite):
         """Test creating organization with a custom short name."""
         self.client.force_login(self.superuser)
@@ -1842,6 +1842,82 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(subscription["limits"]["pipelineRuns"], 1000)
 
 
+class CreateWorkspacePermissionTest(GraphQLTestCase, OrganizationTestMixin):
+    """Tests for the createWorkspace structured permission on OrganizationPermissions."""
+
+    QUERY = """
+        query OrganizationCreateWorkspacePermission($organizationId: UUID!) {
+            organization(id: $organizationId) {
+                permissions {
+                    createWorkspace {
+                        isAllowed
+                        reasons
+                    }
+                }
+            }
+        }
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.owner = self.create_user("owner@blsq.org")
+        self.member = self.create_user("member@blsq.org")
+        self.organization = self.create_organization(
+            self.owner, "Test Organization", "Description"
+        )
+        self.join_organization(
+            self.member, self.organization, OrganizationMembershipRole.MEMBER
+        )
+
+    def _get_permission(self, user):
+        self.client.force_login(user)
+        r = self.run_query(self.QUERY, {"organizationId": str(self.organization.id)})
+        return r["data"]["organization"]["permissions"]["createWorkspace"]
+
+    def test_allowed_for_owner_without_subscription(self):
+        perm = self._get_permission(self.owner)
+        self.assertTrue(perm["isAllowed"])
+        self.assertEqual(perm["reasons"], [])
+
+    def test_allowed_for_member(self):
+        perm = self._get_permission(self.member)
+        self.assertTrue(perm["isAllowed"])
+        self.assertEqual(perm["reasons"], [])
+
+    def test_denied_when_workspaces_limit_reached(self):
+        today = timezone.now().date()
+        OrganizationSubscription.objects.create(
+            organization=self.organization,
+            subscription_id=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+            plan_code="openhexa_starter",
+            start_date=today - timedelta(days=30),
+            end_date=today + timedelta(days=335),
+            users_limit=10,
+            workspaces_limit=0,
+            pipeline_runs_limit=1000,
+        )
+        perm = self._get_permission(self.owner)
+        self.assertFalse(perm["isAllowed"])
+        self.assertIn("WORKSPACES_LIMIT_REACHED", perm["reasons"])
+        self.assertNotIn("PERMISSION_DENIED", perm["reasons"])
+
+    def test_allowed_when_below_workspaces_limit(self):
+        today = timezone.now().date()
+        OrganizationSubscription.objects.create(
+            organization=self.organization,
+            subscription_id=uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+            plan_code="openhexa_starter",
+            start_date=today - timedelta(days=30),
+            end_date=today + timedelta(days=335),
+            users_limit=10,
+            workspaces_limit=5,
+            pipeline_runs_limit=1000,
+        )
+        perm = self._get_permission(self.owner)
+        self.assertTrue(perm["isAllowed"])
+        self.assertEqual(perm["reasons"], [])
+
+
 class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
     """Tests for subscription limit enforcement."""
 
@@ -1864,7 +1940,7 @@ class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
             pipeline_runs_limit=5,
         )
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_invite_member_at_user_limit(self, mock_send_invite):
         """Test that inviting a member when at user limit returns error."""
         member = self.create_user("member@blsq.org")
@@ -1898,7 +1974,7 @@ class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
         )
         mock_send_invite.assert_not_called()
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_invite_member_under_user_limit(self, mock_send_invite):
         """Test that inviting a member when under limit succeeds."""
         self.client.force_login(self.owner)
@@ -1927,7 +2003,7 @@ class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
         )
         mock_send_invite.assert_called_once()
 
-    @patch("hexa.user_management.schema.send_organization_invite")
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_invite_member_no_subscription(self, mock_send_invite):
         """Test that inviting works without subscription (self-hosted mode)."""
         owner2 = self.create_user("owner2@blsq.org")

@@ -2,6 +2,8 @@ import logging
 
 from django.db import connection
 from django.http import HttpRequest
+from django.utils import timezone
+from oauth2_provider.models import AccessToken
 
 logger = logging.getLogger(__name__)
 
@@ -48,5 +50,34 @@ def query_count_debug_middleware(get_response):
                     pass
         response["X-DB-Query-Count"] = str(queries_count)
         return response
+
+    return middleware
+
+
+def oauth2_token_authentication_middleware(get_response):
+    def middleware(request: HttpRequest):
+        if request.user.is_authenticated:
+            return get_response(request)
+
+        try:
+            auth_type, token = request.headers["Authorization"].split(" ")
+            if auth_type.lower() == "bearer":
+                access_token = AccessToken.objects.select_related("user").get(
+                    token=token
+                )
+                if (
+                    access_token.expires >= timezone.now()
+                    and request.path.startswith("/mcp")
+                    and "openhexa:mcp" in access_token.scope
+                ):  # Only allow MCP access for now, users authorized this scope for MCP access, not for GraphQL or other endpoints. We can later add more scopes for other endpoints if needed.
+                    request.user = access_token.user
+        except KeyError:
+            pass
+        except ValueError:
+            logger.error("OAuth2 token authentication error")
+        except AccessToken.DoesNotExist:
+            pass
+
+        return get_response(request)
 
     return middleware

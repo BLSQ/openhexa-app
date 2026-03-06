@@ -1,6 +1,7 @@
 import { gql } from "@apollo/client";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "next-i18next";
+import Image from "next/image";
 import useDebounce from "core/hooks/useDebounce";
 import { Combobox } from "core/components/forms/Combobox";
 import { ConnectionType } from "graphql/types";
@@ -89,9 +90,9 @@ const WorkspaceConnectionPicker = (props: WorkspaceConnectionPickerProps) => {
       {options.map((option: Option) => (
         <Combobox.CheckOption key={option.id} value={option}>
           <div className="flex items-center">
-            <img
+            <Image
               loading="lazy"
-              src={Connections[option.type as keyof typeof Connections].iconSrc}
+              src={Connections[option.type as keyof typeof Connections].iconSrc!}
               className="sr-hidden mr-2"
               width={16}
               height={11}

@@ -1,4 +1,5 @@
 import { FormInstance } from "core/hooks/useForm";
+import gcsIcon from "public/images/gcs.svg";
 import { ConnectionForm } from "./utils";
 import { useTranslation } from "next-i18next";
 import Field from "core/components/forms/Field/Field";
@@ -49,7 +50,7 @@ function GCSBucketForm(props: { form: FormInstance<ConnectionForm> }) {
 export default {
   label: "Google GCS Bucket",
   color: "bg-blue-200",
-  iconSrc: "/images/gcs.svg",
+  iconSrc: gcsIcon,
   Form: GCSBucketForm,
   fields: [
     { code: "bucket_name", name: "Bucket name", required: true },

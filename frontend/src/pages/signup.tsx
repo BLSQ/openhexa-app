@@ -13,6 +13,7 @@ import { useSignupMutation } from "identity/graphql/mutations.generated";
 import { useSignupPageQuery } from "identity/graphql/queries.generated";
 import { useTranslation } from "next-i18next";
 import Image from "next/legacy/image";
+import logo from "public/images/logo.svg";
 import { useRouter } from "next/router";
 import { ReactElement, useState } from "react";
 
@@ -71,7 +72,7 @@ const SignupPage: NextPageWithLayout = () => {
           <div className="relative h-16 w-auto">
             <Image
               priority
-              src="/images/logo.svg"
+              src={logo}
               layout="fill"
               className="mx-auto block h-16 w-auto"
               alt="OpenHEXA logo"
@@ -108,7 +109,7 @@ const SignupPage: NextPageWithLayout = () => {
           <div className="relative h-16 w-auto">
             <Image
               priority
-              src="/images/logo.svg"
+              src={logo}
               layout="fill"
               className="mx-auto block h-16 w-auto"
               alt="OpenHEXA logo"

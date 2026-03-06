@@ -129,7 +129,7 @@ if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
         ","
     )
 
-CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$"
+CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$|^/mcp/|^/oauth/|^/\.well-known/"
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -244,6 +244,8 @@ INSTALLED_APPS = [
     "hexa.webapps",
     "hexa.shortcuts",
     "hexa.assistant",
+    "hexa.mcp",
+    "oauth2_provider",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
@@ -264,6 +266,7 @@ MIDDLEWARE = [
     "hexa.pipelines.middlewares.pipeline_run_authentication_middleware",
     "hexa.workspaces.middlewares.workspace_token_authentication_middleware",
     "hexa.user_management.middlewares.service_account_token_middleware",
+    "hexa.core.middlewares.oauth2_token_authentication_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "hexa.user_management.middlewares.login_required_middleware",
@@ -362,9 +365,14 @@ USE_L10N = True
 
 USE_TZ = True
 
+# When Django is served under a URL prefix (e.g. /hexa-api), set it
+# so that Django generates correct URLs for static files, admin links, redirects, etc.
+# https://docs.djangoproject.com/en/dev/ref/settings/#force-script-name
+FORCE_SCRIPT_NAME = os.environ.get("NEXT_PUBLIC_API_BASE_PATH", None)
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
-STATIC_URL = "/static/"
+STATIC_URL = (FORCE_SCRIPT_NAME or "") + "/static/"
 STATIC_ROOT = BASE_DIR / "static"
 STATICFILES_DIRS = [BASE_DIR / "hexa" / "static"]
 MEDIA_ROOT = BASE_DIR / "static" / "uploads"
@@ -545,3 +553,27 @@ if os.environ.get("STORAGE", "local") == "google-cloud":
 ACCESSMOD_BUCKET_NAME = os.environ.get("ACCESSMOD_BUCKET_NAME")
 ACCESSMOD_MANAGE_REQUESTS_URL = os.environ.get("ACCESSMOD_MANAGE_REQUESTS_URL")
 ACCESSMOD_SET_PASSWORD_URL = os.environ.get("ACCESSMOD_SET_PASSWORD_URL")
+
+# OAuth2 Provider (django-oauth-toolkit)
+OAUTH2_PROVIDER = {
+    "PKCE_REQUIRED": True,
+    "SCOPES": {"openhexa:mcp": "Access the OpenHEXA MCP server"},
+    "DEFAULT_SCOPES": ["openhexa:mcp"],
+    "ACCESS_TOKEN_EXPIRE_SECONDS": int(
+        os.environ.get("OAUTH2_ACCESS_TOKEN_EXPIRE_SECONDS", 3600)
+    ),
+    "REFRESH_TOKEN_EXPIRE_SECONDS": 86400,
+    "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"] if DEBUG else ["https"],
+}
+
+OAUTH2_ALLOWED_REDIRECT_URI_HOSTS = {
+    "localhost",
+    "127.0.0.1",
+    "claude.ai",
+    "chatgpt.com",
+    "chat.openai.com",
+}
+if "OAUTH2_ALLOWED_REDIRECT_URI_HOSTS" in os.environ:
+    OAUTH2_ALLOWED_REDIRECT_URI_HOSTS.update(
+        os.environ["OAUTH2_ALLOWED_REDIRECT_URI_HOSTS"].split(",")
+    )
