@@ -107,6 +107,19 @@ class DummyStorageClient(Storage):
                 size=len(obj),
             )
 
+    def read_object(self, bucket_name: str, file_path: str) -> bytes:
+        if (
+            bucket_name not in self._buckets
+            or file_path not in self._buckets[bucket_name]
+        ):
+            raise self.exceptions.NotFound(
+                f"Object '{file_path}' not found in bucket '{bucket_name}'."
+            )
+        data = self._buckets[bucket_name][file_path]
+        if isinstance(data, bytes):
+            return data
+        raise self.exceptions.NotFound(f"'{file_path}' is not a file.")
+
     def get_bucket_object(self, bucket_name: str, object_key: str):
         # Mock retrieving an object from a bucket
         if (

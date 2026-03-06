@@ -720,6 +720,7 @@ export type CreateAccessmodZonalStatisticsResult = {
 /** Errors that can occur when creating a folder in a workspace's bucket. */
 export enum CreateBucketFolderError {
   AlreadyExists = 'ALREADY_EXISTS',
+  InvalidPath = 'INVALID_PATH',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
@@ -1646,6 +1647,7 @@ export type DeleteAccessmodProjectResult = {
 
 /** Errors that can occur when deleting an object from a workspace's bucket. */
 export enum DeleteBucketObjectError {
+  InvalidPath = 'INVALID_PATH',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
@@ -2871,6 +2873,8 @@ export type Mutation = {
   uploadPipeline: UploadPipelineResult;
   /** Verifies a device for two-factor authentication. */
   verifyDevice: VerifyDeviceResult;
+  /** Write text content to a file in a workspace's bucket. Use the overwrite flag to replace an existing file. */
+  writeFileContent: WriteFileContentResult;
 };
 
 
@@ -3481,6 +3485,11 @@ export type MutationUploadPipelineArgs = {
 
 export type MutationVerifyDeviceArgs = {
   input: VerifyDeviceInput;
+};
+
+
+export type MutationWriteFileContentArgs = {
+  input: WriteFileContentInput;
 };
 
 export type NotebookServer = {
@@ -4221,6 +4230,7 @@ export type PrepareDownloadUrlResult = {
 
 /** Errors that can occur when preparing to download an object from a workspace's bucket. */
 export enum PrepareObjectDownloadError {
+  InvalidPath = 'INVALID_PATH',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
@@ -4241,6 +4251,7 @@ export type PrepareObjectDownloadResult = {
 
 /** Errors that can occur when preparing to upload an object to a workspace's bucket. */
 export enum PrepareObjectUploadError {
+  InvalidPath = 'INVALID_PATH',
   PermissionDenied = 'PERMISSION_DENIED'
 }
 
@@ -4345,6 +4356,8 @@ export type Query = {
   pipelineVersion?: Maybe<PipelineVersion>;
   /** Retrieves a page of pipelines ordered by relevant name. */
   pipelines: PipelinesPage;
+  /** Read the text content of a file from a workspace's bucket. */
+  readFileContent: ReadFileContentResult;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
   searchFiles: FileResultPage;
@@ -4572,6 +4585,12 @@ export type QueryPipelinesArgs = {
 };
 
 
+export type QueryReadFileContentArgs = {
+  filePath: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
+};
+
+
 export type QuerySearchDatabaseTablesArgs = {
   organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
@@ -4672,6 +4691,23 @@ export type QueryWorkspacesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+};
+
+export enum ReadFileContentError {
+  FileTooLarge = 'FILE_TOO_LARGE',
+  InvalidPath = 'INVALID_PATH',
+  NotAFile = 'NOT_A_FILE',
+  NotFound = 'NOT_FOUND',
+  NotUtf8 = 'NOT_UTF8',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type ReadFileContentResult = {
+  __typename?: 'ReadFileContentResult';
+  content?: Maybe<Scalars['String']['output']>;
+  errors: Array<ReadFileContentError>;
+  size?: Maybe<Scalars['Int']['output']>;
+  success: Scalars['Boolean']['output'];
 };
 
 /** The RegisterError enum represents the possible errors that can occur during the register mutation. */
@@ -6137,4 +6173,27 @@ export type WorkspaceRef = {
   __typename?: 'WorkspaceRef';
   id: Scalars['UUID']['output'];
   slug: Scalars['String']['output'];
+};
+
+export enum WriteFileContentError {
+  AlreadyExists = 'ALREADY_EXISTS',
+  FileTooLarge = 'FILE_TOO_LARGE',
+  InvalidPath = 'INVALID_PATH',
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type WriteFileContentInput = {
+  content: Scalars['String']['input'];
+  filePath: Scalars['String']['input'];
+  overwrite?: InputMaybe<Scalars['Boolean']['input']>;
+  workspaceSlug: Scalars['String']['input'];
+};
+
+export type WriteFileContentResult = {
+  __typename?: 'WriteFileContentResult';
+  errors: Array<WriteFileContentError>;
+  filePath?: Maybe<Scalars['String']['output']>;
+  size?: Maybe<Scalars['Int']['output']>;
+  success: Scalars['Boolean']['output'];
 };

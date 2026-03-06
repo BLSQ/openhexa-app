@@ -686,6 +686,7 @@ type CreateAccessmodZonalStatisticsResult {
 """Errors that can occur when creating a folder in a workspace's bucket."""
 enum CreateBucketFolderError {
   ALREADY_EXISTS
+  INVALID_PATH
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -1579,6 +1580,7 @@ type DeleteAccessmodProjectResult {
 Errors that can occur when deleting an object from a workspace's bucket.
 """
 enum DeleteBucketObjectError {
+  INVALID_PATH
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -2937,6 +2939,11 @@ type Mutation {
 
   """Verifies a device for two-factor authentication."""
   verifyDevice(input: VerifyDeviceInput!): VerifyDeviceResult!
+
+  """
+  Write text content to a file in a workspace's bucket. Use the overwrite flag to replace an existing file.
+  """
+  writeFileContent(input: WriteFileContentInput!): WriteFileContentResult!
 }
 
 type NotebookServer {
@@ -3599,6 +3606,7 @@ type PrepareDownloadURLResult {
 Errors that can occur when preparing to download an object from a workspace's bucket.
 """
 enum PrepareObjectDownloadError {
+  INVALID_PATH
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -3622,6 +3630,7 @@ type PrepareObjectDownloadResult {
 Errors that can occur when preparing to upload an object to a workspace's bucket.
 """
 enum PrepareObjectUploadError {
+  INVALID_PATH
   PERMISSION_DENIED
 }
 
@@ -3745,6 +3754,9 @@ type Query {
 
   """Retrieves a page of pipelines ordered by relevant name."""
   pipelines(functionalType: PipelineFunctionalType, lastRunStates: [PipelineRunStatus!], name: String, orderBy: PipelineOrderBy, page: Int, perPage: Int, search: String, tags: [String!], workspaceSlug: String): PipelinesPage!
+
+  """Read the text content of a file from a workspace's bucket."""
+  readFileContent(filePath: String!, workspaceSlug: String!): ReadFileContentResult!
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
@@ -3763,6 +3775,22 @@ type Query {
   webapps(favorite: Boolean, page: Int, perPage: Int, workspaceSlug: String): WebappsPage!
   workspace(slug: String!): Workspace
   workspaces(organizationId: UUID, page: Int, perPage: Int, query: String): WorkspacePage!
+}
+
+enum ReadFileContentError {
+  FILE_TOO_LARGE
+  INVALID_PATH
+  NOT_A_FILE
+  NOT_FOUND
+  NOT_UTF8
+  PERMISSION_DENIED
+}
+
+type ReadFileContentResult {
+  content: String
+  errors: [ReadFileContentError!]!
+  size: Int
+  success: Boolean!
 }
 
 """
@@ -5364,4 +5392,26 @@ type WorkspacePermissions {
 type WorkspaceRef {
   id: UUID!
   slug: String!
+}
+
+enum WriteFileContentError {
+  ALREADY_EXISTS
+  FILE_TOO_LARGE
+  INVALID_PATH
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input WriteFileContentInput {
+  content: String!
+  filePath: String!
+  overwrite: Boolean = false
+  workspaceSlug: String!
+}
+
+type WriteFileContentResult {
+  errors: [WriteFileContentError!]!
+  filePath: String
+  size: Int
+  success: Boolean!
 }

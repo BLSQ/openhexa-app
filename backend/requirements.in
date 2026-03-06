@@ -84,3 +84,6 @@ filetype
 # Azure
 azure-storage-blob
 azure-identity
+
+# OAuth
+django-oauth-toolkit>=3.0.0
