@@ -1,3 +1,5 @@
+import logging
+
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import URLValidator
@@ -9,6 +11,8 @@ from hexa.superset.models import SupersetInstance
 from hexa.utils.base64_image_encode_decode import decode_base64_image
 from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 from hexa.workspaces.models import Workspace
+
+logger = logging.getLogger(__name__)
 
 webapps_mutations = MutationType()
 
@@ -173,7 +177,8 @@ def resolve_update_webapp(_, info, **kwargs):
             ]
             try:
                 git_webapp.save_files(files, "Update webapp content", user)
-            except ForgejoAPIError:
+            except ForgejoAPIError as e:
+                logger.error("Failed to save webapp files: %s", e)
                 return {"success": False, "errors": ["SAVE_FAILED"], "webapp": None}
 
         if input.get("published_version_id") is not None:
