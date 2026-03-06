@@ -92,7 +92,8 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const updateExistingWebapp = async (values: any) => {
     setLoading(true);
     try {
-      const source = buildSource[webapp!.type](values);
+      const isGit =
+        webapp!.type === WebappType.Html || webapp!.type === WebappType.Bundle;
       const { data } = await updateWebapp({
         variables: {
           input: {
@@ -100,7 +101,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             name: values.name,
             icon: values.icon,
             isPublic: values.isPublic,
-            source,
+            ...(!isGit && { source: buildSource[webapp!.type](values) }),
           },
         },
       });
