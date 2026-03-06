@@ -282,24 +282,27 @@ class ForgejoClient(GitClient):
     ) -> str:
         org_slug = org_slug or self._username
         existing_tree = {
-            entry["path"] for entry in self.get_files_tree(repo_name, org_slug=org_slug)
+            entry["path"]: entry.get("sha", "")
+            for entry in self.get_files_tree(repo_name, org_slug=org_slug)
         }
 
         operations = []
         for file in files:
-            action = "update" if file["path"] in existing_tree else "create"
+            path = file["path"]
+            is_update = path in existing_tree
             content = file["content"]
             if isinstance(content, str):
                 content = base64.b64encode(content.encode()).decode()
             elif isinstance(content, bytes):
                 content = base64.b64encode(content).decode()
-            operations.append(
-                {
-                    "operation": action,
-                    "path": file["path"],
-                    "content": content,
-                }
-            )
+            op = {
+                "operation": "update" if is_update else "create",
+                "path": path,
+                "content": content,
+            }
+            if is_update:
+                op["sha"] = existing_tree[path]
+            operations.append(op)
 
         response = self._request(
             "POST",
