@@ -407,9 +407,15 @@ class ForgejoClient(GitClient):
         ]
 
 
+_forgejo_client: ForgejoClient | None = None
+
+
 def get_forgejo_client() -> GitClient:
-    return ForgejoClient(
-        url=settings.GIT_SERVER_URL,
-        username=settings.GIT_SERVER_ADMIN_USERNAME,
-        password=settings.GIT_SERVER_ADMIN_PASSWORD,
-    )
+    global _forgejo_client
+    if _forgejo_client is None:
+        _forgejo_client = ForgejoClient(
+            url=settings.GIT_SERVER_URL,
+            username=settings.GIT_SERVER_ADMIN_USERNAME,
+            password=settings.GIT_SERVER_ADMIN_PASSWORD,
+        )
+    return _forgejo_client
