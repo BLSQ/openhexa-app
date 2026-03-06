@@ -114,10 +114,16 @@ class ForgejoClient(GitClient):
         self, old_slug: str, new_slug: str, display_name: str
     ) -> dict | None:
         try:
+            if old_slug != new_slug:
+                self._request(
+                    "POST",
+                    f"/admin/users/{old_slug}/rename",
+                    json={"new_username": new_slug},
+                )
             response = self._request(
                 "PATCH",
-                f"/orgs/{old_slug}",
-                json={"username": new_slug, "full_name": display_name},
+                f"/orgs/{new_slug}",
+                json={"full_name": display_name},
             )
             return response.json()
         except ForgejoAPIError as e:
