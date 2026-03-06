@@ -17,6 +17,7 @@ Follow these guidelines when writing code:
 -   **Run migrations**: `docker compose run app migrate`
 -   **Create fixtures**: `docker compose run app fixtures`
 -   **Lint code**: `pre-commit run --all` (uses ruff for Python)
+-   **Add a Python dependency**: edit `requirements.in` only — never edit `requirements.txt` directly, it is generated. After editing `requirements.in`, run `pip-compile --no-emit-index-url requirements.in` to regenerate it.
 -   **Extract translations**: `docker compose run app manage makemessages -l fr`
 -   **Compile translations**: `docker compose run app manage compilemessages`
 
