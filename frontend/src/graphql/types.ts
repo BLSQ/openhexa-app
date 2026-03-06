@@ -5951,7 +5951,7 @@ export type Webapp = {
   slug: Scalars['String']['output'];
   source: WebappSource;
   type: WebappType;
-  url?: Maybe<Scalars['String']['output']>;
+  url: Scalars['String']['output'];
   versions?: Maybe<WebappVersionsPage>;
   workspace: Workspace;
 };
