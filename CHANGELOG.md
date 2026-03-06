@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.5.0](https://github.com/BLSQ/openhexa-app/compare/4.4.1...4.5.0) (2026-03-06)
+
+
+### Features
+
+* add concurrent indexes on PipelineRun.state and execution_date (HEXA-1470) ([#1642](https://github.com/BLSQ/openhexa-app/issues/1642)) ([b067a22](https://github.com/BLSQ/openhexa-app/commit/b067a2226e6e4c8d2c4b79344f3d55cf73730fef))
+* OpenHexa MCP server (HEXA-1507) ([#1638](https://github.com/BLSQ/openhexa-app/issues/1638)) ([64c5a4d](https://github.com/BLSQ/openhexa-app/commit/64c5a4d253f0f9b65e8d06ee5c41043ea3f20cfc))
+
+
+### Bug Fixes
+
+* Images and Django admin paths when serving OH from a path (HEXA-1537) ([#1660](https://github.com/BLSQ/openhexa-app/issues/1660)) ([fe995ed](https://github.com/BLSQ/openhexa-app/commit/fe995ed6ffe6d8d19ae2444f49a81defbe5923a4))
+
 ## [4.4.1](https://github.com/BLSQ/openhexa-app/compare/4.4.0...4.4.1) (2026-03-03)
 
 
