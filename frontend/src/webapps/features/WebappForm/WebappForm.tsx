@@ -38,8 +38,8 @@ const buildSource: Record<WebappType, (values: any) => any> = {
       dashboardId: values.externalDashboardId,
     },
   }),
-  [WebappType.Html]: (values) => ({}), //Coming soon
-  [WebappType.Bundle]: (values) => ({}), //Coming soon
+  [WebappType.Html]: () => ({ html: [{ path: "index.html", content: "<h1>Hello World</h1>" }] }),
+  [WebappType.Bundle]: () => ({ bundle: [] }),
 };
 
 type WebappFormProps = {
@@ -206,9 +206,8 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             defaultValue={WebappType.Iframe}
             options={[
               WebappType.Iframe,
-              // Coming soon
-              // WebappType.Html,
-              // WebappType.Bundle,
+              WebappType.Html,
+              WebappType.Bundle,
               ...(supersetInstances.length > 0
                 ? [WebappType.Superset]
                 : []),
