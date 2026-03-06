@@ -10,6 +10,7 @@ from django_otp.models import Device
 from hexa.core.test import GraphQLTestCase
 from hexa.core.test.utils import graphql_datetime_format
 from hexa.user_management.models import (
+    AiSettings,
     Feature,
     FeatureFlag,
     Membership,
@@ -1771,7 +1772,7 @@ class SignupTest(GraphQLTestCase):
         )
 
     @override_settings(ALLOW_SELF_REGISTRATION=True)
-    @patch("hexa.user_management.schema.send_signup_email")
+    @patch("hexa.user_management.schema.mutations.send_signup_email")
     def test_signup_success(self, mock_send_email):
         """Test successful signup request."""
         r = self.run_query(
@@ -1831,7 +1832,7 @@ class SignupTest(GraphQLTestCase):
         self.assertEqual(r["data"]["signup"], {"success": True, "errors": []})
 
     @override_settings(ALLOW_SELF_REGISTRATION=True)
-    @patch("hexa.user_management.schema.send_signup_email")
+    @patch("hexa.user_management.schema.mutations.send_signup_email")
     def test_signup_existing_pending_request(self, mock_send_email):
         """Test signup with existing pending request resends email."""
         existing_request = SignupRequest.objects.create(email="pending@email.com")
@@ -1858,7 +1859,7 @@ class SignupTest(GraphQLTestCase):
         self.assertEqual(called_request.id, existing_request.id)
 
     @override_settings(ALLOW_SELF_REGISTRATION=True)
-    @patch("hexa.user_management.schema.send_signup_email")
+    @patch("hexa.user_management.schema.mutations.send_signup_email")
     def test_signup_email_normalized(self, mock_send_email):
         """Test that email is normalized (lowercase, trimmed)."""
         r = self.run_query(
@@ -1877,3 +1878,95 @@ class SignupTest(GraphQLTestCase):
 
         signup_request = SignupRequest.objects.get(email="newuser@email.com")
         self.assertIsNotNone(signup_request)
+
+
+class UpdateUserAiSettingsTest(GraphQLTestCase):
+    UPDATE_AI_SETTINGS_MUTATION = """
+        mutation updateUserAiSettings($input: UpdateUserAiSettingsInput!) {
+            updateUserAiSettings(input: $input) {
+                success
+                errors
+                user {
+                    aiSettings {
+                        enabled
+                        provider
+                        hasApiKey
+                    }
+                }
+            }
+        }
+    """
+
+    @classmethod
+    def setUp(cls):
+        cls.USER = User.objects.create_user("user@example.com", "password")
+
+    def test_update_ai_settings(self):
+        self.client.force_login(self.USER)
+
+        r = self.run_query(
+            self.UPDATE_AI_SETTINGS_MUTATION,
+            {
+                "input": {
+                    "enabled": True,
+                    "provider": AiSettings.Provider.ANTHROPIC,
+                    "model": AiSettings.Model.SONNET,
+                    "apiKey": "sk-test-key",
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["updateUserAiSettings"],
+            {
+                "success": True,
+                "errors": [],
+                "user": {
+                    "aiSettings": {
+                        "enabled": True,
+                        "provider": AiSettings.Provider.ANTHROPIC,
+                        "hasApiKey": True,
+                    }
+                },
+            },
+        )
+        self.USER.refresh_from_db()
+        ai_settings = self.USER.ai_settings
+        self.assertTrue(ai_settings.enabled)
+        self.assertEqual(ai_settings.provider, AiSettings.Provider.ANTHROPIC)
+        self.assertEqual(ai_settings.model, AiSettings.Model.SONNET)
+        self.assertEqual(ai_settings.api_key, "sk-test-key")
+
+    def test_update_ai_settings_enabled_requires_full_config(self):
+        self.client.force_login(self.USER)
+
+        r = self.run_query(
+            self.UPDATE_AI_SETTINGS_MUTATION,
+            {"input": {"enabled": True, "provider": AiSettings.Provider.ANTHROPIC}},
+        )
+
+        self.assertEqual(
+            r["data"]["updateUserAiSettings"],
+            {"success": False, "errors": ["INCOMPLETE_CONFIG"], "user": None},
+        )
+
+    def test_update_ai_settings_api_key_not_exposed(self):
+        self.client.force_login(self.USER)
+
+        r = self.run_query(
+            self.UPDATE_AI_SETTINGS_MUTATION,
+            {"input": {"apiKey": "sk-secret"}},
+        )
+
+        self.assertTrue(r["data"]["updateUserAiSettings"]["success"])
+        self.assertTrue(
+            r["data"]["updateUserAiSettings"]["user"]["aiSettings"]["hasApiKey"]
+        )
+
+    def test_update_ai_settings_unauthenticated(self):
+        r = self.run_query(
+            self.UPDATE_AI_SETTINGS_MUTATION,
+            {"input": {"enabled": True}},
+        )
+        self.assertIsNotNone(r.get("errors"))
+        self.assertIsNone(r["data"])

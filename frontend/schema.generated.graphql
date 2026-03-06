@@ -375,6 +375,35 @@ type AddWebappToShortcutsResult {
   success: Boolean!
 }
 
+type AiLabel {
+  label: String!
+  value: String!
+}
+
+type AiLabels {
+  models: [AiLabel!]!
+  providers: [AiLabel!]!
+}
+
+"""Represents the available AI models."""
+enum AiModel {
+  haiku
+  opus
+  sonnet
+}
+
+"""Represents the available AI providers."""
+enum AiProvider {
+  anthropic
+}
+
+type AiSettings {
+  enabled: Boolean
+  hasApiKey: Boolean
+  model: AiModel
+  provider: AiProvider
+}
+
 enum ApproveAccessmodAccessRequestError {
   INVALID
 }
@@ -2927,6 +2956,9 @@ type Mutation {
 
   """Updates the profile of the currently authenticated user."""
   updateUser(input: UpdateUserInput!): UpdateUserResult!
+
+  """Updates the AI settings of the currently authenticated user."""
+  updateUserAiSettings(input: UpdateUserAiSettingsInput!): UpdateUserAiSettingsResult!
   updateWebapp(input: UpdateWebappInput!): UpdateWebappResult!
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult!
@@ -3687,6 +3719,7 @@ type Query {
   accessmodFilesets(mode: AccessmodFilesetMode, page: Int, perPage: Int, projectId: String!, roleId: String, term: String): AccessmodFilesetPage!
   accessmodProject(id: String): AccessmodProject
   accessmodProjects(countries: [String!], orderBy: AccessmodProjectOrder, page: Int, perPage: Int, teams: [String!], term: String): AccessmodProjectPage!
+  aiLabels: AiLabels!
   boundaries(country_code: String!, level: String!): [WHOBoundary!]!
 
   """Retrieves the configuration of the system."""
@@ -4955,6 +4988,52 @@ type UpdateTemplateVersionResult {
 }
 
 """
+The UpdateUserAiSettingsError enum represents the possible errors that can occur during the updateUser mutation.
+"""
+enum UpdateUserAiSettingsError {
+  """
+  Indicates that enabling AI requires provider, model, and api_key to all be set.
+  """
+  INCOMPLETE_CONFIG
+
+  """
+  Indicates that the user does not have permission to update their profile.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The UpdateUserAiSettingsInput type represents the input for the updateAiSettings mutation.
+"""
+input UpdateUserAiSettingsInput {
+  """Indicates the AI API KEY"""
+  apiKey: String
+
+  """Indicates if AI is enabled"""
+  enabled: Boolean
+
+  """Indicates the AI model from the provider used"""
+  model: String
+
+  """Indicates the AI provider used"""
+  provider: String
+}
+
+"""
+The UpdateUserAiSettingsResult type represents the result of the updateUser mutation.
+"""
+type UpdateUserAiSettingsResult {
+  """The list of errors that occurred during the updateUser mutation."""
+  errors: [UpdateUserAiSettingsError!]!
+
+  """Indicates whether the user update was successful."""
+  success: Boolean!
+
+  """The updated user object."""
+  user: User
+}
+
+"""
 The UpdateUserError enum represents the possible errors that can occur during the updateUser mutation.
 """
 enum UpdateUserError {
@@ -5125,6 +5204,9 @@ type UploadPipelineResult {
 
 """The User type represents a user in the system."""
 type User {
+  """User AI settings."""
+  aiSettings: AiSettings
+
   """The avatar of the user."""
   avatar: Avatar!
 
