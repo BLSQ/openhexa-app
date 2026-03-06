@@ -13,6 +13,7 @@ import { useRegisterMutation } from "identity/graphql/mutations.generated";
 import { useRegisterPageQuery } from "identity/graphql/queries.generated";
 import { useTranslation } from "next-i18next";
 import Image from "next/legacy/image";
+import logoWithTextBlack from "public/images/logo_with_text_black.svg";
 import { useRouter } from "next/router";
 import { ReactElement } from "react";
 
@@ -91,7 +92,7 @@ const RegisterPage: NextPageWithLayout = (props: {
           <div className="relative h-16 w-auto">
             <Image
               priority
-              src="/images/logo_with_text_black.svg"
+              src={logoWithTextBlack}
               layout="fill"
               className="mx-auto block h-16 w-auto"
               alt="OpenHexa logo"

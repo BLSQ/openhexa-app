@@ -7,6 +7,7 @@ import useForm from "core/hooks/useForm";
 import { useResetPasswordMutation } from "identity/graphql/mutations.generated";
 import { useTranslation } from "next-i18next";
 import Image from "next/legacy/image";
+import logo from "public/images/logo.svg";
 import Link from "core/components/Link";
 import { ReactElement, useState } from "react";
 
@@ -45,7 +46,7 @@ const PasswordResetPage: NextPageWithLayout = () => {
           <div className="relative mb-6 h-16 w-auto">
             <Image
               priority
-              src="/images/logo.svg"
+              src={logo}
               layout="fill"
               className="mx-auto block h-16 w-auto"
               alt="OpenHEXA logo"
@@ -85,6 +86,7 @@ const PasswordResetPage: NextPageWithLayout = () => {
                 type="text"
                 label="Email address"
                 required
+                fullWidth
                 autoComplete="email"
                 value={form.formData.email}
                 onChange={form.handleInputChange}

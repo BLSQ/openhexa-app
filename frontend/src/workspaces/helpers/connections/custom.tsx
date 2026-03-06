@@ -4,6 +4,7 @@ import Title from "core/components/Title";
 import Checkbox from "core/components/forms/Checkbox/Checkbox";
 import Field from "core/components/forms/Field/Field";
 import { FormInstance } from "core/hooks/useForm";
+import cogIcon from "public/images/cog.svg";
 import { useTranslation } from "next-i18next";
 import { ConnectionForm, FieldForm } from "./utils";
 
@@ -111,7 +112,7 @@ function CustomForm(props: { form: FormInstance<ConnectionForm> }) {
 export default {
   label: "Custom",
   color: "bg-gray-200",
-  iconSrc: "/images/cog.svg",
+  iconSrc: cogIcon,
   Form: CustomForm,
   fields: [],
   validate(fields: { [key: string]: any }) {

@@ -1,5 +1,8 @@
 import React from "react";
+import Image from "next/image";
 import clsx from "clsx";
+import logoWithTextWhite from "public/images/logo_with_text_white.svg";
+import logo from "public/images/logo.svg";
 import SidebarToggleButton from "organizations/layouts/Sidebar/SidebarToggleButton";
 import UserMenu from "workspaces/features/UserMenu";
 import useSidebarOpen from "core/hooks/useSidebarOpen";
@@ -17,14 +20,12 @@ const NoWorkspaceSidebar = () => {
       <div className="relative z-20 flex h-full flex-col">
         <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
           <div className="flex h-16 shrink-0 items-center justify-center px-4">
-            <img
-              className="h-8"
-              src={
-                isSidebarOpen
-                  ? "/images/logo_with_text_white.svg"
-                  : "/images/logo.svg"
-              }
+            <Image
+              className="h-8 w-auto"
+              src={isSidebarOpen ? logoWithTextWhite : logo}
               alt="OpenHEXA"
+              width={140}
+              height={32}
             />
           </div>
           <div className="mt-5 flex grow flex-col" />

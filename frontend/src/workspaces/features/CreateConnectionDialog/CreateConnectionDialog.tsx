@@ -7,6 +7,7 @@ import Field from "core/components/forms/Field";
 import useForm from "core/hooks/useForm";
 import { ConnectionType, CreateConnectionError } from "graphql/types";
 import { useTranslation } from "next-i18next";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useState } from "react";
 import { useCreateConnectionMutation } from "workspaces/graphql/mutations.generated";
@@ -47,7 +48,7 @@ const ConnectionTypePanel = ({
               className="border-1 flex h-24 w-32 flex-col items-center justify-center gap-1.5 overflow-hidden rounded-md border border-gray-100 p-2 text-center shadow-md hover:border-gray-200 hover:bg-gray-100"
             >
               {connectionType.iconSrc && (
-                <img src={connectionType.iconSrc} className="h-8 w-8" alt="" />
+                <Image src={connectionType.iconSrc} className="h-8 w-8" alt="" width={32} height={32} />
               )}
               <div className="text-sm">{connectionType.label}</div>
             </button>

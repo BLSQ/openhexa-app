@@ -7,6 +7,7 @@ import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useForm from "core/hooks/useForm";
 import Image from "next/legacy/image";
+import logo from "public/images/logo.svg";
 import Link from "core/components/Link";
 import CenteredLayout from "core/layouts/centered";
 import { useRouter } from "next/router";
@@ -113,7 +114,7 @@ const LoginPage: NextPageWithLayout = () => {
           <div className="relative h-16 w-auto">
             <Image
               priority
-              src="/images/logo.svg"
+              src={logo}
               layout="fill"
               className="mx-auto block h-16 w-auto"
               alt="OpenHEXA logo"

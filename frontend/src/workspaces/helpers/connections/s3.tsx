@@ -3,6 +3,7 @@ import { ConnectionForm } from "./utils";
 import { useTranslation } from "next-i18next";
 import Field from "core/components/forms/Field/Field";
 import Title from "core/components/Title";
+import s3Icon from "public/images/s3.svg"
 
 function S3BucketForm(props: { form: FormInstance<ConnectionForm> }) {
   const { form } = props;
@@ -54,7 +55,7 @@ function S3BucketForm(props: { form: FormInstance<ConnectionForm> }) {
 export default {
   label: "Amazon S3 Bucket",
   color: "bg-orange-200",
-  iconSrc: "/images/s3.svg",
+  iconSrc: s3Icon,
 
   fields: [
     { code: "bucket_name", name: "Bucket name", required: true },
