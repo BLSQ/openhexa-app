@@ -14,7 +14,7 @@ from hexa.workspaces.models import (
 class FilesTest(GraphQLTestCase):
     USER_WORKSPACE_ADMIN = None
     WORKSPACE = None
-    FOLDER_NAME = "/new_folder"
+    FOLDER_NAME = "new_folder"
 
     @classmethod
     def setUpTestData(cls):
