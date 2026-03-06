@@ -269,7 +269,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
 };
 
 // TODO : fix view
-// TODO : admin page
 // TODO : allow creating/dropping files for html/webapp bundle types
 
 WebappForm.fragment = {
