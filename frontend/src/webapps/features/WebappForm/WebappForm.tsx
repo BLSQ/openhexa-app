@@ -22,6 +22,8 @@ import ImageProperty from "core/components/DataCard/ImageProperty";
 import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import useDebounce from "core/hooks/useDebounce";
 import WebappIframe from "webapps/features/WebappIframe";
+import WebappFilesEditor from "webapps/features/WebappFilesEditor/WebappFilesEditor";
+import VersionPicker from "webapps/features/VersionPicker/VersionPicker";
 import {
   CreateWebappError,
   UpdateWebappError,
@@ -60,6 +62,10 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
     webapp?.type ?? WebappType.Iframe,
   );
   const debouncedUrl = useDebounce(url, 500);
+
+  const isGitWebapp =
+    webapp &&
+    (webapp.type === WebappType.Html || webapp.type === WebappType.Bundle);
 
   const { data: supersetData } = useSupersetInstancesQuery({
     variables: { workspaceSlug: workspace.slug },
@@ -255,21 +261,41 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           )}
         />
       </DataCard.FormSection>
-      {debouncedUrl && (
+      {isGitWebapp && (
+        <DataCard.Section title={t("Published Version")} collapsible={false}>
+          <VersionPicker
+            webappId={webapp.id}
+            workspaceSlug={workspace.slug}
+            webappSlug={webapp.slug}
+            isEditable={webapp.permissions.update}
+          />
+        </DataCard.Section>
+      )}
+      {isGitWebapp && (
+        <DataCard.Section title={t("Files")} collapsible={false}>
+          <WebappFilesEditor
+            webappId={webapp.id}
+            workspaceSlug={workspace.slug}
+            webappSlug={webapp.slug}
+            isEditable={webapp.permissions.update}
+          />
+        </DataCard.Section>
+      )}
+      {(debouncedUrl || webapp?.url) && (
         <DataCard.Section
           title={t("Preview")}
           collapsible={false}
           loading={loading}
         >
-          <WebappIframe url={debouncedUrl} style={{ height: "65vh" }} />
+          <WebappIframe
+            url={debouncedUrl || webapp?.url || ""}
+            style={{ height: "65vh" }}
+          />
         </DataCard.Section>
       )}
     </DataCard>
   );
 };
-
-// TODO : fix view
-// TODO : allow creating/dropping files for html/webapp bundle types
 
 WebappForm.fragment = {
   webapp: gql`
@@ -290,6 +316,9 @@ WebappForm.fragment = {
             url
           }
           dashboardId
+        }
+        ... on GitSource {
+          publishedVersion
         }
       }
       permissions {
