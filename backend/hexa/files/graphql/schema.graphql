@@ -58,6 +58,7 @@ Errors that can occur when deleting an object from a workspace's bucket.
 enum DeleteBucketObjectError {
   NOT_FOUND
   PERMISSION_DENIED
+  INVALID_PATH
 }
 
 """
@@ -80,6 +81,7 @@ Errors that can occur when preparing to download an object from a workspace's bu
 enum PrepareObjectDownloadError {
   NOT_FOUND
   PERMISSION_DENIED
+  INVALID_PATH
 }
 
 """
@@ -106,6 +108,7 @@ Errors that can occur when preparing to upload an object to a workspace's bucket
 """
 enum PrepareObjectUploadError {
   PERMISSION_DENIED
+  INVALID_PATH
 }
 
 """
@@ -135,6 +138,7 @@ enum CreateBucketFolderError {
   ALREADY_EXISTS
   NOT_FOUND
   PERMISSION_DENIED
+  INVALID_PATH
 }
 
 """

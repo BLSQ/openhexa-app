@@ -720,6 +720,7 @@ export type CreateAccessmodZonalStatisticsResult = {
 /** Errors that can occur when creating a folder in a workspace's bucket. */
 export enum CreateBucketFolderError {
   AlreadyExists = 'ALREADY_EXISTS',
+  InvalidPath = 'INVALID_PATH',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
@@ -1646,6 +1647,7 @@ export type DeleteAccessmodProjectResult = {
 
 /** Errors that can occur when deleting an object from a workspace's bucket. */
 export enum DeleteBucketObjectError {
+  InvalidPath = 'INVALID_PATH',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
@@ -4228,6 +4230,7 @@ export type PrepareDownloadUrlResult = {
 
 /** Errors that can occur when preparing to download an object from a workspace's bucket. */
 export enum PrepareObjectDownloadError {
+  InvalidPath = 'INVALID_PATH',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
@@ -4248,6 +4251,7 @@ export type PrepareObjectDownloadResult = {
 
 /** Errors that can occur when preparing to upload an object to a workspace's bucket. */
 export enum PrepareObjectUploadError {
+  InvalidPath = 'INVALID_PATH',
   PermissionDenied = 'PERMISSION_DENIED'
 }
 

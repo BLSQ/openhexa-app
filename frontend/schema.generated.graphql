@@ -686,6 +686,7 @@ type CreateAccessmodZonalStatisticsResult {
 """Errors that can occur when creating a folder in a workspace's bucket."""
 enum CreateBucketFolderError {
   ALREADY_EXISTS
+  INVALID_PATH
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -1579,6 +1580,7 @@ type DeleteAccessmodProjectResult {
 Errors that can occur when deleting an object from a workspace's bucket.
 """
 enum DeleteBucketObjectError {
+  INVALID_PATH
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -3604,6 +3606,7 @@ type PrepareDownloadURLResult {
 Errors that can occur when preparing to download an object from a workspace's bucket.
 """
 enum PrepareObjectDownloadError {
+  INVALID_PATH
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -3627,6 +3630,7 @@ type PrepareObjectDownloadResult {
 Errors that can occur when preparing to upload an object to a workspace's bucket.
 """
 enum PrepareObjectUploadError {
+  INVALID_PATH
   PERMISSION_DENIED
 }
 

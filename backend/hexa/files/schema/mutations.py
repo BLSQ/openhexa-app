@@ -21,7 +21,8 @@ def resolve_delete_bucket_object(_, info, **kwargs):
         )
         if not request.user.has_perm("files.delete_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
-
+        if not is_safe_path(mutation_input["object_key"]):
+            return {"success": False, "errors": ["INVALID_PATH"]}
         storage.delete_object(workspace.bucket_name, mutation_input["object_key"])
         return {"success": True, "errors": []}
     except (storage.exceptions.NotFound, Workspace.DoesNotExist):
@@ -40,6 +41,8 @@ def resolve_prepare_download_object(_, info, **kwargs):
         if not request.user.has_perm("files.download_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
         object_key = mutation_input["object_key"]
+        if not is_safe_path(object_key):
+            return {"success": False, "errors": ["INVALID_PATH"]}
         download_url = storage.generate_download_url(
             bucket_name=workspace.bucket_name,
             target_key=object_key,
@@ -68,6 +71,8 @@ def resolve_prepare_upload_object(_, info, **kwargs):
         if not request.user.has_perm("files.create_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
         object_key = mutation_input["object_key"]
+        if not is_safe_path(object_key):
+            return {"success": False, "errors": ["INVALID_PATH"]}
         upload_url, headers = storage.generate_upload_url(
             bucket_name=workspace.bucket_name,
             target_key=object_key,
@@ -96,6 +101,8 @@ def resolve_create_bucket_folder(_, info, **kwargs):
         if not request.user.has_perm("files.create_object", workspace):
             return {"success": False, "errors": ["PERMISSION_DENIED"]}
         folder_key = mutation_input["folder_key"]
+        if not is_safe_path(folder_key):
+            return {"success": False, "errors": ["INVALID_PATH"]}
         folder_object = storage.create_bucket_folder(workspace.bucket_name, folder_key)
 
         return {"success": True, "folder": folder_object, "errors": []}
