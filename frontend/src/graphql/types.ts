@@ -783,7 +783,7 @@ export type CreateAccessmodZonalStatisticsResult = {
 };
 
 export type CreateAssistantConversationInput = {
-  model?: InputMaybe<Scalars['String']['input']>;
+  model?: InputMaybe<AiModel>;
   workspaceSlug: Scalars['String']['input'];
 };
 

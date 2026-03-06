@@ -34,7 +34,7 @@ extend type Workspace {
 
 input CreateAssistantConversationInput {
   workspaceSlug: String!
-  model: String
+  model: AiModel
 }
 
 input SendAssistantMessageInput {

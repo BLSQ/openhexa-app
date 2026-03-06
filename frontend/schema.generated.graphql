@@ -743,7 +743,7 @@ type CreateAccessmodZonalStatisticsResult {
 }
 
 input CreateAssistantConversationInput {
-  model: String
+  model: AiModel
   workspaceSlug: String!
 }
 

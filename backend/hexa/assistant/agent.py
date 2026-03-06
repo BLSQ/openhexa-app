@@ -8,6 +8,7 @@ from pydantic_ai.messages import (
     ToolReturnPart,
 )
 
+from hexa.assistant.model_builder import AiModelBuilder
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 class AssistantAgent:
     def __init__(self, conversation: Conversation):
         self.conversation = conversation
-        self.agent = Agent(model=conversation.model)
+        self.agent = Agent(model=AiModelBuilder.from_conversation(conversation).build())
 
     def run(self, user_input: str) -> str:
         history = ModelMessagesTypeAdapter.validate_python(

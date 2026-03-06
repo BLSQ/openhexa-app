@@ -8,6 +8,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
+from hexa.user_management.models import AiSettings
 from hexa.workspaces.models import Workspace
 
 User = get_user_model()
@@ -25,7 +26,7 @@ class Conversation(SoftDeletedModel, Base):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
 
-    model = models.CharField(max_length=200, null=False)
+    model = models.CharField(max_length=30, choices=AiSettings.Model.choices, null=False)
     total_input_tokens = models.IntegerField(default=0)
     total_output_tokens = models.IntegerField(default=0)
     cost = models.DecimalField(max_digits=12, decimal_places=6, default=0)

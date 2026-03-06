@@ -38,7 +38,17 @@ class Migration(migrations.Migration):
                     "restored_at",
                     models.DateTimeField(blank=True, default=None, null=True),
                 ),
-                ("model", models.CharField(max_length=200)),
+                (
+                    "model",
+                    models.CharField(
+                        choices=[
+                            ("haiku", "Claude Haiku 4.5"),
+                            ("opus", "Claude Opus 4.6"),
+                            ("sonnet", "Claude Sonnet 4.6"),
+                        ],
+                        max_length=30,
+                    ),
+                ),
                 ("total_input_tokens", models.IntegerField(default=0)),
                 ("total_output_tokens", models.IntegerField(default=0)),
                 (
