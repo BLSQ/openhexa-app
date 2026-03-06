@@ -51,6 +51,7 @@ const WebappFilesEditor = ({
             files: fileInputs,
           },
         },
+        refetchQueries: ["WebappVersions"],
       });
 
       if (data?.updateWebapp?.success) {

@@ -123,6 +123,5 @@ export const getServerSideProps = createGetServerSideProps({
 
 export default WorkspaceWebappPage;
 
-// TODO : fix saving
 // TODO : fix UI
 // TODO : oncreate dropfiles/empty HTML file

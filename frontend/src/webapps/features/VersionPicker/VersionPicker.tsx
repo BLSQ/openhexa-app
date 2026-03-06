@@ -8,9 +8,9 @@ import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
 import Spinner from "core/components/Spinner";
 import Listbox from "core/components/Listbox/Listbox";
 import { DateTime } from "luxon";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-const PER_PAGE = 5;
+const PER_PAGE = 20;
 
 type VersionPickerProps = {
   webappId: string;
@@ -26,23 +26,46 @@ const VersionPicker = ({
   isEditable,
 }: VersionPickerProps) => {
   const { t } = useTranslation();
-  const [allVersions, setAllVersions] = useState<
+  const [extraVersions, setExtraVersions] = useState<
     WebappVersion_VersionFragment[]
   >([]);
   const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(1);
+  const pageRef = useRef(1);
 
   const { data, loading, refetch } = useWebappVersionsQuery({
     variables: { workspaceSlug, webappSlug, page: 1, perPage: PER_PAGE },
-    onCompleted: (d) => {
-      const items = d?.webapp?.versions?.items ?? [];
-      setAllVersions(items);
-      setHasMore(items.length >= PER_PAGE);
-      setPage(1);
-    },
   });
 
-  const [updateWebapp, { loading: publishing }] = useUpdateWebappMutation();
+  const firstPageVersions = useMemo(
+    () => data?.webapp?.versions?.items ?? [],
+    [data],
+  );
+
+  useEffect(() => {
+    setExtraVersions([]);
+    setHasMore(firstPageVersions.length >= PER_PAGE);
+    pageRef.current = 1;
+  }, [firstPageVersions]);
+
+  const allVersions = useMemo(
+    () => [...firstPageVersions, ...extraVersions],
+    [firstPageVersions, extraVersions],
+  );
+
+  const relativeDates = useMemo(
+    () =>
+      Object.fromEntries(
+        allVersions.map((v) => {
+          const dt = DateTime.fromISO(v.date);
+          const diffSeconds = -dt.diffNow("seconds").seconds;
+          const relative = diffSeconds < 60 ? t("Just now") : dt.toRelative();
+          return [v.id, relative];
+        }),
+      ),
+    [allVersions, t],
+  );
+
+  const [updateWebapp] = useUpdateWebappMutation();
 
   const source = data?.webapp?.source;
   const publishedVersionId =
@@ -59,11 +82,11 @@ const VersionPicker = ({
       variables: {
         input: { id: webappId, publishedVersionId: versionId },
       },
+      refetchQueries: ["WebappVersions"],
     });
 
     if (data?.updateWebapp?.success) {
       toast.success(t("Version published successfully"));
-      refetch().then();
     } else {
       toast.error(t("Failed to publish version"));
     }
@@ -71,8 +94,8 @@ const VersionPicker = ({
 
   const handleScrollBottom = useCallback(() => {
     if (!hasMore) return;
-    const nextPage = page + 1;
-    setPage(nextPage);
+    const nextPage = pageRef.current + 1;
+    pageRef.current = nextPage;
     refetch({
       workspaceSlug,
       webappSlug,
@@ -80,10 +103,10 @@ const VersionPicker = ({
       perPage: PER_PAGE,
     }).then(({ data: d }) => {
       const items = d?.webapp?.versions?.items ?? [];
-      setAllVersions((prev) => [...prev, ...items]);
+      setExtraVersions((prev) => [...prev, ...items]);
       setHasMore(items.length >= PER_PAGE);
     });
-  }, [hasMore, page, refetch, workspaceSlug, webappSlug]);
+  }, [hasMore, refetch, workspaceSlug, webappSlug]);
 
   if (loading) {
     return (
@@ -121,8 +144,6 @@ const VersionPicker = ({
       ) => {
         const isPublished = version.id === publishedVersionId;
         const shortId = version.id.substring(0, 7);
-        const date = DateTime.fromISO(version.date);
-
         return (
           <div className="flex w-full items-center justify-between">
             <div className="min-w-0 flex-1">
@@ -146,7 +167,7 @@ const VersionPicker = ({
               <div
                 className={`mt-0.5 text-xs ${focus ? "text-blue-100" : "text-gray-500"}`}
               >
-                {version.authorName} &middot; {date.toRelative()}
+                {version.authorName} &middot; {relativeDates[version.id]}
               </div>
             </div>
           </div>
