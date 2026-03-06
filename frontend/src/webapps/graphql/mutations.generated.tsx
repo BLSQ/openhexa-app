@@ -8,7 +8,7 @@ export type UpdateWebappMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateWebappMutation = { __typename?: 'Mutation', updateWebapp: { __typename?: 'UpdateWebappResult', success: boolean, errors: Array<Types.UpdateWebappError> } };
+export type UpdateWebappMutation = { __typename?: 'Mutation', updateWebapp: { __typename?: 'UpdateWebappResult', success: boolean, errors: Array<Types.UpdateWebappError>, webapp?: { __typename?: 'Webapp', id: string, source: { __typename?: 'GitSource', publishedVersion?: string | null } | { __typename?: 'IframeSource' } | { __typename?: 'SupersetSource' } } | null } };
 
 export type CreateWebappMutationVariables = Types.Exact<{
   input: Types.CreateWebappInput;
@@ -51,6 +51,14 @@ export const UpdateWebappDocument = gql`
   updateWebapp(input: $input) {
     success
     errors
+    webapp {
+      id
+      source {
+        ... on GitSource {
+          publishedVersion
+        }
+      }
+    }
   }
 }
     `;

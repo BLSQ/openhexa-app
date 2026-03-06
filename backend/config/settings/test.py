@@ -23,6 +23,10 @@ if "hexa.plugins.connector_accessmod" in INSTALLED_APPS:  # noqa: F405
 
 NEW_FRONTEND_DOMAIN = "http://localhost:3000"
 NOTEBOOKS_URL = "http://localhost:8001"
+
+GIT_SERVER_URL = "http://forgejo-test:3000"
+GIT_SERVER_ADMIN_USERNAME = "testuser"
+GIT_SERVER_ADMIN_PASSWORD = "testpass"
 AZURITE_TEST_SERVER = os.getenv(
     "AZURITE_TEST_SERVER", "http://host.docker.internal:10000/"
 )

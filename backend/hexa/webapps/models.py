@@ -14,6 +14,8 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
+from hexa.git.forgejo import ForgejoAPIError
+from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
 from hexa.user_management.models import User
@@ -110,7 +112,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         Workspace, on_delete=models.CASCADE, related_name="webapps"
     )
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    url = models.URLField()
+    url = models.URLField(blank=True, default="")
     type = models.CharField(
         max_length=20, choices=WebappType.choices, default=WebappType.IFRAME
     )
@@ -139,6 +141,8 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
             dashboard = SupersetDashboard.objects.get(webapp__pk=self.pk)
             self.delete()
             dashboard.delete()
+        elif self.type in (Webapp.WebappType.HTML, Webapp.WebappType.BUNDLE):
+            GitWebapp.objects.get(pk=self.pk).delete_if_has_perm(principal)
         else:
             self.delete()
 
@@ -154,6 +158,102 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
     def __repr__(self) -> str:
         return f"<Webapp: {self.name}>"
+
+
+class GitWebapp(Webapp, GitRepoMixin):
+    published_commit = models.CharField(max_length=64, blank=True, null=True)
+
+    @property
+    def org(self):
+        if self.workspace.organization:
+            return GitOrg(
+                slug=self.workspace.organization.slug,
+                display_name=self.workspace.organization.name,
+            )
+        return GitOrg(slug="no-org", display_name="No Organization")
+
+    def get_versions(self, page=1, per_page=20):
+        try:
+            items = self.client.get_commits(
+                self.org.slug, self.repository, page=page, limit=per_page
+            )
+        except ForgejoAPIError:
+            items = []
+
+        return {"items": items, "page": page}
+
+    def get_files(self, ref="main"):
+        try:
+            return self.client.get_repository_files(
+                self.repository, ref, org_slug=self.org.slug
+            )
+        except ForgejoAPIError:
+            return []
+
+    def publish_version(self, version_id):
+        if not self.client.commit_exists(self.org.slug, self.repository, version_id):
+            raise ValueError(f"Version {version_id} not found")
+        self.published_commit = version_id
+        self.save()
+
+    def save_files(self, files, message, user):
+        sha = self.client.commit_files(
+            self.repository,
+            files,
+            message,
+            user.display_name or user.email,
+            user.email,
+            org_slug=self.org.slug,
+        )
+        self.published_commit = sha
+        self.save()
+        return sha
+
+    def delete_if_has_perm(self, principal):
+        if not principal.has_perm("webapps.delete_webapp", self):
+            raise PermissionDenied
+        self.archive_repo()
+        self.delete()
+
+    @classmethod
+    def create_if_has_perm(
+        cls,
+        principal,
+        workspace,
+        *,
+        name,
+        created_by,
+        webapp_type,
+        description="",
+        icon=None,
+        is_public=False,
+        files=None,
+    ):
+        if not principal.has_perm("webapps.create_webapp", workspace):
+            raise PermissionDenied
+
+        webapp_slug = create_webapp_slug(name, workspace)
+        webapp = cls.objects.create(
+            workspace=workspace,
+            type=webapp_type,
+            slug=webapp_slug,
+            name=name,
+            description=description,
+            icon=icon,
+            is_public=is_public,
+            created_by=created_by,
+            repository=f"{workspace.slug}-webapp-{webapp_slug}",
+        )
+
+        initial_sha = webapp.create_repo()
+
+        if files:
+            webapp.save_files(files, "Initial content", principal)
+        else:
+            webapp.published_commit = initial_sha
+            webapp.save()
+
+        return webapp
 
 
 class SupersetWebapp(Webapp):

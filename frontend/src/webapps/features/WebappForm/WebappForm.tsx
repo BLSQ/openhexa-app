@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { toast } from "react-toastify";
@@ -22,9 +22,13 @@ import ImageProperty from "core/components/DataCard/ImageProperty";
 import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import useDebounce from "core/hooks/useDebounce";
 import WebappIframe from "webapps/features/WebappIframe";
+import WebappFilesEditor from "webapps/features/WebappFilesEditor/WebappFilesEditor";
+import WebappSourceEditor from "webapps/features/WebappSourceEditor/WebappSourceEditor";
+import VersionPicker from "webapps/features/VersionPicker/VersionPicker";
 import {
   CreateWebappError,
   UpdateWebappError,
+  WebappFileInput,
   WebappType,
 } from "graphql/types";
 import { getWebappTypeLabel } from "webapps/helpers";
@@ -38,8 +42,8 @@ const buildSource: Record<WebappType, (values: any) => any> = {
       dashboardId: values.externalDashboardId,
     },
   }),
-  [WebappType.Html]: (values) => ({}), //Coming soon
-  [WebappType.Bundle]: (values) => ({}), //Coming soon
+  [WebappType.Html]: (values) => ({ html: values.sourceFiles ?? [] }),
+  [WebappType.Bundle]: (values) => ({ bundle: values.sourceFiles ?? [] }),
 };
 
 type WebappFormProps = {
@@ -57,7 +61,17 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const [selectedType, setSelectedType] = useState<WebappType>(
     webapp?.type ?? WebappType.Iframe,
   );
+  const [sourceFiles, setSourceFiles] = useState<WebappFileInput[]>([]);
   const debouncedUrl = useDebounce(url, 500);
+
+  const handleSourceFilesChange = useCallback(
+    (files: WebappFileInput[]) => setSourceFiles(files),
+    [],
+  );
+
+  const isGitWebapp =
+    webapp &&
+    (webapp.type === WebappType.Html || webapp.type === WebappType.Bundle);
 
   const { data: supersetData } = useSupersetInstancesQuery({
     variables: { workspaceSlug: workspace.slug },
@@ -78,7 +92,8 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const updateExistingWebapp = async (values: any) => {
     setLoading(true);
     try {
-      const source = buildSource[webapp!.type](values);
+      const isGit =
+        webapp!.type === WebappType.Html || webapp!.type === WebappType.Bundle;
       const { data } = await updateWebapp({
         variables: {
           input: {
@@ -86,7 +101,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             name: values.name,
             icon: values.icon,
             isPublic: values.isPublic,
-            source,
+            ...(!isGit && { source: buildSource[webapp!.type](values) }),
           },
         },
       });
@@ -120,7 +135,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
     setLoading(true);
     try {
       const type = (values.type as WebappType) ?? WebappType.Iframe;
-      const source = buildSource[type](values);
+      const source = buildSource[type]({ ...values, sourceFiles });
 
       const { data } = await createWebapp({
         variables: {
@@ -206,15 +221,15 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             defaultValue={WebappType.Iframe}
             options={[
               WebappType.Iframe,
-              // Coming soon
-              // WebappType.Html,
-              // WebappType.Bundle,
-              ...(supersetInstances.length > 0
-                ? [WebappType.Superset]
-                : []),
+              WebappType.Html,
+              WebappType.Bundle,
+              ...(supersetInstances.length > 0 ? [WebappType.Superset] : []),
             ]}
             getOptionLabel={getWebappTypeLabel}
-            onChange={(value) => setSelectedType(value as WebappType)}
+            onChange={(value) => {
+              setSelectedType(value as WebappType);
+              setSourceFiles([]);
+            }}
           />
         )}
         <TextProperty
@@ -256,13 +271,46 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           )}
         />
       </DataCard.FormSection>
-      {debouncedUrl && (
+      {!webapp &&
+        (selectedType === WebappType.Html ||
+          selectedType === WebappType.Bundle) && (
+          <DataCard.Section title={t("Source Files")} collapsible={false}>
+            <WebappSourceEditor
+              type={selectedType}
+              onChange={handleSourceFilesChange}
+            />
+          </DataCard.Section>
+        )}
+      {isGitWebapp && (
+        <DataCard.Section title={t("Published Version")} collapsible={false}>
+          <VersionPicker
+            webappId={webapp.id}
+            workspaceSlug={workspace.slug}
+            webappSlug={webapp.slug}
+            isEditable={webapp.permissions.update}
+          />
+        </DataCard.Section>
+      )}
+      {isGitWebapp && (
+        <DataCard.Section title={t("Files")} collapsible={false}>
+          <WebappFilesEditor
+            webappId={webapp.id}
+            workspaceSlug={workspace.slug}
+            webappSlug={webapp.slug}
+            isEditable={webapp.permissions.update}
+          />
+        </DataCard.Section>
+      )}
+      {(debouncedUrl || webapp?.url) && (
         <DataCard.Section
           title={t("Preview")}
           collapsible={false}
           loading={loading}
         >
-          <WebappIframe url={debouncedUrl} style={{ height: "65vh" }} />
+          <WebappIframe
+            url={debouncedUrl || webapp?.url || ""}
+            style={{ height: "65vh" }}
+          />
         </DataCard.Section>
       )}
     </DataCard>
@@ -288,6 +336,9 @@ WebappForm.fragment = {
             url
           }
           dashboardId
+        }
+        ... on GitSource {
+          publishedVersion
         }
       }
       permissions {
