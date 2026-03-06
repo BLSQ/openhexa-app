@@ -38,7 +38,9 @@ const buildSource: Record<WebappType, (values: any) => any> = {
       dashboardId: values.externalDashboardId,
     },
   }),
-  [WebappType.Html]: () => ({ html: [{ path: "index.html", content: "<h1>Hello World</h1>" }] }),
+  [WebappType.Html]: () => ({
+    html: [{ path: "index.html", content: "<h1>Hello World</h1>" }],
+  }),
   [WebappType.Bundle]: () => ({ bundle: [] }),
 };
 
@@ -208,9 +210,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
               WebappType.Iframe,
               WebappType.Html,
               WebappType.Bundle,
-              ...(supersetInstances.length > 0
-                ? [WebappType.Superset]
-                : []),
+              ...(supersetInstances.length > 0 ? [WebappType.Superset] : []),
             ]}
             getOptionLabel={getWebappTypeLabel}
             onChange={(value) => setSelectedType(value as WebappType)}
@@ -267,6 +267,10 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
     </DataCard>
   );
 };
+
+// TODO : fix view
+// TODO : admin page
+// TODO : allow creating/dropping files for html/webapp bundle types
 
 WebappForm.fragment = {
   webapp: gql`
