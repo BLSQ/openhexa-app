@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { toast } from "react-toastify";
@@ -23,10 +23,12 @@ import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import useDebounce from "core/hooks/useDebounce";
 import WebappIframe from "webapps/features/WebappIframe";
 import WebappFilesEditor from "webapps/features/WebappFilesEditor/WebappFilesEditor";
+import WebappSourceEditor from "webapps/features/WebappSourceEditor/WebappSourceEditor";
 import VersionPicker from "webapps/features/VersionPicker/VersionPicker";
 import {
   CreateWebappError,
   UpdateWebappError,
+  WebappFileInput,
   WebappType,
 } from "graphql/types";
 import { getWebappTypeLabel } from "webapps/helpers";
@@ -40,10 +42,8 @@ const buildSource: Record<WebappType, (values: any) => any> = {
       dashboardId: values.externalDashboardId,
     },
   }),
-  [WebappType.Html]: () => ({
-    html: [{ path: "index.html", content: "<h1>Hello World</h1>" }],
-  }),
-  [WebappType.Bundle]: () => ({ bundle: [] }),
+  [WebappType.Html]: (values) => ({ html: values.sourceFiles ?? [] }),
+  [WebappType.Bundle]: (values) => ({ bundle: values.sourceFiles ?? [] }),
 };
 
 type WebappFormProps = {
@@ -61,7 +61,13 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const [selectedType, setSelectedType] = useState<WebappType>(
     webapp?.type ?? WebappType.Iframe,
   );
+  const [sourceFiles, setSourceFiles] = useState<WebappFileInput[]>([]);
   const debouncedUrl = useDebounce(url, 500);
+
+  const handleSourceFilesChange = useCallback(
+    (files: WebappFileInput[]) => setSourceFiles(files),
+    [],
+  );
 
   const isGitWebapp =
     webapp &&
@@ -128,7 +134,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
     setLoading(true);
     try {
       const type = (values.type as WebappType) ?? WebappType.Iframe;
-      const source = buildSource[type](values);
+      const source = buildSource[type]({ ...values, sourceFiles });
 
       const { data } = await createWebapp({
         variables: {
@@ -219,7 +225,10 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
               ...(supersetInstances.length > 0 ? [WebappType.Superset] : []),
             ]}
             getOptionLabel={getWebappTypeLabel}
-            onChange={(value) => setSelectedType(value as WebappType)}
+            onChange={(value) => {
+              setSelectedType(value as WebappType);
+              setSourceFiles([]);
+            }}
           />
         )}
         <TextProperty
@@ -261,6 +270,16 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           )}
         />
       </DataCard.FormSection>
+      {!webapp &&
+        (selectedType === WebappType.Html ||
+          selectedType === WebappType.Bundle) && (
+          <DataCard.Section title={t("Source Files")} collapsible={false}>
+            <WebappSourceEditor
+              type={selectedType}
+              onChange={handleSourceFilesChange}
+            />
+          </DataCard.Section>
+        )}
       {isGitWebapp && (
         <DataCard.Section title={t("Published Version")} collapsible={false}>
           <VersionPicker
