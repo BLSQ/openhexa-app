@@ -117,8 +117,8 @@ class ForgejoClient(GitClient):
             if old_slug != new_slug:
                 self._request(
                     "POST",
-                    f"/admin/users/{old_slug}/rename",
-                    json={"new_username": new_slug},
+                    f"/orgs/{old_slug}/rename",
+                    json={"new_name": new_slug},
                 )
             response = self._request(
                 "PATCH",
