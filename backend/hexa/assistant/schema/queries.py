@@ -19,7 +19,9 @@ def resolve_assistant_conversation(_, info, id, **kwargs):
 @workspace_object.field("assistantConversations")
 def resolve_workspace_assistant_conversations(workspace: Workspace, info, **kwargs):
     request = info.context["request"]
-    return Conversation.objects.filter_for_user(request.user).filter(workspace=workspace)
+    return Conversation.objects.filter_for_user(request.user).filter(
+        workspace=workspace
+    )
 
 
 bindables = [assistant_queries, workspace_object]

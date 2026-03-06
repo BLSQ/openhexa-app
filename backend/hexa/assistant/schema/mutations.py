@@ -4,7 +4,6 @@ from hexa.assistant.agent import AssistantAgent
 from hexa.assistant.models import Conversation
 from hexa.workspaces.models import Workspace
 
-
 assistant_mutations = MutationType()
 
 
@@ -19,7 +18,7 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
     except Workspace.DoesNotExist:
         return None
 
-    model = input.get("model") or "anthropic:claude-sonnet-4-6"
+    model = input.get("model") or "anthropic:claude-haiku-4-5-20251001"
     return Conversation.objects.create(
         user=request.user,
         workspace=workspace,

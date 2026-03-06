@@ -22,10 +22,16 @@ class AssistantAgent:
         history = ModelMessagesTypeAdapter.validate_python(
             self.conversation.messages_history
         )
-        logger.info("agent.run: conversation=%s history_len=%d", self.conversation.id, len(history))
+        logger.info(
+            "agent.run: conversation=%s history_len=%d",
+            self.conversation.id,
+            len(history),
+        )
 
         result = self.agent.run_sync(user_input, message_history=history)
-        logger.info("agent.run: LLM call complete, new_messages=%d", len(result.new_messages()))
+        logger.info(
+            "agent.run: LLM call complete, new_messages=%d", len(result.new_messages())
+        )
 
         Message.objects.create(
             conversation=self.conversation,
@@ -35,13 +41,21 @@ class AssistantAgent:
 
         response_text = ""
         for msg in result.new_messages():
-            logger.debug("agent.run: processing message type=%s parts=%d", type(msg).__name__, len(msg.parts))
+            logger.debug(
+                "agent.run: processing message type=%s parts=%d",
+                type(msg).__name__,
+                len(msg.parts),
+            )
             for part in msg.parts:
                 logger.debug("agent.run: part type=%s", type(part).__name__)
                 if isinstance(part, TextPart):
                     response_text += part.content
                 elif isinstance(part, ToolCallPart):
-                    logger.info("agent.run: tool_call tool=%s call_id=%s", part.tool_name, part.tool_call_id)
+                    logger.info(
+                        "agent.run: tool_call tool=%s call_id=%s",
+                        part.tool_name,
+                        part.tool_call_id,
+                    )
                     ToolInvocation.objects.create(
                         conversation=self.conversation,
                         tool_call_id=part.tool_call_id,
@@ -58,7 +72,12 @@ class AssistantAgent:
         usage = result.usage()
         input_tok = usage.request_tokens or 0
         output_tok = usage.response_tokens or 0
-        logger.info("agent.run: usage input_tokens=%d output_tokens=%d response_text_len=%d", input_tok, output_tok, len(response_text))
+        logger.info(
+            "agent.run: usage input_tokens=%d output_tokens=%d response_text_len=%d",
+            input_tok,
+            output_tok,
+            len(response_text),
+        )
 
         Message.objects.create(
             conversation=self.conversation,

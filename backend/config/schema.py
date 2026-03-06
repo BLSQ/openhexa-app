@@ -10,6 +10,7 @@ from ariadne import (
 )
 from django.contrib.contenttypes.models import ContentType
 
+from hexa.assistant.schema import assistant_bindables, assistant_type_defs
 from hexa.core.schema import config_bindables, config_type_defs
 from hexa.countries.schema import countries_bindables, countries_type_defs
 from hexa.databases.schema import databases_bindables, databases_types_def
@@ -43,7 +44,6 @@ from hexa.webapps.schema import (
     webapps_bindables,
     webapps_type_defs,
 )
-from hexa.assistant.schema import assistant_bindables, assistant_type_defs
 from hexa.workspaces.schema import workspaces_bindables, workspaces_type_def
 
 uuid_scalar = ScalarType("UUID")
