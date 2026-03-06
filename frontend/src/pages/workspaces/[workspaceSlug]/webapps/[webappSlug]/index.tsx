@@ -16,6 +16,11 @@ import Button from "core/components/Button";
 import { useState } from "react";
 import DeleteWebappDialog from "workspaces/features/DeleteWebappDialog/DeleteWebappDialog";
 import useCacheKey from "core/hooks/useCacheKey";
+import { WebappType } from "graphql/types";
+import WebappFilesEditor from "webapps/features/WebappFilesEditor/WebappFilesEditor";
+import CommitHistory from "webapps/features/CommitHistory/CommitHistory";
+import { BlockSection } from "core/components/Block";
+import WebappIframe from "webapps/features/WebappIframe";
 
 type Props = {
   webappSlug: string;
@@ -40,6 +45,8 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
   }
 
   const { workspace, webapp } = data;
+  const isGitWebapp =
+    webapp.type === WebappType.Html || webapp.type === WebappType.Bundle;
 
   return (
     <Page title={t("Web Apps")}>
@@ -77,6 +84,40 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
       >
         <WorkspaceLayout.PageContent>
           <WebappForm workspace={workspace} webapp={webapp} />
+
+          {isGitWebapp && (
+            <>
+              <BlockSection title={t("Files")} collapsible={false}>
+                <WebappFilesEditor
+                  webappId={webapp.id}
+                  workspaceSlug={workspaceSlug}
+                  webappSlug={webappSlug}
+                  isEditable={webapp.permissions.update}
+                />
+              </BlockSection>
+
+              <BlockSection
+                title={t("Commit History")}
+                collapsible={false}
+              >
+                <CommitHistory
+                  webappId={webapp.id}
+                  workspaceSlug={workspaceSlug}
+                  webappSlug={webappSlug}
+                  isEditable={webapp.permissions.update}
+                />
+              </BlockSection>
+
+              {webapp.url && (
+                <BlockSection title={t("Preview")} collapsible={false}>
+                  <WebappIframe
+                    url={webapp.url}
+                    style={{ height: "65vh" }}
+                  />
+                </BlockSection>
+              )}
+            </>
+          )}
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
       <DeleteWebappDialog
