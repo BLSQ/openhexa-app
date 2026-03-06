@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { useTranslation } from "next-i18next";
 import { toast } from "react-toastify";
 import { FilesEditor } from "workspaces/features/FilesEditor/FilesEditor";
@@ -5,6 +6,7 @@ import { FilesEditor_FileFragment } from "workspaces/features/FilesEditor/FilesE
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
 import { useWebappFilesQuery } from "webapps/graphql/queries.generated";
 import Spinner from "core/components/Spinner";
+import Dropzone from "core/components/Dropzone";
 
 type WebappFilesEditorProps = {
   webappId: string;
@@ -28,6 +30,36 @@ const WebappFilesEditor = ({
   const [updateWebapp] = useUpdateWebappMutation();
 
   const files = data?.webapp?.files ?? [];
+
+  const handleFileDrop = useCallback(
+    async (acceptedFiles: readonly File[]) => {
+      try {
+        const { data } = await updateWebapp({
+          variables: {
+            input: {
+              id: webappId,
+              files: await Promise.all(
+                acceptedFiles.map(async (file) => ({
+                  path: file.name,
+                  content: await file.text(),
+                })),
+              ),
+            },
+          },
+          refetchQueries: ["WebappVersions"],
+        });
+        if (data?.updateWebapp?.success) {
+          toast.success(t("Files uploaded successfully"));
+          refetch().then();
+        } else {
+          toast.error(t("Failed to upload files"));
+        }
+      } catch {
+        toast.error(t("An error occurred while uploading files"));
+      }
+    },
+    [webappId, updateWebapp, refetch, t],
+  );
 
   const handleSave = async (
     modifiedFiles: Map<string, string>,
@@ -79,12 +111,21 @@ const WebappFilesEditor = ({
   }
 
   return (
-    <FilesEditor
-      name={t("Webapp")}
-      files={files}
-      isEditable={isEditable}
-      onSave={handleSave}
-    />
+    <div className="space-y-4">
+      {isEditable && (
+        <Dropzone
+          className="h-48 bg-slate-100"
+          label={t("Drop files here to upload")}
+          onChange={handleFileDrop}
+        />
+      )}
+      <FilesEditor
+        name={t("Webapp")}
+        files={files}
+        isEditable={isEditable}
+        onSave={handleSave}
+      />
+    </div>
   );
 };
 
