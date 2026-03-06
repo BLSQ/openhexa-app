@@ -364,9 +364,14 @@ USE_L10N = True
 
 USE_TZ = True
 
+# When Django is served under a URL prefix (e.g. /hexa-api), set it
+# so that Django generates correct URLs for static files, admin links, redirects, etc.
+# https://docs.djangoproject.com/en/dev/ref/settings/#force-script-name
+FORCE_SCRIPT_NAME = os.environ.get("NEXT_PUBLIC_API_BASE_PATH", None)
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
-STATIC_URL = "/static/"
+STATIC_URL = (FORCE_SCRIPT_NAME or "") + "/static/"
 STATIC_ROOT = BASE_DIR / "static"
 STATICFILES_DIRS = [BASE_DIR / "hexa" / "static"]
 MEDIA_ROOT = BASE_DIR / "static" / "uploads"
