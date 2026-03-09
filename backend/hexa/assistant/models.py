@@ -44,7 +44,6 @@ class Conversation(SoftDeletedModel, Base):
     def __str__(self):
         return f"Conversation({self.id}, user={self.user_id}, workspace={self.workspace_id})"
 
-
     @classmethod
     def get_monthly_cost_for_user(cls, user) -> float:
         now = timezone.now()
