@@ -408,6 +408,8 @@
   "line": "ligne",
   "lines": "lignes",
   "Link": "Lien",
+  "Live updates disconnected. Refresh the page to reconnect.": "Mises à jour en direct déconnectées. Rafraîchissez la page pour vous reconnecter.",
+  "Live updates timed out. Refresh the page to reconnect.": "Mises à jour en direct expirées. Rafraîchissez la page pour vous reconnecter.",
   "Linking this dataset with a workspace is going to make it visible from the workspace's members.": "Le fait de lier ce jeu de données à un workspace le rendra visible par les membres de ce workspace.",
   "List my OpenHEXA workspaces": "Liste mes workspaces OpenHEXA",
   "Load more": "Charger plus",
