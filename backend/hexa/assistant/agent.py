@@ -17,7 +17,8 @@ logger = logging.getLogger(__name__)
 class AssistantAgent:
     def __init__(self, conversation: Conversation):
         self.conversation = conversation
-        self.agent = Agent(model=AiModelBuilder.from_conversation(conversation).build())
+        model = AiModelBuilder.from_conversation(conversation).build()
+        self.agent = Agent(model=model)
 
     def run(self, user_input: str) -> str:
         history = ModelMessagesTypeAdapter.validate_python(

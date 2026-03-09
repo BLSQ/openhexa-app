@@ -5,8 +5,8 @@ from hexa.assistant.models import Conversation, Message, ToolInvocation
 
 @admin.register(Conversation)
 class ConversationAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "workspace", "model", "created_at", "updated_at")
-    list_filter = ("workspace", "model")
+    list_display = ("id", "user", "workspace", "created_at", "updated_at")
+    list_filter = ("workspace",)
     search_fields = ("id", "user__email")
     raw_id_fields = ("user", "workspace")
 

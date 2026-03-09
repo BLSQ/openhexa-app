@@ -2,7 +2,6 @@ type AssistantConversation {
   id: UUID!
   createdAt: DateTime!
   updatedAt: DateTime!
-  model: String!
   totalInputTokens: Int!
   totalOutputTokens: Int!
   cost: Float!
@@ -34,7 +33,6 @@ extend type Workspace {
 
 input CreateAssistantConversationInput {
   workspaceSlug: String!
-  model: AiModel
 }
 
 input SendAssistantMessageInput {

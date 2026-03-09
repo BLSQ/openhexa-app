@@ -478,7 +478,6 @@ export type AssistantConversation = {
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
   messages: Array<AssistantMessage>;
-  model: Scalars['String']['output'];
   toolInvocations: Array<AssistantToolInvocation>;
   totalInputTokens: Scalars['Int']['output'];
   totalOutputTokens: Scalars['Int']['output'];
@@ -783,7 +782,6 @@ export type CreateAccessmodZonalStatisticsResult = {
 };
 
 export type CreateAssistantConversationInput = {
-  model?: InputMaybe<AiModel>;
   workspaceSlug: Scalars['String']['input'];
 };
 

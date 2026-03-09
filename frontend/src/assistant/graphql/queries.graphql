@@ -5,7 +5,6 @@ query AssistantPage($workspaceSlug: String!) {
     assistantConversations {
       id
       createdAt
-      model
     }
   }
 }

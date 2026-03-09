@@ -6,7 +6,6 @@ import Spinner from "core/components/Spinner";
 type Conversation = {
   id: string;
   createdAt: string;
-  model: string;
 };
 
 type Props = {

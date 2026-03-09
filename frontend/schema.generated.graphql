@@ -441,7 +441,6 @@ type AssistantConversation {
   createdAt: DateTime!
   id: UUID!
   messages: [AssistantMessage!]!
-  model: String!
   toolInvocations: [AssistantToolInvocation!]!
   totalInputTokens: Int!
   totalOutputTokens: Int!
@@ -743,7 +742,6 @@ type CreateAccessmodZonalStatisticsResult {
 }
 
 input CreateAssistantConversationInput {
-  model: AiModel
   workspaceSlug: String!
 }
 

@@ -2,7 +2,6 @@ mutation createAssistantConversation($input: CreateAssistantConversationInput!) 
   createAssistantConversation(input: $input) {
     id
     createdAt
-    model
   }
 }
 

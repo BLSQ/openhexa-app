@@ -2,7 +2,6 @@ from ariadne import MutationType
 
 from hexa.assistant.agent import AssistantAgent
 from hexa.assistant.models import Conversation
-from hexa.user_management.models import AiSettings, User
 from hexa.workspaces.models import Workspace
 
 assistant_mutations = MutationType()
@@ -19,19 +18,9 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
     except Workspace.DoesNotExist:
         return None
 
-    model = input.get("model")
-    if not model:
-        user: User = request.user
-        ai_settings: AiSettings = user.ai_settings_safe
-        if ai_settings.model:
-            model = ai_settings.model
-        else:
-            return {"success": False, "errors": ["INCOMPLETE_CONFIG"]}
-
     return Conversation.objects.create(
         user=request.user,
         workspace=workspace,
-        model=model,
     )
 
 

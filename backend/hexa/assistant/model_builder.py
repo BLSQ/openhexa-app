@@ -52,10 +52,8 @@ class AiModelBuilder:
             raise AssistantException("AI settings are not enabled")
         return (
             cls()
-            .provider(
-                ai_settings.provider
-            )  # TODO what happens if user changes provider
-            .model(conversation.model)
+            .provider(ai_settings.provider)
+            .model(ai_settings.model)
             .api_key(ai_settings.api_key)
         )
 
