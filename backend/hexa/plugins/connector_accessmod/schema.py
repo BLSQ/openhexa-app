@@ -38,7 +38,7 @@ from hexa.plugins.connector_accessmod.queue import validate_fileset_queue
 from hexa.plugins.connector_accessmod.utils import send_mail_to_accessmod_superusers
 from hexa.plugins.connector_s3.models import Bucket as S3Bucket
 from hexa.user_management.models import Team, User
-from hexa.user_management.schema import me_permissions_object
+from hexa.user_management.schema.types import me_permissions_object
 
 logger = logging.getLogger(__name__)
 

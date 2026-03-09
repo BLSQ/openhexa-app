@@ -375,6 +375,35 @@ type AddWebappToShortcutsResult {
   success: Boolean!
 }
 
+type AiLabel {
+  label: String!
+  value: String!
+}
+
+type AiLabels {
+  models: [AiLabel!]!
+  providers: [AiLabel!]!
+}
+
+"""Represents the available AI models."""
+enum AiModel {
+  haiku
+  opus
+  sonnet
+}
+
+"""Represents the available AI providers."""
+enum AiProvider {
+  anthropic
+}
+
+type AiSettings {
+  enabled: Boolean
+  hasApiKey: Boolean
+  model: AiModel
+  provider: AiProvider
+}
+
 enum ApproveAccessmodAccessRequestError {
   INVALID
 }
@@ -686,6 +715,7 @@ type CreateAccessmodZonalStatisticsResult {
 """Errors that can occur when creating a folder in a workspace's bucket."""
 enum CreateBucketFolderError {
   ALREADY_EXISTS
+  INVALID_PATH
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -1579,6 +1609,7 @@ type DeleteAccessmodProjectResult {
 Errors that can occur when deleting an object from a workspace's bucket.
 """
 enum DeleteBucketObjectError {
+  INVALID_PATH
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -2925,6 +2956,9 @@ type Mutation {
 
   """Updates the profile of the currently authenticated user."""
   updateUser(input: UpdateUserInput!): UpdateUserResult!
+
+  """Updates the AI settings of the currently authenticated user."""
+  updateUserAiSettings(input: UpdateUserAiSettingsInput!): UpdateUserAiSettingsResult!
   updateWebapp(input: UpdateWebappInput!): UpdateWebappResult!
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult!
@@ -2937,6 +2971,11 @@ type Mutation {
 
   """Verifies a device for two-factor authentication."""
   verifyDevice(input: VerifyDeviceInput!): VerifyDeviceResult!
+
+  """
+  Write text content to a file in a workspace's bucket. Use the overwrite flag to replace an existing file.
+  """
+  writeFileContent(input: WriteFileContentInput!): WriteFileContentResult!
 }
 
 type NotebookServer {
@@ -3599,6 +3638,7 @@ type PrepareDownloadURLResult {
 Errors that can occur when preparing to download an object from a workspace's bucket.
 """
 enum PrepareObjectDownloadError {
+  INVALID_PATH
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -3622,6 +3662,7 @@ type PrepareObjectDownloadResult {
 Errors that can occur when preparing to upload an object to a workspace's bucket.
 """
 enum PrepareObjectUploadError {
+  INVALID_PATH
   PERMISSION_DENIED
 }
 
@@ -3678,6 +3719,7 @@ type Query {
   accessmodFilesets(mode: AccessmodFilesetMode, page: Int, perPage: Int, projectId: String!, roleId: String, term: String): AccessmodFilesetPage!
   accessmodProject(id: String): AccessmodProject
   accessmodProjects(countries: [String!], orderBy: AccessmodProjectOrder, page: Int, perPage: Int, teams: [String!], term: String): AccessmodProjectPage!
+  aiLabels: AiLabels!
   boundaries(country_code: String!, level: String!): [WHOBoundary!]!
 
   """Retrieves the configuration of the system."""
@@ -3745,6 +3787,9 @@ type Query {
 
   """Retrieves a page of pipelines ordered by relevant name."""
   pipelines(functionalType: PipelineFunctionalType, lastRunStates: [PipelineRunStatus!], name: String, orderBy: PipelineOrderBy, page: Int, perPage: Int, search: String, tags: [String!], workspaceSlug: String): PipelinesPage!
+
+  """Read the text content of a file from a workspace's bucket."""
+  readFileContent(filePath: String!, workspaceSlug: String!): ReadFileContentResult!
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
@@ -3763,6 +3808,22 @@ type Query {
   webapps(favorite: Boolean, page: Int, perPage: Int, workspaceSlug: String): WebappsPage!
   workspace(slug: String!): Workspace
   workspaces(organizationId: UUID, page: Int, perPage: Int, query: String): WorkspacePage!
+}
+
+enum ReadFileContentError {
+  FILE_TOO_LARGE
+  INVALID_PATH
+  NOT_A_FILE
+  NOT_FOUND
+  NOT_UTF8
+  PERMISSION_DENIED
+}
+
+type ReadFileContentResult {
+  content: String
+  errors: [ReadFileContentError!]!
+  size: Int
+  success: Boolean!
 }
 
 """
@@ -4927,6 +4988,52 @@ type UpdateTemplateVersionResult {
 }
 
 """
+The UpdateUserAiSettingsError enum represents the possible errors that can occur during the updateUser mutation.
+"""
+enum UpdateUserAiSettingsError {
+  """
+  Indicates that enabling AI requires provider, model, and api_key to all be set.
+  """
+  INCOMPLETE_CONFIG
+
+  """
+  Indicates that the user does not have permission to update their profile.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The UpdateUserAiSettingsInput type represents the input for the updateAiSettings mutation.
+"""
+input UpdateUserAiSettingsInput {
+  """Indicates the AI API KEY"""
+  apiKey: String
+
+  """Indicates if AI is enabled"""
+  enabled: Boolean
+
+  """Indicates the AI model from the provider used"""
+  model: String
+
+  """Indicates the AI provider used"""
+  provider: String
+}
+
+"""
+The UpdateUserAiSettingsResult type represents the result of the updateUser mutation.
+"""
+type UpdateUserAiSettingsResult {
+  """The list of errors that occurred during the updateUser mutation."""
+  errors: [UpdateUserAiSettingsError!]!
+
+  """Indicates whether the user update was successful."""
+  success: Boolean!
+
+  """The updated user object."""
+  user: User
+}
+
+"""
 The UpdateUserError enum represents the possible errors that can occur during the updateUser mutation.
 """
 enum UpdateUserError {
@@ -5097,6 +5204,9 @@ type UploadPipelineResult {
 
 """The User type represents a user in the system."""
 type User {
+  """User AI settings."""
+  aiSettings: AiSettings
+
   """The avatar of the user."""
   avatar: Avatar!
 
@@ -5364,4 +5474,26 @@ type WorkspacePermissions {
 type WorkspaceRef {
   id: UUID!
   slug: String!
+}
+
+enum WriteFileContentError {
+  ALREADY_EXISTS
+  FILE_TOO_LARGE
+  INVALID_PATH
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+input WriteFileContentInput {
+  content: String!
+  filePath: String!
+  overwrite: Boolean = false
+  workspaceSlug: String!
+}
+
+type WriteFileContentResult {
+  errors: [WriteFileContentError!]!
+  filePath: String
+  size: Int
+  success: Boolean!
 }

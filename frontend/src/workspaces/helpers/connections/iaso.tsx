@@ -1,4 +1,5 @@
 import { FormInstance } from "core/hooks/useForm";
+import iasoIcon from "public/images/iaso.svg";
 import { ConnectionForm } from "./utils";
 import { useTranslation } from "next-i18next";
 import Field from "core/components/forms/Field/Field";
@@ -47,7 +48,7 @@ function IASOForm(props: { form: FormInstance<ConnectionForm> }) {
 export default {
   label: "IASO Account",
   color: "bg-green-300",
-  iconSrc: "/images/iaso.svg",
+  iconSrc: iasoIcon,
   Form: IASOForm,
   fields: [
     { code: "url", name: "IASO Instance URL", required: true },

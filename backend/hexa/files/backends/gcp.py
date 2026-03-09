@@ -220,6 +220,10 @@ class GoogleCloudStorage(Storage):
             expiration=3600, version="v4", method="PUT", content_type=content_type
         ), None
 
+    def read_object(self, bucket_name: str, file_path: str) -> bytes:
+        blob = self.client.bucket(bucket_name).blob(file_path)
+        return blob.download_as_bytes()
+
     def get_bucket_object(self, bucket_name: str, object_key: str):
         bucket = self.client.get_bucket(bucket_name)
         object = bucket.get_blob(object_key)

@@ -4,6 +4,7 @@ import { useDataCardProperty } from "./context";
 import { PropertyDefinition } from "./types";
 import { useTranslation } from "next-i18next";
 import { resizeImage } from "core/helpers/image";
+import placeholderImage from "public/images/placeholder.svg";
 
 type ImagePropertyProps = PropertyDefinition & {
   className?: string;
@@ -15,7 +16,7 @@ type ImagePropertyProps = PropertyDefinition & {
 const ImageProperty = (props: ImagePropertyProps) => {
   const {
     className,
-    placeholder = "/images/placeholder.svg",
+    placeholder = placeholderImage,
     editButtonLabel,
     accept = ["image/png", "image/jpeg", "image/jpg"],
     ...delegated
