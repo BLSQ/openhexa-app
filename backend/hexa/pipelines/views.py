@@ -235,6 +235,7 @@ _TERMINAL_STATES = {
 
 _SSE_POLL_INTERVAL = 0.3  # seconds between DB polls
 _SSE_PING_INTERVAL = 10  # seconds between keepalive pings
+_SSE_MAX_DURATION = 1800  # 30 minutes — safety cap for stuck pipelines
 
 
 def _format_sse(event_type: str, data: dict) -> str:
@@ -243,7 +244,8 @@ def _format_sse(event_type: str, data: dict) -> str:
 
 async def _message_stream(run: PipelineRun, cursor: int):
     refresh = sync_to_async(lambda: run.refresh_from_db(fields=["messages", "state"]))
-    last_ping = time.monotonic()
+    start = time.monotonic()
+    last_ping = start
 
     while True:
         await refresh()
@@ -260,6 +262,10 @@ async def _message_stream(run: PipelineRun, cursor: int):
 
         if run.state in _TERMINAL_STATES:
             yield _format_sse("done", {"status": run.state})
+            return
+
+        if now - start >= _SSE_MAX_DURATION:
+            yield _format_sse("timeout", {})
             return
 
         await asyncio.sleep(_SSE_POLL_INTERVAL)

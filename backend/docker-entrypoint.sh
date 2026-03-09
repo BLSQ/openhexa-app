@@ -15,7 +15,7 @@ show_help() {
   echo """
   Available commands:
 
-  start             : start django server using gunicorn (ASGI via uvicorn worker)
+  start             : start django server using gunicorn
   makemigrations    : generate a django migration
   migrate           : run django migrations & load base fixtures necessary for the app to work
   makemessages      : generate django translations
@@ -36,7 +36,7 @@ case "$command" in
   ;;
 "start")
   wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
-  gunicorn config.asgi:application --worker-class uvicorn.workers.UvicornWorker --bind 0:8000 --workers=3
+  gunicorn config.wsgi:application --bind 0:8000 --workers=3
   ;;
 "makemigrations")
   wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
