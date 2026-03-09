@@ -373,6 +373,8 @@
   "line": "line",
   "lines": "lines",
   "Link": "Link",
+  "Live updates disconnected. Refresh the page to reconnect.": "Live updates disconnected. Refresh the page to reconnect.",
+  "Live updates timed out. Refresh the page to reconnect.": "Live updates timed out. Refresh the page to reconnect.",
   "Linking this dataset with a workspace is going to make it visible from the workspace's members.": "Linking this dataset with a workspace is going to make it visible from the workspace's members.",
   "Load more versions": "Load more versions",
   "Loading": "Loading",
