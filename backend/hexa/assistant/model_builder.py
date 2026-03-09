@@ -57,6 +57,14 @@ class AiModelBuilder:
             .api_key(ai_settings.api_key)
         )
 
+    @property
+    def model_api_name(self) -> str | None:
+        return self._model_api_name
+
+    @property
+    def provider_id(self) -> str | None:
+        return self._provider
+
     def build(self) -> Model:
         factory = _PROVIDER_FACTORIES.get(self._provider)
         if not factory:

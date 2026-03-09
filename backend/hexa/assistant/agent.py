@@ -1,6 +1,8 @@
 import logging
+from decimal import Decimal
 
-from pydantic_ai import Agent
+import genai_prices
+from pydantic_ai import Agent, RunUsage
 from pydantic_ai.messages import (
     ModelMessagesTypeAdapter,
     TextPart,
@@ -17,8 +19,10 @@ logger = logging.getLogger(__name__)
 class AssistantAgent:
     def __init__(self, conversation: Conversation):
         self.conversation = conversation
-        model = AiModelBuilder.from_conversation(conversation).build()
-        self.agent = Agent(model=model)
+        builder = AiModelBuilder.from_conversation(conversation)
+        self._model_api_name = builder.model_api_name
+        self._provider_id = builder.provider_id
+        self.agent = Agent(model=builder.build())
 
     def run(self, user_input: str) -> str:
         history = ModelMessagesTypeAdapter.validate_python(
@@ -72,12 +76,15 @@ class AssistantAgent:
                     ).update(tool_output=part.content)
 
         usage = result.usage()
-        input_tok = usage.request_tokens or 0
-        output_tok = usage.response_tokens or 0
+        input_tok = usage.input_tokens or 0
+        output_tok = usage.output_tokens or 0
+        cost = self._get_cost(usage)
+
         logger.info(
-            "agent.run: usage input_tokens=%d output_tokens=%d response_text_len=%d",
+            "agent.run: usage input_tokens=%d output_tokens=%d cost=%s response_text_len=%d",
             input_tok,
             output_tok,
+            cost,
             len(response_text),
         )
 
@@ -87,10 +94,13 @@ class AssistantAgent:
             content=response_text,
             input_tokens=input_tok,
             output_tokens=output_tok,
+            cost=cost,
         )
 
         self.conversation.total_input_tokens += input_tok
         self.conversation.total_output_tokens += output_tok
+        if cost is not None:
+            self.conversation.cost += cost
         self.conversation.messages_history = ModelMessagesTypeAdapter.dump_python(
             result.all_messages(), mode="json"
         )
@@ -98,9 +108,25 @@ class AssistantAgent:
             update_fields=[
                 "total_input_tokens",
                 "total_output_tokens",
+                "cost",
                 "messages_history",
                 "updated_at",
             ]
         )
 
         return response_text
+
+    def _get_cost(self, usage: RunUsage) -> Decimal | None:
+        cost: Decimal | None = None
+        try:
+            price_calc = genai_prices.calc_price(
+                usage, self._model_api_name, provider_id=self._provider_id
+            )
+            cost = price_calc.total_price
+        except Exception:
+            logger.warning(
+                "agent.run: cost calculation failed for model=%s provider=%s",
+                self._model_api_name,
+                self._provider_id,
+            )
+        return cost
