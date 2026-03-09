@@ -6,6 +6,8 @@
 #
 affine==2.4.0
     # via rasterio
+a2wsgi==1.10.8
+    # via -r requirements.in
 annotated-types==0.7.0
     # via pydantic
 anyio==4.9.0
@@ -552,8 +554,6 @@ urllib3==2.6.3
     #   requests
     #   responses
     #   sentry-sdk
-uvicorn==0.34.0
-    # via -r requirements.in
 websocket-client==1.8.0
     # via kubernetes
 werkzeug==3.1.6

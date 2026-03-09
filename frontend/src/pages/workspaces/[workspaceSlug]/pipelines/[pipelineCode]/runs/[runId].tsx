@@ -15,7 +15,6 @@ import User from "core/features/User";
 import { createGetServerSideProps } from "core/helpers/page";
 import { formatDuration } from "core/helpers/time";
 import { NextPageWithLayout } from "core/helpers/types";
-import useInterval from "core/hooks/useInterval";
 import {
   PipelineParameter,
   PipelineRunStatus,
@@ -28,7 +27,7 @@ import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import RunLogs from "pipelines/features/RunLogs";
 import RunMessages from "pipelines/features/RunMessages";
 import usePipelineRunMessages from "pipelines/hooks/usePipelineRunMessages/usePipelineRunMessages";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import RunOutputsTable from "workspaces/features/RunOutputsTable";
 import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
 import StopPipelineDialog from "workspaces/features/StopPipelineDialog";
@@ -65,24 +64,17 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
   const runStatus = data?.pipelineRun?.status;
   const runId_ = data?.pipelineRun?.id ?? runId;
 
-  const { messages: sseMessages, isStreaming } = usePipelineRunMessages(runId_);
+  const isTerminal = [
+    PipelineRunStatus.Failed,
+    PipelineRunStatus.Success,
+    PipelineRunStatus.Stopped,
+    PipelineRunStatus.Skipped,
+  ].includes(runStatus as PipelineRunStatus);
 
-  const refreshInterval = useMemo(() => {
-    switch (runStatus) {
-      case PipelineRunStatus.Queued:
-      case PipelineRunStatus.Terminating:
-        return 0.5 * 1000;
-      case PipelineRunStatus.Running:
-        return 0.25 * 1000;
-      default:
-        return null;
-    }
-  }, [runStatus]);
+  const { messages: sseMessages, isStreaming, streamError } = usePipelineRunMessages(runId_, isTerminal, refetch);
 
   const [isStopPipelineDialogOpen, setIsStopPipelineDialogOpen] =
     useState(false);
-
-  useInterval(useCallback(refetch, [refetch]), refreshInterval);
 
   const isFinished =
     data?.pipelineRun &&
@@ -357,8 +349,9 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
               <RunMessages
                 key={run.id}
                 run={run}
-                messages={sseMessages}
+                messages={isTerminal ? undefined : sseMessages}
                 isStreaming={isStreaming}
+                streamError={streamError}
               />
             </Block.Section>
             <Block.Section title={t("Logs")} collapsible defaultOpen={false}>

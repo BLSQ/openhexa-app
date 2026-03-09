@@ -20,6 +20,7 @@ type RunMessagesProps = {
   // When provided, replaces run.messages entirely (used for live SSE streaming)
   messages?: SseMessage[];
   isStreaming?: boolean;
+  streamError?: string | null;
 };
 
 function getBadgeClassName(priority: string) {
@@ -39,7 +40,7 @@ function getBadgeClassName(priority: string) {
 
 const RunMessages = (props: RunMessagesProps) => {
   const { t } = useTranslation();
-  const { run, messages: messagesOverride, isStreaming } = props;
+  const { run, messages: messagesOverride, isStreaming, streamError } = props;
   const ref = useRef<HTMLDivElement>(null);
   useAutoScroll(ref, "smooth");
 
@@ -105,6 +106,13 @@ const RunMessages = (props: RunMessagesProps) => {
         <div className="flex items-center gap-1.5 text-gray-400 text-sm px-2 py-2">
           <Spinner size="xs" />
           {t("Waiting for messages...")}
+        </div>
+      )}
+      {streamError && (
+        <div className="text-sm text-amber-600 px-2 py-2">
+          {streamError === "timeout"
+            ? t("Live updates timed out. Refresh the page to reconnect.")
+            : t("Live updates disconnected. Refresh the page to reconnect.")}
         </div>
       )}
     </>
