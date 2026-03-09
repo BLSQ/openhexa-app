@@ -12,9 +12,10 @@ import { useSendAssistantMessageMutation } from "assistant/graphql/mutations.gen
 
 type Props = {
   conversationId: string | null;
+  monthlyLimitExceeded: boolean;
 };
 
-export default function ChatPane({ conversationId }: Props) {
+export default function ChatPane({ conversationId, monthlyLimitExceeded }: Props) {
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -44,7 +45,7 @@ export default function ChatPane({ conversationId }: Props) {
 
   const handleSubmit = async () => {
     const text = input.trim();
-    if (!text || !conversationId || sending) return;
+    if (!text || !conversationId || sending || monthlyLimitExceeded) return;
 
     await sendMessage({
       variables: { input: { conversationId, message: text } },
@@ -125,28 +126,34 @@ export default function ChatPane({ conversationId }: Props) {
           <div ref={bottomRef} />
         </div>
 
-        <div className="shrink-0 mt-4 rounded-2xl border border-gray-300 bg-white shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 cursor-text" onClick={() => textareaRef.current?.focus()}>
-          <textarea
-            ref={textareaRef}
-            className="w-full resize-none bg-transparent px-4 pt-3 pb-2 text-sm focus:outline-none disabled:opacity-50"
-            style={{ maxHeight: "200px", overflowY: "auto" }}
-            rows={1}
-            placeholder="Message… (Enter to send, Shift+Enter for newline)"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            disabled={sending}
-          />
-          <div className="flex items-center justify-end px-2 pb-2">
-            <button
-              onClick={handleSubmit}
-              disabled={!input.trim() || sending}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <PaperAirplaneIcon className="h-4 w-4" />
-            </button>
+        {monthlyLimitExceeded ? (
+          <div className="shrink-0 mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            You have reached your monthly usage limit for the assistant. Please contact your administrator.
           </div>
-        </div>
+        ) : (
+          <div className="shrink-0 mt-4 rounded-2xl border border-gray-300 bg-white shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 cursor-text" onClick={() => textareaRef.current?.focus()}>
+            <textarea
+              ref={textareaRef}
+              className="w-full resize-none bg-transparent px-4 pt-3 pb-2 text-sm focus:outline-none disabled:opacity-50"
+              style={{ maxHeight: "200px", overflowY: "auto" }}
+              rows={1}
+              placeholder="Message… (Enter to send, Shift+Enter for newline)"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={sending}
+            />
+            <div className="flex items-center justify-end px-2 pb-2">
+              <button
+                onClick={handleSubmit}
+                disabled={!input.trim() || sending}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <PaperAirplaneIcon className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

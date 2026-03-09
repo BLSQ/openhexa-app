@@ -2657,6 +2657,7 @@ export type LogoutResult = {
 /** The Me type represents the currently authenticated user. */
 export type Me = {
   __typename?: 'Me';
+  assistantMonthlyLimitExceeded: Scalars['Boolean']['output'];
   /** The feature flags assigned to the currently authenticated user. */
   features: Array<FeatureFlag>;
   hasTwoFactorEnabled: Scalars['Boolean']['output'];

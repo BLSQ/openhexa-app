@@ -449,8 +449,8 @@ PIPELINE_DEFAULT_CONTAINER_MEMORY_REQUEST = os.environ.get(
 PIPELINE_RUN_DEFAULT_TIMEOUT = os.environ.get("PIPELINE_RUN_DEFAULT_TIMEOUT", 14400)
 PIPELINE_RUN_MAX_TIMEOUT = os.environ.get("PIPELINE_RUN_MAX_TIMEOUT", 43200)
 
-# AI Assistant
-ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+# AI Assistant monthly limit in USD
+ASSISTANT_MONTHLY_LIMIT = float(os.environ.get("ASSISTANT_MONTHLY_LIMIT", 200))
 
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"

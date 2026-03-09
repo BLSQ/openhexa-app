@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Sum
+from django.utils import timezone
 
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.core.models.soft_delete import (
@@ -8,7 +10,6 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
-from hexa.user_management.models import AiSettings
 from hexa.workspaces.models import Workspace
 
 User = get_user_model()
@@ -42,6 +43,18 @@ class Conversation(SoftDeletedModel, Base):
 
     def __str__(self):
         return f"Conversation({self.id}, user={self.user_id}, workspace={self.workspace_id})"
+
+
+    @classmethod
+    def get_monthly_cost_for_user(cls, user) -> float:
+        now = timezone.now()
+        result = Message.objects.filter(
+            conversation__user=user,
+            role=Message.Role.ASSISTANT,
+            created_at__year=now.year,
+            created_at__month=now.month,
+        ).aggregate(total=Sum("cost"))["total"]
+        return float(result or 0)
 
 
 class Message(Base):

@@ -26,6 +26,7 @@ const AssistantPage: NextPageWithLayout<Props> = ({ workspaceSlug }) => {
   });
 
   const conversations = data?.workspace?.assistantConversations ?? [];
+  const monthlyLimitExceeded = data?.me?.assistantMonthlyLimitExceeded ?? false;
 
   useEffect(() => {
     if (!selectedConversationId && conversations.length > 0) {
@@ -65,7 +66,10 @@ const AssistantPage: NextPageWithLayout<Props> = ({ workspaceSlug }) => {
             onNew={handleNewConversation}
             creating={creating}
           />
-          <ChatPane conversationId={selectedConversationId} />
+          <ChatPane
+            conversationId={selectedConversationId}
+            monthlyLimitExceeded={monthlyLimitExceeded}
+          />
         </div>
       </WorkspaceLayout>
     </Page>

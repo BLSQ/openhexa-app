@@ -1,10 +1,12 @@
 from ariadne import ObjectType, QueryType
+from django.conf import settings
 
 from hexa.assistant.models import Conversation
 from hexa.workspaces.models import Workspace
 
 assistant_queries = QueryType()
 workspace_object = ObjectType("Workspace")
+me_object = ObjectType("Me")
 
 
 @assistant_queries.field("assistantConversation")
@@ -24,4 +26,11 @@ def resolve_workspace_assistant_conversations(workspace: Workspace, info, **kwar
     )
 
 
-bindables = [assistant_queries, workspace_object]
+@me_object.field("assistantMonthlyLimitExceeded")
+def resolve_assistant_monthly_limit_exceeded(me, info, **kwargs):
+    request = info.context["request"]
+    monthly_cost = Conversation.get_monthly_cost_for_user(request.user)
+    return monthly_cost >= settings.ASSISTANT_MONTHLY_LIMIT
+
+
+bindables = [assistant_queries, workspace_object, me_object]

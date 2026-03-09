@@ -55,3 +55,7 @@ extend type Mutation {
 extend type Query {
   assistantConversation(id: UUID!): AssistantConversation
 }
+
+extend type Me {
+  assistantMonthlyLimitExceeded: Boolean!
+}

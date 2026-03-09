@@ -9,7 +9,7 @@ export type AssistantPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type AssistantPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, assistantConversations: Array<{ __typename?: 'AssistantConversation', id: string, createdAt: any }>, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } } | null } | null };
+export type AssistantPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, assistantConversations: Array<{ __typename?: 'AssistantConversation', id: string, createdAt: any }>, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } } | null } | null, me: { __typename?: 'Me', assistantMonthlyLimitExceeded: boolean } };
 
 export type AssistantConversationMessagesQueryVariables = Types.Exact<{
   id: Types.Scalars['UUID']['input'];
@@ -28,6 +28,9 @@ export const AssistantPageDocument = gql`
       id
       createdAt
     }
+  }
+  me {
+    assistantMonthlyLimitExceeded
   }
 }
     ${WorkspaceLayout_WorkspaceFragmentDoc}`;

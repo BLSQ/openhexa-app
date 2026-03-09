@@ -7,6 +7,9 @@ query AssistantPage($workspaceSlug: String!) {
       createdAt
     }
   }
+  me {
+    assistantMonthlyLimitExceeded
+  }
 }
 
 query AssistantConversationMessages($id: UUID!) {
