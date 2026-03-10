@@ -314,9 +314,13 @@ class ForgejoClientRenameOrganizationTest(TestCase):
     @responses.activate
     def test_rename_organization_success(self):
         _setup_token()
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/orgs/old-name/rename",
+            status=200,
+        )
         responses.patch(
-            f"{FORGEJO_URL}/api/v1/orgs/old-name",
-            json={"id": 1, "username": "new-name", "full_name": "new-name"},
+            f"{FORGEJO_URL}/api/v1/orgs/new-name",
+            json={"id": 1, "username": "new-name", "full_name": "New Name"},
             status=200,
         )
 
@@ -328,8 +332,8 @@ class ForgejoClientRenameOrganizationTest(TestCase):
     @responses.activate
     def test_rename_organization_not_found(self):
         _setup_token()
-        responses.patch(
-            f"{FORGEJO_URL}/api/v1/orgs/missing-org",
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/orgs/missing-org/rename",
             json={"message": "not found"},
             status=404,
         )
@@ -552,8 +556,8 @@ class ForgejoClientGetCommitsTest(TestCase):
         commits = client.get_commits("ws-myworkspace", "my-repo")
 
         self.assertEqual(len(commits), 2)
-        self.assertEqual(commits[0]["sha"], "abc123")
-        self.assertEqual(commits[0]["commit"]["message"], "initial commit")
+        self.assertEqual(commits[0]["id"], "abc123")
+        self.assertEqual(commits[0]["message"], "initial commit")
 
     @responses.activate
     def test_get_commits_with_pagination(self):
