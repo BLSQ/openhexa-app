@@ -22,9 +22,20 @@ class GitRepoMixin(models.Model):
     def client(self) -> GitClient:
         return get_forgejo_client()
 
-    def create_repo(self) -> str:
+    def create_repo(self, *, files=None, user=None) -> str:
         self.client.create_organization(self.org.slug, self.org.display_name)
-        self.client.create_org_repository(self.org.slug, self.repository)
+        self.client.create_org_repository(
+            self.org.slug, self.repository, auto_init=not (files and user)
+        )
+        if files and user:
+            return self.client.commit_files(
+                self.repository,
+                files,
+                "Initial content",
+                user.display_name or user.email,
+                user.email,
+                org_slug=self.org.slug,
+            )
         commits = self.client.get_commits(self.org.slug, self.repository, limit=1)
         return commits[0]["id"]
 
