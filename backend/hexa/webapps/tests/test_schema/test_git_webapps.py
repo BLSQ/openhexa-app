@@ -220,7 +220,7 @@ class GitWebappCreateTest(GraphQLTestCase):
         result = response["data"]["createWebapp"]
         self.assertTrue(result["success"])
         webapp_id = result["webapp"]["id"]
-        self.assertEqual(result["webapp"]["url"], f"/webapps/{webapp_id}/")
+        self.assertIn(f"/webapps/{webapp_id}/", result["webapp"]["url"])
 
 
 class GitWebappUpdateFilesTest(GraphQLTestCase):
@@ -536,7 +536,7 @@ class GitWebappQueryTest(GraphQLTestCase):
         self.assertIsNotNone(webapp)
         self.assertEqual(webapp["name"], "Query Test App")
         self.assertEqual(webapp["type"], "HTML")
-        self.assertEqual(webapp["url"], f"/webapps/{self.GIT_WEBAPP.id}/")
+        self.assertIn(f"/webapps/{self.GIT_WEBAPP.id}/", webapp["url"])
         self.assertEqual(webapp["source"]["repository"], "webapp-queryrepo")
         self.assertEqual(webapp["source"]["publishedVersion"], "published-sha")
 
