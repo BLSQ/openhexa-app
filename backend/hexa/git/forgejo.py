@@ -294,10 +294,13 @@ class ForgejoClient(GitClient):
         org_slug: str | None = None,
     ) -> str:
         org_slug = org_slug or self._username
-        existing_tree = {
-            entry["path"]: entry.get("sha", "")
-            for entry in self.get_files_tree(repo_name, org_slug=org_slug)
-        }
+        try:
+            existing_tree = {
+                entry["path"]: entry.get("sha", "")
+                for entry in self.get_files_tree(repo_name, org_slug=org_slug)
+            }
+        except ForgejoAPIError:
+            existing_tree = {}
 
         operations = []
         for file in files:
