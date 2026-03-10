@@ -15,6 +15,15 @@ def setup_sentry(dsn):
     # Sampling rate
     traces_sample_rate = float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "1.0"))
 
+    def before_send(event, hint):
+        # Connection test failures are expected user errors (wrong credentials, unreachable host, etc.)
+        # The error is already returned to the UI — no need to report to Sentry
+        request = event.get("request", {})
+        url = request.get("url", "")
+        if "testConnection" in url:
+            return None
+        return event
+
     # Exclude /ready from sentry
     def sentry_tracer_sampler(sampling_context):
         transaction_context = sampling_context.get("transaction_context")
@@ -40,6 +49,7 @@ def setup_sentry(dsn):
         integrations=[DjangoIntegration(), sentry_logging],
         traces_sample_rate=traces_sample_rate,
         traces_sampler=sentry_tracer_sampler,
+        before_send=before_send,
         send_default_pii=True,
         environment=os.environ.get("SENTRY_ENVIRONMENT"),
     )
