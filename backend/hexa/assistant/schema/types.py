@@ -9,7 +9,9 @@ assistant_tool_invocation_object = ObjectType("AssistantToolInvocation")
 
 
 @assistant_conversation_object.field("messages")
-def resolve_conversation_messages(conversation: Conversation, info, page=1, perPage=20, **kwargs):
+def resolve_conversation_messages(
+    conversation: Conversation, info, page=1, perPage=20, **kwargs
+):
     qs = conversation.messages.order_by("-created_at")
     return result_page(queryset=qs, page=page, per_page=perPage)
 

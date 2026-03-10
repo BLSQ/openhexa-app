@@ -25,6 +25,12 @@ class AssistantAgent:
         self.agent = Agent(model=builder.build())
 
     def run(self, user_input: str) -> str:
+        Message.objects.create(
+            conversation=self.conversation,
+            role=Message.Role.USER,
+            content=user_input,
+        )
+
         history = ModelMessagesTypeAdapter.validate_python(
             self.conversation.messages_history
         )
@@ -37,12 +43,6 @@ class AssistantAgent:
         result = self.agent.run_sync(user_input, message_history=history)
         logger.info(
             "agent.run: LLM call complete, new_messages=%d", len(result.new_messages())
-        )
-
-        Message.objects.create(
-            conversation=self.conversation,
-            role=Message.Role.USER,
-            content=user_input,
         )
 
         response_text = ""
