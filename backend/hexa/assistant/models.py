@@ -18,7 +18,7 @@ User = get_user_model()
 
 
 class ConversationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
-    def filter_for_user(self, user):
+    def filter_for_user(self, user: User):
         return self._filter_for_user_and_query_object(
             user,
             models.Q(user=user, workspace__members=user),
@@ -53,7 +53,7 @@ class Conversation(SoftDeletedModel, Base):
         return f"Conversation({self.id}, user={self.user_id}, workspace={self.workspace_id})"
 
     @classmethod
-    def get_monthly_cost_for_user(cls, user) -> float:
+    def get_monthly_cost_for_user(cls, user: User) -> float:
         now = timezone.now()
         start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         start_of_next_month = (start_of_month + timedelta(days=32)).replace(day=1)
