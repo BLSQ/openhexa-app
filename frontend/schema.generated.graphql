@@ -5324,17 +5324,15 @@ union WebappSource = GitSource | IframeSource | SupersetSource
 Source configuration for a webapp - exactly one field must be provided.
 """
 input WebappSourceInput @oneOf {
-  bundle: [WebappFileInput!]
-  html: [WebappFileInput!]
   iframe: IframeSourceInput
+  static: [WebappFileInput!]
   superset: SupersetSourceInput
 }
 
 """Represents the type of a web app."""
 enum WebappType {
-  BUNDLE
-  HTML
   IFRAME
+  STATIC
   SUPERSET
 }
 

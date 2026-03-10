@@ -608,17 +608,17 @@ class GitWebappModelTest(TestCase):
     def tearDown(self):
         self.mock_client_patcher.stop()
 
-    def test_create_if_has_perm_html(self):
+    def test_create_if_has_perm_static(self):
         webapp = GitWebapp.create_if_has_perm(
             principal=self.user_admin,
             workspace=self.workspace,
-            name="My HTML App",
+            name="My Static App",
             created_by=self.user_admin,
-            webapp_type=Webapp.WebappType.HTML,
+            webapp_type=Webapp.WebappType.STATIC,
         )
 
-        self.assertEqual(webapp.name, "My HTML App")
-        self.assertEqual(webapp.type, Webapp.WebappType.HTML)
+        self.assertEqual(webapp.name, "My Static App")
+        self.assertEqual(webapp.type, Webapp.WebappType.STATIC)
         self.assertEqual(
             webapp.repository, f"{self.workspace.slug}-webapp-{webapp.slug}"
         )
@@ -633,16 +633,16 @@ class GitWebappModelTest(TestCase):
             "no-org", webapp.repository
         )
 
-    def test_create_if_has_perm_bundle(self):
+    def test_create_if_has_perm_static_no_files(self):
         webapp = GitWebapp.create_if_has_perm(
             principal=self.user_admin,
             workspace=self.workspace,
-            name="My Bundle App",
+            name="My Empty Static App",
             created_by=self.user_admin,
-            webapp_type=Webapp.WebappType.BUNDLE,
+            webapp_type=Webapp.WebappType.STATIC,
         )
 
-        self.assertEqual(webapp.type, Webapp.WebappType.BUNDLE)
+        self.assertEqual(webapp.type, Webapp.WebappType.STATIC)
         self.assertEqual(
             webapp.repository, f"{self.workspace.slug}-webapp-{webapp.slug}"
         )
@@ -656,7 +656,7 @@ class GitWebappModelTest(TestCase):
             workspace=self.workspace,
             name="HTML With Files",
             created_by=self.user_admin,
-            webapp_type=Webapp.WebappType.HTML,
+            webapp_type=Webapp.WebappType.STATIC,
             files=files,
         )
 
@@ -677,7 +677,7 @@ class GitWebappModelTest(TestCase):
                 workspace=self.workspace,
                 name="Denied App",
                 created_by=self.user_viewer,
-                webapp_type=Webapp.WebappType.HTML,
+                webapp_type=Webapp.WebappType.STATIC,
             )
 
     def test_published_commit(self):
@@ -686,7 +686,7 @@ class GitWebappModelTest(TestCase):
             workspace=self.workspace,
             name="Publish Test",
             created_by=self.user_admin,
-            webapp_type=Webapp.WebappType.HTML,
+            webapp_type=Webapp.WebappType.STATIC,
         )
 
         self.assertEqual(webapp.published_commit, self.INITIAL_SHA)
@@ -697,12 +697,12 @@ class GitWebappModelTest(TestCase):
             workspace=self.workspace,
             name="Inherited App",
             created_by=self.user_admin,
-            webapp_type=Webapp.WebappType.HTML,
+            webapp_type=Webapp.WebappType.STATIC,
         )
 
         base_webapp = Webapp.objects.get(pk=git_webapp.pk)
         self.assertEqual(base_webapp.name, "Inherited App")
-        self.assertEqual(base_webapp.type, Webapp.WebappType.HTML)
+        self.assertEqual(base_webapp.type, Webapp.WebappType.STATIC)
 
         retrieved = GitWebapp.objects.get(pk=git_webapp.pk)
         self.assertEqual(
@@ -715,7 +715,7 @@ class GitWebappModelTest(TestCase):
             workspace=self.workspace,
             name="Delete Test",
             created_by=self.user_admin,
-            webapp_type=Webapp.WebappType.HTML,
+            webapp_type=Webapp.WebappType.STATIC,
         )
         webapp_id = git_webapp.pk
 
@@ -733,7 +733,7 @@ class GitWebappModelTest(TestCase):
             workspace=self.workspace,
             name="Protected Git App",
             created_by=self.user_admin,
-            webapp_type=Webapp.WebappType.HTML,
+            webapp_type=Webapp.WebappType.STATIC,
         )
 
         with self.assertRaises(PermissionDenied):
@@ -750,7 +750,7 @@ class GitWebappModelTest(TestCase):
             workspace=self.workspace,
             name="Forgejo Fail",
             created_by=self.user_admin,
-            webapp_type=Webapp.WebappType.HTML,
+            webapp_type=Webapp.WebappType.STATIC,
         )
         webapp_id = git_webapp.pk
 
@@ -766,7 +766,7 @@ class GitWebappModelTest(TestCase):
             workspace=self.workspace,
             name="Org Name Test",
             created_by=self.user_admin,
-            webapp_type=Webapp.WebappType.HTML,
+            webapp_type=Webapp.WebappType.STATIC,
         )
 
         self.assertEqual(webapp.org.slug, "no-org")
@@ -796,7 +796,7 @@ class GitWebappModelTest(TestCase):
             workspace=ws,
             name="Org App",
             created_by=self.user_admin,
-            webapp_type=Webapp.WebappType.HTML,
+            webapp_type=Webapp.WebappType.STATIC,
         )
 
         self.assertEqual(webapp.org.slug, org.slug)
@@ -807,7 +807,7 @@ class GitWebappModelTest(TestCase):
             workspace=self.workspace,
             name="Filter Test",
             created_by=self.user_admin,
-            webapp_type=Webapp.WebappType.HTML,
+            webapp_type=Webapp.WebappType.STATIC,
         )
 
         webapps = Webapp.objects.filter_for_user(self.user_admin)

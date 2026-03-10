@@ -28,7 +28,7 @@ def serve_webapp(request, webapp_id, path="index.html"):
     if denied:
         return denied
 
-    if webapp.type not in (Webapp.WebappType.HTML, Webapp.WebappType.BUNDLE):
+    if webapp.type != Webapp.WebappType.STATIC:
         return HttpResponseNotFound("Not a git-backed webapp")
 
     try:

@@ -103,7 +103,7 @@ class GitWebappCreateTest(GraphQLTestCase):
         )
 
     @patch("hexa.git.mixins.get_forgejo_client")
-    def test_create_html_webapp(self, mock_get_client):
+    def test_create_static_webapp(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.create_organization.return_value = {"username": "no-org"}
         mock_client.create_org_repository.return_value = {"name": "webapp-abc"}
@@ -116,10 +116,10 @@ class GitWebappCreateTest(GraphQLTestCase):
             CREATE_WEBAPP_MUTATION,
             {
                 "input": {
-                    "name": "My HTML App",
+                    "name": "My Static App",
                     "workspaceSlug": self.WS.slug,
                     "source": {
-                        "html": [
+                        "static": [
                             {"path": "index.html", "content": "<h1>Hello</h1>"},
                         ]
                     },
@@ -130,8 +130,8 @@ class GitWebappCreateTest(GraphQLTestCase):
         result = response["data"]["createWebapp"]
         self.assertTrue(result["success"])
         self.assertEqual(result["errors"], [])
-        self.assertEqual(result["webapp"]["name"], "My HTML App")
-        self.assertEqual(result["webapp"]["type"], "HTML")
+        self.assertEqual(result["webapp"]["name"], "My Static App")
+        self.assertEqual(result["webapp"]["type"], "STATIC")
 
         mock_client.create_organization.assert_called_once_with(
             "no-org", "No Organization"
@@ -140,16 +140,16 @@ class GitWebappCreateTest(GraphQLTestCase):
         mock_client.commit_files.assert_called_once()
 
         webapp = GitWebapp.objects.get(pk=result["webapp"]["id"])
-        self.assertEqual(webapp.type, Webapp.WebappType.HTML)
+        self.assertEqual(webapp.type, Webapp.WebappType.STATIC)
         self.assertTrue(webapp.repository.startswith("git-ws-webapp-"))
         self.assertEqual(webapp.published_commit, "sha-initial")
 
     @patch("hexa.git.mixins.get_forgejo_client")
-    def test_create_bundle_webapp(self, mock_get_client):
+    def test_create_static_webapp_empty_files(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.create_organization.return_value = {"username": "no-org"}
         mock_client.create_org_repository.return_value = {"name": "webapp-def"}
-        mock_client.get_commits.return_value = [{"id": "initial-bundle-sha"}]
+        mock_client.get_commits.return_value = [{"id": "initial-static-sha"}]
         mock_get_client.return_value = mock_client
 
         self.client.force_login(self.USER)
@@ -157,19 +157,19 @@ class GitWebappCreateTest(GraphQLTestCase):
             CREATE_WEBAPP_MUTATION,
             {
                 "input": {
-                    "name": "My Bundle App",
+                    "name": "My Empty Static App",
                     "workspaceSlug": self.WS.slug,
-                    "source": {"bundle": []},
+                    "source": {"static": []},
                 }
             },
         )
 
         result = response["data"]["createWebapp"]
         self.assertTrue(result["success"])
-        self.assertEqual(result["webapp"]["type"], "BUNDLE")
+        self.assertEqual(result["webapp"]["type"], "STATIC")
 
     @patch("hexa.git.mixins.get_forgejo_client")
-    def test_create_html_webapp_permission_denied(self, mock_get_client):
+    def test_create_static_webapp_permission_denied(self, mock_get_client):
         viewer = User.objects.create_user("gitviewer@test.com", "password")
         WorkspaceMembership.objects.create(
             user=viewer,
@@ -184,7 +184,7 @@ class GitWebappCreateTest(GraphQLTestCase):
                 "input": {
                     "name": "Denied App",
                     "workspaceSlug": self.WS.slug,
-                    "source": {"html": [{"path": "index.html", "content": "test"}]},
+                    "source": {"static": [{"path": "index.html", "content": "test"}]},
                 }
             },
         )
@@ -195,7 +195,7 @@ class GitWebappCreateTest(GraphQLTestCase):
         mock_get_client.assert_not_called()
 
     @patch("hexa.git.mixins.get_forgejo_client")
-    def test_create_html_webapp_url_is_serve_endpoint(self, mock_get_client):
+    def test_create_static_webapp_url_is_serve_endpoint(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.create_organization.return_value = {}
         mock_client.create_org_repository.return_value = {"name": "webapp-x"}
@@ -211,7 +211,7 @@ class GitWebappCreateTest(GraphQLTestCase):
                     "name": "URL Test App",
                     "workspaceSlug": self.WS.slug,
                     "source": {
-                        "html": [{"path": "index.html", "content": "<h1>Test</h1>"}]
+                        "static": [{"path": "index.html", "content": "<h1>Test</h1>"}]
                     },
                 }
             },
@@ -243,7 +243,7 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
             workspace=cls.WS,
             name="Commit Test App",
             slug="commit-test-app",
-            type=Webapp.WebappType.HTML,
+            type=Webapp.WebappType.STATIC,
             created_by=cls.USER,
             repository="webapp-commitrepo",
         )
@@ -371,7 +371,7 @@ class GitWebappPublishVersionTest(GraphQLTestCase):
             workspace=cls.WS,
             name="Publish Test App",
             slug="publish-test-app",
-            type=Webapp.WebappType.HTML,
+            type=Webapp.WebappType.STATIC,
             created_by=cls.USER,
             repository="webapp-publishrepo",
         )
@@ -510,7 +510,7 @@ class GitWebappQueryTest(GraphQLTestCase):
             workspace=cls.WS,
             name="Query Test App",
             slug="query-test-app",
-            type=Webapp.WebappType.HTML,
+            type=Webapp.WebappType.STATIC,
             created_by=cls.USER,
             repository="webapp-queryrepo",
             published_commit="published-sha",
@@ -535,7 +535,7 @@ class GitWebappQueryTest(GraphQLTestCase):
         webapp = response["data"]["webapp"]
         self.assertIsNotNone(webapp)
         self.assertEqual(webapp["name"], "Query Test App")
-        self.assertEqual(webapp["type"], "HTML")
+        self.assertEqual(webapp["type"], "STATIC")
         self.assertIn(f"/webapps/{self.GIT_WEBAPP.id}/", webapp["url"])
         self.assertEqual(webapp["source"]["repository"], "webapp-queryrepo")
         self.assertEqual(webapp["source"]["publishedVersion"], "published-sha")
@@ -762,7 +762,7 @@ class GitWebappDeleteTest(GraphQLTestCase):
             workspace=self.WS,
             name="To Delete",
             slug="to-delete",
-            type=Webapp.WebappType.HTML,
+            type=Webapp.WebappType.STATIC,
             created_by=self.USER,
             repository="webapp-todelete",
         )

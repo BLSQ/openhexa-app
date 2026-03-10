@@ -35,16 +35,13 @@ const WebappLayout = (props: WebappLayoutProps) => {
   const { t } = useTranslation();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  const isGitWebapp =
-    webapp.type === WebappType.Html || webapp.type === WebappType.Bundle;
-
   const tabs = [
     {
       label: t("General"),
       href: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${encodeURIComponent(webapp.slug)}`,
       id: "general",
     },
-    ...(isGitWebapp
+    ...(webapp.type === WebappType.Static
       ? [
           {
             label: t("Code"),

@@ -9,10 +9,8 @@ export function getWebappTypeLabel(type: WebappType | string): string {
   switch (type) {
     case WebappType.Iframe:
       return "iFrame";
-    case WebappType.Html:
-      return "HTML";
-    case WebappType.Bundle:
-      return "Bundle";
+    case WebappType.Static:
+      return "Static";
     case WebappType.Superset:
       return "Superset";
     default:

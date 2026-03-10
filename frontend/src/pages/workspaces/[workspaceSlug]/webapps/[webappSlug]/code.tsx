@@ -44,10 +44,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
 
   const { workspace, webapp } = data;
 
-  const isGitWebapp =
-    webapp.type === WebappType.Html || webapp.type === WebappType.Bundle;
-
-  if (!isGitWebapp) {
+  if (webapp.type !== WebappType.Static) {
     return null;
   }
 

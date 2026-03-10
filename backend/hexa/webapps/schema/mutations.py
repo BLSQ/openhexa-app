@@ -66,12 +66,8 @@ def resolve_create_webapp(_, info, **kwargs):
                     superset_instance=superset_instance,
                     external_dashboard_id=source["superset"]["dashboard_id"],
                 )
-            elif "html" in source or "bundle" in source:
-                is_html = "html" in source
-                webapp_type = (
-                    Webapp.WebappType.HTML if is_html else Webapp.WebappType.BUNDLE
-                )
-                files_input = source["html"] if is_html else source["bundle"]
+            elif "static" in source:
+                files_input = source["static"]
                 files = (
                     [{"path": f["path"], "content": f["content"]} for f in files_input]
                     if files_input
@@ -86,7 +82,7 @@ def resolve_create_webapp(_, info, **kwargs):
                     icon=icon,
                     is_public=is_public,
                     created_by=user,
-                    webapp_type=webapp_type,
+                    webapp_type=Webapp.WebappType.STATIC,
                     files=files,
                 )
             else:

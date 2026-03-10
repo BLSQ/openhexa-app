@@ -40,8 +40,7 @@ const buildSource: Record<WebappType, (values: any) => any> = {
       dashboardId: values.externalDashboardId,
     },
   }),
-  [WebappType.Html]: (values) => ({ html: values.sourceFiles ?? [] }),
-  [WebappType.Bundle]: (values) => ({ bundle: values.sourceFiles ?? [] }),
+  [WebappType.Static]: (values) => ({ static: values.sourceFiles ?? [] }),
 };
 
 type WebappFormProps = {
@@ -86,8 +85,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const updateExistingWebapp = async (values: any) => {
     setLoading(true);
     try {
-      const isGit =
-        webapp!.type === WebappType.Html || webapp!.type === WebappType.Bundle;
       const { data } = await updateWebapp({
         variables: {
           input: {
@@ -95,7 +92,9 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             name: values.name,
             icon: values.icon,
             isPublic: values.isPublic,
-            ...(!isGit && { source: buildSource[webapp!.type](values) }),
+            ...(webapp!.type !== WebappType.Static && {
+              source: buildSource[webapp!.type](values),
+            }),
           },
         },
       });
@@ -215,8 +214,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             defaultValue={WebappType.Iframe}
             options={[
               WebappType.Iframe,
-              WebappType.Html,
-              WebappType.Bundle,
+              WebappType.Static,
               ...(supersetInstances.length > 0 ? [WebappType.Superset] : []),
             ]}
             getOptionLabel={getWebappTypeLabel}
@@ -265,14 +263,9 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           )}
         />
       </DataCard.FormSection>
-      {!webapp &&
-        (selectedType === WebappType.Html ||
-          selectedType === WebappType.Bundle) && (
+      {!webapp && selectedType === WebappType.Static && (
           <DataCard.Section title={t("Source Files")} collapsible={false}>
-            <WebappSourceEditor
-              type={selectedType}
-              onChange={handleSourceFilesChange}
-            />
+            <WebappSourceEditor onChange={handleSourceFilesChange} />
           </DataCard.Section>
         )}
       {(debouncedUrl || webapp?.url) && (

@@ -1,25 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "next-i18next";
 import Tabs from "core/components/Tabs";
 import CodeEditor from "core/components/CodeEditor";
 import Dropzone from "core/components/Dropzone";
-import { WebappFileInput, WebappType } from "graphql/types";
+import { WebappFileInput } from "graphql/types";
 import { DEFAULT_HTML_TEMPLATE } from "webapps/helpers/templates";
 
 type WebappSourceEditorProps = {
-  type: WebappType;
   onChange: (files: WebappFileInput[]) => void;
 };
 
-const WebappSourceEditor = ({ type, onChange }: WebappSourceEditorProps) => {
+const WebappSourceEditor = ({ onChange }: WebappSourceEditorProps) => {
   const { t } = useTranslation();
   const [templateContent, setTemplateContent] = useState(DEFAULT_HTML_TEMPLATE);
-
-  useEffect(() => {
-    if (type === WebappType.Html) {
-      onChange([{ path: "index.html", content: DEFAULT_HTML_TEMPLATE }]);
-    }
-  }, []);
 
   const handleTemplateChange = useCallback(
     (value: string) => {
@@ -43,10 +36,8 @@ const WebappSourceEditor = ({ type, onChange }: WebappSourceEditorProps) => {
     [onChange],
   );
 
-  const defaultIndex = type === WebappType.Bundle ? 1 : 0;
-
   return (
-    <Tabs defaultIndex={defaultIndex}>
+    <Tabs defaultIndex={0}>
       <Tabs.Tab label={t("Template")}>
         <div className="pt-4">
           <CodeEditor

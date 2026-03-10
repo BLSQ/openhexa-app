@@ -6094,16 +6094,14 @@ export type WebappSource = GitSource | IframeSource | SupersetSource;
 
 /** Source configuration for a webapp - exactly one field must be provided. */
 export type WebappSourceInput =
-  { bundle: Array<WebappFileInput>; html?: never; iframe?: never; superset?: never; }
-  |  { bundle?: never; html: Array<WebappFileInput>; iframe?: never; superset?: never; }
-  |  { bundle?: never; html?: never; iframe: IframeSourceInput; superset?: never; }
-  |  { bundle?: never; html?: never; iframe?: never; superset: SupersetSourceInput; };
+  { iframe: IframeSourceInput; static?: never; superset?: never; }
+  |  { iframe?: never; static: Array<WebappFileInput>; superset?: never; }
+  |  { iframe?: never; static?: never; superset: SupersetSourceInput; };
 
 /** Represents the type of a web app. */
 export enum WebappType {
-  Bundle = 'BUNDLE',
-  Html = 'HTML',
   Iframe = 'IFRAME',
+  Static = 'STATIC',
   Superset = 'SUPERSET'
 }
 

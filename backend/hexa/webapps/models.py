@@ -98,8 +98,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
     class WebappType(models.TextChoices):
         IFRAME = "iframe", "iFrame"
-        HTML = "html", "HTML"
-        BUNDLE = "bundle", "Bundle"
+        STATIC = "static", "Static"
         SUPERSET = "superset", "Superset"
 
     name = models.CharField(max_length=255)
@@ -141,7 +140,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
             dashboard = SupersetDashboard.objects.get(webapp__pk=self.pk)
             self.delete()
             dashboard.delete()
-        elif self.type in (Webapp.WebappType.HTML, Webapp.WebappType.BUNDLE):
+        elif self.type == Webapp.WebappType.STATIC:
             GitWebapp.objects.get(pk=self.pk).delete_if_has_perm(principal)
         else:
             self.delete()

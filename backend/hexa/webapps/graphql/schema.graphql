@@ -5,8 +5,7 @@ Represents the type of a web app.
 """
 enum WebappType {
   IFRAME
-  HTML
-  BUNDLE
+  STATIC
   SUPERSET
 }
 
@@ -95,8 +94,7 @@ Source configuration for a webapp - exactly one field must be provided.
 input WebappSourceInput @oneOf {
   iframe: IframeSourceInput
   superset: SupersetSourceInput
-  html: [WebappFileInput!]
-  bundle: [WebappFileInput!]
+  static: [WebappFileInput!]
 }
 
 """
