@@ -63,6 +63,12 @@ class Migration(migrations.Migration):
             ],
             options={
                 "ordering": ["-updated_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["workspace", "user", "-updated_at"],
+                        name="asst_conv_list_idx",
+                    ),
+                ],
             },
         ),
         migrations.CreateModel(
@@ -111,6 +117,10 @@ class Migration(migrations.Migration):
                         fields=["conversation", "role", "created_at"],
                         include=["cost"],
                         name="assistant_message_cost_idx",
+                    ),
+                    models.Index(
+                        fields=["conversation", "-created_at"],
+                        name="asst_msg_pagination_idx",
                     ),
                 ],
             },

@@ -42,6 +42,12 @@ class Conversation(SoftDeletedModel, Base):
 
     class Meta:
         ordering = ["-updated_at"]
+        indexes = [
+            models.Index(
+                fields=["workspace", "user", "-updated_at"],
+                name="asst_conv_list_idx",
+            ),
+        ]
 
     def __str__(self):
         return f"Conversation({self.id}, user={self.user_id}, workspace={self.workspace_id})"
@@ -81,6 +87,10 @@ class Message(Base):
                 fields=["conversation", "role", "created_at"],
                 include=["cost"],
                 name="assistant_message_cost_idx",
+            ),
+            models.Index(
+                fields=["conversation", "-created_at"],
+                name="asst_msg_pagination_idx",
             ),
         ]
 
