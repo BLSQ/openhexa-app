@@ -388,9 +388,9 @@ class GitWebappServeViewTest(TestCase):
         response = self.client.get(f"/webapps/{self.UNPUBLISHED_WEBAPP.id}/")
         self.assertEqual(response.status_code, 404)
 
-    def test_anonymous_cannot_access_private_webapp(self):
+    def test_anonymous_redirected_to_login_for_private_webapp(self):
         response = self.client.get(f"/webapps/{self.PRIVATE_WEBAPP.id}/")
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 302)
 
     def test_non_member_cannot_access_private_webapp(self):
         self.client.force_login(self.USER_NON_MEMBER)
