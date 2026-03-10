@@ -21,7 +21,7 @@ class MessageAdmin(admin.ModelAdmin):
 
 @admin.register(ToolInvocation)
 class ToolInvocationAdmin(admin.ModelAdmin):
-    list_display = ("id", "conversation", "tool_name", "success", "created_at")
+    list_display = ("id", "message", "tool_name", "success", "created_at")
     list_filter = ("tool_name", "success")
-    search_fields = ("id", "conversation__id", "tool_name")
-    raw_id_fields = ("conversation",)
+    search_fields = ("id", "message__id", "tool_name")
+    raw_id_fields = ("message",)

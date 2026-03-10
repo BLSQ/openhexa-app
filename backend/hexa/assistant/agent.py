@@ -46,6 +46,7 @@ class AssistantAgent:
         )
 
         response_text = ""
+        tool_invocations: dict[str, ToolInvocation] = {}
         for msg in result.new_messages():
             logger.debug(
                 "agent.run: processing message type=%s parts=%d",
@@ -62,18 +63,22 @@ class AssistantAgent:
                         part.tool_name,
                         part.tool_call_id,
                     )
-                    ToolInvocation.objects.create(
-                        conversation=self.conversation,
+                    tool_invocations[part.tool_call_id] = ToolInvocation(
                         tool_call_id=part.tool_call_id,
                         tool_name=part.tool_name,
                         tool_input=part.args,
                     )
                 elif isinstance(part, ToolReturnPart):
                     logger.info("agent.run: tool_return call_id=%s", part.tool_call_id)
-                    ToolInvocation.objects.filter(
-                        conversation=self.conversation,
-                        tool_call_id=part.tool_call_id,
-                    ).update(tool_output=part.content)
+                    try:
+                        tool_invocations[part.tool_call_id].tool_output = part.content
+                    except KeyError:
+                        tool_invocations[part.tool_call_id] = ToolInvocation(
+                            tool_call_id=part.tool_call_id,
+                            tool_name=part.tool_name,
+                            tool_input="",
+                            tool_output=part.content,
+                        )
 
         usage = result.usage()
         input_tok = usage.input_tokens or 0
@@ -88,7 +93,7 @@ class AssistantAgent:
             len(response_text),
         )
 
-        Message.objects.create(
+        assistant_message = Message.objects.create(
             conversation=self.conversation,
             role=Message.Role.ASSISTANT,
             content=response_text,
@@ -96,6 +101,9 @@ class AssistantAgent:
             output_tokens=output_tok,
             cost=cost,
         )
+        for tool_invocation in tool_invocations.values():
+            tool_invocation.message = assistant_message
+            tool_invocation.save()
 
         self.conversation.total_input_tokens += input_tok
         self.conversation.total_output_tokens += output_tok

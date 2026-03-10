@@ -18,7 +18,7 @@ export type AssistantConversationMessagesQueryVariables = Types.Exact<{
 }>;
 
 
-export type AssistantConversationMessagesQuery = { __typename?: 'Query', assistantConversation?: { __typename?: 'AssistantConversation', id: string, messages: { __typename?: 'AssistantMessagePage', totalItems: number, totalPages: number, items: Array<{ __typename?: 'AssistantMessage', id: string, role: string, content: string, createdAt: any }> } } | null };
+export type AssistantConversationMessagesQuery = { __typename?: 'Query', assistantConversation?: { __typename?: 'AssistantConversation', id: string, messages: { __typename?: 'AssistantMessagePage', totalItems: number, totalPages: number, items: Array<{ __typename?: 'AssistantMessage', id: string, role: string, content: string, createdAt: any, toolInvocations: Array<{ __typename?: 'AssistantToolInvocation', id: string, createdAt: any, toolName: string, toolInput: any, toolOutput?: any | null, success: boolean }> }> } } | null };
 
 
 export const AssistantPageDocument = gql`
@@ -79,6 +79,14 @@ export const AssistantConversationMessagesDocument = gql`
         role
         content
         createdAt
+        toolInvocations {
+          id
+          createdAt
+          toolName
+          toolInput
+          toolOutput
+          success
+        }
       }
       totalItems
       totalPages

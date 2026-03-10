@@ -89,8 +89,8 @@ class Message(Base):
 
 
 class ToolInvocation(Base):
-    conversation = models.ForeignKey(
-        Conversation, on_delete=models.CASCADE, related_name="tool_invocations"
+    message = models.ForeignKey(
+        Message, on_delete=models.CASCADE, related_name="tool_invocations"
     )
     tool_call_id = models.CharField(max_length=200)
     tool_name = models.CharField(max_length=200)

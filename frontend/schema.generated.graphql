@@ -441,7 +441,6 @@ type AssistantConversation {
   createdAt: DateTime!
   id: UUID!
   messages(page: Int = 1, perPage: Int = 20): AssistantMessagePage!
-  toolInvocations: [AssistantToolInvocation!]!
   totalInputTokens: Int!
   totalOutputTokens: Int!
   updatedAt: DateTime!
@@ -454,6 +453,7 @@ type AssistantMessage {
   inputTokens: Int
   outputTokens: Int
   role: String!
+  toolInvocations: [AssistantToolInvocation!]!
 }
 
 type AssistantMessagePage {

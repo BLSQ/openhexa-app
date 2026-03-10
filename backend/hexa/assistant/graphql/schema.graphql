@@ -12,7 +12,6 @@ type AssistantConversation {
   totalOutputTokens: Int!
   cost: Float!
   messages(page: Int = 1, perPage: Int = 20): AssistantMessagePage!
-  toolInvocations: [AssistantToolInvocation!]!
 }
 
 type AssistantMessage {
@@ -22,6 +21,7 @@ type AssistantMessage {
   content: String!
   inputTokens: Int
   outputTokens: Int
+  toolInvocations: [AssistantToolInvocation!]!
 }
 
 type AssistantToolInvocation {

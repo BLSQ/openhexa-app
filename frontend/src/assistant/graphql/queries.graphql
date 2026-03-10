@@ -21,6 +21,14 @@ query AssistantConversationMessages($id: UUID!, $page: Int = 1, $perPage: Int = 
         role
         content
         createdAt
+        toolInvocations {
+            id
+            createdAt
+            toolName
+            toolInput
+            toolOutput
+            success
+        }
       }
       totalItems
       totalPages

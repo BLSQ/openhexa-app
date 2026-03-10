@@ -135,11 +135,11 @@ class Migration(migrations.Migration):
                 ("tool_output", models.JSONField(blank=True, null=True)),
                 ("success", models.BooleanField(default=True)),
                 (
-                    "conversation",
+                    "message",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="tool_invocations",
-                        to="assistant.conversation",
+                        to="assistant.message",
                     ),
                 ),
             ],

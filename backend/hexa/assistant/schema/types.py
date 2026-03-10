@@ -1,6 +1,6 @@
 from ariadne import ObjectType
 
-from hexa.assistant.models import Conversation
+from hexa.assistant.models import Conversation, Message
 from hexa.core.graphql import result_page
 
 assistant_conversation_object = ObjectType("AssistantConversation")
@@ -10,15 +10,15 @@ assistant_tool_invocation_object = ObjectType("AssistantToolInvocation")
 
 @assistant_conversation_object.field("messages")
 def resolve_conversation_messages(
-    conversation: Conversation, info, page=1, perPage=20, **kwargs
+    conversation: Conversation, info, page=1, per_page=20, **kwargs
 ):
     qs = conversation.messages.order_by("-created_at")
-    return result_page(queryset=qs, page=page, per_page=perPage)
+    return result_page(queryset=qs, page=page, per_page=per_page)
 
 
-@assistant_conversation_object.field("toolInvocations")
-def resolve_conversation_tool_invocations(conversation: Conversation, info, **kwargs):
-    return conversation.tool_invocations.all()
+@assistant_message_object.field("toolInvocations")
+def resolve_conversation_tool_invocations(message: Message, info, **kwargs):
+    return message.tool_invocations.all()
 
 
 @assistant_conversation_object.field("cost")
