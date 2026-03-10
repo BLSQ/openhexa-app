@@ -245,13 +245,9 @@ class GitWebapp(Webapp, GitRepoMixin):
             repository=f"{workspace.slug}-webapp-{webapp_slug}",
         )
 
-        initial_sha = webapp.create_repo()
-
-        if files:
-            webapp.save_files(files, "Initial content", principal)
-        else:
-            webapp.published_commit = initial_sha
-            webapp.save()
+        initial_sha = webapp.create_repo(files=files, user=principal)
+        webapp.published_commit = initial_sha
+        webapp.save()
 
         return webapp
 
