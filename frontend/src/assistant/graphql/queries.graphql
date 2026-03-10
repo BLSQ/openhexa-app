@@ -12,14 +12,18 @@ query AssistantPage($workspaceSlug: String!) {
   }
 }
 
-query AssistantConversationMessages($id: UUID!) {
+query AssistantConversationMessages($id: UUID!, $page: Int = 1, $perPage: Int = 20) {
   assistantConversation(id: $id) {
     id
-    messages {
-      id
-      role
-      content
-      createdAt
+    messages(page: $page, perPage: $perPage) {
+      items {
+        id
+        role
+        content
+        createdAt
+      }
+      totalItems
+      totalPages
     }
   }
 }

@@ -477,11 +477,17 @@ export type AssistantConversation = {
   cost: Scalars['Float']['output'];
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
-  messages: Array<AssistantMessage>;
+  messages: AssistantMessagePage;
   toolInvocations: Array<AssistantToolInvocation>;
   totalInputTokens: Scalars['Int']['output'];
   totalOutputTokens: Scalars['Int']['output'];
   updatedAt: Scalars['DateTime']['output'];
+};
+
+
+export type AssistantConversationMessagesArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type AssistantMessage = {
@@ -492,6 +498,13 @@ export type AssistantMessage = {
   inputTokens?: Maybe<Scalars['Int']['output']>;
   outputTokens?: Maybe<Scalars['Int']['output']>;
   role: Scalars['String']['output'];
+};
+
+export type AssistantMessagePage = {
+  __typename?: 'AssistantMessagePage';
+  items: Array<AssistantMessage>;
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
 };
 
 export type AssistantToolInvocation = {

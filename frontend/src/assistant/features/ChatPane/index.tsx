@@ -1,7 +1,7 @@
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Spinner from "core/components/Spinner";
-import { KeyboardEvent, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
@@ -9,6 +9,8 @@ import {
   useAssistantConversationMessagesQuery,
 } from "assistant/graphql/queries.generated";
 import { useSendAssistantMessageMutation } from "assistant/graphql/mutations.generated";
+
+const PER_PAGE = 20;
 
 type Props = {
   conversationId: string | null;
@@ -18,30 +20,107 @@ type Props = {
 export default function ChatPane({ conversationId, monthlyLimitExceeded }: Props) {
   const [input, setInput] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const { data, loading: loadingMessages } =
+  const { data, loading: loadingMessages, fetchMore } =
     useAssistantConversationMessagesQuery({
-      variables: { id: conversationId! },
+      variables: { id: conversationId!, page: 1, perPage: PER_PAGE },
       skip: !conversationId,
     });
+
+  const messagePage = data?.assistantConversation?.messages;
+  const totalPages = messagePage?.totalPages ?? 1;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const hasMore = currentPage < totalPages;
+
+  // Reset page when conversation changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [conversationId]);
+
+  // Messages come back newest-first from the API; reverse for chronological display
+  const messages = [...(messagePage?.items ?? [])].reverse();
 
   const [sendMessage, { loading: sending }] = useSendAssistantMessageMutation({
     refetchQueries: conversationId
       ? [
           {
             query: AssistantConversationMessagesDocument,
-            variables: { id: conversationId },
+            variables: { id: conversationId, page: 1, perPage: PER_PAGE },
           },
         ]
       : [],
-    onCompleted: () => setInput(""),
+    onCompleted: () => {
+      setInput("");
+      setCurrentPage(1);
+    },
   });
 
-  const messages = data?.assistantConversation?.messages ?? [];
+  // Scroll to bottom on initial load and after sending a message
+  useEffect(() => {
+    if (!loadingMessages) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [loadingMessages, conversationId]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (!sending) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [sending]);
+
+  const loadOlderMessages = useCallback(async () => {
+    if (loadingMore || !hasMore || !conversationId) return;
+
+    const container = scrollContainerRef.current;
+    const previousScrollHeight = container?.scrollHeight ?? 0;
+
+    setLoadingMore(true);
+    const nextPage = currentPage + 1;
+
+    await fetchMore({
+      variables: { id: conversationId, page: nextPage, perPage: PER_PAGE },
+      updateQuery(prev, { fetchMoreResult }) {
+        if (!fetchMoreResult?.assistantConversation) return prev;
+        const prevItems = prev.assistantConversation?.messages.items ?? [];
+        const newItems = fetchMoreResult.assistantConversation.messages.items;
+        // Merge, deduplicating by id
+        const merged = [
+          ...prevItems,
+          ...newItems.filter((n) => !prevItems.some((p) => p.id === n.id)),
+        ];
+        return {
+          ...prev,
+          assistantConversation: {
+            ...fetchMoreResult.assistantConversation,
+            messages: {
+              ...fetchMoreResult.assistantConversation.messages,
+              items: merged,
+            },
+          },
+        };
+      },
+    });
+
+    setCurrentPage(nextPage);
+    setLoadingMore(false);
+
+    // Restore scroll position so user stays at roughly the same place
+    requestAnimationFrame(() => {
+      if (container) {
+        container.scrollTop = container.scrollHeight - previousScrollHeight;
+      }
+    });
+  }, [loadingMore, hasMore, conversationId, currentPage, fetchMore]);
+
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    if (container.scrollTop === 0 && hasMore && !loadingMore) {
+      loadOlderMessages();
+    }
+  }, [hasMore, loadingMore, loadOlderMessages]);
 
   const handleSubmit = async () => {
     const text = input.trim();
@@ -78,8 +157,18 @@ export default function ChatPane({ conversationId, monthlyLimitExceeded }: Props
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden bg-white">
-      <div className="flex-1 flex flex-col p-4 max-w-3xl mx-auto w-full">
-        <div className="flex-1 overflow-y-auto space-y-4">
+      <div className="flex-1 flex flex-col p-4 max-w-3xl mx-auto w-full h-screen">
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-y-auto space-y-4"
+        >
+          {loadingMore && (
+            <div className="flex justify-center py-2">
+              <Spinner size="sm" className="text-gray-400" />
+            </div>
+          )}
+
           {loadingMessages && (
             <div className="flex justify-center pt-8">
               <Spinner size="md" className="text-gray-400" />
@@ -128,10 +217,14 @@ export default function ChatPane({ conversationId, monthlyLimitExceeded }: Props
 
         {monthlyLimitExceeded ? (
           <div className="shrink-0 mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            You have reached your monthly usage limit for the assistant. Please contact your administrator.
+            You have reached your monthly usage limit for the assistant. Please
+            contact your administrator.
           </div>
         ) : (
-          <div className="shrink-0 mt-4 rounded-2xl border border-gray-300 bg-white shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 cursor-text" onClick={() => textareaRef.current?.focus()}>
+          <div
+            className="shrink-0 mt-4 rounded-2xl border border-gray-300 bg-white shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 cursor-text"
+            onClick={() => textareaRef.current?.focus()}
+          >
             <textarea
               ref={textareaRef}
               className="w-full resize-none bg-transparent px-4 pt-3 pb-2 text-sm focus:outline-none disabled:opacity-50"

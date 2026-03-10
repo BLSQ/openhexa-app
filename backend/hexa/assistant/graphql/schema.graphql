@@ -1,3 +1,9 @@
+type AssistantMessagePage {
+  items: [AssistantMessage!]!
+  totalItems: Int!
+  totalPages: Int!
+}
+
 type AssistantConversation {
   id: UUID!
   createdAt: DateTime!
@@ -5,7 +11,7 @@ type AssistantConversation {
   totalInputTokens: Int!
   totalOutputTokens: Int!
   cost: Float!
-  messages: [AssistantMessage!]!
+  messages(page: Int = 1, perPage: Int = 20): AssistantMessagePage!
   toolInvocations: [AssistantToolInvocation!]!
 }
 

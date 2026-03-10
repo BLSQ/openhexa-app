@@ -13,10 +13,12 @@ export type AssistantPageQuery = { __typename?: 'Query', workspace?: { __typenam
 
 export type AssistantConversationMessagesQueryVariables = Types.Exact<{
   id: Types.Scalars['UUID']['input'];
+  page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
 
 
-export type AssistantConversationMessagesQuery = { __typename?: 'Query', assistantConversation?: { __typename?: 'AssistantConversation', id: string, messages: Array<{ __typename?: 'AssistantMessage', id: string, role: string, content: string, createdAt: any }> } | null };
+export type AssistantConversationMessagesQuery = { __typename?: 'Query', assistantConversation?: { __typename?: 'AssistantConversation', id: string, messages: { __typename?: 'AssistantMessagePage', totalItems: number, totalPages: number, items: Array<{ __typename?: 'AssistantMessage', id: string, role: string, content: string, createdAt: any }> } } | null };
 
 
 export const AssistantPageDocument = gql`
@@ -68,14 +70,18 @@ export type AssistantPageLazyQueryHookResult = ReturnType<typeof useAssistantPag
 export type AssistantPageSuspenseQueryHookResult = ReturnType<typeof useAssistantPageSuspenseQuery>;
 export type AssistantPageQueryResult = Apollo.QueryResult<AssistantPageQuery, AssistantPageQueryVariables>;
 export const AssistantConversationMessagesDocument = gql`
-    query AssistantConversationMessages($id: UUID!) {
+    query AssistantConversationMessages($id: UUID!, $page: Int = 1, $perPage: Int = 20) {
   assistantConversation(id: $id) {
     id
-    messages {
-      id
-      role
-      content
-      createdAt
+    messages(page: $page, perPage: $perPage) {
+      items {
+        id
+        role
+        content
+        createdAt
+      }
+      totalItems
+      totalPages
     }
   }
 }
@@ -94,6 +100,8 @@ export const AssistantConversationMessagesDocument = gql`
  * const { data, loading, error } = useAssistantConversationMessagesQuery({
  *   variables: {
  *      id: // value for 'id'
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
  *   },
  * });
  */
