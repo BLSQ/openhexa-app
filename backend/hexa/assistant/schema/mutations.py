@@ -1,3 +1,5 @@
+from logging import getLogger
+
 from ariadne import MutationType
 from django.conf import settings
 
@@ -5,6 +7,7 @@ from hexa.assistant.agent import AssistantAgent
 from hexa.assistant.models import Conversation
 from hexa.workspaces.models import Workspace
 
+logger = getLogger(__name__)
 assistant_mutations = MutationType()
 
 
@@ -54,9 +57,10 @@ def resolve_send_assistant_message(_, info, input, **kwargs):
         agent = AssistantAgent(conversation)
         agent.run(input["message"])
     except Exception as e:
+        logger.exception("Failed to send assistant message", exc_info=e)
         return {
             "success": False,
-            "errors": [str(e)],
+            "errors": ["UNKNOWN_ERROR"],
             "conversation": conversation,
             "message": None,
         }
