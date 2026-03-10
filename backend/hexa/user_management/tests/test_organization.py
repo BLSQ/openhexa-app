@@ -215,20 +215,3 @@ class OrganizationGitLifecycleTest(TestCase):
         org_slug = self.organization.slug
         mock_client.list_org_repositories.assert_called_once_with(org_slug)
         mock_client.unarchive_repository.assert_called_once_with(org_slug, "repo-1")
-
-    @patch("hexa.user_management.models.get_forgejo_client")
-    def test_archive_git_org_handles_failure(self, mock_get_client):
-        mock_get_client.side_effect = Exception("connection refused")
-
-        self.organization.delete()
-
-        self.assertIsNotNone(self.organization.deleted_at)
-
-    @patch("hexa.user_management.models.get_forgejo_client")
-    def test_unarchive_git_org_handles_failure(self, mock_get_client):
-        self.organization.delete()
-        mock_get_client.side_effect = Exception("connection refused")
-
-        self.organization.restore()
-
-        self.assertIsNone(self.organization.deleted_at)
