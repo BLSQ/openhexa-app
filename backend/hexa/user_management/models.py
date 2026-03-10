@@ -331,7 +331,8 @@ class Organization(Base, SoftDeletedModel):
     def _unarchive_git_org(self):
         client = get_forgejo_client()
         for repo in client.list_org_repositories(self.slug):
-            client.unarchive_repository(self.slug, repo["name"])
+            if repo.get("archived"):
+                client.unarchive_repository(self.slug, repo["name"])
 
     def filter_workspaces_for_user(self, user):
         workspaces = self.workspaces.exclude(archived=True)
