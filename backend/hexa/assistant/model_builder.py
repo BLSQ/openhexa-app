@@ -24,7 +24,11 @@ def get_api_name(model: AiSettings.Model) -> str:
         AiSettings.Model.OPUS: "claude-opus-4-6",
         AiSettings.Model.SONNET: "claude-sonnet-4-6",
     }
-    return model_to_api.get(model)
+    model_api_name = model_to_api.get(model)
+
+    if model_api_name is None:
+        raise AssistantException(f"Model {model} is not known")
+    return model_api_name
 
 
 class AiModelBuilder:
