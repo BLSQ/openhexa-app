@@ -27,7 +27,9 @@ class GitClient(ABC):
         ...
 
     @abstractmethod
-    def create_org_repository(self, org_slug: str, repo_name: str) -> dict:
+    def create_org_repository(
+        self, org_slug: str, repo_name: str, *, auto_init: bool = True
+    ) -> dict:
         ...
 
     @abstractmethod

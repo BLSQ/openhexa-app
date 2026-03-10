@@ -165,14 +165,16 @@ class ForgejoClient(GitClient):
                 ).json()
             raise
 
-    def create_org_repository(self, org_slug: str, repo_name: str) -> dict:
+    def create_org_repository(
+        self, org_slug: str, repo_name: str, *, auto_init: bool = True
+    ) -> dict:
         try:
             response = self._request(
                 "POST",
                 f"/orgs/{org_slug}/repos",
                 json={
                     "name": repo_name,
-                    "auto_init": True,
+                    "auto_init": auto_init,
                     "default_branch": "main",
                 },
             )
@@ -252,12 +254,17 @@ class ForgejoClient(GitClient):
         self, repo_name: str, ref: str = "main", *, org_slug: str | None = None
     ) -> list[dict]:
         org_slug = org_slug or self._username
-        response = self._request(
-            "GET",
-            f"/repos/{org_slug}/{repo_name}/git/trees/{ref}",
-            params={"recursive": "true"},
-        )
-        return response.json().get("tree", [])
+        try:
+            response = self._request(
+                "GET",
+                f"/repos/{org_slug}/{repo_name}/git/trees/{ref}",
+                params={"recursive": "true"},
+            )
+            return response.json().get("tree", [])
+        except ForgejoAPIError as e:
+            if e.status_code == 404:
+                return []
+            raise
 
     def get_file(
         self,
@@ -310,11 +317,12 @@ class ForgejoClient(GitClient):
                 op["sha"] = existing_tree[path]
             operations.append(op)
 
+        branch_key = "branch" if existing_tree else "new_branch"
         response = self._request(
             "POST",
             f"/repos/{org_slug}/{repo_name}/contents",
             json={
-                "branch": "main",
+                branch_key: "main",
                 "message": message,
                 "author": {
                     "name": author_name,
