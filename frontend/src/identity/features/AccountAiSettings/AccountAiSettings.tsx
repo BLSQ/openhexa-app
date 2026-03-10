@@ -24,11 +24,13 @@ const MODELS: Record<string, string[]> = {
 type AccountAiSettingsProps = {
   settings?: Maybe<AiSettings>;
   labels: Maybe<AiLabels>;
+  monthlyCost: number;
+  totalCost: number;
   refetch: any;
 };
 
 const AccountAiSettings = (props: AccountAiSettingsProps) => {
-  const { settings, labels, refetch } = props;
+  const { settings, labels, monthlyCost, totalCost, refetch } = props;
   const [updateUserAiSettings] = useUpdateUserAiSettingsMutation();
   const [provider, setProvider] = useState<string | null | undefined>(settings?.provider);
   const modelOptions: string[] = provider ? (MODELS[provider] ?? []) : [];
@@ -108,6 +110,20 @@ const AccountAiSettings = (props: AccountAiSettingsProps) => {
           Boolean(values.enableAI)
         }
         required
+      />
+      <TextProperty
+        id="monthlyCost"
+        label={t("Monthly cost")}
+        accessor={() => `$${monthlyCost.toFixed(4)}`}
+        readonly
+        visible={(_, __, values) => Boolean(values.enableAI)}
+      />
+      <TextProperty
+        id="totalCost"
+        label={t("Total cost")}
+        accessor={() => `$${totalCost.toFixed(4)}`}
+        readonly
+        visible={(_, __, values) => Boolean(values.enableAI)}
       />
     </DataCard.FormSection>
   );

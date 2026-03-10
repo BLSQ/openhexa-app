@@ -64,4 +64,6 @@ extend type Query {
 
 extend type Me {
   assistantMonthlyLimitExceeded: Boolean!
+  assistantMonthlyCost: Float!
+  assistantTotalCost: Float!
 }

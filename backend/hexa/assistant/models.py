@@ -65,6 +65,13 @@ class Conversation(SoftDeletedModel, Base):
         ).aggregate(total=Sum("cost"))["total"]
         return float(result or 0)
 
+    @classmethod
+    def get_total_cost_for_user(cls, user: User) -> float:
+        result = Conversation.objects.filter(
+            user=user,
+        ).aggregate(total=Sum("cost"))["total"]
+        return float(result or 0)
+
 
 class Message(Base):
     class Role(models.TextChoices):
