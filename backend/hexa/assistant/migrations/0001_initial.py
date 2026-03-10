@@ -106,6 +106,13 @@ class Migration(migrations.Migration):
             ],
             options={
                 "ordering": ["created_at"],
+                "indexes": [
+                    models.Index(
+                        fields=["conversation", "role", "created_at"],
+                        include=["cost"],
+                        name="assistant_message_cost_covering_idx",
+                    ),
+                ],
             },
         ),
         migrations.CreateModel(

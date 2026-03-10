@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Sum
@@ -47,11 +49,13 @@ class Conversation(SoftDeletedModel, Base):
     @classmethod
     def get_monthly_cost_for_user(cls, user) -> float:
         now = timezone.now()
+        start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        start_of_next_month = (start_of_month + timedelta(days=32)).replace(day=1)
         result = Message.objects.filter(
             conversation__user=user,
             role=Message.Role.ASSISTANT,
-            created_at__year=now.year,
-            created_at__month=now.month,
+            created_at__gte=start_of_month,
+            created_at__lt=start_of_next_month,
         ).aggregate(total=Sum("cost"))["total"]
         return float(result or 0)
 
@@ -72,6 +76,13 @@ class Message(Base):
 
     class Meta:
         ordering = ["created_at"]
+        indexes = [
+            models.Index(
+                fields=["conversation", "role", "created_at"],
+                include=["cost"],
+                name="assistant_message_cost_covering_idx",
+            ),
+        ]
 
     def __str__(self):
         return f"Message({self.id}, role={self.role})"
