@@ -630,7 +630,7 @@ class GitWebappModelTest(TestCase):
             "no-org", "No Organization"
         )
         self.mock_git_client.create_org_repository.assert_called_with(
-            "no-org", webapp.repository
+            "no-org", webapp.repository, auto_init=True
         )
 
     def test_create_if_has_perm_static_no_files(self):
