@@ -177,7 +177,7 @@ class OrganizationGitLifecycleTest(TestCase):
             organization_type="CORPORATE",
         )
 
-    @patch("hexa.git.forgejo.get_forgejo_client")
+    @patch("hexa.user_management.models.get_forgejo_client")
     def test_archive_git_org_on_delete(self, mock_get_client):
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
@@ -194,7 +194,7 @@ class OrganizationGitLifecycleTest(TestCase):
         mock_client.archive_repository.assert_any_call(org_slug, "repo-1")
         mock_client.archive_repository.assert_any_call(org_slug, "repo-2")
 
-    @patch("hexa.git.forgejo.get_forgejo_client")
+    @patch("hexa.user_management.models.get_forgejo_client")
     def test_unarchive_git_org_on_restore(self, mock_get_client):
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
@@ -216,7 +216,7 @@ class OrganizationGitLifecycleTest(TestCase):
         mock_client.list_org_repositories.assert_called_once_with(org_slug)
         mock_client.unarchive_repository.assert_called_once_with(org_slug, "repo-1")
 
-    @patch("hexa.git.forgejo.get_forgejo_client")
+    @patch("hexa.user_management.models.get_forgejo_client")
     def test_archive_git_org_handles_failure(self, mock_get_client):
         mock_get_client.side_effect = Exception("connection refused")
 
@@ -224,7 +224,7 @@ class OrganizationGitLifecycleTest(TestCase):
 
         self.assertIsNotNone(self.organization.deleted_at)
 
-    @patch("hexa.git.forgejo.get_forgejo_client")
+    @patch("hexa.user_management.models.get_forgejo_client")
     def test_unarchive_git_org_handles_failure(self, mock_get_client):
         self.organization.delete()
         mock_get_client.side_effect = Exception("connection refused")
