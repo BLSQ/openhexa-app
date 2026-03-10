@@ -634,7 +634,7 @@ class OrganizationUpdateDeleteTest(GraphQLTestCase, OrganizationTestMixin):
 
         self.valid_logo = _create_test_image()
 
-    @patch("hexa.user_management.schema.get_forgejo_client")
+    @patch("hexa.user_management.schema.mutations.get_forgejo_client")
     def test_update_organization_name_success(self, mock_get_client):
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
@@ -921,7 +921,8 @@ class OrganizationUpdateDeleteTest(GraphQLTestCase, OrganizationTestMixin):
             r["data"]["updateOrganization"],
         )
 
-    def test_update_organization_by_admin_success(self):
+    @patch("hexa.user_management.schema.mutations.get_forgejo_client")
+    def test_update_organization_by_admin_success(self, mock_get_client):
         """Test that admin can also update organization."""
         self.client.force_login(self.admin)
         r = self.run_query(
@@ -1021,8 +1022,10 @@ class OrganizationUpdateDeleteTest(GraphQLTestCase, OrganizationTestMixin):
             r["data"]["updateOrganization"],
         )
 
-    def test_delete_organization_success(self):
+    @patch("hexa.user_management.models.get_forgejo_client")
+    def test_delete_organization_success(self, mock_get_client):
         """Test successful organization deletion by owner (soft delete)."""
+        mock_get_client.return_value.list_org_repositories.return_value = []
         org_to_delete = self.create_organization(
             self.owner, "Organization to Delete", "Description", short_name="DEL1"
         )
