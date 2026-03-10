@@ -824,9 +824,11 @@ query WorkspaceWebappsPage(
 query WorkspaceWebappPage($workspaceSlug: String!, $webappSlug: String!) {
   workspace(slug: $workspaceSlug) {
     ...WebappForm_workspace
+    ...WebappLayout_workspace
   }
   webapp: webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
     ...WebappForm_webapp
+    ...WebappLayout_webapp
   }
 }
 

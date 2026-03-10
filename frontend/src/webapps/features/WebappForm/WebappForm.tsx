@@ -22,9 +22,7 @@ import ImageProperty from "core/components/DataCard/ImageProperty";
 import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import useDebounce from "core/hooks/useDebounce";
 import WebappIframe from "webapps/features/WebappIframe";
-import WebappFilesEditor from "webapps/features/WebappFilesEditor/WebappFilesEditor";
 import WebappSourceEditor from "webapps/features/WebappSourceEditor/WebappSourceEditor";
-import VersionPicker from "webapps/features/VersionPicker/VersionPicker";
 import {
   CreateWebappError,
   UpdateWebappError,
@@ -68,10 +66,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
     (files: WebappFileInput[]) => setSourceFiles(files),
     [],
   );
-
-  const isGitWebapp =
-    webapp &&
-    (webapp.type === WebappType.Html || webapp.type === WebappType.Bundle);
 
   const { data: supersetData } = useSupersetInstancesQuery({
     variables: { workspaceSlug: workspace.slug },
@@ -281,26 +275,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             />
           </DataCard.Section>
         )}
-      {isGitWebapp && (
-        <DataCard.Section title={t("Published Version")} collapsible={false}>
-          <VersionPicker
-            webappId={webapp.id}
-            workspaceSlug={workspace.slug}
-            webappSlug={webapp.slug}
-            isEditable={webapp.permissions.update}
-          />
-        </DataCard.Section>
-      )}
-      {isGitWebapp && (
-        <DataCard.Section title={t("Files")} collapsible={false}>
-          <WebappFilesEditor
-            webappId={webapp.id}
-            workspaceSlug={workspace.slug}
-            webappSlug={webapp.slug}
-            isEditable={webapp.permissions.update}
-          />
-        </DataCard.Section>
-      )}
       {(debouncedUrl || webapp?.url) && (
         <DataCard.Section
           title={t("Preview")}

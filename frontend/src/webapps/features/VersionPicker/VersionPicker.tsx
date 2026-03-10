@@ -1,10 +1,8 @@
 import { useTranslation } from "next-i18next";
-import { toast } from "react-toastify";
 import {
   useWebappVersionsQuery,
   WebappVersion_VersionFragment,
 } from "webapps/graphql/queries.generated";
-import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
 import Spinner from "core/components/Spinner";
 import Listbox from "core/components/Listbox/Listbox";
 import { DateTime } from "luxon";
@@ -13,17 +11,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 const PER_PAGE = 20;
 
 type VersionPickerProps = {
-  webappId: string;
   workspaceSlug: string;
   webappSlug: string;
-  isEditable: boolean;
+  onChange?: (version: WebappVersion_VersionFragment) => void;
 };
 
 const VersionPicker = ({
-  webappId,
   workspaceSlug,
   webappSlug,
-  isEditable,
+  onChange,
 }: VersionPickerProps) => {
   const { t } = useTranslation();
   const [extraVersions, setExtraVersions] = useState<
@@ -31,6 +27,8 @@ const VersionPicker = ({
   >([]);
   const [hasMore, setHasMore] = useState(true);
   const pageRef = useRef(1);
+  const [selectedVersion, setSelectedVersion] =
+    useState<WebappVersion_VersionFragment | null>(null);
 
   const { data, loading, refetch } = useWebappVersionsQuery({
     variables: { workspaceSlug, webappSlug, page: 1, perPage: PER_PAGE },
@@ -52,6 +50,31 @@ const VersionPicker = ({
     [firstPageVersions, extraVersions],
   );
 
+  const source = data?.webapp?.source;
+  const publishedVersionId =
+    source?.__typename === "GitSource" ? source.publishedVersion : null;
+
+  const prevPublishedRef = useRef<string | null>(publishedVersionId ?? null);
+
+  // Auto-select the published version on initial load, and whenever
+  // publishedVersionId changes (e.g. after saving creates a new commit
+  // that becomes the published version).
+  useEffect(() => {
+    if (allVersions.length === 0) return;
+
+    const publishedChanged =
+      publishedVersionId !== prevPublishedRef.current;
+    const needsInitialSelection = !selectedVersion;
+
+    if (!needsInitialSelection && !publishedChanged) return;
+
+    prevPublishedRef.current = publishedVersionId ?? null;
+    const published = allVersions.find((v) => v.id === publishedVersionId);
+    const version = published ?? allVersions[0];
+    setSelectedVersion(version);
+    onChange?.(version);
+  }, [allVersions, publishedVersionId, selectedVersion, onChange]);
+
   const relativeDates = useMemo(
     () =>
       Object.fromEntries(
@@ -64,33 +87,6 @@ const VersionPicker = ({
       ),
     [allVersions, t],
   );
-
-  const [updateWebapp] = useUpdateWebappMutation();
-
-  const source = data?.webapp?.source;
-  const publishedVersionId =
-    source?.__typename === "GitSource" ? source.publishedVersion : null;
-
-  const currentPublishedVersion = useMemo(
-    () =>
-      allVersions.find((v) => v.id === publishedVersionId) ?? allVersions[0],
-    [allVersions, publishedVersionId],
-  );
-
-  const handlePublish = async (versionId: string) => {
-    const { data } = await updateWebapp({
-      variables: {
-        input: { id: webappId, publishedVersionId: versionId },
-      },
-      refetchQueries: ["WebappVersions"],
-    });
-
-    if (data?.updateWebapp?.success) {
-      toast.success(t("Version published successfully"));
-    } else {
-      toast.error(t("Failed to publish version"));
-    }
-  };
 
   const handleScrollBottom = useCallback(() => {
     if (!hasMore) return;
@@ -126,17 +122,16 @@ const VersionPicker = ({
 
   return (
     <Listbox
-      value={currentPublishedVersion}
+      value={selectedVersion ?? allVersions[0]}
       options={allVersions}
       by="id"
       onChange={(version: WebappVersion_VersionFragment) => {
-        if (isEditable && version.id !== publishedVersionId) {
-          handlePublish(version.id).then();
-        }
+        setSelectedVersion(version);
+        onChange?.(version);
       }}
       onScrollBottom={hasMore ? handleScrollBottom : undefined}
       getOptionLabel={(v: WebappVersion_VersionFragment) =>
-        v ? `${v.id.slice(0, 7)} - ${v.message}` : ""
+        v ? `${v.id.slice(0, 7)} - ${relativeDates[v.id] ?? v.date}` : ""
       }
       renderOption={(
         version: WebappVersion_VersionFragment,
@@ -157,7 +152,11 @@ const VersionPicker = ({
                 >
                   {shortId}
                 </code>
-                <span className="truncate text-sm">{version.message}</span>
+                <span className="truncate text-sm">
+                  {DateTime.fromISO(version.date).toLocaleString(
+                    DateTime.DATETIME_SHORT,
+                  )}
+                </span>
                 {isPublished && (
                   <span className="inline-flex shrink-0 items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
                     {t("Published")}
