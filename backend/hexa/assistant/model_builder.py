@@ -32,33 +32,20 @@ def get_api_name(model: AiSettings.Model) -> str:
 
 
 class AiModelBuilder:
-    def __init__(self):
-        self._provider = None
-        self._model_api_name = None
-        self._api_key = None
-
-    def provider(self, provider: str) -> "AiModelBuilder":
+    def __init__(self, provider: str, model: AiSettings.Model, api_key: str):
         self._provider = provider
-        return self
-
-    def model(self, model: AiSettings.Model) -> "AiModelBuilder":
-        self._model_api_name = get_api_name(model)
-        return self
-
-    def api_key(self, api_key: str) -> "AiModelBuilder":
+        self._model_api_name = model
         self._api_key = api_key
-        return self
 
     @classmethod
     def from_conversation(cls, conversation: Conversation) -> "AiModelBuilder":
         ai_settings: AiSettings = conversation.user.ai_settings_safe
         if not ai_settings.enabled:
             raise AssistantException("AI settings are not enabled")
-        return (
-            cls()
-            .provider(ai_settings.provider)
-            .model(ai_settings.model)
-            .api_key(ai_settings.api_key)
+        return cls(
+            provider=ai_settings.provider,
+            model=ai_settings.model,
+            api_key=ai_settings.api_key,
         )
 
     @property
