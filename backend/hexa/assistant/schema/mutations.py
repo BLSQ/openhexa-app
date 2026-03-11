@@ -4,6 +4,7 @@ from ariadne import MutationType
 from django.conf import settings
 
 from hexa.assistant.agent import AssistantAgent
+from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 from hexa.workspaces.models import Workspace
 
@@ -22,9 +23,16 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
     except Workspace.DoesNotExist:
         return None
 
+    try:
+        raw_instruction_set = input.get("instruction_set", InstructionSet.GENERAL)
+        instruction_set = InstructionSet(raw_instruction_set)
+    except ValueError:
+        return None
+
     return Conversation.objects.create(
         user=request.user,
         workspace=workspace,
+        instruction_set=instruction_set,
     )
 
 

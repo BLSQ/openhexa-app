@@ -10,6 +10,7 @@ from pydantic_ai.messages import (
     ToolReturnPart,
 )
 
+from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.model_builder import AiModelBuilder
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 
@@ -22,7 +23,11 @@ class AssistantAgent:
         builder = AiModelBuilder.from_conversation(conversation)
         self._model_api_name = builder.model_api_name
         self._provider_id = builder.provider_id
-        self.agent = Agent(model=builder.build())
+        instruction_set = InstructionSet(conversation.instruction_set)
+        self.agent = Agent(
+            model=builder.build(),
+            instructions=get_instructions(instruction_set),
+        )
 
     def run(self, user_input: str) -> str:
         Message.objects.create(

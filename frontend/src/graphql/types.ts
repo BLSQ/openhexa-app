@@ -795,6 +795,7 @@ export type CreateAccessmodZonalStatisticsResult = {
 };
 
 export type CreateAssistantConversationInput = {
+  instructionSet?: InputMaybe<Scalars['String']['input']>;
   workspaceSlug: Scalars['String']['input'];
 };
 
