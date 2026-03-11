@@ -5,6 +5,7 @@ from django.db import models
 from django.db.models import Sum
 from django.utils import timezone
 
+from hexa.assistant.instructions import InstructionSet
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.core.models.soft_delete import (
     DefaultSoftDeletedManager,
@@ -30,6 +31,11 @@ class Conversation(SoftDeletedModel, Base):
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
 
     name = models.CharField(max_length=50, null=True, blank=True)
+    instruction_set = models.CharField(
+        max_length=50,
+        choices=InstructionSet.choices,
+        default=InstructionSet.GENERAL,
+    )
     total_input_tokens = models.IntegerField(default=0)
     total_output_tokens = models.IntegerField(default=0)
     cost = models.DecimalField(max_digits=12, decimal_places=6, default=0)

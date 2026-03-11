@@ -6,6 +6,8 @@ import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
 
+from hexa.assistant.instructions import InstructionSet
+
 
 class Migration(migrations.Migration):
     initial = True
@@ -39,6 +41,18 @@ class Migration(migrations.Migration):
                     models.DateTimeField(blank=True, default=None, null=True),
                 ),
                 ("name", models.CharField(blank=True, max_length=50, null=True)),
+                (
+                    "instruction_set",
+                    models.CharField(
+                        choices=[
+                            ("general", "General"),
+                            ("pipeline", "Pipeline"),
+                            ("webapps", "Web Apps"),
+                        ],
+                        default=InstructionSet.GENERAL,
+                        max_length=50,
+                    ),
+                ),
                 ("total_input_tokens", models.IntegerField(default=0)),
                 ("total_output_tokens", models.IntegerField(default=0)),
                 (

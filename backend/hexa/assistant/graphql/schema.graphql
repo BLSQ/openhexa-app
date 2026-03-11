@@ -39,6 +39,7 @@ extend type Workspace {
 
 input CreateAssistantConversationInput {
   workspaceSlug: String!
+  instructionSet: String
 }
 
 input SendAssistantMessageInput {
