@@ -1,18 +1,21 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "next-i18next";
 import Tabs from "core/components/Tabs";
 import CodeEditor from "core/components/CodeEditor";
 import Dropzone from "core/components/Dropzone";
 import { WebappFileInput } from "graphql/types";
-import { DEFAULT_HTML_TEMPLATE } from "webapps/helpers/templates";
 
 type WebappSourceEditorProps = {
+  initialTemplate: string;
   onChange: (files: WebappFileInput[]) => void;
 };
 
-const WebappSourceEditor = ({ onChange }: WebappSourceEditorProps) => {
+const WebappSourceEditor = ({
+  initialTemplate,
+  onChange,
+}: WebappSourceEditorProps) => {
   const { t } = useTranslation();
-  const [templateContent, setTemplateContent] = useState(DEFAULT_HTML_TEMPLATE);
+  const [templateContent, setTemplateContent] = useState(initialTemplate);
 
   const handleTemplateChange = useCallback(
     (value: string) => {
@@ -35,10 +38,6 @@ const WebappSourceEditor = ({ onChange }: WebappSourceEditorProps) => {
     },
     [onChange],
   );
-
-  useEffect(() => {
-    onChange([{ path: "index.html", content: templateContent }]);
-  }, []);
 
   return (
     <Tabs defaultIndex={0}>

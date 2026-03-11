@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { toast } from "react-toastify";
@@ -30,8 +30,15 @@ import {
   WebappType,
 } from "graphql/types";
 import { getWebappTypeLabel } from "webapps/helpers";
+import { DEFAULT_HTML_TEMPLATE } from "webapps/helpers/templates";
 
 const DEFAULT_BLUESQUARE_SUPERSET_URL = "https://superset.bluesquare.org";
+
+const getDefaultSourceFiles = (type: WebappType): WebappFileInput[] =>
+  type === WebappType.Static
+    ? [{ path: "index.html", content: DEFAULT_HTML_TEMPLATE }]
+    : [];
+
 const buildSource: Record<WebappType, (values: any) => any> = {
   [WebappType.Iframe]: (values) => ({ iframe: { url: values.url } }),
   [WebappType.Superset]: (values) => ({
@@ -58,7 +65,9 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const [selectedType, setSelectedType] = useState<WebappType>(
     webapp?.type ?? WebappType.Iframe,
   );
-  const [sourceFiles, setSourceFiles] = useState<WebappFileInput[]>([]);
+  const [sourceFiles, setSourceFiles] = useState<WebappFileInput[]>(
+    getDefaultSourceFiles(webapp?.type ?? WebappType.Iframe),
+  );
   const debouncedUrl = useDebounce(url, 500);
 
   const { data: supersetData } = useSupersetInstancesQuery({
@@ -216,7 +225,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             getOptionLabel={getWebappTypeLabel}
             onChange={(value) => {
               setSelectedType(value as WebappType);
-              setSourceFiles([]);
+              setSourceFiles(getDefaultSourceFiles(value as WebappType));
             }}
           />
         )}
@@ -262,6 +271,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       {!webapp && selectedType === WebappType.Static && (
         <DataCard.Section title={t("Source Files")} collapsible={false}>
           <WebappSourceEditor
+            initialTemplate={DEFAULT_HTML_TEMPLATE}
             onChange={(files: WebappFileInput[]) => setSourceFiles(files)}
           />
         </DataCard.Section>
