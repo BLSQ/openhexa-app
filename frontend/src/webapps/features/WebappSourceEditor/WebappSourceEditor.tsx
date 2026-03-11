@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
 import Tabs from "core/components/Tabs";
 import CodeEditor from "core/components/CodeEditor";
@@ -35,6 +35,10 @@ const WebappSourceEditor = ({ onChange }: WebappSourceEditorProps) => {
     },
     [onChange],
   );
+
+  useEffect(() => {
+    onChange([{ path: "index.html", content: templateContent }]);
+  }, []);
 
   return (
     <Tabs defaultIndex={0}>
