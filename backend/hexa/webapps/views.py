@@ -50,6 +50,8 @@ def serve_webapp(request, webapp_id, path="index.html"):
         )
     except ForgejoAPIError as e:
         if e.status_code == 404:
+            if path == "index.html":
+                return HttpResponseNotFound("No index.html found")
             return HttpResponseNotFound("File not found")
         raise
 
