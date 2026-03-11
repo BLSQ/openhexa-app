@@ -61,11 +61,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const [sourceFiles, setSourceFiles] = useState<WebappFileInput[]>([]);
   const debouncedUrl = useDebounce(url, 500);
 
-  const handleSourceFilesChange = useCallback(
-    (files: WebappFileInput[]) => setSourceFiles(files),
-    [],
-  );
-
   const { data: supersetData } = useSupersetInstancesQuery({
     variables: { workspaceSlug: workspace.slug },
   });
@@ -266,7 +261,9 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       </DataCard.FormSection>
       {!webapp && selectedType === WebappType.Static && (
         <DataCard.Section title={t("Source Files")} collapsible={false}>
-          <WebappSourceEditor onChange={handleSourceFilesChange} />
+          <WebappSourceEditor
+            onChange={(files: WebappFileInput[]) => setSourceFiles(files)}
+          />
         </DataCard.Section>
       )}
       {(debouncedUrl || webapp?.url) && (
