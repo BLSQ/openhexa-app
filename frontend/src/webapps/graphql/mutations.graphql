@@ -18,6 +18,7 @@ mutation CreateWebapp($input: CreateWebappInput!) {
     errors
     webapp {
       id
+      slug
     }
   }
 }

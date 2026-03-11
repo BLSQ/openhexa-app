@@ -15,7 +15,7 @@ export type CreateWebappMutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateWebappMutation = { __typename?: 'Mutation', createWebapp: { __typename?: 'CreateWebappResult', success: boolean, errors: Array<Types.CreateWebappError>, webapp?: { __typename?: 'Webapp', id: string } | null } };
+export type CreateWebappMutation = { __typename?: 'Mutation', createWebapp: { __typename?: 'CreateWebappResult', success: boolean, errors: Array<Types.CreateWebappError>, webapp?: { __typename?: 'Webapp', id: string, slug: string } | null } };
 
 export type AddToFavoritesMutationVariables = Types.Exact<{
   input: Types.AddToFavoritesInput;
@@ -95,6 +95,7 @@ export const CreateWebappDocument = gql`
     errors
     webapp {
       id
+      slug
     }
   }
 }

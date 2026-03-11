@@ -163,7 +163,11 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       }
       toast.success(t("Webapp created successfully"));
       clearCache();
-      router.push(`/workspaces/${workspace.slug}/webapps`).then();
+      router
+        .push(
+          `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${encodeURIComponent(data.createWebapp.webapp.slug)}`,
+        )
+        .then();
     } catch (error) {
       toast.error(t("An error occurred while creating the webapp"));
     } finally {
@@ -261,10 +265,10 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         />
       </DataCard.FormSection>
       {!webapp && selectedType === WebappType.Static && (
-          <DataCard.Section title={t("Source Files")} collapsible={false}>
-            <WebappSourceEditor onChange={handleSourceFilesChange} />
-          </DataCard.Section>
-        )}
+        <DataCard.Section title={t("Source Files")} collapsible={false}>
+          <WebappSourceEditor onChange={handleSourceFilesChange} />
+        </DataCard.Section>
+      )}
       {(debouncedUrl || webapp?.url) && (
         <DataCard.Section
           title={t("Preview")}
