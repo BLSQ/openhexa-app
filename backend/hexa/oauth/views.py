@@ -86,14 +86,25 @@ def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
             status=400,
         )
 
+    loopback_hosts = {"localhost", "127.0.0.1"}
     allowed_hosts = settings.OAUTH2_ALLOWED_REDIRECT_URI_HOSTS
     for uri in redirect_uris:
-        host = urlparse(uri).hostname
+        parsed = urlparse(uri)
+        host = parsed.hostname
+        scheme = parsed.scheme
         if host not in allowed_hosts:
             return JsonResponse(
                 {
                     "error": "invalid_redirect_uri",
                     "error_description": f"Redirect URI host '{host}' is not allowed",
+                },
+                status=400,
+            )
+        if scheme == "http" and host not in loopback_hosts:
+            return JsonResponse(
+                {
+                    "error": "invalid_redirect_uri",
+                    "error_description": "HTTP scheme is only allowed for loopback redirect URIs",
                 },
                 status=400,
             )
