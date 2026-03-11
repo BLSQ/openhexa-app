@@ -112,16 +112,16 @@ const AccountAiSettings = (props: AccountAiSettingsProps) => {
         required
       />
       <TextProperty
-        id="monthlyCost"
-        label={t("Monthly cost")}
-        accessor={() => `$${monthlyCost.toFixed(4)}`}
+        id="totalCost"
+        label={t("Total cost")}
+        accessor={() => `$${totalCost.toFixed(4)}`}
         readonly
         visible={(_, __, values) => Boolean(values.enableAI)}
       />
       <TextProperty
-        id="totalCost"
-        label={t("Total cost")}
-        accessor={() => `$${totalCost.toFixed(4)}`}
+        id="monthlyCost"
+        label={t("Current month cost")}
+        accessor={() => `$${monthlyCost.toFixed(4)}`}
         readonly
         visible={(_, __, values) => Boolean(values.enableAI)}
       />
