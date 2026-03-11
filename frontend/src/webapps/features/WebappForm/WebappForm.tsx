@@ -177,9 +177,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
 
   return (
     <DataCard item={webapp}>
-      <DataCard.Heading
-        titleAccessor={(item) => item?.name || t("New Webapp")}
-      />
       <DataCard.FormSection
         title={t("Webapp Details")}
         onSave={
