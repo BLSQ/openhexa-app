@@ -11,12 +11,15 @@ import {
 } from "assistant/graphql/queries.generated";
 import { useCreateAssistantConversationMutation } from "assistant/graphql/mutations.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
+import useFeature from "identity/hooks/useFeature";
+import ErrorPage from "next/error";
 
 type Props = {
   workspaceSlug: string;
 };
 
 const AssistantPage: NextPageWithLayout<Props> = ({ workspaceSlug }) => {
+  const [isAssistantEnabled] = useFeature("assistant");
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
   >(null);
@@ -50,6 +53,10 @@ const AssistantPage: NextPageWithLayout<Props> = ({ workspaceSlug }) => {
       variables: { input: { workspaceSlug } },
     });
   };
+
+  if (!isAssistantEnabled) {
+    return <ErrorPage statusCode={404} />;
+  }
 
   if (!data?.workspace) {
     return null;
