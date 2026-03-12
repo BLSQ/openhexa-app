@@ -46,7 +46,7 @@ azure-identity==1.25.1
     # via -r requirements.in
 azure-storage-blob==12.28.0
     # via -r requirements.in
-black==25.1.0
+black==26.3.1
     # via ariadne-codegen
 boto3==1.40.76
     # via
@@ -356,7 +356,7 @@ pandas==2.3.0
     #   geopandas
     #   openhexa-toolbox
     #   xarray
-pathspec==0.12.1
+pathspec==1.0.4
     # via black
 pip-tools==7.4.1
     # via -r requirements.in
@@ -436,6 +436,8 @@ python-dateutil==2.9.0.post0
     #   pandas
 python-slugify==8.0.4
     # via -r requirements.in
+pytokens==0.4.1
+    # via black
 pytz==2025.2
     # via
     #   croniter
