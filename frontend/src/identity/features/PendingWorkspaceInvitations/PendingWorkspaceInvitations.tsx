@@ -4,7 +4,8 @@ import { BaseColumn } from "core/components/DataGrid";
 import DataGrid from "core/components/DataGrid/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import Link from "core/components/Link";
-import { WorkspaceInvitation, WorkspaceInvitationPage, WorkspaceInvitationStatus } from "graphql/types";
+import { AccountPageQuery } from "identity/graphql/queries.generated";
+import { WorkspaceInvitation, WorkspaceInvitationStatus } from "graphql/types";
 import {
   useDeclineWorkspaceInvitationMutation,
   useJoinWorkspaceMutation,
@@ -15,7 +16,7 @@ import { t } from "i18next";
 
 
 type PendingWorkspaceInvitationsProps = {
-  invitations: WorkspaceInvitationPage
+  invitations: AccountPageQuery["pendingWorkspaceInvitations"];
 }
 
 const PendingWorkspaceInvitations = (props: PendingWorkspaceInvitationsProps) => {
