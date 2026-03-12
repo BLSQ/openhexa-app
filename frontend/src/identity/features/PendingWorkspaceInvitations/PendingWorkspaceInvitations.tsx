@@ -68,14 +68,14 @@ const PendingWorkspaceInvitations = (props: PendingWorkspaceInvitationsProps) =>
             id="invitedBy"
           />
           <TextColumn
-            accessor={(member) =>
+            accessor={(member: WorkspaceInvitation) =>
               formatWorkspaceMembershipRole(member.role)
             }
             label={t("Role")}
             id="role"
           />
           <BaseColumn className="flex justify-end gap-x-2">
-            {(invitation) => (
+            {(invitation: WorkspaceInvitation) => (
               <>
                 {invitation.status ===
                   WorkspaceInvitationStatus.Declined && (
