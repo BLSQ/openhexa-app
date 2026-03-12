@@ -26,10 +26,12 @@ import { toast } from "react-toastify";
 import AccountProfileSettings from "identity/features/AccountProfileSettings";
 import AccountSecuritySettings from "identity/features/AccountSecuritySettings";
 import AccountAiSettings from "identity/features/AccountAiSettings";
+import useFeature from "identity/hooks/useFeature";
 
 function AccountPage() {
   const { t } = useTranslation();
   const { data, refetch } = useAccountPageQuery();
+  const [isAssistantEnabled] = useFeature("assistant");
 
   const [joinWorkspace] = useJoinWorkspaceMutation();
   const [declineWorkspaceInvitation] = useDeclineWorkspaceInvitationMutation();
@@ -82,13 +84,15 @@ function AccountPage() {
         <DataCard item={user} className="divide-y divide-gray-100">
           <AccountProfileSettings user={user} />
           <AccountSecuritySettings hasTwoFactorEnabled={data.me.hasTwoFactorEnabled} />
-          {/* <AccountAiSettings
-            settings={user.aiSettings}
-            labels={data.aiLabels}
-            monthlyCost={data.me.assistantMonthlyCost}
-            totalCost={data.me.assistantTotalCost}
-            refetch={refetch}
-          /> */}
+          {isAssistantEnabled && (
+            <AccountAiSettings
+              settings={user.aiSettings}
+              labels={data.aiLabels}
+              monthlyCost={data.me.assistantMonthlyCost}
+              totalCost={data.me.assistantTotalCost}
+              refetch={refetch}
+            />
+          )}
         </DataCard>
 
         {data.pendingWorkspaceInvitations.totalItems > 0 ? (
