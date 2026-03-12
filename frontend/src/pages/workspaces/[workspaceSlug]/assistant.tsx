@@ -2,6 +2,7 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useEffect, useState } from "react";
+import AiDisabledBanner from "assistant/components/AiDisabledBanner";
 import ChatPane from "assistant/features/ChatPane";
 import ConversationList from "assistant/features/ConversationList";
 import {
@@ -30,6 +31,7 @@ const AssistantPage: NextPageWithLayout<Props> = ({ workspaceSlug }) => {
 
   const conversations = data?.workspace?.assistantConversations ?? [];
   const monthlyLimitExceeded = data?.me?.assistantMonthlyLimitExceeded ?? false;
+  const aiEnabled = data?.me?.user?.aiSettings?.enabled ?? false;
 
   useEffect(() => {
     if (!selectedConversationId && conversations.length > 0) {
@@ -65,19 +67,23 @@ const AssistantPage: NextPageWithLayout<Props> = ({ workspaceSlug }) => {
   return (
     <Page title="Assistant">
       <WorkspaceLayout workspace={data.workspace} withMarginBottom={false}>
-        <div className="flex h-screen overflow-hidden">
-          <ConversationList
-            conversations={conversations}
-            selectedId={selectedConversationId}
-            onSelect={setSelectedConversationId}
-            onNew={handleNewConversation}
-            creating={creating}
-          />
-          <ChatPane
-            conversationId={selectedConversationId}
-            monthlyLimitExceeded={monthlyLimitExceeded}
-          />
-        </div>
+        {aiEnabled ? (
+          <div className="flex h-screen overflow-hidden">
+            <ConversationList
+              conversations={conversations}
+              selectedId={selectedConversationId}
+              onSelect={setSelectedConversationId}
+              onNew={handleNewConversation}
+              creating={creating}
+            />
+            <ChatPane
+              conversationId={selectedConversationId}
+              monthlyLimitExceeded={monthlyLimitExceeded}
+            />
+          </div>
+        ) : (
+          <AiDisabledBanner />
+        )}
       </WorkspaceLayout>
     </Page>
   );

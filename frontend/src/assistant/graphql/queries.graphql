@@ -9,6 +9,11 @@ query AssistantPage($workspaceSlug: String!) {
   }
   me {
     assistantMonthlyLimitExceeded
+    user {
+      aiSettings {
+        enabled
+      }
+    }
   }
 }
 
