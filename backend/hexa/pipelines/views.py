@@ -25,10 +25,9 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from hexa.core.sse import PING_INTERVAL, POLL_INTERVAL, MAX_DURATION, format_sse, sse_response
-
 from hexa.analytics.api import track
 from hexa.app import get_hexa_app_configs
+from hexa.core.sse import MAX_DURATION, PING_INTERVAL, POLL_INTERVAL, format_sse, sse_response
 from hexa.core.views_utils import disable_cors
 from hexa.pipelines.models import Environment, PipelineRunLogLevel
 
