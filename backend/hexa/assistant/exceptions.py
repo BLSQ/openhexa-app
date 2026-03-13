@@ -1,0 +1,2 @@
+class AssistantException(Exception):
+    pass

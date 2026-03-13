@@ -472,6 +472,50 @@ export type ArchiveWorkspaceResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export type AssistantConversation = {
+  __typename?: 'AssistantConversation';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['UUID']['output'];
+  messages: AssistantMessagePage;
+  totalInputTokens: Scalars['Int']['output'];
+  totalOutputTokens: Scalars['Int']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+
+export type AssistantConversationMessagesArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type AssistantMessage = {
+  __typename?: 'AssistantMessage';
+  content: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['UUID']['output'];
+  inputTokens?: Maybe<Scalars['Int']['output']>;
+  outputTokens?: Maybe<Scalars['Int']['output']>;
+  role: Scalars['String']['output'];
+  toolInvocations: Array<AssistantToolInvocation>;
+};
+
+export type AssistantMessagePage = {
+  __typename?: 'AssistantMessagePage';
+  items: Array<AssistantMessage>;
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
+export type AssistantToolInvocation = {
+  __typename?: 'AssistantToolInvocation';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['UUID']['output'];
+  success: Scalars['Boolean']['output'];
+  toolInput: Scalars['JSON']['output'];
+  toolName: Scalars['String']['output'];
+  toolOutput?: Maybe<Scalars['JSON']['output']>;
+};
+
 /** The Avatar type represents the avatar of a user. */
 export type Avatar = {
   __typename?: 'Avatar';
@@ -746,6 +790,24 @@ export type CreateAccessmodZonalStatisticsResult = {
   __typename?: 'CreateAccessmodZonalStatisticsResult';
   analysis?: Maybe<AccessmodZonalStatistics>;
   errors: Array<CreateAccessmodZonalStatisticsError>;
+  success: Scalars['Boolean']['output'];
+};
+
+export enum CreateAssistantConversationError {
+  InvalidInstructionSet = 'INVALID_INSTRUCTION_SET',
+  PermissionDenied = 'PERMISSION_DENIED',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+export type CreateAssistantConversationInput = {
+  instructionSet?: InputMaybe<Scalars['String']['input']>;
+  workspaceSlug: Scalars['String']['input'];
+};
+
+export type CreateAssistantConversationResult = {
+  __typename?: 'CreateAssistantConversationResult';
+  conversation?: Maybe<AssistantConversation>;
+  errors: Array<CreateAssistantConversationError>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -2621,6 +2683,9 @@ export type LogoutResult = {
 /** The Me type represents the currently authenticated user. */
 export type Me = {
   __typename?: 'Me';
+  assistantMonthlyCost: Scalars['Int']['output'];
+  assistantMonthlyLimitExceeded: Scalars['Boolean']['output'];
+  assistantTotalCost: Scalars['Int']['output'];
   /** The feature flags assigned to the currently authenticated user. */
   features: Array<FeatureFlag>;
   hasTwoFactorEnabled: Scalars['Boolean']['output'];
@@ -2739,6 +2804,7 @@ export type Mutation = {
   createAccessmodProject: CreateAccessmodProjectResult;
   createAccessmodProjectMember: CreateAccessmodProjectMemberResult;
   createAccessmodZonalStatistics: CreateAccessmodZonalStatisticsResult;
+  createAssistantConversation: CreateAssistantConversationResult;
   /** Create a folder in a workspace's bucket. */
   createBucketFolder: CreateBucketFolderResult;
   createConnection: CreateConnectionResult;
@@ -2851,6 +2917,7 @@ export type Mutation = {
   runDAG: RunDagResult;
   /** Runs a pipeline. */
   runPipeline: RunPipelineResult;
+  sendAssistantMessage: SendAssistantMessageResult;
   setDAGRunFavorite?: Maybe<SetDagRunFavoriteResult>;
   /** Set a custom metadata attribute to an object instance */
   setMetadataAttribute: SetMetadataAttributeResult;
@@ -2974,6 +3041,11 @@ export type MutationCreateAccessmodProjectMemberArgs = {
 
 export type MutationCreateAccessmodZonalStatisticsArgs = {
   input?: InputMaybe<CreateAccessmodZonalStatisticsInput>;
+};
+
+
+export type MutationCreateAssistantConversationArgs = {
+  input: CreateAssistantConversationInput;
 };
 
 
@@ -3349,6 +3421,11 @@ export type MutationRunDagArgs = {
 
 export type MutationRunPipelineArgs = {
   input?: InputMaybe<RunPipelineInput>;
+};
+
+
+export type MutationSendAssistantMessageArgs = {
+  input: SendAssistantMessageInput;
 };
 
 
@@ -4346,6 +4423,7 @@ export type Query = {
   accessmodProject?: Maybe<AccessmodProject>;
   accessmodProjects: AccessmodProjectPage;
   aiLabels: AiLabels;
+  assistantConversation?: Maybe<AssistantConversation>;
   boundaries: Array<WhoBoundary>;
   /** Retrieves the configuration of the system. */
   config: Config;
@@ -4467,6 +4545,11 @@ export type QueryAccessmodProjectsArgs = {
   perPage?: InputMaybe<Scalars['Int']['input']>;
   teams?: InputMaybe<Array<Scalars['String']['input']>>;
   term?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryAssistantConversationArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 
@@ -5003,6 +5086,19 @@ export type S3ObjectPage = {
 
 export type SearchResult = {
   score: Scalars['Float']['output'];
+};
+
+export type SendAssistantMessageInput = {
+  conversationId: Scalars['UUID']['input'];
+  message: Scalars['String']['input'];
+};
+
+export type SendAssistantMessageResult = {
+  __typename?: 'SendAssistantMessageResult';
+  conversation?: Maybe<AssistantConversation>;
+  errors: Array<Scalars['String']['output']>;
+  message?: Maybe<AssistantMessage>;
+  success: Scalars['Boolean']['output'];
 };
 
 export enum SetDagRunFavoriteError {
@@ -6087,6 +6183,7 @@ export type WebappsPage = {
 /** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type Workspace = {
   __typename?: 'Workspace';
+  assistantConversations: Array<AssistantConversation>;
   /** File storage of the workspace represented as a bucket */
   bucket: Bucket;
   configuration: Scalars['JSON']['output'];
