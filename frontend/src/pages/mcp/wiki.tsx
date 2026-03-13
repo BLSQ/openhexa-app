@@ -1,6 +1,5 @@
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
-import CenteredLayout from "core/layouts/centered";
 import Page from "core/components/Page";
 import UILanguagePicker from "identity/features/UILanguagePicker";
 import Image from "next/legacy/image";
@@ -9,10 +8,17 @@ import logo from "public/images/logo.svg";
 import { ReactElement, useState } from "react";
 import { useTranslation } from "next-i18next";
 
-const TABS = ["gemini", "claude-code", "claude-desktop", "chatgpt"] as const;
+const TABS = [
+  "gemini",
+  "claude",
+  "claude-code",
+  "claude-desktop",
+  "chatgpt",
+] as const;
 type Tab = (typeof TABS)[number];
 
 const TAB_LABELS: Record<Tab, string> = {
+  claude: "Claude",
   "claude-code": "Claude Code",
   "claude-desktop": "Claude Desktop",
   gemini: "Gemini CLI",
@@ -47,6 +53,21 @@ function CodeBlock({ text }: { text: string }) {
   );
 }
 
+function VerifySection() {
+  const { t } = useTranslation();
+  return (
+    <>
+      <h2 className="mb-3 mt-6 text-lg font-semibold">{t("Verify")}</h2>
+      <p className="mb-3 text-sm leading-relaxed text-gray-700">
+        {t(
+          "Try the following prompt to verify that the connection is working:",
+        )}
+      </p>
+      <CodeBlock text={t("List my OpenHEXA workspaces")} />
+    </>
+  );
+}
+
 type McpWikiPageProps = {
   mcpUrl: string;
 };
@@ -58,15 +79,12 @@ const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
   return (
     <Page title={t("MCP Setup Guide")}>
       <div className="w-full max-w-3xl">
-        <div className="mb-2 flex justify-end">
+        <div className="mb-4 flex items-center justify-between">
+          <Link href="/mcp" className="text-sm text-blue-600 hover:underline">
+            &larr; {t("Back to MCP Tools")}
+          </Link>
           <UILanguagePicker variant="inline" redirectTo="/mcp/wiki" />
         </div>
-        <Link
-          href="/mcp"
-          className="mb-4 inline-block text-sm text-blue-600 hover:underline"
-        >
-          &larr; {t("Back to MCP Tools")}
-        </Link>
 
         <div className="mb-6 flex items-center gap-4">
           <div className="relative h-12 w-32">
@@ -99,6 +117,43 @@ const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
         </div>
 
         <div className="pt-6">
+          {activeTab === "claude" && (
+            <div>
+              <h2 className="mb-3 text-lg font-semibold">{t("Setup")}</h2>
+              <p className="mb-3 text-sm leading-relaxed text-gray-700">
+                {t(
+                  "In Claude, open the Integrations menu, then click Add more integrations.",
+                )}
+              </p>
+              <ol className="list-decimal space-y-2 pl-6 text-sm leading-relaxed text-gray-700">
+                <li>
+                  {t("Paste the following URL in the configuration field:")}
+                </li>
+              </ol>
+              <div className="my-3">
+                <CodeBlock text={mcpUrl} />
+              </div>
+              <ol
+                start={2}
+                className="list-decimal space-y-2 pl-6 text-sm leading-relaxed text-gray-700"
+              >
+                <li>{t("Click Connect.")}</li>
+                <li>
+                  {t(
+                    "A browser window will open to authorize access to your OpenHEXA account.",
+                  )}
+                </li>
+                <li>
+                  {t(
+                    "Once authorized, OpenHEXA tools will be available in your conversation.",
+                  )}
+                </li>
+              </ol>
+
+              <VerifySection />
+            </div>
+          )}
+
           {activeTab === "claude-code" && (
             <div>
               <h2 className="mb-3 text-lg font-semibold">{t("Setup")}</h2>
@@ -108,22 +163,25 @@ const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
               <CodeBlock
                 text={`claude mcp add openhexa --transport http ${mcpUrl}`}
               />
-              <p className="mb-6 text-sm leading-relaxed text-gray-700">
-                {t(
-                  "Claude Code will handle the OAuth authentication flow automatically. A browser window will open to authorize access.",
-                )}
-              </p>
 
-              <h2 className="mb-3 text-lg font-semibold">{t("Verify")}</h2>
+              <h2 className="mb-3 text-lg font-semibold">
+                {t("Authenticate")}
+              </h2>
               <p className="mb-3 text-sm leading-relaxed text-gray-700">
-                {t(
-                  "Start Claude Code and check that the MCP server is connected:",
-                )}
+                {t("Start Claude Code:")}
+              </p>
+              <CodeBlock text="claude" />
+              <p className="mb-3 text-sm leading-relaxed text-gray-700">
+                {t("Then run the following command inside Claude Code:")}
               </p>
               <CodeBlock text="/mcp" />
               <p className="text-sm leading-relaxed text-gray-700">
-                {t("You should see openhexa listed with its tools.")}
+                {t(
+                  "Select openhexa and authenticate, a browser opens to complete the OAuth authorization. You should see openhexa listed with its tools.",
+                )}
               </p>
+
+              <VerifySection />
             </div>
           )}
 
@@ -172,6 +230,8 @@ const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
                   "Restart Claude Desktop. A browser window will open to authorize access when you first use an OpenHEXA tool.",
                 )}
               </p>
+
+              <VerifySection />
             </div>
           )}
 
@@ -201,6 +261,8 @@ const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
                   "A browser window will open to complete the OAuth authorization.",
                 )}
               </p>
+
+              <VerifySection />
             </div>
           )}
 
@@ -236,6 +298,8 @@ const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
                   )}
                 </li>
               </ol>
+
+              <VerifySection />
             </div>
           )}
         </div>
@@ -245,7 +309,9 @@ const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
 };
 
 McpWikiPage.getLayout = (page: ReactElement) => (
-  <CenteredLayout>{page}</CenteredLayout>
+  <div className="flex min-h-screen items-start justify-center px-4 py-12 sm:px-6 lg:px-8">
+    {page}
+  </div>
 );
 
 export const getServerSideProps = createGetServerSideProps({
