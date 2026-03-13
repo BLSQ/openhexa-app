@@ -53,27 +53,40 @@ def _prefix_to_obj(bucket_name, name: str):
 
 
 def iter_request_results(bucket_name, request, include_directories=False):
-    # Start by adding all the prefixes
-    # Prefixes are virtual directories based on the delimiter specified in the request
-    # The API returns a list of keys that have the delimiter as a suffix (meaning they have objects in them)
-
-    # request.prefixes is a Set (unorder) so to keep the prefixes order we need to sort them
+    # When list_blobs is called with delimiter="/", GCP returns two things per API page:
+    #   - "prefixes": virtual subdirectories (e.g. "photos/", "documents/")
+    #   - "blobs": actual files
+    #
+    # The GCP client exposes request.prefixes as a set that accumulates prefixes across
+    # all iterated pages. If the folder has many items, GCP may split results
+    # across multiple API pages, and each page can reveal NEW prefixes not seen before.
+    #
+    # Example: a folder with 3 subfolders and 25 files, fetched with page_size=20:
+    #   - API page 1 → prefixes {"documents/", "photos/"} + 18 blobs
+    #   - API page 2 → prefix  {"videos/"}               +  7 blobs
+    #
+    # We track seen_prefixes so that after loading each new API page, we can yield any
+    # newly discovered subdirectories that weren't in previous pages.
     pages = request.pages
     prefixes = request.prefixes
+    seen_prefixes = set()
 
     current_page = next(pages)
 
     for prefix in sorted(prefixes):
+        seen_prefixes.add(prefix)
         yield _prefix_to_obj(bucket_name, prefix)
 
     while True:
         for blob in current_page:
             if not _is_dir(blob) or include_directories:
-                # We ignore objects that are directories (object with a size = 0 and ending with a /)
-                # because they are already listed in the prefixes
                 yield _blob_to_obj(blob)
         try:
             current_page = next(pages)
+            new_prefixes = prefixes - seen_prefixes
+            for prefix in sorted(new_prefixes):
+                seen_prefixes.add(prefix)
+                yield _prefix_to_obj(bucket_name, prefix)
         except StopIteration:
             return
 
