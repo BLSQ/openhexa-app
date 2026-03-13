@@ -19,12 +19,13 @@ from django.http import (
     HttpResponse,
     HttpResponseNotAllowed,
     JsonResponse,
-    StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+
+from hexa.core.sse import PING_INTERVAL, POLL_INTERVAL, MAX_DURATION, format_sse, sse_response
 
 from hexa.analytics.api import track
 from hexa.app import get_hexa_app_configs
@@ -233,15 +234,6 @@ _TERMINAL_STATES = {
     PipelineRunState.SKIPPED,
 }
 
-_SSE_POLL_INTERVAL = 0.3  # seconds between DB polls
-_SSE_PING_INTERVAL = 10  # seconds between keepalive pings
-_SSE_MAX_DURATION = 1800  # 30 minutes — safety cap for stuck pipelines
-
-
-def _format_sse(event_type: str, data: dict) -> str:
-    return f"event: {event_type}\ndata: {json.dumps(data)}\n\n"
-
-
 async def _message_stream(run: PipelineRun, cursor: int):
     refresh = sync_to_async(lambda: run.refresh_from_db(fields=["messages", "state"]))
     start = time.monotonic()
@@ -252,23 +244,23 @@ async def _message_stream(run: PipelineRun, cursor: int):
         messages_list = run.messages or []
 
         for msg in messages_list[cursor:]:
-            yield _format_sse("message", msg)
+            yield format_sse("message", msg)
             cursor += 1
 
         now = time.monotonic()
-        if now - last_ping >= _SSE_PING_INTERVAL:
-            yield _format_sse("ping", {})
+        if now - last_ping >= PING_INTERVAL:
+            yield format_sse("ping", {})
             last_ping = now
 
         if run.state in _TERMINAL_STATES:
-            yield _format_sse("done", {"status": run.state})
+            yield format_sse("done", {"status": run.state})
             return
 
-        if now - start >= _SSE_MAX_DURATION:
-            yield _format_sse("timeout", {})
+        if now - start >= MAX_DURATION:
+            yield format_sse("timeout", {})
             return
 
-        await asyncio.sleep(_SSE_POLL_INTERVAL)
+        await asyncio.sleep(POLL_INTERVAL)
 
 
 async def stream_pipeline_run_messages(
@@ -297,14 +289,11 @@ async def stream_pipeline_run_messages(
 
         async def finished_stream():
             for msg in messages_list[cursor:]:
-                yield _format_sse("message", msg)
-            yield _format_sse("done", {"status": run.state})
+                yield format_sse("message", msg)
+            yield format_sse("done", {"status": run.state})
 
         generator = finished_stream()
     else:
         generator = _message_stream(run, cursor)
 
-    response = StreamingHttpResponse(generator, content_type="text/event-stream")
-    response["Cache-Control"] = "no-cache"
-    response["X-Accel-Buffering"] = "no"
-    return response
+    return sse_response(generator)

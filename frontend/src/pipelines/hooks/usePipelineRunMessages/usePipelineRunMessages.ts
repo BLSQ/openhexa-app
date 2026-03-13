@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { getPublicEnv } from "core/helpers/runtimeConfig";
-import { useEffect, useState } from "react";
+import useSSE from "core/hooks/useSSE";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export type SseMessage = {
   message: string;
@@ -20,57 +21,48 @@ function usePipelineRunMessages(
   onDone?: () => void,
 ): UsePipelineRunMessagesReturn {
   const [messages, setMessages] = useState<SseMessage[]>([]);
-  const [isStreaming, setIsStreaming] = useState(false);
   const [streamError, setStreamError] = useState<string | null>(null);
+  const cleanCloseRef = useRef(false);
 
   useEffect(() => {
-    if (isTerminal) return;
+    setMessages([]);
+    setStreamError(null);
+    cleanCloseRef.current = false;
+  }, [runId]);
 
+  const url = useMemo(() => {
+    if (isTerminal) return null;
     const apiBasePath =
       process.env.NEXT_PUBLIC_API_BASE_PATH ??
       getPublicEnv().OPENHEXA_BACKEND_URL;
-    const url = `${apiBasePath}/pipelines/runs/${runId}/messages/stream/`;
-    const source = new EventSource(url, { withCredentials: true });
+    return `${apiBasePath}/pipelines/runs/${runId}/messages/stream/`;
+  }, [runId, isTerminal]);
 
-    setMessages([]);
-    setIsStreaming(true);
-    setStreamError(null);
-
-    source.addEventListener("message", (e: MessageEvent) => {
-      const data = JSON.parse(e.data) as SseMessage;
-      setMessages((prev) => [...prev, data]);
-    });
-
-    source.addEventListener("done", () => {
-      source.close();
-      setIsStreaming(false);
+  const { isConnected: isStreaming, connectionError } = useSSE(url, {
+    message: (data) => {
+      setMessages((prev) => [...prev, data as SseMessage]);
+    },
+    done: () => {
+      cleanCloseRef.current = true;
       onDone?.();
-    });
-
-    source.addEventListener("timeout", () => {
-      source.close();
-      setIsStreaming(false);
+    },
+    timeout: () => {
       setStreamError("timeout");
       Sentry.captureMessage("SSE pipeline run messages timed out", {
         level: "warning",
         extra: { runId },
       });
-    });
+    },
+  });
 
-    source.addEventListener("error", () => {
-      source.close();
-      setIsStreaming(false);
+  useEffect(() => {
+    if (connectionError && !cleanCloseRef.current) {
       setStreamError("connection_failed");
       Sentry.captureException(
         new Error(`SSE connection failed for pipeline run ${runId}`),
       );
-    });
-
-    return () => {
-      source.close();
-      setIsStreaming(false);
-    };
-  }, [runId, isTerminal]);
+    }
+  }, [connectionError, runId]);
 
   return { messages, isStreaming, streamError };
 }
