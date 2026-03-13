@@ -749,6 +749,7 @@ type CreateAccessmodZonalStatisticsResult {
 
 enum CreateAssistantConversationError {
   INVALID_INSTRUCTION_SET
+  PERMISSION_DENIED
   WORKSPACE_NOT_FOUND
 }
 

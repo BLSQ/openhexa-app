@@ -796,6 +796,7 @@ export type CreateAccessmodZonalStatisticsResult = {
 
 export enum CreateAssistantConversationError {
   InvalidInstructionSet = 'INVALID_INSTRUCTION_SET',
+  PermissionDenied = 'PERMISSION_DENIED',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 

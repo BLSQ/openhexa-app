@@ -2,6 +2,7 @@ from logging import getLogger
 
 from ariadne import MutationType
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 
 from hexa.assistant.agent import AssistantAgent
 from hexa.assistant.instructions import InstructionSet
@@ -23,17 +24,22 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
     except Workspace.DoesNotExist:
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"], "conversation": None}
 
+    raw_instruction_set = input.get("instruction_set", InstructionSet.GENERAL)
     try:
-        raw_instruction_set = input.get("instruction_set", InstructionSet.GENERAL)
         instruction_set = InstructionSet(raw_instruction_set)
     except ValueError:
+        logger.warning("Invalid instruction set %s", raw_instruction_set)
         return {"success": False, "errors": ["INVALID_INSTRUCTION_SET"], "conversation": None}
 
-    conversation = Conversation.objects.create(
-        user=request.user,
-        workspace=workspace,
-        instruction_set=instruction_set,
-    )
+    try:
+        conversation = Conversation.objects.create_if_has_perm(
+            principal=request.user,
+            workspace=workspace,
+            instruction_set=instruction_set,
+        )
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"], "conversation": None}
+
     return {"success": True, "errors": [], "conversation": conversation}
 
 

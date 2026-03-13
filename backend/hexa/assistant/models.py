@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.contrib.auth import get_user_model
+from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import Sum
 from django.utils import timezone
@@ -13,9 +13,8 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
+from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
-
-User = get_user_model()
 
 
 class ConversationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
@@ -23,6 +22,24 @@ class ConversationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
         return self._filter_for_user_and_query_object(
             user,
             models.Q(user=user, workspace__members=user),
+        )
+
+
+class ConversationManager(DefaultSoftDeletedManager):
+    def create_if_has_perm(
+        self,
+        principal: User,
+        workspace: Workspace,
+        *,
+        instruction_set: InstructionSet = InstructionSet.GENERAL,
+    ):
+        if not principal.has_perm("assistant.create_conversation", workspace):
+            raise PermissionDenied
+
+        return self.create(
+            user=principal,
+            workspace=workspace,
+            instruction_set=instruction_set,
         )
 
 
@@ -43,7 +60,7 @@ class Conversation(SoftDeletedModel, Base):
     # Full Pydantic AI message history for reconstructing agent context
     messages_history = models.JSONField(default=list)
 
-    objects = DefaultSoftDeletedManager.from_queryset(ConversationQuerySet)()
+    objects = ConversationManager.from_queryset(ConversationQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(ConversationQuerySet)()
 
     class Meta:

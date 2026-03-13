@@ -42,6 +42,18 @@ input CreateAssistantConversationInput {
   instructionSet: String
 }
 
+enum CreateAssistantConversationError {
+  WORKSPACE_NOT_FOUND
+  INVALID_INSTRUCTION_SET
+  PERMISSION_DENIED
+}
+
+type CreateAssistantConversationResult {
+  success: Boolean!
+  errors: [CreateAssistantConversationError!]!
+  conversation: AssistantConversation
+}
+
 input SendAssistantMessageInput {
   conversationId: UUID!
   message: String!
@@ -52,17 +64,6 @@ type SendAssistantMessageResult {
   errors: [String!]!
   conversation: AssistantConversation
   message: AssistantMessage
-}
-
-enum CreateAssistantConversationError {
-  WORKSPACE_NOT_FOUND
-  INVALID_INSTRUCTION_SET
-}
-
-type CreateAssistantConversationResult {
-  success: Boolean!
-  errors: [CreateAssistantConversationError!]!
-  conversation: AssistantConversation
 }
 
 extend type Mutation {
