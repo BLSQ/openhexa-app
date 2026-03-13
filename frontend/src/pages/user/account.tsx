@@ -51,8 +51,8 @@ function AccountPage() {
             <AccountAiSettings
               settings={user.aiSettings}
               labels={data.aiLabels}
-              monthlyCost={data.me.assistantMonthlyCost}
-              totalCost={data.me.assistantTotalCost}
+              monthlyCost={data.me.assistantMonthlyCost / 1_000_000}
+              totalCost={data.me.assistantTotalCost / 1_000_000}
               refetch={refetch}
             />
           )}

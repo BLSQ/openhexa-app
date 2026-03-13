@@ -76,7 +76,10 @@ class Conversation(SoftDeletedModel, Base):
         return f"Conversation({self.id}, user={self.user_id}, workspace={self.workspace_id})"
 
     @classmethod
-    def get_monthly_cost_for_user(cls, user: User) -> float:
+    def get_monthly_cost_for_user(cls, user: User) -> int:
+        """
+        Cost in microdollars (millionths of a dollar) to avoid floating-point precision loss
+        """
         now = timezone.now()
         start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         start_of_next_month = (start_of_month + timedelta(days=32)).replace(day=1)
@@ -86,14 +89,17 @@ class Conversation(SoftDeletedModel, Base):
             created_at__gte=start_of_month,
             created_at__lt=start_of_next_month,
         ).aggregate(total=Sum("cost"))["total"]
-        return float(result or 0)
+        return int((result or 0) * 1_000_000)
 
     @classmethod
-    def get_total_cost_for_user(cls, user: User) -> float:
+    def get_total_cost_for_user(cls, user: User) -> int:
+        """
+        Cost in microdollars (millionths of a dollar) to avoid floating-point precision loss
+        """
         result = Conversation.objects.filter(
             user=user,
         ).aggregate(total=Sum("cost"))["total"]
-        return float(result or 0)
+        return int((result or 0) * 1_000_000)
 
 
 class Message(Base):

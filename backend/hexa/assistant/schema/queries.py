@@ -30,7 +30,7 @@ def resolve_workspace_assistant_conversations(workspace: Workspace, info, **kwar
 def resolve_assistant_monthly_limit_exceeded(me, info, **kwargs):
     request = info.context["request"]
     monthly_cost = Conversation.get_monthly_cost_for_user(request.user)
-    return monthly_cost >= settings.ASSISTANT_MONTHLY_LIMIT
+    return monthly_cost >= settings.ASSISTANT_MONTHLY_LIMIT * 1_000_000
 
 
 @me_object.field("assistantMonthlyCost")
