@@ -1,0 +1,79 @@
+type AssistantMessagePage {
+  items: [AssistantMessage!]!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+type AssistantConversation {
+  id: UUID!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  totalInputTokens: Int!
+  totalOutputTokens: Int!
+  messages(page: Int = 1, perPage: Int = 20): AssistantMessagePage!
+}
+
+type AssistantMessage {
+  id: UUID!
+  createdAt: DateTime!
+  role: String!
+  content: String!
+  inputTokens: Int
+  outputTokens: Int
+  toolInvocations: [AssistantToolInvocation!]!
+}
+
+type AssistantToolInvocation {
+  id: UUID!
+  createdAt: DateTime!
+  toolName: String!
+  toolInput: JSON!
+  toolOutput: JSON
+  success: Boolean!
+}
+
+extend type Workspace {
+  assistantConversations: [AssistantConversation!]!
+}
+
+input CreateAssistantConversationInput {
+  workspaceSlug: String!
+  instructionSet: String
+}
+
+enum CreateAssistantConversationError {
+  WORKSPACE_NOT_FOUND
+  INVALID_INSTRUCTION_SET
+  PERMISSION_DENIED
+}
+
+type CreateAssistantConversationResult {
+  success: Boolean!
+  errors: [CreateAssistantConversationError!]!
+  conversation: AssistantConversation
+}
+
+input SendAssistantMessageInput {
+  conversationId: UUID!
+  message: String!
+}
+
+type SendAssistantMessageResult {
+  success: Boolean!
+  errors: [String!]!
+  conversation: AssistantConversation
+  message: AssistantMessage
+}
+
+extend type Mutation {
+  createAssistantConversation(input: CreateAssistantConversationInput!): CreateAssistantConversationResult!
+  sendAssistantMessage(input: SendAssistantMessageInput!): SendAssistantMessageResult!
+}
+
+extend type Query {
+  assistantConversation(id: UUID!): AssistantConversation
+}
+
+extend type Me {
+  assistantMonthlyLimitExceeded: Boolean!
+}

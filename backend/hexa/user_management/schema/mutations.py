@@ -491,7 +491,7 @@ def resolve_update_user(_, info, **kwargs):
 def resolve_update_user_ai_settings(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     mutation_input = kwargs["input"]
-    user = request.user
+    user: User = request.user
     ai_settings: AiSettings = user.ai_settings_safe
     for field_name in ["enabled", "provider", "model", "api_key"]:
         if field_name in mutation_input:

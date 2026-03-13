@@ -1,0 +1,23 @@
+mutation createAssistantConversation($input: CreateAssistantConversationInput!) {
+  createAssistantConversation(input: $input) {
+    success
+    errors
+    conversation {
+      id
+      createdAt
+    }
+  }
+}
+
+mutation sendAssistantMessage($input: SendAssistantMessageInput!) {
+  sendAssistantMessage(input: $input) {
+    success
+    errors
+    message {
+      id
+      role
+      content
+      createdAt
+    }
+  }
+}
