@@ -1,7 +1,11 @@
 mutation createAssistantConversation($input: CreateAssistantConversationInput!) {
   createAssistantConversation(input: $input) {
-    id
-    createdAt
+    success
+    errors
+    conversation {
+      id
+      createdAt
+    }
   }
 }
 

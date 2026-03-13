@@ -54,8 +54,19 @@ type SendAssistantMessageResult {
   message: AssistantMessage
 }
 
+enum CreateAssistantConversationError {
+  WORKSPACE_NOT_FOUND
+  INVALID_INSTRUCTION_SET
+}
+
+type CreateAssistantConversationResult {
+  success: Boolean!
+  errors: [CreateAssistantConversationError!]!
+  conversation: AssistantConversation
+}
+
 extend type Mutation {
-  createAssistantConversation(input: CreateAssistantConversationInput!): AssistantConversation
+  createAssistantConversation(input: CreateAssistantConversationInput!): CreateAssistantConversationResult!
   sendAssistantMessage(input: SendAssistantMessageInput!): SendAssistantMessageResult!
 }
 

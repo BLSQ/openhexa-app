@@ -474,7 +474,7 @@ export type ArchiveWorkspaceResult = {
 
 export type AssistantConversation = {
   __typename?: 'AssistantConversation';
-  cost: Scalars['Float']['output'];
+  cost: Scalars['Int']['output'];
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
   messages: AssistantMessagePage;
@@ -794,9 +794,21 @@ export type CreateAccessmodZonalStatisticsResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export enum CreateAssistantConversationError {
+  InvalidInstructionSet = 'INVALID_INSTRUCTION_SET',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
 export type CreateAssistantConversationInput = {
   instructionSet?: InputMaybe<Scalars['String']['input']>;
   workspaceSlug: Scalars['String']['input'];
+};
+
+export type CreateAssistantConversationResult = {
+  __typename?: 'CreateAssistantConversationResult';
+  conversation?: Maybe<AssistantConversation>;
+  errors: Array<CreateAssistantConversationError>;
+  success: Scalars['Boolean']['output'];
 };
 
 /** Errors that can occur when creating a folder in a workspace's bucket. */
@@ -2790,7 +2802,7 @@ export type Mutation = {
   createAccessmodProject: CreateAccessmodProjectResult;
   createAccessmodProjectMember: CreateAccessmodProjectMemberResult;
   createAccessmodZonalStatistics: CreateAccessmodZonalStatisticsResult;
-  createAssistantConversation?: Maybe<AssistantConversation>;
+  createAssistantConversation: CreateAssistantConversationResult;
   /** Create a folder in a workspace's bucket. */
   createBucketFolder: CreateBucketFolderResult;
   createConnection: CreateConnectionResult;

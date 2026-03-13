@@ -21,19 +21,20 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
             slug=input["workspace_slug"]
         )
     except Workspace.DoesNotExist:
-        return None
+        return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"], "conversation": None}
 
     try:
         raw_instruction_set = input.get("instruction_set", InstructionSet.GENERAL)
         instruction_set = InstructionSet(raw_instruction_set)
     except ValueError:
-        return None
+        return {"success": False, "errors": ["INVALID_INSTRUCTION_SET"], "conversation": None}
 
-    return Conversation.objects.create(
+    conversation = Conversation.objects.create(
         user=request.user,
         workspace=workspace,
         instruction_set=instruction_set,
     )
+    return {"success": True, "errors": [], "conversation": conversation}
 
 
 @assistant_mutations.field("sendAssistantMessage")
