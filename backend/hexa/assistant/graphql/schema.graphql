@@ -10,7 +10,7 @@ type AssistantConversation {
   updatedAt: DateTime!
   totalInputTokens: Int!
   totalOutputTokens: Int!
-  cost: Float!
+  cost: Int! # in microdollars (millionths of a dollar)
   messages(page: Int = 1, perPage: Int = 20): AssistantMessagePage!
 }
 
@@ -42,6 +42,18 @@ input CreateAssistantConversationInput {
   instructionSet: String
 }
 
+enum CreateAssistantConversationError {
+  WORKSPACE_NOT_FOUND
+  INVALID_INSTRUCTION_SET
+  PERMISSION_DENIED
+}
+
+type CreateAssistantConversationResult {
+  success: Boolean!
+  errors: [CreateAssistantConversationError!]!
+  conversation: AssistantConversation
+}
+
 input SendAssistantMessageInput {
   conversationId: UUID!
   message: String!
@@ -55,7 +67,7 @@ type SendAssistantMessageResult {
 }
 
 extend type Mutation {
-  createAssistantConversation(input: CreateAssistantConversationInput!): AssistantConversation
+  createAssistantConversation(input: CreateAssistantConversationInput!): CreateAssistantConversationResult!
   sendAssistantMessage(input: SendAssistantMessageInput!): SendAssistantMessageResult!
 }
 

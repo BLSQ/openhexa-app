@@ -34,7 +34,7 @@ def get_api_name(model: AiSettings.Model) -> str:
 class AiModelBuilder:
     def __init__(self, provider: str, model: AiSettings.Model, api_key: str):
         self._provider = provider
-        self._model_api_name = model
+        self._model_api_name = get_api_name(model)
         self._api_key = api_key
 
     @classmethod

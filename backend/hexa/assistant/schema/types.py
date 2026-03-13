@@ -12,7 +12,7 @@ assistant_tool_invocation_object = ObjectType("AssistantToolInvocation")
 def resolve_conversation_messages(
     conversation: Conversation, info, page=1, per_page=20, **kwargs
 ):
-    qs = conversation.messages.order_by("-created_at")
+    qs = conversation.messages.all()
     return result_page(queryset=qs, page=page, per_page=per_page)
 
 
@@ -23,7 +23,10 @@ def resolve_conversation_tool_invocations(message: Message, info, **kwargs):
 
 @assistant_conversation_object.field("cost")
 def resolve_conversation_cost(conversation: Conversation, info, **kwargs):
-    return float(conversation.cost)
+    """
+    Cost in microdollars (millionths of a dollar) to avoid floating-point precision loss
+    """
+    return int(conversation.cost * 1_000_000)
 
 
 bindables = [

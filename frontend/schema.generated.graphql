@@ -437,7 +437,7 @@ type ArchiveWorkspaceResult {
 }
 
 type AssistantConversation {
-  cost: Float!
+  cost: Int!
   createdAt: DateTime!
   id: UUID!
   messages(page: Int = 1, perPage: Int = 20): AssistantMessagePage!
@@ -747,9 +747,21 @@ type CreateAccessmodZonalStatisticsResult {
   success: Boolean!
 }
 
+enum CreateAssistantConversationError {
+  INVALID_INSTRUCTION_SET
+  PERMISSION_DENIED
+  WORKSPACE_NOT_FOUND
+}
+
 input CreateAssistantConversationInput {
   instructionSet: String
   workspaceSlug: String!
+}
+
+type CreateAssistantConversationResult {
+  conversation: AssistantConversation
+  errors: [CreateAssistantConversationError!]!
+  success: Boolean!
 }
 
 """Errors that can occur when creating a folder in a workspace's bucket."""
@@ -2791,7 +2803,7 @@ type Mutation {
   createAccessmodProject(input: CreateAccessmodProjectInput!): CreateAccessmodProjectResult!
   createAccessmodProjectMember(input: CreateAccessmodProjectMemberInput!): CreateAccessmodProjectMemberResult!
   createAccessmodZonalStatistics(input: CreateAccessmodZonalStatisticsInput): CreateAccessmodZonalStatisticsResult!
-  createAssistantConversation(input: CreateAssistantConversationInput!): AssistantConversation
+  createAssistantConversation(input: CreateAssistantConversationInput!): CreateAssistantConversationResult!
 
   """Create a folder in a workspace's bucket."""
   createBucketFolder(input: CreateBucketFolderInput!): CreateBucketFolderResult!

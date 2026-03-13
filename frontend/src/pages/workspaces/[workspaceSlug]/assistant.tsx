@@ -42,7 +42,7 @@ const AssistantPage: NextPageWithLayout<Props> = ({ workspaceSlug }) => {
   const [createConversation, { loading: creating }] =
     useCreateAssistantConversationMutation({
       onCompleted: (result) => {
-        const newConv = result.createAssistantConversation;
+        const newConv = result.createAssistantConversation?.conversation;
         if (newConv) {
           setSelectedConversationId(newConv.id);
           refetchPage();

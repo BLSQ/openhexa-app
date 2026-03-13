@@ -8,7 +8,7 @@ export type CreateAssistantConversationMutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateAssistantConversationMutation = { __typename?: 'Mutation', createAssistantConversation?: { __typename?: 'AssistantConversation', id: string, createdAt: any } | null };
+export type CreateAssistantConversationMutation = { __typename?: 'Mutation', createAssistantConversation: { __typename?: 'CreateAssistantConversationResult', success: boolean, errors: Array<Types.CreateAssistantConversationError>, conversation?: { __typename?: 'AssistantConversation', id: string, createdAt: any } | null } };
 
 export type SendAssistantMessageMutationVariables = Types.Exact<{
   input: Types.SendAssistantMessageInput;
@@ -21,8 +21,12 @@ export type SendAssistantMessageMutation = { __typename?: 'Mutation', sendAssist
 export const CreateAssistantConversationDocument = gql`
     mutation createAssistantConversation($input: CreateAssistantConversationInput!) {
   createAssistantConversation(input: $input) {
-    id
-    createdAt
+    success
+    errors
+    conversation {
+      id
+      createdAt
+    }
   }
 }
     `;
