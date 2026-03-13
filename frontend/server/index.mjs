@@ -58,6 +58,14 @@ app.prepare().then(async () => {
 
         return req.originalUrl;
       },
+      // MCP OAuth requires the backend to know the original public-facing host and
+      // scheme so that well-known metadata URLs match what the client expects.
+      proxyReqOptDecorator: function (proxyReqOpts, srcReq) {
+        proxyReqOpts.headers["X-Forwarded-Host"] = srcReq.headers.host;
+        proxyReqOpts.headers["X-Forwarded-Proto"] =
+          srcReq.headers["x-forwarded-proto"] || srcReq.protocol;
+        return proxyReqOpts;
+      },
       limit: max_request_body_size,
     }),
   );
