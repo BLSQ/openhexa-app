@@ -9,7 +9,7 @@ import logo from "public/images/logo.svg";
 import { ReactElement, useState } from "react";
 import { useTranslation } from "next-i18next";
 
-const TABS = ["claude-code", "claude-desktop", "gemini", "chatgpt"] as const;
+const TABS = ["gemini", "claude-code", "claude-desktop", "chatgpt"] as const;
 type Tab = (typeof TABS)[number];
 
 const TAB_LABELS: Record<Tab, string> = {
@@ -53,7 +53,7 @@ type McpWikiPageProps = {
 
 const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<Tab>("claude-code");
+  const [activeTab, setActiveTab] = useState<Tab>(TABS[0]);
 
   return (
     <Page title={t("MCP Setup Guide")}>
@@ -179,29 +179,26 @@ const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
             <div>
               <h2 className="mb-3 text-lg font-semibold">{t("Setup")}</h2>
               <p className="mb-3 text-sm leading-relaxed text-gray-700">
-                {t(
-                  "Add the following to your Gemini CLI settings file (~/.gemini/settings.json):",
-                )}
+                {t("Run the following command in your terminal:")}
               </p>
               <CodeBlock
-                text={JSON.stringify(
-                  {
-                    mcpServers: {
-                      openhexa: {
-                        httpUrl: mcpUrl,
-                        oauth: {
-                          enabled: true,
-                        },
-                      },
-                    },
-                  },
-                  null,
-                  2,
-                )}
+                text={`gemini mcp add --transport http openhexa ${mcpUrl}`}
               />
+
+              <h2 className="mb-3 text-lg font-semibold">
+                {t("Authenticate")}
+              </h2>
+              <p className="mb-3 text-sm leading-relaxed text-gray-700">
+                {t("Start Gemini CLI:")}
+              </p>
+              <CodeBlock text="gemini" />
+              <p className="mb-3 text-sm leading-relaxed text-gray-700">
+                {t("Then run the following command inside Gemini:")}
+              </p>
+              <CodeBlock text="/mcp auth openhexa" />
               <p className="text-sm leading-relaxed text-gray-700">
                 {t(
-                  "Gemini CLI will open a browser window to complete the OAuth authorization on first use.",
+                  "A browser window will open to complete the OAuth authorization.",
                 )}
               </p>
             </div>
