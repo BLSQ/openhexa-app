@@ -239,6 +239,7 @@ _TERMINAL_STATES = {
     PipelineRunState.SKIPPED,
 }
 
+
 async def _message_stream(run: PipelineRun, cursor: int):
     refresh = sync_to_async(lambda: run.refresh_from_db(fields=["messages", "state"]))
     start = time.monotonic()
