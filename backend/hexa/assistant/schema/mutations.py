@@ -22,14 +22,22 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
             slug=input["workspace_slug"]
         )
     except Workspace.DoesNotExist:
-        return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"], "conversation": None}
+        return {
+            "success": False,
+            "errors": ["WORKSPACE_NOT_FOUND"],
+            "conversation": None,
+        }
 
     raw_instruction_set = input.get("instruction_set", InstructionSet.GENERAL)
     try:
         instruction_set = InstructionSet(raw_instruction_set)
     except ValueError:
         logger.warning("Invalid instruction set %s", raw_instruction_set)
-        return {"success": False, "errors": ["INVALID_INSTRUCTION_SET"], "conversation": None}
+        return {
+            "success": False,
+            "errors": ["INVALID_INSTRUCTION_SET"],
+            "conversation": None,
+        }
 
     try:
         conversation = Conversation.objects.create_if_has_perm(
