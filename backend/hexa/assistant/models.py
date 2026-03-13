@@ -104,10 +104,10 @@ class Message(Base):
     cost = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
 
     class Meta:
-        ordering = ["created_at"]
+        ordering = ["-created_at"]
         indexes = [
             models.Index(
-                fields=["conversation", "role", "created_at"],
+                fields=["conversation", "role", "-created_at"],
                 include=["cost"],
                 name="assistant_message_cost_idx",
             ),

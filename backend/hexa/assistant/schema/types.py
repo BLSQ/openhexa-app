@@ -12,7 +12,7 @@ assistant_tool_invocation_object = ObjectType("AssistantToolInvocation")
 def resolve_conversation_messages(
     conversation: Conversation, info, page=1, per_page=20, **kwargs
 ):
-    qs = conversation.messages.order_by("-created_at")
+    qs = conversation.messages.all()
     return result_page(queryset=qs, page=page, per_page=per_page)
 
 

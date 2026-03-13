@@ -125,10 +125,10 @@ class Migration(migrations.Migration):
                 ),
             ],
             options={
-                "ordering": ["created_at"],
+                "ordering": ["-created_at"],
                 "indexes": [
                     models.Index(
-                        fields=["conversation", "role", "created_at"],
+                        fields=["conversation", "role", "-created_at"],
                         include=["cost"],
                         name="assistant_message_cost_idx",
                     ),
