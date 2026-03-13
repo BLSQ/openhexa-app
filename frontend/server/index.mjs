@@ -46,6 +46,12 @@ app.prepare().then(async () => {
           ? req.path.replace(api_base_path, "") || "/"
           : req.path;
 
+        // Let Next.js handle GET requests to MCP pages while still proxying
+        // API sub-routes (e.g. /mcp/tools.json) and POST/DELETE to the backend.
+        if (req.method === "GET" && realPath.startsWith("/mcp") && !realPath.includes(".")) {
+          return false;
+        }
+
         return API_PATHS.some((path) => realPath.startsWith(path));
       },
       // Decides what path to send to the backend.
