@@ -10,7 +10,6 @@ type AssistantConversation {
   updatedAt: DateTime!
   totalInputTokens: Int!
   totalOutputTokens: Int!
-  cost: Int! # in microdollars (millionths of a dollar)
   messages(page: Int = 1, perPage: Int = 20): AssistantMessagePage!
 }
 

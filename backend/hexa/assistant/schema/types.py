@@ -21,14 +21,6 @@ def resolve_conversation_tool_invocations(message: Message, info, **kwargs):
     return message.tool_invocations.all()
 
 
-@assistant_conversation_object.field("cost")
-def resolve_conversation_cost(conversation: Conversation, info, **kwargs):
-    """
-    Cost in microdollars (millionths of a dollar) to avoid floating-point precision loss
-    """
-    return int(conversation.cost * 1_000_000)
-
-
 bindables = [
     assistant_conversation_object,
     assistant_message_object,
