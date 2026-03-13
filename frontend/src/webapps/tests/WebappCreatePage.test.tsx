@@ -106,6 +106,7 @@ const graphqlMocks: MockedResponse[] = [
           errors: [],
           webapp: {
             id: "1",
+            slug: "test-webapp",
           },
         },
       },
@@ -127,7 +128,7 @@ describe("WebappCreatePage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("New Webapp")).toBeInTheDocument();
+      expect(screen.getByText("Webapp Details")).toBeInTheDocument();
     });
 
     const nameParent = screen
@@ -159,7 +160,9 @@ describe("WebappCreatePage", () => {
       expect(toast.success).toHaveBeenCalledWith("Webapp created successfully");
     });
 
-    expect(mockRouter.asPath).toBe("/workspaces/test-workspace/webapps");
+    expect(mockRouter.asPath).toBe(
+      "/workspaces/test-workspace/webapps/test-webapp",
+    );
   });
 
   it("handles null webapp response", async () => {
@@ -230,7 +233,7 @@ describe("WebappCreatePage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("New Webapp")).toBeInTheDocument();
+      expect(screen.getByText("Webapp Details")).toBeInTheDocument();
     });
 
     const nameParent = screen
@@ -327,7 +330,7 @@ describe("WebappCreatePage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("New Webapp")).toBeInTheDocument();
+      expect(screen.getByText("Webapp Details")).toBeInTheDocument();
     });
 
     const nameParent = screen

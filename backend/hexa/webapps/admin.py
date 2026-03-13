@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from hexa.webapps.models import SupersetWebapp, Webapp
+from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 
 
 @admin.register(Webapp)
@@ -17,6 +17,23 @@ class WebappAdmin(admin.ModelAdmin):
         "type",
         "is_public",
     )
+
+
+@admin.register(GitWebapp)
+class GitWebappAdmin(admin.ModelAdmin):
+    list_display = ("name", "workspace", "repository", "published_commit", "is_public")
+    list_filter = ("workspace",)
+    search_fields = ("id", "name", "repository")
+    fields = (
+        "name",
+        "description",
+        "workspace",
+        "created_by",
+        "repository",
+        "published_commit",
+        "is_public",
+    )
+    readonly_fields = ("repository",)
 
 
 class SupersetWebappInline(admin.StackedInline):

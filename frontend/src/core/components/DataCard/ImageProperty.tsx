@@ -36,7 +36,8 @@ const ImageProperty = (props: ImagePropertyProps) => {
     }
   };
 
-  const imageSrc = property.formValue || property.displayValue || placeholder;
+  const rawSrc = property.formValue || property.displayValue || placeholder;
+  const imageSrc = typeof rawSrc === "object" && rawSrc?.src ? rawSrc.src : rawSrc;
 
   if (section.isEdited && !property.readonly) {
     return (

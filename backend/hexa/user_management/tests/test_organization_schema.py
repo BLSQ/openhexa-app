@@ -1,11 +1,12 @@
 import base64
 import uuid
 from datetime import date, timedelta
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from slugify import slugify
 
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import (
@@ -633,8 +634,12 @@ class OrganizationUpdateDeleteTest(GraphQLTestCase, OrganizationTestMixin):
 
         self.valid_logo = _create_test_image()
 
-    def test_update_organization_name_success(self):
-        """Test successful organization name update by owner."""
+    @patch("hexa.user_management.schema.mutations.get_forgejo_client")
+    def test_update_organization_name_success(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        old_slug = self.organization.slug
         self.client.force_login(self.owner)
         r = self.run_query(
             """
@@ -671,6 +676,9 @@ class OrganizationUpdateDeleteTest(GraphQLTestCase, OrganizationTestMixin):
 
         self.organization.refresh_from_db()
         self.assertEqual(self.organization.name, "Updated Organization Name")
+        mock_client.rename_organization.assert_called_once_with(
+            old_slug, slugify("Updated Organization Name"), "Updated Organization Name"
+        )
 
     def test_update_organization_short_name_success(self):
         """Test successful organization short name update."""
@@ -913,7 +921,8 @@ class OrganizationUpdateDeleteTest(GraphQLTestCase, OrganizationTestMixin):
             r["data"]["updateOrganization"],
         )
 
-    def test_update_organization_by_admin_success(self):
+    @patch("hexa.user_management.schema.mutations.get_forgejo_client")
+    def test_update_organization_by_admin_success(self, mock_get_client):
         """Test that admin can also update organization."""
         self.client.force_login(self.admin)
         r = self.run_query(
@@ -1013,8 +1022,10 @@ class OrganizationUpdateDeleteTest(GraphQLTestCase, OrganizationTestMixin):
             r["data"]["updateOrganization"],
         )
 
-    def test_delete_organization_success(self):
+    @patch("hexa.user_management.models.get_forgejo_client")
+    def test_delete_organization_success(self, mock_get_client):
         """Test successful organization deletion by owner (soft delete)."""
+        mock_get_client.return_value.list_org_repositories.return_value = []
         org_to_delete = self.create_organization(
             self.owner, "Organization to Delete", "Description", short_name="DEL1"
         )

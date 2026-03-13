@@ -1,7 +1,7 @@
 from ariadne import ObjectType, UnionType
 
 from hexa.utils.base64_image_encode_decode import encode_base64_image
-from hexa.webapps.models import SupersetWebapp, Webapp
+from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 
 webapp_permissions = ObjectType("WebappPermissions")
 webapp_object = ObjectType("Webapp")
@@ -41,6 +41,9 @@ def resolve_workspace(webapp: Webapp, info, **kwargs):
 
 @webapp_object.field("url")
 def resolve_url(webapp: Webapp, info, **kwargs):
+    if webapp.type == Webapp.WebappType.STATIC:
+        request = info.context["request"]
+        return request.build_absolute_uri(f"/webapps/{webapp.id}/")
     return webapp.url
 
 
@@ -63,6 +66,8 @@ def resolve_type(webapp: Webapp, info, **kwargs):
 def resolve_webapp_source_type(obj, *_):
     if "instance" in obj:
         return "SupersetSource"
+    if "repository" in obj:
+        return "GitSource"
     return "IframeSource"
 
 
@@ -77,7 +82,29 @@ def resolve_source(webapp: Webapp, info, **kwargs):
             "instance": dashboard.superset_instance,
             "dashboard_id": dashboard.external_id,
         }
+    if webapp.type == Webapp.WebappType.STATIC:
+        git_webapp = GitWebapp.objects.get(pk=webapp.pk)
+        return {
+            "repository": git_webapp.repository,
+            "published_version": git_webapp.published_commit,
+        }
     return {"url": webapp.url}
+
+
+@webapp_object.field("versions")
+def resolve_versions(webapp: Webapp, info, page=None, per_page=None, **kwargs):
+    if webapp.type != Webapp.WebappType.STATIC:
+        return None
+    git_webapp = GitWebapp.objects.get(pk=webapp.pk)
+    return git_webapp.get_versions(page=page or 1, per_page=per_page or 20)
+
+
+@webapp_object.field("files")
+def resolve_files(webapp: Webapp, info, ref=None, **kwargs):
+    if webapp.type != Webapp.WebappType.STATIC:
+        return None
+    git_webapp = GitWebapp.objects.get(pk=webapp.pk)
+    return git_webapp.get_files(ref=ref or "main")
 
 
 @webapp_permissions.field("update")

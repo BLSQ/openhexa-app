@@ -41,6 +41,7 @@ import { TemplateLayout_TemplateFragmentDoc } from '../layouts/TemplateLayout/Te
 import { TemplateVersionCard_VersionFragmentDoc } from '../../pipelines/features/TemplateVersionCard/TemplateVersionCard.generated';
 import { WebappCard_WebappFragmentDoc } from '../../webapps/features/WebappCard/WebappCard.generated';
 import { WebappForm_WorkspaceFragmentDoc, WebappForm_WebappFragmentDoc } from '../../webapps/features/WebappForm/WebappForm.generated';
+import { WebappLayout_WorkspaceFragmentDoc, WebappLayout_WebappFragmentDoc } from '../layouts/WebappLayout/WebappLayout.generated';
 import { WorkspacePicker_ValueFragmentDoc } from '../features/WorkspacePicker/WorkspacePicker.generated';
 import { WorkspaceMemberPicker_WorkspaceFragmentDoc } from '../features/WorkspaceMemberPicker/WorkspaceMemberPicker.generated';
 import { WorkspaceConnectionPicker_WorkspaceFragmentDoc } from '../features/WorkspaceConnectionPicker/WorkspaceConnectionPicker.generated';
@@ -283,7 +284,7 @@ export type WorkspaceWebappPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceWebappPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } } | null } | null, webapp?: { __typename?: 'Webapp', id: string, slug: string, name: string, description?: string | null, url: string, type: Types.WebappType, icon?: string | null, isPublic: boolean, source: { __typename?: 'IframeSource' } | { __typename?: 'SupersetSource', dashboardId: string, instance: { __typename?: 'SupersetInstance', id: string, name: string, url: string } }, permissions: { __typename?: 'WebappPermissions', update: boolean, delete: boolean } } | null };
+export type WorkspaceWebappPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, permissions: { __typename?: 'WorkspacePermissions', launchNotebookServer: boolean, manageMembers: boolean, update: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } } | null } | null, webapp?: { __typename?: 'Webapp', id: string, slug: string, name: string, description?: string | null, url: string, type: Types.WebappType, icon?: string | null, isPublic: boolean, source: { __typename?: 'GitSource', publishedVersion?: string | null } | { __typename?: 'IframeSource' } | { __typename?: 'SupersetSource', dashboardId: string, instance: { __typename?: 'SupersetInstance', id: string, name: string, url: string } }, permissions: { __typename?: 'WebappPermissions', update: boolean, delete: boolean } } | null };
 
 export type PipelineVersionPickerQueryVariables = Types.Exact<{
   pipelineId: Types.Scalars['UUID']['input'];
@@ -2048,13 +2049,17 @@ export const WorkspaceWebappPageDocument = gql`
     query WorkspaceWebappPage($workspaceSlug: String!, $webappSlug: String!) {
   workspace(slug: $workspaceSlug) {
     ...WebappForm_workspace
+    ...WebappLayout_workspace
   }
   webapp: webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
     ...WebappForm_webapp
+    ...WebappLayout_webapp
   }
 }
     ${WebappForm_WorkspaceFragmentDoc}
-${WebappForm_WebappFragmentDoc}`;
+${WebappLayout_WorkspaceFragmentDoc}
+${WebappForm_WebappFragmentDoc}
+${WebappLayout_WebappFragmentDoc}`;
 
 /**
  * __useWorkspaceWebappPageQuery__

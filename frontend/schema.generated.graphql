@@ -2320,6 +2320,11 @@ type GenericOutput {
   uri: String!
 }
 
+type GitSource {
+  publishedVersion: String
+  repository: String!
+}
+
 """IASO connection object"""
 type IASOConnection implements Connection {
   createdAt: DateTime!
@@ -5078,19 +5083,23 @@ type UpdateUserResult {
 enum UpdateWebappError {
   INVALID_URL
   PERMISSION_DENIED
+  SAVE_FAILED
   SUPERSET_INSTANCE_NOT_FOUND
   SUPERSET_NOT_CONFIGURED
   TYPE_MISMATCH
+  VERSION_NOT_FOUND
   WEBAPP_NOT_FOUND
 }
 
 """Represents the input for updating a web app."""
 input UpdateWebappInput {
   description: String
+  files: [WebappFileInput!]
   icon: String
   id: UUID!
   isPublic: Boolean
   name: String
+  publishedVersionId: String
   source: UpdateWebappSourceInput
 }
 
@@ -5282,6 +5291,7 @@ type WHORegion {
 type Webapp {
   createdBy: User!
   description: String
+  files(ref: String): [FileNode!]
   icon: String
   id: UUID!
   isFavorite: Boolean!
@@ -5293,7 +5303,13 @@ type Webapp {
   source: WebappSource!
   type: WebappType!
   url: String!
+  versions(page: Int, perPage: Int): WebappVersionsPage
   workspace: Workspace!
+}
+
+input WebappFileInput {
+  content: String!
+  path: String!
 }
 
 """Represents the permissions for a web app."""
@@ -5302,22 +5318,35 @@ type WebappPermissions {
   update: Boolean!
 }
 
-union WebappSource = IframeSource | SupersetSource
+union WebappSource = GitSource | IframeSource | SupersetSource
 
 """
 Source configuration for a webapp - exactly one field must be provided.
 """
 input WebappSourceInput @oneOf {
   iframe: IframeSourceInput
+  static: [WebappFileInput!]
   superset: SupersetSourceInput
 }
 
 """Represents the type of a web app."""
 enum WebappType {
-  BUNDLE
-  HTML
   IFRAME
+  STATIC
   SUPERSET
+}
+
+type WebappVersion {
+  authorEmail: String!
+  authorName: String!
+  date: DateTime!
+  id: String!
+  message: String!
+}
+
+type WebappVersionsPage {
+  items: [WebappVersion!]!
+  page: Int!
 }
 
 """Represents a page of webapps."""

@@ -46,6 +46,7 @@ urlpatterns = [
     path("mcp", mcp_endpoint, name="mcp_endpoint_no_slash"),
     path("mcp/", include("hexa.mcp.urls", namespace="mcp")),
     path(".well-known/", include("hexa.oauth.wellknown_urls")),
+    path("webapps/", include("hexa.webapps.urls", namespace="webapps")),
     # Order matters, we override the default logout view defined later
     # We do this to logout the user from jupyterhub at the end of the openhexa
     # session. the jupyterhub will redirect to the openhexa login after it

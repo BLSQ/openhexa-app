@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock, patch
+
 from django.core.exceptions import PermissionDenied
 from django.test import TestCase
 
@@ -163,3 +165,53 @@ class CreateWorkspacePermissionTests(TestCase):
     def test_non_org_member_cannot_create(self):
         organization = Organization.objects.create(name="Test Org")
         self.assertFalse(create_workspace(self.admin, organization))
+
+
+class OrganizationGitLifecycleTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="gituser@example.com", password="password"
+        )
+        self.organization = Organization.objects.create(
+            name="Git Test Org",
+            organization_type="CORPORATE",
+        )
+
+    @patch("hexa.user_management.models.get_forgejo_client")
+    def test_archive_git_org_on_delete(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+        mock_client.list_org_repositories.return_value = [
+            {"name": "repo-1", "archived": False},
+            {"name": "repo-2", "archived": False},
+        ]
+
+        self.organization.delete()
+
+        org_slug = self.organization.slug
+        mock_client.list_org_repositories.assert_called_once_with(org_slug)
+        self.assertEqual(mock_client.archive_repository.call_count, 2)
+        mock_client.archive_repository.assert_any_call(org_slug, "repo-1")
+        mock_client.archive_repository.assert_any_call(org_slug, "repo-2")
+
+    @patch("hexa.user_management.models.get_forgejo_client")
+    def test_unarchive_git_org_on_restore(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+        mock_client.list_org_repositories.return_value = [
+            {"name": "repo-1", "archived": True},
+            {"name": "repo-2", "archived": False},
+        ]
+
+        self.organization.delete()
+        mock_client.reset_mock()
+        mock_client.list_org_repositories.return_value = [
+            {"name": "repo-1", "archived": True},
+            {"name": "repo-2", "archived": False},
+        ]
+
+        self.organization.restore()
+
+        org_slug = self.organization.slug
+        mock_client.list_org_repositories.assert_called_once_with(org_slug)
+        mock_client.unarchive_repository.assert_called_once_with(org_slug, "repo-1")

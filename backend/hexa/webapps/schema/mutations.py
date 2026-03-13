@@ -1,13 +1,18 @@
+import logging
+
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import URLValidator
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 
+from hexa.git.forgejo import ForgejoAPIError
 from hexa.superset.models import SupersetInstance
 from hexa.utils.base64_image_encode_decode import decode_base64_image
-from hexa.webapps.models import SupersetWebapp, Webapp
+from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 from hexa.workspaces.models import Workspace
+
+logger = logging.getLogger(__name__)
 
 webapps_mutations = MutationType()
 
@@ -60,6 +65,25 @@ def resolve_create_webapp(_, info, **kwargs):
                     created_by=user,
                     superset_instance=superset_instance,
                     external_dashboard_id=source["superset"]["dashboard_id"],
+                )
+            elif "static" in source:
+                files_input = source["static"]
+                files = (
+                    [{"path": f["path"], "content": f["content"]} for f in files_input]
+                    if files_input
+                    else None
+                )
+
+                webapp = GitWebapp.create_if_has_perm(
+                    principal=user,
+                    workspace=workspace,
+                    name=input["name"],
+                    description=input.get("description", ""),
+                    icon=icon,
+                    is_public=is_public,
+                    created_by=user,
+                    webapp_type=Webapp.WebappType.STATIC,
+                    files=files,
                 )
             else:
                 webapp = Webapp.objects.create_if_has_perm(
@@ -119,7 +143,7 @@ def resolve_update_webapp(_, info, **kwargs):
 
         webapp = SupersetWebapp.objects.get(pk=webapp.pk)
         webapp.update_dashboard(superset_instance, source["superset"]["dashboard_id"])
-    elif source:
+    elif source and "iframe" in source:
         if webapp.type != Webapp.WebappType.IFRAME:
             return {"success": False, "errors": ["TYPE_MISMATCH"], "webapp": None}
         try:
@@ -136,6 +160,34 @@ def resolve_update_webapp(_, info, **kwargs):
         webapp.icon = decode_base64_image(input["icon"]) if input["icon"] else None
     if "is_public" in input:
         webapp.is_public = input["is_public"]
+
+    if input.get("files") is not None or input.get("published_version_id") is not None:
+        try:
+            git_webapp = GitWebapp.objects.get(pk=webapp.pk)
+        except GitWebapp.DoesNotExist:
+            return {"success": False, "errors": ["WEBAPP_NOT_FOUND"], "webapp": None}
+
+        if input.get("files") is not None:
+            files = [
+                {"path": f["path"], "content": f["content"]} for f in input["files"]
+            ]
+            try:
+                git_webapp.save_files(files, "Update webapp content", user)
+            except ForgejoAPIError as e:
+                logger.error("Failed to save webapp files: %s", e)
+                return {"success": False, "errors": ["SAVE_FAILED"], "webapp": None}
+
+        if input.get("published_version_id") is not None:
+            try:
+                git_webapp.publish_version(input["published_version_id"])
+            except ValueError:
+                return {
+                    "success": False,
+                    "errors": ["VERSION_NOT_FOUND"],
+                    "webapp": None,
+                }
+
+        webapp = git_webapp
 
     try:
         webapp.save()

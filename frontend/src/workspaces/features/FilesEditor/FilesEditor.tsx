@@ -154,6 +154,18 @@ export const FilesEditor = ({
     files.filter((file) => file.autoSelect)[0] || null,
   );
 
+  useEffect(() => {
+    if (files.length === 0) {
+      setSelectedFile(null);
+      return;
+    }
+    const stillExists = selectedFile && files.find((f) => f.id === selectedFile.id);
+    if (!stillExists) {
+      const autoSelected = files.find((file) => file.autoSelect);
+      setSelectedFile(autoSelected ?? null);
+    }
+  }, [files, selectedFile]);
+
   const [isPanelOpen, setIsPanelOpen] = useFilesEditorPanelOpen();
   const [isClient, setIsClient] = useState(false);
 
