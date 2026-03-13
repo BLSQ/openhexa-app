@@ -241,36 +241,45 @@ const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
 
           {activeTab === "chatgpt" && (
             <div>
-              <h2 className="mb-3 text-lg font-semibold">{t("Setup")}</h2>
+              <h2 className="mb-3 text-lg font-semibold">
+                {t("Prerequisites")}
+              </h2>
               <p className="mb-3 text-sm leading-relaxed text-gray-700">
+                {t("Developer mode must be enabled first. Go to")}{" "}
+                <strong>{t("Settings")}</strong> &rarr;{" "}
+                <strong>{t("Apps")}</strong> &rarr;{" "}
+                <strong>{t("Advanced settings")}</strong>{" "}
+                {t("and turn on Developer mode.")}
+              </p>
+              <p className="mb-6 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
                 {t(
-                  "In ChatGPT, click on the Tools menu, then select Add MCP tool.",
+                  "This feature may require a paying subscription to ChatGPT.",
                 )}
               </p>
+
+              <h2 className="mb-3 text-lg font-semibold">{t("Setup")}</h2>
               <ol className="list-decimal space-y-2 pl-6 text-sm leading-relaxed text-gray-700">
                 <li>
-                  {t("Paste the following URL in the configuration field:")}
+                  {t("Go to")} <strong>{t("Settings")}</strong> &rarr;{" "}
+                  <strong>{t("Apps")}</strong> &rarr;{" "}
+                  <strong>{t("Add custom app")}</strong>
                 </li>
+                <li>
+                  {t("Set the Name to:")}{" "}
+                  <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs">
+                    OpenHEXA
+                  </code>
+                </li>
+                <li>{t("Set the Remote MCP Server URL to:")}</li>
               </ol>
               <div className="my-3">
                 <CodeBlock text={mcpUrl} />
               </div>
-              <ol
-                start={2}
-                className="list-decimal space-y-2 pl-6 text-sm leading-relaxed text-gray-700"
-              >
-                <li>{t("Click Connect.")}</li>
-                <li>
-                  {t(
-                    "A browser window will open to authorize access to your OpenHEXA account.",
-                  )}
-                </li>
-                <li>
-                  {t(
-                    "Once authorized, OpenHEXA tools will be available in your conversation.",
-                  )}
-                </li>
-              </ol>
+              <p className="text-sm leading-relaxed text-gray-700">
+                {t(
+                  "Connect the connector by following instructions and browser redirections.",
+                )}
+              </p>
 
               <VerifySection />
             </div>
