@@ -28,7 +28,7 @@ def setup_sentry(dsn):
             wsgi_environ = sampling_context.get("wsgi_environ", {})
             path = asgi_scope.get("path") or wsgi_environ.get("PATH_INFO")
             # Monitoring endpoints
-            if path and path.startswith("/ready"):
+            if path.startswith("/ready"):
                 return 0
 
         # Default sample rate for everything else
