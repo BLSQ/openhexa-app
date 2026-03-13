@@ -6,7 +6,7 @@
   "{{count}} selected___one": "{{count}} selected",
   "{{count}} selected___other": "{{count}} selected",
   "{{count}} tool___one": "{{count}} tool",
-  "{{count}} tool___other": "{{count}} tool",
+  "{{count}} tool___other": "{{count}} tools",
   "{{files}} is not a valid file___one": "{{files}} is not a valid file",
   "{{files}} is not a valid file___other": "{{files}} is not a valid file",
   "{{value}}d": "{{value}}d",

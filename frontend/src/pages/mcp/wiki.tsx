@@ -10,8 +10,8 @@ import { useTranslation } from "next-i18next";
 
 const TABS = [
   "gemini",
-  "claude",
   "claude-code",
+  "claude",
   "claude-desktop",
   "chatgpt",
 ] as const;
@@ -120,35 +120,28 @@ const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
           {activeTab === "claude" && (
             <div>
               <h2 className="mb-3 text-lg font-semibold">{t("Setup")}</h2>
-              <p className="mb-3 text-sm leading-relaxed text-gray-700">
-                {t(
-                  "In Claude, open the Integrations menu, then click Add more integrations.",
-                )}
-              </p>
               <ol className="list-decimal space-y-2 pl-6 text-sm leading-relaxed text-gray-700">
                 <li>
-                  {t("Paste the following URL in the configuration field:")}
+                  {t("Go to")} <strong>{t("Settings")}</strong> &rarr;{" "}
+                  <strong>{t("Connectors")}</strong> &rarr;{" "}
+                  <strong>{t("Add custom connector")}</strong>
                 </li>
+                <li>
+                  {t("Set the Name to:")}{" "}
+                  <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs">
+                    OpenHEXA
+                  </code>
+                </li>
+                <li>{t("Set the Remote MCP Server URL to:")}</li>
               </ol>
               <div className="my-3">
                 <CodeBlock text={mcpUrl} />
               </div>
-              <ol
-                start={2}
-                className="list-decimal space-y-2 pl-6 text-sm leading-relaxed text-gray-700"
-              >
-                <li>{t("Click Connect.")}</li>
-                <li>
-                  {t(
-                    "A browser window will open to authorize access to your OpenHEXA account.",
-                  )}
-                </li>
-                <li>
-                  {t(
-                    "Once authorized, OpenHEXA tools will be available in your conversation.",
-                  )}
-                </li>
-              </ol>
+              <p className="text-sm leading-relaxed text-gray-700">
+                {t(
+                  "Connect the connector by following instructions and browser redirections.",
+                )}
+              </p>
 
               <VerifySection />
             </div>
@@ -188,46 +181,26 @@ const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
           {activeTab === "claude-desktop" && (
             <div>
               <h2 className="mb-3 text-lg font-semibold">{t("Setup")}</h2>
-              <p className="mb-3 text-sm leading-relaxed text-gray-700">
-                {t(
-                  "Open Claude Desktop settings and navigate to the MCP configuration file. Add the following to your claude_desktop_config.json:",
-                )}
-              </p>
-              <CodeBlock
-                text={JSON.stringify(
-                  {
-                    mcpServers: {
-                      openhexa: {
-                        url: mcpUrl,
-                      },
-                    },
-                  },
-                  null,
-                  2,
-                )}
-              />
-
-              <h2 className="mb-3 text-lg font-semibold">
-                {t("Configuration file location")}
-              </h2>
-              <ul className="mb-4 list-disc space-y-1 pl-6 text-sm leading-relaxed text-gray-700">
+              <ol className="list-decimal space-y-2 pl-6 text-sm leading-relaxed text-gray-700">
                 <li>
-                  <strong>macOS:</strong>{" "}
-                  <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs">
-                    ~/Library/Application
-                    Support/Claude/claude_desktop_config.json
-                  </code>
+                  {t("Go to")} <strong>{t("Settings")}</strong> &rarr;{" "}
+                  <strong>{t("Connectors")}</strong> &rarr;{" "}
+                  <strong>{t("Add custom connector")}</strong>
                 </li>
                 <li>
-                  <strong>Windows:</strong>{" "}
+                  {t("Set the Name to:")}{" "}
                   <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs">
-                    %APPDATA%\Claude\claude_desktop_config.json
+                    OpenHEXA
                   </code>
                 </li>
-              </ul>
+                <li>{t("Set the Remote MCP Server URL to:")}</li>
+              </ol>
+              <div className="my-3">
+                <CodeBlock text={mcpUrl} />
+              </div>
               <p className="text-sm leading-relaxed text-gray-700">
                 {t(
-                  "Restart Claude Desktop. A browser window will open to authorize access when you first use an OpenHEXA tool.",
+                  "Connect the connector by following instructions and browser redirections.",
                 )}
               </p>
 
@@ -242,7 +215,7 @@ const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
                 {t("Run the following command in your terminal:")}
               </p>
               <CodeBlock
-                text={`gemini mcp add --transport http openhexa ${mcpUrl}`}
+                text={`gemini mcp add openhexa --transport http ${mcpUrl}`}
               />
 
               <h2 className="mb-3 text-lg font-semibold">
