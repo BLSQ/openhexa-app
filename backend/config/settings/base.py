@@ -129,7 +129,7 @@ if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
         ","
     )
 
-CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$|^/mcp/|^/oauth/|^/\.well-known/"
+CORS_URLS_REGEX = r"^/graphql/(\w+/)?|^/analytics/track/|^/files/[\w/]+/?$|^/pipelines/runs/[^/]+/messages/stream/|^/mcp/|^/oauth/|^/\.well-known/"
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = list(default_headers) + [

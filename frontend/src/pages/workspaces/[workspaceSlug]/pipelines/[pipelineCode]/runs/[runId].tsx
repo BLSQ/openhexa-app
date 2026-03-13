@@ -15,7 +15,6 @@ import User from "core/features/User";
 import { createGetServerSideProps } from "core/helpers/page";
 import { formatDuration } from "core/helpers/time";
 import { NextPageWithLayout } from "core/helpers/types";
-import useInterval from "core/hooks/useInterval";
 import {
   PipelineParameter,
   PipelineRunStatus,
@@ -27,7 +26,8 @@ import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import RunLogs from "pipelines/features/RunLogs";
 import RunMessages from "pipelines/features/RunMessages";
-import { useCallback, useMemo, useState } from "react";
+import usePipelineRunMessages from "pipelines/hooks/usePipelineRunMessages/usePipelineRunMessages";
+import { useMemo, useState } from "react";
 import RunOutputsTable from "workspaces/features/RunOutputsTable";
 import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
 import StopPipelineDialog from "workspaces/features/StopPipelineDialog";
@@ -61,22 +61,20 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
     [data],
   );
 
-  const refreshInterval = useMemo(() => {
-    switch (data?.pipelineRun?.status) {
-      case PipelineRunStatus.Queued:
-      case PipelineRunStatus.Terminating:
-        return 0.5 * 1000; // 2 times per second
-      case PipelineRunStatus.Running:
-        return 0.25 * 1000; // 4 times per second
-      default:
-        return null;
-    }
-  }, [data]);
+  const runStatus = data?.pipelineRun?.status;
+  const runId_ = data?.pipelineRun?.id ?? runId;
+
+  const isTerminal = [
+    PipelineRunStatus.Failed,
+    PipelineRunStatus.Success,
+    PipelineRunStatus.Stopped,
+    PipelineRunStatus.Skipped,
+  ].includes(runStatus as PipelineRunStatus);
+
+  const { messages: sseMessages, isStreaming, streamError } = usePipelineRunMessages(runId_, isTerminal, refetch);
 
   const [isStopPipelineDialogOpen, setIsStopPipelineDialogOpen] =
     useState(false);
-
-  useInterval(useCallback(refetch, [refetch]), refreshInterval);
 
   const isFinished =
     data?.pipelineRun &&
@@ -255,7 +253,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                     title={run.executionDate}
                     suppressHydrationWarning={true}
                   >
-                    <PipelineRunStatusBadge run={run} />
+                    <PipelineRunStatusBadge run={run} polling={false} />
                   </div>
                 </div>
               </div>
@@ -348,7 +346,13 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
             )}
             <Block.Section title={t("Messages")}>
               {/* Set a ref to the component to recreate it completely when the run id changes.  */}
-              <RunMessages key={run.id} run={run} />
+              <RunMessages
+                key={run.id}
+                run={run}
+                messages={isTerminal ? undefined : sseMessages}
+                isStreaming={isStreaming}
+                streamError={streamError}
+              />
             </Block.Section>
             <Block.Section title={t("Logs")} collapsible defaultOpen={false}>
               <RunLogs run={run} />
