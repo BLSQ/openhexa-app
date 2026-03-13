@@ -6,8 +6,6 @@
 #
 affine==2.4.0
     # via rasterio
-a2wsgi==1.10.8
-    # via -r requirements.in
 annotated-types==0.7.0
     # via pydantic
 anthropic==0.84.0
@@ -609,6 +607,8 @@ werkzeug==3.1.6
     # via moto
 wheel==0.46.2
     # via pip-tools
+uvicorn==0.34.0
+    # via -r requirements.in
 whitenoise==6.9.0
     # via -r requirements.in
 xarray==2025.7.0
