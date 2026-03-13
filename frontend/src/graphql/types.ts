@@ -474,7 +474,6 @@ export type ArchiveWorkspaceResult = {
 
 export type AssistantConversation = {
   __typename?: 'AssistantConversation';
-  cost: Scalars['Int']['output'];
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
   messages: AssistantMessagePage;

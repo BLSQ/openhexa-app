@@ -437,7 +437,6 @@ type ArchiveWorkspaceResult {
 }
 
 type AssistantConversation {
-  cost: Int!
   createdAt: DateTime!
   id: UUID!
   messages(page: Int = 1, perPage: Int = 20): AssistantMessagePage!
