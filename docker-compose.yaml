@@ -40,7 +40,7 @@ services:
   app:
     # Inherit from the block defined on top and override some fields
     <<: *common
-    command: "manage runserver 0:8000"
+    command: "start"
     restart: unless-stopped
     image: blsq/openhexa-app
     ports:

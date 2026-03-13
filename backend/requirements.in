@@ -26,9 +26,9 @@ croniter
 kubernetes
 
 # production
-a2wsgi
 google-cloud-logging
 gunicorn
+uvicorn
 
 # connector_dhis2
 dhis2.py
