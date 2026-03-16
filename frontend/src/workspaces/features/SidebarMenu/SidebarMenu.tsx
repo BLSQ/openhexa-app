@@ -13,7 +13,6 @@ import {
 import clsx from "clsx";
 import Link from "core/components/Link";
 import SearchInput from "core/features/SearchInput";
-import { CustomApolloClient } from "core/helpers/apollo";
 import useCacheKey from "core/hooks/useCacheKey";
 import useLocalStorage from "core/hooks/useLocalStorage";
 import useToggle from "core/hooks/useToggle";
@@ -98,7 +97,21 @@ const SidebarMenu = (props: SidebarMenuProps) => {
     SidebarMenuQuery,
     SidebarMenuQueryVariables
   >(
-    SidebarMenuDocument,
+    gql`
+      query SidebarMenu($page: Int, $perPage: Int, $organizationId: UUID) {
+        workspaces(page: $page, perPage: $perPage, organizationId: $organizationId) {
+          totalItems
+          items {
+            slug
+            name
+            countries {
+              code
+              flag
+            }
+          }
+        }
+      }
+    `,
     {
       variables: { page: 1, perPage: 2000, organizationId: workspace.organization?.id },
       fetchPolicy: "cache-and-network",
