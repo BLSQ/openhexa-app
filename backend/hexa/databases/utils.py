@@ -29,6 +29,23 @@ def get_row_count_estimate(cursor, table_name: str) -> int:
     return int(explain_output[0]["Plan"]["Plan Rows"])
 
 
+def get_row_count(cursor, table_name: str, reltuples: float) -> int:
+    """Return the row count for a table, using an accurate COUNT(*) for small tables
+    and falling back to pg_class.reltuples estimates for large ones to avoid expensive full scans.
+    """
+    count = int(reltuples)
+    if count < 0:
+        count = get_row_count_estimate(cursor, table_name)
+    if count < 10_000:
+        cursor.execute(
+            sql.SQL("SELECT COUNT(*) as row_count FROM {};").format(
+                sql.Identifier(table_name)
+            ),
+        )
+        return cursor.fetchone()["row_count"]
+    return count
+
+
 class TableNotFound(Exception):
     pass
 
@@ -77,21 +94,7 @@ def get_database_definition(workspace: Workspace):
 
             result = []
             for name, data in tables.items():
-                if (
-                    data["count"] < 0
-                ):  # reltuples is -1 when not analyzed yet, which is the case for views
-                    tables[name]["count"] = get_row_count_estimate(cursor, name)
-                # For the sake of performance we only run SELECT COUNT(*) for relatively small tables N_row < 10000 entries)
-                # due to the fact PostgreSQL will need to scan either the entire table or the entirety of an index which includes all rows in the table.
-                elif data["count"] < 10_000:
-                    cursor.execute(
-                        sql.SQL("SELECT COUNT(*) as row_count FROM {};").format(
-                            sql.Identifier(name)
-                        ),
-                    )
-                    response = cursor.fetchone()
-                    tables[name]["count"] = response["row_count"]
-
+                data["count"] = get_row_count(cursor, name, data["count"])
                 result.append({"workspace": workspace, **data})
             return result
     finally:
@@ -128,9 +131,7 @@ def get_table_definition(workspace: Workspace, table_name: str):
                 (table_name,),
             )
             res = cursor.fetchone()
-            row_count = res["row_count"]
-            if row_count < 0:
-                row_count = get_row_count_estimate(cursor, table_name)
+            row_count = get_row_count(cursor, table_name, res["row_count"])
         return {
             "name": table_name,
             "columns": columns,
