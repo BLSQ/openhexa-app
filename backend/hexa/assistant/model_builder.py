@@ -27,7 +27,9 @@ def get_api_name(model: AiSettings.Model) -> str:
     model_api_name = model_to_api.get(model)
 
     if model_api_name is None:
-        raise AssistantException(f"Model {model} is not known. Accepted models are {[*model_to_api]}")
+        raise AssistantException(
+            f"Model {model} is not known. Accepted models are {[*model_to_api]}"
+        )
     return model_api_name
 
 
