@@ -253,7 +253,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                     title={run.executionDate}
                     suppressHydrationWarning={true}
                   >
-                    <PipelineRunStatusBadge run={run} polling={false} />
+                    <PipelineRunStatusBadge run={run} />
                   </div>
                 </div>
               </div>

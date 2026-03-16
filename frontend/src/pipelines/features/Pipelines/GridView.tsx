@@ -100,7 +100,6 @@ const GridView = ({
               return (
                 <PipelineRunStatusBadge
                   run={pipeline.lastRuns.items[0]}
-                  polling={false}
                 />
               );
             }
