@@ -115,7 +115,6 @@ WorkspaceLayout.prefetch = async (
   ctx: GetServerSidePropsContext,
   client: CustomApolloClient,
 ) => {
-  await Sidebar.prefetch(ctx, client);
   await SpotlightSearch.prefetch(ctx);
 };
 

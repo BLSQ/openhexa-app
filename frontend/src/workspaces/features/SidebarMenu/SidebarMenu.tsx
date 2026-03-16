@@ -98,21 +98,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
     SidebarMenuQuery,
     SidebarMenuQueryVariables
   >(
-    gql`
-      query SidebarMenu($page: Int, $perPage: Int, $organizationId: UUID) {
-        workspaces(page: $page, perPage: $perPage, organizationId: $organizationId) {
-          totalItems
-          items {
-            slug
-            name
-            countries {
-              code
-              flag
-            }
-          }
-        }
-      }
-    `,
+    SidebarMenuDocument,
     {
       variables: { page: 1, perPage: 2000, organizationId: workspace.organization?.id },
       fetchPolicy: "cache-and-network",
@@ -343,13 +329,6 @@ SidebarMenu.fragments = {
       }
     }
   `,
-};
-
-SidebarMenu.prefetch = async (client: CustomApolloClient) => {
-  await client.query({
-    query: SidebarMenuDocument,
-    variables: { page: 1, perPage: 2000 },
-  });
 };
 
 export default SidebarMenu;
