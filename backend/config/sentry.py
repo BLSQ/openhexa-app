@@ -18,9 +18,7 @@ def setup_sentry(dsn):
     def before_send(event, hint):
         # Connection test failures are expected user errors (wrong credentials, unreachable host, etc.)
         # The error is already returned to the UI — no need to report to Sentry
-        request = event.get("request", {})
-        url = request.get("url", "")
-        if "testConnection" in url:
+        if event.get("tags", {}).get("connection_test"):
             return None
         return event
 

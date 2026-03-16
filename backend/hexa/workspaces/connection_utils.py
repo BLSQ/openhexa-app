@@ -3,6 +3,7 @@ import logging
 
 import boto3
 import psycopg2
+import sentry_sdk
 from botocore.config import Config as BotoConfig
 from django.utils.translation import gettext_lazy as _
 from google.cloud import storage as gcs_storage
@@ -30,11 +31,13 @@ def test_connection(
     if not tester:
         return False, f"Testing is not supported for {connection_type} connections"
 
-    try:
-        return tester(fields)
-    except Exception as e:
-        logger.warning("Connection test failed for %s: %s", connection_type, e)
-        return False, str(e)
+    with sentry_sdk.new_scope() as scope:
+        scope.set_tag("connection_test", True)
+        try:
+            return tester(fields)
+        except Exception as e:
+            logger.warning("Connection test failed for %s: %s", connection_type, e)
+            return False, str(e)
 
 
 def _test_dhis2(fields: dict) -> tuple[bool, str | None]:
