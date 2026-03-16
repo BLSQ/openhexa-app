@@ -34,8 +34,11 @@ def get_row_count(cursor, table_name: str, reltuples: float) -> int:
     and falling back to pg_class.reltuples estimates for large ones to avoid expensive full scans.
     """
     count = int(reltuples)
+    # reltuples is -1 when not analyzed yet, which is the case for views
     if count < 0:
         count = get_row_count_estimate(cursor, table_name)
+    # For the sake of performance we only run SELECT COUNT(*) for relatively small tables (< 10000 entries)
+    # due to the fact PostgreSQL will need to scan either the entire table or the entirety of an index.
     if count < 10_000:
         cursor.execute(
             sql.SQL("SELECT COUNT(*) as row_count FROM {};").format(
