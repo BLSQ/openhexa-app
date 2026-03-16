@@ -369,6 +369,7 @@
   "Last updated on {{datetime}} by {{user}}": "Last updated on {{datetime}} by {{user}}",
   "Last version uploaded on {{date}} by {{name}}": "Last version uploaded on {{date}} by {{name}}",
   "Latest version": "Latest version",
+  "Leave blank to keep current API key": "Leave blank to keep current API key",
   "Level": "Level",
   "line": "line",
   "lines": "lines",
