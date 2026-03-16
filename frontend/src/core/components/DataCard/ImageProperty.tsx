@@ -4,7 +4,7 @@ import { useDataCardProperty } from "./context";
 import { PropertyDefinition } from "./types";
 import { useTranslation } from "next-i18next";
 import { resizeImage } from "core/helpers/image";
-import placeholderImage from "public/images/placeholder.svg";
+const placeholderImage = "/images/placeholder.svg";
 
 type ImagePropertyProps = PropertyDefinition & {
   className?: string;
