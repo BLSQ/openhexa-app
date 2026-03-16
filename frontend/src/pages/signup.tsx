@@ -162,18 +162,7 @@ SignupPage.getLayout = (page: ReactElement) => (
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: false,
-  getServerSideProps(ctx) {
-    if (ctx.me?.user) {
-      return {
-        redirect: {
-          destination: "/user/account",
-          permanent: false,
-        },
-      };
-    }
-
-    return { props: {} };
-  },
+  redirectIfLoggedIn: "/user/account",
 });
 
 export default SignupPage;

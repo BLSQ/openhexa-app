@@ -11,6 +11,7 @@ interface GetServerSidePropsContextWithUser extends GetServerSidePropsContext {
 interface CreateGetServerSideProps {
   i18n?: string[];
   requireAuth?: boolean;
+  redirectIfLoggedIn?: string | ((ctx: GetServerSidePropsContextWithUser) => string);
   getServerSideProps?: (
     ctx: GetServerSidePropsContextWithUser,
     client: CustomApolloClient,
@@ -31,25 +32,43 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
   const {
     i18n = ["messages"],
     requireAuth = false,
+    redirectIfLoggedIn,
     getServerSideProps,
   } = options;
 
   return async function (
     ctx: GetServerSidePropsContextWithUser,
   ): Promise<GetServerSidePropsResult<ServerSideProps>> {
-    ctx.me = await getMe(ctx);
+    const client = getApolloClient(ctx.req);
+
+    // getMe and page queries run in parallel. We eagerly set ctx.me via .then so
+    // that async page callbacks find it populated after their first suspension point.
+    const getMePromise = getMe(ctx).then((me) => {
+      ctx.me = me;
+      return me;
+    });
+
+    const [me, nextRes] = await Promise.all([
+      getMePromise,
+      getServerSideProps ? getServerSideProps(ctx, client) : Promise.resolve(undefined),
+    ]);
 
     const translations = await serverSideTranslations(
-      ctx.me?.user?.language ??
-        getAcceptPreferredLocale(ctx.req.headers) ??
-        "en",
+      me?.user?.language ?? getAcceptPreferredLocale(ctx.req.headers) ?? "en",
       i18n,
     );
-    let result = {
-      props: {
-        ...translations,
-      },
-    } as any;
+
+    if (redirectIfLoggedIn && ctx.me?.user) {
+      return {
+        redirect: {
+          permanent: false,
+          destination:
+            typeof redirectIfLoggedIn === "function"
+              ? redirectIfLoggedIn(ctx)
+              : redirectIfLoggedIn,
+        },
+      };
+    }
 
     if (!ctx.me?.user && requireAuth) {
       return {
@@ -59,6 +78,7 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
         },
       };
     }
+
     if (ctx.me?.user) {
       const { features } = ctx.me;
 
@@ -78,15 +98,16 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
         };
       }
     }
-    result.props = {
-      ...result.props,
-      me: ctx.me,
-      cookieHeader: ctx.req.headers.cookie ?? "",
-    };
+
+    const result = {
+      props: {
+        ...translations,
+        me: ctx.me,
+        cookieHeader: ctx.req.headers.cookie ?? "",
+      },
+    } as any;
 
     if (getServerSideProps) {
-      const client = getApolloClient(ctx.req);
-      const nextRes = await getServerSideProps(ctx, client);
       return {
         ...result,
         ...(nextRes ?? {}),
