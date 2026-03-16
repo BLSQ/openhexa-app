@@ -376,6 +376,7 @@
   "Last updated on {{datetime}} by {{user}}": "Dernière mise à jour le {{datetime}} par {{user}}",
   "Last version uploaded on {{date}} by {{name}}": "Dernière version téléchargée le {{date}} par {{name}}",
   "Latest version": "Dernière version",
+  "Leave blank to keep current API key": "Laissez ce champ vide pour conserver la clé API actuelle",
   "Level": "Niveau",
   "line": "ligne",
   "lines": "lignes",

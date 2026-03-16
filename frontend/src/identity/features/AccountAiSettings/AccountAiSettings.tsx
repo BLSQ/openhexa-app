@@ -104,12 +104,14 @@ const AccountAiSettings = (props: AccountAiSettingsProps) => {
       />
       <TextProperty
         id="apiKey"
-        accessor={(item: User) => { if (item?.aiSettings?.hasApiKey) return "*******"}}
+        accessor="..."
+        defaultValue={settings?.hasApiKey ? "••••••" : undefined}
+        placeholder={settings?.hasApiKey ? t("Leave blank to keep current API key") : ""}
         label={t("API Key")}
         visible={(_, __, values) =>
           Boolean(values.enableAI)
         }
-        required
+        required={!settings?.hasApiKey}
       />
       <TextProperty
         id="totalCost"
