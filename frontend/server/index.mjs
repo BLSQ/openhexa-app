@@ -46,6 +46,13 @@ app.prepare().then(async () => {
           ? req.path.replace(api_base_path, "") || "/"
           : req.path;
 
+        // Let Next.js handle GET requests to MCP pages while still proxying
+        // API sub-routes (e.g. /mcp/tools.json) and POST/DELETE to the backend.
+        const MCP_PAGES = ["/mcp", "/mcp/", "/mcp/wiki", "/mcp/wiki/"];
+        if (req.method === "GET" && MCP_PAGES.includes(realPath)) {
+          return false;
+        }
+
         return API_PATHS.some((path) => realPath.startsWith(path));
       },
       // Decides what path to send to the backend.
@@ -57,6 +64,14 @@ app.prepare().then(async () => {
         }
 
         return req.originalUrl;
+      },
+      // MCP OAuth requires the backend to know the original public-facing host and
+      // scheme so that well-known metadata URLs match what the client expects.
+      proxyReqOptDecorator: function (proxyReqOpts, srcReq) {
+        proxyReqOpts.headers["X-Forwarded-Host"] = srcReq.headers.host;
+        proxyReqOpts.headers["X-Forwarded-Proto"] =
+          srcReq.headers["x-forwarded-proto"] || srcReq.protocol;
+        return proxyReqOpts;
       },
       limit: max_request_body_size,
     }),

@@ -209,9 +209,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
               // Coming soon
               // WebappType.Html,
               // WebappType.Bundle,
-              ...(supersetInstances.length > 0
-                ? [WebappType.Superset]
-                : []),
+              ...(supersetInstances.length > 0 ? [WebappType.Superset] : []),
             ]}
             getOptionLabel={getWebappTypeLabel}
             onChange={(value) => setSelectedType(value as WebappType)}
@@ -256,11 +254,10 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           )}
         />
       </DataCard.FormSection>
-      {debouncedUrl && (
+      {debouncedUrl && !loading && (
         <DataCard.Section
           title={t("Preview")}
           collapsible={false}
-          loading={loading}
         >
           <WebappIframe url={debouncedUrl} style={{ height: "65vh" }} />
         </DataCard.Section>

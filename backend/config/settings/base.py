@@ -563,7 +563,7 @@ OAUTH2_PROVIDER = {
         os.environ.get("OAUTH2_ACCESS_TOKEN_EXPIRE_SECONDS", 3600)
     ),
     "REFRESH_TOKEN_EXPIRE_SECONDS": 86400,
-    "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"] if DEBUG else ["https"],
+    "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"],
 }
 
 OAUTH2_ALLOWED_REDIRECT_URI_HOSTS = {

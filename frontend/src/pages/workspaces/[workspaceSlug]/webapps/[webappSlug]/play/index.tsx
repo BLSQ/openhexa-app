@@ -9,6 +9,7 @@ import {
   WebappAccessDocument,
   WebappAccessQuery,
 } from "webapps/graphql/queries.generated";
+import { WebappType } from "graphql/types";
 
 type Props = {
   webapp: NonNullable<WebappAccessQuery["webapp"]>;
@@ -25,7 +26,7 @@ const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
         <WebappIframe
           url={webapp.url}
           style={{ height: "100vh" }}
-          showPoweredBy
+          showPoweredBy={webapp.type !== WebappType.Superset} // Already a banner in the Superset iframe from the backend
         />
       </Page>
     );

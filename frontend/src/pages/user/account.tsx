@@ -14,8 +14,8 @@ import { useTranslation } from "next-i18next";
 import AccountAiSettings from "identity/features/AccountAiSettings";
 import AccountProfileSettings from "identity/features/AccountProfileSettings";
 import AccountSecuritySettings from "identity/features/AccountSecuritySettings";
+import PendingWorkspaceInvitations from "identity/features/PendingWorkspaceInvitations";
 import useFeature from "identity/hooks/useFeature";
-import PendingWorkspaceInvitations from "../../identity/features/PendingWorkspaceInvitations";
 
 function AccountPage() {
   const { t } = useTranslation();
