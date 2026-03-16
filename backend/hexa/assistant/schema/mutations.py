@@ -68,7 +68,7 @@ def resolve_send_assistant_message(_, info, input, **kwargs):
         }
 
     monthly_cost = Conversation.get_monthly_cost_for_user(request.user)
-    if monthly_cost >= settings.ASSISTANT_MONTHLY_LIMIT * 1_000_000:
+    if monthly_cost >= settings.ASSISTANT_MONTHLY_LIMIT:
         return {
             "success": False,
             "errors": ["MONTHLY_LIMIT_EXCEEDED"],

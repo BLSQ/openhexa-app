@@ -9,7 +9,9 @@ from django.db.models.functions import Collate
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
+from hexa.assistant.models import Conversation
 from hexa.core.admin import GlobalObjectsModelAdmin, country_list
+from hexa.utils.currencies import format_cost
 
 from .models import (
     AiSettings,
@@ -94,6 +96,8 @@ class CustomUserAdmin(UserAdmin):
         "is_staff",
         "is_superuser",
         "teams",
+        "assistant_usage_this_month",
+        "assistant_usage",
     )
 
     list_filter = ("last_login", "is_staff", "is_superuser", "is_active")
@@ -192,6 +196,16 @@ class CustomUserAdmin(UserAdmin):
 
         return f"{', '.join([t.name for t in first_teams])}{extra}"
 
+    @staticmethod
+    def assistant_usage(user: User):
+        total_cost = Conversation.get_total_cost_for_user(user)
+        return format_cost(total_cost)
+
+    @staticmethod
+    def assistant_usage_this_month(user: User):
+        monthly_cost = Conversation.get_monthly_cost_for_user(user)
+        return format_cost(monthly_cost)
+
     def get_queryset(self, request):
         return (
             super()
@@ -216,7 +230,7 @@ class AiSettingsAdmin(admin.ModelAdmin):
     list_filter = ("provider", "enabled", "model")
     search_fields = ("user__username", "user__email")
 
-    def has_api_key(self, obj):
+    def has_api_key(self, obj: AiSettings):
         return obj.has_api_key
 
     has_api_key.boolean = True

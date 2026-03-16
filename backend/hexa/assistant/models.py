@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 
 from django.core.exceptions import PermissionDenied
 from django.db import models
@@ -76,9 +77,9 @@ class Conversation(SoftDeletedModel, Base):
         return f"Conversation({self.id}, user={self.user_id}, workspace={self.workspace_id})"
 
     @classmethod
-    def get_monthly_cost_for_user(cls, user: User) -> int:
+    def get_monthly_cost_for_user(cls, user: User) -> Decimal:
         """
-        Cost in microdollars (millionths of a dollar) to avoid floating-point precision loss
+        Cost in dollars
         """
         now = timezone.now()
         start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -89,17 +90,17 @@ class Conversation(SoftDeletedModel, Base):
             created_at__gte=start_of_month,
             created_at__lt=start_of_next_month,
         ).aggregate(total=Sum("cost"))["total"]
-        return int((result or 0) * 1_000_000)
+        return result or 0
 
     @classmethod
-    def get_total_cost_for_user(cls, user: User) -> int:
+    def get_total_cost_for_user(cls, user: User) -> Decimal:
         """
-        Cost in microdollars (millionths of a dollar) to avoid floating-point precision loss
+        Cost in dollars
         """
         result = Conversation.objects.filter(
             user=user,
         ).aggregate(total=Sum("cost"))["total"]
-        return int((result or 0) * 1_000_000)
+        return result or 0
 
 
 class Message(Base):
