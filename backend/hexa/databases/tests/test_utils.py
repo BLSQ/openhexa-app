@@ -35,12 +35,12 @@ def dictrow_from_dict(my_dict):
     # the steps to recreate a DictRow
     fake_cursor = DictRowMock(my_dict)
 
-    dick_row = DictRow(fake_cursor)
+    dict_row = DictRow(fake_cursor)
 
     for k, v in my_dict.items():
-        dick_row[k] = v
+        dict_row[k] = v
 
-    return dick_row
+    return dict_row
 
 
 class GetRowCountTest(TestCase):
