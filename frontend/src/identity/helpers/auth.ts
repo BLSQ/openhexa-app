@@ -19,7 +19,17 @@ import { GetServerSidePropsContext } from "next";
 import { getCookie } from "cookies-next";
 import Router from "next/router";
 
-export async function getMe(ctx?: GetServerSidePropsContext) {
+const ME_CACHE_TTL_MS = 30_000;
+
+type MeResult = Awaited<ReturnType<typeof fetchMe>>;
+const meCache = new Map<string, { value: MeResult; expiresAt: number }>();
+
+function getSessionKey(cookieHeader: string): string | null {
+  const match = cookieHeader.match(/(?:^|;\s*)sessionid=([^;]+)/);
+  return match ? match[1] : null;
+}
+
+async function fetchMe(ctx?: GetServerSidePropsContext) {
   const client = getApolloClient({ headers: ctx?.req.headers });
   const payload = await client.query<GetUserQuery>({
     query: GetUserDocument,
@@ -27,6 +37,38 @@ export async function getMe(ctx?: GetServerSidePropsContext) {
   const me = payload?.data.me ?? {};
   if (!me) return null;
   return { ...me };
+}
+
+export async function getMe(ctx?: GetServerSidePropsContext) {
+  const cookieHeader = ctx?.req.headers.cookie ?? "";
+  const sessionKey = getSessionKey(cookieHeader);
+
+  if (sessionKey) {
+    const cached = meCache.get(sessionKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.value;
+    }
+  }
+
+  const value = await fetchMe(ctx);
+
+  if (sessionKey) {
+    meCache.set(sessionKey, { value, expiresAt: Date.now() + ME_CACHE_TTL_MS });
+  }
+
+  return value;
+}
+
+/**
+ * Invalidates the me cache.
+ * Django invalidates the sessionid on the backend,
+ * so any subsequent requests use a new/empty session cookie —
+ * the stale cache entry simply never gets matched again.
+ * `invalidateMeCache` is here for any future server-side logout route if needed.
+ */
+export function invalidateMeCache(cookieHeader: string) {
+  const sessionKey = getSessionKey(cookieHeader);
+  if (sessionKey) meCache.delete(sessionKey);
 }
 
 export async function logout() {
