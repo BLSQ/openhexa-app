@@ -20,21 +20,13 @@ def _check_access(request, webapp: Webapp):
 @xframe_options_exempt
 def serve_webapp(request, webapp_id, path="index.html"):
     try:
-        webapp = Webapp.objects.select_related("workspace").get(pk=webapp_id)
-    except Webapp.DoesNotExist:
+        git_webapp = GitWebapp.objects.select_related("workspace").get(pk=webapp_id)
+    except GitWebapp.DoesNotExist:
         return HttpResponseNotFound("Webapp not found")
 
-    denied = _check_access(request, webapp)
+    denied = _check_access(request, git_webapp)
     if denied:
         return denied
-
-    if webapp.type != Webapp.WebappType.STATIC:
-        return HttpResponseNotFound("Not a git-backed webapp")
-
-    try:
-        git_webapp = GitWebapp.objects.get(pk=webapp.pk)
-    except GitWebapp.DoesNotExist:
-        return HttpResponseNotFound("Git webapp not found")
 
     if not git_webapp.published_commit:
         return HttpResponseNotFound("No published version")
