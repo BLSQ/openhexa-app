@@ -4,6 +4,7 @@ from django.db import models
 
 from hexa.git.client import GitClient
 from hexa.git.forgejo import get_forgejo_client
+from hexa.user_management.models import User
 
 GitOrg = namedtuple("GitOrg", ["slug", "display_name"])
 
@@ -22,12 +23,12 @@ class GitRepoMixin(models.Model):
     def client(self) -> GitClient:
         return get_forgejo_client()
 
-    def create_repo(self, *, files=None, user=None) -> str:
+    def create_repo(self, *, files: list[dict] | None = None, user: User) -> str:
         self.client.create_organization(self.git_org.slug, self.git_org.display_name)
         self.client.create_org_repository(
-            self.git_org.slug, self.repository, auto_init=not (files and user)
+            self.git_org.slug, self.repository, auto_init=not files
         )
-        if files and user:
+        if files:
             return self.client.commit_files(
                 repo_name=self.repository,
                 files=files,
