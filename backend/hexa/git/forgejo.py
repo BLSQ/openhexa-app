@@ -262,11 +262,16 @@ class ForgejoClient(GitClient):
         page: int = 1,
         limit: int = 20,
     ) -> list[dict]:
-        response = self._request(
-            "GET",
-            f"/repos/{org_slug}/{repo_name}/commits",
-            params={"sha": ref, "page": page, "limit": limit},
-        )
+        try:
+            response = self._request(
+                "GET",
+                f"/repos/{org_slug}/{repo_name}/commits",
+                params={"sha": ref, "page": page, "limit": limit},
+            )
+        except ForgejoAPIError as e:
+            if e.status_code == 409:
+                return []
+            raise
         return [
             {
                 "id": c["sha"],
