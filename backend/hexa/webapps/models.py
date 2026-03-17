@@ -14,7 +14,6 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
-from hexa.git.forgejo import ForgejoAPIError
 from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
@@ -179,22 +178,15 @@ class GitWebapp(Webapp, GitRepoMixin):
         return GitOrg(slug="no-org", display_name="No Organization")
 
     def get_versions(self, page=1, per_page=20):
-        try:
-            items = self.client.get_commits(
-                self.git_org.slug, self.repository, page=page, limit=per_page
-            )
-        except ForgejoAPIError:
-            items = []
-
+        items = self.client.get_commits(
+            self.git_org.slug, self.repository, page=page, limit=per_page
+        )
         return {"items": items, "page": page}
 
     def get_files(self, ref="main"):
-        try:
-            return self.client.get_repository_files(
-                self.repository, ref, org_slug=self.git_org.slug
-            )
-        except ForgejoAPIError:
-            return []
+        return self.client.get_repository_files(
+            self.repository, ref, org_slug=self.git_org.slug
+        )
 
     def publish_version(self, version_id):
         if not self.client.commit_exists(

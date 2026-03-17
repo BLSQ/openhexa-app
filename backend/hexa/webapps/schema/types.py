@@ -1,5 +1,6 @@
 from ariadne import ObjectType, UnionType
 
+from hexa.git.forgejo import ForgejoAPIError
 from hexa.utils.base64_image_encode_decode import encode_base64_image
 from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 
@@ -96,7 +97,10 @@ def resolve_versions(webapp: Webapp, info, page=None, per_page=None, **kwargs):
     if webapp.type != Webapp.WebappType.STATIC:
         return None
     git_webapp = GitWebapp.objects.get(pk=webapp.pk)
-    return git_webapp.get_versions(page=page or 1, per_page=per_page or 20)
+    try:
+        return git_webapp.get_versions(page=page, per_page=per_page)
+    except ForgejoAPIError:
+        return {"items": [], "page": page or 1}
 
 
 @webapp_object.field("files")
@@ -104,7 +108,10 @@ def resolve_files(webapp: Webapp, info, ref=None, **kwargs):
     if webapp.type != Webapp.WebappType.STATIC:
         return None
     git_webapp = GitWebapp.objects.get(pk=webapp.pk)
-    return git_webapp.get_files(ref=ref or "main")
+    try:
+        return git_webapp.get_files(ref=ref)
+    except ForgejoAPIError:
+        return []
 
 
 @webapp_permissions.field("update")
