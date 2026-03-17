@@ -25,7 +25,12 @@ class ForgejoClientTokenTest(TestCase):
             status=201,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         token = client._get_or_create_token()
 
         self.assertEqual(token, TOKEN)
@@ -48,7 +53,12 @@ class ForgejoClientTokenTest(TestCase):
             status=201,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         token = client._get_or_create_token()
 
         self.assertEqual(token, TOKEN)
@@ -62,7 +72,12 @@ class ForgejoClientTokenTest(TestCase):
             status=401,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         with self.assertRaises(ForgejoAPIError) as ctx:
             client._get_or_create_token()
 
@@ -92,7 +107,12 @@ class ForgejoClientCreateRepositoryTest(TestCase):
             status=201,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         result = client.create_repository("my-repo")
 
         self.assertEqual(result["name"], "my-repo")
@@ -113,7 +133,12 @@ class ForgejoClientCreateRepositoryTest(TestCase):
             status=200,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         result = client.create_repository("my-repo")
 
         self.assertEqual(result["name"], "my-repo")
@@ -128,7 +153,12 @@ class ForgejoClientDeleteRepositoryTest(TestCase):
             status=204,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         client.delete_repository(USERNAME, "my-repo")
 
         self.assertEqual(len(responses.calls), 3)  # 2 for token setup + 1 DELETE
@@ -142,7 +172,12 @@ class ForgejoClientDeleteRepositoryTest(TestCase):
             status=404,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         client.delete_repository(USERNAME, "my-repo")  # Should not raise
 
         self.assertEqual(len(responses.calls), 3)  # 2 for token setup + 1 DELETE
@@ -159,7 +194,12 @@ class ForgejoClientGetFileTest(TestCase):
             status=200,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         data = client.get_file("my-repo", "README.md")
 
         self.assertEqual(data, b"hello world")
@@ -181,7 +221,12 @@ class ForgejoClientGetFilesTreeTest(TestCase):
             status=200,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         tree = client.get_files_tree("my-repo")
 
         self.assertEqual(len(tree), 2)
@@ -203,7 +248,12 @@ class ForgejoClientCommitFilesTest(TestCase):
             status=201,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         sha = client.commit_files(
             "my-repo",
             [{"path": "hello.txt", "content": "hello"}],
@@ -233,7 +283,12 @@ class ForgejoClientCommitFilesTest(TestCase):
             status=201,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         sha = client.commit_files(
             "my-repo",
             [{"path": "hello.txt", "content": "updated"}],
@@ -258,7 +313,12 @@ class ForgejoAPIErrorTest(TestCase):
         self.assertIn("404", str(error))
 
     def test_request_error_propagation(self):
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         client._token = "fake"
         client._session.headers["Authorization"] = "token fake"
 
@@ -285,7 +345,12 @@ class ForgejoClientCreateOrganizationTest(TestCase):
             status=201,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         result = client.create_organization("ws-my-workspace", "My Workspace")
 
         self.assertEqual(result["username"], "ws-my-workspace")
@@ -304,7 +369,12 @@ class ForgejoClientCreateOrganizationTest(TestCase):
             status=200,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         result = client.create_organization("ws-my-workspace", "My Workspace")
 
         self.assertEqual(result["username"], "ws-my-workspace")
@@ -319,7 +389,12 @@ class ForgejoClientDeleteOrganizationTest(TestCase):
             status=204,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         client.delete_organization("ws-my-workspace")
 
         self.assertEqual(len(responses.calls), 3)
@@ -339,7 +414,12 @@ class ForgejoClientCreateOrgRepositoryTest(TestCase):
             status=201,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         result = client.create_org_repository("ws-myworkspace", "webapp-abc123")
 
         self.assertEqual(result["name"], "webapp-abc123")
@@ -362,7 +442,12 @@ class ForgejoClientCreateOrgRepositoryTest(TestCase):
             status=200,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         result = client.create_org_repository("ws-myworkspace", "webapp-abc123")
 
         self.assertEqual(result["name"], "webapp-abc123")
@@ -377,7 +462,12 @@ class ForgejoClientDeleteOrgRepositoryTest(TestCase):
             status=204,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         client.delete_repository("ws-myworkspace", "webapp-abc123")
 
         delete_call = responses.calls[2]
@@ -394,7 +484,12 @@ class ForgejoClientArchiveRepositoryTest(TestCase):
             status=200,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         result = client.archive_repository("ws-myworkspace", "webapp-abc123")
 
         self.assertTrue(result["archived"])
@@ -416,7 +511,12 @@ class ForgejoClientGetFilesTreeWithOwnerTest(TestCase):
             status=200,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         tree = client.get_files_tree("my-repo", org_slug="ws-myworkspace")
 
         self.assertEqual(len(tree), 2)
@@ -431,7 +531,12 @@ class ForgejoClientGetFilesTreeWithOwnerTest(TestCase):
             status=200,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         tree = client.get_files_tree("my-repo")
 
         self.assertEqual(len(tree), 1)
@@ -448,7 +553,12 @@ class ForgejoClientGetFileWithOwnerTest(TestCase):
             status=200,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         data = client.get_file("my-repo", "index.html", org_slug="ws-myworkspace")
 
         self.assertEqual(data, b"<h1>Hello</h1>")
@@ -469,7 +579,12 @@ class ForgejoClientCommitFilesWithOwnerTest(TestCase):
             status=201,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         sha = client.commit_files(
             "my-repo",
             [{"path": "index.html", "content": "<h1>Hello</h1>"}],
@@ -518,7 +633,12 @@ class ForgejoClientGetCommitsTest(TestCase):
             status=200,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         commits = client.get_commits("ws-myworkspace", "my-repo")
 
         self.assertEqual(len(commits), 2)
@@ -546,7 +666,12 @@ class ForgejoClientGetCommitsTest(TestCase):
             status=200,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         client.get_commits("ws-myworkspace", "my-repo", page=2, limit=5)
 
         get_call = responses.calls[2]
@@ -567,7 +692,12 @@ class ForgejoClientListOrgRepositoriesTest(TestCase):
             status=200,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         repos = client.list_org_repositories("org-abc123")
 
         self.assertEqual(len(repos), 2)
@@ -583,7 +713,12 @@ class ForgejoClientListOrgRepositoriesTest(TestCase):
             status=200,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         client.list_org_repositories("org-abc123", page=2, limit=10)
 
         get_call = responses.calls[2]
@@ -599,7 +734,12 @@ class ForgejoClientListOrgRepositoriesTest(TestCase):
             status=404,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         repos = client.list_org_repositories("org-missing")
 
         self.assertEqual(repos, [])
@@ -615,7 +755,12 @@ class ForgejoClientUnarchiveRepositoryTest(TestCase):
             status=200,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         result = client.unarchive_repository("org-abc123", "webapp-1")
 
         self.assertFalse(result["archived"])
@@ -629,7 +774,12 @@ class ForgejoClientUnarchiveRepositoryTest(TestCase):
             status=404,
         )
 
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+            application_name="test",
+        )
         result = client.unarchive_repository("org-abc123", "missing-repo")
 
         self.assertIsNone(result)

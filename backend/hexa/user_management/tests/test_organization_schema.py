@@ -914,8 +914,7 @@ class OrganizationUpdateDeleteTest(GraphQLTestCase, OrganizationTestMixin):
             r["data"]["updateOrganization"],
         )
 
-    @patch("hexa.user_management.schema.mutations.get_forgejo_client")
-    def test_update_organization_by_admin_success(self, mock_get_client):
+    def test_update_organization_by_admin_success(self):
         """Test that admin can also update organization."""
         self.client.force_login(self.admin)
         r = self.run_query(
