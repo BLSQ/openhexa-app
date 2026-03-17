@@ -17,7 +17,6 @@ from django_otp.plugins.otp_email.models import EmailDevice
 
 from hexa.analytics.api import track
 from hexa.core.string import generate_short_name, remove_whitespace
-from hexa.git.forgejo import get_forgejo_client
 from hexa.user_management.models import (
     AiSettings,
     AlreadyExists,
@@ -856,14 +855,7 @@ def resolve_update_organization(_, info, **kwargs):
                     "organization": None,
                     "errors": ["NAME_DUPLICATE"],
                 }
-            old_name = organization.name
-            old_slug = organization.slug
             organization.name = new_name
-            client = get_forgejo_client()
-            if organization.name != old_name or organization.slug != old_slug:
-                client.rename_organization(
-                    old_slug, organization.slug, organization.name
-                )
 
         if "short_name" in update_input:
             short_name_input = update_input["short_name"]
