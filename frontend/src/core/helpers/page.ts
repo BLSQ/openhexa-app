@@ -39,6 +39,7 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
   return async function (
     ctx: GetServerSidePropsContextWithUser,
   ): Promise<GetServerSidePropsResult<ServerSideProps>> {
+    // TODO: remove all performance logs after analysis
     const t0 = performance.now();
     const client = getApolloClient(ctx.req);
 
