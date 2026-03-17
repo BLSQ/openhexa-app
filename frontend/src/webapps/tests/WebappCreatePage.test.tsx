@@ -91,6 +91,7 @@ const graphqlMocks: MockedResponse[] = [
           workspaceSlug: "test-workspace",
           name: "Test Webapp",
           icon: undefined,
+          isPublic: undefined,
           source: {
             iframe: {
               url: "http://test-webapp.com",
@@ -263,7 +264,7 @@ describe("WebappCreatePage", () => {
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        "An error occurred while creating the webapp",
+        "An error occurred while creating the web app",
       );
     });
 
@@ -360,7 +361,7 @@ describe("WebappCreatePage", () => {
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        "An error occurred while creating the webapp",
+        "An error occurred while creating the web app",
       );
     });
 
