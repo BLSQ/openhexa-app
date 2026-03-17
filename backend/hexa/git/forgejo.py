@@ -54,7 +54,10 @@ class ForgejoClient(GitClient):
         response = requests.post(
             url,
             auth=(self._username, self._password),
-            json={"name": TOKEN_NAME, "scopes": ["organization", "repository"]},
+            json={
+                "name": TOKEN_NAME,
+                "scopes": ["write:organization", "write:repository"],
+            },
             allow_redirects=False,
         )
         if response.status_code != 201:
