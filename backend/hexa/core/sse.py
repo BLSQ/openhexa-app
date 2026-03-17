@@ -2,7 +2,7 @@ import json
 
 from django.http import StreamingHttpResponse
 
-POLL_INTERVAL = 0.3  # seconds between DB polls
+POLL_INTERVAL = 2  # seconds between DB polls
 PING_INTERVAL = 10  # seconds between keepalive pings
 MAX_DURATION = 1800  # 30 minutes — safety cap for stuck runs
 

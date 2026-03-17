@@ -13,6 +13,7 @@ from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.signing import BadSignature, Signer, TimestampSigner
+from django.db import connection
 from django.http import (
     Http404,
     HttpRequest,
@@ -240,13 +241,25 @@ _TERMINAL_STATES = {
 }
 
 
-async def _message_stream(run: PipelineRun, cursor: int):
-    refresh = sync_to_async(lambda: run.refresh_from_db(fields=["messages", "state"]))
+def _get_run(run_id, user):
+    run = (
+        PipelineRun.objects.filter_for_user(user)
+        .only("messages", "state")
+        .get(id=run_id)
+    )
+    connection.close()
+    return run
+
+
+_get_run_async = sync_to_async(_get_run)
+
+
+async def _message_stream(run_id: int, cursor: int, user):
     start = time.monotonic()
     last_ping = start
 
     while True:
-        await refresh()
+        run = await _get_run_async(run_id, user)
         messages_list = run.messages or []
 
         for msg in messages_list[cursor:]:
@@ -279,9 +292,7 @@ async def stream_pipeline_run_messages(
         return JsonResponse({"error": "Authentication required"}, status=401)
 
     try:
-        run = await sync_to_async(
-            lambda: PipelineRun.objects.filter_for_user(request.user).get(id=run_id)
-        )()
+        run = await _get_run_async(run_id, request.user)
     except PipelineRun.DoesNotExist:
         raise Http404("Pipeline run not found")
 
@@ -300,6 +311,6 @@ async def stream_pipeline_run_messages(
 
         generator = finished_stream()
     else:
-        generator = _message_stream(run, cursor)
+        generator = _message_stream(run.id, cursor, request.user)
 
     return sse_response(generator)
