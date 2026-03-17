@@ -9,7 +9,7 @@ GitOrg = namedtuple("GitOrg", ["slug", "display_name"])
 
 
 class GitRepoMixin(models.Model):
-    repository = models.CharField(max_length=255)
+    repository = models.CharField(max_length=255, unique=True)
 
     class Meta:
         abstract = True
