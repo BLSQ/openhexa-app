@@ -40,7 +40,7 @@ class ForgejoClientTokenTest(TestCase):
     def test_get_or_create_token_replaces_existing(self):
         responses.get(
             f"{FORGEJO_URL}/api/v1/users/{USERNAME}/tokens",
-            json=[{"id": 42, "name": "openhexa-api", "sha1": "old-token"}],
+            json=[{"id": 42, "name": "test", "sha1": "old-token"}],
             status=200,
         )
         responses.delete(
@@ -127,11 +127,6 @@ class ForgejoClientCreateRepositoryTest(TestCase):
             json={"message": "repository already exists"},
             status=409,
         )
-        responses.get(
-            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo",
-            json={"id": 1, "name": "my-repo", "full_name": f"{USERNAME}/my-repo"},
-            status=200,
-        )
 
         client = ForgejoClient(
             url=FORGEJO_URL,
@@ -139,48 +134,10 @@ class ForgejoClientCreateRepositoryTest(TestCase):
             password=PASSWORD,
             application_name="test",
         )
-        result = client.create_repository("my-repo")
+        with self.assertRaises(ForgejoAPIError) as ctx:
+            client.create_repository("my-repo")
 
-        self.assertEqual(result["name"], "my-repo")
-
-
-class ForgejoClientDeleteRepositoryTest(TestCase):
-    @responses.activate
-    def test_delete_repository_success(self):
-        _setup_token()
-        responses.delete(
-            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo",
-            status=204,
-        )
-
-        client = ForgejoClient(
-            url=FORGEJO_URL,
-            username=USERNAME,
-            password=PASSWORD,
-            application_name="test",
-        )
-        client.delete_repository(USERNAME, "my-repo")
-
-        self.assertEqual(len(responses.calls), 3)  # 2 for token setup + 1 DELETE
-
-    @responses.activate
-    def test_delete_repository_not_found(self):
-        _setup_token()
-        responses.delete(
-            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo",
-            json={"message": "not found"},
-            status=404,
-        )
-
-        client = ForgejoClient(
-            url=FORGEJO_URL,
-            username=USERNAME,
-            password=PASSWORD,
-            application_name="test",
-        )
-        client.delete_repository(USERNAME, "my-repo")  # Should not raise
-
-        self.assertEqual(len(responses.calls), 3)  # 2 for token setup + 1 DELETE
+        self.assertEqual(ctx.exception.status_code, 409)
 
 
 class ForgejoClientGetFileTest(TestCase):
@@ -238,9 +195,9 @@ class ForgejoClientCommitFilesTest(TestCase):
     def test_commit_files_create(self):
         _setup_token()
         responses.get(
-            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/git/trees/main",
-            json={"sha": "abc123", "tree": []},
-            status=200,
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/commits",
+            json={"message": "Git Repository is empty."},
+            status=409,
         )
         responses.post(
             f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents",
@@ -270,6 +227,23 @@ class ForgejoClientCommitFilesTest(TestCase):
     def test_commit_files_update(self):
         _setup_token()
         responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/commits",
+            json=[
+                {
+                    "sha": "existingsha",
+                    "commit": {
+                        "message": "previous commit",
+                        "author": {
+                            "name": "User",
+                            "email": "u@example.com",
+                            "date": "2024-01-01T00:00:00Z",
+                        },
+                    },
+                }
+            ],
+            status=200,
+        )
+        responses.get(
             f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/git/trees/main",
             json={
                 "sha": "abc123",
@@ -298,7 +272,7 @@ class ForgejoClientCommitFilesTest(TestCase):
         )
 
         self.assertEqual(sha, "updatedsha")
-        post_body = responses.calls[3].request.body
+        post_body = responses.calls[4].request.body
         self.assertIn(b'"operation": "update"', post_body)
 
 
@@ -363,11 +337,6 @@ class ForgejoClientCreateOrganizationTest(TestCase):
             json={"message": "organization already exists"},
             status=409,
         )
-        responses.get(
-            f"{FORGEJO_URL}/api/v1/orgs/ws-my-workspace",
-            json={"id": 1, "username": "ws-my-workspace"},
-            status=200,
-        )
 
         client = ForgejoClient(
             url=FORGEJO_URL,
@@ -375,29 +344,10 @@ class ForgejoClientCreateOrganizationTest(TestCase):
             password=PASSWORD,
             application_name="test",
         )
-        result = client.create_organization("ws-my-workspace", "My Workspace")
+        with self.assertRaises(ForgejoAPIError) as ctx:
+            client.create_organization("ws-my-workspace", "My Workspace")
 
-        self.assertEqual(result["username"], "ws-my-workspace")
-
-
-class ForgejoClientDeleteOrganizationTest(TestCase):
-    @responses.activate
-    def test_delete_organization_success(self):
-        _setup_token()
-        responses.delete(
-            f"{FORGEJO_URL}/api/v1/orgs/ws-my-workspace",
-            status=204,
-        )
-
-        client = ForgejoClient(
-            url=FORGEJO_URL,
-            username=USERNAME,
-            password=PASSWORD,
-            application_name="test",
-        )
-        client.delete_organization("ws-my-workspace")
-
-        self.assertEqual(len(responses.calls), 3)
+        self.assertEqual(ctx.exception.status_code, 409)
 
 
 class ForgejoClientCreateOrgRepositoryTest(TestCase):
@@ -432,15 +382,6 @@ class ForgejoClientCreateOrgRepositoryTest(TestCase):
             json={"message": "repository already exists"},
             status=409,
         )
-        responses.get(
-            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/webapp-abc123",
-            json={
-                "id": 1,
-                "name": "webapp-abc123",
-                "full_name": "ws-myworkspace/webapp-abc123",
-            },
-            status=200,
-        )
 
         client = ForgejoClient(
             url=FORGEJO_URL,
@@ -448,30 +389,10 @@ class ForgejoClientCreateOrgRepositoryTest(TestCase):
             password=PASSWORD,
             application_name="test",
         )
-        result = client.create_org_repository("ws-myworkspace", "webapp-abc123")
+        with self.assertRaises(ForgejoAPIError) as ctx:
+            client.create_org_repository("ws-myworkspace", "webapp-abc123")
 
-        self.assertEqual(result["name"], "webapp-abc123")
-
-
-class ForgejoClientDeleteOrgRepositoryTest(TestCase):
-    @responses.activate
-    def test_delete_org_repository(self):
-        _setup_token()
-        responses.delete(
-            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/webapp-abc123",
-            status=204,
-        )
-
-        client = ForgejoClient(
-            url=FORGEJO_URL,
-            username=USERNAME,
-            password=PASSWORD,
-            application_name="test",
-        )
-        client.delete_repository("ws-myworkspace", "webapp-abc123")
-
-        delete_call = responses.calls[2]
-        self.assertIn("/repos/ws-myworkspace/webapp-abc123", delete_call.request.url)
+        self.assertEqual(ctx.exception.status_code, 409)
 
 
 class ForgejoClientArchiveRepositoryTest(TestCase):
@@ -569,9 +490,9 @@ class ForgejoClientCommitFilesWithOwnerTest(TestCase):
     def test_commit_files_with_owner(self):
         _setup_token()
         responses.get(
-            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/my-repo/git/trees/main",
-            json={"sha": "abc123", "tree": []},
-            status=200,
+            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/my-repo/commits",
+            json={"message": "Git Repository is empty."},
+            status=409,
         )
         responses.post(
             f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/my-repo/contents",
@@ -740,9 +661,10 @@ class ForgejoClientListOrgRepositoriesTest(TestCase):
             password=PASSWORD,
             application_name="test",
         )
-        repos = client.list_org_repositories("org-missing")
+        with self.assertRaises(ForgejoAPIError) as ctx:
+            client.list_org_repositories("org-missing")
 
-        self.assertEqual(repos, [])
+        self.assertEqual(ctx.exception.status_code, 404)
 
 
 class ForgejoClientUnarchiveRepositoryTest(TestCase):
@@ -780,9 +702,10 @@ class ForgejoClientUnarchiveRepositoryTest(TestCase):
             password=PASSWORD,
             application_name="test",
         )
-        result = client.unarchive_repository("org-abc123", "missing-repo")
+        with self.assertRaises(ForgejoAPIError) as ctx:
+            client.unarchive_repository("org-abc123", "missing-repo")
 
-        self.assertIsNone(result)
+        self.assertEqual(ctx.exception.status_code, 404)
 
 
 class ForgejoClientGetForgejoClientTest(TestCase):
