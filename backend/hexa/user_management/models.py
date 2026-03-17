@@ -239,8 +239,21 @@ class OrganizationType(models.TextChoices):
     NGO = "NGO", _("Non-governmental")
 
 
-class OrganizationManager(models.Manager):
-    pass
+def create_organization_slug(name, max_attempts=10):
+    suffix = ""
+    for attempt in range(max_attempts):
+        slug = slugify(name[: 200 - len(suffix)] + suffix)
+        if not Organization.objects.filter(slug=slug).exists():
+            return slug
+        suffix = "-" + secrets.token_hex(3)
+    raise ValueError(f"Could not generate a unique slug for organization '{name}'")
+
+
+class OrganizationManager(DefaultSoftDeletedManager):
+    def create(self, **kwargs):
+        if "slug" not in kwargs:
+            kwargs["slug"] = create_organization_slug(kwargs["name"])
+        return super().create(**kwargs)
 
 
 class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
@@ -285,6 +298,7 @@ class Organization(Base, SoftDeletedModel):
         choices=OrganizationType.choices, max_length=100
     )
     name = models.CharField(max_length=200, unique=True)
+    slug = models.CharField(max_length=200, unique=True, editable=False)
     short_name = models.CharField(max_length=100, blank=True)
     description = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
@@ -293,12 +307,8 @@ class Organization(Base, SoftDeletedModel):
     logo = models.BinaryField(blank=True, null=True)
     members = models.ManyToManyField(User, through="OrganizationMembership")
 
-    objects = DefaultSoftDeletedManager.from_queryset(OrganizationQuerySet)()
+    objects = OrganizationManager.from_queryset(OrganizationQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(OrganizationQuerySet)()
-
-    @property
-    def slug(self):
-        return slugify(self.name)
 
     def delete(self):
         """
