@@ -178,10 +178,14 @@ class ForgejoClient(GitClient):
         org_slug: str | None = None,
     ) -> str:
         org_slug = org_slug or self._username
-        existing_tree = {
-            entry["path"]: entry.get("sha", "")
-            for entry in self.get_files_tree(repo_name, org_slug=org_slug)
-        }
+        commits = self.get_commits(org_slug, repo_name, limit=1)
+        if commits:
+            existing_tree = {
+                entry["path"]: entry.get("sha", "")
+                for entry in self.get_files_tree(repo_name, org_slug=org_slug)
+            }
+        else:
+            existing_tree = {}
 
         operations = []
         for file in files:
