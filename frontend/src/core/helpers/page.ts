@@ -39,12 +39,15 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
   return async function (
     ctx: GetServerSidePropsContextWithUser,
   ): Promise<GetServerSidePropsResult<ServerSideProps>> {
+    const t0 = performance.now();
     const client = getApolloClient(ctx.req);
 
     // getMe and page queries run in parallel. We eagerly set ctx.me via .then so
     // that async page callbacks find it populated after their first suspension point.
+    const t1 = performance.now();
     const getMePromise = getMe(ctx).then((me) => {
       ctx.me = me;
+      console.log(`[page] getMe: ${(performance.now() - t1).toFixed(1)}ms`);
       return me;
     });
 
@@ -53,10 +56,12 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
       getServerSideProps ? getServerSideProps(ctx, client) : Promise.resolve(undefined),
     ]);
 
+    const t2 = performance.now();
     const translations = await serverSideTranslations(
       me?.user?.language ?? getAcceptPreferredLocale(ctx.req.headers) ?? "en",
       i18n,
     );
+    console.log(`[page] translations: ${(performance.now() - t2).toFixed(1)}ms`);
 
     if (redirectIfLoggedIn && ctx.me?.user) {
       return {
@@ -107,6 +112,7 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
       },
     } as any;
 
+    console.log(`[page] everything: ${(performance.now() - t0).toFixed(1)}ms`);
     if (getServerSideProps) {
       return {
         ...result,
