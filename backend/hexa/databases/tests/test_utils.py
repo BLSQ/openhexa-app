@@ -10,6 +10,7 @@ from hexa.databases.utils import (
     TableRowsPage,
     delete_table,
     get_database_definition,
+    get_row_count,
     get_table_definition,
     get_table_rows,
 )
@@ -34,12 +35,52 @@ def dictrow_from_dict(my_dict):
     # the steps to recreate a DictRow
     fake_cursor = DictRowMock(my_dict)
 
-    dick_row = DictRow(fake_cursor)
+    dict_row = DictRow(fake_cursor)
 
     for k, v in my_dict.items():
-        dick_row[k] = v
+        dict_row[k] = v
 
-    return dick_row
+    return dict_row
+
+
+class GetRowCountTest(TestCase):
+    def test_small_table_uses_accurate_count(self):
+        cursor = mock.MagicMock()
+        cursor.fetchone.return_value = {"row_count": 42}
+
+        result = get_row_count(cursor, "my_table", reltuples=100)
+
+        self.assertEqual(42, result)
+        cursor.execute.assert_called_once()
+
+    def test_large_table_uses_estimate(self):
+        cursor = mock.MagicMock()
+
+        result = get_row_count(cursor, "my_table", reltuples=500_000)
+
+        self.assertEqual(500_000, result)
+        cursor.execute.assert_not_called()
+
+    def test_unanalyzed_small_table_uses_accurate_count(self):
+        cursor = mock.MagicMock()
+        cursor.fetchone.side_effect = [
+            {"QUERY PLAN": [{"Plan": {"Plan Rows": 50}}]},
+            {"row_count": 55},
+        ]
+
+        result = get_row_count(cursor, "my_table", reltuples=-1)
+
+        self.assertEqual(55, result)
+        self.assertEqual(2, cursor.execute.call_count)
+
+    def test_unanalyzed_large_table_uses_estimate(self):
+        cursor = mock.MagicMock()
+        cursor.fetchone.return_value = {"QUERY PLAN": [{"Plan": {"Plan Rows": 50_000}}]}
+
+        result = get_row_count(cursor, "my_table", reltuples=-1)
+
+        self.assertEqual(50_000, result)
+        self.assertEqual(1, cursor.execute.call_count)
 
 
 class DatabaseUtilsTest(TestCase):

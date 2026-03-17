@@ -130,7 +130,7 @@
     "i18next-parser": "^9.0.2",
     "jest": "^30.0.0",
     "jest-environment-jsdom": "^30.0.0",
-    "jsdom-testing-mocks": "^1.13.1",
+    "jsdom-testing-mocks": "^1.16.0",
     "lint-staged": "^16.0.0",
     "next-router-mock": "^1.0.0",
     "npm-run-all2": "^8.0.0",
