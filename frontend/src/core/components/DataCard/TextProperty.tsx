@@ -11,6 +11,7 @@ import { ChangeEvent } from "react";
 type TextPropertyProps = PropertyDefinition & {
   markdown?: boolean;
   defaultValue?: string;
+  placeholder?: string;
   className?: string;
   sm?: boolean;
   onChange?: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -24,6 +25,7 @@ const TextProperty = (props: TextPropertyProps) => {
     rows,
     onChange,
     defaultValue,
+    placeholder,
     ...delegated
   } = props;
 
@@ -39,6 +41,7 @@ const TextProperty = (props: TextPropertyProps) => {
         {markdown ? (
           <Textarea
             className="w-full"
+            placeholder={placeholder}
             value={property.formValue}
             onChange={(e) => {
               property.setValue(e.target.value);
@@ -52,6 +55,7 @@ const TextProperty = (props: TextPropertyProps) => {
           <Input
             fullWidth
             value={property.formValue ?? ""}
+            placeholder={placeholder}
             onChange={(e) => {
               property.setValue(e.target.value);
               if (onChange) onChange(e);

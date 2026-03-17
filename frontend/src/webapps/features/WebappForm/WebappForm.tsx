@@ -276,11 +276,10 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           />
         </DataCard.Section>
       )}
-      {(debouncedUrl || webapp?.url) && (
+      {(debouncedUrl || webapp?.url) && !loading && (
         <DataCard.Section
           title={t("Preview")}
           collapsible={false}
-          loading={loading}
         >
           <WebappIframe
             url={debouncedUrl || webapp?.url || ""}

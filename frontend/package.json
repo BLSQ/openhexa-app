@@ -85,6 +85,7 @@
     "react-dropzone": "^14.2.3",
     "react-hotkeys-hook": "^5.0.0",
     "react-i18next": "^15.1.0",
+    "react-markdown": "^10.1.0",
     "react-popper": "^2.3.0",
     "react-popper-tooltip": "^4.4.2",
     "react-table": "^7.8.0",
@@ -138,5 +139,5 @@
     "prettier-plugin-tailwindcss": "^0.6.10",
     "tailwindcss": "4.1.17"
   },
-  "version": "4.5.0"
+  "version": "4.5.1"
 }

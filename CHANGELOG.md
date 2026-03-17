@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.5.1](https://github.com/BLSQ/openhexa-app/compare/4.5.0...4.5.1) (2026-03-11)
+
+
+### Bug Fixes
+
+* MCP with Gemini CLI ([#1669](https://github.com/BLSQ/openhexa-app/issues/1669)) ([d87f371](https://github.com/BLSQ/openhexa-app/commit/d87f3718bdedb1ceaa2856ec050fd7d2283354d9))
+
 ## [4.5.0](https://github.com/BLSQ/openhexa-app/compare/4.4.1...4.5.0) (2026-03-06)
 
 

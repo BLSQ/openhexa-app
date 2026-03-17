@@ -245,6 +245,7 @@ INSTALLED_APPS = [
     "hexa.shortcuts",
     "hexa.git",
     "oauth2_provider",
+    "hexa.assistant",
     "hexa.mcp",
     "django_otp",
     "django_otp.plugins.otp_static",
@@ -449,6 +450,9 @@ PIPELINE_DEFAULT_CONTAINER_MEMORY_REQUEST = os.environ.get(
 PIPELINE_RUN_DEFAULT_TIMEOUT = os.environ.get("PIPELINE_RUN_DEFAULT_TIMEOUT", 14400)
 PIPELINE_RUN_MAX_TIMEOUT = os.environ.get("PIPELINE_RUN_MAX_TIMEOUT", 43200)
 
+# AI Assistant monthly limit in USD
+ASSISTANT_MONTHLY_LIMIT = float(os.environ.get("ASSISTANT_MONTHLY_LIMIT", 200))
+
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"
 OTP_EMAIL_SENDER = DEFAULT_FROM_EMAIL
@@ -567,7 +571,7 @@ OAUTH2_PROVIDER = {
         os.environ.get("OAUTH2_ACCESS_TOKEN_EXPIRE_SECONDS", 3600)
     ),
     "REFRESH_TOKEN_EXPIRE_SECONDS": 86400,
-    "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"] if DEBUG else ["https"],
+    "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"],
 }
 
 OAUTH2_ALLOWED_REDIRECT_URI_HOSTS = {

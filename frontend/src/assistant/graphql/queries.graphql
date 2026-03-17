@@ -1,0 +1,42 @@
+query AssistantPage($workspaceSlug: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    ...WorkspaceLayout_workspace
+    assistantConversations {
+      id
+      createdAt
+    }
+  }
+  me {
+    assistantMonthlyLimitExceeded
+    user {
+      aiSettings {
+        enabled
+      }
+    }
+  }
+}
+
+query AssistantConversationMessages($id: UUID!, $page: Int = 1, $perPage: Int = 20) {
+  assistantConversation(id: $id) {
+    id
+    messages(page: $page, perPage: $perPage) {
+      items {
+        id
+        role
+        content
+        createdAt
+        toolInvocations {
+            id
+            createdAt
+            toolName
+            toolInput
+            toolOutput
+            success
+        }
+      }
+      totalItems
+      totalPages
+    }
+  }
+}

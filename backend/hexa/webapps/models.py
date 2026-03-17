@@ -45,7 +45,7 @@ class WebappQuerySet(BaseQuerySet, SoftDeleteQuerySet):
         return self._filter_for_user_and_query_object(
             user,
             Q(workspace__members=user),
-            return_all_if_superuser=False,
+            return_all_if_superuser=True,
             return_all_if_organization_admin_or_owner=True,
         )
 

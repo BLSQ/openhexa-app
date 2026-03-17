@@ -6,4 +6,5 @@ app_name = "mcp"
 
 urlpatterns = [
     path("", views.mcp_endpoint, name="mcp_endpoint"),
+    path("tools.json", views.tools_json, name="tools_json"),
 ]
