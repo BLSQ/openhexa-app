@@ -96,9 +96,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
               <VersionPicker
                 workspaceSlug={workspace.slug}
                 webappSlug={webapp.slug}
-                onChange={(version: WebappVersion_VersionFragment) =>
-                  setSelectedVersion(version)
-                }
+                onChange={setSelectedVersion}
               />
             }
           />
