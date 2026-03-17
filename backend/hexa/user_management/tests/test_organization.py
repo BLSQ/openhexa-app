@@ -49,6 +49,27 @@ class OrganizationModelTests(TestCase):
         self.assertEqual(self.organization.name, "Test Organization")
         self.assertEqual(self.organization.organization_type, "CORPORATE")
 
+    def test_slug_auto_generated_from_name(self):
+        org = Organization.objects.create(name="My New Org")
+        self.assertEqual(org.slug, "my-new-org")
+
+    def test_slug_immutable_on_name_change(self):
+        org = Organization.objects.create(name="Original Name")
+        original_slug = org.slug
+        org.name = "Updated Name"
+        org.save()
+        org.refresh_from_db()
+        self.assertEqual(org.slug, original_slug)
+
+    def test_slug_unique_on_collision(self):
+        org1 = Organization.objects.create(name="Duplicate Org")
+        org1.name = "Something Else"
+        org1.save()
+        org2 = Organization.objects.create(name="Duplicate Org")
+        self.assertEqual(org1.slug, "duplicate-org")
+        self.assertNotEqual(org2.slug, org1.slug)
+        self.assertTrue(org2.slug.startswith("duplicate-org"))
+
     def test_membership_creation(self):
         self.assertEqual(self.membership.organization, self.organization)
         self.assertEqual(self.membership.user, self.user1)

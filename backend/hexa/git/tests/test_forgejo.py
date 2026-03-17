@@ -310,40 +310,6 @@ class ForgejoClientCreateOrganizationTest(TestCase):
         self.assertEqual(result["username"], "ws-my-workspace")
 
 
-class ForgejoClientRenameOrganizationTest(TestCase):
-    @responses.activate
-    def test_rename_organization_success(self):
-        _setup_token()
-        responses.post(
-            f"{FORGEJO_URL}/api/v1/orgs/old-name/rename",
-            status=200,
-        )
-        responses.patch(
-            f"{FORGEJO_URL}/api/v1/orgs/new-name",
-            json={"id": 1, "username": "new-name", "full_name": "New Name"},
-            status=200,
-        )
-
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
-        result = client.rename_organization("old-name", "new-name", "New Name")
-
-        self.assertEqual(result["username"], "new-name")
-
-    @responses.activate
-    def test_rename_organization_not_found(self):
-        _setup_token()
-        responses.post(
-            f"{FORGEJO_URL}/api/v1/orgs/missing-org/rename",
-            json={"message": "not found"},
-            status=404,
-        )
-
-        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
-        result = client.rename_organization("missing-org", "new-name", "New Name")
-
-        self.assertIsNone(result)
-
-
 class ForgejoClientDeleteOrganizationTest(TestCase):
     @responses.activate
     def test_delete_organization_success(self):
