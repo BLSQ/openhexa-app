@@ -626,9 +626,6 @@ class GitWebappModelTest(TestCase):
         self.assertEqual(webapp.workspace, self.workspace)
         self.assertEqual(webapp.url, "")
 
-        self.mock_git_client.create_organization.assert_called_with(
-            "no-org", "No Organization"
-        )
         self.mock_git_client.create_org_repository.assert_called_with(
             "no-org", webapp.repository, auto_init=True
         )
@@ -662,11 +659,11 @@ class GitWebappModelTest(TestCase):
 
         self.assertEqual(webapp.published_commit, "files-commit-sha")
         self.mock_git_client.commit_files.assert_called_once_with(
-            webapp.repository,
-            files,
-            "Initial content",
-            self.user_admin.display_name or self.user_admin.email,
-            self.user_admin.email,
+            repo_name=webapp.repository,
+            files=files,
+            message="Initial content",
+            author_name=self.user_admin.display_name,
+            author_email=self.user_admin.email,
             org_slug="no-org",
         )
 

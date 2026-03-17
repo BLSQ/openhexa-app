@@ -642,9 +642,14 @@ class ForgejoClientGetForgejoClientTest(TestCase):
         GIT_SERVER_ADMIN_PASSWORD="secret",
     )
     def test_get_forgejo_client(self):
+        import hexa.git.forgejo as forgejo_module
+
+        forgejo_module._forgejo_client = None
         client = get_forgejo_client()
 
         self.assertIsInstance(client, ForgejoClient)
         self.assertEqual(client._url, "http://test-forgejo:3000")
         self.assertEqual(client._username, "admin")
         self.assertEqual(client._password, "secret")
+
+        forgejo_module._forgejo_client = None

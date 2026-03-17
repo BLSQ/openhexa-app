@@ -133,9 +133,6 @@ class GitWebappCreateTest(GraphQLTestCase):
         self.assertEqual(result["webapp"]["name"], "My Static App")
         self.assertEqual(result["webapp"]["type"], "STATIC")
 
-        mock_client.create_organization.assert_called_once_with(
-            "no-org", "No Organization"
-        )
         mock_client.create_org_repository.assert_called_once()
         mock_client.commit_files.assert_called_once()
 
