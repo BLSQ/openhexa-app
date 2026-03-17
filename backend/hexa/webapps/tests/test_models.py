@@ -760,7 +760,7 @@ class GitWebappModelTest(TestCase):
 
         self.assertTrue(Webapp.objects.filter(pk=webapp_id).exists())
 
-    def test_org_name_without_organization(self):
+    def test_git_org_falls_back_to_no_org_when_workspace_has_no_organization(self):
         webapp = GitWebapp.create_if_has_perm(
             principal=self.user_admin,
             workspace=self.workspace,
