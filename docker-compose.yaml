@@ -163,8 +163,8 @@ services:
     image: codeberg.org/forgejo/forgejo:14
     entrypoint: /custom-entrypoint.sh
     environment:
-      - GIT_SERVER_ADMIN_USERNAME=${GIT_SERVER_ADMIN_USERNAME:-openhexa-admin}
-      - GIT_SERVER_ADMIN_PASSWORD=${GIT_SERVER_ADMIN_PASSWORD:-openhexa}
+      - GIT_SERVER_ADMIN_USERNAME=${GIT_SERVER_ADMIN_USERNAME}
+      - GIT_SERVER_ADMIN_PASSWORD=${GIT_SERVER_ADMIN_PASSWORD}
       - FORGEJO__database__DB_TYPE=sqlite3
       - FORGEJO__security__INSTALL_LOCK=true
       - FORGEJO__server__ROOT_URL=http://localhost:3100/
