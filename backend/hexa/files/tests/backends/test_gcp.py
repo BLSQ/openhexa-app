@@ -64,6 +64,32 @@ class GoogleCloudStorageTest(TestCase):
         self.assertEqual(items[0].name, "testAAA.txt")
         self.assertEqual(items[1].name, "testAAB.txt")
 
+    def test_list_bucket_objects_prefixes_across_pages(self):
+        """Subdirectories (prefixes) split across GCP API pages must all be returned.
+
+        GCP's list_blobs paginates results, and prefixes are only revealed as their
+        page is loaded. With a small page_size, some subdirectories end up on later
+        pages. This test verifies they are not silently dropped.
+        """
+        bucket_name = self.storage.create_bucket("my-bucket")
+        bucket = self.storage_client.get_bucket(bucket_name)
+
+        # Create 3 subdirectories and 8 files (11 items total).
+        # With per_page=5 the GCP API page_size is 10 (per_page * 2),
+        # so items are split across 2 API pages.
+        bucket.blob("aaa/").upload_from_string(b"")
+        bucket.blob("bbb/").upload_from_string(b"")
+        for i in range(8):
+            bucket.blob(f"file_{i:02d}.txt").upload_from_string(b"data")
+        bucket.blob("zzz/").upload_from_string(b"")
+
+        result = self.storage.list_bucket_objects("my-bucket", per_page=5)
+        directory_names = [item.name for item in result.items if item.type == "directory"]
+
+        self.assertIn("aaa", directory_names)
+        self.assertIn("bbb", directory_names)
+        self.assertIn("zzz", directory_names)
+
     def test_delete_object(self):
         bucket_name = self.storage.create_bucket("my-bucket")
         bucket = self.storage.client.get_bucket(bucket_name)
