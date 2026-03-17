@@ -16,14 +16,5 @@
         "code": "workspaces.create",
         "force_activate": false
     }
-  },
-  {
-    "model": "user_management.feature",
-    "fields": {
-        "created_at": "2026-03-17T00:00:00.000Z",
-        "updated_at": "2026-03-17T00:00:00.000Z",
-        "code": "static_webapps",
-        "force_activate": false
-    }
   }
 ]

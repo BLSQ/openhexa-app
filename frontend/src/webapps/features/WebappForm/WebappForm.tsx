@@ -30,7 +30,6 @@ import {
   WebappType,
 } from "graphql/types";
 import { getWebappTypeLabel } from "webapps/helpers";
-import useFeature from "identity/hooks/useFeature";
 import { DEFAULT_HTML_TEMPLATE } from "webapps/helpers/templates";
 
 const DEFAULT_BLUESQUARE_SUPERSET_URL = "https://superset.bluesquare.org";
@@ -58,7 +57,6 @@ type WebappFormProps = {
 
 const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const { t } = useTranslation();
-  const [isStaticWebappsEnabled] = useFeature("static_webapps");
   const router = useRouter();
   const [createWebapp] = useCreateWebappMutation();
   const [updateWebapp] = useUpdateWebappMutation();
@@ -221,7 +219,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             defaultValue={WebappType.Iframe}
             options={[
               WebappType.Iframe,
-              ...(isStaticWebappsEnabled ? [WebappType.Static] : []),
+              WebappType.Static,
               ...(supersetInstances.length > 0 ? [WebappType.Superset] : []),
             ]}
             getOptionLabel={getWebappTypeLabel}
