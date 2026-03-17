@@ -39,8 +39,5 @@ class GitRepoMixin(models.Model):
         commits = self.client.get_commits(self.org.slug, self.repository, limit=1)
         return commits[0]["id"]
 
-    def delete_repo(self):
-        self.client.delete_repository(self.org.slug, self.repository)
-
     def archive_repo(self):
         self.client.archive_repository(self.org.slug, self.repository)

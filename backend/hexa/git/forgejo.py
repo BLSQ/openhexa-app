@@ -134,17 +134,6 @@ class ForgejoClient(GitClient):
                 return None
             raise
 
-    def delete_organization(self, org_slug: str) -> None:
-        try:
-            self._request("DELETE", f"/orgs/{org_slug}")
-        except ForgejoAPIError as e:
-            if e.status_code == 404:
-                logger.info(
-                    "Organization %s does not exist, nothing to delete", org_slug
-                )
-                return
-            raise
-
     def create_repository(self, repo_name: str) -> dict:
         try:
             response = self._request(
@@ -183,19 +172,6 @@ class ForgejoClient(GitClient):
             if e.status_code in (409, 422) and "already exists" in str(e):
                 logger.info("Repository %s/%s already exists", org_slug, repo_name)
                 return self._request("GET", f"/repos/{org_slug}/{repo_name}").json()
-            raise
-
-    def delete_repository(self, org_slug: str, repo_name: str) -> None:
-        try:
-            self._request("DELETE", f"/repos/{org_slug}/{repo_name}")
-        except ForgejoAPIError as e:
-            if e.status_code == 404:
-                logger.info(
-                    "Repository %s/%s does not exist, nothing to delete",
-                    org_slug,
-                    repo_name,
-                )
-                return
             raise
 
     def list_org_repositories(

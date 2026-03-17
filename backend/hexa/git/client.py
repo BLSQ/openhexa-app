@@ -13,10 +13,6 @@ class GitClient(ABC):
         ...
 
     @abstractmethod
-    def delete_organization(self, org_slug: str) -> None:
-        ...
-
-    @abstractmethod
     def list_org_repositories(
         self, org_slug: str, page: int = 1, limit: int = 50
     ) -> list[dict]:
@@ -30,10 +26,6 @@ class GitClient(ABC):
     def create_org_repository(
         self, org_slug: str, repo_name: str, *, auto_init: bool = True
     ) -> dict:
-        ...
-
-    @abstractmethod
-    def delete_repository(self, org_slug: str, repo_name: str) -> None:
         ...
 
     @abstractmethod
