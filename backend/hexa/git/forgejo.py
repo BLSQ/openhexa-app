@@ -1,14 +1,9 @@
 import base64
-import logging
 
 import requests
 from django.conf import settings
 
 from hexa.git.client import GitClient
-
-logger = logging.getLogger(__name__)
-
-TOKEN_NAME = "openhexa-api"
 
 
 class ForgejoAPIError(Exception):
@@ -21,10 +16,13 @@ class ForgejoAPIError(Exception):
 
 
 class ForgejoClient(GitClient):
-    def __init__(self, *, url: str, username: str, password: str):
+    def __init__(
+        self, *, url: str, username: str, password: str, application_name: str
+    ):
         self._url = url.rstrip("/")
         self._username = username
         self._password = password
+        self._application_name = application_name
         self._session = requests.Session()
         self._token = None
 
@@ -43,7 +41,7 @@ class ForgejoClient(GitClient):
             raise ForgejoAPIError("GET", url, response.status_code, response.text)
 
         for token in response.json():
-            if token["name"] == TOKEN_NAME:
+            if token["name"] == self._application_name:
                 requests.delete(
                     f"{url}/{token['id']}",
                     auth=(self._username, self._password),
@@ -55,7 +53,7 @@ class ForgejoClient(GitClient):
             url,
             auth=(self._username, self._password),
             json={
-                "name": TOKEN_NAME,
+                "name": self._application_name,
                 "scopes": ["write:organization", "write:repository"],
             },
             allow_redirects=False,
@@ -294,5 +292,6 @@ def get_forgejo_client() -> GitClient:
             url=settings.GIT_SERVER_URL,
             username=settings.GIT_SERVER_ADMIN_USERNAME,
             password=settings.GIT_SERVER_ADMIN_PASSWORD,
+            application_name="openhexa-backend",
         )
     return _forgejo_client
