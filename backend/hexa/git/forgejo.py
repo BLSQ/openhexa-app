@@ -350,7 +350,9 @@ class ForgejoClient(GitClient):
                     raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
                     content = raw.decode("utf-8", errors="replace")
                 except (ForgejoAPIError, UnicodeDecodeError):
-                    pass
+                    logger.error(
+                        "Failed to read file %s in %s (ref=%s)", path, repo_name, ref
+                    )
 
                 extension = os.path.splitext(path)[1].lower()
                 nodes.append(
