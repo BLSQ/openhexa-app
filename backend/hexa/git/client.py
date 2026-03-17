@@ -23,11 +23,11 @@ class GitClient(ABC):
         ...
 
     @abstractmethod
-    def archive_repository(self, org_slug: str, repo_name: str) -> dict | None:
+    def archive_repository(self, org_slug: str, repo_name: str) -> dict:
         ...
 
     @abstractmethod
-    def unarchive_repository(self, org_slug: str, repo_name: str) -> dict | None:
+    def unarchive_repository(self, org_slug: str, repo_name: str) -> dict:
         ...
 
     @abstractmethod

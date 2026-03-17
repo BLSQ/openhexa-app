@@ -73,130 +73,79 @@ class ForgejoClient(GitClient):
         return response
 
     def create_organization(self, org_slug: str, display_name: str) -> dict:
-        try:
-            response = self._request(
-                "POST",
-                "/orgs",
-                json={
-                    "username": org_slug,
-                    "full_name": display_name,
-                    "visibility": "private",
-                },
-            )
-            return response.json()
-        except ForgejoAPIError as e:
-            if e.status_code in (409, 422) and "already exists" in str(e):
-                logger.info("Organization %s already exists", org_slug)
-                return self._request("GET", f"/orgs/{org_slug}").json()
-            raise
+        response = self._request(
+            "POST",
+            "/orgs",
+            json={
+                "username": org_slug,
+                "full_name": display_name,
+                "visibility": "private",
+            },
+        )
+        return response.json()
 
     def create_repository(self, repo_name: str) -> dict:
-        try:
-            response = self._request(
-                "POST",
-                "/user/repos",
-                json={
-                    "name": repo_name,
-                    "auto_init": True,
-                    "default_branch": "main",
-                },
-            )
-            return response.json()
-        except ForgejoAPIError as e:
-            if e.status_code in (409, 422) and "already exists" in str(e):
-                logger.info("Repository %s already exists", repo_name)
-                return self._request(
-                    "GET", f"/repos/{self._username}/{repo_name}"
-                ).json()
-            raise
+        response = self._request(
+            "POST",
+            "/user/repos",
+            json={
+                "name": repo_name,
+                "auto_init": True,
+                "default_branch": "main",
+            },
+        )
+        return response.json()
 
     def create_org_repository(
         self, org_slug: str, repo_name: str, *, auto_init: bool = True
     ) -> dict:
-        try:
-            response = self._request(
-                "POST",
-                f"/orgs/{org_slug}/repos",
-                json={
-                    "name": repo_name,
-                    "auto_init": auto_init,
-                    "default_branch": "main",
-                },
-            )
-            return response.json()
-        except ForgejoAPIError as e:
-            if e.status_code in (409, 422) and "already exists" in str(e):
-                logger.info("Repository %s/%s already exists", org_slug, repo_name)
-                return self._request("GET", f"/repos/{org_slug}/{repo_name}").json()
-            raise
+        response = self._request(
+            "POST",
+            f"/orgs/{org_slug}/repos",
+            json={
+                "name": repo_name,
+                "auto_init": auto_init,
+                "default_branch": "main",
+            },
+        )
+        return response.json()
 
     def list_org_repositories(
         self, org_slug: str, page: int = 1, limit: int = 50
     ) -> list[dict]:
-        try:
-            response = self._request(
-                "GET",
-                f"/orgs/{org_slug}/repos",
-                params={"page": page, "limit": limit},
-            )
-            return response.json()
-        except ForgejoAPIError as e:
-            if e.status_code == 404:
-                logger.info("Organization %s does not exist", org_slug)
-                return []
-            raise
+        response = self._request(
+            "GET",
+            f"/orgs/{org_slug}/repos",
+            params={"page": page, "limit": limit},
+        )
+        return response.json()
 
-    def unarchive_repository(self, org_slug: str, repo_name: str) -> dict | None:
-        try:
-            response = self._request(
-                "PATCH",
-                f"/repos/{org_slug}/{repo_name}",
-                json={"archived": False},
-            )
-            return response.json()
-        except ForgejoAPIError as e:
-            if e.status_code == 404:
-                logger.info(
-                    "Repository %s/%s does not exist, nothing to unarchive",
-                    org_slug,
-                    repo_name,
-                )
-                return None
-            raise
+    def unarchive_repository(self, org_slug: str, repo_name: str) -> dict:
+        response = self._request(
+            "PATCH",
+            f"/repos/{org_slug}/{repo_name}",
+            json={"archived": False},
+        )
+        return response.json()
 
-    def archive_repository(self, org_slug: str, repo_name: str) -> dict | None:
-        try:
-            response = self._request(
-                "PATCH",
-                f"/repos/{org_slug}/{repo_name}",
-                json={"archived": True},
-            )
-            return response.json()
-        except ForgejoAPIError as e:
-            if e.status_code == 404:
-                logger.info(
-                    "Repository %s/%s does not exist, nothing to archive",
-                    org_slug,
-                    repo_name,
-                )
-                return None
-            raise
+    def archive_repository(self, org_slug: str, repo_name: str) -> dict:
+        response = self._request(
+            "PATCH",
+            f"/repos/{org_slug}/{repo_name}",
+            json={"archived": True},
+        )
+        return response.json()
 
     def get_files_tree(
         self, repo_name: str, ref: str = "main", *, org_slug: str | None = None
     ) -> list[dict]:
         org_slug = org_slug or self._username
-        try:
-            response = self._request(
-                "GET",
-                f"/repos/{org_slug}/{repo_name}/git/trees/{ref}",
-                params={"recursive": "true"},
-            )
-            return response.json().get("tree", [])
-        except ForgejoAPIError as e:
-            if e.status_code == 404:
-                return []
-            raise
+        response = self._request(
+            "GET",
+            f"/repos/{org_slug}/{repo_name}/git/trees/{ref}",
+            params={"recursive": "true"},
+        )
+        return response.json().get("tree", [])
 
     def get_file(
         self,
@@ -283,12 +232,8 @@ class ForgejoClient(GitClient):
             if entry_type == "tree":
                 nodes.append({"path": path, "type": "directory", "content": None})
             elif entry_type == "blob":
-                content = None
-                try:
-                    raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
-                    content = raw.decode("utf-8", errors="replace")
-                except (ForgejoAPIError, UnicodeDecodeError):
-                    pass
+                raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
+                content = raw.decode("utf-8", errors="replace")
                 nodes.append({"path": path, "type": "file", "content": content})
 
         return nodes
