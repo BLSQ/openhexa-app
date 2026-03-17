@@ -11,7 +11,7 @@ from django.utils.safestring import mark_safe
 
 from hexa.assistant.models import Conversation
 from hexa.core.admin import GlobalObjectsModelAdmin, country_list
-from hexa.utils.currencies import format_cost
+from hexa.utils.format import format_cost
 
 from .models import (
     AiSettings,
