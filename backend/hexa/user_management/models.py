@@ -253,7 +253,10 @@ class OrganizationManager(DefaultSoftDeletedManager):
     def create(self, **kwargs):
         if "slug" not in kwargs:
             kwargs["slug"] = create_organization_slug(kwargs["name"])
-        return super().create(**kwargs)
+        org = super().create(**kwargs)
+        client = get_forgejo_client()
+        client.create_organization(org.slug, org.name)
+        return org
 
 
 class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):

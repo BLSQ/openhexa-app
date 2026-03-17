@@ -24,7 +24,6 @@ class GitRepoMixin(models.Model):
         return get_forgejo_client()
 
     def create_repo(self, *, files: list[dict] | None = None, user: User) -> str:
-        self.client.create_organization(self.git_org.slug, self.git_org.display_name)
         self.client.create_org_repository(
             self.git_org.slug, self.repository, auto_init=not files
         )
