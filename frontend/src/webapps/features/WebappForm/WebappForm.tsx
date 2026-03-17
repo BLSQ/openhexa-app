@@ -107,24 +107,24 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       if (data?.updateWebapp?.errors?.length) {
         const error = data.updateWebapp.errors[0];
         if (error === UpdateWebappError.PermissionDenied) {
-          toast.error(t("You do not have permission to update this webapp"));
+          toast.error(t("You do not have permission to update this web app"));
         } else if (error === UpdateWebappError.WebappNotFound) {
-          toast.error(t("Webapp not found"));
+          toast.error(t("Web app not found"));
         } else if (error === UpdateWebappError.SupersetInstanceNotFound) {
           toast.error(t("Superset instance not found"));
         } else if (error === UpdateWebappError.SupersetNotConfigured) {
           toast.error(t("Superset is not configured"));
         } else if (error === UpdateWebappError.TypeMismatch) {
-          toast.error(t("Cannot change the type of an existing webapp"));
+          toast.error(t("Cannot change the type of an existing web app"));
         } else if (error === UpdateWebappError.InvalidUrl) {
           toast.error(t("Invalid URL. Only http and https URLs are allowed"));
         }
         return;
       }
-      toast.success(t("Webapp updated successfully"));
+      toast.success(t("Web app updated successfully"));
       clearCache();
     } catch (error) {
-      toast.error(t("An error occurred while updating the webapp"));
+      toast.error(t("An error occurred while updating the web app"));
     } finally {
       setLoading(false);
     }
@@ -150,9 +150,9 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       if (data?.createWebapp?.errors?.length) {
         const error = data.createWebapp.errors[0];
         if (error === CreateWebappError.AlreadyExists) {
-          toast.error(t("A webapp with this name already exists"));
+          toast.error(t("A web app with this name already exists"));
         } else if (error === CreateWebappError.PermissionDenied) {
-          toast.error(t("You do not have permission to create a webapp"));
+          toast.error(t("You do not have permission to create a web app"));
         } else if (error === CreateWebappError.SupersetInstanceNotFound) {
           toast.error(t("Superset instance not found"));
         } else if (error === CreateWebappError.SupersetNotConfigured) {
@@ -167,7 +167,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       if (!data?.createWebapp?.webapp) {
         throw new Error("Webapp creation failed");
       }
-      toast.success(t("Webapp created successfully"));
+      toast.success(t("Web app created successfully"));
       clearCache();
       router
         .push(
@@ -175,7 +175,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         )
         .then();
     } catch (error) {
-      toast.error(t("An error occurred while creating the webapp"));
+      toast.error(t("An error occurred while creating the web app"));
     } finally {
       setLoading(false);
     }
@@ -188,7 +188,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   return (
     <DataCard item={webapp}>
       <DataCard.FormSection
-        title={t("Webapp Details")}
+        title={t("Web app Details")}
         onSave={
           webapp
             ? webapp.permissions.update

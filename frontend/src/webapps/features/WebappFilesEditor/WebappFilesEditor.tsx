@@ -114,7 +114,7 @@ const WebappFilesEditor = ({
       });
 
       if (data?.updateWebapp?.success) {
-        toast.success(t("Webapp saved successfully"));
+        toast.success(t("Web app saved successfully"));
         onSaveSuccess?.();
         return { success: true };
       } else {
@@ -140,6 +140,7 @@ const WebappFilesEditor = ({
               type="file"
               multiple
               className="hidden"
+              aria-hidden="true"
               onChange={(e) => {
                 if (e.target.files?.length) {
                   handleUpload(e.target.files).then();
@@ -151,6 +152,7 @@ const WebappFilesEditor = ({
               ref={folderInputRef}
               type="file"
               className="hidden"
+              aria-hidden="true"
               onChange={(e) => {
                 if (e.target.files?.length) {
                   handleUpload(e.target.files).then();
@@ -187,7 +189,7 @@ const WebappFilesEditor = ({
         )}
         <FilesEditor
           key={versionRef}
-          name={t("Webapp")}
+          name={t("Web app")}
           files={files}
           isEditable={isEditable}
           onSave={handleSave}

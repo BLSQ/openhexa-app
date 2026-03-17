@@ -46,7 +46,7 @@ const DeleteWebappDialog = (props: DeleteWebappDialogProps) => {
 
     setIsSubmitting(false);
     if (data.deleteWebapp.success) {
-      toast.success(t("Webapp deleted successfully."));
+      toast.success(t("Web app deleted successfully."));
       await router.push({
         pathname: "/workspaces/[workspaceSlug]/webapps",
         query: { workspaceSlug: workspace.slug },
@@ -55,15 +55,15 @@ const DeleteWebappDialog = (props: DeleteWebappDialogProps) => {
     } else if (
       data.deleteWebapp.errors.includes(DeleteWebappError.PermissionDenied)
     ) {
-      toast.error(t("Missing permissions to delete the webapp."));
+      toast.error(t("Missing permissions to delete the web app."));
     } else {
-      toast.error(t("Failed to delete the webapp."));
+      toast.error(t("Failed to delete the web app."));
     }
   };
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <Dialog.Title>{t("Delete webapp")}</Dialog.Title>
+      <Dialog.Title>{t("Delete web app")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
         <p>
           <Trans>

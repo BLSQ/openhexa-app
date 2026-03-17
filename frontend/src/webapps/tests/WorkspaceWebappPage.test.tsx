@@ -328,7 +328,7 @@ describe("WorkspaceWebappPage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Webapp Details")).toBeInTheDocument();
+      expect(screen.getByText("Web app Details")).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
@@ -348,7 +348,7 @@ describe("WorkspaceWebappPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith("Webapp updated successfully");
+      expect(toast.success).toHaveBeenCalledWith("Web app updated successfully");
     });
   });
 
@@ -381,20 +381,20 @@ describe("WorkspaceWebappPage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Webapp Details")).toBeInTheDocument();
+      expect(screen.getByText("Web app Details")).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
 
     await waitFor(() => {
-      expect(screen.getByText("Delete webapp")).toBeInTheDocument();
+      expect(screen.getByText("Delete web app")).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith(
-        "Webapp deleted successfully.",
+        "Web app deleted successfully.",
       );
     });
   });

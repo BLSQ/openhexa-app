@@ -128,7 +128,7 @@ describe("WebappCreatePage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Webapp Details")).toBeInTheDocument();
+      expect(screen.getByText("Web app Details")).toBeInTheDocument();
     });
 
     const nameParent = screen
@@ -157,7 +157,7 @@ describe("WebappCreatePage", () => {
     fireEvent.click(createButton);
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith("Webapp created successfully");
+      expect(toast.success).toHaveBeenCalledWith("Web app created successfully");
     });
 
     expect(mockRouter.asPath).toBe(
@@ -233,7 +233,7 @@ describe("WebappCreatePage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Webapp Details")).toBeInTheDocument();
+      expect(screen.getByText("Web app Details")).toBeInTheDocument();
     });
 
     const nameParent = screen
@@ -330,7 +330,7 @@ describe("WebappCreatePage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Webapp Details")).toBeInTheDocument();
+      expect(screen.getByText("Web app Details")).toBeInTheDocument();
     });
 
     const nameParent = screen
