@@ -27,6 +27,7 @@ import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import RunLogs from "pipelines/features/RunLogs";
 import RunMessages from "pipelines/features/RunMessages";
 import usePipelineRunMessages from "pipelines/hooks/usePipelineRunMessages/usePipelineRunMessages";
+import usePipelineRunPoller from "pipelines/hooks/usePipelineRunPoller";
 import { useMemo, useState } from "react";
 import RunOutputsTable from "workspaces/features/RunOutputsTable";
 import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
@@ -70,6 +71,11 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
     PipelineRunStatus.Stopped,
     PipelineRunStatus.Skipped,
   ].includes(runStatus as PipelineRunStatus);
+
+  usePipelineRunPoller(
+    { id: runId_, status: runStatus ?? PipelineRunStatus.Queued },
+    !isTerminal && !!data?.pipelineRun,
+  );
 
   const { messages: sseMessages, isStreaming, streamError } = usePipelineRunMessages(runId_, isTerminal, refetch);
 
