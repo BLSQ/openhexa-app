@@ -241,21 +241,22 @@ class GitWebapp(Webapp, GitRepoMixin):
             raise PermissionDenied
 
         webapp_slug = create_webapp_slug(name, workspace)
-        webapp = cls.objects.create(
-            workspace=workspace,
-            type=webapp_type,
-            slug=webapp_slug,
-            name=name,
-            description=description,
-            icon=icon,
-            is_public=is_public,
-            created_by=created_by,
-            repository=f"{workspace.slug}-webapp-{webapp_slug}",
-        )
+        with transaction.atomic():
+            webapp = cls.objects.create(
+                workspace=workspace,
+                type=webapp_type,
+                slug=webapp_slug,
+                name=name,
+                description=description,
+                icon=icon,
+                is_public=is_public,
+                created_by=created_by,
+                repository=f"{workspace.slug}-webapp-{webapp_slug}",
+            )
 
-        initial_sha = webapp.create_repo(files=files, user=principal)
-        webapp.published_commit = initial_sha
-        webapp.save()
+            initial_sha = webapp.create_repo(files=files, user=principal)
+            webapp.published_commit = initial_sha
+            webapp.save()
 
         return webapp
 
