@@ -46,7 +46,7 @@ def serve_webapp(request, webapp_id, path="index.html"):
             git_webapp.repository,
             path,
             git_webapp.published_commit,
-            org_slug=git_webapp.org.slug,
+            org_slug=git_webapp.git_org.slug,
         )
     except ForgejoAPIError as e:
         if e.status_code == 404:

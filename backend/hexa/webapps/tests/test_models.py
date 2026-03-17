@@ -769,7 +769,7 @@ class GitWebappModelTest(TestCase):
             webapp_type=Webapp.WebappType.STATIC,
         )
 
-        self.assertEqual(webapp.org.slug, "no-org")
+        self.assertEqual(webapp.git_org.slug, "no-org")
 
     def test_org_name_with_organization(self):
         org = Organization.objects.create(
@@ -799,7 +799,7 @@ class GitWebappModelTest(TestCase):
             webapp_type=Webapp.WebappType.STATIC,
         )
 
-        self.assertEqual(webapp.org.slug, org.slug)
+        self.assertEqual(webapp.git_org.slug, org.slug)
 
     def test_filter_for_user(self):
         git_webapp = GitWebapp.create_if_has_perm(

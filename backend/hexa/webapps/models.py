@@ -163,7 +163,7 @@ class GitWebapp(Webapp, GitRepoMixin):
     published_commit = models.CharField(max_length=64, blank=True, null=True)
 
     @property
-    def org(self):
+    def git_org(self):
         if self.workspace.organization:
             return GitOrg(
                 slug=self.workspace.organization.slug,
@@ -174,7 +174,7 @@ class GitWebapp(Webapp, GitRepoMixin):
     def get_versions(self, page=1, per_page=20):
         try:
             items = self.client.get_commits(
-                self.org.slug, self.repository, page=page, limit=per_page
+                self.git_org.slug, self.repository, page=page, limit=per_page
             )
         except ForgejoAPIError:
             items = []
@@ -184,13 +184,15 @@ class GitWebapp(Webapp, GitRepoMixin):
     def get_files(self, ref="main"):
         try:
             return self.client.get_repository_files(
-                self.repository, ref, org_slug=self.org.slug
+                self.repository, ref, org_slug=self.git_org.slug
             )
         except ForgejoAPIError:
             return []
 
     def publish_version(self, version_id):
-        if not self.client.commit_exists(self.org.slug, self.repository, version_id):
+        if not self.client.commit_exists(
+            self.git_org.slug, self.repository, version_id
+        ):
             raise ValueError(f"Version {version_id} not found")
         self.published_commit = version_id
         self.save()
@@ -202,7 +204,7 @@ class GitWebapp(Webapp, GitRepoMixin):
             message,
             user.display_name or user.email,
             user.email,
-            org_slug=self.org.slug,
+            org_slug=self.git_org.slug,
         )
         self.published_commit = sha
         self.save()

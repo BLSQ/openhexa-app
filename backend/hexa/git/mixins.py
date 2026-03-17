@@ -15,7 +15,7 @@ class GitRepoMixin(models.Model):
         abstract = True
 
     @property
-    def org(self) -> GitOrg:
+    def git_org(self) -> GitOrg:
         raise NotImplementedError("Child classes must implement the org property")
 
     @property
@@ -23,9 +23,9 @@ class GitRepoMixin(models.Model):
         return get_forgejo_client()
 
     def create_repo(self, *, files=None, user=None) -> str:
-        self.client.create_organization(self.org.slug, self.org.display_name)
+        self.client.create_organization(self.git_org.slug, self.git_org.display_name)
         self.client.create_org_repository(
-            self.org.slug, self.repository, auto_init=not (files and user)
+            self.git_org.slug, self.repository, auto_init=not (files and user)
         )
         if files and user:
             return self.client.commit_files(
@@ -34,10 +34,10 @@ class GitRepoMixin(models.Model):
                 "Initial content",
                 user.display_name or user.email,
                 user.email,
-                org_slug=self.org.slug,
+                org_slug=self.git_org.slug,
             )
-        commits = self.client.get_commits(self.org.slug, self.repository, limit=1)
+        commits = self.client.get_commits(self.git_org.slug, self.repository, limit=1)
         return commits[0]["id"]
 
     def archive_repo(self):
-        self.client.archive_repository(self.org.slug, self.repository)
+        self.client.archive_repository(self.git_org.slug, self.repository)
