@@ -1,8 +1,14 @@
 import mimetypes
 
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
+from django.http import (
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseNotFound,
+    HttpResponseRedirect,
+)
 from django.views.decorators.clickjacking import xframe_options_exempt
 
+from hexa.files.utils import is_safe_path
 from hexa.git.forgejo import ForgejoAPIError, get_forgejo_client
 from hexa.webapps.models import GitWebapp, Webapp
 
@@ -27,6 +33,9 @@ def serve_webapp(request, webapp_id, path="index.html"):
     denied = _check_access(request, git_webapp)
     if denied:
         return denied
+
+    if not is_safe_path(path):
+        return HttpResponseBadRequest("Invalid path")
 
     if not git_webapp.published_commit:
         return HttpResponseNotFound("No published version")
