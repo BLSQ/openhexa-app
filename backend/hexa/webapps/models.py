@@ -162,6 +162,13 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 class GitWebapp(Webapp, GitRepoMixin):
     published_commit = models.CharField(max_length=64, blank=True, null=True)
 
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=["published_commit"], name="idx_gitwebapp_published_commit"
+            ),
+        ]
+
     @property
     def git_org(self):
         if self.workspace.organization:
