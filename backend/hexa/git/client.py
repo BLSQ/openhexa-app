@@ -7,12 +7,6 @@ class GitClient(ABC):
         ...
 
     @abstractmethod
-    def rename_organization(
-        self, old_slug: str, new_slug: str, display_name: str
-    ) -> dict | None:
-        ...
-
-    @abstractmethod
     def list_org_repositories(
         self, org_slug: str, page: int = 1, limit: int = 50
     ) -> list[dict]:

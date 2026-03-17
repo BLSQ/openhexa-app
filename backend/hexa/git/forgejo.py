@@ -90,30 +90,6 @@ class ForgejoClient(GitClient):
                 return self._request("GET", f"/orgs/{org_slug}").json()
             raise
 
-    def rename_organization(
-        self, old_slug: str, new_slug: str, display_name: str
-    ) -> dict | None:
-        try:
-            if old_slug != new_slug:
-                self._request(
-                    "POST",
-                    f"/orgs/{old_slug}/rename",
-                    json={"new_name": new_slug},
-                )
-            response = self._request(
-                "PATCH",
-                f"/orgs/{new_slug}",
-                json={"full_name": display_name},
-            )
-            return response.json()
-        except ForgejoAPIError as e:
-            if e.status_code == 404:
-                logger.info(
-                    "Organization %s does not exist, nothing to rename", old_slug
-                )
-                return None
-            raise
-
     def create_repository(self, repo_name: str) -> dict:
         try:
             response = self._request(
