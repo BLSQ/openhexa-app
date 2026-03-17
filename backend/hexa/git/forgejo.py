@@ -1,30 +1,10 @@
 import base64
 import logging
-import os
 
 import requests
 from django.conf import settings
 
 from hexa.git.client import GitClient
-
-LANGUAGE_MAP = {
-    ".py": "python",
-    ".js": "javascript",
-    ".ts": "typescript",
-    ".tsx": "typescript",
-    ".jsx": "javascript",
-    ".html": "html",
-    ".css": "css",
-    ".json": "json",
-    ".md": "markdown",
-    ".yaml": "yaml",
-    ".yml": "yaml",
-    ".xml": "xml",
-    ".svg": "xml",
-    ".sh": "shell",
-    ".r": "r",
-    ".sql": "sql",
-}
 
 logger = logging.getLogger(__name__)
 
@@ -316,55 +296,24 @@ class ForgejoClient(GitClient):
         *,
         org_slug: str | None = None,
     ) -> list[dict]:
-        """Fetch the full file tree and return a flat list of directory/file nodes
-        with content and metadata.
-        """
+        """Fetch the full file tree and return a flat list with path, type, and content."""
         tree = self.get_files_tree(repo_name, ref, org_slug=org_slug)
         nodes: list[dict] = []
 
         for entry in tree:
             path = entry.get("path", "")
-            parent = "/".join(path.split("/")[:-1]) or None
             entry_type = entry.get("type", "")
 
             if entry_type == "tree":
-                nodes.append(
-                    {
-                        "id": path,
-                        "name": path.split("/")[-1],
-                        "path": path,
-                        "type": "directory",
-                        "content": None,
-                        "parent_id": parent,
-                        "auto_select": False,
-                        "language": None,
-                        "line_count": None,
-                    }
-                )
+                nodes.append({"path": path, "type": "directory", "content": None})
             elif entry_type == "blob":
                 content = None
                 try:
                     raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
                     content = raw.decode("utf-8", errors="replace")
                 except (ForgejoAPIError, UnicodeDecodeError):
-                    logger.error(
-                        "Failed to read file %s in %s (ref=%s)", path, repo_name, ref
-                    )
-
-                extension = os.path.splitext(path)[1].lower()
-                nodes.append(
-                    {
-                        "id": path,
-                        "name": path.split("/")[-1],
-                        "path": path,
-                        "type": "file",
-                        "content": content,
-                        "parent_id": parent,
-                        "auto_select": path == "index.html",
-                        "language": LANGUAGE_MAP.get(extension),
-                        "line_count": content.count("\n") + 1 if content else None,
-                    }
-                )
+                    pass
+                nodes.append({"path": path, "type": "file", "content": content})
 
         return nodes
 

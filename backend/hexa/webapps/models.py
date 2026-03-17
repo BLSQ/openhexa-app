@@ -1,3 +1,4 @@
+import os
 import secrets
 
 from django.contrib.auth.models import AnonymousUser
@@ -183,10 +184,50 @@ class GitWebapp(Webapp, GitRepoMixin):
         )
         return {"items": items, "page": page}
 
+    LANGUAGE_MAP = {
+        ".py": "python",
+        ".js": "javascript",
+        ".ts": "typescript",
+        ".tsx": "typescript",
+        ".jsx": "javascript",
+        ".html": "html",
+        ".css": "css",
+        ".json": "json",
+        ".md": "markdown",
+        ".yaml": "yaml",
+        ".yml": "yaml",
+        ".xml": "xml",
+        ".svg": "xml",
+        ".sh": "shell",
+        ".r": "r",
+        ".sql": "sql",
+    }
+
     def get_files(self, ref="main"):
-        return self.client.get_repository_files(
+        raw_files = self.client.get_repository_files(
             self.repository, ref, org_slug=self.git_org.slug
         )
+        nodes = []
+        for entry in raw_files:
+            path = entry["path"]
+            content = entry.get("content")
+            parent = "/".join(path.split("/")[:-1]) or None
+            extension = os.path.splitext(path)[1].lower()
+
+            nodes.append(
+                {
+                    "id": path,
+                    "name": path.split("/")[-1],
+                    "path": path,
+                    "type": entry["type"],
+                    "content": content,
+                    "parent_id": parent,
+                    "auto_select": path == "index.html",
+                    "language": self.LANGUAGE_MAP.get(extension) if content else None,
+                    "line_count": content.count("\n") + 1 if content else None,
+                }
+            )
+        return nodes
 
     def publish_version(self, version_id):
         if not self.client.commit_exists(

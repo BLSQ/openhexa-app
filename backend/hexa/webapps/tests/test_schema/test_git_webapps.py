@@ -577,28 +577,8 @@ class GitWebappQueryTest(GraphQLTestCase):
         mock_client = MagicMock()
         mock_client.get_commits.return_value = []
         mock_client.get_repository_files.return_value = [
-            {
-                "id": "index.html",
-                "name": "index.html",
-                "path": "index.html",
-                "type": "file",
-                "content": "<h1>Hello</h1>",
-                "parent_id": None,
-                "auto_select": True,
-                "language": "html",
-                "line_count": 1,
-            },
-            {
-                "id": "style.css",
-                "name": "style.css",
-                "path": "style.css",
-                "type": "file",
-                "content": "body { color: red; }",
-                "parent_id": None,
-                "auto_select": False,
-                "language": "css",
-                "line_count": 1,
-            },
+            {"path": "index.html", "type": "file", "content": "<h1>Hello</h1>"},
+            {"path": "style.css", "type": "file", "content": "body { color: red; }"},
         ]
         mock_get_client.return_value = mock_client
 
@@ -635,49 +615,13 @@ class GitWebappQueryTest(GraphQLTestCase):
         mock_client = MagicMock()
         mock_client.get_commits.return_value = []
         mock_client.get_repository_files.return_value = [
+            {"path": "assets", "type": "directory", "content": None},
+            {"path": "index.html", "type": "file", "content": "<html></html>"},
+            {"path": "assets/style.css", "type": "file", "content": "body {}"},
             {
-                "id": "assets",
-                "name": "assets",
-                "path": "assets",
-                "type": "directory",
-                "content": None,
-                "parent_id": None,
-                "auto_select": False,
-                "language": None,
-                "line_count": None,
-            },
-            {
-                "id": "index.html",
-                "name": "index.html",
-                "path": "index.html",
-                "type": "file",
-                "content": "<html></html>",
-                "parent_id": None,
-                "auto_select": True,
-                "language": "html",
-                "line_count": 1,
-            },
-            {
-                "id": "assets/style.css",
-                "name": "style.css",
-                "path": "assets/style.css",
-                "type": "file",
-                "content": "body {}",
-                "parent_id": "assets",
-                "auto_select": False,
-                "language": "css",
-                "line_count": 1,
-            },
-            {
-                "id": "assets/script.js",
-                "name": "script.js",
                 "path": "assets/script.js",
                 "type": "file",
                 "content": "console.log('hi');",
-                "parent_id": "assets",
-                "auto_select": False,
-                "language": "javascript",
-                "line_count": 1,
             },
         ]
         mock_get_client.return_value = mock_client
