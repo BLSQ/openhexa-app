@@ -29,11 +29,11 @@ class GitRepoMixin(models.Model):
         )
         if files and user:
             return self.client.commit_files(
-                self.repository,
-                files,
-                "Initial content",
-                user.display_name or user.email,
-                user.email,
+                repo_name=self.repository,
+                files=files,
+                message="Initial content",
+                author_name=user.display_name,
+                author_email=user.email,
                 org_slug=self.git_org.slug,
             )
         commits = self.client.get_commits(self.git_org.slug, self.repository, limit=1)
