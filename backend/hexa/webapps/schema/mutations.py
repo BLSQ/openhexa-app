@@ -165,7 +165,7 @@ def resolve_update_webapp(_, info, **kwargs):
         try:
             git_webapp = GitWebapp.objects.get(pk=webapp.pk)
         except GitWebapp.DoesNotExist:
-            return {"success": False, "errors": ["WEBAPP_NOT_FOUND"], "webapp": None}
+            return {"success": False, "errors": ["TYPE_MISMATCH"], "webapp": None}
 
         if input.get("files") is not None:
             files = [
