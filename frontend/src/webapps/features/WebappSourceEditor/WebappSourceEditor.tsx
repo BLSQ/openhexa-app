@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "next-i18next";
+import type { FileWithPath } from "react-dropzone";
 import Tabs from "core/components/Tabs";
 import CodeEditor from "core/components/CodeEditor";
 import Dropzone from "core/components/Dropzone";
@@ -26,11 +27,11 @@ const WebappSourceEditor = ({
   );
 
   const handleFileDrop = useCallback(
-    async (acceptedFiles: readonly File[]) => {
+    async (acceptedFiles: readonly FileWithPath[]) => {
       onChange(
         await Promise.all(
           acceptedFiles.map(async (file) => ({
-            path: file.name,
+            path: file.path || file.webkitRelativePath || file.name,
             content: await file.text(),
           })),
         ),
