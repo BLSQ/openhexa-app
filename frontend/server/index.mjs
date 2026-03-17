@@ -77,7 +77,16 @@ app.prepare().then(async () => {
     }),
   );
 
-  server.all(/(.*)/, (req, res) => handle(req, res));
+  server.all(/(.*)/, (req, res) => {
+    // TODO: remove this if with the log after analysis
+    if (req.path.includes("/_next/data/")) {
+      const start = performance.now();
+      res.on("finish", () => {
+        console.log(`[server] ${req.path} total: ${(performance.now() - start).toFixed(1)}ms`);
+      });
+    }
+    handle(req, res);
+  });
 
   server.listen(port, () => {
     console.log(`> Ready on http://localhost:${port}`);
