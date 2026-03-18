@@ -1,5 +1,7 @@
 from django.db import migrations, models
 
+import hexa.webapps.models
+
 
 class Migration(migrations.Migration):
     dependencies = [
@@ -10,6 +12,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="webapp",
             name="allowed_domains",
-            field=models.TextField(blank=True, default=""),
+            field=models.TextField(
+                blank=True,
+                default="",
+                validators=[hexa.webapps.models.validate_allowed_domains],
+            ),
         ),
     ]
