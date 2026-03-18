@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
@@ -5,11 +7,13 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
+from django.db.models import Q, Sum
 from django.db.models.functions import Collate
+from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
-from hexa.assistant.models import Conversation
+from hexa.assistant.models import Message
 from hexa.core.admin import GlobalObjectsModelAdmin, country_list
 from hexa.utils.format import format_cost
 
@@ -198,20 +202,30 @@ class CustomUserAdmin(UserAdmin):
 
     @staticmethod
     def assistant_usage(user: User):
-        total_cost = Conversation.get_total_cost_for_user(user)
-        return format_cost(total_cost)
+        return format_cost(user.total_cost or 0)
 
     @staticmethod
     def assistant_usage_this_month(user: User):
-        monthly_cost = Conversation.get_monthly_cost_for_user(user)
-        return format_cost(monthly_cost)
+        return format_cost(user.monthly_cost or 0)
 
     def get_queryset(self, request):
+        now = timezone.now()
+        start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        start_of_next_month = (start_of_month + timedelta(days=32)).replace(day=1)
         return (
             super()
             .get_queryset(request)
             .annotate(
                 case_insensitive_email=Collate("email", "und-x-icu"),
+                total_cost=Sum("conversation__cost"),
+                monthly_cost=Sum(
+                    "conversation__messages__cost",
+                    filter=Q(
+                        conversation__messages__role=Message.Role.ASSISTANT,
+                        conversation__messages__created_at__gte=start_of_month,
+                        conversation__messages__created_at__lt=start_of_next_month,
+                    ),
+                ),
             )
         )
 
