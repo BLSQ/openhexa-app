@@ -5144,6 +5144,7 @@ type UpdateUserResult {
 
 """Represents the error message for a web app update."""
 enum UpdateWebappError {
+  INVALID_ALLOWED_DOMAINS
   INVALID_URL
   PERMISSION_DENIED
   SUPERSET_INSTANCE_NOT_FOUND
@@ -5154,6 +5155,7 @@ enum UpdateWebappError {
 
 """Represents the input for updating a web app."""
 input UpdateWebappInput {
+  allowedDomains: String
   description: String
   icon: String
   id: UUID!
@@ -5348,6 +5350,7 @@ type WHORegion {
 
 """Represents a web app."""
 type Webapp {
+  allowedDomains: String!
   createdBy: User!
   description: String
   icon: String

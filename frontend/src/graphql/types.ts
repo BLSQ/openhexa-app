@@ -5941,6 +5941,7 @@ export type UpdateUserResult = {
 
 /** Represents the error message for a web app update. */
 export enum UpdateWebappError {
+  InvalidAllowedDomains = 'INVALID_ALLOWED_DOMAINS',
   InvalidUrl = 'INVALID_URL',
   PermissionDenied = 'PERMISSION_DENIED',
   SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
@@ -5951,6 +5952,7 @@ export enum UpdateWebappError {
 
 /** Represents the input for updating a web app. */
 export type UpdateWebappInput = {
+  allowedDomains?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   icon?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
@@ -6131,6 +6133,7 @@ export type WhoRegion = {
 /** Represents a web app. */
 export type Webapp = {
   __typename?: 'Webapp';
+  allowedDomains: Scalars['String']['output'];
   createdBy: User;
   description?: Maybe<Scalars['String']['output']>;
   icon?: Maybe<Scalars['String']['output']>;

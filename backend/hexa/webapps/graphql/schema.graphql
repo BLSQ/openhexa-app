@@ -44,6 +44,7 @@ type Webapp {
   workspace: Workspace!
   createdBy: User!
   isPublic: Boolean!
+  allowedDomains: String!
   isFavorite: Boolean!
   isShortcut: Boolean!
   source: WebappSource!
@@ -121,6 +122,7 @@ input UpdateWebappInput {
   description: String
   icon: String
   isPublic: Boolean
+  allowedDomains: String
   source: UpdateWebappSourceInput
 }
 
@@ -151,6 +153,7 @@ enum UpdateWebappError {
   SUPERSET_NOT_CONFIGURED
   TYPE_MISMATCH
   INVALID_URL
+  INVALID_ALLOWED_DOMAINS
 }
 
 """
