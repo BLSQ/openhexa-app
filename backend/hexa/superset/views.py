@@ -64,7 +64,7 @@ def view_superset_dashboard(request: HttpRequest, dashboard_id: str) -> HttpResp
         domains = [d.strip() for d in webapp.allowed_domains.split(",") if d.strip()]
         origins = " ".join(f"https://{d}" for d in domains)
         response["Content-Security-Policy"] = f"frame-ancestors 'self' {origins}"
-        del response["X-Frame-Options"]
+        response.xframe_options_exempt = True
 
     return response
 
