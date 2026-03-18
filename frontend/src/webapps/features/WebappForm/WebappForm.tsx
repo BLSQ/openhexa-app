@@ -261,7 +261,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           accessor="allowedDomains"
           label={t("Allowed domains")}
           visible={(_, isEditing, formData) =>
-            isEditing ? formData.isPublic : !!webapp?.isPublic
+            !!webapp && (isEditing ? formData.isPublic : !!webapp.isPublic)
           }
           help={t(
             "Domains allowed to embed this webapp (comma-separated)",
