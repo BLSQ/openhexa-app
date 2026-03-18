@@ -1,5 +1,21 @@
 # Changelog
 
+## [4.6.0](https://github.com/BLSQ/openhexa-app/compare/4.5.1...4.6.0) (2026-03-18)
+
+
+### Features
+
+* OH Agent: Implement the main agent loop and DB models (HEXA-1512) ([#1654](https://github.com/BLSQ/openhexa-app/issues/1654)) ([4803b94](https://github.com/BLSQ/openhexa-app/commit/4803b944d3d18a00f17cc7518817f109dcdf600b))
+* wiki documentation about the new MCP server (HEXA-1553) ([#1672](https://github.com/BLSQ/openhexa-app/issues/1672)) ([23517d8](https://github.com/BLSQ/openhexa-app/commit/23517d80533acf66caa7c414b02fc29149d0b577))
+
+
+### Bug Fixes
+
+* Allow fixture creation with --no-input for localhosting ([#1681](https://github.com/BLSQ/openhexa-app/issues/1681)) ([aed8b9e](https://github.com/BLSQ/openhexa-app/commit/aed8b9e5d75e8e088060488f837fe605e3e2ccf3))
+* external servers connection errors returned to sentry ([#1667](https://github.com/BLSQ/openhexa-app/issues/1667)) ([4942365](https://github.com/BLSQ/openhexa-app/commit/494236518ca2dda3642f3887c3fa6853c342466c))
+* minor webapps bugs (HEXA-1556, HEXA-1558, HEXA-1559, HEXA-1560) ([#1676](https://github.com/BLSQ/openhexa-app/issues/1676)) ([70c0b53](https://github.com/BLSQ/openhexa-app/commit/70c0b53d52c1bea47db42dcc3c047b0323ccb4a6))
+* table row count should be accurate (HEXA-1557) ([#1677](https://github.com/BLSQ/openhexa-app/issues/1677)) ([f3439f7](https://github.com/BLSQ/openhexa-app/commit/f3439f7cbf154d832b6fced0ae158788d90c6d3c))
+
 ## [4.5.1](https://github.com/BLSQ/openhexa-app/compare/4.5.0...4.5.1) (2026-03-11)
 
 
