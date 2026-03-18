@@ -1,7 +1,8 @@
 import secrets
+from urllib.parse import urlparse
 
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import URLValidator, validate_slug
 from django.db import models, transaction
 from django.db.models import Q
@@ -19,15 +20,21 @@ from hexa.superset.models import SupersetDashboard
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
+_url_validator = URLValidator()
+
 
 def validate_allowed_domains(value):
     if not value:
         return
-    for d in value.split(","):
-        d = d.strip()
-        if not d:
+    for domain in value.split(","):
+        domain = domain.strip()
+        if not domain:
             continue
-        URLValidator(f"https://{d}")
+        url = f"https://{domain}"
+        _url_validator(url)
+        parsed = urlparse(url)
+        if parsed.hostname != domain or parsed.path not in ("", "/"):
+            raise ValidationError(f"'{domain}' is not a valid domain.")
 
 
 def create_webapp_slug(name: str, workspace: Workspace):
