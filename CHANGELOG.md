@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.6.1](https://github.com/BLSQ/openhexa-app/compare/4.6.0...4.6.1) (2026-03-18)
+
+
+### Bug Fixes
+
+* MCP redirection + small addition to wiki ([#1686](https://github.com/BLSQ/openhexa-app/issues/1686)) ([386dbab](https://github.com/BLSQ/openhexa-app/commit/386dbab5bba7d5f192da150aec0d819d409e43d7))
+
 ## [4.6.0](https://github.com/BLSQ/openhexa-app/compare/4.5.1...4.6.0) (2026-03-18)
 
 
