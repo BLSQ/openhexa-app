@@ -119,6 +119,57 @@ class SupersetDashboardViewAccessTest(TestCase):
             response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
+    def test_public_dashboard_no_allowed_domains_has_x_frame_options(self):
+        url = f"/superset/dashboard/{self.DASHBOARD_PUBLIC.id}/"
+        with requests_mock.Mocker() as mocker:
+            self._mock_superset(mocker)
+            response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["X-Frame-Options"], "SAMEORIGIN")
+        self.assertFalse(response.has_header("Content-Security-Policy"))
+
+    def test_public_dashboard_with_allowed_domains_sets_csp(self):
+        webapp = SupersetWebapp.create_if_has_perm(
+            principal=self.USER_MEMBER,
+            workspace=self.WORKSPACE,
+            superset_instance=self.SUPERSET_INSTANCE,
+            external_dashboard_id="ext-csp",
+            name="CSP Dashboard",
+            created_by=self.USER_MEMBER,
+            is_public=True,
+            allowed_domains="dashboard.example.org, analytics.test.com",
+        )
+        url = f"/superset/dashboard/{webapp.superset_dashboard.id}/"
+        with requests_mock.Mocker() as mocker:
+            self._mock_superset(mocker)
+            response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Content-Security-Policy"],
+            "frame-ancestors 'self' https://dashboard.example.org https://analytics.test.com",
+        )
+        self.assertFalse(response.has_header("X-Frame-Options"))
+
+    def test_private_dashboard_with_allowed_domains_no_csp(self):
+        webapp = SupersetWebapp.create_if_has_perm(
+            principal=self.USER_MEMBER,
+            workspace=self.WORKSPACE,
+            superset_instance=self.SUPERSET_INSTANCE,
+            external_dashboard_id="ext-private-csp",
+            name="Private CSP Dashboard",
+            created_by=self.USER_MEMBER,
+            is_public=False,
+            allowed_domains="dashboard.example.org",
+        )
+        self.client.force_login(self.USER_MEMBER)
+        url = f"/superset/dashboard/{webapp.superset_dashboard.id}/"
+        with requests_mock.Mocker() as mocker:
+            self._mock_superset(mocker)
+            response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["X-Frame-Options"], "SAMEORIGIN")
+        self.assertFalse(response.has_header("Content-Security-Policy"))
+
 
 class IframeWebappAccessTest(GraphQLTestCase):
     WEBAPP_QUERY = """

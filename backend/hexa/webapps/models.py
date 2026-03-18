@@ -189,6 +189,7 @@ class SupersetWebapp(Webapp):
         description="",
         icon=None,
         is_public=False,
+        allowed_domains="",
     ):
         if not principal.has_perm("webapps.create_webapp", workspace):
             raise PermissionDenied
@@ -211,6 +212,7 @@ class SupersetWebapp(Webapp):
                 description=description,
                 icon=icon,
                 is_public=is_public,
+                allowed_domains=allowed_domains,
                 created_by=created_by,
             )
 
