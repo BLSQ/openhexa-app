@@ -50,7 +50,7 @@ def view_superset_dashboard(request: HttpRequest, dashboard_id: str) -> HttpResp
         webapp is not None and webapp.is_public and not request.user.is_authenticated
     )
 
-    return render(
+    response = render(
         request,
         "superset/dashboard.html",
         {
@@ -59,6 +59,14 @@ def view_superset_dashboard(request: HttpRequest, dashboard_id: str) -> HttpResp
             "is_public_view": is_public_view,
         },
     )
+
+    if webapp is not None and webapp.is_public and webapp.allowed_domains:
+        domains = [d.strip() for d in webapp.allowed_domains.split(",") if d.strip()]
+        origins = " ".join(f"https://{d}" for d in domains)
+        response["Content-Security-Policy"] = f"frame-ancestors 'self' {origins}"
+        del response["X-Frame-Options"]
+
+    return response
 
 
 LEGACY_ENDPOINT_SUNSET_DATE = date(2026, 3, 31)
