@@ -2,11 +2,8 @@ import base64
 import fnmatch
 import io
 import json
-import logging
 
 import requests
-
-logger = logging.getLogger(__name__)
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from google.cloud import storage
@@ -31,7 +28,7 @@ def get_storage_client(service_account_key):
 
 
 def _is_dir(blob):
-    return blob.size == 0 and blob.name.endswith("/")
+    return (blob.size is None or blob.size == 0) and blob.name.endswith("/")
 
 
 def _blob_to_obj(blob: Blob):
@@ -46,53 +43,8 @@ def _blob_to_obj(blob: Blob):
     )
 
 
-def _prefix_to_obj(bucket_name, name: str):
-    return StorageObject(
-        name=name.split("/")[-2],
-        key=name,
-        path="/".join([bucket_name, name]),
-        type="directory",
-    )
-
-
-def iter_request_results(bucket_name, request, include_directories=False):
-    # When list_blobs is called with delimiter="/", GCP returns two things per API page:
-    #   - "prefixes": virtual subdirectories (e.g. "photos/", "documents/")
-    #   - "blobs": actual files
-    #
-    # The GCP client exposes request.prefixes as a set that accumulates prefixes across
-    # all iterated pages. Crucially, if the folder has many items, GCP splits results
-    # across multiple API pages — and each page can reveal NEW prefixes not seen before.
-    #
-    # Example: a folder with 3 subfolders and 25 files, fetched with page_size=20:
-    #   - API page 1 → prefixes {"documents/", "photos/"} + 18 blobs
-    #   - API page 2 → prefix  {"videos/"}               +  7 blobs
-    #
-    # The caller (list_bucket_objects) stops consuming this generator once it has enough
-    # items for the requested page. If we yielded items lazily page-by-page, prefixes on
-    # later API pages would never be reached and silently dropped.
-    #
-    # To avoid this, we eagerly iterate ALL API pages upfront to discover every prefix.
-    # The blobs from each page are buffered and yielded after all prefixes. This trades
-    # some upfront latency (extra API calls) for correctness.
-    pages = request.pages
-    buffered_blobs = []
-
-    for page in pages:
-        for blob in page:
-            if not _is_dir(blob) or include_directories:
-                buffered_blobs.append(blob)
-
-    logger.info(
-        "iter_request_results: bucket=%s, all prefixes discovered: %s",
-        bucket_name,
-        sorted(request.prefixes),
-    )
-
-    for prefix in sorted(request.prefixes):
-        yield _prefix_to_obj(bucket_name, prefix)
-
-    for blob in buffered_blobs:
+def iter_request_results(bucket_name, request):
+    for blob in request:
         yield _blob_to_obj(blob)
 
 
@@ -310,9 +262,7 @@ class GoogleCloudStorage(Storage):
                 return False
             return True
 
-        iterator = iter_request_results(
-            bucket_name, request, include_directories=match_glob
-        )
+        iterator = iter_request_results(bucket_name, request)
         while True:
             try:
                 obj = next(iterator)
