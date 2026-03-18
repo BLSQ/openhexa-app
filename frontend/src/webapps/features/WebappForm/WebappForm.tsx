@@ -264,7 +264,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             isEditing ? formData.isPublic : !!webapp?.isPublic
           }
           help={t(
-            "Comma-separated list of domains allowed to embed this webapp in an iframe (e.g. dashboard.example.org)",
+            "Domains allowed to embed this webapp (comma-separated)",
           )}
         />
       </DataCard.FormSection>
