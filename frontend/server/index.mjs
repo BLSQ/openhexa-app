@@ -77,9 +77,10 @@ app.prepare().then(async () => {
     }),
   );
 
+  const perfLogs = !!process.env.PERFORMANCE_LOGS;
   server.all(/(.*)/, (req, res) => {
     // TODO: remove this if with the log after analysis
-    if (req.path.includes("/_next/data/")) {
+    if (perfLogs && req.path.includes("/_next/data/")) {
       const start = performance.now();
       res.on("finish", () => {
         console.log(`[server] ${req.path} total: ${(performance.now() - start).toFixed(1)}ms`);

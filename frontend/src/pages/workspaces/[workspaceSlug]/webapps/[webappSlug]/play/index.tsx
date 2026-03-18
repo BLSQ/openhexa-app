@@ -72,12 +72,12 @@ export const getServerSideProps = createGetServerSideProps({
   async getServerSideProps(ctx, client) {
     const workspaceSlug = ctx.params!.workspaceSlug as string;
     const webappSlug = ctx.params!.webappSlug as string;
+    const isAuthenticated = !!ctx.me?.user;
+
     const { data } = await client.query<WebappAccessQuery>({
       query: WebappAccessDocument,
       variables: { workspaceSlug, webappSlug },
     });
-
-    const isAuthenticated = !!ctx.me?.user;
 
     if (!data.webapp) {
       if (!isAuthenticated) {
