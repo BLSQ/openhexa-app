@@ -6,13 +6,21 @@ from hexa.utils.format import format_cost
 
 @admin.register(Conversation)
 class ConversationAdmin(admin.ModelAdmin):
-    list_display = ("name", "user", "workspace", "display_cost", "created_at", "updated_at")
+    list_display = (
+        "name",
+        "user",
+        "workspace",
+        "display_cost",
+        "created_at",
+        "updated_at",
+    )
     list_filter = ("workspace",)
     search_fields = ("id", "name", "user__email")
     raw_id_fields = ("user", "workspace")
 
     def display_cost(self, conversation: Conversation):
         return format_cost(conversation.cost)
+
     display_cost.short_description = "Cost"
 
 
