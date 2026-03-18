@@ -136,10 +136,15 @@ def resolve_update_webapp(_, info, **kwargs):
         webapp.icon = decode_base64_image(input["icon"]) if input["icon"] else None
     if "is_public" in input:
         webapp.is_public = input["is_public"]
+    if "allowed_domains" in input:
+        webapp.allowed_domains = input["allowed_domains"]
 
     try:
+        webapp.full_clean()
         webapp.save()
         return {"success": True, "errors": [], "webapp": webapp}
+    except ValidationError:
+        return {"success": False, "errors": ["INVALID_ALLOWED_DOMAINS"], "webapp": None}
     except IntegrityError:
         return {"success": False, "errors": ["ALREADY_EXISTS"], "webapp": None}
 
