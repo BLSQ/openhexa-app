@@ -326,3 +326,70 @@ class WebappURLValidationTest(GraphQLTestCase):
         self.assertIn("INVALID_URL", result["data"]["updateWebapp"]["errors"])
         webapp.refresh_from_db()
         self.assertEqual(webapp.url, "https://example.com")
+
+
+class AllowedDomainsValidationTest(GraphQLTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user("domains@test.com", "password")
+        cls.WORKSPACE = Workspace.objects.create(name="Domains Workspace")
+        WorkspaceMembership.objects.create(
+            user=cls.USER,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
+    def _create_webapp(self, allowed_domains=""):
+        return Webapp.objects.create_if_has_perm(
+            self.USER,
+            self.WORKSPACE,
+            name=f"Test {allowed_domains[:20]}",
+            created_by=self.USER,
+            url="https://example.com",
+            is_public=True,
+            allowed_domains=allowed_domains,
+        )
+
+    def _update_allowed_domains(self, webapp, allowed_domains):
+        self.client.force_login(self.USER)
+        return self.run_query(
+            """
+            mutation UpdateWebapp($input: UpdateWebappInput!) {
+                updateWebapp(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            variables={
+                "input": {
+                    "id": str(webapp.id),
+                    "allowedDomains": allowed_domains,
+                }
+            },
+        )
+
+    def test_update_with_invalid_domain_rejected(self):
+        webapp = self._create_webapp()
+        result = self._update_allowed_domains(webapp, "not a domain")
+        self.assertFalse(result["data"]["updateWebapp"]["success"])
+        self.assertIn(
+            "INVALID_ALLOWED_DOMAINS",
+            result["data"]["updateWebapp"]["errors"],
+        )
+        webapp.refresh_from_db()
+        self.assertEqual(webapp.allowed_domains, "")
+
+    def test_update_with_newline_injection_rejected(self):
+        webapp = self._create_webapp()
+        result = self._update_allowed_domains(webapp, "example.com\r\nX-Injected: true")
+        self.assertFalse(result["data"]["updateWebapp"]["success"])
+        webapp.refresh_from_db()
+        self.assertEqual(webapp.allowed_domains, "")
+
+    def test_update_with_valid_domain_accepted(self):
+        webapp = self._create_webapp()
+        result = self._update_allowed_domains(webapp, "dashboard.example.org")
+        self.assertTrue(result["data"]["updateWebapp"]["success"])
+        webapp.refresh_from_db()
+        self.assertEqual(webapp.allowed_domains, "dashboard.example.org")
