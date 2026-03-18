@@ -28,7 +28,7 @@
   "<0>Use <2>crontab.guru</2> to help you create a cron expression.</0>": "<0>Utilisez <2>crontab.guru</2> pour vous aider à créer une expression cron.</0>",
   "25% Quantile": "25% Quantile",
   "75% Quantile": "75% Quantile",
-  "A browser window will open to complete the OAuth authorization.": "Une fenêtre de navigateur s'ouvrira pour compléter l'autorisation OAuth.",
+  "A browser window will open to complete the OAuth authorization. Then enable the MCP server:": "Une fenêtre de navigateur s'ouvrira pour compléter l'autorisation OAuth. Ensuite, activez le serveur MCP :",
   "A new code has been sent to your mailbox.": "Un nouveau code a été envoyé à votre adresse e-mail.",
   "A template with the same name already exists.": "Un modèle portant le même nom existe déjà.",
   "A webapp with this name already exists": "Une application web portant ce nom existe déjà",

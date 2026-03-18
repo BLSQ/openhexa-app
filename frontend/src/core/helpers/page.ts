@@ -66,8 +66,8 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
       // tries to access a page that is not /workspaces or /user or /register or /organizations
       if (
         !features.some((f) => f.code === "openhexa_legacy") &&
-        !["/workspaces", "/user", "/register", "/organizations"].some((path) =>
-          ctx.resolvedUrl.startsWith(path),
+        !["/workspaces", "/user", "/register", "/organizations", "/mcp"].some(
+          (path) => ctx.resolvedUrl.startsWith(path),
         )
       ) {
         return {

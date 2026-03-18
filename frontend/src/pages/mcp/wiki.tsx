@@ -229,11 +229,12 @@ const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
                 {t("Then run the following command inside Gemini:")}
               </p>
               <CodeBlock text="/mcp auth openhexa" />
-              <p className="text-sm leading-relaxed text-gray-700">
+              <p className="mb-3 text-sm leading-relaxed text-gray-700">
                 {t(
-                  "A browser window will open to complete the OAuth authorization.",
+                  "A browser window will open to complete the OAuth authorization. Then enable the MCP server:",
                 )}
               </p>
+              <CodeBlock text="/mcp enable openhexa" />
 
               <VerifySection />
             </div>
