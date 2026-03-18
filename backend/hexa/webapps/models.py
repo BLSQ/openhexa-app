@@ -20,6 +20,16 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 
+def validate_allowed_domains(value):
+    if not value:
+        return
+    for d in value.split(","):
+        d = d.strip()
+        if not d:
+            continue
+        URLValidator(f"https://{d}")
+
+
 def create_webapp_slug(name: str, workspace: Workspace):
     """Generate a unique slug for a webapp within a workspace."""
     suffix = ""
@@ -115,6 +125,9 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         max_length=20, choices=WebappType.choices, default=WebappType.IFRAME
     )
     is_public = models.BooleanField(default=False)
+    allowed_domains = models.TextField(
+        blank=True, default="", validators=[validate_allowed_domains]
+    )
     favorites = models.ManyToManyField(
         User, related_name="favorite_webapps", blank=True
     )
