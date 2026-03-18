@@ -7,13 +7,13 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
-from django.db.models import Q, Sum
+from django.db.models import OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Collate
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
-from hexa.assistant.models import Message
+from hexa.assistant.models import Conversation, Message
 from hexa.core.admin import GlobalObjectsModelAdmin, country_list
 from hexa.utils.format import format_cost
 
@@ -217,7 +217,12 @@ class CustomUserAdmin(UserAdmin):
             .get_queryset(request)
             .annotate(
                 case_insensitive_email=Collate("email", "und-x-icu"),
-                total_cost=Sum("conversation__cost"),
+                total_cost=Subquery(
+                    Conversation.all_objects.filter(user=OuterRef("pk"))
+                    .values("user")
+                    .annotate(t=Sum("cost"))
+                    .values("t")
+                ),
                 monthly_cost=Sum(
                     "conversation__messages__cost",
                     filter=Q(
