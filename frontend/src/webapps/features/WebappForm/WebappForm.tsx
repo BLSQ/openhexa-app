@@ -86,6 +86,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             name: values.name,
             icon: values.icon,
             isPublic: values.isPublic,
+            allowedDomains: values.allowedDomains,
             source,
           },
         },
@@ -104,6 +105,8 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           toast.error(t("Cannot change the type of an existing webapp"));
         } else if (error === UpdateWebappError.InvalidUrl) {
           toast.error(t("Invalid URL. Only http and https URLs are allowed"));
+        } else if (error === UpdateWebappError.InvalidAllowedDomains) {
+          toast.error(t("Invalid allowed domains"));
         }
         return;
       }
@@ -253,6 +256,17 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             "When enabled, the play link can be accessed without authentication",
           )}
         />
+        <TextProperty
+          id="allowedDomains"
+          accessor="allowedDomains"
+          label={t("Allowed domains")}
+          visible={(_, isEditing, formData) =>
+            isEditing ? formData.isPublic : !!webapp?.isPublic
+          }
+          help={t(
+            "Comma-separated list of domains allowed to embed this webapp in an iframe (e.g. dashboard.example.org)",
+          )}
+        />
       </DataCard.FormSection>
       {debouncedUrl && !loading && (
         <DataCard.Section
@@ -277,6 +291,7 @@ WebappForm.fragment = {
       type
       icon
       isPublic
+      allowedDomains
       source {
         ... on SupersetSource {
           instance {
