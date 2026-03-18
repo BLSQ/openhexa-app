@@ -12,7 +12,7 @@ import {
 } from "workspaces/graphql/mutations.generated";
 import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
 import { toast } from "react-toastify";
-import { t } from "i18next";
+import { useTranslation } from "next-i18next";
 
 
 type PendingWorkspaceInvitationsProps = {
@@ -21,6 +21,7 @@ type PendingWorkspaceInvitationsProps = {
 
 const PendingWorkspaceInvitations = (props: PendingWorkspaceInvitationsProps) => {
   const { invitations } = props;
+  const { t } = useTranslation();
 
   const [joinWorkspace] = useJoinWorkspaceMutation();
   const [declineWorkspaceInvitation] = useDeclineWorkspaceInvitationMutation();
