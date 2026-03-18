@@ -70,11 +70,19 @@ case "$command" in
   ;;
 "fixtures")
   wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
-  export DJANGO_SUPERUSER_USERNAME=root@openhexa.org
-  export DJANGO_SUPERUSER_EMAIL=root@openhexa.org
+  export DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME:-root@openhexa.org}
+  export DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-root@openhexa.org}
   python manage.py migrate
-  echo "Creating initial superuser root@openhexa.org. Please choose a password."
-  python manage.py createsuperuser --email ${DJANGO_SUPERUSER_EMAIL}
+  if [[ "$arguments" == *"--localhosting"* ]]; then
+    if [[ -z "$DJANGO_SUPERUSER_PASSWORD" ]]; then
+      echo "Error: DJANGO_SUPERUSER_PASSWORD env var is required when setting up fixtures with --localhosting." >&2
+      exit 1
+    fi
+    python manage.py createsuperuser --email ${DJANGO_SUPERUSER_EMAIL} --no-input
+  else
+    echo "Creating initial superuser root@openhexa.org. Please choose a password."
+    python manage.py createsuperuser --email ${DJANGO_SUPERUSER_EMAIL}
+  fi
   python manage.py loaddata base.json
   python manage.py loaddata demo.json
   python manage.py loaddata live.json
