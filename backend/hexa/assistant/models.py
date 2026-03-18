@@ -67,9 +67,17 @@ class Conversation(SoftDeletedModel, Base):
     class Meta:
         ordering = ["-updated_at"]
         indexes = [
+            # Covers the workspace conversation list query: filter_for_user().filter(workspace=workspace)
+            # Leading with workspace allows efficient filtering when both workspace and user are known.
             models.Index(
                 fields=["workspace", "user", "-updated_at"],
                 name="asst_conv_list_idx",
+            ),
+            # Covers get_total_cost_for_user(): all_objects.filter(user=user).aggregate(Sum("cost"))
+            # asst_conv_list_idx starts with workspace so it can't efficiently serve a user-only filter.
+            models.Index(
+                fields=["user"],
+                name="asst_conv_user_cost_idx",
             ),
         ]
 
@@ -97,7 +105,7 @@ class Conversation(SoftDeletedModel, Base):
         """
         Cost in dollars
         """
-        result = Conversation.objects.filter(
+        result = Conversation.all_objects.filter(
             user=user,
         ).aggregate(total=Sum("cost"))["total"]
         return result or 0
@@ -120,11 +128,19 @@ class Message(Base):
     class Meta:
         ordering = ["-created_at"]
         indexes = [
+            # Covers two queries:
+            # 1. get_monthly_cost_for_user(): nested loop over user's conversations,
+            #    filtering by role='assistant' and created_at range, reading cost from INCLUDE.
+            # 2. conversation.messages.filter(role="assistant").last() in mutations.py,
+            #    which needs (conversation, role) as the leading columns.
             models.Index(
                 fields=["conversation", "role", "-created_at"],
                 include=["cost"],
                 name="assistant_message_cost_idx",
             ),
+            # Covers paginated message listing: conversation.messages.all() ordered by -created_at.
+            # assistant_message_cost_idx cannot serve this efficiently because role sits between
+            # conversation and created_at, preventing ordered reads without a sort.
             models.Index(
                 fields=["conversation", "-created_at"],
                 name="asst_msg_pagination_idx",
