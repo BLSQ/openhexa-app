@@ -31,7 +31,7 @@ const WebappSourceEditor = ({
       onChange(
         await Promise.all(
           acceptedFiles.map(async (file) => ({
-            path: file.path || file.webkitRelativePath || file.name,
+            path: (file.path || file.webkitRelativePath || file.name).replace(/^\//, ""),
             content: await file.text(),
           })),
         ),
