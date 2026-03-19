@@ -13,7 +13,6 @@ class Command(BaseCommand):
             url=settings.GIT_SERVER_URL,
             username=settings.GIT_SERVER_ADMIN_USERNAME,
             password=settings.GIT_SERVER_ADMIN_PASSWORD,
-            application_name="openhexa-sync-git-orgs-command",
         )
         for org in Organization.objects.all():
             try:

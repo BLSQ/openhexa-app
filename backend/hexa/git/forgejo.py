@@ -16,55 +16,13 @@ class ForgejoAPIError(Exception):
 
 
 class ForgejoClient(GitClient):
-    def __init__(
-        self, *, url: str, username: str, password: str, application_name: str
-    ):
+    def __init__(self, *, url: str, username: str, password: str):
         self._url = url.rstrip("/")
         self._username = username
-        self._password = password
-        self._application_name = application_name
         self._session = requests.Session()
-        self._token = None
-
-    def _ensure_token(self):
-        if self._token is not None:
-            return
-        self._token = self._get_or_create_token()
-        self._session.headers["Authorization"] = f"token {self._token}"
-
-    def _get_or_create_token(self) -> str:
-        url = f"{self._url}/api/v1/users/{self._username}/tokens"
-        response = requests.get(
-            url, auth=(self._username, self._password), allow_redirects=False
-        )
-        if response.status_code != 200:
-            raise ForgejoAPIError("GET", url, response.status_code, response.text)
-
-        for token in response.json():
-            if token["name"] == self._application_name:
-                requests.delete(
-                    f"{url}/{token['id']}",
-                    auth=(self._username, self._password),
-                    allow_redirects=False,
-                )
-                break
-
-        response = requests.post(
-            url,
-            auth=(self._username, self._password),
-            json={
-                "name": self._application_name,
-                "scopes": ["write:organization", "write:repository"],
-            },
-            allow_redirects=False,
-        )
-        if response.status_code != 201:
-            raise ForgejoAPIError("POST", url, response.status_code, response.text)
-
-        return response.json()["sha1"]
+        self._session.auth = (username, password)
 
     def _request(self, method: str, path: str, **kwargs) -> requests.Response:
-        self._ensure_token()
         url = f"{self._url}/api/v1{path}"
         response = self._session.request(method, url, allow_redirects=False, **kwargs)
         if not response.ok:
@@ -292,6 +250,5 @@ def get_forgejo_client() -> GitClient:
             url=settings.GIT_SERVER_URL,
             username=settings.GIT_SERVER_ADMIN_USERNAME,
             password=settings.GIT_SERVER_ADMIN_PASSWORD,
-            application_name="openhexa-backend",
         )
     return _forgejo_client
