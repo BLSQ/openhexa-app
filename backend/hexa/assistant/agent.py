@@ -2,6 +2,8 @@ import logging
 from decimal import Decimal
 
 import genai_prices
+from django.http import HttpRequest
+from graphql import graphql_sync
 from pydantic_ai import Agent, RunUsage
 from pydantic_ai.messages import (
     ModelMessagesTypeAdapter,
@@ -17,6 +19,86 @@ from hexa.assistant.models import Conversation, Message, ToolInvocation
 logger = logging.getLogger(__name__)
 
 
+def _execute_graphql(user, operation_name, variables=None):
+    from config.schema import schema  # lazy import to avoid circular import with config.schema
+
+    request = HttpRequest()
+    request.user = user
+    request.bypass_two_factor = True
+    result = graphql_sync(
+        schema,
+        _PIPELINE_GRAPHQL,
+        context_value={"request": request},
+        variable_values=variables or {},
+        operation_name=operation_name,
+    )
+    if result.errors:
+        return {"errors": [str(e) for e in result.errors]}
+    return result.data
+
+
+_PIPELINE_GRAPHQL = """
+mutation AgentCreatePipeline($input: CreatePipelineInput!) {
+  createPipeline(input: $input) {
+    success
+    errors
+    pipeline { id code name }
+  }
+}
+
+mutation AgentWriteFile($input: WriteFileContentInput!) {
+  writeFileContent(input: $input) {
+    success
+    errors
+    filePath
+  }
+}
+"""
+
+
+def _make_pipeline_tools(conversation: Conversation) -> list:
+    user = conversation.user
+    workspace_slug = conversation.workspace.slug
+
+    def create_pipeline(name: str, description: str = "", functional_type: str = "") -> dict:
+        """Create a new pipeline in the current workspace. Returns the pipeline id, code, and name."""
+        data = _execute_graphql(
+            user,
+            "AgentCreatePipeline",
+            {
+                "input": {
+                    "workspaceSlug": workspace_slug,
+                    "name": name,
+                    "description": description or None,
+                    "functionalType": functional_type or None,
+                }
+            },
+        )
+        if "errors" in data:
+            return data
+        return data.get("createPipeline", {})
+
+    def write_pipeline_file(file_path: str, content: str) -> dict:
+        """Write Python source code to a new file in the workspace bucket. Use this to create the starter pipeline file after calling create_pipeline."""
+        data = _execute_graphql(
+            user,
+            "AgentWriteFile",
+            {
+                "input": {
+                    "workspaceSlug": workspace_slug,
+                    "filePath": file_path,
+                    "content": content,
+                    "overwrite": False,
+                }
+            },
+        )
+        if "errors" in data:
+            return data
+        return data.get("writeFileContent", {})
+
+    return [create_pipeline, write_pipeline_file]
+
+
 class AssistantAgent:
     def __init__(self, conversation: Conversation):
         self.conversation = conversation
@@ -24,9 +106,15 @@ class AssistantAgent:
         self._model_api_name = builder.model_api_name
         self._provider_id = builder.provider_id
         instruction_set = InstructionSet(conversation.instruction_set)
+
+        tools = []
+        if instruction_set == InstructionSet.PIPELINE:
+            tools = _make_pipeline_tools(conversation)
+
         self.agent = Agent(
             model=builder.build(),
             instructions=get_instructions(instruction_set),
+            tools=tools,
         )
 
     def run(self, user_input: str) -> str:

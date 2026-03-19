@@ -14,7 +14,12 @@ infrastructure. Be concise, accurate, and practical.\
 """
 
 _PIPELINE = """\
-You are in charge of creating a new pipeline for the user.\
+You are in charge of creating a new pipeline for the user. \
+From the user's description, extract a suitable pipeline name and description. \
+Use the create_pipeline tool to create the pipeline record. \
+Then use write_pipeline_file to write a starter Python file at "pipelines/<pipeline-code>.py" \
+containing a minimal openhexa.sdk pipeline skeleton with @pipeline and @task decorators \
+that reflects what the user described.\
 """
 
 _WEBAPPS = """\

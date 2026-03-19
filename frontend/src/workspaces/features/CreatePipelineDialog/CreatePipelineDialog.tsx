@@ -1,24 +1,18 @@
-import { gql, useMutation } from "@apollo/client";
+import { gql } from "@apollo/client";
 import Button from "core/components/Button/Button";
 import Dialog from "core/components/Dialog";
-import Link from "core/components/Link";
-import Tabs from "core/components/Tabs";
-import Field from "core/components/forms/Field/Field";
-import Select from "core/components/forms/Select";
-import Textarea from "core/components/forms/Textarea/Textarea";
-import useForm from "core/hooks/useForm";
-import { BucketObjectType, PipelineFunctionalType } from "graphql/types";
-import { Trans, useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
+import { useTranslation } from "next-i18next";
 import { useEffect, useState } from "react";
-import { useCreatePipelineMutation } from "workspaces/graphql/mutations.generated";
-import { formatPipelineFunctionalType } from "workspaces/helpers/pipelines";
-import BucketObjectPicker from "../BucketObjectPicker";
-import {
-  CreatePipelineDialog_WorkspaceFragment,
-  GenerateWorkspaceTokenMutation,
-} from "./CreatePipelineDialog.generated";
+import { CreatePipelineDialog_WorkspaceFragment } from "./CreatePipelineDialog.generated";
 import PipelineTemplates from "pipelines/features/PipelineTemplates/PipelineTemplates";
+import CreatePipelineUsingCLI from "./CreatePipelineUsingCLI/CreatePipelineUsingCLI";
+import CreatePipelineUsingNotebook from "./CreatePipelineUsingNotebook/CreatePipelineUsingNotebook";
+import { useNotebookForm } from "./CreatePipelineUsingNotebook/useNotebookForm";
+import CreatePipelineUsingAI from "./CreatePipelineUsingAI/CreatePipelineUsingAI";
+import { useAIForm } from "./CreatePipelineUsingAI/useAIForm";
+import BucketObjectPicker from "../BucketObjectPicker";
+
+type Method = "ai" | "template" | "notebook" | "cli" | null;
 
 type CreatePipelineDialogProps = {
   open: boolean;
@@ -29,218 +23,132 @@ type CreatePipelineDialogProps = {
 const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   const { t } = useTranslation();
   const { open, onClose, workspace } = props;
-  const router = useRouter();
-  const tabs = ["templates", "notebooks", "cli"];
-  const [tabIndex, setTabIndex] = useState<number>(0);
 
-  const [mutate] = useCreatePipelineMutation();
+  const [activeMethod, setActiveMethod] = useState<Method>(null);
 
-  const form = useForm<{
-    notebookObject: any;
-    name: string;
-    functionalType: PipelineFunctionalType | null;
-  }>({
-    onSubmit: async (values) => {
-      const { notebookObject } = values;
-
-      const { data } = await mutate({
-        variables: {
-          input: {
-            name: values.name,
-            notebookPath: notebookObject.key,
-            workspaceSlug: workspace.slug,
-            functionalType: values.functionalType,
-          },
-        },
-      });
-
-      if (data?.createPipeline.success && data.createPipeline.pipeline) {
-        const pipeline = data.createPipeline.pipeline;
-        await router.push(
-          `/workspaces/${encodeURIComponent(
-            router.query.workspaceSlug as string,
-          )}/pipelines/${encodeURIComponent(pipeline.code)}`,
-        );
-      } else {
-        throw new Error(t("An error occurred while creating the pipeline."));
-      }
-    },
-    validate(values) {
-      const errors: any = {};
-      if (!values.notebookObject) {
-        errors.notebookObject = t("You have to select a notebook");
-      }
-      return errors;
-    },
-  });
+  const notebookForm = useNotebookForm(workspace);
+  const aiForm = useAIForm(workspace);
 
   useEffect(() => {
     if (open) {
-      form.resetForm();
-    }
-  }, [open, form]);
-
-  const [token, setToken] = useState<null | string>(null);
-  const [generateToken] = useMutation<GenerateWorkspaceTokenMutation>(
-    gql`
-      mutation GenerateWorkspaceToken($input: GenerateWorkspaceTokenInput!) {
-        generateWorkspaceToken(input: $input) {
-          token
-          success
-        }
-      }
-    `,
-    { variables: { input: { slug: workspace.slug } } },
-  );
-
-  const onTokenClick = async () => {
-    if (!token) {
-      const { data } = await generateToken();
-      setToken(data?.generateWorkspaceToken?.token ?? null);
-    }
-  };
-
-  useEffect(() => {
-    if (open) {
-      setToken(null);
+      setActiveMethod(null);
+      notebookForm.resetForm();
+      aiForm.reset();
     }
   }, [open]);
 
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="max-w-7/8">
-      <Dialog.Title>{t("How to create a pipeline")}</Dialog.Title>
-      <Dialog.Content className="space-y-4">
-        <Tabs onChange={(index) => setTabIndex(index)} defaultIndex={tabIndex}>
-          <Tabs.Tab label={t("From Template")} className={"space-y-2 pt-2"}>
-            <PipelineTemplates workspace={workspace} showCard={false} />
-          </Tabs.Tab>
-          <Tabs.Tab label={t("From Notebook")} className={"space-y-2 pt-2"}>
-            <form>
-              <p className="mb-6">
-                <Trans>
-                  You can use a Notebook from the workspace file system to be
-                  run as a pipeline. This is the easiest way to create a
-                  pipeline. Keep in my mind that Notebooks are not versioned. If
-                  a user changes the notebook, the pipeline will be updated.
-                </Trans>
-              </p>
-              <div className="grid gap-6">
-                <Field
-                  name="name"
-                  label={t("Pipeline Name")}
-                  required
-                  placeholder={t("My Pipeline")}
-                  error={form.touched.name && form.errors.name}
-                  value={form.formData.name}
-                  onChange={form.handleInputChange}
-                />
-                <Field
-                  name="functionalType"
-                  label={t("Functional Type")}
-                  help={t("The functional purpose of this pipeline")}
-                  className="max-w-xs"
-                >
-                  <Select
-                    options={Object.values(PipelineFunctionalType)}
-                    value={form.formData.functionalType}
-                    onChange={(value) =>
-                      form.setFieldValue("functionalType", value)
-                    }
-                    getOptionLabel={(option) =>
-                      option
-                        ? formatPipelineFunctionalType(option)
-                        : t("Not specified")
-                    }
-                    displayValue={(option) =>
-                      option ? formatPipelineFunctionalType(option) : ""
-                    }
-                    placeholder={t("Select functional type (optional)")}
-                    className="max-w-xs"
-                  />
-                </Field>
-                <Field
-                  name={"notebookObject"}
-                  label={t("Notebook")}
-                  required
-                  error={
-                    form.touched.notebookObject && form.errors.notebookObject
-                  }
-                  className={"max-w-[230px]"}
-                >
-                  <BucketObjectPicker
-                    onChange={(value) =>
-                      form.setFieldValue("notebookObject", value)
-                    }
-                    value={form.formData.notebookObject?.key}
-                    exclude={(item) =>
-                      item.type === BucketObjectType.File &&
-                      !item.name.endsWith(".ipynb")
-                    }
-                    placeholder={t("Select a Jupyter notebook")}
-                    workspace={workspace}
-                  />
-                </Field>
-                {form.submitError && (
-                  <p className={"text-sm text-red-500"}>{form.submitError}</p>
-                )}
-              </div>
-            </form>
-          </Tabs.Tab>
-          <Tabs.Tab label={t("From OpenHEXA CLI")} className={"space-y-2 pt-2"}>
-            <p className="mb-6">
-              <Trans>
-                In order to create pipelines, you need to setup the{" "}
-                <code>openhexa</code> CLI using the{" "}
-                <Link
-                  target="_blank"
-                  href="https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines"
-                >
-                  guide
-                </Link>{" "}
-                on Github.
-              </Trans>
-            </p>
-            <p>
-              {t(
-                "Configure the workspace in your terminal using the following commands:",
-              )}
-            </p>
+  const dialogTitle =
+    activeMethod === "ai"
+      ? t("Create with AI")
+      : activeMethod === "template"
+        ? t("From Template")
+        : activeMethod === "notebook"
+          ? t("From Notebook")
+          : activeMethod === "cli"
+            ? t("From OpenHEXA CLI")
+            : t("Create a pipeline");
 
-            <pre className=" bg-slate-100 p-2 font-mono text-sm leading-6">
-              <div>
-                <span className="select-none text-gray-400">$ </span>pip install
-                openhexa.sdk
-                <span className="select-none text-gray-400">
-                  {t("# if not installed")}
-                </span>
-              </div>
-              <div>
-                <span className="select-none text-gray-400">$ </span>
-                <span className="whitespace-normal">
-                  openhexa workspaces add <b>{workspace.slug}</b>
-                </span>
-              </div>
-            </pre>
-            <Field name="token" label={t("Access Token")} required>
-              <div className="flex w-full flex-1 items-center gap-1">
-                {token ? (
-                  <Textarea className="font-mono" value={token} readOnly />
-                ) : (
-                  <Button variant="secondary" onClick={onTokenClick}>
-                    {t("Show")}
-                  </Button>
-                )}
-              </div>
-            </Field>
-          </Tabs.Tab>
-        </Tabs>
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth={activeMethod === "template" ? "max-w-7/8" : "max-w-4xl"}
+    >
+      <Dialog.Title onClose={onClose}>{dialogTitle}</Dialog.Title>
+      <Dialog.Content className="space-y-4">
+        <button
+          onClick={() => setActiveMethod(null)}
+          className={
+            activeMethod === null
+              ? "hidden"
+              : "flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800"
+          }
+        >
+          ← {t("Back")}
+        </button>
+
+        <div className={activeMethod !== null ? "hidden" : "space-y-4"}>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setActiveMethod("ai")}
+              className="flex flex-1 flex-col items-start rounded-lg border border-gray-200 p-5 text-left transition-colors hover:border-blue-400 hover:bg-blue-50"
+            >
+              <span className="mb-2 text-xl">✨</span>
+              <span className="font-medium text-gray-900">
+                {t("Create with AI")}
+              </span>
+              <span className="mt-1 text-sm text-gray-500">
+                {t("Describe what you want")}
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveMethod("template")}
+              className="flex flex-1 flex-col items-start rounded-lg border border-gray-200 p-5 text-left transition-colors hover:border-blue-400 hover:bg-blue-50"
+            >
+              <span className="mb-2 text-xl">📋</span>
+              <span className="font-medium text-gray-900">
+                {t("From Template")}
+              </span>
+              <span className="mt-1 text-sm text-gray-500">
+                {t("Start from an existing template")}
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveMethod("notebook")}
+              className="flex flex-1 flex-col items-start rounded-lg border border-gray-200 p-5 text-left transition-colors hover:border-blue-400 hover:bg-blue-50"
+            >
+              <span className="mb-2 text-xl">📓</span>
+              <span className="font-medium text-gray-900">
+                {t("From Notebook")}
+              </span>
+              <span className="mt-1 text-sm text-gray-500">
+                {t("Use a Jupyter notebook")}
+              </span>
+            </button>
+          </div>
+          <div className="text-center">
+            <button
+              onClick={() => setActiveMethod("cli")}
+              className="text-sm text-gray-500 underline underline-offset-2 hover:text-gray-800"
+            >
+              {t("or use the OpenHEXA CLI →")}
+            </button>
+          </div>
+        </div>
+
+        <div className={activeMethod !== "ai" ? "hidden" : undefined}>
+          <CreatePipelineUsingAI form={aiForm} />
+        </div>
+
+        <div className={activeMethod !== "template" ? "hidden" : undefined}>
+          <PipelineTemplates workspace={workspace} showCard={false} />
+        </div>
+
+        <div className={activeMethod !== "notebook" ? "hidden" : undefined}>
+          <CreatePipelineUsingNotebook form={notebookForm} workspace={workspace} />
+        </div>
+
+        <div className={activeMethod !== "cli" ? "hidden" : undefined}>
+          <CreatePipelineUsingCLI open={open} workspace={workspace} />
+        </div>
       </Dialog.Content>
       <Dialog.Actions>
         <Button onClick={onClose} variant="outlined">
           {t("Close")}
         </Button>
-        {tabs[tabIndex] === "notebooks" && (
-          <Button disabled={form.isSubmitting} onClick={form.handleSubmit}>
+        {activeMethod === "notebook" && (
+          <Button
+            disabled={notebookForm.isSubmitting}
+            onClick={notebookForm.handleSubmit}
+          >
+            {t("Create")}
+          </Button>
+        )}
+        {activeMethod === "ai" && (
+          <Button
+            disabled={aiForm.isSubmitting || !aiForm.prompt.trim()}
+            onClick={aiForm.handleSubmit}
+          >
             {t("Create")}
           </Button>
         )}

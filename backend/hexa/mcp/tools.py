@@ -149,3 +149,29 @@ def write_file(user, workspace_slug: str, file_path: str, content: str) -> dict:
     if "errors" in data:
         return data
     return data["writeFileContent"]
+
+
+@tool
+def create_pipeline(
+    user,
+    workspace_slug: str,
+    name: str,
+    description: str = "",
+    functional_type: str = "",
+) -> dict:
+    """Create a new pipeline in a workspace. Returns the created pipeline's id, code, and name."""
+    data = _execute_graphql(
+        user,
+        "CreatePipeline",
+        {
+            "input": {
+                "workspaceSlug": workspace_slug,
+                "name": name,
+                "description": description or None,
+                "functionalType": functional_type or None,
+            }
+        },
+    )
+    if "errors" in data:
+        return data
+    return data.get("createPipeline", {})

@@ -1,0 +1,25 @@
+mutation CreateConversationForPipeline($input: CreateAssistantConversationInput!) {
+  createAssistantConversation(input: $input) {
+    success
+    errors
+    conversation {
+      id
+    }
+  }
+}
+
+mutation SendMessageForPipeline($input: SendAssistantMessageInput!) {
+  sendAssistantMessage(input: $input) {
+    success
+    errors
+    message {
+      id
+      content
+      toolInvocations {
+        toolName
+        toolOutput
+        success
+      }
+    }
+  }
+}

@@ -99,7 +99,7 @@ const PipelineTemplates = ({
     setPage(params.page);
   };
 
-  const ViewTemplates = view === "card" ? CardView : GridView;
+  const ViewTemplates = !showCard || view === "grid" ? GridView : CardView;
   return (
     <div>
       <Header

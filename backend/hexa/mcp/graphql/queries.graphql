@@ -125,3 +125,15 @@ mutation WriteFileContent($input: WriteFileContentInput!) {
     size
   }
 }
+
+mutation CreatePipeline($input: CreatePipelineInput!) {
+  createPipeline(input: $input) {
+    success
+    errors
+    pipeline {
+      id
+      code
+      name
+    }
+  }
+}
