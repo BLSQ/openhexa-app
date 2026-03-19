@@ -91,6 +91,7 @@ const graphqlMocks: MockedResponse[] = [
           workspaceSlug: "test-workspace",
           name: "Test Webapp",
           icon: undefined,
+          isPublic: undefined,
           source: {
             iframe: {
               url: "http://test-webapp.com",
@@ -106,6 +107,7 @@ const graphqlMocks: MockedResponse[] = [
           errors: [],
           webapp: {
             id: "1",
+            slug: "test-webapp",
           },
         },
       },
@@ -127,7 +129,7 @@ describe("WebappCreatePage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("New Webapp")).toBeInTheDocument();
+      expect(screen.getByText("Web app Details")).toBeInTheDocument();
     });
 
     const nameParent = screen
@@ -156,10 +158,12 @@ describe("WebappCreatePage", () => {
     fireEvent.click(createButton);
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith("Webapp created successfully");
+      expect(toast.success).toHaveBeenCalledWith("Web app created successfully");
     });
 
-    expect(mockRouter.asPath).toBe("/workspaces/test-workspace/webapps");
+    expect(mockRouter.asPath).toBe(
+      "/workspaces/test-workspace/webapps/test-webapp",
+    );
   });
 
   it("handles null webapp response", async () => {
@@ -230,7 +234,7 @@ describe("WebappCreatePage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("New Webapp")).toBeInTheDocument();
+      expect(screen.getByText("Web app Details")).toBeInTheDocument();
     });
 
     const nameParent = screen
@@ -260,7 +264,7 @@ describe("WebappCreatePage", () => {
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        "An error occurred while creating the webapp",
+        "An error occurred while creating the web app",
       );
     });
 
@@ -327,7 +331,7 @@ describe("WebappCreatePage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("New Webapp")).toBeInTheDocument();
+      expect(screen.getByText("Web app Details")).toBeInTheDocument();
     });
 
     const nameParent = screen
@@ -357,7 +361,7 @@ describe("WebappCreatePage", () => {
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        "An error occurred while creating the webapp",
+        "An error occurred while creating the web app",
       );
     });
 

@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock, patch
+
 from django.core.exceptions import PermissionDenied
 from django.test import TestCase
 
@@ -46,6 +48,27 @@ class OrganizationModelTests(TestCase):
     def test_organization_creation(self):
         self.assertEqual(self.organization.name, "Test Organization")
         self.assertEqual(self.organization.organization_type, "CORPORATE")
+
+    def test_slug_auto_generated_from_name(self):
+        org = Organization.objects.create(name="My New Org")
+        self.assertEqual(org.slug, "my-new-org")
+
+    def test_slug_immutable_on_name_change(self):
+        org = Organization.objects.create(name="Original Name")
+        original_slug = org.slug
+        org.name = "Updated Name"
+        org.save()
+        org.refresh_from_db()
+        self.assertEqual(org.slug, original_slug)
+
+    def test_slug_unique_on_collision(self):
+        org1 = Organization.objects.create(name="Duplicate Org")
+        org1.name = "Something Else"
+        org1.save()
+        org2 = Organization.objects.create(name="Duplicate Org")
+        self.assertEqual(org1.slug, "duplicate-org")
+        self.assertNotEqual(org2.slug, org1.slug)
+        self.assertTrue(org2.slug.startswith("duplicate-org"))
 
     def test_membership_creation(self):
         self.assertEqual(self.membership.organization, self.organization)
@@ -163,3 +186,53 @@ class CreateWorkspacePermissionTests(TestCase):
     def test_non_org_member_cannot_create(self):
         organization = Organization.objects.create(name="Test Org")
         self.assertFalse(create_workspace(self.admin, organization))
+
+
+class OrganizationGitLifecycleTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="gituser@example.com", password="password"
+        )
+        self.organization = Organization.objects.create(
+            name="Git Test Org",
+            organization_type="CORPORATE",
+        )
+
+    @patch("hexa.user_management.models.get_forgejo_client")
+    def test_archive_git_org_on_delete(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+        mock_client.list_org_repositories.return_value = [
+            {"name": "repo-1", "archived": False},
+            {"name": "repo-2", "archived": False},
+        ]
+
+        self.organization.delete()
+
+        org_slug = self.organization.slug
+        mock_client.list_org_repositories.assert_called_once_with(org_slug)
+        self.assertEqual(mock_client.archive_repository.call_count, 2)
+        mock_client.archive_repository.assert_any_call(org_slug, "repo-1")
+        mock_client.archive_repository.assert_any_call(org_slug, "repo-2")
+
+    @patch("hexa.user_management.models.get_forgejo_client")
+    def test_unarchive_git_org_on_restore(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+        mock_client.list_org_repositories.return_value = [
+            {"name": "repo-1", "archived": True},
+            {"name": "repo-2", "archived": False},
+        ]
+
+        self.organization.delete()
+        mock_client.reset_mock()
+        mock_client.list_org_repositories.return_value = [
+            {"name": "repo-1", "archived": True},
+            {"name": "repo-2", "archived": False},
+        ]
+
+        self.organization.restore()
+
+        org_slug = self.organization.slug
+        mock_client.list_org_repositories.assert_called_once_with(org_slug)
+        mock_client.unarchive_repository.assert_called_once_with(org_slug, "repo-1")

@@ -2,6 +2,14 @@ mutation UpdateWebapp($input: UpdateWebappInput!) {
   updateWebapp(input: $input) {
     success
     errors
+    webapp {
+      id
+      source {
+        ... on GitSource {
+          publishedVersion
+        }
+      }
+    }
   }
 }
 mutation CreateWebapp($input: CreateWebappInput!) {
@@ -10,6 +18,7 @@ mutation CreateWebapp($input: CreateWebappInput!) {
     errors
     webapp {
       id
+      slug
     }
   }
 }

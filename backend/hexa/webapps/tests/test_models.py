@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock, patch
+
 from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 
@@ -9,7 +11,7 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
     User,
 )
-from hexa.webapps.models import SupersetWebapp, Webapp
+from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -569,3 +571,244 @@ class SupersetWebappModelTest(TestCase):
         webapp.superset_dashboard.refresh_from_db()
         self.assertEqual(webapp.superset_dashboard.external_id, "ext-999")
         self.assertEqual(webapp.superset_dashboard.superset_instance, other_instance)
+
+
+class GitWebappModelTest(TestCase):
+    INITIAL_SHA = "aabbccdd1234567890abcdef1234567890abcdef"
+
+    def setUp(self):
+        self.mock_client_patcher = patch("hexa.git.mixins.get_forgejo_client")
+        self.mock_get_client = self.mock_client_patcher.start()
+        self.mock_git_client = MagicMock()
+        self.mock_git_client.get_commits.return_value = [{"id": self.INITIAL_SHA}]
+        self.mock_get_client.return_value = self.mock_git_client
+
+        self.workspace = Workspace.objects.create(
+            name="Git Workspace", slug="git-workspace"
+        )
+        self.user_admin = User.objects.create_user(
+            "gitadmin@test.com",
+            "admin",
+        )
+        WorkspaceMembership.objects.create(
+            user=self.user_admin,
+            workspace=self.workspace,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        self.user_viewer = User.objects.create_user(
+            "gitviewer@test.com",
+            "viewer",
+        )
+        WorkspaceMembership.objects.create(
+            user=self.user_viewer,
+            workspace=self.workspace,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+    def tearDown(self):
+        self.mock_client_patcher.stop()
+
+    def test_create_if_has_perm_static(self):
+        webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="My Static App",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+
+        self.assertEqual(webapp.name, "My Static App")
+        self.assertEqual(webapp.type, Webapp.WebappType.STATIC)
+        self.assertEqual(
+            webapp.repository, f"{self.workspace.slug}-webapp-{webapp.slug}"
+        )
+        self.assertEqual(webapp.published_commit, self.INITIAL_SHA)
+        self.assertEqual(webapp.workspace, self.workspace)
+        self.assertEqual(webapp.url, "")
+
+        self.mock_git_client.create_org_repository.assert_called_with(
+            "no-org", webapp.repository, auto_init=True
+        )
+
+    def test_create_if_has_perm_static_no_files(self):
+        webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="My Empty Static App",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+
+        self.assertEqual(webapp.type, Webapp.WebappType.STATIC)
+        self.assertEqual(
+            webapp.repository, f"{self.workspace.slug}-webapp-{webapp.slug}"
+        )
+
+    def test_create_if_has_perm_with_files(self):
+        self.mock_git_client.commit_files.return_value = "files-commit-sha"
+
+        files = [{"path": "index.html", "content": "<h1>Hello</h1>"}]
+        webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="HTML With Files",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+            files=files,
+        )
+
+        self.assertEqual(webapp.published_commit, "files-commit-sha")
+        self.mock_git_client.commit_files.assert_called_once_with(
+            repo_name=webapp.repository,
+            files=files,
+            message="Initial content",
+            author_name=self.user_admin.display_name,
+            author_email=self.user_admin.email,
+            org_slug="no-org",
+        )
+
+    def test_create_if_has_perm_denied(self):
+        with self.assertRaises(PermissionDenied):
+            GitWebapp.create_if_has_perm(
+                principal=self.user_viewer,
+                workspace=self.workspace,
+                name="Denied App",
+                created_by=self.user_viewer,
+                webapp_type=Webapp.WebappType.STATIC,
+            )
+
+    def test_published_commit(self):
+        webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="Publish Test",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+
+        self.assertEqual(webapp.published_commit, self.INITIAL_SHA)
+
+    def test_multi_table_inheritance(self):
+        git_webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="Inherited App",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+
+        base_webapp = Webapp.objects.get(pk=git_webapp.pk)
+        self.assertEqual(base_webapp.name, "Inherited App")
+        self.assertEqual(base_webapp.type, Webapp.WebappType.STATIC)
+
+        retrieved = GitWebapp.objects.get(pk=git_webapp.pk)
+        self.assertEqual(
+            retrieved.repository, f"{self.workspace.slug}-webapp-{git_webapp.slug}"
+        )
+
+    def test_delete_if_has_perm_archives_repo(self):
+        git_webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="Delete Test",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+        webapp_id = git_webapp.pk
+
+        base_webapp = Webapp.objects.get(pk=webapp_id)
+        base_webapp.delete_if_has_perm(principal=self.user_admin)
+
+        self.mock_git_client.archive_repository.assert_called_once_with(
+            "no-org", git_webapp.repository
+        )
+        self.assertFalse(Webapp.objects.filter(pk=webapp_id).exists())
+
+    def test_delete_if_has_perm_denied(self):
+        git_webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="Protected Git App",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+
+        with self.assertRaises(PermissionDenied):
+            git_webapp.delete_if_has_perm(principal=self.user_viewer)
+
+        self.mock_git_client.archive_repository.assert_not_called()
+        self.assertTrue(GitWebapp.objects.filter(pk=git_webapp.pk).exists())
+
+    def test_delete_raises_if_archive_fails(self):
+        self.mock_git_client.archive_repository.side_effect = Exception("Forgejo down")
+
+        git_webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="Forgejo Fail",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+        webapp_id = git_webapp.pk
+
+        base_webapp = Webapp.objects.get(pk=webapp_id)
+        with self.assertRaises(Exception):
+            base_webapp.delete_if_has_perm(principal=self.user_admin)
+
+        self.assertTrue(Webapp.objects.filter(pk=webapp_id).exists())
+
+    def test_git_org_falls_back_to_no_org_when_workspace_has_no_organization(self):
+        webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="Org Name Test",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+
+        self.assertEqual(webapp.git_org.slug, "no-org")
+
+    def test_org_name_with_organization(self):
+        org = Organization.objects.create(
+            name="Git Org",
+            short_name="git-org",
+            organization_type="CORPORATE",
+        )
+        ws = Workspace.objects.create(
+            name="Org Workspace",
+            slug="org-workspace",
+            organization=org,
+            db_name="org-workspace-db",
+            db_password="password",
+            db_ro_password="password",
+        )
+        WorkspaceMembership.objects.create(
+            user=self.user_admin,
+            workspace=ws,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
+        webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=ws,
+            name="Org App",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+
+        self.assertEqual(webapp.git_org.slug, org.slug)
+
+    def test_filter_for_user(self):
+        git_webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="Filter Test",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+
+        webapps = Webapp.objects.filter_for_user(self.user_admin)
+        self.assertIn(git_webapp.webapp_ptr, webapps)
+
+        webapps = Webapp.objects.filter_for_user(self.user_viewer)
+        self.assertIn(git_webapp.webapp_ptr, webapps)

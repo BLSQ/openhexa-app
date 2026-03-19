@@ -22,14 +22,23 @@ import ImageProperty from "core/components/DataCard/ImageProperty";
 import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import useDebounce from "core/hooks/useDebounce";
 import WebappIframe from "webapps/features/WebappIframe";
+import WebappSourceEditor from "webapps/features/WebappSourceEditor/WebappSourceEditor";
 import {
   CreateWebappError,
   UpdateWebappError,
+  WebappFileInput,
   WebappType,
 } from "graphql/types";
 import { getWebappTypeLabel } from "webapps/helpers";
+import { DEFAULT_HTML_TEMPLATE } from "webapps/helpers/templates";
 
 const DEFAULT_BLUESQUARE_SUPERSET_URL = "https://superset.bluesquare.org";
+
+const getDefaultSourceFiles = (type: WebappType): WebappFileInput[] =>
+  type === WebappType.Static
+    ? [{ path: "index.html", content: DEFAULT_HTML_TEMPLATE }]
+    : [];
+
 const buildSource: Record<WebappType, (values: any) => any> = {
   [WebappType.Iframe]: (values) => ({ iframe: { url: values.url } }),
   [WebappType.Superset]: (values) => ({
@@ -38,8 +47,7 @@ const buildSource: Record<WebappType, (values: any) => any> = {
       dashboardId: values.externalDashboardId,
     },
   }),
-  [WebappType.Html]: (values) => ({}), //Coming soon
-  [WebappType.Bundle]: (values) => ({}), //Coming soon
+  [WebappType.Static]: (values) => ({ static: values.sourceFiles ?? [] }),
 };
 
 type WebappFormProps = {
@@ -56,6 +64,9 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const [url, setUrl] = useState(webapp?.url || "");
   const [selectedType, setSelectedType] = useState<WebappType>(
     webapp?.type ?? WebappType.Iframe,
+  );
+  const [sourceFiles, setSourceFiles] = useState<WebappFileInput[]>(
+    getDefaultSourceFiles(webapp?.type ?? WebappType.Iframe),
   );
   const debouncedUrl = useDebounce(url, 500);
 
@@ -78,7 +89,6 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const updateExistingWebapp = async (values: any) => {
     setLoading(true);
     try {
-      const source = buildSource[webapp!.type](values);
       const { data } = await updateWebapp({
         variables: {
           input: {
@@ -86,31 +96,33 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             name: values.name,
             icon: values.icon,
             isPublic: values.isPublic,
-            source,
+            ...(webapp!.type !== WebappType.Static && {
+              source: buildSource[webapp!.type](values),
+            }),
           },
         },
       });
       if (data?.updateWebapp?.errors?.length) {
         const error = data.updateWebapp.errors[0];
         if (error === UpdateWebappError.PermissionDenied) {
-          toast.error(t("You do not have permission to update this webapp"));
+          toast.error(t("You do not have permission to update this web app"));
         } else if (error === UpdateWebappError.WebappNotFound) {
-          toast.error(t("Webapp not found"));
+          toast.error(t("Web app not found"));
         } else if (error === UpdateWebappError.SupersetInstanceNotFound) {
           toast.error(t("Superset instance not found"));
         } else if (error === UpdateWebappError.SupersetNotConfigured) {
           toast.error(t("Superset is not configured"));
         } else if (error === UpdateWebappError.TypeMismatch) {
-          toast.error(t("Cannot change the type of an existing webapp"));
+          toast.error(t("Cannot change the type of an existing web app"));
         } else if (error === UpdateWebappError.InvalidUrl) {
           toast.error(t("Invalid URL. Only http and https URLs are allowed"));
         }
         return;
       }
-      toast.success(t("Webapp updated successfully"));
+      toast.success(t("Web app updated successfully"));
       clearCache();
     } catch (error) {
-      toast.error(t("An error occurred while updating the webapp"));
+      toast.error(t("An error occurred while updating the web app"));
     } finally {
       setLoading(false);
     }
@@ -120,7 +132,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
     setLoading(true);
     try {
       const type = (values.type as WebappType) ?? WebappType.Iframe;
-      const source = buildSource[type](values);
+      const source = buildSource[type]({ ...values, sourceFiles });
 
       const { data } = await createWebapp({
         variables: {
@@ -136,9 +148,9 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       if (data?.createWebapp?.errors?.length) {
         const error = data.createWebapp.errors[0];
         if (error === CreateWebappError.AlreadyExists) {
-          toast.error(t("A webapp with this name already exists"));
+          toast.error(t("A web app with this name already exists"));
         } else if (error === CreateWebappError.PermissionDenied) {
-          toast.error(t("You do not have permission to create a webapp"));
+          toast.error(t("You do not have permission to create a web app"));
         } else if (error === CreateWebappError.SupersetInstanceNotFound) {
           toast.error(t("Superset instance not found"));
         } else if (error === CreateWebappError.SupersetNotConfigured) {
@@ -153,11 +165,15 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       if (!data?.createWebapp?.webapp) {
         throw new Error("Webapp creation failed");
       }
-      toast.success(t("Webapp created successfully"));
+      toast.success(t("Web app created successfully"));
       clearCache();
-      router.push(`/workspaces/${workspace.slug}/webapps`).then();
+      router
+        .push(
+          `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${encodeURIComponent(data.createWebapp.webapp.slug)}`,
+        )
+        .then();
     } catch (error) {
-      toast.error(t("An error occurred while creating the webapp"));
+      toast.error(t("An error occurred while creating the web app"));
     } finally {
       setLoading(false);
     }
@@ -169,11 +185,8 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
 
   return (
     <DataCard item={webapp}>
-      <DataCard.Heading
-        titleAccessor={(item) => item?.name || t("New Webapp")}
-      />
       <DataCard.FormSection
-        title={t("Webapp Details")}
+        title={t("Web app Details")}
         onSave={
           webapp
             ? webapp.permissions.update
@@ -206,13 +219,14 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             defaultValue={WebappType.Iframe}
             options={[
               WebappType.Iframe,
-              // Coming soon
-              // WebappType.Html,
-              // WebappType.Bundle,
+              WebappType.Static,
               ...(supersetInstances.length > 0 ? [WebappType.Superset] : []),
             ]}
             getOptionLabel={getWebappTypeLabel}
-            onChange={(value) => setSelectedType(value as WebappType)}
+            onChange={(value) => {
+              setSelectedType(value as WebappType);
+              setSourceFiles(getDefaultSourceFiles(value as WebappType));
+            }}
           />
         )}
         <TextProperty
@@ -254,12 +268,23 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           )}
         />
       </DataCard.FormSection>
-      {debouncedUrl && !loading && (
+      {!webapp && selectedType === WebappType.Static && (
+        <DataCard.Section title={t("Source Files")} collapsible={false}>
+          <WebappSourceEditor
+            initialTemplate={DEFAULT_HTML_TEMPLATE}
+            onChange={(files: WebappFileInput[]) => setSourceFiles(files)}
+          />
+        </DataCard.Section>
+      )}
+      {(debouncedUrl || webapp?.url) && !loading && (
         <DataCard.Section
           title={t("Preview")}
           collapsible={false}
         >
-          <WebappIframe url={debouncedUrl} style={{ height: "65vh" }} />
+          <WebappIframe
+            url={debouncedUrl || webapp?.url || ""}
+            style={{ height: "65vh" }}
+          />
         </DataCard.Section>
       )}
     </DataCard>
@@ -285,6 +310,9 @@ WebappForm.fragment = {
             url
           }
           dashboardId
+        }
+        ... on GitSource {
+          publishedVersion
         }
       }
       permissions {

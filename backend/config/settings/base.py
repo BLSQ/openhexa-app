@@ -243,9 +243,10 @@ INSTALLED_APPS = [
     "hexa.superset",
     "hexa.webapps",
     "hexa.shortcuts",
+    "hexa.git",
+    "oauth2_provider",
     "hexa.assistant",
     "hexa.mcp",
-    "oauth2_provider",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
@@ -553,6 +554,11 @@ if os.environ.get("STORAGE", "local") == "google-cloud":
 ACCESSMOD_BUCKET_NAME = os.environ.get("ACCESSMOD_BUCKET_NAME")
 ACCESSMOD_MANAGE_REQUESTS_URL = os.environ.get("ACCESSMOD_MANAGE_REQUESTS_URL")
 ACCESSMOD_SET_PASSWORD_URL = os.environ.get("ACCESSMOD_SET_PASSWORD_URL")
+
+# Git server settings
+GIT_SERVER_URL = os.environ.get("GIT_SERVER_URL", "http://forgejo:3000")
+GIT_SERVER_ADMIN_USERNAME = os.environ.get("GIT_SERVER_ADMIN_USERNAME")
+GIT_SERVER_ADMIN_PASSWORD = os.environ.get("GIT_SERVER_ADMIN_PASSWORD")
 
 # OAuth2 Provider (django-oauth-toolkit)
 OAUTH2_PROVIDER = {

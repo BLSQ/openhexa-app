@@ -8,14 +8,14 @@ export type UpdateWebappMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateWebappMutation = { __typename?: 'Mutation', updateWebapp: { __typename?: 'UpdateWebappResult', success: boolean, errors: Array<Types.UpdateWebappError> } };
+export type UpdateWebappMutation = { __typename?: 'Mutation', updateWebapp: { __typename?: 'UpdateWebappResult', success: boolean, errors: Array<Types.UpdateWebappError>, webapp?: { __typename?: 'Webapp', id: string, source: { __typename?: 'GitSource', publishedVersion?: string | null } | { __typename?: 'IframeSource' } | { __typename?: 'SupersetSource' } } | null } };
 
 export type CreateWebappMutationVariables = Types.Exact<{
   input: Types.CreateWebappInput;
 }>;
 
 
-export type CreateWebappMutation = { __typename?: 'Mutation', createWebapp: { __typename?: 'CreateWebappResult', success: boolean, errors: Array<Types.CreateWebappError>, webapp?: { __typename?: 'Webapp', id: string } | null } };
+export type CreateWebappMutation = { __typename?: 'Mutation', createWebapp: { __typename?: 'CreateWebappResult', success: boolean, errors: Array<Types.CreateWebappError>, webapp?: { __typename?: 'Webapp', id: string, slug: string } | null } };
 
 export type AddToFavoritesMutationVariables = Types.Exact<{
   input: Types.AddToFavoritesInput;
@@ -51,6 +51,14 @@ export const UpdateWebappDocument = gql`
   updateWebapp(input: $input) {
     success
     errors
+    webapp {
+      id
+      source {
+        ... on GitSource {
+          publishedVersion
+        }
+      }
+    }
   }
 }
     `;
@@ -87,6 +95,7 @@ export const CreateWebappDocument = gql`
     errors
     webapp {
       id
+      slug
     }
   }
 }

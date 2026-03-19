@@ -47,6 +47,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - forgejo
 
   # Workers
   ##########
@@ -155,6 +156,29 @@ services:
       - "10002:10002"
 
 
+  # Git server
+  #############
+
+  forgejo:
+    image: codeberg.org/forgejo/forgejo:14
+    entrypoint: /custom-entrypoint.sh
+    environment:
+      - GIT_SERVER_ADMIN_USERNAME=${GIT_SERVER_ADMIN_USERNAME}
+      - GIT_SERVER_ADMIN_PASSWORD=${GIT_SERVER_ADMIN_PASSWORD}
+      - FORGEJO__database__DB_TYPE=sqlite3
+      - FORGEJO__security__INSTALL_LOCK=true
+      - FORGEJO__server__ROOT_URL=http://localhost:3100/
+      - FORGEJO__server__LANDING_PAGE=explore
+      - FORGEJO__service__DISABLE_REGISTRATION=true
+      - FORGEJO__service__REQUIRE_SIGNIN_VIEW=true
+    volumes:
+      - forgejo_data:/data
+      - ./forgejo/entrypoint.sh:/custom-entrypoint.sh:ro
+    ports:
+      - "3100:3000"
+    networks:
+      - openhexa
+
   # Legacy services
   ################
 
@@ -176,3 +200,4 @@ networks:
 volumes:
   pgdata:
   minio_data:
+  forgejo_data:

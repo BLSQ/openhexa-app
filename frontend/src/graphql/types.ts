@@ -2398,6 +2398,12 @@ export type GenericOutput = {
   uri: Scalars['String']['output'];
 };
 
+export type GitSource = {
+  __typename?: 'GitSource';
+  publishedVersion?: Maybe<Scalars['String']['output']>;
+  repository: Scalars['String']['output'];
+};
+
 /** IASO connection object */
 export type IasoConnection = Connection & {
   __typename?: 'IASOConnection';
@@ -5943,19 +5949,23 @@ export type UpdateUserResult = {
 export enum UpdateWebappError {
   InvalidUrl = 'INVALID_URL',
   PermissionDenied = 'PERMISSION_DENIED',
+  SaveFailed = 'SAVE_FAILED',
   SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
   SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
   TypeMismatch = 'TYPE_MISMATCH',
+  VersionNotFound = 'VERSION_NOT_FOUND',
   WebappNotFound = 'WEBAPP_NOT_FOUND'
 }
 
 /** Represents the input for updating a web app. */
 export type UpdateWebappInput = {
   description?: InputMaybe<Scalars['String']['input']>;
+  files?: InputMaybe<Array<WebappFileInput>>;
   icon?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
   isPublic?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  publishedVersionId?: InputMaybe<Scalars['String']['input']>;
   source?: InputMaybe<UpdateWebappSourceInput>;
 };
 
@@ -6133,6 +6143,7 @@ export type Webapp = {
   __typename?: 'Webapp';
   createdBy: User;
   description?: Maybe<Scalars['String']['output']>;
+  files?: Maybe<Array<FileNode>>;
   icon?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   isFavorite: Scalars['Boolean']['output'];
@@ -6144,7 +6155,26 @@ export type Webapp = {
   source: WebappSource;
   type: WebappType;
   url: Scalars['String']['output'];
+  versions?: Maybe<WebappVersionsPage>;
   workspace: Workspace;
+};
+
+
+/** Represents a web app. */
+export type WebappFilesArgs = {
+  ref?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+/** Represents a web app. */
+export type WebappVersionsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type WebappFileInput = {
+  content: Scalars['String']['input'];
+  path: Scalars['String']['input'];
 };
 
 /** Represents the permissions for a web app. */
@@ -6154,20 +6184,35 @@ export type WebappPermissions = {
   update: Scalars['Boolean']['output'];
 };
 
-export type WebappSource = IframeSource | SupersetSource;
+export type WebappSource = GitSource | IframeSource | SupersetSource;
 
 /** Source configuration for a webapp - exactly one field must be provided. */
 export type WebappSourceInput =
-  { iframe: IframeSourceInput; superset?: never; }
-  |  { iframe?: never; superset: SupersetSourceInput; };
+  { iframe: IframeSourceInput; static?: never; superset?: never; }
+  |  { iframe?: never; static: Array<WebappFileInput>; superset?: never; }
+  |  { iframe?: never; static?: never; superset: SupersetSourceInput; };
 
 /** Represents the type of a web app. */
 export enum WebappType {
-  Bundle = 'BUNDLE',
-  Html = 'HTML',
   Iframe = 'IFRAME',
+  Static = 'STATIC',
   Superset = 'SUPERSET'
 }
+
+export type WebappVersion = {
+  __typename?: 'WebappVersion';
+  authorEmail: Scalars['String']['output'];
+  authorName: Scalars['String']['output'];
+  date: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+};
+
+export type WebappVersionsPage = {
+  __typename?: 'WebappVersionsPage';
+  items: Array<WebappVersion>;
+  page: Scalars['Int']['output'];
+};
 
 /** Represents a page of webapps. */
 export type WebappsPage = {

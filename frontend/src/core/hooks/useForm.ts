@@ -189,8 +189,7 @@ function useForm<T = FormData, TData = void>(
       }
       setSubmitting(false);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [formData, touched],
+    [formData, touched, onSubmit, _validate, isSubmitting, setInitialState],
   );
 
   // Proxy the touched fields to ensure that all errors are shown when the user ...

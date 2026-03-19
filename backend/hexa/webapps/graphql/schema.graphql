@@ -5,8 +5,7 @@ Represents the type of a web app.
 """
 enum WebappType {
   IFRAME
-  HTML
-  BUNDLE
+  STATIC
   SUPERSET
 }
 
@@ -19,7 +18,7 @@ type SupersetInstance {
   url: String!
 }
 
-union WebappSource = IframeSource | SupersetSource
+union WebappSource = IframeSource | SupersetSource | GitSource
 
 type IframeSource {
   url: String!
@@ -28,6 +27,24 @@ type IframeSource {
 type SupersetSource {
   instance: SupersetInstance!
   dashboardId: String!
+}
+
+type GitSource {
+  repository: String!
+  publishedVersion: String
+}
+
+type WebappVersion {
+  id: String!
+  message: String!
+  authorName: String!
+  authorEmail: String!
+  date: DateTime!
+}
+
+type WebappVersionsPage {
+  items: [WebappVersion!]!
+  page: Int!
 }
 
 """
@@ -47,6 +64,8 @@ type Webapp {
   isFavorite: Boolean!
   isShortcut: Boolean!
   source: WebappSource!
+  versions(page: Int, perPage: Int): WebappVersionsPage
+  files(ref: String): [FileNode!]
   permissions: WebappPermissions!
 }
 """
@@ -75,6 +94,7 @@ Source configuration for a webapp - exactly one field must be provided.
 input WebappSourceInput @oneOf {
   iframe: IframeSourceInput
   superset: SupersetSourceInput
+  static: [WebappFileInput!]
 }
 
 """
@@ -90,6 +110,11 @@ Superset dashboard source.
 input SupersetSourceInput {
   instanceId: UUID!
   dashboardId: String!
+}
+
+input WebappFileInput {
+  path: String!
+  content: String!
 }
 
 """
@@ -122,6 +147,8 @@ input UpdateWebappInput {
   icon: String
   isPublic: Boolean
   source: UpdateWebappSourceInput
+  files: [WebappFileInput!]
+  publishedVersionId: String
 }
 
 """
@@ -151,6 +178,8 @@ enum UpdateWebappError {
   SUPERSET_NOT_CONFIGURED
   TYPE_MISMATCH
   INVALID_URL
+  SAVE_FAILED
+  VERSION_NOT_FOUND
 }
 
 """

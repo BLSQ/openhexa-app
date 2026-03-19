@@ -634,7 +634,7 @@ class OrganizationUpdateDeleteTest(GraphQLTestCase, OrganizationTestMixin):
         self.valid_logo = _create_test_image()
 
     def test_update_organization_name_success(self):
-        """Test successful organization name update by owner."""
+        old_slug = self.organization.slug
         self.client.force_login(self.owner)
         r = self.run_query(
             """
@@ -671,6 +671,7 @@ class OrganizationUpdateDeleteTest(GraphQLTestCase, OrganizationTestMixin):
 
         self.organization.refresh_from_db()
         self.assertEqual(self.organization.name, "Updated Organization Name")
+        self.assertEqual(self.organization.slug, old_slug)
 
     def test_update_organization_short_name_success(self):
         """Test successful organization short name update."""
@@ -1013,8 +1014,10 @@ class OrganizationUpdateDeleteTest(GraphQLTestCase, OrganizationTestMixin):
             r["data"]["updateOrganization"],
         )
 
-    def test_delete_organization_success(self):
+    @patch("hexa.user_management.models.get_forgejo_client")
+    def test_delete_organization_success(self, mock_get_client):
         """Test successful organization deletion by owner (soft delete)."""
+        mock_get_client.return_value.list_org_repositories.return_value = []
         org_to_delete = self.create_organization(
             self.owner, "Organization to Delete", "Description", short_name="DEL1"
         )

@@ -15,6 +15,7 @@ from django.db.models import EmailField, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
+from slugify import slugify
 
 from hexa.core.models import Base, Invitation, InvitationManager
 from hexa.core.models.base import BaseQuerySet
@@ -25,6 +26,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
+from hexa.git.forgejo import get_forgejo_client
 
 
 class UsersLimitReached(Exception):
@@ -237,8 +239,24 @@ class OrganizationType(models.TextChoices):
     NGO = "NGO", _("Non-governmental")
 
 
-class OrganizationManager(models.Manager):
-    pass
+def create_organization_slug(name, max_attempts=10):
+    suffix = ""
+    for attempt in range(max_attempts):
+        slug = slugify(name[: 200 - len(suffix)] + suffix)
+        if not Organization.objects.filter(slug=slug).exists():
+            return slug
+        suffix = "-" + secrets.token_hex(3)
+    raise ValueError(f"Could not generate a unique slug for organization '{name}'")
+
+
+class OrganizationManager(DefaultSoftDeletedManager):
+    def create(self, **kwargs):
+        if "slug" not in kwargs:
+            kwargs["slug"] = create_organization_slug(kwargs["name"])
+        org = super().create(**kwargs)
+        client = get_forgejo_client()
+        client.create_organization(org.slug, org.name)
+        return org
 
 
 class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
@@ -283,6 +301,7 @@ class Organization(Base, SoftDeletedModel):
         choices=OrganizationType.choices, max_length=100
     )
     name = models.CharField(max_length=200, unique=True)
+    slug = models.CharField(max_length=200, unique=True, editable=False)
     short_name = models.CharField(max_length=100, blank=True)
     description = models.TextField(blank=True)
     countries = CountryField(multiple=True, blank=True)
@@ -291,21 +310,22 @@ class Organization(Base, SoftDeletedModel):
     logo = models.BinaryField(blank=True, null=True)
     members = models.ManyToManyField(User, through="OrganizationMembership")
 
-    objects = DefaultSoftDeletedManager.from_queryset(OrganizationQuerySet)()
+    objects = OrganizationManager.from_queryset(OrganizationQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(OrganizationQuerySet)()
 
     def delete(self):
         """
-        Soft delete the organization and archive all related workspaces.
+        Soft delete the organization, archive the git org and archive all related workspaces.
         """
         super().delete()
         self.workspaces.filter(archived=False).update(
             archived=True, archived_at=timezone.now()
         )
+        self._archive_git_org()
 
     def restore(self):
         """
-        Restore the organization and unarchive workspaces that were archived
+        Restore the organization, unarchive the git org and unarchive workspaces that were archived
         at the same time as the organization deletion.
         """
         if self.deleted_at:
@@ -314,6 +334,18 @@ class Organization(Base, SoftDeletedModel):
                 archived=True, archived_at__gte=time_threshold
             ).update(archived=False, archived_at=None)
         super().restore()
+        self._unarchive_git_org()
+
+    def _archive_git_org(self):
+        client = get_forgejo_client()
+        for repo in client.list_org_repositories(self.slug):
+            client.archive_repository(self.slug, repo["name"])
+
+    def _unarchive_git_org(self):
+        client = get_forgejo_client()
+        for repo in client.list_org_repositories(self.slug):
+            if repo.get("archived"):
+                client.unarchive_repository(self.slug, repo["name"])
 
     def filter_workspaces_for_user(self, user):
         workspaces = self.workspaces.exclude(archived=True)
