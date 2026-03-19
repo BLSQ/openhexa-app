@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.0.0](https://github.com/BLSQ/openhexa-app/compare/4.6.1...5.0.0) (2026-03-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* git server integration for Static Webapps (HEXA-1538) ([#1666](https://github.com/BLSQ/openhexa-app/issues/1666))
+
+### Features
+
+* git server integration for Static Webapps (HEXA-1538) ([#1666](https://github.com/BLSQ/openhexa-app/issues/1666)) ([71ba72d](https://github.com/BLSQ/openhexa-app/commit/71ba72d03b8b8b7338524bdbd7c0fca525aa89ad))
+
 ## [4.6.1](https://github.com/BLSQ/openhexa-app/compare/4.6.0...4.6.1) (2026-03-18)
 
 
