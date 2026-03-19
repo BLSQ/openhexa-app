@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.0.1](https://github.com/BLSQ/openhexa-app/compare/5.0.0...5.0.1) (2026-03-19)
+
+
+### Bug Fixes
+
+* git server authentication ([#1691](https://github.com/BLSQ/openhexa-app/issues/1691)) ([ab62f4f](https://github.com/BLSQ/openhexa-app/commit/ab62f4f0c828f48cf667d3195f2366daa75e3e22))
+
 ## [5.0.0](https://github.com/BLSQ/openhexa-app/compare/4.6.1...5.0.0) (2026-03-19)
 
 
