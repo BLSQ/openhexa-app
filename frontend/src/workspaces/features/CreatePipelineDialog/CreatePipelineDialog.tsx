@@ -78,7 +78,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
                 {t("Create with AI")}
               </span>
               <span className="mt-1 text-sm text-gray-500">
-                {t("Describe what you want")}
+                {t("Describe what you want, AI writes the code")}
               </span>
             </button>
             <button
@@ -90,7 +90,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
                 {t("From Template")}
               </span>
               <span className="mt-1 text-sm text-gray-500">
-                {t("Start from an existing template")}
+                {t("Start from a shared template")}
               </span>
             </button>
             <button
@@ -104,14 +104,6 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
               <span className="mt-1 text-sm text-gray-500">
                 {t("Use a Jupyter notebook")}
               </span>
-            </button>
-          </div>
-          <div className="text-center">
-            <button
-              onClick={() => setActiveMethod("cli")}
-              className="text-sm text-gray-500 underline underline-offset-2 hover:text-gray-800"
-            >
-              {t("or use the OpenHEXA CLI →")}
             </button>
           </div>
         </div>
@@ -133,6 +125,17 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
         </div>
       </Dialog.Content>
       <Dialog.Actions>
+        {activeMethod === null && (
+          <div className="flex">
+            <button
+              onClick={() => setActiveMethod("cli")}
+              className="text-sm text-blue-600 underline underline-offset-2 hover:text-gray-800"
+            >
+              {t("From OpenHEXA CLI")} →
+            </button>
+          </div>
+        )}
+        <div className="flex-1" />
         <Button onClick={onClose} variant="outlined">
           {t("Close")}
         </Button>

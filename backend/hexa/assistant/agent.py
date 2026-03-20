@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 
 
 def _execute_graphql(user, operation_name, variables=None):
-    from config.schema import schema  # lazy import to avoid circular import with config.schema
+    from config.schema import (
+        schema,  # lazy import to avoid circular import with config.schema
+    )
 
     request = HttpRequest()
     request.user = user
@@ -60,7 +62,9 @@ def _make_pipeline_tools(conversation: Conversation) -> list:
     user = conversation.user
     workspace_slug = conversation.workspace.slug
 
-    def create_pipeline(name: str, description: str = "", functional_type: str = "") -> dict:
+    def create_pipeline(
+        name: str, description: str = "", functional_type: str = ""
+    ) -> dict:
         """Create a new pipeline in the current workspace. Returns the pipeline id, code, and name."""
         data = _execute_graphql(
             user,

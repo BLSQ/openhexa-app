@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   useCreateConversationForPipelineMutation,
   useSendMessageForPipelineMutation,
-} from "../CreatePipelineWithAI.generated";
+} from "./CreatePipelineUsingAI.generated";
 import { CreatePipelineDialog_WorkspaceFragment } from "../CreatePipelineDialog.generated";
 
 export type AIFormInstance = {

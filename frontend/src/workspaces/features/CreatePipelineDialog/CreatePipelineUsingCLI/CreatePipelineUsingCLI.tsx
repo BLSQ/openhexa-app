@@ -5,10 +5,8 @@ import Field from "core/components/forms/Field/Field";
 import Textarea from "core/components/forms/Textarea/Textarea";
 import { Trans, useTranslation } from "next-i18next";
 import { useEffect, useState } from "react";
-import {
-  CreatePipelineDialog_WorkspaceFragment,
-  GenerateWorkspaceTokenMutation,
-} from "../CreatePipelineDialog.generated";
+import { CreatePipelineDialog_WorkspaceFragment } from "../CreatePipelineDialog.generated";
+import { GenerateWorkspaceTokenMutation } from "./CreatePipelineUsingCLI.generated";
 
 type CreatePipelineUsingCLIProps = {
   open: boolean;

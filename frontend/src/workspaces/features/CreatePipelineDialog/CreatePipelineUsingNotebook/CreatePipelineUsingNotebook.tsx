@@ -48,7 +48,9 @@ const CreatePipelineUsingNotebook = ({
           <Select
             options={Object.values(PipelineFunctionalType)}
             value={form.formData.functionalType}
-            onChange={(value) => form.setFieldValue("functionalType", value)}
+            onChange={(value) =>
+              form.setFieldValue("functionalType", value)
+            }
             getOptionLabel={(option) =>
               option ? formatPipelineFunctionalType(option) : t("Not specified")
             }
@@ -67,7 +69,9 @@ const CreatePipelineUsingNotebook = ({
           className="max-w-[230px]"
         >
           <BucketObjectPicker
-            onChange={(value) => form.setFieldValue("notebookObject", value)}
+            onChange={(value) =>
+              form.setFieldValue("notebookObject", value)
+            }
             value={form.formData.notebookObject?.key}
             exclude={(item) =>
               item.type === BucketObjectType.File &&
