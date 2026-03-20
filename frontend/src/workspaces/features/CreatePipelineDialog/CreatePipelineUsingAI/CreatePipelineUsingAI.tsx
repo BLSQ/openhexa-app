@@ -1,6 +1,6 @@
 import { SparklesIcon } from "@heroicons/react/24/outline";
 import Textarea from "core/components/forms/Textarea/Textarea";
-import { Trans, useTranslation } from "next-i18next";
+import { useTranslation } from "next-i18next";
 import { AIFormInstance } from "./useAIForm";
 
 type CreatePipelineUsingAIProps = {
@@ -21,9 +21,7 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
             {t("What do you want to build?")}
           </h3>
           <p className="mt-1.5 text-sm text-gray-500">
-            <Trans>
-              Describe your pipeline and the AI will generate the code to get you started.
-            </Trans>
+            {t("Describe your pipeline and the AI will generate the code to get you started.")}
           </p>
         </div>
       </div>

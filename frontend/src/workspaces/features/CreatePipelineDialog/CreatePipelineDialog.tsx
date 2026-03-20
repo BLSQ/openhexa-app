@@ -5,6 +5,7 @@ import {
   DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import Button from "core/components/Button/Button";
+import Spinner from "core/components/Spinner";
 import Dialog from "core/components/Dialog";
 import { useTranslation } from "next-i18next";
 import { useEffect, useState } from "react";
@@ -152,6 +153,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
           <Button
             disabled={notebookForm.isSubmitting}
             onClick={notebookForm.handleSubmit}
+            leadingIcon={notebookForm.isSubmitting ? <Spinner size="xs" /> : null}
           >
             {t("Create")}
           </Button>
@@ -160,6 +162,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
           <Button
             disabled={aiForm.isSubmitting || !aiForm.prompt.trim()}
             onClick={aiForm.handleSubmit}
+            leadingIcon={aiForm.isSubmitting ? <Spinner size="xs" /> : null}
           >
             {t("Create")}
           </Button>
