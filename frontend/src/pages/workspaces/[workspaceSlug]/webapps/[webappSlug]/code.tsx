@@ -2,6 +2,7 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
+import { useRouter } from "next/router";
 import {
   useWorkspaceWebappPageQuery,
   WorkspaceWebappPageDocument,
@@ -28,6 +29,8 @@ type Props = {
 const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
   const { webappSlug, workspaceSlug } = props;
   const { t } = useTranslation();
+  const router = useRouter();
+  const initialRef = router.query.ref as string | undefined;
 
   const { data, refetch } = useWorkspaceWebappPageQuery({
     variables: { workspaceSlug, webappSlug },
@@ -96,6 +99,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
               <VersionPicker
                 workspaceSlug={workspace.slug}
                 webappSlug={webapp.slug}
+                initialVersionId={initialRef}
                 onChange={setSelectedVersion}
               />
             }

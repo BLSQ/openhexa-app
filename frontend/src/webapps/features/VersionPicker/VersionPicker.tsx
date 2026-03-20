@@ -13,12 +13,14 @@ const PER_PAGE = 20;
 type VersionPickerProps = {
   workspaceSlug: string;
   webappSlug: string;
+  initialVersionId?: string;
   onChange?: (version: WebappVersion_VersionFragment) => void;
 };
 
 const VersionPicker = ({
   workspaceSlug,
   webappSlug,
+  initialVersionId,
   onChange,
 }: VersionPickerProps) => {
   const { t } = useTranslation();
@@ -56,9 +58,8 @@ const VersionPicker = ({
 
   const prevPublishedRef = useRef<string | null>(publishedVersionId ?? null);
 
-  // Auto-select the published version on initial load, and whenever
-  // publishedVersionId changes (e.g. after saving creates a new commit
-  // that becomes the published version).
+  // Auto-select: prefer initialVersionId if provided, then published, then first.
+  // Re-selects when publishedVersionId changes (e.g. after a save).
   useEffect(() => {
     if (allVersions.length === 0) return;
 
@@ -69,11 +70,14 @@ const VersionPicker = ({
     if (!needsInitialSelection && !publishedChanged) return;
 
     prevPublishedRef.current = publishedVersionId ?? null;
+    const initial = initialVersionId
+      ? allVersions.find((v) => v.id.startsWith(initialVersionId))
+      : undefined;
     const published = allVersions.find((v) => v.id === publishedVersionId);
-    const version = published ?? allVersions[0];
+    const version = initial ?? published ?? allVersions[0];
     setSelectedVersion(version);
     onChange?.(version);
-  }, [allVersions, publishedVersionId, selectedVersion, onChange]);
+  }, [allVersions, publishedVersionId, selectedVersion, onChange, initialVersionId]);
 
   const relativeDates = useMemo(
     () =>
