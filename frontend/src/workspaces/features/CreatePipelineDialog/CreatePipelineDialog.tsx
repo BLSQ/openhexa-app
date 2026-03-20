@@ -1,4 +1,9 @@
 import { gql } from "@apollo/client";
+import {
+  DocumentDuplicateIcon,
+  SparklesIcon,
+  DocumentTextIcon,
+} from "@heroicons/react/24/outline";
 import Button from "core/components/Button/Button";
 import Dialog from "core/components/Dialog";
 import { useTranslation } from "next-i18next";
@@ -71,46 +76,50 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
           <div className="flex gap-3">
             <button
               onClick={() => setActiveMethod("ai")}
-              className="flex flex-1 flex-col items-start rounded-lg border border-gray-200 p-5 text-left transition-colors hover:border-blue-400 hover:bg-blue-50"
+              className="flex flex-1 flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 hover:shadow-md"
             >
-              <span className="mb-2 text-xl">✨</span>
-              <span className="font-medium text-gray-900">
+              <div className="mb-4 rounded-lg bg-blue-50 p-2.5">
+                <SparklesIcon className="h-5 w-5 text-blue-400" />
+              </div>
+              <span className="font-semibold text-gray-900">
                 {t("Create with AI")}
               </span>
-              <span className="mt-1 text-sm text-gray-500">
+              <span className="mt-1 text-sm leading-relaxed text-gray-500">
                 {t("Describe what you want, AI writes the code")}
               </span>
             </button>
             <button
               onClick={() => setActiveMethod("template")}
-              className="flex flex-1 flex-col items-start rounded-lg border border-gray-200 p-5 text-left transition-colors hover:border-blue-400 hover:bg-blue-50"
+              className="flex flex-1 flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 hover:shadow-md"
             >
-              <span className="mb-2 text-xl">📋</span>
-              <span className="font-medium text-gray-900">
+              <div className="mb-4 rounded-lg bg-blue-50 p-2.5">
+                <DocumentDuplicateIcon className="h-5 w-5 text-blue-400" />
+              </div>
+              <span className="font-semibold text-gray-900">
                 {t("From Template")}
               </span>
-              <span className="mt-1 text-sm text-gray-500">
+              <span className="mt-1 text-sm leading-relaxed text-gray-500">
                 {t("Start from a shared template")}
               </span>
             </button>
             <button
               onClick={() => setActiveMethod("notebook")}
-              className="flex flex-1 flex-col items-start rounded-lg border border-gray-200 p-5 text-left transition-colors hover:border-blue-400 hover:bg-blue-50"
+              className="flex flex-1 flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 hover:shadow-md"
             >
-              <span className="mb-2 text-xl">📓</span>
-              <span className="font-medium text-gray-900">
+              <div className="mb-4 rounded-lg bg-blue-50 p-2.5">
+                <DocumentTextIcon className="h-5 w-5 text-blue-400" />
+              </div>
+              <span className="font-semibold text-gray-900">
                 {t("From Notebook")}
               </span>
-              <span className="mt-1 text-sm text-gray-500">
+              <span className="mt-1 text-sm leading-relaxed text-gray-500">
                 {t("Use a Jupyter notebook")}
               </span>
             </button>
           </div>
         </div>
 
-        <div className={activeMethod !== "ai" ? "hidden" : undefined}>
-          <CreatePipelineUsingAI form={aiForm} />
-        </div>
+        {activeMethod === "ai" && <CreatePipelineUsingAI form={aiForm} />}
 
         <div className={activeMethod !== "template" ? "hidden" : undefined}>
           <PipelineTemplates workspace={workspace} showCard={false} />
@@ -129,7 +138,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
           <div className="flex">
             <button
               onClick={() => setActiveMethod("cli")}
-              className="text-sm text-blue-600 underline underline-offset-2 hover:text-gray-800"
+              className="text-sm ml-2 text-blue-600 underline underline-offset-2 hover:text-gray-800"
             >
               {t("From OpenHEXA CLI")} →
             </button>
