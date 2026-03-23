@@ -159,7 +159,9 @@ class AssistantAgent:
             result = naming_agent.run_sync(user_input)
             return result.output.strip()[:50]
         except Exception:
-            logger.warning("agent.run: conversation naming failed, falling back to truncation")
+            logger.warning(
+                "agent.run: conversation naming failed, falling back to truncation"
+            )
             text = " ".join(user_input.split())
             truncated = text[:50].rsplit(" ", 1)[0]
             return truncated or text[:50]
