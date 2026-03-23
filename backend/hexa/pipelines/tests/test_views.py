@@ -479,6 +479,12 @@ async def _collect_async_stream(streaming_content) -> bytes:
 
 
 class SSEStreamTest(TestCase):
+    def setUp(self):
+        super().setUp()
+        patcher = patch("hexa.pipelines.views.connection.close")
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user(
@@ -595,7 +601,7 @@ class SSEStreamTest(TestCase):
 
         call_count = 0
 
-        def fake_refresh(fields=None):
+        def on_get():
             nonlocal call_count
             call_count += 1
             if call_count >= 2:
@@ -603,10 +609,9 @@ class SSEStreamTest(TestCase):
 
         with (
             patch("asyncio.sleep", new_callable=AsyncMock),
-            patch.object(run, "refresh_from_db", side_effect=fake_refresh),
             patch(
                 "hexa.pipelines.views.PipelineRun.objects.filter_for_user",
-                return_value=_MockQuerySet(run),
+                return_value=_MockQuerySet(run, on_get=on_get),
             ),
         ):
             response = self.client.get(self._url(run.id))
@@ -622,13 +627,9 @@ class SSEStreamTest(TestCase):
         run = self._make_run(PipelineRunState.RUNNING, messages=[])
         self.client.force_login(self.USER)
 
-        def fake_refresh(fields=None):
-            pass  # state never changes
-
         with (
             patch("asyncio.sleep", new_callable=AsyncMock),
             patch("hexa.pipelines.views.MAX_DURATION", 0),
-            patch.object(run, "refresh_from_db", side_effect=fake_refresh),
             patch(
                 "hexa.pipelines.views.PipelineRun.objects.filter_for_user",
                 return_value=_MockQuerySet(run),
@@ -643,10 +644,16 @@ class SSEStreamTest(TestCase):
 class _MockQuerySet:
     """Minimal queryset stub that returns a fixed run for .get()."""
 
-    def __init__(self, run):
+    def __init__(self, run, on_get=None):
         self._run = run
+        self._on_get = on_get
+
+    def only(self, *fields):
+        return self
 
     def get(self, id):
         if str(self._run.id) == str(id):
+            if self._on_get:
+                self._on_get()
             return self._run
         raise PipelineRun.DoesNotExist
