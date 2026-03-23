@@ -282,11 +282,4 @@ Sidebar.fragments = {
   `,
 };
 
-Sidebar.prefetch = async (
-  ctx: GetServerSidePropsContext,
-  client: CustomApolloClient,
-) => {
-  await SidebarMenu.prefetch(client);
-};
-
 export default Sidebar;

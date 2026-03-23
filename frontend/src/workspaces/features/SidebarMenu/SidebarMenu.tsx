@@ -13,7 +13,6 @@ import {
 import clsx from "clsx";
 import Link from "core/components/Link";
 import SearchInput from "core/features/SearchInput";
-import { CustomApolloClient } from "core/helpers/apollo";
 import useCacheKey from "core/hooks/useCacheKey";
 import useLocalStorage from "core/hooks/useLocalStorage";
 import useToggle from "core/hooks/useToggle";
@@ -343,13 +342,6 @@ SidebarMenu.fragments = {
       }
     }
   `,
-};
-
-SidebarMenu.prefetch = async (client: CustomApolloClient) => {
-  await client.query({
-    query: SidebarMenuDocument,
-    variables: { page: 1, perPage: 2000 },
-  });
 };
 
 export default SidebarMenu;
