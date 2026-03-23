@@ -8,7 +8,7 @@ module.exports = {
   fallbackLng: "en",
   pluralSeparator: "___",
   // This option will reload your translations whenever serverSideTranslations is called
-  reloadOnPrerender: true,
+  reloadOnPrerender: process.env.NODE_ENV === 'development',
 
   // allow an empty value to count as invalid (by default is true)
   returnEmptyString: false,

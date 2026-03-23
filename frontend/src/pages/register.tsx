@@ -187,16 +187,8 @@ RegisterPage.getLayout = (page: ReactElement) => (
 
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: false,
+  redirectIfLoggedIn: "/user/account",
   getServerSideProps(ctx, client) {
-    if (ctx.me?.user) {
-      return {
-        redirect: {
-          destination: "/user/account",
-          permanent: false,
-        },
-      };
-    }
-
     if (!ctx.query.token || !ctx.query.email) {
       return {
         redirect: {

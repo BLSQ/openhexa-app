@@ -111,16 +111,7 @@ const PasswordResetPage: NextPageWithLayout = () => {
 PasswordResetPage.getLayout = (page: ReactElement) => page;
 
 export const getServerSideProps = createGetServerSideProps({
-  getServerSideProps: (ctx) => {
-    if (ctx.me?.user) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: (ctx.query.next as string) || "/",
-        },
-      };
-    }
-  },
+  redirectIfLoggedIn: (ctx) => (ctx.query.next as string) || "/",
 });
 
 export default PasswordResetPage;
