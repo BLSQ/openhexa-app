@@ -5,6 +5,7 @@ import Spinner from "core/components/Spinner";
 
 type Conversation = {
   id: string;
+  name?: string | null;
   createdAt: string;
 };
 
@@ -64,7 +65,7 @@ export default function ConversationList({
                 : "text-gray-700",
             )}
           >
-            {formatDate(conv.createdAt)}
+            {conv.name || formatDate(conv.createdAt)}
           </button>
         ))}
       </div>

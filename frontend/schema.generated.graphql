@@ -440,6 +440,7 @@ type AssistantConversation {
   createdAt: DateTime!
   id: UUID!
   messages(page: Int = 1, perPage: Int = 20): AssistantMessagePage!
+  name: String
   totalInputTokens: Int!
   totalOutputTokens: Int!
   updatedAt: DateTime!

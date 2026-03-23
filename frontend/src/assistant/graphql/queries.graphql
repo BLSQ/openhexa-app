@@ -4,6 +4,7 @@ query AssistantPage($workspaceSlug: String!) {
     ...WorkspaceLayout_workspace
     assistantConversations {
       id
+      name
       createdAt
     }
   }

@@ -477,6 +477,7 @@ export type AssistantConversation = {
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
   messages: AssistantMessagePage;
+  name?: Maybe<Scalars['String']['output']>;
   totalInputTokens: Scalars['Int']['output'];
   totalOutputTokens: Scalars['Int']['output'];
   updatedAt: Scalars['DateTime']['output'];
