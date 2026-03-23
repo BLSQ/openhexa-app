@@ -16,6 +16,7 @@ class WebappAdmin(admin.ModelAdmin):
         "url",
         "type",
         "is_public",
+        "show_powered_by",
     )
 
 
@@ -32,6 +33,7 @@ class GitWebappAdmin(admin.ModelAdmin):
         "repository",
         "published_commit",
         "is_public",
+        "show_powered_by",
     )
     readonly_fields = ("repository",)
 
@@ -57,6 +59,7 @@ class SupersetWebappAdmin(admin.ModelAdmin):
         "created_by",
         "url",
         "is_public",
+        "show_powered_by",
         "superset_dashboard",
     )
     readonly_fields = ("url",)
