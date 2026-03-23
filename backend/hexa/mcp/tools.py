@@ -11,7 +11,7 @@ _QUERIES_PATH = Path(__file__).parent / "graphql" / "queries.graphql"
 _QUERIES_SOURCE = _QUERIES_PATH.read_text()
 
 
-def _execute_graphql(user, operation_name, variables=None):
+def _execute_graphql(user, operation_name: str, variables=None):
     request = HttpRequest()
     request.user = user
     request.bypass_two_factor = True
