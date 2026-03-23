@@ -28,6 +28,8 @@ query GetUser {
 query AccountPage {
   me {
     hasTwoFactorEnabled
+    assistantMonthlyCost
+    assistantTotalCost
     user {
       firstName
       lastName
