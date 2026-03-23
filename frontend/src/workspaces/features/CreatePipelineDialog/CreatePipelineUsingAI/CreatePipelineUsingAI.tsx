@@ -1,7 +1,12 @@
 import { SparklesIcon } from "@heroicons/react/24/outline";
+import AiDisabledBanner from "assistant/components/AiDisabledBanner";
 import Textarea from "core/components/forms/Textarea/Textarea";
+import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
+import { useEffect, useRef } from "react";
 import { AIFormInstance } from "./useAIForm";
+
+const MAX_TEXTAREA_HEIGHT = 480;
 
 type CreatePipelineUsingAIProps = {
   form: AIFormInstance;
@@ -9,8 +14,17 @@ type CreatePipelineUsingAIProps = {
 
 const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
   const { t } = useTranslation();
+  const aiEnabled = useMe()?.user?.aiSettings?.enabled ?? false;
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  return (
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
+  }, [form.prompt]);
+
+  return aiEnabled ? (
     <div className="space-y-5">
       <div className="flex flex-col items-center gap-4 py-4 text-center">
         <div className="rounded-xl bg-blue-50 p-4">
@@ -25,27 +39,25 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
           </p>
         </div>
       </div>
-      <div className="mx-auto w-3/4">
-        <div className="overflow-hidden rounded-md border border-gray-300 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+      <div className="mx-auto w-4/5">
+        <div className="overflow-hidden rounded-xl border border-gray-300 focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
           <Textarea
+            ref={textareaRef}
             value={form.prompt}
             onChange={(e) => form.setPrompt(e.target.value)}
             placeholder={t(
               "e.g. Create a pipeline that fetches data from the DHIS2 API, transform it, and save it as a CSV in the workspace",
             )}
-            className="rounded-none border-0 focus:ring-0"
+            className="resize-none rounded-none border-0 focus:ring-0"
             autoFocus
-            rows={5}
+            rows={6}
           />
-          <div className="border-t border-gray-200 bg-gray-50 px-3 py-2.5">
-            <span className="text-xs text-gray-400">
-              {t("Enter to send · Shift+Enter for new line")}
-            </span>
-          </div>
         </div>
         {form.error && <p className="mt-1 text-sm text-red-500">{form.error}</p>}
       </div>
     </div>
+  ) : (
+    <AiDisabledBanner />
   );
 };
 

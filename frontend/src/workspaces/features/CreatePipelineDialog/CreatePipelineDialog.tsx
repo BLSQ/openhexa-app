@@ -7,10 +7,11 @@ import {
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
 import Dialog from "core/components/Dialog";
+import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
+import PipelineTemplates from "pipelines/features/PipelineTemplates/PipelineTemplates";
 import { useEffect, useState } from "react";
 import { CreatePipelineDialog_WorkspaceFragment } from "./CreatePipelineDialog.generated";
-import PipelineTemplates from "pipelines/features/PipelineTemplates/PipelineTemplates";
 import CreatePipelineUsingCLI from "./CreatePipelineUsingCLI/CreatePipelineUsingCLI";
 import CreatePipelineUsingNotebook from "./CreatePipelineUsingNotebook/CreatePipelineUsingNotebook";
 import { useNotebookForm } from "./CreatePipelineUsingNotebook/useNotebookForm";
@@ -29,6 +30,7 @@ type CreatePipelineDialogProps = {
 const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   const { t } = useTranslation();
   const { open, onClose, workspace } = props;
+  const [isAssistantEnabled] = useFeature("assistant");
 
   const [activeMethod, setActiveMethod] = useState<Method>(null);
 
@@ -43,16 +45,13 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
     }
   }, [open]);
 
-  const dialogTitle =
-    activeMethod === "ai"
-      ? t("Create with AI")
-      : activeMethod === "template"
-        ? t("From Template")
-        : activeMethod === "notebook"
-          ? t("From Notebook")
-          : activeMethod === "cli"
-            ? t("From OpenHEXA CLI")
-            : t("Create a pipeline");
+  const TITLES: Record<string, string> = {
+    ai: t("Create with AI"),
+    template: t("From Template"),
+    notebook: t("From Notebook"),
+    cli: t("From OpenHEXA CLI"),
+  };
+  const dialogTitle = activeMethod ? TITLES[activeMethod] : t("Create a pipeline");
 
   return (
     <Dialog
@@ -75,6 +74,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
 
         <div className={activeMethod !== null ? "hidden" : "space-y-4"}>
           <div className="flex gap-3">
+            {isAssistantEnabled && (
             <button
               onClick={() => setActiveMethod("ai")}
               className="flex flex-1 flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 hover:shadow-md"
@@ -89,6 +89,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
                 {t("Describe what you want, AI writes the code")}
               </span>
             </button>
+            )}
             <button
               onClick={() => setActiveMethod("template")}
               className="flex flex-1 flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 hover:shadow-md"
@@ -149,20 +150,20 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
         <Button onClick={onClose} variant="outlined">
           {t("Close")}
         </Button>
-        {activeMethod === "notebook" && (
-          <Button
-            disabled={notebookForm.isSubmitting}
-            onClick={notebookForm.handleSubmit}
-            leadingIcon={notebookForm.isSubmitting ? <Spinner size="xs" /> : null}
-          >
-            {t("Create")}
-          </Button>
-        )}
         {activeMethod === "ai" && (
           <Button
             disabled={aiForm.isSubmitting || !aiForm.prompt.trim()}
             onClick={aiForm.handleSubmit}
             leadingIcon={aiForm.isSubmitting ? <Spinner size="xs" /> : null}
+          >
+            {t("Create")}
+          </Button>
+        )}
+        {activeMethod === "notebook" && (
+          <Button
+            disabled={notebookForm.isSubmitting}
+            onClick={notebookForm.handleSubmit}
+            leadingIcon={notebookForm.isSubmitting ? <Spinner size="xs" /> : null}
           >
             {t("Create")}
           </Button>

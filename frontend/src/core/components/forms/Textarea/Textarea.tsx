@@ -1,14 +1,15 @@
 import clsx from "clsx";
-import { TextareaHTMLAttributes } from "react";
+import { forwardRef, TextareaHTMLAttributes } from "react";
 
 export type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
   error?: string | null | false | true;
 };
 
-const Textarea = (props: TextareaProps) => {
+const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>((props, ref) => {
   const { className, error, rows = 4, value, ...delegated } = props;
   return (
     <textarea
+      ref={ref}
       rows={rows}
       className={clsx(
         "form-textarea w-full appearance-none rounded-md border px-3 py-2 focus:z-10 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm",
@@ -21,6 +22,8 @@ const Textarea = (props: TextareaProps) => {
       {...delegated}
     />
   );
-};
+});
+
+Textarea.displayName = "Textarea";
 
 export default Textarea;

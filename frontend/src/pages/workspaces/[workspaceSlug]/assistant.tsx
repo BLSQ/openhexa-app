@@ -13,6 +13,7 @@ import {
 import { useCreateAssistantConversationMutation } from "assistant/graphql/mutations.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import useFeature from "identity/hooks/useFeature";
+import useMe from "identity/hooks/useMe";
 import ErrorPage from "next/error";
 
 type Props = {
@@ -21,6 +22,7 @@ type Props = {
 
 const AssistantPage: NextPageWithLayout<Props> = ({ workspaceSlug }) => {
   const [isAssistantEnabled] = useFeature("assistant");
+  const me = useMe();
   const [selectedConversationId, setSelectedConversationId] = useState<
     string | null
   >(null);
@@ -31,7 +33,7 @@ const AssistantPage: NextPageWithLayout<Props> = ({ workspaceSlug }) => {
 
   const conversations = data?.workspace?.assistantConversations ?? [];
   const monthlyLimitExceeded = data?.me?.assistantMonthlyLimitExceeded ?? false;
-  const aiEnabled = data?.me?.user?.aiSettings?.enabled ?? false;
+  const aiEnabled = me?.user?.aiSettings?.enabled ?? false;
 
   useEffect(() => {
     if (!selectedConversationId && conversations.length > 0) {
@@ -82,7 +84,9 @@ const AssistantPage: NextPageWithLayout<Props> = ({ workspaceSlug }) => {
             />
           </div>
         ) : (
-          <AiDisabledBanner />
+          <div className="flex h-screen items-center justify-center">
+            <AiDisabledBanner asCard={true} />
+          </div>
         )}
       </WorkspaceLayout>
     </Page>
