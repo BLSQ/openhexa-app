@@ -4,9 +4,8 @@ from django.http import HttpRequest
 from graphql import graphql_sync
 
 from config.schema import schema
-
-from .protocol import tool
-from ..pipelines.models import PipelineFunctionalType
+from hexa.mcp.protocol import tool
+from hexa.pipelines.models import PipelineFunctionalType
 
 _QUERIES_PATH = Path(__file__).parent / "graphql" / "queries.graphql"
 _QUERIES_SOURCE = _QUERIES_PATH.read_text()

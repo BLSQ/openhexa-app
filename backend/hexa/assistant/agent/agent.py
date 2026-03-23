@@ -18,11 +18,14 @@ from hexa.assistant.models import Conversation, Message, ToolInvocation
 logger = logging.getLogger(__name__)
 
 
-def _is_success(content: str) -> bool:
-    try:
-        data = json.loads(content)
-    except (ValueError, TypeError):
-        return False
+def _is_success(content) -> bool:
+    if isinstance(content, str):
+        try:
+            data = json.loads(content)
+        except ValueError:
+            return False
+    else:
+        data = content
     if not isinstance(data, dict):
         return True
     if data.get("errors"):
@@ -31,6 +34,7 @@ def _is_success(content: str) -> bool:
         if isinstance(value, dict) and value.get("errors"):
             return False
     return True
+
 
 _NAMING_INSTRUCTIONS = (
     "Generate a short title (max 5 words) for a conversation based on the user's first message. "
@@ -107,21 +111,22 @@ class AssistantAgent:
                     tool_invocations[part.tool_call_id] = ToolInvocation(
                         tool_call_id=part.tool_call_id,
                         tool_name=part.tool_name,
-                        tool_input=part.args,
+                        tool_input=json.loads(json.dumps(part.args, default=str)),
                     )
                 elif isinstance(part, ToolReturnPart):
                     logger.info("agent.run: tool_return call_id=%s", part.tool_call_id)
                     success = _is_success(part.content)
-                    invocation = tool_invocations.get(part.tool_call_id)
-                    if invocation:
-                        invocation.tool_output = part.content
+                    tool_output = json.loads(json.dumps(part.content, default=str))
+                    try:
+                        invocation = tool_invocations[part.tool_call_id]
+                        invocation.tool_output = tool_output
                         invocation.success = success
-                    else:
+                    except KeyError:
                         tool_invocations[part.tool_call_id] = ToolInvocation(
                             tool_call_id=part.tool_call_id,
                             tool_name=part.tool_name,
                             tool_input="",
-                            tool_output=part.content,
+                            tool_output=tool_output,
                             success=success,
                         )
 

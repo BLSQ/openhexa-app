@@ -35,7 +35,8 @@ class PipelineAgent(AssistantAgent):
 
         def write_pipeline_file(file_path: str, content: str) -> dict:
             """Write Python source code to a new file in the workspace bucket.
-            Only call this if create_pipeline returned success=true. If create_pipeline failed, do not call this tool."""
+            Only call this if create_pipeline returned success=true. If create_pipeline failed, do not call this tool.
+            """
             return mcp_write_file(
                 user=user,
                 workspace_slug=workspace_slug,
