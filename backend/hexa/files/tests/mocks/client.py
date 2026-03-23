@@ -13,6 +13,7 @@ class MockHTTPIterator:
         self.max_results = max_results
         self._started = False
         self.__active_iterator = None
+        self._prefixes = set()
 
     def __iter__(self):
         """Iterator for each item returned.
@@ -44,7 +45,7 @@ class MockHTTPIterator:
 
     @property
     def prefixes(self):
-        return set([item.name for item in self.items if item.name.endswith("/")])
+        return self._prefixes
 
     @property
     def pages(self):
@@ -83,9 +84,15 @@ class MockHTTPIterator:
                 there are no pages left.
         """
         if self._has_next_page():
+            page_items = self.items[
+                self.num_results : self.num_results + self._page_size
+            ]
+            for item in page_items:
+                if item.name.endswith("/"):
+                    self._prefixes.add(item.name)
             page = page_iterator.Page(
                 self,
-                self.items[self.num_results : self.num_results + self._page_size],
+                page_items,
                 lambda _, item: item,
             )
             return page
