@@ -26,7 +26,9 @@ const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
         <WebappIframe
           url={webapp.url}
           style={{ height: "100vh" }}
-          showPoweredBy={webapp.type !== WebappType.Superset} // Already a banner in the Superset iframe from the backend
+          showPoweredBy={
+            webapp.showPoweredBy && webapp.type !== WebappType.Superset
+          } // There is already a banner in the Superset iframe from the backend
         />
       </Page>
     );
