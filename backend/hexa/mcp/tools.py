@@ -6,6 +6,7 @@ from graphql import graphql_sync
 from config.schema import schema
 
 from .protocol import tool
+from ..pipelines.models import PipelineFunctionalType
 
 _QUERIES_PATH = Path(__file__).parent / "graphql" / "queries.graphql"
 _QUERIES_SOURCE = _QUERIES_PATH.read_text()
@@ -157,7 +158,7 @@ def create_pipeline(
     workspace_slug: str,
     name: str,
     description: str = "",
-    functional_type: str = "",
+    functional_type: PipelineFunctionalType | None = None,
 ) -> dict:
     """Create a new pipeline in a workspace. Returns the created pipeline's id, code, and name."""
     data = _execute_graphql(

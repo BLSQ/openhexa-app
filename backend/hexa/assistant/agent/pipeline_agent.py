@@ -1,6 +1,7 @@
 from hexa.assistant.agent.agent import AssistantAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
+from hexa.pipelines.models import PipelineFunctionalType
 
 
 class PipelineAgent(AssistantAgent):
@@ -15,9 +16,15 @@ class PipelineAgent(AssistantAgent):
         workspace_slug = conversation.workspace.slug
 
         def create_pipeline(
-            name: str, description: str = "", functional_type: str = ""
+            name: str,
+            description: str = "",
+            functional_type: PipelineFunctionalType | None = None,
         ) -> dict:
-            """Create a new pipeline in the current workspace. Returns the pipeline id, code, and name."""
+            """Create a new pipeline in the current workspace. Returns the pipeline id, code, and name.
+
+            Only the fields name, description, and functional_type are supported at creation time.
+            Fields such as schedule, timeout, tags, or webhook settings cannot be set here.
+            """
             return mcp_create_pipeline(
                 user=user,
                 workspace_slug=workspace_slug,
@@ -27,7 +34,8 @@ class PipelineAgent(AssistantAgent):
             )
 
         def write_pipeline_file(file_path: str, content: str) -> dict:
-            """Write Python source code to a new file in the workspace bucket. Use this to create the starter pipeline file after calling create_pipeline."""
+            """Write Python source code to a new file in the workspace bucket.
+            Only call this if create_pipeline returned success=true. If create_pipeline failed, do not call this tool."""
             return mcp_write_file(
                 user=user,
                 workspace_slug=workspace_slug,
