@@ -33,4 +33,24 @@ def resolve_assistant_monthly_limit_exceeded(me, info, **kwargs):
     return monthly_cost >= settings.ASSISTANT_MONTHLY_LIMIT
 
 
+@me_object.field("assistantMonthlyCost")
+def resolve_assistant_monthly_cost(me, info, **kwargs):
+    """
+    Cost in microdollars (millionths of a dollar) to avoid floating-point precision loss
+    """
+    request = info.context["request"]
+    monthly_cost = Conversation.get_monthly_cost_for_user(request.user)
+    return int(monthly_cost * 1_000_000)
+
+
+@me_object.field("assistantTotalCost")
+def resolve_assistant_total_cost(me, info, **kwargs):
+    """
+    Cost in microdollars (millionths of a dollar) to avoid floating-point precision loss
+    """
+    request = info.context["request"]
+    total_cost = Conversation.get_total_cost_for_user(request.user)
+    return int(total_cost * 1_000_000)
+
+
 bindables = [assistant_queries, workspace_object, me_object]

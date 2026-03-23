@@ -2669,7 +2669,9 @@ type LogoutResult {
 
 """The Me type represents the currently authenticated user."""
 type Me {
+  assistantMonthlyCost: Int!
   assistantMonthlyLimitExceeded: Boolean!
+  assistantTotalCost: Int!
 
   """The feature flags assigned to the currently authenticated user."""
   features: [FeatureFlag!]!
