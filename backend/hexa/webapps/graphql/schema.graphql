@@ -61,6 +61,7 @@ type Webapp {
   workspace: Workspace!
   createdBy: User!
   isPublic: Boolean!
+  showPoweredBy: Boolean!
   isFavorite: Boolean!
   isShortcut: Boolean!
   source: WebappSource!

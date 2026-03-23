@@ -11,6 +11,7 @@ fragment WebappPlay_webapp on Webapp {
   url
   name
   type
+  showPoweredBy
 }
 
 query WebappAccess($workspaceSlug: String!, $webappSlug: String!) {
