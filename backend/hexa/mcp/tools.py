@@ -73,7 +73,7 @@ def list_datasets(user, workspace_slug: str, page: int = 1, per_page: int = 10) 
         return data
     workspace = data.get("workspace")
     if workspace is None:
-        return {"error": "Workspace not found"}
+        return {"errors": ["Workspace not found"]}
     page_data = workspace["datasets"]
     page_data["items"] = [item["dataset"] for item in page_data["items"]]
     return {"datasets": page_data}
@@ -91,7 +91,7 @@ def get_dataset(user, workspace_slug: str, dataset_slug: str) -> dict:
         return data
     link = data.get("datasetLinkBySlug")
     if link is None:
-        return {"error": "Dataset not found"}
+        return {"errors": ["Dataset not found"]}
     return link["dataset"]
 
 
@@ -114,7 +114,7 @@ def list_files(
         return data
     workspace = data.get("workspace")
     if workspace is None:
-        return {"error": "Workspace not found"}
+        return {"errors": ["Workspace not found"]}
     return workspace["bucket"]["objects"]
 
 

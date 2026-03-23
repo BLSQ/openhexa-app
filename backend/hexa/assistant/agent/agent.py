@@ -1,3 +1,4 @@
+import json
 import logging
 from decimal import Decimal
 
@@ -15,6 +16,21 @@ from hexa.assistant.model_builder import AiModelBuilder
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 
 logger = logging.getLogger(__name__)
+
+
+def _is_success(content: str) -> bool:
+    try:
+        data = json.loads(content)
+    except (ValueError, TypeError):
+        return False
+    if not isinstance(data, dict):
+        return True
+    if data.get("errors"):
+        return False
+    for value in data.values():
+        if isinstance(value, dict) and value.get("errors"):
+            return False
+    return True
 
 _NAMING_INSTRUCTIONS = (
     "Generate a short title (max 5 words) for a conversation based on the user's first message. "
@@ -95,14 +111,18 @@ class AssistantAgent:
                     )
                 elif isinstance(part, ToolReturnPart):
                     logger.info("agent.run: tool_return call_id=%s", part.tool_call_id)
-                    try:
-                        tool_invocations[part.tool_call_id].tool_output = part.content
-                    except KeyError:
+                    success = _is_success(part.content)
+                    invocation = tool_invocations.get(part.tool_call_id)
+                    if invocation:
+                        invocation.tool_output = part.content
+                        invocation.success = success
+                    else:
                         tool_invocations[part.tool_call_id] = ToolInvocation(
                             tool_call_id=part.tool_call_id,
                             tool_name=part.tool_name,
                             tool_input="",
                             tool_output=part.content,
+                            success=success,
                         )
 
         usage = result.usage()

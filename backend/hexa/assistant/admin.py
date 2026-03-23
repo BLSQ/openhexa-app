@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.html import format_html, mark_safe
 
@@ -35,8 +36,10 @@ class MessageInline(admin.StackedInline):
         items = mark_safe(
             "".join(
                 format_html(
-                    "<li><a href='{}'>{}</a></li>",
+                    "<li><a href='{}'><img src='{}' alt='{}'> {}</a></li>",
                     reverse("admin:assistant_toolinvocation_change", args=[inv.pk]),
+                    static("admin/img/icon-%s.svg" % ("yes" if inv.success else "no")),
+                    inv.success,
                     inv.tool_name,
                 )
                 for inv in invocations
@@ -96,7 +99,7 @@ class MessageAdmin(admin.ModelAdmin):
 
 @admin.register(ToolInvocation)
 class ToolInvocationAdmin(admin.ModelAdmin):
-    list_display = ("message", "tool_name", "success", "created_at")
+    list_display = ("tool_name", "message", "success", "created_at")
     list_filter = ("tool_name", "success")
     search_fields = ("id", "message__id", "tool_name")
     raw_id_fields = ("message",)
