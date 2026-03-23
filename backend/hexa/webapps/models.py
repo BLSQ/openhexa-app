@@ -164,6 +164,7 @@ class GitWebapp(Webapp, GitRepoMixin):
     published_commit = models.CharField(max_length=64, blank=True, null=True)
 
     class Meta:
+        verbose_name = "Static Webapp"
         indexes = [
             models.Index(
                 fields=["published_commit"], name="idx_gitwebapp_published_commit"
