@@ -16,6 +16,11 @@ from hexa.assistant.models import Conversation, Message, ToolInvocation
 
 logger = logging.getLogger(__name__)
 
+_NAMING_INSTRUCTIONS = (
+    "Generate a short title (max 5 words) for a conversation based on the user's first message. "
+    "Reply with only the title, no punctuation, no quotes."
+)
+
 
 class AssistantAgent:
     instruction_set = InstructionSet.GENERAL
@@ -25,9 +30,10 @@ class AssistantAgent:
         builder = AiModelBuilder.from_conversation(conversation)
         self._model_api_name = builder.model_api_name
         self._provider_id = builder.provider_id
+        self._model = builder.build()
 
         self.agent = Agent(
-            model=builder.build(),
+            model=self._model,
             instructions=get_instructions(self.instruction_set),
             tools=self._get_tools(conversation),
         )
@@ -42,6 +48,8 @@ class AssistantAgent:
         return []
 
     def run(self, user_input: str) -> str:
+        is_first_message = self.conversation.name is None
+
         Message.objects.create(
             conversation=self.conversation,
             role=Message.Role.USER,
@@ -129,17 +137,32 @@ class AssistantAgent:
         self.conversation.messages_history = ModelMessagesTypeAdapter.dump_python(
             result.all_messages(), mode="json"
         )
-        self.conversation.save(
-            update_fields=[
-                "total_input_tokens",
-                "total_output_tokens",
-                "cost",
-                "messages_history",
-                "updated_at",
-            ]
-        )
+
+        update_fields = [
+            "total_input_tokens",
+            "total_output_tokens",
+            "cost",
+            "messages_history",
+            "updated_at",
+        ]
+        if is_first_message:
+            self.conversation.name = self._generate_conversation_name(user_input)
+            update_fields.append("name")
+
+        self.conversation.save(update_fields=update_fields)
 
         return response_text
+
+    def _generate_conversation_name(self, user_input: str) -> str:
+        naming_agent = Agent(model=self._model, instructions=_NAMING_INSTRUCTIONS)
+        try:
+            result = naming_agent.run_sync(user_input)
+            return result.output.strip()[:50]
+        except Exception:
+            logger.warning("agent.run: conversation naming failed, falling back to truncation")
+            text = " ".join(user_input.split())
+            truncated = text[:50].rsplit(" ", 1)[0]
+            return truncated or text[:50]
 
     def _get_cost(self, usage: RunUsage) -> Decimal | None:
         cost: Decimal | None = None

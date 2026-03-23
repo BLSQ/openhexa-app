@@ -1,14 +1,16 @@
 from hexa.assistant.agent.agent import AssistantAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
-from hexa.mcp.tools import create_pipeline as mcp_create_pipeline
-from hexa.mcp.tools import write_file as mcp_write_file
 
 
 class PipelineAgent(AssistantAgent):
     instruction_set = InstructionSet.PIPELINE
 
     def _get_tools(self, conversation: Conversation) -> list:
+        # Lazy import to avoid circular dependency
+        from hexa.mcp.tools import create_pipeline as mcp_create_pipeline
+        from hexa.mcp.tools import write_file as mcp_write_file
+
         user = conversation.user
         workspace_slug = conversation.workspace.slug
 
