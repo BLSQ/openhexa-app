@@ -5369,6 +5369,7 @@ type Webapp {
   isShortcut: Boolean!
   name: String!
   permissions: WebappPermissions!
+  showPoweredBy: Boolean!
   slug: String!
   source: WebappSource!
   type: WebappType!
