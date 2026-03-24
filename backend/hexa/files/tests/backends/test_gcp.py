@@ -84,20 +84,22 @@ class GoogleCloudStorageTest(TestCase):
         # Page 1:
         result = self.storage.list_bucket_objects("my-bucket", page=1, per_page=5)
         self.assertEqual(
-            [item.name for item in result.items],
+            [item.name for item in result.items if item.name],
             [f"folder_{i}" for i in ["a", "b", "c", "d", "e"]],
         )
 
         # Page 2:
         result = self.storage.list_bucket_objects("my-bucket", page=2, per_page=5)
         self.assertEqual(
-            [item.name for item in result.items],
+            [item.name for item in result.items if item.name],
             [f"folder_{i}" for i in ["f", "g", "h", "i", "j"]],
         )
 
         # Page 3:
         result = self.storage.list_bucket_objects("my-bucket", page=3, per_page=5)
-        self.assertIn("folder_k", [item.name for item in result.items])
+        self.assertEqual(
+            [item.name for item in result.items if item.name], ["folder_k"]
+        )
 
     def test_list_bucket_objects_late_prefix_not_dropped(self):
         """A folder that sorts after many files still appears prefix-first.
@@ -119,14 +121,14 @@ class GoogleCloudStorageTest(TestCase):
         # App page 1: the folder comes first, followed by the first 4 files
         result = self.storage.list_bucket_objects("my-bucket", page=1, per_page=5)
         self.assertEqual(
-            [item.name for item in result.items],
+            [item.name for item in result.items if item.name],
             ["zzz", "file_000.txt", "file_001.txt", "file_002.txt", "file_003.txt"],
         )
 
         # App page 2: next 5 files
         result = self.storage.list_bucket_objects("my-bucket", page=2, per_page=5)
         self.assertEqual(
-            [item.name for item in result.items],
+            [item.name for item in result.items if item.name],
             [
                 "file_004.txt",
                 "file_005.txt",
@@ -139,7 +141,7 @@ class GoogleCloudStorageTest(TestCase):
         # App page 3: remaining 3 files
         result = self.storage.list_bucket_objects("my-bucket", page=3, per_page=5)
         self.assertEqual(
-            [item.name for item in result.items],
+            [item.name for item in result.items if item.name],
             ["file_009.txt", "file_010.txt", "file_011.txt"],
         )
 
