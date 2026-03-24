@@ -127,7 +127,13 @@ class GoogleCloudStorageTest(TestCase):
         result = self.storage.list_bucket_objects("my-bucket", page=2, per_page=5)
         self.assertEqual(
             [item.name for item in result.items],
-            ["file_004.txt", "file_005.txt", "file_006.txt", "file_007.txt", "file_008.txt"],
+            [
+                "file_004.txt",
+                "file_005.txt",
+                "file_006.txt",
+                "file_007.txt",
+                "file_008.txt",
+            ],
         )
 
         # App page 3: remaining 3 files
