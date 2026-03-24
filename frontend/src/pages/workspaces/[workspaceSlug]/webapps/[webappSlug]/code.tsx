@@ -20,6 +20,7 @@ import { useState } from "react";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
 import { toast } from "react-toastify";
 import { WebappVersion_VersionFragment } from "webapps/graphql/queries.generated";
+import Spinner from "core/components/Spinner";
 
 type Props = {
   webappSlug: string;
@@ -40,6 +41,8 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
   const [selectedVersion, setSelectedVersion] =
     useState<WebappVersion_VersionFragment | null>(null);
   const [updateWebapp] = useUpdateWebappMutation();
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [isEditorBusy, setIsEditorBusy] = useState(false);
 
   if (!data?.workspace || !data?.webapp) {
     return null;
@@ -58,18 +61,25 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
     !selectedVersion || selectedVersion.id === publishedVersionId;
 
   const handlePublish = async () => {
-    if (!selectedVersion) return;
-    const { data } = await updateWebapp({
-      variables: {
-        input: { id: webapp.id, publishedVersionId: selectedVersion.id },
-      },
-      refetchQueries: ["WebappVersions"],
-    });
-    if (data?.updateWebapp?.success) {
-      toast.success(t("Version published successfully"));
-      refetch().then();
-    } else {
+    if (!selectedVersion || isPublishing) return;
+    setIsPublishing(true);
+    try {
+      const { data } = await updateWebapp({
+        variables: {
+          input: { id: webapp.id, publishedVersionId: selectedVersion.id },
+        },
+        refetchQueries: ["WebappVersions"],
+      });
+      if (data?.updateWebapp?.success) {
+        toast.success(t("Version published successfully"));
+        refetch().then();
+      } else {
+        toast.error(t("Failed to publish version"));
+      }
+    } catch {
       toast.error(t("Failed to publish version"));
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -80,9 +90,14 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
         webapp={webapp}
         currentTab="code"
         extraActions={
-          webapp.permissions.update && !isViewingPublished ? (
-            <Button variant="primary" onClick={handlePublish}>
-              {t("Publish")}
+          webapp.permissions.update && !isViewingPublished && !isEditorBusy ? (
+            <Button
+              variant="primary"
+              onClick={handlePublish}
+              disabled={isPublishing}
+              leadingIcon={isPublishing ? <Spinner size="xs" /> : undefined}
+            >
+              {isPublishing ? t("Publishing...") : t("Publish")}
             </Button>
           ) : undefined
         }
@@ -95,6 +110,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
             isEditable={webapp.permissions.update}
             versionRef={selectedVersion?.id}
             onSaveSuccess={() => refetch()}
+            onBusyChange={setIsEditorBusy}
             versionPicker={
               <VersionPicker
                 workspaceSlug={workspace.slug}
