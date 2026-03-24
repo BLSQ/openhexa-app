@@ -1,4 +1,7 @@
+import base64
+import io
 from pathlib import Path
+from zipfile import ZipFile
 
 from django.http import HttpRequest
 from graphql import graphql_sync
@@ -149,6 +152,44 @@ def write_file(user, workspace_slug: str, file_path: str, content: str) -> dict:
     if "errors" in data:
         return data
     return data["writeFileContent"]
+
+
+@tool
+def create_pipeline_version(
+    user,
+    workspace_slug: str,
+    pipeline_code: str,
+    source_code: str,
+    version_name: str = "",
+    description: str = "",
+) -> dict:
+    """Create a new version for an existing pipeline by uploading Python source code.
+
+    The source_code is packaged into a zip archive as pipeline.py and uploaded as a new
+    PipelineVersion. Pipeline parameters are extracted automatically from the source code.
+    Only call this after create_pipeline has returned success=true.
+    """
+    buf = io.BytesIO()
+    with ZipFile(buf, "w") as zf:
+        zf.writestr("pipeline.py", source_code)
+    zipfile_b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+
+    data = _execute_graphql(
+        user,
+        "UploadPipeline",
+        {
+            "input": {
+                "workspaceSlug": workspace_slug,
+                "code": pipeline_code,
+                "zipfile": zipfile_b64,
+                "name": version_name,
+                "description": description or None,
+            }
+        },
+    )
+    if "errors" in data:
+        return data
+    return data.get("uploadPipeline", {})
 
 
 @tool

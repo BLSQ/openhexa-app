@@ -70,6 +70,9 @@ def resolve_create_pipeline(_, info, **kwargs):
         else:
             data["type"] = PipelineType.ZIPFILE
 
+        if input.get("description"):
+            data["description"] = input["description"]
+
         if input.get("functional_type"):
             data["functional_type"] = input["functional_type"]
 

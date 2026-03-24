@@ -9,8 +9,10 @@ class PipelineAgent(AssistantAgent):
 
     def _get_tools(self, conversation: Conversation) -> list:
         # Lazy import to avoid circular dependency
-        from hexa.mcp.tools import create_pipeline as mcp_create_pipeline
-        from hexa.mcp.tools import write_file as mcp_write_file
+        from hexa.mcp.tools import (
+            create_pipeline as mcp_create_pipeline,
+            create_pipeline_version as mcp_create_pipeline_version,
+        )
 
         user = conversation.user
         workspace_slug = conversation.workspace.slug
@@ -22,6 +24,8 @@ class PipelineAgent(AssistantAgent):
         ) -> dict:
             """Create a new pipeline in the current workspace. Returns the pipeline id, code, and name.
 
+            Always provide a meaningful description summarizing what the pipeline does.
+            If the pipeline has no clear purpose or is blank, use "" as the description.
             Only the fields name, description, and functional_type are supported at creation time.
             Fields such as schedule, timeout, tags, or webhook settings cannot be set here.
             """
@@ -33,15 +37,17 @@ class PipelineAgent(AssistantAgent):
                 functional_type=functional_type,
             )
 
-        def write_pipeline_file(file_path: str, content: str) -> dict:
-            """Write Python source code to a new file in the workspace bucket.
-            Only call this if create_pipeline returned success=true. If create_pipeline failed, do not call this tool.
+        def create_pipeline_version(pipeline_code: str, source_code: str) -> dict:
+            """Upload the Python source code as the first version (v1) of the pipeline.
+
+            Only call this if create_pipeline returned success=true. Pass the pipeline code
+            returned by create_pipeline and the full Python source as a single string.
             """
-            return mcp_write_file(
+            return mcp_create_pipeline_version(
                 user=user,
                 workspace_slug=workspace_slug,
-                file_path=file_path,
-                content=content,
+                pipeline_code=pipeline_code,
+                source_code=source_code,
             )
 
-        return [create_pipeline, write_pipeline_file]
+        return [create_pipeline, create_pipeline_version]
