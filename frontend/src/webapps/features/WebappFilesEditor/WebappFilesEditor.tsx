@@ -16,6 +16,7 @@ type WebappFilesEditorProps = {
   versionRef?: string;
   versionPicker?: ReactNode;
   onSaveSuccess?: () => void;
+  onBusyChange?: (busy: boolean) => void;
 };
 
 const WebappFilesEditor = ({
@@ -26,12 +27,14 @@ const WebappFilesEditor = ({
   versionRef,
   versionPicker,
   onSaveSuccess,
+  onBusyChange,
 }: WebappFilesEditorProps) => {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
   const [files, setFiles] = useState<FilesEditor_FileFragment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
 
   const [fetchFiles] = useWebappFilesLazyQuery({
     fetchPolicy: "no-cache",
@@ -41,7 +44,6 @@ const WebappFilesEditor = ({
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
-    setFiles([]);
     fetchFiles({
       variables: { workspaceSlug, webappSlug, ref: versionRef },
     }).then(({ data }) => {
@@ -57,6 +59,8 @@ const WebappFilesEditor = ({
 
   const handleUpload = useCallback(
     async (fileList: FileList) => {
+      setIsUploading(true);
+      onBusyChange?.(true);
       try {
         const uploadedFiles = await Promise.all(
           Array.from(fileList).map(async (file) => ({
@@ -82,6 +86,9 @@ const WebappFilesEditor = ({
         }
       } catch {
         toast.error(t("An error occurred while uploading files"));
+      } finally {
+        setIsUploading(false);
+        onBusyChange?.(false);
       }
     },
     [webappId, updateWebapp, onSaveSuccess, t],
@@ -101,6 +108,8 @@ const WebappFilesEditor = ({
       },
     );
 
+    setIsLoading(true);
+    onBusyChange?.(true);
     try {
       const { data } = await updateWebapp({
         variables: {
@@ -126,6 +135,9 @@ const WebappFilesEditor = ({
         success: false,
         error: error instanceof Error ? error.message : "Save failed",
       };
+    } finally {
+      setIsLoading(false);
+      onBusyChange?.(false);
     }
   };
 
@@ -165,18 +177,28 @@ const WebappFilesEditor = ({
               >)}
             />
             <button
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
             >
-              <ArrowUpTrayIcon className="h-4 w-4 text-gray-500" />
-              {t("Upload files")}
+              {isUploading ? (
+                <Spinner size="xs" className="text-gray-500" />
+              ) : (
+                <ArrowUpTrayIcon className="h-4 w-4 text-gray-500" />
+              )}
+              {isUploading ? t("Uploading...") : t("Upload files")}
             </button>
             <button
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => folderInputRef.current?.click()}
+              disabled={isUploading}
             >
-              <FolderPlusIcon className="h-4 w-4 text-gray-500" />
-              {t("Upload folder")}
+              {isUploading ? (
+                <Spinner size="xs" className="text-gray-500" />
+              ) : (
+                <FolderPlusIcon className="h-4 w-4 text-gray-500" />
+              )}
+              {isUploading ? t("Uploading...") : t("Upload folder")}
             </button>
           </div>
         )}
