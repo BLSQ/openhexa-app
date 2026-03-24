@@ -53,6 +53,12 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
             rows={6}
           />
         </div>
+        {form.isSubmitting && (
+          <p className="mt-2 text-center text-sm text-blue-500">
+            {t("Please do not close or reload this page while the pipeline is being created.")}<br/>
+            {t("This may take a moment.")}
+          </p>
+        )}
         {form.error && <p className="mt-1 text-sm text-red-500">{form.error}</p>}
       </div>
     </div>

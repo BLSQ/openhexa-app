@@ -66,7 +66,7 @@ export function useAIForm(
           await router.push(
             `/workspaces/${encodeURIComponent(
               router.query.workspaceSlug as string,
-            )}/pipelines/${encodeURIComponent(pipelineCode)}`,
+            )}/pipelines/${encodeURIComponent(pipelineCode)}/code`,
           );
           return;
         }
