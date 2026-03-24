@@ -9,8 +9,8 @@ class PipelineAgent(AssistantAgent):
 
     def _get_tools(self, conversation: Conversation) -> list:
         # Lazy import to avoid circular dependency
+        from hexa.mcp.tools import create_pipeline as mcp_create_pipeline
         from hexa.mcp.tools import (
-            create_pipeline as mcp_create_pipeline,
             create_pipeline_version as mcp_create_pipeline_version,
         )
 
