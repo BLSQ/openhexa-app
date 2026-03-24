@@ -4,6 +4,7 @@ import io
 import json
 
 import requests
+import sentry_sdk
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from google.cloud import storage
@@ -52,30 +53,34 @@ def _prefix_to_obj(bucket_name, name: str):
     )
 
 
+LARGE_DIRECTORY_THRESHOLD = 500
+
+
 def iter_request_results(bucket_name, request, include_directories=False):
-    # Start by adding all the prefixes
-    # Prefixes are virtual directories based on the delimiter specified in the request
-    # The API returns a list of keys that have the delimiter as a suffix (meaning they have objects in them)
+    # Consume all pages first so that request.prefixes is fully populated.
+    # The GCP client discovers prefixes lazily as pages are iterated, so reading
+    # prefixes after only the first page would silently drop later ones.
+    blobs = []
+    for page in request.pages:
+        for blob in page:
+            blobs.append(blob)
 
-    # request.prefixes is a Set (unorder) so to keep the prefixes order we need to sort them
-    pages = request.pages
-    prefixes = request.prefixes
+    # Notify us in case a bucket is very large and this prefix discovery becomes
+    # a potential performance issue.
+    if len(blobs) > LARGE_DIRECTORY_THRESHOLD:
+        sentry_sdk.capture_message(
+            f"Large directory listing: bucket '{bucket_name}' returned {len(blobs)} items",
+            level="warning",
+        )
 
-    current_page = next(pages)
-
-    for prefix in sorted(prefixes):
+    for prefix in sorted(request.prefixes):
         yield _prefix_to_obj(bucket_name, prefix)
 
-    while True:
-        for blob in current_page:
-            if not _is_dir(blob) or include_directories:
-                # We ignore objects that are directories (object with a size = 0 and ending with a /)
-                # because they are already listed in the prefixes
-                yield _blob_to_obj(blob)
-        try:
-            current_page = next(pages)
-        except StopIteration:
-            return
+    for blob in blobs:
+        if not _is_dir(blob) or include_directories:
+            # We ignore objects that are directories (object with a size = 0 and ending with a /)
+            # because they are already listed in the prefixes
+            yield _blob_to_obj(blob)
 
 
 def ensure_is_folder(object_key: str):
