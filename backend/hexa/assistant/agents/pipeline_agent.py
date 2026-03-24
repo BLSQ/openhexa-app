@@ -1,4 +1,4 @@
-from hexa.assistant.agent.agent import AssistantAgent
+from hexa.assistant.agents.agent import AssistantAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 from hexa.pipelines.models import PipelineFunctionalType

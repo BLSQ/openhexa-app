@@ -4,7 +4,7 @@ from ariadne import MutationType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 
-from hexa.assistant.agent import create_agent
+from hexa.assistant.agents import create_agent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 from hexa.workspaces.models import Workspace

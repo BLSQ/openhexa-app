@@ -1,5 +1,5 @@
-from hexa.assistant.agent.agent import AssistantAgent
-from hexa.assistant.agent.pipeline_agent import PipelineAgent
+from hexa.assistant.agents.agent import AssistantAgent
+from hexa.assistant.agents.pipeline_agent import PipelineAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 
