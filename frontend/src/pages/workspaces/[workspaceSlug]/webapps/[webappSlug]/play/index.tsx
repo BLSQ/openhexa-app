@@ -11,10 +11,11 @@ import { WebappType } from "graphql/types";
 
 type Props = {
   webapp: NonNullable<WebappAccessQuery["webapp"]>;
+  isAuthenticated: boolean;
 };
 
 const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
-  const { webapp } = props;
+  const { webapp, isAuthenticated } = props;
 
   return (
     <Page title={webapp.name}>
@@ -23,7 +24,9 @@ const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
         type={webapp.type}
         style={{ height: "100vh" }}
         showPoweredBy={
-          webapp.showPoweredBy && webapp.type !== WebappType.Superset
+          !isAuthenticated &&
+          webapp.showPoweredBy &&
+          webapp.type !== WebappType.Superset
         } // There is already a banner in the Superset iframe from the backend
       />
     </Page>
@@ -38,13 +41,15 @@ export const getServerSideProps = createGetServerSideProps({
     const workspaceSlug = ctx.params!.workspaceSlug as string;
     const webappSlug = ctx.params!.webappSlug as string;
 
-    const { data } = await client.query<WebappAccessQuery>({
-      query: WebappAccessDocument,
-      variables: { workspaceSlug, webappSlug },
-    });
+    const [{ data }, me] = await Promise.all([
+      client.query<WebappAccessQuery>({
+        query: WebappAccessDocument,
+        variables: { workspaceSlug, webappSlug },
+      }),
+      getMe(ctx),
+    ]);
 
     if (!data.webapp) {
-      const me = await getMe(ctx);
       if (!me?.user) {
         // It's possible the webapp exists but the user doesn't have access because it's not public, so we check authentication first
         return {
@@ -60,6 +65,7 @@ export const getServerSideProps = createGetServerSideProps({
     return {
       props: {
         webapp: data.webapp,
+        isAuthenticated: !!me?.user,
       },
     };
   },
