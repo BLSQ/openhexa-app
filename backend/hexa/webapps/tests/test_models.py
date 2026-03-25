@@ -243,6 +243,41 @@ class WebappModelTest(TestCase):
         self.assertIn(webapp.slug, shortcut["url"])
         self.assertNotIn(str(webapp.id), shortcut["url"])
 
+    def test_assign_subdomain_on_create(self):
+        webapp = Webapp.objects.create_if_has_perm(
+            self.user_admin,
+            self.workspace,
+            name="Subdomain Test",
+            created_by=self.user_admin,
+            url="https://example.com",
+        )
+        self.assertEqual(webapp.subdomain, webapp.slug)
+
+    def test_assign_subdomain_falls_back_on_collision(self):
+        webapp1 = Webapp.objects.create_if_has_perm(
+            self.user_admin,
+            self.workspace,
+            name="Collision App",
+            created_by=self.user_admin,
+            url="https://example.com",
+        )
+        self.assertEqual(webapp1.subdomain, webapp1.slug)
+
+        workspace2 = Workspace.objects.create_if_has_perm(
+            self.user_admin,
+            name="Other Workspace",
+            description="",
+            countries=[{"code": "FR"}],
+        )
+        webapp2 = Webapp.objects.create_if_has_perm(
+            self.user_admin,
+            workspace2,
+            name="Collision App",
+            created_by=self.user_admin,
+            url="https://example.com",
+        )
+        self.assertEqual(webapp2.subdomain, f"{workspace2.slug}-{webapp2.slug}")
+
     def test_unique_constraint(self):
         with self.assertRaises(IntegrityError):
             Webapp.objects.create(
