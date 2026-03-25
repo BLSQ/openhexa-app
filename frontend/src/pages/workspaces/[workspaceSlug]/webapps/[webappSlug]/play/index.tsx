@@ -49,8 +49,10 @@ export const getServerSideProps = createGetServerSideProps({
       getMe(ctx),
     ]);
 
+    const isAuthenticated = !!me?.user;
+
     if (!data.webapp) {
-      if (!me?.user) {
+      if (!isAuthenticated) {
         // It's possible the webapp exists but the user doesn't have access because it's not public, so we check authentication first
         return {
           redirect: {
@@ -64,8 +66,8 @@ export const getServerSideProps = createGetServerSideProps({
 
     return {
       props: {
+        isAuthenticated,
         webapp: data.webapp,
-        isAuthenticated: !!me?.user,
       },
     };
   },
