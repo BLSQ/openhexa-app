@@ -42,6 +42,31 @@ class PipelineAgent(AssistantAgent):
 
             Only call this if create_pipeline returned success=true. Pass the pipeline code
             returned by create_pipeline and the full Python source as a single string.
+
+            The source_code must follow this structure:
+
+                from openhexa.sdk import current_run, pipeline
+
+
+                @pipeline("Simple ETL")
+                def simple_etl():
+                    count = task_1()
+                    task_2(count)
+
+
+                @simple_etl.task
+                def task_1():
+                    current_run.log_info("In task 1...")
+                    return 42
+
+
+                @simple_etl.task
+                def task_2(count):
+                    current_run.log_info(f"In task 2... count is {count}")
+
+
+                if __name__ == "__main__":
+                    simple_etl()
             """
             return mcp_create_pipeline_version(
                 user=user,
