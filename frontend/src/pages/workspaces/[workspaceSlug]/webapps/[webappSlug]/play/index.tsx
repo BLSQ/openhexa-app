@@ -1,9 +1,7 @@
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
-import { useTranslation } from "next-i18next";
-import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
-import Breadcrumbs from "core/components/Breadcrumbs";
+import { getMe } from "identity/helpers/auth";
 import WebappIframe from "webapps/features/WebappIframe";
 import {
   WebappAccessDocument,
@@ -13,57 +11,21 @@ import { WebappType } from "graphql/types";
 
 type Props = {
   webapp: NonNullable<WebappAccessQuery["webapp"]>;
-  isAuthenticated: boolean;
 };
 
 const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
-  const { webapp, isAuthenticated } = props;
-  const { t } = useTranslation();
-
-  if (!isAuthenticated) {
-    return (
-      <Page title={webapp.name}>
-        <WebappIframe
-          url={webapp.url}
-          type={webapp.type}
-          style={{ height: "100vh" }}
-          showPoweredBy={
-            webapp.showPoweredBy && webapp.type !== WebappType.Superset
-          } // There is already a banner in the Superset iframe from the backend
-        />
-      </Page>
-    );
-  }
-
-  const { workspace } = webapp;
+  const { webapp } = props;
 
   return (
-    <Page title={t("Web Apps")}>
-      <WorkspaceLayout
-        workspace={workspace}
-        header={
-          <Breadcrumbs withHome={false} className="flex-1">
-            <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}/webapps`}
-            >
-              {t("Web Apps")}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug,
-              )}/webapps/${encodeURIComponent(webapp.slug)}`}
-              isLast
-            >
-              {webapp.name}
-            </Breadcrumbs.Part>
-          </Breadcrumbs>
-        }
-      >
-        <WorkspaceLayout.PageContent>
-          <WebappIframe url={webapp.url} type={webapp.type} />
-        </WorkspaceLayout.PageContent>
-      </WorkspaceLayout>
+    <Page title={webapp.name}>
+      <WebappIframe
+        url={webapp.url}
+        type={webapp.type}
+        style={{ height: "100vh" }}
+        showPoweredBy={
+          webapp.showPoweredBy && webapp.type !== WebappType.Superset
+        } // There is already a banner in the Superset iframe from the backend
+      />
     </Page>
   );
 };
@@ -75,7 +37,6 @@ export const getServerSideProps = createGetServerSideProps({
   async getServerSideProps(ctx, client) {
     const workspaceSlug = ctx.params!.workspaceSlug as string;
     const webappSlug = ctx.params!.webappSlug as string;
-    const isAuthenticated = !!ctx.me?.user;
 
     const { data } = await client.query<WebappAccessQuery>({
       query: WebappAccessDocument,
@@ -83,7 +44,8 @@ export const getServerSideProps = createGetServerSideProps({
     });
 
     if (!data.webapp) {
-      if (!isAuthenticated) {
+      const me = await getMe(ctx);
+      if (!me?.user) {
         // It's possible the webapp exists but the user doesn't have access because it's not public, so we check authentication first
         return {
           redirect: {
@@ -95,13 +57,8 @@ export const getServerSideProps = createGetServerSideProps({
       return { notFound: true };
     }
 
-    if (isAuthenticated) {
-      await WorkspaceLayout.prefetch(ctx, client);
-    }
-
     return {
       props: {
-        isAuthenticated,
         webapp: data.webapp,
       },
     };
