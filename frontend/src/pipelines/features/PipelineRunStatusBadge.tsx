@@ -9,19 +9,16 @@ import {
   formatPipelineRunStatus,
   getPipelineRunStatusBadgeClassName,
 } from "pipelines/helpers/format";
-import usePipelineRunPoller from "pipelines/hooks/usePipelineRunPoller";
 import { useMemo } from "react";
 import { PipelineRunStatusBadge_RunFragment } from "./PipelineRunStatusBadge.generated";
 
 type PipelineRunStatusBadgeProps = {
   run: any | PipelineRunStatusBadge_RunFragment; // 'any' the time that we remove the legacy pipelines
-  polling?: boolean;
 };
 
 const PipelineRunStatusBadge = (props: PipelineRunStatusBadgeProps) => {
   const { t } = useTranslation();
-  const { run, polling = true } = props;
-  usePipelineRunPoller(run, polling);
+  const { run } = props;
   const className = useMemo(
     () => getPipelineRunStatusBadgeClassName(run.status),
     [run.status],
@@ -62,9 +59,7 @@ PipelineRunStatusBadge.fragments = {
       id
       status
       hasErrorMessages
-      ...usePipelineRunPoller_run
     }
-    ${usePipelineRunPoller.fragments.run}
   `,
 };
 

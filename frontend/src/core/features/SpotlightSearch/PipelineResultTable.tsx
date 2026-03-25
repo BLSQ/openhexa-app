@@ -97,7 +97,6 @@ const PipelineResultTable = ({
             return (
               <PipelineRunStatusBadge
                 run={item.pipeline.lastRuns.items[0]}
-                polling={false}
               />
             );
           }

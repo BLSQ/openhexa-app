@@ -15,6 +15,11 @@ urlpatterns = [
     ),
     path("credentials/", views.credentials, name="credentials"),
     path(
+        "runs/<uuid:run_id>/messages/stream/",
+        views.stream_pipeline_run_messages,
+        name="stream_pipeline_run_messages",
+    ),
+    path(
         "<token>/run/<uuid:version_id>",
         views.run_pipeline,
         name="run_with_version",
