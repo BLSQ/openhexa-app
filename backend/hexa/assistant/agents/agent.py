@@ -171,25 +171,29 @@ class AssistantAgent:
             "updated_at",
         ]
         if is_first_message:
-            self.conversation.name = self._generate_conversation_name(user_input)
+            name, naming_usage = self._generate_conversation_name(user_input)
+            self.conversation.name = name
+            naming_cost = self._get_cost(naming_usage)
+            if naming_cost is not None:
+                self.conversation.cost += naming_cost
             update_fields.append("name")
 
         self.conversation.save(update_fields=update_fields)
 
         return response_text
 
-    def _generate_conversation_name(self, user_input: str) -> str:
+    def _generate_conversation_name(self, user_input: str) -> tuple[str, RunUsage]:
         naming_agent = Agent(model=self._model, instructions=_NAMING_INSTRUCTIONS)
         try:
             result = naming_agent.run_sync(user_input)
-            return result.output.strip()[:50]
+            return result.output.strip()[:50], result.usage()
         except Exception:
             logger.warning(
                 "agent.run: conversation naming failed, falling back to truncation"
             )
             text = " ".join(user_input.split())
             truncated = text[:50].rsplit(" ", 1)[0]
-            return truncated or text[:50]
+            return truncated or text[:50], RunUsage()
 
     def _get_cost(self, usage: RunUsage) -> Decimal | None:
         cost: Decimal | None = None
