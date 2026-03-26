@@ -15,7 +15,7 @@ export type SendAssistantMessageMutationVariables = Types.Exact<{
 }>;
 
 
-export type SendAssistantMessageMutation = { __typename?: 'Mutation', sendAssistantMessage: { __typename?: 'SendAssistantMessageResult', success: boolean, errors: Array<string>, message?: { __typename?: 'AssistantMessage', id: string, role: string, content: string, createdAt: any } | null } };
+export type SendAssistantMessageMutation = { __typename?: 'Mutation', sendAssistantMessage: { __typename?: 'SendAssistantMessageResult', success: boolean, errors: Array<string>, message?: { __typename?: 'AssistantMessage', id: string, role: string, content: string, createdAt: any, toolInvocations: Array<{ __typename?: 'AssistantToolInvocation', toolName: string, toolOutput?: any | null, success: boolean }> } | null } };
 
 
 export const CreateAssistantConversationDocument = gql`
@@ -66,6 +66,11 @@ export const SendAssistantMessageDocument = gql`
       role
       content
       createdAt
+      toolInvocations {
+        toolName
+        toolOutput
+        success
+      }
     }
   }
 }

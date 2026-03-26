@@ -1,11 +1,11 @@
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import {
-  useCreateConversationForPipelineMutation,
-  useSendMessageForPipelineMutation,
-} from "./CreatePipelineUsingAI.generated";
 import { CreatePipelineDialog_WorkspaceFragment } from "../CreatePipelineDialog.generated";
+import {
+  useCreateAssistantConversationMutation,
+  useSendAssistantMessageMutation,
+} from "assistant/graphql/mutations.generated";
 
 export type AIFormInstance = {
   prompt: string;
@@ -25,8 +25,8 @@ export function useAIForm(
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [createConversation] = useCreateConversationForPipelineMutation();
-  const [sendMessage] = useSendMessageForPipelineMutation();
+  const [createConversation] = useCreateAssistantConversationMutation();
+  const [sendMessage] = useSendAssistantMessageMutation();
 
   const reset = () => {
     setPrompt("");
