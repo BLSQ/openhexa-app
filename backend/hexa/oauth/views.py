@@ -3,7 +3,8 @@ import uuid
 from urllib.parse import urlparse
 
 from django.conf import settings
-from django.http import HttpRequest, JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from oauth2_provider.models import Application
@@ -154,3 +155,14 @@ class OAuthAuthorizeView(AuthorizationView):
                 for t in get_tools_list()
             ]
         return context
+
+    def redirect(self, redirect_to, application):
+        tools = [
+            {"name": t["name"], "description": t.get("description", "")}
+            for t in get_tools_list()
+        ]
+        html = render_to_string(
+            "oauth2_provider/authorized.html",
+            {"redirect_uri": redirect_to, "tools": tools},
+        )
+        return HttpResponse(html)
