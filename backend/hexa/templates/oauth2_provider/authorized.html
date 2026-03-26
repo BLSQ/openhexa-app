@@ -1,0 +1,61 @@
+{% extends "oauth2_provider/base.html" %}
+{% load static i18n %}
+
+{% block title %}Authorized{% endblock %}
+
+{% block extra_css %}
+        .scopes li { opacity: 0.4; color: #9ca3af; transition: opacity 0.4s ease, color 0.4s ease; }
+        .scopes li.enabled { opacity: 1; color: #4b5563; }
+        .scopes li svg { color: #d1d5db; transition: color 0.4s ease; }
+        .scopes li.enabled svg { color: #16a34a; }
+        .scopes li .tool-name { color: inherit; transition: color 0.4s ease; }
+        .scopes li.enabled .tool-name { color: #111827; }
+{% endblock %}
+
+{% block body %}
+    <div class="container" style="display:none;">
+        <div>
+            <img src="{% static 'img/logo/logo.svg' %}" alt="OpenHEXA" class="logo">
+            <h2>Authorization successful</h2>
+            <p class="subtitle">Enabling tools for your session&hellip;</p>
+        </div>
+
+        {% if tools %}
+        <div class="scopes">
+            <h3>Tools enabled:</h3>
+            <ul>
+                {% for tool in tools %}
+                    <li>
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span><span class="tool-name">{{ tool.name }}</span>{% if tool.description %} <span class="tool-desc">— {{ tool.description }}</span>{% endif %}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        var redirectUri = "{{ redirect_uri|escapejs }}";
+
+        fetch(redirectUri, { mode: "no-cors" }).then(function() {
+            var container = document.querySelector(".container");
+            container.style.display = "";
+
+            var items = document.querySelectorAll(".scopes li");
+            var delay = 150;
+            items.forEach(function(item, i) {
+                setTimeout(function() { item.classList.add("enabled"); }, (i + 1) * delay);
+            });
+            setTimeout(function() {
+                document.querySelector(".subtitle").textContent = "All tools enabled. You can close this tab.";
+            }, (items.length + 1) * delay);
+        }).catch(function() {
+            window.location.href = redirectUri;
+        });
+    </script>
+{% endblock %}
