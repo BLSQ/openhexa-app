@@ -1,3 +1,4 @@
+import logging
 from collections import namedtuple
 
 from django.db import models
@@ -5,6 +6,8 @@ from django.db import models
 from hexa.git.client import GitClient
 from hexa.git.forgejo import get_forgejo_client
 from hexa.user_management.models import User
+
+logger = logging.getLogger(__name__)
 
 GitOrg = namedtuple("GitOrg", ["slug", "display_name"])
 
@@ -24,20 +27,30 @@ class GitRepoMixin(models.Model):
         return get_forgejo_client()
 
     def create_repo(self, *, files: list[dict] | None = None, user: User) -> str:
-        self.client.create_org_repository(
-            self.git_org.slug, self.repository, auto_init=not files
-        )
-        if files:
-            return self.client.commit_files(
-                repo_name=self.repository,
-                files=files,
-                message="Initial content",
-                author_name=user.display_name,
-                author_email=user.email,
-                org_slug=self.git_org.slug,
-            )
-        commits = self.client.get_commits(self.git_org.slug, self.repository, limit=1)
-        return commits[0]["id"]
+        org_slug = self.git_org.slug
+        repo_name = self.repository
+
+        self.client.create_org_repository(org_slug, repo_name, auto_init=not files)
+        try:
+            if files:
+                return self.client.commit_files(
+                    repo_name=repo_name,
+                    files=files,
+                    message="Initial content",
+                    author_name=user.display_name,
+                    author_email=user.email,
+                    org_slug=org_slug,
+                )
+            commits = self.client.get_commits(org_slug, repo_name, limit=1)
+            return commits[0]["id"]
+        except Exception:
+            try:
+                self.client.delete_repository(org_slug, repo_name)
+            except Exception:
+                logger.exception(
+                    "Failed to delete orphaned repo %s/%s", org_slug, repo_name
+                )
+            raise
 
     def archive_repo(self):
         self.client.archive_repository(self.git_org.slug, self.repository)
