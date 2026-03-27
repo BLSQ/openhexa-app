@@ -828,7 +828,8 @@ class GitWebappModelTest(TestCase):
 
         self.assertFalse(GitWebapp.objects.filter(name="Commits Fail App").exists())
 
-    def test_create_is_idempotent_when_repo_already_exists(self):
+    @patch("hexa.git.mixins.logger")
+    def test_create_is_idempotent_when_repo_already_exists(self, mock_logger):
         self.mock_git_client.create_org_repository.side_effect = ForgejoAPIError(
             "POST", "/orgs/no-org/repos", 409, "repo already exists"
         )
@@ -843,6 +844,11 @@ class GitWebappModelTest(TestCase):
         )
 
         self.assertEqual(webapp.published_commit, "existing-sha")
+        mock_logger.warning.assert_called_once_with(
+            "Repository %s/%s already exists, reusing it",
+            "no-org",
+            f"{self.workspace.slug}-webapp-idempotent-app",
+        )
 
     def test_create_raises_on_non_conflict_repo_error(self):
         self.mock_git_client.create_org_repository.side_effect = ForgejoAPIError(
