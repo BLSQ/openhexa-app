@@ -72,10 +72,10 @@ openpyxl
 regex
 
 #toolbox
-openhexa-toolbox==2.9.0
+openhexa-toolbox==2.11.0
 
 #sdk
-openhexa-sdk==2.15.2
+openhexa-sdk==2.19.3
 
 # email templating
 mjml-python
