@@ -183,8 +183,8 @@ class BaseAgent:
         return response_text
 
     def _generate_conversation_name(self, user_input: str) -> tuple[str, RunUsage]:
-        #TODO: Execute in parallel for performance
-        #TODO: Use smaller, cheaper models for these small "utility agents"
+        # TODO: Execute in parallel for performance
+        # TODO: Use smaller, cheaper models for these small "utility agents"
         naming_agent = Agent(model=self._model, instructions=_NAMING_INSTRUCTIONS)
         try:
             result = naming_agent.run_sync(user_input)
