@@ -29,7 +29,9 @@ class GitRepoMixin(models.Model):
                 self.git_org.slug, self.repository, auto_init=not files
             )
         except ForgejoAPIError as e:
-            if e.status_code != 409:
+            if (
+                e.status_code != 409
+            ):  # 409 Conflict means the repo already exists, which is fine
                 raise
 
         if files:
