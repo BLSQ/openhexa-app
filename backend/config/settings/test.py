@@ -28,7 +28,6 @@ GIT_SERVER_URL = "http://forgejo-test:3000"
 GIT_SERVER_ADMIN_USERNAME = "testuser"
 GIT_SERVER_ADMIN_PASSWORD = "testpass"
 
-os.environ.setdefault("LOGFIRE_SEND_TO_LOGFIRE", "false")
 AZURITE_TEST_SERVER = os.getenv(
     "AZURITE_TEST_SERVER", "http://host.docker.internal:10000/"
 )

@@ -3,7 +3,6 @@ import logging
 from decimal import Decimal
 
 import genai_prices
-import logfire
 from pydantic_ai import Agent, RunUsage
 from pydantic_ai.messages import (
     ModelMessagesTypeAdapter,
@@ -18,9 +17,6 @@ from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.assistant.tool_binding import bind_context
 
 logger = logging.getLogger(__name__)
-
-logfire.configure()
-logfire.instrument_pydantic_ai()
 
 
 def _is_success(content) -> bool:
