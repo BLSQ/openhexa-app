@@ -4,6 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 
 from hexa.core.test import TestCase
+from hexa.git.forgejo import ForgejoAPIError
 from hexa.superset.models import SupersetDashboard, SupersetInstance
 from hexa.user_management.models import (
     Organization,
@@ -798,7 +799,7 @@ class GitWebappModelTest(TestCase):
 
         self.assertEqual(webapp.git_org.slug, org.slug)
 
-    def test_create_cleans_up_repo_on_commit_failure(self):
+    def test_create_rolls_back_db_on_commit_failure(self):
         self.mock_git_client.commit_files.side_effect = Exception("commit failed")
 
         with self.assertRaises(Exception):
@@ -811,12 +812,9 @@ class GitWebappModelTest(TestCase):
                 files=[{"path": "index.html", "content": "<h1>Hi</h1>"}],
             )
 
-        self.mock_git_client.delete_repository.assert_called_once_with(
-            "no-org", f"{self.workspace.slug}-webapp-commit-fail-app"
-        )
         self.assertFalse(GitWebapp.objects.filter(name="Commit Fail App").exists())
 
-    def test_create_cleans_up_repo_on_get_commits_failure(self):
+    def test_create_rolls_back_db_on_get_commits_failure(self):
         self.mock_git_client.get_commits.side_effect = Exception("get commits failed")
 
         with self.assertRaises(Exception):
@@ -828,49 +826,37 @@ class GitWebappModelTest(TestCase):
                 webapp_type=Webapp.WebappType.STATIC,
             )
 
-        self.mock_git_client.delete_repository.assert_called_once()
         self.assertFalse(GitWebapp.objects.filter(name="Commits Fail App").exists())
 
-    @patch("hexa.git.mixins.logger")
-    def test_create_logs_when_cleanup_also_fails(self, mock_logger):
-        self.mock_git_client.commit_files.side_effect = Exception("commit failed")
-        self.mock_git_client.delete_repository.side_effect = Exception("delete failed")
+    def test_create_is_idempotent_when_repo_already_exists(self):
+        self.mock_git_client.create_org_repository.side_effect = ForgejoAPIError(
+            "POST", "/orgs/no-org/repos", 409, "repo already exists"
+        )
+        self.mock_git_client.get_commits.return_value = [{"id": "existing-sha"}]
 
-        repo_name = f"{self.workspace.slug}-webapp-double-fail-app"
+        webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="Idempotent App",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
 
-        with self.assertRaises(Exception, msg="commit failed"):
+        self.assertEqual(webapp.published_commit, "existing-sha")
+
+    def test_create_raises_on_non_conflict_repo_error(self):
+        self.mock_git_client.create_org_repository.side_effect = ForgejoAPIError(
+            "POST", "/orgs/no-org/repos", 500, "server error"
+        )
+
+        with self.assertRaises(ForgejoAPIError):
             GitWebapp.create_if_has_perm(
                 principal=self.user_admin,
                 workspace=self.workspace,
-                name="Double Fail App",
-                created_by=self.user_admin,
-                webapp_type=Webapp.WebappType.STATIC,
-                files=[{"path": "index.html", "content": "<h1>Hi</h1>"}],
-            )
-
-        self.mock_git_client.delete_repository.assert_called_once_with(
-            "no-org", repo_name
-        )
-        mock_logger.exception.assert_called_once_with(
-            "Failed to delete orphaned repo %s/%s", "no-org", repo_name
-        )
-        self.assertFalse(GitWebapp.objects.filter(name="Double Fail App").exists())
-
-    def test_delete_not_called_when_create_org_repository_fails(self):
-        self.mock_git_client.create_org_repository.side_effect = Exception(
-            "repo exists"
-        )
-
-        with self.assertRaises(Exception):
-            GitWebapp.create_if_has_perm(
-                principal=self.user_admin,
-                workspace=self.workspace,
-                name="Repo Exists App",
+                name="Server Error App",
                 created_by=self.user_admin,
                 webapp_type=Webapp.WebappType.STATIC,
             )
-
-        self.mock_git_client.delete_repository.assert_not_called()
 
     def test_delete_if_has_perm_does_not_soft_delete_when_archive_fails(self):
         self.mock_git_client.archive_repository.side_effect = Exception("Forgejo down")

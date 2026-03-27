@@ -87,9 +87,6 @@ class ForgejoClient(GitClient):
         )
         return response.json()
 
-    def delete_repository(self, org_slug: str, repo_name: str) -> None:
-        self._request("DELETE", f"/repos/{org_slug}/{repo_name}")
-
     def archive_repository(self, org_slug: str, repo_name: str) -> dict:
         response = self._request(
             "PATCH",

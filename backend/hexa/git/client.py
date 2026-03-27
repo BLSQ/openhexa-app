@@ -23,10 +23,6 @@ class GitClient(ABC):
         ...
 
     @abstractmethod
-    def delete_repository(self, org_slug: str, repo_name: str) -> None:
-        ...
-
-    @abstractmethod
     def archive_repository(self, org_slug: str, repo_name: str) -> dict:
         ...
 
