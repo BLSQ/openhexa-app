@@ -42,7 +42,7 @@ _NAMING_INSTRUCTIONS = (
 )
 
 
-class AssistantAgent:
+class BaseAgent:
     instruction_set = InstructionSet.GENERAL
 
     def __init__(self, conversation: Conversation):

@@ -1,11 +1,11 @@
-from hexa.assistant.agents.agent import AssistantAgent
+from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 from hexa.mcp.tools import create_pipeline as mcp_create_pipeline
 from hexa.pipelines.models import PipelineFunctionalType
 
 
-class PipelineAgent(AssistantAgent):
+class PipelineAgent(BaseAgent):
     instruction_set = InstructionSet.PIPELINE
 
     def _get_tools(self, conversation: Conversation) -> list:

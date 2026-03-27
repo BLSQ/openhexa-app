@@ -16,6 +16,7 @@ _QUERIES_SOURCE = _QUERIES_PATH.read_text()
 def _execute_graphql(user, operation_name: str, variables=None):
     # Lazy import to avoid possible circular dependencies
     from config.schema import schema
+
     request = HttpRequest()
     request.user = user
     request.bypass_two_factor = True

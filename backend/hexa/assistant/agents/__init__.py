@@ -1,16 +1,16 @@
-from hexa.assistant.agents.agent import AssistantAgent
+from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.agents.pipeline_agent import PipelineAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 
-_AGENT_REGISTRY: dict[InstructionSet, type[AssistantAgent]] = {
+_AGENT_REGISTRY: dict[InstructionSet, type[BaseAgent]] = {
     InstructionSet.PIPELINE: PipelineAgent,
-    InstructionSet.GENERAL: AssistantAgent,
+    InstructionSet.GENERAL: BaseAgent,
 }
 
 
-def create_agent(conversation: Conversation) -> AssistantAgent:
+def create_agent(conversation: Conversation) -> BaseAgent:
     agent_class = _AGENT_REGISTRY.get(
-        InstructionSet(conversation.instruction_set), AssistantAgent
+        InstructionSet(conversation.instruction_set), BaseAgent
     )
     return agent_class(conversation)
