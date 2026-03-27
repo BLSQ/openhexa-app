@@ -138,9 +138,10 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         if not principal.has_perm("webapps.delete_webapp", self):
             raise PermissionDenied
         if self.type == Webapp.WebappType.SUPERSET:
-            dashboard = SupersetDashboard.objects.get(webapp__pk=self.pk)
-            self.delete()
-            dashboard.delete()
+            with transaction.atomic():
+                dashboard = SupersetDashboard.objects.get(webapp__pk=self.pk)
+                self.delete()
+                dashboard.delete()
         elif self.type == Webapp.WebappType.STATIC:
             GitWebapp.objects.get(pk=self.pk).delete_if_has_perm(principal)
         else:
@@ -254,8 +255,9 @@ class GitWebapp(Webapp, GitRepoMixin):
     def delete_if_has_perm(self, principal):
         if not principal.has_perm("webapps.delete_webapp", self):
             raise PermissionDenied
-        self.archive_repo()
-        self.delete()
+        with transaction.atomic():
+            self.delete()
+            self.archive_repo()
 
     @classmethod
     def create_if_has_perm(
@@ -275,20 +277,21 @@ class GitWebapp(Webapp, GitRepoMixin):
             raise PermissionDenied
 
         webapp_slug = create_webapp_slug(name, workspace)
-        webapp = cls(
-            workspace=workspace,
-            type=webapp_type,
-            slug=webapp_slug,
-            name=name,
-            description=description,
-            icon=icon,
-            is_public=is_public,
-            created_by=created_by,
-            repository=f"{workspace.slug}-webapp-{webapp_slug}",
-        )
-        initial_sha = webapp.create_repo(files=files, user=principal)
-        webapp.published_commit = initial_sha
-        webapp.save(force_insert=True)
+        with transaction.atomic():
+            webapp = cls.objects.create(
+                workspace=workspace,
+                type=webapp_type,
+                slug=webapp_slug,
+                name=name,
+                description=description,
+                icon=icon,
+                is_public=is_public,
+                created_by=created_by,
+                repository=f"{workspace.slug}-webapp-{webapp_slug}",
+            )
+            initial_sha = webapp.create_repo(files=files, user=principal)
+            webapp.published_commit = initial_sha
+            webapp.save()
 
         return webapp
 
