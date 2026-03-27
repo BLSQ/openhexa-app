@@ -170,7 +170,6 @@ def create_pipeline(
     Always provide a meaningful description summarizing what the pipeline does.
     If the pipeline has no clear purpose or is blank, use "" as the description.
     Only name, description, and functional_type are supported at creation time.
-    Fields such as schedule, timeout, tags, or webhook settings cannot be set here.
 
     If source_code is omitted, the pipeline is created without any version.
 
