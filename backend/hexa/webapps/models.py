@@ -289,6 +289,7 @@ class GitWebapp(Webapp, GitRepoMixin):
                 created_by=created_by,
                 repository=f"{workspace.slug}-webapp-{webapp_slug}",
             )
+
             initial_sha = webapp.create_repo(files=files, user=principal)
             webapp.published_commit = initial_sha
             webapp.save()
