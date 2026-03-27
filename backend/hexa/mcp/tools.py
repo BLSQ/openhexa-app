@@ -6,7 +6,6 @@ from zipfile import ZipFile
 from django.http import HttpRequest
 from graphql import graphql_sync
 
-from config.schema import schema
 from hexa.mcp.protocol import tool
 from hexa.pipelines.models import Pipeline, PipelineFunctionalType
 
@@ -15,6 +14,8 @@ _QUERIES_SOURCE = _QUERIES_PATH.read_text()
 
 
 def _execute_graphql(user, operation_name: str, variables=None):
+    # Lazy import to avoid possible circular dependencies
+    from config.schema import schema
     request = HttpRequest()
     request.user = user
     request.bypass_two_factor = True
