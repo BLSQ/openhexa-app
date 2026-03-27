@@ -1,6 +1,7 @@
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import { InstructionSet } from "assistant/instructions";
 import { CreatePipelineDialog_WorkspaceFragment } from "../CreatePipelineDialog.generated";
 import {
   useCreateAssistantConversationMutation,
@@ -40,7 +41,7 @@ export function useAIForm(
     try {
       const convResult = await createConversation({
         variables: {
-          input: { workspaceSlug: workspace.slug, instructionSet: "pipeline" },
+          input: { workspaceSlug: workspace.slug, instructionSet: InstructionSet.PIPELINE },
         },
       });
       const conversationId =
