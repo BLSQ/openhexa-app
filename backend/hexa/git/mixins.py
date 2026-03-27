@@ -1,4 +1,3 @@
-import logging
 from collections import namedtuple
 
 from django.db import models
@@ -6,8 +5,6 @@ from django.db import models
 from hexa.git.client import GitClient
 from hexa.git.forgejo import ForgejoAPIError, get_forgejo_client
 from hexa.user_management.models import User
-
-logger = logging.getLogger(__name__)
 
 GitOrg = namedtuple("GitOrg", ["slug", "display_name"])
 
