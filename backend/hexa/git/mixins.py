@@ -32,13 +32,14 @@ class GitRepoMixin(models.Model):
                 self.git_org.slug, self.repository, auto_init=not files
             )
         except ForgejoAPIError as e:
-            if e.status_code != 409:
+            if e.status_code == 409:
+                logger.warning(
+                    "Repository %s/%s already exists, reusing it",
+                    self.git_org.slug,
+                    self.repository,
+                )
+            else:
                 raise
-            logger.warning(
-                "Repository %s/%s already exists, reusing it",
-                self.git_org.slug,
-                self.repository,
-            )
 
         if files:
             return self.client.commit_files(
