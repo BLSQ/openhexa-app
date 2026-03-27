@@ -160,16 +160,18 @@ def create_pipeline(
     user,
     workspace_slug: str,
     name: str,
-    source_code: str,
     description: str = "",
     functional_type: PipelineFunctionalType | None = None,
+    source_code: str | None = None,
 ) -> dict:
-    """Create a new pipeline in the current workspace and upload its Python source code as the first version (v1).
+    """Create a new pipeline in the current workspace. Optionally upload Python source code as the first version (v1).
 
     Always provide a meaningful description summarizing what the pipeline does.
     If the pipeline has no clear purpose or is blank, use "" as the description.
     Only name, description, and functional_type are supported at creation time.
     Fields such as schedule, timeout, tags, or webhook settings cannot be set here.
+
+    If source_code is omitted, the pipeline is created without any version.
 
     The source_code must follow this structure:
 
@@ -215,6 +217,10 @@ def create_pipeline(
         return pipeline_result
 
     pipeline = pipeline_result["pipeline"]
+
+    if not source_code:
+        return {"success": True, "pipeline": pipeline}
+
     pipeline_id = pipeline["id"]
     pipeline_code = pipeline["code"]
 

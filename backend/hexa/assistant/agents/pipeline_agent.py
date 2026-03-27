@@ -22,9 +22,9 @@ class PipelineAgent(AssistantAgent):
                 user=user,
                 workspace_slug=workspace_slug,
                 name=name,
-                source_code=source_code,
                 description=description,
                 functional_type=functional_type,
+                source_code=source_code,
             )
 
         create_pipeline.__doc__ = mcp_create_pipeline.__doc__
