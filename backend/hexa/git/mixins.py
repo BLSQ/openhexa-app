@@ -1,3 +1,4 @@
+import logging
 from collections import namedtuple
 
 from django.db import models
@@ -5,6 +6,8 @@ from django.db import models
 from hexa.git.client import GitClient
 from hexa.git.forgejo import ForgejoAPIError, get_forgejo_client
 from hexa.user_management.models import User
+
+logger = logging.getLogger(__name__)
 
 GitOrg = namedtuple("GitOrg", ["slug", "display_name"])
 
@@ -29,10 +32,13 @@ class GitRepoMixin(models.Model):
                 self.git_org.slug, self.repository, auto_init=not files
             )
         except ForgejoAPIError as e:
-            if (
-                e.status_code != 409
-            ):  # 409 Conflict means the repo already exists, which is fine
+            if e.status_code != 409:
                 raise
+            logger.warning(
+                "Repository %s/%s already exists, reusing it",
+                self.git_org.slug,
+                self.repository,
+            )
 
         if files:
             return self.client.commit_files(
