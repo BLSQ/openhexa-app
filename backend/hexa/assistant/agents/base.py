@@ -14,6 +14,7 @@ from pydantic_ai.messages import (
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.model_builder import AiModelBuilder
 from hexa.assistant.models import Conversation, Message, ToolInvocation
+from hexa.assistant.tool_binding import bind_context
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,7 @@ _NAMING_INSTRUCTIONS = (
 
 class BaseAgent:
     instruction_set = InstructionSet.GENERAL
+    tool_names: list = []
 
     def __init__(self, conversation: Conversation):
         self.conversation = conversation
@@ -55,17 +57,18 @@ class BaseAgent:
         self.agent = Agent(
             model=self._model,
             instructions=get_instructions(self.instruction_set),
-            tools=self._get_tools(conversation),
+            tools=self._get_tools(),
         )
 
-    def _get_tools(self, conversation: Conversation) -> list:
-        """
-        Override in subclasses to provide agent-specific tools.
-        Each tool must be a plain function with a docstring (used as the tool description)
-        and typed parameters. Use closures to bind conversation context (user, workspace, etc.)
-        See PipelineAgent for an example.
-        """
-        return []
+    def _get_tools(self) -> list:
+        context = self._get_context()
+        return [bind_context(func, context) for func in self.tool_names]
+
+    def _get_context(self) -> dict:
+        return {
+            "user": self.conversation.user,
+            "workspace_slug": self.conversation.workspace.slug,
+        }
 
     def run(self, user_input: str) -> str:
         is_first_message = self.conversation.name is None

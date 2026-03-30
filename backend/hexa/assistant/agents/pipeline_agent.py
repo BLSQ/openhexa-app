@@ -1,32 +1,8 @@
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.instructions import InstructionSet
-from hexa.assistant.models import Conversation
-from hexa.mcp.tools import create_pipeline as mcp_create_pipeline
-from hexa.pipelines.models import PipelineFunctionalType
+from hexa.mcp.tools import create_pipeline
 
 
 class PipelineAgent(BaseAgent):
     instruction_set = InstructionSet.PIPELINE
-
-    def _get_tools(self, conversation: Conversation) -> list:
-        user = conversation.user
-        workspace_slug = conversation.workspace.slug
-
-        def create_pipeline(
-            name: str,
-            source_code: str,
-            description: str = "",
-            functional_type: PipelineFunctionalType | None = None,
-        ) -> dict:
-            return mcp_create_pipeline(
-                user=user,
-                workspace_slug=workspace_slug,
-                name=name,
-                description=description,
-                functional_type=functional_type,
-                source_code=source_code,
-            )
-
-        create_pipeline.__doc__ = mcp_create_pipeline.__doc__
-
-        return [create_pipeline]
+    tool_names = [create_pipeline]
