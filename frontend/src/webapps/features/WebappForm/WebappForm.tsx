@@ -16,6 +16,7 @@ import DataCard from "core/components/DataCard";
 import TextProperty from "core/components/DataCard/TextProperty";
 import SimpleSelectProperty from "core/components/DataCard/SimpleSelectProperty";
 import LinkProperty from "core/components/DataCard/LinkProperty";
+import SubdomainProperty from "core/components/DataCard/SubdomainProperty";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import useCacheKey from "core/hooks/useCacheKey";
 import ImageProperty from "core/components/DataCard/ImageProperty";
@@ -96,6 +97,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             name: values.name,
             icon: values.icon,
             isPublic: values.isPublic,
+            subdomain: values.subdomain || null,
             ...(webapp!.type !== WebappType.Static && {
               source: buildSource[webapp!.type](values),
             }),
@@ -275,6 +277,18 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         {webapp && selectedType === WebappType.Superset && (
           <LinkProperty id="supersetUrl" accessor="url" label={t("URL")} />
         )}
+        {webapp && (
+          <SubdomainProperty
+            id="subdomain"
+            accessor="subdomain"
+            label={t("Subdomain")}
+            help={t(
+              "Subdomain used to generate the URL for accessing this web app",
+            )}
+            currentSubdomain={webapp.subdomain}
+            subdomainUrl={webapp.subdomainUrl}
+          />
+        )}
         <SwitchProperty
           id="isPublic"
           accessor="isPublic"
@@ -293,10 +307,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         </DataCard.Section>
       )}
       {(debouncedUrl || webapp?.url) && !loading && (
-        <DataCard.Section
-          title={t("Preview")}
-          collapsible={false}
-        >
+        <DataCard.Section title={t("Preview")} collapsible={false}>
           <WebappIframe
             url={debouncedUrl || webapp?.url || ""}
             type={selectedType}
@@ -319,6 +330,8 @@ WebappForm.fragment = {
       type
       icon
       isPublic
+      subdomain
+      subdomainUrl
       source {
         ... on SupersetSource {
           instance {
