@@ -1,10 +1,13 @@
+import logging
 from collections import namedtuple
 
 from django.db import models
 
 from hexa.git.client import GitClient
-from hexa.git.forgejo import get_forgejo_client
+from hexa.git.forgejo import ForgejoAPIError, get_forgejo_client
 from hexa.user_management.models import User
+
+logger = logging.getLogger(__name__)
 
 GitOrg = namedtuple("GitOrg", ["slug", "display_name"])
 
@@ -24,9 +27,20 @@ class GitRepoMixin(models.Model):
         return get_forgejo_client()
 
     def create_repo(self, *, files: list[dict] | None = None, user: User) -> str:
-        self.client.create_org_repository(
-            self.git_org.slug, self.repository, auto_init=not files
-        )
+        try:
+            self.client.create_org_repository(
+                self.git_org.slug, self.repository, auto_init=not files
+            )
+        except ForgejoAPIError as e:
+            if e.status_code == 409:
+                logger.warning(
+                    "Repository %s/%s already exists, reusing it",
+                    self.git_org.slug,
+                    self.repository,
+                )
+            else:
+                raise
+
         if files:
             return self.client.commit_files(
                 repo_name=self.repository,
