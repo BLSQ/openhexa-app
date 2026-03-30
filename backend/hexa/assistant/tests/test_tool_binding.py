@@ -47,7 +47,9 @@ class BindContextTest(TestCase):
         self.assertEqual(bound.__doc__, "Sample function docstring.")
 
     def test_returns_original_when_no_context_keys_match(self):
-        result = bind_context(_no_context_func, {"user": "alice", "workspace_slug": "ws-1"})
+        result = bind_context(
+            _no_context_func, {"user": "alice", "workspace_slug": "ws-1"}
+        )
         self.assertIs(result, _no_context_func)
 
     def test_returns_original_with_empty_context(self):

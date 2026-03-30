@@ -61,10 +61,16 @@ class AssistantVCRTest(TestCase):
 
     @vcr.use_cassette(
         os.path.join(CASSETTES_DIR, "simple_chat.yaml"),
-        filter_headers=["x-api-key", "authorization", "x-stainless-os",
-                        "x-stainless-lang", "x-stainless-runtime",
-                        "x-stainless-runtime-version", "x-stainless-package-version",
-                        "user-agent"],
+        filter_headers=[
+            "x-api-key",
+            "authorization",
+            "x-stainless-os",
+            "x-stainless-lang",
+            "x-stainless-runtime",
+            "x-stainless-runtime-version",
+            "x-stainless-package-version",
+            "user-agent",
+        ],
         record_mode="none",
         match_on=["method", "host", "port", "path"],
     )
@@ -76,25 +82,41 @@ class AssistantVCRTest(TestCase):
 
     @vcr.use_cassette(
         os.path.join(CASSETTES_DIR, "simple_chat.yaml"),
-        filter_headers=["x-api-key", "authorization", "x-stainless-os",
-                        "x-stainless-lang", "x-stainless-runtime",
-                        "x-stainless-runtime-version", "x-stainless-package-version",
-                        "user-agent"],
+        filter_headers=[
+            "x-api-key",
+            "authorization",
+            "x-stainless-os",
+            "x-stainless-lang",
+            "x-stainless-runtime",
+            "x-stainless-runtime-version",
+            "x-stainless-package-version",
+            "user-agent",
+        ],
         record_mode="none",
         match_on=["method", "host", "port", "path"],
     )
     def test_simple_chat_saves_messages_to_db(self):
         agent = BaseAgent(self.conversation)
         agent.run("Hello")
-        self.assertEqual(self.conversation.messages.filter(role=Message.Role.USER).count(), 1)
-        self.assertEqual(self.conversation.messages.filter(role=Message.Role.ASSISTANT).count(), 1)
+        self.assertEqual(
+            self.conversation.messages.filter(role=Message.Role.USER).count(), 1
+        )
+        self.assertEqual(
+            self.conversation.messages.filter(role=Message.Role.ASSISTANT).count(), 1
+        )
 
     @vcr.use_cassette(
         os.path.join(CASSETTES_DIR, "simple_chat.yaml"),
-        filter_headers=["x-api-key", "authorization", "x-stainless-os",
-                        "x-stainless-lang", "x-stainless-runtime",
-                        "x-stainless-runtime-version", "x-stainless-package-version",
-                        "user-agent"],
+        filter_headers=[
+            "x-api-key",
+            "authorization",
+            "x-stainless-os",
+            "x-stainless-lang",
+            "x-stainless-runtime",
+            "x-stainless-runtime-version",
+            "x-stainless-package-version",
+            "user-agent",
+        ],
         record_mode="none",
         match_on=["method", "host", "port", "path"],
     )

@@ -1,4 +1,3 @@
-from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart
@@ -9,7 +8,7 @@ from hexa.assistant.agents import create_agent
 from hexa.assistant.agents.base import BaseAgent, _is_success
 from hexa.assistant.agents.pipeline_agent import PipelineAgent
 from hexa.assistant.instructions import InstructionSet
-from hexa.assistant.models import Conversation, Message, ToolInvocation
+from hexa.assistant.models import Conversation, Message
 from hexa.core.test import TestCase
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
@@ -41,7 +40,13 @@ def _make_tool_call_model(tool_name: str, tool_args: dict) -> FunctionModel:
         calls.append(1)
         if len(calls) == 1:
             return ModelResponse(
-                parts=[ToolCallPart(tool_name=tool_name, args=tool_args, tool_call_id="call-test-001")]
+                parts=[
+                    ToolCallPart(
+                        tool_name=tool_name,
+                        args=tool_args,
+                        tool_call_id="call-test-001",
+                    )
+                ]
             )
         return ModelResponse(parts=[TextPart(content="Done.")])
 
@@ -190,9 +195,7 @@ class BaseAgentRunTest(TestCase):
         history_after_first = len(self.conversation.messages_history)
         agent.run("Second message")
         self.conversation.refresh_from_db()
-        self.assertGreater(
-            len(self.conversation.messages_history), history_after_first
-        )
+        self.assertGreater(len(self.conversation.messages_history), history_after_first)
 
 
 class BaseAgentToolCallTest(TestCase):

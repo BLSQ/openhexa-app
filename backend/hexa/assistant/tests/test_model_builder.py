@@ -9,7 +9,9 @@ from hexa.user_management.models import AiSettings
 
 class GetApiNameTest(SimpleTestCase):
     def test_haiku_maps_to_correct_api_name(self):
-        self.assertEqual(get_api_name(AiSettings.Model.HAIKU), "claude-haiku-4-5-20251001")
+        self.assertEqual(
+            get_api_name(AiSettings.Model.HAIKU), "claude-haiku-4-5-20251001"
+        )
 
     def test_sonnet_maps_to_correct_api_name(self):
         self.assertEqual(get_api_name(AiSettings.Model.SONNET), "claude-sonnet-4-6")
