@@ -9,7 +9,7 @@ from django.http import HttpRequest
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.superset.models import SupersetInstance
 from hexa.utils.base64_image_encode_decode import decode_base64_image
-from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
+from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp, validate_subdomain
 from hexa.workspaces.models import Workspace
 
 logger = logging.getLogger(__name__)
@@ -160,6 +160,25 @@ def resolve_update_webapp(_, info, **kwargs):
         webapp.icon = decode_base64_image(input["icon"]) if input["icon"] else None
     if "is_public" in input:
         webapp.is_public = input["is_public"]
+    if "subdomain" in input:
+        subdomain = input["subdomain"]
+        if subdomain:
+            try:
+                validate_subdomain(subdomain)
+            except ValidationError as e:
+                return {"success": False, "errors": [e.code.upper()], "webapp": None}
+            already_exists = (
+                Webapp.all_objects.filter(subdomain=subdomain)
+                .exclude(pk=webapp.pk)
+                .exists()
+            )
+            if already_exists:
+                return {
+                    "success": False,
+                    "errors": ["SUBDOMAIN_ALREADY_TAKEN"],
+                    "webapp": None,
+                }
+        webapp.subdomain = subdomain
 
     if input.get("files") is not None or input.get("published_version_id") is not None:
         try:

@@ -116,6 +116,22 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           toast.error(t("Cannot change the type of an existing web app"));
         } else if (error === UpdateWebappError.InvalidUrl) {
           toast.error(t("Invalid URL. Only http and https URLs are allowed"));
+        } else if (error === UpdateWebappError.SubdomainNotLowercase) {
+          toast.error(t("Subdomain must be lowercase"));
+        } else if (error === UpdateWebappError.SubdomainTooShort) {
+          toast.error(t("Subdomain must be at least 3 characters"));
+        } else if (error === UpdateWebappError.SubdomainHasDots) {
+          toast.error(t("Subdomain must be a single label (no dots)"));
+        } else if (error === UpdateWebappError.SubdomainReserved) {
+          toast.error(t("This subdomain is reserved"));
+        } else if (error === UpdateWebappError.SubdomainInvalidFormat) {
+          toast.error(
+            t(
+              "Subdomain must be alphanumeric with hyphens, no leading/trailing hyphens, and 63 characters or fewer",
+            ),
+          );
+        } else if (error === UpdateWebappError.SubdomainAlreadyTaken) {
+          toast.error(t("This subdomain is already taken"));
         }
         return;
       }

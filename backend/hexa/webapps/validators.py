@@ -136,17 +136,25 @@ _domain_validator = DomainNameValidator(accept_idna=False)
 
 def validate_subdomain(value):
     if value != value.lower():
-        raise ValidationError("Subdomain must be lowercase.")
+        raise ValidationError(
+            "Subdomain must be lowercase.", code="SUBDOMAIN_NOT_LOWERCASE"
+        )
     if len(value) < 3:
-        raise ValidationError("Subdomain must be at least 3 characters.")
+        raise ValidationError(
+            "Subdomain must be at least 3 characters.", code="subdomain_too_short"
+        )
     if "." in value:
-        raise ValidationError("Subdomain must be a single DNS label (no dots).")
+        raise ValidationError(
+            "Subdomain must be a single DNS label (no dots).",
+            code="subdomain_has_dots",
+        )
     if value in RESERVED_SUBDOMAINS:
-        raise ValidationError("This subdomain is reserved.")
+        raise ValidationError("This subdomain is reserved.", code="subdomain_reserved")
     try:
         _domain_validator(f"{value}.com")
     except ValidationError:
         raise ValidationError(
             "Subdomain must be alphanumeric with hyphens, no leading/trailing hyphens, "
-            "and 63 characters or fewer."
+            "and 63 characters or fewer.",
+            code="subdomain_invalid_format",
         )
