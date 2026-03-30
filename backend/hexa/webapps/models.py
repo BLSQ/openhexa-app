@@ -1,6 +1,7 @@
 import os
 import secrets
 
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.validators import URLValidator, validate_slug
@@ -137,6 +138,13 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     )
     objects = WebappManager()
     all_objects = AllWebappManager()
+
+    @property
+    def subdomain_url(self):
+        subdomain_base = getattr(settings, "WEBAPPS_SUBDOMAIN_BASE_URL", "")
+        if self.subdomain and subdomain_base:
+            return f"{settings.SCHEME}://{self.subdomain}.{subdomain_base}/"
+        return None
 
     def is_favorite(self, user: User):
         return self.favorites.filter(pk=user.pk).exists()

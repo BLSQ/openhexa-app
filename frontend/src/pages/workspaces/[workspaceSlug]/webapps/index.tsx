@@ -149,11 +149,11 @@ const WebappsPage = (props: Props) => {
               <LinkColumn
                 id="play"
                 url={(item) =>
-                  item.type === WebappType.Superset
+                  item.subdomainUrl ?? (item.type === WebappType.Superset
                     ? item.url
                     : {
                         pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${item.slug}/play`,
-                      }
+                      })
                 }
                 width={80}
                 className={"flex items-center justify-center"}
