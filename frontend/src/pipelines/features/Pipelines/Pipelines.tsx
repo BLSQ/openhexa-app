@@ -56,7 +56,7 @@ const Pipelines = ({
   );
   const [selectedTags, setSelectedTags] = useState<string[]>(tags || []);
 
-  const { data, loading } = useWorkspacePipelinesPageQuery({
+  const { data, loading, startPolling, stopPolling } = useWorkspacePipelinesPageQuery({
     variables: {
       page,
       perPage,
@@ -70,6 +70,21 @@ const Pipelines = ({
   });
 
   const [items, setItems] = useState(data?.pipelines?.items || []);
+
+  useEffect(() => {
+    const hasActiveRuns = data?.pipelines?.items?.some((p: any) =>
+      [
+        PipelineRunStatus.Queued,
+        PipelineRunStatus.Running,
+        PipelineRunStatus.Terminating,
+      ].includes(p.lastRuns?.items?.[0]?.status),
+    );
+    if (hasActiveRuns) {
+      startPolling(5000);
+    } else {
+      stopPolling();
+    }
+  }, [data, startPolling, stopPolling]);
   const [pipelineTags, setPipelineTags] = useState<string[]>(
     data?.workspace?.pipelineTags || [],
   );

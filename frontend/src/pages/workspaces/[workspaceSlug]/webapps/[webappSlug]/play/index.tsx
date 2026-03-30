@@ -1,9 +1,7 @@
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
-import { useTranslation } from "next-i18next";
-import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
-import Breadcrumbs from "core/components/Breadcrumbs";
+import { getMe } from "identity/helpers/auth";
 import WebappIframe from "webapps/features/WebappIframe";
 import {
   WebappAccessDocument,
@@ -18,49 +16,19 @@ type Props = {
 
 const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
   const { webapp, isAuthenticated } = props;
-  const { t } = useTranslation();
-
-  if (!isAuthenticated) {
-    return (
-      <Page title={webapp.name}>
-        <WebappIframe
-          url={webapp.url}
-          style={{ height: "100vh" }}
-          showPoweredBy={webapp.type !== WebappType.Superset} // Already a banner in the Superset iframe from the backend
-        />
-      </Page>
-    );
-  }
-
-  const { workspace } = webapp;
 
   return (
-    <Page title={t("Web Apps")}>
-      <WorkspaceLayout
-        workspace={workspace}
-        header={
-          <Breadcrumbs withHome={false} className="flex-1">
-            <Breadcrumbs.Part
-              isFirst
-              href={`/workspaces/${encodeURIComponent(workspace.slug)}/webapps`}
-            >
-              {t("Web Apps")}
-            </Breadcrumbs.Part>
-            <Breadcrumbs.Part
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug,
-              )}/webapps/${encodeURIComponent(webapp.slug)}`}
-              isLast
-            >
-              {webapp.name}
-            </Breadcrumbs.Part>
-          </Breadcrumbs>
-        }
-      >
-        <WorkspaceLayout.PageContent>
-          <WebappIframe url={webapp.url} />
-        </WorkspaceLayout.PageContent>
-      </WorkspaceLayout>
+    <Page title={webapp.name}>
+      <WebappIframe
+        url={webapp.url}
+        type={webapp.type}
+        style={{ height: "100vh" }}
+        showPoweredBy={
+          !isAuthenticated &&
+          webapp.showPoweredBy &&
+          webapp.type !== WebappType.Superset
+        } // There is already a banner in the Superset iframe from the backend
+      />
     </Page>
   );
 };
@@ -72,12 +40,16 @@ export const getServerSideProps = createGetServerSideProps({
   async getServerSideProps(ctx, client) {
     const workspaceSlug = ctx.params!.workspaceSlug as string;
     const webappSlug = ctx.params!.webappSlug as string;
-    const isAuthenticated = !!ctx.me?.user;
 
-    const { data } = await client.query<WebappAccessQuery>({
-      query: WebappAccessDocument,
-      variables: { workspaceSlug, webappSlug },
-    });
+    const [{ data }, me] = await Promise.all([
+      client.query<WebappAccessQuery>({
+        query: WebappAccessDocument,
+        variables: { workspaceSlug, webappSlug },
+      }),
+      getMe(ctx),
+    ]);
+
+    const isAuthenticated = !!me?.user;
 
     if (!data.webapp) {
       if (!isAuthenticated) {
@@ -90,10 +62,6 @@ export const getServerSideProps = createGetServerSideProps({
         };
       }
       return { notFound: true };
-    }
-
-    if (isAuthenticated) {
-      await WorkspaceLayout.prefetch(ctx, client);
     }
 
     return {

@@ -301,7 +301,8 @@ export const getServerSideProps = createGetServerSideProps({
   requireAuth: false,
   getServerSideProps: async (ctx) => {
     const proto =
-      ctx.req.headers["x-forwarded-proto"] || (ctx.req.socket as any).encrypted
+      ctx.req.headers["x-forwarded-proto"] === "https" ||
+      (ctx.req.socket as any).encrypted
         ? "https"
         : "http";
     const host = ctx.req.headers["x-forwarded-host"] || ctx.req.headers.host;

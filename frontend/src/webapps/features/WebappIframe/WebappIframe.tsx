@@ -4,9 +4,11 @@ import Spinner from "core/components/Spinner";
 import { useTranslation } from "next-i18next";
 import Image from "next/image";
 import logo from "public/images/logo.svg";
+import { WebappType } from "graphql/types";
 
 type WebappIframeProps = {
   url: string;
+  type?: WebappType;
   className?: string;
   style?: React.CSSProperties;
   showPoweredBy?: boolean;
@@ -14,15 +16,14 @@ type WebappIframeProps = {
 
 const WebappIframe = ({
   url,
+  type,
   className,
   style,
   showPoweredBy = false,
 }: WebappIframeProps) => {
   const { t } = useTranslation();
   const [iframeLoading, setIframeLoading] = useState(true);
-  const [safeUrl, setSafeUrl] = useState<string | null | undefined>(
-    undefined,
-  );
+  const [safeUrl, setSafeUrl] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {
     if (!url) {
@@ -100,7 +101,6 @@ const WebappIframe = ({
     );
   }
 
-
   const commonPermissions =
     "allow-forms allow-popups allow-downloads allow-presentation allow-modals allow-scripts";
 
@@ -109,10 +109,12 @@ const WebappIframe = ({
   // without "allow-scripts" is a no-go for Superset. The embedding SDK adds both
   // to the sandbox param and they appear required for proper loading of the page:
   // https://github.com/apache/superset/blob/0aa48b656446764b2e71d9d65cc14365398faa8b/superset-embedded-sdk/src/index.ts#L170-L171
-  const sandboxPermissions =
-    isSameOrigin && !isSupersetDashboard
-      ? commonPermissions
-      : `${commonPermissions} allow-same-origin`;
+  const needsSameOrigin =
+    type === WebappType.Static ? false : isSupersetDashboard || !isSameOrigin;
+
+  const sandboxPermissions = needsSameOrigin
+    ? `${commonPermissions} allow-same-origin`
+    : commonPermissions;
 
   return (
     <div

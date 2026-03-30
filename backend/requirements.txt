@@ -30,14 +30,8 @@ asgiref==3.9.0
     #   django-countries
 attrs==25.3.0
     # via
-    #   cads-api-client
-    #   cfgrib
-    #   datapi
-    #   eccodes
-    #   ecmwf-datastores-client
     #   fiona
     #   morecantile
-    #   openlineage-python
     #   rasterio
 autoflake==2.3.1
     # via ariadne-codegen
@@ -64,10 +58,6 @@ build==1.2.2.post1
     # via pip-tools
 cachetools==5.5.2
     # via google-auth
-cads-api-client==1.5.4
-    # via openhexa-toolbox
-cdsapi==0.7.6
-    # via openhexa-toolbox
 certifi==2025.6.15
     # via
     #   fiona
@@ -80,18 +70,13 @@ certifi==2025.6.15
     #   requests
     #   sentry-sdk
 cffi==2.0.0
-    # via
-    #   cryptography
-    #   eccodes
-cfgrib==0.9.15.0
-    # via openhexa-toolbox
+    # via cryptography
 charset-normalizer==3.4.2
     # via requests
 click==8.1.8
     # via
     #   ariadne-codegen
     #   black
-    #   cfgrib
     #   click-plugins
     #   cligj
     #   fiona
@@ -99,6 +84,7 @@ click==8.1.8
     #   pip-tools
     #   rasterio
     #   rio-cogeo
+    #   uvicorn
 click-plugins==1.1.1.2
     # via
     #   fiona
@@ -113,7 +99,7 @@ coverage[toml]==7.9.2
     # via -r requirements.in
 croniter==6.0.0
     # via -r requirements.in
-cryptography==46.0.5
+cryptography==46.0.6
     # via
     #   -r requirements.in
     #   azure-identity
@@ -122,8 +108,6 @@ cryptography==46.0.5
     #   moto
     #   msal
     #   pyjwt
-datapi==0.4.0
-    # via openhexa-toolbox
 dhis2-py==2.3.0
     # via -r requirements.in
 dill==0.4.0
@@ -170,18 +154,12 @@ docstring-parser==0.17.0
     # via anthropic
 durationpy==0.10
     # via kubernetes
-eccodes==2.42.0
-    # via cfgrib
-ecmwf-datastores-client==0.2.0
-    # via cdsapi
 epiweeks==2.3.0
     # via openhexa-toolbox
 et-xmlfile==2.0.0
     # via openpyxl
 filetype==1.2.0
     # via -r requirements.in
-findlibs==0.1.1
-    # via eccodes
 fiona==1.10.1
     # via openhexa-toolbox
 genai-prices==0.0.55
@@ -255,7 +233,9 @@ grpcio-status==1.73.1
 gunicorn==23.0.0
     # via -r requirements.in
 h11==0.16.0
-    # via httpcore
+    # via
+    #   httpcore
+    #   uvicorn
 httpcore==1.0.9
     # via httpx
 httpx==0.28.1
@@ -326,36 +306,26 @@ msal-extensions==1.3.1
     # via azure-identity
 multiprocess==0.70.18
     # via openhexa-sdk
-multiurl==0.3.5
-    # via
-    #   cads-api-client
-    #   datapi
-    #   ecmwf-datastores-client
 mypy-extensions==1.1.0
     # via black
 numpy==2.3.1
     # via
-    #   cfgrib
-    #   eccodes
     #   geopandas
     #   pandas
     #   pyogrio
     #   rasterio
     #   shapely
-    #   xarray
 oauthlib==3.3.1
     # via
     #   django-oauth-toolkit
     #   kubernetes
     #   requests-oauthlib
-openhexa-sdk==2.15.2
+openhexa-sdk==2.19.3
     # via
     #   -r requirements.in
     #   openhexa-toolbox
-openhexa-toolbox==2.9.0
+openhexa-toolbox==2.11.0
     # via -r requirements.in
-openlineage-python==1.34.0
-    # via openhexa-toolbox
 openpyxl==3.1.5
     # via -r requirements.in
 opentelemetry-api==1.34.1
@@ -368,16 +338,13 @@ packaging==25.0
     #   build
     #   geopandas
     #   gunicorn
-    #   openlineage-python
     #   pyogrio
     #   wheel
-    #   xarray
 pandas==2.3.0
     # via
     #   -r requirements.in
     #   geopandas
     #   openhexa-toolbox
-    #   xarray
 pathspec==1.0.4
     # via black
 pip-tools==7.4.1
@@ -403,6 +370,8 @@ protobuf==6.33.5
     #   grpc-google-iam-v1
     #   grpcio-status
     #   proto-plus
+psycopg==3.3.3
+    # via openhexa-toolbox
 psycopg2-binary==2.9.10
     # via -r requirements.in
 py-partiql-parser==0.6.1
@@ -460,9 +429,7 @@ python-dateutil==2.9.0.post0
     #   croniter
     #   kubernetes
     #   moto
-    #   multiurl
     #   openhexa-toolbox
-    #   openlineage-python
     #   pandas
 python-slugify==8.0.4
     # via -r requirements.in
@@ -471,14 +438,12 @@ pytokens==0.4.1
 pytz==2025.2
     # via
     #   croniter
-    #   multiurl
     #   pandas
 pyyaml==6.0.2
     # via
     #   kubernetes
     #   moto
     #   openhexa-sdk
-    #   openlineage-python
     #   responses
 rasterio==1.4.3
     # via
@@ -486,28 +451,24 @@ rasterio==1.4.3
     #   openhexa-toolbox
     #   rio-cogeo
 regex==2024.11.6
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   openhexa-toolbox
 requests==2.32.5
     # via
     #   -r requirements.in
     #   azure-core
-    #   cads-api-client
-    #   cdsapi
-    #   datapi
     #   dhis2-py
     #   django-oauth-toolkit
     #   docker
-    #   ecmwf-datastores-client
     #   google-api-core
     #   google-cloud-storage
     #   kubernetes
     #   mixpanel
     #   moto
     #   msal
-    #   multiurl
     #   openhexa-sdk
     #   openhexa-toolbox
-    #   openlineage-python
     #   requests-mock
     #   requests-oauthlib
     #   responses
@@ -558,10 +519,7 @@ text-unidecode==1.3
 toml==0.10.2
     # via ariadne-codegen
 tqdm==4.67.1
-    # via
-    #   -r requirements.in
-    #   cdsapi
-    #   multiurl
+    # via -r requirements.in
 typing-extensions==4.14.1
     # via
     #   anthropic
@@ -570,12 +528,10 @@ typing-extensions==4.14.1
     #   azure-core
     #   azure-identity
     #   azure-storage-blob
-    #   cads-api-client
-    #   datapi
     #   django-countries
-    #   ecmwf-datastores-client
     #   jwcrypto
     #   opentelemetry-api
+    #   psycopg
     #   pydantic
     #   pydantic-core
     #   starlette
@@ -601,6 +557,8 @@ urllib3==2.6.3
     #   requests
     #   responses
     #   sentry-sdk
+uvicorn==0.34.0
+    # via -r requirements.in
 websocket-client==1.8.0
     # via kubernetes
 werkzeug==3.1.6
@@ -609,8 +567,6 @@ wheel==0.46.2
     # via pip-tools
 whitenoise==6.9.0
     # via -r requirements.in
-xarray==2025.7.0
-    # via openhexa-toolbox
 xmltodict==0.14.2
     # via moto
 zipp==3.23.0

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenHEXA Webapp Security Audit</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, sans-serif; background: #0f172a; color: #e2e8f0; padding: 2rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+        .subtitle { color: #94a3b8; margin-bottom: 1.5rem; }
+        .tabs { display: flex; gap: 0; margin-bottom: 0; border-bottom: 2px solid #1e293b; }
+        .tab { padding: 0.75rem 1.5rem; cursor: pointer; border: 2px solid transparent; border-bottom: none;
+               border-radius: 8px 8px 0 0; color: #94a3b8; font-weight: 500; font-size: 0.9rem; }
+        .tab:hover { color: #e2e8f0; background: #1e293b; }
+        .tab.active { color: #e2e8f0; background: #1e293b; border-color: #334155; }
+        .tab-content { display: none; background: #1e293b; border: 2px solid #334155; border-top: none;
+                       border-radius: 0 0 8px 8px; padding: 1.5rem; }
+        .tab-content.active { display: block; }
+
+        .config { margin-bottom: 1.5rem; }
+        label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.25rem; }
+        input { background: #0f172a; color: #e2e8f0; border: 1px solid #334155; padding: 0.5rem;
+                font-family: monospace; font-size: 0.85rem; width: 100%; border-radius: 4px; }
+        input:focus { outline: none; border-color: #60a5fa; }
+        button { padding: 0.5rem 1.25rem; border: none; border-radius: 4px; cursor: pointer;
+                 font-family: system-ui, sans-serif; font-weight: 600; font-size: 0.85rem; }
+        .btn-run { background: #3b82f6; color: white; }
+        .btn-run:hover { background: #2563eb; }
+        .btn-exploit { background: #ef4444; color: white; }
+        .btn-exploit:hover { background: #dc2626; }
+
+        .results { margin-top: 1rem; }
+        .test { margin: 0.5rem 0; padding: 0.75rem 1rem; border-radius: 6px; border-left: 4px solid #334155; background: #0f172a; }
+        .test h3 { font-size: 0.85rem; font-weight: 500; margin-bottom: 0.25rem; }
+        .test pre { font-size: 0.8rem; color: #94a3b8; white-space: pre-wrap; word-break: break-all; margin-top: 0.5rem; }
+        .test.pass { border-left-color: #22c55e; }
+        .test.pass h3::before { content: "PASS "; color: #22c55e; font-weight: 700; }
+        .test.fail { border-left-color: #ef4444; }
+        .test.fail h3::before { content: "FAIL "; color: #ef4444; font-weight: 700; }
+        .test.blocked { border-left-color: #22c55e; }
+        .test.blocked h3::before { content: "BLOCKED "; color: #22c55e; font-weight: 700; }
+        .test.vulnerable { border-left-color: #ef4444; }
+        .test.vulnerable h3::before { content: "VULNERABLE "; color: #ef4444; font-weight: 700; }
+        .test.pending { border-left-color: #334155; }
+        .test.pending h3::before { content: "... "; color: #64748b; }
+
+        .summary { margin-top: 1rem; padding: 1rem; border-radius: 6px; font-weight: 600; text-align: center; }
+        .summary.safe { background: #052e16; border: 1px solid #22c55e; color: #22c55e; }
+        .summary.unsafe { background: #2a0a0a; border: 1px solid #ef4444; color: #ef4444; }
+
+        .note { color: #f59e0b; padding: 0.75rem; border-left: 3px solid #f59e0b; background: #1c1917;
+                margin-bottom: 1rem; font-size: 0.85rem; border-radius: 0 4px 4px 0; }
+        .note code { background: #292524; padding: 0.1rem 0.3rem; border-radius: 3px; font-size: 0.8rem; }
+
+        .context-banner { background: #1e293b; border: 1px solid #334155; border-radius: 6px;
+                          padding: 0.75rem 1rem; margin-bottom: 1.5rem; font-size: 0.85rem; }
+        .context-banner strong { color: #60a5fa; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid #334155; font-size: 0.85rem; }
+        th { color: #94a3b8; font-weight: 500; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .tag-ok { background: #052e16; color: #4ade80; }
+        .tag-danger { background: #2a0a0a; color: #f87171; }
+    </style>
+</head>
+<body>
+    <h1>OpenHEXA Webapp Security Audit</h1>
+    <p class="subtitle">Comprehensive security validation for static webapp sandboxing</p>
+
+    <div class="context-banner" id="context-banner">
+        <strong>Context:</strong> <span id="context-info">Detecting...</span>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('functional')">Functional Tests</div>
+        <div class="tab" onclick="switchTab('exploits')">Exploit Attempts</div>
+        <div class="tab" onclick="switchTab('summary')">Summary</div>
+    </div>
+
+    <!-- Tab 1: Functional Tests -->
+    <div class="tab-content active" id="tab-functional">
+        <p style="color:#94a3b8; margin-bottom:1rem;">Verify that bearer-token GraphQL queries work from a sandboxed context.</p>
+
+        <div class="config">
+            <label>API Base URL</label>
+            <input id="apiUrl" value="" />
+        </div>
+        <div class="config">
+            <label>Signed Bearer Token</label>
+            <input id="token" value="" placeholder="paste signed workspace token" />
+        </div>
+        <div class="note">
+            Get a signed token:<br>
+            <code>docker compose exec app python manage.py shell -c "from django.core.signing import Signer; from hexa.workspaces.models import WorkspaceMembership; m = WorkspaceMembership.objects.first(); print(Signer().sign_object(m.access_token))"</code>
+        </div>
+
+        <button class="btn-run" onclick="runFunctionalTests()">Run Functional Tests</button>
+        <div class="results" id="functional-results"></div>
+    </div>
+
+    <!-- Tab 2: Exploit Attempts -->
+    <div class="tab-content" id="tab-exploits">
+        <p style="color:#94a3b8; margin-bottom:1rem;">
+            Simulate every known attack vector a malicious webapp could use. All should be blocked.
+        </p>
+
+        <button class="btn-exploit" onclick="runExploitTests()">Run All Exploit Attempts</button>
+        <div id="exploit-summary"></div>
+        <div class="results" id="exploit-results"></div>
+    </div>
+
+    <!-- Tab 3: Summary -->
+    <div class="tab-content" id="tab-summary">
+        <p style="color:#94a3b8; margin-bottom:1rem;">
+            How the sandbox protects against each attack vector depending on context.
+        </p>
+
+        <table>
+            <tr>
+                <th>Attack Vector</th>
+                <th>In Sandboxed Iframe</th>
+                <th>Direct Navigation</th>
+            </tr>
+            <tr>
+                <td>Read <code>document.cookie</code></td>
+                <td><span class="tag tag-ok">Blocked</span> sandbox</td>
+                <td><span class="tag tag-danger">Exposed</span> same-origin</td>
+            </tr>
+            <tr>
+                <td>Read <code>localStorage</code> / <code>sessionStorage</code></td>
+                <td><span class="tag tag-ok">Blocked</span> sandbox</td>
+                <td><span class="tag tag-danger">Exposed</span> same-origin</td>
+            </tr>
+            <tr>
+                <td>fetch() with session cookies</td>
+                <td><span class="tag tag-ok">Blocked</span> CORS * + sandbox</td>
+                <td><span class="tag tag-danger">Works</span> same-origin</td>
+            </tr>
+            <tr>
+                <td>fetch() with bearer token</td>
+                <td><span class="tag tag-ok">Allowed</span> by design</td>
+                <td><span class="tag tag-ok">Allowed</span> by design</td>
+            </tr>
+            <tr>
+                <td>Access parent frame</td>
+                <td><span class="tag tag-ok">Blocked</span> cross-origin</td>
+                <td><span class="tag tag-danger">N/A</span> no parent</td>
+            </tr>
+            <tr>
+                <td>Register Service Worker</td>
+                <td><span class="tag tag-ok">Blocked</span> sandbox</td>
+                <td><span class="tag tag-danger">Possible</span> same-origin</td>
+            </tr>
+            <tr>
+                <td>IndexedDB access</td>
+                <td><span class="tag tag-ok">Isolated</span> opaque origin</td>
+                <td><span class="tag tag-danger">Shared</span> same-origin</td>
+            </tr>
+            <tr>
+                <td>Exfiltrate to external server</td>
+                <td><span class="tag tag-ok">Limited</span> opaque origin</td>
+                <td><span class="tag tag-danger">Full access</span></td>
+            </tr>
+        </table>
+
+        <div style="margin-top:1.5rem; color:#94a3b8; font-size:0.85rem;">
+            <strong>Key:</strong> Static webapps are always loaded inside a sandboxed iframe
+            without <code>allow-same-origin</code>. The "Direct Navigation" column shows what
+            would happen if a user navigated directly to <code>/webapps/&lt;id&gt;/</code> —
+            this is mitigated by the UI never linking there directly.
+            For full isolation against direct navigation, serve webapps from a separate subdomain.
+        </div>
+    </div>
+
+    <script>
+        // ── Shared utilities ──
+        function getApiUrl() {
+            return document.getElementById("apiUrl").value.replace(/\/$/, "");
+        }
+        function getToken() {
+            return document.getElementById("token").value;
+        }
+
+        function switchTab(name) {
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+            document.querySelector(`#tab-${name}`).classList.add("active");
+            document.querySelectorAll(".tab")[["functional", "exploits", "summary"].indexOf(name)].classList.add("active");
+        }
+
+        function addResult(container, id, title) {
+            const div = document.createElement("div");
+            div.className = "test pending";
+            div.id = id;
+            div.innerHTML = `<h3>${title}</h3>`;
+            document.getElementById(container).appendChild(div);
+            return div;
+        }
+
+        function setResult(id, cls, detail) {
+            const div = document.getElementById(id);
+            div.className = `test ${cls}`;
+            if (detail) {
+                let pre = div.querySelector("pre");
+                if (!pre) { pre = document.createElement("pre"); div.appendChild(pre); }
+                pre.textContent = detail;
+            }
+        }
+
+        // ── Detect context ──
+        function detectContext() {
+            const el = document.getElementById("context-info");
+            const inIframe = window.self !== window.top;
+            const origin = window.origin || window.location.origin;
+            let sandboxed = false;
+            try { document.cookie; } catch { sandboxed = true; }
+
+            if (sandboxed) {
+                el.textContent = `Sandboxed iframe (origin: ${origin}) — this is the expected production context`;
+            } else if (inIframe) {
+                el.textContent = `Iframe WITHOUT sandbox (origin: ${origin}) — sandbox missing!`;
+            } else if (origin === "null" || window.location.protocol === "file:") {
+                el.textContent = `Opened from file:// (origin: null) — simulates sandboxed iframe`;
+            } else {
+                el.textContent = `Direct navigation (origin: ${origin}) — NOT sandboxed, exploits may succeed`;
+            }
+
+            const input = document.getElementById("apiUrl");
+            if (!input.value) {
+                input.value = (origin && origin !== "null") ? origin : "http://localhost:8000";
+            }
+        }
+        detectContext();
+
+        // ── Functional Tests ──
+        async function runFunctionalTests() {
+            const c = "functional-results";
+            document.getElementById(c).innerHTML = "";
+
+            // Test 1: Authenticated query
+            addResult(c, "f-auth", "Authenticated GraphQL query with bearer token");
+            try {
+                const res = await fetch(`${getApiUrl()}/graphql/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
+                    body: JSON.stringify({ query: "{ me { user { displayName email } } }" }),
+                });
+                const data = await res.json();
+                const user = data?.data?.me?.user;
+                setResult("f-auth", user?.email ? "pass" : "fail",
+                    user?.email
+                        ? `Authenticated as: ${user.displayName} (${user.email})\nCORS header: ${res.headers.get("Access-Control-Allow-Origin")}`
+                        : `No user data returned — is the token signed?\n${JSON.stringify(data, null, 2)}`
+                );
+            } catch (e) { setResult("f-auth", "fail", `CORS blocked: ${e.message}`); }
+
+            // Test 2: Workspace list
+            addResult(c, "f-workspaces", "List workspaces with bearer token");
+            try {
+                const res = await fetch(`${getApiUrl()}/graphql/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
+                    body: JSON.stringify({ query: "{ workspaces(page: 1, perPage: 5) { items { slug name } } }" }),
+                });
+                const data = await res.json();
+                const items = data?.data?.workspaces?.items;
+                setResult("f-workspaces", items?.length > 0 ? "pass" : "fail",
+                    items?.length > 0
+                        ? `Found ${items.length} workspace(s): ${items.map(i => i.name).join(", ")}`
+                        : `No workspaces returned\n${JSON.stringify(data, null, 2)}`
+                );
+            } catch (e) { setResult("f-workspaces", "fail", `CORS blocked: ${e.message}`); }
+
+            // Test 3: Credentials include blocked
+            addResult(c, "f-creds", "fetch with credentials:'include' is blocked");
+            try {
+                const res = await fetch(`${getApiUrl()}/graphql/`, {
+                    method: "POST", credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ query: "{ me { user { email } } }" }),
+                });
+                setResult("f-creds", "fail", "Browser allowed credentialed request — this should not happen!");
+            } catch (e) { setResult("f-creds", "pass", `Correctly blocked: ${e.message}`); }
+
+            // Test 4: No token = no data
+            addResult(c, "f-notoken", "Request without token returns no user data");
+            try {
+                const res = await fetch(`${getApiUrl()}/graphql/`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ query: "{ me { user { email } } }" }),
+                });
+                const data = await res.json();
+                const user = data?.data?.me?.user;
+                setResult("f-notoken", !user ? "pass" : "fail",
+                    !user ? "Correctly unauthenticated" : `Got user data without token: ${user.email}`
+                );
+            } catch (e) { setResult("f-notoken", "fail", `Error: ${e.message}`); }
+        }
+
+        // ── Exploit Tests ──
+        async function runExploitTests() {
+            const c = "exploit-results";
+            document.getElementById(c).innerHTML = "";
+            document.getElementById("exploit-summary").innerHTML = "";
+            let blocked = 0, vulnerable = 0;
+
+            async function exploit(id, title, fn) {
+                addResult(c, id, title);
+                try {
+                    const result = await fn();
+                    if (result.blocked) { blocked++; setResult(id, "blocked", result.detail); }
+                    else { vulnerable++; setResult(id, "vulnerable", result.detail); }
+                } catch (e) {
+                    blocked++;
+                    setResult(id, "blocked", `Exception: ${e.message}`);
+                }
+            }
+
+            const apiUrl = getApiUrl();
+
+            await exploit("e-cookies", "Read document.cookie", async () => {
+                try {
+                    const cookies = document.cookie;
+                    return cookies
+                        ? { blocked: false, detail: `Stole cookies: ${cookies}` }
+                        : { blocked: true, detail: "document.cookie is empty" };
+                } catch (e) {
+                    return { blocked: true, detail: `Access denied: ${e.message}` };
+                }
+            });
+
+            await exploit("e-localstorage", "Read localStorage", async () => {
+                try {
+                    const keys = Object.keys(localStorage);
+                    return keys.length > 0
+                        ? { blocked: false, detail: `Keys: ${keys.join(", ")}` }
+                        : { blocked: true, detail: "Empty (sandboxed)" };
+                } catch (e) {
+                    return { blocked: true, detail: `Access denied: ${e.message}` };
+                }
+            });
+
+            await exploit("e-sessionstorage", "Read sessionStorage", async () => {
+                try {
+                    const keys = Object.keys(sessionStorage);
+                    return keys.length > 0
+                        ? { blocked: false, detail: `Keys: ${keys.join(", ")}` }
+                        : { blocked: true, detail: "Empty (sandboxed)" };
+                } catch (e) {
+                    return { blocked: true, detail: `Access denied: ${e.message}` };
+                }
+            });
+
+            await exploit("e-fetch-creds", "fetch() with credentials:'include'", async () => {
+                try {
+                    const res = await fetch(`${apiUrl}/graphql/`, {
+                        method: "POST", credentials: "include",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ query: "{ me { user { email } } }" }),
+                    });
+                    const data = await res.json();
+                    const email = data?.data?.me?.user?.email;
+                    return email
+                        ? { blocked: false, detail: `Session hijacked: ${email}` }
+                        : { blocked: false, detail: `Request went through but no user data` };
+                } catch (e) {
+                    return { blocked: true, detail: `Browser refused: ${e.message}` };
+                }
+            });
+
+            await exploit("e-ambient", "fetch() default mode — ambient cookie leak", async () => {
+                try {
+                    const res = await fetch(`${apiUrl}/graphql/`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ query: "{ me { user { email } } }" }),
+                    });
+                    const data = await res.json();
+                    const email = data?.data?.me?.user?.email;
+                    return email
+                        ? { blocked: false, detail: `Cookies leaked: ${email}` }
+                        : { blocked: true, detail: "No user data — cookies not sent" };
+                } catch (e) {
+                    return { blocked: true, detail: `Blocked: ${e.message}` };
+                }
+            });
+
+            await exploit("e-parent", "Access parent window", async () => {
+                try {
+                    const href = window.parent.location.href;
+                    return { blocked: false, detail: `Parent URL: ${href}` };
+                } catch (e) {
+                    return { blocked: true, detail: `Cross-origin: ${e.message}` };
+                }
+            });
+
+            await exploit("e-xhr", "XMLHttpRequest with withCredentials", async () => {
+                return new Promise(resolve => {
+                    try {
+                        const xhr = new XMLHttpRequest();
+                        xhr.open("POST", `${apiUrl}/graphql/`);
+                        xhr.withCredentials = true;
+                        xhr.setRequestHeader("Content-Type", "application/json");
+                        xhr.onload = () => {
+                            try {
+                                const data = JSON.parse(xhr.responseText);
+                                const email = data?.data?.me?.user?.email;
+                                resolve(email
+                                    ? { blocked: false, detail: `XHR hijack: ${email}` }
+                                    : { blocked: false, detail: "XHR succeeded, no user data" });
+                            } catch { resolve({ blocked: false, detail: `XHR response: ${xhr.responseText}` }); }
+                        };
+                        xhr.onerror = () => resolve({ blocked: true, detail: "XHR blocked by CORS" });
+                        xhr.send(JSON.stringify({ query: "{ me { user { email } } }" }));
+                    } catch (e) { resolve({ blocked: true, detail: `XHR error: ${e.message}` }); }
+                });
+            });
+
+            await exploit("e-indexeddb", "Access IndexedDB", async () => {
+                try {
+                    const dbs = await indexedDB.databases();
+                    return dbs.length > 0
+                        ? { blocked: false, detail: `Found: ${dbs.map(d => d.name).join(", ")}` }
+                        : { blocked: true, detail: "No databases (sandboxed)" };
+                } catch (e) {
+                    return { blocked: true, detail: `Blocked: ${e.message}` };
+                }
+            });
+
+            await exploit("e-sw", "Register Service Worker", async () => {
+                try {
+                    const reg = await navigator.serviceWorker.register("/sw.js");
+                    return { blocked: false, detail: `Registered! Scope: ${reg.scope}` };
+                } catch (e) {
+                    return { blocked: true, detail: `Blocked: ${e.message}` };
+                }
+            });
+
+            await exploit("e-popup-steal", "Open popup and read opener", async () => {
+                try {
+                    const popup = window.open("about:blank", "_blank", "width=1,height=1");
+                    if (!popup) return { blocked: true, detail: "Popup blocked" };
+                    try {
+                        const openerRef = popup.opener?.document?.cookie;
+                        popup.close();
+                        return openerRef
+                            ? { blocked: false, detail: `Popup read opener cookies: ${openerRef}` }
+                            : { blocked: true, detail: "Popup cannot access opener (sandboxed)" };
+                    } catch (e) {
+                        popup.close();
+                        return { blocked: true, detail: `Popup blocked from opener: ${e.message}` };
+                    }
+                } catch (e) {
+                    return { blocked: true, detail: `Popup error: ${e.message}` };
+                }
+            });
+
+            // Summary
+            const el = document.getElementById("exploit-summary");
+            const total = blocked + vulnerable;
+            if (vulnerable === 0) {
+                el.className = "summary safe";
+                el.textContent = `All ${total} attack vectors blocked.`;
+            } else {
+                el.className = "summary unsafe";
+                el.textContent = `${vulnerable} of ${total} attacks succeeded!`;
+            }
+        }
+    </script>
+</body>
+</html>

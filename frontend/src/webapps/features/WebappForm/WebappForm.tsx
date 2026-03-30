@@ -283,6 +283,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         >
           <WebappIframe
             url={debouncedUrl || webapp?.url || ""}
+            type={selectedType}
             style={{ height: "65vh" }}
           />
         </DataCard.Section>

@@ -1,3 +1,4 @@
+import { ApolloError } from "@apollo/client";
 import { getMe } from "identity/helpers/auth";
 import { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -53,17 +54,26 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
       return me;
     });
 
-    const [me, nextRes] = await Promise.all([
-      getMePromise,
-      getServerSideProps ? getServerSideProps(ctx, client) : Promise.resolve(undefined),
-    ]);
+    // Because getMe and the page's getServerSideProps run in parallel, an unauthenticated
+    // user will cause page queries to fail with UNAUTHENTICATED before getMe resolves and
+    // the redirect logic below has a chance to run. We hold the error here so Promise.all
+    // can complete, then let the redirect checks handle it. If no redirect fires (meaning
+    // the page didn't require auth but a query still demanded it), we re-throw.
+    let unauthenticatedError: ApolloError | undefined;
+    const pagePropsPromise = getServerSideProps
+      ? Promise.resolve(getServerSideProps(ctx, client)).catch((err) => {
+          if (
+            err instanceof ApolloError &&
+            err.graphQLErrors.some((e) => e.extensions?.code === "UNAUTHENTICATED")
+          ) {
+            unauthenticatedError = err;
+            return undefined;
+          }
+          throw err;
+        })
+      : Promise.resolve(undefined);
 
-    const t2 = perfLogs ? performance.now() : 0;
-    const translations = await serverSideTranslations(
-      me?.user?.language ?? getAcceptPreferredLocale(ctx.req.headers) ?? "en",
-      i18n,
-    );
-    if (perfLogs) console.log(`[page] translations: ${(performance.now() - t2).toFixed(1)}ms`);
+    const [me, nextRes] = await Promise.all([getMePromise, pagePropsPromise]);
 
     if (redirectIfLoggedIn && ctx.me?.user) {
       return {
@@ -105,6 +115,17 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
         };
       }
     }
+
+    if (unauthenticatedError) {
+      throw unauthenticatedError;
+    }
+
+    const t2 = perfLogs ? performance.now() : 0;
+    const translations = await serverSideTranslations(
+      me?.user?.language ?? getAcceptPreferredLocale(ctx.req.headers) ?? "en",
+      i18n,
+    );
+    if (perfLogs) console.log(`[page] translations: ${(performance.now() - t2).toFixed(1)}ms`);
 
     const result = {
       props: {

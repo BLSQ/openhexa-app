@@ -46,8 +46,11 @@ def view_superset_dashboard(request: HttpRequest, dashboard_id: str) -> HttpResp
         resources=[{"type": "dashboard", "id": dashboard.external_id}],
     )
 
-    is_public_view = (
-        webapp is not None and webapp.is_public and not request.user.is_authenticated
+    show_powered_by = (
+        webapp is not None
+        and webapp.is_public
+        and webapp.show_powered_by
+        and not request.user.is_authenticated
     )
 
     return render(
@@ -56,7 +59,7 @@ def view_superset_dashboard(request: HttpRequest, dashboard_id: str) -> HttpResp
         {
             "dashboard": dashboard,
             "guest_token": guest_token,
-            "is_public_view": is_public_view,
+            "show_powered_by": show_powered_by,
         },
     )
 

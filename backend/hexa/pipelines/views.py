@@ -1,16 +1,26 @@
+import asyncio
 import base64
 import binascii
 import json
+import time
 import uuid
 from logging import getLogger
 
+from asgiref.sync import sync_to_async
 from django.apps import apps
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.signing import BadSignature, Signer, TimestampSigner
-from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
+from django.db import connection
+from django.http import (
+    Http404,
+    HttpRequest,
+    HttpResponse,
+    HttpResponseNotAllowed,
+    JsonResponse,
+)
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
@@ -18,11 +28,25 @@ from django.views.decorators.http import require_POST
 
 from hexa.analytics.api import track
 from hexa.app import get_hexa_app_configs
+from hexa.core.sse import (
+    MAX_DURATION,
+    PING_INTERVAL,
+    POLL_INTERVAL,
+    format_sse,
+    sse_response,
+)
 from hexa.core.views_utils import disable_cors
 from hexa.pipelines.models import Environment, PipelineRunLogLevel
 
 from .credentials import PipelinesCredentials
-from .models import Pipeline, PipelineRunTrigger, PipelineType, PipelineVersion
+from .models import (
+    Pipeline,
+    PipelineRun,
+    PipelineRunState,
+    PipelineRunTrigger,
+    PipelineType,
+    PipelineVersion,
+)
 from .queue import environment_sync_queue
 
 logger = getLogger(__name__)
@@ -207,3 +231,86 @@ def run_pipeline(
         return JsonResponse({"run_id": run.id}, status=200)
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
+
+
+_TERMINAL_STATES = {
+    PipelineRunState.SUCCESS,
+    PipelineRunState.FAILED,
+    PipelineRunState.STOPPED,
+    PipelineRunState.SKIPPED,
+}
+
+
+def _get_run(run_id, user):
+    run = (
+        PipelineRun.objects.filter_for_user(user)
+        .only("messages", "state")
+        .get(id=run_id)
+    )
+    connection.close()
+    return run
+
+
+_get_run_async = sync_to_async(_get_run)
+
+
+async def _message_stream(run_id: int, cursor: int, user):
+    start = time.monotonic()
+    last_ping = start
+
+    while True:
+        run = await _get_run_async(run_id, user)
+        messages_list = run.messages or []
+
+        for msg in messages_list[cursor:]:
+            yield format_sse("message", msg)
+            cursor += 1
+
+        now = time.monotonic()
+        if now - last_ping >= PING_INTERVAL:
+            yield format_sse("ping", {})
+            last_ping = now
+
+        if run.state in _TERMINAL_STATES:
+            yield format_sse("done", {"status": run.state})
+            return
+
+        if now - start >= MAX_DURATION:
+            yield format_sse("timeout", {})
+            return
+
+        await asyncio.sleep(POLL_INTERVAL)
+
+
+async def stream_pipeline_run_messages(
+    request: HttpRequest, run_id: uuid.UUID
+) -> HttpResponse:
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Authentication required"}, status=401)
+
+    try:
+        run = await _get_run_async(run_id, request.user)
+    except PipelineRun.DoesNotExist:
+        raise Http404("Pipeline run not found")
+
+    try:
+        cursor = max(0, int(request.GET.get("from", 0)))
+    except (ValueError, TypeError):
+        cursor = 0
+
+    if run.state in _TERMINAL_STATES:
+        messages_list = run.messages or []
+
+        async def finished_stream():
+            for msg in messages_list[cursor:]:
+                yield format_sse("message", msg)
+            yield format_sse("done", {"status": run.state})
+
+        generator = finished_stream()
+    else:
+        generator = _message_stream(run.id, cursor, request.user)
+
+    return sse_response(generator)

@@ -183,7 +183,7 @@ export const FilesEditor = ({
   useEffect(() => {
     if (selectedFile) {
       const modifiedContent = modifiedFiles.get(selectedFile.id);
-      setCurrentFileContent(modifiedContent || selectedFile.content || "");
+      setCurrentFileContent(modifiedContent ?? selectedFile.content ?? "");
     }
   }, [selectedFile, modifiedFiles]);
 

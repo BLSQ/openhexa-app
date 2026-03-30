@@ -6155,6 +6155,7 @@ export type Webapp = {
   isShortcut: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   permissions: WebappPermissions;
+  showPoweredBy: Scalars['Boolean']['output'];
   slug: Scalars['String']['output'];
   source: WebappSource;
   type: WebappType;

@@ -1,14 +1,23 @@
+import asyncio
 import base64
+import json
 import random
 import string
 import uuid
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 from urllib.parse import urlencode
 
 from django.urls import reverse
+from django.utils import timezone
 
 from hexa.core.test import TestCase
-from hexa.pipelines.models import Pipeline, PipelineRunTrigger, PipelineType
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineRun,
+    PipelineRunState,
+    PipelineRunTrigger,
+    PipelineType,
+)
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
@@ -446,3 +455,205 @@ class ViewsTest(TestCase):
         )
         self.assertEqual(r.status_code, 200)
         self.assertEqual(self.PIPELINE.last_run.send_mail_notifications, True)
+
+
+def _parse_sse(content: bytes) -> list[dict]:
+    events = []
+    current: dict = {}
+    for line in content.decode().splitlines():
+        if line.startswith("event:"):
+            current["event"] = line[len("event:") :].strip()
+        elif line.startswith("data:"):
+            current["data"] = json.loads(line[len("data:") :].strip())
+        elif not line and current:
+            events.append(current)
+            current = {}
+    return events
+
+
+async def _collect_async_stream(streaming_content) -> bytes:
+    chunks = []
+    async for chunk in streaming_content:
+        chunks.append(chunk)
+    return b"".join(chunks)
+
+
+class SSEStreamTest(TestCase):
+    def setUp(self):
+        super().setUp()
+        patcher = patch("hexa.pipelines.views.connection.close")
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user(
+            "sse_user@example.com", "password", is_superuser=True
+        )
+        cls.OTHER_USER = User.objects.create_user("sse_other@example.com", "password")
+
+        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.USER,
+            name="SSE Test Workspace",
+            description="",
+        )
+        cls.PIPELINE = Pipeline.objects.create(
+            workspace=cls.WORKSPACE,
+            name="SSE Test Pipeline",
+            code="sse-test-pipeline",
+        )
+
+    def _make_run(self, state, messages=None):
+        return PipelineRun.objects.create(
+            pipeline=self.PIPELINE,
+            user=self.USER,
+            run_id="sse-test-run",
+            execution_date=timezone.now(),
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            state=state,
+            messages=messages or [],
+        )
+
+    def _url(self, run_id):
+        return reverse("pipelines:stream_pipeline_run_messages", args=[run_id])
+
+    def _consume(self, response) -> list[dict]:
+        content = asyncio.run(_collect_async_stream(response.streaming_content))
+        return _parse_sse(content)
+
+    # --- Auth / permission ---
+
+    def test_unauthenticated_redirects_to_login(self):
+        run = self._make_run(PipelineRunState.SUCCESS)
+        response = self.client.get(self._url(run.id))
+        self.assertEqual(response.status_code, 302)
+
+    def test_run_not_found_returns_404(self):
+        self.client.force_login(self.USER)
+        response = self.client.get(self._url(uuid.uuid4()))
+        self.assertEqual(response.status_code, 404)
+
+    def test_other_user_cannot_access_run(self):
+        run = self._make_run(PipelineRunState.SUCCESS)
+        self.client.force_login(self.OTHER_USER)
+        response = self.client.get(self._url(run.id))
+        self.assertEqual(response.status_code, 404)
+
+    # --- Terminal run (finished before stream opens) ---
+
+    def test_terminal_run_no_messages_sends_done(self):
+        run = self._make_run(PipelineRunState.SUCCESS, messages=[])
+        self.client.force_login(self.USER)
+        response = self.client.get(self._url(run.id))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/event-stream")
+        self.assertEqual(response["Cache-Control"], "no-cache")
+        events = self._consume(response)
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["event"], "done")
+        self.assertEqual(events[0]["data"]["status"], PipelineRunState.SUCCESS)
+
+    def test_terminal_run_with_messages_sends_messages_then_done(self):
+        messages = [
+            {"message": "Starting", "timestamp": None, "priority": "INFO"},
+            {"message": "Finished", "timestamp": None, "priority": "INFO"},
+        ]
+        run = self._make_run(PipelineRunState.SUCCESS, messages=messages)
+        self.client.force_login(self.USER)
+        response = self.client.get(self._url(run.id))
+        events = self._consume(response)
+        self.assertEqual(len(events), 3)
+        self.assertEqual(events[0]["event"], "message")
+        self.assertEqual(events[0]["data"]["message"], "Starting")
+        self.assertEqual(events[1]["event"], "message")
+        self.assertEqual(events[1]["data"]["message"], "Finished")
+        self.assertEqual(events[2]["event"], "done")
+
+    def test_terminal_run_cursor_skips_seen_messages(self):
+        messages = [
+            {"message": "First", "timestamp": None, "priority": "INFO"},
+            {"message": "Second", "timestamp": None, "priority": "INFO"},
+        ]
+        run = self._make_run(PipelineRunState.SUCCESS, messages=messages)
+        self.client.force_login(self.USER)
+        response = self.client.get(self._url(run.id) + "?from=1")
+        events = self._consume(response)
+        self.assertEqual(len(events), 2)
+        self.assertEqual(events[0]["data"]["message"], "Second")
+        self.assertEqual(events[1]["event"], "done")
+
+    def test_terminal_run_invalid_cursor_defaults_to_zero(self):
+        run = self._make_run(PipelineRunState.SUCCESS, messages=[])
+        self.client.force_login(self.USER)
+        response = self.client.get(self._url(run.id) + "?from=notanumber")
+        self.assertEqual(response.status_code, 200)
+        events = self._consume(response)
+        self.assertEqual(events[-1]["event"], "done")
+
+    # --- Running run (transitions to terminal while streaming) ---
+
+    def test_running_run_transitions_and_sends_done(self):
+        run = self._make_run(
+            PipelineRunState.RUNNING,
+            messages=[{"message": "Hello", "timestamp": None, "priority": "INFO"}],
+        )
+        self.client.force_login(self.USER)
+
+        call_count = 0
+
+        def on_get():
+            nonlocal call_count
+            call_count += 1
+            if call_count >= 2:
+                run.state = PipelineRunState.SUCCESS
+
+        with (
+            patch("asyncio.sleep", new_callable=AsyncMock),
+            patch(
+                "hexa.pipelines.views.PipelineRun.objects.filter_for_user",
+                return_value=_MockQuerySet(run, on_get=on_get),
+            ),
+        ):
+            response = self.client.get(self._url(run.id))
+            events = self._consume(response)
+
+        message_events = [e for e in events if e["event"] == "message"]
+        done_events = [e for e in events if e["event"] == "done"]
+        self.assertEqual(len(message_events), 1)
+        self.assertEqual(message_events[0]["data"]["message"], "Hello")
+        self.assertEqual(len(done_events), 1)
+
+    def test_running_run_sends_timeout_when_max_duration_exceeded(self):
+        run = self._make_run(PipelineRunState.RUNNING, messages=[])
+        self.client.force_login(self.USER)
+
+        with (
+            patch("asyncio.sleep", new_callable=AsyncMock),
+            patch("hexa.pipelines.views.MAX_DURATION", 0),
+            patch(
+                "hexa.pipelines.views.PipelineRun.objects.filter_for_user",
+                return_value=_MockQuerySet(run),
+            ),
+        ):
+            response = self.client.get(self._url(run.id))
+            events = self._consume(response)
+
+        self.assertEqual(events[-1]["event"], "timeout")
+
+
+class _MockQuerySet:
+    """Minimal queryset stub that returns a fixed run for .get()."""
+
+    def __init__(self, run, on_get=None):
+        self._run = run
+        self._on_get = on_get
+
+    def only(self, *fields):
+        return self
+
+    def get(self, id):
+        if str(self._run.id) == str(id):
+            if self._on_get:
+                self._on_get()
+            return self._run
+        raise PipelineRun.DoesNotExist

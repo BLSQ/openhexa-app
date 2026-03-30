@@ -12,7 +12,6 @@ from django.http import HttpRequest
 from django.utils import timezone
 from openhexa.sdk.pipelines.exceptions import PipelineNotFound
 from openhexa.sdk.pipelines.runtime import get_pipeline
-from psycopg2.errors import UniqueViolation
 
 from hexa.analytics.api import track
 from hexa.databases.utils import get_table_definition
@@ -418,9 +417,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
     except IntegrityError as e:
-        if isinstance(
-            e.__cause__, UniqueViolation
-        ) and UNIQUE_PIPELINE_VERSION_NAME in str(e):
+        if UNIQUE_PIPELINE_VERSION_NAME in str(e):
             return {"success": False, "errors": ["DUPLICATE_PIPELINE_VERSION_NAME"]}
         raise
 

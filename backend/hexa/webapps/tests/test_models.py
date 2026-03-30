@@ -4,6 +4,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import IntegrityError
 
 from hexa.core.test import TestCase
+from hexa.git.forgejo import ForgejoAPIError
 from hexa.superset.models import SupersetDashboard, SupersetInstance
 from hexa.user_management.models import (
     Organization,
@@ -797,6 +798,89 @@ class GitWebappModelTest(TestCase):
         )
 
         self.assertEqual(webapp.git_org.slug, org.slug)
+
+    def test_create_rolls_back_db_on_commit_failure(self):
+        self.mock_git_client.commit_files.side_effect = Exception("commit failed")
+
+        with self.assertRaises(Exception):
+            GitWebapp.create_if_has_perm(
+                principal=self.user_admin,
+                workspace=self.workspace,
+                name="Commit Fail App",
+                created_by=self.user_admin,
+                webapp_type=Webapp.WebappType.STATIC,
+                files=[{"path": "index.html", "content": "<h1>Hi</h1>"}],
+            )
+
+        self.assertFalse(GitWebapp.objects.filter(name="Commit Fail App").exists())
+
+    def test_create_rolls_back_db_on_get_commits_failure(self):
+        self.mock_git_client.get_commits.side_effect = Exception("get commits failed")
+
+        with self.assertRaises(Exception):
+            GitWebapp.create_if_has_perm(
+                principal=self.user_admin,
+                workspace=self.workspace,
+                name="Commits Fail App",
+                created_by=self.user_admin,
+                webapp_type=Webapp.WebappType.STATIC,
+            )
+
+        self.assertFalse(GitWebapp.objects.filter(name="Commits Fail App").exists())
+
+    @patch("hexa.git.mixins.logger")
+    def test_create_is_idempotent_when_repo_already_exists(self, mock_logger):
+        self.mock_git_client.create_org_repository.side_effect = ForgejoAPIError(
+            "POST", "/orgs/no-org/repos", 409, "repo already exists"
+        )
+        self.mock_git_client.get_commits.return_value = [{"id": "existing-sha"}]
+
+        webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="Idempotent App",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+
+        self.assertEqual(webapp.published_commit, "existing-sha")
+        mock_logger.warning.assert_called_once_with(
+            "Repository %s/%s already exists, reusing it",
+            "no-org",
+            f"{self.workspace.slug}-webapp-idempotent-app",
+        )
+
+    def test_create_raises_on_non_conflict_repo_error(self):
+        self.mock_git_client.create_org_repository.side_effect = ForgejoAPIError(
+            "POST", "/orgs/no-org/repos", 500, "server error"
+        )
+
+        with self.assertRaises(ForgejoAPIError):
+            GitWebapp.create_if_has_perm(
+                principal=self.user_admin,
+                workspace=self.workspace,
+                name="Server Error App",
+                created_by=self.user_admin,
+                webapp_type=Webapp.WebappType.STATIC,
+            )
+
+    def test_delete_if_has_perm_does_not_soft_delete_when_archive_fails(self):
+        self.mock_git_client.archive_repository.side_effect = Exception("Forgejo down")
+
+        git_webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="Archive Fail",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+        webapp_id = git_webapp.pk
+
+        with self.assertRaises(Exception):
+            git_webapp.delete_if_has_perm(principal=self.user_admin)
+
+        self.assertTrue(GitWebapp.objects.filter(pk=webapp_id).exists())
+        self.assertFalse(GitWebapp.objects.get(pk=webapp_id).is_deleted)
 
     def test_filter_for_user(self):
         git_webapp = GitWebapp.create_if_has_perm(
