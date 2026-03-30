@@ -403,7 +403,7 @@ pydantic-graph==1.63.0
     # via pydantic-ai-slim
 pyflakes==3.4.0
     # via autoflake
-pygments==2.19.2
+pygments==2.20.0
     # via
     #   dhis2-py
     #   rich
