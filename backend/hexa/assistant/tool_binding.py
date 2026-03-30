@@ -14,4 +14,5 @@ def bind_context(func: Callable, context: dict) -> Callable:
     )
     bound.__doc__ = func.__doc__
     bound.__name__ = func.__name__
+    bound.__qualname__ = func.__qualname__
     return bound
