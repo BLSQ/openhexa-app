@@ -5973,6 +5973,7 @@ export type UpdateWebappInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   publishedVersionId?: InputMaybe<Scalars['String']['input']>;
   source?: InputMaybe<UpdateWebappSourceInput>;
+  subdomain?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Represents the result of updating a web app. */
@@ -6157,9 +6158,11 @@ export type Webapp = {
   isShortcut: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   permissions: WebappPermissions;
+  serveUrl: Scalars['String']['output'];
   showPoweredBy: Scalars['Boolean']['output'];
   slug: Scalars['String']['output'];
   source: WebappSource;
+  subdomain: Scalars['String']['output'];
   type: WebappType;
   url: Scalars['String']['output'];
   versions?: Maybe<WebappVersionsPage>;

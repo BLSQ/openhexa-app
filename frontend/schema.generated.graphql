@@ -5175,6 +5175,7 @@ input UpdateWebappInput {
   name: String
   publishedVersionId: String
   source: UpdateWebappSourceInput
+  subdomain: String
 }
 
 """Represents the result of updating a web app."""
@@ -5373,9 +5374,11 @@ type Webapp {
   isShortcut: Boolean!
   name: String!
   permissions: WebappPermissions!
+  serveUrl: String!
   showPoweredBy: Boolean!
   slug: String!
   source: WebappSource!
+  subdomain: String!
   type: WebappType!
   url: String!
   versions(page: Int, perPage: Int): WebappVersionsPage

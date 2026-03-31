@@ -10,16 +10,11 @@ type WebappCardProps = {
 };
 
 const WebappCard = ({ webapp }: WebappCardProps) => {
-  const { workspace, slug, name, icon, type, subdomainUrl } = webapp;
-
-  const href = subdomainUrl ?? {
-    pathname: "/workspaces/[workspaceSlug]/webapps/[webappSlug]/play",
-    query: { workspaceSlug: workspace.slug, webappSlug: slug },
-  };
+  const { workspace, slug, name, icon, type, serveUrl } = webapp;
 
   return (
     <Card
-      href={href}
+      href={serveUrl}
       title={
         <div className={"flex items-center justify-between"}>
           <div className={"flex items-center"}>
@@ -55,7 +50,7 @@ WebappCard.fragments = {
       icon
       name
       type
-      subdomainUrl
+      serveUrl
       workspace {
         slug
         name

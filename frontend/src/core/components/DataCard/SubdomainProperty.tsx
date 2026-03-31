@@ -7,17 +7,17 @@ import { PropertyDefinition } from "./types";
 
 type SubdomainPropertyProps = PropertyDefinition & {
   currentSubdomain?: string | null;
-  subdomainUrl?: string | null;
+  serveUrl: string;
 };
 
 const SubdomainProperty = (props: SubdomainPropertyProps) => {
-  const { currentSubdomain, subdomainUrl, ...delegated } = props;
+  const { currentSubdomain, serveUrl, ...delegated } = props;
   const { property, section } = useDataCardProperty(delegated);
 
   const urlParts = useMemo(() => {
-    if (currentSubdomain && subdomainUrl) {
+    if (currentSubdomain && serveUrl) {
       try {
-        const url = new URL(subdomainUrl);
+        const url = new URL(serveUrl);
         return {
           prefix: url.protocol + "//",
           suffix: url.host.substring(currentSubdomain.length),
@@ -27,7 +27,7 @@ const SubdomainProperty = (props: SubdomainPropertyProps) => {
       }
     }
     return null;
-  }, [currentSubdomain, subdomainUrl]);
+  }, [currentSubdomain, serveUrl]);
 
   if (!property.visible) {
     return null;

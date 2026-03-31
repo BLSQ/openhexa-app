@@ -87,7 +87,7 @@ const WebappLayout = (props: WebappLayoutProps) => {
             href={
               webapp.type === WebappType.Superset
                 ? webapp.url ?? "#"
-                : `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${encodeURIComponent(webapp.slug)}/play`
+                : webapp.serveUrl
             }
             target={webapp.type === WebappType.Superset ? "_blank" : undefined}
           >
@@ -142,6 +142,7 @@ WebappLayout.fragments = {
       slug
       name
       url
+      serveUrl
       type
       permissions {
         update

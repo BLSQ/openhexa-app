@@ -120,6 +120,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         Workspace, on_delete=models.CASCADE, related_name="webapps"
     )
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    # The external url for IFrame embedding, or the internal url for Superset Dashboards
     url = models.URLField(blank=True, default="")
     type = models.CharField(
         max_length=20, choices=WebappType.choices, default=WebappType.IFRAME
@@ -140,11 +141,12 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     all_objects = AllWebappManager()
 
     @property
-    def subdomain_url(self):
+    def serve_url(self):
         subdomain_base = getattr(settings, "WEBAPPS_SUBDOMAIN_BASE_URL", "")
         if self.subdomain and subdomain_base:
             return f"{settings.SCHEME}://{self.subdomain}.{subdomain_base}/"
-        return None
+
+        return f"/workspaces/{self.workspace.slug}/webapps/{self.slug}/play"
 
     def is_favorite(self, user: User):
         return self.favorites.filter(pk=user.pk).exists()
@@ -172,10 +174,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
     def to_shortcut_item(self):
         """Convert this webapp to a shortcut item dict for GraphQL"""
-        return {
-            "label": self.name,
-            "url": f"/workspaces/{self.workspace.slug}/webapps/{self.slug}/play",
-        }
+        return {"label": self.name, "url": self.serve_url}
 
     def __str__(self):
         return self.name

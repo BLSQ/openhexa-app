@@ -56,6 +56,8 @@ type Webapp {
   name: String!
   description: String
   url: String!
+  subdomain: String!
+  serveUrl: String!
   type: WebappType!
   icon: String
   workspace: Workspace!
@@ -145,6 +147,7 @@ input UpdateWebappInput {
   id: UUID!
   name: String
   description: String
+  subdomain: String
   icon: String
   isPublic: Boolean
   source: UpdateWebappSourceInput
