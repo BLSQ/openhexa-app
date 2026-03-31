@@ -1,5 +1,6 @@
 from datetime import timedelta
 from decimal import Decimal
+from functools import cached_property
 
 from django.core.exceptions import PermissionDenied
 from django.db import models
@@ -80,6 +81,16 @@ class Conversation(SoftDeletedModel, Base):
                 name="asst_conv_user_cost_idx",
             ),
         ]
+
+    @cached_property
+    def agent(self):
+        from hexa.assistant.agents.base import BaseAgent
+
+        registry: dict[str, type[BaseAgent]] = {
+            cls.instruction_set.value: cls for cls in BaseAgent.__subclasses__()
+        }
+        agent_class = registry.get(self.instruction_set, BaseAgent)
+        return agent_class(self)
 
     def __str__(self):
         return f"Conversation({self.id}, user={self.user_id}, workspace={self.workspace_id})"
