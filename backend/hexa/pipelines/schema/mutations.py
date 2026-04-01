@@ -7,7 +7,7 @@ from zipfile import ZipFile
 from ariadne import MutationType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 from django.utils import timezone
 from openhexa.sdk.pipelines.exceptions import PipelineNotFound
@@ -45,6 +45,19 @@ def get_bucket_object(bucket_name, file):
     return storage.get_bucket_object(bucket_name, file)
 
 
+def _parse_parameters_from_zipfile(zipfile_data: bytes) -> list:
+    try:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with ZipFile(io.BytesIO(zipfile_data), "r") as zip_file:
+                zip_file.extractall(temp_dir)
+            sdk_pipeline = get_pipeline(Path(temp_dir))
+            return [p.to_dict() for p in sdk_pipeline.parameters]
+    except PipelineNotFound:
+        return []
+    except Exception as e:
+        raise PipelineCodeParsingError(str(e))
+
+
 @pipelines_mutations.field("createPipeline")
 def resolve_create_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -60,54 +73,72 @@ def resolve_create_pipeline(_, info, **kwargs):
         }
 
     try:
-        data = {}
-        if input.get("notebook_path", None) is not None:
-            data["type"] = PipelineType.NOTEBOOK
-            data["notebook_path"] = input["notebook_path"]
-            # we need to check if the notebook path exist in the workspace bucket
-            get_bucket_object(workspace.bucket_name, data["notebook_path"])
-        else:
-            data["type"] = PipelineType.ZIPFILE
+        with transaction.atomic():
+            data = {}
+            if input.get("notebook_path", None) is not None:
+                data["type"] = PipelineType.NOTEBOOK
+                data["notebook_path"] = input["notebook_path"]
+                # we need to check if the notebook path exist in the workspace bucket
+                get_bucket_object(workspace.bucket_name, data["notebook_path"])
+            else:
+                data["type"] = PipelineType.ZIPFILE
 
-        if input.get("description"):
-            data["description"] = input["description"]
+            if input.get("description"):
+                data["description"] = input["description"]
 
-        if input.get("functional_type"):
-            data["functional_type"] = input["functional_type"]
+            if input.get("functional_type"):
+                data["functional_type"] = input["functional_type"]
 
-        tags = None
-        if "tags" in input:
-            tags, has_error = Tag.validate_and_get_or_create(input["tags"])
-            if has_error:
-                return {
-                    "success": False,
-                    "errors": ["INVALID_CONFIG"],
-                }
+            tags = None
+            if "tags" in input:
+                tags, has_error = Tag.validate_and_get_or_create(input["tags"])
+                if has_error:
+                    return {
+                        "success": False,
+                        "errors": ["INVALID_CONFIG"],
+                    }
 
-        pipeline = Pipeline.objects.create_if_has_perm(
-            principal=request.user, workspace=workspace, name=input["name"], **data
-        )
+            pipeline = Pipeline.objects.create_if_has_perm(
+                principal=request.user, workspace=workspace, name=input["name"], **data
+            )
 
-        if tags is not None:
-            pipeline.tags.set(tags)
+            if tags is not None:
+                pipeline.tags.set(tags)
 
-        event_properties = {
-            "pipeline_id": str(pipeline.id),
-            "creation_source": (
-                "CLI" if pipeline.type == PipelineType.ZIPFILE else "Notebook"
-            ),
-            "workspace": workspace.slug,
-        }
-        track(
-            request,
-            "pipelines.pipeline_created",
-            event_properties,
-        )
+            version = None
+            if input.get("zipfile"):
+                zipfile_data = base64.b64decode(input["zipfile"].encode("ascii"))
+                parameters = _parse_parameters_from_zipfile(zipfile_data)
+
+                version = pipeline.upload_new_version(
+                    user=request.user,
+                    zipfile=zipfile_data,
+                    parameters=parameters,
+                )
+
+            event_properties = {
+                "pipeline_id": str(pipeline.id),
+                "creation_source": (
+                    "CLI" if pipeline.type == PipelineType.ZIPFILE else "Notebook"
+                ),
+                "workspace": workspace.slug,
+            }
+            track(
+                request,
+                "pipelines.pipeline_created",
+                event_properties,
+            )
 
     except storage.exceptions.NotFound:
         return {"success": False, "errors": ["FILE_NOT_FOUND"]}
+    except PipelineCodeParsingError as e:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_CODE_PARSING_ERROR"],
+            "details": str(e),
+        }
 
-    return {"pipeline": pipeline, "success": True, "errors": []}
+    return {"pipeline": pipeline, "pipelineVersion": version, "success": True, "errors": []}
 
 
 @pipelines_mutations.field("updatePipeline")
@@ -363,17 +394,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
         parameters = input.get("parameters")
 
         if not parameters:
-            try:
-                with tempfile.TemporaryDirectory() as temp_dir:
-                    with ZipFile(io.BytesIO(zipfile_data), "r") as zip_file:
-                        zip_file.extractall(temp_dir)
-
-                    sdk_pipeline = get_pipeline(Path(temp_dir))
-                    parameters = [p.to_dict() for p in sdk_pipeline.parameters]
-            except PipelineNotFound:  # Support empty zip files
-                parameters = []
-            except Exception as e:
-                raise PipelineCodeParsingError(str(e))
+            parameters = _parse_parameters_from_zipfile(zipfile_data)
         version = pipeline.upload_new_version(
             user=request.user,
             name=input.get("name"),

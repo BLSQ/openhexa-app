@@ -7,7 +7,7 @@ from django.http import HttpRequest
 from graphql import graphql_sync
 
 from hexa.mcp.protocol import tool
-from hexa.pipelines.models import Pipeline, PipelineFunctionalType
+from hexa.pipelines.models import PipelineFunctionalType
 
 _QUERIES_PATH = Path(__file__).parent / "graphql" / "queries.graphql"
 _QUERIES_SOURCE = _QUERIES_PATH.read_text()
@@ -198,7 +198,14 @@ def create_pipeline(
         if __name__ == "__main__":
             simple_etl()
     """
-    create_data = _execute_graphql(
+    zipfile_b64 = None
+    if source_code:
+        buf = io.BytesIO()
+        with ZipFile(buf, "w") as zf:
+            zf.writestr("pipeline.py", source_code)
+        zipfile_b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+
+    data = _execute_graphql(
         user,
         "CreatePipeline",
         {
@@ -207,50 +214,10 @@ def create_pipeline(
                 "name": name,
                 "description": description or None,
                 "functionalType": functional_type or None,
-            }
-        },
-    )
-    if "errors" in create_data:
-        return create_data
-    pipeline_result = create_data.get("createPipeline", {})
-    if not pipeline_result.get("success"):
-        return pipeline_result
-
-    pipeline = pipeline_result["pipeline"]
-
-    if not source_code:
-        return {"success": True, "pipeline": pipeline}
-
-    pipeline_id = pipeline["id"]
-    pipeline_code = pipeline["code"]
-
-    buf = io.BytesIO()
-    with ZipFile(buf, "w") as zf:
-        zf.writestr("pipeline.py", source_code)
-    zipfile_b64 = base64.b64encode(buf.getvalue()).decode("ascii")
-
-    version_data = _execute_graphql(
-        user,
-        "UploadPipeline",
-        {
-            "input": {
-                "workspaceSlug": workspace_slug,
-                "code": pipeline_code,
                 "zipfile": zipfile_b64,
-                "name": "",
-                "description": None,
             }
         },
     )
-
-    if "errors" in version_data or not version_data.get("uploadPipeline", {}).get(
-        "success"
-    ):
-        Pipeline.objects.filter(id=pipeline_id).delete()
-        return version_data.get("uploadPipeline", version_data)
-
-    return {
-        "success": True,
-        "pipeline": pipeline,
-        "pipelineVersion": version_data["uploadPipeline"]["pipelineVersion"],
-    }
+    if "errors" in data:
+        return data
+    return data.get("createPipeline", {})

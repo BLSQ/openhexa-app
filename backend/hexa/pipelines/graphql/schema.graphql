@@ -389,6 +389,7 @@ input CreatePipelineInput {
   notebookPath: String  # The path to the notebook file for the pipeline.
   functionalType: PipelineFunctionalType  # The functional type of the pipeline.
   tags: [String!]  # The names of tags to associate with the pipeline.
+  zipfile: String  # Optional base64-encoded ZIP file to upload as the first pipeline version.
 }
 
 """
@@ -398,6 +399,7 @@ type CreatePipelineResult {
   success: Boolean!  # Indicates if the pipeline was created successfully.
   errors: [PipelineError!]!  # The list of errors that occurred during the creation of the pipeline.
   pipeline: Pipeline  # The created pipeline.
+  pipelineVersion: PipelineVersion  # The first pipeline version, if a zipfile was provided.
 }
 
 

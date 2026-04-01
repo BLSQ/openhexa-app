@@ -135,13 +135,6 @@ mutation CreatePipeline($input: CreatePipelineInput!) {
       code
       name
     }
-  }
-}
-
-mutation UploadPipeline($input: UploadPipelineInput!) {
-  uploadPipeline(input: $input) {
-    success
-    errors
     pipelineVersion {
       id
       versionNumber
