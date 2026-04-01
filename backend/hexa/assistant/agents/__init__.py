@@ -9,7 +9,7 @@ from hexa.assistant.instructions import InstructionSet
 if TYPE_CHECKING:
     from hexa.assistant.models import Conversation
 
-_AGENT_REGISTRY: dict[str, type[BaseAgent]] = {
+_AGENT_REGISTRY: dict[InstructionSet, type[BaseAgent]] = {
     InstructionSet.PIPELINE: PipelineAgent,
     InstructionSet.GENERAL: BaseAgent,
 }
