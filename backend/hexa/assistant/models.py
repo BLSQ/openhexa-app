@@ -84,13 +84,9 @@ class Conversation(SoftDeletedModel, Base):
 
     @cached_property
     def agent(self):
-        from hexa.assistant.agents.base import BaseAgent
+        from hexa.assistant.agents import create_agent
 
-        registry: dict[str, type[BaseAgent]] = {
-            cls.instruction_set.value: cls for cls in BaseAgent.__subclasses__()
-        }
-        agent_class = registry.get(self.instruction_set, BaseAgent)
-        return agent_class(self)
+        return create_agent(self)
 
     def __str__(self):
         return f"Conversation({self.id}, user={self.user_id}, workspace={self.workspace_id})"
