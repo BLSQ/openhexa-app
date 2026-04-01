@@ -1,7 +1,13 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.agents.pipeline_agent import PipelineAgent
 from hexa.assistant.instructions import InstructionSet
-from hexa.assistant.models import Conversation
+
+if TYPE_CHECKING:
+    from hexa.assistant.models import Conversation
 
 _AGENT_REGISTRY: dict[InstructionSet, type[BaseAgent]] = {
     InstructionSet.PIPELINE: PipelineAgent,

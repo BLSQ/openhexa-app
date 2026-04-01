@@ -4,7 +4,6 @@ from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 from pydantic_ai.models.test import TestModel
 
-from hexa.assistant.agents import create_agent
 from hexa.assistant.agents.base import BaseAgent, _is_success
 from hexa.assistant.agents.pipeline_agent import PipelineAgent
 from hexa.assistant.instructions import InstructionSet
@@ -89,29 +88,44 @@ class IsSuccessTest(TestCase):
 
 
 class AgentRegistryTest(TestCase):
-    def _make_conversation(self, instruction_set):
-        conv = MagicMock(spec=Conversation)
-        conv.instruction_set = instruction_set
-        return conv
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            "registry-test@example.com", "password", is_superuser=True
+        )
+        with patch("hexa.workspaces.models.create_database"):
+            cls.workspace = Workspace.objects.create_if_has_perm(
+                cls.user, name="Registry Test WS", description="For registry tests"
+            )
 
     def test_pipeline_instruction_set_returns_pipeline_agent(self):
+        conversation = Conversation.objects.create(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.PIPELINE,
+        )
         with _patch_builder(TestModel()):
-            agent = create_agent(self._make_conversation(InstructionSet.PIPELINE))
-        self.assertIsInstance(agent, PipelineAgent)
+            self.assertIsInstance(conversation.agent, PipelineAgent)
 
     def test_general_instruction_set_returns_base_agent(self):
+        conversation = Conversation.objects.create(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.GENERAL,
+        )
         with _patch_builder(TestModel()):
-            agent = create_agent(self._make_conversation(InstructionSet.GENERAL))
-        self.assertIsInstance(agent, BaseAgent)
-        self.assertNotIsInstance(agent, PipelineAgent)
+            self.assertIsInstance(conversation.agent, BaseAgent)
+            self.assertNotIsInstance(conversation.agent, PipelineAgent)
 
     def test_unregistered_instruction_set_defaults_to_base_agent(self):
         # WEBAPPS is a valid InstructionSet value but has no dedicated agent class.
-        conv = MagicMock(spec=Conversation)
-        conv.instruction_set = InstructionSet.WEBAPPS
+        conversation = Conversation.objects.create(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.WEBAPPS,
+        )
         with _patch_builder(TestModel()):
-            agent = create_agent(conv)
-        self.assertIsInstance(agent, BaseAgent)
+            self.assertIsInstance(conversation.agent, BaseAgent)
 
 
 class BaseAgentRunTest(TestCase):
