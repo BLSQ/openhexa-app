@@ -1035,6 +1035,7 @@ input CreatePipelineInput {
   notebookPath: String
   tags: [String!]
   workspaceSlug: String!
+  zipfile: String
 }
 
 """Represents the input for adding a recipient to a pipeline."""
@@ -1048,6 +1049,7 @@ input CreatePipelineRecipientInput {
 type CreatePipelineResult {
   errors: [PipelineError!]!
   pipeline: Pipeline
+  pipelineVersion: PipelineVersion
   success: Boolean!
 }
 

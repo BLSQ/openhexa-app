@@ -1046,6 +1046,7 @@ export type CreatePipelineInput = {
   notebookPath?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug: Scalars['String']['input'];
+  zipfile?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Represents the input for adding a recipient to a pipeline. */
@@ -1060,6 +1061,7 @@ export type CreatePipelineResult = {
   __typename?: 'CreatePipelineResult';
   errors: Array<PipelineError>;
   pipeline?: Maybe<Pipeline>;
+  pipelineVersion?: Maybe<PipelineVersion>;
   success: Scalars['Boolean']['output'];
 };
 
