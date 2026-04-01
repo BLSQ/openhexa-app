@@ -149,11 +149,9 @@ class UpdateStaticWebappTest(MCPTestCase):
         webapp_id = str(create_result["webapp"]["id"])
 
         client.commit_files.assert_called_once()
-        committed_files = client.commit_files.call_args[1].get(
-            "files", client.commit_files.call_args[0][1]
-        )
-        self.assertEqual(committed_files, files)
+        self.assertEqual(client.commit_files.call_args.kwargs["files"], files)
         client.commit_files.reset_mock()
+
         new_files = [{"path": "index.html", "content": "<html>new</html>"}]
         result = update_static_webapp(
             user=self.USER_ADMIN,
@@ -163,10 +161,7 @@ class UpdateStaticWebappTest(MCPTestCase):
         self.assertTrue(result["success"], result)
         self.assertIn(f"/webapps/{webapp_id}/", result["webapp"]["url"])
         client.commit_files.assert_called_once()
-        committed_files = client.commit_files.call_args[1].get(
-            "files", client.commit_files.call_args[0][1]
-        )
-        self.assertEqual(committed_files, new_files)
+        self.assertEqual(client.commit_files.call_args[0][1], new_files)
 
     def test_update_static_webapp_invalid_files_json(self):
         result = update_static_webapp(

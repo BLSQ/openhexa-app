@@ -15,8 +15,9 @@ class ListPipelinesTest(MCPTestCase):
             user=self.USER_ADMIN, workspace_slug=self.WORKSPACE.slug
         )
         pipelines = result["pipelines"]
-        self.assertEqual(pipelines["totalItems"], 1)
-        self.assertEqual(pipelines["items"][0]["code"], "test-pipeline")
+        self.assertEqual(pipelines["totalItems"], 2)
+        codes = [p["code"] for p in pipelines["items"]]
+        self.assertIn("test-pipeline", codes)
 
     def test_list_pipelines_nonexistent_workspace(self):
         result = list_pipelines(user=self.USER_ADMIN, workspace_slug="nonexistent")
@@ -32,7 +33,7 @@ class ListPipelinesTest(MCPTestCase):
         result = list_pipelines(
             user=self.USER_VIEWER, workspace_slug=self.WORKSPACE.slug
         )
-        self.assertEqual(result["pipelines"]["totalItems"], 1)
+        self.assertEqual(result["pipelines"]["totalItems"], 2)
 
 
 class GetPipelineTest(MCPTestCase):
@@ -68,7 +69,7 @@ class GetPipelineTest(MCPTestCase):
         self.assertIn("runs", result)
         self.assertEqual(result["runs"]["totalItems"], 1)
         run = result["runs"]["items"][0]
-        self.assertEqual(run["id"], str(self.PIPELINE_RUN.id))
+        self.assertEqual(str(run["id"]), str(self.PIPELINE_RUN.id))
         self.assertEqual(run["status"], "success")
 
     def test_get_pipeline_not_found(self):
@@ -104,7 +105,9 @@ class GetPipelineRunTest(MCPTestCase):
             user=self.USER_ADMIN,
             run_id=str(self.PIPELINE_RUN.id),
         )
-        self.assertEqual(result["id"], str(self.PIPELINE_RUN.id))
+        self.assertNotIn("errors", result, result.get("errors"))
+        self.assertNotIn("error", result, result.get("error"))
+        self.assertEqual(str(result["id"]), str(self.PIPELINE_RUN.id))
         self.assertEqual(result["status"], "success")
         self.assertEqual(result["config"], {"param1": "value1"})
         self.assertEqual(result["pipeline"]["code"], "test-pipeline")

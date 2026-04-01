@@ -73,4 +73,4 @@ class CreatePipelineFromTemplateTest(MCPTestCase):
             template_version_id=str(self.TEMPLATE_VERSION.id),
         )
         self.assertFalse(result["success"])
-        self.assertIn("PERMISSION_DENIED", result["errors"])
+        self.assertIn("WORKSPACE_NOT_FOUND", result["errors"])

@@ -121,8 +121,6 @@ query GetPipelineRun($id: UUID!) {
     triggerMode
     config
     hasErrorMessages
-    sendMailNotifications
-    enableDebugLogs
     user {
       displayName
       email

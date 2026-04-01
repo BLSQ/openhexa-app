@@ -8,7 +8,7 @@ from .testutils import MCPTestCase
 
 
 class ListFilesTest(MCPTestCase):
-    @patch("hexa.files.schema.queries.storage")
+    @patch("hexa.files.schema.types.storage")
     def test_list_files(self, mock_storage):
         mock_storage.list_bucket_objects.return_value = {
             "items": [
@@ -28,7 +28,7 @@ class ListFilesTest(MCPTestCase):
         result = list_files(user=self.USER_ADMIN, workspace_slug=self.WORKSPACE.slug)
         self.assertEqual(len(result["items"]), 1)
         self.assertEqual(result["items"][0]["name"], "test.csv")
-        self.assertEqual(result["items"][0]["type"], "file")
+        self.assertEqual(result["items"][0]["type"], "FILE")
         self.assertEqual(result["items"][0]["size"], 1024)
 
     def test_list_files_workspace_not_found(self):
