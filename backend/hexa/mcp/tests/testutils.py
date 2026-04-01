@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from hexa.core.test import TestCase
 from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
+from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.pipelines.models import Pipeline, PipelineVersion
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
@@ -93,6 +94,31 @@ class MCPTestCase(TestCase):
             dataset_version=cls.DATASET_VERSION,
             uri="test-file.csv",
             content_type="text/csv",
+        )
+
+        cls.TEMPLATE_SOURCE_PIPELINE = Pipeline.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Template Source",
+            code="template-source",
+        )
+        cls.TEMPLATE_SOURCE_VERSION = PipelineVersion.objects.create(
+            pipeline=cls.TEMPLATE_SOURCE_PIPELINE,
+            user=cls.USER_ADMIN,
+            zipfile=cls.ZIP_CONTENT,
+            parameters=[],
+        )
+        cls.TEMPLATE = PipelineTemplate.objects.create(
+            name="Test Template",
+            code="test-template",
+            description="A test template",
+            workspace=cls.WORKSPACE,
+            source_pipeline=cls.TEMPLATE_SOURCE_PIPELINE,
+        )
+        cls.TEMPLATE_VERSION = PipelineTemplateVersion.objects.create(
+            template=cls.TEMPLATE,
+            version_number=1,
+            user=cls.USER_ADMIN,
+            source_pipeline_version=cls.TEMPLATE_SOURCE_VERSION,
         )
 
         cls.CONNECTION = Connection.objects.create_if_has_perm(
