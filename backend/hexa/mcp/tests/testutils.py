@@ -1,11 +1,20 @@
 import io
 import zipfile
+from datetime import timedelta
 from unittest.mock import patch
+
+from django.utils import timezone
 
 from hexa.core.test import TestCase
 from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
-from hexa.pipelines.models import Pipeline, PipelineVersion
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineRun,
+    PipelineRunState,
+    PipelineRunTrigger,
+    PipelineVersion,
+)
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Connection,
@@ -73,6 +82,18 @@ class MCPTestCase(TestCase):
                     "choices": [],
                 }
             ],
+        )
+
+        cls.PIPELINE_RUN = PipelineRun.objects.create(
+            pipeline=cls.PIPELINE,
+            pipeline_version=cls.PIPELINE_VERSION,
+            user=cls.USER_ADMIN,
+            run_id="test-run-1",
+            execution_date=timezone.now(),
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            state=PipelineRunState.SUCCESS,
+            duration=timedelta(seconds=42),
+            config={"param1": "value1"},
         )
 
         cls.DATASET = Dataset.objects.create_if_has_perm(
