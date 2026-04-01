@@ -24,11 +24,11 @@ def _failing_tool(arg: str) -> dict:
 
 
 class _AgentWithFakeTool(BaseAgent):
-    tool_names = [_fake_tool]
+    tools = [_fake_tool]
 
 
 class _AgentWithFailingTool(BaseAgent):
-    tool_names = [_failing_tool]
+    tools = [_failing_tool]
 
 
 def _make_tool_call_model(tool_name: str, tool_args: dict) -> FunctionModel:

@@ -45,7 +45,7 @@ _NAMING_INSTRUCTIONS = (
 
 class BaseAgent:
     instruction_set = InstructionSet.GENERAL
-    tool_names: list = []
+    tools: list = []
 
     def __init__(self, conversation: Conversation):
         self.conversation = conversation
@@ -57,14 +57,15 @@ class BaseAgent:
         self.agent = Agent(
             model=self._model,
             instructions=get_instructions(self.instruction_set),
-            tools=self._get_tools(),
+            tools=self._tools_with_context,
         )
 
-    def _get_tools(self) -> list:
-        context = self._get_context()
-        return [bind_context(func, context) for func in self.tool_names]
+    @property
+    def _tools_with_context(self) -> list:
+        return [bind_context(func, self._context) for func in self.tools]
 
-    def _get_context(self) -> dict:
+    @property
+    def _context(self) -> dict:
         return {
             "user": self.conversation.user,
             "workspace_slug": self.conversation.workspace.slug,
