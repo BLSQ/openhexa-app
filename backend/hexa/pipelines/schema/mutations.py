@@ -138,7 +138,12 @@ def resolve_create_pipeline(_, info, **kwargs):
             "details": str(e),
         }
 
-    return {"pipeline": pipeline, "pipelineVersion": version, "success": True, "errors": []}
+    return {
+        "pipeline": pipeline,
+        "pipelineVersion": version,
+        "success": True,
+        "errors": [],
+    }
 
 
 @pipelines_mutations.field("updatePipeline")
