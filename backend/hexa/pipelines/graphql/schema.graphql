@@ -67,6 +67,7 @@ enum ParameterType {
   gcs
   custom
   file
+  secret
 }
 
 """

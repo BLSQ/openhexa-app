@@ -170,6 +170,19 @@ const ParameterField = (props: ParameterFieldProps) => {
           data-testid={`${parameter.code}-input`}
         />
       );
+    case "secret":
+      return (
+        <Input
+          type="password"
+          fullWidth
+          aria-label={parameter.code}
+          name={parameter.code}
+          required={Boolean(parameter.required)}
+          onChange={(event) => handleChange(event.target.value)}
+          value={value ?? ""}
+          data-testid={`${parameter.code}-input`}
+        />
+      );
   }
   return null;
 };
