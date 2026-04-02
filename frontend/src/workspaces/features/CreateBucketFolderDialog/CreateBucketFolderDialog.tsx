@@ -51,7 +51,7 @@ const CreateBucketFolderDialog = (props: CreateBucketFolderDialogProps) => {
       onClose={onClose}
       maxWidth="max-w-2xl"
     >
-      <Dialog.Title>{t("Create a folder")}</Dialog.Title>
+      <Dialog.Title onClose={onClose}>{t("Create a folder")}</Dialog.Title>
       <Dialog.Content>
         <Field label={t("Folder name")} required name="folderName">
           <div className="flex w-full items-center gap-1.5">

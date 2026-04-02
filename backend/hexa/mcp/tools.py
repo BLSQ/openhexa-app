@@ -1,17 +1,22 @@
+import base64
+import io
 from pathlib import Path
+from zipfile import ZipFile
 
 from django.http import HttpRequest
 from graphql import graphql_sync
 
-from config.schema import schema
-
-from .protocol import tool
+from hexa.mcp.protocol import tool
+from hexa.pipelines.models import PipelineFunctionalType
 
 _QUERIES_PATH = Path(__file__).parent / "graphql" / "queries.graphql"
 _QUERIES_SOURCE = _QUERIES_PATH.read_text()
 
 
-def _execute_graphql(user, operation_name, variables=None):
+def _execute_graphql(user, operation_name: str, variables=None):
+    # Lazy import to avoid possible circular dependencies
+    from config.schema import schema
+
     request = HttpRequest()
     request.user = user
     request.bypass_two_factor = True
@@ -73,7 +78,7 @@ def list_datasets(user, workspace_slug: str, page: int = 1, per_page: int = 10) 
         return data
     workspace = data.get("workspace")
     if workspace is None:
-        return {"error": "Workspace not found"}
+        return {"errors": ["Workspace not found"]}
     page_data = workspace["datasets"]
     page_data["items"] = [item["dataset"] for item in page_data["items"]]
     return {"datasets": page_data}
@@ -91,7 +96,7 @@ def get_dataset(user, workspace_slug: str, dataset_slug: str) -> dict:
         return data
     link = data.get("datasetLinkBySlug")
     if link is None:
-        return {"error": "Dataset not found"}
+        return {"errors": ["Dataset not found"]}
     return link["dataset"]
 
 
@@ -114,7 +119,7 @@ def list_files(
         return data
     workspace = data.get("workspace")
     if workspace is None:
-        return {"error": "Workspace not found"}
+        return {"errors": ["Workspace not found"]}
     return workspace["bucket"]["objects"]
 
 
@@ -149,3 +154,70 @@ def write_file(user, workspace_slug: str, file_path: str, content: str) -> dict:
     if "errors" in data:
         return data
     return data["writeFileContent"]
+
+
+@tool
+def create_pipeline(
+    user,
+    workspace_slug: str,
+    name: str,
+    description: str = "",
+    functional_type: PipelineFunctionalType | None = None,
+    source_code: str | None = None,
+) -> dict:
+    """Create a new pipeline in the current workspace. Optionally upload Python source code as the first version (v1).
+
+    Always provide a meaningful description summarizing what the pipeline does.
+    If the pipeline has no clear purpose or is blank, use "" as the description.
+    Only name, description, and functional_type are supported at creation time.
+
+    If source_code is omitted, the pipeline is created without any version.
+
+    The source_code must follow this structure:
+
+        from openhexa.sdk import current_run, pipeline
+
+
+        @pipeline("Simple ETL")
+        def simple_etl():
+            count = task_1()
+            task_2(count)
+
+
+        @simple_etl.task
+        def task_1():
+            current_run.log_info("In task 1...")
+            return 42
+
+
+        @simple_etl.task
+        def task_2(count):
+            current_run.log_info(f"In task 2... count is {count}")
+
+
+        if __name__ == "__main__":
+            simple_etl()
+    """
+    zipfile_b64 = None
+    if source_code:
+        buf = io.BytesIO()
+        with ZipFile(buf, "w") as zf:
+            zf.writestr("pipeline.py", source_code)
+        zipfile_b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+
+    data = _execute_graphql(
+        user,
+        "CreatePipeline",
+        {
+            "input": {
+                "workspaceSlug": workspace_slug,
+                "name": name,
+                "description": description or None,
+                "functionalType": functional_type or None,
+                "zipfile": zipfile_b64,
+            }
+        },
+    )
+    if "errors" in data:
+        return data
+    return data.get("createPipeline", {})

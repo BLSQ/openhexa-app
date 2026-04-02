@@ -6,6 +6,7 @@ type AssistantMessagePage {
 
 type AssistantConversation {
   id: UUID!
+  name: String
   createdAt: DateTime!
   updatedAt: DateTime!
   totalInputTokens: Int!

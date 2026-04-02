@@ -1,0 +1,37 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Content-Type:
+      - application/json
+    method: POST
+    uri: https://api.anthropic.com/v1/messages
+  response:
+    body:
+      string: '{"id":"msg_01SimpleChat01","type":"message","role":"assistant","content":[{"type":"text","text":"Hello!
+        I am OpenHEXA Assistant. I can help you work with pipelines, datasets, workspaces,
+        and data infrastructure. What would you like to do?"}],"model":"claude-haiku-4-5-20251001","stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":65,"output_tokens":32}}'
+    headers:
+      Content-Type:
+      - application/json
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Content-Type:
+      - application/json
+    method: POST
+    uri: https://api.anthropic.com/v1/messages
+  response:
+    body:
+      string: '{"id":"msg_01NamingAgent01","type":"message","role":"assistant","content":[{"type":"text","text":"Hello
+        OpenHEXA"}],"model":"claude-haiku-4-5-20251001","stop_reason":"end_turn","stop_sequence":null,"usage":{"input_tokens":28,"output_tokens":4}}'
+    headers:
+      Content-Type:
+      - application/json
+    status:
+      code: 200
+      message: OK
+version: 1

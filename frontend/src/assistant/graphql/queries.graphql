@@ -4,16 +4,12 @@ query AssistantPage($workspaceSlug: String!) {
     ...WorkspaceLayout_workspace
     assistantConversations {
       id
+      name
       createdAt
     }
   }
   me {
     assistantMonthlyLimitExceeded
-    user {
-      aiSettings {
-        enabled
-      }
-    }
   }
 }
 
