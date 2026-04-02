@@ -1,19 +1,25 @@
 from django.conf import settings
 from django.http import (
     HttpRequest,
-    HttpResponseNotFound,
+    HttpResponse,
     HttpResponseRedirect,
 )
+from django.template.loader import render_to_string
 
 from hexa.webapps.models import GitWebapp, Webapp
 from hexa.webapps.views import serve_webapp
+
+
+def _webapp_not_found():
+    html = render_to_string("webapps/404.html")
+    return HttpResponse(html, status=404)
 
 
 def _serve_static_webapp(webapp, request):
     try:
         git_webapp = GitWebapp.objects.get(pk=webapp.pk)
     except GitWebapp.DoesNotExist:
-        return HttpResponseNotFound("Webapp not found")
+        return _webapp_not_found()
 
     path = request.path.lstrip("/") or "index.html"
     response = serve_webapp(request, git_webapp, path)
@@ -51,7 +57,7 @@ def webapp_subdomain_middleware(get_response):
         try:
             webapp = Webapp.objects.get(subdomain=subdomain)
         except Webapp.DoesNotExist:
-            return HttpResponseNotFound("Webapp not found")
+            return _webapp_not_found()
 
         if not webapp.is_public:
             # TODO: check if short-lived token is present, if not redirect to
