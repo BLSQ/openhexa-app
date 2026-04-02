@@ -16,7 +16,7 @@ x-app: &common
       - CSRF_COOKIE_SECURE=False
       - SECURE_SSL_REDIRECT=False
       - PIPELINE_SCHEDULER_SPAWNER=docker
-      - WEBAPPS_SUBDOMAIN_BASE_URL=webapps.lvh.me
+      - WEBAPPS_SUBDOMAIN_BASE_URL=webapps.lvh.me:8000
 
     networks:
       - openhexa

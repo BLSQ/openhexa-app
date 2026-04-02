@@ -9,9 +9,7 @@ from hexa.webapps.models import create_webapp_subdomain
 def initialize_subdomains(apps, schema_editor):
     from hexa.webapps.models import Webapp
 
-    for webapp in Webapp.objects.filter(
-        subdomain__isnull=True,
-    ):
+    for webapp in Webapp.objects.filter(subdomain__isnull=True):
         webapp.subdomain = create_webapp_subdomain(webapp.slug, webapp.workspace)
         webapp.save(update_fields=["subdomain"])
 
