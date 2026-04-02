@@ -14,8 +14,8 @@ import os
 from unittest.mock import patch
 
 import vcr
-from vcr.record_mode import RecordMode
 from django.test import TestCase, tag
+from vcr.record_mode import RecordMode
 
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.instructions import InstructionSet
