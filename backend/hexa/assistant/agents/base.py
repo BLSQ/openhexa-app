@@ -1,3 +1,4 @@
+import json
 import logging
 from decimal import Decimal
 
@@ -13,23 +14,66 @@ from pydantic_ai.messages import (
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.model_builder import AiModelBuilder
 from hexa.assistant.models import Conversation, Message, ToolInvocation
+from hexa.assistant.tool_binding import bind_context
 
 logger = logging.getLogger(__name__)
 
 
-class AssistantAgent:
+def _is_success(content) -> bool:
+    if isinstance(content, str):
+        try:
+            data = json.loads(content)
+        except ValueError:
+            return False
+    else:
+        data = content
+    if not isinstance(data, dict):
+        return True
+    if data.get("errors"):
+        return False
+    for value in data.values():
+        if isinstance(value, dict) and value.get("errors"):
+            return False
+    return True
+
+
+_NAMING_INSTRUCTIONS = (
+    "Generate a short title (max 5 words) for a conversation based on the user's first message. "
+    "Reply with only the title, no punctuation, no quotes."
+)
+
+
+class BaseAgent:
+    instruction_set = InstructionSet.GENERAL
+    tools: list = []
+
     def __init__(self, conversation: Conversation):
         self.conversation = conversation
         builder = AiModelBuilder.from_conversation(conversation)
         self._model_api_name = builder.model_api_name
         self._provider_id = builder.provider_id
-        instruction_set = InstructionSet(conversation.instruction_set)
+        self._model = builder.build()
+
         self.agent = Agent(
-            model=builder.build(),
-            instructions=get_instructions(instruction_set),
+            model=self._model,
+            instructions=get_instructions(self.instruction_set),
+            tools=self._tools_with_context,
         )
 
+    @property
+    def _tools_with_context(self) -> list:
+        return [bind_context(func, self._context) for func in self.tools]
+
+    @property
+    def _context(self) -> dict:
+        return {
+            "user": self.conversation.user,
+            "workspace_slug": self.conversation.workspace.slug,
+        }
+
     def run(self, user_input: str) -> str:
+        is_first_message = self.conversation.name is None
+
         Message.objects.create(
             conversation=self.conversation,
             role=Message.Role.USER,
@@ -71,18 +115,23 @@ class AssistantAgent:
                     tool_invocations[part.tool_call_id] = ToolInvocation(
                         tool_call_id=part.tool_call_id,
                         tool_name=part.tool_name,
-                        tool_input=part.args,
+                        tool_input=json.loads(json.dumps(part.args, default=str)),
                     )
                 elif isinstance(part, ToolReturnPart):
                     logger.info("agent.run: tool_return call_id=%s", part.tool_call_id)
+                    success = _is_success(part.content)
+                    tool_output = json.loads(json.dumps(part.content, default=str))
                     try:
-                        tool_invocations[part.tool_call_id].tool_output = part.content
+                        invocation = tool_invocations[part.tool_call_id]
+                        invocation.tool_output = tool_output
+                        invocation.success = success
                     except KeyError:
                         tool_invocations[part.tool_call_id] = ToolInvocation(
                             tool_call_id=part.tool_call_id,
                             tool_name=part.tool_name,
                             tool_input="",
-                            tool_output=part.content,
+                            tool_output=tool_output,
+                            success=success,
                         )
 
         usage = result.usage()
@@ -117,17 +166,40 @@ class AssistantAgent:
         self.conversation.messages_history = ModelMessagesTypeAdapter.dump_python(
             result.all_messages(), mode="json"
         )
-        self.conversation.save(
-            update_fields=[
-                "total_input_tokens",
-                "total_output_tokens",
-                "cost",
-                "messages_history",
-                "updated_at",
-            ]
-        )
+
+        update_fields = [
+            "total_input_tokens",
+            "total_output_tokens",
+            "cost",
+            "messages_history",
+            "updated_at",
+        ]
+        if is_first_message:
+            name, naming_usage = self._generate_conversation_name(user_input)
+            self.conversation.name = name
+            naming_cost = self._get_cost(naming_usage)
+            if naming_cost is not None:
+                self.conversation.cost += naming_cost
+            update_fields.append("name")
+
+        self.conversation.save(update_fields=update_fields)
 
         return response_text
+
+    def _generate_conversation_name(self, user_input: str) -> tuple[str, RunUsage]:
+        # TODO: Execute in parallel for performance
+        # TODO: Use smaller, cheaper models for these small "utility agents"
+        naming_agent = Agent(model=self._model, instructions=_NAMING_INSTRUCTIONS)
+        try:
+            result = naming_agent.run_sync(user_input)
+            return result.output.strip()[:50], result.usage()
+        except Exception:
+            logger.warning(
+                "agent.run: conversation naming failed, falling back to truncation"
+            )
+            text = " ".join(user_input.split())
+            truncated = text[:50].rsplit(" ", 1)[0]
+            return truncated or text[:50], RunUsage()
 
     def _get_cost(self, usage: RunUsage) -> Decimal | None:
         cost: Decimal | None = None

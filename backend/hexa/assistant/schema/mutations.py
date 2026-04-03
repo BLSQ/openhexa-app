@@ -4,7 +4,6 @@ from ariadne import MutationType
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 
-from hexa.assistant.agent import AssistantAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 from hexa.workspaces.models import Workspace
@@ -77,8 +76,7 @@ def resolve_send_assistant_message(_, info, input, **kwargs):
         }
 
     try:
-        agent = AssistantAgent(conversation)
-        agent.run(input["message"])
+        conversation.agent.run(input["message"])
     except Exception as e:
         logger.exception("Failed to send assistant message", exc_info=e)
         return {

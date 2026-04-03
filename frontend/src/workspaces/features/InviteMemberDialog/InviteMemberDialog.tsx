@@ -102,7 +102,7 @@ const InviteMemberDialog = (props: InviteMemberDialogProps) => {
 
   return (
     <Dialog open={open} onClose={handleClose} onSubmit={form.handleSubmit}>
-      <Dialog.Title>{t("Add or invite member")}</Dialog.Title>
+      <Dialog.Title onClose={handleClose}>{t("Add or invite member")}</Dialog.Title>
       <Dialog.Content className="space-y-4">
         <Field name="email" label={t("User")} type="email" required>
           <UserPicker

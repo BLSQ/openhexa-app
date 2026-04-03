@@ -1,5 +1,6 @@
 from datetime import timedelta
 from decimal import Decimal
+from functools import cached_property
 
 from django.core.exceptions import PermissionDenied
 from django.db import models
@@ -80,6 +81,12 @@ class Conversation(SoftDeletedModel, Base):
                 name="asst_conv_user_cost_idx",
             ),
         ]
+
+    @cached_property
+    def agent(self):
+        from hexa.assistant.agents import create_agent
+
+        return create_agent(self)
 
     def __str__(self):
         return f"Conversation({self.id}, user={self.user_id}, workspace={self.workspace_id})"

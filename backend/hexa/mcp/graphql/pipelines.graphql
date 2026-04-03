@@ -156,3 +156,19 @@ mutation UpdatePipeline($input: UpdatePipelineInput!) {
     }
   }
 }
+
+mutation CreatePipeline($input: CreatePipelineInput!) {
+  createPipeline(input: $input) {
+    success
+    errors
+    pipeline {
+      id
+      code
+      name
+    }
+    pipelineVersion {
+      id
+      versionNumber
+    }
+  }
+}

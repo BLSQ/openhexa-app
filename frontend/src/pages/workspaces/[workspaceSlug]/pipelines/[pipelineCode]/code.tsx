@@ -3,7 +3,6 @@ import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
 import { PipelineFilesEditor } from "workspaces/features/FilesEditor/PipelineFilesEditor";
-import { FilesEditor } from "workspaces/features/FilesEditor";
 import {
   useGetPipelineVersionFilesLazyQuery,
   useWorkspacePipelineCodePageQuery,

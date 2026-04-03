@@ -21,6 +21,9 @@ query GetUser {
         initials
         color
       }
+      aiSettings {
+        enabled
+      }
     }
   }
 }

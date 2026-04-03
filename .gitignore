@@ -73,3 +73,7 @@ frontend/*.tsbuildinfo
 
 # MkDocs
 site/
+
+
+# Logfire observability (credentials for local development)
+backend/.logfire/

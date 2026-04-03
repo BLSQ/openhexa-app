@@ -18,6 +18,11 @@ mutation sendAssistantMessage($input: SendAssistantMessageInput!) {
       role
       content
       createdAt
+      toolInvocations {
+        toolName
+        toolOutput
+        success
+      }
     }
   }
 }

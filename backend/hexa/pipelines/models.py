@@ -539,7 +539,7 @@ class Pipeline(SoftDeletedModel):
         self,
         user: User,
         parameters: list[dict],
-        name: str,
+        name: str = None,
         zipfile: str = None,
         description: str = None,
         config: typing.Mapping[typing.Dict, typing.Any] | None = None,

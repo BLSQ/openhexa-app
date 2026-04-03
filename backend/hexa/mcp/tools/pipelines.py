@@ -1,6 +1,10 @@
+import base64
+import io
 import json
+from zipfile import ZipFile
 
 from hexa.mcp.protocol import tool
+from hexa.pipelines.models import PipelineFunctionalType
 
 from ._graphql import execute_graphql
 
@@ -99,3 +103,70 @@ def update_pipeline(
     if "errors" in data:
         return data
     return data["updatePipeline"]
+
+
+@tool
+def create_pipeline(
+    user,
+    workspace_slug: str,
+    name: str,
+    description: str = "",
+    functional_type: PipelineFunctionalType | None = None,
+    source_code: str | None = None,
+) -> dict:
+    """Create a new pipeline in the current workspace. Optionally upload Python source code as the first version (v1).
+
+    Always provide a meaningful description summarizing what the pipeline does.
+    If the pipeline has no clear purpose or is blank, use "" as the description.
+    Only name, description, and functional_type are supported at creation time.
+
+    If source_code is omitted, the pipeline is created without any version.
+
+    The source_code must follow this structure:
+
+        from openhexa.sdk import current_run, pipeline
+
+
+        @pipeline("Simple ETL")
+        def simple_etl():
+            count = task_1()
+            task_2(count)
+
+
+        @simple_etl.task
+        def task_1():
+            current_run.log_info("In task 1...")
+            return 42
+
+
+        @simple_etl.task
+        def task_2(count):
+            current_run.log_info(f"In task 2... count is {count}")
+
+
+        if __name__ == "__main__":
+            simple_etl()
+    """
+    zipfile_b64 = None
+    if source_code:
+        buf = io.BytesIO()
+        with ZipFile(buf, "w") as zf:
+            zf.writestr("pipeline.py", source_code)
+        zipfile_b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+
+    data = execute_graphql(
+        user,
+        "CreatePipeline",
+        {
+            "input": {
+                "workspaceSlug": workspace_slug,
+                "name": name,
+                "description": description or None,
+                "functionalType": functional_type or None,
+                "zipfile": zipfile_b64,
+            }
+        },
+    )
+    if "errors" in data:
+        return data
+    return data.get("createPipeline", {})
