@@ -252,12 +252,22 @@ type DeleteDatasetResult {
 }
 
 """
+Inline file content to include when creating a dataset version.
+"""
+input DatasetVersionFileContentInput {
+  uri: String!
+  contentType: String!
+  content: String!
+}
+
+"""
 Input for creating a dataset version.
 """
 input CreateDatasetVersionInput {
   datasetId: ID!
   name: String!
   changelog: String
+  files: [DatasetVersionFileContentInput!]
 }
 
 """
@@ -267,6 +277,7 @@ enum CreateDatasetVersionError {
   DATASET_NOT_FOUND
   DUPLICATE_NAME
   PERMISSION_DENIED
+  FILE_UPLOAD_FAILED
 }
 
 """

@@ -885,6 +885,7 @@ export type CreateDatasetResult = {
 export enum CreateDatasetVersionError {
   DatasetNotFound = 'DATASET_NOT_FOUND',
   DuplicateName = 'DUPLICATE_NAME',
+  FileUploadFailed = 'FILE_UPLOAD_FAILED',
   PermissionDenied = 'PERMISSION_DENIED'
 }
 
@@ -922,6 +923,7 @@ export type CreateDatasetVersionFileResult = {
 export type CreateDatasetVersionInput = {
   changelog?: InputMaybe<Scalars['String']['input']>;
   datasetId: Scalars['ID']['input'];
+  files?: InputMaybe<Array<DatasetVersionFileContentInput>>;
   name: Scalars['String']['input'];
 };
 
@@ -929,6 +931,7 @@ export type CreateDatasetVersionInput = {
 export type CreateDatasetVersionResult = {
   __typename?: 'CreateDatasetVersionResult';
   errors: Array<CreateDatasetVersionError>;
+  files?: Maybe<Array<DatasetVersionFile>>;
   success: Scalars['Boolean']['output'];
   version?: Maybe<DatasetVersion>;
 };
@@ -1632,6 +1635,13 @@ export type DatasetVersionFile = MetadataObject & {
 /** A file in a dataset version. */
 export type DatasetVersionFileDownloadUrlArgs = {
   attachment?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** Inline file content to include when creating a dataset version. */
+export type DatasetVersionFileContentInput = {
+  content: Scalars['String']['input'];
+  contentType: Scalars['String']['input'];
+  uri: Scalars['String']['input'];
 };
 
 /** A page of dataset version files. */

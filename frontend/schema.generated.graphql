@@ -834,6 +834,7 @@ type CreateDatasetResult {
 enum CreateDatasetVersionError {
   DATASET_NOT_FOUND
   DUPLICATE_NAME
+  FILE_UPLOAD_FAILED
   PERMISSION_DENIED
 }
 
@@ -869,12 +870,14 @@ type CreateDatasetVersionFileResult {
 input CreateDatasetVersionInput {
   changelog: String
   datasetId: ID!
+  files: [DatasetVersionFileContentInput!]
   name: String!
 }
 
 """Result of creating a dataset version."""
 type CreateDatasetVersionResult {
   errors: [CreateDatasetVersionError!]!
+  files: [DatasetVersionFile!]
   success: Boolean!
   version: DatasetVersion
 }
@@ -1550,6 +1553,13 @@ type DatasetVersionFile implements MetadataObject {
   rows: Int
   size: BigInt!
   targetId: OpaqueID!
+  uri: String!
+}
+
+"""Inline file content to include when creating a dataset version."""
+input DatasetVersionFileContentInput {
+  content: String!
+  contentType: String!
   uri: String!
 }
 
