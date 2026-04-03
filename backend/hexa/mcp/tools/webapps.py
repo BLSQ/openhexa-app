@@ -24,9 +24,8 @@ def create_static_webapp(
     name: str,
     files_json: str,
     description: str = "",
-    is_public: bool = False,
 ) -> dict:
-    """Create a static web app in a workspace. Provide files_json as a JSON array of {path, content} objects, e.g. '[{"path": "index.html", "content": "<html>...</html>"}, {"path": "style.css", "content": "body { ... }"}]'. An index.html file is required at minimum. Set is_public=true to make the webapp accessible without authentication. Returns the webapp URL to access it in a browser."""
+    """Create a static web app in a workspace. Provide files_json as a JSON array of {path, content} objects, e.g. '[{"path": "index.html", "content": "<html>...</html>"}, {"path": "style.css", "content": "body { ... }"}]'. An index.html file is required at minimum. Returns the webapp URL to access it in a browser."""
     try:
         files = json.loads(files_json)
     except json.JSONDecodeError:
@@ -40,7 +39,6 @@ def create_static_webapp(
     create_input: dict = {
         "workspaceSlug": workspace_slug,
         "name": name,
-        "isPublic": is_public,
         "source": {"static": files},
     }
     if description:
@@ -63,7 +61,6 @@ def update_static_webapp(
     files_json: str = "",
     name: str = "",
     description: str = "",
-    is_public: bool = False,
 ) -> dict:
     """Update an existing static web app. Provide the webapp UUID (from list_static_webapps) and any fields to change. To update files, provide files_json as a JSON array of {path, content} objects — this replaces all files. Only provided non-empty fields are updated."""
     update_input: dict = {"id": webapp_id}
@@ -71,8 +68,6 @@ def update_static_webapp(
         update_input["name"] = name
     if description:
         update_input["description"] = description
-    if is_public:
-        update_input["isPublic"] = is_public
     if files_json:
         try:
             files = json.loads(files_json)
