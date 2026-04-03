@@ -1,0 +1,96 @@
+query ListPipelineTemplates($page: Int, $perPage: Int, $search: String) {
+  pipelineTemplates(page: $page, perPage: $perPage, search: $search) {
+    pageNumber
+    totalPages
+    totalItems
+    items {
+      id
+      name
+      code
+      description
+      functionalType
+      pipelinesCount
+      validatedAt
+      tags {
+        name
+      }
+      currentVersion {
+        id
+        versionNumber
+        createdAt
+      }
+    }
+  }
+}
+
+query GetPipelineTemplate($code: String!) {
+  templateByCode(code: $code) {
+    id
+    name
+    code
+    description
+    config
+    functionalType
+    updatedAt
+    tags {
+      name
+    }
+    currentVersion {
+      id
+      versionNumber
+      changelog
+      createdAt
+      sourcePipelineVersion {
+        parameters {
+          code
+          name
+          type
+          required
+          default
+          help
+        }
+        files {
+          name
+          path
+          type
+          content
+          language
+          lineCount
+        }
+      }
+    }
+    versions(page: 1, perPage: 10) {
+      totalItems
+      items {
+        id
+        versionNumber
+        changelog
+        createdAt
+      }
+    }
+  }
+}
+
+mutation CreatePipelineFromTemplate($input: CreatePipelineFromTemplateVersionInput!) {
+  createPipelineFromTemplateVersion(input: $input) {
+    success
+    errors
+    pipeline {
+      id
+      code
+      name
+      description
+      workspace {
+        slug
+      }
+      currentVersion {
+        id
+        versionName
+      }
+      sourceTemplate {
+        name
+        code
+      }
+    }
+  }
+}

@@ -1,0 +1,115 @@
+query ListDatasets($workspaceSlug: String!, $query: String, $page: Int, $perPage: Int) {
+  workspace(slug: $workspaceSlug) {
+    datasets(query: $query, page: $page, perPage: $perPage) {
+      pageNumber
+      totalPages
+      totalItems
+      items {
+        dataset {
+          id
+          slug
+          name
+          description
+          createdAt
+          updatedAt
+          workspace {
+            slug
+          }
+        }
+      }
+    }
+  }
+}
+
+query GetDataset($workspaceSlug: String!, $datasetSlug: String!, $versionsPage: Int, $versionsPerPage: Int) {
+  datasetLinkBySlug(workspaceSlug: $workspaceSlug, datasetSlug: $datasetSlug) {
+    dataset {
+      id
+      slug
+      name
+      description
+      createdAt
+      updatedAt
+      workspace {
+        slug
+      }
+      permissions {
+        update
+        createVersion
+      }
+      latestVersion {
+        id
+        name
+        changelog
+        createdAt
+        files(page: 1, perPage: 50) {
+          totalItems
+          items {
+            id
+            filename
+            contentType
+            size
+            rows
+            createdAt
+          }
+        }
+      }
+      versions(page: $versionsPage, perPage: $versionsPerPage) {
+        pageNumber
+        totalPages
+        totalItems
+        items {
+          id
+          name
+          changelog
+          createdAt
+        }
+      }
+    }
+  }
+}
+
+query PreviewDatasetFile($id: ID!) {
+  datasetVersionFile(id: $id) {
+    id
+    filename
+    contentType
+    size
+    rows
+    properties
+    fileSample {
+      sample
+      status
+      statusReason
+    }
+  }
+}
+
+mutation CreateDataset($input: CreateDatasetInput!) {
+  createDataset(input: $input) {
+    success
+    errors
+    dataset {
+      id
+      slug
+      name
+      description
+      workspace {
+        slug
+      }
+    }
+  }
+}
+
+mutation CreateDatasetVersion($input: CreateDatasetVersionInput!) {
+  createDatasetVersion(input: $input) {
+    success
+    errors
+    version {
+      id
+      name
+      changelog
+      createdAt
+    }
+  }
+}
