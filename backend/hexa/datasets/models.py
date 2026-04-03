@@ -1,12 +1,14 @@
+import io
 import logging
 import math
 import secrets
 from functools import cached_property
 
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db import models
+from django.db import models, transaction
 from django.db.models import JSONField, Prefetch, Q
 from django.utils.translation import gettext_lazy as _
 from dpq.models import BaseJob
@@ -14,10 +16,15 @@ from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.datasets.api import get_blob
+from hexa.files import storage
 from hexa.metadata.models import MetadataMixin
 from hexa.user_management.models import OrganizationMembershipRole, User
 
 logger = logging.getLogger(__name__)
+
+
+class FileUploadError(Exception):
+    pass
 
 
 def create_dataset_slug(name: str, workspace):
@@ -216,7 +223,13 @@ class DatasetVersionQuerySet(BaseQuerySet):
 
 class DatasetVersionManager(models.Manager):
     def create_if_has_perm(
-        self, principal: User, dataset: Dataset, *, name: str, changelog: str
+        self,
+        principal: User,
+        dataset: Dataset,
+        *,
+        name: str,
+        changelog: str,
+        files: list[dict] | None = None,
     ):
         # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
         from hexa.pipelines.authentication import PipelineRunUser
@@ -230,13 +243,40 @@ class DatasetVersionManager(models.Manager):
         pipeline_run = (
             principal.pipeline_run if isinstance(principal, PipelineRunUser) else None
         )
-        version = self.create(
-            name=name,
-            dataset=dataset,
-            created_by=created_by,
-            changelog=changelog,
-            pipeline_run=pipeline_run,
-        )
+
+        uploaded_uris = []
+        with transaction.atomic():
+            version = self.create(
+                name=name,
+                dataset=dataset,
+                created_by=created_by,
+                changelog=changelog,
+                pipeline_run=pipeline_run,
+            )
+
+            if files:
+                try:
+                    for file_input in files:
+                        full_uri = version.get_full_uri(file_input["uri"])
+                        file = DatasetVersionFile.objects.create_if_has_perm(
+                            principal=principal,
+                            dataset_version=version,
+                            uri=full_uri,
+                            content_type=file_input["content_type"],
+                        )
+
+                        content = file_input["content"].encode("utf-8")
+                        storage.save_object(
+                            settings.WORKSPACE_DATASETS_BUCKET,
+                            full_uri,
+                            io.BytesIO(content),
+                        )
+                        uploaded_uris.append(full_uri)
+
+                        file.generate_metadata()
+                except Exception as e:
+                    logger.warning("Failed to clean up uploaded file %s", full_uri)
+                    raise FileUploadError(str(e)) from e
 
         return version
 
