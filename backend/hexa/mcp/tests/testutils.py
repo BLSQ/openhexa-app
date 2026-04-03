@@ -3,10 +3,12 @@ import zipfile
 from datetime import timedelta
 from unittest.mock import patch
 
+from django.conf import settings
 from django.utils import timezone
 
 from hexa.core.test import TestCase
 from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
+from hexa.files import storage
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.pipelines.models import (
     Pipeline,
@@ -31,6 +33,9 @@ from hexa.workspaces.models import (
 class MCPTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
+        storage.reset()
+        storage.create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
+
         cls.USER_ADMIN = User.objects.create_user(
             "admin@openhexa.org", "password", is_superuser=True
         )
