@@ -1,3 +1,5 @@
+import json
+
 from hexa.mcp.protocol import tool
 
 from ._graphql import execute_graphql
@@ -86,19 +88,30 @@ def create_dataset(user, workspace_slug: str, name: str, description: str = "") 
 
 @tool
 def create_dataset_version(
-    user, dataset_id: str, name: str, changelog: str = ""
+    user, dataset_id: str, name: str, changelog: str = "", files_json: str = ""
 ) -> dict:
-    """Create a new version of a dataset. Requires the dataset ID (from get_dataset or create_dataset) and a version name (e.g. 'v1', '2024-01'). Optionally provide a changelog describing what changed."""
+    r"""Create a new version of a dataset with optional inline files. Requires the dataset ID (from get_dataset or create_dataset) and a version name (e.g. 'v1', '2024-01'). Optionally provide a changelog describing what changed. To include files, provide files_json as a JSON array of {uri, contentType, content} objects, e.g. '[{"uri": "data.csv", "contentType": "text/csv", "content": "a,b\n1,2"}]'."""
+    gql_input: dict = {
+        "datasetId": dataset_id,
+        "name": name,
+        "changelog": changelog or None,
+    }
+
+    if files_json:
+        try:
+            files = json.loads(files_json)
+        except json.JSONDecodeError:
+            return {"error": "Invalid JSON in files_json"}
+        if not isinstance(files, list) or not files:
+            return {
+                "error": "files_json must be a non-empty JSON array of {uri, contentType, content} objects"
+            }
+        gql_input["files"] = files
+
     data = execute_graphql(
         user,
         "CreateDatasetVersion",
-        {
-            "input": {
-                "datasetId": dataset_id,
-                "name": name,
-                "changelog": changelog or None,
-            }
-        },
+        {"input": gql_input},
     )
     if "errors" in data:
         return data
