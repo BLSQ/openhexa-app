@@ -1,4 +1,9 @@
-from hexa.datasets.models import Dataset, DatasetVersion
+import json
+
+from django.conf import settings
+
+from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
+from hexa.files import storage
 from hexa.mcp.tools.datasets import (
     create_dataset,
     create_dataset_version,
@@ -152,3 +157,42 @@ class CreateDatasetVersionTest(MCPTestCase):
         )
         self.assertFalse(result["success"])
         self.assertIn("DUPLICATE_NAME", result["errors"])
+
+    def test_create_dataset_version_with_files(self):
+        files = [
+            {"uri": "data.csv", "contentType": "text/csv", "content": "a,b\n1,2"},
+            {
+                "uri": "info.json",
+                "contentType": "application/json",
+                "content": '{"key": "value"}',
+            },
+        ]
+        result = create_dataset_version(
+            user=self.USER_ADMIN,
+            dataset_id=str(self.DATASET.id),
+            name="v2",
+            changelog="Version with files",
+            files_json=json.dumps(files),
+        )
+        self.assertTrue(result["success"])
+        self.assertEqual(result["version"]["name"], "v2")
+
+        version = DatasetVersion.objects.get(id=result["version"]["id"])
+        files_qs = DatasetVersionFile.objects.filter(dataset_version=version)
+        self.assertEqual(files_qs.count(), 2)
+
+        filenames = {f.filename for f in files_qs}
+        self.assertEqual(filenames, {"data.csv", "info.json"})
+
+        full_uri = version.get_full_uri("data.csv")
+        blob = storage.get_bucket_object(settings.WORKSPACE_DATASETS_BUCKET, full_uri)
+        self.assertIsNotNone(blob)
+
+    def test_create_dataset_version_with_invalid_files_json(self):
+        result = create_dataset_version(
+            user=self.USER_ADMIN,
+            dataset_id=str(self.DATASET.id),
+            name="v3",
+            files_json="not valid json",
+        )
+        self.assertEqual(result, {"error": "Invalid JSON in files_json"})
