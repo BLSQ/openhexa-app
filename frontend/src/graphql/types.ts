@@ -3856,6 +3856,7 @@ export enum ParameterType {
   Int = 'int',
   Postgresql = 'postgresql',
   S3 = 's3',
+  Secret = 'secret',
   Str = 'str'
 }
 

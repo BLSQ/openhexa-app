@@ -127,6 +127,9 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
     if (entry.type === "file" && entry.value) {
       return entry.value;
     }
+    if (entry.type === "secret" && entry.value) {
+      return "••••••";
+    }
 
     return "-";
   };
