@@ -109,6 +109,7 @@ class DatasetManager(models.Manager):
         *,
         name: str,
         description: str,
+        files: list[dict] | None = None,
     ):
         from hexa.pipelines.authentication import PipelineRunUser
 
@@ -120,15 +121,26 @@ class DatasetManager(models.Manager):
             raise PermissionDenied
 
         created_by = principal if not isinstance(principal, PipelineRunUser) else None
-        dataset = self.create(
-            workspace=workspace,
-            slug=create_dataset_slug(name, workspace),
-            created_by=created_by,
-            name=name,
-            description=description,
-        )
-        # Create the DatasetLink for the workspace
-        dataset.link(created_by, workspace)
+
+        with transaction.atomic():
+            dataset = self.create(
+                workspace=workspace,
+                slug=create_dataset_slug(name, workspace),
+                created_by=created_by,
+                name=name,
+                description=description,
+            )
+            # Create the DatasetLink for the workspace
+            dataset.link(created_by, workspace)
+
+            if files:
+                DatasetVersion.objects.create_if_has_perm(
+                    principal=principal,
+                    dataset=dataset,
+                    name="v1",
+                    changelog="",
+                    files=files,
+                )
 
         return dataset
 
