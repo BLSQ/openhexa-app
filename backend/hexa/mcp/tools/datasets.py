@@ -68,18 +68,35 @@ def preview_dataset_file(user, file_id: str) -> dict:
 
 
 @tool
-def create_dataset(user, workspace_slug: str, name: str, description: str = "") -> dict:
-    """Create a new dataset in a workspace. Returns the created dataset with its ID and slug. After creating, use create_dataset_version to add a version, then upload files to the version."""
+def create_dataset(
+    user,
+    workspace_slug: str,
+    name: str,
+    description: str = "",
+    files_json: str = "",
+) -> dict:
+    r"""Create a new dataset in a workspace. Optionally create an initial version (named 'v1') with files in a single atomic operation. To include files, provide files_json as a JSON array of {uri, contentType, content} objects, e.g. '[{"uri": "data.csv", "contentType": "text/csv", "content": "a,b\n1,2"}]'."""
+    gql_input: dict = {
+        "workspaceSlug": workspace_slug,
+        "name": name,
+        "description": description or None,
+    }
+
+    if files_json:
+        try:
+            files = json.loads(files_json)
+        except json.JSONDecodeError:
+            return {"error": "Invalid JSON in files_json"}
+        if not isinstance(files, list) or not files:
+            return {
+                "error": "files_json must be a non-empty JSON array of {uri, contentType, content} objects"
+            }
+        gql_input["files"] = files
+
     data = execute_graphql(
         user,
         "CreateDataset",
-        {
-            "input": {
-                "workspaceSlug": workspace_slug,
-                "name": name,
-                "description": description or None,
-            }
-        },
+        {"input": gql_input},
     )
     if "errors" in data:
         return data
