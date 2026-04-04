@@ -76,7 +76,7 @@ class DatasetQuerySet(BaseQuerySet):
                 self._filter_for_user_and_query_object(
                     user,
                     self._workspace_query(user) | self._org_shared_query(user),
-                    return_all_if_superuser=False,
+                    return_all_if_superuser=True,
                     return_all_if_organization_admin_or_owner=True,
                 )
             )
