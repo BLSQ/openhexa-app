@@ -125,6 +125,31 @@ class CreateDatasetTest(MCPTestCase):
         )
         self.assertFalse(result["success"])
 
+    def test_create_dataset_with_version_and_files(self):
+        files = [
+            {"uri": "data.csv", "contentType": "text/csv", "content": "a,b\n1,2"},
+        ]
+        result = create_dataset(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name="Dataset With Files",
+            description="All-in-one",
+            files_json=json.dumps(files),
+        )
+        self.assertTrue(result["success"])
+        self.assertEqual(result["dataset"]["name"], "Dataset With Files")
+
+        dataset = Dataset.objects.get(slug=result["dataset"]["slug"])
+        version = DatasetVersion.objects.get(dataset=dataset, name="v1")
+        db_files = DatasetVersionFile.objects.filter(dataset_version=version)
+        self.assertEqual(db_files.count(), 1)
+        self.assertEqual(db_files.first().filename, "data.csv")
+        self.assertEqual(db_files.first().content_type, "text/csv")
+
+        full_uri = version.get_full_uri("data.csv")
+        blob = storage.get_bucket_object(settings.WORKSPACE_DATASETS_BUCKET, full_uri)
+        self.assertIsNotNone(blob)
+
     def test_create_dataset_viewer_cannot_create(self):
         result = create_dataset(
             user=self.USER_VIEWER,
