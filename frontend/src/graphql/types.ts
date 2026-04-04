@@ -861,6 +861,7 @@ export type CreateConnectionResult = {
 
 /** Errors that can occur when creating a dataset. */
 export enum CreateDatasetError {
+  FileUploadFailed = 'FILE_UPLOAD_FAILED',
   PermissionDenied = 'PERMISSION_DENIED',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
@@ -868,6 +869,7 @@ export enum CreateDatasetError {
 /** Input for creating a dataset. */
 export type CreateDatasetInput = {
   description?: InputMaybe<Scalars['String']['input']>;
+  files?: InputMaybe<Array<DatasetVersionFileContentInput>>;
   name: Scalars['String']['input'];
   workspaceSlug: Scalars['String']['input'];
 };
@@ -931,7 +933,6 @@ export type CreateDatasetVersionInput = {
 export type CreateDatasetVersionResult = {
   __typename?: 'CreateDatasetVersionResult';
   errors: Array<CreateDatasetVersionError>;
-  files?: Maybe<Array<DatasetVersionFile>>;
   success: Scalars['Boolean']['output'];
   version?: Maybe<DatasetVersion>;
 };
