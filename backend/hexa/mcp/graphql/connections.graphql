@@ -1,0 +1,18 @@
+query ListConnections($slug: String!) {
+  workspace(slug: $slug) {
+    connections {
+      id
+      name
+      slug
+      description
+      type
+      createdAt
+      updatedAt
+      fields {
+        code
+        value
+        secret
+      }
+    }
+  }
+}

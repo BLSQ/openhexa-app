@@ -1,0 +1,174 @@
+query ListPipelines($workspaceSlug: String, $page: Int, $perPage: Int) {
+  pipelines(workspaceSlug: $workspaceSlug, page: $page, perPage: $perPage) {
+    pageNumber
+    totalPages
+    totalItems
+    items {
+      id
+      code
+      name
+      description
+      createdAt
+      updatedAt
+      workspace {
+        slug
+      }
+    }
+  }
+}
+
+query GetPipeline($workspaceSlug: String!, $code: String!, $runsPage: Int, $runsPerPage: Int) {
+  pipelineByCode(workspaceSlug: $workspaceSlug, code: $code) {
+    id
+    code
+    name
+    description
+    schedule
+    type
+    functionalType
+    createdAt
+    updatedAt
+    webhookEnabled
+    workspace {
+      slug
+      name
+    }
+    currentVersion {
+      id
+      versionNumber
+      versionName
+      description
+      createdAt
+      parameters {
+        code
+        name
+        type
+        required
+        multiple
+        default
+        help
+        choices
+      }
+      files {
+        name
+        path
+        type
+        content
+        language
+        lineCount
+      }
+    }
+    runs(page: $runsPage, perPage: $runsPerPage, orderBy: EXECUTION_DATE_DESC) {
+      pageNumber
+      totalPages
+      totalItems
+      items {
+        id
+        status
+        executionDate
+        duration
+      }
+    }
+    permissions {
+      run
+      update
+      delete
+      schedule
+      stopPipeline
+    }
+  }
+}
+
+query GetPipelineRun($id: UUID!) {
+  pipelineRun(id: $id) {
+    id
+    status
+    executionDate
+    duration
+    progress
+    triggerMode
+    config
+    hasErrorMessages
+    user {
+      displayName
+      email
+    }
+    pipeline {
+      code
+      name
+      workspace {
+        slug
+      }
+    }
+    version {
+      versionName
+    }
+    messages {
+      priority
+      message
+      timestamp
+    }
+    outputs {
+      ... on BucketObject {
+        bucketObjectName: name
+        key
+        path
+        bucketObjectType: type
+        size
+        updatedAt
+      }
+      ... on GenericOutput {
+        genericOutputName: name
+        genericOutputType: type
+        uri
+      }
+      ... on DatabaseTable {
+        databaseTableName: name
+      }
+    }
+    logs
+  }
+}
+
+mutation RunPipeline($input: RunPipelineInput!) {
+  runPipeline(input: $input) {
+    success
+    errors
+    run {
+      id
+      status
+      executionDate
+    }
+  }
+}
+
+mutation UpdatePipeline($input: UpdatePipelineInput!) {
+  updatePipeline(input: $input) {
+    success
+    errors
+    pipeline {
+      id
+      code
+      name
+      schedule
+      description
+      functionalType
+    }
+  }
+}
+
+mutation CreatePipeline($input: CreatePipelineInput!) {
+  createPipeline(input: $input) {
+    success
+    errors
+    pipeline {
+      id
+      code
+      name
+    }
+    pipelineVersion {
+      id
+      versionNumber
+    }
+  }
+}

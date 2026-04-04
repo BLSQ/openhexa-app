@@ -811,6 +811,7 @@ type CreateConnectionResult {
 
 """Errors that can occur when creating a dataset."""
 enum CreateDatasetError {
+  FILE_UPLOAD_FAILED
   PERMISSION_DENIED
   WORKSPACE_NOT_FOUND
 }
@@ -818,6 +819,7 @@ enum CreateDatasetError {
 """Input for creating a dataset."""
 input CreateDatasetInput {
   description: String
+  files: [DatasetVersionFileContentInput!]
   name: String!
   workspaceSlug: String!
 }
@@ -834,6 +836,7 @@ type CreateDatasetResult {
 enum CreateDatasetVersionError {
   DATASET_NOT_FOUND
   DUPLICATE_NAME
+  FILE_UPLOAD_FAILED
   PERMISSION_DENIED
 }
 
@@ -869,6 +872,7 @@ type CreateDatasetVersionFileResult {
 input CreateDatasetVersionInput {
   changelog: String
   datasetId: ID!
+  files: [DatasetVersionFileContentInput!]
   name: String!
 }
 
@@ -1550,6 +1554,13 @@ type DatasetVersionFile implements MetadataObject {
   rows: Int
   size: BigInt!
   targetId: OpaqueID!
+  uri: String!
+}
+
+"""Inline file content to include when creating a dataset version."""
+input DatasetVersionFileContentInput {
+  content: String!
+  contentType: String!
   uri: String!
 }
 

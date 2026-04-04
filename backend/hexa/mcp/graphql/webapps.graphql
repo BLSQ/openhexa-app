@@ -1,0 +1,49 @@
+query ListStaticWebapps($workspaceSlug: String, $page: Int, $perPage: Int) {
+  webapps(workspaceSlug: $workspaceSlug, page: $page, perPage: $perPage) {
+    pageNumber
+    totalPages
+    totalItems
+    items {
+      id
+      slug
+      name
+      description
+      url
+      type
+      isPublic
+      permissions {
+        update
+      }
+    }
+  }
+}
+
+mutation CreateStaticWebapp($input: CreateWebappInput!) {
+  createWebapp(input: $input) {
+    success
+    errors
+    webapp {
+      id
+      slug
+      name
+      description
+      url
+      type
+    }
+  }
+}
+
+mutation UpdateStaticWebapp($input: UpdateWebappInput!) {
+  updateWebapp(input: $input) {
+    success
+    errors
+    webapp {
+      id
+      slug
+      name
+      description
+      url
+      type
+    }
+  }
+}
