@@ -174,6 +174,57 @@ class DatasetTest(GraphQLTestCase, DatasetTestMixin):
             r["data"]["createDataset"],
         )
 
+    def test_create_dataset_with_version_and_files(self):
+        storage.reset()
+        storage.create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
+
+        superuser = self.create_user("superuser@blsq.org", is_superuser=True)
+        workspace = self.create_workspace(superuser, "Workspace", "Description")
+
+        self.client.force_login(superuser)
+        r = self.run_query(
+            """
+            mutation CreateDataset ($input: CreateDatasetInput!) {
+                createDataset(input: $input) {
+                    success
+                    errors
+                    dataset {
+                        id
+                        slug
+                        name
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": workspace.slug,
+                    "name": "Full Dataset",
+                    "description": "Created with version and files",
+                    "files": [
+                        {
+                            "uri": "data.csv",
+                            "contentType": "text/csv",
+                            "content": "a,b\n1,2",
+                        },
+                    ],
+                }
+            },
+        )
+        result = r["data"]["createDataset"]
+        self.assertTrue(result["success"])
+        self.assertEqual(result["dataset"]["name"], "Full Dataset")
+
+        dataset = Dataset.objects.get(id=result["dataset"]["id"])
+        version = DatasetVersion.objects.get(dataset=dataset, name="v1")
+        self.assertEqual(
+            DatasetVersionFile.objects.filter(dataset_version=version).count(), 1
+        )
+
+        full_uri = version.get_full_uri("data.csv")
+        blob = storage.get_bucket_object(settings.WORKSPACE_DATASETS_BUCKET, full_uri)
+        self.assertIsNotNone(blob)
+
     def test_update_dataset(self):
         superuser = self.create_user("superuser@blsq.com", is_superuser=True)
         user = self.create_user("user@blsq.com")
