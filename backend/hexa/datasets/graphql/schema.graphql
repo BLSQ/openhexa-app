@@ -181,6 +181,7 @@ input CreateDatasetInput {
   workspaceSlug: String!
   name: String!
   description: String
+  files: [DatasetVersionFileContentInput!]
 }
 
 """
@@ -189,6 +190,7 @@ Errors that can occur when creating a dataset.
 enum CreateDatasetError {
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
+  FILE_UPLOAD_FAILED
 }
 
 """

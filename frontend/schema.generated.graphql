@@ -811,6 +811,7 @@ type CreateConnectionResult {
 
 """Errors that can occur when creating a dataset."""
 enum CreateDatasetError {
+  FILE_UPLOAD_FAILED
   PERMISSION_DENIED
   WORKSPACE_NOT_FOUND
 }
@@ -818,6 +819,7 @@ enum CreateDatasetError {
 """Input for creating a dataset."""
 input CreateDatasetInput {
   description: String
+  files: [DatasetVersionFileContentInput!]
   name: String!
   workspaceSlug: String!
 }
@@ -877,7 +879,6 @@ input CreateDatasetVersionInput {
 """Result of creating a dataset version."""
 type CreateDatasetVersionResult {
   errors: [CreateDatasetVersionError!]!
-  files: [DatasetVersionFile!]
   success: Boolean!
   version: DatasetVersion
 }
