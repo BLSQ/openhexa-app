@@ -33,6 +33,7 @@ def resolve_create_dataset(_, info, **kwargs):
             workspace=workspace,
             name=mutation_input["name"],
             description=mutation_input["description"],
+            files=mutation_input.get("files"),
         )
         link = DatasetLink.objects.get(dataset=dataset, workspace=workspace)
 
@@ -46,6 +47,8 @@ def resolve_create_dataset(_, info, **kwargs):
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except FileUploadError:
+        return {"success": False, "errors": ["FILE_UPLOAD_FAILED"]}
 
 
 @mutations.field("updateDataset")
