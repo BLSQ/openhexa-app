@@ -1,5 +1,29 @@
 # Changelog
 
+## [5.1.0](https://github.com/BLSQ/openhexa-app/compare/5.0.1...5.1.0) (2026-04-03)
+
+
+### Features
+
+* Agent AI - create pipeline (HEXA-1514) ([#1693](https://github.com/BLSQ/openhexa-app/issues/1693)) ([2db3133](https://github.com/BLSQ/openhexa-app/commit/2db313358f9137f6ab2f92d712bc6c9b1094769f))
+* allow disabling the powered by banner for public web apps (HEXA-1555) ([#1698](https://github.com/BLSQ/openhexa-app/issues/1698)) ([7d0554d](https://github.com/BLSQ/openhexa-app/commit/7d0554d7192591a2bf3f105b7907de0fcc7dd8d3))
+* Faster Frontend -&gt; Next data json improvement ([#1679](https://github.com/BLSQ/openhexa-app/issues/1679)) ([087fc1e](https://github.com/BLSQ/openhexa-app/commit/087fc1e02232f6b2e167653f09acd74edb6bd55a))
+* implement sse pipeline run detail page (Hexa 1545) ([#1665](https://github.com/BLSQ/openhexa-app/issues/1665)) ([e6db80a](https://github.com/BLSQ/openhexa-app/commit/e6db80a0c8a301bdc6bb9fca87dd82c098ede89c))
+* view AI api key usage (HEXA-1516, HEXA-1517) ([#1668](https://github.com/BLSQ/openhexa-app/issues/1668)) ([bd52f37](https://github.com/BLSQ/openhexa-app/commit/bd52f372c6501406716751639e3d989a9f8d4830))
+* visualising history and commits ([#1690](https://github.com/BLSQ/openhexa-app/issues/1690)) ([833a1be](https://github.com/BLSQ/openhexa-app/commit/833a1be9aefc4a6721cb1e31f5057787070282fa))
+
+
+### Bug Fixes
+
+* Don't silently drop GCP bucket folders (HEXA-1547) ([#1699](https://github.com/BLSQ/openhexa-app/issues/1699)) ([5c07379](https://github.com/BLSQ/openhexa-app/commit/5c0737948c0c16f3bbed5761112c14a9e2993b33))
+* make static web app actions more resilient (HEXA-1567) ([#1709](https://github.com/BLSQ/openhexa-app/issues/1709)) ([6816e30](https://github.com/BLSQ/openhexa-app/commit/6816e30b0d64ce2862b9746f748ec12b6af9de59))
+* mcp auth success page should follow our style (HEXA-1551) ([#1708](https://github.com/BLSQ/openhexa-app/issues/1708)) ([f4d69fc](https://github.com/BLSQ/openhexa-app/commit/f4d69fc15398db139011d4811a1089133a74052b))
+* play page layout (HEXA-1570) ([#1705](https://github.com/BLSQ/openhexa-app/issues/1705)) ([0a9ee6b](https://github.com/BLSQ/openhexa-app/commit/0a9ee6b463230988e0639e74c54a6b0da88fe67c))
+* static webapps shouldn't have allow same origin (HEXA-1563) ([#1701](https://github.com/BLSQ/openhexa-app/issues/1701)) ([43e1494](https://github.com/BLSQ/openhexa-app/commit/43e1494fd9683a15faa65cd621f12a9494260a8d))
+* UI on editing whole codemirror file (HEXA-1568) ([#1703](https://github.com/BLSQ/openhexa-app/issues/1703)) ([f219969](https://github.com/BLSQ/openhexa-app/commit/f2199696543954d3f074b39fe1f678cc03388923))
+* UI on saving web app file (HEXA-1566) ([#1702](https://github.com/BLSQ/openhexa-app/issues/1702)) ([e2908a0](https://github.com/BLSQ/openhexa-app/commit/e2908a0685c98f370e0e3724c1ba5b90ebf85fe0))
+* unathenticated error redirect bug ([#1700](https://github.com/BLSQ/openhexa-app/issues/1700)) ([0f627e7](https://github.com/BLSQ/openhexa-app/commit/0f627e76c339a21d38c71d11b08ee3c806be1a56))
+
 ## [5.0.1](https://github.com/BLSQ/openhexa-app/compare/5.0.0...5.0.1) (2026-03-19)
 
 
