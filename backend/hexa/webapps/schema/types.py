@@ -47,6 +47,11 @@ def resolve_url(webapp: Webapp, info, **kwargs):
     return webapp.url
 
 
+@webapp_object.field("serveUrl")
+def resolve_subdomain_url(webapp: Webapp, info, **kwargs):
+    return webapp.serve_url
+
+
 @webapp_object.field("icon")
 def resolve_icon(webapp: Webapp, info, **kwargs):
     return encode_base64_image(bytes(webapp.icon)) if webapp.icon else None

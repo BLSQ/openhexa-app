@@ -5380,6 +5380,7 @@ type Webapp {
   isShortcut: Boolean!
   name: String!
   permissions: WebappPermissions!
+  serveUrl: String!
   showPoweredBy: Boolean!
   slug: String!
   source: WebappSource!
