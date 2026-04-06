@@ -3,14 +3,17 @@
 from django.db import migrations, models
 
 import hexa.webapps.validators
-from hexa.webapps.models import create_webapp_subdomain
 
 
 def initialize_subdomains(apps, schema_editor):
-    from hexa.webapps.models import Webapp
+    Webapp = apps.get_model("webapps", "Webapp")
 
     for webapp in Webapp.objects.filter(subdomain__isnull=True):
-        webapp.subdomain = create_webapp_subdomain(webapp.slug, webapp.workspace)
+        slug = webapp.slug
+        if Webapp.objects.filter(subdomain=slug).exists():
+            webapp.subdomain = f"{webapp.workspace.slug}-{slug}"
+        else:
+            webapp.subdomain = slug
         webapp.save(update_fields=["subdomain"])
 
 
