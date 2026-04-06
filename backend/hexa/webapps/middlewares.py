@@ -11,8 +11,9 @@ from django.http import (
 )
 from django.template.loader import render_to_string
 
+from hexa.superset.views import view_superset_dashboard
 from hexa.user_management.models import User
-from hexa.webapps.models import GitWebapp, Webapp
+from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 from hexa.webapps.utils import extract_webapp_subdomain
 from hexa.webapps.views import serve_webapp
 
@@ -40,11 +41,18 @@ def _serve_static_webapp(webapp, request):
     return response
 
 
-def _serve_iframe_or_superset_webapp(webapp):
+def _serve_iframe_webapp(webapp):
     html = render_to_string(
         "webapps/embed.html", {"name": webapp.name, "url": webapp.url}
     )
     return HttpResponse(html)
+
+
+def _serve_superset_webapp(request, webapp):
+    superset_webapp = SupersetWebapp.objects.select_related("superset_dashboard").get(
+        pk=webapp.pk
+    )
+    return view_superset_dashboard(request, superset_webapp.superset_dashboard.id)
 
 
 def _build_auth_token_url(request, webapp):
@@ -177,8 +185,10 @@ def webapp_subdomain_middleware(get_response):
 
         if webapp.type == Webapp.WebappType.STATIC:
             response = _serve_static_webapp(webapp, request)
+        elif webapp.type == Webapp.WebappType.SUPERSET:
+            response = _serve_superset_webapp(request, webapp)
         else:
-            response = _serve_iframe_or_superset_webapp(webapp)
+            response = _serve_iframe_webapp(webapp)
 
         del response["X-Frame-Options"]
         frame_ancestors = f"'self' {settings.BASE_URL}"
