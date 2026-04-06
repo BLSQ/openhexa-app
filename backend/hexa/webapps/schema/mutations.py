@@ -166,7 +166,7 @@ def resolve_update_webapp(_, info, **kwargs):
             try:
                 validate_subdomain(subdomain)
             except ValidationError as e:
-                return {"success": False, "errors": [e.code.upper()], "webapp": None}
+                return {"success": False, "errors": [e.code], "webapp": None}
             already_exists = (
                 Webapp.all_objects.filter(subdomain=subdomain)
                 .exclude(pk=webapp.pk)

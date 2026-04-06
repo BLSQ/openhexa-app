@@ -141,20 +141,20 @@ def validate_subdomain(value):
         )
     if len(value) < 3:
         raise ValidationError(
-            "Subdomain must be at least 3 characters.", code="subdomain_too_short"
+            "Subdomain must be at least 3 characters.", code="SUBDOMAIN_TOO_SHORT"
         )
     if "." in value:
         raise ValidationError(
             "Subdomain must be a single DNS label (no dots).",
-            code="subdomain_has_dots",
+            code="SUBDOMAIN_HAS_DOTS",
         )
     if value in RESERVED_SUBDOMAINS:
-        raise ValidationError("This subdomain is reserved.", code="subdomain_reserved")
+        raise ValidationError("This subdomain is reserved.", code="SUBDOMAIN_RESERVED")
     try:
         _domain_validator(f"{value}.com")
     except ValidationError:
         raise ValidationError(
             "Subdomain must be alphanumeric with hyphens, no leading/trailing hyphens, "
             "and 63 characters or fewer.",
-            code="subdomain_invalid_format",
+            code="SUBDOMAIN_INVALID_FORMAT",
         )
