@@ -35,11 +35,14 @@ def create_webapp_slug(name: str, workspace: Workspace):
 
 
 def create_webapp_subdomain(slug: str, workspace: Workspace, max_tries=10):
-    candidate = slug
-    for _ in range(max_tries):
+    candidates = [slug, f"{workspace.slug}-{slug}"]
+    for candidate in candidates:
         if not Webapp.all_objects.filter(subdomain=candidate).exists():
             return candidate
+    for _ in range(max_tries):
         candidate = f"{workspace.slug}-{slug}-{secrets.token_hex(3)}"
+        if not Webapp.all_objects.filter(subdomain=candidate).exists():
+            return candidate
     raise ValueError(
         f"Could not generate a unique subdomain after {max_tries} attempts"
     )
@@ -134,8 +137,6 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     show_powered_by = models.BooleanField(default=True)
     subdomain = models.CharField(
         max_length=63,
-        null=True,
-        blank=True,
         unique=True,
         validators=[validate_subdomain],
     )
