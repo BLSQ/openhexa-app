@@ -10,11 +10,11 @@ type WebappCardProps = {
 };
 
 const WebappCard = ({ webapp }: WebappCardProps) => {
-  const { workspace, slug, name, icon, type, serveUrl } = webapp;
+  const { workspace, slug, name, icon, type, url } = webapp;
 
   return (
     <Card
-      href={serveUrl}
+      href={url}
       title={
         <div className={"flex items-center justify-between"}>
           <div className={"flex items-center"}>
@@ -50,7 +50,7 @@ WebappCard.fragments = {
       icon
       name
       type
-      serveUrl
+      url
       workspace {
         slug
         name
