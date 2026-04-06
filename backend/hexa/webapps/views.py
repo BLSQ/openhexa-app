@@ -9,12 +9,11 @@ from django.http import (
     HttpResponseRedirect,
 )
 from django.shortcuts import get_object_or_404
-from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.http import require_GET
 
 from hexa.files.utils import is_safe_path
 from hexa.git.forgejo import ForgejoAPIError, get_forgejo_client
-from hexa.webapps.models import GitWebapp, Webapp
+from hexa.webapps.models import Webapp
 from hexa.webapps.utils import extract_webapp_subdomain
 
 
@@ -56,28 +55,7 @@ def auth_token(request, webapp_id):
     return HttpResponseRedirect(redirect_url)
 
 
-def _check_access(request, webapp: Webapp):
-    if webapp.is_public:
-        return None
-    if not request.user.is_authenticated:
-        return HttpResponseRedirect(f"/login?next={request.path}")
-    if not Webapp.objects.filter_for_user(request.user).filter(pk=webapp.pk).exists():
-        return HttpResponse("Forbidden", status=403)
-    return None
-
-
-# TODO: refactor to allow both subdomain + path serving?
-@xframe_options_exempt
-def serve_webapp(request, webapp_id, path="index.html"):
-    try:
-        git_webapp = GitWebapp.objects.select_related("workspace").get(pk=webapp_id)
-    except GitWebapp.DoesNotExist:
-        return HttpResponseNotFound("Webapp not found")
-
-    denied = _check_access(request, git_webapp)
-    if denied:
-        return denied
-
+def serve_webapp(request, git_webapp, path="index.html"):
     if not is_safe_path(path):
         return HttpResponseBadRequest("Invalid path")
 
