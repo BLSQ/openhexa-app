@@ -286,7 +286,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
               "Subdomain used to generate the URL for accessing this web app",
             )}
             currentSubdomain={webapp.subdomain}
-            serveUrl={webapp.url}
+            serveUrl={webapp.serveUrl}
           />
         )}
         <SwitchProperty
@@ -331,6 +331,7 @@ WebappForm.fragment = {
       icon
       isPublic
       subdomain
+      serveUrl
       source {
         ... on SupersetSource {
           instance {
