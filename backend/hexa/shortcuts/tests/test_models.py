@@ -22,6 +22,7 @@ class ShortcutModelTest(TestCase):
         cls.webapp = Webapp.objects.create(
             name="Test Webapp",
             slug="test-webapp",
+            subdomain="test-webapp",
             url="https://example.com",
             workspace=cls.workspace,
             created_by=cls.user,

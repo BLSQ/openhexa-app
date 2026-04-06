@@ -216,8 +216,8 @@ class GitWebappCreateTest(GraphQLTestCase):
 
         result = response["data"]["createWebapp"]
         self.assertTrue(result["success"])
-        webapp_id = result["webapp"]["id"]
-        self.assertIn(f"/webapps/{webapp_id}/", result["webapp"]["url"])
+        webapp = Webapp.objects.get(pk=result["webapp"]["id"])
+        self.assertEqual(result["webapp"]["url"], webapp.serve_url)
 
 
 class GitWebappUpdateFilesTest(GraphQLTestCase):
@@ -240,6 +240,7 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
             workspace=cls.WS,
             name="Commit Test App",
             slug="commit-test-app",
+            subdomain="commit-test-app",
             type=Webapp.WebappType.STATIC,
             created_by=cls.USER,
             repository="webapp-commitrepo",
@@ -368,6 +369,7 @@ class GitWebappPublishVersionTest(GraphQLTestCase):
             workspace=cls.WS,
             name="Publish Test App",
             slug="publish-test-app",
+            subdomain="publish-test-app",
             type=Webapp.WebappType.STATIC,
             created_by=cls.USER,
             repository="webapp-publishrepo",
@@ -507,6 +509,7 @@ class GitWebappQueryTest(GraphQLTestCase):
             workspace=cls.WS,
             name="Query Test App",
             slug="query-test-app",
+            subdomain="query-test-app",
             type=Webapp.WebappType.STATIC,
             created_by=cls.USER,
             repository="webapp-queryrepo",
@@ -533,7 +536,7 @@ class GitWebappQueryTest(GraphQLTestCase):
         self.assertIsNotNone(webapp)
         self.assertEqual(webapp["name"], "Query Test App")
         self.assertEqual(webapp["type"], "STATIC")
-        self.assertIn(f"/webapps/{self.GIT_WEBAPP.id}/", webapp["url"])
+        self.assertEqual(webapp["url"], self.GIT_WEBAPP.serve_url)
         self.assertEqual(webapp["source"]["repository"], "webapp-queryrepo")
         self.assertEqual(webapp["source"]["publishedVersion"], "published-sha")
 
@@ -649,6 +652,7 @@ class GitWebappQueryTest(GraphQLTestCase):
             workspace=self.WS,
             name="Iframe App",
             slug="iframe-app",
+            subdomain="iframe-app",
             type=Webapp.WebappType.IFRAME,
             created_by=self.USER,
             url="https://example.com",
@@ -703,6 +707,7 @@ class GitWebappDeleteTest(GraphQLTestCase):
             workspace=self.WS,
             name="To Delete",
             slug="to-delete",
+            subdomain="to-delete",
             type=Webapp.WebappType.STATIC,
             created_by=self.USER,
             repository="webapp-todelete",

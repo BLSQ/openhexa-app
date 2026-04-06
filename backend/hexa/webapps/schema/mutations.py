@@ -160,24 +160,23 @@ def resolve_update_webapp(_, info, **kwargs):
         webapp.icon = decode_base64_image(input["icon"]) if input["icon"] else None
     if "is_public" in input:
         webapp.is_public = input["is_public"]
-    if "subdomain" in input:
+    if "subdomain" in input and input["subdomain"]:
         subdomain = input["subdomain"]
-        if subdomain:
-            try:
-                validate_subdomain(subdomain)
-            except ValidationError as e:
-                return {"success": False, "errors": [e.code], "webapp": None}
-            already_exists = (
-                Webapp.all_objects.filter(subdomain=subdomain)
-                .exclude(pk=webapp.pk)
-                .exists()
-            )
-            if already_exists:
-                return {
-                    "success": False,
-                    "errors": ["SUBDOMAIN_ALREADY_TAKEN"],
-                    "webapp": None,
-                }
+        try:
+            validate_subdomain(subdomain)
+        except ValidationError as e:
+            return {"success": False, "errors": [e.code], "webapp": None}
+        already_exists = (
+            Webapp.all_objects.filter(subdomain=subdomain)
+            .exclude(pk=webapp.pk)
+            .exists()
+        )
+        if already_exists:
+            return {
+                "success": False,
+                "errors": ["SUBDOMAIN_ALREADY_TAKEN"],
+                "webapp": None,
+            }
         webapp.subdomain = subdomain
 
     if input.get("files") is not None or input.get("published_version_id") is not None:

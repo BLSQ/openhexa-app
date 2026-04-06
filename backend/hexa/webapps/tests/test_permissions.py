@@ -77,6 +77,7 @@ class WebappsOrganizationPermissionsTest(TestCase):
             workspace=cls.WORKSPACE,
             name="Test Webapp",
             slug="test-webapp",
+            subdomain="test-webapp",
             created_by=cls.USER_WORKSPACE_ADMIN,
         )
 
@@ -168,6 +169,7 @@ class WebappsOrganizationPermissionsTest(TestCase):
             workspace=workspace_no_org,
             name="Test Webapp No Org",
             slug="test-webapp-no-org",
+            subdomain="test-webapp-no-org",
             created_by=self.USER_WORKSPACE_ADMIN,
         )
 

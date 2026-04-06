@@ -53,6 +53,7 @@ class WebappModelTest(TestCase):
         self.webapp = Webapp.objects.create(
             name="Test Webapp",
             slug="test-webapp",
+            subdomain="test-webapp",
             description="A test webapp",
             workspace=self.workspace,
             created_by=self.user_admin,
@@ -238,9 +239,8 @@ class WebappModelTest(TestCase):
             url="https://example.com",
         )
         shortcut = webapp.to_shortcut_item()
-        expected_url = f"/workspaces/{self.workspace.slug}/webapps/{webapp.slug}/play"
-        self.assertEqual(shortcut["url"], expected_url)
-        self.assertIn(webapp.slug, shortcut["url"])
+        self.assertEqual(shortcut["url"], webapp.serve_url)
+        self.assertIn(webapp.subdomain, shortcut["url"])
         self.assertNotIn(str(webapp.id), shortcut["url"])
 
     def test_assign_subdomain_on_create(self):
@@ -283,6 +283,7 @@ class WebappModelTest(TestCase):
             Webapp.objects.create(
                 name=self.webapp.name,
                 slug=self.webapp.slug,
+                subdomain="test-webapp-dup",
                 workspace=self.webapp.workspace,
                 created_by=self.user_admin,
                 url="https://example.com",
@@ -352,6 +353,7 @@ class WebappOrganizationAdminOwnerPermissionsTest(TestCase):
             workspace=cls.WORKSPACE_1,
             name="Webapp in workspace 1",
             slug="webapp-in-workspace-1",
+            subdomain="webapp-in-workspace-1",
             description="Webapp in workspace where org admin/owner is not a member",
             created_by=cls.WORKSPACE_ADMIN,
             url="https://example1.com",
@@ -361,6 +363,7 @@ class WebappOrganizationAdminOwnerPermissionsTest(TestCase):
             workspace=cls.WORKSPACE_2,
             name="Webapp in workspace 2",
             slug="webapp-in-workspace-2",
+            subdomain="webapp-in-workspace-2",
             description="Webapp in another workspace in same org",
             created_by=cls.WORKSPACE_ADMIN,
             url="https://example2.com",
