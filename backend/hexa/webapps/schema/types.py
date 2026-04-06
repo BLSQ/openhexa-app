@@ -43,7 +43,7 @@ def resolve_workspace(webapp: Webapp, info, **kwargs):
 @webapp_object.field("url")
 def resolve_url(webapp: Webapp, info, **kwargs):
     if webapp.type == Webapp.WebappType.STATIC:
-        return webapp.serve_url or ""
+        return webapp.serve_url
     return webapp.url
 
 

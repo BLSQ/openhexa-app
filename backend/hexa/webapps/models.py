@@ -148,11 +148,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
     @property
     def serve_url(self):
-        subdomain_base = getattr(settings, "WEBAPPS_SUBDOMAIN_BASE_URL", "")
-        if self.subdomain and subdomain_base:
-            return f"{settings.SCHEME}://{self.subdomain}.{subdomain_base}/"
-
-        return f"/workspaces/{self.workspace.slug}/webapps/{self.slug}/play"
+        return f"{settings.SCHEME}://{self.subdomain}.{settings.WEBAPPS_SUBDOMAIN_BASE_URL}/"
 
     def is_favorite(self, user: User):
         return self.favorites.filter(pk=user.pk).exists()
