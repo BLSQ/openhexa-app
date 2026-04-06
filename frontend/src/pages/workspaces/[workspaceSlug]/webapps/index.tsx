@@ -148,7 +148,7 @@ const WebappsPage = (props: Props) => {
               </BaseColumn>
               <LinkColumn
                 id="play"
-                url={(item) => item.url}
+                url={(item) => item.serveUrl ?? item.url}
                 width={80}
                 className={"flex items-center justify-center"}
               >

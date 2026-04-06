@@ -84,7 +84,7 @@ const WebappLayout = (props: WebappLayoutProps) => {
         <div className="flex items-center gap-2">
           {extraActions}
           <Link
-            href={webapp.url ?? "#"}
+            href={webapp.serveUrl ?? webapp.url ?? "#"}
             target="_blank"
           >
             <Button
@@ -138,6 +138,7 @@ WebappLayout.fragments = {
       slug
       name
       url
+      serveUrl
       type
       permissions {
         update

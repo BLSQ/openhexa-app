@@ -1,7 +1,7 @@
 import * as Types from '../../../graphql/types';
 
 import { gql } from '@apollo/client';
-export type WebappCard_WebappFragment = { __typename?: 'Webapp', id: string, slug: string, icon?: string | null, name: string, type: Types.WebappType, url: string, workspace: { __typename?: 'Workspace', slug: string, name: string } };
+export type WebappCard_WebappFragment = { __typename?: 'Webapp', id: string, slug: string, icon?: string | null, name: string, type: Types.WebappType, url: string, serveUrl: string, workspace: { __typename?: 'Workspace', slug: string, name: string } };
 
 export const WebappCard_WebappFragmentDoc = gql`
     fragment WebappCard_webapp on Webapp {
@@ -11,6 +11,7 @@ export const WebappCard_WebappFragmentDoc = gql`
   name
   type
   url
+  serveUrl
   workspace {
     slug
     name

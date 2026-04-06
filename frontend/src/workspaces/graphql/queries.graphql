@@ -790,6 +790,7 @@ query WorkspaceWebappsPage(
       icon
       description
       url
+      serveUrl
       type
       isPublic
       isFavorite
