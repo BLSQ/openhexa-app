@@ -34,10 +34,15 @@ def create_webapp_slug(name: str, workspace: Workspace):
         suffix = "-" + secrets.token_hex(3)
 
 
-def create_webapp_subdomain(slug: str, workspace: Workspace):
-    if Webapp.all_objects.filter(subdomain=slug).exists():
-        return f"{workspace.slug}-{slug}"
-    return slug
+def create_webapp_subdomain(slug: str, workspace: Workspace, max_tries=10):
+    candidate = slug
+    for _ in range(max_tries):
+        if not Webapp.all_objects.filter(subdomain=candidate).exists():
+            return candidate
+        candidate = f"{workspace.slug}-{slug}-{secrets.token_hex(3)}"
+    raise ValueError(
+        f"Could not generate a unique subdomain after {max_tries} attempts"
+    )
 
 
 class WebappQuerySet(BaseQuerySet, SoftDeleteQuerySet):
