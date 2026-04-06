@@ -43,8 +43,7 @@ def resolve_workspace(webapp: Webapp, info, **kwargs):
 @webapp_object.field("url")
 def resolve_url(webapp: Webapp, info, **kwargs):
     if webapp.type == Webapp.WebappType.STATIC:
-        request = info.context["request"]
-        return request.build_absolute_uri(f"/webapps/{webapp.id}/")
+        return webapp.serve_url
     return webapp.url
 
 

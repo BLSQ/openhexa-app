@@ -5158,6 +5158,12 @@ enum UpdateWebappError {
   INVALID_URL
   PERMISSION_DENIED
   SAVE_FAILED
+  SUBDOMAIN_ALREADY_TAKEN
+  SUBDOMAIN_HAS_DOTS
+  SUBDOMAIN_INVALID_FORMAT
+  SUBDOMAIN_NOT_LOWERCASE
+  SUBDOMAIN_RESERVED
+  SUBDOMAIN_TOO_SHORT
   SUPERSET_INSTANCE_NOT_FOUND
   SUPERSET_NOT_CONFIGURED
   TYPE_MISMATCH
@@ -5175,6 +5181,7 @@ input UpdateWebappInput {
   name: String
   publishedVersionId: String
   source: UpdateWebappSourceInput
+  subdomain: String
 }
 
 """Represents the result of updating a web app."""
@@ -5376,6 +5383,7 @@ type Webapp {
   showPoweredBy: Boolean!
   slug: String!
   source: WebappSource!
+  subdomain: String!
   type: WebappType!
   url: String!
   versions(page: Int, perPage: Int): WebappVersionsPage

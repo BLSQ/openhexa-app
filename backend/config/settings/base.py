@@ -82,6 +82,12 @@ ALLOWED_HOSTS = (
     else []
 )
 
+# Example: "webapps.openhexa.org"
+# When not set, webapps will be served from a path on the main app domain.
+WEBAPPS_SUBDOMAIN_BASE_URL = os.environ.get("WEBAPPS_SUBDOMAIN_BASE_URL", None)
+if WEBAPPS_SUBDOMAIN_BASE_URL:
+    ALLOWED_HOSTS += [f".{WEBAPPS_SUBDOMAIN_BASE_URL}"]
+
 CORS_ALLOWED_ORIGINS = []
 CSRF_TRUSTED_ORIGINS = []
 if "PROXY_HOSTNAME_AND_PORT" in os.environ:
@@ -279,6 +285,7 @@ MIDDLEWARE = [
     "hexa.core.middlewares.oauth2_token_authentication_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "hexa.webapps.middlewares.webapp_subdomain_middleware",
     "hexa.user_management.middlewares.login_required_middleware",
     "hexa.analytics.middlewares.set_analytics_middleware",
 ]

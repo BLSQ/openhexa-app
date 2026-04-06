@@ -16,6 +16,7 @@ import DataCard from "core/components/DataCard";
 import TextProperty from "core/components/DataCard/TextProperty";
 import SimpleSelectProperty from "core/components/DataCard/SimpleSelectProperty";
 import LinkProperty from "core/components/DataCard/LinkProperty";
+import SubdomainProperty from "core/components/DataCard/SubdomainProperty";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import useCacheKey from "core/hooks/useCacheKey";
 import ImageProperty from "core/components/DataCard/ImageProperty";
@@ -96,6 +97,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             name: values.name,
             icon: values.icon,
             isPublic: values.isPublic,
+            subdomain: values.subdomain || null,
             ...(webapp!.type !== WebappType.Static && {
               source: buildSource[webapp!.type](values),
             }),
@@ -116,6 +118,22 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           toast.error(t("Cannot change the type of an existing web app"));
         } else if (error === UpdateWebappError.InvalidUrl) {
           toast.error(t("Invalid URL. Only http and https URLs are allowed"));
+        } else if (error === UpdateWebappError.SubdomainNotLowercase) {
+          toast.error(t("Subdomain must be lowercase"));
+        } else if (error === UpdateWebappError.SubdomainTooShort) {
+          toast.error(t("Subdomain must be at least 3 characters"));
+        } else if (error === UpdateWebappError.SubdomainHasDots) {
+          toast.error(t("Subdomain must be a single label (no dots)"));
+        } else if (error === UpdateWebappError.SubdomainReserved) {
+          toast.error(t("This subdomain is reserved"));
+        } else if (error === UpdateWebappError.SubdomainInvalidFormat) {
+          toast.error(
+            t(
+              "Subdomain must be alphanumeric with hyphens, no leading/trailing hyphens, and 63 characters or fewer",
+            ),
+          );
+        } else if (error === UpdateWebappError.SubdomainAlreadyTaken) {
+          toast.error(t("This subdomain is already taken"));
         }
         return;
       }
@@ -259,6 +277,18 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         {webapp && selectedType === WebappType.Superset && (
           <LinkProperty id="supersetUrl" accessor="url" label={t("URL")} />
         )}
+        {webapp && (
+          <SubdomainProperty
+            id="subdomain"
+            accessor="subdomain"
+            label={t("Subdomain")}
+            help={t(
+              "Subdomain used to generate the URL for accessing this web app",
+            )}
+            currentSubdomain={webapp.subdomain}
+            serveUrl={webapp.url}
+          />
+        )}
         <SwitchProperty
           id="isPublic"
           accessor="isPublic"
@@ -277,10 +307,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         </DataCard.Section>
       )}
       {(debouncedUrl || webapp?.url) && !loading && (
-        <DataCard.Section
-          title={t("Preview")}
-          collapsible={false}
-        >
+        <DataCard.Section title={t("Preview")} collapsible={false}>
           <WebappIframe
             url={debouncedUrl || webapp?.url || ""}
             type={selectedType}
@@ -303,6 +330,7 @@ WebappForm.fragment = {
       type
       icon
       isPublic
+      subdomain
       source {
         ... on SupersetSource {
           instance {

@@ -56,6 +56,7 @@ type Webapp {
   name: String!
   description: String
   url: String!
+  subdomain: String!
   type: WebappType!
   icon: String
   workspace: Workspace!
@@ -145,6 +146,7 @@ input UpdateWebappInput {
   id: UUID!
   name: String
   description: String
+  subdomain: String
   icon: String
   isPublic: Boolean
   source: UpdateWebappSourceInput
@@ -181,6 +183,12 @@ enum UpdateWebappError {
   INVALID_URL
   SAVE_FAILED
   VERSION_NOT_FOUND
+  SUBDOMAIN_NOT_LOWERCASE
+  SUBDOMAIN_TOO_SHORT
+  SUBDOMAIN_HAS_DOTS
+  SUBDOMAIN_RESERVED
+  SUBDOMAIN_INVALID_FORMAT
+  SUBDOMAIN_ALREADY_TAKEN
 }
 
 """

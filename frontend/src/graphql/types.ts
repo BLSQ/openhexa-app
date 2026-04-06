@@ -5956,6 +5956,12 @@ export enum UpdateWebappError {
   InvalidUrl = 'INVALID_URL',
   PermissionDenied = 'PERMISSION_DENIED',
   SaveFailed = 'SAVE_FAILED',
+  SubdomainAlreadyTaken = 'SUBDOMAIN_ALREADY_TAKEN',
+  SubdomainHasDots = 'SUBDOMAIN_HAS_DOTS',
+  SubdomainInvalidFormat = 'SUBDOMAIN_INVALID_FORMAT',
+  SubdomainNotLowercase = 'SUBDOMAIN_NOT_LOWERCASE',
+  SubdomainReserved = 'SUBDOMAIN_RESERVED',
+  SubdomainTooShort = 'SUBDOMAIN_TOO_SHORT',
   SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
   SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
   TypeMismatch = 'TYPE_MISMATCH',
@@ -5973,6 +5979,7 @@ export type UpdateWebappInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   publishedVersionId?: InputMaybe<Scalars['String']['input']>;
   source?: InputMaybe<UpdateWebappSourceInput>;
+  subdomain?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Represents the result of updating a web app. */
@@ -6160,6 +6167,7 @@ export type Webapp = {
   showPoweredBy: Scalars['Boolean']['output'];
   slug: Scalars['String']['output'];
   source: WebappSource;
+  subdomain: Scalars['String']['output'];
   type: WebappType;
   url: Scalars['String']['output'];
   versions?: Maybe<WebappVersionsPage>;
