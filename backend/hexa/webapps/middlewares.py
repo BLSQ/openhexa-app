@@ -40,10 +40,11 @@ def _serve_static_webapp(webapp, request):
     return response
 
 
-# FIXME: This is okay for now, but there's no reason why we can't serve these
-# on subdomains as well in the future.
 def _serve_iframe_or_superset_webapp(webapp):
-    return HttpResponseRedirect(webapp.url)
+    html = render_to_string(
+        "webapps/embed.html", {"name": webapp.name, "url": webapp.url}
+    )
+    return HttpResponse(html)
 
 
 def _build_auth_token_url(request, webapp):
