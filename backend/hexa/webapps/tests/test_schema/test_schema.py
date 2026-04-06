@@ -170,6 +170,8 @@ class WebappsTest(GraphQLTestCase):
         self.assertEqual(
             "my-webapp", response["data"]["updateWebapp"]["webapp"]["subdomain"]
         )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, "my-webapp")
 
         response = self.run_query(
             self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
@@ -177,9 +179,12 @@ class WebappsTest(GraphQLTestCase):
         )
         self.assertTrue(response["data"]["updateWebapp"]["success"])
         self.assertIsNone(response["data"]["updateWebapp"]["webapp"]["subdomain"])
+        self.WEBAPP.refresh_from_db()
+        self.assertIsNone(self.WEBAPP.subdomain)
 
     def test_update_webapp_subdomain_not_lowercase(self):
         self.client.force_login(self.USER_ROOT)
+        original_subdomain = self.WEBAPP.subdomain
         response = self.run_query(
             self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
             {"input": {"id": str(self.WEBAPP.id), "subdomain": "MyWebapp"}},
@@ -188,9 +193,12 @@ class WebappsTest(GraphQLTestCase):
         self.assertEqual(
             response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_NOT_LOWERCASE"]
         )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
 
     def test_update_webapp_subdomain_too_short(self):
         self.client.force_login(self.USER_ROOT)
+        original_subdomain = self.WEBAPP.subdomain
         response = self.run_query(
             self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
             {"input": {"id": str(self.WEBAPP.id), "subdomain": "ab"}},
@@ -199,9 +207,12 @@ class WebappsTest(GraphQLTestCase):
         self.assertEqual(
             response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_TOO_SHORT"]
         )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
 
     def test_update_webapp_subdomain_has_dots(self):
         self.client.force_login(self.USER_ROOT)
+        original_subdomain = self.WEBAPP.subdomain
         response = self.run_query(
             self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
             {"input": {"id": str(self.WEBAPP.id), "subdomain": "my.webapp"}},
@@ -210,9 +221,12 @@ class WebappsTest(GraphQLTestCase):
         self.assertEqual(
             response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_HAS_DOTS"]
         )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
 
     def test_update_webapp_subdomain_reserved(self):
         self.client.force_login(self.USER_ROOT)
+        original_subdomain = self.WEBAPP.subdomain
         response = self.run_query(
             self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
             {"input": {"id": str(self.WEBAPP.id), "subdomain": "admin"}},
@@ -221,9 +235,12 @@ class WebappsTest(GraphQLTestCase):
         self.assertEqual(
             response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_RESERVED"]
         )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
 
     def test_update_webapp_subdomain_invalid_format(self):
         self.client.force_login(self.USER_ROOT)
+        original_subdomain = self.WEBAPP.subdomain
         response = self.run_query(
             self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
             {"input": {"id": str(self.WEBAPP.id), "subdomain": "-invalid"}},
@@ -232,9 +249,12 @@ class WebappsTest(GraphQLTestCase):
         self.assertEqual(
             response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_INVALID_FORMAT"]
         )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
 
     def test_update_webapp_subdomain_already_taken(self):
         self.client.force_login(self.USER_ROOT)
+        original_subdomain = self.WEBAPP.subdomain
         other_webapp = Webapp.objects.create(
             name="Other Webapp",
             slug="other-webapp",
@@ -251,6 +271,8 @@ class WebappsTest(GraphQLTestCase):
         self.assertEqual(
             response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_ALREADY_TAKEN"]
         )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
         other_webapp.delete()
 
     def test_delete_webapp(self):
