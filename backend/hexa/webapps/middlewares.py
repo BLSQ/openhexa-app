@@ -179,6 +179,11 @@ def webapp_subdomain_middleware(get_response):
         else:
             response = _serve_iframe_or_superset_webapp(webapp)
 
+        del response["X-Frame-Options"]
+        frame_ancestors = f"'self' {settings.BASE_URL}"
+        if hasattr(settings, "NEW_FRONTEND_DOMAIN"):
+            frame_ancestors += f" {settings.NEW_FRONTEND_DOMAIN}"
+        response["Content-Security-Policy"] = f"frame-ancestors {frame_ancestors}"
         return response
 
     return middleware
