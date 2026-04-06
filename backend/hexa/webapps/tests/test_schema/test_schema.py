@@ -41,6 +41,7 @@ class WebappsTest(GraphQLTestCase):
         cls.WEBAPP = Webapp.objects.create(
             name="Test Webapp",
             slug="test-webapp",
+            subdomain="test-webapp",
             url="http://example.com",
             workspace=cls.WS1,
             created_by=cls.USER_ROOT,
@@ -173,14 +174,31 @@ class WebappsTest(GraphQLTestCase):
         self.WEBAPP.refresh_from_db()
         self.assertEqual(self.WEBAPP.subdomain, "my-webapp")
 
+    def test_update_webapp_subdomain_required(self):
+        self.client.force_login(self.USER_ROOT)
+        original_subdomain = self.WEBAPP.subdomain
+
         response = self.run_query(
             self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
             {"input": {"id": str(self.WEBAPP.id), "subdomain": None}},
         )
-        self.assertTrue(response["data"]["updateWebapp"]["success"])
-        self.assertIsNone(response["data"]["updateWebapp"]["webapp"]["subdomain"])
+        self.assertFalse(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(
+            response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_REQUIRED"]
+        )
         self.WEBAPP.refresh_from_db()
-        self.assertIsNone(self.WEBAPP.subdomain)
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
+
+        response = self.run_query(
+            self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
+            {"input": {"id": str(self.WEBAPP.id), "subdomain": ""}},
+        )
+        self.assertFalse(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(
+            response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_REQUIRED"]
+        )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
 
     def test_update_webapp_subdomain_not_lowercase(self):
         self.client.force_login(self.USER_ROOT)
