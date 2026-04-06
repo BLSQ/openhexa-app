@@ -1,6 +1,5 @@
 import clsx from "clsx";
 import { useMemo } from "react";
-import Input from "../forms/Input";
 import DataCard from "./DataCard";
 import { useDataCardProperty } from "./context";
 import { PropertyDefinition } from "./types";
@@ -34,35 +33,50 @@ const SubdomainProperty = (props: SubdomainPropertyProps) => {
   }
 
   if (section.isEdited && !property.readonly) {
-    const previewUrl =
-      urlParts && property.formValue
-        ? `${urlParts.prefix}${property.formValue}${urlParts.suffix}`
+    return (
+      <DataCard.Property property={property}>
+        <div className="flex items-baseline gap-1 text-sm">
+          {urlParts && <span className="text-gray-500">{urlParts.prefix}</span>}
+          <input
+            type="text"
+            className={clsx(
+              "form-input appearance-none",
+              "px-2 py-1 border rounded-md focus:outline-hidden",
+              "text-sm border-gray-300 text-gray-900",
+              "focus:ring-blue-500 focus:border-blue-500",
+              "w-40",
+            )}
+            value={property.formValue ?? ""}
+            onChange={(e) => property.setValue(e.target.value)}
+            required={property.required}
+          />
+          {urlParts && (
+            <span className="text-gray-500">{urlParts.suffix}/</span>
+          )}
+        </div>
+      </DataCard.Property>
+    );
+  } else {
+    const fullUrl =
+      urlParts && property.displayValue
+        ? `${urlParts.prefix}${property.displayValue}${urlParts.suffix}`
         : null;
 
     return (
       <DataCard.Property property={property}>
-        <Input
-          fullWidth
-          value={property.formValue ?? ""}
-          onChange={(e) => property.setValue(e.target.value)}
-          required={property.required}
-          readOnly={property.readonly}
-        />
-        {previewUrl && (
-          <p className="mt-1 text-xs text-gray-500">{previewUrl}</p>
-        )}
-      </DataCard.Property>
-    );
-  } else {
-    return (
-      <DataCard.Property property={property}>
-        <div
-          className={clsx(
-            "prose text-sm",
-            property.displayValue ? "text-gray-900" : "text-gray-500 italic",
+        <div className="prose text-sm">
+          {fullUrl ? (
+            <a
+              href={fullUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 underline hover:text-blue-400"
+            >
+              {fullUrl}
+            </a>
+          ) : (
+            <span className="italic text-gray-500">-</span>
           )}
-        >
-          {property.displayValue || "-"}
         </div>
       </DataCard.Property>
     );
