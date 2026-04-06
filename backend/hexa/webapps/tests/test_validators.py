@@ -46,8 +46,18 @@ class ValidateSubdomainTest(TestCase):
 
     def test_rejects_reserved_subdomains(self):
         for value in [
-            "www", "api", "mail", "ftp", "admin", "app", "smtp",
-            "localhost", "wpad", "postmaster", "sso", "staging",
+            "www",
+            "api",
+            "mail",
+            "ftp",
+            "admin",
+            "app",
+            "smtp",
+            "localhost",
+            "wpad",
+            "postmaster",
+            "sso",
+            "staging",
         ]:
             with self.subTest(value=value):
                 with self.assertRaises(ValidationError):
