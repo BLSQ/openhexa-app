@@ -1,6 +1,7 @@
 import { useTranslation } from "next-i18next";
 import {
   useWebappVersionsQuery,
+  useWebappVersionsLazyQuery,
   WebappVersion_VersionFragment,
 } from "webapps/graphql/queries.generated";
 import Spinner from "core/components/Spinner";
@@ -32,9 +33,10 @@ const VersionPicker = ({
   const [selectedVersion, setSelectedVersion] =
     useState<WebappVersion_VersionFragment | null>(null);
 
-  const { data, loading, refetch } = useWebappVersionsQuery({
+  const { data, loading } = useWebappVersionsQuery({
     variables: { workspaceSlug, webappSlug, page: 1, perPage: PER_PAGE },
   });
+  const [fetchPage] = useWebappVersionsLazyQuery();
 
   const firstPageVersions = useMemo(
     () => data?.webapp?.versions?.items ?? [],
@@ -96,17 +98,15 @@ const VersionPicker = ({
     if (!hasMore) return;
     const nextPage = pageRef.current + 1;
     pageRef.current = nextPage;
-    refetch({
-      workspaceSlug,
-      webappSlug,
-      page: nextPage,
-      perPage: PER_PAGE,
+    fetchPage({
+      variables: { workspaceSlug, webappSlug, page: nextPage, perPage: PER_PAGE },
+      fetchPolicy: "no-cache",
     }).then(({ data: d }) => {
       const items = d?.webapp?.versions?.items ?? [];
       setExtraVersions((prev) => [...prev, ...items]);
       setHasMore(items.length >= PER_PAGE);
     });
-  }, [hasMore, refetch, workspaceSlug, webappSlug]);
+  }, [hasMore, fetchPage, workspaceSlug, webappSlug]);
 
   if (loading) {
     return (
