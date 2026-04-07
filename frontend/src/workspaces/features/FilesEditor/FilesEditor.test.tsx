@@ -189,7 +189,7 @@ describe("FilesEditor", () => {
   it("displays modified indicator when file is changed in editable mode and call save action on save", async () => {
     const mockOnSave = jest.fn().mockResolvedValue({ success: true });
 
-    render(
+    const { rerender } = render(
       <TestApp>
         <FilesEditor
           name="Test Project"
@@ -224,6 +224,21 @@ describe("FilesEditor", () => {
     fireEvent.click(saveButton);
 
     expect(mockOnSave).toHaveBeenCalled();
+
+    const updatedFiles = mockFiles.map((f) =>
+      f.id === "2" ? { ...f, content: "print('hello world v2')" } : f,
+    );
+    rerender(
+      <TestApp>
+        <FilesEditor
+          name="Test Project"
+          files={updatedFiles}
+          isEditable={true}
+          onSave={mockOnSave}
+        />
+      </TestApp>,
+    );
+
     await waitFor(() => {
       expect(screen.queryByText(/Modified/i)).not.toBeInTheDocument();
       expect(screen.queryByTitle(/Modified/i)).not.toBeInTheDocument();
