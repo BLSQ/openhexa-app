@@ -5960,6 +5960,7 @@ export enum UpdateWebappError {
   SubdomainHasDots = 'SUBDOMAIN_HAS_DOTS',
   SubdomainInvalidFormat = 'SUBDOMAIN_INVALID_FORMAT',
   SubdomainNotLowercase = 'SUBDOMAIN_NOT_LOWERCASE',
+  SubdomainRequired = 'SUBDOMAIN_REQUIRED',
   SubdomainReserved = 'SUBDOMAIN_RESERVED',
   SubdomainTooShort = 'SUBDOMAIN_TOO_SHORT',
   SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
