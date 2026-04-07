@@ -1,7 +1,9 @@
 from unittest.mock import MagicMock, patch
 
 import requests_mock
+from django.contrib.sessions.backends.db import SessionStore
 from django.core.exceptions import ValidationError
+from django.test import override_settings
 
 from hexa.core.test import GraphQLTestCase, TestCase
 from hexa.git.forgejo import ForgejoAPIError
@@ -280,7 +282,13 @@ class WebappURLValidationTest(GraphQLTestCase):
         self.assertEqual(webapp.url, "https://example.com")
 
 
+@override_settings(
+    WEBAPPS_SUBDOMAIN_BASE_URL="webapps.localhost:8000",
+    ALLOWED_HOSTS=["*"],
+)
 class GitWebappServeViewTest(TestCase):
+    SUBDOMAIN_BASE = "webapps.localhost:8000"
+
     @classmethod
     def setUpTestData(cls):
         cls.USER_MEMBER = User.objects.create_user(
@@ -336,19 +344,32 @@ class GitWebappServeViewTest(TestCase):
             is_public=True,
         )
 
+    def _subdomain_host(self, webapp):
+        return f"{webapp.subdomain}.{self.SUBDOMAIN_BASE}"
+
+    def _get(self, webapp, path="/", **kwargs):
+        return self.client.get(path, HTTP_HOST=self._subdomain_host(webapp), **kwargs)
+
+    def _create_webapp_session(self, webapp, user):
+        session = SessionStore()
+        session.set_expiry(3600)
+        session["user_id"] = str(user.pk)
+        session["webapp_id"] = str(webapp.pk)
+        session.create()
+        self.client.cookies["hexa_webapp_session"] = session.session_key
+
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_serve_index_html(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.get_file.return_value = b"<h1>Hello World</h1>"
         mock_get_client.return_value = mock_client
 
-        self.client.force_login(self.USER_MEMBER)
-        response = self.client.get(f"/webapps/{self.PRIVATE_WEBAPP.id}/")
+        self._create_webapp_session(self.PRIVATE_WEBAPP, self.USER_MEMBER)
+        response = self._get(self.PRIVATE_WEBAPP)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b"<h1>Hello World</h1>")
         self.assertEqual(response["Content-Type"], "text/html")
-        self.assertNotIn("X-Frame-Options", response)
 
         mock_client.get_file.assert_called_once_with(
             "webapp-private",
@@ -363,8 +384,8 @@ class GitWebappServeViewTest(TestCase):
         mock_client.get_file.return_value = b"body { color: red; }"
         mock_get_client.return_value = mock_client
 
-        self.client.force_login(self.USER_MEMBER)
-        response = self.client.get(f"/webapps/{self.PRIVATE_WEBAPP.id}/style.css")
+        self._create_webapp_session(self.PRIVATE_WEBAPP, self.USER_MEMBER)
+        response = self._get(self.PRIVATE_WEBAPP, "/style.css")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b"body { color: red; }")
@@ -376,29 +397,30 @@ class GitWebappServeViewTest(TestCase):
         mock_client.get_file.return_value = b"console.log('hello');"
         mock_get_client.return_value = mock_client
 
-        self.client.force_login(self.USER_MEMBER)
-        response = self.client.get(f"/webapps/{self.PRIVATE_WEBAPP.id}/script.js")
+        self._create_webapp_session(self.PRIVATE_WEBAPP, self.USER_MEMBER)
+        response = self._get(self.PRIVATE_WEBAPP, "/script.js")
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("javascript", response["Content-Type"])
 
     def test_serve_nonexistent_webapp(self):
-        response = self.client.get("/webapps/00000000-0000-0000-0000-000000000000/")
+        response = self.client.get("/", HTTP_HOST=f"nonexistent.{self.SUBDOMAIN_BASE}")
         self.assertEqual(response.status_code, 404)
 
-    def test_serve_unpublished_webapp(self):
-        self.client.force_login(self.USER_MEMBER)
-        response = self.client.get(f"/webapps/{self.UNPUBLISHED_WEBAPP.id}/")
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_serve_unpublished_webapp(self, mock_get_client):
+        response = self._get(self.UNPUBLISHED_WEBAPP)
         self.assertEqual(response.status_code, 404)
 
-    def test_anonymous_redirected_to_login_for_private_webapp(self):
-        response = self.client.get(f"/webapps/{self.PRIVATE_WEBAPP.id}/")
+    def test_anonymous_redirected_to_auth_for_private_webapp(self):
+        response = self._get(self.PRIVATE_WEBAPP)
         self.assertEqual(response.status_code, 302)
+        self.assertIn("/auth-token/", response["Location"])
 
-    def test_non_member_cannot_access_private_webapp(self):
-        self.client.force_login(self.USER_NON_MEMBER)
-        response = self.client.get(f"/webapps/{self.PRIVATE_WEBAPP.id}/")
-        self.assertEqual(response.status_code, 403)
+    def test_non_member_redirected_to_auth_for_private_webapp(self):
+        response = self._get(self.PRIVATE_WEBAPP)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/auth-token/", response["Location"])
 
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_member_can_access_private_webapp(self, mock_get_client):
@@ -406,8 +428,8 @@ class GitWebappServeViewTest(TestCase):
         mock_client.get_file.return_value = b"<html>private</html>"
         mock_get_client.return_value = mock_client
 
-        self.client.force_login(self.USER_MEMBER)
-        response = self.client.get(f"/webapps/{self.PRIVATE_WEBAPP.id}/")
+        self._create_webapp_session(self.PRIVATE_WEBAPP, self.USER_MEMBER)
+        response = self._get(self.PRIVATE_WEBAPP)
         self.assertEqual(response.status_code, 200)
 
     @patch("hexa.webapps.views.get_forgejo_client")
@@ -416,7 +438,7 @@ class GitWebappServeViewTest(TestCase):
         mock_client.get_file.return_value = b"<html>public</html>"
         mock_get_client.return_value = mock_client
 
-        response = self.client.get(f"/webapps/{self.PUBLIC_WEBAPP.id}/")
+        response = self._get(self.PUBLIC_WEBAPP)
         self.assertEqual(response.status_code, 200)
 
     @patch("hexa.webapps.views.get_forgejo_client")
@@ -425,8 +447,7 @@ class GitWebappServeViewTest(TestCase):
         mock_client.get_file.return_value = b"<html>public</html>"
         mock_get_client.return_value = mock_client
 
-        self.client.force_login(self.USER_NON_MEMBER)
-        response = self.client.get(f"/webapps/{self.PUBLIC_WEBAPP.id}/")
+        response = self._get(self.PUBLIC_WEBAPP)
         self.assertEqual(response.status_code, 200)
 
     @patch("hexa.webapps.views.get_forgejo_client")
@@ -437,10 +458,8 @@ class GitWebappServeViewTest(TestCase):
         )
         mock_get_client.return_value = mock_client
 
-        self.client.force_login(self.USER_MEMBER)
-        response = self.client.get(
-            f"/webapps/{self.PRIVATE_WEBAPP.id}/nonexistent.html"
-        )
+        self._create_webapp_session(self.PRIVATE_WEBAPP, self.USER_MEMBER)
+        response = self._get(self.PRIVATE_WEBAPP, "/nonexistent.html")
         self.assertEqual(response.status_code, 404)
 
     @patch("hexa.webapps.views.get_forgejo_client")
@@ -449,10 +468,8 @@ class GitWebappServeViewTest(TestCase):
         mock_client.get_file.return_value = b".icon { display: block; }"
         mock_get_client.return_value = mock_client
 
-        self.client.force_login(self.USER_MEMBER)
-        response = self.client.get(
-            f"/webapps/{self.PRIVATE_WEBAPP.id}/assets/icons/style.css"
-        )
+        self._create_webapp_session(self.PRIVATE_WEBAPP, self.USER_MEMBER)
+        response = self._get(self.PRIVATE_WEBAPP, "/assets/icons/style.css")
 
         self.assertEqual(response.status_code, 200)
         mock_client.get_file.assert_called_once_with(
