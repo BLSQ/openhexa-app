@@ -172,3 +172,25 @@ mutation CreatePipeline($input: CreatePipelineInput!) {
     }
   }
 }
+
+mutation UploadPipeline($input: UploadPipelineInput!) {
+  uploadPipeline(input: $input) {
+    success
+    errors
+    pipelineVersion {
+      id
+      versionNumber
+      versionName
+      createdAt
+      parameters {
+        code
+        name
+        type
+        required
+        multiple
+        default
+        help
+      }
+    }
+  }
+}

@@ -105,6 +105,13 @@ def update_pipeline(
     return data["updatePipeline"]
 
 
+def _build_zipfile_b64(source_code: str) -> str:
+    buf = io.BytesIO()
+    with ZipFile(buf, "w") as zf:
+        zf.writestr("pipeline.py", source_code)
+    return base64.b64encode(buf.getvalue()).decode("ascii")
+
+
 @tool
 def create_pipeline(
     user,
@@ -147,12 +154,7 @@ def create_pipeline(
         if __name__ == "__main__":
             simple_etl()
     """
-    zipfile_b64 = None
-    if source_code:
-        buf = io.BytesIO()
-        with ZipFile(buf, "w") as zf:
-            zf.writestr("pipeline.py", source_code)
-        zipfile_b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+    zipfile_b64 = _build_zipfile_b64(source_code) if source_code else None
 
     data = execute_graphql(
         user,
@@ -170,3 +172,41 @@ def create_pipeline(
     if "errors" in data:
         return data
     return data.get("createPipeline", {})
+
+
+@tool
+def create_pipeline_version(
+    user,
+    workspace_slug: str,
+    pipeline_code: str,
+    source_code: str,
+    name: str = "",
+    description: str = "",
+) -> dict:
+    """Upload a new version of an existing pipeline. Requires the workspace slug, the pipeline code (from get_pipeline), and the Python source code for the new version.
+
+    Optionally provide a version name and description. The version number is auto-incremented.
+
+    The source_code must follow the OpenHEXA SDK structure (use @pipeline and @task decorators).
+    Use get_pipeline first to read the current source code, then modify it and pass it here.
+
+    Returns the created version details including id, version number, and parsed parameters.
+    """
+    zipfile_b64 = _build_zipfile_b64(source_code)
+
+    data = execute_graphql(
+        user,
+        "UploadPipeline",
+        {
+            "input": {
+                "workspaceSlug": workspace_slug,
+                "pipelineCode": pipeline_code,
+                "zipfile": zipfile_b64,
+                "name": name or None,
+                "description": description or None,
+            }
+        },
+    )
+    if "errors" in data:
+        return data
+    return data.get("uploadPipeline", {})
