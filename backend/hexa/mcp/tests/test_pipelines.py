@@ -1,10 +1,12 @@
 from hexa.mcp.tools.pipelines import (
+    create_pipeline_version,
     get_pipeline,
     get_pipeline_run,
     list_pipelines,
     run_pipeline,
     update_pipeline,
 )
+from hexa.pipelines.models import PipelineVersion
 
 from .testutils import MCPTestCase
 
@@ -204,3 +206,59 @@ class UpdatePipelineTest(MCPTestCase):
         )
         self.assertFalse(result["success"])
         self.assertIn("NOT_FOUND", result["errors"])
+
+
+class CreatePipelineVersionTest(MCPTestCase):
+    SOURCE_CODE = 'from openhexa.sdk import pipeline\n\n@pipeline("test")\ndef test_pipeline():\n    pass'
+
+    def test_create_pipeline_version(self):
+        result = create_pipeline_version(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            pipeline_code="test-pipeline",
+            source_code=self.SOURCE_CODE,
+        )
+        self.assertTrue(result["success"])
+        self.assertEqual(result["pipelineVersion"]["versionNumber"], 2)
+
+        version = PipelineVersion.objects.get(id=result["pipelineVersion"]["id"])
+        self.assertEqual(version.pipeline, self.PIPELINE)
+        self.assertEqual(version.version_number, 2)
+        self.assertEqual(version.user, self.USER_ADMIN)
+        self.assertIsNotNone(version.zipfile)
+
+    def test_create_pipeline_version_with_name(self):
+        result = create_pipeline_version(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            pipeline_code="test-pipeline",
+            source_code=self.SOURCE_CODE,
+            name="My release",
+            description="A new version",
+        )
+        self.assertTrue(result["success"])
+        self.assertIn("My release", result["pipelineVersion"]["versionName"])
+
+        version = PipelineVersion.objects.get(id=result["pipelineVersion"]["id"])
+        self.assertEqual(version.name, "My release")
+        self.assertEqual(version.description, "A new version")
+
+    def test_create_pipeline_version_not_found(self):
+        result = create_pipeline_version(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            pipeline_code="nonexistent",
+            source_code=self.SOURCE_CODE,
+        )
+        self.assertFalse(result["success"])
+        self.assertIn("PIPELINE_NOT_FOUND", result["errors"])
+
+    def test_create_pipeline_version_no_access(self):
+        result = create_pipeline_version(
+            user=self.USER_OUTSIDER,
+            workspace_slug=self.WORKSPACE.slug,
+            pipeline_code="test-pipeline",
+            source_code=self.SOURCE_CODE,
+        )
+        self.assertFalse(result["success"])
+        self.assertIn("PIPELINE_NOT_FOUND", result["errors"])
