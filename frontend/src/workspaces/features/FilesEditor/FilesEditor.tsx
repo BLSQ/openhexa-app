@@ -224,9 +224,7 @@ export const FilesEditor = ({
     try {
       const result = await onSave(modifiedFiles, flatFiles);
 
-      if (result.success) {
-        setModifiedFiles(new Map());
-      } else {
+      if (!result.success) {
         setSaveError(result.error || "Save failed");
       }
     } catch (error) {
