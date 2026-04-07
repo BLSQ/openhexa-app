@@ -347,7 +347,7 @@ describe("WorkspaceWebappPage", () => {
     const nameInput = within(nameParent).getByRole("textbox");
     fireEvent.change(nameInput, { target: { value: "Updated Webapp" } });
 
-    const urlParent = screen.getByText("URL").closest("div") as HTMLDivElement;
+    const urlParent = screen.getByText("Source URL").closest("div") as HTMLDivElement;
     const urlInput = within(urlParent).getByRole("textbox");
     fireEvent.change(urlInput, {
       target: { value: "https://updated-url.com" },
