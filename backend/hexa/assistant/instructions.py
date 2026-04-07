@@ -4,6 +4,7 @@ from django.db.models import TextChoices
 class InstructionSet(TextChoices):
     GENERAL = "general", "General"
     PIPELINE = "pipeline", "Pipeline"
+    EDIT_PIPELINE = "edit_pipeline", "Edit Pipeline"
     WEBAPPS = "webapps", "Web Apps"
 
 
@@ -23,6 +24,15 @@ skeleton in Python with @pipeline and @task decorators that reflects what the us
 and pass it as source_code.\
 """
 
+_EDIT_PIPELINE = """\
+You are helping the user modify an existing OpenHEXA pipeline. \
+The pipeline's current metadata and files are provided in your context. \
+When the user asks for changes, analyse the existing code carefully, then call the \
+propose_pipeline_version tool with the full updated file list — always include every file, \
+not only the modified ones. \
+Before calling the tool, briefly explain what you are changing and why.\
+"""
+
 _WEBAPPS = """\
 You are in charge of creating a new web app for the user.\
 """
@@ -30,6 +40,7 @@ You are in charge of creating a new web app for the user.\
 _INSTRUCTION_SETS: dict[InstructionSet | tuple[str, str], str] = {
     InstructionSet.GENERAL: _BASE,
     InstructionSet.PIPELINE: _BASE + _PIPELINE,
+    InstructionSet.EDIT_PIPELINE: _BASE + _EDIT_PIPELINE,
     InstructionSet.WEBAPPS: _BASE + _WEBAPPS,
 }
 

@@ -27,16 +27,32 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
             "conversation": None,
         }
 
-    raw_instruction_set = input.get("instruction_set", InstructionSet.GENERAL)
-    try:
-        instruction_set = InstructionSet(raw_instruction_set)
-    except ValueError:
-        logger.warning("Invalid instruction set %s", raw_instruction_set)
-        return {
-            "success": False,
-            "errors": ["INVALID_INSTRUCTION_SET"],
-            "conversation": None,
-        }
+    pipeline = None
+    if pipeline_id := input.get("pipeline_id"):
+        from hexa.pipelines.models import Pipeline
+
+        try:
+            pipeline = Pipeline.objects.filter_for_user(request.user).get(
+                id=pipeline_id
+            )
+        except Pipeline.DoesNotExist:
+            return {
+                "success": False,
+                "errors": ["PIPELINE_NOT_FOUND"],
+                "conversation": None,
+            }
+        instruction_set = InstructionSet.EDIT_PIPELINE
+    else:
+        raw_instruction_set = input.get("instruction_set", InstructionSet.GENERAL)
+        try:
+            instruction_set = InstructionSet(raw_instruction_set)
+        except ValueError:
+            logger.warning("Invalid instruction set %s", raw_instruction_set)
+            return {
+                "success": False,
+                "errors": ["INVALID_INSTRUCTION_SET"],
+                "conversation": None,
+            }
 
     try:
         conversation = Conversation.objects.create_if_has_perm(
