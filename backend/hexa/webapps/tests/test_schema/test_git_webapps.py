@@ -1,4 +1,7 @@
 from unittest.mock import MagicMock, patch
+from urllib.parse import parse_qs, urlparse
+
+from django.core.signing import TimestampSigner
 
 from hexa.core.test import GraphQLTestCase
 from hexa.git.forgejo import ForgejoAPIError
@@ -49,6 +52,7 @@ WEBAPP_QUERY = """
             name
             type
             url
+            previewUrl
             source {
                 ... on GitSource {
                     repository
@@ -670,6 +674,62 @@ class GitWebappQueryTest(GraphQLTestCase):
         webapp = response["data"]["webapp"]
         self.assertIsNone(webapp["versions"])
         self.assertIsNone(webapp["files"])
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_preview_url_contains_auth_token(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_commits.return_value = []
+        mock_client.get_repository_files.return_value = []
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            WEBAPP_QUERY,
+            {
+                "workspaceSlug": self.WS.slug,
+                "slug": "query-test-app",
+            },
+        )
+
+        webapp = response["data"]["webapp"]
+        preview_url = webapp["previewUrl"]
+        parsed = urlparse(preview_url)
+        self.assertTrue(
+            preview_url.startswith(self.GIT_WEBAPP.serve_url),
+            f"previewUrl should start with serve_url, got {preview_url}",
+        )
+
+        query_params = parse_qs(parsed.query)
+        self.assertIn("auth_token", query_params)
+
+        signer = TimestampSigner()
+        payload = signer.unsign_object(query_params["auth_token"][0])
+        self.assertEqual(payload["user_id"], str(self.USER.pk))
+        self.assertEqual(payload["subdomain"], self.GIT_WEBAPP.subdomain)
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_preview_url_unauthenticated_returns_serve_url(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_commits.return_value = []
+        mock_client.get_repository_files.return_value = []
+        mock_get_client.return_value = mock_client
+
+        self.GIT_WEBAPP.is_public = True
+        self.GIT_WEBAPP.save()
+
+        response = self.run_query(
+            WEBAPP_QUERY,
+            {
+                "workspaceSlug": self.WS.slug,
+                "slug": "query-test-app",
+            },
+        )
+
+        webapp = response["data"]["webapp"]
+        self.assertEqual(webapp["previewUrl"], self.GIT_WEBAPP.serve_url)
+
+        self.GIT_WEBAPP.is_public = False
+        self.GIT_WEBAPP.save()
 
 
 class GitWebappDeleteTest(GraphQLTestCase):
