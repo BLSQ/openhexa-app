@@ -309,7 +309,11 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       {(debouncedUrl || webapp?.url) && !loading && (
         <DataCard.Section title={t("Preview")} collapsible={false}>
           <WebappIframe
-            url={debouncedUrl || webapp?.url || ""}
+            url={
+              webapp?.previewUrl && selectedType === WebappType.Static
+                ? webapp.previewUrl
+                : debouncedUrl || webapp?.url || ""
+            }
             type={selectedType}
             style={{ height: "65vh" }}
           />
@@ -327,6 +331,7 @@ WebappForm.fragment = {
       name
       description
       url
+      previewUrl
       type
       icon
       isPublic
