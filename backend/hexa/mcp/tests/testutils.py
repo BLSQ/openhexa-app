@@ -20,6 +20,7 @@ from hexa.pipelines.models import (
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Connection,
+    ConnectionField,
     ConnectionType,
     Workspace,
     WorkspaceMembership,
@@ -153,4 +154,16 @@ class MCPTestCase(TestCase):
             name="Test Connection",
             slug="test-connection",
             connection_type=ConnectionType.CUSTOM,
+        )
+        cls.CONNECTION_FIELD = ConnectionField.objects.create(
+            connection=cls.CONNECTION,
+            code="url",
+            value="https://example.com",
+            secret=False,
+        )
+        cls.CONNECTION_SECRET_FIELD = ConnectionField.objects.create(
+            connection=cls.CONNECTION,
+            code="token",
+            value="super-secret-token",
+            secret=True,
         )

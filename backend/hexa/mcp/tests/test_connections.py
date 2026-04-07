@@ -29,3 +29,21 @@ class ListConnectionsTest(MCPTestCase):
             user=self.USER_VIEWER, workspace_slug=self.WORKSPACE.slug
         )
         self.assertEqual(len(result["connections"]), 1)
+
+    def test_list_connections_admin_sees_secret_values(self):
+        result = list_connections(
+            user=self.USER_ADMIN, workspace_slug=self.WORKSPACE.slug
+        )
+        fields = {f["code"]: f for f in result["connections"][0]["fields"]}
+        self.assertEqual(fields["url"]["value"], "https://example.com")
+        self.assertFalse(fields["url"]["secret"])
+        self.assertEqual(fields["token"]["value"], "super-secret-token")
+        self.assertTrue(fields["token"]["secret"])
+
+    def test_list_connections_viewer_cannot_see_secret_values(self):
+        result = list_connections(
+            user=self.USER_VIEWER, workspace_slug=self.WORKSPACE.slug
+        )
+        fields = {f["code"]: f for f in result["connections"][0]["fields"]}
+        self.assertEqual(fields["url"]["value"], "https://example.com")
+        self.assertIsNone(fields["token"]["value"])
