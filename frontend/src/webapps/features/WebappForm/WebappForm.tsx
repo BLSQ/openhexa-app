@@ -250,7 +250,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         <TextProperty
           id="url"
           accessor="url"
-          label={t("URL")}
+          label={t("Source URL")}
           visible={selectedType === WebappType.Iframe}
           required={selectedType === WebappType.Iframe}
           onChange={(e) => setUrl(e.target.value)}
@@ -275,15 +275,15 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           required={selectedType === WebappType.Superset}
         />
         {webapp && selectedType === WebappType.Superset && (
-          <LinkProperty id="supersetUrl" accessor="url" label={t("URL")} />
+          <LinkProperty id="supersetUrl" accessor="url" label={t("Dashboard URL")} />
         )}
         {webapp && (
           <SubdomainProperty
             id="subdomain"
             accessor="subdomain"
-            label={t("Subdomain")}
+            label={t("Published URL")}
             help={t(
-              "Subdomain used to generate the URL for accessing this web app",
+              "The URL where this web app can be accessed",
             )}
             currentSubdomain={webapp.subdomain}
             serveUrl={webapp.serveUrl}
