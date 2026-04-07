@@ -1,8 +1,18 @@
+import { SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import PipelineEditChatPanel from "assistant/features/PipelineEditChatPanel";
+import Button from "core/components/Button";
+import DataCard from "core/components/DataCard";
 import Page from "core/components/Page";
+import Spinner from "core/components/Spinner";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
+import useFeature from "identity/hooks/useFeature";
+import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
+import { useCallback, useState } from "react";
 import { PipelineFilesEditor } from "workspaces/features/FilesEditor/PipelineFilesEditor";
+import PipelineVersionPicker from "workspaces/features/PipelineVersionPicker";
+import { PipelineVersionPicker_VersionFragment } from "workspaces/features/PipelineVersionPicker/PipelineVersionPicker.generated";
 import {
   useGetPipelineVersionFilesLazyQuery,
   useWorkspacePipelineCodePageQuery,
@@ -11,11 +21,6 @@ import {
   WorkspacePipelineCodePageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
-import DataCard from "core/components/DataCard";
-import PipelineVersionPicker from "workspaces/features/PipelineVersionPicker";
-import { useState } from "react";
-import { PipelineVersionPicker_VersionFragment } from "workspaces/features/PipelineVersionPicker/PipelineVersionPicker.generated";
-import Spinner from "core/components/Spinner";
 
 type Props = {
   pipelineCode: string;
@@ -27,6 +32,12 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const [selectedVersion, setSelectedVersion] =
     useState<PipelineVersionPicker_VersionFragment | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+
+  const [isAssistantEnabled] = useFeature("assistant");
+  const me = useMe();
+  const aiEnabled = me?.user?.aiSettings?.enabled ?? false;
+  const showAssistant = isAssistantEnabled && aiEnabled;
 
   const { data, loading } = useWorkspacePipelineCodePageQuery({
     variables: {
@@ -68,6 +79,8 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   };
 
   const versionToShow = versionData?.pipelineVersion ?? pipeline.currentVersion;
+  const monthlyLimitExceeded = data?.me?.assistantMonthlyLimitExceeded ?? false;
+
   return (
     <Page title={pipeline.name ?? t("Pipeline Code")}>
       <PipelineLayout
@@ -88,23 +101,45 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                 onChange={onVersionChange}
               />
             </div>
+            {showAssistant && (
+              <Button
+                onClick={() => setChatOpen((o) => !o)}
+                variant="secondary"
+                size="md"
+                leadingIcon={<SparklesIcon className="h-4 w-4" />}
+                className="ml-auto"
+              >
+                {t("AI Assistant")}
+              </Button>
+            )}
           </div>
-          <div className="relative">
-            {(loading || versionLoading) && (
-              <div className="absolute inset-0 backdrop-blur-xs flex justify-center items-center z-10">
-                <Spinner size="md" />
+          <div className="flex gap-4">
+            <div className="relative flex-1 min-w-0">
+              {(loading || versionLoading) && (
+                <div className="absolute inset-0 backdrop-blur-xs flex justify-center items-center z-10">
+                  <Spinner size="md" />
+                </div>
+              )}
+              <PipelineFilesEditor
+                key={versionToShow.id}
+                name={versionToShow.versionName}
+                files={versionToShow.files}
+                isEditable={true}
+                workspaceSlug={workspaceSlug}
+                pipelineCode={pipelineCode}
+                pipelineId={pipeline.id}
+                onVersionCreated={handleVersionCreated}
+              />
+            </div>
+            {chatOpen && showAssistant && (
+              <div className="w-[440px] shrink-0 min-h-[350px]">
+                <PipelineEditChatPanel
+                  pipelineId={pipeline.id}
+                  workspaceSlug={workspaceSlug}
+                  monthlyLimitExceeded={monthlyLimitExceeded}
+                />
               </div>
             )}
-            <PipelineFilesEditor
-              key={versionToShow.id}
-              name={versionToShow.versionName}
-              files={versionToShow.files}
-              isEditable={true}
-              workspaceSlug={workspaceSlug}
-              pipelineCode={pipelineCode}
-              pipelineId={pipeline.id}
-              onVersionCreated={handleVersionCreated}
-            />
           </div>
         </DataCard.FormSection>
       </PipelineLayout>
