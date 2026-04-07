@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 import requests_mock
 from django.contrib.sessions.backends.db import SessionStore
 from django.core.exceptions import ValidationError
+from django.core.signing import TimestampSigner
 from django.test import override_settings
 
 from hexa.core.test import GraphQLTestCase, TestCase
@@ -478,3 +479,242 @@ class GitWebappServeViewTest(TestCase):
             "sha-published",
             org_slug="no-org",
         )
+
+    def test_invalid_session_cookie_redirects_to_auth(self):
+        self.client.cookies["hexa_webapp_session"] = "nonexistent-session-key"
+        response = self._get(self.PRIVATE_WEBAPP)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/auth-token/", response["Location"])
+
+    def test_session_for_wrong_webapp_redirects_to_auth(self):
+        session = SessionStore()
+        session.set_expiry(3600)
+        session["user_id"] = str(self.USER_MEMBER.pk)
+        session["webapp_id"] = str(self.PUBLIC_WEBAPP.pk)
+        session.create()
+
+        self.client.cookies["hexa_webapp_session"] = session.session_key
+        response = self._get(self.PRIVATE_WEBAPP)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/auth-token/", response["Location"])
+
+    def test_graphql_blocked_on_subdomain(self):
+        response = self.client.get(
+            "/graphql/", HTTP_HOST=self._subdomain_host(self.PUBLIC_WEBAPP)
+        )
+        self.assertEqual(response.status_code, 404)
+
+
+@override_settings(
+    WEBAPPS_SUBDOMAIN_BASE_URL="webapps.localhost:8000",
+    ALLOWED_HOSTS=["*"],
+    BASE_URL="http://localhost:8000",
+)
+class AuthTokenViewTest(TestCase):
+    SUBDOMAIN_BASE = "webapps.localhost:8000"
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER_MEMBER = User.objects.create_user(
+            "authmember@test.com",
+            "password",
+        )
+        cls.USER_NON_MEMBER = User.objects.create_user(
+            "authnonmember@test.com",
+            "password",
+        )
+        cls.WORKSPACE = Workspace.objects.create(
+            name="Auth Workspace",
+            slug="auth-workspace",
+        )
+        WorkspaceMembership.objects.create(
+            user=cls.USER_MEMBER,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        cls.PRIVATE_WEBAPP = GitWebapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Auth Private App",
+            slug="auth-private-app",
+            subdomain="auth-private-app",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER_MEMBER,
+            repository="webapp-auth",
+            published_commit="sha-auth",
+            is_public=False,
+        )
+        cls.PUBLIC_WEBAPP = GitWebapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Auth Public App",
+            slug="auth-public-app",
+            subdomain="auth-public-app",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER_MEMBER,
+            repository="webapp-auth-pub",
+            published_commit="sha-pub",
+            is_public=True,
+        )
+
+    def _auth_token_url(self, webapp):
+        return f"/webapps/{webapp.pk}/auth-token/"
+
+    def _webapp_url(self, webapp, path="/"):
+        return f"http://{webapp.subdomain}.{self.SUBDOMAIN_BASE}{path}"
+
+    def test_member_gets_token_redirect(self):
+        self.client.force_login(self.USER_MEMBER)
+        next_url = self._webapp_url(self.PRIVATE_WEBAPP)
+        response = self.client.get(
+            self._auth_token_url(self.PRIVATE_WEBAPP), {"next": next_url}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("auth_token=", response["Location"])
+        self.assertTrue(response["Location"].startswith(next_url))
+
+    def test_non_member_forbidden(self):
+        self.client.force_login(self.USER_NON_MEMBER)
+        next_url = self._webapp_url(self.PRIVATE_WEBAPP)
+        response = self.client.get(
+            self._auth_token_url(self.PRIVATE_WEBAPP), {"next": next_url}
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_public_webapp_grants_token_to_anyone(self):
+        self.client.force_login(self.USER_NON_MEMBER)
+        next_url = self._webapp_url(self.PUBLIC_WEBAPP)
+        response = self.client.get(
+            self._auth_token_url(self.PUBLIC_WEBAPP), {"next": next_url}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("auth_token=", response["Location"])
+
+    def test_missing_next_parameter(self):
+        self.client.force_login(self.USER_MEMBER)
+        response = self.client.get(self._auth_token_url(self.PRIVATE_WEBAPP))
+        self.assertEqual(response.status_code, 400)
+
+    def test_mismatched_subdomain_rejected(self):
+        self.client.force_login(self.USER_MEMBER)
+        wrong_url = f"http://evil.{self.SUBDOMAIN_BASE}/"
+        response = self.client.get(
+            self._auth_token_url(self.PRIVATE_WEBAPP), {"next": wrong_url}
+        )
+        self.assertEqual(response.status_code, 400)
+
+
+@override_settings(
+    WEBAPPS_SUBDOMAIN_BASE_URL="webapps.localhost:8000",
+    ALLOWED_HOSTS=["*"],
+    BASE_URL="http://localhost:8000",
+)
+class MiddlewareAuthTokenExchangeTest(TestCase):
+    SUBDOMAIN_BASE = "webapps.localhost:8000"
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER_MEMBER = User.objects.create_user(
+            "mwmember@test.com",
+            "password",
+        )
+        cls.USER_NON_MEMBER = User.objects.create_user(
+            "mwnonmember@test.com",
+            "password",
+        )
+        cls.WORKSPACE = Workspace.objects.create(
+            name="MW Workspace",
+            slug="mw-workspace",
+        )
+        WorkspaceMembership.objects.create(
+            user=cls.USER_MEMBER,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        cls.PRIVATE_WEBAPP = GitWebapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="MW Private App",
+            slug="mw-private-app",
+            subdomain="mw-private-app",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER_MEMBER,
+            repository="webapp-mw",
+            published_commit="sha-mw",
+            is_public=False,
+        )
+        cls.OTHER_WEBAPP = GitWebapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="MW Other App",
+            slug="mw-other-app",
+            subdomain="mw-other-app",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER_MEMBER,
+            repository="webapp-mw-other",
+            published_commit="sha-other",
+            is_public=False,
+        )
+
+    def _subdomain_host(self, webapp):
+        return f"{webapp.subdomain}.{self.SUBDOMAIN_BASE}"
+
+    def _sign_token(self, user, subdomain):
+        signer = TimestampSigner()
+        return signer.sign_object({"user_id": str(user.id), "subdomain": subdomain})
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_valid_token_creates_session_and_serves(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<html>ok</html>"
+        mock_get_client.return_value = mock_client
+
+        token = self._sign_token(self.USER_MEMBER, self.PRIVATE_WEBAPP.subdomain)
+
+        response = self.client.get(
+            "/",
+            {"auth_token": token},
+            HTTP_HOST=self._subdomain_host(self.PRIVATE_WEBAPP),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn("auth_token", response["Location"])
+        self.assertIn("hexa_webapp_session", response.cookies)
+
+        session_key = response.cookies["hexa_webapp_session"].value
+        session = SessionStore(session_key=session_key)
+        self.assertEqual(session["user_id"], str(self.USER_MEMBER.pk))
+        self.assertEqual(session["webapp_id"], str(self.PRIVATE_WEBAPP.pk))
+
+    def test_tampered_token_redirects_to_auth(self):
+        response = self.client.get(
+            "/",
+            {"auth_token": "bad-token"},
+            HTTP_HOST=self._subdomain_host(self.PRIVATE_WEBAPP),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/auth-token/", response["Location"])
+
+    def test_token_for_wrong_subdomain_forbidden(self):
+        token = self._sign_token(self.USER_MEMBER, self.OTHER_WEBAPP.subdomain)
+        response = self.client.get(
+            "/",
+            {"auth_token": token},
+            HTTP_HOST=self._subdomain_host(self.PRIVATE_WEBAPP),
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_token_for_non_member_forbidden(self):
+        token = self._sign_token(self.USER_NON_MEMBER, self.PRIVATE_WEBAPP.subdomain)
+        response = self.client.get(
+            "/",
+            {"auth_token": token},
+            HTTP_HOST=self._subdomain_host(self.PRIVATE_WEBAPP),
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_token_preserves_query_params(self):
+        token = self._sign_token(self.USER_MEMBER, self.PRIVATE_WEBAPP.subdomain)
+        response = self.client.get(
+            "/page",
+            {"auth_token": token, "foo": "bar"},
+            HTTP_HOST=self._subdomain_host(self.PRIVATE_WEBAPP),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("foo=bar", response["Location"])
+        self.assertNotIn("auth_token", response["Location"])
