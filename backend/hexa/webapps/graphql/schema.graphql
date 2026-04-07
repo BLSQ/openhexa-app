@@ -57,6 +57,7 @@ type Webapp {
   description: String
   url: String!
   serveUrl: String!
+  previewUrl: String!
   subdomain: String!
   type: WebappType!
   icon: String

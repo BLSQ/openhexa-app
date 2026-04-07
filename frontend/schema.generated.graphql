@@ -5381,6 +5381,7 @@ type Webapp {
   isShortcut: Boolean!
   name: String!
   permissions: WebappPermissions!
+  previewUrl: String!
   serveUrl: String!
   showPoweredBy: Boolean!
   slug: String!
