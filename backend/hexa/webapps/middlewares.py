@@ -78,7 +78,8 @@ def _set_webapp_session_cookie(response, session_key, request_host):
     )
 
 
-def _handle_auth_token(request, webapp):
+def _validate_auth_token(request, webapp):
+    """Validate the auth_token and return the authenticated user, or an error response."""
     token = request.GET.get("auth_token")
     signer = TimestampSigner()
     try:
@@ -97,25 +98,16 @@ def _handle_auth_token(request, webapp):
     if not Webapp.objects.filter_for_user(user).filter(pk=webapp.pk).exists():
         return HttpResponse("Forbidden", status=403)
 
+    return user
+
+
+def _create_webapp_session(webapp, user):
     session = SessionStore()
     session.set_expiry(WEBAPP_SESSION_MAX_AGE)
     session["user_id"] = str(user.pk)
     session["webapp_id"] = str(webapp.pk)
     session.create()
-
-    # Redirect to the same URL without the auth_token parameter
-    query = request.GET.copy()
-    query.pop("auth_token")
-    clean_path = request.path
-    if query:
-        clean_path = f"{clean_path}?{query.urlencode()}"
-    redirect_url = request.build_absolute_uri(clean_path)
-
-    response = HttpResponseRedirect(redirect_url)
-    _set_webapp_session_cookie(
-        response, session.session_key, request.get_host().split(":")[0]
-    )
-    return response
+    return session
 
 
 def _check_webapp_session(request, webapp):
@@ -175,12 +167,15 @@ def webapp_subdomain_middleware(get_response):
         if request.path.startswith("/graphql/"):
             return HttpResponseNotFound("Not available")
 
+        session = None
         if not webapp.is_public:
             if request.GET.get("auth_token"):
-                return _handle_auth_token(request, webapp)
-
-            user = _check_webapp_session(request, webapp)
-            if not user:
+                result = _validate_auth_token(request, webapp)
+                if isinstance(result, HttpResponse):
+                    return result
+                request.user = result
+                session = _create_webapp_session(webapp, result)
+            elif not _check_webapp_session(request, webapp):
                 return HttpResponseRedirect(_build_auth_token_url(request, webapp))
 
         if webapp.type == Webapp.WebappType.STATIC:
@@ -195,6 +190,12 @@ def webapp_subdomain_middleware(get_response):
         if hasattr(settings, "NEW_FRONTEND_DOMAIN"):
             frame_ancestors += f" {settings.NEW_FRONTEND_DOMAIN}"
         response["Content-Security-Policy"] = f"frame-ancestors {frame_ancestors}"
+
+        if not webapp.is_public and session is not None:
+            _set_webapp_session_cookie(
+                response, session.session_key, request.get_host().split(":")[0]
+            )
+
         return response
 
     return middleware
