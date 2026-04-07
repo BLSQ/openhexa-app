@@ -681,6 +681,23 @@ class MiddlewareAuthTokenExchangeTest(TestCase):
         self.assertEqual(session["user_id"], str(self.USER_MEMBER.pk))
         self.assertEqual(session["webapp_id"], str(self.PRIVATE_WEBAPP.pk))
 
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_full_auth_flow_token_then_session(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<html>private</html>"
+        mock_get_client.return_value = mock_client
+
+        token = self._sign_token(self.USER_MEMBER, self.PRIVATE_WEBAPP.subdomain)
+        host = self._subdomain_host(self.PRIVATE_WEBAPP)
+
+        response = self.client.get("/", {"auth_token": token}, HTTP_HOST=host)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("hexa_webapp_session", response.cookies)
+
+        response = self.client.get("/", HTTP_HOST=host)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"<html>private</html>")
+
     def test_tampered_token_redirects_to_auth(self):
         response = self.client.get(
             "/",
