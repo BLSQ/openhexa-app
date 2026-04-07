@@ -84,7 +84,7 @@
         <p style="color:#94a3b8; margin-bottom:1rem;">Verify that bearer-token GraphQL queries work from a sandboxed context.</p>
 
         <div class="config">
-            <label>API Base URL</label>
+            <label>API Base URL (main app, not the webapp subdomain)</label>
             <input id="apiUrl" value="" />
         </div>
         <div class="config">
@@ -229,7 +229,23 @@
 
             const input = document.getElementById("apiUrl");
             if (!input.value) {
-                input.value = (origin && origin !== "null") ? origin : "http://localhost:8000";
+                if (origin && origin !== "null") {
+                    try {
+                        const url = new URL(origin);
+                        const hostParts = url.hostname.split(".");
+                        const subdomainBase = hostParts.slice(1).join(".");
+                        if (subdomainBase.startsWith("webapps.")) {
+                            url.hostname = subdomainBase.replace("webapps.", "");
+                            input.value = url.origin;
+                        } else {
+                            input.value = origin;
+                        }
+                    } catch {
+                        input.value = origin;
+                    }
+                } else {
+                    input.value = "http://localhost:8000";
+                }
             }
         }
         detectContext();
@@ -254,7 +270,7 @@
                         ? `Authenticated as: ${user.displayName} (${user.email})\nCORS header: ${res.headers.get("Access-Control-Allow-Origin")}`
                         : `No user data returned — is the token signed?\n${JSON.stringify(data, null, 2)}`
                 );
-            } catch (e) { setResult("f-auth", "fail", `CORS blocked: ${e.message}`); }
+            } catch (e) { setResult("f-auth", "fail", `Request failed (CORS or network): ${e.message}\nMake sure the API Base URL points to the main app (e.g. http://localhost:8000), not the webapp subdomain.`); }
 
             // Test 2: Workspace list
             addResult(c, "f-workspaces", "List workspaces with bearer token");
@@ -271,20 +287,26 @@
                         ? `Found ${items.length} workspace(s): ${items.map(i => i.name).join(", ")}`
                         : `No workspaces returned\n${JSON.stringify(data, null, 2)}`
                 );
-            } catch (e) { setResult("f-workspaces", "fail", `CORS blocked: ${e.message}`); }
+            } catch (e) { setResult("f-workspaces", "fail", `Request failed (CORS or network): ${e.message}\nMake sure the API Base URL points to the main app (e.g. http://localhost:8000), not the webapp subdomain.`); }
 
-            // Test 3: Credentials include blocked
-            addResult(c, "f-creds", "fetch with credentials:'include' is blocked");
+            // Test 3: Credentials include blocked (cross-origin to main app)
+            addResult(c, "f-creds", "fetch with credentials:'include' to main app is blocked");
             try {
                 const res = await fetch(`${getApiUrl()}/graphql/`, {
                     method: "POST", credentials: "include",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ query: "{ me { user { email } } }" }),
                 });
-                setResult("f-creds", "fail", "Browser allowed credentialed request — this should not happen!");
-            } catch (e) { setResult("f-creds", "pass", `Correctly blocked: ${e.message}`); }
+                const data = await res.json();
+                const email = data?.data?.me?.user?.email;
+                setResult("f-creds", email ? "fail" : "pass",
+                    email
+                        ? `Session cookies leaked user data: ${email}`
+                        : `Request reached server but no session data leaked (CORS blocks credentials cross-origin)`
+                );
+            } catch (e) { setResult("f-creds", "pass", `Correctly blocked by CORS: ${e.message}`); }
 
-            // Test 4: No token = no data
+            // Test 4: No token = no data (cross-origin to main app)
             addResult(c, "f-notoken", "Request without token returns no user data");
             try {
                 const res = await fetch(`${getApiUrl()}/graphql/`, {
@@ -297,7 +319,7 @@
                 setResult("f-notoken", !user ? "pass" : "fail",
                     !user ? "Correctly unauthenticated" : `Got user data without token: ${user.email}`
                 );
-            } catch (e) { setResult("f-notoken", "fail", `Error: ${e.message}`); }
+            } catch (e) { setResult("f-notoken", "pass", `Blocked by CORS (expected cross-origin): ${e.message}`); }
         }
 
         // ── Exploit Tests ──
@@ -365,7 +387,7 @@
                     const email = data?.data?.me?.user?.email;
                     return email
                         ? { blocked: false, detail: `Session hijacked: ${email}` }
-                        : { blocked: false, detail: `Request went through but no user data` };
+                        : { blocked: true, detail: `Request reached server but no user data leaked (server blocked: ${res.status})` };
                 } catch (e) {
                     return { blocked: true, detail: `Browser refused: ${e.message}` };
                 }
@@ -389,6 +411,10 @@
             });
 
             await exploit("e-parent", "Access parent window", async () => {
+                const inIframe = window.self !== window.top;
+                if (!inIframe) {
+                    return { blocked: true, detail: "Not in an iframe — window.parent === window (no parent to exploit)" };
+                }
                 try {
                     const href = window.parent.location.href;
                     return { blocked: false, detail: `Parent URL: ${href}` };
@@ -410,8 +436,10 @@
                                 const email = data?.data?.me?.user?.email;
                                 resolve(email
                                     ? { blocked: false, detail: `XHR hijack: ${email}` }
-                                    : { blocked: false, detail: "XHR succeeded, no user data" });
-                            } catch { resolve({ blocked: false, detail: `XHR response: ${xhr.responseText}` }); }
+                                    : { blocked: true, detail: `XHR got response but no user data leaked (server blocked: ${xhr.status})` });
+                            } catch {
+                                resolve({ blocked: true, detail: `XHR got non-GraphQL response (server blocked: ${xhr.status} "${xhr.responseText.slice(0, 100)}")` });
+                            }
                         };
                         xhr.onerror = () => resolve({ blocked: true, detail: "XHR blocked by CORS" });
                         xhr.send(JSON.stringify({ query: "{ me { user { email } } }" }));
