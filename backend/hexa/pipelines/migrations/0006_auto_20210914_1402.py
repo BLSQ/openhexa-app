@@ -14,6 +14,7 @@ import hexa.core.models.postgres
 
 class Migration(migrations.Migration):
     dependencies = [
+        ("catalog", "0009_enable_trgm"),
         ("contenttypes", "0002_remove_content_type_name"),
         ("user_management", "0003_feature_flags"),
         ("tags", "0001_metadata_rf_4"),

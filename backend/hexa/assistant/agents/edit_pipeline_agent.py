@@ -47,9 +47,7 @@ class EditPipelineAgent(BaseAgent):
         if current_version.zipfile:
             lines.append("")
             lines.append("### Files")
-            with zipfile.ZipFile(
-                io.BytesIO(bytes(current_version.zipfile)), "r"
-            ) as zf:
+            with zipfile.ZipFile(io.BytesIO(bytes(current_version.zipfile)), "r") as zf:
                 for name in sorted(zf.namelist()):
                     try:
                         content = zf.read(name).decode("utf-8")
