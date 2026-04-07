@@ -1,3 +1,7 @@
+import { json } from "@codemirror/lang-json";
+import { python } from "@codemirror/lang-python";
+import { unifiedMergeView } from "@codemirror/merge";
+import { EditorView } from "@codemirror/view";
 import CodeMirror from "@uiw/react-codemirror";
 import {
   ChevronDownIcon,
@@ -6,17 +10,17 @@ import {
   DocumentIcon,
   FolderIcon,
 } from "@heroicons/react/24/outline";
-import clsx from "clsx";
-import { useTranslation } from "next-i18next";
-import useFilesEditorPanelOpen from "workspaces/hooks/useFilesEditorPanelOpen";
-import { useEffect, useMemo, useState } from "react";
-import { python } from "@codemirror/lang-python";
-import { json } from "@codemirror/lang-json";
-import { r } from "codemirror-lang-r";
 import { gql } from "@apollo/client";
-import { FilesEditor_FileFragment } from "./FilesEditor.generated";
-import { FileType } from "graphql/types";
+import clsx from "clsx";
 import useNavigationWarning from "core/hooks/useNavigationWarning";
+import { FileType } from "graphql/types";
+import { useTranslation } from "next-i18next";
+import { useEffect, useMemo, useState } from "react";
+import { r } from "codemirror-lang-r";
+import useFilesEditorPanelOpen from "workspaces/hooks/useFilesEditorPanelOpen";
+import { FilesEditor_FileFragment } from "./FilesEditor.generated";
+
+export type ProposedFile = { name: string; content: string };
 
 const buildTreeFromFlatData = (
   flatNodes: FilesEditor_FileFragment[],
@@ -50,16 +54,25 @@ const FileTreeNode = ({
   selectedFile,
   setSelectedFile,
   modifiedFiles,
+  proposedByKey,
 }: {
   node: FileNode;
   level?: number;
   selectedFile: FileNode | null;
   setSelectedFile: (file: FileNode | null) => void;
   modifiedFiles: Map<string, string>;
+  proposedByKey: Map<string, string>;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const isSelected = selectedFile?.id === node.id;
-  const isModified = modifiedFiles.has(node.id);
+
+  const proposedContent =
+    node.type === "file"
+      ? (proposedByKey.get(node.path) ?? proposedByKey.get(node.name))
+      : undefined;
+  const isProposed =
+    proposedContent !== undefined && proposedContent !== (node.content ?? "");
+  const isModified = !isProposed && modifiedFiles.has(node.id);
 
   if (node.type === "file") {
     return (
@@ -76,8 +89,12 @@ const FileTreeNode = ({
           {node.name}
           <span
             className={clsx(
-              "inline-block w-1.5 h-1.5 bg-blue-500 rounded-full",
-              isModified ? "visible" : "invisible",
+              "inline-block w-1.5 h-1.5 rounded-full",
+              isProposed
+                ? "visible bg-amber-400"
+                : isModified
+                  ? "visible bg-blue-500"
+                  : "invisible bg-blue-500",
             )}
           />
         </span>
@@ -110,6 +127,7 @@ const FileTreeNode = ({
               selectedFile={selectedFile}
               setSelectedFile={setSelectedFile}
               modifiedFiles={modifiedFiles}
+              proposedByKey={proposedByKey}
             />
           ))}
         </div>
@@ -131,6 +149,7 @@ interface FilesEditorProps {
   name: string;
   files: FilesEditor_FileFragment[];
   isEditable?: boolean;
+  proposedFiles?: ProposedFile[];
   onSave?: (
     modifiedFiles: Map<string, string>,
     allFiles: FilesEditor_FileFragment[],
@@ -140,6 +159,7 @@ export const FilesEditor = ({
   name,
   files: flatFiles,
   isEditable = false,
+  proposedFiles,
   onSave,
 }: FilesEditorProps) => {
   const { t } = useTranslation();
@@ -165,6 +185,34 @@ export const FilesEditor = ({
       setSelectedFile(autoSelected ?? null);
     }
   }, [files, selectedFile]);
+
+  const proposedByKey = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const f of proposedFiles ?? []) {
+      map.set(f.name, f.content);
+    }
+    return map;
+  }, [proposedFiles]);
+
+  useEffect(() => {
+    if (!proposedFiles || proposedFiles.length === 0) return;
+    setModifiedFiles((prev) => {
+      const next = new Map(prev);
+      for (const proposed of proposedFiles) {
+        const file = flatFiles.find(
+          (f) => f.path === proposed.name || f.name === proposed.name,
+        );
+        if (
+          file &&
+          proposed.content !== (file.content ?? "") &&
+          !next.has(file.id)
+        ) {
+          next.set(file.id, proposed.content);
+        }
+      }
+      return next;
+    });
+  }, [proposedFiles, flatFiles]);
 
   const [isPanelOpen, setIsPanelOpen] = useFilesEditorPanelOpen();
   const [isClient, setIsClient] = useState(false);
@@ -261,6 +309,7 @@ export const FilesEditor = ({
                 selectedFile={selectedFile}
                 setSelectedFile={setSelectedFile}
                 modifiedFiles={modifiedFiles}
+                proposedByKey={proposedByKey}
               />
             ))}
           </div>
@@ -343,10 +392,34 @@ export const FilesEditor = ({
               {isClient ? (
                 <div className="absolute inset-0">
                   <CodeMirror
+                    key={selectedFile.id}
                     value={currentFileContent}
                     readOnly={!isEditable}
                     onChange={handleContentChange}
-                    extensions={[python(), r(), json()]}
+                    extensions={[
+                      python(),
+                      r(),
+                      json(),
+                      ...(proposedByKey.has(selectedFile.path) ||
+                      proposedByKey.has(selectedFile.name)
+                        ? [
+                            unifiedMergeView({
+                              original: selectedFile.content ?? "",
+                              mergeControls: false,
+                            }),
+                            EditorView.theme({
+                              ".cm-changedText": {
+                                textDecoration: "none",
+                                background: "rgba(0, 0, 0, 0.15)",
+                              },
+                              ".cm-insertedLine .cm-changedText": {
+                                textDecoration: "none",
+                                background: "rgba(0, 160, 0, 0.25)",
+                              },
+                            }),
+                          ]
+                        : []),
+                    ]}
                     height="100%"
                     style={{ width: "100%", height: "100%" }}
                   />

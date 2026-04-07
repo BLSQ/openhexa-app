@@ -164,6 +164,9 @@ query WorkspacePipelineCodePage(
       }
     }
   }
+  me {
+    assistantMonthlyLimitExceeded
+  }
 }
 
 query GetPipelineVersionFiles($versionId: UUID!) {

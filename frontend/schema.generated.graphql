@@ -750,11 +750,13 @@ type CreateAccessmodZonalStatisticsResult {
 enum CreateAssistantConversationError {
   INVALID_INSTRUCTION_SET
   PERMISSION_DENIED
+  PIPELINE_NOT_FOUND
   WORKSPACE_NOT_FOUND
 }
 
 input CreateAssistantConversationInput {
   instructionSet: String
+  pipelineId: UUID
   workspaceSlug: String!
 }
 

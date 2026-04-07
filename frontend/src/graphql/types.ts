@@ -797,11 +797,13 @@ export type CreateAccessmodZonalStatisticsResult = {
 export enum CreateAssistantConversationError {
   InvalidInstructionSet = 'INVALID_INSTRUCTION_SET',
   PermissionDenied = 'PERMISSION_DENIED',
+  PipelineNotFound = 'PIPELINE_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
 export type CreateAssistantConversationInput = {
   instructionSet?: InputMaybe<Scalars['String']['input']>;
+  pipelineId?: InputMaybe<Scalars['UUID']['input']>;
   workspaceSlug: Scalars['String']['input'];
 };
 

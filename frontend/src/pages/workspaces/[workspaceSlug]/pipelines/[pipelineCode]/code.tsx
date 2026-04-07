@@ -11,6 +11,7 @@ import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
 import { useCallback, useState } from "react";
 import { PipelineFilesEditor } from "workspaces/features/FilesEditor/PipelineFilesEditor";
+import { ProposedFile } from "workspaces/features/FilesEditor/FilesEditor";
 import PipelineVersionPicker from "workspaces/features/PipelineVersionPicker";
 import { PipelineVersionPicker_VersionFragment } from "workspaces/features/PipelineVersionPicker/PipelineVersionPicker.generated";
 import {
@@ -33,6 +34,11 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const [selectedVersion, setSelectedVersion] =
     useState<PipelineVersionPicker_VersionFragment | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [proposedFiles, setProposedFiles] = useState<ProposedFile[] | null>(null);
+
+  const handleProposedFiles = useCallback((files: ProposedFile[] | null) => {
+    setProposedFiles(files);
+  }, []);
 
   const [isAssistantEnabled] = useFeature("assistant");
   const me = useMe();
@@ -120,11 +126,26 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                   <Spinner size="md" />
                 </div>
               )}
+              {proposedFiles && (
+                <div className="mb-2 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm">
+                  <span className="font-medium text-blue-700">
+                    {t("Proposed version from AI assistant")}
+                  </span>
+                  <button
+                    onClick={() => setProposedFiles(null)}
+                    className="flex items-center gap-1 text-blue-500 hover:text-blue-700 text-xs"
+                  >
+                    <XMarkIcon className="h-3.5 w-3.5" />
+                    {t("Dismiss")}
+                  </button>
+                </div>
+              )}
               <PipelineFilesEditor
-                key={versionToShow.id}
+                key={versionToShow.id + (proposedFiles ? "-diff" : "")}
                 name={versionToShow.versionName}
                 files={versionToShow.files}
                 isEditable={true}
+                proposedFiles={proposedFiles ?? undefined}
                 workspaceSlug={workspaceSlug}
                 pipelineCode={pipelineCode}
                 pipelineId={pipeline.id}
@@ -137,6 +158,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                   pipelineId={pipeline.id}
                   workspaceSlug={workspaceSlug}
                   monthlyLimitExceeded={monthlyLimitExceeded}
+                  onProposedFiles={handleProposedFiles}
                 />
               </div>
             )}
