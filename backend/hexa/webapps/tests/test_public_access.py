@@ -672,8 +672,8 @@ class MiddlewareAuthTokenExchangeTest(TestCase):
             {"auth_token": token},
             HTTP_HOST=self._subdomain_host(self.PRIVATE_WEBAPP),
         )
-        self.assertEqual(response.status_code, 302)
-        self.assertNotIn("auth_token", response["Location"])
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"<html>ok</html>")
         self.assertIn("hexa_webapp_session", response.cookies)
 
         session_key = response.cookies["hexa_webapp_session"].value
@@ -691,7 +691,7 @@ class MiddlewareAuthTokenExchangeTest(TestCase):
         host = self._subdomain_host(self.PRIVATE_WEBAPP)
 
         response = self.client.get("/", {"auth_token": token}, HTTP_HOST=host)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
         self.assertIn("hexa_webapp_session", response.cookies)
 
         response = self.client.get("/", HTTP_HOST=host)
@@ -725,13 +725,16 @@ class MiddlewareAuthTokenExchangeTest(TestCase):
         )
         self.assertEqual(response.status_code, 403)
 
-    def test_token_preserves_query_params(self):
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_token_preserves_query_params(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<html>page</html>"
+        mock_get_client.return_value = mock_client
+
         token = self._sign_token(self.USER_MEMBER, self.PRIVATE_WEBAPP.subdomain)
         response = self.client.get(
             "/page",
             {"auth_token": token, "foo": "bar"},
             HTTP_HOST=self._subdomain_host(self.PRIVATE_WEBAPP),
         )
-        self.assertEqual(response.status_code, 302)
-        self.assertIn("foo=bar", response["Location"])
-        self.assertNotIn("auth_token", response["Location"])
+        self.assertEqual(response.status_code, 200)
