@@ -160,8 +160,10 @@ def resolve_update_webapp(_, info, **kwargs):
         webapp.icon = decode_base64_image(input["icon"]) if input["icon"] else None
     if "is_public" in input:
         webapp.is_public = input["is_public"]
-    if "subdomain" in input and input["subdomain"]:
+    if "subdomain" in input:
         subdomain = input["subdomain"]
+        if not subdomain:
+            return {"success": False, "errors": ["SUBDOMAIN_REQUIRED"], "webapp": None}
         try:
             validate_subdomain(subdomain)
         except ValidationError as e:
