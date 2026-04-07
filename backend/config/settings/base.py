@@ -130,6 +130,10 @@ if "CORS_ALLOWED_ORIGINS" in os.environ:
     CORS_ALLOWED_ORIGINS += os.environ.get("CORS_ALLOWED_ORIGINS").split(",")
 
 CORS_ALLOWED_ORIGIN_REGEXES = []
+if WEBAPPS_SUBDOMAIN_BASE_URL:
+    CORS_ALLOWED_ORIGIN_REGEXES.append(
+        rf"^https?://[\w-]+\.{WEBAPPS_SUBDOMAIN_BASE_URL}(:\d+)?$"
+    )
 if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
     CORS_ALLOWED_ORIGIN_REGEXES += os.environ.get("CORS_ALLOWED_ORIGIN_REGEXES").split(
         ","
