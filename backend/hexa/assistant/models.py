@@ -34,6 +34,7 @@ class ConversationManager(DefaultSoftDeletedManager):
         workspace: Workspace,
         *,
         instruction_set: InstructionSet = InstructionSet.GENERAL,
+        pipeline=None,
     ):
         if not principal.has_perm("assistant.create_conversation", workspace):
             raise PermissionDenied
@@ -42,6 +43,7 @@ class ConversationManager(DefaultSoftDeletedManager):
             user=principal,
             workspace=workspace,
             instruction_set=instruction_set,
+            pipeline=pipeline,
         )
 
 
@@ -49,6 +51,13 @@ class Conversation(SoftDeletedModel, Base):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
 
+    pipeline = models.ForeignKey(
+        "pipelines.Pipeline",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="assistant_conversations",
+    )
     name = models.CharField(max_length=50, null=True, blank=True)
     instruction_set = models.CharField(
         max_length=50,

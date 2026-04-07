@@ -59,6 +59,7 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
             principal=request.user,
             workspace=workspace,
             instruction_set=instruction_set,
+            pipeline=pipeline,
         )
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"], "conversation": None}

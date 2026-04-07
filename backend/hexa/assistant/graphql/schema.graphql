@@ -40,10 +40,12 @@ extend type Workspace {
 input CreateAssistantConversationInput {
   workspaceSlug: String!
   instructionSet: String
+  pipelineId: UUID
 }
 
 enum CreateAssistantConversationError {
   WORKSPACE_NOT_FOUND
+  PIPELINE_NOT_FOUND
   INVALID_INSTRUCTION_SET
   PERMISSION_DENIED
 }
