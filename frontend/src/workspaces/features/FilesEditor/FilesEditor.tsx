@@ -184,6 +184,10 @@ export const FilesEditor = ({
   const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
+    setModifiedFiles(new Map());
+  }, [flatFiles]);
+
+  useEffect(() => {
     setIsClient(true);
   }, []);
 
