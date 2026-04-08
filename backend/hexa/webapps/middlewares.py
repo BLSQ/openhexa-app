@@ -233,3 +233,31 @@ def webapp_subdomain_middleware(get_response):
         return response
 
     return middleware
+from hexa.webapps.models import Webapp
+
+
+class CustomDomainMiddleware:
+    """
+    Rewrites requests arriving on a webapp's custom domain to the internal
+    /webapps/<id>/ path so the serve_webapp view can handle them normally.
+
+    Must be placed before CommonMiddleware in the middleware stack so the
+    path rewrite happens before Django's routing. In Phase 1 the custom domain
+    must also be listed in ADDITIONAL_ALLOWED_HOSTS for Django to accept the
+    Host header; in Phase 2 this middleware will handle that itself.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        host = request.META.get("HTTP_HOST", "").split(":")[0].lower()
+        try:
+            webapp = Webapp.objects.get(custom_domain=host, is_public=True)
+            path = request.path_info.lstrip("/")
+            new_path = f"/webapps/{webapp.id}/{path}" if path else f"/webapps/{webapp.id}/"
+            request.path_info = new_path
+            request.path = new_path
+        except Webapp.DoesNotExist:
+            pass
+        return self.get_response(request)

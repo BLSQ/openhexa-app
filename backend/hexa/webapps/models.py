@@ -140,6 +140,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         unique=True,
         validators=[validate_subdomain],
     )
+    custom_domain = models.CharField(max_length=253, blank=True, null=True, unique=True)
     favorites = models.ManyToManyField(
         User, related_name="favorite_webapps", blank=True
     )
