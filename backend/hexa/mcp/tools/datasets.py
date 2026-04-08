@@ -72,31 +72,30 @@ def create_dataset(
     user,
     workspace_slug: str,
     name: str,
+    files_json: str,
     description: str = "",
-    files_json: str = "",
 ) -> dict:
-    r"""Create a new dataset in a workspace. Optionally create an initial version (named 'v1') with files in a single atomic operation. To include files, provide files_json as a JSON array of {uri, contentType, content} objects, e.g. '[{"uri": "data.csv", "contentType": "text/csv", "content": "a,b\n1,2"}]'."""
-    gql_input: dict = {
-        "workspaceSlug": workspace_slug,
-        "name": name,
-        "description": description or None,
-    }
-
-    if files_json:
-        try:
-            files = json.loads(files_json)
-        except json.JSONDecodeError:
-            return {"error": "Invalid JSON in files_json"}
-        if not isinstance(files, list) or not files:
-            return {
-                "error": "files_json must be a non-empty JSON array of {uri, contentType, content} objects"
-            }
-        gql_input["files"] = files
+    r"""Create a new dataset in a workspace with an initial version (v1) containing the provided files. The files_json parameter is a JSON array of {uri, contentType, content} objects, e.g. '[{"uri": "data.csv", "contentType": "text/csv", "content": "a,b\n1,2"}]'. Use create_dataset_version to add more versions later."""
+    try:
+        files = json.loads(files_json)
+    except json.JSONDecodeError:
+        return {"error": "Invalid JSON in files_json"}
+    if not isinstance(files, list) or not files:
+        return {
+            "error": "files_json must be a non-empty JSON array of {uri, contentType, content} objects"
+        }
 
     data = execute_graphql(
         user,
         "CreateDataset",
-        {"input": gql_input},
+        {
+            "input": {
+                "workspaceSlug": workspace_slug,
+                "name": name,
+                "description": description or None,
+                "files": files,
+            }
+        },
     )
     if "errors" in data:
         return data

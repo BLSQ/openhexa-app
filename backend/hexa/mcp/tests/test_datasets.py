@@ -106,38 +106,20 @@ class PreviewDatasetFileTest(MCPTestCase):
 
 
 class CreateDatasetTest(MCPTestCase):
+    FILES_JSON = json.dumps(
+        [{"uri": "data.csv", "contentType": "text/csv", "content": "a,b\n1,2"}]
+    )
+
     def test_create_dataset(self):
         result = create_dataset(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
             name="New Dataset",
+            files_json=self.FILES_JSON,
             description="A new dataset",
         )
         self.assertTrue(result["success"])
         self.assertEqual(result["dataset"]["name"], "New Dataset")
-        self.assertTrue(Dataset.objects.filter(slug=result["dataset"]["slug"]).exists())
-
-    def test_create_dataset_no_access(self):
-        result = create_dataset(
-            user=self.USER_OUTSIDER,
-            workspace_slug=self.WORKSPACE.slug,
-            name="Unauthorized",
-        )
-        self.assertFalse(result["success"])
-
-    def test_create_dataset_with_version_and_files(self):
-        files = [
-            {"uri": "data.csv", "contentType": "text/csv", "content": "a,b\n1,2"},
-        ]
-        result = create_dataset(
-            user=self.USER_ADMIN,
-            workspace_slug=self.WORKSPACE.slug,
-            name="Dataset With Files",
-            description="All-in-one",
-            files_json=json.dumps(files),
-        )
-        self.assertTrue(result["success"])
-        self.assertEqual(result["dataset"]["name"], "Dataset With Files")
 
         dataset = Dataset.objects.get(slug=result["dataset"]["slug"])
         version = DatasetVersion.objects.get(dataset=dataset, name="v1")
@@ -150,13 +132,46 @@ class CreateDatasetTest(MCPTestCase):
         blob = storage.get_bucket_object(settings.WORKSPACE_DATASETS_BUCKET, full_uri)
         self.assertIsNotNone(blob)
 
+    def test_create_dataset_no_access(self):
+        result = create_dataset(
+            user=self.USER_OUTSIDER,
+            workspace_slug=self.WORKSPACE.slug,
+            name="Unauthorized",
+            files_json=self.FILES_JSON,
+        )
+        self.assertFalse(result["success"])
+
     def test_create_dataset_viewer_cannot_create(self):
         result = create_dataset(
             user=self.USER_VIEWER,
             workspace_slug=self.WORKSPACE.slug,
             name="Viewer Dataset",
+            files_json=self.FILES_JSON,
         )
         self.assertFalse(result["success"])
+
+    def test_create_dataset_invalid_files_json(self):
+        result = create_dataset(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name="Bad Files",
+            files_json="not valid json",
+        )
+        self.assertEqual(result, {"error": "Invalid JSON in files_json"})
+
+    def test_create_dataset_empty_files_json(self):
+        result = create_dataset(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name="Empty Files",
+            files_json="[]",
+        )
+        self.assertEqual(
+            result,
+            {
+                "error": "files_json must be a non-empty JSON array of {uri, contentType, content} objects"
+            },
+        )
 
 
 class CreateDatasetVersionTest(MCPTestCase):
