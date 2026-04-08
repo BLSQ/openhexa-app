@@ -60,6 +60,67 @@ class ReadFileTest(MCPTestCase):
         self.assertTrue(result["success"])
         self.assertEqual(result["content"], "col1,col2\nval1,val2")
 
+    @patch("hexa.files.schema.queries.storage")
+    def test_read_file_with_line_range(self, mock_storage):
+        mock_storage.read_object.return_value = b"line1\nline2\nline3\nline4\nline5\n"
+        mock_storage.get_bucket_object.return_value = StorageObject(
+            key="data.txt",
+            name="data.txt",
+            path="data.txt",
+            size=30,
+            updated_at=None,
+            type="file",
+        )
+        result = read_file(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            file_path="data.txt",
+            start_line=2,
+            end_line=4,
+        )
+        self.assertTrue(result["success"])
+        self.assertEqual(result["content"], "line2\nline3\nline4\n")
+
+    @patch("hexa.files.schema.queries.storage")
+    def test_read_file_start_line_only(self, mock_storage):
+        mock_storage.read_object.return_value = b"line1\nline2\nline3\n"
+        mock_storage.get_bucket_object.return_value = StorageObject(
+            key="data.txt",
+            name="data.txt",
+            path="data.txt",
+            size=18,
+            updated_at=None,
+            type="file",
+        )
+        result = read_file(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            file_path="data.txt",
+            start_line=2,
+        )
+        self.assertTrue(result["success"])
+        self.assertEqual(result["content"], "line2\nline3\n")
+
+    @patch("hexa.files.schema.queries.storage")
+    def test_read_file_end_line_only(self, mock_storage):
+        mock_storage.read_object.return_value = b"line1\nline2\nline3\n"
+        mock_storage.get_bucket_object.return_value = StorageObject(
+            key="data.txt",
+            name="data.txt",
+            path="data.txt",
+            size=18,
+            updated_at=None,
+            type="file",
+        )
+        result = read_file(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            file_path="data.txt",
+            end_line=2,
+        )
+        self.assertTrue(result["success"])
+        self.assertEqual(result["content"], "line1\nline2\n")
+
 
 class WriteFileTest(MCPTestCase):
     @patch("hexa.files.schema.mutations.storage")
