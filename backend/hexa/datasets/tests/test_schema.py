@@ -1,6 +1,7 @@
 import json
 from datetime import timedelta
 from io import BytesIO
+from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -172,6 +173,57 @@ class DatasetTest(GraphQLTestCase, DatasetTestMixin):
             },
             r["data"]["createDataset"],
         )
+
+    def test_create_dataset_with_version_and_files(self):
+        storage.reset()
+        storage.create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
+
+        superuser = self.create_user("superuser@blsq.org", is_superuser=True)
+        workspace = self.create_workspace(superuser, "Workspace", "Description")
+
+        self.client.force_login(superuser)
+        r = self.run_query(
+            """
+            mutation CreateDataset ($input: CreateDatasetInput!) {
+                createDataset(input: $input) {
+                    success
+                    errors
+                    dataset {
+                        id
+                        slug
+                        name
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": workspace.slug,
+                    "name": "Full Dataset",
+                    "description": "Created with version and files",
+                    "files": [
+                        {
+                            "uri": "data.csv",
+                            "contentType": "text/csv",
+                            "content": "a,b\n1,2",
+                        },
+                    ],
+                }
+            },
+        )
+        result = r["data"]["createDataset"]
+        self.assertTrue(result["success"])
+        self.assertEqual(result["dataset"]["name"], "Full Dataset")
+
+        dataset = Dataset.objects.get(id=result["dataset"]["id"])
+        version = DatasetVersion.objects.get(dataset=dataset, name="v1")
+        self.assertEqual(
+            DatasetVersionFile.objects.filter(dataset_version=version).count(), 1
+        )
+
+        full_uri = version.get_full_uri("data.csv")
+        blob = storage.get_bucket_object(settings.WORKSPACE_DATASETS_BUCKET, full_uri)
+        self.assertIsNotNone(blob)
 
     def test_update_dataset(self):
         superuser = self.create_user("superuser@blsq.com", is_superuser=True)
@@ -434,6 +486,127 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
         dataset = Dataset.objects.get(name="Dataset")
         with self.assertRaises(IntegrityError):
             dataset.create_version(principal=superuser, name="Version 1")
+
+    def test_create_dataset_version_with_files(self):
+        superuser = self.create_user("superuser@blsq.com", is_superuser=True)
+        workspace = self.create_workspace(superuser, "Workspace", "Description")
+        dataset = self.create_dataset(
+            superuser, workspace, "Dataset", "Dataset's description"
+        )
+
+        self.client.force_login(superuser)
+        r = self.run_query(
+            """
+            mutation CreateDatasetVersion ($input: CreateDatasetVersionInput!) {
+                createDatasetVersion(input: $input) {
+                    success
+                    errors
+                    version {
+                        id
+                        name
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "datasetId": str(dataset.id),
+                    "name": "Version with files",
+                    "changelog": "Added data files",
+                    "files": [
+                        {
+                            "uri": "data.csv",
+                            "contentType": "text/csv",
+                            "content": "a,b\n1,2\n3,4",
+                        },
+                        {
+                            "uri": "meta.json",
+                            "contentType": "application/json",
+                            "content": '{"key": "value"}',
+                        },
+                    ],
+                }
+            },
+        )
+        result = r["data"]["createDatasetVersion"]
+        self.assertTrue(result["success"])
+        self.assertEqual(result["errors"], [])
+        self.assertEqual(result["version"]["name"], "Version with files")
+
+        version = DatasetVersion.objects.get(id=result["version"]["id"])
+        files = DatasetVersionFile.objects.filter(dataset_version=version)
+        self.assertEqual(files.count(), 2)
+
+        filenames = {f.filename for f in files}
+        self.assertEqual(filenames, {"data.csv", "meta.json"})
+
+        full_uri = version.get_full_uri("data.csv")
+        blob = storage.get_bucket_object(settings.WORKSPACE_DATASETS_BUCKET, full_uri)
+        self.assertIsNotNone(blob)
+
+    def test_create_dataset_version_with_files_storage_failure(self):
+        superuser = self.create_user("superuser@blsq.com", is_superuser=True)
+        workspace = self.create_workspace(superuser, "Workspace", "Description")
+        dataset = self.create_dataset(
+            superuser, workspace, "Dataset", "Dataset's description"
+        )
+
+        original_save = storage.save_object
+        call_count = 0
+
+        def failing_save(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if call_count > 1:
+                raise Exception("Storage failure")
+            return original_save(*args, **kwargs)
+
+        self.client.force_login(superuser)
+        with patch.object(storage, "save_object", side_effect=failing_save):
+            r = self.run_query(
+                """
+                mutation CreateDatasetVersion ($input: CreateDatasetVersionInput!) {
+                    createDatasetVersion(input: $input) {
+                        success
+                        errors
+                    }
+                }
+                """,
+                {
+                    "input": {
+                        "datasetId": str(dataset.id),
+                        "name": "Should not exist",
+                        "files": [
+                            {
+                                "uri": "ok.csv",
+                                "contentType": "text/csv",
+                                "content": "a,b",
+                            },
+                            {
+                                "uri": "fail.csv",
+                                "contentType": "text/csv",
+                                "content": "c,d",
+                            },
+                        ],
+                    }
+                },
+            )
+
+        result = r["data"]["createDatasetVersion"]
+        self.assertFalse(result["success"])
+        self.assertIn("FILE_UPLOAD_FAILED", result["errors"])
+        self.assertFalse(
+            DatasetVersion.objects.filter(
+                dataset=dataset, name="Should not exist"
+            ).exists()
+        )
+        self.assertEqual(
+            DatasetVersionFile.objects.filter(
+                dataset_version__dataset=dataset,
+                dataset_version__name="Should not exist",
+            ).count(),
+            0,
+        )
 
     def test_generate_upload_url(self):
         superuser = self.create_user("superuser@blsq.com", is_superuser=True)

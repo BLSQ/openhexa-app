@@ -1,0 +1,31 @@
+query ListWorkspaces($query: String, $page: Int, $perPage: Int) {
+  workspaces(query: $query, page: $page, perPage: $perPage) {
+    pageNumber
+    totalPages
+    totalItems
+    items {
+      slug
+      name
+      createdAt
+      updatedAt
+      permissions {
+        createObject
+        update
+      }
+    }
+  }
+}
+
+query GetWorkspace($slug: String!) {
+  workspace(slug: $slug) {
+    slug
+    name
+    description
+    createdAt
+    updatedAt
+    permissions {
+      createObject
+      update
+    }
+  }
+}
