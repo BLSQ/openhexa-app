@@ -3867,7 +3867,7 @@ type Query {
   pipelines(functionalType: PipelineFunctionalType, lastRunStates: [PipelineRunStatus!], name: String, orderBy: PipelineOrderBy, page: Int, perPage: Int, search: String, tags: [String!], workspaceSlug: String): PipelinesPage!
 
   """Read the text content of a file from a workspace's bucket."""
-  readFileContent(filePath: String!, workspaceSlug: String!): ReadFileContentResult!
+  readFileContent(endLine: Int, filePath: String!, startLine: Int, workspaceSlug: String!): ReadFileContentResult!
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!

@@ -18,8 +18,8 @@ query ListFiles($workspaceSlug: String!, $prefix: String, $page: Int, $perPage: 
   }
 }
 
-query ReadFileContent($workspaceSlug: String!, $filePath: String!) {
-  readFileContent(workspaceSlug: $workspaceSlug, filePath: $filePath) {
+query ReadFileContent($workspaceSlug: String!, $filePath: String!, $startLine: Int, $endLine: Int) {
+  readFileContent(workspaceSlug: $workspaceSlug, filePath: $filePath, startLine: $startLine, endLine: $endLine) {
     success
     errors
     content

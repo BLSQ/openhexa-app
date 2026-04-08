@@ -4730,7 +4730,9 @@ export type QueryPipelinesArgs = {
 
 
 export type QueryReadFileContentArgs = {
+  endLine?: InputMaybe<Scalars['Int']['input']>;
   filePath: Scalars['String']['input'];
+  startLine?: InputMaybe<Scalars['Int']['input']>;
   workspaceSlug: Scalars['String']['input'];
 };
 
