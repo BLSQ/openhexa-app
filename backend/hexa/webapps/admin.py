@@ -26,7 +26,14 @@ class WebappAdmin(admin.ModelAdmin):
 
 @admin.register(GitWebapp)
 class GitWebappAdmin(admin.ModelAdmin):
-    list_display = ("name", "workspace", "repository", "published_commit", "is_public", "custom_domain")
+    list_display = (
+        "name",
+        "workspace",
+        "repository", 
+        "published_commit",
+        "is_public", 
+        "custom_domain"
+    )
     list_filter = ("workspace",)
     search_fields = ("id", "name", "repository", "custom_domain")
     fields = (
