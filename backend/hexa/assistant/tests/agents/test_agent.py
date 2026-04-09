@@ -5,7 +5,7 @@ from pydantic_ai.models.function import AgentInfo, FunctionModel
 from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.base import BaseAgent, _is_success
-from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent, ProposedFile
+from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
 from hexa.assistant.agents.pipeline_agent import PipelineAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message
@@ -307,9 +307,7 @@ class BaseAgentToolCallTest(TestCase):
 
     def test_propose_pipeline_version_call_is_persisted(self):
         files_arg = [{"name": "pipeline.py", "content": "print('v2')"}]
-        model = _make_tool_call_model(
-            "propose_pipeline_version", {"files": files_arg}
-        )
+        model = _make_tool_call_model("propose_pipeline_version", {"files": files_arg})
         conversation = Conversation.objects.create(
             user=self.user,
             workspace=self.workspace,
