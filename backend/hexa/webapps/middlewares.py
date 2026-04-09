@@ -255,7 +255,9 @@ class CustomDomainMiddleware:
         try:
             webapp = Webapp.objects.get(custom_domain=host, is_public=True)
             path = request.path_info.lstrip("/")
-            new_path = f"/webapps/{webapp.id}/{path}" if path else f"/webapps/{webapp.id}/"
+            new_path = (
+                f"/webapps/{webapp.id}/{path}" if path else f"/webapps/{webapp.id}/"
+            )
             request.path_info = new_path
             request.path = new_path
         except Webapp.DoesNotExist:
