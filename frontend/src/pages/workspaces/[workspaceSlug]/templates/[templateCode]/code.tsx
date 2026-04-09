@@ -49,7 +49,7 @@ const WorkspaceTemplateCodePage: NextPageWithLayout = (
                 <Spinner size="md" />
               </div>
             )}
-            <div className="w-full overflow-x-auto">
+            <div className="w-full h-[65vh] overflow-x-auto">
               <FilesEditor
                 name={template.name}
                 files={template.currentVersion.sourcePipelineVersion.files}

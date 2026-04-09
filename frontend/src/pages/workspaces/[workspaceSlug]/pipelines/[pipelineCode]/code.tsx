@@ -120,15 +120,10 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
               </Button>
             )}
           </div>
-          <div className="flex gap-4">
-            <div className="relative flex-1 min-w-0">
-              {(loading || versionLoading) && (
-                <div className="absolute inset-0 backdrop-blur-xs flex justify-center items-center z-10">
-                  <Spinner size="md" />
-                </div>
-              )}
+          <div className="flex gap-4 min-h-[60vh] max-h-[65vh] overflow-hidden">
+            <div className="relative flex-1 min-w-0 flex flex-col">
               {proposedFiles && (
-                <div className="mb-2 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm">
+                <div className="shrink-0 mb-2 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm">
                   <span className="font-medium text-blue-700">
                     {t("Proposed version from AI assistant")}
                   </span>
@@ -141,20 +136,27 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                   </button>
                 </div>
               )}
-              <PipelineFilesEditor
-                key={versionToShow.id + (proposedFiles ? "-diff" : "")}
-                name={versionToShow.versionName}
-                files={versionToShow.files}
-                isEditable={true}
-                proposedFiles={proposedFiles ?? undefined}
-                workspaceSlug={workspaceSlug}
-                pipelineCode={pipelineCode}
-                pipelineId={pipeline.id}
-                onVersionCreated={handleVersionCreated}
-              />
+              <div className="relative flex-1 min-h-0">
+                {(loading || versionLoading) && (
+                  <div className="absolute inset-0 backdrop-blur-xs flex justify-center items-center z-10">
+                    <Spinner size="md" />
+                  </div>
+                )}
+                <PipelineFilesEditor
+                  key={versionToShow.id + (proposedFiles ? "-diff" : "")}
+                  name={versionToShow.versionName}
+                  files={versionToShow.files}
+                  isEditable={true}
+                  proposedFiles={proposedFiles ?? undefined}
+                  workspaceSlug={workspaceSlug}
+                  pipelineCode={pipelineCode}
+                  pipelineId={pipeline.id}
+                  onVersionCreated={handleVersionCreated}
+                />
+              </div>
             </div>
             {chatOpen && showAssistant && (
-              <div className="w-[440px] shrink-0 min-h-[350px]">
+              <div className="w-[440px] shrink-0">
                 <PipelineEditChatPanel
                   pipelineId={pipeline.id}
                   workspaceSlug={workspaceSlug}

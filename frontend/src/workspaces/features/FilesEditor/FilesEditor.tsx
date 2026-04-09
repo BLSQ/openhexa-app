@@ -63,7 +63,9 @@ const FileTreeNode = ({
   modifiedFiles: Map<string, string>;
   proposedByKey: Map<string, string>;
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(
+    node.id.startsWith("proposed-dir-"),
+  );
   const isSelected = selectedFile?.id === node.id;
 
   const proposedContent =
@@ -163,9 +165,78 @@ export const FilesEditor = ({
   onSave,
 }: FilesEditorProps) => {
   const { t } = useTranslation();
+  // Synthetic file and folder nodes for files proposed by the agent that don't exist
+  // yet in the current version. Paths are parsed so nested files (e.g. tests/__init__.py)
+  // are placed under the correct folder in the tree rather than shown as flat names.
+  const virtualFiles = useMemo<FilesEditor_FileFragment[]>(() => {
+    if (!proposedFiles) return [];
+
+    const result: FilesEditor_FileFragment[] = [];
+    const virtualFolderIds = new Map<string, string>(); // dirPath -> id
+
+    for (const pf of proposedFiles) {
+      if (flatFiles.find((f) => f.path === pf.name || f.name === pf.name)) continue;
+
+      const parts = pf.name.split("/");
+      const fileName = parts[parts.length - 1];
+      let parentId: string | null = null;
+
+      for (let i = 0; i < parts.length - 1; i++) {
+        const dirPath = parts.slice(0, i + 1).join("/");
+        const dirName = parts[i];
+
+        const existing = flatFiles.find(
+          (f) => f.type === FileType.Directory && f.path === dirPath,
+        );
+
+        if (existing) {
+          parentId = existing.id;
+        } else if (virtualFolderIds.has(dirPath)) {
+          parentId = virtualFolderIds.get(dirPath)!;
+        } else {
+          const folderId = `proposed-dir-${dirPath}`;
+          result.push({
+            __typename: "FileNode" as const,
+            id: folderId,
+            name: dirName,
+            path: dirPath,
+            type: FileType.Directory,
+            content: null,
+            parentId,
+            autoSelect: false,
+            language: null,
+            lineCount: null,
+          });
+          virtualFolderIds.set(dirPath, folderId);
+          parentId = folderId;
+        }
+      }
+
+      result.push({
+        __typename: "FileNode" as const,
+        id: `proposed-${pf.name}`,
+        name: fileName,
+        path: pf.name,
+        type: FileType.File,
+        content: "",
+        parentId,
+        autoSelect: false,
+        language: null,
+        lineCount: null,
+      });
+    }
+
+    return result;
+  }, [proposedFiles, flatFiles]);
+
+  const augmentedFlatFiles = useMemo(
+    () => [...flatFiles, ...virtualFiles],
+    [flatFiles, virtualFiles],
+  );
+
   const files = useMemo(() => {
-    return buildTreeFromFlatData(flatFiles);
-  }, [flatFiles]);
+    return buildTreeFromFlatData(augmentedFlatFiles);
+  }, [augmentedFlatFiles]);
   const rootFiles = useMemo(() => {
     return files.filter((file) => !file.parentId);
   }, [files]);
@@ -199,15 +270,19 @@ export const FilesEditor = ({
     setModifiedFiles((prev) => {
       const next = new Map(prev);
       for (const proposed of proposedFiles) {
-        const file = flatFiles.find(
+        const existing = flatFiles.find(
           (f) => f.path === proposed.name || f.name === proposed.name,
         );
-        if (
-          file &&
-          proposed.content !== (file.content ?? "") &&
-          !next.has(file.id)
-        ) {
-          next.set(file.id, proposed.content);
+        if (existing) {
+          if (proposed.content !== (existing.content ?? "") && !next.has(existing.id)) {
+            next.set(existing.id, proposed.content);
+          }
+        } else {
+          // New file proposed by the agent — stored under its virtual id
+          const virtualId = `proposed-${proposed.name}`;
+          if (!next.has(virtualId)) {
+            next.set(virtualId, proposed.content);
+          }
         }
       }
       return next;
@@ -263,7 +338,7 @@ export const FilesEditor = ({
     setSaveError(null);
 
     try {
-      const result = await onSave(modifiedFiles, flatFiles);
+      const result = await onSave(modifiedFiles, augmentedFlatFiles);
 
       if (result.success) {
         setModifiedFiles(new Map());
@@ -287,7 +362,7 @@ export const FilesEditor = ({
   ).length;
 
   return (
-    <div className="relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[60vh] max-h-[75vh] max-w-full">
+    <div className="relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[60vh] h-full max-w-full">
       {isPanelOpen && (
         <div
           data-testid="files-panel"
