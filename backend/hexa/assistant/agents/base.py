@@ -113,6 +113,8 @@ class BaseAgent:
             for part in msg.parts:
                 logger.debug("agent.run: part type=%s", type(part).__name__)
                 if isinstance(part, TextPart):
+                    if response_text and not response_text.endswith("\n") and not part.content.startswith("\n"):
+                        response_text += "\n\n"
                     response_text += part.content
                 elif isinstance(part, ToolCallPart):
                     logger.info(

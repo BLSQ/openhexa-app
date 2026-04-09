@@ -30,7 +30,9 @@ The pipeline's current metadata and files are provided in your context. \
 When the user asks for changes, analyse the existing code carefully, then call the \
 propose_pipeline_version tool with the full updated file list — always include every file, \
 not only the modified ones. \
-Before calling the tool, briefly explain what you are changing and why.\
+Before calling the tool, don't send any message. \
+After using the tool, briefly explain what you changed and why: \
+keep it short but structured, only the 2 or 3 most relevant key points.\
 """
 
 _WEBAPPS = """\
