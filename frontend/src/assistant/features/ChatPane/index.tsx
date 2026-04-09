@@ -74,10 +74,12 @@ export default function ChatPane({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messagePage]);
 
+  const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
+
   const [sendMessage, { loading: sending }] = useSendAssistantMessageMutation({
     onCompleted: () => {
-      setInput("");
       setCurrentPage(1);
+      setPendingUserMessage(null);
     },
   });
 
@@ -88,10 +90,10 @@ export default function ChatPane({
   }, [loadingMessages, localConversationId]);
 
   useEffect(() => {
-    if (!sending) {
+    if (!loadingMore) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [sending]);
+  }, [messages.length, pendingUserMessage]);
 
   const loadOlderMessages = useCallback(async () => {
     if (loadingMore || !hasMore || !localConversationId) return;
@@ -167,6 +169,8 @@ export default function ChatPane({
 
     if (!convId) return;
 
+    setPendingUserMessage(text);
+    setInput("");
     await sendMessage({
       variables: { input: { conversationId: convId, message: text } },
       refetchQueries: [
@@ -245,6 +249,14 @@ export default function ChatPane({
               {renderMessageAfter?.(msg)}
             </div>
           ))}
+
+          {pendingUserMessage && (
+            <div className="flex justify-end">
+              <div className="max-w-2xl rounded-2xl px-4 py-3 text-sm bg-blue-600 text-white whitespace-pre-wrap">
+                {pendingUserMessage}
+              </div>
+            </div>
+          )}
 
           {sending && (
             <div className="flex justify-start">
