@@ -77,6 +77,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     version: PipelineVersionPicker_VersionFragment,
   ) => {
     setSelectedVersion(version);
+    setProposedFiles(null);
     fetchPipelineVersion({
       variables: {
         versionId: version.id,
