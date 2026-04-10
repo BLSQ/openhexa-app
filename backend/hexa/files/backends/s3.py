@@ -240,7 +240,10 @@ class S3Storage(Storage):
                         level="warning",
                     )
                 for obj in contents:
-                    if is_match(obj["Key"].split("/")[-1] or obj["Key"].rstrip("/").split("/")[-1]):
+                    if is_match(
+                        obj["Key"].split("/")[-1]
+                        or obj["Key"].rstrip("/").split("/")[-1]
+                    ):
                         objects.append(_s3_object_to_storage_obj(obj, bucket_name))
                 if len(objects) >= max_items:
                     break
