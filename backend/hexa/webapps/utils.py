@@ -4,7 +4,7 @@ from django.conf import settings
 def extract_webapp_subdomain(hostname):
     """Extract the webapp subdomain from a hostname, or return None if it doesn't match."""
     # Check if subdomain for webapps is enabled
-    subdomain_base_url = getattr(settings, "WEBAPPS_SUBDOMAIN_BASE_URL", None)
+    subdomain_base_url = getattr(settings, "WEBAPPS_DOMAIN", None)
     if not subdomain_base_url:
         return None
 

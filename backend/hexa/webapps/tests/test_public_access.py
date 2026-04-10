@@ -284,7 +284,7 @@ class WebappURLValidationTest(GraphQLTestCase):
 
 
 @override_settings(
-    WEBAPPS_SUBDOMAIN_BASE_URL="webapps.localhost:8000",
+    WEBAPPS_DOMAIN="webapps.localhost:8000",
     ALLOWED_HOSTS=["*"],
 )
 class GitWebappServeViewTest(TestCase):
@@ -506,7 +506,7 @@ class GitWebappServeViewTest(TestCase):
 
 
 @override_settings(
-    WEBAPPS_SUBDOMAIN_BASE_URL="webapps.localhost:8000",
+    WEBAPPS_DOMAIN="webapps.localhost:8000",
     ALLOWED_HOSTS=["*"],
     BASE_URL="http://localhost:8000",
 )
@@ -603,7 +603,7 @@ class AuthTokenViewTest(TestCase):
 
 
 @override_settings(
-    WEBAPPS_SUBDOMAIN_BASE_URL="webapps.localhost:8000",
+    WEBAPPS_DOMAIN="webapps.localhost:8000",
     ALLOWED_HOSTS=["*"],
     BASE_URL="http://localhost:8000",
 )

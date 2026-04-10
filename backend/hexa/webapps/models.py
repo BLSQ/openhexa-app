@@ -148,7 +148,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
     @property
     def serve_url(self):
-        return f"{settings.SCHEME}://{self.subdomain}.{settings.WEBAPPS_SUBDOMAIN_BASE_URL}/"
+        return f"{settings.SCHEME}://{self.subdomain}.{settings.WEBAPPS_DOMAIN}/"
 
     def is_favorite(self, user: User):
         return self.favorites.filter(pk=user.pk).exists()

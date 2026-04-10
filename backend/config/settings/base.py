@@ -83,10 +83,10 @@ ALLOWED_HOSTS = (
 )
 
 # Example: "webapps.openhexa.org"
-# When not set, webapps will be served from a path on the main app domain.
-WEBAPPS_SUBDOMAIN_BASE_URL = os.environ.get("WEBAPPS_SUBDOMAIN_BASE_URL", None)
-if WEBAPPS_SUBDOMAIN_BASE_URL:
-    ALLOWED_HOSTS += [f".{WEBAPPS_SUBDOMAIN_BASE_URL}"]
+# When not set, the webapps feature is disabled entirely.
+WEBAPPS_DOMAIN = os.environ.get("WEBAPPS_DOMAIN", None)
+if WEBAPPS_DOMAIN:
+    ALLOWED_HOSTS += [f".{WEBAPPS_DOMAIN}"]
 
 CORS_ALLOWED_ORIGINS = []
 CSRF_TRUSTED_ORIGINS = []
@@ -130,10 +130,8 @@ if "CORS_ALLOWED_ORIGINS" in os.environ:
     CORS_ALLOWED_ORIGINS += os.environ.get("CORS_ALLOWED_ORIGINS").split(",")
 
 CORS_ALLOWED_ORIGIN_REGEXES = []
-if WEBAPPS_SUBDOMAIN_BASE_URL:
-    CORS_ALLOWED_ORIGIN_REGEXES.append(
-        rf"^https?://[\w-]+\.{WEBAPPS_SUBDOMAIN_BASE_URL}(:\d+)?$"
-    )
+if WEBAPPS_DOMAIN:
+    CORS_ALLOWED_ORIGIN_REGEXES.append(rf"^https?://[\w-]+\.{WEBAPPS_DOMAIN}(:\d+)?$")
 if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
     CORS_ALLOWED_ORIGIN_REGEXES += os.environ.get("CORS_ALLOWED_ORIGIN_REGEXES").split(
         ","
