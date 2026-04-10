@@ -1,4 +1,5 @@
 from ariadne import QueryType
+from django.conf import settings
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
@@ -11,6 +12,9 @@ webapp_query = QueryType()
 
 @webapp_query.field("webapp")
 def resolve_webapp(_, info, **kwargs):
+    if not settings.WEBAPPS_DOMAIN:
+        return None
+
     request: HttpRequest = info.context["request"]
     try:
         workspace = Workspace.objects.get(slug=kwargs["workspace_slug"])
@@ -31,6 +35,9 @@ def resolve_webapp(_, info, **kwargs):
 
 @webapp_query.field("webapps")
 def resolve_webapps(_, info, **kwargs):
+    if not settings.WEBAPPS_DOMAIN:
+        return result_page(queryset=Webapp.objects.none(), page=1)
+
     request: HttpRequest = info.context["request"]
     if kwargs.get("workspace_slug", None):
         try:
