@@ -1,6 +1,7 @@
 import logging
 
 from ariadne import MutationType
+from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import URLValidator
 from django.db import IntegrityError, transaction
@@ -19,6 +20,9 @@ webapps_mutations = MutationType()
 
 @webapps_mutations.field("createWebapp")
 def resolve_create_webapp(_, info, **kwargs):
+    if not settings.WEBAPPS_DOMAIN:
+        return {"success": False, "errors": ["WEBAPPS_NOT_CONFIGURED"], "webapp": None}
+
     request: HttpRequest = info.context["request"]
     user = request.user
     input = kwargs["input"]
@@ -107,6 +111,9 @@ def resolve_create_webapp(_, info, **kwargs):
 
 @webapps_mutations.field("updateWebapp")
 def resolve_update_webapp(_, info, **kwargs):
+    if not settings.WEBAPPS_DOMAIN:
+        return {"success": False, "errors": ["WEBAPPS_NOT_CONFIGURED"], "webapp": None}
+
     request: HttpRequest = info.context["request"]
     user = request.user
     input = kwargs["input"]
@@ -218,6 +225,9 @@ def resolve_update_webapp(_, info, **kwargs):
 
 @webapps_mutations.field("deleteWebapp")
 def resolve_delete_webapp(_, info, **kwargs):
+    if not settings.WEBAPPS_DOMAIN:
+        return {"success": False, "errors": ["WEBAPPS_NOT_CONFIGURED"]}
+
     request: HttpRequest = info.context["request"]
     user = request.user
     input = kwargs["input"]
