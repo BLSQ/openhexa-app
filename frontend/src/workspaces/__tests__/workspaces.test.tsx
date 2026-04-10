@@ -44,6 +44,7 @@ describe("Workspaces", () => {
               description: "This is a description",
               countries: [],
               shortcuts: [],
+              webappsEnabled: true,
               permissions: {
                 update: false,
                 delete: false,
@@ -228,6 +229,7 @@ describe("Workspaces", () => {
               },
               countries: [],
               shortcuts: [],
+              webappsEnabled: true,
               members: {
                 totalItems: 0,
                 items: [],
