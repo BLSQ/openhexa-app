@@ -167,14 +167,25 @@ def webapp_subdomain_middleware(get_response):
         if request.path.startswith("/graphql/"):
             return HttpResponseNotFound("Not available")
 
-        session = None
         if not webapp.is_public:
             if request.GET.get("auth_token"):
                 result = _validate_auth_token(request, webapp)
                 if isinstance(result, HttpResponse):
                     return result
-                request.user = result
                 session = _create_webapp_session(webapp, result)
+
+                query = request.GET.copy()
+                query.pop("auth_token")
+                clean_path = request.path
+                if query:
+                    clean_path = f"{clean_path}?{query.urlencode()}"
+                redirect_response = HttpResponseRedirect(clean_path)
+                _set_webapp_session_cookie(
+                    redirect_response,
+                    session.session_key,
+                    request.get_host().split(":")[0],
+                )
+                return redirect_response
             elif not _check_webapp_session(request, webapp):
                 return HttpResponseRedirect(_build_auth_token_url(request, webapp))
 
@@ -190,11 +201,6 @@ def webapp_subdomain_middleware(get_response):
         if hasattr(settings, "NEW_FRONTEND_DOMAIN"):
             frame_ancestors += f" {settings.NEW_FRONTEND_DOMAIN}"
         response["Content-Security-Policy"] = f"frame-ancestors {frame_ancestors}"
-
-        if not webapp.is_public and session is not None:
-            _set_webapp_session_cookie(
-                response, session.session_key, request.get_host().split(":")[0]
-            )
 
         return response
 
