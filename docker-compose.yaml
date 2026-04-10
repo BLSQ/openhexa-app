@@ -16,6 +16,7 @@ x-app: &common
       - CSRF_COOKIE_SECURE=False
       - SECURE_SSL_REDIRECT=False
       - PIPELINE_SCHEDULER_SPAWNER=docker
+      - WEBAPPS_DOMAIN=${WEBAPPS_DOMAIN:-webapps.localhost:8000}
 
     networks:
       - openhexa

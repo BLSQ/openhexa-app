@@ -135,11 +135,15 @@ const Sidebar = (props: SidebarProps) => {
           },
         ]
       : []),
-    {
-      href: `/workspaces/${encodeURIComponent(slug)}/webapps`,
-      label: t("Apps"),
-      Icon: GlobeAltIcon,
-    },
+    ...(workspace.webappsEnabled
+      ? [
+          {
+            href: `/workspaces/${encodeURIComponent(slug)}/webapps`,
+            label: t("Apps"),
+            Icon: GlobeAltIcon,
+          },
+        ]
+      : []),
     ...(workspace.permissions.manageMembers
       ? [
           {
@@ -265,6 +269,7 @@ Sidebar.fragments = {
   workspace: gql`
     fragment Sidebar_workspace on Workspace {
       slug
+      webappsEnabled
       ...SidebarMenu_workspace
       permissions {
         manageMembers

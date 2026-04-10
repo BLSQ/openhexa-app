@@ -1146,6 +1146,7 @@ export enum CreateWebappError {
   PermissionDenied = 'PERMISSION_DENIED',
   SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
   SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
+  WebappsNotConfigured = 'WEBAPPS_NOT_CONFIGURED',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
@@ -2078,6 +2079,7 @@ export type DeleteTemplateVersionResult = {
 /** Represents the error message for a web app deletion. */
 export enum DeleteWebappError {
   PermissionDenied = 'PERMISSION_DENIED',
+  WebappsNotConfigured = 'WEBAPPS_NOT_CONFIGURED',
   WebappNotFound = 'WEBAPP_NOT_FOUND'
 }
 
@@ -5970,10 +5972,18 @@ export enum UpdateWebappError {
   InvalidUrl = 'INVALID_URL',
   PermissionDenied = 'PERMISSION_DENIED',
   SaveFailed = 'SAVE_FAILED',
+  SubdomainAlreadyTaken = 'SUBDOMAIN_ALREADY_TAKEN',
+  SubdomainHasDots = 'SUBDOMAIN_HAS_DOTS',
+  SubdomainInvalidFormat = 'SUBDOMAIN_INVALID_FORMAT',
+  SubdomainNotLowercase = 'SUBDOMAIN_NOT_LOWERCASE',
+  SubdomainRequired = 'SUBDOMAIN_REQUIRED',
+  SubdomainReserved = 'SUBDOMAIN_RESERVED',
+  SubdomainTooShort = 'SUBDOMAIN_TOO_SHORT',
   SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
   SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
   TypeMismatch = 'TYPE_MISMATCH',
   VersionNotFound = 'VERSION_NOT_FOUND',
+  WebappsNotConfigured = 'WEBAPPS_NOT_CONFIGURED',
   WebappNotFound = 'WEBAPP_NOT_FOUND'
 }
 
@@ -5987,6 +5997,7 @@ export type UpdateWebappInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   publishedVersionId?: InputMaybe<Scalars['String']['input']>;
   source?: InputMaybe<UpdateWebappSourceInput>;
+  subdomain?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Represents the result of updating a web app. */
@@ -6171,9 +6182,12 @@ export type Webapp = {
   isShortcut: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   permissions: WebappPermissions;
+  previewUrl: Scalars['String']['output'];
+  serveUrl: Scalars['String']['output'];
   showPoweredBy: Scalars['Boolean']['output'];
   slug: Scalars['String']['output'];
   source: WebappSource;
+  subdomain: Scalars['String']['output'];
   type: WebappType;
   url: Scalars['String']['output'];
   versions?: Maybe<WebappVersionsPage>;
@@ -6271,6 +6285,7 @@ export type Workspace = {
   shortcuts: Array<ShortcutItem>;
   slug: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  webappsEnabled: Scalars['Boolean']['output'];
 };
 
 

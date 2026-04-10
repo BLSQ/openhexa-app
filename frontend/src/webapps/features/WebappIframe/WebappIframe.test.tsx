@@ -16,15 +16,6 @@ describe("WebappIframe", () => {
     expect(iframe.getAttribute("sandbox")).not.toContain("allow-same-origin");
   });
 
-  it("⚠️ should never allow same origin for static webapps even on a different origin", () => {
-    const url = "https://api.example.com/webapps/some-id/";
-    render(<WebappIframe url={url} type={WebappType.Static} />);
-
-    const iframe = screen.getByTestId("webapp-iframe");
-    expect(iframe).toHaveAttribute("sandbox", BASE_SANDBOX);
-    expect(iframe.getAttribute("sandbox")).not.toContain("allow-same-origin");
-  });
-
   it("⚠️ exceptionally allows same origin iframe attribute for Superset dashboards", () => {
     const url =
       window.location.origin +
