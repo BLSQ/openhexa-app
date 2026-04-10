@@ -4,14 +4,14 @@ from typing import TYPE_CHECKING
 
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
-from hexa.assistant.agents.pipeline_agent import PipelineAgent
+from hexa.assistant.agents.create_pipeline_agent import CreatePipelineAgent
 from hexa.assistant.instructions import InstructionSet
 
 if TYPE_CHECKING:
     from hexa.assistant.models import Conversation
 
 _AGENT_REGISTRY: dict[InstructionSet, type[BaseAgent]] = {
-    InstructionSet.CREATE_PIPELINE: PipelineAgent,
+    InstructionSet.CREATE_PIPELINE: CreatePipelineAgent,
     InstructionSet.EDIT_PIPELINE: EditPipelineAgent,
     InstructionSet.GENERAL: BaseAgent,
 }

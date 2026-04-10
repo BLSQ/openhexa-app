@@ -6,7 +6,7 @@ from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.base import BaseAgent, _is_success
 from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
-from hexa.assistant.agents.pipeline_agent import PipelineAgent
+from hexa.assistant.agents.create_pipeline_agent import CreatePipelineAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message
 from hexa.core.test import TestCase
@@ -107,7 +107,7 @@ class AgentRegistryTest(TestCase):
             instruction_set=InstructionSet.CREATE_PIPELINE,
         )
         with _patch_builder(TestModel()):
-            self.assertIsInstance(conversation.agent, PipelineAgent)
+            self.assertIsInstance(conversation.agent, CreatePipelineAgent)
 
     def test_general_instruction_set_returns_base_agent(self):
         conversation = Conversation.objects.create(
@@ -117,7 +117,7 @@ class AgentRegistryTest(TestCase):
         )
         with _patch_builder(TestModel()):
             self.assertIsInstance(conversation.agent, BaseAgent)
-            self.assertNotIsInstance(conversation.agent, PipelineAgent)
+            self.assertNotIsInstance(conversation.agent, CreatePipelineAgent)
 
     def test_unregistered_instruction_set_defaults_to_base_agent(self):
         # CREATE_WEBAPPS is a valid InstructionSet value but has no dedicated agent class.
