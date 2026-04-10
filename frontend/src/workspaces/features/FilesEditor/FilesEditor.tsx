@@ -159,10 +159,17 @@ export const FilesEditor = ({
       setSelectedFile(null);
       return;
     }
-    const stillExists = selectedFile && files.find((f) => f.id === selectedFile.id);
-    if (!stillExists) {
+    if (!selectedFile) {
       const autoSelected = files.find((file) => file.autoSelect);
       setSelectedFile(autoSelected ?? null);
+      return;
+    }
+    const matchingFile = files.find((f) => f.id === selectedFile.id);
+    if (!matchingFile) {
+      const autoSelected = files.find((file) => file.autoSelect);
+      setSelectedFile(autoSelected ?? null);
+    } else if (matchingFile !== selectedFile) {
+      setSelectedFile(matchingFile);
     }
   }, [files, selectedFile]);
 
@@ -175,6 +182,10 @@ export const FilesEditor = ({
   const [currentFileContent, setCurrentFileContent] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setModifiedFiles(new Map());
+  }, [flatFiles]);
 
   useEffect(() => {
     setIsClient(true);
@@ -217,9 +228,7 @@ export const FilesEditor = ({
     try {
       const result = await onSave(modifiedFiles, flatFiles);
 
-      if (result.success) {
-        setModifiedFiles(new Map());
-      } else {
+      if (!result.success) {
         setSaveError(result.error || "Save failed");
       }
     } catch (error) {

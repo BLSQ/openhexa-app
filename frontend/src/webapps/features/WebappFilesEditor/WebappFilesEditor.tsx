@@ -210,7 +210,6 @@ const WebappFilesEditor = ({
           </div>
         )}
         <FilesEditor
-          key={versionRef}
           name={t("Web app")}
           files={files}
           isEditable={isEditable}
