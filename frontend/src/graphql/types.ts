@@ -1146,6 +1146,7 @@ export enum CreateWebappError {
   PermissionDenied = 'PERMISSION_DENIED',
   SupersetInstanceNotFound = 'SUPERSET_INSTANCE_NOT_FOUND',
   SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
+  WebappsNotConfigured = 'WEBAPPS_NOT_CONFIGURED',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
@@ -2078,6 +2079,7 @@ export type DeleteTemplateVersionResult = {
 /** Represents the error message for a web app deletion. */
 export enum DeleteWebappError {
   PermissionDenied = 'PERMISSION_DENIED',
+  WebappsNotConfigured = 'WEBAPPS_NOT_CONFIGURED',
   WebappNotFound = 'WEBAPP_NOT_FOUND'
 }
 
@@ -5981,6 +5983,7 @@ export enum UpdateWebappError {
   SupersetNotConfigured = 'SUPERSET_NOT_CONFIGURED',
   TypeMismatch = 'TYPE_MISMATCH',
   VersionNotFound = 'VERSION_NOT_FOUND',
+  WebappsNotConfigured = 'WEBAPPS_NOT_CONFIGURED',
   WebappNotFound = 'WEBAPP_NOT_FOUND'
 }
 
@@ -6282,6 +6285,7 @@ export type Workspace = {
   shortcuts: Array<ShortcutItem>;
   slug: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  webappsEnabled: Scalars['Boolean']['output'];
 };
 
 

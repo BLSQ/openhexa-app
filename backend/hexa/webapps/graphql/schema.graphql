@@ -133,6 +133,7 @@ type CreateWebappResult {
 Represents the error message for a web app creation.
 """
 enum CreateWebappError {
+  WEBAPPS_NOT_CONFIGURED
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
   ALREADY_EXISTS
@@ -177,6 +178,7 @@ type UpdateWebappResult {
 Represents the error message for a web app update.
 """
 enum UpdateWebappError {
+  WEBAPPS_NOT_CONFIGURED
   WEBAPP_NOT_FOUND
   PERMISSION_DENIED
   SUPERSET_INSTANCE_NOT_FOUND
@@ -212,6 +214,7 @@ type DeleteWebappResult {
 Represents the error message for a web app deletion.
 """
 enum DeleteWebappError {
+  WEBAPPS_NOT_CONFIGURED
   WEBAPP_NOT_FOUND
   PERMISSION_DENIED
 }

@@ -1144,6 +1144,7 @@ enum CreateWebappError {
   PERMISSION_DENIED
   SUPERSET_INSTANCE_NOT_FOUND
   SUPERSET_NOT_CONFIGURED
+  WEBAPPS_NOT_CONFIGURED
   WORKSPACE_NOT_FOUND
 }
 
@@ -2049,6 +2050,7 @@ type DeleteTemplateVersionResult {
 """Represents the error message for a web app deletion."""
 enum DeleteWebappError {
   PERMISSION_DENIED
+  WEBAPPS_NOT_CONFIGURED
   WEBAPP_NOT_FOUND
 }
 
@@ -5181,6 +5183,7 @@ enum UpdateWebappError {
   SUPERSET_NOT_CONFIGURED
   TYPE_MISMATCH
   VERSION_NOT_FOUND
+  WEBAPPS_NOT_CONFIGURED
   WEBAPP_NOT_FOUND
 }
 
@@ -5485,6 +5488,7 @@ type Workspace {
   shortcuts: [ShortcutItem!]!
   slug: String!
   updatedAt: DateTime
+  webappsEnabled: Boolean!
 }
 
 """Represents an invitation to join a workspace."""
