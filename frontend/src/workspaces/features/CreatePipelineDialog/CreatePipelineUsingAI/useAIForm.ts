@@ -41,7 +41,7 @@ export function useAIForm(
     try {
       const convResult = await createConversation({
         variables: {
-          input: { workspaceSlug: workspace.slug, instructionSet: InstructionSet.PIPELINE },
+          input: { workspaceSlug: workspace.slug, instructionSet: InstructionSet.CREATE_PIPELINE },
         },
       });
       const conversationId =
