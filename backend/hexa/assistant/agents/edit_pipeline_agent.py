@@ -26,9 +26,16 @@ class EditPipelineAgent(BaseAgent):
     tools = [propose_pipeline_version]
 
     def _extra_instructions(self) -> str:
-        pipeline = getattr(self.conversation, "pipeline", None)
-        if not pipeline:
+        from hexa.pipelines.models import Pipeline
+
+        linked_object = self.conversation.linked_object
+        if linked_object is None:
             return ""
+        if not isinstance(linked_object, Pipeline):
+            raise TypeError(
+                f"EditPipelineAgent requires a Pipeline linked object, got {type(linked_object).__name__}"
+            )
+        pipeline = linked_object
 
         lines = [
             "## Current Pipeline",

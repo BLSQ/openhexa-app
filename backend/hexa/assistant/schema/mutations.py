@@ -12,6 +12,26 @@ logger = getLogger(__name__)
 assistant_mutations = MutationType()
 
 
+def _resolve_linked_object(user, linked_object_type, linked_object_id):
+    """
+    Maps a (type, id) pair from the API to a model instance and the instruction set
+    that should be used for conversations about that object type.
+    Returns (linked_object, instruction_set) or raises ValueError/DoesNotExist.
+    """
+    from hexa.pipelines.models import Pipeline
+
+    resolvers = {
+        "Pipeline": (
+            Pipeline.objects.filter_for_user(user),
+            InstructionSet.EDIT_PIPELINE,
+        ),
+    }
+    if linked_object_type not in resolvers:
+        raise ValueError(f"Unknown linked object type: {linked_object_type}")
+    queryset, instruction_set = resolvers[linked_object_type]
+    return queryset.get(id=linked_object_id), instruction_set
+
+
 @assistant_mutations.field("createAssistantConversation")
 def resolve_create_assistant_conversation(_, info, input, **kwargs):
     request = info.context["request"]
@@ -27,21 +47,25 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
             "conversation": None,
         }
 
-    pipeline = None
-    if pipeline_id := input.get("pipeline_id"):
-        from hexa.pipelines.models import Pipeline
-
+    linked_object = None
+    if linked_object_id := input.get("linked_object_id"):
+        linked_object_type = input.get("linked_object_type", "")
         try:
-            pipeline = Pipeline.objects.filter_for_user(request.user).get(
-                id=pipeline_id
+            linked_object, instruction_set = _resolve_linked_object(
+                request.user, linked_object_type, linked_object_id
             )
-        except Pipeline.DoesNotExist:
+        except ValueError:
             return {
                 "success": False,
-                "errors": ["PIPELINE_NOT_FOUND"],
+                "errors": ["INVALID_LINKED_OBJECT_TYPE"],
                 "conversation": None,
             }
-        instruction_set = InstructionSet.EDIT_PIPELINE
+        except Exception:
+            return {
+                "success": False,
+                "errors": ["LINKED_OBJECT_NOT_FOUND"],
+                "conversation": None,
+            }
     else:
         raw_instruction_set = input.get("instruction_set", InstructionSet.GENERAL)
         try:
@@ -59,7 +83,7 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
             principal=request.user,
             workspace=workspace,
             instruction_set=instruction_set,
-            pipeline=pipeline,
+            linked_object=linked_object,
         )
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"], "conversation": None}

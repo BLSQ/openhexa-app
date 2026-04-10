@@ -2,6 +2,8 @@ from datetime import timedelta
 from decimal import Decimal
 from functools import cached_property
 
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.db import models
 from django.db.models import Sum
@@ -34,30 +36,34 @@ class ConversationManager(DefaultSoftDeletedManager):
         workspace: Workspace,
         *,
         instruction_set: InstructionSet = InstructionSet.GENERAL,
-        pipeline=None,
+        linked_object=None,
     ):
         if not principal.has_perm("assistant.create_conversation", workspace):
             raise PermissionDenied
 
-        return self.create(
+        conversation = self.model(
             user=principal,
             workspace=workspace,
             instruction_set=instruction_set,
-            pipeline=pipeline,
         )
+        if linked_object is not None:
+            conversation.linked_object = linked_object
+        conversation.save()
+        return conversation
 
 
 class Conversation(SoftDeletedModel, Base):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
 
-    pipeline = models.ForeignKey(
-        "pipelines.Pipeline",
+    linked_object_content_type = models.ForeignKey(
+        ContentType,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name="assistant_conversations",
     )
+    linked_object_id = models.UUIDField(null=True, blank=True)
+    linked_object = GenericForeignKey("linked_object_content_type", "linked_object_id")
     name = models.CharField(max_length=50, null=True, blank=True)
     instruction_set = models.CharField(
         max_length=50,
@@ -88,6 +94,12 @@ class Conversation(SoftDeletedModel, Base):
             models.Index(
                 fields=["user"],
                 name="asst_conv_user_cost_idx",
+            ),
+            # Covers "find all conversations for a given linked object" queries.
+            # Django does not auto-index GenericForeignKey fields.
+            models.Index(
+                fields=["linked_object_content_type", "linked_object_id"],
+                name="asst_conv_linked_object_idx",
             ),
         ]
 

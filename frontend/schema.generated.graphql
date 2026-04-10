@@ -749,14 +749,16 @@ type CreateAccessmodZonalStatisticsResult {
 
 enum CreateAssistantConversationError {
   INVALID_INSTRUCTION_SET
+  INVALID_LINKED_OBJECT_TYPE
+  LINKED_OBJECT_NOT_FOUND
   PERMISSION_DENIED
-  PIPELINE_NOT_FOUND
   WORKSPACE_NOT_FOUND
 }
 
 input CreateAssistantConversationInput {
   instructionSet: String
-  pipelineId: UUID
+  linkedObjectId: UUID
+  linkedObjectType: LinkedObjectType
   workspaceSlug: String!
 }
 
@@ -2618,6 +2620,10 @@ type LinkDatasetResult {
   errors: [LinkDatasetError!]!
   link: DatasetLink
   success: Boolean!
+}
+
+enum LinkedObjectType {
+  Pipeline
 }
 
 """Represents the input for logging a pipeline message."""

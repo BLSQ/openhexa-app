@@ -2,6 +2,7 @@ import { useCallback, useRef } from "react";
 import ChatPane from "assistant/features/ChatPane";
 import { useCreateAssistantConversationMutation } from "assistant/graphql/mutations.generated";
 import { AssistantConversationMessagesQuery } from "assistant/graphql/queries.generated";
+import { LinkedObjectType } from "graphql/types";
 import { ProposedFile } from "workspaces/features/FilesEditor/FilesEditor";
 
 type Message = NonNullable<
@@ -28,7 +29,11 @@ export default function PipelineEditChatPanel({
   const handleCreateConversation = useCallback(async () => {
     const result = await createConversation({
       variables: {
-        input: { workspaceSlug, pipelineId },
+        input: {
+          workspaceSlug,
+          linkedObjectId: pipelineId,
+          linkedObjectType: LinkedObjectType.Pipeline,
+        },
       },
     });
     const id = result.data?.createAssistantConversation?.conversation?.id ?? null;

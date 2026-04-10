@@ -76,12 +76,14 @@ class EditPipelineAgentExtraInstructionsTest(TestCase):
             )
 
     def _make_agent(self, pipeline=None):
-        conversation = Conversation.objects.create(
+        conversation = Conversation(
             user=self.user,
             workspace=self.workspace,
             instruction_set=InstructionSet.EDIT_PIPELINE,
-            pipeline=pipeline,
         )
+        if pipeline is not None:
+            conversation.linked_object = pipeline
+        conversation.save()
         with _patch_builder(TestModel()):
             return EditPipelineAgent(conversation)
 

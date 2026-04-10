@@ -796,14 +796,16 @@ export type CreateAccessmodZonalStatisticsResult = {
 
 export enum CreateAssistantConversationError {
   InvalidInstructionSet = 'INVALID_INSTRUCTION_SET',
+  InvalidLinkedObjectType = 'INVALID_LINKED_OBJECT_TYPE',
+  LinkedObjectNotFound = 'LINKED_OBJECT_NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED',
-  PipelineNotFound = 'PIPELINE_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
 export type CreateAssistantConversationInput = {
   instructionSet?: InputMaybe<Scalars['String']['input']>;
-  pipelineId?: InputMaybe<Scalars['UUID']['input']>;
+  linkedObjectId?: InputMaybe<Scalars['UUID']['input']>;
+  linkedObjectType?: InputMaybe<LinkedObjectType>;
   workspaceSlug: Scalars['String']['input'];
 };
 
@@ -2642,6 +2644,10 @@ export type LinkDatasetResult = {
   link?: Maybe<DatasetLink>;
   success: Scalars['Boolean']['output'];
 };
+
+export enum LinkedObjectType {
+  Pipeline = 'Pipeline'
+}
 
 /** Represents the input for logging a pipeline message. */
 export type LogPipelineMessageInput = {
