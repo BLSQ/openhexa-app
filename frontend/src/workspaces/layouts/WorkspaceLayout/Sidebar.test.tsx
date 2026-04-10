@@ -9,6 +9,7 @@ import { TestApp } from "core/helpers/testutils";
 const mockWorkspace: Sidebar_WorkspaceFragment = {
   slug: "test-workspace",
   name: "Test Workspace",
+  webappsEnabled: true,
   countries: [
     { __typename: "Country", flag: "🇺🇸", code: "US" },
     { __typename: "Country", flag: "🇨🇦", code: "CA" },
