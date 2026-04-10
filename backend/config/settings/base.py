@@ -518,6 +518,37 @@ elif STORAGE_BACKEND == "azure":
             "connection_string": os.environ.get("AZURE_STORAGE_CONNECTION_STRING"),
         },
     }
+elif STORAGE_BACKEND == "s3":
+    if not os.environ.get("WORKSPACE_STORAGE_BACKEND_AWS_ACCESS_KEY_ID"):
+        raise ValueError(
+            "WORKSPACE_STORAGE_BACKEND_AWS_ACCESS_KEY_ID environment variable is required for S3 storage backend."
+        )
+    if not os.environ.get("WORKSPACE_STORAGE_BACKEND_AWS_SECRET_ACCESS_KEY"):
+        raise ValueError(
+            "WORKSPACE_STORAGE_BACKEND_AWS_SECRET_ACCESS_KEY environment variable is required for S3 storage backend."
+        )
+    WORKSPACE_STORAGE_BACKEND = {
+        "engine": "hexa.files.backends.s3.S3Storage",
+        "options": {
+            "access_key_id": os.environ.get(
+                "WORKSPACE_STORAGE_BACKEND_AWS_ACCESS_KEY_ID"
+            ),
+            "secret_access_key": os.environ.get(
+                "WORKSPACE_STORAGE_BACKEND_AWS_SECRET_ACCESS_KEY"
+            ),
+            "region": os.environ.get(
+                "WORKSPACE_STORAGE_BACKEND_AWS_BUCKET_REGION", "eu-central-1"
+            ),
+            "endpoint_url": os.environ.get("WORKSPACE_STORAGE_BACKEND_AWS_ENDPOINT_URL")
+            or None,
+            "public_endpoint_url": os.environ.get(
+                "WORKSPACE_STORAGE_BACKEND_AWS_PUBLIC_ENDPOINT_URL"
+            )
+            or None,
+            "role_arn": os.environ.get("WORKSPACE_STORAGE_BACKEND_AWS_ROLE_ARN")
+            or None,
+        },
+    }
 else:  # Default to filesystem storage
     WORKSPACE_STORAGE_LOCATION = os.environ.get("WORKSPACE_STORAGE_LOCATION")
     WORKSPACE_STORAGE_BACKEND = {
