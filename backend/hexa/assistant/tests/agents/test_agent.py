@@ -104,7 +104,7 @@ class AgentRegistryTest(TestCase):
         conversation = Conversation.objects.create(
             user=self.user,
             workspace=self.workspace,
-            instruction_set=InstructionSet.PIPELINE,
+            instruction_set=InstructionSet.CREATE_PIPELINE,
         )
         with _patch_builder(TestModel()):
             self.assertIsInstance(conversation.agent, PipelineAgent)
@@ -120,11 +120,11 @@ class AgentRegistryTest(TestCase):
             self.assertNotIsInstance(conversation.agent, PipelineAgent)
 
     def test_unregistered_instruction_set_defaults_to_base_agent(self):
-        # WEBAPPS is a valid InstructionSet value but has no dedicated agent class.
+        # CREATE_WEBAPPS is a valid InstructionSet value but has no dedicated agent class.
         conversation = Conversation.objects.create(
             user=self.user,
             workspace=self.workspace,
-            instruction_set=InstructionSet.WEBAPPS,
+            instruction_set=InstructionSet.CREATE_WEBAPPS,
         )
         with _patch_builder(TestModel()):
             self.assertIsInstance(conversation.agent, BaseAgent)
@@ -308,12 +308,13 @@ class BaseAgentToolCallTest(TestCase):
     def test_propose_pipeline_version_call_is_persisted(self):
         files_arg = [{"name": "pipeline.py", "content": "print('v2')"}]
         model = _make_tool_call_model("propose_pipeline_version", {"files": files_arg})
-        conversation = Conversation.objects.create(
+        conversation = Conversation(
             user=self.user,
             workspace=self.workspace,
             instruction_set=InstructionSet.EDIT_PIPELINE,
-            pipeline=self.pipeline,
         )
+        conversation.linked_object = self.pipeline
+        conversation.save()
         with _patch_builder(model):
             agent = EditPipelineAgent(conversation)
         agent.run("Update the pipeline")

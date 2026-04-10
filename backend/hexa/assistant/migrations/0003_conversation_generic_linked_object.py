@@ -9,15 +9,27 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunSQL(
+            """
+            UPDATE assistant_conversation
+            SET instruction_set = CASE instruction_set
+                WHEN 'pipeline' THEN 'create_pipeline'
+                WHEN 'webapps' THEN 'create_webapps'
+                ELSE instruction_set
+            END
+            WHERE instruction_set IN ('pipeline', 'webapps');
+            """,
+            migrations.RunSQL.noop,
+        ),
         migrations.AlterField(
             model_name="conversation",
             name="instruction_set",
             field=models.CharField(
                 choices=[
                     ("general", "General"),
-                    ("pipeline", "Pipeline"),
+                    ("create_pipeline", "Create Pipeline"),
                     ("edit_pipeline", "Edit Pipeline"),
-                    ("webapps", "Web Apps"),
+                    ("create_webapps", "Create Web Apps"),
                 ],
                 default="general",
                 max_length=50,

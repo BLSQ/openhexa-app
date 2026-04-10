@@ -3,9 +3,9 @@ from django.db.models import TextChoices
 
 class InstructionSet(TextChoices):
     GENERAL = "general", "General"
-    PIPELINE = "pipeline", "Pipeline"
+    CREATE_PIPELINE = "create_pipeline", "Create Pipeline"
     EDIT_PIPELINE = "edit_pipeline", "Edit Pipeline"
-    WEBAPPS = "webapps", "Web Apps"
+    CREATE_WEBAPPS = "create_webapps", "Create Web Apps"
 
 
 _BASE = """\
@@ -14,7 +14,7 @@ You help data professionals work with pipelines, datasets, workspaces, and data 
 infrastructure. Be concise, accurate, and practical.\
 """
 
-_PIPELINE = """\
+_CREATE_PIPELINE = """\
 You are in charge of creating a new pipeline for the user. \
 From the user's description, extract a suitable pipeline name and a concise description \
 of what the pipeline does. \
@@ -41,9 +41,9 @@ You are in charge of creating a new web app for the user.\
 
 _INSTRUCTION_SETS: dict[InstructionSet | tuple[str, str], str] = {
     InstructionSet.GENERAL: _BASE,
-    InstructionSet.PIPELINE: _BASE + _PIPELINE,
+    InstructionSet.CREATE_PIPELINE: _BASE + _CREATE_PIPELINE,
     InstructionSet.EDIT_PIPELINE: _BASE + _EDIT_PIPELINE,
-    InstructionSet.WEBAPPS: _BASE + _WEBAPPS,
+    InstructionSet.CREATE_WEBAPPS: _BASE + _WEBAPPS,
 }
 
 

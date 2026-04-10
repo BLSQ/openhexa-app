@@ -5,5 +5,5 @@ from hexa.mcp.tools import create_pipeline
 
 class PipelineAgent(BaseAgent):
     # TODO: Add reading pipeline / pipeline templates tools
-    instruction_set = InstructionSet.PIPELINE
+    instruction_set = InstructionSet.CREATE_PIPELINE
     tools = [create_pipeline]

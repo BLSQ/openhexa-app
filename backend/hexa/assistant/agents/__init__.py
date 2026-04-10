@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from hexa.assistant.models import Conversation
 
 _AGENT_REGISTRY: dict[InstructionSet, type[BaseAgent]] = {
-    InstructionSet.PIPELINE: PipelineAgent,
+    InstructionSet.CREATE_PIPELINE: PipelineAgent,
     InstructionSet.EDIT_PIPELINE: EditPipelineAgent,
     InstructionSet.GENERAL: BaseAgent,
 }
