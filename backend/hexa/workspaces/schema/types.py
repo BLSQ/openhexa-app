@@ -1,6 +1,7 @@
 import logging
 
 from ariadne import EnumType, InterfaceType, ObjectType
+from django.conf import settings
 from django.db.models import OuterRef, Subquery
 from django.http import HttpRequest
 from openhexa.toolbox.dhis2.api import DHIS2ToolboxError
@@ -121,6 +122,11 @@ def resolve_workspace_permission_launch_notebooks(workspace: Workspace, info):
         if request.user.is_authenticated
         else False
     )
+
+
+@workspace_object.field("webappsEnabled")
+def resolve_webapps_enabled(workspace: Workspace, info):
+    return bool(settings.WEBAPPS_DOMAIN)
 
 
 @workspace_object.field("permissions")
