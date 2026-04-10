@@ -1,6 +1,7 @@
 import mimetypes
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+from urllib.parse import parse_qs, quote, urlencode, urlparse, urlunparse
 
+from django.conf import settings
 from django.core.signing import TimestampSigner
 from django.http import (
     HttpResponse,
@@ -34,6 +35,12 @@ def auth_token(request, webapp_id):
     parsed_next_url = urlparse(next_url)
     if extract_webapp_subdomain(parsed_next_url.hostname or "") != webapp.subdomain:
         return HttpResponseBadRequest("Invalid redirect target")
+
+    if not request.user.is_authenticated:
+        current_absolute_url = request.build_absolute_uri(request.get_full_path())
+        return HttpResponseRedirect(
+            f"{settings.NEW_FRONTEND_DOMAIN}/login?next={quote(current_absolute_url)}"
+        )
 
     user = request.user
     should_have_access = (
