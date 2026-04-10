@@ -224,7 +224,7 @@ extend type Query {
   """
   Read the text content of a file from a workspace's bucket.
   """
-  readFileContent(workspaceSlug: String!, filePath: String!): ReadFileContentResult! @loginRequired
+  readFileContent(workspaceSlug: String!, filePath: String!, startLine: Int, endLine: Int): ReadFileContentResult! @loginRequired
 }
 
 extend type WorkspacePermissions {

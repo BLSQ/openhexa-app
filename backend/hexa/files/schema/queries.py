@@ -65,12 +65,23 @@ def resolve_read_file_content(_, info, **kwargs):
     if obj.size > MAX_READ_SIZE:
         return {"success": False, "errors": ["FILE_TOO_LARGE"]}
 
+    start_line = kwargs.get("start_line")
+    end_line = kwargs.get("end_line")
+
     try:
         content = storage.read_object(workspace.bucket_name, file_path)
+        text = content.decode("utf-8")
+
+        if start_line is not None or end_line is not None:
+            lines = text.splitlines(keepends=True)
+            sl = max((start_line or 1) - 1, 0)
+            el = min(end_line or len(lines), len(lines))
+            text = "".join(lines[sl:el])
+
         return {
             "success": True,
             "errors": [],
-            "content": content.decode("utf-8"),
+            "content": text,
             "size": len(content),
         }
     except UnicodeDecodeError:

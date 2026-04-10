@@ -8,7 +8,13 @@ from hexa.pipelines.authentication import PipelineRunUser
 from hexa.workspaces.models import Workspace
 
 from ..api import generate_download_url, generate_upload_url, get_blob
-from ..models import Dataset, DatasetLink, DatasetVersion, DatasetVersionFile
+from ..models import (
+    Dataset,
+    DatasetLink,
+    DatasetVersion,
+    DatasetVersionFile,
+    FileUploadError,
+)
 
 mutations = MutationType()
 
@@ -27,6 +33,7 @@ def resolve_create_dataset(_, info, **kwargs):
             workspace=workspace,
             name=mutation_input["name"],
             description=mutation_input["description"],
+            files=mutation_input.get("files"),
         )
         link = DatasetLink.objects.get(dataset=dataset, workspace=workspace)
 
@@ -40,6 +47,8 @@ def resolve_create_dataset(_, info, **kwargs):
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except FileUploadError:
+        return {"success": False, "errors": ["FILE_UPLOAD_FAILED"]}
 
 
 @mutations.field("updateDataset")
@@ -97,6 +106,7 @@ def resolve_create_dataset_version(_, info, **kwargs):
             dataset=dataset,
             name=mutation_input["name"],
             changelog=mutation_input.get("changelog"),
+            files=mutation_input.get("files"),
         )
 
         # Register dataset version creation event
@@ -126,6 +136,8 @@ def resolve_create_dataset_version(_, info, **kwargs):
         return {"success": False, "errors": ["DATASET_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except FileUploadError:
+        return {"success": False, "errors": ["FILE_UPLOAD_FAILED"]}
 
 
 @mutations.field("updateDatasetVersion")
