@@ -5,10 +5,12 @@ import UserColumn from "core/components/DataGrid/UserColumn";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
 import Time from "core/components/Time";
+import Tooltip from "core/components/Tooltip";
 import { createGetServerSideProps } from "core/helpers/page";
 import { formatDuration } from "core/helpers/time";
 import { NextPageWithLayout } from "core/helpers/types";
-import { PipelineRunTrigger, PipelineType } from "graphql/types";
+import { PipelineParameter, PipelineRunTrigger, PipelineType } from "graphql/types";
+import isNil from "lodash/isNil";
 import { useTranslation } from "next-i18next";
 import router from "next/router";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
@@ -18,7 +20,50 @@ import {
   WorkspacePipelineRunsPageQuery,
   WorkspacePipelineRunsPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
+import { getPipelineRunConfig, isConnectionParameter } from "workspaces/helpers/pipelines";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
+
+function formatParamValue(entry: PipelineParameter & { value: any }): string {
+  if (entry.type === "bool") return entry.value ? "✓" : "✗";
+  if (entry.type === "secret" && entry.value) return "••••••";
+  if (isNil(entry.value)) return "-";
+  if (entry.multiple && Array.isArray(entry.value)) return entry.value.join(", ");
+  if (isConnectionParameter(entry.type)) return String(entry.value);
+  return String(entry.value);
+}
+
+function RunParametersCell({
+  run,
+}: {
+  run: { config: any; version?: { parameters: Omit<PipelineParameter, "__typename">[] } | null };
+}) {
+  const params = getPipelineRunConfig(run);
+  if (!params.length) return <span className="text-gray-400">-</span>;
+
+  const tooltipContent = (
+    <div className="min-w-48 space-y-1">
+      {params.map((p) => (
+        <div key={p.code} className="flex gap-1">
+          <span className="shrink-0 font-medium text-gray-500">{p.name}:</span>
+          <span className="break-all">{formatParamValue(p)}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  return (
+    <Tooltip label={tooltipContent} placement="left">
+      <div className="max-h-16 cursor-default space-y-0.5 overflow-hidden text-xs text-gray-600">
+        {params.map((p) => (
+          <div key={p.code} className="flex min-w-0 gap-1">
+            <span className="shrink-0 text-gray-400">{p.name}:</span>
+            <span className="truncate">{formatParamValue(p)}</span>
+          </div>
+        ))}
+      </div>
+    </Tooltip>
+  );
+}
 
 type Props = {
   page: number;
@@ -121,6 +166,9 @@ const WorkspacePipelineRunsPage: NextPageWithLayout = (props: Props) => {
             )}
           </BaseColumn>
           <UserColumn label={t("User")} accessor="user" />
+          <BaseColumn label={t("Parameters")} id="parameters">
+            {(item) => <RunParametersCell run={item} />}
+          </BaseColumn>
           <ChevronLinkColumn
             accessor="id"
             url={(value: any) => ({
