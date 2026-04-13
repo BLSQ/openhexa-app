@@ -82,6 +82,12 @@ ALLOWED_HOSTS = (
     else []
 )
 
+# Example: "webapps.openhexa.org"
+# When not set, the webapps feature is disabled entirely.
+WEBAPPS_DOMAIN = os.environ.get("WEBAPPS_DOMAIN", None)
+if WEBAPPS_DOMAIN:
+    ALLOWED_HOSTS += [f".{WEBAPPS_DOMAIN}"]
+
 CORS_ALLOWED_ORIGINS = []
 CSRF_TRUSTED_ORIGINS = []
 if "PROXY_HOSTNAME_AND_PORT" in os.environ:
@@ -124,6 +130,8 @@ if "CORS_ALLOWED_ORIGINS" in os.environ:
     CORS_ALLOWED_ORIGINS += os.environ.get("CORS_ALLOWED_ORIGINS").split(",")
 
 CORS_ALLOWED_ORIGIN_REGEXES = []
+if WEBAPPS_DOMAIN:
+    CORS_ALLOWED_ORIGIN_REGEXES.append(rf"^https?://[\w-]+\.{WEBAPPS_DOMAIN}(:\d+)?$")
 if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
     CORS_ALLOWED_ORIGIN_REGEXES += os.environ.get("CORS_ALLOWED_ORIGIN_REGEXES").split(
         ","
@@ -279,6 +287,7 @@ MIDDLEWARE = [
     "hexa.core.middlewares.oauth2_token_authentication_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "hexa.webapps.middlewares.webapp_subdomain_middleware",
     "hexa.user_management.middlewares.login_required_middleware",
     "hexa.analytics.middlewares.set_analytics_middleware",
 ]

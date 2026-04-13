@@ -93,12 +93,14 @@ class TestPipelineRunUserFiltering(TestCase):
         webapp1 = Webapp.objects.create(
             name="WebApp 1",
             slug="webapp-1",
+            subdomain="webapp-1",
             workspace=self.WORKSPACE1,
             created_by=self.USER_ROOT,
         )
         Webapp.objects.create(
             name="WebApp 2",
             slug="webapp-2",
+            subdomain="webapp-2",
             workspace=self.WORKSPACE2,
             created_by=self.USER_ROOT,
         )

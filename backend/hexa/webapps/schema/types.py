@@ -1,4 +1,7 @@
+from urllib.parse import urlencode
+
 from ariadne import ObjectType, UnionType
+from django.core.signing import TimestampSigner
 
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.utils.base64_image_encode_decode import encode_base64_image
@@ -43,9 +46,21 @@ def resolve_workspace(webapp: Webapp, info, **kwargs):
 @webapp_object.field("url")
 def resolve_url(webapp: Webapp, info, **kwargs):
     if webapp.type == Webapp.WebappType.STATIC:
-        request = info.context["request"]
-        return request.build_absolute_uri(f"/webapps/{webapp.id}/")
+        return webapp.serve_url
     return webapp.url
+
+
+@webapp_object.field("previewUrl")
+def resolve_preview_url(webapp: Webapp, info, **kwargs):
+    request = info.context["request"]
+    if not request.user.is_authenticated:
+        return webapp.serve_url
+
+    signer = TimestampSigner()
+    token = signer.sign_object(
+        {"user_id": str(request.user.id), "subdomain": webapp.subdomain}
+    )
+    return f"{webapp.serve_url}?{urlencode({'auth_token': token})}"
 
 
 @webapp_object.field("icon")

@@ -91,6 +91,9 @@ const graphqlMocks: MockedResponse[] = [
             delete: true,
             update: true,
           },
+          isPublic: false,
+          subdomain: null,
+          serveUrl: null,
         },
         workspace: {
           __typename: "Workspace",
@@ -147,6 +150,8 @@ describe("WorkspaceWebappPage", () => {
                   id: "1",
                   name: "Updated Webapp",
                   icon: "",
+                  isPublic: false,
+                  subdomain: null,
                   source: {
                     iframe: {
                       url: "https://updated-url.com",
@@ -301,6 +306,9 @@ describe("WorkspaceWebappPage", () => {
                     delete: true,
                     update: true,
                   },
+                  isPublic: false,
+                  subdomain: null,
+                  serveUrl: null,
                 },
                 workspace: {
                   __typename: "Workspace",
@@ -339,7 +347,7 @@ describe("WorkspaceWebappPage", () => {
     const nameInput = within(nameParent).getByRole("textbox");
     fireEvent.change(nameInput, { target: { value: "Updated Webapp" } });
 
-    const urlParent = screen.getByText("URL").closest("div") as HTMLDivElement;
+    const urlParent = screen.getByText("Source URL").closest("div") as HTMLDivElement;
     const urlInput = within(urlParent).getByRole("textbox");
     fireEvent.change(urlInput, {
       target: { value: "https://updated-url.com" },

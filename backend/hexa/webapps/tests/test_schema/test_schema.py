@@ -9,6 +9,19 @@ from hexa.workspaces.models import (
 
 
 class WebappsTest(GraphQLTestCase):
+    UPDATE_WEBAPP_SUBDOMAIN_MUTATION = """
+        mutation updateWebapp($input: UpdateWebappInput!) {
+            updateWebapp(input: $input) {
+                success
+                errors
+                webapp {
+                    id
+                    subdomain
+                }
+            }
+        }
+    """
+
     @classmethod
     def setUpTestData(cls):
         cls.USER_ROOT = User.objects.create_user(
@@ -28,6 +41,7 @@ class WebappsTest(GraphQLTestCase):
         cls.WEBAPP = Webapp.objects.create(
             name="Test Webapp",
             slug="test-webapp",
+            subdomain="test-webapp",
             url="http://example.com",
             workspace=cls.WS1,
             created_by=cls.USER_ROOT,
@@ -145,6 +159,139 @@ class WebappsTest(GraphQLTestCase):
         self.assertEqual(
             "Updated Webapp", response["data"]["updateWebapp"]["webapp"]["name"]
         )
+
+    def test_update_webapp_subdomain(self):
+        self.client.force_login(self.USER_ROOT)
+
+        response = self.run_query(
+            self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
+            {"input": {"id": str(self.WEBAPP.id), "subdomain": "my-webapp"}},
+        )
+        self.assertTrue(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(
+            "my-webapp", response["data"]["updateWebapp"]["webapp"]["subdomain"]
+        )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, "my-webapp")
+
+    def test_update_webapp_subdomain_required(self):
+        self.client.force_login(self.USER_ROOT)
+        original_subdomain = self.WEBAPP.subdomain
+
+        response = self.run_query(
+            self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
+            {"input": {"id": str(self.WEBAPP.id), "subdomain": None}},
+        )
+        self.assertFalse(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(
+            response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_REQUIRED"]
+        )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
+
+        response = self.run_query(
+            self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
+            {"input": {"id": str(self.WEBAPP.id), "subdomain": ""}},
+        )
+        self.assertFalse(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(
+            response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_REQUIRED"]
+        )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
+
+    def test_update_webapp_subdomain_not_lowercase(self):
+        self.client.force_login(self.USER_ROOT)
+        original_subdomain = self.WEBAPP.subdomain
+        response = self.run_query(
+            self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
+            {"input": {"id": str(self.WEBAPP.id), "subdomain": "MyWebapp"}},
+        )
+        self.assertFalse(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(
+            response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_NOT_LOWERCASE"]
+        )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
+
+    def test_update_webapp_subdomain_too_short(self):
+        self.client.force_login(self.USER_ROOT)
+        original_subdomain = self.WEBAPP.subdomain
+        response = self.run_query(
+            self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
+            {"input": {"id": str(self.WEBAPP.id), "subdomain": "ab"}},
+        )
+        self.assertFalse(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(
+            response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_TOO_SHORT"]
+        )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
+
+    def test_update_webapp_subdomain_has_dots(self):
+        self.client.force_login(self.USER_ROOT)
+        original_subdomain = self.WEBAPP.subdomain
+        response = self.run_query(
+            self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
+            {"input": {"id": str(self.WEBAPP.id), "subdomain": "my.webapp"}},
+        )
+        self.assertFalse(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(
+            response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_HAS_DOTS"]
+        )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
+
+    def test_update_webapp_subdomain_reserved(self):
+        self.client.force_login(self.USER_ROOT)
+        original_subdomain = self.WEBAPP.subdomain
+        response = self.run_query(
+            self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
+            {"input": {"id": str(self.WEBAPP.id), "subdomain": "admin"}},
+        )
+        self.assertFalse(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(
+            response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_RESERVED"]
+        )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
+
+    def test_update_webapp_subdomain_invalid_format(self):
+        self.client.force_login(self.USER_ROOT)
+        original_subdomain = self.WEBAPP.subdomain
+        response = self.run_query(
+            self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
+            {"input": {"id": str(self.WEBAPP.id), "subdomain": "-invalid"}},
+        )
+        self.assertFalse(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(
+            response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_INVALID_FORMAT"]
+        )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
+
+    def test_update_webapp_subdomain_already_taken(self):
+        self.client.force_login(self.USER_ROOT)
+        original_subdomain = self.WEBAPP.subdomain
+        other_webapp = Webapp.objects.create(
+            name="Other Webapp",
+            slug="other-webapp",
+            url="http://other.com",
+            workspace=self.WS1,
+            created_by=self.USER_ROOT,
+            subdomain="taken",
+        )
+        response = self.run_query(
+            self.UPDATE_WEBAPP_SUBDOMAIN_MUTATION,
+            {"input": {"id": str(self.WEBAPP.id), "subdomain": "taken"}},
+        )
+        self.assertFalse(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(
+            response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_ALREADY_TAKEN"]
+        )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
+        other_webapp.delete()
 
     def test_delete_webapp(self):
         self.client.force_login(self.USER_ROOT)

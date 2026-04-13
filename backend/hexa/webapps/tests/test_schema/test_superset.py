@@ -402,6 +402,7 @@ class SupersetWebappGraphQLTest(GraphQLTestCase):
         iframe_webapp = Webapp.objects.create(
             name="Iframe App",
             slug="iframe-app",
+            subdomain="iframe-app",
             url="https://example.com",
             workspace=self.WORKSPACE,
             created_by=self.USER_ADMIN,

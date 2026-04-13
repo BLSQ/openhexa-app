@@ -86,7 +86,8 @@ class CreateStaticWebappTest(MCPTestCase):
         webapp = result["webapp"]
         self.assertEqual(webapp["name"], name)
         self.assertEqual(webapp["type"], "STATIC")
-        self.assertIn(f"/webapps/{webapp['id']}/", webapp["url"])
+        subdomain = Webapp.objects.get(pk=webapp["id"]).subdomain
+        self.assertEqual(webapp["url"], f"http://{subdomain}.webapps.localhost:8000/")
 
     def test_create_static_webapp_invalid_json(self):
         result = create_static_webapp(
@@ -159,7 +160,10 @@ class UpdateStaticWebappTest(MCPTestCase):
             files_json=json.dumps(new_files),
         )
         self.assertTrue(result["success"], result)
-        self.assertIn(f"/webapps/{webapp_id}/", result["webapp"]["url"])
+        subdomain = Webapp.objects.get(pk=webapp_id).subdomain
+        self.assertEqual(
+            result["webapp"]["url"], f"http://{subdomain}.webapps.localhost:8000/"
+        )
         client.commit_files.assert_called_once()
         self.assertEqual(client.commit_files.call_args[0][1], new_files)
 
