@@ -1,13 +1,21 @@
 import io
 from unittest.mock import patch
+from urllib.parse import parse_qs, unquote, urlparse
 
 from moto import mock_aws
 
 from hexa.core.test import TestCase
+from hexa.files.backends.base import BadRequest
 from hexa.files.backends.s3 import S3Storage
 
 REGION = "eu-central-1"
 BUCKET = "test-bucket"
+
+
+def _content_disposition(presigned_url: str) -> str:
+    """Return the decoded Content-Disposition header value embedded in a presigned URL."""
+    qs = parse_qs(urlparse(presigned_url).query)
+    return unquote(qs["response-content-disposition"][0])
 
 
 class S3StorageTest(TestCase):
@@ -42,6 +50,12 @@ class S3StorageTest(TestCase):
         self.storage.save_object(BUCKET, "file.txt", io.BytesIO(b"data"))
         self.storage.delete_bucket(BUCKET, force=True)
         self.assertFalse(self.storage.bucket_exists(BUCKET))
+
+    def test_delete_bucket_not_empty_raises(self):
+        self.storage.create_bucket(BUCKET)
+        self.storage.save_object(BUCKET, "file.txt", io.BytesIO(b"data"))
+        with self.assertRaises(BadRequest):
+            self.storage.delete_bucket(BUCKET, force=False)
 
     def test_save_and_read_object(self):
         self.storage.create_bucket(BUCKET)
@@ -79,6 +93,14 @@ class S3StorageTest(TestCase):
         obj = self.storage.get_bucket_object(BUCKET, "my-dir")
         self.assertEqual(obj.name, "my-dir")
         self.assertEqual(obj.type, "directory")
+
+    def test_get_bucket_object_directory_with_trailing_slash(self):
+        self.storage.create_bucket(BUCKET)
+        self.storage.create_bucket_folder(BUCKET, "my-dir")
+        obj = self.storage.get_bucket_object(BUCKET, "my-dir/")
+        self.assertEqual(obj.name, "my-dir")
+        self.assertEqual(obj.type, "directory")
+        self.assertEqual(obj.key, "my-dir/")
 
     def test_get_bucket_object_not_found(self):
         self.storage.create_bucket(BUCKET)
@@ -121,6 +143,25 @@ class S3StorageTest(TestCase):
         names = {o.name for o in items}
         self.assertIn("testAAA.txt", names)
         self.assertIn("testAAB.txt", names)
+
+    def test_list_bucket_objects_with_query(self):
+        self.storage.create_bucket(BUCKET)
+        self.storage.save_object(BUCKET, "report_2024.csv", io.BytesIO(b"a"))
+        self.storage.save_object(BUCKET, "summary_2024.csv", io.BytesIO(b"b"))
+        self.storage.save_object(BUCKET, "other.txt", io.BytesIO(b"c"))
+        items = self.storage.list_bucket_objects(BUCKET, query="2024").items
+        self.assertEqual(len(items), 2)
+        names = {o.name for o in items}
+        self.assertIn("report_2024.csv", names)
+        self.assertIn("summary_2024.csv", names)
+
+    def test_list_bucket_objects_query_case_insensitive(self):
+        self.storage.create_bucket(BUCKET)
+        self.storage.save_object(BUCKET, "Report.csv", io.BytesIO(b"a"))
+        self.storage.save_object(BUCKET, "other.txt", io.BytesIO(b"b"))
+        items = self.storage.list_bucket_objects(BUCKET, query="report").items
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].name, "Report.csv")
 
     def test_list_bucket_objects_hidden_files_ignored(self):
         self.storage.create_bucket(BUCKET)
@@ -172,6 +213,8 @@ class S3StorageTest(TestCase):
         self.storage.delete_object(BUCKET, "my-dir")
         items = self.storage.list_bucket_objects(BUCKET).items
         self.assertEqual(len(items), 0)
+        with self.assertRaises(self.storage.exceptions.NotFound):
+            self.storage.get_bucket_object(BUCKET, "my-dir")
 
     def test_delete_object_not_found(self):
         self.storage.create_bucket(BUCKET)
@@ -194,6 +237,33 @@ class S3StorageTest(TestCase):
             bucket_name=BUCKET, target_key="report.csv", force_attachment=True
         )
         self.assertIn("attachment", url)
+        self.assertIn("report.csv", url)
+
+    def test_generate_download_url_force_attachment_special_chars(self):
+        self.storage.create_bucket(BUCKET)
+        self.storage.save_object(BUCKET, "my report (2024).csv", io.BytesIO(b"a,b"))
+        url = self.storage.generate_download_url(
+            bucket_name=BUCKET,
+            target_key="my report (2024).csv",
+            force_attachment=True,
+        )
+        disposition = _content_disposition(url)
+        self.assertIn("attachment", disposition)
+        self.assertIn("my report (2024).csv", disposition)
+        self.assertNotIn("%20", disposition)
+
+    def test_generate_download_url_force_attachment_no_double_encoding(self):
+        # Regression test: quote() was previously applied to the filename before passing
+        # it to boto3, which double-encodes it. Browsers then display "my%20file.csv"
+        # instead of "my file.csv" as the suggested filename.
+        self.storage.create_bucket(BUCKET)
+        self.storage.save_object(BUCKET, "my file.csv", io.BytesIO(b"a"))
+        url = self.storage.generate_download_url(
+            bucket_name=BUCKET, target_key="my file.csv", force_attachment=True
+        )
+        disposition = _content_disposition(url)
+        self.assertIn("my file.csv", disposition)
+        self.assertNotIn("%20", disposition)
 
     def test_generate_upload_url(self):
         self.storage.create_bucket(BUCKET)
@@ -265,10 +335,33 @@ class S3StorageTest(TestCase):
             storage_with_role,
             "_assume_role_credentials",
             side_effect=Exception("STS unavailable"),
-        ):
+        ), patch("sentry_sdk.capture_exception") as mock_capture:
             config = storage_with_role.get_bucket_mount_config(BUCKET)
 
+        mock_capture.assert_called_once()
         self.assertEqual(
             config["WORKSPACE_STORAGE_ENGINE_S3_ACCESS_KEY_ID"], "fake-access-key"
         )
         self.assertNotIn("WORKSPACE_STORAGE_ENGINE_S3_SESSION_TOKEN", config)
+
+    def test_delete_bucket_not_found(self):
+        with self.assertRaises(self.storage.exceptions.NotFound):
+            self.storage.delete_bucket("nonexistent-bucket")
+
+    def test_generate_download_url_force_attachment_non_ascii_filename(self):
+        self.storage.create_bucket(BUCKET)
+        self.storage.save_object(BUCKET, "données.csv", io.BytesIO(b"a"))
+        url = self.storage.generate_download_url(
+            bucket_name=BUCKET, target_key="données.csv", force_attachment=True
+        )
+        disposition = _content_disposition(url)
+        self.assertIn("attachment", disposition)
+        self.assertIn("données.csv", disposition)
+
+    def test_load_bucket_sample_data(self):
+        self.storage.create_bucket(BUCKET)
+        self.storage.load_bucket_sample_data(BUCKET)
+        items = self.storage.list_bucket_objects(
+            BUCKET, ignore_hidden_files=False
+        ).items
+        self.assertGreater(len(items), 0)

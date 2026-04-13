@@ -5,10 +5,17 @@ from mimetypes import guess_type
 
 import boto3
 import sentry_sdk
+from botocore.client import BaseClient
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-from .base import ObjectsPage, Storage, StorageObject, load_bucket_sample_data_with
+from .base import (
+    BadRequest,
+    ObjectsPage,
+    Storage,
+    StorageObject,
+    load_bucket_sample_data_with,
+)
 
 LARGE_DIRECTORY_THRESHOLD = 500
 
@@ -69,7 +76,7 @@ class S3Storage(Storage):
         self._client = None
         self._public_client = None
 
-    def _build_client(self, endpoint_url: str | None = None):
+    def _build_client(self, endpoint_url: str | None = None) -> BaseClient:
         return boto3.client(
             "s3",
             aws_access_key_id=self._access_key_id,
@@ -107,10 +114,6 @@ class S3Storage(Storage):
             raise
 
     def create_bucket(self, bucket_name: str, *args, **kwargs) -> str:
-        if self.bucket_exists(bucket_name):
-            raise self.exceptions.AlreadyExists(
-                f"S3: Bucket {bucket_name} already exists!"
-            )
         try:
             # us-east-1 is the default region and rejects an explicit LocationConstraint
             if self.region == "us-east-1":
@@ -144,8 +147,11 @@ class S3Storage(Storage):
         try:
             self.client.delete_bucket(Bucket=bucket_name)
         except ClientError as e:
-            if e.response["Error"]["Code"] == "NoSuchBucket":
+            code = e.response["Error"]["Code"]
+            if code == "NoSuchBucket":
                 raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
+            if code == "BucketNotEmpty":
+                raise BadRequest(f"Bucket {bucket_name} is not empty")
             raise
 
     def save_object(
@@ -164,9 +170,7 @@ class S3Storage(Storage):
             type="directory",
         )
 
-    def get_bucket_object(
-        self, bucket_name: str, object_key: str
-    ) -> StorageObject | None:
+    def get_bucket_object(self, bucket_name: str, object_key: str) -> StorageObject:
         try:
             response = self.client.head_object(Bucket=bucket_name, Key=object_key)
             obj = {
@@ -196,13 +200,13 @@ class S3Storage(Storage):
 
     def list_bucket_objects(
         self,
-        bucket_name,
-        prefix=None,
-        match_glob=None,
+        bucket_name: str,
+        prefix: str | None = None,
+        match_glob: str | None = None,
         page: int = 1,
-        per_page=30,
-        query=None,
-        ignore_hidden_files=True,
+        per_page: int = 30,
+        query: str | None = None,
+        ignore_hidden_files: bool = True,
     ) -> ObjectsPage:
         max_items = (page * per_page) + 1
         start_offset = (page - 1) * per_page
@@ -212,9 +216,7 @@ class S3Storage(Storage):
 
         def is_match(name: str) -> bool:
             lower_name = name.lower()
-            if ignore_hidden_files and any(
-                part.startswith(".") for part in name.split("/")
-            ):
+            if ignore_hidden_files and name.startswith("."):
                 return False
             if query and query.lower() not in lower_name:
                 return False
@@ -231,19 +233,18 @@ class S3Storage(Storage):
         if match_glob:
             # Flat recursive listing for glob — client-side fnmatch filtering
             total_seen = 0
+            large_dir_reported = False
             for s3_page in paginator.paginate(**paginate_kwargs):
                 contents = s3_page.get("Contents", [])
                 total_seen += len(contents)
-                if total_seen > LARGE_DIRECTORY_THRESHOLD:
+                if total_seen > LARGE_DIRECTORY_THRESHOLD and not large_dir_reported:
+                    large_dir_reported = True
                     sentry_sdk.capture_message(
                         f"Large directory listing: bucket '{bucket_name}' returned {total_seen}+ items",
                         level="warning",
                     )
                 for obj in contents:
-                    if is_match(
-                        obj["Key"].split("/")[-1]
-                        or obj["Key"].rstrip("/").split("/")[-1]
-                    ):
+                    if is_match(obj["Key"].rstrip("/").split("/")[-1]):
                         objects.append(_s3_object_to_storage_obj(obj, bucket_name))
                 if len(objects) >= max_items:
                     break
@@ -275,28 +276,28 @@ class S3Storage(Storage):
     def delete_object(self, bucket_name: str, object_key: str) -> None:
         try:
             self.client.head_object(Bucket=bucket_name, Key=object_key)
-            self.client.delete_object(Bucket=bucket_name, Key=object_key)
-            return
         except ClientError as e:
             if e.response["Error"]["Code"] not in ("404", "NoSuchKey"):
                 raise
+        else:
+            self.client.delete_object(Bucket=bucket_name, Key=object_key)
+            return
 
         # Not found as a file — try as a directory prefix
         dir_prefix = object_key if object_key.endswith("/") else object_key + "/"
         paginator = self.client.get_paginator("list_objects_v2")
-        keys_to_delete = []
+        found_any = False
         for s3_page in paginator.paginate(Bucket=bucket_name, Prefix=dir_prefix):
-            for obj in s3_page.get("Contents", []):
-                keys_to_delete.append({"Key": obj["Key"]})
+            objects = [{"Key": obj["Key"]} for obj in s3_page.get("Contents", [])]
+            if objects:
+                found_any = True
+                self.client.delete_objects(
+                    Bucket=bucket_name,
+                    Delete={"Objects": objects},
+                )
 
-        if not keys_to_delete:
+        if not found_any:
             raise self.exceptions.NotFound(f"Object {object_key} not found")
-
-        for i in range(0, len(keys_to_delete), 1000):
-            self.client.delete_objects(
-                Bucket=bucket_name,
-                Delete={"Objects": keys_to_delete[i : i + 1000]},
-            )
 
     def generate_download_url(
         self, *, bucket_name: str, target_key: str, force_attachment=False, **kwargs
@@ -304,7 +305,8 @@ class S3Storage(Storage):
         params = {"Bucket": bucket_name, "Key": target_key}
         if force_attachment:
             filename = target_key.split("/")[-1]
-            params["ResponseContentDisposition"] = f"attachment; filename={filename}"
+            escaped = filename.replace("\\", "\\\\").replace('"', '\\"')
+            params["ResponseContentDisposition"] = f'attachment; filename="{escaped}"'
         return self.public_client.generate_presigned_url(
             "get_object",
             Params=params,
@@ -313,20 +315,21 @@ class S3Storage(Storage):
 
     def generate_upload_url(
         self,
-        *,
         bucket_name: str,
         target_key: str,
         content_type: str | None = None,
         raise_if_exists: bool = False,
+        *args,
         **kwargs,
     ) -> tuple[str, dict | None]:
         if raise_if_exists:
             try:
                 self.client.head_object(Bucket=bucket_name, Key=target_key)
-                raise self.exceptions.AlreadyExists(target_key)
             except ClientError as e:
                 if e.response["Error"]["Code"] not in ("404", "NoSuchKey"):
                     raise
+            else:
+                raise self.exceptions.AlreadyExists(target_key)
 
         params = {"Bucket": bucket_name, "Key": target_key}
         if content_type:
@@ -348,7 +351,7 @@ class S3Storage(Storage):
                 raise self.exceptions.NotFound(f"Object {file_path} not found")
             raise
 
-    def load_bucket_sample_data(self, bucket_name: str):
+    def load_bucket_sample_data(self, bucket_name: str) -> None:
         load_bucket_sample_data_with(bucket_name, self)
 
     def _assume_role_credentials(self, bucket_name: str) -> dict:
@@ -406,7 +409,7 @@ class S3Storage(Storage):
                     "WORKSPACE_STORAGE_ENGINE_S3_SESSION_TOKEN": creds["SessionToken"],
                 }
             except Exception:
-                pass  # fall through to static credentials
+                sentry_sdk.capture_exception()  # fall through to static credentials
 
         return {
             **base,
