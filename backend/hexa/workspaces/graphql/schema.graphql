@@ -26,6 +26,9 @@ type Workspace {
     # The organization that owns the workspace.
     organization: Organization
 
+    # Whether the webapps feature is enabled on this instance.
+    webappsEnabled: Boolean!
+
     # The date and time when the workspace was created.
     createdAt: DateTime!
 

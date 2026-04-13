@@ -1,6 +1,7 @@
 import os
 import secrets
 
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.validators import URLValidator, validate_slug
@@ -19,6 +20,7 @@ from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
 from hexa.user_management.models import User
+from hexa.webapps.validators import validate_subdomain
 from hexa.workspaces.models import Workspace
 
 
@@ -30,6 +32,20 @@ def create_webapp_slug(name: str, workspace: Workspace):
         if not Webapp.all_objects.filter(workspace=workspace, slug=slug).exists():
             return slug
         suffix = "-" + secrets.token_hex(3)
+
+
+def create_webapp_subdomain(slug: str, workspace: Workspace, max_tries=10):
+    candidates = [slug, f"{workspace.slug}-{slug}"]
+    for candidate in candidates:
+        if not Webapp.all_objects.filter(subdomain=candidate).exists():
+            return candidate
+    for _ in range(max_tries):
+        candidate = f"{workspace.slug}-{slug}-{secrets.token_hex(3)}"
+        if not Webapp.all_objects.filter(subdomain=candidate).exists():
+            return candidate
+    raise ValueError(
+        f"Could not generate a unique subdomain after {max_tries} attempts"
+    )
 
 
 class WebappQuerySet(BaseQuerySet, SoftDeleteQuerySet):
@@ -57,9 +73,7 @@ class WebappManager(
     BaseManager, DefaultSoftDeletedManager.from_queryset(WebappQuerySet)
 ):
     def create_if_has_perm(self, principal, ws, **kwargs):
-        if not principal.has_perm(
-            f"{self.model._meta.app_label}.create_{self.model._meta.model_name}", ws
-        ):
+        if not principal.has_perm("webapps.create_webapp", ws):
             raise PermissionDenied
 
         if kwargs.get("url"):
@@ -67,6 +81,9 @@ class WebappManager(
 
         if "slug" not in kwargs:
             kwargs["slug"] = create_webapp_slug(kwargs["name"], ws)
+
+        if "subdomain" not in kwargs:
+            kwargs["subdomain"] = create_webapp_subdomain(kwargs["slug"], ws)
 
         kwargs["workspace"] = ws
         return super(BaseManager, self).create(**kwargs)
@@ -111,17 +128,27 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         Workspace, on_delete=models.CASCADE, related_name="webapps"
     )
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    # The external url for IFrame embedding, or the internal url for Superset Dashboards
     url = models.URLField(blank=True, default="")
     type = models.CharField(
         max_length=20, choices=WebappType.choices, default=WebappType.IFRAME
     )
     is_public = models.BooleanField(default=False)
     show_powered_by = models.BooleanField(default=True)
+    subdomain = models.CharField(
+        max_length=63,
+        unique=True,
+        validators=[validate_subdomain],
+    )
     favorites = models.ManyToManyField(
         User, related_name="favorite_webapps", blank=True
     )
     objects = WebappManager()
     all_objects = AllWebappManager()
+
+    @property
+    def serve_url(self):
+        return f"{settings.SCHEME}://{self.subdomain}.{settings.WEBAPPS_DOMAIN}/"
 
     def is_favorite(self, user: User):
         return self.favorites.filter(pk=user.pk).exists()
@@ -149,10 +176,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
     def to_shortcut_item(self):
         """Convert this webapp to a shortcut item dict for GraphQL"""
-        return {
-            "label": self.name,
-            "url": f"/workspaces/{self.workspace.slug}/webapps/{self.slug}/play",
-        }
+        return {"label": self.name, "url": self.serve_url}
 
     def __str__(self):
         return self.name
@@ -273,22 +297,18 @@ class GitWebapp(Webapp, GitRepoMixin):
         is_public=False,
         files=None,
     ):
-        if not principal.has_perm("webapps.create_webapp", workspace):
-            raise PermissionDenied
-
-        webapp_slug = create_webapp_slug(name, workspace)
         with transaction.atomic():
-            webapp = cls.objects.create(
-                workspace=workspace,
+            webapp = cls.objects.create_if_has_perm(
+                principal,
+                workspace,
                 type=webapp_type,
-                slug=webapp_slug,
                 name=name,
                 description=description,
                 icon=icon,
                 is_public=is_public,
                 created_by=created_by,
-                repository=f"{workspace.slug}-webapp-{webapp_slug}",
             )
+            webapp.repository = f"{workspace.slug}-webapp-{webapp.slug}"
 
             initial_sha = webapp.create_repo(files=files, user=principal)
             webapp.published_commit = initial_sha
@@ -318,9 +338,6 @@ class SupersetWebapp(Webapp):
         icon=None,
         is_public=False,
     ):
-        if not principal.has_perm("webapps.create_webapp", workspace):
-            raise PermissionDenied
-
         with transaction.atomic():
             dashboard = SupersetDashboard.objects.create(
                 external_id=external_dashboard_id,
@@ -329,12 +346,12 @@ class SupersetWebapp(Webapp):
                 description=description,
             )
 
-            return cls.objects.create(
+            return cls.objects.create_if_has_perm(
+                principal,
+                workspace,
                 superset_dashboard=dashboard,
-                workspace=workspace,
                 url=dashboard.get_absolute_url(),
                 type=Webapp.WebappType.SUPERSET,
-                slug=create_webapp_slug(name, workspace),
                 name=name,
                 description=description,
                 icon=icon,

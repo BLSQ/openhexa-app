@@ -9,6 +9,7 @@ query SupersetInstances($workspaceSlug: String!) {
 fragment WebappPlay_webapp on Webapp {
   slug
   url
+  serveUrl
   name
   type
   showPoweredBy

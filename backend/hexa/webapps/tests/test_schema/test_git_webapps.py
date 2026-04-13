@@ -1,4 +1,7 @@
 from unittest.mock import MagicMock, patch
+from urllib.parse import parse_qs, urlparse
+
+from django.core.signing import TimestampSigner
 
 from hexa.core.test import GraphQLTestCase
 from hexa.git.forgejo import ForgejoAPIError
@@ -49,6 +52,7 @@ WEBAPP_QUERY = """
             name
             type
             url
+            previewUrl
             source {
                 ... on GitSource {
                     repository
@@ -216,8 +220,8 @@ class GitWebappCreateTest(GraphQLTestCase):
 
         result = response["data"]["createWebapp"]
         self.assertTrue(result["success"])
-        webapp_id = result["webapp"]["id"]
-        self.assertIn(f"/webapps/{webapp_id}/", result["webapp"]["url"])
+        webapp = Webapp.objects.get(pk=result["webapp"]["id"])
+        self.assertEqual(result["webapp"]["url"], webapp.serve_url)
 
 
 class GitWebappUpdateFilesTest(GraphQLTestCase):
@@ -240,6 +244,7 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
             workspace=cls.WS,
             name="Commit Test App",
             slug="commit-test-app",
+            subdomain="commit-test-app",
             type=Webapp.WebappType.STATIC,
             created_by=cls.USER,
             repository="webapp-commitrepo",
@@ -368,6 +373,7 @@ class GitWebappPublishVersionTest(GraphQLTestCase):
             workspace=cls.WS,
             name="Publish Test App",
             slug="publish-test-app",
+            subdomain="publish-test-app",
             type=Webapp.WebappType.STATIC,
             created_by=cls.USER,
             repository="webapp-publishrepo",
@@ -507,6 +513,7 @@ class GitWebappQueryTest(GraphQLTestCase):
             workspace=cls.WS,
             name="Query Test App",
             slug="query-test-app",
+            subdomain="query-test-app",
             type=Webapp.WebappType.STATIC,
             created_by=cls.USER,
             repository="webapp-queryrepo",
@@ -533,7 +540,7 @@ class GitWebappQueryTest(GraphQLTestCase):
         self.assertIsNotNone(webapp)
         self.assertEqual(webapp["name"], "Query Test App")
         self.assertEqual(webapp["type"], "STATIC")
-        self.assertIn(f"/webapps/{self.GIT_WEBAPP.id}/", webapp["url"])
+        self.assertEqual(webapp["url"], self.GIT_WEBAPP.serve_url)
         self.assertEqual(webapp["source"]["repository"], "webapp-queryrepo")
         self.assertEqual(webapp["source"]["publishedVersion"], "published-sha")
 
@@ -649,6 +656,7 @@ class GitWebappQueryTest(GraphQLTestCase):
             workspace=self.WS,
             name="Iframe App",
             slug="iframe-app",
+            subdomain="iframe-app",
             type=Webapp.WebappType.IFRAME,
             created_by=self.USER,
             url="https://example.com",
@@ -666,6 +674,62 @@ class GitWebappQueryTest(GraphQLTestCase):
         webapp = response["data"]["webapp"]
         self.assertIsNone(webapp["versions"])
         self.assertIsNone(webapp["files"])
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_preview_url_contains_auth_token(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_commits.return_value = []
+        mock_client.get_repository_files.return_value = []
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            WEBAPP_QUERY,
+            {
+                "workspaceSlug": self.WS.slug,
+                "slug": "query-test-app",
+            },
+        )
+
+        webapp = response["data"]["webapp"]
+        preview_url = webapp["previewUrl"]
+        parsed = urlparse(preview_url)
+        self.assertTrue(
+            preview_url.startswith(self.GIT_WEBAPP.serve_url),
+            f"previewUrl should start with serve_url, got {preview_url}",
+        )
+
+        query_params = parse_qs(parsed.query)
+        self.assertIn("auth_token", query_params)
+
+        signer = TimestampSigner()
+        payload = signer.unsign_object(query_params["auth_token"][0])
+        self.assertEqual(payload["user_id"], str(self.USER.pk))
+        self.assertEqual(payload["subdomain"], self.GIT_WEBAPP.subdomain)
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_preview_url_unauthenticated_returns_serve_url(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_commits.return_value = []
+        mock_client.get_repository_files.return_value = []
+        mock_get_client.return_value = mock_client
+
+        self.GIT_WEBAPP.is_public = True
+        self.GIT_WEBAPP.save()
+
+        response = self.run_query(
+            WEBAPP_QUERY,
+            {
+                "workspaceSlug": self.WS.slug,
+                "slug": "query-test-app",
+            },
+        )
+
+        webapp = response["data"]["webapp"]
+        self.assertEqual(webapp["previewUrl"], self.GIT_WEBAPP.serve_url)
+
+        self.GIT_WEBAPP.is_public = False
+        self.GIT_WEBAPP.save()
 
 
 class GitWebappDeleteTest(GraphQLTestCase):
@@ -703,6 +767,7 @@ class GitWebappDeleteTest(GraphQLTestCase):
             workspace=self.WS,
             name="To Delete",
             slug="to-delete",
+            subdomain="to-delete",
             type=Webapp.WebappType.STATIC,
             created_by=self.USER,
             repository="webapp-todelete",

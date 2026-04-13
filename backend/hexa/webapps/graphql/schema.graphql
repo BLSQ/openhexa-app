@@ -56,6 +56,9 @@ type Webapp {
   name: String!
   description: String
   url: String!
+  serveUrl: String!
+  previewUrl: String!
+  subdomain: String!
   type: WebappType!
   icon: String
   workspace: Workspace!
@@ -130,6 +133,7 @@ type CreateWebappResult {
 Represents the error message for a web app creation.
 """
 enum CreateWebappError {
+  WEBAPPS_NOT_CONFIGURED
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
   ALREADY_EXISTS
@@ -145,6 +149,7 @@ input UpdateWebappInput {
   id: UUID!
   name: String
   description: String
+  subdomain: String
   icon: String
   isPublic: Boolean
   source: UpdateWebappSourceInput
@@ -173,6 +178,7 @@ type UpdateWebappResult {
 Represents the error message for a web app update.
 """
 enum UpdateWebappError {
+  WEBAPPS_NOT_CONFIGURED
   WEBAPP_NOT_FOUND
   PERMISSION_DENIED
   SUPERSET_INSTANCE_NOT_FOUND
@@ -181,6 +187,13 @@ enum UpdateWebappError {
   INVALID_URL
   SAVE_FAILED
   VERSION_NOT_FOUND
+  SUBDOMAIN_NOT_LOWERCASE
+  SUBDOMAIN_TOO_SHORT
+  SUBDOMAIN_HAS_DOTS
+  SUBDOMAIN_RESERVED
+  SUBDOMAIN_INVALID_FORMAT
+  SUBDOMAIN_ALREADY_TAKEN
+  SUBDOMAIN_REQUIRED
 }
 
 """
@@ -201,6 +214,7 @@ type DeleteWebappResult {
 Represents the error message for a web app deletion.
 """
 enum DeleteWebappError {
+  WEBAPPS_NOT_CONFIGURED
   WEBAPP_NOT_FOUND
   PERMISSION_DENIED
 }

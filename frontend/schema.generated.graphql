@@ -1148,6 +1148,7 @@ enum CreateWebappError {
   PERMISSION_DENIED
   SUPERSET_INSTANCE_NOT_FOUND
   SUPERSET_NOT_CONFIGURED
+  WEBAPPS_NOT_CONFIGURED
   WORKSPACE_NOT_FOUND
 }
 
@@ -2053,6 +2054,7 @@ type DeleteTemplateVersionResult {
 """Represents the error message for a web app deletion."""
 enum DeleteWebappError {
   PERMISSION_DENIED
+  WEBAPPS_NOT_CONFIGURED
   WEBAPP_NOT_FOUND
 }
 
@@ -5178,10 +5180,18 @@ enum UpdateWebappError {
   INVALID_URL
   PERMISSION_DENIED
   SAVE_FAILED
+  SUBDOMAIN_ALREADY_TAKEN
+  SUBDOMAIN_HAS_DOTS
+  SUBDOMAIN_INVALID_FORMAT
+  SUBDOMAIN_NOT_LOWERCASE
+  SUBDOMAIN_REQUIRED
+  SUBDOMAIN_RESERVED
+  SUBDOMAIN_TOO_SHORT
   SUPERSET_INSTANCE_NOT_FOUND
   SUPERSET_NOT_CONFIGURED
   TYPE_MISMATCH
   VERSION_NOT_FOUND
+  WEBAPPS_NOT_CONFIGURED
   WEBAPP_NOT_FOUND
 }
 
@@ -5195,6 +5205,7 @@ input UpdateWebappInput {
   name: String
   publishedVersionId: String
   source: UpdateWebappSourceInput
+  subdomain: String
 }
 
 """Represents the result of updating a web app."""
@@ -5393,9 +5404,12 @@ type Webapp {
   isShortcut: Boolean!
   name: String!
   permissions: WebappPermissions!
+  previewUrl: String!
+  serveUrl: String!
   showPoweredBy: Boolean!
   slug: String!
   source: WebappSource!
+  subdomain: String!
   type: WebappType!
   url: String!
   versions(page: Int, perPage: Int): WebappVersionsPage
@@ -5482,6 +5496,7 @@ type Workspace {
   shortcuts: [ShortcutItem!]!
   slug: String!
   updatedAt: DateTime
+  webappsEnabled: Boolean!
 }
 
 """Represents an invitation to join a workspace."""

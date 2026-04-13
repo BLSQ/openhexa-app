@@ -48,6 +48,7 @@ describe("PipelineLayout", () => {
     slug: "test",
     name: "Test",
     shortcuts: [],
+    webappsEnabled: true,
     permissions: {
       manageMembers: true,
       update: true,

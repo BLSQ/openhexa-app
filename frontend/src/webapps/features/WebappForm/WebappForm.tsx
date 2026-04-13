@@ -16,6 +16,7 @@ import DataCard from "core/components/DataCard";
 import TextProperty from "core/components/DataCard/TextProperty";
 import SimpleSelectProperty from "core/components/DataCard/SimpleSelectProperty";
 import LinkProperty from "core/components/DataCard/LinkProperty";
+import SubdomainProperty from "core/components/DataCard/SubdomainProperty";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import useCacheKey from "core/hooks/useCacheKey";
 import ImageProperty from "core/components/DataCard/ImageProperty";
@@ -96,6 +97,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             name: values.name,
             icon: values.icon,
             isPublic: values.isPublic,
+            subdomain: values.subdomain || null,
             ...(webapp!.type !== WebappType.Static && {
               source: buildSource[webapp!.type](values),
             }),
@@ -116,6 +118,22 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           toast.error(t("Cannot change the type of an existing web app"));
         } else if (error === UpdateWebappError.InvalidUrl) {
           toast.error(t("Invalid URL. Only http and https URLs are allowed"));
+        } else if (error === UpdateWebappError.SubdomainNotLowercase) {
+          toast.error(t("Subdomain must be lowercase"));
+        } else if (error === UpdateWebappError.SubdomainTooShort) {
+          toast.error(t("Subdomain must be at least 3 characters"));
+        } else if (error === UpdateWebappError.SubdomainHasDots) {
+          toast.error(t("Subdomain must be a single label (no dots)"));
+        } else if (error === UpdateWebappError.SubdomainReserved) {
+          toast.error(t("This subdomain is reserved"));
+        } else if (error === UpdateWebappError.SubdomainInvalidFormat) {
+          toast.error(
+            t(
+              "Subdomain must be alphanumeric with hyphens, no leading/trailing hyphens, and 63 characters or fewer",
+            ),
+          );
+        } else if (error === UpdateWebappError.SubdomainAlreadyTaken) {
+          toast.error(t("This subdomain is already taken"));
         }
         return;
       }
@@ -232,7 +250,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         <TextProperty
           id="url"
           accessor="url"
-          label={t("URL")}
+          label={t("Source URL")}
           visible={selectedType === WebappType.Iframe}
           required={selectedType === WebappType.Iframe}
           onChange={(e) => setUrl(e.target.value)}
@@ -257,7 +275,19 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           required={selectedType === WebappType.Superset}
         />
         {webapp && selectedType === WebappType.Superset && (
-          <LinkProperty id="supersetUrl" accessor="url" label={t("URL")} />
+          <LinkProperty id="supersetUrl" accessor="url" label={t("Dashboard URL")} />
+        )}
+        {webapp && (
+          <SubdomainProperty
+            id="subdomain"
+            accessor="subdomain"
+            label={t("Published URL")}
+            help={t(
+              "The URL where this web app can be accessed",
+            )}
+            currentSubdomain={webapp.subdomain}
+            serveUrl={webapp.serveUrl}
+          />
         )}
         <SwitchProperty
           id="isPublic"
@@ -277,12 +307,13 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         </DataCard.Section>
       )}
       {(debouncedUrl || webapp?.url) && !loading && (
-        <DataCard.Section
-          title={t("Preview")}
-          collapsible={false}
-        >
+        <DataCard.Section title={t("Preview")} collapsible={false}>
           <WebappIframe
-            url={debouncedUrl || webapp?.url || ""}
+            url={
+              webapp?.previewUrl && selectedType === WebappType.Static
+                ? webapp.previewUrl
+                : debouncedUrl || webapp?.url || ""
+            }
             type={selectedType}
             style={{ height: "65vh" }}
           />
@@ -300,9 +331,12 @@ WebappForm.fragment = {
       name
       description
       url
+      previewUrl
       type
       icon
       isPublic
+      subdomain
+      serveUrl
       source {
         ... on SupersetSource {
           instance {
