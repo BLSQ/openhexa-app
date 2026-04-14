@@ -140,7 +140,7 @@ class DummyStorageClient(Storage):
         per_page=30,
         query=None,
         ignore_hidden_files=True,
-    ):
+    ) -> ObjectsPage:
         # Mock listing objects in a bucket
         if bucket_name not in self._buckets:
             raise self.exceptions.NotFound(f"Bucket '{bucket_name}' not found.")

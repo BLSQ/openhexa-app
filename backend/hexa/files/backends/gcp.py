@@ -17,18 +17,18 @@ from google.protobuf import duration_pb2
 from .base import ObjectsPage, Storage, StorageObject, load_bucket_sample_data_with
 
 
-def get_credentials(service_account_key):
+def get_credentials(service_account_key: str):
     decoded_creds = base64.b64decode(service_account_key)
     json_creds = json.loads(decoded_creds, strict=False)
     return service_account.Credentials.from_service_account_info(json_creds)
 
 
-def get_storage_client(service_account_key):
+def get_storage_client(service_account_key: str):
     credentials = get_credentials(service_account_key)
     return storage.Client(credentials=credentials)
 
 
-def _is_dir(blob):
+def _is_dir(blob: Blob):
     return blob.size == 0 and blob.name.endswith("/")
 
 
@@ -100,7 +100,7 @@ class GoogleCloudStorage(Storage):
         self.enable_versioning = enable_versioning
 
     @property
-    def client(self):
+    def client(self) -> storage.Client:
         if self._client is None:
             self._client = get_storage_client(self._service_account_key)
         return self._client
@@ -196,7 +196,7 @@ class GoogleCloudStorage(Storage):
         blob = gcs_bucket.get_blob(target_key)
 
         if blob is None:
-            return None
+            raise self.exceptions.NotFound(f"Object {target_key} not found")
 
         filename = blob.name.split("/")[-1]
 
@@ -227,7 +227,10 @@ class GoogleCloudStorage(Storage):
 
     def read_object(self, bucket_name: str, file_path: str) -> bytes:
         blob = self.client.bucket(bucket_name).blob(file_path)
-        return blob.download_as_bytes()
+        try:
+            return blob.download_as_bytes()
+        except NotFound:
+            raise self.exceptions.NotFound(f"Object {file_path} not found")
 
     def get_bucket_object(self, bucket_name: str, object_key: str):
         bucket = self.client.get_bucket(bucket_name)
@@ -246,7 +249,7 @@ class GoogleCloudStorage(Storage):
         per_page=30,
         query=None,
         ignore_hidden_files=True,
-    ):
+    ) -> ObjectsPage:
         """Returns the list of objects in a bucket with pagination support.
         Objects starting with a dot can be ignored using `ignore_hidden_files`.
 
@@ -369,7 +372,10 @@ class GoogleCloudStorage(Storage):
         return payload["access_token"], payload["expires_in"]
 
     def delete_bucket(self, bucket_name: str, force: bool = False):
-        return self.client.delete_bucket(bucket_name)
+        try:
+            return self.client.delete_bucket(bucket_name)
+        except NotFound:
+            raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
 
     def delete_object(self, bucket_name: str, file_name: str):
         bucket = self.client.get_bucket(bucket_name)

@@ -9,9 +9,10 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from hexa.core.test import TestCase
 from hexa.files.backends.fs import FileSystemStorage
+from hexa.files.tests.backends.base import StorageTestMixin
 
 
-class FileSystemStorageTest(TestCase):
+class FileSystemStorageTest(StorageTestMixin, TestCase):
     storage = None
 
     def setUp(self):
@@ -24,12 +25,6 @@ class FileSystemStorageTest(TestCase):
     def tearDown(self) -> None:
         super().tearDown()
         shutil.rmtree(self.data_directory)
-
-    def test_create_bucket(self):
-        self.storage.create_bucket("test")
-        self.assertTrue(self.storage.exists("test"))
-        self.assertTrue(os.path.lexists(self.storage.path("test")))
-        self.assertEqual(self.storage.path("test"), self.data_directory / "test")
 
     def test_suspicious_create_bucket(self):
         for path in ["../test", "/test", "../../test", "dir/subdir"]:
@@ -49,7 +44,7 @@ class FileSystemStorageTest(TestCase):
         with self.assertRaises(self.storage.exceptions.SuspiciousFileOperation):
             self.storage.path("../my-dir/my-subdir/my-file.png")
 
-    def test_create_bucket_folder(self):
+    def test_create_bucket_folder_suspicious_path(self):
         self.storage.create_bucket("my-bucket")
         self.storage.create_bucket("my-second-bucket")
         self.storage.create_bucket_folder("my-bucket", "my-dir")
@@ -76,16 +71,6 @@ class FileSystemStorageTest(TestCase):
         dir_obj = self.storage.create_bucket_folder("default-bucket", "éà_?_d 1")
         self.assertEqual(dir_obj.name, "éà__d_1")
 
-    def test_save_object(self):
-        self.storage.create_bucket("default-bucket")
-        self.storage.save_object("default-bucket", "file.txt", b"Hello, world!")
-
-        self.assertTrue((self.data_directory / "default-bucket/file.txt").exists())
-        self.assertEqual(
-            open(self.data_directory / "default-bucket/file.txt").read(),
-            "Hello, world!",
-        )
-
     def test_deep_save_object(self):
         self.storage.create_bucket("default-bucket")
         self.storage.save_object(
@@ -100,58 +85,6 @@ class FileSystemStorageTest(TestCase):
             (self.data_directory / "default-bucket/dir1/file2.txt").exists()
         )
 
-    def test_overwrite_object(self):
-        self.storage.create_bucket("default-bucket")
-        self.storage.save_object("default-bucket", "file.txt", b"Hello, world!")
-
-        self.assertTrue((self.data_directory / "default-bucket/file.txt").exists())
-        self.assertEqual(
-            open(self.data_directory / "default-bucket/file.txt").read(),
-            "Hello, world!",
-        )
-
-        # Overwrite the file
-        self.storage.save_object("default-bucket", "file.txt", b"OVERWRITTEN")
-        self.assertEqual(
-            open(self.data_directory / "default-bucket/file.txt").read(),
-            "OVERWRITTEN",
-        )
-
-    def test_list_bucket_objects(self):
-        self.storage.create_bucket("default-bucket")
-        for i in range(100):
-            self.storage.save_object(
-                "default-bucket", f"file-{i}.txt", b"Hello, world!"
-            )
-        res = self.storage.list_bucket_objects("default-bucket", page=1, per_page=5)
-        self.assertEqual(len(res.items), 5)
-        self.assertEqual(res.has_next_page, True)
-        self.assertEqual(res.has_previous_page, False)
-        self.assertEqual(res.page_number, 1)
-
-        first_item = res.items[0]
-        self.assertEqual(first_item.type, "file")
-        self.assertEqual(first_item.size, 13)
-        self.assertEqual(first_item.content_type, "text/plain")
-        res = self.storage.list_bucket_objects("default-bucket", page=2, per_page=100)
-        self.assertEqual(len(res.items), 0)
-        self.assertEqual(res.has_next_page, False)
-        self.assertEqual(res.has_previous_page, True)
-
-    def test_list_bucket_objects_with_query(self):
-        self.storage.create_bucket("default-bucket")
-        for i in range(100):
-            self.storage.save_object(
-                "default-bucket", f"file-{i}.txt", b"Hello, world!"
-            )
-        self.storage.save_object("default-bucket", "found.txt", b"Hello, world!")
-
-        res_found = self.storage.list_bucket_objects(
-            "default-bucket", query="found", per_page=100
-        )
-
-        self.assertEqual(len(res_found.items), 1)
-        self.assertEqual(res_found.items[0].name, "found.txt")
 
     def test_list_bucket_objects_with_prefix_and_query(self):
         self.storage.create_bucket("default-bucket")
@@ -260,9 +193,7 @@ class FileSystemStorageTest(TestCase):
     def test_delete_bucket(self):
         self.storage.create_bucket("default-bucket")
         self.assertTrue((self.data_directory / "default-bucket").exists())
-        self.storage.delete_bucket(
-            "default-bucket",
-        )
+        self.storage.delete_bucket("default-bucket")
         self.assertFalse(self.storage.exists("default-bucket"))
 
     def test_delete_bucket_not_empty(self):

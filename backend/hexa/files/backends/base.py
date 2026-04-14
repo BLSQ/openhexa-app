@@ -19,7 +19,7 @@ class ObjectsPage:
     page_number: int
 
 
-def load_bucket_sample_data_with(bucket_name: str, client_storage):
+def load_bucket_sample_data_with(bucket_name: str, client_storage: 'Storage'):
     """
     Init bucket with default content
     """
@@ -106,7 +106,7 @@ class Storage(ABC):
         per_page=30,
         query=None,
         ignore_hidden_files=True,
-    ):
+    ) -> ObjectsPage:
         pass
 
     @abstractmethod

@@ -223,7 +223,7 @@ class FileSystemStorage(Storage):
         per_page=30,
         query: str = None,
         ignore_hidden_files=True,
-    ):
+    ) -> ObjectsPage:
         if prefix is None:
             prefix = ""
         full_path = self.path(bucket_name, prefix)
