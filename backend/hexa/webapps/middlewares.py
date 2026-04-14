@@ -65,19 +65,6 @@ def _build_auth_token_url(request, webapp):
     return f"{settings.BASE_URL}/webapps/{webapp.pk}/auth-token/?{urlencode({'next': current_url})}"
 
 
-def _set_webapp_session_cookie(response, session_key, request_host):
-    response.set_cookie(
-        WEBAPP_SESSION_COOKIE,
-        session_key,
-        max_age=WEBAPP_SESSION_MAX_AGE,
-        httponly=True,
-        secure=getattr(settings, "SESSION_COOKIE_SECURE", False),
-        # Lax so the cookie is sent on the cross-domain redirect from the main app
-        samesite="Lax",
-        domain=request_host,
-    )
-
-
 def _validate_auth_token(request, webapp):
     """Validate the auth_token and return the authenticated user, or an error response."""
     token = request.GET.get("auth_token")
@@ -180,10 +167,13 @@ def webapp_subdomain_middleware(get_response):
                 if query:
                     clean_path = f"{clean_path}?{query.urlencode()}"
                 redirect_response = HttpResponseRedirect(clean_path)
-                _set_webapp_session_cookie(
-                    redirect_response,
+                redirect_response.set_cookie(
+                    WEBAPP_SESSION_COOKIE,
                     session.session_key,
-                    request.get_host().split(":")[0],
+                    max_age=WEBAPP_SESSION_MAX_AGE,
+                    httponly=True,
+                    secure=True,
+                    samesite="None",
                 )
                 return redirect_response
             elif not _check_webapp_session(request, webapp):
