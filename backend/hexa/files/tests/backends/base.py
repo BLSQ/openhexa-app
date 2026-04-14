@@ -107,7 +107,9 @@ class StorageTestMixin:
         self.storage.create_bucket(BUCKET)
         self.storage.save_object(BUCKET, ".hidden.txt", io.BytesIO(b"h"))
         self.storage.save_object(BUCKET, "visible.txt", io.BytesIO(b"v"))
-        items = self.storage.list_bucket_objects(BUCKET, ignore_hidden_files=False).items
+        items = self.storage.list_bucket_objects(
+            BUCKET, ignore_hidden_files=False
+        ).items
         self.assertEqual(len(items), 2)
 
     def test_list_bucket_objects_pagination(self):
@@ -151,5 +153,7 @@ class StorageTestMixin:
     def test_load_bucket_sample_data(self):
         self.storage.create_bucket(BUCKET)
         self.storage.load_bucket_sample_data(BUCKET)
-        items = self.storage.list_bucket_objects(BUCKET, ignore_hidden_files=False).items
+        items = self.storage.list_bucket_objects(
+            BUCKET, ignore_hidden_files=False
+        ).items
         self.assertGreater(len(items), 0)

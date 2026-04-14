@@ -85,7 +85,6 @@ class FileSystemStorageTest(StorageTestMixin, TestCase):
             (self.data_directory / "default-bucket/dir1/file2.txt").exists()
         )
 
-
     def test_list_bucket_objects_with_prefix_and_query(self):
         self.storage.create_bucket("default-bucket")
         self.storage.save_object("default-bucket", "prefix/found.txt", b"Hello, world!")
