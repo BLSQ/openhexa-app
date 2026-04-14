@@ -5,14 +5,14 @@ import UserColumn from "core/components/DataGrid/UserColumn";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
 import Time from "core/components/Time";
-import Tooltip from "core/components/Tooltip";
 import { createGetServerSideProps } from "core/helpers/page";
 import { formatDuration } from "core/helpers/time";
 import { NextPageWithLayout } from "core/helpers/types";
 import { PipelineParameter, PipelineRunTrigger, PipelineType } from "graphql/types";
-import isNil from "lodash/isNil";
 import { useTranslation } from "next-i18next";
 import router from "next/router";
+import { useState } from "react";
+import { formatParamValue } from "pipelines/helpers/format";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import {
   useWorkspacePipelineRunsPageQuery,
@@ -20,48 +20,60 @@ import {
   WorkspacePipelineRunsPageQuery,
   WorkspacePipelineRunsPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
-import { getPipelineRunConfig, isConnectionParameter } from "workspaces/helpers/pipelines";
+import { getPipelineRunConfig } from "workspaces/helpers/pipelines";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
 
-function formatParamValue(entry: PipelineParameter & { value: any }): string {
-  if (entry.type === "bool") return entry.value ? "✓" : "✗";
-  if (entry.type === "secret" && entry.value) return "••••••";
-  if (isNil(entry.value)) return "-";
-  if (entry.multiple && Array.isArray(entry.value)) return entry.value.join(", ");
-  if (isConnectionParameter(entry.type)) return String(entry.value);
-  return String(entry.value);
-}
+const MAX_VISIBLE_PARAMS = 3;
 
 function RunParametersCell({
   run,
 }: {
   run: { config: any; version?: { parameters: Omit<PipelineParameter, "__typename">[] } | null };
 }) {
+  const { t } = useTranslation();
+  const [isExpanded, setIsExpanded] = useState(false);
   const params = getPipelineRunConfig(run);
+
   if (!params.length) return <span className="text-gray-400">-</span>;
 
-  const tooltipContent = (
-    <div className="min-w-48 space-y-1">
-      {params.map((p) => (
-        <div key={p.code} className="flex gap-1">
-          <span className="shrink-0 font-medium text-gray-500">{p.name}:</span>
-          <span className="break-all">{formatParamValue(p)}</span>
-        </div>
-      ))}
-    </div>
-  );
+  const shouldShowToggle = params.length > MAX_VISIBLE_PARAMS;
+  const visibleParams = isExpanded ? params : params.slice(0, MAX_VISIBLE_PARAMS);
+  const remainingCount = params.length - MAX_VISIBLE_PARAMS;
 
   return (
-    <Tooltip label={tooltipContent} placement="left">
-      <div className="max-h-16 cursor-default space-y-0.5 overflow-hidden text-xs text-gray-600">
-        {params.map((p) => (
+    <div className="space-y-0.5 text-xs text-gray-600">
+      {visibleParams.map((p, i) => {
+        const isLast = i === visibleParams.length - 1;
+        return (
           <div key={p.code} className="flex min-w-0 gap-1">
             <span className="shrink-0 text-gray-400">{p.name}:</span>
-            <span className="truncate">{formatParamValue(p)}</span>
+            <span className="break-words">{formatParamValue(p)}</span>
+            {isLast && shouldShowToggle && !isExpanded && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsExpanded(true);
+                }}
+                className="shrink-0 cursor-pointer text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                {t("+{{remainingCount}} more", { remainingCount })}
+              </button>
+            )}
           </div>
-        ))}
-      </div>
-    </Tooltip>
+        );
+      })}
+      {isExpanded && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(false);
+          }}
+          className="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline"
+        >
+          {t("Show less")}
+        </button>
+      )}
+    </div>
   );
 }
 
