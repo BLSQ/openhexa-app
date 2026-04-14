@@ -13,12 +13,14 @@ const PER_PAGE = 20;
 type VersionPickerProps = {
   workspaceSlug: string;
   webappSlug: string;
+  initialVersionId?: string;
   onChange?: (version: WebappVersion_VersionFragment) => void;
 };
 
 const VersionPicker = ({
   workspaceSlug,
   webappSlug,
+  initialVersionId,
   onChange,
 }: VersionPickerProps) => {
   const { t } = useTranslation();
@@ -69,8 +71,11 @@ const VersionPicker = ({
     if (!needsInitialSelection && !publishedChanged) return;
 
     prevPublishedRef.current = publishedVersionId ?? null;
+    const initial = initialVersionId
+      ? allVersions.find((v) => v.id === initialVersionId)
+      : undefined;
     const published = allVersions.find((v) => v.id === publishedVersionId);
-    const version = published ?? allVersions[0];
+    const version = (needsInitialSelection && initial) ? initial : (published ?? allVersions[0]);
     setSelectedVersion(version);
     onChange?.(version);
   }, [allVersions, publishedVersionId, selectedVersion, onChange]);

@@ -19,6 +19,7 @@ import { useState } from "react";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
 import { toast } from "react-toastify";
 import { WebappVersion_VersionFragment } from "webapps/graphql/queries.generated";
+import { useRouter } from "next/router";
 
 type Props = {
   webappSlug: string;
@@ -28,6 +29,8 @@ type Props = {
 const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
   const { webappSlug, workspaceSlug } = props;
   const { t } = useTranslation();
+  const router = useRouter();
+  const refParam = router.query.ref as string | undefined;
 
   const { data, refetch } = useWorkspaceWebappPageQuery({
     variables: { workspaceSlug, webappSlug },
@@ -96,6 +99,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
               <VersionPicker
                 workspaceSlug={workspace.slug}
                 webappSlug={webapp.slug}
+                initialVersionId={refParam}
                 onChange={setSelectedVersion}
               />
             }

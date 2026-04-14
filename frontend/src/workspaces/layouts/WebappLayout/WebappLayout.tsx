@@ -48,6 +48,11 @@ const WebappLayout = (props: WebappLayoutProps) => {
             href: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${encodeURIComponent(webapp.slug)}/code`,
             id: "code",
           },
+          {
+            label: t("History"),
+            href: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${encodeURIComponent(webapp.slug)}/history`,
+            id: "history",
+          },
         ]
       : []),
   ];
