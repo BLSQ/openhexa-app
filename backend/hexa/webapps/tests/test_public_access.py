@@ -994,7 +994,7 @@ class CustomDomainMiddlewareTest(TestCase):
 
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_main_hostname_not_intercepted(self, mock_get_client):
-        response = self.client.get("/", HTTP_HOST="localhost")
+        self.client.get("/", HTTP_HOST="localhost")
         mock_get_client.assert_not_called()
 
     @patch("hexa.webapps.middlewares.Webapp.objects.get")
