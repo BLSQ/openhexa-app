@@ -7,7 +7,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("webapps", "0014_webapp_custom_domain"),
-        ("webapps", "0015_make_subdomain_required"),
-    ]
+        ("webapps", "0015_make_subdomain_required"),]
 
     operations = []
