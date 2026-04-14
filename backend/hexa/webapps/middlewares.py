@@ -233,33 +233,49 @@ def webapp_subdomain_middleware(get_response):
         return response
 
     return middleware
-from hexa.webapps.models import Webapp
 
 
 class CustomDomainMiddleware:
-    """
-    Rewrites requests arriving on a webapp's custom domain to the internal
-    /webapps/<id>/ path so the serve_webapp view can handle them normally.
+    """Intercepts requests arriving on a webapp's custom domain and serves the webapp
+    content directly, bypassing normal Django URL routing.
 
-    Must be placed before CommonMiddleware in the middleware stack so the
-    path rewrite happens before Django's routing. In Phase 1 the custom domain
-    must also be listed in ADDITIONAL_ALLOWED_HOSTS for Django to accept the
-    Host header; in Phase 2 this middleware will handle that itself.
+    Only public webapps can be served via a custom domain.
     """
 
     def __init__(self, get_response):
         self.get_response = get_response
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest):
         host = request.META.get("HTTP_HOST", "").split(":")[0].lower()
+
+        # Skip the DB query for known OpenHEXA hosts — only custom domains are unusual
+        webapps_domain = getattr(settings, "WEBAPPS_DOMAIN", None)
+        if host == settings.BASE_HOSTNAME or (
+            webapps_domain and host.endswith(f".{webapps_domain}")
+        ):
+            return self.get_response(request)
+
         try:
             webapp = Webapp.objects.get(custom_domain=host, is_public=True)
-            path = request.path_info.lstrip("/")
-            new_path = (
-                f"/webapps/{webapp.id}/{path}" if path else f"/webapps/{webapp.id}/"
-            )
-            request.path_info = new_path
-            request.path = new_path
         except Webapp.DoesNotExist:
-            pass
-        return self.get_response(request)
+            return self.get_response(request)
+
+        request.webapp = webapp
+
+        if request.path.startswith("/graphql/"):
+            return HttpResponseNotFound("Not available")
+
+        if webapp.type == Webapp.WebappType.STATIC:
+            response = _serve_static_webapp(webapp, request)
+        elif webapp.type == Webapp.WebappType.SUPERSET:
+            response = _serve_superset_webapp(request, webapp)
+        else:
+            response = _serve_iframe_webapp(webapp)
+
+        del response["X-Frame-Options"]
+        frame_ancestors = f"'self' {settings.BASE_URL}"
+        if hasattr(settings, "NEW_FRONTEND_DOMAIN"):
+            frame_ancestors += f" {settings.NEW_FRONTEND_DOMAIN}"
+        response["Content-Security-Policy"] = f"frame-ancestors {frame_ancestors}"
+
+        return response
