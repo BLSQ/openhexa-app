@@ -20,6 +20,7 @@ class WebappAdmin(admin.ModelAdmin):
         "is_public",
         "show_powered_by",
     )
+    readonly_fields = ("slug",)
 
 
 @admin.register(GitWebapp)
