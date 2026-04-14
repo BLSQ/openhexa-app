@@ -5,7 +5,15 @@ from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 
 @admin.register(Webapp)
 class WebappAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "subdomain", "workspace", "type", "is_public", "custom_domain")
+    list_display = (
+        "name",
+        "slug",
+        "subdomain",
+        "workspace",
+        "type",
+        "is_public",
+        "custom_domain",
+    )
     list_filter = ("workspace", "type", "is_public")
     search_fields = ("id", "name", "custom_domain")
     fields = (
