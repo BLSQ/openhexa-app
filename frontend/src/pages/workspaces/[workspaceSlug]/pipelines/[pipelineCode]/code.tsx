@@ -143,7 +143,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                   </div>
                 )}
                 <PipelineFilesEditor
-                  key={versionToShow.id + (proposedFiles ? "-diff" : "")}
+                  key={versionToShow.id}
                   name={versionToShow.versionName}
                   files={versionToShow.files}
                   isEditable={true}

@@ -476,7 +476,13 @@ export const FilesEditor = ({
               {isClient ? (
                 <div className="absolute inset-0">
                   <CodeMirror
-                    key={selectedFile.id}
+                    key={
+                      selectedFile.id +
+                      (proposedByKey.has(selectedFile.path) ||
+                      proposedByKey.has(selectedFile.name)
+                        ? "-diff"
+                        : "")
+                    }
                     value={currentFileContent}
                     readOnly={!isEditable}
                     onChange={handleContentChange}
