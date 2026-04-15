@@ -37,31 +37,86 @@ def _make_zipfile(*files: tuple[str, str]) -> bytes:
     return buf.getvalue()
 
 
+def _make_pipeline_stub(zipfile_data=None, version_name="v1"):
+    """Build a minimal pipeline-like object for unit-testing propose_pipeline_version."""
+    version = MagicMock()
+    version.zipfile = zipfile_data
+    version.version_name = version_name
+    pipeline = MagicMock()
+    pipeline.last_version = version if zipfile_data is not None else None
+    return pipeline
+
+
 class ProposePipelineVersionToolTest(TestCase):
-    def test_returns_files_list(self):
+    def test_no_existing_version_returns_modified_files(self):
+        pipeline = _make_pipeline_stub()
         result = propose_pipeline_version(
-            [ProposedFile(name="pipeline.py", content="print('hello')")]
+            pipeline,
+            [ProposedFile(name="pipeline.py", content="print('hello')")],
         )
         self.assertEqual(
             result,
             {"files": [{"name": "pipeline.py", "content": "print('hello')"}]},
         )
 
-    def test_returns_multiple_files(self):
-        result = propose_pipeline_version(
-            [
-                ProposedFile(name="pipeline.py", content="# main"),
-                ProposedFile(name="utils.py", content="# utils"),
-            ]
+    def test_merges_modified_file_into_existing_zip(self):
+        zip_data = _make_zipfile(
+            ("pipeline.py", "# original"),
+            ("utils.py", "# helpers"),
         )
-        self.assertEqual(len(result["files"]), 2)
-        names = [f["name"] for f in result["files"]]
-        self.assertIn("pipeline.py", names)
-        self.assertIn("utils.py", names)
+        pipeline = _make_pipeline_stub(zipfile_data=zip_data)
+        result = propose_pipeline_version(
+            pipeline,
+            [ProposedFile(name="pipeline.py", content="# updated")],
+        )
+        files = {f["name"]: f["content"] for f in result["files"]}
+        self.assertEqual(files["pipeline.py"], "# updated")
+        self.assertEqual(files["utils.py"], "# helpers")
 
-    def test_empty_file_list(self):
-        result = propose_pipeline_version([])
-        self.assertEqual(result, {"files": []})
+    def test_adds_new_file_to_existing_zip(self):
+        zip_data = _make_zipfile(("pipeline.py", "# main"))
+        pipeline = _make_pipeline_stub(zipfile_data=zip_data)
+        result = propose_pipeline_version(
+            pipeline,
+            [ProposedFile(name="utils.py", content="# new")],
+        )
+        files = {f["name"]: f["content"] for f in result["files"]}
+        self.assertIn("pipeline.py", files)
+        self.assertIn("utils.py", files)
+
+    def test_deletes_file_from_existing_zip(self):
+        zip_data = _make_zipfile(
+            ("pipeline.py", "# main"),
+            ("utils.py", "# helpers"),
+        )
+        pipeline = _make_pipeline_stub(zipfile_data=zip_data)
+        result = propose_pipeline_version(
+            pipeline,
+            modified_files=[],
+            deleted_files=["utils.py"],
+        )
+        files = {f["name"] for f in result["files"]}
+        self.assertIn("pipeline.py", files)
+        self.assertNotIn("utils.py", files)
+
+    def test_empty_modified_files_returns_existing_files_unchanged(self):
+        zip_data = _make_zipfile(("pipeline.py", "# main"))
+        pipeline = _make_pipeline_stub(zipfile_data=zip_data)
+        result = propose_pipeline_version(pipeline, modified_files=[])
+        self.assertEqual(
+            result,
+            {"files": [{"name": "pipeline.py", "content": "# main"}]},
+        )
+
+    def test_no_pipeline_returns_only_modified_files(self):
+        result = propose_pipeline_version(
+            None,
+            [ProposedFile(name="pipeline.py", content="# new")],
+        )
+        self.assertEqual(
+            result,
+            {"files": [{"name": "pipeline.py", "content": "# new"}]},
+        )
 
 
 class EditPipelineAgentExtraInstructionsTest(TestCase):
@@ -161,3 +216,15 @@ class EditPipelineAgentExtraInstructionsTest(TestCase):
         instructions = agent._extra_instructions()
         self.assertIn("pipeline.py", instructions)
         self.assertIn("utils.py", instructions)
+
+    def test_pipeline_is_injected_into_context(self):
+        pipeline = Pipeline.objects.create(
+            code="ctx-pipeline", name="Context Pipeline", workspace=self.workspace
+        )
+        agent = self._make_agent(pipeline=pipeline)
+        self.assertIn("pipeline", agent._context)
+        self.assertEqual(agent._context["pipeline"], pipeline)
+
+    def test_no_pipeline_not_in_context(self):
+        agent = self._make_agent(pipeline=None)
+        self.assertNotIn("pipeline", agent._context)

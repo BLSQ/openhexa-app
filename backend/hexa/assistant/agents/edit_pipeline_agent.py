@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.instructions import InstructionSet
+from hexa.pipelines.models import Pipeline
 
 
 class ProposedFile(BaseModel):
@@ -12,22 +13,49 @@ class ProposedFile(BaseModel):
     content: str
 
 
-def propose_pipeline_version(files: list[ProposedFile]) -> dict:
-    """Propose a new version of the pipeline with updated files.
+def propose_pipeline_version(
+    pipeline: Pipeline,
+    modified_files: list[ProposedFile],
+    deleted_files: list[str] | None = None,
+) -> dict:
+    """Propose a new version of the pipeline.
 
-    Include ALL files in the proposal, not only the ones you modified.
+    Only include files you modified or created in modified_files.
+    List any files to remove in deleted_files.
+    Unchanged files are preserved automatically.
     Each file must have a 'name' (e.g. 'pipeline.py') and 'content' (the full file text).
     """
-    return {"files": [f.model_dump() for f in files]}
+    current_files: dict[str, str] = {}
+    current_version = pipeline.last_version if pipeline is not None else None
+    if current_version and current_version.zipfile:
+        with zipfile.ZipFile(io.BytesIO(bytes(current_version.zipfile)), "r") as zf:
+            for name in zf.namelist():
+                try:
+                    current_files[name] = zf.read(name).decode("utf-8")
+                except UnicodeDecodeError:
+                    pass
+
+    for f in modified_files:
+        current_files[f.name] = f.content
+    for name in deleted_files or []:
+        current_files.pop(name, None)
+
+    return {"files": [{"name": k, "content": v} for k, v in current_files.items()]}
 
 
 class EditPipelineAgent(BaseAgent):
     instruction_set = InstructionSet.EDIT_PIPELINE
     tools = [propose_pipeline_version]
 
-    def _extra_instructions(self) -> str:
-        from hexa.pipelines.models import Pipeline
+    @property
+    def _context(self) -> dict:
+        ctx = super()._context
+        pipeline = self.conversation.linked_object
+        if pipeline is not None:
+            ctx = {**ctx, "pipeline": pipeline}
+        return ctx
 
+    def _extra_instructions(self) -> str:
         linked_object = self.conversation.linked_object
         if linked_object is None:
             return ""

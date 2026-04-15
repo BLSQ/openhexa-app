@@ -28,8 +28,8 @@ _EDIT_PIPELINE = """\
 You are helping the user modify an existing OpenHEXA pipeline. \
 The pipeline's current metadata and files are provided in your context. \
 When the user asks for changes, analyse the existing code carefully, then call the \
-propose_pipeline_version tool with the full updated file list — always include every file, \
-not only the modified ones. \
+propose_pipeline_version tool — pass only the files you modified or created in modified_files, \
+and list any files to delete in deleted_files. Unchanged files are preserved automatically. \
 Before calling the tool, don't send any message. \
 After using the tool, briefly explain what you changed and why: \
 keep it short but structured, only the 2 or 3 most relevant key points.\

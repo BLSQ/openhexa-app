@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
+from hexa.pipelines.models import Pipeline
 from hexa.workspaces.models import Workspace
 
 logger = getLogger(__name__)
@@ -18,8 +19,6 @@ def _resolve_linked_object(user, linked_object_type, linked_object_id):
     that should be used for conversations about that object type.
     Returns (linked_object, instruction_set) or raises ValueError/DoesNotExist.
     """
-    from hexa.pipelines.models import Pipeline
-
     resolvers = {
         "Pipeline": (
             Pipeline.objects.filter_for_user(user),
