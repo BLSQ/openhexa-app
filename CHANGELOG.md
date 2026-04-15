@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.1.1](https://github.com/BLSQ/openhexa-app/compare/5.1.0...5.1.1) (2026-04-15)
+
+
+### Bug Fixes
+
+* admin page for web apps ([#1738](https://github.com/BLSQ/openhexa-app/issues/1738)) ([fa210bc](https://github.com/BLSQ/openhexa-app/commit/fa210bc01c2da8eed05ec0da8aa26cb3c474cab5))
+* OH banner should appear for static web apps and other webapps on subdomains (HEXA-1588) ([#1739](https://github.com/BLSQ/openhexa-app/issues/1739)) ([f67092b](https://github.com/BLSQ/openhexa-app/commit/f67092b9bdcb2de2b19ca156e318a6c0a54d2e28))
+* simplify session cookie handling in middleware ([#1737](https://github.com/BLSQ/openhexa-app/issues/1737)) ([9fd32e0](https://github.com/BLSQ/openhexa-app/commit/9fd32e0e778a0520b3729f4e71b701847d828d63))
+
 ## [5.1.0](https://github.com/BLSQ/openhexa-app/compare/5.0.1...5.1.0) (2026-04-10)
 
 
