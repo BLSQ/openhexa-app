@@ -1,5 +1,6 @@
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import DataCard from "core/components/DataCard";
+import SelectProperty from "core/components/DataCard/SelectProperty";
 import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import Page from "core/components/Page";
 import Tooltip from "core/components/Tooltip";
@@ -62,9 +63,15 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
 
   const { workspace, pipeline } = data;
 
+  const versionOptions = pipeline.versions?.items ?? [];
+
   const onSaveScheduling = async (values: any) => {
+    const schedulingEnabled = values.enableScheduling;
     await updatePipeline(pipeline.id, {
-      schedule: values.enableScheduling ? values.schedule : null,
+      schedule: schedulingEnabled ? values.schedule : null,
+      scheduledPipelineVersionId: schedulingEnabled
+        ? (values.scheduledPipelineVersion?.id ?? null)
+        : null,
     });
   };
 
@@ -122,6 +129,23 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
             }
             required={(_, __, values) => Boolean(values.enableScheduling)}
           />
+          {pipeline.type === PipelineType.ZipFile && (
+            <SelectProperty
+              id="scheduledPipelineVersion"
+              accessor="scheduledPipelineVersion"
+              label={t("Version")}
+              help={t(
+                "Choose which version to run on schedule. Leave empty to always run the latest version.",
+              )}
+              options={versionOptions}
+              nullable
+              defaultValue={t("Latest version")}
+              getOptionLabel={(v) => v.versionName}
+              visible={(_, __, values) =>
+                Boolean(values.enableScheduling || pipeline.schedule)
+              }
+            />
+          )}
         </DataCard.FormSection>
         <div>
           <Title level={6} className="px-6 pt-4">

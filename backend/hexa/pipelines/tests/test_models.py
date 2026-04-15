@@ -2,10 +2,12 @@ import uuid
 from unittest.mock import patch
 
 from django.core import mail
+from django.core.exceptions import PermissionDenied
 
 from hexa.core.test import TestCase
 from hexa.pipeline_templates.models import PipelineTemplateVersion
 from hexa.pipelines.models import (
+    MissingPipelineConfiguration,
     Pipeline,
     PipelineFunctionalType,
     PipelineNotificationLevel,
@@ -13,6 +15,8 @@ from hexa.pipelines.models import (
     PipelineRunLogLevel,
     PipelineRunState,
     PipelineRunTrigger,
+    PipelineType,
+    PipelineVersion,
 )
 from hexa.pipelines.utils import mail_run_recipients
 from hexa.user_management.models import (
@@ -994,3 +998,109 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
         )
         self.assertEqual(run.cpu_limit, "1")
         self.assertEqual(run.memory_limit, "1G")
+
+
+class ScheduledPipelineVersionModelTest(TestCase):
+    """Tests for the scheduled_pipeline_version field and its handling in update_if_has_perm."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user(
+            "schedver_model@bluesquarehub.com",
+            "password",
+            is_superuser=True,
+        )
+        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.USER,
+            name="ScheduledVersionModelWS",
+            description="",
+            countries=[{"code": "AL"}],
+        )
+        cls.PIPELINE = Pipeline.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Scheduled Version Model Pipeline",
+            code="scheduled-version-model-pipeline",
+            type=PipelineType.ZIPFILE,
+        )
+        cls.VERSION_1 = PipelineVersion.objects.create(
+            pipeline=cls.PIPELINE,
+            name="v1",
+            parameters=[],
+        )
+        cls.VERSION_2 = PipelineVersion.objects.create(
+            pipeline=cls.PIPELINE,
+            name="v2",
+            parameters=[],
+        )
+
+    def test_update_if_has_perm_pins_version(self):
+        self.PIPELINE.update_if_has_perm(
+            self.USER,
+            scheduled_pipeline_version_id=str(self.VERSION_1.id),
+        )
+        self.PIPELINE.refresh_from_db()
+        self.assertEqual(self.PIPELINE.scheduled_pipeline_version, self.VERSION_1)
+
+    def test_update_if_has_perm_clears_pin_when_none(self):
+        self.PIPELINE.scheduled_pipeline_version = self.VERSION_1
+        self.PIPELINE.save()
+
+        self.PIPELINE.update_if_has_perm(
+            self.USER,
+            scheduled_pipeline_version_id=None,
+        )
+        self.PIPELINE.refresh_from_db()
+        self.assertIsNone(self.PIPELINE.scheduled_pipeline_version)
+
+    def test_update_if_has_perm_leaves_pin_unchanged_when_key_absent(self):
+        self.PIPELINE.scheduled_pipeline_version = self.VERSION_1
+        self.PIPELINE.save()
+
+        self.PIPELINE.update_if_has_perm(self.USER, name="Renamed Pipeline")
+        self.PIPELINE.refresh_from_db()
+        self.assertEqual(self.PIPELINE.scheduled_pipeline_version, self.VERSION_1)
+
+    def test_update_if_has_perm_raises_on_unknown_version_id(self):
+        with self.assertRaises(PipelineVersion.DoesNotExist):
+            self.PIPELINE.update_if_has_perm(
+                self.USER,
+                scheduled_pipeline_version_id=str(uuid.uuid4()),
+            )
+
+    def test_enabling_schedule_with_non_schedulable_pinned_version_raises(self):
+        unschedulable_version = PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            name="unschedulable_v",
+            parameters=[
+                {
+                    "code": "required_param",
+                    "name": "Required",
+                    "type": "str",
+                    "required": True,
+                }
+            ],
+        )
+        try:
+            with self.assertRaises(MissingPipelineConfiguration):
+                self.PIPELINE.update_if_has_perm(
+                    self.USER,
+                    schedule="0 12 * * *",
+                    scheduled_pipeline_version_id=str(unschedulable_version.id),
+                )
+        finally:
+            unschedulable_version.delete()
+
+    def test_enabling_schedule_with_schedulable_pinned_version_succeeds(self):
+        try:
+            self.PIPELINE.update_if_has_perm(
+                self.USER,
+                schedule="0 12 * * *",
+                scheduled_pipeline_version_id=str(self.VERSION_1.id),
+            )
+            self.PIPELINE.refresh_from_db()
+            self.assertEqual(self.PIPELINE.schedule, "0 12 * * *")
+            self.assertEqual(self.PIPELINE.scheduled_pipeline_version, self.VERSION_1)
+        finally:
+            self.PIPELINE.schedule = None
+            self.PIPELINE.scheduled_pipeline_version = None
+            self.PIPELINE.save()

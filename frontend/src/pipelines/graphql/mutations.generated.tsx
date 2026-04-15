@@ -10,7 +10,7 @@ export type UpdatePipelineMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdatePipelineMutation = { __typename?: 'Mutation', updatePipeline: { __typename?: 'UpdatePipelineResult', success: boolean, errors: Array<Types.UpdatePipelineError>, pipeline?: { __typename?: 'Pipeline', id: string, code: string, name?: string | null, description?: string | null, schedule?: string | null, webhookEnabled: boolean, autoUpdateFromTemplate: boolean } | null } };
+export type UpdatePipelineMutation = { __typename?: 'Mutation', updatePipeline: { __typename?: 'UpdatePipelineResult', success: boolean, errors: Array<Types.UpdatePipelineError>, pipeline?: { __typename?: 'Pipeline', id: string, code: string, name?: string | null, description?: string | null, schedule?: string | null, webhookEnabled: boolean, autoUpdateFromTemplate: boolean, scheduledPipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string } | null } | null } };
 
 export type CreatePipelineTemplateVersionMutationVariables = Types.Exact<{
   input: Types.CreatePipelineTemplateVersionInput;
@@ -59,6 +59,11 @@ export const UpdatePipelineDocument = gql`
       name
       description
       schedule
+      scheduledPipelineVersion {
+        id
+        versionNumber
+        versionName
+      }
       webhookEnabled
       autoUpdateFromTemplate
     }

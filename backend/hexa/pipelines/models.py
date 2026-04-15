@@ -429,6 +429,13 @@ class Pipeline(SoftDeletedModel):
         help_text="Automatically update this pipeline when its source template is updated",
     )
     tags = models.ManyToManyField("tags.Tag", blank=True, related_name="pipelines")
+    scheduled_pipeline_version = models.ForeignKey(
+        "PipelineVersion",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="scheduled_for_pipelines",
+    )
 
     objects = PipelineManager()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineQuerySet)()
@@ -489,7 +496,8 @@ class Pipeline(SoftDeletedModel):
         if self.type == PipelineType.NOTEBOOK:
             return True
         elif self.type == PipelineType.ZIPFILE:
-            return self.last_version and self.last_version.is_schedulable
+            version = self.scheduled_pipeline_version or self.last_version
+            return version and version.is_schedulable
 
     def get_config_from_previous_version(self, new_parameters: list[dict]):
         """
@@ -573,9 +581,22 @@ class Pipeline(SoftDeletedModel):
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("pipelines.update_pipeline", self):
             raise PermissionDenied
+
+        # Resolve which version will be pinned for scheduled runs after this update.
+        if "scheduled_pipeline_version_id" in kwargs:
+            version_id = kwargs.pop("scheduled_pipeline_version_id")
+            if version_id:
+                scheduled_version = self.versions.get(id=version_id)
+            else:
+                scheduled_version = None
+        else:
+            scheduled_version = self.scheduled_pipeline_version
+
+        # When enabling a schedule, check that the resolved version is schedulable.
+        version_for_check = scheduled_version or self.last_version
         if (
-            self.last_version
-            and self.last_version.is_schedulable is False
+            version_for_check
+            and version_for_check.is_schedulable is False
             and not self.schedule
             and kwargs.get("schedule")
         ):
@@ -587,6 +608,8 @@ class Pipeline(SoftDeletedModel):
 
         if "schedule" in kwargs:
             self.set_schedule(kwargs["schedule"])
+
+        self.scheduled_pipeline_version = scheduled_version
 
         if "auto_update_from_template" in kwargs:
             self.auto_update_from_template = kwargs["auto_update_from_template"]

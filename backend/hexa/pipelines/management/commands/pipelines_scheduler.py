@@ -55,6 +55,9 @@ class Command(BaseCommand):
                     logger.debug(f"sleep before run: {real_delay}")
                     sleep(real_delay)
 
+                pipeline_version = (
+                    pipeline.scheduled_pipeline_version or pipeline.last_version
+                )
                 if PipelineRun.objects.filter(
                     pipeline=pipeline,
                     state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING],
@@ -68,7 +71,7 @@ class Command(BaseCommand):
                     PipelineRun.objects.create(
                         user=None,
                         pipeline=pipeline,
-                        pipeline_version=pipeline.last_version,
+                        pipeline_version=pipeline_version,
                         run_id=str(PipelineRunTrigger.SCHEDULED.value)
                         + "__"
                         + str(time_module.time()),
@@ -77,9 +80,9 @@ class Command(BaseCommand):
                         state=PipelineRunState.SKIPPED,
                         config=(
                             pipeline.merge_pipeline_config(
-                                {}, pipeline.last_version.config
+                                {}, pipeline_version.config
                             )
-                            if pipeline.last_version
+                            if pipeline_version
                             else {}
                         ),
                         send_mail_notifications=False,
@@ -90,7 +93,7 @@ class Command(BaseCommand):
 
                 pipeline.run(
                     user=None,
-                    pipeline_version=pipeline.last_version,
+                    pipeline_version=pipeline_version,
                     trigger_mode=PipelineRunTrigger.SCHEDULED,
                 )
                 track(
@@ -99,14 +102,10 @@ class Command(BaseCommand):
                     properties={
                         "pipeline_id": pipeline.code,
                         "version_name": (
-                            pipeline.last_version.name
-                            if pipeline.last_version
-                            else None
+                            pipeline_version.name if pipeline_version else None
                         ),
                         "version_id": (
-                            str(pipeline.last_version.id)
-                            if pipeline.last_version
-                            else None
+                            str(pipeline_version.id) if pipeline_version else None
                         ),
                         "trigger": PipelineRunTrigger.SCHEDULED,
                         "workspace": pipeline.workspace.slug,

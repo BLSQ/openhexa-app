@@ -238,6 +238,26 @@ query WorkspacePipelineNotificationsPage(
     code
     type
     schedule
+    scheduledPipelineVersion {
+      id
+      versionNumber
+      versionName
+    }
+    versions {
+      items {
+        id
+        versionNumber
+        versionName
+        isLatestVersion
+      }
+    }
+    currentVersion {
+      parameters {
+        code
+        required
+      }
+      config
+    }
     permissions {
       schedule
       update
