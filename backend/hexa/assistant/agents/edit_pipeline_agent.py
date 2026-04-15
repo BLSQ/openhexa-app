@@ -15,15 +15,15 @@ class ProposedFile(BaseModel):
 
 def propose_pipeline_version(
     pipeline: Pipeline,
-    modified_files: list[ProposedFile],
+    modified_files: list[ProposedFile] | None = None,
     deleted_files: list[str] | None = None,
 ) -> dict:
     """Propose a new version of the pipeline.
 
-    Only include files you modified or created in modified_files.
+    Always call this tool with the files you modified or created in modified_files.
+    Each entry must have a 'name' (e.g. 'pipeline.py') and 'content' (the full file text).
     List any files to remove in deleted_files.
     Unchanged files are preserved automatically.
-    Each file must have a 'name' (e.g. 'pipeline.py') and 'content' (the full file text).
     """
     current_files: dict[str, str] = {}
     current_version = pipeline.last_version if pipeline is not None else None
@@ -35,7 +35,7 @@ def propose_pipeline_version(
                 except UnicodeDecodeError:
                     pass
 
-    for f in modified_files:
+    for f in modified_files or []:
         current_files[f.name] = f.content
     for name in deleted_files or []:
         current_files.pop(name, None)
