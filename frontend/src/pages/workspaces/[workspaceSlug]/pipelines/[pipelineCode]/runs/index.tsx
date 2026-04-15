@@ -41,27 +41,24 @@ function RunParametersCell({
   const remainingCount = params.length - MAX_VISIBLE_PARAMS;
 
   return (
-    <div className="space-y-0.5 text-xs text-gray-600">
-      {visibleParams.map((p, i) => {
-        const isLast = i === visibleParams.length - 1;
-        return (
-          <div key={p.code} className="flex min-w-0 gap-1">
-            <span className="shrink-0 text-gray-400">{p.name}:</span>
-            <span className="break-words">{formatParamValue(p)}</span>
-            {isLast && shouldShowToggle && !isExpanded && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsExpanded(true);
-                }}
-                className="shrink-0 cursor-pointer text-blue-600 hover:text-blue-800 hover:underline"
-              >
-                {t("+{{remainingCount}} more", { remainingCount })}
-              </button>
-            )}
-          </div>
-        );
-      })}
+    <div className="w-52 space-y-0.5 text-xs text-gray-600">
+      {visibleParams.map((p) => (
+        <div key={p.code} className="flex min-w-0 gap-1">
+          <span className="shrink-0 text-gray-400">{p.name}:</span>
+          <span className="break-words">{formatParamValue(p)}</span>
+        </div>
+      ))}
+      {shouldShowToggle && !isExpanded && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(true);
+          }}
+          className="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline"
+        >
+          {t("+{{remainingCount}} more", { remainingCount })}
+        </button>
+      )}
       {isExpanded && (
         <button
           onClick={(e) => {
