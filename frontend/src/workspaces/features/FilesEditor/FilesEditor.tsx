@@ -22,9 +22,9 @@ import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 
 export type ProposedFile = { name: string; content: string };
 
-const buildTreeFromFlatData = (
-  flatNodes: FilesEditor_FileFragment[],
-): FileNode[] => {
+type AugmentedFile = FilesEditor_FileFragment & { isProposed?: boolean };
+
+const buildTreeFromFlatData = (flatNodes: AugmentedFile[]): FileNode[] => {
   const nodeMap = new Map<string, FileNode>();
 
   flatNodes.forEach((flatNode) => {
@@ -63,9 +63,7 @@ const FileTreeNode = ({
   modifiedFiles: Map<string, string>;
   proposedByKey: Map<string, string>;
 }) => {
-  const [isExpanded, setIsExpanded] = useState(
-    node.id.startsWith("proposed-dir-"),
-  );
+  const [isExpanded, setIsExpanded] = useState(node.isProposed);
   const isSelected = selectedFile?.id === node.id;
 
   const proposedContent =
@@ -140,6 +138,7 @@ const FileTreeNode = ({
 
 export type FileNode = FilesEditor_FileFragment & {
   children: FileNode[];
+  isProposed?: boolean;
 };
 
 export interface SaveResult {
@@ -168,10 +167,10 @@ export const FilesEditor = ({
   // Synthetic file and folder nodes for files proposed by the agent that don't exist
   // yet in the current version. Paths are parsed so nested files (e.g. tests/__init__.py)
   // are placed under the correct folder in the tree rather than shown as flat names.
-  const virtualFiles = useMemo<FilesEditor_FileFragment[]>(() => {
+  const virtualFiles = useMemo<AugmentedFile[]>(() => {
     if (!proposedFiles) return [];
 
-    const result: FilesEditor_FileFragment[] = [];
+    const result: AugmentedFile[] = [];
     const virtualFolderIds = new Map<string, string>(); // dirPath -> id
 
     for (const pf of proposedFiles) {
@@ -194,7 +193,7 @@ export const FilesEditor = ({
         } else if (virtualFolderIds.has(dirPath)) {
           parentId = virtualFolderIds.get(dirPath)!;
         } else {
-          const folderId = `proposed-dir-${dirPath}`;
+          const folderId = dirPath;
           result.push({
             __typename: "FileNode" as const,
             id: folderId,
@@ -206,6 +205,7 @@ export const FilesEditor = ({
             autoSelect: false,
             language: null,
             lineCount: null,
+            isProposed: true,
           });
           virtualFolderIds.set(dirPath, folderId);
           parentId = folderId;
@@ -214,7 +214,7 @@ export const FilesEditor = ({
 
       result.push({
         __typename: "FileNode" as const,
-        id: `proposed-${pf.name}`,
+        id: pf.name,
         name: fileName,
         path: pf.name,
         type: FileType.File,
@@ -223,13 +223,14 @@ export const FilesEditor = ({
         autoSelect: false,
         language: null,
         lineCount: null,
+        isProposed: true,
       });
     }
 
     return result;
   }, [proposedFiles, flatFiles]);
 
-  const augmentedFlatFiles = useMemo(
+  const augmentedFlatFiles = useMemo<AugmentedFile[]>(
     () => [...flatFiles, ...virtualFiles],
     [flatFiles, virtualFiles],
   );
@@ -285,10 +286,8 @@ export const FilesEditor = ({
             next.set(existing.id, proposed.content);
           }
         } else {
-          // New file proposed by the agent — stored under its virtual id
-          const virtualId = `proposed-${proposed.name}`;
-          if (!next.has(virtualId)) {
-            next.set(virtualId, proposed.content);
+          if (!next.has(proposed.name)) {
+            next.set(proposed.name, proposed.content);
           }
         }
       }
