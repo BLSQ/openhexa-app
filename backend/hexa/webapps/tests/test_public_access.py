@@ -739,3 +739,182 @@ class MiddlewareAuthTokenExchangeTest(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response["Location"], "/page?foo=bar")
+
+
+@override_settings(
+    WEBAPPS_DOMAIN="webapps.localhost:8000",
+    ALLOWED_HOSTS=["*"],
+)
+class PoweredByBannerTest(TestCase):
+    SUBDOMAIN_BASE = "webapps.localhost:8000"
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user("banner@test.com", "password")
+        cls.WORKSPACE = Workspace.objects.create(
+            name="Banner Workspace",
+            slug="banner-workspace",
+        )
+        WorkspaceMembership.objects.create(
+            user=cls.USER,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
+        cls.PUBLIC_STATIC = GitWebapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Public Static",
+            slug="public-static",
+            subdomain="public-static",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER,
+            repository="webapp-pub-static",
+            published_commit="sha-pub",
+            is_public=True,
+            show_powered_by=True,
+        )
+
+        cls.PUBLIC_STATIC_NO_BANNER = GitWebapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Public Static No Banner",
+            slug="public-static-no-banner",
+            subdomain="pub-static-no-banner",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER,
+            repository="webapp-pub-no-banner",
+            published_commit="sha-pub-nb",
+            is_public=True,
+            show_powered_by=False,
+        )
+
+        cls.PRIVATE_STATIC = GitWebapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Private Static",
+            slug="private-static",
+            subdomain="private-static",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER,
+            repository="webapp-priv-static",
+            published_commit="sha-priv",
+            is_public=False,
+        )
+
+        cls.PUBLIC_IFRAME = Webapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Public Iframe",
+            slug="public-iframe-banner",
+            subdomain="public-iframe-banner",
+            type=Webapp.WebappType.IFRAME,
+            created_by=cls.USER,
+            url="https://example.com",
+            is_public=True,
+            show_powered_by=True,
+        )
+
+        cls.PUBLIC_IFRAME_NO_BANNER = Webapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Public Iframe No Banner",
+            slug="pub-iframe-no-banner",
+            subdomain="pub-iframe-no-banner",
+            type=Webapp.WebappType.IFRAME,
+            created_by=cls.USER,
+            url="https://example.com",
+            is_public=True,
+            show_powered_by=False,
+        )
+
+    def _subdomain_host(self, webapp):
+        return f"{webapp.subdomain}.{self.SUBDOMAIN_BASE}"
+
+    def _create_webapp_session(self, webapp, user):
+        session = SessionStore()
+        session.set_expiry(3600)
+        session["user_id"] = str(user.pk)
+        session["webapp_id"] = str(webapp.pk)
+        session.create()
+        self.client.cookies["hexa_webapp_session"] = session.session_key
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_static_public_anonymous_has_banner(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<html><body><h1>Hi</h1></body></html>"
+        mock_get_client.return_value = mock_client
+
+        response = self.client.get(
+            "/", HTTP_HOST=self._subdomain_host(self.PUBLIC_STATIC)
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Powered by", response.content)
+        self.assertIn(b"openhexa.com", response.content)
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_static_public_anonymous_show_powered_by_false_no_banner(
+        self, mock_get_client
+    ):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<html><body><h1>Hi</h1></body></html>"
+        mock_get_client.return_value = mock_client
+
+        response = self.client.get(
+            "/", HTTP_HOST=self._subdomain_host(self.PUBLIC_STATIC_NO_BANNER)
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(b"Powered by", response.content)
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_static_private_authenticated_no_banner(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<html><body><h1>Hi</h1></body></html>"
+        mock_get_client.return_value = mock_client
+
+        self._create_webapp_session(self.PRIVATE_STATIC, self.USER)
+        response = self.client.get(
+            "/", HTTP_HOST=self._subdomain_host(self.PRIVATE_STATIC)
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(b"Powered by", response.content)
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_static_banner_not_injected_in_css(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"body { color: red; }"
+        mock_get_client.return_value = mock_client
+
+        response = self.client.get(
+            "/style.css", HTTP_HOST=self._subdomain_host(self.PUBLIC_STATIC)
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(b"Powered by", response.content)
+
+    def test_iframe_public_anonymous_has_banner(self):
+        response = self.client.get(
+            "/", HTTP_HOST=self._subdomain_host(self.PUBLIC_IFRAME)
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Powered by", response.content)
+        self.assertIn(b"oh-banner", response.content)
+
+    def test_iframe_public_anonymous_show_powered_by_false_no_banner(self):
+        response = self.client.get(
+            "/", HTTP_HOST=self._subdomain_host(self.PUBLIC_IFRAME_NO_BANNER)
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(b"Powered by", response.content)
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_static_public_with_auth_token_no_banner(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<html><body><h1>Hi</h1></body></html>"
+        mock_get_client.return_value = mock_client
+
+        signer = TimestampSigner()
+        token = signer.sign_object(
+            {"user_id": str(self.USER.id), "subdomain": self.PUBLIC_STATIC.subdomain}
+        )
+        response = self.client.get(
+            "/",
+            {"auth_token": token},
+            HTTP_HOST=self._subdomain_host(self.PUBLIC_STATIC),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(b"Powered by", response.content)
