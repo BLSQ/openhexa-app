@@ -44,6 +44,16 @@ export async function updatePipeline(
             name
             description
             schedule
+            scheduledPipelineVersion {
+              id
+              versionNumber
+              versionName
+              parameters {
+                code
+                required
+              }
+              config
+            }
             config
             functionalType
             updatedAt
@@ -81,6 +91,12 @@ export async function updatePipeline(
     throw new Error(
       "This pipeline has required parameters that have not been set. Edit the default parameters to fix this issue.",
     );
+  } else if (
+    data?.updatePipeline.errors.includes(
+      UpdatePipelineError.PipelineVersionNotFound,
+    )
+  ) {
+    throw new Error("The selected pipeline version no longer exists.");
   }
 
   throw new Error("Failed to update pipeline");

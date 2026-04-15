@@ -242,8 +242,13 @@ query WorkspacePipelineNotificationsPage(
       id
       versionNumber
       versionName
+      parameters {
+        code
+        required
+      }
+      config
     }
-    versions {
+    versions(perPage: 50) {
       items {
         id
         versionNumber

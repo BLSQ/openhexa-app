@@ -1,3 +1,4 @@
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.utils import timezone
@@ -221,38 +222,71 @@ class ScheduledPipelineVersionTest(TestCase):
             parameters=[],
         )
 
+    def _run_scheduler_once(self):
+        """Invoke the scheduler command for a single iteration.
+
+        A past seed run is required so the pipeline's next scheduled time
+        falls before now (negative next_exec_delay), which means the
+        per-pipeline sleep is skipped and the pipeline fires immediately.
+        The first sleep call that occurs is therefore the end-of-loop sleep,
+        which we raise StopIteration on to break the while-True loop.
+        """
+        from hexa.pipelines.management.commands.pipelines_scheduler import Command
+
+        PipelineRun.objects.create(
+            pipeline=self.PIPELINE,
+            pipeline_version=self.VERSION_2,
+            run_id="seed__past",
+            trigger_mode=PipelineRunTrigger.SCHEDULED,
+            execution_date=timezone.now() - timedelta(hours=1),
+            state=PipelineRunState.SUCCESS,
+            config={},
+        )
+
+        with patch(
+            "hexa.pipelines.management.commands.pipelines_scheduler.sleep",
+            side_effect=StopIteration,
+        ):
+            with patch("hexa.analytics.api.track"):
+                try:
+                    Command().handle()
+                except StopIteration:
+                    pass
+
     def test_scheduler_uses_pinned_version(self):
         self.PIPELINE.scheduled_pipeline_version = self.VERSION_1
         self.PIPELINE.save()
 
-        pipeline_version = (
-            self.PIPELINE.scheduled_pipeline_version or self.PIPELINE.last_version
-        )
+        self._run_scheduler_once()
 
-        run = self.PIPELINE.run(
-            user=None,
-            pipeline_version=pipeline_version,
-            trigger_mode=PipelineRunTrigger.SCHEDULED,
+        new_run = (
+            PipelineRun.objects.filter(
+                pipeline=self.PIPELINE,
+                trigger_mode=PipelineRunTrigger.SCHEDULED,
+            )
+            .order_by("-execution_date")
+            .first()
         )
-
-        self.assertEqual(run.pipeline_version, self.VERSION_1)
-        self.assertNotEqual(run.pipeline_version, self.PIPELINE.last_version)
+        self.assertIsNotNone(new_run)
+        self.assertEqual(new_run.pipeline_version, self.VERSION_1)
 
     def test_scheduler_falls_back_to_last_version_when_no_pin(self):
         self.PIPELINE.scheduled_pipeline_version = None
         self.PIPELINE.save()
 
-        pipeline_version = (
-            self.PIPELINE.scheduled_pipeline_version or self.PIPELINE.last_version
-        )
+        self._run_scheduler_once()
 
-        run = self.PIPELINE.run(
-            user=None,
-            pipeline_version=pipeline_version,
-            trigger_mode=PipelineRunTrigger.SCHEDULED,
+        new_run = (
+            PipelineRun.objects.filter(
+                pipeline=self.PIPELINE,
+                trigger_mode=PipelineRunTrigger.SCHEDULED,
+            )
+            .order_by("-execution_date")
+            .first()
         )
-
-        self.assertEqual(run.pipeline_version, self.PIPELINE.last_version)
+        self.assertIsNotNone(new_run)
+        self.assertEqual(new_run.pipeline_version, self.PIPELINE.last_version)
+        self.assertEqual(new_run.pipeline_version, self.VERSION_2)
 
     def test_is_schedulable_uses_pinned_version(self):
         # v1 is schedulable (no required params without defaults)

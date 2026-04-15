@@ -39,22 +39,20 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
   });
 
   const hasMissingConfiguration = useMemo(() => {
-    if (!data?.pipeline) {
-      return false;
-    }
+    if (!data?.pipeline) return false;
     const { pipeline } = data;
-    if (
-      pipeline.type !== PipelineType.ZipFile ||
-      !pipeline.currentVersion ||
-      !pipeline.schedule
-    ) {
+    if (pipeline.type !== PipelineType.ZipFile || !pipeline.schedule)
       return false;
+
+    if (pipeline.scheduledPipelineVersion) {
+      const v = pipeline.scheduledPipelineVersion;
+      return v.parameters.some((p) => p.required && !v.config?.[p.code]);
     }
-    for (const param of pipeline.currentVersion.parameters) {
-      if (param.required && !pipeline.currentVersion.config[param.code]) {
-        return true;
-      }
-    }
+
+    if (!pipeline.currentVersion) return false;
+    return pipeline.currentVersion.parameters.some(
+      (p) => p.required && !pipeline.currentVersion!.config?.[p.code],
+    );
   }, [data]);
 
   if (!data?.workspace || !data?.pipeline) {
@@ -69,9 +67,9 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
     const schedulingEnabled = values.enableScheduling;
     await updatePipeline(pipeline.id, {
       schedule: schedulingEnabled ? values.schedule : null,
-      scheduledPipelineVersionId: schedulingEnabled
-        ? (values.scheduledPipelineVersion?.id ?? null)
-        : null,
+      ...(schedulingEnabled && {
+        scheduledPipelineVersionId: values.scheduledPipelineVersion?.id ?? null,
+      }),
     });
   };
 
