@@ -50,10 +50,7 @@ class EditPipelineAgent(BaseAgent):
     @property
     def _context(self) -> dict:
         ctx = super()._context
-        pipeline = self.conversation.linked_object
-        if pipeline is not None:
-            ctx = {**ctx, "pipeline": pipeline}
-        return ctx
+        return {**ctx, "pipeline": self.conversation.linked_object}
 
     def _extra_instructions(self) -> str:
         linked_object = self.conversation.linked_object

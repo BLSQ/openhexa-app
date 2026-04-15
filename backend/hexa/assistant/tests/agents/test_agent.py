@@ -307,7 +307,9 @@ class BaseAgentToolCallTest(TestCase):
 
     def test_propose_pipeline_version_call_is_persisted(self):
         files_arg = [{"name": "pipeline.py", "content": "print('v2')"}]
-        model = _make_tool_call_model("propose_pipeline_version", {"files": files_arg})
+        model = _make_tool_call_model(
+            "propose_pipeline_version", {"modified_files": files_arg}
+        )
         conversation = Conversation(
             user=self.user,
             workspace=self.workspace,

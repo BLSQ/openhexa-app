@@ -225,6 +225,7 @@ class EditPipelineAgentExtraInstructionsTest(TestCase):
         self.assertIn("pipeline", agent._context)
         self.assertEqual(agent._context["pipeline"], pipeline)
 
-    def test_no_pipeline_not_in_context(self):
+    def test_no_pipeline_context_pipeline_is_none(self):
         agent = self._make_agent(pipeline=None)
-        self.assertNotIn("pipeline", agent._context)
+        self.assertIn("pipeline", agent._context)
+        self.assertIsNone(agent._context["pipeline"])
