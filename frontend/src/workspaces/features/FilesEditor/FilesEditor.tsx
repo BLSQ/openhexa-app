@@ -66,12 +66,7 @@ const FileTreeNode = ({
   const [isExpanded, setIsExpanded] = useState(node.isProposed);
   const isSelected = selectedFile?.id === node.id;
 
-  const proposedContent =
-    node.type === "file"
-      ? (proposedByKey.get(node.path) ?? proposedByKey.get(node.name))
-      : undefined;
-  const isProposed =
-    proposedContent !== undefined && proposedContent !== (node.content ?? "");
+  const isProposed = node.type === "file" && proposedByKey.has(node.path);
   const isModified = !isProposed && modifiedFiles.has(node.id);
 
   if (node.type === "file") {
@@ -174,7 +169,7 @@ export const FilesEditor = ({
     const virtualFolderIds = new Map<string, string>(); // dirPath -> id
 
     for (const pf of proposedFiles) {
-      if (flatFiles.find((f) => f.path === pf.name || f.name === pf.name)) continue;
+      if (flatFiles.find((f) => f.path === pf.name)) continue;
 
       const parts = pf.name.split("/");
       const fileName = parts[parts.length - 1];
@@ -268,10 +263,13 @@ export const FilesEditor = ({
   const proposedByKey = useMemo(() => {
     const map = new Map<string, string>();
     for (const f of proposedFiles ?? []) {
-      map.set(f.name, f.content);
+      const existing = flatFiles.find((ef) => ef.path === f.name);
+      if (!existing || f.content !== (existing.content ?? "")) {
+        map.set(f.name, f.content);
+      }
     }
     return map;
-  }, [proposedFiles]);
+  }, [proposedFiles, flatFiles]);
 
   useEffect(() => {
     if (!proposedFiles || proposedFiles.length === 0) return;
@@ -279,7 +277,7 @@ export const FilesEditor = ({
       const next = new Map(prev);
       for (const proposed of proposedFiles) {
         const existing = flatFiles.find(
-          (f) => f.path === proposed.name || f.name === proposed.name,
+          (f) => f.path === proposed.name,
         );
         if (existing) {
           if (proposed.content !== (existing.content ?? "") && !next.has(existing.id)) {
