@@ -17,10 +17,23 @@ def setup_sentry(dsn):
     # Sampling rate
     traces_sample_rate = float(os.environ.get("SENTRY_TRACES_SAMPLE_RATE", "1.0"))
 
+    def _is_chained_exception(hint, exc_class, max_depth=10):
+        exc = (hint.get("exc_info") or (None, None, None))[1]
+        for _ in range(max_depth):
+            if exc is None:
+                return False
+            if isinstance(exc, exc_class):
+                return True
+            exc = exc.__cause__ or exc.__context__
+        return False
+
     def before_send(event, hint):
         # Connection test failures are expected user errors (wrong credentials, unreachable host, etc.)
         # The error is already returned to the UI — no need to report to Sentry
         if event.get("tags", {}).get("connection_test"):
+            return None
+        # Authentication errors are also expected user errors, and can be caused by various issues (expired token, misconfiguration, etc.)
+        if _is_chained_exception(hint, AuthenticationError):
             return None
         return event
 
@@ -54,5 +67,4 @@ def setup_sentry(dsn):
         before_send=before_send,
         send_default_pii=True,
         environment=os.environ.get("SENTRY_ENVIRONMENT"),
-        ignore_errors=[AuthenticationError],
     )
