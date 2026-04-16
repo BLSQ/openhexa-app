@@ -5,6 +5,8 @@ import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration, ignore_logger
 
+from hexa.user_management.schema.errors import AuthenticationError
+
 
 def setup_sentry(dsn):
     # Ignore "Invalid HTTP_HOST header" errors
@@ -52,4 +54,5 @@ def setup_sentry(dsn):
         before_send=before_send,
         send_default_pii=True,
         environment=os.environ.get("SENTRY_ENVIRONMENT"),
+        ignore_errors=[AuthenticationError],
     )
