@@ -2,7 +2,12 @@ import { json } from "@codemirror/lang-json";
 import { python } from "@codemirror/lang-python";
 import { unifiedMergeView } from "@codemirror/merge";
 import { EditorView } from "@codemirror/view";
-import CodeMirror from "@uiw/react-codemirror";
+// CodeMirror doesn't support SSR as it needs to access browser-only globals
+// at init/import time and cannot run on the server, so we disable SSR here.
+import dynamic from "next/dynamic";
+const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), {
+  ssr: false,
+});
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -294,8 +299,6 @@ export const FilesEditor = ({
   }, [proposedFiles, flatFiles]);
 
   const [isPanelOpen, setIsPanelOpen] = useFilesEditorPanelOpen();
-  const [isClient, setIsClient] = useState(false);
-
   const [modifiedFiles, setModifiedFiles] = useState<Map<string, string>>(
     new Map(),
   );
@@ -306,10 +309,6 @@ export const FilesEditor = ({
   useEffect(() => {
     setModifiedFiles(new Map());
   }, [flatFiles]);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   useEffect(() => {
     if (selectedFile) {
@@ -470,52 +469,44 @@ export const FilesEditor = ({
               )}
             </div>
             <div className="flex-1 relative overflow-hidden h-full">
-              {isClient ? (
-                <div className="absolute inset-0">
-                  <CodeMirror
-                    key={
-                      selectedFile.id +
-                      (proposedByKey.has(selectedFile.path) ||
-                      proposedByKey.has(selectedFile.name)
-                        ? "-diff"
-                        : "")
-                    }
-                    value={currentFileContent}
-                    readOnly={!isEditable}
-                    onChange={handleContentChange}
-                    extensions={[
-                      python(),
-                      r(),
-                      json(),
-                      ...(proposedByKey.has(selectedFile.path) ||
-                      proposedByKey.has(selectedFile.name)
-                        ? [
-                            unifiedMergeView({
-                              original: selectedFile.content ?? "",
-                              mergeControls: false,
-                            }),
-                            EditorView.theme({
-                              ".cm-changedText": {
-                                textDecoration: "none",
-                                background: "rgba(0, 0, 0, 0.15)",
-                              },
-                              ".cm-insertedLine .cm-changedText": {
-                                textDecoration: "none",
-                                background: "rgba(0, 160, 0, 0.25)",
-                              },
-                            }),
-                          ]
-                        : []),
-                    ]}
-                    height="100%"
-                    style={{ width: "100%", height: "100%" }}
-                  />
-                </div>
-              ) : (
-                <div className="flex items-center justify-center h-full bg-gray-50">
-                  <div className="text-gray-500">{t("Loading editor...")}</div>
-                </div>
-              )}
+              <div className="absolute inset-0">
+                <CodeMirror
+                  key={
+                    selectedFile.id +
+                    (proposedByKey.has(selectedFile.path)
+                      ? "-diff"
+                      : "")
+                  }
+                  value={currentFileContent}
+                  readOnly={!isEditable}
+                  onChange={handleContentChange}
+                  extensions={[
+                    python(),
+                    r(),
+                    json(),
+                    ...(proposedByKey.has(selectedFile.path)
+                      ? [
+                          unifiedMergeView({
+                            original: selectedFile.content ?? "",
+                            mergeControls: false,
+                          }),
+                          EditorView.theme({
+                            ".cm-changedText": {
+                              textDecoration: "none",
+                              background: "rgba(0, 0, 0, 0.15)",
+                            },
+                            ".cm-insertedLine .cm-changedText": {
+                              textDecoration: "none",
+                              background: "rgba(0, 160, 0, 0.25)",
+                            },
+                          }),
+                        ]
+                      : []),
+                  ]}
+                  height="100%"
+                  style={{ width: "100%", height: "100%" }}
+                />
+              </div>
             </div>
           </>
         ) : (
