@@ -1,5 +1,17 @@
 # Changelog
 
+## [5.2.0](https://github.com/BLSQ/openhexa-app/compare/5.1.3...5.2.0) (2026-04-16)
+
+
+### Features
+
+* show run parameters on pipeline runs list page (HEXA-1586) ([#1732](https://github.com/BLSQ/openhexa-app/issues/1732)) ([40ed1fe](https://github.com/BLSQ/openhexa-app/commit/40ed1fe3b4cb62d1dbddcc0a4bc513b71c32cd8e))
+
+
+### Bug Fixes
+
+* sentry issue (HEXA-1590) ([#1748](https://github.com/BLSQ/openhexa-app/issues/1748)) ([862bd9c](https://github.com/BLSQ/openhexa-app/commit/862bd9c816634726a1cea3e2b9592d00ab96c1ac))
+
 ## [5.1.3](https://github.com/BLSQ/openhexa-app/compare/5.1.2...5.1.3) (2026-04-16)
 
 
