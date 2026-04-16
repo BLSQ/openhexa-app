@@ -13,7 +13,7 @@ from hexa.pipelines.models import (
     PipelineVersion,
 )
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace, WorkspaceMembership, WorkspaceMembershipRole
+from hexa.workspaces.models import Workspace
 
 
 class PipelineSchedulerTest(TestCase):
@@ -305,7 +305,12 @@ class ScheduledPipelineVersionTest(TestCase):
             pipeline=self.PIPELINE,
             name="unschedulable",
             parameters=[
-                {"code": "required_param", "name": "Required", "type": "str", "required": True}
+                {
+                    "code": "required_param",
+                    "name": "Required",
+                    "type": "str",
+                    "required": True,
+                }
             ],
         )
         self.PIPELINE.scheduled_pipeline_version = unschedulable_version
