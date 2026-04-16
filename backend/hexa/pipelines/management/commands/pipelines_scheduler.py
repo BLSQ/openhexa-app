@@ -79,9 +79,7 @@ class Command(BaseCommand):
                         execution_date=exec_time,
                         state=PipelineRunState.SKIPPED,
                         config=(
-                            pipeline.merge_pipeline_config(
-                                {}, pipeline_version.config
-                            )
+                            pipeline.merge_pipeline_config({}, pipeline_version.config)
                             if pipeline_version
                             else {}
                         ),
