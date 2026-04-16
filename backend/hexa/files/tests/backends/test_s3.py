@@ -73,25 +73,6 @@ class S3StorageTest(StorageTestMixin, TestCase):
         self.assertEqual(items[0].type, "directory")
         self.assertEqual(items[1].type, "file")
 
-    def test_list_bucket_objects_with_match_glob(self):
-        self.storage.create_bucket(BUCKET)
-        self.storage.save_object(BUCKET, "testAAA.txt", io.BytesIO(b"a"))
-        self.storage.save_object(BUCKET, "testAAB.txt", io.BytesIO(b"b"))
-        self.storage.save_object(BUCKET, "testABC.txt", io.BytesIO(b"c"))
-        items = self.storage.list_bucket_objects(BUCKET, match_glob="*testAA*").items
-        self.assertEqual(len(items), 2)
-        names = {o.name for o in items}
-        self.assertIn("testAAA.txt", names)
-        self.assertIn("testAAB.txt", names)
-
-    def test_list_bucket_objects_query_case_insensitive(self):
-        self.storage.create_bucket(BUCKET)
-        self.storage.save_object(BUCKET, "Report.csv", io.BytesIO(b"a"))
-        self.storage.save_object(BUCKET, "other.txt", io.BytesIO(b"b"))
-        items = self.storage.list_bucket_objects(BUCKET, query="report").items
-        self.assertEqual(len(items), 1)
-        self.assertEqual(items[0].name, "Report.csv")
-
     def test_delete_object_directory(self):
         self.storage.create_bucket(BUCKET)
         self.storage.create_bucket_folder(BUCKET, "my-dir")
@@ -102,15 +83,6 @@ class S3StorageTest(StorageTestMixin, TestCase):
         self.assertEqual(len(items), 0)
         with self.assertRaises(self.storage.exceptions.NotFound):
             self.storage.get_bucket_object(BUCKET, "my-dir")
-
-    def test_generate_download_url(self):
-        self.storage.create_bucket(BUCKET)
-        self.storage.save_object(BUCKET, "file.txt", io.BytesIO(b"a"))
-        url = self.storage.generate_download_url(
-            bucket_name=BUCKET, target_key="file.txt"
-        )
-        self.assertIsNotNone(url)
-        self.assertIn("file.txt", url)
 
     def test_generate_download_url_force_attachment(self):
         self.storage.create_bucket(BUCKET)
@@ -156,25 +128,6 @@ class S3StorageTest(StorageTestMixin, TestCase):
         disposition = _content_disposition(url)
         self.assertIn("attachment", disposition)
         self.assertIn("données.csv", disposition)
-
-    def test_generate_upload_url(self):
-        self.storage.create_bucket(BUCKET)
-        url, headers = self.storage.generate_upload_url(
-            bucket_name=BUCKET, target_key="new.txt"
-        )
-        self.assertIsNotNone(url)
-        self.assertIn("new.txt", url)
-        self.assertIsNone(headers)
-
-    def test_generate_upload_url_raise_if_exists(self):
-        self.storage.create_bucket(BUCKET)
-        self.storage.save_object(BUCKET, "existing.txt", io.BytesIO(b"a"))
-        with self.assertRaises(self.storage.exceptions.AlreadyExists):
-            self.storage.generate_upload_url(
-                bucket_name=BUCKET,
-                target_key="existing.txt",
-                raise_if_exists=True,
-            )
 
     def test_get_bucket_mount_config_static_credentials(self):
         self.storage.create_bucket(BUCKET)

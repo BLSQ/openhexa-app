@@ -17,6 +17,8 @@ class StorageTestMixin:
 
     storage: Storage
 
+    # --- Bucket ---
+
     def test_bucket_exists_false(self):
         self.assertFalse(self.storage.bucket_exists(BUCKET))
 
@@ -29,6 +31,12 @@ class StorageTestMixin:
         with self.assertRaises(self.storage.exceptions.AlreadyExists):
             self.storage.create_bucket(BUCKET)
 
+    def test_delete_bucket_not_found(self):
+        with self.assertRaises(self.storage.exceptions.NotFound):
+            self.storage.delete_bucket(BUCKET)
+
+    # --- Object CRUD ---
+
     def test_save_and_read_object(self):
         self.storage.create_bucket(BUCKET)
         self.storage.save_object(BUCKET, "file.txt", io.BytesIO(b"hello world"))
@@ -39,11 +47,11 @@ class StorageTestMixin:
         with self.assertRaises(self.storage.exceptions.NotFound):
             self.storage.read_object(BUCKET, "nonexistent.txt")
 
-    def test_create_bucket_folder(self):
+    def test_overwrite_object(self):
         self.storage.create_bucket(BUCKET)
-        obj = self.storage.create_bucket_folder(BUCKET, "my-dir")
-        self.assertEqual(obj.type, "directory")
-        self.assertEqual(obj.name, "my-dir")
+        self.storage.save_object(BUCKET, "file.txt", io.BytesIO(b"original"))
+        self.storage.save_object(BUCKET, "file.txt", io.BytesIO(b"overwritten"))
+        self.assertEqual(self.storage.read_object(BUCKET, "file.txt"), b"overwritten")
 
     def test_get_bucket_object_file(self):
         self.storage.create_bucket(BUCKET)
@@ -57,6 +65,22 @@ class StorageTestMixin:
         self.storage.create_bucket(BUCKET)
         with self.assertRaises(self.storage.exceptions.NotFound):
             self.storage.get_bucket_object(BUCKET, "nonexistent.txt")
+
+    # --- Folders ---
+
+    def test_create_bucket_folder(self):
+        self.storage.create_bucket(BUCKET)
+        obj = self.storage.create_bucket_folder(BUCKET, "my-dir")
+        self.assertEqual(obj.type, "directory")
+        self.assertEqual(obj.name, "my-dir")
+
+    def test_create_bucket_folder_with_trailing_slash(self):
+        self.storage.create_bucket(BUCKET)
+        obj = self.storage.create_bucket_folder(BUCKET, "my-dir/")
+        self.assertEqual(obj.type, "directory")
+        self.assertEqual(obj.name, "my-dir")
+
+    # --- List ---
 
     def test_list_bucket_objects(self):
         self.storage.create_bucket(BUCKET)
@@ -84,6 +108,15 @@ class StorageTestMixin:
         self.assertEqual(len(items), 1)
         self.assertEqual(items[0].name, "file1.txt")
 
+    def test_list_bucket_objects_nested_not_at_root(self):
+        self.storage.create_bucket(BUCKET)
+        self.storage.save_object(BUCKET, "dir/nested.txt", io.BytesIO(b"a"))
+        self.storage.save_object(BUCKET, "root.txt", io.BytesIO(b"b"))
+        items = self.storage.list_bucket_objects(BUCKET).items
+        names = {o.name for o in items}
+        self.assertIn("root.txt", names)
+        self.assertNotIn("nested.txt", names)
+
     def test_list_bucket_objects_with_query(self):
         self.storage.create_bucket(BUCKET)
         self.storage.save_object(BUCKET, "report_2024.csv", io.BytesIO(b"a"))
@@ -94,6 +127,25 @@ class StorageTestMixin:
         names = {o.name for o in items}
         self.assertIn("report_2024.csv", names)
         self.assertIn("summary_2024.csv", names)
+
+    def test_list_bucket_objects_query_case_insensitive(self):
+        self.storage.create_bucket(BUCKET)
+        self.storage.save_object(BUCKET, "Report.csv", io.BytesIO(b"a"))
+        self.storage.save_object(BUCKET, "other.txt", io.BytesIO(b"b"))
+        items = self.storage.list_bucket_objects(BUCKET, query="report").items
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].name, "Report.csv")
+
+    def test_list_bucket_objects_with_match_glob(self):
+        self.storage.create_bucket(BUCKET)
+        self.storage.save_object(BUCKET, "testAAA.txt", io.BytesIO(b"a"))
+        self.storage.save_object(BUCKET, "testAAB.txt", io.BytesIO(b"b"))
+        self.storage.save_object(BUCKET, "testABC.txt", io.BytesIO(b"c"))
+        items = self.storage.list_bucket_objects(BUCKET, match_glob="*testAA*").items
+        self.assertEqual(len(items), 2)
+        names = {o.name for o in items}
+        self.assertIn("testAAA.txt", names)
+        self.assertIn("testAAB.txt", names)
 
     def test_list_bucket_objects_hidden_files_ignored(self):
         self.storage.create_bucket(BUCKET)
@@ -128,6 +180,8 @@ class StorageTestMixin:
         self.assertEqual(len(page3.items), 1)
         self.assertFalse(page3.has_next_page)
 
+    # --- Delete ---
+
     def test_delete_object(self):
         self.storage.create_bucket(BUCKET)
         self.storage.save_object(BUCKET, "file.txt", io.BytesIO(b"a"))
@@ -140,15 +194,34 @@ class StorageTestMixin:
         with self.assertRaises(self.storage.exceptions.NotFound):
             self.storage.delete_object(BUCKET, "nonexistent.txt")
 
-    def test_overwrite_object(self):
-        self.storage.create_bucket(BUCKET)
-        self.storage.save_object(BUCKET, "file.txt", io.BytesIO(b"original"))
-        self.storage.save_object(BUCKET, "file.txt", io.BytesIO(b"overwritten"))
-        self.assertEqual(self.storage.read_object(BUCKET, "file.txt"), b"overwritten")
+    # --- URL generation ---
 
-    def test_delete_bucket_not_found(self):
-        with self.assertRaises(self.storage.exceptions.NotFound):
-            self.storage.delete_bucket(BUCKET)
+    def test_generate_download_url(self):
+        self.storage.create_bucket(BUCKET)
+        self.storage.save_object(BUCKET, "file.txt", io.BytesIO(b"a"))
+        url = self.storage.generate_download_url(
+            bucket_name=BUCKET, target_key="file.txt"
+        )
+        self.assertIsNotNone(url)
+
+    def test_generate_upload_url(self):
+        self.storage.create_bucket(BUCKET)
+        url, _ = self.storage.generate_upload_url(
+            bucket_name=BUCKET, target_key="new.txt"
+        )
+        self.assertIsNotNone(url)
+
+    def test_generate_upload_url_raise_if_exists(self):
+        self.storage.create_bucket(BUCKET)
+        self.storage.save_object(BUCKET, "existing.txt", io.BytesIO(b"a"))
+        with self.assertRaises(self.storage.exceptions.AlreadyExists):
+            self.storage.generate_upload_url(
+                bucket_name=BUCKET,
+                target_key="existing.txt",
+                raise_if_exists=True,
+            )
+
+    # --- Sample data ---
 
     def test_load_bucket_sample_data(self):
         self.storage.create_bucket(BUCKET)

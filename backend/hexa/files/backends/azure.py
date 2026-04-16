@@ -134,12 +134,25 @@ class AzureBlobStorage(Storage):
         return f"{blob_client.url}?{sas_token}"
 
     def generate_upload_url(
-        self, *, bucket_name, target_key, content_type=None, expiration=3600, **kwargs
+        self,
+        *,
+        bucket_name,
+        target_key,
+        content_type=None,
+        expiration=3600,
+        raise_if_exists=False,
+        **kwargs,
     ):
         # Get a blob client for the target blob
         blob_client = self.client.get_blob_client(
             container=bucket_name, blob=target_key
         )
+        if raise_if_exists:
+            try:
+                blob_client.get_blob_properties()
+                raise self.exceptions.AlreadyExists(target_key)
+            except ResourceNotFoundError:
+                pass
 
         # Update the start time and expiry time for SAS token
         sas_start_time = datetime.now(timezone.utc)
