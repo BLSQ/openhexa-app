@@ -1,5 +1,4 @@
 from ariadne import ObjectType, SchemaDirectiveVisitor
-from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.db.models.functions import Collate
 from django.http import HttpRequest
@@ -29,11 +28,7 @@ from hexa.workspaces.models import (
 )
 
 from ..utils import has_configured_two_factor
-
-
-class AuthenticationError(PermissionDenied):
-    extensions = {"code": "UNAUTHENTICATED"}
-    message = "Resolver requires an authenticated user"
+from .errors import AuthenticationError
 
 
 class LoginRequiredDirective(SchemaDirectiveVisitor):
