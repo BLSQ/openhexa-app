@@ -2,7 +2,6 @@ import uuid
 from unittest.mock import patch
 
 from django.core import mail
-from django.core.exceptions import PermissionDenied
 
 from hexa.core.test import TestCase
 from hexa.pipeline_templates.models import PipelineTemplateVersion
