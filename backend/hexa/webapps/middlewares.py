@@ -29,6 +29,14 @@ def _webapp_not_found():
     return HttpResponse(html, status=404)
 
 
+def _set_csp_frame_ancestors(response):
+    frame_ancestors = f"'self' {settings.BASE_URL}"
+    if hasattr(settings, "NEW_FRONTEND_DOMAIN"):
+        frame_ancestors += f" {settings.NEW_FRONTEND_DOMAIN}"
+    del response["X-Frame-Options"]
+    response["Content-Security-Policy"] = f"frame-ancestors {frame_ancestors}"
+
+
 def _serve_static_webapp(webapp, request):
     try:
         git_webapp = GitWebapp.objects.get(pk=webapp.pk)
@@ -224,11 +232,7 @@ def webapp_subdomain_middleware(get_response):
         else:
             response = _serve_iframe_webapp(webapp, show_powered_by=show_powered_by)
 
-        del response["X-Frame-Options"]
-        frame_ancestors = f"'self' {settings.BASE_URL}"
-        if hasattr(settings, "NEW_FRONTEND_DOMAIN"):
-            frame_ancestors += f" {settings.NEW_FRONTEND_DOMAIN}"
-        response["Content-Security-Policy"] = f"frame-ancestors {frame_ancestors}"
+        _set_csp_frame_ancestors(response)
 
         return response
 
@@ -272,10 +276,6 @@ class CustomDomainMiddleware:
         else:
             response = _serve_iframe_webapp(webapp)
 
-        del response["X-Frame-Options"]
-        frame_ancestors = f"'self' {settings.BASE_URL}"
-        if hasattr(settings, "NEW_FRONTEND_DOMAIN"):
-            frame_ancestors += f" {settings.NEW_FRONTEND_DOMAIN}"
-        response["Content-Security-Policy"] = f"frame-ancestors {frame_ancestors}"
+        _set_csp_frame_ancestors(response)
 
         return response
