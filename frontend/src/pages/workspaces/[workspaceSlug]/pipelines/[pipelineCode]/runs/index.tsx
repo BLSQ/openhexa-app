@@ -8,9 +8,11 @@ import Time from "core/components/Time";
 import { createGetServerSideProps } from "core/helpers/page";
 import { formatDuration } from "core/helpers/time";
 import { NextPageWithLayout } from "core/helpers/types";
-import { PipelineRunTrigger, PipelineType } from "graphql/types";
+import { PipelineParameter, PipelineRunTrigger, PipelineType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import router from "next/router";
+import { useState } from "react";
+import { formatParamValue } from "pipelines/helpers/format";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import {
   useWorkspacePipelineRunsPageQuery,
@@ -18,7 +20,59 @@ import {
   WorkspacePipelineRunsPageQuery,
   WorkspacePipelineRunsPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
+import { getPipelineRunConfig } from "workspaces/helpers/pipelines";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
+
+const MAX_VISIBLE_PARAMS = 3;
+
+function RunParametersCell({
+  run,
+}: {
+  run: { config: any; version?: { parameters: Omit<PipelineParameter, "__typename">[] } | null };
+}) {
+  const { t } = useTranslation();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const params = getPipelineRunConfig(run);
+
+  if (!params.length) return <span className="text-gray-400">-</span>;
+
+  const shouldShowToggle = params.length > MAX_VISIBLE_PARAMS;
+  const visibleParams = isExpanded ? params : params.slice(0, MAX_VISIBLE_PARAMS);
+  const remainingCount = params.length - MAX_VISIBLE_PARAMS;
+
+  return (
+    <div className="w-52 space-y-0.5 text-xs text-gray-600">
+      {visibleParams.map((p) => (
+        <div key={p.code} className="flex min-w-0 gap-1">
+          <span className="shrink-0 text-gray-400">{p.name}:</span>
+          <span className="break-words">{formatParamValue(p)}</span>
+        </div>
+      ))}
+      {shouldShowToggle && !isExpanded && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(true);
+          }}
+          className="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline"
+        >
+          {t("+{{remainingCount}} more", { remainingCount })}
+        </button>
+      )}
+      {isExpanded && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(false);
+          }}
+          className="cursor-pointer text-blue-600 hover:text-blue-800 hover:underline"
+        >
+          {t("Show less")}
+        </button>
+      )}
+    </div>
+  );
+}
 
 type Props = {
   page: number;
@@ -121,6 +175,9 @@ const WorkspacePipelineRunsPage: NextPageWithLayout = (props: Props) => {
             )}
           </BaseColumn>
           <UserColumn label={t("User")} accessor="user" />
+          <BaseColumn label={t("Parameters")} id="parameters">
+            {(item) => <RunParametersCell run={item} />}
+          </BaseColumn>
           <ChevronLinkColumn
             accessor="id"
             url={(value: any) => ({

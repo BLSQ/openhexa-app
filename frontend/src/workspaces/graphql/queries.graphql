@@ -194,11 +194,18 @@ query WorkspacePipelineRunsPage(
     runs(page: $page, perPage: $perPage) {
       items {
         id
+        config
         version {
           versionName
           createdAt
           user {
             ...User_user
+          }
+          parameters {
+            code
+            name
+            type
+            multiple
           }
         }
         executionDate
