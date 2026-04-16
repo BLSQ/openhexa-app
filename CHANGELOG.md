@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.1.2](https://github.com/BLSQ/openhexa-app/compare/5.1.1...5.1.2) (2026-04-16)
+
+
+### Bug Fixes
+
+* disable lifespan for Uvicorn (HEXA-1590) ([#1743](https://github.com/BLSQ/openhexa-app/issues/1743)) ([ad05e83](https://github.com/BLSQ/openhexa-app/commit/ad05e833504fd2c062737fcdc14ccbc05e4b76a3))
+* ignore auth error for Sentry (HEXA-1590)([#1742](https://github.com/BLSQ/openhexa-app/issues/1742)) ([61edb65](https://github.com/BLSQ/openhexa-app/commit/61edb65e2491d7a40e7862a8b7edd4ef5e8baf8c))
+
 ## [5.1.1](https://github.com/BLSQ/openhexa-app/compare/5.1.0...5.1.1) (2026-04-15)
 
 
