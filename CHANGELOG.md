@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.1.3](https://github.com/BLSQ/openhexa-app/compare/5.1.2...5.1.3) (2026-04-16)
+
+
+### Bug Fixes
+
+* circular imports (HEXA-1590)([#1745](https://github.com/BLSQ/openhexa-app/issues/1745)) ([5d6b01d](https://github.com/BLSQ/openhexa-app/commit/5d6b01d0286fc7fe440ee3f507f247af06ef009b))
+
 ## [5.1.2](https://github.com/BLSQ/openhexa-app/compare/5.1.1...5.1.2) (2026-04-16)
 
 
