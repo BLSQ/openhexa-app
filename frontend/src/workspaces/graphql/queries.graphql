@@ -197,6 +197,7 @@ query WorkspacePipelineRunsPage(
         config
         version {
           versionName
+          isLatestVersion
           createdAt
           user {
             ...User_user
