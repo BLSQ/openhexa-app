@@ -36,7 +36,7 @@ case "$command" in
   ;;
 "start")
   wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
-  gunicorn config.asgi:application -k uvicorn.workers.UvicornWorker --bind 0:8000 --workers=3
+  UVICORN_LIFESPAN=off gunicorn config.asgi:application -k uvicorn.workers.UvicornWorker --bind 0:8000 --workers=3
   ;;
 "makemigrations")
   wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
