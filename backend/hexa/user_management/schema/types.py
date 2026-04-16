@@ -27,8 +27,8 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
 )
 
+from ..errors import AuthenticationError
 from ..utils import has_configured_two_factor
-from .errors import AuthenticationError
 
 
 class LoginRequiredDirective(SchemaDirectiveVisitor):
