@@ -245,7 +245,7 @@ def webapp_subdomain_middleware(get_response):
 
 def custom_domain_middleware(get_response):
     """Intercepts requests arriving on a webapp's custom domain and serves the webapp
-    content directly, bypassing normal Django URL routing.
+    content directly bypassing normal Django URL routing.
 
     Only public webapps can be served via a custom domain.
     """
