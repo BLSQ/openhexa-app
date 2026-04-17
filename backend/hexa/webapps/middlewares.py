@@ -77,6 +77,18 @@ def _inject_powered_by_banner(response):
     return response
 
 
+def _dispatch_webapp_response(request, webapp, show_powered_by=False):
+    if webapp.type == Webapp.WebappType.STATIC:
+        response = _serve_static_webapp(webapp, request)
+        if show_powered_by:
+            _inject_powered_by_banner(response)
+    elif webapp.type == Webapp.WebappType.SUPERSET:
+        response = _serve_superset_webapp(request, webapp)
+    else:
+        response = _serve_iframe_webapp(webapp, show_powered_by=show_powered_by)
+    return response
+
+
 def _serve_superset_webapp(request, webapp):
     superset_webapp = SupersetWebapp.objects.select_related("superset_dashboard").get(
         pk=webapp.pk
@@ -223,15 +235,7 @@ def webapp_subdomain_middleware(get_response):
             webapp.is_public and webapp.show_powered_by and not is_authenticated
         )
 
-        if webapp.type == Webapp.WebappType.STATIC:
-            response = _serve_static_webapp(webapp, request)
-            if show_powered_by:
-                _inject_powered_by_banner(response)
-        elif webapp.type == Webapp.WebappType.SUPERSET:
-            response = _serve_superset_webapp(request, webapp)
-        else:
-            response = _serve_iframe_webapp(webapp, show_powered_by=show_powered_by)
-
+        response = _dispatch_webapp_response(request, webapp, show_powered_by)
         _set_csp_frame_ancestors(response)
 
         return response
@@ -239,17 +243,14 @@ def webapp_subdomain_middleware(get_response):
     return middleware
 
 
-class CustomDomainMiddleware:
+def custom_domain_middleware(get_response):
     """Intercepts requests arriving on a webapp's custom domain and serves the webapp
     content directly, bypassing normal Django URL routing.
 
     Only public webapps can be served via a custom domain.
     """
 
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request: HttpRequest):
+    def middleware(request: HttpRequest):
         host = request.META.get("HTTP_HOST", "").split(":")[0].lower()
 
         # Skip the DB query for known OpenHEXA hosts — only custom domains are unusual
@@ -257,25 +258,22 @@ class CustomDomainMiddleware:
         if host == settings.BASE_HOSTNAME or (
             webapps_domain and host.endswith(f".{webapps_domain}")
         ):
-            return self.get_response(request)
+            return get_response(request)
 
         try:
             webapp = Webapp.objects.get(custom_domain=host, is_public=True)
         except Webapp.DoesNotExist:
-            return self.get_response(request)
+            return get_response(request)
 
         request.webapp = webapp
 
         if request.path.startswith("/graphql/"):
             return HttpResponseNotFound("Not available")
 
-        if webapp.type == Webapp.WebappType.STATIC:
-            response = _serve_static_webapp(webapp, request)
-        elif webapp.type == Webapp.WebappType.SUPERSET:
-            response = _serve_superset_webapp(request, webapp)
-        else:
-            response = _serve_iframe_webapp(webapp)
-
+        show_powered_by = webapp.show_powered_by and not request.user.is_authenticated
+        response = _dispatch_webapp_response(request, webapp, show_powered_by)
         _set_csp_frame_ancestors(response)
 
         return response
+
+    return middleware
