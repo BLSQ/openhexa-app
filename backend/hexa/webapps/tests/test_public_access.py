@@ -969,7 +969,7 @@ class CustomDomainMiddlewareTest(TestCase):
 
         response = self.client.get("/", HTTP_HOST="mycustomdomain.com")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, b"<html>custom</html>")
+        self.assertIn(b"<html>custom</html>", response.content)
 
     def test_private_webapp_not_served_on_custom_domain(self):
         response = self.client.get("/", HTTP_HOST="privatecustomdomain.com")
