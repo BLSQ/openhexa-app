@@ -173,7 +173,7 @@ const WorkspacePipelineRunsPage: NextPageWithLayout = (props: Props) => {
                       : item.version.versionName}
                   </span>
                 ) : (
-                  "-"
+                  <span>-</span>
                 )
               }
             </BaseColumn>
