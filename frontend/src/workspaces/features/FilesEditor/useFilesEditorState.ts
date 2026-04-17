@@ -45,6 +45,7 @@ export const useFilesEditorState = ({
 
       const parts = pf.name.split("/");
       const fileName = parts[parts.length - 1];
+      if (!fileName) continue;
       let parentId: string | null = null;
 
       for (let i = 0; i < parts.length - 1; i++) {
@@ -112,8 +113,20 @@ export const useFilesEditorState = ({
     [files],
   );
 
+  // Files present in the current version but absent from the proposal — the agent wants them deleted.
+  const proposedDeletions = useMemo<Set<string>>(() => {
+    if (!proposedFiles) return new Set();
+    const proposedNames = new Set(proposedFiles.map((f) => f.name));
+    return new Set(
+      flatFiles
+        .filter((f) => f.type === FileType.File && !proposedNames.has(f.path))
+        .map((f) => f.path),
+    );
+  }, [proposedFiles, flatFiles]);
+
   // Maps file path → proposed content, but only for files that differ from the current version.
   // Unchanged files are excluded so they don't trigger diff highlighting or amber dots.
+  // Deleted files are included with "" so the diff renders all lines as removed.
   const proposedByKey = useMemo(() => {
     const map = new Map<string, string>();
     for (const f of proposedFiles ?? []) {
@@ -122,8 +135,42 @@ export const useFilesEditorState = ({
         map.set(f.name, f.content);
       }
     }
+    for (const path of Array.from(proposedDeletions)) {
+      map.set(path, "");
+    }
     return map;
-  }, [proposedFiles, flatFiles]);
+  }, [proposedFiles, flatFiles, proposedDeletions]);
+
+  // Subset of proposedDeletions where the user hasn't overridden the deletion by editing.
+  const effectivelyDeletedPaths = useMemo<Set<string>>(() => {
+    const result = new Set<string>();
+    for (const path of Array.from(proposedDeletions)) {
+      const file = flatFiles.find((f) => f.path === path);
+      if (file && !modifiedFiles.get(file.id)) {
+        result.add(path);
+      }
+    }
+    return result;
+  }, [proposedDeletions, modifiedFiles, flatFiles]);
+
+  // Folders where every file descendant is effectively deleted.
+  const effectivelyDeletedFolderPaths = useMemo<Set<string>>(() => {
+    if (effectivelyDeletedPaths.size === 0) return new Set();
+    const result = new Set<string>();
+    const dirs = flatFiles.filter((f) => f.type === FileType.Directory);
+    for (const dir of dirs) {
+      const filesUnder = flatFiles.filter(
+        (f) => f.type === FileType.File && f.path.startsWith(dir.path + "/"),
+      );
+      if (
+        filesUnder.length > 0 &&
+        filesUnder.every((f) => effectivelyDeletedPaths.has(f.path))
+      ) {
+        result.add(dir.path);
+      }
+    }
+    return result;
+  }, [flatFiles, effectivelyDeletedPaths]);
 
   useEffect(() => {
     if (files.length === 0) {
@@ -149,7 +196,7 @@ export const useFilesEditorState = ({
   }, [flatFiles]);
 
   useEffect(() => {
-    if (!proposedFiles || proposedFiles.length === 0) return;
+    if (!proposedFiles) return;
     setModifiedFiles((prev) => {
       const next = new Map(prev);
       for (const proposed of proposedFiles) {
@@ -167,9 +214,17 @@ export const useFilesEditorState = ({
           }
         }
       }
+      // Seed deleted files with "" as the deletion marker so the diff shows all
+      // lines removed. handleContentChange will overwrite this if the user edits.
+      for (const path of Array.from(proposedDeletions)) {
+        const existing = flatFiles.find((f) => f.path === path);
+        if (existing && !next.has(existing.id)) {
+          next.set(existing.id, "");
+        }
+      }
       return next;
     });
-  }, [proposedFiles, flatFiles]);
+  }, [proposedFiles, flatFiles, proposedDeletions]);
 
   useEffect(() => {
     if (selectedFile) {
@@ -185,7 +240,12 @@ export const useFilesEditorState = ({
   const handleContentChange = (content: string) => {
     if (selectedFile && isEditable) {
       setCurrentFileContent(content);
-      if (content !== (selectedFile.content || "")) {
+      // For files proposed for deletion, always keep them in modifiedFiles so we
+      // don't lose track of whether the user restored the file to its original content.
+      if (
+        content !== (selectedFile.content || "") ||
+        proposedDeletions.has(selectedFile.path)
+      ) {
         setModifiedFiles((prev) => new Map(prev).set(selectedFile.id, content));
       } else {
         setModifiedFiles((prev) => {
@@ -205,7 +265,10 @@ export const useFilesEditorState = ({
     setSaveError(null);
 
     try {
-      const result = await onSave(modifiedFiles, augmentedFlatFiles);
+      const filesToSave = augmentedFlatFiles.filter(
+        (f) => !effectivelyDeletedPaths.has(f.path),
+      );
+      const result = await onSave(modifiedFiles, filesToSave);
       if (!result.success) {
         setSaveError(result.error || "Save failed");
       }
@@ -228,6 +291,8 @@ export const useFilesEditorState = ({
     saveError,
     rootFiles,
     proposedByKey,
+    effectivelyDeletedPaths,
+    effectivelyDeletedFolderPaths,
     currentFileIsModified: selectedFile ? modifiedFiles.has(selectedFile.id) : false,
     numberOfFiles: files.filter((f) => f.type === FileType.File).length,
     handleContentChange,

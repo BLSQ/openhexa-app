@@ -18,6 +18,8 @@ const FileTreeNode = ({
   setSelectedFile,
   modifiedFiles,
   proposedByKey,
+  deletedFilePaths,
+  deletedFolderPaths,
 }: {
   node: FileNode;
   level?: number;
@@ -25,33 +27,48 @@ const FileTreeNode = ({
   setSelectedFile: (file: FileNode | null) => void;
   modifiedFiles: Map<string, string>;
   proposedByKey: Map<string, string>;
+  deletedFilePaths: Set<string>;
+  deletedFolderPaths: Set<string>;
 }) => {
   const [isExpanded, setIsExpanded] = useState(node.isProposed);
   const isSelected = selectedFile?.id === node.id;
-  const isProposed = node.type === FileType.File && proposedByKey.has(node.path);
-  const isModified = !isProposed && modifiedFiles.has(node.id);
+  const isDeleted = node.type === FileType.File && deletedFilePaths.has(node.path);
+  const isFolderDeleted =
+    node.type === FileType.Directory && deletedFolderPaths.has(node.path);
+  const isProposed = !isDeleted && node.type === FileType.File && proposedByKey.has(node.path);
+  const isModified = !isProposed && !isDeleted && modifiedFiles.has(node.id);
 
   if (node.type === FileType.File) {
     return (
       <div
         className={clsx(
           "flex items-center cursor-pointer px-2 py-1 text-sm",
-          isSelected ? "bg-blue-50 text-blue-700" : "hover:bg-gray-200",
+          isSelected
+            ? isDeleted
+              ? "bg-red-50 text-red-700"
+              : "bg-blue-50 text-blue-700"
+            : "hover:bg-gray-200",
         )}
         style={{ paddingLeft: `${level * 24 + 8}px` }}
         onClick={() => setSelectedFile(isSelected ? null : node)}
       >
-        <DocumentIcon className="w-4 h-4 mr-2 text-gray-400" />
+        <DocumentIcon
+          className={clsx("w-4 h-4 mr-2", isDeleted ? "text-red-400" : "text-gray-400")}
+        />
         <span className="flex items-center gap-2">
-          {node.name}
+          <span className={clsx(isDeleted && "line-through text-red-500")}>
+            {node.name}
+          </span>
           <span
             className={clsx(
               "inline-block w-1.5 h-1.5 rounded-full",
-              isProposed
-                ? "visible bg-amber-400"
-                : isModified
-                  ? "visible bg-blue-500"
-                  : "invisible bg-blue-500",
+              isDeleted
+                ? "visible bg-red-500"
+                : isProposed
+                  ? "visible bg-amber-400"
+                  : isModified
+                    ? "visible bg-blue-500"
+                    : "invisible bg-blue-500",
             )}
           />
         </span>
@@ -67,12 +84,20 @@ const FileTreeNode = ({
         onClick={() => setIsExpanded(!isExpanded)}
       >
         {isExpanded ? (
-          <ChevronDownIcon className="w-4 h-4 mr-2 text-gray-400" />
+          <ChevronDownIcon
+            className={clsx("w-4 h-4 mr-2", isFolderDeleted ? "text-red-400" : "text-gray-400")}
+          />
         ) : (
-          <ChevronRightIcon className="w-4 h-4 mr-2 text-gray-400" />
+          <ChevronRightIcon
+            className={clsx("w-4 h-4 mr-2", isFolderDeleted ? "text-red-400" : "text-gray-400")}
+          />
         )}
-        <FolderIcon className="w-4 h-4 mr-2 text-gray-400" />
-        <span>{node.name}</span>
+        <FolderIcon
+          className={clsx("w-4 h-4 mr-2", isFolderDeleted ? "text-red-400" : "text-gray-400")}
+        />
+        <span className={clsx(isFolderDeleted && "line-through text-red-500")}>
+          {node.name}
+        </span>
       </div>
       {isExpanded && (
         <div>
@@ -85,6 +110,8 @@ const FileTreeNode = ({
               setSelectedFile={setSelectedFile}
               modifiedFiles={modifiedFiles}
               proposedByKey={proposedByKey}
+              deletedFilePaths={deletedFilePaths}
+              deletedFolderPaths={deletedFolderPaths}
             />
           ))}
         </div>
@@ -101,6 +128,8 @@ type FileTreeProps = {
   setSelectedFile: (file: FileNode | null) => void;
   modifiedFiles: Map<string, string>;
   proposedByKey: Map<string, string>;
+  deletedFilePaths: Set<string>;
+  deletedFolderPaths: Set<string>;
   onClose: () => void;
 };
 
@@ -112,6 +141,8 @@ const FileTree = ({
   setSelectedFile,
   modifiedFiles,
   proposedByKey,
+  deletedFilePaths,
+  deletedFolderPaths,
   onClose,
 }: FileTreeProps) => {
   const { t } = useTranslation();
@@ -138,6 +169,8 @@ const FileTree = ({
             setSelectedFile={setSelectedFile}
             modifiedFiles={modifiedFiles}
             proposedByKey={proposedByKey}
+            deletedFilePaths={deletedFilePaths}
+            deletedFolderPaths={deletedFolderPaths}
           />
         ))}
       </div>

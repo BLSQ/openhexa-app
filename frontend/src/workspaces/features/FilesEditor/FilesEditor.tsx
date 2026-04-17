@@ -37,6 +37,8 @@ export const FilesEditor = ({
     saveError,
     rootFiles,
     proposedByKey,
+    effectivelyDeletedPaths,
+    effectivelyDeletedFolderPaths,
     currentFileIsModified,
     numberOfFiles,
     handleContentChange,
@@ -54,6 +56,8 @@ export const FilesEditor = ({
           setSelectedFile={setSelectedFile}
           modifiedFiles={modifiedFiles}
           proposedByKey={proposedByKey}
+          deletedFilePaths={effectivelyDeletedPaths}
+          deletedFolderPaths={effectivelyDeletedFolderPaths}
           onClose={() => setIsPanelOpen(false)}
         />
       )}
@@ -80,6 +84,7 @@ export const FilesEditor = ({
           isSaving={isSaving}
           saveError={saveError}
           proposedByKey={proposedByKey}
+          deletedFilePaths={effectivelyDeletedPaths}
           onContentChange={handleContentChange}
           onSave={handleSave}
           hasSaveHandler={!!onSave}

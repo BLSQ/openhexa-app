@@ -30,6 +30,8 @@ def propose_pipeline_version(
     if current_version and current_version.zipfile:
         with zipfile.ZipFile(io.BytesIO(bytes(current_version.zipfile)), "r") as zf:
             for name in zf.namelist():
+                if name.endswith("/"):
+                    continue
                 try:
                     current_files[name] = zf.read(name).decode("utf-8")
                 except UnicodeDecodeError:
@@ -38,7 +40,12 @@ def propose_pipeline_version(
     for f in modified_files or []:
         current_files[f.name] = f.content
     for name in deleted_files or []:
-        current_files.pop(name, None)
+        if name.endswith("/"):
+            for key in list(current_files.keys()):
+                if key.startswith(name):
+                    current_files.pop(key)
+        else:
+            current_files.pop(name, None)
 
     return {"files": [{"name": k, "content": v} for k, v in current_files.items()]}
 
@@ -81,6 +88,8 @@ class EditPipelineAgent(BaseAgent):
             lines.append("### Files")
             with zipfile.ZipFile(io.BytesIO(bytes(current_version.zipfile)), "r") as zf:
                 for name in sorted(zf.namelist()):
+                    if name.endswith("/"):
+                        continue
                     try:
                         content = zf.read(name).decode("utf-8")
                     except UnicodeDecodeError:

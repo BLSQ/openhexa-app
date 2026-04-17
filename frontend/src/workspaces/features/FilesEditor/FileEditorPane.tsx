@@ -18,6 +18,7 @@ type FileEditorPaneProps = {
   isSaving: boolean;
   saveError: string | null;
   proposedByKey: Map<string, string>;
+  deletedFilePaths: Set<string>;
   onContentChange: (content: string) => void;
   onSave: () => void;
   hasSaveHandler: boolean;
@@ -31,12 +32,15 @@ const FileEditorPane = ({
   isSaving,
   saveError,
   proposedByKey,
+  deletedFilePaths,
   onContentChange,
   onSave,
   hasSaveHandler,
 }: FileEditorPaneProps) => {
   const { t } = useTranslation();
 
+  const isEffectivelyDeleted =
+    selectedFile !== null && deletedFilePaths.has(selectedFile.path);
   const isDiffMode = selectedFile !== null && proposedByKey.has(selectedFile.path);
 
   const extensions = useMemo(
@@ -126,6 +130,13 @@ const FileEditorPane = ({
           </button>
         )}
       </div>
+      {isEffectivelyDeleted && (
+        <div className="shrink-0 flex items-center border-b border-red-200 bg-red-50 px-3 py-2 text-sm">
+          <span className="font-medium text-red-700">
+            {t("This file will be deleted")}
+          </span>
+        </div>
+      )}
       <div className="flex-1 relative overflow-hidden h-full">
         <div className="absolute inset-0">
           <CodeMirrorClient
