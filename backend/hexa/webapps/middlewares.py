@@ -270,7 +270,7 @@ def custom_domain_middleware(get_response):
         if request.path.startswith("/graphql/"):
             return HttpResponseNotFound("Not available")
 
-        show_powered_by = webapp.show_powered_by and not request.user.is_authenticated
+        show_powered_by = webapp.show_powered_by
         response = _dispatch_webapp_response(request, webapp, show_powered_by)
         _set_csp_frame_ancestors(response)
 
