@@ -71,11 +71,9 @@ class AzureBlobStorage(Storage):
             bucket = self.client.create_container(bucket_name, metadata=labels)
             return bucket.container_name
         except ResourceExistsError:
-            raise Storage.exceptions.AlreadyExists(
-                f"Bucket {bucket_name} already exists"
-            )
+            raise self.exceptions.AlreadyExists(f"Bucket {bucket_name} already exists")
         except HttpResponseError as e:
-            raise Storage.exceptions.BadRequest(
+            raise self.exceptions.BadRequest(
                 f"Cannot create the bucket {bucket_name}: {e.message}"
             ) from e
 
@@ -136,12 +134,25 @@ class AzureBlobStorage(Storage):
         return f"{blob_client.url}?{sas_token}"
 
     def generate_upload_url(
-        self, *, bucket_name, target_key, content_type=None, expiration=3600, **kwargs
+        self,
+        *,
+        bucket_name,
+        target_key,
+        content_type=None,
+        expiration=3600,
+        raise_if_exists=False,
+        **kwargs,
     ):
         # Get a blob client for the target blob
         blob_client = self.client.get_blob_client(
             container=bucket_name, blob=target_key
         )
+        if raise_if_exists:
+            try:
+                blob_client.get_blob_properties()
+                raise self.exceptions.AlreadyExists(target_key)
+            except ResourceNotFoundError:
+                pass
 
         # Update the start time and expiry time for SAS token
         sas_start_time = datetime.now(timezone.utc)
@@ -173,7 +184,12 @@ class AzureBlobStorage(Storage):
 
     def read_object(self, bucket_name: str, file_path: str) -> bytes:
         blob_client = self.client.get_blob_client(container=bucket_name, blob=file_path)
-        return blob_client.download_blob().readall()
+        try:
+            return blob_client.download_blob().readall()
+        except ResourceNotFoundError:
+            raise self.exceptions.NotFound(
+                f"Object {file_path} not found in bucket {bucket_name}"
+            )
 
     def get_bucket_object(self, bucket_name, object_key):
         blob_client = self.client.get_blob_client(
@@ -183,7 +199,9 @@ class AzureBlobStorage(Storage):
             blob_properties = blob_client.get_blob_properties()
             return _blob_to_obj(blob_properties, bucket_name)
         except ResourceNotFoundError:
-            return None
+            raise self.exceptions.NotFound(
+                f"Object {object_key} not found in bucket {bucket_name}"
+            )
 
     def list_bucket_objects(
         self,
@@ -194,7 +212,7 @@ class AzureBlobStorage(Storage):
         per_page=30,
         query=None,
         ignore_hidden_files=True,
-    ):
+    ) -> ObjectsPage:
         """List objects in a Azure Blob Container
 
         Limitations:
@@ -278,10 +296,18 @@ class AzureBlobStorage(Storage):
                 ):
                     _delete_object(blob_properties.name)
 
-        return _delete_object(file_name)
+        try:
+            return _delete_object(file_name)
+        except ResourceNotFoundError:
+            raise self.exceptions.NotFound(
+                f"Object {file_name} not found in bucket {bucket_name}"
+            )
 
     def delete_bucket(self, bucket_name, force: bool = False):
-        self.client.delete_container(bucket_name)
+        try:
+            self.client.delete_container(bucket_name)
+        except ResourceNotFoundError:
+            raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
 
     def get_short_lived_access_token(self, bucket_name):
         sas_token = generate_container_sas(

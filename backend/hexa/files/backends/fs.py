@@ -202,7 +202,7 @@ class FileSystemStorage(Storage):
     def create_bucket_folder(self, bucket_name: str, folder_key: str):
         if not self.exists(bucket_name):
             raise self.exceptions.NotFound(f"Bucket {bucket_name} not found")
-        folder_key = self.get_valid_filepath(folder_key)
+        folder_key = self.get_valid_filepath(folder_key.rstrip("/"))
         self.create_directory(f"{bucket_name}/{folder_key}")
         return self.get_bucket_object(bucket_name, folder_key)
 
@@ -223,7 +223,7 @@ class FileSystemStorage(Storage):
         per_page=30,
         query: str = None,
         ignore_hidden_files=True,
-    ):
+    ) -> ObjectsPage:
         if prefix is None:
             prefix = ""
         full_path = self.path(bucket_name, prefix)

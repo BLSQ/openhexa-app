@@ -1,4 +1,3 @@
-import io
 from unittest.mock import patch
 
 import requests
@@ -6,9 +5,10 @@ from django.conf import settings
 
 from hexa.core.test import TestCase
 from hexa.files.backends.azure import AzureBlobStorage
+from hexa.files.tests.backends.base import StorageTestMixin
 
 
-class AzureBlobStorageTest(TestCase):
+class AzureBlobStorageTest(StorageTestMixin, TestCase):
     def setUp(self):
         super().setUp()
         # Check that Azurite is running
@@ -43,16 +43,6 @@ class AzureBlobStorageTest(TestCase):
         except Exception:
             pass  # Ignore errors if service is not available
 
-    def test_bucket_exists_false(self):
-        """Test bucket_exists returns False for non-existent bucket"""
-        self.assertFalse(self.storage.bucket_exists("non-existent-bucket"))
-
-    def test_create_bucket(self):
-        """Test basic bucket creation"""
-        bucket_name = "test-bucket"
-        self.storage.create_bucket(bucket_name)
-        self.assertTrue(self.storage.bucket_exists(bucket_name))
-
     def test_create_bucket_with_labels(self):
         """Test bucket creation with metadata labels"""
         bucket_name = "test-bucket-with-labels"
@@ -62,52 +52,6 @@ class AzureBlobStorageTest(TestCase):
             container=bucket_name
         )
         self.assertEqual(labels, container_client.get_container_properties().metadata)
-
-    def test_create_bucket_already_exists(self):
-        """Test that creating an existing bucket doesn't raise an exception"""
-        bucket_name = "test-bucket-duplicate"
-        self.storage.create_bucket(bucket_name)
-        # Should not raise an exception
-        self.assertRaises(
-            self.storage.exceptions.AlreadyExists,
-            self.storage.create_bucket,
-            bucket_name,
-        )
-        self.assertTrue(self.storage.bucket_exists(bucket_name))
-
-    def test_save_object(self):
-        """Test saving an object to a bucket"""
-        bucket_name = "test-bucket-save"
-        self.storage.create_bucket(bucket_name)
-
-        file_data = b"Hello, world!"
-        file_path = "test-file.txt"
-
-        self.storage.save_object(bucket_name, file_path, file_data)
-
-        # Verify object exists
-        obj = self.storage.get_bucket_object(bucket_name, file_path)
-        self.assertIsNotNone(obj)
-        self.assertEqual(obj.name, file_path)
-        self.assertEqual(obj.type, "file")
-        self.assertEqual(obj.size, len(file_data))
-
-    def test_save_object_with_io_buffer(self):
-        """Test saving an object using io.BytesIO"""
-        bucket_name = "test-bucket-io"
-        self.storage.create_bucket(bucket_name)
-
-        file_data = b"Hello from IO buffer!"
-        file_buffer = io.BytesIO(file_data)
-        file_path = "test-file-io.txt"
-
-        self.storage.save_object(bucket_name, file_path, file_buffer)
-
-        # Verify object exists
-        obj = self.storage.get_bucket_object(bucket_name, file_path)
-        self.assertIsNotNone(obj)
-        self.assertEqual(obj.name, file_path)
-        self.assertEqual(obj.size, len(file_data))
 
     def test_save_object_nested_path(self):
         """Test saving an object with nested path"""
@@ -124,62 +68,6 @@ class AzureBlobStorageTest(TestCase):
         self.assertIsNotNone(obj)
         self.assertEqual(obj.name, "nested-file.txt")
         self.assertEqual(obj.key, file_path)
-
-    def test_get_bucket_object_exists(self):
-        """Test retrieving an existing object"""
-        bucket_name = "test-bucket-get"
-        file_path = "test-file.txt"
-        file_data = b"Test content"
-
-        self.storage.create_bucket(bucket_name)
-        self.storage.save_object(bucket_name, file_path, file_data)
-
-        obj = self.storage.get_bucket_object(bucket_name, file_path)
-        self.assertIsNotNone(obj)
-        self.assertEqual(obj.name, file_path)
-        self.assertEqual(obj.type, "file")
-        self.assertEqual(obj.size, len(file_data))
-
-    def test_get_bucket_object_not_found(self):
-        """Test retrieving a non-existent object returns None"""
-        bucket_name = "test-bucket-not-found"
-        self.storage.create_bucket(bucket_name)
-
-        obj = self.storage.get_bucket_object(bucket_name, "non-existent-file.txt")
-        self.assertIsNone(obj)
-
-    def test_list_bucket_objects_empty(self):
-        """Test listing objects in an empty bucket"""
-        bucket_name = "test-bucket-empty"
-        self.storage.create_bucket(bucket_name)
-
-        result = self.storage.list_bucket_objects(bucket_name)
-
-        self.assertIsNotNone(result)
-        self.assertEqual(len(result.items), 0)
-        self.assertEqual(result.page_number, 1)
-        self.assertFalse(result.has_previous_page)
-        self.assertFalse(result.has_next_page)
-
-    def test_list_bucket_objects_with_files(self):
-        """Test listing objects in a bucket with files"""
-        bucket_name = "test-bucket-with-files"
-        self.storage.create_bucket(bucket_name)
-
-        # Add some test files
-        test_files = ["file1.txt", "file2.txt", "folder/file3.txt"]
-        for file_path in test_files:
-            self.storage.save_object(bucket_name, file_path, b"test content")
-
-        result = self.storage.list_bucket_objects(bucket_name)
-
-        self.assertIsNotNone(result)
-        self.assertGreater(len(result.items), 0)
-
-        # Check that our files are in the results (some might be folders)
-        item_names = [item.name for item in result.items]
-        self.assertIn("file1.txt", item_names)
-        self.assertIn("file2.txt", item_names)
 
     def test_list_bucket_objects_with_prefix(self):
         """Test listing objects with a prefix filter"""
@@ -228,48 +116,6 @@ class AzureBlobStorageTest(TestCase):
         # Should only return items containing "important" in the name
         for item in result.items:
             self.assertIn("important", item.name.lower())
-
-    def test_list_bucket_objects_pagination(self):
-        """Test pagination in object listing"""
-        bucket_name = "test-bucket-pagination"
-        self.storage.create_bucket(bucket_name)
-
-        # Add multiple files to test pagination
-        for i in range(10):
-            self.storage.save_object(bucket_name, f"file-{i:02d}.txt", b"test content")
-
-        # Test first page
-        result_page1 = self.storage.list_bucket_objects(bucket_name, page=1, per_page=3)
-        self.assertEqual(result_page1.page_number, 1)
-        self.assertFalse(result_page1.has_previous_page)
-        self.assertLessEqual(len(result_page1.items), 3)
-
-        # Test second page if there are enough items
-        if result_page1.has_next_page:
-            result_page2 = self.storage.list_bucket_objects(
-                bucket_name, page=2, per_page=3
-            )
-            self.assertEqual(result_page2.page_number, 2)
-            self.assertTrue(result_page2.has_previous_page)
-
-    def test_delete_object(self):
-        """Test deleting an object"""
-        bucket_name = "test-bucket-delete"
-        file_path = "file-to-delete.txt"
-
-        self.storage.create_bucket(bucket_name)
-        self.storage.save_object(bucket_name, file_path, b"will be deleted")
-
-        # Verify object exists
-        obj = self.storage.get_bucket_object(bucket_name, file_path)
-        self.assertIsNotNone(obj)
-
-        # Delete object
-        self.storage.delete_object(bucket_name, file_path)
-
-        # Verify object is gone
-        obj = self.storage.get_bucket_object(bucket_name, file_path)
-        self.assertIsNone(obj)
 
     def test_delete_bucket(self):
         """Test deleting an empty bucket"""
@@ -416,50 +262,3 @@ class AzureBlobStorageTest(TestCase):
         }
 
         self.assertEqual(config, expected_config)
-
-    def test_list_bucket_objects_hidden_files_default(self):
-        """Test that hidden files are ignored by default"""
-        bucket_name = "test-bucket-hidden"
-        self.storage.create_bucket(bucket_name)
-
-        # Add regular and hidden files
-        self.storage.save_object(bucket_name, "regular-file.txt", b"content")
-        self.storage.save_object(bucket_name, ".hidden-file.txt", b"hidden content")
-
-        result = self.storage.list_bucket_objects(bucket_name, ignore_hidden_files=True)
-
-        # Should not contain hidden files
-        item_names = [item.name for item in result.items]
-        self.assertIn("regular-file.txt", item_names)
-        self.assertNotIn(".hidden-file.txt", item_names)
-
-    def test_list_bucket_objects_include_hidden_files(self):
-        """Test that hidden files are included when requested"""
-        bucket_name = "test-bucket-include-hidden"
-        self.storage.create_bucket(bucket_name)
-
-        # Add regular and hidden files
-        self.storage.save_object(bucket_name, "regular-file.txt", b"content")
-        self.storage.save_object(bucket_name, ".hidden-file.txt", b"hidden content")
-
-        result = self.storage.list_bucket_objects(
-            bucket_name, ignore_hidden_files=False
-        )
-
-        # Should contain both regular and hidden files
-        item_names = [item.name for item in result.items]
-        self.assertIn("regular-file.txt", item_names)
-        self.assertIn(".hidden-file.txt", item_names)
-
-    def test_load_bucket_sample_data(self):
-        """Test loading sample data into a bucket"""
-        bucket_name = "test-bucket-sample-data"
-        self.storage.create_bucket(bucket_name)
-
-        # This method loads sample files from the static directory
-        self.storage.load_bucket_sample_data(bucket_name)
-
-        # Check that some objects were created
-        self.storage.list_bucket_objects(bucket_name)
-        # We can't predict exactly what files will be there, but there should be some
-        # if sample data files exist in the static directory

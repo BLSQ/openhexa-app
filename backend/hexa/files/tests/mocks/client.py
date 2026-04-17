@@ -117,6 +117,8 @@ class MockHTTPIterator:
 
 
 class MockClient:
+    """Mock of GCP storage client"""
+
     def __init__(
         self,
         credentials=None,
@@ -152,7 +154,9 @@ class MockClient:
     def get_service_account_email(self, project=None):
         raise NotImplementedError
 
-    def bucket(self, bucket_name, user_project=None):
+    def bucket(self, bucket_name: str, user_project=None):
+        if bucket_name in self.buckets:
+            return self.buckets[bucket_name]
         return MockBucket(client=self, name=bucket_name, user_project=user_project)
 
     def delete_bucket(self, bucket_name):
@@ -221,10 +225,11 @@ class MockClient:
             raise NotFound(
                 f"404 GET https://storage.googleapis.com/storage/v1/b/{bucket_or_name}?projection=noAcl"
             )
+        blobs = list(bucket._blobs.values())
+
         if isinstance(max_results, int):
-            blobs = bucket._blobs[:max_results]
-        else:
-            blobs = bucket._blobs[: len(bucket._blobs)]
+            blobs = blobs[:max_results]
+
         if isinstance(prefix, str):
             blobs = [
                 blob
