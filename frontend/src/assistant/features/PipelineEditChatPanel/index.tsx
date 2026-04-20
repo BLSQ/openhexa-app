@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import ChatPane from "assistant/features/ChatPane";
 import { useCreateAssistantConversationMutation } from "assistant/graphql/mutations.generated";
 import { AssistantConversationMessagesQuery } from "assistant/graphql/queries.generated";
@@ -23,6 +23,7 @@ export default function PipelineEditChatPanel({
   onProposedFiles,
 }: Props) {
   const conversationIdRef = useRef<string | null>(null);
+  const [conversationName, setConversationName] = useState<string | null>(null);
 
   const [createConversation] = useCreateAssistantConversationMutation();
 
@@ -65,15 +66,17 @@ export default function PipelineEditChatPanel({
   );
 
   return (
-    <div className="flex flex-col h-full border rounded-lg overflow-hidden bg-white shadow-sm">
-      <div className="shrink-0 border-b border-gray-200 px-4 py-2.5">
-        <span className="text-sm font-medium text-gray-700">AI Assistant</span>
+    <div className="flex flex-col h-full border rounded-lg overflow-hidden bg-white">
+      <div className="shrink-0 border-b border-gray-200 px-4 py-3">
+        <h3 className="text-sm font-medium text-gray-700">AI Assistant</h3>
+        <div className="text-xs mt-1 text-gray-500">{conversationName ?? <span className="invisible">&nbsp;</span>}</div>
       </div>
       <div className="flex-1 min-h-0">
         <ChatPane
           conversationId={conversationIdRef.current}
           monthlyLimitExceeded={monthlyLimitExceeded}
           createConversation={handleCreateConversation}
+          onConversationNameChange={setConversationName}
           onMessagesChange={handleMessagesChange}
         />
       </div>

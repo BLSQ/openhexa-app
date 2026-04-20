@@ -25,6 +25,7 @@ type Props = {
   createConversation?: () => Promise<string | null>;
   // Called after a new conversation is successfully created via createConversation.
   onConversationCreated?: (id: string) => void;
+  onConversationNameChange?: (name: string) => void;
   // Called whenever the message list changes (e.g. after a new assistant reply).
   onMessagesChange?: (messages: Message[]) => void;
   // Optional per-message renderer. Rendered below each assistant message bubble.
@@ -36,6 +37,7 @@ export default function ChatPane({
   monthlyLimitExceeded,
   createConversation,
   onConversationCreated,
+  onConversationNameChange,
   onMessagesChange,
   renderMessageAfter,
 }: Props) {
@@ -73,6 +75,12 @@ export default function ChatPane({
     if (messages.length > 0) onMessagesChange?.(messages);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messagePage]);
+
+  useEffect(() => {
+    const name = data?.assistantConversation?.name;
+    if (name) onConversationNameChange?.(name);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
 
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FileType } from "graphql/types";
 import useNavigationWarning from "core/hooks/useNavigationWarning";
 import useFilesEditorPanelOpen from "workspaces/hooks/useFilesEditorPanelOpen";
@@ -194,6 +194,14 @@ export const useFilesEditorState = ({
   useEffect(() => {
     setModifiedFiles(new Map());
   }, [flatFiles]);
+
+  const prevProposedFilesRef = useRef<ProposedFile[] | undefined>(undefined);
+  useEffect(() => {
+    if (prevProposedFilesRef.current && !proposedFiles) {
+      setModifiedFiles(new Map());
+    }
+    prevProposedFilesRef.current = proposedFiles;
+  }, [proposedFiles]);
 
   useEffect(() => {
     if (!proposedFiles) return;
