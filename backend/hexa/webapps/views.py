@@ -35,8 +35,8 @@ def auth_token(request, webapp_id):
     parsed_next_url = urlparse(next_url)
     parsed_hostname = parsed_next_url.hostname or ""
     subdomain_match = extract_webapp_subdomain(parsed_hostname) == webapp.subdomain
-    custom_domain_match =(
-     bool(webapp.custom_domain) and parsed_hostname == webapp.custom_domain
+    custom_domain_match = (
+        bool(webapp.custom_domain) and parsed_hostname == webapp.custom_domain
     )
     if not subdomain_match and not custom_domain_match:
         return HttpResponseBadRequest("Invalid redirect target")

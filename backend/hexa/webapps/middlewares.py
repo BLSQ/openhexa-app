@@ -299,7 +299,9 @@ def custom_domain_middleware(get_response):
             if not _check_webapp_session(request, webapp):
                 return HttpResponseRedirect(_build_auth_token_url(request, webapp))
 
-        is_authenticated = has_valid_token or bool(_check_webapp_session(request, webapp))
+        is_authenticated = has_valid_token or bool(
+            _check_webapp_session(request, webapp)
+        )
         show_powered_by = (
             webapp.is_public and webapp.show_powered_by and not is_authenticated
         )
