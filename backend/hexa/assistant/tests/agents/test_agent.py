@@ -5,10 +5,12 @@ from pydantic_ai.models.function import AgentInfo, FunctionModel
 from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.base import BaseAgent, _is_success
-from hexa.assistant.agents.pipeline_agent import PipelineAgent
+from hexa.assistant.agents.create_pipeline_agent import CreatePipelineAgent
+from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message
 from hexa.core.test import TestCase
+from hexa.pipelines.models import Pipeline
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -102,10 +104,10 @@ class AgentRegistryTest(TestCase):
         conversation = Conversation.objects.create(
             user=self.user,
             workspace=self.workspace,
-            instruction_set=InstructionSet.PIPELINE,
+            instruction_set=InstructionSet.CREATE_PIPELINE,
         )
         with _patch_builder(TestModel()):
-            self.assertIsInstance(conversation.agent, PipelineAgent)
+            self.assertIsInstance(conversation.agent, CreatePipelineAgent)
 
     def test_general_instruction_set_returns_base_agent(self):
         conversation = Conversation.objects.create(
@@ -115,17 +117,26 @@ class AgentRegistryTest(TestCase):
         )
         with _patch_builder(TestModel()):
             self.assertIsInstance(conversation.agent, BaseAgent)
-            self.assertNotIsInstance(conversation.agent, PipelineAgent)
+            self.assertNotIsInstance(conversation.agent, CreatePipelineAgent)
 
     def test_unregistered_instruction_set_defaults_to_base_agent(self):
-        # WEBAPPS is a valid InstructionSet value but has no dedicated agent class.
+        # CREATE_WEBAPPS is a valid InstructionSet value but has no dedicated agent class.
         conversation = Conversation.objects.create(
             user=self.user,
             workspace=self.workspace,
-            instruction_set=InstructionSet.WEBAPPS,
+            instruction_set=InstructionSet.CREATE_WEBAPPS,
         )
         with _patch_builder(TestModel()):
             self.assertIsInstance(conversation.agent, BaseAgent)
+
+    def test_edit_pipeline_instruction_set_returns_edit_pipeline_agent(self):
+        conversation = Conversation.objects.create(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.EDIT_PIPELINE,
+        )
+        with _patch_builder(TestModel()):
+            self.assertIsInstance(conversation.agent, EditPipelineAgent)
 
 
 class BaseAgentRunTest(TestCase):
@@ -222,6 +233,9 @@ class BaseAgentToolCallTest(TestCase):
             cls.workspace = Workspace.objects.create_if_has_perm(
                 cls.user, name="Tool Test WS", description="For tool call tests"
             )
+        cls.pipeline = Pipeline.objects.create(
+            code="tool-pipeline", name="Tool Pipeline", workspace=cls.workspace
+        )
 
     def setUp(self):
         self.conversation = Conversation.objects.create(
@@ -290,3 +304,28 @@ class BaseAgentToolCallTest(TestCase):
             .tool_invocations.first()
         )
         self.assertEqual(invocation.tool_output, {"result": "my-value"})
+
+    def test_propose_pipeline_version_call_is_persisted(self):
+        files_arg = [{"name": "pipeline.py", "content": "print('v2')"}]
+        model = _make_tool_call_model(
+            "propose_pipeline_version", {"modified_files": files_arg}
+        )
+        conversation = Conversation(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.EDIT_PIPELINE,
+        )
+        conversation.linked_object = self.pipeline
+        conversation.save()
+        with _patch_builder(model):
+            agent = EditPipelineAgent(conversation)
+        agent.run("Update the pipeline")
+        invocation = (
+            conversation.messages.filter(role=Message.Role.ASSISTANT)
+            .first()
+            .tool_invocations.first()
+        )
+        self.assertEqual(invocation.tool_name, "propose_pipeline_version")
+        self.assertTrue(invocation.success)
+        self.assertIn("files", invocation.tool_output)
+        self.assertEqual(invocation.tool_output["files"][0]["name"], "pipeline.py")

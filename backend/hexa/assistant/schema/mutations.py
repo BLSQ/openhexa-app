@@ -6,10 +6,29 @@ from django.core.exceptions import PermissionDenied
 
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
+from hexa.pipelines.models import Pipeline
 from hexa.workspaces.models import Workspace
 
 logger = getLogger(__name__)
 assistant_mutations = MutationType()
+
+
+def _resolve_linked_object(user, linked_object_type, linked_object_id):
+    """
+    Maps a (type, id) pair from the API to a model instance and the instruction set
+    that should be used for conversations about that object type.
+    Returns (linked_object, instruction_set) or raises ValueError/DoesNotExist.
+    """
+    resolvers = {
+        "Pipeline": (
+            Pipeline.objects.filter_for_user(user),
+            InstructionSet.EDIT_PIPELINE,
+        ),
+    }
+    if linked_object_type not in resolvers:
+        raise ValueError(f"Unknown linked object type: {linked_object_type}")
+    queryset, instruction_set = resolvers[linked_object_type]
+    return queryset.get(id=linked_object_id), instruction_set
 
 
 @assistant_mutations.field("createAssistantConversation")
@@ -27,22 +46,43 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
             "conversation": None,
         }
 
-    raw_instruction_set = input.get("instruction_set", InstructionSet.GENERAL)
-    try:
-        instruction_set = InstructionSet(raw_instruction_set)
-    except ValueError:
-        logger.warning("Invalid instruction set %s", raw_instruction_set)
-        return {
-            "success": False,
-            "errors": ["INVALID_INSTRUCTION_SET"],
-            "conversation": None,
-        }
+    linked_object = None
+    if linked_object_id := input.get("linked_object_id"):
+        linked_object_type = input.get("linked_object_type", "")
+        try:
+            linked_object, instruction_set = _resolve_linked_object(
+                request.user, linked_object_type, linked_object_id
+            )
+        except ValueError:
+            return {
+                "success": False,
+                "errors": ["INVALID_LINKED_OBJECT_TYPE"],
+                "conversation": None,
+            }
+        except Exception:
+            return {
+                "success": False,
+                "errors": ["LINKED_OBJECT_NOT_FOUND"],
+                "conversation": None,
+            }
+    else:
+        raw_instruction_set = input.get("instruction_set", InstructionSet.GENERAL)
+        try:
+            instruction_set = InstructionSet(raw_instruction_set)
+        except ValueError:
+            logger.warning("Invalid instruction set %s", raw_instruction_set)
+            return {
+                "success": False,
+                "errors": ["INVALID_INSTRUCTION_SET"],
+                "conversation": None,
+            }
 
     try:
         conversation = Conversation.objects.create_if_has_perm(
             principal=request.user,
             workspace=workspace,
             instruction_set=instruction_set,
+            linked_object=linked_object,
         )
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"], "conversation": None}

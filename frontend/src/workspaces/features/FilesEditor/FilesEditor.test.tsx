@@ -61,7 +61,7 @@ jest.mock("react-i18next", () => ({
 }));
 
 const mockOnChange = jest.fn();
-jest.mock("@uiw/react-codemirror", () => {
+jest.mock("core/components/CodeMirrorClient/CodeMirrorClient", () => {
   return function MockCodeMirror({ value, onChange, readOnly }: any) {
     mockOnChange.mockImplementation(onChange);
     return (
@@ -297,6 +297,106 @@ describe("FilesEditor", () => {
     );
 
     expect(screen.getByText("2 files")).toBeInTheDocument();
+  });
+
+  it("loads proposed content into the editor when a proposed file is selected", async () => {
+    const proposedFiles = [
+      { name: "/root/file1.py", content: "# proposed version" },
+    ];
+    render(
+      <TestApp>
+        <FilesEditor
+          name="Test Project"
+          files={mockFiles}
+          proposedFiles={proposedFiles}
+        />
+      </TestApp>,
+    );
+
+    fireEvent.click(screen.getByText("root"));
+    fireEvent.click(screen.getByText("file1.py"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("code-editor")).toHaveValue("# proposed version");
+    });
+  });
+
+  it("does not show amber dot when proposed content is identical to existing", async () => {
+    const proposedFiles = [
+      { name: "/root/file1.py", content: "print('hello world')" },
+    ];
+    render(
+      <TestApp>
+        <FilesEditor
+          name="Test Project"
+          files={mockFiles}
+          proposedFiles={proposedFiles}
+        />
+      </TestApp>,
+    );
+
+    fireEvent.click(screen.getByText("root"));
+
+    const fileRow = screen.getByText("file1.py").closest("div")!;
+    const dot = fileRow.querySelector(".bg-amber-400");
+    expect(dot).toBeNull();
+  });
+
+  it("shows amber dot when proposed content differs from existing", async () => {
+    const proposedFiles = [
+      { name: "/root/file1.py", content: "# different content" },
+    ];
+    render(
+      <TestApp>
+        <FilesEditor
+          name="Test Project"
+          files={mockFiles}
+          proposedFiles={proposedFiles}
+        />
+      </TestApp>,
+    );
+
+    fireEvent.click(screen.getByText("root"));
+
+    const fileRow = screen.getByText("file1.py").closest("div")!;
+    const dot = fileRow.querySelector(".bg-amber-400");
+    expect(dot).not.toBeNull();
+  });
+
+  it("displays save error in file header when save fails", async () => {
+    const mockOnSave = jest
+      .fn()
+      .mockResolvedValue({ success: false, error: "Parse error in pipeline" });
+
+    render(
+      <TestApp>
+        <FilesEditor
+          name="Test Project"
+          files={mockFiles}
+          isEditable={true}
+          onSave={mockOnSave}
+        />
+      </TestApp>,
+    );
+
+    fireEvent.click(screen.getByText("root"));
+    fireEvent.click(screen.getByText("file1.py"));
+
+    fireEvent.change(screen.getByTestId("code-editor"), {
+      target: { value: "# changed" },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Save/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(/Save/i));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/Parse error in pipeline/i),
+      ).toBeInTheDocument();
+    });
   });
 
   it("handles nested directory structure", () => {

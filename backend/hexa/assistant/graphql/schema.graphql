@@ -37,13 +37,21 @@ extend type Workspace {
   assistantConversations: [AssistantConversation!]!
 }
 
+enum LinkedObjectType {
+  Pipeline
+}
+
 input CreateAssistantConversationInput {
   workspaceSlug: String!
   instructionSet: String
+  linkedObjectId: UUID
+  linkedObjectType: LinkedObjectType
 }
 
 enum CreateAssistantConversationError {
   WORKSPACE_NOT_FOUND
+  LINKED_OBJECT_NOT_FOUND
+  INVALID_LINKED_OBJECT_TYPE
   INVALID_INSTRUCTION_SET
   PERMISSION_DENIED
 }

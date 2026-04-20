@@ -54,11 +54,19 @@ class BaseAgent:
         self._provider_id = builder.provider_id
         self._model = builder.build()
 
+        instructions = get_instructions(self.instruction_set)
+        extra = self._extra_instructions()
+        if extra:
+            instructions += "\n\n" + extra
+
         self.agent = Agent(
             model=self._model,
-            instructions=get_instructions(self.instruction_set),
+            instructions=instructions,
             tools=self._tools_with_context,
         )
+
+    def _extra_instructions(self) -> str:
+        return ""
 
     @property
     def _tools_with_context(self) -> list:
@@ -105,6 +113,12 @@ class BaseAgent:
             for part in msg.parts:
                 logger.debug("agent.run: part type=%s", type(part).__name__)
                 if isinstance(part, TextPart):
+                    if (
+                        response_text
+                        and not response_text.endswith("\n")
+                        and not part.content.startswith("\n")
+                    ):
+                        response_text += "\n\n"
                     response_text += part.content
                 elif isinstance(part, ToolCallPart):
                     logger.info(
@@ -120,7 +134,16 @@ class BaseAgent:
                 elif isinstance(part, ToolReturnPart):
                     logger.info("agent.run: tool_return call_id=%s", part.tool_call_id)
                     success = _is_success(part.content)
-                    tool_output = json.loads(json.dumps(part.content, default=str))
+                    # pydantic-ai serialises tool return values to a JSON string in
+                    # ToolReturnPart.content. Parse it so we store the actual structure
+                    # (dict/list) in the JSONField rather than a string representation.
+                    if isinstance(part.content, str):
+                        try:
+                            tool_output = json.loads(part.content)
+                        except (json.JSONDecodeError, ValueError):
+                            tool_output = part.content
+                    else:
+                        tool_output = json.loads(json.dumps(part.content, default=str))
                     try:
                         invocation = tool_invocations[part.tool_call_id]
                         invocation.tool_output = tool_output

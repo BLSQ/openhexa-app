@@ -1,8 +1,19 @@
+import { SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import PipelineEditChatPanel from "assistant/features/PipelineEditChatPanel";
+import Button from "core/components/Button";
+import DataCard from "core/components/DataCard";
 import Page from "core/components/Page";
+import Spinner from "core/components/Spinner";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
+import useFeature from "identity/hooks/useFeature";
+import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
+import { useCallback, useState } from "react";
 import { PipelineFilesEditor } from "workspaces/features/FilesEditor/PipelineFilesEditor";
+import { ProposedFile } from "workspaces/features/FilesEditor/FilesEditor";
+import PipelineVersionPicker from "workspaces/features/PipelineVersionPicker";
+import { PipelineVersionPicker_VersionFragment } from "workspaces/features/PipelineVersionPicker/PipelineVersionPicker.generated";
 import {
   useGetPipelineVersionFilesLazyQuery,
   useWorkspacePipelineCodePageQuery,
@@ -11,11 +22,6 @@ import {
   WorkspacePipelineCodePageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
-import DataCard from "core/components/DataCard";
-import PipelineVersionPicker from "workspaces/features/PipelineVersionPicker";
-import { useState } from "react";
-import { PipelineVersionPicker_VersionFragment } from "workspaces/features/PipelineVersionPicker/PipelineVersionPicker.generated";
-import Spinner from "core/components/Spinner";
 
 type Props = {
   pipelineCode: string;
@@ -27,6 +33,17 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const [selectedVersion, setSelectedVersion] =
     useState<PipelineVersionPicker_VersionFragment | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [proposedFiles, setProposedFiles] = useState<ProposedFile[] | null>(null);
+
+  const handleProposedFiles = useCallback((files: ProposedFile[] | null) => {
+    setProposedFiles(files);
+  }, []);
+
+  const [isAssistantEnabled] = useFeature("assistant");
+  const me = useMe();
+  const aiEnabled = me?.user?.aiSettings?.enabled ?? false;
+  const showAssistant = isAssistantEnabled && aiEnabled;
 
   const { data, loading } = useWorkspacePipelineCodePageQuery({
     variables: {
@@ -60,6 +77,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     version: PipelineVersionPicker_VersionFragment,
   ) => {
     setSelectedVersion(version);
+    setProposedFiles(null);
     fetchPipelineVersion({
       variables: {
         versionId: version.id,
@@ -68,6 +86,8 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   };
 
   const versionToShow = versionData?.pipelineVersion ?? pipeline.currentVersion;
+  const monthlyLimitExceeded = data?.me?.assistantMonthlyLimitExceeded ?? false;
+
   return (
     <Page title={pipeline.name ?? t("Pipeline Code")}>
       <PipelineLayout
@@ -88,23 +108,63 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                 onChange={onVersionChange}
               />
             </div>
+            {showAssistant && (
+              <Button
+                onClick={() => setChatOpen((o) => !o)}
+                variant="secondary"
+                size="md"
+                leadingIcon={<SparklesIcon className="h-4 w-4" />}
+                className="ml-auto"
+              >
+                {t("AI Assistant")}
+              </Button>
+            )}
           </div>
-          <div className="relative">
-            {(loading || versionLoading) && (
-              <div className="absolute inset-0 backdrop-blur-xs flex justify-center items-center z-10">
-                <Spinner size="md" />
+          <div className="flex gap-4 min-h-[60vh] max-h-[65vh] overflow-hidden">
+            <div className="relative flex-1 min-w-0 flex flex-col">
+              {proposedFiles && (
+                <div className="shrink-0 mb-2 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm">
+                  <span className="font-medium text-blue-700">
+                    {t("Proposed version from AI assistant")}
+                  </span>
+                  <button
+                    onClick={() => setProposedFiles(null)}
+                    className="flex items-center gap-1 text-blue-500 hover:text-blue-700 text-xs"
+                  >
+                    <XMarkIcon className="h-3.5 w-3.5" />
+                    {t("Dismiss")}
+                  </button>
+                </div>
+              )}
+              <div className="relative flex-1 min-h-0">
+                {(loading || versionLoading) && (
+                  <div className="absolute inset-0 backdrop-blur-xs flex justify-center items-center z-10">
+                    <Spinner size="md" />
+                  </div>
+                )}
+                <PipelineFilesEditor
+                  key={versionToShow.id}
+                  name={versionToShow.versionName}
+                  files={versionToShow.files}
+                  isEditable={true}
+                  proposedFiles={proposedFiles ?? undefined}
+                  workspaceSlug={workspaceSlug}
+                  pipelineCode={pipelineCode}
+                  pipelineId={pipeline.id}
+                  onVersionCreated={handleVersionCreated}
+                />
+              </div>
+            </div>
+            {chatOpen && showAssistant && (
+              <div className="w-[440px] shrink-0">
+                <PipelineEditChatPanel
+                  pipelineId={pipeline.id}
+                  workspaceSlug={workspaceSlug}
+                  monthlyLimitExceeded={monthlyLimitExceeded}
+                  onProposedFiles={handleProposedFiles}
+                />
               </div>
             )}
-            <PipelineFilesEditor
-              key={versionToShow.id}
-              name={versionToShow.versionName}
-              files={versionToShow.files}
-              isEditable={true}
-              workspaceSlug={workspaceSlug}
-              pipelineCode={pipelineCode}
-              pipelineId={pipeline.id}
-              onVersionCreated={handleVersionCreated}
-            />
           </div>
         </DataCard.FormSection>
       </PipelineLayout>

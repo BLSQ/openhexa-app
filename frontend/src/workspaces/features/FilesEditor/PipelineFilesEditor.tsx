@@ -1,17 +1,18 @@
 import React, { useCallback } from "react";
+import useCacheKey from "core/hooks/useCacheKey";
+import { FileType, PipelineError } from "graphql/types";
+import { useTranslation } from "react-i18next";
 import { useUploadPipelineMutation } from "workspaces/graphql/mutations.generated";
 import JSZip from "jszip";
-import { FilesEditor, SaveResult } from "./FilesEditor";
+import { FilesEditor, ProposedFile, SaveResult } from "./FilesEditor";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
-import { FileType, PipelineError } from "graphql/types";
 import { PipelineVersionPicker_VersionFragment } from "../PipelineVersionPicker/PipelineVersionPicker.generated";
-import useCacheKey from "core/hooks/useCacheKey";
-import { useTranslation } from "react-i18next";
 
 interface PipelineFilesEditorProps {
   name: string;
   files: FilesEditor_FileFragment[];
   isEditable?: boolean;
+  proposedFiles?: ProposedFile[];
   workspaceSlug: string;
   pipelineCode: string;
   pipelineId: string;
@@ -22,6 +23,7 @@ export const PipelineFilesEditor = ({
   name,
   files,
   isEditable = false,
+  proposedFiles,
   workspaceSlug,
   pipelineCode,
   pipelineId,
@@ -120,6 +122,7 @@ export const PipelineFilesEditor = ({
       name={name}
       files={files}
       isEditable={isEditable}
+      proposedFiles={proposedFiles}
       onSave={handleSave}
     />
   );
