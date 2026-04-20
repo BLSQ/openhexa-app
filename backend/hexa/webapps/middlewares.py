@@ -246,8 +246,6 @@ def webapp_subdomain_middleware(get_response):
 def custom_domain_middleware(get_response):
     """Intercepts requests arriving on a webapp's custom domain and serves the webapp
     content directly bypassing normal Django URL routing.
-
-    Only public webapps can be served via a custom domain.
     """
 
     def middleware(request: HttpRequest):
@@ -261,7 +259,7 @@ def custom_domain_middleware(get_response):
             return get_response(request)
 
         try:
-            webapp = Webapp.objects.get(custom_domain=host, is_public=True)
+            webapp = Webapp.objects.get(custom_domain=host)
         except Webapp.DoesNotExist:
             return get_response(request)
 
@@ -270,7 +268,46 @@ def custom_domain_middleware(get_response):
         if request.path.startswith("/graphql/"):
             return HttpResponseNotFound("Not available")
 
-        show_powered_by = webapp.show_powered_by
+        has_valid_token = False
+        if request.GET.get("auth_token"):
+            result = _validate_auth_token(request, webapp)
+            if isinstance(result, HttpResponse):
+                if not webapp.is_public:
+                    return result
+            else:
+                has_valid_token = True
+                if not webapp.is_public:
+                    session = _create_webapp_session(webapp, result)
+
+                    query = request.GET.copy()
+                    query.pop("auth_token")
+                    clean_path = request.path
+                    if query:
+                        clean_path = f"{clean_path}?{query.urlencode()}"
+                    redirect_response = HttpResponseRedirect(clean_path)
+                    redirect_response.set_cookie(
+                        WEBAPP_SESSION_COOKIE,
+                        session.session_key,
+                        max_age=WEBAPP_SESSION_MAX_AGE,
+                        httponly=True,
+                        secure=True,
+                        samesite="None",
+                    )
+                    return redirect_response
+
+        if not webapp.is_public:
+            if not _check_webapp_session(request, webapp):
+                return HttpResponseRedirect(_build_auth_token_url(request, webapp))
+
+        is_authenticated = (
+            request.user.is_authenticated
+            or has_valid_token
+            or _check_webapp_session(request, webapp)
+        )
+        show_powered_by = (
+            webapp.is_public and webapp.show_powered_by and not is_authenticated
+        )
+
         response = _dispatch_webapp_response(request, webapp, show_powered_by)
         _set_csp_frame_ancestors(response)
 
