@@ -158,6 +158,56 @@ def _check_webapp_session(request, webapp):
     return user
 
 
+def _handle_webapp_request(request, webapp, *, request_has_user=True):
+    """Shared auth + serve logic for both webapp middlewares."""
+    if request.path.startswith("/graphql/"):
+        return HttpResponseNotFound("Not available")
+
+    has_valid_token = False
+    if request.GET.get("auth_token"):
+        result = _validate_auth_token(request, webapp)
+        if isinstance(result, HttpResponse):
+            if not webapp.is_public:
+                return result
+        else:
+            has_valid_token = True
+            if not webapp.is_public:
+                session = _create_webapp_session(webapp, result)
+
+                query = request.GET.copy()
+                query.pop("auth_token")
+                clean_path = request.path
+                if query:
+                    clean_path = f"{clean_path}?{query.urlencode()}"
+                redirect_response = HttpResponseRedirect(clean_path)
+                redirect_response.set_cookie(
+                    WEBAPP_SESSION_COOKIE,
+                    session.session_key,
+                    max_age=WEBAPP_SESSION_MAX_AGE,
+                    httponly=True,
+                    secure=True,
+                    samesite="None",
+                )
+                return redirect_response
+
+    if not webapp.is_public:
+        if not _check_webapp_session(request, webapp):
+            return HttpResponseRedirect(_build_auth_token_url(request, webapp))
+
+    is_authenticated = (
+        (request_has_user and request.user.is_authenticated)
+        or has_valid_token
+        or bool(_check_webapp_session(request, webapp))
+    )
+    show_powered_by = (
+        webapp.is_public and webapp.show_powered_by and not is_authenticated
+    )
+
+    response = _dispatch_webapp_response(request, webapp, show_powered_by)
+    _set_csp_frame_ancestors(response)
+    return response
+
+
 def webapp_subdomain_middleware(get_response):
     """Intercepts requests to webapp subdomains (e.g. my-app.webapps.openhexa.org)
     and serves the webapp content directly, bypassing the normal Django URL routing.
@@ -188,57 +238,10 @@ def webapp_subdomain_middleware(get_response):
             return _webapp_not_found()
 
         request.webapp = webapp
-
         # TODO: Explicitly block this for now, but in v2 we'll probably re-route
         # here to the main app based on the webapps permission scopes to access
         # workspace resources.
-        if request.path.startswith("/graphql/"):
-            return HttpResponseNotFound("Not available")
-
-        has_valid_token = False
-        if request.GET.get("auth_token"):
-            result = _validate_auth_token(request, webapp)
-            if isinstance(result, HttpResponse):
-                if not webapp.is_public:
-                    return result
-            else:
-                has_valid_token = True
-                if not webapp.is_public:
-                    session = _create_webapp_session(webapp, result)
-
-                    query = request.GET.copy()
-                    query.pop("auth_token")
-                    clean_path = request.path
-                    if query:
-                        clean_path = f"{clean_path}?{query.urlencode()}"
-                    redirect_response = HttpResponseRedirect(clean_path)
-                    redirect_response.set_cookie(
-                        WEBAPP_SESSION_COOKIE,
-                        session.session_key,
-                        max_age=WEBAPP_SESSION_MAX_AGE,
-                        httponly=True,
-                        secure=True,
-                        samesite="None",
-                    )
-                    return redirect_response
-
-        if not webapp.is_public:
-            if not _check_webapp_session(request, webapp):
-                return HttpResponseRedirect(_build_auth_token_url(request, webapp))
-
-        is_authenticated = (
-            request.user.is_authenticated
-            or has_valid_token
-            or _check_webapp_session(request, webapp)
-        )
-        show_powered_by = (
-            webapp.is_public and webapp.show_powered_by and not is_authenticated
-        )
-
-        response = _dispatch_webapp_response(request, webapp, show_powered_by)
-        _set_csp_frame_ancestors(response)
-
-        return response
+        return _handle_webapp_request(request, webapp, request_has_user=True)
 
     return middleware
 
@@ -264,51 +267,6 @@ def custom_domain_middleware(get_response):
             return get_response(request)
 
         request.webapp = webapp
-
-        if request.path.startswith("/graphql/"):
-            return HttpResponseNotFound("Not available")
-
-        has_valid_token = False
-        if request.GET.get("auth_token"):
-            result = _validate_auth_token(request, webapp)
-            if isinstance(result, HttpResponse):
-                if not webapp.is_public:
-                    return result
-            else:
-                has_valid_token = True
-                if not webapp.is_public:
-                    session = _create_webapp_session(webapp, result)
-
-                    query = request.GET.copy()
-                    query.pop("auth_token")
-                    clean_path = request.path
-                    if query:
-                        clean_path = f"{clean_path}?{query.urlencode()}"
-                    redirect_response = HttpResponseRedirect(clean_path)
-                    redirect_response.set_cookie(
-                        WEBAPP_SESSION_COOKIE,
-                        session.session_key,
-                        max_age=WEBAPP_SESSION_MAX_AGE,
-                        httponly=True,
-                        secure=True,
-                        samesite="None",
-                    )
-                    return redirect_response
-
-        if not webapp.is_public:
-            if not _check_webapp_session(request, webapp):
-                return HttpResponseRedirect(_build_auth_token_url(request, webapp))
-
-        is_authenticated = has_valid_token or bool(
-            _check_webapp_session(request, webapp)
-        )
-        show_powered_by = (
-            webapp.is_public and webapp.show_powered_by and not is_authenticated
-        )
-
-        response = _dispatch_webapp_response(request, webapp, show_powered_by)
-        _set_csp_frame_ancestors(response)
-
-        return response
+        return _handle_webapp_request(request, webapp, request_has_user=False)
 
     return middleware
