@@ -61,7 +61,12 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
 
   const { workspace, pipeline } = data;
 
-  const versionOptions = pipeline.versions?.items ?? [];
+  const versionItems = pipeline.versions?.items ?? [];
+  const pinned = pipeline.scheduledPipelineVersion;
+  const versionOptions =
+    pinned && !versionItems.some((v) => v.id === pinned.id)
+      ? [pinned, ...versionItems]
+      : versionItems;
 
   const onSaveScheduling = async (values: any) => {
     const schedulingEnabled = values.enableScheduling;

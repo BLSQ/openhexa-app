@@ -492,12 +492,15 @@ class Pipeline(SoftDeletedModel):
         return self.pipelinerun_set.first()
 
     @property
+    def version_to_run(self):
+        return self.scheduled_pipeline_version or self.last_version
+
+    @property
     def is_schedulable(self):
         if self.type == PipelineType.NOTEBOOK:
             return True
         elif self.type == PipelineType.ZIPFILE:
-            version = self.scheduled_pipeline_version or self.last_version
-            return version and version.is_schedulable
+            return self.version_to_run and self.version_to_run.is_schedulable
 
     def get_config_from_previous_version(self, new_parameters: list[dict]):
         """
@@ -582,13 +585,9 @@ class Pipeline(SoftDeletedModel):
         if not principal.has_perm("pipelines.update_pipeline", self):
             raise PermissionDenied
 
-        # Resolve which version will be pinned for scheduled runs after this update.
         if "scheduled_pipeline_version_id" in kwargs:
             version_id = kwargs.pop("scheduled_pipeline_version_id")
-            if version_id:
-                scheduled_version = self.versions.get(id=version_id)
-            else:
-                scheduled_version = None
+            scheduled_version = self.versions.get(id=version_id) if version_id else None
         else:
             scheduled_version = self.scheduled_pipeline_version
 

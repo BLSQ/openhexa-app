@@ -847,7 +847,7 @@ export const WorkspacePipelineNotificationsPageDocument = gql`
       }
       config
     }
-    versions(perPage: 50) {
+    versions(perPage: 10) {
       items {
         id
         versionNumber

@@ -1079,27 +1079,19 @@ class ScheduledPipelineVersionModelTest(TestCase):
                 }
             ],
         )
-        try:
-            with self.assertRaises(MissingPipelineConfiguration):
-                self.PIPELINE.update_if_has_perm(
-                    self.USER,
-                    schedule="0 12 * * *",
-                    scheduled_pipeline_version_id=str(unschedulable_version.id),
-                )
-        finally:
-            unschedulable_version.delete()
-
-    def test_enabling_schedule_with_schedulable_pinned_version_succeeds(self):
-        try:
+        with self.assertRaises(MissingPipelineConfiguration):
             self.PIPELINE.update_if_has_perm(
                 self.USER,
                 schedule="0 12 * * *",
-                scheduled_pipeline_version_id=str(self.VERSION_1.id),
+                scheduled_pipeline_version_id=str(unschedulable_version.id),
             )
-            self.PIPELINE.refresh_from_db()
-            self.assertEqual(self.PIPELINE.schedule, "0 12 * * *")
-            self.assertEqual(self.PIPELINE.scheduled_pipeline_version, self.VERSION_1)
-        finally:
-            self.PIPELINE.schedule = None
-            self.PIPELINE.scheduled_pipeline_version = None
-            self.PIPELINE.save()
+
+    def test_enabling_schedule_with_schedulable_pinned_version_succeeds(self):
+        self.PIPELINE.update_if_has_perm(
+            self.USER,
+            schedule="0 12 * * *",
+            scheduled_pipeline_version_id=str(self.VERSION_1.id),
+        )
+        self.PIPELINE.refresh_from_db()
+        self.assertEqual(self.PIPELINE.schedule, "0 12 * * *")
+        self.assertEqual(self.PIPELINE.scheduled_pipeline_version, self.VERSION_1)
