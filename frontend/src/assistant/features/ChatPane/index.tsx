@@ -1,6 +1,8 @@
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Spinner from "core/components/Spinner";
+import { getPublicEnv } from "core/helpers/runtimeConfig";
+import useStreamingFetch from "core/hooks/useStreamingFetch";
 import { KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -9,7 +11,7 @@ import {
   AssistantConversationMessagesQuery,
   useAssistantConversationMessagesQuery,
 } from "assistant/graphql/queries.generated";
-import { useSendAssistantMessageMutation } from "assistant/graphql/mutations.generated";
+import { useApolloClient } from "@apollo/client";
 
 const PER_PAGE = 20;
 
@@ -32,6 +34,12 @@ type Props = {
   renderMessageAfter?: (message: Message) => ReactNode;
 };
 
+function getStreamUrl(conversationId: string): string {
+  const apiBasePath =
+    process.env.NEXT_PUBLIC_API_BASE_PATH ?? getPublicEnv().OPENHEXA_BACKEND_URL;
+  return `${apiBasePath}/assistant/conversations/${conversationId}/stream/`;
+}
+
 export default function ChatPane({
   conversationId,
   monthlyLimitExceeded,
@@ -47,6 +55,7 @@ export default function ChatPane({
   );
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const apolloClient = useApolloClient();
 
   useEffect(() => {
     setLocalConversationId(conversationId);
@@ -83,10 +92,25 @@ export default function ChatPane({
   }, [data]);
 
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
+  const [streamingText, setStreamingText] = useState<string | null>(null);
 
-  const [sendMessage, { loading: sending }] = useSendAssistantMessageMutation({
-    onCompleted: () => {
+  const { send, isStreaming } = useStreamingFetch({
+    text_delta: (data) => {
+      const { delta } = data as { delta: string };
+      setStreamingText((prev) => (prev ?? "") + delta);
+    },
+    done: () => {
+      setStreamingText(null);
+      setPendingUserMessage(null);
       setCurrentPage(1);
+      if (localConversationId) {
+        apolloClient.refetchQueries({
+          include: [AssistantConversationMessagesDocument],
+        });
+      }
+    },
+    error: () => {
+      setStreamingText(null);
       setPendingUserMessage(null);
     },
   });
@@ -101,7 +125,7 @@ export default function ChatPane({
     if (!loadingMore) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages.length, pendingUserMessage]);
+  }, [messages.length, pendingUserMessage, streamingText]);
 
   const loadOlderMessages = useCallback(async () => {
     if (loadingMore || !hasMore || !localConversationId) return;
@@ -164,7 +188,7 @@ export default function ChatPane({
 
   const handleSubmit = async () => {
     const text = input.trim();
-    if (!text || sending || monthlyLimitExceeded) return;
+    if (!text || isStreaming || monthlyLimitExceeded) return;
 
     let convId = localConversationId;
 
@@ -179,15 +203,7 @@ export default function ChatPane({
 
     setPendingUserMessage(text);
     setInput("");
-    await sendMessage({
-      variables: { input: { conversationId: convId, message: text } },
-      refetchQueries: [
-        {
-          query: AssistantConversationMessagesDocument,
-          variables: { id: convId, page: 1, perPage: PER_PAGE },
-        },
-      ],
-    });
+    await send(getStreamUrl(convId), { message: text });
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -208,7 +224,7 @@ export default function ChatPane({
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-white">
+    <div className="flex flex-col h-full w-full overflow-hidden bg-white">
       <div className="flex-1 flex flex-col p-4 max-w-3xl mx-auto w-full min-h-0">
         <div
           ref={scrollContainerRef}
@@ -266,10 +282,18 @@ export default function ChatPane({
             </div>
           )}
 
-          {sending && (
+          {isStreaming && (
             <div className="flex justify-start">
-              <div className="rounded-2xl bg-gray-100 px-4 py-3">
-                <Spinner size="xs" className="text-gray-400" />
+              <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
+                {streamingText ? (
+                  <div className="prose prose-sm prose-gray max-w-none">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {streamingText}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <Spinner size="xs" className="text-gray-400" />
+                )}
               </div>
             </div>
           )}
@@ -296,12 +320,12 @@ export default function ChatPane({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              disabled={sending}
+              disabled={isStreaming}
             />
             <div className="flex items-center justify-end px-2 pb-2">
               <button
                 onClick={handleSubmit}
-                disabled={!input.trim() || sending}
+                disabled={!input.trim() || isStreaming}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <PaperAirplaneIcon className="h-4 w-4" />

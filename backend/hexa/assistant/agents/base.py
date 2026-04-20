@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from decimal import Decimal
@@ -79,135 +80,162 @@ class BaseAgent:
             "workspace_slug": self.conversation.workspace.slug,
         }
 
-    def run(self, user_input: str) -> str:
+    def run(self, user_input: str) -> None:
+        from asgiref.sync import async_to_sync
+
+        async def _consume():
+            async for _ in self.run_stream(user_input):
+                pass
+
+        async_to_sync(_consume)()
+
+    async def run_stream(self, user_input: str):
+        from hexa.core.sse import format_sse
+
         is_first_message = self.conversation.name is None
 
-        Message.objects.create(
+        user_msg = await Message.objects.acreate(
             conversation=self.conversation,
             role=Message.Role.USER,
             content=user_input,
         )
+        yield format_sse("user_message", {"id": str(user_msg.id), "content": user_input})
 
         history = ModelMessagesTypeAdapter.validate_python(
             self.conversation.messages_history
         )
         logger.info(
-            "agent.run: conversation=%s history_len=%d",
+            "agent.run_stream: conversation=%s history_len=%d",
             self.conversation.id,
             len(history),
         )
 
-        result = self.agent.run_sync(user_input, message_history=history)
-        logger.info(
-            "agent.run: LLM call complete, new_messages=%d", len(result.new_messages())
-        )
+        try:
+            async with self.agent.run_stream(user_input, message_history=history) as result:
+                async for text_delta in result.stream_text(delta=True):
+                    yield format_sse("text_delta", {"delta": text_delta})
 
-        response_text = ""
-        tool_invocations: dict[str, ToolInvocation] = {}
-        for msg in result.new_messages():
-            logger.debug(
-                "agent.run: processing message type=%s parts=%d",
-                type(msg).__name__,
-                len(msg.parts),
-            )
-            for part in msg.parts:
-                logger.debug("agent.run: part type=%s", type(part).__name__)
-                if isinstance(part, TextPart):
-                    if (
-                        response_text
-                        and not response_text.endswith("\n")
-                        and not part.content.startswith("\n")
-                    ):
-                        response_text += "\n\n"
-                    response_text += part.content
-                elif isinstance(part, ToolCallPart):
-                    logger.info(
-                        "agent.run: tool_call tool=%s call_id=%s",
-                        part.tool_name,
-                        part.tool_call_id,
+                response_text = ""
+                tool_invocations: dict[str, ToolInvocation] = {}
+                for msg in result.new_messages():
+                    for part in msg.parts:
+                        if isinstance(part, TextPart):
+                            if (
+                                response_text
+                                and not response_text.endswith("\n")
+                                and not part.content.startswith("\n")
+                            ):
+                                response_text += "\n\n"
+                            response_text += part.content
+                        elif isinstance(part, ToolCallPart):
+                            logger.info(
+                                "agent.run_stream: tool_call tool=%s call_id=%s",
+                                part.tool_name,
+                                part.tool_call_id,
+                            )
+                            yield format_sse(
+                                "tool_call",
+                                {
+                                    "tool_call_id": part.tool_call_id,
+                                    "tool_name": part.tool_name,
+                                },
+                            )
+                            tool_invocations[part.tool_call_id] = ToolInvocation(
+                                tool_call_id=part.tool_call_id,
+                                tool_name=part.tool_name,
+                                tool_input=json.loads(json.dumps(part.args, default=str)),
+                            )
+                        elif isinstance(part, ToolReturnPart):
+                            logger.info(
+                                "agent.run_stream: tool_return call_id=%s",
+                                part.tool_call_id,
+                            )
+                            success = _is_success(part.content)
+                            if isinstance(part.content, str):
+                                try:
+                                    tool_output = json.loads(part.content)
+                                except (json.JSONDecodeError, ValueError):
+                                    tool_output = part.content
+                            else:
+                                tool_output = json.loads(
+                                    json.dumps(part.content, default=str)
+                                )
+                            try:
+                                invocation = tool_invocations[part.tool_call_id]
+                                invocation.tool_output = tool_output
+                                invocation.success = success
+                            except KeyError:
+                                tool_invocations[part.tool_call_id] = ToolInvocation(
+                                    tool_call_id=part.tool_call_id,
+                                    tool_name=part.tool_name,
+                                    tool_input="",
+                                    tool_output=tool_output,
+                                    success=success,
+                                )
+                            yield format_sse(
+                                "tool_result",
+                                {
+                                    "tool_call_id": part.tool_call_id,
+                                    "tool_name": part.tool_name,
+                                    "success": success,
+                                },
+                            )
+
+                usage = result.usage()
+                input_tok = usage.input_tokens or 0
+                output_tok = usage.output_tokens or 0
+                cost = self._get_cost(usage)
+                logger.info(
+                    "agent.run_stream: done input_tokens=%d output_tokens=%d cost=%s",
+                    input_tok,
+                    output_tok,
+                    cost,
+                )
+
+                assistant_message = await Message.objects.acreate(
+                    conversation=self.conversation,
+                    role=Message.Role.ASSISTANT,
+                    content=response_text,
+                    input_tokens=input_tok,
+                    output_tokens=output_tok,
+                    cost=cost,
+                )
+                for tool_invocation in tool_invocations.values():
+                    tool_invocation.message = assistant_message
+                    await tool_invocation.asave()
+
+                self.conversation.total_input_tokens += input_tok
+                self.conversation.total_output_tokens += output_tok
+                if cost is not None:
+                    self.conversation.cost += cost
+                self.conversation.messages_history = ModelMessagesTypeAdapter.dump_python(
+                    result.all_messages(), mode="json"
+                )
+
+                update_fields = [
+                    "total_input_tokens",
+                    "total_output_tokens",
+                    "cost",
+                    "messages_history",
+                    "updated_at",
+                ]
+                if is_first_message:
+                    name, naming_usage = await asyncio.to_thread(
+                        self._generate_conversation_name, user_input
                     )
-                    tool_invocations[part.tool_call_id] = ToolInvocation(
-                        tool_call_id=part.tool_call_id,
-                        tool_name=part.tool_name,
-                        tool_input=json.loads(json.dumps(part.args, default=str)),
-                    )
-                elif isinstance(part, ToolReturnPart):
-                    logger.info("agent.run: tool_return call_id=%s", part.tool_call_id)
-                    success = _is_success(part.content)
-                    # pydantic-ai serialises tool return values to a JSON string in
-                    # ToolReturnPart.content. Parse it so we store the actual structure
-                    # (dict/list) in the JSONField rather than a string representation.
-                    if isinstance(part.content, str):
-                        try:
-                            tool_output = json.loads(part.content)
-                        except (json.JSONDecodeError, ValueError):
-                            tool_output = part.content
-                    else:
-                        tool_output = json.loads(json.dumps(part.content, default=str))
-                    try:
-                        invocation = tool_invocations[part.tool_call_id]
-                        invocation.tool_output = tool_output
-                        invocation.success = success
-                    except KeyError:
-                        tool_invocations[part.tool_call_id] = ToolInvocation(
-                            tool_call_id=part.tool_call_id,
-                            tool_name=part.tool_name,
-                            tool_input="",
-                            tool_output=tool_output,
-                            success=success,
-                        )
+                    self.conversation.name = name
+                    naming_cost = self._get_cost(naming_usage)
+                    if naming_cost is not None:
+                        self.conversation.cost += naming_cost
+                    update_fields.append("name")
 
-        usage = result.usage()
-        input_tok = usage.input_tokens or 0
-        output_tok = usage.output_tokens or 0
-        cost = self._get_cost(usage)
+                await self.conversation.asave(update_fields=update_fields)
 
-        logger.info(
-            "agent.run: usage input_tokens=%d output_tokens=%d cost=%s response_text_len=%d",
-            input_tok,
-            output_tok,
-            cost,
-            len(response_text),
-        )
+                yield format_sse("done", {"message_id": str(assistant_message.id)})
 
-        assistant_message = Message.objects.create(
-            conversation=self.conversation,
-            role=Message.Role.ASSISTANT,
-            content=response_text,
-            input_tokens=input_tok,
-            output_tokens=output_tok,
-            cost=cost,
-        )
-        for tool_invocation in tool_invocations.values():
-            tool_invocation.message = assistant_message
-            tool_invocation.save()
-
-        self.conversation.total_input_tokens += input_tok
-        self.conversation.total_output_tokens += output_tok
-        if cost is not None:
-            self.conversation.cost += cost
-        self.conversation.messages_history = ModelMessagesTypeAdapter.dump_python(
-            result.all_messages(), mode="json"
-        )
-
-        update_fields = [
-            "total_input_tokens",
-            "total_output_tokens",
-            "cost",
-            "messages_history",
-            "updated_at",
-        ]
-        if is_first_message:
-            name, naming_usage = self._generate_conversation_name(user_input)
-            self.conversation.name = name
-            naming_cost = self._get_cost(naming_usage)
-            if naming_cost is not None:
-                self.conversation.cost += naming_cost
-            update_fields.append("name")
-
-        self.conversation.save(update_fields=update_fields)
-
-        return response_text
+        except Exception:
+            logger.exception("agent.run_stream: error during streaming")
+            yield format_sse("error", {"message": "An error occurred"})
 
     def _generate_conversation_name(self, user_input: str) -> tuple[str, RunUsage]:
         # TODO: Execute in parallel for performance
