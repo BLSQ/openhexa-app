@@ -5180,7 +5180,6 @@ type UpdateUserResult {
 
 """Represents the error message for a web app update."""
 enum UpdateWebappError {
-  INVALID_SCOPE
   INVALID_URL
   PERMISSION_DENIED
   SAVE_FAILED
@@ -5201,7 +5200,7 @@ enum UpdateWebappError {
 
 """Represents the input for updating a web app."""
 input UpdateWebappInput {
-  allowedOperations: [String!]
+  allowedOperations: [WebappOperationScope!]
   description: String
   files: [WebappFileInput!]
   icon: String
@@ -5399,7 +5398,7 @@ type WHORegion {
 
 """Represents a web app."""
 type Webapp {
-  allowedOperations: [String!]!
+  allowedOperations: [WebappOperationScope!]!
   createdBy: User!
   description: String
   files(ref: String): [FileNode!]
@@ -5425,6 +5424,14 @@ type Webapp {
 input WebappFileInput {
   content: String!
   path: String!
+}
+
+enum WebappOperationScope {
+  FILES_READ
+  FILES_WRITE
+  PIPELINES_READ
+  PIPELINES_RUN
+  USER_READ
 }
 
 """Represents the permissions for a web app."""

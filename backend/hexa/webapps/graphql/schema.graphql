@@ -1,5 +1,13 @@
 directive @oneOf on INPUT_OBJECT
 
+enum WebappOperationScope {
+  PIPELINES_RUN
+  PIPELINES_READ
+  FILES_READ
+  FILES_WRITE
+  USER_READ
+}
+
 """
 Represents the type of a web app.
 """
@@ -65,7 +73,7 @@ type Webapp {
   createdBy: User!
   isPublic: Boolean!
   showPoweredBy: Boolean!
-  allowedOperations: [String!]!
+  allowedOperations: [WebappOperationScope!]!
   isFavorite: Boolean!
   isShortcut: Boolean!
   source: WebappSource!
@@ -153,7 +161,7 @@ input UpdateWebappInput {
   subdomain: String
   icon: String
   isPublic: Boolean
-  allowedOperations: [String!]
+  allowedOperations: [WebappOperationScope!]
   source: UpdateWebappSourceInput
   files: [WebappFileInput!]
   publishedVersionId: String
@@ -196,7 +204,6 @@ enum UpdateWebappError {
   SUBDOMAIN_INVALID_FORMAT
   SUBDOMAIN_ALREADY_TAKEN
   SUBDOMAIN_REQUIRED
-  INVALID_SCOPE
 }
 
 """
