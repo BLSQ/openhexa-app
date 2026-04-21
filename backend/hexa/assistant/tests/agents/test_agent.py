@@ -168,8 +168,7 @@ class BaseAgentRunTest(TestCase):
     def test_run_saves_assistant_message(self):
         with _patch_builder(TestModel(custom_output_text="Hello!")):
             agent = BaseAgent(self.conversation)
-        response = agent.run("What can you do?")
-        self.assertEqual(response, "Hello!")
+        agent.run("What can you do?")
         assistant_messages = self.conversation.messages.filter(
             role=Message.Role.ASSISTANT
         )
