@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.3.0](https://github.com/BLSQ/openhexa-app/compare/5.2.0...5.3.0) (2026-04-21)
+
+
+### Features
+
+* AI Assistant - edit pipelines (HEXA-1515) ([#1723](https://github.com/BLSQ/openhexa-app/issues/1723)) ([52d34b4](https://github.com/BLSQ/openhexa-app/commit/52d34b44055d380c93857e11848cd0fbea1fbf8d))
+* S3 file storage backend (HEXA-1585) ([#1731](https://github.com/BLSQ/openhexa-app/issues/1731)) ([c88c48e](https://github.com/BLSQ/openhexa-app/commit/c88c48e1e9ffb62ac12e04153be54030c9fd8b21))
+
 ## [5.2.0](https://github.com/BLSQ/openhexa-app/compare/5.1.3...5.2.0) (2026-04-16)
 
 
