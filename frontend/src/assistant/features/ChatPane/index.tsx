@@ -94,22 +94,68 @@ export default function ChatPane({
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
   const [streamingText, setStreamingText] = useState<string | null>(null);
 
+  const textQueueRef = useRef("");
+  const donePendingRef = useRef(false);
+  const drainIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const localConversationIdRef = useRef(localConversationId);
+  useEffect(() => {
+    localConversationIdRef.current = localConversationId;
+  }, [localConversationId]);
+
+  const stopDraining = useCallback(() => {
+    if (drainIntervalRef.current !== null) {
+      clearInterval(drainIntervalRef.current);
+      drainIntervalRef.current = null;
+    }
+  }, []);
+
+  const startDraining = useCallback(() => {
+    if (drainIntervalRef.current !== null) return;
+    drainIntervalRef.current = setInterval(() => {
+      if (textQueueRef.current.length > 0) {
+        const spaceIdx = textQueueRef.current.search(/\s/);
+        if (spaceIdx !== -1) {
+          const token = textQueueRef.current.slice(0, spaceIdx + 1);
+          textQueueRef.current = textQueueRef.current.slice(spaceIdx + 1);
+          setStreamingText((prev) => (prev ?? "") + token);
+        } else if (donePendingRef.current) {
+          // No more whitespace coming — flush the last word
+          const remaining = textQueueRef.current;
+          textQueueRef.current = "";
+          setStreamingText((prev) => (prev ?? "") + remaining);
+        }
+        // else: mid-word with more text coming — wait for whitespace
+      } else if (donePendingRef.current) {
+        stopDraining();
+        donePendingRef.current = false;
+        setStreamingText(null);
+        setPendingUserMessage(null);
+        setCurrentPage(1);
+        if (localConversationIdRef.current) {
+          apolloClient.refetchQueries({
+            include: [AssistantConversationMessagesDocument],
+          });
+        }
+      }
+    }, 30);
+  }, [stopDraining, apolloClient]);
+
+  useEffect(() => stopDraining, [stopDraining]);
+
   const { send, isStreaming } = useStreamingFetch({
     text_delta: (data) => {
       const { delta } = data as { delta: string };
-      setStreamingText((prev) => (prev ?? "") + delta);
+      textQueueRef.current += delta;
+      startDraining();
     },
     done: () => {
-      setStreamingText(null);
-      setPendingUserMessage(null);
-      setCurrentPage(1);
-      if (localConversationId) {
-        apolloClient.refetchQueries({
-          include: [AssistantConversationMessagesDocument],
-        });
-      }
+      donePendingRef.current = true;
+      startDraining();
     },
     error: () => {
+      textQueueRef.current = "";
+      donePendingRef.current = false;
+      stopDraining();
       setStreamingText(null);
       setPendingUserMessage(null);
     },
@@ -186,9 +232,11 @@ export default function ChatPane({
     el.style.height = `${el.scrollHeight}px`;
   }, [input]);
 
+  const isActive = isStreaming || streamingText !== null;
+
   const handleSubmit = async () => {
     const text = input.trim();
-    if (!text || isStreaming || monthlyLimitExceeded) return;
+    if (!text || isActive || monthlyLimitExceeded) return;
 
     let convId = localConversationId;
 
@@ -282,7 +330,7 @@ export default function ChatPane({
             </div>
           )}
 
-          {isStreaming && (
+          {(isStreaming || streamingText !== null) && (
             <div className="flex justify-start">
               <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
                 {streamingText ? (
@@ -320,12 +368,12 @@ export default function ChatPane({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              disabled={isStreaming}
+              disabled={isActive}
             />
             <div className="flex items-center justify-end px-2 pb-2">
               <button
                 onClick={handleSubmit}
-                disabled={!input.trim() || isStreaming}
+                disabled={!input.trim() || isActive}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <PaperAirplaneIcon className="h-4 w-4" />
