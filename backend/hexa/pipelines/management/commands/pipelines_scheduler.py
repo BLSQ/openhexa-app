@@ -55,9 +55,7 @@ class Command(BaseCommand):
                     logger.debug(f"sleep before run: {real_delay}")
                     sleep(real_delay)
 
-                pipeline_version = (
-                    pipeline.scheduled_pipeline_version or pipeline.last_version
-                )
+                pipeline_version = pipeline.version_to_run
                 if PipelineRun.objects.filter(
                     pipeline=pipeline,
                     state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING],
