@@ -24,14 +24,18 @@ import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import useDebounce from "core/hooks/useDebounce";
 import WebappIframe from "webapps/features/WebappIframe";
 import WebappSourceEditor from "webapps/features/WebappSourceEditor/WebappSourceEditor";
+import Checkbox from "core/components/forms/Checkbox/Checkbox";
 import {
   CreateWebappError,
   UpdateWebappError,
   WebappFileInput,
+  WebappOperationScope,
   WebappType,
 } from "graphql/types";
 import { getWebappTypeLabel } from "webapps/helpers";
 import { DEFAULT_HTML_TEMPLATE } from "webapps/helpers/templates";
+
+const ALL_SCOPES = Object.values(WebappOperationScope);
 
 const DEFAULT_BLUESQUARE_SUPERSET_URL = "https://superset.bluesquare.org";
 
@@ -85,7 +89,17 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
     [supersetInstances],
   );
 
+  const [allowedOperations, setAllowedOperations] = useState<
+    WebappOperationScope[]
+  >(webapp?.allowedOperations ?? []);
+
   const clearCache = useCacheKey("webapps");
+
+  const toggleScope = (scope: WebappOperationScope) => {
+    setAllowedOperations((prev) =>
+      prev.includes(scope) ? prev.filter((s) => s !== scope) : [...prev, scope],
+    );
+  };
 
   const updateExistingWebapp = async (values: any) => {
     setLoading(true);
@@ -97,6 +111,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             name: values.name,
             icon: values.icon,
             isPublic: values.isPublic,
+            allowedOperations,
             subdomain: values.subdomain || null,
             ...(webapp!.type !== WebappType.Static && {
               source: buildSource[webapp!.type](values),
@@ -199,6 +214,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
 
   useEffect(() => {
     setUrl(webapp?.url || "");
+    setAllowedOperations(webapp?.allowedOperations ?? []);
   }, [webapp]);
 
   return (
@@ -297,6 +313,31 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             "When enabled, the play link can be accessed without authentication",
           )}
         />
+
+        {webapp && !webapp.isPublic && (
+          <details className="pt-4 border-t border-gray-200">
+            <summary className="cursor-pointer text-sm font-medium text-gray-700">
+              {t("API Access")}
+            </summary>
+            <div className="space-y-3 mt-3">
+              <p className="text-sm text-gray-500">
+                {t(
+                  "Select which GraphQL API operations this web app can perform on behalf of the connected user.",
+                )}
+              </p>
+              {ALL_SCOPES.map((scope) => (
+                <Checkbox
+                  key={scope}
+                  name={scope}
+                  label={t(`webapp-scopes.${scope}.label`)}
+                  description={t(`webapp-scopes.${scope}.description`)}
+                  checked={allowedOperations.includes(scope)}
+                  onChange={() => toggleScope(scope)}
+                />
+              ))}
+            </div>
+          </details>
+        )}
       </DataCard.FormSection>
       {!webapp && selectedType === WebappType.Static && (
         <DataCard.Section title={t("Source Files")} collapsible={false}>
@@ -335,6 +376,7 @@ WebappForm.fragment = {
       type
       icon
       isPublic
+      allowedOperations
       subdomain
       serveUrl
       source {
