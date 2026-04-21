@@ -81,7 +81,7 @@ def _dispatch_webapp_response(request, webapp, show_powered_by=False):
     if webapp.type == Webapp.WebappType.STATIC:
         response = _serve_static_webapp(webapp, request)
         if show_powered_by:
-            _inject_powered_by_banner(response)
+            response = _inject_powered_by_banner(response)
     elif webapp.type == Webapp.WebappType.SUPERSET:
         response = _serve_superset_webapp(request, webapp)
     else:
