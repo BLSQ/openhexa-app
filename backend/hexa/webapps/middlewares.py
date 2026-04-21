@@ -8,11 +8,13 @@ from django.http import (
     HttpResponse,
     HttpResponseNotFound,
     HttpResponseRedirect,
+    JsonResponse,
 )
 from django.template.loader import render_to_string
 
 from hexa.superset.views import view_superset_dashboard
 from hexa.user_management.models import User
+from hexa.webapps.graphql_proxy import handle_graphql_proxy
 from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 from hexa.webapps.utils import extract_webapp_subdomain
 from hexa.webapps.views import serve_webapp
@@ -169,11 +171,18 @@ def webapp_subdomain_middleware(get_response):
 
         request.webapp = webapp
 
-        # TODO: Explicitly block this for now, but in v2 we'll probably re-route
-        # here to the main app based on the webapps permission scopes to access
-        # workspace resources.
         if request.path.startswith("/graphql/"):
-            return HttpResponseNotFound("Not available")
+            if webapp.is_public:
+                return HttpResponseNotFound("Not available")
+
+            user = _check_webapp_session(request, webapp)
+            if not user:
+                return JsonResponse(
+                    {"errors": [{"message": "Authentication required"}]},
+                    status=401,
+                )
+
+            return handle_graphql_proxy(request, webapp)
 
         has_valid_token = False
         if request.GET.get("auth_token"):
