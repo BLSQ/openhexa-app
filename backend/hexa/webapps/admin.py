@@ -5,9 +5,17 @@ from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 
 @admin.register(Webapp)
 class WebappAdmin(admin.ModelAdmin):
-    list_display = ("name", "slug", "subdomain", "workspace", "type", "is_public")
+    list_display = (
+        "name",
+        "slug",
+        "subdomain",
+        "workspace",
+        "type",
+        "is_public",
+        "custom_domain",
+    )
     list_filter = ("workspace", "type", "is_public")
-    search_fields = ("id", "name")
+    search_fields = ("id", "name", "custom_domain")
     fields = (
         "name",
         "slug",
@@ -19,15 +27,23 @@ class WebappAdmin(admin.ModelAdmin):
         "type",
         "is_public",
         "show_powered_by",
+        "custom_domain",
     )
     readonly_fields = ("slug",)
 
 
 @admin.register(GitWebapp)
 class GitWebappAdmin(admin.ModelAdmin):
-    list_display = ("name", "workspace", "repository", "published_commit", "is_public")
+    list_display = (
+        "name",
+        "workspace",
+        "repository",
+        "published_commit",
+        "is_public",
+        "custom_domain",
+    )
     list_filter = ("workspace",)
-    search_fields = ("id", "name", "repository")
+    search_fields = ("id", "name", "repository", "custom_domain")
     fields = (
         "name",
         "description",
@@ -37,6 +53,7 @@ class GitWebappAdmin(admin.ModelAdmin):
         "published_commit",
         "is_public",
         "show_powered_by",
+        "custom_domain",
     )
     readonly_fields = ("repository",)
 
