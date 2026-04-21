@@ -182,6 +182,11 @@ def resolve_update_pipeline(_, info, **kwargs):
             "success": False,
             "errors": ["MISSING_VERSION_CONFIG"],
         }
+    except PipelineVersion.DoesNotExist:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_VERSION_NOT_FOUND"],
+        }
     except Pipeline.DoesNotExist:
         return {
             "success": False,

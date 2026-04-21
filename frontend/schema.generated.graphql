@@ -3338,6 +3338,7 @@ type Pipeline {
   recipients: [PipelineRecipient!]!
   runs(orderBy: PipelineRunOrderBy, page: Int, perPage: Int): PipelineRunPage!
   schedule: String
+  scheduledPipelineVersion: PipelineVersion
   sourceTemplate: PipelineTemplate
   tags: [Tag!]!
   template: PipelineTemplate
@@ -4927,6 +4928,7 @@ enum UpdatePipelineError {
   MISSING_VERSION_CONFIG
   NOT_FOUND
   PERMISSION_DENIED
+  PIPELINE_VERSION_NOT_FOUND
 }
 
 """Represents the result of updating a pipeline heartbeat."""
@@ -4944,6 +4946,7 @@ input UpdatePipelineInput {
   id: UUID!
   name: String
   schedule: String
+  scheduledPipelineVersionId: UUID
   tags: [String!]
   webhookEnabled: Boolean
 }

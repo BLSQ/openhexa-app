@@ -3946,6 +3946,7 @@ export type Pipeline = {
   recipients: Array<PipelineRecipient>;
   runs: PipelineRunPage;
   schedule?: Maybe<Scalars['String']['output']>;
+  scheduledPipelineVersion?: Maybe<PipelineVersion>;
   sourceTemplate?: Maybe<PipelineTemplate>;
   tags: Array<Tag>;
   template?: Maybe<PipelineTemplate>;
@@ -5762,7 +5763,8 @@ export enum UpdatePipelineError {
   InvalidConfig = 'INVALID_CONFIG',
   MissingVersionConfig = 'MISSING_VERSION_CONFIG',
   NotFound = 'NOT_FOUND',
-  PermissionDenied = 'PERMISSION_DENIED'
+  PermissionDenied = 'PERMISSION_DENIED',
+  PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND'
 }
 
 /** Represents the result of updating a pipeline heartbeat. */
@@ -5781,6 +5783,7 @@ export type UpdatePipelineInput = {
   id: Scalars['UUID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
   schedule?: InputMaybe<Scalars['String']['input']>;
+  scheduledPipelineVersionId?: InputMaybe<Scalars['UUID']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   webhookEnabled?: InputMaybe<Scalars['Boolean']['input']>;
 };

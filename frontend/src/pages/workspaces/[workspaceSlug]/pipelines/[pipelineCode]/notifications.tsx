@@ -1,5 +1,6 @@
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import DataCard from "core/components/DataCard";
+import SelectProperty from "core/components/DataCard/SelectProperty";
 import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import Page from "core/components/Page";
 import Tooltip from "core/components/Tooltip";
@@ -38,22 +39,20 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
   });
 
   const hasMissingConfiguration = useMemo(() => {
-    if (!data?.pipeline) {
-      return false;
-    }
+    if (!data?.pipeline) return false;
     const { pipeline } = data;
-    if (
-      pipeline.type !== PipelineType.ZipFile ||
-      !pipeline.currentVersion ||
-      !pipeline.schedule
-    ) {
+    if (pipeline.type !== PipelineType.ZipFile || !pipeline.schedule)
       return false;
+
+    if (pipeline.scheduledPipelineVersion) {
+      const v = pipeline.scheduledPipelineVersion;
+      return v.parameters.some((p) => p.required && !v.config?.[p.code]);
     }
-    for (const param of pipeline.currentVersion.parameters) {
-      if (param.required && !pipeline.currentVersion.config[param.code]) {
-        return true;
-      }
-    }
+
+    if (!pipeline.currentVersion) return false;
+    return pipeline.currentVersion.parameters.some(
+      (p) => p.required && !pipeline.currentVersion!.config?.[p.code],
+    );
   }, [data]);
 
   if (!data?.workspace || !data?.pipeline) {
@@ -62,9 +61,20 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
 
   const { workspace, pipeline } = data;
 
+  const versionItems = pipeline.versions?.items ?? [];
+  const pinned = pipeline.scheduledPipelineVersion;
+  const versionOptions =
+    pinned && !versionItems.some((v) => v.id === pinned.id)
+      ? [pinned, ...versionItems]
+      : versionItems;
+
   const onSaveScheduling = async (values: any) => {
+    const schedulingEnabled = values.enableScheduling;
     await updatePipeline(pipeline.id, {
-      schedule: values.enableScheduling ? values.schedule : null,
+      schedule: schedulingEnabled ? values.schedule : null,
+      ...(schedulingEnabled && {
+        scheduledPipelineVersionId: values.scheduledPipelineVersion?.id ?? null,
+      }),
     });
   };
 
@@ -122,6 +132,23 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
             }
             required={(_, __, values) => Boolean(values.enableScheduling)}
           />
+          {pipeline.type === PipelineType.ZipFile && (
+            <SelectProperty
+              id="scheduledPipelineVersion"
+              accessor="scheduledPipelineVersion"
+              label={t("Version")}
+              help={t(
+                "Choose which version to run on schedule. Leave empty to always run the latest version.",
+              )}
+              options={versionOptions}
+              nullable
+              defaultValue={t("Latest version")}
+              getOptionLabel={(v) => v.versionName}
+              visible={(_, __, values) =>
+                Boolean(values.enableScheduling || pipeline.schedule)
+              }
+            />
+          )}
         </DataCard.FormSection>
         <div>
           <Title level={6} className="px-6 pt-4">
