@@ -118,6 +118,13 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         STATIC = "static", "Static"
         SUPERSET = "superset", "Superset"
 
+    class OperationScope(models.TextChoices):
+        PIPELINES_RUN = "PIPELINES_RUN", "Run pipelines"
+        PIPELINES_READ = "PIPELINES_READ", "Read pipelines"
+        FILES_READ = "FILES_READ", "Read files"
+        FILES_WRITE = "FILES_WRITE", "Write files"
+        USER_READ = "USER_READ", "Read user info"
+
     name = models.CharField(max_length=255)
     slug = models.CharField(
         max_length=100, null=False, editable=False, validators=[validate_slug]
@@ -143,6 +150,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     favorites = models.ManyToManyField(
         User, related_name="favorite_webapps", blank=True
     )
+    allowed_operations = models.JSONField(default=list, blank=True)
     objects = WebappManager()
     all_objects = AllWebappManager()
 
