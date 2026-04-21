@@ -5980,6 +5980,7 @@ export type UpdateUserResult = {
 
 /** Represents the error message for a web app update. */
 export enum UpdateWebappError {
+  InvalidScope = 'INVALID_SCOPE',
   InvalidUrl = 'INVALID_URL',
   PermissionDenied = 'PERMISSION_DENIED',
   SaveFailed = 'SAVE_FAILED',
@@ -6000,6 +6001,7 @@ export enum UpdateWebappError {
 
 /** Represents the input for updating a web app. */
 export type UpdateWebappInput = {
+  allowedOperations?: InputMaybe<Array<Scalars['String']['input']>>;
   description?: InputMaybe<Scalars['String']['input']>;
   files?: InputMaybe<Array<WebappFileInput>>;
   icon?: InputMaybe<Scalars['String']['input']>;
@@ -6183,6 +6185,7 @@ export type WhoRegion = {
 /** Represents a web app. */
 export type Webapp = {
   __typename?: 'Webapp';
+  allowedOperations: Array<Scalars['String']['output']>;
   createdBy: User;
   description?: Maybe<Scalars['String']['output']>;
   files?: Maybe<Array<FileNode>>;
