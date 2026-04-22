@@ -64,7 +64,9 @@ class AssistantVCRTest(TestCase):
                 "enabled": True,
                 "provider": AiSettings.Provider.ANTHROPIC,
                 "model": AiSettings.Model.HAIKU,
-                "api_key": os.environ.get("ANTHROPIC_API_KEY", "test-key-for-vcr-replay"),
+                "api_key": os.environ.get(
+                    "ANTHROPIC_API_KEY", "test-key-for-vcr-replay"
+                ),
             },
         )
 
