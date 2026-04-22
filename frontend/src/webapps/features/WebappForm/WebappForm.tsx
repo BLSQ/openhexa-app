@@ -39,6 +39,31 @@ import { DEFAULT_HTML_TEMPLATE } from "webapps/helpers/templates";
 
 const ALL_SCOPES = Object.values(WebappOperationScope);
 
+function getScopeDescriptions(t: (key: string) => string) {
+  return {
+    [WebappOperationScope.PipelinesRead]: {
+      label: t("Read pipelines"),
+      description: t("Access pipeline metadata, versions, and run details"),
+    },
+    [WebappOperationScope.PipelinesRun]: {
+      label: t("Run pipelines"),
+      description: t("Start and stop pipeline runs"),
+    },
+    [WebappOperationScope.FilesRead]: {
+      label: t("Read files"),
+      description: t("Access workspace files and download objects"),
+    },
+    [WebappOperationScope.FilesWrite]: {
+      label: t("Write files"),
+      description: t("Upload, create, and delete workspace files"),
+    },
+    [WebappOperationScope.UserRead]: {
+      label: t("Read user info"),
+      description: t("Access current user details and workspace role"),
+    },
+  };
+}
+
 type ApiAccessSectionProps = {
   serveUrl: string;
   allowedOperations: WebappOperationScope[];
@@ -52,6 +77,7 @@ const ApiAccessSection = ({
 }: ApiAccessSectionProps) => {
   const { t } = useTranslation();
   const section = useDataCardSection();
+  const scopeDescriptions = getScopeDescriptions(t);
 
   if (!section.isEdited) return null;
 
@@ -111,8 +137,8 @@ const { data } = await response.json();`}
               <Checkbox
                 key={scope}
                 name={scope}
-                label={t(`webapp-scopes.${scope}.label`)}
-                description={t(`webapp-scopes.${scope}.description`)}
+                label={scopeDescriptions[scope].label}
+                description={scopeDescriptions[scope].description}
                 checked={allowedOperations.includes(scope)}
                 onChange={() => onToggleScope(scope)}
               />
