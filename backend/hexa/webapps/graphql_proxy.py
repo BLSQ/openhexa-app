@@ -6,6 +6,7 @@ from graphql import OperationDefinitionNode
 from graphql import parse as gql_parse
 
 from config.schema import schema
+from hexa.analytics.api import track
 from hexa.webapps.models import Webapp
 
 INTROSPECTION_FIELDS = {"__typename", "__schema", "__type"}
@@ -91,7 +92,23 @@ def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
     }
     disallowed = requested_fields - allowed_fields
 
+    event_properties = {
+        "webapp_id": str(webapp.id),
+        "webapp_name": webapp.name,
+        "workspace_id": str(webapp.workspace_id),
+        "operations": sorted(requested_fields),
+    }
+
     if disallowed:
+        track(
+            request,
+            "webapp_graphql_query",
+            {
+                **event_properties,
+                "status": "denied",
+                "disallowed_operations": sorted(disallowed),
+            },
+        )
         return JsonResponse(
             {
                 "errors": [
@@ -103,4 +120,5 @@ def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
             status=403,
         )
 
+    track(request, "webapp_graphql_query", {**event_properties, "status": "allowed"})
     return _graphql_view(request)
