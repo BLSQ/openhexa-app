@@ -12,6 +12,7 @@ from pydantic_ai.messages import (
     ToolCallPart,
     ToolReturnPart,
 )
+from pydantic_ai.result import StreamedRunResult
 
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.model_builder import AiModelBuilder
@@ -139,13 +140,18 @@ class BaseAgent:
 
     @staticmethod
     def _parse_messages(
-        result,
+        result: StreamedRunResult,
     ) -> tuple[str, dict[str, ToolInvocation], list[str]]:
         response_text = ""
         tool_invocations: dict[str, ToolInvocation] = {}
         tool_events: list[str] = []
 
         for msg in result.new_messages():
+            logger.debug(
+                "agent.run_stream: processing message type=%s parts=%d",
+                type(msg).__name__,
+                len(msg.parts),
+            )
             for part in msg.parts:
                 if isinstance(part, TextPart):
                     if (
@@ -181,6 +187,9 @@ class BaseAgent:
                         part.tool_call_id,
                     )
                     success = _is_success(part.content)
+                    # pydantic-ai serialises tool return values to a JSON string in
+                    # ToolReturnPart.content. Parse it so we store the actual structure
+                    # (dict/list) in the JSONField rather than a string representation.
                     if isinstance(part.content, str):
                         try:
                             tool_output = json.loads(part.content)
