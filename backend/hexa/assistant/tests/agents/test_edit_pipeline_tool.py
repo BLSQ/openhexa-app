@@ -1,6 +1,9 @@
 from unittest.mock import MagicMock
 
-from hexa.assistant.agents.edit_pipeline_agent import ProposedFile, propose_pipeline_version
+from hexa.assistant.agents.edit_pipeline_agent import (
+    ProposedFile,
+    propose_pipeline_version,
+)
 from hexa.core.test import TestCase
 
 from ._helpers import _make_zipfile

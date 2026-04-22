@@ -67,7 +67,9 @@ class BaseAgentRunStreamTest(AgentTestCase):
             agent = BaseAgent(self.conversation)
         events = _collect_stream(agent, "What can you do?")
         done = events[-1]
-        assistant_msg = self.conversation.messages.filter(role=Message.Role.ASSISTANT).first()
+        assistant_msg = self.conversation.messages.filter(
+            role=Message.Role.ASSISTANT
+        ).first()
         self.assertEqual(done["data"]["message_id"], str(assistant_msg.id))
 
     def test_done_event_includes_name_on_first_message(self):

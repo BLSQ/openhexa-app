@@ -4,7 +4,12 @@ from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message
 
-from ._helpers import _AgentWithFailingTool, _AgentWithFakeTool, _make_tool_call_model, _patch_builder
+from ._helpers import (
+    _AgentWithFailingTool,
+    _AgentWithFakeTool,
+    _make_tool_call_model,
+    _patch_builder,
+)
 from ._testcase import AgentTestCase
 
 
@@ -28,7 +33,9 @@ class BaseAgentRunTest(AgentTestCase):
         with _patch_builder(TestModel(custom_output_text="Hello!")):
             agent = BaseAgent(self.conversation)
         agent.run("What can you do?")
-        assistant_messages = self.conversation.messages.filter(role=Message.Role.ASSISTANT)
+        assistant_messages = self.conversation.messages.filter(
+            role=Message.Role.ASSISTANT
+        )
         self.assertEqual(assistant_messages.count(), 1)
         self.assertEqual(assistant_messages.first().content, "Hello!")
 
@@ -63,7 +70,9 @@ class BaseAgentRunTest(AgentTestCase):
             agent = BaseAgent(self.conversation)
         agent.run("Test")
         self.conversation.refresh_from_db()
-        assistant_msg = self.conversation.messages.filter(role=Message.Role.ASSISTANT).first()
+        assistant_msg = self.conversation.messages.filter(
+            role=Message.Role.ASSISTANT
+        ).first()
         self.assertIsNotNone(assistant_msg.input_tokens)
         self.assertIsNotNone(assistant_msg.output_tokens)
 
@@ -90,7 +99,9 @@ class BaseAgentToolCallTest(AgentTestCase):
         with _patch_builder(model):
             agent = _AgentWithFakeTool(self.conversation)
         agent.run("Use the tool")
-        assistant_msg = self.conversation.messages.filter(role=Message.Role.ASSISTANT).first()
+        assistant_msg = self.conversation.messages.filter(
+            role=Message.Role.ASSISTANT
+        ).first()
         self.assertEqual(assistant_msg.tool_invocations.count(), 1)
         invocation = assistant_msg.tool_invocations.first()
         self.assertEqual(invocation.tool_name, "_fake_tool")

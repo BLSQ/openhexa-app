@@ -2,7 +2,7 @@ import asyncio
 import json
 import uuid
 from decimal import Decimal
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 from django.urls import reverse
 
@@ -49,9 +49,7 @@ class StreamAssistantMessageViewTest(TestCase):
         cls.user = User.objects.create_user(
             "view-test@example.com", "password", is_superuser=True
         )
-        cls.other_user = User.objects.create_user(
-            "view-other@example.com", "password"
-        )
+        cls.other_user = User.objects.create_user("view-other@example.com", "password")
         with patch("hexa.workspaces.models.create_database"):
             cls.workspace = Workspace.objects.create_if_has_perm(
                 cls.user, name="View Test WS", description=""

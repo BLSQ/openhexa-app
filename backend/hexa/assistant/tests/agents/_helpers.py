@@ -47,7 +47,13 @@ def _make_tool_call_model(tool_name: str, tool_args: dict) -> FunctionModel:
     async def stream_func(messages, agent_info):
         stream_calls.append(1)
         if len(stream_calls) == 1:
-            yield {0: DeltaToolCall(name=tool_name, json_args=json.dumps(tool_args), tool_call_id="call-test-001")}
+            yield {
+                0: DeltaToolCall(
+                    name=tool_name,
+                    json_args=json.dumps(tool_args),
+                    tool_call_id="call-test-001",
+                )
+            }
         else:
             yield "Done."
 
