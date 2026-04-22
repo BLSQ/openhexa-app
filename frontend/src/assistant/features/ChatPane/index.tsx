@@ -1,4 +1,4 @@
-import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Spinner from "core/components/Spinner";
 import { getPublicEnv } from "core/helpers/runtimeConfig";
@@ -92,6 +92,7 @@ export default function ChatPane({
 
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
   const [streamingText, setStreamingText] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const textQueueRef = useRef("");
   const donePendingRef = useRef(false);
@@ -143,7 +144,7 @@ export default function ChatPane({
 
   useEffect(() => stopDraining, [stopDraining]);
 
-  const { send, isStreaming } = useStreamingFetch({
+  const { send, isStreaming, streamError } = useStreamingFetch({
     text_delta: (data) => {
       const { delta } = data as { delta: string };
       textQueueRef.current += delta;
@@ -160,9 +161,15 @@ export default function ChatPane({
       donePendingRef.current = false;
       stopDraining();
       setStreamingText(null);
-      setPendingUserMessage(null);
+      setSendError("The AI service encountered an error. Please try again.");
     },
   });
+
+  useEffect(() => {
+    if (streamError) {
+      setSendError("Could not connect to the server. Please check your connection and try again.");
+    }
+  }, [streamError]);
 
   useEffect(() => {
     if (!loadingMessages) {
@@ -237,8 +244,8 @@ export default function ChatPane({
 
   const isActive = isStreaming || streamingText !== null;
 
-  const handleSubmit = async () => {
-    const text = input.trim();
+  const handleSubmit = async (overrideText?: string) => {
+    const text = overrideText ?? input.trim();
     if (!text || isActive || monthlyLimitExceeded) return;
 
     let convId = localConversationId;
@@ -252,6 +259,7 @@ export default function ChatPane({
 
     if (!convId) return;
 
+    setSendError(null);
     setPendingUserMessage(text);
     setInput("");
     await send(getStreamUrl(convId), { message: text });
@@ -326,10 +334,19 @@ export default function ChatPane({
           ))}
 
           {pendingUserMessage && (
-            <div className="flex justify-end">
+            <div className="flex flex-col items-end gap-1">
               <div className="max-w-2xl rounded-2xl px-4 py-3 text-sm bg-blue-600 text-white whitespace-pre-wrap">
                 {pendingUserMessage}
               </div>
+              {sendError && (
+                <button
+                  onClick={() => handleSubmit(pendingUserMessage)}
+                  className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                >
+                  <ArrowPathIcon className="h-3.5 w-3.5" />
+                  Try again
+                </button>
+              )}
             </div>
           )}
 
@@ -345,6 +362,14 @@ export default function ChatPane({
                 ) : (
                   <Spinner size="xs" className="text-gray-400" />
                 )}
+              </div>
+            </div>
+          )}
+
+          {sendError && (
+            <div className="flex justify-start">
+              <div className="max-w-2xl rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {sendError}
               </div>
             </div>
           )}
@@ -375,7 +400,7 @@ export default function ChatPane({
             />
             <div className="flex items-center justify-end px-2 pb-2">
               <button
-                onClick={handleSubmit}
+                onClick={() => handleSubmit()}
                 disabled={!input.trim() || isActive}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
               >
