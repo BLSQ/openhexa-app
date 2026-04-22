@@ -109,11 +109,12 @@ class GraphQLProxyMiddlewareTest(TestCase):
         session.create()
         return session
 
-    def _graphql_post(self, subdomain, query, session_key=None):
+    def _graphql_post(self, subdomain, query, session_key=None, extra_headers=None):
         kwargs = {
             "data": json.dumps({"query": query}),
             "content_type": "application/json",
             "HTTP_HOST": f"{subdomain}.{WEBAPPS_DOMAIN}",
+            **(extra_headers or {}),
         }
         if session_key:
             self.client.cookies[WEBAPP_SESSION_COOKIE] = session_key
@@ -207,6 +208,28 @@ class GraphQLProxyMiddlewareTest(TestCase):
             HTTP_HOST=f"private-app.{WEBAPPS_DOMAIN}",
         )
         self.assertEqual(response.status_code, 405)
+
+    def test_cross_origin_request_returns_403(self):
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        response = self._graphql_post(
+            "private-app",
+            "query { me { user { email } } }",
+            session_key=session.session_key,
+            extra_headers={"HTTP_ORIGIN": "https://evil.example.com"},
+        )
+        self.assertEqual(response.status_code, 403)
+        data = json.loads(response.content)
+        self.assertEqual(data["errors"][0]["message"], "Origin not allowed")
+
+    def test_same_origin_request_succeeds(self):
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        response = self._graphql_post(
+            "private-app",
+            "query { me { user { email } } }",
+            session_key=session.session_key,
+            extra_headers={"HTTP_ORIGIN": f"http://private-app.{WEBAPPS_DOMAIN}"},
+        )
+        self.assertEqual(response.status_code, 200)
 
     def test_empty_allowed_operations_blocks_everything(self):
         webapp = Webapp.objects.create(

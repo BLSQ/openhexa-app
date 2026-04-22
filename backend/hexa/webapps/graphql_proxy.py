@@ -1,6 +1,7 @@
 import json
 
 from ariadne_django.views import GraphQLView
+from django.conf import settings
 from django.http import HttpRequest, JsonResponse
 from graphql import OperationDefinitionNode
 from graphql import parse as gql_parse
@@ -49,11 +50,25 @@ def extract_top_level_fields(query_string: str) -> set[str]:
 _graphql_view = GraphQLView.as_view(schema=schema)
 
 
+def _check_origin(request: HttpRequest, webapp: Webapp) -> bool:
+    origin = request.META.get("HTTP_ORIGIN", "")
+    if not origin:
+        return True
+    expected = f"{settings.SCHEME}://{webapp.subdomain}.{settings.WEBAPPS_DOMAIN}"
+    return origin.rstrip("/") == expected.rstrip("/")
+
+
 def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
     if request.method != "POST":
         return JsonResponse(
             {"errors": [{"message": "Only POST requests are supported"}]},
             status=405,
+        )
+
+    if not _check_origin(request, webapp):
+        return JsonResponse(
+            {"errors": [{"message": "Origin not allowed"}]},
+            status=403,
         )
 
     try:
