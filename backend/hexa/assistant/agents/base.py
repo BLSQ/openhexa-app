@@ -132,7 +132,13 @@ class BaseAgent:
                     is_first_message,
                     user_input,
                 )
-                yield format_sse("done", {"message_id": str(assistant_message.id)})
+                yield format_sse(
+                    "done",
+                    {
+                        "message_id": str(assistant_message.id),
+                        "name": self.conversation.name,
+                    },
+                )
 
         except Exception:
             logger.exception("agent.run_stream: error during streaming")

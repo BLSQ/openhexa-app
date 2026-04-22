@@ -88,8 +88,7 @@ export default function ChatPane({
   useEffect(() => {
     const name = data?.assistantConversation?.name;
     if (name) onConversationNameChange?.(name);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  }, [data?.assistantConversation?.name, onConversationNameChange]);
 
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
   const [streamingText, setStreamingText] = useState<string | null>(null);
@@ -109,6 +108,8 @@ export default function ChatPane({
     }
   }, []);
 
+  // Smooths the raw SSE byte stream into word-by-word rendering at a fixed tick
+  // rate, so text appears at a natural reading pace rather than in sudden bursts.
   const startDraining = useCallback(() => {
     if (drainIntervalRef.current !== null) return;
     drainIntervalRef.current = setInterval(() => {
@@ -148,7 +149,9 @@ export default function ChatPane({
       textQueueRef.current += delta;
       startDraining();
     },
-    done: () => {
+    done: (data) => {
+      const { name } = data as { name?: string };
+      if (name) onConversationNameChange?.(name);
       donePendingRef.current = true;
       startDraining();
     },
