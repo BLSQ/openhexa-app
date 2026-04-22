@@ -64,7 +64,7 @@ class AssistantVCRTest(TestCase):
                 "enabled": True,
                 "provider": AiSettings.Provider.ANTHROPIC,
                 "model": AiSettings.Model.HAIKU,
-                "api_key": "test-key-for-vcr-replay",
+                "api_key": os.environ.get("ANTHROPIC_API_KEY", "test-key-for-vcr-replay"),
             },
         )
 
@@ -76,22 +76,18 @@ class AssistantVCRTest(TestCase):
         )
 
     @assistant_vcr.use_cassette(os.path.join(CASSETTES_DIR, "simple_chat.yaml"))
-    def test_simple_chat_returns_text_response(self):
-        agent = BaseAgent(self.conversation)
-        response = agent.run("Hello")
-        self.assertIsInstance(response, str)
-        self.assertGreater(len(response), 0)
-
-    @assistant_vcr.use_cassette(os.path.join(CASSETTES_DIR, "simple_chat.yaml"))
     def test_simple_chat_saves_messages_to_db(self):
         agent = BaseAgent(self.conversation)
         agent.run("Hello")
         self.assertEqual(
             self.conversation.messages.filter(role=Message.Role.USER).count(), 1
         )
-        self.assertEqual(
-            self.conversation.messages.filter(role=Message.Role.ASSISTANT).count(), 1
-        )
+        assistant_msg = self.conversation.messages.filter(
+            role=Message.Role.ASSISTANT
+        ).first()
+        self.assertIsNotNone(assistant_msg)
+        self.assertIsInstance(assistant_msg.content, str)
+        self.assertGreater(len(assistant_msg.content), 0)
 
     @assistant_vcr.use_cassette(os.path.join(CASSETTES_DIR, "simple_chat.yaml"))
     def test_simple_chat_generates_conversation_name(self):
