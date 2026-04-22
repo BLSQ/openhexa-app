@@ -16,7 +16,7 @@
   <mj-section padding="60px 0 0 0"></mj-section>
     <mj-section background-color="#2e2e2e" border-radius="18px 18px 0 0" padding="30px 0">
       <mj-column>
-        <mj-image align="center" height="100px" src="{% static_with_domain 'img/logo/logo_with_text_white.svg' %}" padding="10px 25px 10px 25px"></mj-image>
+        <mj-image align="center" width="200px" src="{% static_with_domain 'img/logo/logo_with_text_white.svg' %}" padding="10px 25px 10px 25px"></mj-image>
       </mj-column>
     </mj-section>
 
