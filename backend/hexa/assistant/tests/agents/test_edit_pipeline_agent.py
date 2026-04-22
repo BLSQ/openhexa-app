@@ -1,135 +1,15 @@
-import io
-import zipfile
-from unittest.mock import MagicMock, patch
-
 from pydantic_ai.models.test import TestModel
 
-from hexa.assistant.agents.edit_pipeline_agent import (
-    EditPipelineAgent,
-    ProposedFile,
-    propose_pipeline_version,
-)
+from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
 from hexa.assistant.instructions import InstructionSet
-from hexa.assistant.models import Conversation
-from hexa.core.test import TestCase
+from hexa.assistant.models import Conversation, Message
 from hexa.pipelines.models import Pipeline, PipelineVersion
-from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+
+from ._helpers import _make_tool_call_model, _make_zipfile, _patch_builder
+from ._testcase import AgentTestCase
 
 
-def _patch_builder(test_model):
-    mock_builder = MagicMock()
-    mock_builder.model_api_name = "test"
-    mock_builder.provider_id = "test"
-    mock_builder.build.return_value = test_model
-    return patch(
-        "hexa.assistant.agents.base.AiModelBuilder.from_conversation",
-        return_value=mock_builder,
-    )
-
-
-def _make_zipfile(*files: tuple[str, str]) -> bytes:
-    """Build an in-memory zip containing the given (name, content) pairs."""
-    buf = io.BytesIO()
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-        for name, content in files:
-            zf.writestr(name, content)
-    return buf.getvalue()
-
-
-def _make_pipeline_stub(zipfile_data=None, version_name="v1"):
-    """Build a minimal pipeline-like object for unit-testing propose_pipeline_version."""
-    version = MagicMock()
-    version.zipfile = zipfile_data
-    version.version_name = version_name
-    pipeline = MagicMock()
-    pipeline.last_version = version if zipfile_data is not None else None
-    return pipeline
-
-
-class ProposePipelineVersionToolTest(TestCase):
-    def test_no_existing_version_returns_modified_files(self):
-        pipeline = _make_pipeline_stub()
-        result = propose_pipeline_version(
-            pipeline,
-            [ProposedFile(name="pipeline.py", content="print('hello')")],
-        )
-        self.assertEqual(
-            result,
-            {"files": [{"name": "pipeline.py", "content": "print('hello')"}]},
-        )
-
-    def test_merges_modified_file_into_existing_zip(self):
-        zip_data = _make_zipfile(
-            ("pipeline.py", "# original"),
-            ("utils.py", "# helpers"),
-        )
-        pipeline = _make_pipeline_stub(zipfile_data=zip_data)
-        result = propose_pipeline_version(
-            pipeline,
-            [ProposedFile(name="pipeline.py", content="# updated")],
-        )
-        files = {f["name"]: f["content"] for f in result["files"]}
-        self.assertEqual(files["pipeline.py"], "# updated")
-        self.assertEqual(files["utils.py"], "# helpers")
-
-    def test_adds_new_file_to_existing_zip(self):
-        zip_data = _make_zipfile(("pipeline.py", "# main"))
-        pipeline = _make_pipeline_stub(zipfile_data=zip_data)
-        result = propose_pipeline_version(
-            pipeline,
-            [ProposedFile(name="utils.py", content="# new")],
-        )
-        files = {f["name"]: f["content"] for f in result["files"]}
-        self.assertIn("pipeline.py", files)
-        self.assertIn("utils.py", files)
-
-    def test_deletes_file_from_existing_zip(self):
-        zip_data = _make_zipfile(
-            ("pipeline.py", "# main"),
-            ("utils.py", "# helpers"),
-        )
-        pipeline = _make_pipeline_stub(zipfile_data=zip_data)
-        result = propose_pipeline_version(
-            pipeline,
-            modified_files=[],
-            deleted_files=["utils.py"],
-        )
-        files = {f["name"] for f in result["files"]}
-        self.assertIn("pipeline.py", files)
-        self.assertNotIn("utils.py", files)
-
-    def test_empty_modified_files_returns_existing_files_unchanged(self):
-        zip_data = _make_zipfile(("pipeline.py", "# main"))
-        pipeline = _make_pipeline_stub(zipfile_data=zip_data)
-        result = propose_pipeline_version(pipeline, modified_files=[])
-        self.assertEqual(
-            result,
-            {"files": [{"name": "pipeline.py", "content": "# main"}]},
-        )
-
-    def test_no_pipeline_returns_only_modified_files(self):
-        result = propose_pipeline_version(
-            None,
-            [ProposedFile(name="pipeline.py", content="# new")],
-        )
-        self.assertEqual(
-            result,
-            {"files": [{"name": "pipeline.py", "content": "# new"}]},
-        )
-
-
-class EditPipelineAgentExtraInstructionsTest(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.user = User.objects.create_user(
-            "edit-instructions@example.com", "password", is_superuser=True
-        )
-        with patch("hexa.workspaces.models.create_database"):
-            cls.workspace = Workspace.objects.create_if_has_perm(
-                cls.user, name="Edit Instructions WS", description=""
-            )
-
+class EditPipelineAgentExtraInstructionsTest(AgentTestCase):
     def _make_agent(self, pipeline=None):
         conversation = Conversation(
             user=self.user,
@@ -183,8 +63,7 @@ class EditPipelineAgentExtraInstructionsTest(TestCase):
             pipeline=pipeline, user=self.user, name="Initial release"
         )
         agent = self._make_agent(pipeline=pipeline)
-        instructions = agent._extra_instructions()
-        self.assertIn("Initial release", instructions)
+        self.assertIn("Initial release", agent._extra_instructions())
 
     def test_pipeline_with_zipfile_includes_file_contents(self):
         pipeline = Pipeline.objects.create(
@@ -229,3 +108,37 @@ class EditPipelineAgentExtraInstructionsTest(TestCase):
         agent = self._make_agent(pipeline=None)
         self.assertIn("pipeline", agent._context)
         self.assertIsNone(agent._context["pipeline"])
+
+
+class EditPipelineAgentToolCallTest(AgentTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.pipeline = Pipeline.objects.create(
+            code="tool-pipeline", name="Tool Pipeline", workspace=cls.workspace
+        )
+
+    def test_propose_pipeline_version_call_is_persisted(self):
+        files_arg = [{"name": "pipeline.py", "content": "print('v2')"}]
+        model = _make_tool_call_model(
+            "propose_pipeline_version", {"modified_files": files_arg}
+        )
+        conversation = Conversation(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.EDIT_PIPELINE,
+        )
+        conversation.linked_object = self.pipeline
+        conversation.save()
+        with _patch_builder(model):
+            agent = EditPipelineAgent(conversation)
+        agent.run("Update the pipeline")
+        invocation = (
+            conversation.messages.filter(role=Message.Role.ASSISTANT)
+            .first()
+            .tool_invocations.first()
+        )
+        self.assertEqual(invocation.tool_name, "propose_pipeline_version")
+        self.assertTrue(invocation.success)
+        self.assertIn("files", invocation.tool_output)
+        self.assertEqual(invocation.tool_output["files"][0]["name"], "pipeline.py")
