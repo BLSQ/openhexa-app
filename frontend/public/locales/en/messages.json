@@ -685,7 +685,6 @@
   "Self-registration is currently disabled.": "Self-registration is currently disabled.",
   "Send a new code": "Send a new code",
   "Send notifications": "Send notifications",
-  "Send POST requests with a JSON body containing a query field. Authentication is handled automatically via the user's session.": "Send POST requests with a JSON body containing a query field. Authentication is handled automatically via the user's session.",
   "Separate values with a new line": "Separate values with a new line",
   "Service Account Key": "Service Account Key",
   "Set a new password": "Set a new password",

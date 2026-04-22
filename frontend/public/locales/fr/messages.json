@@ -693,7 +693,6 @@
   "Self-registration is currently disabled.": "L'inscription libre est actuellement désactivée.",
   "Send a new code": "Envoyer un nouveau code",
   "Send notifications": "Envoi des notifications",
-  "Send POST requests with a JSON body containing a query field. Authentication is handled automatically via the user's session.": "Envoyez des requêtes POST avec un corps JSON contenant un champ query. L'authentification est gérée automatiquement via la session de l'utilisateur.",
   "Separate values with a new line": "Séparer les valeurs par une nouvelle ligne",
   "Service Account Key": "Clé de compte de service",
   "Set a new password": "Définir un nouveau mot de passe",
