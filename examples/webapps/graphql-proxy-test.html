@@ -173,7 +173,7 @@
         showResult("files", { status: 0, body: { errors: [{ message: "Enter a workspace slug" }] } });
         return;
       }
-      const query = `{ getFileByPath(workspaceSlug: "${slug}", objectKey: "") { name path type } }`;
+      const query = `{ getFileByPath(workspaceSlug: "${slug}", path: "") { name path type } }`;
       const result = await gql(query);
       showResult("files", result);
     }
