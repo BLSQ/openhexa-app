@@ -7,73 +7,67 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, sans-serif; background: #f9fafb; color: #111827; padding: 2rem; max-width: 800px; margin: 0 auto; }
-    h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 1.5rem; }
+    h1 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
     h2 { font-size: 0.875rem; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
     .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; }
-    .query-btn { display: inline-block; padding: 0.375rem 0.75rem; font-size: 0.8125rem; font-weight: 500; color: #fff; background: #2563eb; border: none; border-radius: 0.375rem; cursor: pointer; margin: 0.25rem 0.25rem 0.25rem 0; }
-    .query-btn:hover { background: #1d4ed8; }
-    .query-btn:disabled { background: #93c5fd; cursor: wait; }
-    .query-btn.danger { background: #dc2626; }
-    .query-btn.danger:hover { background: #b91c1c; }
-    textarea { width: 100%; min-height: 5rem; font-family: ui-monospace, monospace; font-size: 0.8125rem; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; resize: vertical; }
-    .result { margin-top: 0.75rem; }
-    .result pre { background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 0.75rem; font-size: 0.75rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; max-height: 20rem; overflow-y: auto; }
-    .result .status { font-size: 0.75rem; font-weight: 500; margin-bottom: 0.25rem; }
-    .result .status.ok { color: #059669; }
-    .result .status.err { color: #dc2626; }
-    .section { margin-bottom: 2rem; }
-    .info { font-size: 0.8125rem; color: #6b7280; margin-bottom: 1rem; line-height: 1.5; }
+    .result { margin-top: 0.5rem; }
+    .result pre { background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 0.75rem; font-size: 0.75rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; max-height: 16rem; overflow-y: auto; }
+    .label { font-size: 0.75rem; font-weight: 500; color: #6b7280; margin-bottom: 0.25rem; }
+    .query { font-family: ui-monospace, monospace; font-size: 0.6875rem; color: #9ca3af; margin-bottom: 0.25rem; }
+    .badge { display: inline-block; font-size: 0.6875rem; font-weight: 600; padding: 0.125rem 0.375rem; border-radius: 0.25rem; margin-left: 0.5rem; }
+    .badge.ok { background: #d1fae5; color: #065f46; }
+    .badge.err { background: #fee2e2; color: #991b1b; }
+    .badge.loading { background: #e0e7ff; color: #3730a3; }
+    .section { margin-bottom: 1.5rem; }
+    .info { font-size: 0.8125rem; color: #6b7280; margin-bottom: 1.5rem; line-height: 1.5; }
     .endpoint { font-family: ui-monospace, monospace; font-size: 0.8125rem; background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 0.25rem; }
+    textarea { width: 100%; min-height: 5rem; font-family: ui-monospace, monospace; font-size: 0.8125rem; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; resize: vertical; }
+    .query-btn { display: inline-block; padding: 0.375rem 0.75rem; font-size: 0.8125rem; font-weight: 500; color: #fff; background: #2563eb; border: none; border-radius: 0.375rem; cursor: pointer; }
+    .query-btn:hover { background: #1d4ed8; }
   </style>
 </head>
 <body>
   <h1>GraphQL Proxy Test</h1>
   <p class="info">
-    Endpoint: <span class="endpoint" id="endpoint"></span><br>
-    This page must be served from a webapp subdomain to work.
+    Endpoint: <span class="endpoint" id="endpoint"></span>
   </p>
 
   <div class="section">
     <h2>user.read</h2>
     <div class="card">
-      <button class="query-btn" onclick="runQuery('me', '{ me { user { id email displayName } } }')">me</button>
-      <button class="query-btn" onclick="runQuery('workspace', workspaceQuery)">workspace</button>
+      <div class="label">me <span class="badge loading" id="badge-me">...</span></div>
+      <div class="query">{ me { user { id email displayName } } }</div>
       <div class="result" id="result-me"></div>
-      <div class="result" id="result-workspace"></div>
     </div>
   </div>
 
   <div class="section">
     <h2>pipelines.read</h2>
     <div class="card">
-      <button class="query-btn" onclick="runQuery('pipelines', '{ pipelines(page: 1, perPage: 5) { items { id name code } } }')">pipelines</button>
-      <button class="query-btn" onclick="runPipelineById()">pipeline (by first result)</button>
+      <div class="label">pipelines <span class="badge loading" id="badge-pipelines">...</span></div>
+      <div class="query">{ pipelines(page: 1, perPage: 3) { items { id name code } } }</div>
       <div class="result" id="result-pipelines"></div>
-      <div class="result" id="result-pipeline"></div>
     </div>
-  </div>
-
-  <div class="section">
-    <h2>pipelines.run</h2>
     <div class="card">
-      <p class="info">Enter a pipeline ID and version ID to test runPipeline.</p>
-      <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
-        <input id="run-pipeline-id" placeholder="Pipeline ID" style="flex:1;padding:0.375rem;font-size:0.8125rem;border:1px solid #d1d5db;border-radius:0.375rem">
-        <input id="run-version-id" placeholder="Version ID" style="flex:1;padding:0.375rem;font-size:0.8125rem;border:1px solid #d1d5db;border-radius:0.375rem">
-      </div>
-      <button class="query-btn danger" onclick="runPipeline()">runPipeline</button>
-      <div class="result" id="result-runPipeline"></div>
+      <div class="label">pipeline (first from above) <span class="badge loading" id="badge-pipeline">...</span></div>
+      <div class="result" id="result-pipeline"></div>
     </div>
   </div>
 
   <div class="section">
     <h2>files.read</h2>
     <div class="card">
-      <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
-        <input id="workspace-slug" placeholder="Workspace slug" style="flex:1;padding:0.375rem;font-size:0.8125rem;border:1px solid #d1d5db;border-radius:0.375rem">
-      </div>
-      <button class="query-btn" onclick="listFiles()">getFileByPath (root)</button>
+      <div class="label">getFileByPath (root) <span class="badge loading" id="badge-files">...</span></div>
       <div class="result" id="result-files"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Denied (should return 403)</h2>
+    <div class="card">
+      <div class="label">datasets <span class="badge loading" id="badge-denied">...</span></div>
+      <div class="query">{ datasets(workspaceSlug: "test", page: 1, perPage: 1) { items { id } } }</div>
+      <div class="result" id="result-denied"></div>
     </div>
   </div>
 
@@ -86,23 +80,9 @@
     </div>
   </div>
 
-  <div class="section">
-    <h2>Denied (should return 403)</h2>
-    <div class="card">
-      <button class="query-btn danger" onclick="runQuery('denied', '{ datasets(workspaceSlug: &quot;test&quot;, page: 1, perPage: 1) { items { id } } }')">datasets (not in scopes)</button>
-      <div class="result" id="result-denied"></div>
-    </div>
-  </div>
-
   <script>
     const ENDPOINT = "/graphql/";
     document.getElementById("endpoint").textContent = location.origin + ENDPOINT;
-
-    const workspaceQuery = `{
-  me { user { email } }
-}`;
-
-    let lastPipelines = [];
 
     async function gql(query) {
       const res = await fetch(ENDPOINT, {
@@ -117,73 +97,56 @@
 
     function showResult(id, { status, body }) {
       const el = document.getElementById("result-" + id);
+      const badge = document.getElementById("badge-" + id);
       const ok = status >= 200 && status < 300 && !body.errors;
-      el.innerHTML = `
-        <div class="status ${ok ? "ok" : "err"}">${status} ${ok ? "OK" : "ERROR"}</div>
-        <pre>${JSON.stringify(body, null, 2)}</pre>
-      `;
+      badge.textContent = `${status} ${ok ? "OK" : "ERR"}`;
+      badge.className = `badge ${ok ? "ok" : "err"}`;
+      el.innerHTML = `<pre>${JSON.stringify(body, null, 2)}</pre>`;
     }
 
-    async function runQuery(id, query) {
-      const btn = event.target;
-      btn.disabled = true;
+    async function runAll() {
+      const meResult = await gql("{ me { user { id email displayName } } }");
+      showResult("me", meResult);
+
+      // Get workspace slug from me to use for files
+      let workspaceSlug = null;
       try {
-        const result = await gql(query);
-        showResult(id, result);
-        if (id === "pipelines" && result.body.data?.pipelines?.items) {
-          lastPipelines = result.body.data.pipelines.items;
-        }
-      } catch (e) {
-        showResult(id, { status: 0, body: { errors: [{ message: e.message }] } });
-      } finally {
-        btn.disabled = false;
-      }
-    }
+        const wsResult = await gql("{ workspaces(page: 1, perPage: 1) { items { slug } } }");
+        workspaceSlug = wsResult.body?.data?.workspaces?.items?.[0]?.slug;
+      } catch {}
 
-    async function runPipelineById() {
-      if (!lastPipelines.length) {
-        showResult("pipeline", { status: 0, body: { errors: [{ message: "Run 'pipelines' first" }] } });
-        return;
-      }
-      const id = lastPipelines[0].id;
-      await runQuery("pipeline", `{ pipeline(id: "${id}") { id name code currentVersion { id } } }`);
-    }
+      const pipelinesResult = await gql("{ pipelines(page: 1, perPage: 3) { items { id name code } } }");
+      showResult("pipelines", pipelinesResult);
 
-    async function runPipeline() {
-      const pipelineId = document.getElementById("run-pipeline-id").value.trim();
-      const versionId = document.getElementById("run-version-id").value.trim();
-      if (!pipelineId || !versionId) {
-        showResult("runPipeline", { status: 0, body: { errors: [{ message: "Enter pipeline ID and version ID" }] } });
-        return;
+      const firstPipeline = pipelinesResult.body?.data?.pipelines?.items?.[0];
+      if (firstPipeline) {
+        const pipelineResult = await gql(`{ pipeline(id: "${firstPipeline.id}") { id name code currentVersion { id } } }`);
+        showResult("pipeline", pipelineResult);
+      } else {
+        showResult("pipeline", { status: 200, body: { data: null, info: "No pipelines found" } });
       }
-      const query = `mutation {
-        runPipeline(input: { id: "${pipelineId}", versionId: "${versionId}", config: {} }) {
-          success
-          errors
-          run { id status }
-        }
-      }`;
-      const result = await gql(query);
-      showResult("runPipeline", result);
-    }
 
-    async function listFiles() {
-      const slug = document.getElementById("workspace-slug").value.trim();
-      if (!slug) {
-        showResult("files", { status: 0, body: { errors: [{ message: "Enter a workspace slug" }] } });
-        return;
+      if (workspaceSlug) {
+        const filesResult = await gql(`{ getFileByPath(workspaceSlug: "${workspaceSlug}", path: "") { name path type } }`);
+        showResult("files", filesResult);
+      } else {
+        showResult("files", { status: 200, body: { data: null, info: "No workspace found" } });
       }
-      const query = `{ getFileByPath(workspaceSlug: "${slug}", path: "") { name path type } }`;
-      const result = await gql(query);
-      showResult("files", result);
+
+      const deniedResult = await gql('{ datasets(workspaceSlug: "test", page: 1, perPage: 1) { items { id } } }');
+      showResult("denied", deniedResult);
     }
 
     async function runCustom() {
       const query = document.getElementById("custom-query").value.trim();
       if (!query) return;
       const result = await gql(query);
-      showResult("custom", result);
+      const el = document.getElementById("result-custom");
+      const ok = result.status >= 200 && result.status < 300 && !result.body.errors;
+      el.innerHTML = `<pre>${JSON.stringify(result.body, null, 2)}</pre>`;
     }
+
+    runAll();
   </script>
 </body>
 </html>
