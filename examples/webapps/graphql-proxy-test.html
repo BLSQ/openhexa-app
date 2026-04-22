@@ -108,14 +108,7 @@
       const meResult = await gql("{ me { user { id email displayName } } }");
       showResult("me", meResult);
 
-      // Get workspace slug from me to use for files
-      let workspaceSlug = null;
-      try {
-        const wsResult = await gql("{ workspaces(page: 1, perPage: 1) { items { slug } } }");
-        workspaceSlug = wsResult.body?.data?.workspaces?.items?.[0]?.slug;
-      } catch {}
-
-      const pipelinesResult = await gql("{ pipelines(page: 1, perPage: 3) { items { id name code } } }");
+      const pipelinesResult = await gql("{ pipelines(page: 1, perPage: 3) { items { id name code workspace { slug } } } }");
       showResult("pipelines", pipelinesResult);
 
       const firstPipeline = pipelinesResult.body?.data?.pipelines?.items?.[0];
@@ -126,11 +119,12 @@
         showResult("pipeline", { status: 200, body: { data: null, info: "No pipelines found" } });
       }
 
+      const workspaceSlug = firstPipeline?.workspace?.slug;
       if (workspaceSlug) {
         const filesResult = await gql(`{ getFileByPath(workspaceSlug: "${workspaceSlug}", path: "") { name path type } }`);
         showResult("files", filesResult);
       } else {
-        showResult("files", { status: 200, body: { data: null, info: "No workspace found" } });
+        showResult("files", { status: 200, body: { data: null, info: "No pipelines found to get workspace slug" } });
       }
 
       const deniedResult = await gql('{ datasets(workspaceSlug: "test", page: 1, perPage: 1) { items { id } } }');
