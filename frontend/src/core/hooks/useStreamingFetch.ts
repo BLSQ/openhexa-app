@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type StreamHandlers = {
   [eventType: string]: (data: unknown) => void;
@@ -100,6 +100,10 @@ function useStreamingFetch(handlers: StreamHandlers): UseStreamingFetchReturn {
     },
     [],
   );
+
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
 
   return { send, isStreaming, streamError };
 }

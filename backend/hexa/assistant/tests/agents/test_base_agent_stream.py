@@ -78,7 +78,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
         events = _collect_stream(agent, "What can you do?")
         self.assertIsNotNone(events[-1]["data"]["name"])
 
-    def test_done_event_name_is_none_on_subsequent_message(self):
+    def test_done_event_returns_existing_name_on_subsequent_message(self):
         self.conversation.name = "Existing Name"
         self.conversation.save(update_fields=["name"])
         with _patch_builder(TestModel(custom_output_text="Hello!")):

@@ -48,6 +48,8 @@ async def stream_assistant_message(
 # CSRF is safe to skip here: the endpoint requires an authenticated session cookie,
 # the Content-Type is application/json (a non-simple request), so browsers always
 # send a CORS preflight before crossing origins, and CORS_ALLOW_CREDENTIALS restricts
-# which origins are permitted. A decorator wrapper would downgrade this async view to
-# sync, so we set the attribute directly instead.
+# which origins are permitted. We set the attribute directly rather than using
+# @csrf_exempt because that decorator wraps the view in a sync adapter, downgrading
+# an async view to sync.
+# If Django ever supports @method_decorator(csrf_exempt) cleanly on async views, prefer that instead.
 stream_assistant_message.csrf_exempt = True
