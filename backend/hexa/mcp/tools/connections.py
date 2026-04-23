@@ -5,7 +5,7 @@ from ._graphql import execute_graphql
 
 @tool
 def list_connections(user, workspace_slug: str) -> dict:
-    """List connections (external data sources) configured in a workspace. Returns connection name, slug, type (S3, GCS, POSTGRESQL, DHIS2, IASO, CUSTOM), and their fields with values. Secret field values are only visible to workspace admins and editors. Connections are used as parameters when running pipelines — use the connection slug as the parameter value."""
+    """List connections (external data sources) configured in a workspace. Returns connection name, slug, type (S3, GCS, POSTGRESQL, DHIS2, IASO, CUSTOM), and their fields. Field values are not visible to not be tempted to use them directly. Connections are used as parameters when running pipelines — use the connection slug as the parameter value."""
     data = execute_graphql(user, "ListConnections", {"slug": workspace_slug})
     if "errors" in data:
         return data
