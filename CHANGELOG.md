@@ -1,5 +1,22 @@
 # Changelog
 
+## [5.4.0](https://github.com/BLSQ/openhexa-app/compare/5.3.0...5.4.0) (2026-04-23)
+
+
+### Features
+
+* allow users to host webapp on custom domain (Hexa 1428 ) ([2a1d227](https://github.com/BLSQ/openhexa-app/commit/2a1d22721c0f6eff895617db9996f619edb7a653))
+* authorize webapps to access assets in the workspace (HEXA-1582) ([#1753](https://github.com/BLSQ/openhexa-app/issues/1753)) ([83153a5](https://github.com/BLSQ/openhexa-app/commit/83153a5b88d405f7c4989c5254054c6b55f28b38))
+* select a specific version for scheduled pipelines runs(Hexa 1589) ([#1741](https://github.com/BLSQ/openhexa-app/issues/1741)) ([58d2311](https://github.com/BLSQ/openhexa-app/commit/58d231178ea2f619399ccac2b9f218c9f7a6daf8))
+
+
+### Bug Fixes
+
+* **deps:** update dependency uuid to v14 [security] ([#1756](https://github.com/BLSQ/openhexa-app/issues/1756)) ([b0e4abb](https://github.com/BLSQ/openhexa-app/commit/b0e4abb67a0a2bcb3fa77a248993f04e7edf4b4c))
+* ensure SSE pipeline messages point to API URL ([#1757](https://github.com/BLSQ/openhexa-app/issues/1757)) ([a1ec8bc](https://github.com/BLSQ/openhexa-app/commit/a1ec8bc78406c7a2473d339de2d2a5b6fffa9908))
+* hide MCP connection field values (HEXA-1612)([#1758](https://github.com/BLSQ/openhexa-app/issues/1758)) ([03f70ae](https://github.com/BLSQ/openhexa-app/commit/03f70aea56f5ab1485b44dd257d1c3b161b8959f))
+* OH logo is stretched in the email ([#1752](https://github.com/BLSQ/openhexa-app/issues/1752)) ([d1b150e](https://github.com/BLSQ/openhexa-app/commit/d1b150e121bc4db1b9e108cd6937aa80dd840246))
+
 ## [5.3.0](https://github.com/BLSQ/openhexa-app/compare/5.2.0...5.3.0) (2026-04-21)
 
 
