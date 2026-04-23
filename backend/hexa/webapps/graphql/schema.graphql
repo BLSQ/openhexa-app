@@ -1,5 +1,15 @@
 directive @oneOf on INPUT_OBJECT
 
+enum WebappOperationScope {
+  PIPELINES_RUN
+  PIPELINES_READ
+  FILES_READ
+  FILES_WRITE
+  DATASETS_READ
+  DATASETS_WRITE
+  USER_READ
+}
+
 """
 Represents the type of a web app.
 """
@@ -65,6 +75,7 @@ type Webapp {
   createdBy: User!
   isPublic: Boolean!
   showPoweredBy: Boolean!
+  allowedOperations: [WebappOperationScope!]!
   isFavorite: Boolean!
   isShortcut: Boolean!
   source: WebappSource!
@@ -152,6 +163,7 @@ input UpdateWebappInput {
   subdomain: String
   icon: String
   isPublic: Boolean
+  allowedOperations: [WebappOperationScope!]
   source: UpdateWebappSourceInput
   files: [WebappFileInput!]
   publishedVersionId: String

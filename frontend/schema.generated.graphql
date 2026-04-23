@@ -5200,6 +5200,7 @@ enum UpdateWebappError {
 
 """Represents the input for updating a web app."""
 input UpdateWebappInput {
+  allowedOperations: [WebappOperationScope!]
   description: String
   files: [WebappFileInput!]
   icon: String
@@ -5397,6 +5398,7 @@ type WHORegion {
 
 """Represents a web app."""
 type Webapp {
+  allowedOperations: [WebappOperationScope!]!
   createdBy: User!
   description: String
   files(ref: String): [FileNode!]
@@ -5422,6 +5424,16 @@ type Webapp {
 input WebappFileInput {
   content: String!
   path: String!
+}
+
+enum WebappOperationScope {
+  DATASETS_READ
+  DATASETS_WRITE
+  FILES_READ
+  FILES_WRITE
+  PIPELINES_READ
+  PIPELINES_RUN
+  USER_READ
 }
 
 """Represents the permissions for a web app."""
