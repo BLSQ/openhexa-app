@@ -57,6 +57,14 @@ function getScopeDescriptions(t: (key: string) => string) {
       label: t("Write files"),
       description: t("Upload, create, and delete workspace files"),
     },
+    [WebappOperationScope.DatasetsRead]: {
+      label: t("Read datasets"),
+      description: t("Access workspace datasets, versions, and links"),
+    },
+    [WebappOperationScope.DatasetsWrite]: {
+      label: t("Write datasets"),
+      description: t("Create, update, and delete datasets and versions"),
+    },
     [WebappOperationScope.UserRead]: {
       label: t("Read user info"),
       description: t("Access current user details and workspace role"),

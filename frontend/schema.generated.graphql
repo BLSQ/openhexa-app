@@ -5427,6 +5427,8 @@ input WebappFileInput {
 }
 
 enum WebappOperationScope {
+  DATASETS_READ
+  DATASETS_WRITE
   FILES_READ
   FILES_WRITE
   PIPELINES_READ

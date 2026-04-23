@@ -6226,6 +6226,8 @@ export type WebappFileInput = {
 };
 
 export enum WebappOperationScope {
+  DatasetsRead = 'DATASETS_READ',
+  DatasetsWrite = 'DATASETS_WRITE',
   FilesRead = 'FILES_READ',
   FilesWrite = 'FILES_WRITE',
   PipelinesRead = 'PIPELINES_READ',

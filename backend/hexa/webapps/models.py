@@ -123,6 +123,8 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         PIPELINES_READ = "PIPELINES_READ", "Read pipelines"
         FILES_READ = "FILES_READ", "Read files"
         FILES_WRITE = "FILES_WRITE", "Write files"
+        DATASETS_READ = "DATASETS_READ", "Read datasets"
+        DATASETS_WRITE = "DATASETS_WRITE", "Write datasets"
         USER_READ = "USER_READ", "Read user info"
 
     name = models.CharField(max_length=255)

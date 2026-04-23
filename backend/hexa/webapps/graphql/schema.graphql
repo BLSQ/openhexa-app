@@ -5,6 +5,8 @@ enum WebappOperationScope {
   PIPELINES_READ
   FILES_READ
   FILES_WRITE
+  DATASETS_READ
+  DATASETS_WRITE
   USER_READ
 }
 
