@@ -1,11 +1,13 @@
 import { ArrowPathIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/solid";
-import { SparklesIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import AiDisabledBanner from "assistant/components/AiDisabledBanner";
 import Spinner from "core/components/Spinner";
 import Textarea from "core/components/forms/Textarea/Textarea";
 import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { AIFormInstance, AIPhase } from "./useAIForm";
 
 const MAX_TEXTAREA_HEIGHT = 480;
@@ -62,6 +64,12 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
     el.style.height = "auto";
     el.style.height = `${Math.min(el.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
   }, [form.prompt]);
+
+  const [showAgentResponse, setShowAgentResponse] = useState(false);
+
+  useEffect(() => {
+    setShowAgentResponse(false);
+  }, [form.agentResponse]);
 
   const { phase, errorAtPhase } = form;
   const isActive = phase !== AIPhase.Idle;
@@ -147,6 +155,28 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
                 <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
                   {form.error}
                 </div>
+                {form.agentResponse && (
+                  <div>
+                    <button
+                      onClick={() => setShowAgentResponse((v) => !v)}
+                      className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      <ChevronDownIcon
+                        className={`h-3.5 w-3.5 transition-transform duration-200 ${showAgentResponse ? "rotate-180" : ""}`}
+                      />
+                      {t("AI feedback")}
+                    </button>
+                    {showAgentResponse && (
+                      <div className="mt-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600">
+                        <div className="prose prose-sm prose-gray max-w-none">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {form.agentResponse}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <button
                   onClick={form.handleSubmit}
                   className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"

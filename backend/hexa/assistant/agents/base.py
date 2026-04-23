@@ -11,6 +11,7 @@ from pydantic_ai.messages import (
     ModelMessagesTypeAdapter,
     ModelResponse,
     PartDeltaEvent,
+    PartStartEvent,
     TextPart,
     TextPartDelta,
     ToolReturnPart,
@@ -161,7 +162,12 @@ class BaseAgent:
     async def _stream_model_node(node, ctx):
         async with node.stream(ctx) as model_stream:
             async for event in model_stream:
-                if isinstance(event, PartDeltaEvent) and isinstance(
+                if isinstance(event, PartStartEvent) and isinstance(
+                    event.part, TextPart
+                ):
+                    if event.part.content:
+                        yield format_sse("text_delta", {"delta": event.part.content})
+                elif isinstance(event, PartDeltaEvent) and isinstance(
                     event.delta, TextPartDelta
                 ):
                     yield format_sse("text_delta", {"delta": event.delta.content_delta})

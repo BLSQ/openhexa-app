@@ -24,6 +24,7 @@ export type AIFormInstance = {
   phase: AIPhase;
   errorAtPhase: AIPhase | null;
   error: string | null;
+  agentResponse: string | null;
   reset: () => void;
 };
 
@@ -42,8 +43,10 @@ export function useAIForm(
   const [phase, setPhase] = useState<AIPhase>(AIPhase.Idle);
   const [errorAtPhase, setErrorAtPhase] = useState<AIPhase | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [agentResponse, setAgentResponse] = useState<string | null>(null);
   // Tracks the current phase in a ref so SSE handlers can read it without stale closures
   const phaseRef = useRef<AIPhase>(AIPhase.Idle);
+  const agentResponseRef = useRef<string>("");
   const navigationTriggeredRef = useRef(false);
   const pendingPipelineCodeRef = useRef<string | null>(null);
   const navigationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -60,11 +63,18 @@ export function useAIForm(
       setErrorAtPhase(phaseRef.current);
       setPhaseWithRef(AIPhase.Error);
       setError(msg);
+      if (agentResponseRef.current) {
+        setAgentResponse(agentResponseRef.current);
+      }
     },
     [setPhaseWithRef],
   );
 
   const { send, abort, streamError } = useStreamingFetch({
+    text_delta: (data) => {
+      const { delta } = data as { delta: string };
+      agentResponseRef.current += delta;
+    },
     tool_call: (data) => {
       const { tool_name } = data as { tool_name: string };
       if (tool_name === "create_pipeline") {
@@ -144,6 +154,8 @@ export function useAIForm(
     setPrompt("");
     setError(null);
     setErrorAtPhase(null);
+    setAgentResponse(null);
+    agentResponseRef.current = "";
     setPhaseWithRef(AIPhase.Idle);
     navigationTriggeredRef.current = false;
     pendingPipelineCodeRef.current = null;
@@ -155,6 +167,8 @@ export function useAIForm(
     setPhaseWithRef(AIPhase.Idle);
     setError(null);
     setErrorAtPhase(null);
+    setAgentResponse(null);
+    agentResponseRef.current = "";
     navigationTriggeredRef.current = false;
     pendingPipelineCodeRef.current = null;
   }, [abort, setPhaseWithRef, clearNavigationTimer]);
@@ -170,6 +184,8 @@ export function useAIForm(
     setPhaseWithRef(AIPhase.Generating);
     setError(null);
     setErrorAtPhase(null);
+    setAgentResponse(null);
+    agentResponseRef.current = "";
     navigationTriggeredRef.current = false;
     pendingPipelineCodeRef.current = null;
     try {
@@ -214,6 +230,7 @@ export function useAIForm(
     phase,
     errorAtPhase,
     error,
+    agentResponse,
     reset,
   };
 }
