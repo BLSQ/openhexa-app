@@ -3,6 +3,7 @@ import clsx from "clsx";
 import Spinner from "core/components/Spinner";
 import { getPublicEnv } from "core/helpers/runtimeConfig";
 import useStreamingFetch from "core/hooks/useStreamingFetch";
+import useWordDrain from "core/hooks/useWordDrain";
 import { KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -91,76 +92,44 @@ export default function ChatPane({
   }, [data?.assistantConversation?.name, onConversationNameChange]);
 
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
-  const [streamingText, setStreamingText] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
 
-  const textQueueRef = useRef("");
-  const donePendingRef = useRef(false);
-  const drainIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const localConversationIdRef = useRef(localConversationId);
   useEffect(() => {
     localConversationIdRef.current = localConversationId;
   }, [localConversationId]);
 
-  const stopDraining = useCallback(() => {
-    if (drainIntervalRef.current !== null) {
-      clearInterval(drainIntervalRef.current);
-      drainIntervalRef.current = null;
+  const handleDrained = useCallback(() => {
+    setPendingUserMessage(null);
+    setCurrentPage(1);
+    if (localConversationIdRef.current) {
+      apolloClient.refetchQueries({
+        include: [AssistantConversationMessagesDocument],
+      });
     }
-  }, []);
+  }, [apolloClient]);
 
-  // Smooths the raw SSE byte stream into word-by-word rendering at a fixed tick
-  // rate, so text appears at a natural reading pace rather than in sudden bursts.
-  const startDraining = useCallback(() => {
-    if (drainIntervalRef.current !== null) return;
-    drainIntervalRef.current = setInterval(() => {
-      if (textQueueRef.current.length > 0) {
-        const spaceIdx = textQueueRef.current.search(/\s/);
-        if (spaceIdx !== -1) {
-          const token = textQueueRef.current.slice(0, spaceIdx + 1);
-          textQueueRef.current = textQueueRef.current.slice(spaceIdx + 1);
-          setStreamingText((prev) => (prev ?? "") + token);
-        } else if (donePendingRef.current) {
-          // No more whitespace coming — flush the last word
-          const remaining = textQueueRef.current;
-          textQueueRef.current = "";
-          setStreamingText((prev) => (prev ?? "") + remaining);
-        }
-        // else: mid-word with more text coming — wait for whitespace
-      } else if (donePendingRef.current) {
-        stopDraining();
-        donePendingRef.current = false;
-        setStreamingText(null);
-        setPendingUserMessage(null);
-        setCurrentPage(1);
-        if (localConversationIdRef.current) {
-          apolloClient.refetchQueries({
-            include: [AssistantConversationMessagesDocument],
-          });
-        }
-      }
-    }, 30);
-  }, [stopDraining, apolloClient]);
-
-  useEffect(() => stopDraining, [stopDraining]);
+  const { text: streamingText, feed, markDone, clear } = useWordDrain({
+    interval: 30,
+    onDrained: handleDrained,
+  });
 
   const { send, isStreaming, streamError } = useStreamingFetch({
     text_delta: (data) => {
       const { delta } = data as { delta: string };
-      textQueueRef.current += delta;
-      startDraining();
+      feed(delta);
+    },
+    conversation_name: (data) => {
+      const { name } = data as { name: string };
+      if (name) onConversationNameChange?.(name);
     },
     done: (data) => {
       const { name } = data as { name?: string };
       if (name) onConversationNameChange?.(name);
-      donePendingRef.current = true;
-      startDraining();
+      markDone();
     },
     error: () => {
-      textQueueRef.current = "";
-      donePendingRef.current = false;
-      stopDraining();
-      setStreamingText(null);
+      clear();
       setSendError("The AI service encountered an error. Please try again.");
     },
   });

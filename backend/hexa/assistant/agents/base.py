@@ -106,6 +106,12 @@ class BaseAgent:
             "user_message", {"id": str(user_msg.id), "content": user_input}
         )
 
+        precomputed_naming: tuple[str, RunUsage] | None = None
+        if is_first_message:
+            precomputed_naming = await self._generate_conversation_name(user_input)
+            self.conversation.name = precomputed_naming[0]
+            yield format_sse("conversation_name", {"name": self.conversation.name})
+
         history = ModelMessagesTypeAdapter.validate_python(
             self.conversation.messages_history
         )
@@ -144,7 +150,7 @@ class BaseAgent:
                 usage,
                 all_messages,
                 is_first_message,
-                user_input,
+                precomputed_naming=precomputed_naming,
             )
             yield format_sse(
                 "done",
@@ -260,7 +266,7 @@ class BaseAgent:
         usage: RunUsage,
         all_messages: list,
         is_first_message: bool,
-        user_input: str,
+        precomputed_naming: tuple[str, RunUsage] | None = None,
     ) -> Message:
         input_tok = usage.input_tokens or 0
         output_tok = usage.output_tokens or 0
@@ -299,9 +305,8 @@ class BaseAgent:
             "messages_history",
             "updated_at",
         ]
-        if is_first_message:
-            name, naming_usage = await self._generate_conversation_name(user_input)
-            self.conversation.name = name
+        if is_first_message and precomputed_naming is not None:
+            _, naming_usage = precomputed_naming
             naming_cost = self._get_cost(naming_usage)
             if naming_cost is not None:
                 self.conversation.cost += naming_cost
