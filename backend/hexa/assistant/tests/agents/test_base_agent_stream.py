@@ -1,4 +1,5 @@
 import json
+from contextlib import asynccontextmanager
 from unittest.mock import patch
 
 from asgiref.sync import async_to_sync
@@ -89,17 +90,27 @@ class BaseAgentRunStreamTest(AgentTestCase):
     # --- Error path ---
 
     def test_error_event_yielded_on_llm_exception(self):
+        @asynccontextmanager
+        async def _failing_iter(*args, **kwargs):
+            raise Exception("LLM down")
+            yield  # pragma: no cover
+
         with _patch_builder(TestModel(custom_output_text="Hello!")):
             agent = BaseAgent(self.conversation)
-        with patch.object(agent.agent, "run_stream", side_effect=Exception("LLM down")):
+        with patch.object(agent.agent, "iter", _failing_iter):
             events = _collect_stream(agent, "What can you do?")
         error_events = [e for e in events if e["type"] == "error"]
         self.assertEqual(len(error_events), 1)
 
     def test_user_message_is_saved_before_error(self):
+        @asynccontextmanager
+        async def _failing_iter(*args, **kwargs):
+            raise Exception("LLM down")
+            yield  # pragma: no cover
+
         with _patch_builder(TestModel(custom_output_text="Hello!")):
             agent = BaseAgent(self.conversation)
-        with patch.object(agent.agent, "run_stream", side_effect=Exception("LLM down")):
+        with patch.object(agent.agent, "iter", _failing_iter):
             _collect_stream(agent, "What can you do?")
         self.assertEqual(
             self.conversation.messages.filter(role=Message.Role.USER).count(), 1

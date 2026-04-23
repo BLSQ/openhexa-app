@@ -6,6 +6,7 @@ type StreamHandlers = {
 
 type UseStreamingFetchReturn = {
   send: (url: string, body: Record<string, unknown>) => Promise<void>;
+  abort: () => void;
   isStreaming: boolean;
   streamError: string | null;
 };
@@ -101,11 +102,16 @@ function useStreamingFetch(handlers: StreamHandlers): UseStreamingFetchReturn {
     [],
   );
 
+  const abort = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+  }, []);
+
   useEffect(() => {
     return () => abortRef.current?.abort();
   }, []);
 
-  return { send, isStreaming, streamError };
+  return { send, abort, isStreaming, streamError };
 }
 
 export default useStreamingFetch;

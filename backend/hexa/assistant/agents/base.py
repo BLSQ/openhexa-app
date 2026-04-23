@@ -1,4 +1,3 @@
-import asyncio
 import json
 import logging
 from decimal import Decimal
@@ -7,12 +6,15 @@ import genai_prices
 from asgiref.sync import async_to_sync
 from pydantic_ai import Agent, RunUsage
 from pydantic_ai.messages import (
+    FunctionToolCallEvent,
+    FunctionToolResultEvent,
     ModelMessagesTypeAdapter,
+    ModelResponse,
+    PartDeltaEvent,
     TextPart,
-    ToolCallPart,
+    TextPartDelta,
     ToolReturnPart,
 )
-from pydantic_ai.result import StreamedRunResult
 
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.model_builder import AiModelBuilder
@@ -67,6 +69,7 @@ class BaseAgent:
             model=self._model,
             instructions=instructions,
             tools=self._tools_with_context,
+            end_strategy="exhaustive",
         )
 
     def _extra_instructions(self) -> str:
@@ -112,127 +115,137 @@ class BaseAgent:
         )
 
         try:
-            async with self.agent.run_stream(
+            tool_invocations: dict[str, ToolInvocation] = {}
+
+            async with self.agent.iter(
                 user_input, message_history=history
-            ) as result:
-                async for text_delta in result.stream_text(delta=True):
-                    yield format_sse("text_delta", {"delta": text_delta})
+            ) as agent_run:
+                async for node in agent_run:
+                    if self.agent.is_model_request_node(node):
+                        async for sse in self._stream_model_node(node, agent_run.ctx):
+                            yield sse
+                    elif self.agent.is_call_tools_node(node):
+                        async for sse in self._stream_tools_node(
+                            node, agent_run.ctx, tool_invocations
+                        ):
+                            yield sse
+                run_result = agent_run.result
 
-                response_text, tool_invocations, tool_events = self._parse_messages(
-                    result
-                )
-                for event in tool_events:
-                    yield event
+            response_text = self._extract_response_text(
+                run_result.new_messages() if run_result else []
+            )
+            all_messages = run_result.all_messages() if run_result else []
+            usage = run_result.usage() if run_result else RunUsage()
 
-                assistant_message = await self._persist_run(
-                    response_text,
-                    tool_invocations,
-                    result.usage(),
-                    result.all_messages(),
-                    is_first_message,
-                    user_input,
-                )
-                yield format_sse(
-                    "done",
-                    {
-                        "message_id": str(assistant_message.id),
-                        "name": self.conversation.name,
-                    },
-                )
+            assistant_message = await self._persist_run(
+                response_text,
+                tool_invocations,
+                usage,
+                all_messages,
+                is_first_message,
+                user_input,
+            )
+            yield format_sse(
+                "done",
+                {
+                    "message_id": str(assistant_message.id),
+                    "name": self.conversation.name,
+                },
+            )
 
         except Exception:
             logger.exception("agent.run_stream: error during streaming")
             yield format_sse("error", {"message": "An error occurred"})
 
     @staticmethod
-    def _parse_messages(
-        result: StreamedRunResult,
-    ) -> tuple[str, dict[str, ToolInvocation], list[str]]:
-        response_text = ""
-        tool_invocations: dict[str, ToolInvocation] = {}
-        tool_events: list[str] = []
+    async def _stream_model_node(node, ctx):
+        async with node.stream(ctx) as model_stream:
+            async for event in model_stream:
+                if isinstance(event, PartDeltaEvent) and isinstance(
+                    event.delta, TextPartDelta
+                ):
+                    yield format_sse("text_delta", {"delta": event.delta.content_delta})
 
-        for msg in result.new_messages():
-            logger.debug(
-                "agent.run_stream: processing message type=%s parts=%d",
-                type(msg).__name__,
-                len(msg.parts),
-            )
-            for part in msg.parts:
-                if isinstance(part, TextPart):
-                    if (
-                        response_text
-                        and not response_text.endswith("\n")
-                        and not part.content.startswith("\n")
-                    ):
-                        response_text += "\n\n"
-                    response_text += part.content
-                elif isinstance(part, ToolCallPart):
+    @staticmethod
+    async def _stream_tools_node(
+        node, ctx, tool_invocations: dict[str, ToolInvocation]
+    ):
+        async with node.stream(ctx) as tools_stream:
+            async for event in tools_stream:
+                if isinstance(event, FunctionToolCallEvent):
+                    call = event.part
                     logger.info(
                         "agent.run_stream: tool_call tool=%s call_id=%s",
-                        part.tool_name,
-                        part.tool_call_id,
+                        call.tool_name,
+                        call.tool_call_id,
                     )
-                    raw_args = part.args
+                    raw_args = call.args
                     tool_input = (
                         json.loads(raw_args)
                         if isinstance(raw_args, str)
                         else json.loads(json.dumps(raw_args, default=str))
                     )
-                    tool_invocations[part.tool_call_id] = ToolInvocation(
-                        tool_call_id=part.tool_call_id,
-                        tool_name=part.tool_name,
+                    tool_invocations[call.tool_call_id] = ToolInvocation(
+                        tool_call_id=call.tool_call_id,
+                        tool_name=call.tool_name,
                         tool_input=tool_input,
                     )
-                    tool_events.append(
-                        format_sse(
-                            "tool_call",
-                            {
-                                "tool_call_id": part.tool_call_id,
-                                "tool_name": part.tool_name,
-                            },
-                        )
+                    yield format_sse(
+                        "tool_call",
+                        {
+                            "tool_call_id": call.tool_call_id,
+                            "tool_name": call.tool_name,
+                        },
                     )
-                elif isinstance(part, ToolReturnPart):
+                elif isinstance(event, FunctionToolResultEvent):
+                    if not isinstance(event.result, ToolReturnPart):
+                        continue
+                    result_part = event.result
                     logger.info(
-                        "agent.run_stream: tool_return call_id=%s",
-                        part.tool_call_id,
+                        "agent.run_stream: tool_result call_id=%s",
+                        result_part.tool_call_id,
                     )
-                    success = _is_success(part.content)
-                    # pydantic-ai serialises tool return values to a JSON string in
-                    # ToolReturnPart.content. Parse it so we store the actual structure
-                    # (dict/list) in the JSONField rather than a string representation.
-                    if isinstance(part.content, str):
+                    content = result_part.content
+                    if isinstance(content, str):
                         try:
-                            tool_output = json.loads(part.content)
+                            tool_output = json.loads(content)
                         except (json.JSONDecodeError, ValueError):
-                            tool_output = part.content
+                            tool_output = content
                     else:
-                        tool_output = json.loads(json.dumps(part.content, default=str))
-                    try:
-                        invocation = tool_invocations[part.tool_call_id]
-                        invocation.tool_output = tool_output
-                        invocation.success = success
-                    except KeyError:
-                        tool_invocations[part.tool_call_id] = ToolInvocation(
-                            tool_call_id=part.tool_call_id,
-                            tool_name=part.tool_name,
+                        tool_output = json.loads(json.dumps(content, default=str))
+                    success = _is_success(content)
+                    if result_part.tool_call_id in tool_invocations:
+                        inv = tool_invocations[result_part.tool_call_id]
+                        inv.tool_output = tool_output
+                        inv.success = success
+                    else:
+                        tool_invocations[result_part.tool_call_id] = ToolInvocation(
+                            tool_call_id=result_part.tool_call_id,
+                            tool_name=result_part.tool_name,
                             tool_input="",
                             tool_output=tool_output,
                             success=success,
                         )
-                    tool_events.append(
-                        format_sse(
-                            "tool_result",
-                            {
-                                "tool_call_id": part.tool_call_id,
-                                "tool_name": part.tool_name,
-                                "success": success,
-                            },
-                        )
+                    yield format_sse(
+                        "tool_result",
+                        {
+                            "tool_call_id": result_part.tool_call_id,
+                            "tool_name": result_part.tool_name,
+                            "success": success,
+                            "tool_output": tool_output,
+                        },
                     )
 
-        return response_text, tool_invocations, tool_events
+    @staticmethod
+    def _extract_response_text(new_messages: list) -> str:
+        texts = [
+            part.content
+            for msg in new_messages
+            if isinstance(msg, ModelResponse)
+            for part in msg.parts
+            if isinstance(part, TextPart) and part.content
+        ]
+        return "\n\n".join(texts)
 
     async def _persist_run(
         self,
@@ -281,9 +294,7 @@ class BaseAgent:
             "updated_at",
         ]
         if is_first_message:
-            name, naming_usage = await asyncio.to_thread(
-                self._generate_conversation_name, user_input
-            )
+            name, naming_usage = await self._generate_conversation_name(user_input)
             self.conversation.name = name
             naming_cost = self._get_cost(naming_usage)
             if naming_cost is not None:
@@ -293,12 +304,14 @@ class BaseAgent:
         await self.conversation.asave(update_fields=update_fields)
         return assistant_message
 
-    def _generate_conversation_name(self, user_input: str) -> tuple[str, RunUsage]:
-        # TODO: Execute in parallel for performance
+    async def _generate_conversation_name(
+        self, user_input: str
+    ) -> tuple[str, RunUsage]:
+        # TODO: Execute in parallel with DB writes using asyncio.gather for performance
         # TODO: Use smaller, cheaper models for these small "utility agents"
         naming_agent = Agent(model=self._model, instructions=_NAMING_INSTRUCTIONS)
         try:
-            result = naming_agent.run_sync(user_input)
+            result = await naming_agent.run(user_input)
             return result.output.strip()[:50], result.usage()
         except Exception:
             logger.warning(
