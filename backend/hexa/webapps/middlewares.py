@@ -238,9 +238,6 @@ def webapp_subdomain_middleware(get_response):
             return _webapp_not_found()
 
         request.webapp = webapp
-        # TODO: Explicitly block this for now, but in v2 we'll probably re-route
-        # here to the main app based on the webapps permission scopes to access
-        # workspace resources.
         return _handle_webapp_request(request, webapp, request_has_user=True)
 
     return middleware
