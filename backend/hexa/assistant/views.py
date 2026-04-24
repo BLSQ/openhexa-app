@@ -7,7 +7,7 @@ from django.conf import settings
 from django.http import HttpRequest, HttpResponse, HttpResponseNotAllowed, JsonResponse
 
 from hexa.assistant.models import Conversation
-from hexa.core.sse import sse_response
+from hexa.core.sse import sse_response, with_keepalive
 
 
 async def stream_assistant_message(
@@ -42,7 +42,7 @@ async def stream_assistant_message(
         return JsonResponse({"error": "Monthly limit exceeded"}, status=429)
 
     agent = await sync_to_async(lambda: conversation.agent)()
-    return sse_response(agent.run_stream(message))
+    return sse_response(with_keepalive(agent.run_stream(message)))
 
 
 # CSRF is safe to skip here: the endpoint requires an authenticated session cookie,
