@@ -27,6 +27,7 @@ class WorkspaceAdmin(admin.ModelAdmin):
         "name",
         "organization",
         "docker_image",
+        "db_name",
         "archived",
         "created_at",
         "updated_at",
@@ -41,6 +42,7 @@ class WorkspaceAdmin(admin.ModelAdmin):
     search_fields = (
         "slug",
         "name",
+        "db_name",
     )
 
     inlines = [WorkspaceMembershipInline, WorkspaceInvitationInline]

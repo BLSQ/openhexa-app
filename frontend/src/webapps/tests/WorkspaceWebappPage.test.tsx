@@ -92,6 +92,7 @@ const graphqlMocks: MockedResponse[] = [
             update: true,
           },
           isPublic: false,
+          allowedOperations: [],
           subdomain: null,
           serveUrl: null,
         },
@@ -151,6 +152,7 @@ describe("WorkspaceWebappPage", () => {
                   name: "Updated Webapp",
                   icon: "",
                   isPublic: false,
+                  allowedOperations: [],
                   subdomain: null,
                   source: {
                     iframe: {
@@ -229,6 +231,10 @@ describe("WorkspaceWebappPage", () => {
                     delete: true,
                     update: true,
                   },
+                  isPublic: false,
+                  allowedOperations: [],
+                  subdomain: null,
+                  serveUrl: null,
                 },
                 workspace: {
                   __typename: "Workspace",
@@ -307,6 +313,7 @@ describe("WorkspaceWebappPage", () => {
                     update: true,
                   },
                   isPublic: false,
+                  allowedOperations: [],
                   subdomain: null,
                   serveUrl: null,
                 },

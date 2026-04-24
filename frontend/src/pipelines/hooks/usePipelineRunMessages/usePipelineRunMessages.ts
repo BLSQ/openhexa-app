@@ -33,7 +33,7 @@ function usePipelineRunMessages(
   const url = useMemo(() => {
     if (isTerminal) return null;
     const apiBasePath =
-      process.env.NEXT_PUBLIC_API_BASE_PATH ??
+      process.env.NEXT_PUBLIC_API_BASE_PATH ||
       getPublicEnv().OPENHEXA_BACKEND_URL;
     return `${apiBasePath}/pipelines/runs/${runId}/messages/stream/`;
   }, [runId, isTerminal]);

@@ -167,6 +167,8 @@ def resolve_update_webapp(_, info, **kwargs):
         webapp.icon = decode_base64_image(input["icon"]) if input["icon"] else None
     if "is_public" in input:
         webapp.is_public = input["is_public"]
+    if "allowed_operations" in input:
+        webapp.allowed_operations = input["allowed_operations"]
     if "subdomain" in input:
         subdomain = input["subdomain"]
         if not subdomain:

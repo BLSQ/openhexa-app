@@ -7,12 +7,13 @@ import Time from "core/components/Time";
 import { createGetServerSideProps } from "core/helpers/page";
 import { formatDuration } from "core/helpers/time";
 import { NextPageWithLayout } from "core/helpers/types";
-import { PipelineParameter, PipelineRunTrigger, PipelineType } from "graphql/types";
+import { PipelineParameter, PipelineRunStatus, PipelineRunTrigger, PipelineType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import router from "next/router";
 import { useState } from "react";
 import { formatParamValue } from "pipelines/helpers/format";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
+import usePipelineRunPoller from "pipelines/hooks/usePipelineRunPoller";
 import {
   useWorkspacePipelineRunsPageQuery,
   WorkspacePipelineRunsPageDocument,
@@ -23,6 +24,11 @@ import { getPipelineRunConfig } from "workspaces/helpers/pipelines";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
 
 const MAX_VISIBLE_PARAMS = 3;
+
+function RunPoller({ run }: { run: { id: string; status: PipelineRunStatus } }) {
+  usePipelineRunPoller(run);
+  return null;
+}
 
 function RunParametersCell({
   run,
@@ -100,6 +106,9 @@ const WorkspacePipelineRunsPage: NextPageWithLayout = (props: Props) => {
 
   return (
     <Page title={pipeline.name ?? t("Pipeline runs")}>
+      {pipeline.runs.items.map((run) => (
+        <RunPoller key={run.id} run={run} />
+      ))}
       <PipelineLayout
         workspace={workspace}
         pipeline={pipeline}

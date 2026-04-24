@@ -6000,6 +6000,7 @@ export enum UpdateWebappError {
 
 /** Represents the input for updating a web app. */
 export type UpdateWebappInput = {
+  allowedOperations?: InputMaybe<Array<WebappOperationScope>>;
   description?: InputMaybe<Scalars['String']['input']>;
   files?: InputMaybe<Array<WebappFileInput>>;
   icon?: InputMaybe<Scalars['String']['input']>;
@@ -6183,6 +6184,7 @@ export type WhoRegion = {
 /** Represents a web app. */
 export type Webapp = {
   __typename?: 'Webapp';
+  allowedOperations: Array<WebappOperationScope>;
   createdBy: User;
   description?: Maybe<Scalars['String']['output']>;
   files?: Maybe<Array<FileNode>>;
@@ -6222,6 +6224,16 @@ export type WebappFileInput = {
   content: Scalars['String']['input'];
   path: Scalars['String']['input'];
 };
+
+export enum WebappOperationScope {
+  DatasetsRead = 'DATASETS_READ',
+  DatasetsWrite = 'DATASETS_WRITE',
+  FilesRead = 'FILES_READ',
+  FilesWrite = 'FILES_WRITE',
+  PipelinesRead = 'PIPELINES_READ',
+  PipelinesRun = 'PIPELINES_RUN',
+  UserRead = 'USER_READ'
+}
 
 /** Represents the permissions for a web app. */
 export type WebappPermissions = {
