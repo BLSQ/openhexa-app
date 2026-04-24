@@ -3338,6 +3338,7 @@ type Pipeline {
   recipients: [PipelineRecipient!]!
   runs(orderBy: PipelineRunOrderBy, page: Int, perPage: Int): PipelineRunPage!
   schedule: String
+  scheduledPipelineVersion: PipelineVersion
   sourceTemplate: PipelineTemplate
   tags: [Tag!]!
   template: PipelineTemplate
@@ -4927,6 +4928,7 @@ enum UpdatePipelineError {
   MISSING_VERSION_CONFIG
   NOT_FOUND
   PERMISSION_DENIED
+  PIPELINE_VERSION_NOT_FOUND
 }
 
 """Represents the result of updating a pipeline heartbeat."""
@@ -4944,6 +4946,7 @@ input UpdatePipelineInput {
   id: UUID!
   name: String
   schedule: String
+  scheduledPipelineVersionId: UUID
   tags: [String!]
   webhookEnabled: Boolean
 }
@@ -5197,6 +5200,7 @@ enum UpdateWebappError {
 
 """Represents the input for updating a web app."""
 input UpdateWebappInput {
+  allowedOperations: [WebappOperationScope!]
   description: String
   files: [WebappFileInput!]
   icon: String
@@ -5394,6 +5398,7 @@ type WHORegion {
 
 """Represents a web app."""
 type Webapp {
+  allowedOperations: [WebappOperationScope!]!
   createdBy: User!
   description: String
   files(ref: String): [FileNode!]
@@ -5419,6 +5424,16 @@ type Webapp {
 input WebappFileInput {
   content: String!
   path: String!
+}
+
+enum WebappOperationScope {
+  DATASETS_READ
+  DATASETS_WRITE
+  FILES_READ
+  FILES_WRITE
+  PIPELINES_READ
+  PIPELINES_RUN
+  USER_READ
 }
 
 """Represents the permissions for a web app."""

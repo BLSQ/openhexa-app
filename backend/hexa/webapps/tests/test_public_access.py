@@ -918,3 +918,132 @@ class PoweredByBannerTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertNotIn(b"Powered by", response.content)
+
+
+@override_settings(
+    WEBAPPS_DOMAIN="webapps.localhost",
+    BASE_HOSTNAME="localhost",
+    ALLOWED_HOSTS=["*"],
+    BASE_URL="http://localhost:8000",
+)
+class CustomDomainMiddlewareTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user("cdm@test.com", "password")
+        cls.WORKSPACE = Workspace.objects.create(name="CDM Workspace")
+        WorkspaceMembership.objects.create(
+            user=cls.USER,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        cls.PUBLIC_WEBAPP = GitWebapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Custom Domain App",
+            slug="custom-domain-app",
+            subdomain="custom-domain-app",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER,
+            repository="webapp-custom",
+            published_commit="sha-custom",
+            is_public=True,
+            custom_domain="mycustomdomain.com",
+        )
+        cls.PRIVATE_WEBAPP = GitWebapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Private Custom Domain App",
+            slug="private-custom-domain-app",
+            subdomain="private-custom-domain-app",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER,
+            repository="webapp-private-custom",
+            published_commit="sha-private-custom",
+            is_public=False,
+            custom_domain="privatecustomdomain.com",
+        )
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_public_webapp_served_on_custom_domain(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<html>custom</html>"
+        mock_get_client.return_value = mock_client
+
+        response = self.client.get("/", HTTP_HOST="mycustomdomain.com")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"<html>custom</html>", response.content)
+
+    def test_private_webapp_redirects_to_auth_on_custom_domain(self):
+        response = self.client.get("/", HTTP_HOST="privatecustomdomain.com")
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/auth-token/", response["Location"])
+
+    def test_unknown_custom_domain_passes_through(self):
+        response = self.client.get("/", HTTP_HOST="unknowndomain.com")
+        self.assertNotEqual(response.status_code, 200)
+
+    def test_graphql_blocked_on_custom_domain(self):
+        response = self.client.get("/graphql/", HTTP_HOST="mycustomdomain.com")
+        self.assertEqual(response.status_code, 404)
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_csp_header_set_on_custom_domain(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<html>custom</html>"
+        mock_get_client.return_value = mock_client
+
+        response = self.client.get("/", HTTP_HOST="mycustomdomain.com")
+        self.assertIn("frame-ancestors", response.get("Content-Security-Policy", ""))
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_main_hostname_not_intercepted(self, mock_get_client):
+        self.client.get("/", HTTP_HOST="localhost")
+        mock_get_client.assert_not_called()
+
+    @patch("hexa.webapps.middlewares.Webapp.objects.get")
+    def test_webapp_subdomain_not_intercepted(self, mock_get):
+        self.client.get("/", HTTP_HOST="custom-domain-app.webapps.localhost")
+        for call in mock_get.call_args_list:
+            self.assertNotIn("custom_domain", call.kwargs)
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_private_webapp_valid_token_creates_session(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<html>private</html>"
+        mock_get_client.return_value = mock_client
+
+        signer = TimestampSigner()
+        token = signer.sign_object(
+            {"user_id": str(self.USER.pk), "subdomain": self.PRIVATE_WEBAPP.subdomain}
+        )
+        response = self.client.get(
+            "/", {"auth_token": token}, HTTP_HOST="privatecustomdomain.com"
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/")
+        self.assertIn("hexa_webapp_session", response.cookies)
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_private_webapp_valid_session_serves_content(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<html>private</html>"
+        mock_get_client.return_value = mock_client
+
+        session = SessionStore()
+        session.set_expiry(3600)
+        session["user_id"] = str(self.USER.pk)
+        session["webapp_id"] = str(self.PRIVATE_WEBAPP.pk)
+        session.create()
+        self.client.cookies["hexa_webapp_session"] = session.session_key
+
+        response = self.client.get("/", HTTP_HOST="privatecustomdomain.com")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"<html>private</html>")
+
+    def test_auth_token_view_accepts_custom_domain_next_url(self):
+        self.client.force_login(self.USER)
+        next_url = "http://privatecustomdomain.com/"
+        response = self.client.get(
+            f"/webapps/{self.PRIVATE_WEBAPP.pk}/auth-token/", {"next": next_url}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("auth_token=", response["Location"])
+        self.assertTrue(response["Location"].startswith(next_url))

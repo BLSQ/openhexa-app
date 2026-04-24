@@ -4,7 +4,7 @@ import secrets
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
-from django.core.validators import URLValidator, validate_slug
+from django.core.validators import DomainNameValidator, URLValidator, validate_slug
 from django.db import models, transaction
 from django.db.models import Q
 from slugify import slugify
@@ -118,6 +118,15 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         STATIC = "static", "Static"
         SUPERSET = "superset", "Superset"
 
+    class OperationScope(models.TextChoices):
+        PIPELINES_RUN = "PIPELINES_RUN", "Run pipelines"
+        PIPELINES_READ = "PIPELINES_READ", "Read pipelines"
+        FILES_READ = "FILES_READ", "Read files"
+        FILES_WRITE = "FILES_WRITE", "Write files"
+        DATASETS_READ = "DATASETS_READ", "Read datasets"
+        DATASETS_WRITE = "DATASETS_WRITE", "Write datasets"
+        USER_READ = "USER_READ", "Read user info"
+
     name = models.CharField(max_length=255)
     slug = models.CharField(
         max_length=100, null=False, editable=False, validators=[validate_slug]
@@ -140,9 +149,17 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         unique=True,
         validators=[validate_subdomain],
     )
+    custom_domain = models.CharField(
+        max_length=253,
+        blank=True,
+        null=True,
+        unique=True,
+        validators=[DomainNameValidator()],
+    )
     favorites = models.ManyToManyField(
         User, related_name="favorite_webapps", blank=True
     )
+    allowed_operations = models.JSONField(default=list, blank=True)
     objects = WebappManager()
     all_objects = AllWebappManager()
 

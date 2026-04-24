@@ -8,6 +8,11 @@ mutation UpdatePipeline($input: UpdatePipelineInput!) {
       name
       description
       schedule
+      scheduledPipelineVersion {
+        id
+        versionNumber
+        versionName
+      }
       webhookEnabled
       autoUpdateFromTemplate
     }

@@ -1,6 +1,5 @@
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import ChevronLinkColumn from "core/components/DataGrid/ChevronLinkColumn";
-import { TextColumn } from "core/components/DataGrid/TextColumn";
 import UserColumn from "core/components/DataGrid/UserColumn";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
@@ -165,7 +164,19 @@ const WorkspacePipelineRunsPage: NextPageWithLayout = (props: Props) => {
             {(item) => <PipelineRunStatusBadge run={item} />}
           </BaseColumn>
           {pipeline.type === PipelineType.ZipFile ? (
-            <TextColumn accessor="version.versionName" label={t("Version")} />
+            <BaseColumn label={t("Version")} id="version">
+              {(item) =>
+                item.version ? (
+                  <span>
+                    {item.version.isLatestVersion
+                      ? t("Latest")
+                      : item.version.versionName}
+                  </span>
+                ) : (
+                  <span>-</span>
+                )
+              }
+            </BaseColumn>
           ) : null}
           <BaseColumn label={t("Duration")} accessor="duration">
             {(value) => (

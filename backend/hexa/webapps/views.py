@@ -33,7 +33,12 @@ def auth_token(request, webapp_id):
         return HttpResponseBadRequest("Missing next parameter")
 
     parsed_next_url = urlparse(next_url)
-    if extract_webapp_subdomain(parsed_next_url.hostname or "") != webapp.subdomain:
+    parsed_hostname = parsed_next_url.hostname or ""
+    subdomain_match = extract_webapp_subdomain(parsed_hostname) == webapp.subdomain
+    custom_domain_match = (
+        bool(webapp.custom_domain) and parsed_hostname == webapp.custom_domain
+    )
+    if not subdomain_match and not custom_domain_match:
         return HttpResponseBadRequest("Invalid redirect target")
 
     if not request.user.is_authenticated:

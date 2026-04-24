@@ -10,7 +10,6 @@ query ListConnections($slug: String!) {
       updatedAt
       fields {
         code
-        value
         secret
       }
     }

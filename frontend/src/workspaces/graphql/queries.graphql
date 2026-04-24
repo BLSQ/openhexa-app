@@ -200,6 +200,7 @@ query WorkspacePipelineRunsPage(
         config
         version {
           versionName
+          isLatestVersion
           createdAt
           user {
             ...User_user
@@ -241,6 +242,31 @@ query WorkspacePipelineNotificationsPage(
     code
     type
     schedule
+    scheduledPipelineVersion {
+      id
+      versionNumber
+      versionName
+      parameters {
+        code
+        required
+      }
+      config
+    }
+    versions(perPage: 10) {
+      items {
+        id
+        versionNumber
+        versionName
+        isLatestVersion
+      }
+    }
+    currentVersion {
+      parameters {
+        code
+        required
+      }
+      config
+    }
     permissions {
       schedule
       update

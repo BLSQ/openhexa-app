@@ -3946,6 +3946,7 @@ export type Pipeline = {
   recipients: Array<PipelineRecipient>;
   runs: PipelineRunPage;
   schedule?: Maybe<Scalars['String']['output']>;
+  scheduledPipelineVersion?: Maybe<PipelineVersion>;
   sourceTemplate?: Maybe<PipelineTemplate>;
   tags: Array<Tag>;
   template?: Maybe<PipelineTemplate>;
@@ -5762,7 +5763,8 @@ export enum UpdatePipelineError {
   InvalidConfig = 'INVALID_CONFIG',
   MissingVersionConfig = 'MISSING_VERSION_CONFIG',
   NotFound = 'NOT_FOUND',
-  PermissionDenied = 'PERMISSION_DENIED'
+  PermissionDenied = 'PERMISSION_DENIED',
+  PipelineVersionNotFound = 'PIPELINE_VERSION_NOT_FOUND'
 }
 
 /** Represents the result of updating a pipeline heartbeat. */
@@ -5781,6 +5783,7 @@ export type UpdatePipelineInput = {
   id: Scalars['UUID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
   schedule?: InputMaybe<Scalars['String']['input']>;
+  scheduledPipelineVersionId?: InputMaybe<Scalars['UUID']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   webhookEnabled?: InputMaybe<Scalars['Boolean']['input']>;
 };
@@ -5997,6 +6000,7 @@ export enum UpdateWebappError {
 
 /** Represents the input for updating a web app. */
 export type UpdateWebappInput = {
+  allowedOperations?: InputMaybe<Array<WebappOperationScope>>;
   description?: InputMaybe<Scalars['String']['input']>;
   files?: InputMaybe<Array<WebappFileInput>>;
   icon?: InputMaybe<Scalars['String']['input']>;
@@ -6180,6 +6184,7 @@ export type WhoRegion = {
 /** Represents a web app. */
 export type Webapp = {
   __typename?: 'Webapp';
+  allowedOperations: Array<WebappOperationScope>;
   createdBy: User;
   description?: Maybe<Scalars['String']['output']>;
   files?: Maybe<Array<FileNode>>;
@@ -6219,6 +6224,16 @@ export type WebappFileInput = {
   content: Scalars['String']['input'];
   path: Scalars['String']['input'];
 };
+
+export enum WebappOperationScope {
+  DatasetsRead = 'DATASETS_READ',
+  DatasetsWrite = 'DATASETS_WRITE',
+  FilesRead = 'FILES_READ',
+  FilesWrite = 'FILES_WRITE',
+  PipelinesRead = 'PIPELINES_READ',
+  PipelinesRun = 'PIPELINES_RUN',
+  UserRead = 'USER_READ'
+}
 
 /** Represents the permissions for a web app. */
 export type WebappPermissions = {

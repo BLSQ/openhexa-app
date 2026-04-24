@@ -288,6 +288,7 @@ MIDDLEWARE = [
     "hexa.core.middlewares.oauth2_token_authentication_middleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "hexa.webapps.middlewares.custom_domain_middleware",
     "hexa.webapps.middlewares.webapp_subdomain_middleware",
     "hexa.user_management.middlewares.login_required_middleware",
     "hexa.analytics.middlewares.set_analytics_middleware",

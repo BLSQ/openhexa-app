@@ -321,6 +321,7 @@ type Pipeline {
   workspace: Workspace!  # The workspace associated with the pipeline.
   config: JSON!  # The configuration for the pipeline.
   schedule: String  # The schedule for running the pipeline.
+  scheduledPipelineVersion: PipelineVersion  # The pinned version to use for scheduled runs. When null, the latest version is used.
   description: String  # The description of the pipeline.
   createdAt: DateTime!  # The timestamp when the pipeline was created.
   updatedAt: DateTime  # The timestamp when the pipeline was last updated.
@@ -469,6 +470,7 @@ input UpdatePipelineInput {
   name: String  # The new name of the pipeline.
   config: JSON  # The new configuration for the pipeline.
   schedule: String  # The new schedule for running the pipeline.
+  scheduledPipelineVersionId: UUID  # The ID of the pipeline version to pin for scheduled runs. Set to null to unpin and always use the latest version.
   description: String  # The new description of the pipeline.
   webhookEnabled: Boolean  # Indicates if the webhook should be enabled for the pipeline.
   autoUpdateFromTemplate: Boolean  # Automatically update this pipeline when its source template is updated.
@@ -484,6 +486,7 @@ enum UpdatePipelineError {
   PERMISSION_DENIED
   INVALID_CONFIG
   MISSING_VERSION_CONFIG
+  PIPELINE_VERSION_NOT_FOUND
 }
 
 """
