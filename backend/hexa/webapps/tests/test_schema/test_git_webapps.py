@@ -1,7 +1,8 @@
 from unittest.mock import MagicMock, patch
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse
 
-from django.core.signing import TimestampSigner
+from django.contrib.sessions.backends.db import SessionStore
+from django.test import override_settings
 
 from hexa.core.test import GraphQLTestCase
 from hexa.git.forgejo import ForgejoAPIError
@@ -675,8 +676,9 @@ class GitWebappQueryTest(GraphQLTestCase):
         self.assertIsNone(webapp["versions"])
         self.assertIsNone(webapp["files"])
 
+    @override_settings(WEBAPPS_DOMAIN="webapps.localhost:8000")
     @patch("hexa.git.mixins.get_forgejo_client")
-    def test_preview_url_contains_auth_token(self, mock_get_client):
+    def test_preview_url_returns_session_key_subdomain(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.get_commits.return_value = []
         mock_client.get_repository_files.return_value = []
@@ -694,18 +696,43 @@ class GitWebappQueryTest(GraphQLTestCase):
         webapp = response["data"]["webapp"]
         preview_url = webapp["previewUrl"]
         parsed = urlparse(preview_url)
-        self.assertTrue(
-            preview_url.startswith(self.GIT_WEBAPP.serve_url),
-            f"previewUrl should start with serve_url, got {preview_url}",
-        )
 
-        query_params = parse_qs(parsed.query)
-        self.assertIn("auth_token", query_params)
+        # The first DNS label should be the Django session key, not the
+        # webapp's own slug — that's how the iframe authenticates without
+        # a third-party cookie.
+        host_labels = parsed.hostname.split(".", 1)
+        session_key, rest = host_labels[0], host_labels[1]
+        self.assertEqual(rest, "webapps.localhost")
+        self.assertNotEqual(session_key, self.GIT_WEBAPP.subdomain)
+        self.assertEqual(parsed.query, "")  # no auth_token in URL anymore
 
-        signer = TimestampSigner()
-        payload = signer.unsign_object(query_params["auth_token"][0])
-        self.assertEqual(payload["user_id"], str(self.USER.pk))
-        self.assertEqual(payload["subdomain"], self.GIT_WEBAPP.subdomain)
+        session = SessionStore(session_key=session_key)
+        self.assertEqual(session.get("user_id"), str(self.USER.pk))
+        self.assertEqual(session.get("webapp_id"), str(self.GIT_WEBAPP.pk))
+
+    @override_settings(WEBAPPS_DOMAIN="webapps.localhost:8000")
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_preview_url_reuses_existing_session(self, mock_get_client):
+        """A second GraphQL resolve for the same (user, webapp) should return
+        the same session key rather than inserting another django_session row.
+        """
+        mock_client = MagicMock()
+        mock_client.get_commits.return_value = []
+        mock_client.get_repository_files.return_value = []
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        first = self.run_query(
+            WEBAPP_QUERY,
+            {"workspaceSlug": self.WS.slug, "slug": "query-test-app"},
+        )["data"]["webapp"]["previewUrl"]
+
+        second = self.run_query(
+            WEBAPP_QUERY,
+            {"workspaceSlug": self.WS.slug, "slug": "query-test-app"},
+        )["data"]["webapp"]["previewUrl"]
+
+        self.assertEqual(first, second)
 
     @patch("hexa.git.mixins.get_forgejo_client")
     def test_preview_url_unauthenticated_returns_serve_url(self, mock_get_client):
