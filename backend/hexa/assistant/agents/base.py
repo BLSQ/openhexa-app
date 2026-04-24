@@ -106,12 +106,6 @@ class BaseAgent:
             "user_message", {"id": str(user_msg.id), "content": user_input}
         )
 
-        precomputed_naming: tuple[str, RunUsage] | None = None
-        if is_first_message:
-            precomputed_naming = await self._generate_conversation_name(user_input)
-            self.conversation.name = precomputed_naming[0]
-            yield format_sse("conversation_name", {"name": self.conversation.name})
-
         history = ModelMessagesTypeAdapter.validate_python(
             self.conversation.messages_history
         )
@@ -122,6 +116,12 @@ class BaseAgent:
         )
 
         try:
+            precomputed_naming: tuple[str, RunUsage] | None = None
+            if is_first_message:
+                precomputed_naming = await self._generate_conversation_name(user_input)
+                self.conversation.name = precomputed_naming[0]
+                yield format_sse("conversation_name", {"name": self.conversation.name})
+
             tool_invocations: dict[str, ToolInvocation] = {}
 
             async with self.agent.iter(
