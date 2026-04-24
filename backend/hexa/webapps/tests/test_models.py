@@ -317,9 +317,7 @@ class WebappModelTest(TestCase):
                 url="https://example.com",
                 subdomain="api",
             )
-        self.assertFalse(
-            Webapp.all_objects.filter(name="Reserved Subdomain").exists()
-        )
+        self.assertFalse(Webapp.all_objects.filter(name="Reserved Subdomain").exists())
 
     def test_unique_constraint(self):
         with self.assertRaises(IntegrityError):
