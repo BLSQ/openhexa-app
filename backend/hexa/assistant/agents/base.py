@@ -129,7 +129,10 @@ class BaseAgent:
             if is_first_message:
                 precomputed_naming = await self._generate_conversation_name(user_input)
                 self.conversation.name = precomputed_naming[0]
-                yield format_sse("conversation_name", ConversationNamePayload(name=self.conversation.name))
+                yield format_sse(
+                    "conversation_name",
+                    ConversationNamePayload(name=self.conversation.name),
+                )
 
             tool_invocations: dict[str, ToolInvocation] = {}
 
@@ -181,11 +184,15 @@ class BaseAgent:
                     event.part, TextPart
                 ):
                     if event.part.content:
-                        yield format_sse("text_delta", TextDeltaPayload(delta=event.part.content))
+                        yield format_sse(
+                            "text_delta", TextDeltaPayload(delta=event.part.content)
+                        )
                 elif isinstance(event, PartDeltaEvent) and isinstance(
                     event.delta, TextPartDelta
                 ):
-                    yield format_sse("text_delta", TextDeltaPayload(delta=event.delta.content_delta))
+                    yield format_sse(
+                        "text_delta", TextDeltaPayload(delta=event.delta.content_delta)
+                    )
 
     @staticmethod
     async def _stream_tools_node(

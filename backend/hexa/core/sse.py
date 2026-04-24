@@ -18,7 +18,8 @@ def format_sse(event_type: str, data: dict) -> str:
 async def with_keepalive(generator, interval: int = 30):
     """Wrap an async SSE generator, emitting a keepalive event every `interval` seconds
     when the generator is idle. Prevents proxies from closing the connection during
-    long-running operations that produce no output."""
+    long-running operations that produce no output.
+    """
     queue: asyncio.Queue = asyncio.Queue()
 
     async def _producer():
