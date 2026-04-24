@@ -1,10 +1,13 @@
+from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
 import requests_mock
 from django.contrib.sessions.backends.db import SessionStore
+from django.contrib.sessions.models import Session
 from django.core.exceptions import ValidationError
 from django.core.signing import TimestampSigner
 from django.test import override_settings
+from django.utils import timezone
 
 from hexa.core.test import GraphQLTestCase, TestCase
 from hexa.git.forgejo import ForgejoAPIError
@@ -837,6 +840,29 @@ class PreviewSessionSubdomainTest(TestCase):
         # Private webapp without a session → redirect to auth-token URL
         self.assertEqual(response.status_code, 302)
         self.assertIn("/auth-token/", response["Location"])
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_expired_session_key_subdomain_refuses_access(self, mock_get_client):
+        """Once the underlying django_session row is past its expire_date,
+        the session-key URL must stop serving content — Django's session
+        loader filters on expire_date__gt=now, so our middleware falls
+        through and returns 404.
+        """
+        mock_get_client.return_value.get_file.return_value = b"<html>preview</html>"
+
+        session_key = self._mint_session(self.USER_MEMBER, self.PRIVATE_WEBAPP)
+
+        # Sanity: it works while live.
+        live = self.client.get("/", HTTP_HOST=f"{session_key}.{self.SUBDOMAIN_BASE}")
+        self.assertEqual(live.status_code, 200)
+
+        # Force expiry by backdating the row.
+        Session.objects.filter(session_key=session_key).update(
+            expire_date=timezone.now() - timedelta(minutes=1)
+        )
+
+        dead = self.client.get("/", HTTP_HOST=f"{session_key}.{self.SUBDOMAIN_BASE}")
+        self.assertEqual(dead.status_code, 404)
 
 
 @override_settings(
