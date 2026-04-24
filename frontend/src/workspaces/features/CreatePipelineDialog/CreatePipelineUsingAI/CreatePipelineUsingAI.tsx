@@ -12,7 +12,12 @@ import { AIFormInstance, AIPhase } from "./useAIForm";
 
 const MAX_TEXTAREA_HEIGHT = 480;
 
-type StepStatus = "pending" | "active" | "done" | "error";
+enum StepStatus {
+  Pending = "pending",
+  Active = "active",
+  Done = "done",
+  Error = "error",
+}
 
 type StepProps = {
   label: string;
@@ -23,22 +28,22 @@ function Step({ label, status }: StepProps) {
   return (
     <div className="flex items-center gap-3">
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
-        {status === "done" && (
+        {status === StepStatus.Done && (
           <CheckCircleIcon className="h-5 w-5 text-green-500" />
         )}
-        {status === "error" && (
+        {status === StepStatus.Error && (
           <XCircleIcon className="h-5 w-5 text-red-500" />
         )}
-        {status === "active" && <Spinner size="xs" className="text-blue-500" />}
-        {status === "pending" && (
+        {status === StepStatus.Active && <Spinner size="xs" className="text-blue-500" />}
+        {status === StepStatus.Pending && (
           <span className="h-2 w-2 rounded-full bg-gray-300" />
         )}
       </span>
       <span
         className={
-          status === "pending"
+          status === StepStatus.Pending
             ? "text-sm text-gray-400"
-            : status === "error"
+            : status === StepStatus.Error
               ? "text-sm text-red-600"
               : "text-sm text-gray-700"
         }
@@ -81,25 +86,25 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
       phase === AIPhase.CreatingPipeline ||
       phase === AIPhase.Done
     )
-      return "done";
+      return StepStatus.Done;
     if (phase === AIPhase.Error) {
-      return errorAtPhase === AIPhase.CreatingPipeline ? "done" : "error";
+      return errorAtPhase === AIPhase.CreatingPipeline ? StepStatus.Done : StepStatus.Error;
     }
-    if (phase === AIPhase.Generating) return "active";
-    return "pending";
+    if (phase === AIPhase.Generating) return StepStatus.Active;
+    return StepStatus.Pending;
   };
 
   const creatingStatus = (): StepStatus => {
-    if (phase === AIPhase.Done) return "done";
+    if (phase === AIPhase.Done) return StepStatus.Done;
     if (phase === AIPhase.Error && errorAtPhase === AIPhase.CreatingPipeline)
-      return "error";
-    if (phase === AIPhase.CreatingPipeline) return "active";
-    return "pending";
+      return StepStatus.Error;
+    if (phase === AIPhase.CreatingPipeline) return StepStatus.Active;
+    return StepStatus.Pending;
   };
 
   const openingStatus = (): StepStatus => {
-    if (phase === AIPhase.Done) return "active";
-    return "pending";
+    if (phase === AIPhase.Done) return StepStatus.Active;
+    return StepStatus.Pending;
   };
 
   return aiEnabled ? (

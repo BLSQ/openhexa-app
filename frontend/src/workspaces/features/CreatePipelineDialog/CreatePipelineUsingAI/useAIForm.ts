@@ -44,7 +44,9 @@ export function useAIForm(
   const [errorAtPhase, setErrorAtPhase] = useState<AIPhase | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [agentResponse, setAgentResponse] = useState<string | null>(null);
-  // Tracks the current phase in a ref so SSE handlers can read it without stale closures
+  // SSE event handlers are closures created at mount time and can't see updated React state.
+  // phaseRef mirrors the phase state so handlers always read the current value without stale closures.
+  // Always update both together via setPhaseWithRef.
   const phaseRef = useRef<AIPhase>(AIPhase.Idle);
   const agentResponseRef = useRef<string>("");
   const navigationTriggeredRef = useRef(false);

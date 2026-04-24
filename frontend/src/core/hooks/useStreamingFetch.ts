@@ -72,6 +72,10 @@ function useStreamingFetch(handlers: StreamHandlers): UseStreamingFetchReturn {
           throw new Error(`HTTP ${response.status}`);
         }
 
+        if (!response.headers.get("content-type")?.includes("text/event-stream")) {
+          throw new Error("Expected text/event-stream response");
+        }
+
         if (!response.body) {
           throw new Error("No response body");
         }
