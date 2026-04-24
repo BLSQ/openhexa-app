@@ -41,6 +41,7 @@ async def stream_assistant_message(
     if monthly_cost >= Decimal(settings.ASSISTANT_MONTHLY_LIMIT):
         return JsonResponse({"error": "Monthly limit exceeded"}, status=429)
 
+    return JsonResponse({"error": "Server error"}, status=400)
     agent = await sync_to_async(lambda: conversation.agent)()
     return sse_response(agent.run_stream(message))
 

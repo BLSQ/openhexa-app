@@ -13,6 +13,7 @@ import {
   useAssistantConversationMessagesQuery,
 } from "assistant/graphql/queries.generated";
 import { useApolloClient } from "@apollo/client";
+import { useTranslation } from "next-i18next";
 
 const PER_PAGE = 20;
 
@@ -53,6 +54,7 @@ export default function ChatPane({
   onToolResult,
   renderMessageAfter,
 }: Props) {
+  const { t } = useTranslation();
   const [input, setInput] = useState("");
   const [localConversationId, setLocalConversationId] = useState<string | null>(
     conversationId,
@@ -144,13 +146,13 @@ export default function ChatPane({
     },
     error: () => {
       clear();
-      setSendError("The AI service encountered an error. Please try again.");
+      setSendError(t("The AI service encountered an error. Please try again."));
     },
   });
 
   useEffect(() => {
     if (streamError) {
-      setSendError("Could not connect to the server. Please check your connection and try again.");
+      setSendError(t("Could not connect to the server. Please check your connection and try again."));
     }
   }, [streamError]);
 
@@ -327,7 +329,7 @@ export default function ChatPane({
                   className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"
                 >
                   <ArrowPathIcon className="h-3.5 w-3.5" />
-                  Try again
+                  {t("Try again")}
                 </button>
               )}
             </div>
