@@ -3,7 +3,6 @@ from django.conf import settings
 
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.utils.base64_image_encode_decode import encode_base64_image
-from hexa.webapps.middlewares import get_or_create_preview_session_key
 from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 
 webapp_permissions = ObjectType("WebappPermissions")
@@ -54,6 +53,7 @@ def resolve_preview_url(webapp: Webapp, info, **kwargs):
     request = info.context["request"]
     if not request.user.is_authenticated:
         return webapp.serve_url
+    from hexa.webapps.middlewares import get_or_create_preview_session_key
 
     # The session key lives as the first DNS label of the host so the iframe
     # can authenticate without any cookie — sidestepping the third-party

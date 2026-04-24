@@ -710,6 +710,39 @@ class GitWebappQueryTest(GraphQLTestCase):
         self.assertEqual(session.get("user_id"), str(self.USER.pk))
         self.assertEqual(session.get("webapp_id"), str(self.GIT_WEBAPP.pk))
 
+    @override_settings(
+        WEBAPPS_DOMAIN="webapps.localhost:8000",
+        ALLOWED_HOSTS=["*"],
+    )
+    @patch("hexa.webapps.views.get_forgejo_client")
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_preview_url_round_trip_serves_webapp(
+        self, mock_mixin_client, mock_view_client
+    ):
+        """End-to-end: fetching `previewUrl` via GraphQL and then GETing that
+        URL must return the webapp content. Guards against regressions where
+        the GraphQL resolver and the subdomain middleware drift apart.
+        """
+        mock_mixin_client.return_value.get_commits.return_value = []
+        mock_mixin_client.return_value.get_repository_files.return_value = []
+        mock_view_client.return_value.get_file.return_value = b"<html>preview</html>"
+
+        self.client.force_login(self.USER)
+
+        # 1. Get previewUrl from GraphQL
+        preview_url = self.run_query(
+            WEBAPP_QUERY,
+            {"workspaceSlug": self.WS.slug, "slug": "query-test-app"},
+        )["data"]["webapp"]["previewUrl"]
+
+        # 2. Follow that URL against the webapp host
+        parsed = urlparse(preview_url)
+        response = self.client.get(parsed.path or "/", HTTP_HOST=parsed.netloc)
+
+        # 3. Content served, no redirect, no auth dance
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"<html>preview</html>")
+
     @override_settings(WEBAPPS_DOMAIN="webapps.localhost:8000")
     @patch("hexa.git.mixins.get_forgejo_client")
     def test_preview_url_reuses_existing_session(self, mock_get_client):
