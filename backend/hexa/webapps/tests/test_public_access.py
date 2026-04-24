@@ -744,6 +744,104 @@ class MiddlewareAuthTokenExchangeTest(TestCase):
 @override_settings(
     WEBAPPS_DOMAIN="webapps.localhost:8000",
     ALLOWED_HOSTS=["*"],
+    BASE_URL="http://localhost:8000",
+)
+class PreviewSessionSubdomainTest(TestCase):
+    """The session key lives as the first DNS label of the host. Third-party
+    cookie blocking (Safari ITP, incognito, Firefox strict) can't break the
+    iframe preview because no cookie is in the flow.
+    """
+
+    SUBDOMAIN_BASE = "webapps.localhost:8000"
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER_MEMBER = User.objects.create_user("psm@test.com", "password")
+        cls.USER_NON_MEMBER = User.objects.create_user("psnm@test.com", "password")
+        cls.WORKSPACE = Workspace.objects.create(
+            name="PS Workspace", slug="ps-workspace"
+        )
+        WorkspaceMembership.objects.create(
+            user=cls.USER_MEMBER,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        cls.PRIVATE_WEBAPP = GitWebapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="PS Private",
+            slug="ps-private",
+            subdomain="ps-private",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER_MEMBER,
+            repository="webapp-ps",
+            published_commit="sha-ps",
+            is_public=False,
+        )
+
+    def _mint_session(self, user, webapp):
+        session = SessionStore()
+        session.set_expiry(3600)
+        session["user_id"] = str(user.pk)
+        session["webapp_id"] = str(webapp.pk)
+        session.create()
+        return session.session_key
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_session_key_subdomain_serves_content(self, mock_get_client):
+        mock_get_client.return_value.get_file.return_value = b"<html>preview</html>"
+
+        session_key = self._mint_session(self.USER_MEMBER, self.PRIVATE_WEBAPP)
+        response = self.client.get(
+            "/", HTTP_HOST=f"{session_key}.{self.SUBDOMAIN_BASE}"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"<html>preview</html>")
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_session_key_subdomain_serves_subresources_without_cookie(
+        self, mock_get_client
+    ):
+        mock_get_client.return_value.get_file.return_value = b"body { color: red; }"
+
+        session_key = self._mint_session(self.USER_MEMBER, self.PRIVATE_WEBAPP)
+        response = self.client.get(
+            "/style.css", HTTP_HOST=f"{session_key}.{self.SUBDOMAIN_BASE}"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"color: red", response.content)
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_session_key_response_sets_referrer_policy(self, mock_get_client):
+        mock_get_client.return_value.get_file.return_value = b"<html>preview</html>"
+
+        session_key = self._mint_session(self.USER_MEMBER, self.PRIVATE_WEBAPP)
+        response = self.client.get(
+            "/", HTTP_HOST=f"{session_key}.{self.SUBDOMAIN_BASE}"
+        )
+        self.assertEqual(response.get("Referrer-Policy"), "no-referrer")
+
+    def test_invalid_session_key_subdomain_falls_through_to_404(self):
+        # 32 lowercase-alphanumeric chars that isn't a real session key
+        fake_key = "z" * 32
+        response = self.client.get("/", HTTP_HOST=f"{fake_key}.{self.SUBDOMAIN_BASE}")
+        self.assertEqual(response.status_code, 404)
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_non_session_key_subdomain_uses_webapp_slug_lookup(self, mock_get_client):
+        # Existing webapp slug lookup still works: subdomain doesn't match
+        # the session-key pattern (has a hyphen, wrong length) so it falls
+        # through to `Webapp.objects.get(subdomain=…)`.
+        response = self.client.get(
+            "/", HTTP_HOST=f"{self.PRIVATE_WEBAPP.subdomain}.{self.SUBDOMAIN_BASE}"
+        )
+        # Private webapp without a session → redirect to auth-token URL
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/auth-token/", response["Location"])
+
+
+@override_settings(
+    WEBAPPS_DOMAIN="webapps.localhost:8000",
+    ALLOWED_HOSTS=["*"],
 )
 class PoweredByBannerTest(TestCase):
     SUBDOMAIN_BASE = "webapps.localhost:8000"
