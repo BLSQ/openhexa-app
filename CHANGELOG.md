@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.4.1](https://github.com/BLSQ/openhexa-app/compare/5.4.0...5.4.1) (2026-04-24)
+
+
+### Bug Fixes
+
+* auto-update pipeline run status on list page ([#1761](https://github.com/BLSQ/openhexa-app/issues/1761)) ([150fb28](https://github.com/BLSQ/openhexa-app/commit/150fb282ed24d9e0376381840877f256e211efdd))
+* Naming agent sometimes fails (HEXA-1603) ([#1759](https://github.com/BLSQ/openhexa-app/issues/1759)) ([bc67d86](https://github.com/BLSQ/openhexa-app/commit/bc67d8648aa81178c7e12b495aba216f99840e75))
+
 ## [5.4.0](https://github.com/BLSQ/openhexa-app/compare/5.3.0...5.4.0) (2026-04-23)
 
 
