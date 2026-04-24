@@ -20,6 +20,15 @@ from pydantic_ai.messages import (
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.model_builder import AiModelBuilder
 from hexa.assistant.models import Conversation, Message, ToolInvocation
+from hexa.assistant.sse_types import (
+    ConversationNamePayload,
+    DonePayload,
+    ErrorPayload,
+    TextDeltaPayload,
+    ToolCallPayload,
+    ToolResultPayload,
+    UserMessagePayload,
+)
 from hexa.assistant.tool_binding import bind_context
 from hexa.core.sse import format_sse
 
@@ -103,7 +112,7 @@ class BaseAgent:
             content=user_input,
         )
         yield format_sse(
-            "user_message", {"id": str(user_msg.id), "content": user_input}
+            "user_message", UserMessagePayload(id=str(user_msg.id), content=user_input)
         )
 
         history = ModelMessagesTypeAdapter.validate_python(
@@ -120,7 +129,7 @@ class BaseAgent:
             if is_first_message:
                 precomputed_naming = await self._generate_conversation_name(user_input)
                 self.conversation.name = precomputed_naming[0]
-                yield format_sse("conversation_name", {"name": self.conversation.name})
+                yield format_sse("conversation_name", ConversationNamePayload(name=self.conversation.name))
 
             tool_invocations: dict[str, ToolInvocation] = {}
 
@@ -154,15 +163,15 @@ class BaseAgent:
             )
             yield format_sse(
                 "done",
-                {
-                    "message_id": str(assistant_message.id),
-                    "name": self.conversation.name,
-                },
+                DonePayload(
+                    message_id=str(assistant_message.id),
+                    name=self.conversation.name,
+                ),
             )
 
         except Exception:
             logger.exception("agent.run_stream: error during streaming")
-            yield format_sse("error", {"message": "An error occurred"})
+            yield format_sse("error", ErrorPayload(message="An error occurred"))
 
     @staticmethod
     async def _stream_model_node(node, ctx):
@@ -172,11 +181,11 @@ class BaseAgent:
                     event.part, TextPart
                 ):
                     if event.part.content:
-                        yield format_sse("text_delta", {"delta": event.part.content})
+                        yield format_sse("text_delta", TextDeltaPayload(delta=event.part.content))
                 elif isinstance(event, PartDeltaEvent) and isinstance(
                     event.delta, TextPartDelta
                 ):
-                    yield format_sse("text_delta", {"delta": event.delta.content_delta})
+                    yield format_sse("text_delta", TextDeltaPayload(delta=event.delta.content_delta))
 
     @staticmethod
     async def _stream_tools_node(
@@ -204,10 +213,10 @@ class BaseAgent:
                     )
                     yield format_sse(
                         "tool_call",
-                        {
-                            "tool_call_id": call.tool_call_id,
-                            "tool_name": call.tool_name,
-                        },
+                        ToolCallPayload(
+                            tool_call_id=call.tool_call_id,
+                            tool_name=call.tool_name,
+                        ),
                     )
                 elif isinstance(event, FunctionToolResultEvent):
                     if not isinstance(event.result, ToolReturnPart):
@@ -240,12 +249,12 @@ class BaseAgent:
                         )
                     yield format_sse(
                         "tool_result",
-                        {
-                            "tool_call_id": result_part.tool_call_id,
-                            "tool_name": result_part.tool_name,
-                            "success": success,
-                            "tool_output": tool_output,
-                        },
+                        ToolResultPayload(
+                            tool_call_id=result_part.tool_call_id,
+                            tool_name=result_part.tool_name,
+                            success=success,
+                            tool_output=tool_output,
+                        ),
                     )
 
     @staticmethod
