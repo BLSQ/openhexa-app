@@ -127,6 +127,8 @@ def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
         "webapp_id": str(webapp.id),
         "webapp_name": webapp.name,
         "workspace_id": str(webapp.workspace_id),
+        "workspace_name": webapp.workspace.name,
+        "is_public": webapp.is_public,
         "operations": sorted(requested_fields),
     }
 
