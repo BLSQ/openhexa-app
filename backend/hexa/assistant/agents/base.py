@@ -3,12 +3,8 @@ import logging
 from decimal import Decimal
 
 import genai_prices
-<<<<<<< HEXA-1554-agent-sse
 from asgiref.sync import async_to_sync
-from pydantic_ai import Agent, RunUsage
-=======
 from pydantic_ai import Agent, ModelRetry, RunUsage
->>>>>>> main
 from pydantic_ai.messages import (
     FunctionToolCallEvent,
     FunctionToolResultEvent,
@@ -363,11 +359,7 @@ class BaseAgent:
             f"<message>\n{user_input}\n</message>"
         )
         try:
-<<<<<<< HEXA-1554-agent-sse
-            result = await naming_agent.run(user_input)
-=======
-            result = naming_agent.run_sync(prompt)
->>>>>>> main
+            result = await naming_agent.run(prompt)
             return result.output.strip()[:50], result.usage()
         except Exception:
             logger.warning(
