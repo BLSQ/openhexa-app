@@ -44,9 +44,20 @@ export default function PipelineEditChatPanel({
     return id;
   }, [createConversation, workspaceSlug, pipelineId]);
 
+  const handleToolResult = useCallback(
+    (toolName: string, output: unknown, success: boolean) => {
+      if (toolName !== "propose_pipeline_version" || !success) return;
+      const files = (output as { files?: ProposedFile[] })?.files;
+      if (Array.isArray(files)) {
+        onProposedFiles(files);
+      }
+    },
+    [onProposedFiles],
+  );
+
   const handleMessagesChange = useCallback(
     (messages: Message[]) => {
-      // Find the most recent propose_pipeline_version call across all assistant messages
+      // Historical path: find the most recent successful propose_pipeline_version on load
       for (let i = messages.length - 1; i >= 0; i--) {
         const msg = messages[i];
         if (msg.role !== "assistant") continue;
@@ -79,6 +90,7 @@ export default function PipelineEditChatPanel({
           monthlyLimitExceeded={monthlyLimitExceeded}
           createConversation={handleCreateConversation}
           onConversationNameChange={setConversationName}
+          onToolResult={handleToolResult}
           onMessagesChange={handleMessagesChange}
         />
       </div>

@@ -31,6 +31,8 @@ type Props = {
   onConversationNameChange?: (name: string) => void;
   // Called whenever the message list changes (e.g. after a new assistant reply).
   onMessagesChange?: (messages: Message[]) => void;
+  // Called immediately when a tool result arrives during streaming.
+  onToolResult?: (toolName: string, output: unknown, success: boolean) => void;
   // Optional per-message renderer. Rendered below each assistant message bubble.
   renderMessageAfter?: (message: Message) => ReactNode;
 };
@@ -48,6 +50,7 @@ export default function ChatPane({
   onConversationCreated,
   onConversationNameChange,
   onMessagesChange,
+  onToolResult,
   renderMessageAfter,
 }: Props) {
   const [input, setInput] = useState("");
@@ -114,6 +117,9 @@ export default function ChatPane({
     onDrained: handleDrained,
   });
 
+  const onToolResultRef = useRef(onToolResult);
+  onToolResultRef.current = onToolResult;
+
   const { send, isStreaming, streamError } = useStreamingFetch({
     text_delta: (data) => {
       const { delta } = data as { delta: string };
@@ -122,6 +128,14 @@ export default function ChatPane({
     conversation_name: (data) => {
       const { name } = data as { name: string };
       if (name) onConversationNameChange?.(name);
+    },
+    tool_result: (data) => {
+      const { tool_name, tool_output, success } = data as {
+        tool_name: string;
+        tool_output: unknown;
+        success: boolean;
+      };
+      onToolResultRef.current?.(tool_name, tool_output, success);
     },
     done: (data) => {
       const { name } = data as { name?: string };
