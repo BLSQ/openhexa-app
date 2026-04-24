@@ -1,7 +1,8 @@
 import asyncio
 import contextlib
 import json
-from typing import TypedDict
+from collections.abc import Mapping
+from typing import Any
 
 from django.http import StreamingHttpResponse
 
@@ -12,7 +13,7 @@ MAX_DURATION = 1800  # 30 minutes — safety cap for stuck runs
 _KEEPALIVE_SENTINEL = object()
 
 
-def format_sse(event_type: str, data: dict | TypedDict) -> str:
+def format_sse(event_type: str, data: dict | Mapping[str, Any]) -> str:
     return f"event: {event_type}\ndata: {json.dumps(data)}\n\n"
 
 
