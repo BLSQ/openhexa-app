@@ -231,6 +231,35 @@ class GraphQLProxyMiddlewareTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
+    def test_preview_session_key_host_origin_succeeds(self):
+        # Preview URLs serve the webapp from a session-key subdomain rather
+        # than the webapp's own subdomain — same-origin queries must still pass.
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        preview_host = f"{session.session_key}.{WEBAPPS_DOMAIN}"
+        self.client.cookies[WEBAPP_SESSION_COOKIE] = session.session_key
+        response = self.client.post(
+            "/graphql/",
+            data=json.dumps({"query": "query { me { user { email } } }"}),
+            content_type="application/json",
+            HTTP_HOST=preview_host,
+            HTTP_ORIGIN=f"http://{preview_host}",
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_custom_domain_host_origin_succeeds(self):
+        self.WEBAPP_PRIVATE.custom_domain = "my-custom-domain.example.com"
+        self.WEBAPP_PRIVATE.save()
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        self.client.cookies[WEBAPP_SESSION_COOKIE] = session.session_key
+        response = self.client.post(
+            "/graphql/",
+            data=json.dumps({"query": "query { me { user { email } } }"}),
+            content_type="application/json",
+            HTTP_HOST="my-custom-domain.example.com",
+            HTTP_ORIGIN="http://my-custom-domain.example.com",
+        )
+        self.assertEqual(response.status_code, 200)
+
     def test_empty_allowed_operations_blocks_everything(self):
         webapp = Webapp.objects.create(
             name="No Ops App",

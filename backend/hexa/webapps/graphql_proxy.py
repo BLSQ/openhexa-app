@@ -66,12 +66,12 @@ def extract_top_level_fields(query_string: str) -> set[str]:
 _graphql_view = GraphQLView.as_view(schema=schema)
 
 
-def _check_origin(request: HttpRequest, webapp: Webapp) -> bool:
+def _check_origin(request: HttpRequest) -> bool:
     origin = request.META.get("HTTP_ORIGIN", "")
     if not origin:
         return True
-    expected = f"{settings.SCHEME}://{webapp.subdomain}.{settings.WEBAPPS_DOMAIN}"
-    return origin.rstrip("/") == expected.rstrip("/")
+    request_origin = f"{settings.SCHEME}://{request.get_host()}"
+    return origin.rstrip("/") == request_origin.rstrip("/")
 
 
 def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
@@ -81,7 +81,7 @@ def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
             status=405,
         )
 
-    if not _check_origin(request, webapp):
+    if not _check_origin(request):
         return JsonResponse(
             {"errors": [{"message": "Origin not allowed"}]},
             status=403,
