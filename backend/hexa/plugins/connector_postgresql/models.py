@@ -12,6 +12,7 @@ from django.template.defaultfilters import pluralize
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from psycopg2 import OperationalError, sql
+from psycopg2.extras import DictCursor
 
 from hexa.catalog.models import Datasource, Entry
 from hexa.catalog.queue import datasource_work_queue
@@ -139,7 +140,7 @@ class Database(Datasource):
         IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
         with psycopg2.connect(self.url) as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cursor:
+            with conn.cursor(cursor_factory=DictCursor) as cursor:
                 cursor.execute(
                     """
                     SELECT table_name, table_type, pg_class.reltuples as row_count

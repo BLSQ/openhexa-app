@@ -7,6 +7,7 @@ import psycopg2
 from psycopg2 import sql
 from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+from psycopg2.extras import RealDictCursor
 
 from hexa.workspaces.models import Workspace
 
@@ -76,7 +77,7 @@ def get_database_definition(workspace: Workspace):
     conn = None
     try:
         conn = get_workspace_database_connection(workspace)
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(
                 """
                         SELECT table_name as name, pg_class.reltuples as count
@@ -110,7 +111,7 @@ def get_table_definition(workspace: Workspace, table_name: str):
     conn = None
     try:
         conn = get_workspace_database_connection(workspace)
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(
                 """
                     SELECT column_name AS name, data_type AS type FROM information_schema.columns WHERE table_name = (%s);
@@ -150,7 +151,7 @@ def get_table_sample_data(workspace: Workspace, table_name: str, n_rows: int = 4
     conn = None
     try:
         conn = get_workspace_database_connection(workspace)
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(
                 sql.SQL("SELECT * FROM {table} LIMIT %s;").format(
                     table=sql.Identifier(table_name),
@@ -170,7 +171,7 @@ def delete_table(workspace: Workspace, table_name: str):
     try:
         conn = get_workspace_database_connection(workspace)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(
                 sql.SQL("DROP TABLE {table};").format(table=sql.Identifier(table_name)),
             )
@@ -200,7 +201,7 @@ def get_table_rows(
     conn = None
     try:
         conn = get_workspace_database_connection(workspace)
-        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             if direction == OrderByDirectionEnum.ASC:
                 sql_select = (
                     "SELECT * FROM {table} ORDER BY {order_by} ASC LIMIT %s OFFSET %s;"
