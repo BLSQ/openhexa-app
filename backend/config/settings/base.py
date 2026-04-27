@@ -145,6 +145,7 @@ CORS_PATTERNS = [
     r"^/oauth/",
     r"^/\.well-known/",
     r"^/pipelines/runs/[^/]+/messages/stream/",
+    r"^/assistant/conversations/[^/]+/stream/",
 ]
 CORS_URLS_REGEX = "|".join(CORS_PATTERNS)
 CORS_ALLOW_CREDENTIALS = True

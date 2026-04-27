@@ -1,6 +1,9 @@
-import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import { ArrowPathIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Spinner from "core/components/Spinner";
+import { getPublicEnv } from "core/helpers/runtimeConfig";
+import useStreamingFetch from "core/hooks/useStreamingFetch";
+import useWordDrain from "core/hooks/useWordDrain";
 import { KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -9,7 +12,8 @@ import {
   AssistantConversationMessagesQuery,
   useAssistantConversationMessagesQuery,
 } from "assistant/graphql/queries.generated";
-import { useSendAssistantMessageMutation } from "assistant/graphql/mutations.generated";
+import { useApolloClient } from "@apollo/client";
+import { useTranslation } from "next-i18next";
 
 const PER_PAGE = 20;
 
@@ -28,9 +32,17 @@ type Props = {
   onConversationNameChange?: (name: string) => void;
   // Called whenever the message list changes (e.g. after a new assistant reply).
   onMessagesChange?: (messages: Message[]) => void;
+  // Called immediately when a tool result arrives during streaming.
+  onToolResult?: (toolName: string, output: unknown, success: boolean) => void;
   // Optional per-message renderer. Rendered below each assistant message bubble.
   renderMessageAfter?: (message: Message) => ReactNode;
 };
+
+function getStreamUrl(conversationId: string): string {
+  const apiBasePath =
+    process.env.NEXT_PUBLIC_API_BASE_PATH ?? getPublicEnv().OPENHEXA_BACKEND_URL;
+  return `${apiBasePath}/assistant/conversations/${conversationId}/stream/`;
+}
 
 export default function ChatPane({
   conversationId,
@@ -39,14 +51,17 @@ export default function ChatPane({
   onConversationCreated,
   onConversationNameChange,
   onMessagesChange,
+  onToolResult,
   renderMessageAfter,
 }: Props) {
+  const { t } = useTranslation();
   const [input, setInput] = useState("");
   const [localConversationId, setLocalConversationId] = useState<string | null>(
     conversationId,
   );
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const apolloClient = useApolloClient();
 
   useEffect(() => {
     setLocalConversationId(conversationId);
@@ -79,17 +94,67 @@ export default function ChatPane({
   useEffect(() => {
     const name = data?.assistantConversation?.name;
     if (name) onConversationNameChange?.(name);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
+  }, [data?.assistantConversation?.name, onConversationNameChange]);
 
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
 
-  const [sendMessage, { loading: sending }] = useSendAssistantMessageMutation({
-    onCompleted: () => {
-      setCurrentPage(1);
-      setPendingUserMessage(null);
+  const localConversationIdRef = useRef(localConversationId);
+  useEffect(() => {
+    localConversationIdRef.current = localConversationId;
+  }, [localConversationId]);
+
+  const handleDrained = useCallback(() => {
+    setPendingUserMessage(null);
+    setCurrentPage(1);
+    if (localConversationIdRef.current) {
+      apolloClient.refetchQueries({
+        include: [AssistantConversationMessagesDocument],
+      });
+    }
+  }, [apolloClient]);
+
+  const { text: streamingText, feed, markDone, clear } = useWordDrain({
+    interval: 30,
+    onDrained: handleDrained,
+  });
+
+  const onToolResultRef = useRef(onToolResult);
+  onToolResultRef.current = onToolResult;
+
+  const { send, isStreaming, streamError } = useStreamingFetch({
+    text_delta: (data) => {
+      const { delta } = data as { delta: string };
+      feed(delta);
+    },
+    conversation_name: (data) => {
+      const { name } = data as { name: string };
+      if (name) onConversationNameChange?.(name);
+    },
+    tool_result: (data) => {
+      const { tool_name, tool_output, success } = data as {
+        tool_name: string;
+        tool_output: unknown;
+        success: boolean;
+      };
+      onToolResultRef.current?.(tool_name, tool_output, success);
+    },
+    done: (data) => {
+      const { name } = data as { name?: string };
+      if (name) onConversationNameChange?.(name);
+      markDone();
+    },
+    error: () => {
+      clear();
+      setSendError(t("The AI service encountered an error. Please try again."));
     },
   });
+
+  useEffect(() => {
+    if (streamError) {
+      setSendError(t("Could not connect to the server. Please check your connection and try again."));
+    }
+  }, [streamError]);
 
   useEffect(() => {
     if (!loadingMessages) {
@@ -101,7 +166,7 @@ export default function ChatPane({
     if (!loadingMore) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages.length, pendingUserMessage]);
+  }, [messages.length, pendingUserMessage, streamingText]);
 
   const loadOlderMessages = useCallback(async () => {
     if (loadingMore || !hasMore || !localConversationId) return;
@@ -162,9 +227,11 @@ export default function ChatPane({
     el.style.height = `${el.scrollHeight}px`;
   }, [input]);
 
-  const handleSubmit = async () => {
-    const text = input.trim();
-    if (!text || sending || monthlyLimitExceeded) return;
+  const isActive = isStreaming || streamingText !== null;
+
+  const handleSubmit = async (overrideText?: string) => {
+    const text = overrideText ?? input.trim();
+    if (!text || isActive || monthlyLimitExceeded) return;
 
     let convId = localConversationId;
 
@@ -177,17 +244,10 @@ export default function ChatPane({
 
     if (!convId) return;
 
+    setSendError(null);
     setPendingUserMessage(text);
     setInput("");
-    await sendMessage({
-      variables: { input: { conversationId: convId, message: text } },
-      refetchQueries: [
-        {
-          query: AssistantConversationMessagesDocument,
-          variables: { id: convId, page: 1, perPage: PER_PAGE },
-        },
-      ],
-    });
+    await send(getStreamUrl(convId), { message: text });
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -208,7 +268,7 @@ export default function ChatPane({
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-white">
+    <div className="flex flex-col h-full w-full overflow-hidden bg-white">
       <div className="flex-1 flex flex-col p-4 max-w-3xl mx-auto w-full min-h-0">
         <div
           ref={scrollContainerRef}
@@ -259,17 +319,42 @@ export default function ChatPane({
           ))}
 
           {pendingUserMessage && (
-            <div className="flex justify-end">
+            <div className="flex flex-col items-end gap-1">
               <div className="max-w-2xl rounded-2xl px-4 py-3 text-sm bg-blue-600 text-white whitespace-pre-wrap">
                 {pendingUserMessage}
+              </div>
+              {sendError && (
+                <button
+                  onClick={() => handleSubmit(pendingUserMessage)}
+                  className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                >
+                  <ArrowPathIcon className="h-3.5 w-3.5" />
+                  {t("Try again")}
+                </button>
+              )}
+            </div>
+          )}
+
+          {(isStreaming || streamingText !== null) && (
+            <div className="flex justify-start">
+              <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
+                {streamingText ? (
+                  <div className="prose prose-sm prose-gray max-w-none">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {streamingText}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <Spinner size="xs" className="text-gray-400" />
+                )}
               </div>
             </div>
           )}
 
-          {sending && (
+          {sendError && (
             <div className="flex justify-start">
-              <div className="rounded-2xl bg-gray-100 px-4 py-3">
-                <Spinner size="xs" className="text-gray-400" />
+              <div className="max-w-2xl rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {sendError}
               </div>
             </div>
           )}
@@ -296,12 +381,12 @@ export default function ChatPane({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              disabled={sending}
+              disabled={isActive}
             />
             <div className="flex items-center justify-end px-2 pb-2">
               <button
-                onClick={handleSubmit}
-                disabled={!input.trim() || sending}
+                onClick={() => handleSubmit()}
+                disabled={!input.trim() || isActive}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <PaperAirplaneIcon className="h-4 w-4" />
