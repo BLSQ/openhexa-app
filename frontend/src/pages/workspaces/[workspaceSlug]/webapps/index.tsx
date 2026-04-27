@@ -122,27 +122,29 @@ const WebappsPage = (props: Props) => {
                 maxWidth={350}
               >
                 {(item) => (
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-2">
                     <div className="flex items-center space-x-1 shrink-0">
                       <FavoriteWebappButton webapp={item} />
                       <ShortcutWebappButton webapp={item} />
+                    </div>
+                    <div className="flex items-center gap-1.5 min-w-0">
                       <img
                         src={item.icon}
                         className={clsx(
-                          "h-4 w-4 rounded",
+                          "h-4 w-4 rounded shrink-0",
                           !item.icon && "invisible",
                         )}
                         alt={"Icon"}
                       />
+                      <Link
+                        href={{
+                          pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${item.slug}`,
+                        }}
+                        className="truncate"
+                      >
+                        {item.name}
+                      </Link>
                     </div>
-                    <Link
-                      href={{
-                        pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${item.slug}`,
-                      }}
-                      className="truncate"
-                    >
-                      {item.name}
-                    </Link>
                   </div>
                 )}
               </BaseColumn>
