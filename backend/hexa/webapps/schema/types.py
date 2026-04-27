@@ -1,7 +1,5 @@
-from urllib.parse import urlencode
-
 from ariadne import ObjectType, UnionType
-from django.core.signing import TimestampSigner
+from django.conf import settings
 
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.utils.base64_image_encode_decode import encode_base64_image
@@ -55,12 +53,14 @@ def resolve_preview_url(webapp: Webapp, info, **kwargs):
     request = info.context["request"]
     if not request.user.is_authenticated:
         return webapp.serve_url
+    from hexa.webapps.middlewares import get_or_create_preview_session_key
 
-    signer = TimestampSigner()
-    token = signer.sign_object(
-        {"user_id": str(request.user.id), "subdomain": webapp.subdomain}
-    )
-    return f"{webapp.serve_url}?{urlencode({'auth_token': token})}"
+    # The session key lives as the first DNS label of the host so the iframe
+    # can authenticate without any cookie — sidestepping the third-party
+    # cookie block in Safari, incognito, and Firefox strict. An existing
+    # valid session is reused when available instead of minting a new one.
+    session_key = get_or_create_preview_session_key(webapp, request.user)
+    return f"{settings.SCHEME}://{session_key}.{settings.WEBAPPS_DOMAIN}/"
 
 
 @webapp_object.field("icon")

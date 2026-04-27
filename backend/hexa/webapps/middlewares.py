@@ -1,7 +1,11 @@
+import hashlib
+import re
+from datetime import timedelta
 from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore
+from django.contrib.sessions.models import Session
 from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
 from django.http import (
     HttpRequest,
@@ -11,6 +15,7 @@ from django.http import (
     JsonResponse,
 )
 from django.template.loader import render_to_string
+from django.utils import timezone
 
 from hexa.superset.views import view_superset_dashboard
 from hexa.user_management.models import User
@@ -37,6 +42,7 @@ def _set_csp_frame_ancestors(response):
         frame_ancestors += f" {settings.NEW_FRONTEND_DOMAIN}"
     del response["X-Frame-Options"]
     response["Content-Security-Policy"] = f"frame-ancestors {frame_ancestors}"
+    response["Referrer-Policy"] = "no-referrer"
 
 
 def _serve_static_webapp(webapp, request):
@@ -140,6 +146,24 @@ def _create_webapp_session(webapp, user):
     return session
 
 
+def get_or_create_preview_session_key(webapp, user):
+    """Return a webapp session key for (user, webapp)."""
+    key = hashlib.sha256(
+        f"{user.pk}:{webapp.pk}:{settings.SECRET_KEY}".encode()
+    ).hexdigest()[:32]
+    encoded = SessionStore().encode(
+        {"user_id": str(user.pk), "webapp_id": str(webapp.pk)}
+    )
+    Session.objects.update_or_create(
+        session_key=key,
+        defaults={
+            "session_data": encoded,
+            "expire_date": timezone.now() + timedelta(seconds=WEBAPP_SESSION_MAX_AGE),
+        },
+    )
+    return key
+
+
 def _check_webapp_session(request, webapp):
     session_key = request.COOKIES.get(WEBAPP_SESSION_COOKIE)
     if not session_key:
@@ -158,6 +182,22 @@ def _check_webapp_session(request, webapp):
 
     request.user = user
     return user
+
+
+def _webapp_from_session_key(session_key):
+    """Return the webapp referenced by a preview session whose key matches the
+    given DNS label, or None. The session key travels in the hostname so the
+    iframe can authenticate without a third-party cookie.
+    """
+    if not re.compile(r"^[a-z0-9]{32}$").match(session_key):
+        return None
+    webapp_id = SessionStore(session_key=session_key).get("webapp_id")
+    if not webapp_id:
+        return None
+    try:
+        return Webapp.objects.get(pk=webapp_id)
+    except Webapp.DoesNotExist:
+        return None
 
 
 def _handle_webapp_request(request, webapp, *, request_has_user=True):
@@ -244,15 +284,17 @@ def webapp_subdomain_middleware(get_response):
         if not subdomain:
             return get_response(request)
 
-        try:
-            webapp = Webapp.objects.get(subdomain=subdomain)
-        except Webapp.DoesNotExist:
-            return _webapp_not_found()
+        webapp = _webapp_from_session_key(subdomain)
+        if webapp is not None:
+            # Subdomain IS a session key; feed it to the cookie-auth path.
+            request.COOKIES[WEBAPP_SESSION_COOKIE] = subdomain
+        else:
+            try:
+                webapp = Webapp.objects.get(subdomain=subdomain)
+            except Webapp.DoesNotExist:
+                return _webapp_not_found()
 
         request.webapp = webapp
-        # TODO: Explicitly block this for now, but in v2 we'll probably re-route
-        # here to the main app based on the webapps permission scopes to access
-        # workspace resources.
         return _handle_webapp_request(request, webapp, request_has_user=True)
 
     return middleware
