@@ -84,6 +84,24 @@ class GoogleCloudStorageTest(StorageTestMixin, TestCase):
             [item.name for item in result.items if item.name], ["folder_k"]
         )
 
+    def test_delete_object_implicit_directory(self):
+        """Deleting a folder that has no explicit zero-byte marker must succeed.
+
+        GCS folders may exist solely as a shared prefix among other objects
+        (e.g. when a pipeline writes "foo/bar.csv" without first creating
+        "foo/"). Such folders show up in listings but bucket.get_blob returns
+        None for the prefix itself — the delete path must fall back to a
+        prefix listing.
+        """
+        bucket_name = self.storage.create_bucket("my-bucket")
+        bucket = self.storage_client.get_bucket(bucket_name)
+        bucket.blob("parent/file1.txt").upload_from_string(b"a")
+        bucket.blob("parent/file2.txt").upload_from_string(b"b")
+
+        self.storage.delete_object("my-bucket", "parent/")
+
+        self.assertEqual(self.storage.list_bucket_objects("my-bucket").items, [])
+
     def test_list_bucket_objects_late_prefix_not_dropped(self):
         """A folder that sorts after many files still appears prefix-first.
 

@@ -380,13 +380,19 @@ class GoogleCloudStorage(Storage):
     def delete_object(self, bucket_name: str, file_name: str):
         bucket = self.client.get_bucket(bucket_name)
         blob = bucket.get_blob(file_name)
-        if blob is None:
-            raise self.exceptions.NotFound("Object not found")
-        if _is_dir(blob):
-            blobs = list(bucket.list_blobs(prefix=file_name))
-            bucket.delete_blobs(blobs)
-        else:
+        if blob is not None and not _is_dir(blob):
             bucket.delete_blob(file_name)
+            return
+
+        # Folder case (explicit zero-byte marker) and implicit-folder case
+        # (no marker, just a shared prefix among other objects, e.g. when a
+        # pipeline writes "foo/bar.csv" without first creating "foo/") are
+        # both handled by listing and bulk-deleting under the prefix.
+        dir_prefix = file_name if file_name.endswith("/") else file_name + "/"
+        blobs = list(bucket.list_blobs(prefix=dir_prefix))
+        if not blobs:
+            raise self.exceptions.NotFound("Object not found")
+        bucket.delete_blobs(blobs)
 
     def load_bucket_sample_data(self, bucket_name: str):
         return load_bucket_sample_data_with(bucket_name, self)
