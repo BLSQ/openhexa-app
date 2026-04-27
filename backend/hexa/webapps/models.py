@@ -3,7 +3,7 @@ import secrets
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import DomainNameValidator, URLValidator, validate_slug
 from django.db import models, transaction
 from django.db.models import Q
@@ -35,13 +35,20 @@ def create_webapp_slug(name: str, workspace: Workspace):
 
 
 def create_webapp_subdomain(slug: str, workspace: Workspace, max_tries=10):
+    def is_valid_and_available(candidate):
+        try:
+            validate_subdomain(candidate)
+        except ValidationError:
+            return False
+        return not Webapp.all_objects.filter(subdomain=candidate).exists()
+
     candidates = [slug, f"{workspace.slug}-{slug}"]
     for candidate in candidates:
-        if not Webapp.all_objects.filter(subdomain=candidate).exists():
+        if is_valid_and_available(candidate):
             return candidate
     for _ in range(max_tries):
         candidate = f"{workspace.slug}-{slug}-{secrets.token_hex(3)}"
-        if not Webapp.all_objects.filter(subdomain=candidate).exists():
+        if is_valid_and_available(candidate):
             return candidate
     raise ValueError(
         f"Could not generate a unique subdomain after {max_tries} attempts"
@@ -82,7 +89,9 @@ class WebappManager(
         if "slug" not in kwargs:
             kwargs["slug"] = create_webapp_slug(kwargs["name"], ws)
 
-        if "subdomain" not in kwargs:
+        if "subdomain" in kwargs:
+            validate_subdomain(kwargs["subdomain"])
+        else:
             kwargs["subdomain"] = create_webapp_subdomain(kwargs["slug"], ws)
 
         kwargs["workspace"] = ws

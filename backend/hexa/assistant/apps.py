@@ -12,5 +12,5 @@ class AssistantConfig(CoreAppConfig):
     def ready(self):
         super().ready()
         if os.environ.get("LOGFIRE_SEND_TO_LOGFIRE", "false").lower() == "true":
-            logfire.configure()
+            logfire.configure(environment=os.environ.get("SENTRY_ENVIRONMENT"))
             logfire.instrument_pydantic_ai()

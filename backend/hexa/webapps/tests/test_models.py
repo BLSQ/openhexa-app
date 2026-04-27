@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError
 
 from hexa.core.test import TestCase
@@ -277,6 +277,47 @@ class WebappModelTest(TestCase):
             url="https://example.com",
         )
         self.assertEqual(webapp2.subdomain, f"{workspace2.slug}-{webapp2.slug}")
+
+    def test_assign_subdomain_skips_reserved_slug(self):
+        workspace = Workspace.objects.create_if_has_perm(
+            self.user_admin,
+            name="Reserved Slug Workspace",
+            description="",
+            countries=[{"code": "FR"}],
+        )
+        webapp = Webapp.objects.create_if_has_perm(
+            self.user_admin,
+            workspace,
+            name="staging",
+            created_by=self.user_admin,
+            url="https://example.com",
+        )
+        self.assertEqual(webapp.slug, "staging")
+        self.assertNotEqual(webapp.subdomain, "staging")
+        self.assertEqual(webapp.subdomain, f"{workspace.slug}-staging")
+
+    def test_create_with_explicit_valid_subdomain(self):
+        webapp = Webapp.objects.create_if_has_perm(
+            self.user_admin,
+            self.workspace,
+            name="Explicit Subdomain",
+            created_by=self.user_admin,
+            url="https://example.com",
+            subdomain="my-custom-subdomain",
+        )
+        self.assertEqual(webapp.subdomain, "my-custom-subdomain")
+
+    def test_create_with_explicit_invalid_subdomain_raises(self):
+        with self.assertRaises(ValidationError):
+            Webapp.objects.create_if_has_perm(
+                self.user_admin,
+                self.workspace,
+                name="Reserved Subdomain",
+                created_by=self.user_admin,
+                url="https://example.com",
+                subdomain="api",
+            )
+        self.assertFalse(Webapp.all_objects.filter(name="Reserved Subdomain").exists())
 
     def test_unique_constraint(self):
         with self.assertRaises(IntegrityError):
