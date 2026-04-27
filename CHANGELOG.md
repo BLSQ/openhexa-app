@@ -1,5 +1,15 @@
 # Changelog
 
+## [5.4.2](https://github.com/BLSQ/openhexa-app/compare/5.4.1...5.4.2) (2026-04-27)
+
+
+### Bug Fixes
+
+* group webapp icon name ([#1767](https://github.com/BLSQ/openhexa-app/issues/1767)) ([3d2da06](https://github.com/BLSQ/openhexa-app/commit/3d2da0636dad23835b30ff79cb8c9751d5988db1))
+* mixpanel events for webapps graphql queries([#1765](https://github.com/BLSQ/openhexa-app/issues/1765)) ([72d3ec3](https://github.com/BLSQ/openhexa-app/commit/72d3ec3ae5c58d682f7ef1e0a1d7c1323ac93894))
+* preview of private static web apps (HEXA-1604) ([#1764](https://github.com/BLSQ/openhexa-app/issues/1764)) ([c5de87a](https://github.com/BLSQ/openhexa-app/commit/c5de87a5ba7335e6b4cdeeb5fba01ac8f4a05f74))
+* Web app subdomain validation + logfire environment setting ([#1763](https://github.com/BLSQ/openhexa-app/issues/1763)) ([ae2e4d6](https://github.com/BLSQ/openhexa-app/commit/ae2e4d694b03f99f4c1b9e189d5952aab8feaa8c))
+
 ## [5.4.1](https://github.com/BLSQ/openhexa-app/compare/5.4.0...5.4.1) (2026-04-24)
 
 
