@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.4.3](https://github.com/BLSQ/openhexa-app/compare/5.4.2...5.4.3) (2026-04-27)
+
+
+### Bug Fixes
+
+* psycopg2 imports ([#1773](https://github.com/BLSQ/openhexa-app/issues/1773)) ([0bc8598](https://github.com/BLSQ/openhexa-app/commit/0bc85986f0f8ac65e2207f6de0c78341055e8d89))
+* webapps preview origin check (HEXA-1629) ([#1771](https://github.com/BLSQ/openhexa-app/issues/1771)) ([437c2db](https://github.com/BLSQ/openhexa-app/commit/437c2db77872515f1a4d0cb2de52b9f4c9e82c71))
+
 ## [5.4.2](https://github.com/BLSQ/openhexa-app/compare/5.4.1...5.4.2) (2026-04-27)
 
 
