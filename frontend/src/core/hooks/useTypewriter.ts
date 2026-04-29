@@ -1,9 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 
 type Options = {
+  /** Milliseconds between each character reveal. */
   interval?: number;
 };
 
+/**
+ * Reveals a static string character-by-character at a fixed interval.
+ *
+ * Designed for one-shot strings (e.g. a conversation name received via SSE):
+ * when `value` changes the animation resets from scratch, so it is not suited
+ * for incrementally-arriving chunks — use `useWordDrain` for that.
+ *
+ * Returns `null` while `value` is falsy, `""` on the first tick, then the
+ * progressively growing string until the full value is displayed.
+ */
 function useTypewriter(value: string | null, { interval = 35 }: Options = {}): string | null {
   const [displayed, setDisplayed] = useState<string | null>(null);
   const queueRef = useRef("");

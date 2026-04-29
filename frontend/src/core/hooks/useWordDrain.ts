@@ -1,17 +1,38 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Options = {
+  /** Milliseconds between each word reveal tick. */
   interval?: number;
+  /** Called once the queue is fully drained after `markDone()` has been called. */
   onDrained?: () => void;
 };
 
 type UseWordDrainReturn = {
+  /** The progressively revealed text, or `null` when idle / after draining. */
   text: string | null;
+  /** Append an incoming SSE chunk to the internal queue and start draining. */
   feed: (chunk: string) => void;
+  /**
+   * Signal that no more chunks will arrive.
+   * The hook finishes draining the queue (including any trailing partial word),
+   * then calls `onDrained` and resets `text` to `null`.
+   */
   markDone: () => void;
+  /** Immediately discard the queue and reset to idle without calling `onDrained`. */
   clear: () => void;
 };
 
+/**
+ * Streams text to the UI word-by-word as SSE chunks arrive.
+ *
+ * Call `feed(chunk)` for each arriving chunk and `markDone()` when the stream
+ * ends. The hook reveals text one word at a time (splitting at whitespace) so
+ * partial words never flash on screen mid-stream.
+ *
+ * The timer only runs while there is text in the queue, which avoids busy-
+ * looping between messages. After `markDone()` empties the queue, `onDrained`
+ * fires and `text` resets to `null`, making the hook ready for the next message.
+ */
 function useWordDrain({ interval = 30, onDrained }: Options = {}): UseWordDrainReturn {
   const [text, setText] = useState<string | null>(null);
   const queueRef = useRef("");
