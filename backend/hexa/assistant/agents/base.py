@@ -231,6 +231,7 @@ class BaseAgent:
                         ToolCallPayload(
                             tool_call_id=call.tool_call_id,
                             tool_name=call.tool_name,
+                            tool_args=tool_input,
                         ),
                     )
                 elif isinstance(event, FunctionToolResultEvent):

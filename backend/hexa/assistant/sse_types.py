@@ -17,6 +17,7 @@ class TextDeltaPayload(TypedDict):
 class ToolCallPayload(TypedDict):
     tool_call_id: str
     tool_name: str
+    tool_args: dict
 
 
 class ToolResultPayload(TypedDict):

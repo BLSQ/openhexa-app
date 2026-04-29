@@ -27,6 +27,8 @@ def run_agent(agent: BaseAgent, message: str) -> None:
             pass
 
     async_to_sync(_consume)()
+
+
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message
 from hexa.user_management.models import AiSettings, User

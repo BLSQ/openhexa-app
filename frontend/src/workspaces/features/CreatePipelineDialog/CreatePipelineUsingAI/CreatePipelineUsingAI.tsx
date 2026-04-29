@@ -8,6 +8,7 @@ import { useTranslation } from "next-i18next";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import useTypewriter from "core/hooks/useTypewriter";
 import { AIFormInstance, AIPhase } from "./useAIForm";
 
 const MAX_TEXTAREA_HEIGHT = 480;
@@ -22,9 +23,10 @@ enum StepStatus {
 type StepProps = {
   label: string;
   status: StepStatus;
+  detail?: string | null;
 };
 
-function Step({ label, status }: StepProps) {
+function Step({ label, status, detail }: StepProps) {
   return (
     <div className="flex items-center gap-3">
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
@@ -49,6 +51,12 @@ function Step({ label, status }: StepProps) {
         }
       >
         {label}
+        {detail && (
+          <span className="ml-1.5 text-gray-400">·</span>
+        )}
+        {detail && (
+          <span className="ml-1.5 font-medium text-gray-700">{detail}</span>
+        )}
       </span>
     </div>
   );
@@ -85,6 +93,7 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
     setOverflows(el.scrollHeight > el.clientHeight);
   }, [form.agentResponse, isExpanded]);
 
+  const typedPipelineName = useTypewriter(form.pipelineName);
   const { phase, errorAtPhase } = form;
   const isActive = phase !== AIPhase.Idle;
   const isStreaming =
@@ -158,6 +167,7 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
             <Step
               label={t("Creating pipeline")}
               status={creatingStatus()}
+              detail={typedPipelineName}
             />
             <Step
               label={t("Opening pipeline editor")}

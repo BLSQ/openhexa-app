@@ -89,5 +89,4 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
     return {"success": True, "errors": [], "conversation": conversation}
 
 
-
 bindables = [assistant_mutations]

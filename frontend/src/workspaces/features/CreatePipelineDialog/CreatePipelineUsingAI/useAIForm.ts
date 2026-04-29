@@ -25,6 +25,7 @@ export type AIFormInstance = {
   errorAtPhase: AIPhase | null;
   error: string | null;
   agentResponse: string | null;
+  pipelineName: string | null;
   reset: () => void;
 };
 
@@ -44,6 +45,7 @@ export function useAIForm(
   const [errorAtPhase, setErrorAtPhase] = useState<AIPhase | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [agentResponse, setAgentResponse] = useState<string | null>(null);
+  const [pipelineName, setPipelineName] = useState<string | null>(null);
   // SSE event handlers are closures created at mount time and can't see updated React state.
   // phaseRef mirrors the phase state so handlers always read the current value without stale closures.
   // Always update both together via setPhaseWithRef.
@@ -78,8 +80,9 @@ export function useAIForm(
       agentResponseRef.current += delta;
     },
     tool_call: (data) => {
-      const { tool_name } = data as { tool_name: string };
+      const { tool_name, tool_args } = data as { tool_name: string; tool_args?: { name?: string } };
       if (tool_name === "create_pipeline") {
+        if (tool_args?.name) setPipelineName(tool_args.name);
         setPhaseWithRef(AIPhase.CreatingPipeline);
       }
     },
@@ -157,6 +160,7 @@ export function useAIForm(
     setError(null);
     setErrorAtPhase(null);
     setAgentResponse(null);
+    setPipelineName(null);
     agentResponseRef.current = "";
     setPhaseWithRef(AIPhase.Idle);
     navigationTriggeredRef.current = false;
@@ -170,6 +174,7 @@ export function useAIForm(
     setError(null);
     setErrorAtPhase(null);
     setAgentResponse(null);
+    setPipelineName(null);
     agentResponseRef.current = "";
     navigationTriggeredRef.current = false;
     pendingPipelineCodeRef.current = null;
@@ -187,6 +192,7 @@ export function useAIForm(
     setError(null);
     setErrorAtPhase(null);
     setAgentResponse(null);
+    setPipelineName(null);
     agentResponseRef.current = "";
     navigationTriggeredRef.current = false;
     pendingPipelineCodeRef.current = null;
@@ -233,6 +239,7 @@ export function useAIForm(
     errorAtPhase,
     error,
     agentResponse,
+    pipelineName,
     reset,
   };
 }
