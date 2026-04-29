@@ -4,7 +4,7 @@ from collections.abc import AsyncGenerator
 from decimal import Decimal
 
 import genai_prices
-from pydantic_ai import Agent, ModelRetry, RunUsage
+from pydantic_ai import Agent, ModelRetry, ModelSettings, RunUsage
 from pydantic_ai.messages import (
     FunctionToolCallEvent,
     FunctionToolResultEvent,
@@ -73,6 +73,7 @@ def _parse_conversation_title(text: str) -> str:
 class BaseAgent:
     instruction_set = InstructionSet.GENERAL
     tools: list = []
+    max_tokens: int = 4096
 
     def __init__(self, conversation: Conversation):
         self.conversation = conversation
@@ -91,6 +92,7 @@ class BaseAgent:
             instructions=instructions,
             tools=self._tools_with_context,
             end_strategy="exhaustive",
+            model_settings=ModelSettings(max_tokens=self.max_tokens),
         )
 
     def _extra_instructions(self) -> str:
