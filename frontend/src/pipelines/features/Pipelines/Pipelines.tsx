@@ -57,6 +57,7 @@ const Pipelines = ({
   const [selectedTags, setSelectedTags] = useState<string[]>(tags || []);
 
   const { data, loading, startPolling, stopPolling } = useWorkspacePipelinesPageQuery({
+    fetchPolicy: "cache-and-network",
     variables: {
       page,
       perPage,
