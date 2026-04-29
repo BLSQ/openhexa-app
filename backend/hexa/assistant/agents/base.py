@@ -175,6 +175,11 @@ class BaseAgent:
                 ),
             )
 
+        except json.JSONDecodeError:
+            logger.exception(
+                "agent.run_stream: malformed tool args (likely truncated by max_tokens)"
+            )
+            yield format_sse("error", ErrorPayload(message="An error occurred"))
         except Exception:
             logger.exception("agent.run_stream: error during streaming")
             yield format_sse("error", ErrorPayload(message="An error occurred"))
