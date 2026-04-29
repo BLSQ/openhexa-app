@@ -19,6 +19,10 @@ from django.test import TestCase, tag
 from vcr.record_mode import RecordMode
 
 from hexa.assistant.agents.base import BaseAgent
+from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.models import Conversation, Message
+from hexa.user_management.models import AiSettings, User
+from hexa.workspaces.models import Workspace
 
 
 def run_agent(agent: BaseAgent, message: str) -> None:
@@ -28,11 +32,6 @@ def run_agent(agent: BaseAgent, message: str) -> None:
 
     async_to_sync(_consume)()
 
-
-from hexa.assistant.instructions import InstructionSet
-from hexa.assistant.models import Conversation, Message
-from hexa.user_management.models import AiSettings, User
-from hexa.workspaces.models import Workspace
 
 CASSETTES_DIR = os.path.join(os.path.dirname(__file__), "cassettes")
 

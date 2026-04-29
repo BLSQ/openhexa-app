@@ -1,5 +1,6 @@
 import json
 import logging
+from collections.abc import AsyncGenerator
 from decimal import Decimal
 
 import genai_prices
@@ -106,7 +107,7 @@ class BaseAgent:
             "workspace_slug": self.conversation.workspace.slug,
         }
 
-    async def run_stream(self, user_input: str):
+    async def run_stream(self, user_input: str) -> AsyncGenerator[str, None]:
         is_first_message = self.conversation.name is None
 
         user_msg = await Message.objects.acreate(
