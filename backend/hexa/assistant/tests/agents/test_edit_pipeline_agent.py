@@ -5,7 +5,7 @@ from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message
 from hexa.pipelines.models import Pipeline, PipelineVersion
 
-from ._helpers import _make_tool_call_model, _make_zipfile, _patch_builder
+from ._helpers import _make_tool_call_model, _make_zipfile, _patch_builder, run_agent
 from ._testcase import AgentTestCase
 
 
@@ -132,7 +132,7 @@ class EditPipelineAgentToolCallTest(AgentTestCase):
         conversation.save()
         with _patch_builder(model):
             agent = EditPipelineAgent(conversation)
-        agent.run("Update the pipeline")
+        run_agent(agent, "Update the pipeline")
         invocation = (
             conversation.messages.filter(role=Message.Role.ASSISTANT)
             .first()

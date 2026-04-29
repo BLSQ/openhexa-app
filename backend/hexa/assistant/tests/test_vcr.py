@@ -14,10 +14,19 @@ import os
 from unittest.mock import patch
 
 import vcr
+from asgiref.sync import async_to_sync
 from django.test import TestCase, tag
 from vcr.record_mode import RecordMode
 
 from hexa.assistant.agents.base import BaseAgent
+
+
+def run_agent(agent: BaseAgent, message: str) -> None:
+    async def _consume():
+        async for _ in agent.run_stream(message):
+            pass
+
+    async_to_sync(_consume)()
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message
 from hexa.user_management.models import AiSettings, User
@@ -80,7 +89,7 @@ class AssistantVCRTest(TestCase):
     @assistant_vcr.use_cassette(os.path.join(CASSETTES_DIR, "simple_chat.yaml"))
     def test_simple_chat_saves_messages_to_db(self):
         agent = BaseAgent(self.conversation)
-        agent.run("Hello")
+        run_agent(agent, "Hello")
         self.assertEqual(
             self.conversation.messages.filter(role=Message.Role.USER).count(), 1
         )
@@ -94,7 +103,7 @@ class AssistantVCRTest(TestCase):
     @assistant_vcr.use_cassette(os.path.join(CASSETTES_DIR, "simple_chat.yaml"))
     def test_simple_chat_generates_conversation_name(self):
         agent = BaseAgent(self.conversation)
-        agent.run("Hello")
+        run_agent(agent, "Hello")
         self.conversation.refresh_from_db()
         self.assertIsNotNone(self.conversation.name)
         self.assertGreater(len(self.conversation.name), 0)

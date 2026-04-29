@@ -62,21 +62,8 @@ type CreateAssistantConversationResult {
   conversation: AssistantConversation
 }
 
-input SendAssistantMessageInput {
-  conversationId: UUID!
-  message: String!
-}
-
-type SendAssistantMessageResult {
-  success: Boolean!
-  errors: [String!]!
-  conversation: AssistantConversation
-  message: AssistantMessage
-}
-
 extend type Mutation {
   createAssistantConversation(input: CreateAssistantConversationInput!): CreateAssistantConversationResult!
-  sendAssistantMessage(input: SendAssistantMessageInput!): SendAssistantMessageResult!
 }
 
 extend type Query {

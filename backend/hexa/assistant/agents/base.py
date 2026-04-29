@@ -3,7 +3,6 @@ import logging
 from decimal import Decimal
 
 import genai_prices
-from asgiref.sync import async_to_sync
 from pydantic_ai import Agent, ModelRetry, RunUsage
 from pydantic_ai.messages import (
     FunctionToolCallEvent,
@@ -106,13 +105,6 @@ class BaseAgent:
             "user": self.conversation.user,
             "workspace_slug": self.conversation.workspace.slug,
         }
-
-    def run(self, user_input: str) -> None:
-        async def _consume():
-            async for _ in self.run_stream(user_input):
-                pass
-
-        async_to_sync(_consume)()
 
     async def run_stream(self, user_input: str):
         is_first_message = self.conversation.name is None

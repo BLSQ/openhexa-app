@@ -2948,7 +2948,6 @@ export type Mutation = {
   runDAG: RunDagResult;
   /** Runs a pipeline. */
   runPipeline: RunPipelineResult;
-  sendAssistantMessage: SendAssistantMessageResult;
   setDAGRunFavorite?: Maybe<SetDagRunFavoriteResult>;
   /** Set a custom metadata attribute to an object instance */
   setMetadataAttribute: SetMetadataAttributeResult;
@@ -3452,11 +3451,6 @@ export type MutationRunDagArgs = {
 
 export type MutationRunPipelineArgs = {
   input?: InputMaybe<RunPipelineInput>;
-};
-
-
-export type MutationSendAssistantMessageArgs = {
-  input: SendAssistantMessageInput;
 };
 
 
@@ -5121,19 +5115,6 @@ export type S3ObjectPage = {
 
 export type SearchResult = {
   score: Scalars['Float']['output'];
-};
-
-export type SendAssistantMessageInput = {
-  conversationId: Scalars['UUID']['input'];
-  message: Scalars['String']['input'];
-};
-
-export type SendAssistantMessageResult = {
-  __typename?: 'SendAssistantMessageResult';
-  conversation?: Maybe<AssistantConversation>;
-  errors: Array<Scalars['String']['output']>;
-  message?: Maybe<AssistantMessage>;
-  success: Scalars['Boolean']['output'];
 };
 
 export enum SetDagRunFavoriteError {

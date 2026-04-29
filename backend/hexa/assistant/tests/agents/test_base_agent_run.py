@@ -9,6 +9,7 @@ from ._helpers import (
     _AgentWithFakeTool,
     _make_tool_call_model,
     _patch_builder,
+    run_agent,
 )
 from ._testcase import AgentTestCase
 
@@ -24,7 +25,7 @@ class BaseAgentRunTest(AgentTestCase):
     def test_run_saves_user_message(self):
         with _patch_builder(TestModel(custom_output_text="Hello!")):
             agent = BaseAgent(self.conversation)
-        agent.run("What can you do?")
+        run_agent(agent, "What can you do?")
         user_messages = self.conversation.messages.filter(role=Message.Role.USER)
         self.assertEqual(user_messages.count(), 1)
         self.assertEqual(user_messages.first().content, "What can you do?")
@@ -32,7 +33,7 @@ class BaseAgentRunTest(AgentTestCase):
     def test_run_saves_assistant_message(self):
         with _patch_builder(TestModel(custom_output_text="Hello!")):
             agent = BaseAgent(self.conversation)
-        agent.run("What can you do?")
+        run_agent(agent, "What can you do?")
         assistant_messages = self.conversation.messages.filter(
             role=Message.Role.ASSISTANT
         )
@@ -44,7 +45,7 @@ class BaseAgentRunTest(AgentTestCase):
             agent = BaseAgent(self.conversation)
         self.conversation.refresh_from_db()
         self.assertEqual(self.conversation.messages_history, [])
-        agent.run("Hello")
+        run_agent(agent, "Hello")
         self.conversation.refresh_from_db()
         self.assertGreater(len(self.conversation.messages_history), 0)
 
@@ -52,7 +53,7 @@ class BaseAgentRunTest(AgentTestCase):
         with _patch_builder(TestModel(custom_output_text="Hi")):
             agent = BaseAgent(self.conversation)
         self.assertIsNone(self.conversation.name)
-        agent.run("Create a pipeline")
+        run_agent(agent, "Create a pipeline")
         self.conversation.refresh_from_db()
         self.assertIsNotNone(self.conversation.name)
 
@@ -61,14 +62,14 @@ class BaseAgentRunTest(AgentTestCase):
         self.conversation.save(update_fields=["name"])
         with _patch_builder(TestModel(custom_output_text="Hi")):
             agent = BaseAgent(self.conversation)
-        agent.run("Something else")
+        run_agent(agent, "Something else")
         self.conversation.refresh_from_db()
         self.assertEqual(self.conversation.name, "Existing Name")
 
     def test_run_updates_token_counts(self):
         with _patch_builder(TestModel(custom_output_text="Hello")):
             agent = BaseAgent(self.conversation)
-        agent.run("Test")
+        run_agent(agent, "Test")
         self.conversation.refresh_from_db()
         assistant_msg = self.conversation.messages.filter(
             role=Message.Role.ASSISTANT
@@ -79,9 +80,9 @@ class BaseAgentRunTest(AgentTestCase):
     def test_second_run_appends_to_history(self):
         with _patch_builder(TestModel(custom_output_text="Reply")):
             agent = BaseAgent(self.conversation)
-        agent.run("First message")
+        run_agent(agent, "First message")
         history_after_first = len(self.conversation.messages_history)
-        agent.run("Second message")
+        run_agent(agent, "Second message")
         self.conversation.refresh_from_db()
         self.assertGreater(len(self.conversation.messages_history), history_after_first)
 
@@ -98,7 +99,7 @@ class BaseAgentToolCallTest(AgentTestCase):
         model = _make_tool_call_model("_fake_tool", {"arg": "hello"})
         with _patch_builder(model):
             agent = _AgentWithFakeTool(self.conversation)
-        agent.run("Use the tool")
+        run_agent(agent, "Use the tool")
         assistant_msg = self.conversation.messages.filter(
             role=Message.Role.ASSISTANT
         ).first()
@@ -111,7 +112,7 @@ class BaseAgentToolCallTest(AgentTestCase):
         model = _make_tool_call_model("_fake_tool", {"arg": "hello"})
         with _patch_builder(model):
             agent = _AgentWithFakeTool(self.conversation)
-        agent.run("Use the tool")
+        run_agent(agent, "Use the tool")
         invocation = (
             self.conversation.messages.filter(role=Message.Role.ASSISTANT)
             .first()
@@ -123,7 +124,7 @@ class BaseAgentToolCallTest(AgentTestCase):
         model = _make_tool_call_model("_failing_tool", {"arg": "oops"})
         with _patch_builder(model):
             agent = _AgentWithFailingTool(self.conversation)
-        agent.run("Use the failing tool")
+        run_agent(agent, "Use the failing tool")
         invocation = (
             self.conversation.messages.filter(role=Message.Role.ASSISTANT)
             .first()
@@ -135,7 +136,7 @@ class BaseAgentToolCallTest(AgentTestCase):
         model = _make_tool_call_model("_fake_tool", {"arg": "my-value"})
         with _patch_builder(model):
             agent = _AgentWithFakeTool(self.conversation)
-        agent.run("Use the tool")
+        run_agent(agent, "Use the tool")
         invocation = (
             self.conversation.messages.filter(role=Message.Role.ASSISTANT)
             .first()
@@ -147,7 +148,7 @@ class BaseAgentToolCallTest(AgentTestCase):
         model = _make_tool_call_model("_fake_tool", {"arg": "my-value"})
         with _patch_builder(model):
             agent = _AgentWithFakeTool(self.conversation)
-        agent.run("Use the tool")
+        run_agent(agent, "Use the tool")
         invocation = (
             self.conversation.messages.filter(role=Message.Role.ASSISTANT)
             .first()

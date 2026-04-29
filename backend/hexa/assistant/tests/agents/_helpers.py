@@ -3,10 +3,19 @@ import json
 import zipfile
 from unittest.mock import MagicMock, patch
 
+from asgiref.sync import async_to_sync
 from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 
 from hexa.assistant.agents.base import BaseAgent
+
+
+def run_agent(agent: BaseAgent, message: str) -> None:
+    async def _consume():
+        async for _ in agent.run_stream(message):
+            pass
+
+    async_to_sync(_consume)()
 
 
 def _fake_tool(arg: str) -> dict:
