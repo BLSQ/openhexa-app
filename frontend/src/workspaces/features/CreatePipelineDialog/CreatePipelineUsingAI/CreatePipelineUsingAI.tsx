@@ -1,5 +1,5 @@
 import { ArrowPathIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/solid";
-import { ChevronDownIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { SparklesIcon } from "@heroicons/react/24/outline";
 import AiDisabledBanner from "assistant/components/AiDisabledBanner";
 import Spinner from "core/components/Spinner";
 import Textarea from "core/components/forms/Textarea/Textarea";
@@ -70,11 +70,20 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
     el.style.height = `${Math.min(el.scrollHeight, MAX_TEXTAREA_HEIGHT)}px`;
   }, [form.prompt]);
 
-  const [showAgentResponse, setShowAgentResponse] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+  const agentResponseRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setShowAgentResponse(false);
+    setIsExpanded(false);
   }, [form.agentResponse]);
+
+  useEffect(() => {
+    if (isExpanded) return;
+    const el = agentResponseRef.current;
+    if (!el) return;
+    setOverflows(el.scrollHeight > el.clientHeight);
+  }, [form.agentResponse, isExpanded]);
 
   const { phase, errorAtPhase } = form;
   const isActive = phase !== AIPhase.Idle;
@@ -161,24 +170,32 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
                   {form.error}
                 </div>
                 {form.agentResponse && (
-                  <div>
-                    <button
-                      onClick={() => setShowAgentResponse((v) => !v)}
-                      className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
-                    >
-                      <ChevronDownIcon
-                        className={`h-3.5 w-3.5 transition-transform duration-200 ${showAgentResponse ? "rotate-180" : ""}`}
-                      />
+                  <div className="rounded-lg border border-gray-200 bg-white text-sm text-gray-600">
+                    <div className="border-b border-gray-100 px-3 py-1.5 text-xs font-medium text-gray-400">
                       {t("AI feedback")}
-                    </button>
-                    {showAgentResponse && (
-                      <div className="mt-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600">
+                    </div>
+                    <div className="relative">
+                      <div
+                        ref={agentResponseRef}
+                        className={`px-3 py-2 overflow-hidden ${isExpanded ? "" : "max-h-24"}`}
+                      >
                         <div className="prose prose-sm prose-gray max-w-none">
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
                             {form.agentResponse}
                           </ReactMarkdown>
                         </div>
                       </div>
+                      {!isExpanded && overflows && (
+                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent" />
+                      )}
+                    </div>
+                    {overflows && (
+                      <button
+                        onClick={() => setIsExpanded((v) => !v)}
+                        className="w-full border-t border-gray-100 px-3 py-1.5 text-center text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+                      >
+                        {isExpanded ? t("Show less") : t("Show more")}
+                      </button>
                     )}
                   </div>
                 )}
