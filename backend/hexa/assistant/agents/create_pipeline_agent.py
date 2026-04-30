@@ -7,3 +7,4 @@ class CreatePipelineAgent(BaseAgent):
     # TODO: Add reading pipeline / pipeline templates tools
     instruction_set = InstructionSet.CREATE_PIPELINE
     tools = [create_pipeline]
+    max_tokens = 8192
