@@ -1,5 +1,6 @@
 import { gql } from "@apollo/client";
 import Badge from "core/components/Badge";
+import Button from "core/components/Button";
 import Link from "core/components/Link";
 import Spinner from "core/components/Spinner";
 import Time from "core/components/Time";
@@ -21,6 +22,7 @@ type RunMessagesProps = {
   messages?: SseMessage[];
   isStreaming?: boolean;
   streamError?: string | null;
+  onReload?: () => void;
 };
 
 function getBadgeClassName(priority: string) {
@@ -40,7 +42,13 @@ function getBadgeClassName(priority: string) {
 
 const RunMessages = (props: RunMessagesProps) => {
   const { t } = useTranslation();
-  const { run, messages: messagesOverride, isStreaming, streamError } = props;
+  const {
+    run,
+    messages: messagesOverride,
+    isStreaming,
+    streamError,
+    onReload,
+  } = props;
   const ref = useRef<HTMLDivElement>(null);
   useAutoScroll(ref, "smooth");
 
@@ -109,10 +117,17 @@ const RunMessages = (props: RunMessagesProps) => {
         </div>
       )}
       {streamError && (
-        <div className="text-sm text-amber-600 px-2 py-2">
-          {streamError === "timeout"
-            ? t("Live updates timed out. Refresh the page to reconnect.")
-            : t("Live updates disconnected. Refresh the page to reconnect.")}
+        <div className="flex items-center gap-2 text-sm text-amber-600 px-2 py-2">
+          <span>
+            {streamError === "timeout"
+              ? t("Live updates timed out.")
+              : t("Live updates disconnected.")}
+          </span>
+          {onReload && (
+            <Button onClick={onReload} variant="secondary" size="sm">
+              {t("Reconnect")}
+            </Button>
+          )}
         </div>
       )}
     </>

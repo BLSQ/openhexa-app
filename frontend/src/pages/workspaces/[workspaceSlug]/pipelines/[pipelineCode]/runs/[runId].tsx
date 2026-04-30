@@ -83,7 +83,12 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
     }
   }, [isTerminal]);
 
-  const { messages: sseMessages, isStreaming, streamError } = usePipelineRunMessages(runId_, isTerminal, refetch);
+  const {
+    messages: sseMessages,
+    isStreaming,
+    streamError,
+    reload: reloadStream,
+  } = usePipelineRunMessages(runId_, isTerminal, refetch);
 
   const [isStopPipelineDialogOpen, setIsStopPipelineDialogOpen] =
     useState(false);
@@ -367,6 +372,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                 messages={isTerminal ? undefined : sseMessages}
                 isStreaming={isStreaming}
                 streamError={streamError}
+                onReload={reloadStream}
               />
             </Block.Section>
             <Block.Section title={t("Logs")} collapsible defaultOpen={false}>
