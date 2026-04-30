@@ -1045,6 +1045,140 @@ class PoweredByBannerTest(TestCase):
 
 
 @override_settings(
+    WEBAPPS_DOMAIN="webapps.localhost:8000",
+    ALLOWED_HOSTS=["*"],
+)
+class WebappCacheHeadersTest(TestCase):
+    """Cache headers are the lever that makes preview content stay fresh: the
+    ETag is bound to `published_commit` (so a new publish flips the validator
+    immediately) and `Cache-Control: no-cache` forces clients to revalidate
+    every request instead of trusting a time window. A matching
+    `If-None-Match` is answered with 304 *before* hitting Forgejo.
+    """
+
+    SUBDOMAIN_BASE = "webapps.localhost:8000"
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user("cache@test.com", "password")
+        cls.WORKSPACE = Workspace.objects.create(
+            name="Cache Workspace", slug="cache-workspace"
+        )
+        WorkspaceMembership.objects.create(
+            user=cls.USER,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        cls.PUBLIC_WEBAPP = GitWebapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Cache Public",
+            slug="cache-public",
+            subdomain="cache-public",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER,
+            repository="cache-public-repo",
+            published_commit="sha-public-v1",
+            is_public=True,
+        )
+        cls.PRIVATE_WEBAPP = GitWebapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Cache Private",
+            slug="cache-private",
+            subdomain="cache-private",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER,
+            repository="cache-private-repo",
+            published_commit="sha-private-v1",
+            is_public=False,
+        )
+        cls.UNPUBLISHED_WEBAPP = GitWebapp.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Cache Unpublished",
+            slug="cache-unpublished",
+            subdomain="cache-unpublished",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER,
+            repository="cache-unpublished-repo",
+            is_public=True,
+        )
+
+    def _subdomain_host(self, webapp):
+        return f"{webapp.subdomain}.{self.SUBDOMAIN_BASE}"
+
+    def _create_webapp_session(self, webapp, user):
+        session = SessionStore()
+        session.set_expiry(3600)
+        session["user_id"] = str(user.pk)
+        session["webapp_id"] = str(webapp.pk)
+        session.create()
+        self.client.cookies["hexa_webapp_session"] = session.session_key
+
+    def _get(self, webapp, path="/", **kwargs):
+        return self.client.get(path, HTTP_HOST=self._subdomain_host(webapp), **kwargs)
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_response_carries_commit_etag_and_no_cache(self, mock_get_client):
+        mock_get_client.return_value.get_file.return_value = b"<html>v1</html>"
+
+        response = self._get(self.PUBLIC_WEBAPP)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["ETag"], 'W/"sha-public-v1"')
+        self.assertEqual(response["Cache-Control"], "public, no-cache")
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_private_webapp_uses_private_cache_scope(self, mock_get_client):
+        mock_get_client.return_value.get_file.return_value = b"<html>private</html>"
+
+        self._create_webapp_session(self.PRIVATE_WEBAPP, self.USER)
+        response = self._get(self.PRIVATE_WEBAPP)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Cache-Control"], "private, no-cache")
+        self.assertEqual(response["ETag"], 'W/"sha-private-v1"')
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_matching_if_none_match_returns_304_without_forgejo_fetch(
+        self, mock_get_client
+    ):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        response = self._get(
+            self.PUBLIC_WEBAPP,
+            HTTP_IF_NONE_MATCH='W/"sha-public-v1"',
+        )
+        self.assertEqual(response.status_code, 304)
+        # The whole point of the cache hit: skip the Forgejo round-trip.
+        mock_client.get_file.assert_not_called()
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_stale_if_none_match_serves_fresh_content_with_new_etag(
+        self, mock_get_client
+    ):
+        mock_get_client.return_value.get_file.return_value = b"<html>v1</html>"
+
+        # Client cached an older commit; the server's current commit is v1.
+        # Validator mismatch must fall through to a regular 200 with the
+        # current ETag, not a stale 304.
+        response = self._get(
+            self.PUBLIC_WEBAPP,
+            HTTP_IF_NONE_MATCH='W/"sha-public-v0"',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["ETag"], 'W/"sha-public-v1"')
+        # `assertIn` rather than `assertEqual` because the public+anonymous
+        # path injects the "Powered by" banner into the HTML body.
+        self.assertIn(b"<html>v1</html>", response.content)
+
+    def test_unpublished_webapp_has_no_etag_or_cache_control(self):
+        # Without a `published_commit` there is no validator to advertise,
+        # so neither ETag nor Cache-Control should be set — a future publish
+        # must be free to start a fresh cache lifecycle.
+        response = self._get(self.UNPUBLISHED_WEBAPP)
+        self.assertNotIn("ETag", response)
+        self.assertNotIn("Cache-Control", response)
+
+
+@override_settings(
     WEBAPPS_DOMAIN="webapps.localhost",
     BASE_HOSTNAME="localhost",
     ALLOWED_HOSTS=["*"],
