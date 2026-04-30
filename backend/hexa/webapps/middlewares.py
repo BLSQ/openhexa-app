@@ -11,6 +11,7 @@ from django.http import (
     HttpRequest,
     HttpResponse,
     HttpResponseNotFound,
+    HttpResponseNotModified,
     HttpResponseRedirect,
     JsonResponse,
 )
@@ -51,11 +52,21 @@ def _serve_static_webapp(webapp, request):
     except GitWebapp.DoesNotExist:
         return _webapp_not_found()
 
+    # Cache strategy: tie the ETag to the published commit so a new publish
+    # immediately invalidates clients (no time-based staleness window), and
+    # pair it with `no-cache` so browsers revalidate on every request instead
+    # of trusting their local copy. The 304 short-circuit avoids the Forgejo
+    # round-trip when the content hasn't changed.
+    etag = f'W/"{git_webapp.published_commit}"' if git_webapp.published_commit else None
+    if etag and request.META.get("HTTP_IF_NONE_MATCH") == etag:
+        return HttpResponseNotModified()
+
     path = request.path.lstrip("/") or "index.html"
     response = serve_webapp(request, git_webapp, path)
-    if git_webapp.published_commit:
+    if etag:
         cache_scope = "public" if webapp.is_public else "private"
-        response["Cache-Control"] = f"{cache_scope}, max-age=300"
+        response["Cache-Control"] = f"{cache_scope}, no-cache"
+        response["ETag"] = etag
     return response
 
 
