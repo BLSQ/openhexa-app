@@ -154,31 +154,29 @@ export function useAIForm(
     }
   }, []);
 
-  const reset = useCallback(() => {
-    clearNavigationTimer();
-    setPrompt("");
+  const clearState = useCallback(() => {
     setError(null);
     setErrorAtPhase(null);
     setAgentResponse(null);
     setPipelineName(null);
     agentResponseRef.current = "";
-    setPhaseWithRef(AIPhase.Idle);
     navigationTriggeredRef.current = false;
     pendingPipelineCodeRef.current = null;
-  }, [setPhaseWithRef, clearNavigationTimer]);
+  }, []);
+
+  const reset = useCallback(() => {
+    clearNavigationTimer();
+    setPrompt("");
+    clearState();
+    setPhaseWithRef(AIPhase.Idle);
+  }, [setPhaseWithRef, clearNavigationTimer, clearState]);
 
   const cancel = useCallback(() => {
     clearNavigationTimer();
     abort();
+    clearState();
     setPhaseWithRef(AIPhase.Idle);
-    setError(null);
-    setErrorAtPhase(null);
-    setAgentResponse(null);
-    setPipelineName(null);
-    agentResponseRef.current = "";
-    navigationTriggeredRef.current = false;
-    pendingPipelineCodeRef.current = null;
-  }, [abort, setPhaseWithRef, clearNavigationTimer]);
+  }, [abort, setPhaseWithRef, clearNavigationTimer, clearState]);
 
   const handleSubmit = useCallback(async () => {
     if (
@@ -188,14 +186,8 @@ export function useAIForm(
     )
       return;
     clearNavigationTimer();
+    clearState();
     setPhaseWithRef(AIPhase.Generating);
-    setError(null);
-    setErrorAtPhase(null);
-    setAgentResponse(null);
-    setPipelineName(null);
-    agentResponseRef.current = "";
-    navigationTriggeredRef.current = false;
-    pendingPipelineCodeRef.current = null;
     try {
       const convResult = await createConversation({
         variables: {
@@ -224,7 +216,7 @@ export function useAIForm(
     } catch {
       setError_(t("An error occurred while creating the pipeline."));
     }
-  }, [prompt, phase, createConversation, workspace.slug, send, setPhaseWithRef, setError_, clearNavigationTimer, t]);
+  }, [prompt, phase, createConversation, workspace.slug, send, setPhaseWithRef, setError_, clearNavigationTimer, clearState, t]);
 
   return {
     prompt,
