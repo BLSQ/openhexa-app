@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from collections.abc import AsyncGenerator
@@ -132,12 +133,10 @@ class BaseAgent:
 
         try:
             precomputed_naming: tuple[str, RunUsage] | None = None
+            naming_task: asyncio.Task[tuple[str, RunUsage]] | None = None
             if is_first_message:
-                precomputed_naming = await self._generate_conversation_name(user_input)
-                self.conversation.name = precomputed_naming[0]
-                yield format_sse(
-                    "conversation_name",
-                    ConversationNamePayload(name=self.conversation.name),
+                naming_task = asyncio.create_task(
+                    self._generate_conversation_name(user_input)
                 )
 
             tool_invocations: dict[str, ToolInvocation] = {}
@@ -146,6 +145,10 @@ class BaseAgent:
                 user_input, message_history=history
             ) as agent_run:
                 async for node in agent_run:
+                    if naming_task is not None and naming_task.done():
+                        precomputed_naming, sse = await self._resolve_naming_task(naming_task)
+                        naming_task = None
+                        yield sse
                     if self.agent.is_model_request_node(node):
                         async for sse in self._stream_model_node(node, agent_run.ctx):
                             yield sse
@@ -155,6 +158,10 @@ class BaseAgent:
                         ):
                             yield sse
                 run_result = agent_run.result
+
+            if naming_task is not None:
+                precomputed_naming, sse = await self._resolve_naming_task(naming_task)
+                yield sse
 
             response_text = self._extract_response_text(
                 run_result.new_messages() if run_result else []
@@ -343,10 +350,18 @@ class BaseAgent:
         await self.conversation.asave(update_fields=update_fields)
         return assistant_message
 
+    async def _resolve_naming_task(
+        self, task: asyncio.Task[tuple[str, RunUsage]]
+    ) -> tuple[tuple[str, RunUsage], str]:
+        result = await task
+        self.conversation.name = result[0]
+        return result, format_sse(
+            "conversation_name", ConversationNamePayload(name=self.conversation.name)
+        )
+
     async def _generate_conversation_name(
         self, user_input: str
     ) -> tuple[str, RunUsage]:
-        # TODO: Execute in parallel with DB writes using asyncio.gather for performance
         # TODO: Use smaller, cheaper models for these small "utility agents"
         naming_agent = Agent(
             model=self._model,
