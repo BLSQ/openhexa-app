@@ -1,9 +1,10 @@
 import { gql } from "@apollo/client";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
-import Button from "core/components/Button";
 import Link from "core/components/Link";
 import Spinner from "core/components/Spinner";
 import Time from "core/components/Time";
+import Tooltip from "core/components/Tooltip";
 import useAutoScroll from "core/hooks/useAutoScroll";
 import { PipelineRunStatus } from "graphql/types";
 import Linkify from "linkify-react";
@@ -117,16 +118,23 @@ const RunMessages = (props: RunMessagesProps) => {
         </div>
       )}
       {streamError && (
-        <div className="flex items-center gap-2 text-sm text-amber-600 px-2 py-2">
+        <div className="flex items-center gap-1.5 text-sm text-amber-600 px-2 py-2">
           <span>
             {streamError === "timeout"
               ? t("Live updates timed out.")
               : t("Live updates disconnected.")}
           </span>
           {onReload && (
-            <Button onClick={onReload} variant="secondary" size="sm">
-              {t("Reconnect")}
-            </Button>
+            <Tooltip label={t("Reconnect")} placement="top">
+              <button
+                type="button"
+                onClick={onReload}
+                aria-label={t("Reconnect")}
+                className="group inline-flex items-center justify-center rounded-full p-1 text-amber-600 hover:bg-amber-50 hover:text-amber-700 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <ArrowPathIcon className="h-4 w-4 transition-transform duration-500 group-hover:rotate-180 group-active:rotate-180" />
+              </button>
+            </Tooltip>
           )}
         </div>
       )}
