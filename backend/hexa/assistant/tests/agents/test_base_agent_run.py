@@ -131,7 +131,8 @@ class BaseAgentToolCallTest(AgentTestCase):
         agent = _AgentWithFakeTool(self.conversation, make_builder(model))
         run_agent(agent, "Use the tool")
         self.assertEqual(
-            self.first_tool_invocation(self.conversation).tool_input, {"arg": "my-value"}
+            self.first_tool_invocation(self.conversation).tool_input,
+            {"arg": "my-value"},
         )
 
     def test_tool_output_is_persisted(self):
@@ -139,5 +140,6 @@ class BaseAgentToolCallTest(AgentTestCase):
         agent = _AgentWithFakeTool(self.conversation, make_builder(model))
         run_agent(agent, "Use the tool")
         self.assertEqual(
-            self.first_tool_invocation(self.conversation).tool_output, {"result": "my-value"}
+            self.first_tool_invocation(self.conversation).tool_output,
+            {"result": "my-value"},
         )
