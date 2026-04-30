@@ -89,7 +89,7 @@ class AssistantVCRTest(TestCase):
 
     @assistant_vcr.use_cassette(os.path.join(CASSETTES_DIR, "simple_chat.yaml"))
     def test_simple_chat_saves_messages_to_db(self):
-        agent = BaseAgent(self.conversation)
+        agent = BaseAgent.from_conversation(self.conversation)
         run_agent(agent, "Hello")
         self.assertEqual(
             self.conversation.messages.filter(role=Message.Role.USER).count(), 1
@@ -103,7 +103,7 @@ class AssistantVCRTest(TestCase):
 
     @assistant_vcr.use_cassette(os.path.join(CASSETTES_DIR, "simple_chat.yaml"))
     def test_simple_chat_generates_conversation_name(self):
-        agent = BaseAgent(self.conversation)
+        agent = BaseAgent.from_conversation(self.conversation)
         run_agent(agent, "Hello")
         self.conversation.refresh_from_db()
         self.assertIsNotNone(self.conversation.name)
