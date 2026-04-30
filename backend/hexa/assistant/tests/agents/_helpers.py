@@ -1,7 +1,7 @@
 import io
 import json
 import zipfile
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 from asgiref.sync import async_to_sync
 from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart
@@ -69,15 +69,12 @@ def _make_tool_call_model(tool_name: str, tool_args: dict) -> FunctionModel:
     return FunctionModel(func, stream_function=stream_func)
 
 
-def _patch_builder(test_model):
+def make_builder(test_model):
     mock_builder = MagicMock()
     mock_builder.model_api_name = "test"
     mock_builder.provider_id = "test"
     mock_builder.build.return_value = test_model
-    return patch(
-        "hexa.assistant.agents.base.AiModelBuilder.from_conversation",
-        return_value=mock_builder,
-    )
+    return mock_builder
 
 
 def _make_zipfile(*files: tuple[str, str]) -> bytes:
