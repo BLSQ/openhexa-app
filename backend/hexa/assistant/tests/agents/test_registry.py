@@ -18,7 +18,9 @@ class AgentRegistryTest(AgentTestCase):
             workspace=self.workspace,
             instruction_set=InstructionSet.CREATE_PIPELINE,
         )
-        self.assertIsInstance(create_agent(conversation, make_builder(TestModel())), CreatePipelineAgent)
+        self.assertIsInstance(
+            create_agent(conversation, make_builder(TestModel())), CreatePipelineAgent
+        )
 
     def test_general_instruction_set_returns_base_agent(self):
         conversation = Conversation.objects.create(
@@ -37,7 +39,9 @@ class AgentRegistryTest(AgentTestCase):
             workspace=self.workspace,
             instruction_set=InstructionSet.CREATE_WEBAPPS,
         )
-        self.assertIsInstance(create_agent(conversation, make_builder(TestModel())), BaseAgent)
+        self.assertIsInstance(
+            create_agent(conversation, make_builder(TestModel())), BaseAgent
+        )
 
     def test_edit_pipeline_instruction_set_returns_edit_pipeline_agent(self):
         conversation = Conversation.objects.create(
@@ -45,4 +49,6 @@ class AgentRegistryTest(AgentTestCase):
             workspace=self.workspace,
             instruction_set=InstructionSet.EDIT_PIPELINE,
         )
-        self.assertIsInstance(create_agent(conversation, make_builder(TestModel())), EditPipelineAgent)
+        self.assertIsInstance(
+            create_agent(conversation, make_builder(TestModel())), EditPipelineAgent
+        )

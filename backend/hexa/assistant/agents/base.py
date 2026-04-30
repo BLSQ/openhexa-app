@@ -149,7 +149,9 @@ class BaseAgent:
             ) as agent_run:
                 async for node in agent_run:
                     if naming_task is not None and naming_task.done():
-                        precomputed_naming, sse = await self._resolve_naming_task(naming_task)
+                        precomputed_naming, sse = await self._resolve_naming_task(
+                            naming_task
+                        )
                         naming_task = None
                         yield sse
                     if self.agent.is_model_request_node(node):

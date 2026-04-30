@@ -2,7 +2,7 @@ from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
 from hexa.assistant.instructions import InstructionSet
-from hexa.assistant.models import Conversation, Message
+from hexa.assistant.models import Conversation
 from hexa.pipelines.models import Pipeline, PipelineVersion
 
 from ._helpers import _make_tool_call_model, _make_zipfile, make_builder, run_agent
@@ -131,11 +131,7 @@ class EditPipelineAgentToolCallTest(AgentTestCase):
         conversation.save()
         agent = EditPipelineAgent(conversation, make_builder(model))
         run_agent(agent, "Update the pipeline")
-        invocation = (
-            conversation.messages.filter(role=Message.Role.ASSISTANT)
-            .first()
-            .tool_invocations.first()
-        )
+        invocation = self.first_tool_invocation(conversation)
         self.assertEqual(invocation.tool_name, "propose_pipeline_version")
         self.assertTrue(invocation.success)
         self.assertIn("files", invocation.tool_output)

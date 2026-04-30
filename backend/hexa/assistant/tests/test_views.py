@@ -9,29 +9,9 @@ from django.urls import reverse
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 from hexa.core.test import TestCase
+from hexa.core.test.utils import collect_async_stream, parse_sse_stream
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
-
-
-def _parse_sse(content: bytes) -> list[dict]:
-    events = []
-    current: dict = {}
-    for line in content.decode().splitlines():
-        if line.startswith("event:"):
-            current["event"] = line[len("event:") :].strip()
-        elif line.startswith("data:"):
-            current["data"] = json.loads(line[len("data:") :].strip())
-        elif not line and current:
-            events.append(current)
-            current = {}
-    return events
-
-
-async def _collect_async_stream(streaming_content) -> bytes:
-    chunks = []
-    async for chunk in streaming_content:
-        chunks.append(chunk)
-    return b"".join(chunks)
 
 
 def _url(conversation_id):
@@ -131,8 +111,8 @@ class StreamAssistantMessageViewTest(TestCase):
         self.assertEqual(response["Content-Type"], "text/event-stream")
         self.assertEqual(response["Cache-Control"], "no-cache")
 
-        events = _parse_sse(
-            asyncio.run(_collect_async_stream(response.streaming_content))
+        events = parse_sse_stream(
+            asyncio.run(collect_async_stream(response.streaming_content))
         )
         self.assertEqual(events[0]["event"], "text_delta")
         self.assertEqual(events[0]["data"]["delta"], "Hello")
