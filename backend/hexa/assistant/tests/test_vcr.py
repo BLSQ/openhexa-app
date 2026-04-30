@@ -36,10 +36,12 @@ def run_agent(agent: BaseAgent, message: str) -> None:
 
 CASSETTES_DIR = os.path.join(os.path.dirname(__file__), "cassettes")
 
+
 def _match_stream_mode(r1, r2):
     """Match requests by whether they use streaming, so concurrent naming and
     main-agent calls are routed to the correct cassette interactions regardless
-    of which HTTP request arrives first."""
+    of which HTTP request arrives first.
+    """
     try:
         b1 = json.loads(r1.body)
         b2 = json.loads(r2.body)
