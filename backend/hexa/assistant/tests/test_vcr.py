@@ -10,6 +10,7 @@ To re-record cassettes:
   5. Restore record_mode to 'none'.
 """
 
+import json
 import os
 from unittest.mock import patch
 
@@ -35,6 +36,18 @@ def run_agent(agent: BaseAgent, message: str) -> None:
 
 CASSETTES_DIR = os.path.join(os.path.dirname(__file__), "cassettes")
 
+def _match_stream_mode(r1, r2):
+    """Match requests by whether they use streaming, so concurrent naming and
+    main-agent calls are routed to the correct cassette interactions regardless
+    of which HTTP request arrives first."""
+    try:
+        b1 = json.loads(r1.body)
+        b2 = json.loads(r2.body)
+        return b1.get("stream") == b2.get("stream")
+    except (json.JSONDecodeError, AttributeError):
+        return True
+
+
 assistant_vcr = vcr.VCR(
     filter_headers=[
         "x-api-key",
@@ -47,8 +60,9 @@ assistant_vcr = vcr.VCR(
         "user-agent",
     ],
     record_mode=RecordMode.NONE,
-    match_on=["method", "host", "port", "path"],
+    match_on=["method", "host", "port", "path", "stream_mode"],
 )
+assistant_vcr.register_matcher("stream_mode", _match_stream_mode)
 
 
 @tag("vcr")
