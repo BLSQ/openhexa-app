@@ -182,11 +182,15 @@ def resolve_pipeline_version(_, info, **kwargs):
 
 
 @pipelines_query.field("pipelineParameterChoices")
-def resolve_pipeline_parameter_choices(_, info, workspace_slug, pipeline_version_id, parameter_code):
+def resolve_pipeline_parameter_choices(
+    _, info, workspace_slug, pipeline_version_id, parameter_code
+):
     request: HttpRequest = info.context["request"]
 
     try:
-        workspace = Workspace.objects.filter_for_user(request.user).get(slug=workspace_slug)
+        workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=workspace_slug
+        )
     except Workspace.DoesNotExist:
         raise ValueError(f"Workspace '{workspace_slug}' not found.")
 
@@ -196,7 +200,9 @@ def resolve_pipeline_parameter_choices(_, info, workspace_slug, pipeline_version
         raise ValueError(f"Pipeline version '{pipeline_version_id}' not found.")
 
     if not request.user.has_perm("pipelines.view_pipeline_version", version):
-        raise PermissionError("You do not have permission to view this pipeline version.")
+        raise PermissionError(
+            "You do not have permission to view this pipeline version."
+        )
 
     param = next(
         (p for p in version.parameters if p.get("code") == parameter_code),
@@ -207,7 +213,9 @@ def resolve_pipeline_parameter_choices(_, info, workspace_slug, pipeline_version
 
     file_choices = param.get("file_choices")
     if file_choices is None:
-        raise ValueError(f"Parameter '{parameter_code}' does not have dynamic file choices.")
+        raise ValueError(
+            f"Parameter '{parameter_code}' does not have dynamic file choices."
+        )
 
     path = file_choices["path"]
     fmt = file_choices["format"]
