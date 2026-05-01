@@ -88,6 +88,11 @@ def resolve_pipeline_parameter_multiple(parameter, info, **kwargs):
     return parameter.get("multiple", False)
 
 
+@pipeline_parameter.field("fileChoices")
+def resolve_pipeline_parameter_file_choices(parameter, info, **kwargs):
+    return parameter.get("file_choices")
+
+
 @pipeline_permissions.field("update")
 def resolve_pipeline_permissions_update(pipeline: Pipeline, info, **kwargs):
     request = info.context["request"]
