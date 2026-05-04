@@ -24,6 +24,4 @@ def create_agent(
     agent_class = _AGENT_REGISTRY.get(
         InstructionSet(conversation.instruction_set), BaseAgent
     )
-    if builder is not None:
-        return agent_class(conversation, builder)
-    return agent_class.from_conversation(conversation)
+    return agent_class(conversation, builder)

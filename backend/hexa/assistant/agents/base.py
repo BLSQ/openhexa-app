@@ -76,12 +76,10 @@ class BaseAgent:
     tools: list = []
     max_tokens: int = 4096
 
-    @classmethod
-    def from_conversation(cls, conversation: Conversation) -> "BaseAgent":
-        return cls(conversation, AiModelBuilder.from_conversation(conversation))
-
-    def __init__(self, conversation: Conversation, builder: AiModelBuilder):
+    def __init__(self, conversation: Conversation, builder: AiModelBuilder | None = None):
         self.conversation = conversation
+
+        builder = builder or AiModelBuilder.from_conversation(conversation)
         self._model_api_name = builder.model_api_name
         self._provider_id = builder.provider_id
         self._model = builder.build()

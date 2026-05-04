@@ -8,6 +8,7 @@ from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 
 from hexa.assistant.agents.base import BaseAgent
+from hexa.assistant.model_builder import AiModelBuilder
 
 
 def run_agent(agent: BaseAgent, message: str) -> None:
@@ -70,7 +71,7 @@ def _make_tool_call_model(tool_name: str, tool_args: dict) -> FunctionModel:
 
 
 def make_builder(test_model):
-    mock_builder = MagicMock()
+    mock_builder = MagicMock(spec=AiModelBuilder)
     mock_builder.model_api_name = "test"
     mock_builder.provider_id = "test"
     mock_builder.build.return_value = test_model
