@@ -81,7 +81,9 @@ class BaseAgent:
     ):
         self.conversation = conversation
 
-        built_model = built_model or AiModelBuilder.from_conversation(conversation).build()
+        built_model = (
+            built_model or AiModelBuilder.from_conversation(conversation).build()
+        )
         self._model_api_name = built_model.api_name
         self._provider_id = built_model.provider_id
         self._model = built_model.model

@@ -19,7 +19,8 @@ class AgentRegistryTest(AgentTestCase):
             instruction_set=InstructionSet.CREATE_PIPELINE,
         )
         self.assertIsInstance(
-            create_agent(conversation, make_built_model(TestModel())), CreatePipelineAgent
+            create_agent(conversation, make_built_model(TestModel())),
+            CreatePipelineAgent,
         )
 
     def test_general_instruction_set_returns_base_agent(self):

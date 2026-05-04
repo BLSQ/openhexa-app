@@ -71,4 +71,6 @@ class AiModelBuilder:
         if not factory:
             raise ValueError(f"Unsupported AI provider: {self._provider!r}")
         model = factory(self._model_api_name, self._api_key)
-        return BuiltModel(model=model, api_name=self._model_api_name, provider_id=self._provider)
+        return BuiltModel(
+            model=model, api_name=self._model_api_name, provider_id=self._provider
+        )
