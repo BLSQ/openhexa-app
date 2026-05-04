@@ -1,6 +1,5 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 .DS_Store
-docker-compose.override.yaml
 ### Backend ###
 *.env
 data/
@@ -27,6 +26,7 @@ static/uploads/*
 
 docker-compose.debug.yaml
 docker-compose.dev.yaml
+docker-compose.override.yaml
 
 #### Frontend ####
 # dependencies
