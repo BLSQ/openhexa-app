@@ -76,7 +76,9 @@ class BaseAgent:
     tools: list = []
     max_tokens: int = 4096
 
-    def __init__(self, conversation: Conversation, builder: AiModelBuilder | None = None):
+    def __init__(
+        self, conversation: Conversation, builder: AiModelBuilder | None = None
+    ):
         self.conversation = conversation
 
         builder = builder or AiModelBuilder.from_conversation(conversation)
