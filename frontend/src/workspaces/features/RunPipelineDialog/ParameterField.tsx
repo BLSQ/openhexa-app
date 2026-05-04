@@ -11,7 +11,7 @@ import DatasetPicker from "datasets/features/DatasetPicker";
 import { ensureArray } from "core/helpers/array";
 import GenericConnectionWidget from "./GenericConnectionWidget";
 import FileParameterField from "./FileParameterField";
-import FileChoicesWidget from "./FileChoicesWidget";
+import ChoicesFromFileWidget from "./ChoicesFromFileWidget";
 
 type ParameterFieldProps = {
   parameter: any;
@@ -97,9 +97,9 @@ const ParameterField = (props: ParameterFieldProps) => {
     );
   }
 
-  if (parameter.fileChoices && workspaceSlug && pipelineVersionId) {
+  if (parameter.choicesFromFile && workspaceSlug && pipelineVersionId) {
     return (
-      <FileChoicesWidget
+      <ChoicesFromFileWidget
         parameter={parameter}
         value={value}
         onChange={handleChange}
@@ -212,7 +212,7 @@ ParameterField.fragments = {
       default
       required
       choices
-      fileChoices {
+      choicesFromFile {
         path
         format
         column

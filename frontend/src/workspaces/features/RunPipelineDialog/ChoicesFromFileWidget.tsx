@@ -2,9 +2,9 @@ import Select from "core/components/forms/Select";
 import Spinner from "core/components/Spinner";
 import { ensureArray } from "core/helpers/array";
 import { useTranslation } from "next-i18next";
-import { useGetPipelineParameterChoicesQuery } from "./FileChoicesWidget.generated";
+import { useGetPipelineParameterChoicesQuery } from "./ChoicesFromFileWidget.generated";
 
-type FileChoicesWidgetProps = {
+type ChoicesFromFileWidgetProps = {
   parameter: any;
   value: any;
   onChange(value: any): void;
@@ -12,13 +12,13 @@ type FileChoicesWidgetProps = {
   pipelineVersionId: string;
 };
 
-const FileChoicesWidget = ({
+const ChoicesFromFileWidget = ({
   parameter,
   value,
   onChange,
   workspaceSlug,
   pipelineVersionId,
-}: FileChoicesWidgetProps) => {
+}: ChoicesFromFileWidgetProps) => {
   const { t } = useTranslation();
 
   const { data, loading, error } = useGetPipelineParameterChoicesQuery({
@@ -65,4 +65,4 @@ const FileChoicesWidget = ({
   );
 };
 
-export default FileChoicesWidget;
+export default ChoicesFromFileWidget;

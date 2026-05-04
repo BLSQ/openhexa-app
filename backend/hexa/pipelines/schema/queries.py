@@ -5,7 +5,7 @@ from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
 from hexa.pipelines.authentication import PipelineRunUser
-from hexa.pipelines.file_choices import resolve_file_choices
+from hexa.pipelines.choices_from_file import resolve_choices_from_file
 from hexa.pipelines.models import (
     Pipeline,
     PipelineRun,
@@ -203,16 +203,16 @@ def resolve_pipeline_parameter_choices(
     if param is None:
         raise ValueError(f"Parameter '{parameter_code}' not found in pipeline version.")
 
-    file_choices = param.get("file_choices")
-    if file_choices is None:
+    choices_from_file = param.get("choices_from_file")
+    if choices_from_file is None:
         raise ValueError(
-            f"Parameter '{parameter_code}' does not have dynamic file choices."
+            f"Parameter '{parameter_code}' does not have dynamic choices from file."
         )
 
     if workspace.bucket_name is None:
         raise ValueError("Workspace does not have a file storage bucket.")
 
-    return resolve_file_choices(workspace.bucket_name, file_choices)
+    return resolve_choices_from_file(workspace.bucket_name, choices_from_file)
 
 
 bindables = [

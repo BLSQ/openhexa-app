@@ -93,7 +93,7 @@ enum ParameterWidget {
 """
 Describes a dynamic choices source backed by a workspace file.
 """
-type PipelineParameterFileChoices {
+type PipelineParameterChoicesFromFile {
   path: String!    # Path to the file in the workspace file system.
   format: String!  # File format: "csv", "json", or "yaml".
   column: String   # Column/key to use as choice values (required for multi-column files).
@@ -102,7 +102,7 @@ type PipelineParameterFileChoices {
 """
 Input for a dynamic choices source backed by a workspace file.
 """
-input PipelineParameterFileChoicesInput {
+input PipelineParameterChoicesFromFileInput {
   path: String!
   format: String!
   column: String
@@ -122,7 +122,7 @@ type PipelineParameter {
   widget: ParameterWidget  # The widget to use for the parameter.
   connection: String  # The connection associated with the parameter.
   choices: [Generic!]  # The list of choices for the parameter.
-  fileChoices: PipelineParameterFileChoices  # Dynamic choices loaded from a workspace file.
+  choicesFromFile: PipelineParameterChoicesFromFile  # Dynamic choices loaded from a workspace file.
   directory: String  # The name of the directory restriction (for file browser).
 }
 
@@ -140,7 +140,7 @@ input ParameterInput {
   connection: String # The connection associated with the parameter.
   help: String  # The help text for the parameter.
   choices: [Generic!]  # The list of choices for the parameter.
-  fileChoices: PipelineParameterFileChoicesInput  # Dynamic choices loaded from a workspace file.
+  choicesFromFile: PipelineParameterChoicesFromFileInput  # Dynamic choices loaded from a workspace file.
   directory: String  # The name of the directory restriction (for file browser).
 }
 

@@ -104,7 +104,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "file_choices": {
+                    "choices_from_file": {
                         "format": "csv",
                         "path": "districts.csv",
                         "column": None,
@@ -114,11 +114,11 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         )
         with (
             patch(
-                "hexa.pipelines.schema.queries.storage.get_bucket_object",
+                "hexa.pipelines.choices_from_file.storage.get_bucket_object",
                 return_value=_make_storage_object(),
             ),
             patch(
-                "hexa.pipelines.schema.queries.storage.read_object",
+                "hexa.pipelines.choices_from_file.storage.read_object",
                 return_value=_CSV_SINGLE_COL,
             ),
         ):
@@ -133,7 +133,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "file_choices": {
+                    "choices_from_file": {
                         "format": "csv",
                         "path": "districts.csv",
                         "column": "code",
@@ -143,11 +143,11 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         )
         with (
             patch(
-                "hexa.pipelines.schema.queries.storage.get_bucket_object",
+                "hexa.pipelines.choices_from_file.storage.get_bucket_object",
                 return_value=_make_storage_object(),
             ),
             patch(
-                "hexa.pipelines.schema.queries.storage.read_object",
+                "hexa.pipelines.choices_from_file.storage.read_object",
                 return_value=_CSV_MULTI_COL,
             ),
         ):
@@ -160,7 +160,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "file_choices": {
+                    "choices_from_file": {
                         "format": "csv",
                         "path": "districts.csv",
                         "column": None,
@@ -170,11 +170,11 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         )
         with (
             patch(
-                "hexa.pipelines.schema.queries.storage.get_bucket_object",
+                "hexa.pipelines.choices_from_file.storage.get_bucket_object",
                 return_value=_make_storage_object(),
             ),
             patch(
-                "hexa.pipelines.schema.queries.storage.read_object",
+                "hexa.pipelines.choices_from_file.storage.read_object",
                 return_value=_CSV_MULTI_COL,
             ),
         ):
@@ -188,7 +188,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "file_choices": {
+                    "choices_from_file": {
                         "format": "csv",
                         "path": "districts.csv",
                         "column": "nonexistent",
@@ -198,11 +198,11 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         )
         with (
             patch(
-                "hexa.pipelines.schema.queries.storage.get_bucket_object",
+                "hexa.pipelines.choices_from_file.storage.get_bucket_object",
                 return_value=_make_storage_object(),
             ),
             patch(
-                "hexa.pipelines.schema.queries.storage.read_object",
+                "hexa.pipelines.choices_from_file.storage.read_object",
                 return_value=_CSV_SINGLE_COL,
             ),
         ):
@@ -220,7 +220,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "file_choices": {
+                    "choices_from_file": {
                         "format": "json",
                         "path": "regions.json",
                         "column": None,
@@ -230,11 +230,11 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         )
         with (
             patch(
-                "hexa.pipelines.schema.queries.storage.get_bucket_object",
+                "hexa.pipelines.choices_from_file.storage.get_bucket_object",
                 return_value=_make_storage_object(),
             ),
             patch(
-                "hexa.pipelines.schema.queries.storage.read_object",
+                "hexa.pipelines.choices_from_file.storage.read_object",
                 return_value=_JSON_FLAT,
             ),
         ):
@@ -249,7 +249,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "file_choices": {
+                    "choices_from_file": {
                         "format": "json",
                         "path": "regions.json",
                         "column": "code",
@@ -259,11 +259,11 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         )
         with (
             patch(
-                "hexa.pipelines.schema.queries.storage.get_bucket_object",
+                "hexa.pipelines.choices_from_file.storage.get_bucket_object",
                 return_value=_make_storage_object(),
             ),
             patch(
-                "hexa.pipelines.schema.queries.storage.read_object",
+                "hexa.pipelines.choices_from_file.storage.read_object",
                 return_value=_JSON_OBJECTS,
             ),
         ):
@@ -276,7 +276,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "file_choices": {
+                    "choices_from_file": {
                         "format": "json",
                         "path": "regions.json",
                         "column": None,
@@ -286,11 +286,11 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         )
         with (
             patch(
-                "hexa.pipelines.schema.queries.storage.get_bucket_object",
+                "hexa.pipelines.choices_from_file.storage.get_bucket_object",
                 return_value=_make_storage_object(),
             ),
             patch(
-                "hexa.pipelines.schema.queries.storage.read_object",
+                "hexa.pipelines.choices_from_file.storage.read_object",
                 return_value=_JSON_OBJECTS,
             ),
         ):
@@ -308,7 +308,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "file_choices": {
+                    "choices_from_file": {
                         "format": "yaml",
                         "path": "list.yaml",
                         "column": None,
@@ -318,11 +318,11 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         )
         with (
             patch(
-                "hexa.pipelines.schema.queries.storage.get_bucket_object",
+                "hexa.pipelines.choices_from_file.storage.get_bucket_object",
                 return_value=_make_storage_object(),
             ),
             patch(
-                "hexa.pipelines.schema.queries.storage.read_object",
+                "hexa.pipelines.choices_from_file.storage.read_object",
                 return_value=_YAML_FLAT,
             ),
         ):
@@ -337,7 +337,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "file_choices": {
+                    "choices_from_file": {
                         "format": "yaml",
                         "path": "list.yaml",
                         "column": "code",
@@ -347,11 +347,11 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         )
         with (
             patch(
-                "hexa.pipelines.schema.queries.storage.get_bucket_object",
+                "hexa.pipelines.choices_from_file.storage.get_bucket_object",
                 return_value=_make_storage_object(),
             ),
             patch(
-                "hexa.pipelines.schema.queries.storage.read_object",
+                "hexa.pipelines.choices_from_file.storage.read_object",
                 return_value=_YAML_OBJECTS,
             ),
         ):
@@ -368,7 +368,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "file_choices": {
+                    "choices_from_file": {
                         "format": "csv",
                         "path": "missing.csv",
                         "column": None,
@@ -377,7 +377,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
             ]
         )
         with patch(
-            "hexa.pipelines.schema.queries.storage.get_bucket_object",
+            "hexa.pipelines.choices_from_file.storage.get_bucket_object",
             side_effect=NotFound("not found"),
         ):
             r = self._run(version, "district")
@@ -390,7 +390,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         )
         r = self._run(version, "country")
         self.assertIsNone(r["data"]["pipelineParameterChoices"])
-        self.assertTrue(any("does not have dynamic" in str(e) for e in r["errors"]))
+        self.assertTrue(any("does not have dynamic choices" in str(e) for e in r["errors"]))
 
     def test_parameter_code_not_found(self):
         version = self._create_version(
@@ -398,7 +398,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "file_choices": {"format": "csv", "path": "d.csv", "column": None},
+                    "choices_from_file": {"format": "csv", "path": "d.csv", "column": None},
                 }
             ]
         )
@@ -412,7 +412,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "file_choices": {"format": "csv", "path": "d.csv", "column": None},
+                    "choices_from_file": {"format": "csv", "path": "d.csv", "column": None},
                 }
             ]
         )
@@ -433,7 +433,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "file_choices": {"format": "csv", "path": "d.csv", "column": None},
+                    "choices_from_file": {"format": "csv", "path": "d.csv", "column": None},
                 }
             ]
         )
@@ -454,7 +454,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "file_choices": {
+                    "choices_from_file": {
                         "format": "csv",
                         "path": "huge.csv",
                         "column": None,
@@ -463,7 +463,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
             ]
         )
         with patch(
-            "hexa.pipelines.schema.queries.storage.get_bucket_object",
+            "hexa.pipelines.choices_from_file.storage.get_bucket_object",
             return_value=_make_storage_object(size=10 * 1024 * 1024),
         ):
             r = self._run(version, "district")

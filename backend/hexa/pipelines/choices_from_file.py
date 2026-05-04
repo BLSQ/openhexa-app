@@ -10,21 +10,21 @@ from hexa.files.backends.exceptions import NotFound
 MAX_CHOICES_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 
-def resolve_file_choices(bucket_name: str, file_choices: dict) -> list[str]:
+def resolve_choices_from_file(bucket_name: str, choices_from_file: dict) -> list[str]:
     """Read a workspace file and return a flat list of string choices.
 
     Args:
         bucket_name: The workspace's storage bucket.
-        file_choices: The ``file_choices`` spec from a pipeline parameter —
+        choices_from_file: The ``choices_from_file`` spec from a pipeline parameter —
             a dict with keys ``path``, ``format``, and optionally ``column``.
 
     Raises:
         ValueError: If the file is missing, too large, unparseable, or the
             column/key cannot be resolved.
     """
-    path = file_choices["path"].lstrip("/")
-    fmt = file_choices["format"]
-    column = file_choices.get("column")
+    path = choices_from_file["path"].lstrip("/")
+    fmt = choices_from_file["format"]
+    column = choices_from_file.get("column")
 
     try:
         obj = storage.get_bucket_object(bucket_name, path)
@@ -74,7 +74,7 @@ def _parse_csv(text: str, column: str | None, path: str) -> list[str]:
         if len(fieldnames) > 1:
             raise ValueError(
                 f"CSV file '{path}' has multiple columns ({', '.join(fieldnames)}). "
-                "Specify a column in the FileChoices definition."
+                "Specify a column in the ChoicesFromFile definition."
             )
         column = fieldnames[0]
     elif column not in fieldnames:
@@ -132,7 +132,7 @@ def _extract_from_data(data: list | dict, column: str | None, path: str, fmt: st
             if len(keys) > 1:
                 raise ValueError(
                     f"{fmt} file '{path}' contains multiple keys ({', '.join(keys)}). "
-                    "Specify a column in the FileChoices definition."
+                    "Specify a column in the ChoicesFromFile definition."
                 )
             column = keys[0]
         elif column not in data:
@@ -156,7 +156,7 @@ def _extract_from_data(data: list | dict, column: str | None, path: str, fmt: st
             if len(keys) > 1:
                 raise ValueError(
                     f"{fmt} file '{path}' contains objects with multiple keys ({', '.join(keys)}). "
-                    "Specify a column in the FileChoices definition."
+                    "Specify a column in the ChoicesFromFile definition."
                 )
             column = keys[0]
         return [str(item[column]) for item in data if column in item]
