@@ -8,7 +8,7 @@ from ._helpers import (
     _AgentWithFailingTool,
     _AgentWithFakeTool,
     _make_tool_call_model,
-    make_builder,
+    make_built_model,
     run_agent,
 )
 from ._testcase import AgentTestCase
@@ -24,7 +24,7 @@ class BaseAgentRunTest(AgentTestCase):
 
     def test_run_saves_user_message(self):
         agent = BaseAgent(
-            self.conversation, make_builder(TestModel(custom_output_text="Hello!"))
+            self.conversation, make_built_model(TestModel(custom_output_text="Hello!"))
         )
         run_agent(agent, "What can you do?")
         user_messages = self.conversation.messages.filter(role=Message.Role.USER)
@@ -33,7 +33,7 @@ class BaseAgentRunTest(AgentTestCase):
 
     def test_run_saves_assistant_message(self):
         agent = BaseAgent(
-            self.conversation, make_builder(TestModel(custom_output_text="Hello!"))
+            self.conversation, make_built_model(TestModel(custom_output_text="Hello!"))
         )
         run_agent(agent, "What can you do?")
         assistant_messages = self.conversation.messages.filter(
@@ -44,7 +44,7 @@ class BaseAgentRunTest(AgentTestCase):
 
     def test_run_updates_messages_history(self):
         agent = BaseAgent(
-            self.conversation, make_builder(TestModel(custom_output_text="Hi"))
+            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
         )
         self.conversation.refresh_from_db()
         self.assertEqual(self.conversation.messages_history, [])
@@ -54,7 +54,7 @@ class BaseAgentRunTest(AgentTestCase):
 
     def test_run_sets_conversation_name_on_first_message(self):
         agent = BaseAgent(
-            self.conversation, make_builder(TestModel(custom_output_text="Hi"))
+            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
         )
         self.assertIsNone(self.conversation.name)
         run_agent(agent, "Create a pipeline")
@@ -65,7 +65,7 @@ class BaseAgentRunTest(AgentTestCase):
         self.conversation.name = "Existing Name"
         self.conversation.save(update_fields=["name"])
         agent = BaseAgent(
-            self.conversation, make_builder(TestModel(custom_output_text="Hi"))
+            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
         )
         run_agent(agent, "Something else")
         self.conversation.refresh_from_db()
@@ -73,7 +73,7 @@ class BaseAgentRunTest(AgentTestCase):
 
     def test_run_updates_token_counts(self):
         agent = BaseAgent(
-            self.conversation, make_builder(TestModel(custom_output_text="Hello"))
+            self.conversation, make_built_model(TestModel(custom_output_text="Hello"))
         )
         run_agent(agent, "Test")
         self.conversation.refresh_from_db()
@@ -85,7 +85,7 @@ class BaseAgentRunTest(AgentTestCase):
 
     def test_second_run_appends_to_history(self):
         agent = BaseAgent(
-            self.conversation, make_builder(TestModel(custom_output_text="Reply"))
+            self.conversation, make_built_model(TestModel(custom_output_text="Reply"))
         )
         run_agent(agent, "First message")
         history_after_first = len(self.conversation.messages_history)
@@ -104,7 +104,7 @@ class BaseAgentToolCallTest(AgentTestCase):
 
     def test_tool_call_creates_tool_invocation_record(self):
         model = _make_tool_call_model("_fake_tool", {"arg": "hello"})
-        agent = _AgentWithFakeTool(self.conversation, make_builder(model))
+        agent = _AgentWithFakeTool(self.conversation, make_built_model(model))
         run_agent(agent, "Use the tool")
         assistant_msg = self.conversation.messages.filter(
             role=Message.Role.ASSISTANT
@@ -116,19 +116,19 @@ class BaseAgentToolCallTest(AgentTestCase):
 
     def test_successful_tool_call_sets_success_true(self):
         model = _make_tool_call_model("_fake_tool", {"arg": "hello"})
-        agent = _AgentWithFakeTool(self.conversation, make_builder(model))
+        agent = _AgentWithFakeTool(self.conversation, make_built_model(model))
         run_agent(agent, "Use the tool")
         self.assertTrue(self.first_tool_invocation(self.conversation).success)
 
     def test_tool_call_with_error_response_sets_success_false(self):
         model = _make_tool_call_model("_failing_tool", {"arg": "oops"})
-        agent = _AgentWithFailingTool(self.conversation, make_builder(model))
+        agent = _AgentWithFailingTool(self.conversation, make_built_model(model))
         run_agent(agent, "Use the failing tool")
         self.assertFalse(self.first_tool_invocation(self.conversation).success)
 
     def test_tool_input_is_persisted(self):
         model = _make_tool_call_model("_fake_tool", {"arg": "my-value"})
-        agent = _AgentWithFakeTool(self.conversation, make_builder(model))
+        agent = _AgentWithFakeTool(self.conversation, make_built_model(model))
         run_agent(agent, "Use the tool")
         self.assertEqual(
             self.first_tool_invocation(self.conversation).tool_input,
@@ -137,7 +137,7 @@ class BaseAgentToolCallTest(AgentTestCase):
 
     def test_tool_output_is_persisted(self):
         model = _make_tool_call_model("_fake_tool", {"arg": "my-value"})
-        agent = _AgentWithFakeTool(self.conversation, make_builder(model))
+        agent = _AgentWithFakeTool(self.conversation, make_built_model(model))
         run_agent(agent, "Use the tool")
         self.assertEqual(
             self.first_tool_invocation(self.conversation).tool_output,

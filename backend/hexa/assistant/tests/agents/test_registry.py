@@ -7,7 +7,7 @@ from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 
-from ._helpers import make_builder
+from ._helpers import make_built_model
 from ._testcase import AgentTestCase
 
 
@@ -19,7 +19,7 @@ class AgentRegistryTest(AgentTestCase):
             instruction_set=InstructionSet.CREATE_PIPELINE,
         )
         self.assertIsInstance(
-            create_agent(conversation, make_builder(TestModel())), CreatePipelineAgent
+            create_agent(conversation, make_built_model(TestModel())), CreatePipelineAgent
         )
 
     def test_general_instruction_set_returns_base_agent(self):
@@ -28,7 +28,7 @@ class AgentRegistryTest(AgentTestCase):
             workspace=self.workspace,
             instruction_set=InstructionSet.GENERAL,
         )
-        agent = create_agent(conversation, make_builder(TestModel()))
+        agent = create_agent(conversation, make_built_model(TestModel()))
         self.assertIsInstance(agent, BaseAgent)
         self.assertNotIsInstance(agent, CreatePipelineAgent)
 
@@ -40,7 +40,7 @@ class AgentRegistryTest(AgentTestCase):
             instruction_set=InstructionSet.CREATE_WEBAPPS,
         )
         self.assertIsInstance(
-            create_agent(conversation, make_builder(TestModel())), BaseAgent
+            create_agent(conversation, make_built_model(TestModel())), BaseAgent
         )
 
     def test_edit_pipeline_instruction_set_returns_edit_pipeline_agent(self):
@@ -50,5 +50,5 @@ class AgentRegistryTest(AgentTestCase):
             instruction_set=InstructionSet.EDIT_PIPELINE,
         )
         self.assertIsInstance(
-            create_agent(conversation, make_builder(TestModel())), EditPipelineAgent
+            create_agent(conversation, make_built_model(TestModel())), EditPipelineAgent
         )

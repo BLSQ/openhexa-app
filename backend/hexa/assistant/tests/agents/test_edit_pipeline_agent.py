@@ -5,7 +5,7 @@ from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 from hexa.pipelines.models import Pipeline, PipelineVersion
 
-from ._helpers import _make_tool_call_model, _make_zipfile, make_builder, run_agent
+from ._helpers import _make_tool_call_model, _make_zipfile, make_built_model, run_agent
 from ._testcase import AgentTestCase
 
 
@@ -19,7 +19,7 @@ class EditPipelineAgentExtraInstructionsTest(AgentTestCase):
         if pipeline is not None:
             conversation.linked_object = pipeline
         conversation.save()
-        return EditPipelineAgent(conversation, make_builder(TestModel()))
+        return EditPipelineAgent(conversation, make_built_model(TestModel()))
 
     def test_no_pipeline_returns_empty_string(self):
         agent = self._make_agent(pipeline=None)
@@ -129,7 +129,7 @@ class EditPipelineAgentToolCallTest(AgentTestCase):
         )
         conversation.linked_object = self.pipeline
         conversation.save()
-        agent = EditPipelineAgent(conversation, make_builder(model))
+        agent = EditPipelineAgent(conversation, make_built_model(model))
         run_agent(agent, "Update the pipeline")
         invocation = self.first_tool_invocation(conversation)
         self.assertEqual(invocation.tool_name, "propose_pipeline_version")

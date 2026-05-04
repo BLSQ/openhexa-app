@@ -20,7 +20,7 @@ from pydantic_ai.messages import (
 from pydantic_ai.output import TextOutput
 
 from hexa.assistant.instructions import InstructionSet, get_instructions
-from hexa.assistant.model_builder import AiModelBuilder
+from hexa.assistant.model_builder import AiModelBuilder, BuiltModel
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.assistant.sse_types import (
     ConversationNamePayload,
@@ -77,14 +77,14 @@ class BaseAgent:
     max_tokens: int = 4096
 
     def __init__(
-        self, conversation: Conversation, builder: AiModelBuilder | None = None
+        self, conversation: Conversation, built_model: BuiltModel | None = None
     ):
         self.conversation = conversation
 
-        builder = builder or AiModelBuilder.from_conversation(conversation)
-        self._model_api_name = builder.model_api_name
-        self._provider_id = builder.provider_id
-        self._model = builder.build()
+        built_model = built_model or AiModelBuilder.from_conversation(conversation).build()
+        self._model_api_name = built_model.api_name
+        self._provider_id = built_model.provider_id
+        self._model = built_model.model
 
         instructions = get_instructions(self.instruction_set)
         extra = self._extra_instructions()
