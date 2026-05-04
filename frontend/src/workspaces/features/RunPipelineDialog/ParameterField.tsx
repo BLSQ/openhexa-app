@@ -11,6 +11,7 @@ import DatasetPicker from "datasets/features/DatasetPicker";
 import { ensureArray } from "core/helpers/array";
 import GenericConnectionWidget from "./GenericConnectionWidget";
 import FileParameterField from "./FileParameterField";
+import FileChoicesWidget from "./FileChoicesWidget";
 
 type ParameterFieldProps = {
   parameter: any;
@@ -18,11 +19,13 @@ type ParameterFieldProps = {
   form: any;
   onChange(value: any): void;
   workspaceSlug?: string;
+  pipelineVersionId?: string;
 };
 
 const ParameterField = (props: ParameterFieldProps) => {
   const { t } = useTranslation();
-  const { parameter, value, form, onChange, workspaceSlug } = props;
+  const { parameter, value, form, onChange, workspaceSlug, pipelineVersionId } =
+    props;
 
   const handleChange = useCallback(
     (value: any) => {
@@ -90,6 +93,18 @@ const ParameterField = (props: ParameterFieldProps) => {
         value={value}
         onChange={(file) => handleChange(file?.key)}
         parameter={parameter}
+      />
+    );
+  }
+
+  if (parameter.fileChoices && workspaceSlug && pipelineVersionId) {
+    return (
+      <FileChoicesWidget
+        parameter={parameter}
+        value={value}
+        onChange={handleChange}
+        workspaceSlug={workspaceSlug}
+        pipelineVersionId={pipelineVersionId}
       />
     );
   }
@@ -197,6 +212,11 @@ ParameterField.fragments = {
       default
       required
       choices
+      fileChoices {
+        path
+        format
+        column
+      }
       connection
       widget
       multiple

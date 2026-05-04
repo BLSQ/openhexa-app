@@ -3246,6 +3246,7 @@ input ParameterInput {
   connection: String
   default: Generic
   directory: String
+  fileChoices: PipelineParameterFileChoicesInput
   help: String
   multiple: Boolean
   name: String
@@ -3407,12 +3408,27 @@ type PipelineParameter {
   connection: String
   default: Generic
   directory: String
+  fileChoices: PipelineParameterFileChoices
   help: String
   multiple: Boolean!
   name: String!
   required: Boolean!
   type: ParameterType!
   widget: ParameterWidget
+}
+
+"""Describes a dynamic choices source backed by a workspace file."""
+type PipelineParameterFileChoices {
+  column: String
+  format: String!
+  path: String!
+}
+
+"""Input for a dynamic choices source backed by a workspace file."""
+input PipelineParameterFileChoicesInput {
+  column: String
+  format: String!
+  path: String!
 }
 
 """Represents the permissions for a pipeline."""
@@ -3862,6 +3878,12 @@ type Query {
 
   """Retrieves a pipeline by workspace slug and code."""
   pipelineByCode(code: String!, workspaceSlug: String!): Pipeline
+
+  """
+  Resolves the list of choices for a parameter backed by a workspace file.
+  Returns a list of string values read from the file at the time of the call.
+  """
+  pipelineParameterChoices(parameterCode: String!, pipelineVersionId: UUID!, workspaceSlug: String!): [String!]
 
   """Retrieves a pipeline run by ID."""
   pipelineRun(id: UUID!): PipelineRun

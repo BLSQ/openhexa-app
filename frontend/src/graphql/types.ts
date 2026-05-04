@@ -3856,6 +3856,7 @@ export type ParameterInput = {
   connection?: InputMaybe<Scalars['String']['input']>;
   default?: InputMaybe<Scalars['Generic']['input']>;
   directory?: InputMaybe<Scalars['String']['input']>;
+  fileChoices?: InputMaybe<PipelineParameterFileChoicesInput>;
   help?: InputMaybe<Scalars['String']['input']>;
   multiple?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
@@ -4031,12 +4032,28 @@ export type PipelineParameter = {
   connection?: Maybe<Scalars['String']['output']>;
   default?: Maybe<Scalars['Generic']['output']>;
   directory?: Maybe<Scalars['String']['output']>;
+  fileChoices?: Maybe<PipelineParameterFileChoices>;
   help?: Maybe<Scalars['String']['output']>;
   multiple: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   required: Scalars['Boolean']['output'];
   type: ParameterType;
   widget?: Maybe<ParameterWidget>;
+};
+
+/** Describes a dynamic choices source backed by a workspace file. */
+export type PipelineParameterFileChoices = {
+  __typename?: 'PipelineParameterFileChoices';
+  column?: Maybe<Scalars['String']['output']>;
+  format: Scalars['String']['output'];
+  path: Scalars['String']['output'];
+};
+
+/** Input for a dynamic choices source backed by a workspace file. */
+export type PipelineParameterFileChoicesInput = {
+  column?: InputMaybe<Scalars['String']['input']>;
+  format: Scalars['String']['input'];
+  path: Scalars['String']['input'];
 };
 
 /** Represents the permissions for a pipeline. */
@@ -4497,6 +4514,11 @@ export type Query = {
   pipeline?: Maybe<Pipeline>;
   /** Retrieves a pipeline by workspace slug and code. */
   pipelineByCode?: Maybe<Pipeline>;
+  /**
+   * Resolves the list of choices for a parameter backed by a workspace file.
+   * Returns a list of string values read from the file at the time of the call.
+   */
+  pipelineParameterChoices?: Maybe<Array<Scalars['String']['output']>>;
   /** Retrieves a pipeline run by ID. */
   pipelineRun?: Maybe<PipelineRun>;
   /** Retrieves a pipeline template version by ID. */
@@ -4697,6 +4719,13 @@ export type QueryPipelineArgs = {
 
 export type QueryPipelineByCodeArgs = {
   code: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
+};
+
+
+export type QueryPipelineParameterChoicesArgs = {
+  parameterCode: Scalars['String']['input'];
+  pipelineVersionId: Scalars['UUID']['input'];
   workspaceSlug: Scalars['String']['input'];
 };
 

@@ -213,6 +213,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                         }}
                         form={form}
                         workspaceSlug={pipeline.workspace?.slug}
+                        pipelineVersionId={activeVersion.id}
                       />
                     </Field>
                   ))}

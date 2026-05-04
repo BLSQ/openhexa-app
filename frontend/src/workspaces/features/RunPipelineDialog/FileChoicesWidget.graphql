@@ -1,0 +1,11 @@
+query getPipelineParameterChoices(
+    $workspaceSlug: String!
+    $pipelineVersionId: UUID!
+    $parameterCode: String!
+) {
+    pipelineParameterChoices(
+        workspaceSlug: $workspaceSlug
+        pipelineVersionId: $pipelineVersionId
+        parameterCode: $parameterCode
+    )
+}
