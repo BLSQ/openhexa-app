@@ -84,9 +84,12 @@ class MockHTTPIterator:
                 there are no pages left.
         """
         if self._has_next_page():
-            page_items = self.items[
-                self.num_results : self.num_results + self._page_size
-            ]
+            if self._page_size is None:
+                page_items = self.items[self.num_results :]
+            else:
+                page_items = self.items[
+                    self.num_results : self.num_results + self._page_size
+                ]
             for item in page_items:
                 if item.name.endswith("/"):
                     self._prefixes.add(item.name)
