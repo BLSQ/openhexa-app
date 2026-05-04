@@ -390,7 +390,9 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         )
         r = self._run(version, "country")
         self.assertIsNone(r["data"]["pipelineParameterChoices"])
-        self.assertTrue(any("does not have dynamic choices" in str(e) for e in r["errors"]))
+        self.assertTrue(
+            any("does not have dynamic choices" in str(e) for e in r["errors"])
+        )
 
     def test_parameter_code_not_found(self):
         version = self._create_version(
@@ -398,7 +400,11 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "choices_from_file": {"format": "csv", "path": "d.csv", "column": None},
+                    "choices_from_file": {
+                        "format": "csv",
+                        "path": "d.csv",
+                        "column": None,
+                    },
                 }
             ]
         )
@@ -412,7 +418,11 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "choices_from_file": {"format": "csv", "path": "d.csv", "column": None},
+                    "choices_from_file": {
+                        "format": "csv",
+                        "path": "d.csv",
+                        "column": None,
+                    },
                 }
             ]
         )
@@ -433,7 +443,11 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 {
                     "code": "district",
                     "type": "str",
-                    "choices_from_file": {"format": "csv", "path": "d.csv", "column": None},
+                    "choices_from_file": {
+                        "format": "csv",
+                        "path": "d.csv",
+                        "column": None,
+                    },
                 }
             ]
         )

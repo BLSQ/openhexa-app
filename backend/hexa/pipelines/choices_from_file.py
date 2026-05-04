@@ -18,7 +18,8 @@ def resolve_choices_from_file(bucket_name: str, choices_from_file: dict) -> list
         choices_from_file: The ``choices_from_file`` spec from a pipeline parameter —
             a dict with keys ``path``, ``format``, and optionally ``column``.
 
-    Raises:
+    Raises
+    ------
         ValueError: If the file is missing, too large, unparseable, or the
             column/key cannot be resolved.
     """
@@ -106,7 +107,9 @@ def _parse_yaml(text: str, column: str | None, path: str) -> list[str]:
     return _extract_from_data(data, column, path, "YAML")
 
 
-def _extract_from_data(data: list | dict, column: str | None, path: str, fmt: str) -> list[str]:
+def _extract_from_data(
+    data: list | dict, column: str | None, path: str, fmt: str
+) -> list[str]:
     """Extract a flat list of string choices from already-parsed data.
 
     Supported shapes (applies to both JSON and YAML):
