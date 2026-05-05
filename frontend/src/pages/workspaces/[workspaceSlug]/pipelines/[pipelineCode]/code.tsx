@@ -1,5 +1,7 @@
 import { SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import PipelineEditChatPanel from "assistant/features/PipelineEditChatPanel";
+import PipelineEditChatPanel, {
+  PipelineConversation,
+} from "assistant/features/PipelineEditChatPanel";
 import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import Page from "core/components/Page";
@@ -33,12 +35,9 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const [selectedVersion, setSelectedVersion] =
     useState<PipelineVersionPicker_VersionFragment | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [proposedFiles, setProposedFiles] = useState<ProposedFile[] | null>(null);
-
-  const handleProposedFiles = useCallback((files: ProposedFile[] | null) => {
-    setProposedFiles(files);
-  }, []);
+  const [proposedFiles, setProposedFiles] = useState<ProposedFile[] | null>(
+    null,
+  );
 
   const [isAssistantEnabled] = useFeature("assistant");
   const me = useMe();
@@ -53,6 +52,41 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   });
   const [fetchPipelineVersion, { data: versionData, loading: versionLoading }] =
     useGetPipelineVersionFilesLazyQuery();
+
+  const initialConversations: PipelineConversation[] =
+    data?.pipeline?.assistantConversations ?? [];
+
+  const [chatOpen, setChatOpen] = useState(
+    () => initialConversations.length > 0,
+  );
+  const [conversations, setConversations] = useState<PipelineConversation[]>(
+    () => initialConversations,
+  );
+  const [activeConversationId, setActiveConversationId] = useState<
+    string | null
+  >(() => initialConversations[0]?.id ?? null);
+
+  const handleProposedFiles = useCallback((files: ProposedFile[] | null) => {
+    setProposedFiles(files);
+  }, []);
+
+  const handleConversationCreated = useCallback(
+    (conversation: PipelineConversation) => {
+      setConversations((prev) => [conversation, ...prev]);
+      setActiveConversationId(conversation.id);
+      setChatOpen(true);
+    },
+    [],
+  );
+
+  const handleConversationNameChange = useCallback(
+    (id: string, name: string) => {
+      setConversations((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, name } : c)),
+      );
+    },
+    [],
+  );
 
   if (!data?.workspace || !data?.pipeline) {
     return null;
@@ -156,12 +190,17 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
               </div>
             </div>
             {chatOpen && showAssistant && (
-              <div className="w-[440px] shrink-0">
+              <div className="w-[600px] shrink-0">
                 <PipelineEditChatPanel
                   pipelineId={pipeline.id}
                   workspaceSlug={workspaceSlug}
                   monthlyLimitExceeded={monthlyLimitExceeded}
                   onProposedFiles={handleProposedFiles}
+                  conversations={conversations}
+                  activeConversationId={activeConversationId}
+                  onConversationChange={setActiveConversationId}
+                  onConversationCreated={handleConversationCreated}
+                  onConversationNameChange={handleConversationNameChange}
                 />
               </div>
             )}

@@ -163,6 +163,11 @@ query WorkspacePipelineCodePage(
         ...FilesEditor_file
       }
     }
+    assistantConversations {
+      id
+      name
+      createdAt
+    }
   }
   me {
     assistantMonthlyLimitExceeded

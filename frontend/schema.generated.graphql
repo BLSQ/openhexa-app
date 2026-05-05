@@ -3322,6 +3322,7 @@ type PinDatasetResult {
 
 """Represents a pipeline."""
 type Pipeline {
+  assistantConversations: [AssistantConversation!]!
   autoUpdateFromTemplate: Boolean!
   code: String!
   config: JSON!

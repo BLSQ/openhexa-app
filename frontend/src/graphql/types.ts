@@ -3925,6 +3925,7 @@ export type PinDatasetResult = {
 /** Represents a pipeline. */
 export type Pipeline = {
   __typename?: 'Pipeline';
+  assistantConversations: Array<AssistantConversation>;
   autoUpdateFromTemplate: Scalars['Boolean']['output'];
   code: Scalars['String']['output'];
   config: Scalars['JSON']['output'];
