@@ -7,6 +7,7 @@ from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.mcp.tools.help import get_help_or_doc
 from hexa.mcp.tools.pipelines import create_pipeline
+from hexa.pipelines.models import Pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +46,6 @@ class CreatePipelineAgent(BaseAgent):
             if not pipeline_id:
                 continue
             try:
-                from hexa.pipelines.models import Pipeline
-
                 pipeline = await Pipeline.objects.aget(id=pipeline_id)
                 ct = await sync_to_async(ContentType.objects.get_for_model)(Pipeline)
                 self.conversation.linked_object_content_type = ct
