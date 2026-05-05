@@ -81,11 +81,11 @@ const WorkspaceDatabaseTableViewPage: NextPageWithLayout = ({
           },
           {
             label: t("Using the workspace database in pipelines"),
-            href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines#using-the-workspace-database",
+            href: "https://docs.openhexa.com/writing-pipelines/#using-the-workspace-database",
           },
           {
             label: t("Using the workspace database in notebooks"),
-            href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHEXA#using-the-workspace-database",
+            href: "https://docs.openhexa.com/notebooks-advanced/#using-the-workspace-database",
           },
         ]}
         header={
