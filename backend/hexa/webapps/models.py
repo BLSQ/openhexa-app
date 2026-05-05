@@ -174,6 +174,8 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
     @property
     def serve_url(self):
+        if self.type == self.WebappType.IFRAME:
+            return f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.workspace.slug}/webapps/{self.slug}/play"
         return f"{settings.SCHEME}://{self.subdomain}.{settings.WEBAPPS_DOMAIN}/"
 
     def is_favorite(self, user: User):
