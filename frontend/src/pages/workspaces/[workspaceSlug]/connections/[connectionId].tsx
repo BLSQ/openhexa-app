@@ -74,11 +74,11 @@ const WorkspaceConnectionPage: NextPageWithLayout = ({
           },
           {
             label: t("Using connections in notebooks"),
-            href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHEXA#using-connections",
+            href: "https://docs.openhexa.com/notebooks-advanced/#using-connections",
           },
           {
             label: t("Using connections in pipelines"),
-            href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines#using-connections",
+            href: "https://docs.openhexa.com/writing-pipelines/#using-connections",
           },
         ]}
         header={
