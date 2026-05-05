@@ -75,7 +75,7 @@ const WorkspaceNotebooksPage: NextPageWithLayout = (props: Props) => {
         helpLinks={[
           {
             label: t("Using notebooks in OpenHEXA"),
-            href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHEXA",
+            href: "https://docs.openhexa.com/notebooks-advanced/",
           },
         ]}
         withMarginBottom={false}
