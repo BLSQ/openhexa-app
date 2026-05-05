@@ -190,7 +190,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
               </div>
             </div>
             {chatOpen && showAssistant && (
-              <div className="w-[600px] shrink-0">
+              <div className="w-[440px] shrink-0">
                 <PipelineEditChatPanel
                   pipelineId={pipeline.id}
                   workspaceSlug={workspaceSlug}

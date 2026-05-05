@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import ChatPane from "assistant/features/ChatPane";
-import ConversationList from "assistant/features/ConversationList";
 import useTypewriter from "core/hooks/useTypewriter";
 import { useCreateAssistantConversationMutation } from "assistant/graphql/mutations.generated";
 import { AssistantConversationMessagesQuery } from "assistant/graphql/queries.generated";
 import { LinkedObjectType } from "graphql/types";
 import { ProposedFile } from "workspaces/features/FilesEditor/FilesEditor";
+import { PlusIcon } from "@heroicons/react/24/outline";
+import Spinner from "core/components/Spinner";
+import clsx from "clsx";
 
 type Message = NonNullable<
   AssistantConversationMessagesQuery["assistantConversation"]
@@ -29,6 +31,15 @@ type Props = {
   onConversationNameChange: (id: string, name: string) => void;
 };
 
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function PipelineEditChatPanel({
   pipelineId,
   workspaceSlug,
@@ -42,9 +53,11 @@ export default function PipelineEditChatPanel({
 }: Props) {
   const [conversationName, setConversationName] = useState<string | null>(null);
   const displayedConversationName = useTypewriter(conversationName);
+  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     setConversationName(null);
+    setShowHistory(false);
   }, [activeConversationId]);
 
   const [createConversation, { loading: creating }] =
@@ -117,25 +130,68 @@ export default function PipelineEditChatPanel({
   );
 
   return (
-    <div className="flex h-full border rounded-lg overflow-hidden bg-white">
-      <ConversationList
-        conversations={conversations}
-        selectedId={activeConversationId}
-        onSelect={onConversationChange}
-        onNew={handleCreateConversation}
-        creating={creating}
-        className="w-48"
-      />
-      <div className="flex flex-col flex-1 min-w-0">
-        <div className="shrink-0 border-b border-gray-200 px-4 py-3">
+    <div className="flex flex-col h-full border rounded-lg overflow-hidden bg-white">
+      <div className="shrink-0 border-b border-gray-200 px-4 py-3 flex items-start justify-between">
+        <div className="min-w-0 flex-1">
           <h3 className="text-sm font-medium text-gray-700">AI Assistant</h3>
-          <div className="text-xs mt-1 text-gray-500">
-            {displayedConversationName ??
-              conversations.find((c) => c.id === activeConversationId)?.name ?? (
-                <span className="invisible">&nbsp;</span>
-              )}
-          </div>
+          {!showHistory && (
+            <div className="text-xs mt-1 text-gray-500">
+              {displayedConversationName ??
+                conversations.find((c) => c.id === activeConversationId)
+                  ?.name ?? <span className="invisible">&nbsp;</span>}
+            </div>
+          )}
         </div>
+        <div className="flex items-center gap-2 shrink-0 ml-2 mt-0.5">
+          {conversations.length > 1 && (
+            <button
+              onClick={() => setShowHistory((v) => !v)}
+              className={clsx(
+                "text-xs font-medium py-1 px-1.5 rounded transition-colors",
+                showHistory
+                  ? "bg-blue-50 text-blue-700"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-100",
+              )}
+            >
+              History
+            </button>
+          )}
+          <button
+            onClick={handleCreateConversation}
+            disabled={creating}
+            className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="New conversation"
+          >
+            {creating ? (
+              <Spinner size="xs" />
+            ) : (
+              <PlusIcon className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {showHistory ? (
+        <div className="flex-1 overflow-y-auto">
+          {conversations.map((conv) => (
+            <button
+              key={conv.id}
+              onClick={() => {
+                onConversationChange(conv.id);
+                setShowHistory(false);
+              }}
+              className={clsx(
+                "w-full px-4 py-3 text-left text-sm border-b border-gray-100 transition-colors hover:bg-gray-50",
+                activeConversationId === conv.id
+                  ? "bg-blue-50 text-blue-700 font-medium"
+                  : "text-gray-700",
+              )}
+            >
+              {conv.name || formatDate(conv.createdAt)}
+            </button>
+          ))}
+        </div>
+      ) : (
         <div className="flex-1 min-h-0">
           <ChatPane
             conversationId={activeConversationId}
@@ -148,7 +204,7 @@ export default function PipelineEditChatPanel({
             onMessagesChange={handleMessagesChange}
           />
         </div>
-      </div>
+      )}
     </div>
   );
 }
