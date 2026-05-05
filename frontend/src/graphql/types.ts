@@ -3852,11 +3852,11 @@ export type OrganizationWorkspaceInvitation = {
 /** Represents an input parameter of a pipeline. */
 export type ParameterInput = {
   choices?: InputMaybe<Array<Scalars['Generic']['input']>>;
+  choicesFromFile?: InputMaybe<PipelineParameterChoicesFromFileInput>;
   code: Scalars['String']['input'];
   connection?: InputMaybe<Scalars['String']['input']>;
   default?: InputMaybe<Scalars['Generic']['input']>;
   directory?: InputMaybe<Scalars['String']['input']>;
-  fileChoices?: InputMaybe<PipelineParameterFileChoicesInput>;
   help?: InputMaybe<Scalars['String']['input']>;
   multiple?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
@@ -4028,11 +4028,11 @@ export enum PipelineOrderBy {
 export type PipelineParameter = {
   __typename?: 'PipelineParameter';
   choices?: Maybe<Array<Scalars['Generic']['output']>>;
+  choicesFromFile?: Maybe<PipelineParameterChoicesFromFile>;
   code: Scalars['String']['output'];
   connection?: Maybe<Scalars['String']['output']>;
   default?: Maybe<Scalars['Generic']['output']>;
   directory?: Maybe<Scalars['String']['output']>;
-  fileChoices?: Maybe<PipelineParameterFileChoices>;
   help?: Maybe<Scalars['String']['output']>;
   multiple: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
@@ -4042,15 +4042,15 @@ export type PipelineParameter = {
 };
 
 /** Describes a dynamic choices source backed by a workspace file. */
-export type PipelineParameterFileChoices = {
-  __typename?: 'PipelineParameterFileChoices';
+export type PipelineParameterChoicesFromFile = {
+  __typename?: 'PipelineParameterChoicesFromFile';
   column?: Maybe<Scalars['String']['output']>;
   format: Scalars['String']['output'];
   path: Scalars['String']['output'];
 };
 
 /** Input for a dynamic choices source backed by a workspace file. */
-export type PipelineParameterFileChoicesInput = {
+export type PipelineParameterChoicesFromFileInput = {
   column?: InputMaybe<Scalars['String']['input']>;
   format: Scalars['String']['input'];
   path: Scalars['String']['input'];

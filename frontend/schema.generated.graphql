@@ -3242,11 +3242,11 @@ type OrganizationWorkspaceInvitation {
 """Represents an input parameter of a pipeline."""
 input ParameterInput {
   choices: [Generic!]
+  choicesFromFile: PipelineParameterChoicesFromFileInput
   code: String!
   connection: String
   default: Generic
   directory: String
-  fileChoices: PipelineParameterFileChoicesInput
   help: String
   multiple: Boolean
   name: String
@@ -3404,11 +3404,11 @@ enum PipelineOrderBy {
 """Represents a parameter of a pipeline."""
 type PipelineParameter {
   choices: [Generic!]
+  choicesFromFile: PipelineParameterChoicesFromFile
   code: String!
   connection: String
   default: Generic
   directory: String
-  fileChoices: PipelineParameterFileChoices
   help: String
   multiple: Boolean!
   name: String!
@@ -3418,14 +3418,14 @@ type PipelineParameter {
 }
 
 """Describes a dynamic choices source backed by a workspace file."""
-type PipelineParameterFileChoices {
+type PipelineParameterChoicesFromFile {
   column: String
   format: String!
   path: String!
 }
 
 """Input for a dynamic choices source backed by a workspace file."""
-input PipelineParameterFileChoicesInput {
+input PipelineParameterChoicesFromFileInput {
   column: String
   format: String!
   path: String!
