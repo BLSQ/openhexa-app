@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.4.4](https://github.com/BLSQ/openhexa-app/compare/5.4.3...5.4.4) (2026-05-05)
+
+
+### Bug Fixes
+
+* iframe webapps should render the source url in an iframe and not through subdomain (HEXA-1639) ([#1782](https://github.com/BLSQ/openhexa-app/issues/1782)) ([a9b11e5](https://github.com/BLSQ/openhexa-app/commit/a9b11e544979b0caebba33a2c79ab68fe4e9b5eb))
+
 ## [5.4.3](https://github.com/BLSQ/openhexa-app/compare/5.4.2...5.4.3) (2026-04-27)
 
 
