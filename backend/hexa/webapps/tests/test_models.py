@@ -243,6 +243,39 @@ class WebappModelTest(TestCase):
         self.assertIn(webapp.subdomain, shortcut["url"])
         self.assertNotIn(str(webapp.id), shortcut["url"])
 
+    def test_serve_url_iframe_returns_play_page(self):
+        webapp = Webapp.objects.create(
+            name="Iframe App",
+            slug="iframe-app",
+            subdomain="iframe-app",
+            workspace=self.workspace,
+            created_by=self.user_admin,
+            url="https://example.com",
+            type=Webapp.WebappType.IFRAME,
+        )
+
+        self.assertEqual(
+            webapp.serve_url,
+            f"http://localhost:3000/workspaces/{self.workspace.slug}/webapps/iframe-app/play",
+        )
+        self.assertNotIn(webapp.subdomain, webapp.serve_url.split("/workspaces/")[0])
+
+    def test_serve_url_non_iframe_returns_subdomain(self):
+        for webapp_type in (Webapp.WebappType.STATIC, Webapp.WebappType.SUPERSET):
+            with self.subTest(type=webapp_type):
+                webapp = Webapp(
+                    name=f"{webapp_type} App",
+                    slug=f"{webapp_type}-app",
+                    subdomain=f"{webapp_type}-app",
+                    workspace=self.workspace,
+                    created_by=self.user_admin,
+                    url="https://example.com",
+                    type=webapp_type,
+                )
+                self.assertTrue(webapp.serve_url.startswith("http"))
+                self.assertIn(f"{webapp.subdomain}.", webapp.serve_url)
+                self.assertNotIn("/play", webapp.serve_url)
+
     def test_assign_subdomain_on_create(self):
         webapp = Webapp.objects.create_if_has_perm(
             self.user_admin,

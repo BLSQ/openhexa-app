@@ -420,7 +420,15 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             label={t("Dashboard URL")}
           />
         )}
-        {webapp && (
+        {webapp && selectedType === WebappType.Iframe && (
+          <LinkProperty
+            id="serveUrl"
+            accessor="serveUrl"
+            label={t("Published URL")}
+            help={t("The URL where this web app can be accessed")}
+          />
+        )}
+        {webapp && selectedType !== WebappType.Iframe && (
           <SubdomainProperty
             id="subdomain"
             accessor="subdomain"
@@ -440,7 +448,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           onChange={setIsPublic}
         />
 
-        {webapp && !isPublic && (
+        {webapp && !isPublic && selectedType === WebappType.Static && (
           <ApiAccessSection
             serveUrl={webapp.serveUrl}
             allowedOperations={allowedOperations}
