@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import ChatPane from "assistant/features/ChatPane";
 import useTypewriter from "core/hooks/useTypewriter";
+import { useTranslation } from "next-i18next";
 import { useCreateAssistantConversationMutation } from "assistant/graphql/mutations.generated";
 import { AssistantConversationMessagesQuery } from "assistant/graphql/queries.generated";
 import { LinkedObjectType } from "graphql/types";
@@ -51,6 +52,7 @@ export default function PipelineEditChatPanel({
   onConversationCreated,
   onConversationNameChange,
 }: Props) {
+  const { t } = useTranslation();
   const [conversationName, setConversationName] = useState<string | null>(null);
   const displayedConversationName = useTypewriter(conversationName);
   const [showHistory, setShowHistory] = useState(false);
@@ -153,14 +155,14 @@ export default function PipelineEditChatPanel({
                   : "text-gray-500 hover:text-gray-700 hover:bg-gray-100",
               )}
             >
-              History
+              {t("History")}
             </button>
           )}
           <button
             onClick={handleCreateConversation}
             disabled={creating}
             className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            title="New conversation"
+            title={t("New conversation")}
           >
             {creating ? (
               <Spinner size="xs" />

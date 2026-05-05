@@ -11,7 +11,7 @@ import { NextPageWithLayout } from "core/helpers/types";
 import useFeature from "identity/hooks/useFeature";
 import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PipelineFilesEditor } from "workspaces/features/FilesEditor/PipelineFilesEditor";
 import { ProposedFile } from "workspaces/features/FilesEditor/FilesEditor";
 import PipelineVersionPicker from "workspaces/features/PipelineVersionPicker";
@@ -53,18 +53,19 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const [fetchPipelineVersion, { data: versionData, loading: versionLoading }] =
     useGetPipelineVersionFilesLazyQuery();
 
-  const initialConversations: PipelineConversation[] =
-    data?.pipeline?.assistantConversations ?? [];
+  const [chatOpen, setChatOpen] = useState(false);
+  const [conversations, setConversations] = useState<PipelineConversation[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
 
-  const [chatOpen, setChatOpen] = useState(
-    () => initialConversations.length > 0,
-  );
-  const [conversations, setConversations] = useState<PipelineConversation[]>(
-    () => initialConversations,
-  );
-  const [activeConversationId, setActiveConversationId] = useState<
-    string | null
-  >(() => initialConversations[0]?.id ?? null);
+  const seededRef = useRef(false);
+  useEffect(() => {
+    if (seededRef.current || !data?.pipeline) return;
+    seededRef.current = true;
+    const convs = data.pipeline.assistantConversations;
+    setConversations(convs);
+    setActiveConversationId(convs[0]?.id ?? null);
+    setChatOpen(convs.length > 0);
+  }, [data?.pipeline?.id]);
 
   const handleProposedFiles = useCallback((files: ProposedFile[] | null) => {
     setProposedFiles(files);
