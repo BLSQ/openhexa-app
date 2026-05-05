@@ -36,6 +36,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("hexa.core.urls", namespace="core")),
     path("notebooks/", include("hexa.notebooks.urls", namespace="notebooks")),
+    path("assistant/", include("hexa.assistant.urls", namespace="assistant")),
     path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
     path("workspaces/", include("hexa.workspaces.urls", namespace="workspaces")),
     path("files/", include("hexa.files.urls", namespace="files")),

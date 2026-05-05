@@ -10,13 +10,6 @@ export type CreateAssistantConversationMutationVariables = Types.Exact<{
 
 export type CreateAssistantConversationMutation = { __typename?: 'Mutation', createAssistantConversation: { __typename?: 'CreateAssistantConversationResult', success: boolean, errors: Array<Types.CreateAssistantConversationError>, conversation?: { __typename?: 'AssistantConversation', id: string, createdAt: any } | null } };
 
-export type SendAssistantMessageMutationVariables = Types.Exact<{
-  input: Types.SendAssistantMessageInput;
-}>;
-
-
-export type SendAssistantMessageMutation = { __typename?: 'Mutation', sendAssistantMessage: { __typename?: 'SendAssistantMessageResult', success: boolean, errors: Array<string>, message?: { __typename?: 'AssistantMessage', id: string, role: string, content: string, createdAt: any, toolInvocations: Array<{ __typename?: 'AssistantToolInvocation', toolName: string, toolOutput?: any | null, success: boolean }> } | null } };
-
 
 export const CreateAssistantConversationDocument = gql`
     mutation createAssistantConversation($input: CreateAssistantConversationInput!) {
@@ -56,48 +49,3 @@ export function useCreateAssistantConversationMutation(baseOptions?: Apollo.Muta
 export type CreateAssistantConversationMutationHookResult = ReturnType<typeof useCreateAssistantConversationMutation>;
 export type CreateAssistantConversationMutationResult = Apollo.MutationResult<CreateAssistantConversationMutation>;
 export type CreateAssistantConversationMutationOptions = Apollo.BaseMutationOptions<CreateAssistantConversationMutation, CreateAssistantConversationMutationVariables>;
-export const SendAssistantMessageDocument = gql`
-    mutation sendAssistantMessage($input: SendAssistantMessageInput!) {
-  sendAssistantMessage(input: $input) {
-    success
-    errors
-    message {
-      id
-      role
-      content
-      createdAt
-      toolInvocations {
-        toolName
-        toolOutput
-        success
-      }
-    }
-  }
-}
-    `;
-export type SendAssistantMessageMutationFn = Apollo.MutationFunction<SendAssistantMessageMutation, SendAssistantMessageMutationVariables>;
-
-/**
- * __useSendAssistantMessageMutation__
- *
- * To run a mutation, you first call `useSendAssistantMessageMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useSendAssistantMessageMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [sendAssistantMessageMutation, { data, loading, error }] = useSendAssistantMessageMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useSendAssistantMessageMutation(baseOptions?: Apollo.MutationHookOptions<SendAssistantMessageMutation, SendAssistantMessageMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<SendAssistantMessageMutation, SendAssistantMessageMutationVariables>(SendAssistantMessageDocument, options);
-      }
-export type SendAssistantMessageMutationHookResult = ReturnType<typeof useSendAssistantMessageMutation>;
-export type SendAssistantMessageMutationResult = Apollo.MutationResult<SendAssistantMessageMutation>;
-export type SendAssistantMessageMutationOptions = Apollo.BaseMutationOptions<SendAssistantMessageMutation, SendAssistantMessageMutationVariables>;

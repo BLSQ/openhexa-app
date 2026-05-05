@@ -2984,7 +2984,6 @@ type Mutation {
 
   """Runs a pipeline."""
   runPipeline(input: RunPipelineInput): RunPipelineResult!
-  sendAssistantMessage(input: SendAssistantMessageInput!): SendAssistantMessageResult!
   setDAGRunFavorite(input: SetDAGRunFavoriteInput!): SetDAGRunFavoriteResult
 
   """Set a custom metadata attribute to an object instance"""
@@ -4208,18 +4207,6 @@ type S3ObjectPage {
 
 interface SearchResult {
   score: Float!
-}
-
-input SendAssistantMessageInput {
-  conversationId: UUID!
-  message: String!
-}
-
-type SendAssistantMessageResult {
-  conversation: AssistantConversation
-  errors: [String!]!
-  message: AssistantMessage
-  success: Boolean!
 }
 
 enum SetDAGRunFavoriteError {

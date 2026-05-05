@@ -1,7 +1,6 @@
-import * as Sentry from "@sentry/nextjs";
 import { getPublicEnv } from "core/helpers/runtimeConfig";
 import useSSE from "core/hooks/useSSE";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export type SseMessage = {
   message: string;
@@ -13,7 +12,10 @@ type UsePipelineRunMessagesReturn = {
   messages: SseMessage[];
   isStreaming: boolean;
   streamError: string | null;
+  reload: () => void;
 };
+
+type ReloadState = { cursor: number; attempt: number };
 
 function usePipelineRunMessages(
   runId: string,
@@ -22,11 +24,15 @@ function usePipelineRunMessages(
 ): UsePipelineRunMessagesReturn {
   const [messages, setMessages] = useState<SseMessage[]>([]);
   const [streamError, setStreamError] = useState<string | null>(null);
+  const [reloadState, setReloadState] = useState<ReloadState | null>(null);
   const cleanCloseRef = useRef(false);
+  const messagesRef = useRef<SseMessage[]>([]);
+  messagesRef.current = messages;
 
   useEffect(() => {
     setMessages([]);
     setStreamError(null);
+    setReloadState(null);
     cleanCloseRef.current = false;
   }, [runId]);
 
@@ -35,8 +41,10 @@ function usePipelineRunMessages(
     const apiBasePath =
       process.env.NEXT_PUBLIC_API_BASE_PATH ||
       getPublicEnv().OPENHEXA_BACKEND_URL;
-    return `${apiBasePath}/pipelines/runs/${runId}/messages/stream/`;
-  }, [runId, isTerminal]);
+    const base = `${apiBasePath}/pipelines/runs/${runId}/messages/stream/`;
+    if (!reloadState) return base;
+    return `${base}?from=${reloadState.cursor}&_attempt=${reloadState.attempt}`;
+  }, [runId, isTerminal, reloadState]);
 
   const { isConnected: isStreaming, connectionError } = useSSE(url, {
     message: (data) => {
@@ -48,23 +56,25 @@ function usePipelineRunMessages(
     },
     timeout: () => {
       setStreamError("timeout");
-      Sentry.captureMessage("SSE pipeline run messages timed out", {
-        level: "warning",
-        extra: { runId },
-      });
     },
   });
 
   useEffect(() => {
     if (connectionError && !cleanCloseRef.current) {
       setStreamError("connection_failed");
-      Sentry.captureException(
-        new Error(`SSE connection failed for pipeline run ${runId}`),
-      );
     }
-  }, [connectionError, runId]);
+  }, [connectionError]);
 
-  return { messages, isStreaming, streamError };
+  const reload = useCallback(() => {
+    cleanCloseRef.current = false;
+    setStreamError(null);
+    setReloadState((prev) => ({
+      cursor: messagesRef.current.length,
+      attempt: (prev?.attempt ?? 0) + 1,
+    }));
+  }, []);
+
+  return { messages, isStreaming, streamError, reload };
 }
 
 export default usePipelineRunMessages;

@@ -43,9 +43,7 @@ class MockBucket:
         return self.client.list_blobs(self, *args, **kwargs)
 
     def get_blob(self, name: str, *args, **kwargs):
-        if name not in self._blobs:
-            raise NotFound(f"Blob {name} not found")
-        return self._blobs[name]
+        return self._blobs.get(name)
 
     def blob(self, blob_name: str, *args, **kwargs):
         if blob_name in self._blobs:

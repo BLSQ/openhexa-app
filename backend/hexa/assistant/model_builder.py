@@ -1,3 +1,5 @@
+from typing import NamedTuple
+
 from pydantic_ai.models import Model
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.providers.anthropic import AnthropicProvider
@@ -5,6 +7,12 @@ from pydantic_ai.providers.anthropic import AnthropicProvider
 from hexa.assistant.exceptions import AssistantException
 from hexa.assistant.models import Conversation
 from hexa.user_management.models import AiSettings
+
+
+class BuiltModel(NamedTuple):
+    model: Model
+    api_name: str
+    provider_id: str
 
 
 def _build_anthropic(model_api_name: str, api_key: str) -> Model:
@@ -58,8 +66,11 @@ class AiModelBuilder:
     def provider_id(self) -> str | None:
         return self._provider
 
-    def build(self) -> Model:
+    def build(self) -> BuiltModel:
         factory = _PROVIDER_FACTORIES.get(self._provider)
         if not factory:
             raise ValueError(f"Unsupported AI provider: {self._provider!r}")
-        return factory(self._model_api_name, self._api_key)
+        model = factory(self._model_api_name, self._api_key)
+        return BuiltModel(
+            model=model, api_name=self._model_api_name, provider_id=self._provider
+        )

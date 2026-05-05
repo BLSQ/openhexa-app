@@ -10,10 +10,12 @@ To re-record cassettes:
   5. Restore record_mode to 'none'.
 """
 
+import json
 import os
 from unittest.mock import patch
 
 import vcr
+from asgiref.sync import async_to_sync
 from django.test import TestCase, tag
 from vcr.record_mode import RecordMode
 
@@ -23,7 +25,30 @@ from hexa.assistant.models import Conversation, Message
 from hexa.user_management.models import AiSettings, User
 from hexa.workspaces.models import Workspace
 
+
+def run_agent(agent: BaseAgent, message: str) -> None:
+    async def _consume():
+        async for _ in agent.run_stream(message):
+            pass
+
+    async_to_sync(_consume)()
+
+
 CASSETTES_DIR = os.path.join(os.path.dirname(__file__), "cassettes")
+
+
+def _match_stream_mode(r1, r2):
+    """Match requests by whether they use streaming, so concurrent naming and
+    main-agent calls are routed to the correct cassette interactions regardless
+    of which HTTP request arrives first.
+    """
+    try:
+        b1 = json.loads(r1.body)
+        b2 = json.loads(r2.body)
+        return b1.get("stream") == b2.get("stream")
+    except (json.JSONDecodeError, AttributeError):
+        return True
+
 
 assistant_vcr = vcr.VCR(
     filter_headers=[
@@ -37,8 +62,9 @@ assistant_vcr = vcr.VCR(
         "user-agent",
     ],
     record_mode=RecordMode.NONE,
-    match_on=["method", "host", "port", "path"],
+    match_on=["method", "host", "port", "path", "stream_mode"],
 )
+assistant_vcr.register_matcher("stream_mode", _match_stream_mode)
 
 
 @tag("vcr")
@@ -64,7 +90,9 @@ class AssistantVCRTest(TestCase):
                 "enabled": True,
                 "provider": AiSettings.Provider.ANTHROPIC,
                 "model": AiSettings.Model.HAIKU,
-                "api_key": "test-key-for-vcr-replay",
+                "api_key": os.environ.get(
+                    "ANTHROPIC_API_KEY", "test-key-for-vcr-replay"
+                ),
             },
         )
 
@@ -76,27 +104,23 @@ class AssistantVCRTest(TestCase):
         )
 
     @assistant_vcr.use_cassette(os.path.join(CASSETTES_DIR, "simple_chat.yaml"))
-    def test_simple_chat_returns_text_response(self):
-        agent = BaseAgent(self.conversation)
-        response = agent.run("Hello")
-        self.assertIsInstance(response, str)
-        self.assertGreater(len(response), 0)
-
-    @assistant_vcr.use_cassette(os.path.join(CASSETTES_DIR, "simple_chat.yaml"))
     def test_simple_chat_saves_messages_to_db(self):
         agent = BaseAgent(self.conversation)
-        agent.run("Hello")
+        run_agent(agent, "Hello")
         self.assertEqual(
             self.conversation.messages.filter(role=Message.Role.USER).count(), 1
         )
-        self.assertEqual(
-            self.conversation.messages.filter(role=Message.Role.ASSISTANT).count(), 1
-        )
+        assistant_msg = self.conversation.messages.filter(
+            role=Message.Role.ASSISTANT
+        ).first()
+        self.assertIsNotNone(assistant_msg)
+        self.assertIsInstance(assistant_msg.content, str)
+        self.assertGreater(len(assistant_msg.content), 0)
 
     @assistant_vcr.use_cassette(os.path.join(CASSETTES_DIR, "simple_chat.yaml"))
     def test_simple_chat_generates_conversation_name(self):
         agent = BaseAgent(self.conversation)
-        agent.run("Hello")
+        run_agent(agent, "Hello")
         self.conversation.refresh_from_db()
         self.assertIsNotNone(self.conversation.name)
         self.assertGreater(len(self.conversation.name), 0)

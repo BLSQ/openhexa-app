@@ -7,6 +7,7 @@ type UseSSEHandlers = {
 type UseSSEReturn = {
   isConnected: boolean;
   connectionError: boolean;
+  close: () => void;
 };
 
 function useSSE(url: string | null, handlers: UseSSEHandlers): UseSSEReturn {
@@ -14,6 +15,7 @@ function useSSE(url: string | null, handlers: UseSSEHandlers): UseSSEReturn {
   const [connectionError, setConnectionError] = useState(false);
   const handlersRef = useRef(handlers);
   handlersRef.current = handlers;
+  const sourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
     if (!url) {
@@ -23,8 +25,12 @@ function useSSE(url: string | null, handlers: UseSSEHandlers): UseSSEReturn {
     }
 
     const source = new EventSource(url, { withCredentials: true });
-    setIsConnected(true);
+    sourceRef.current = source;
     setConnectionError(false);
+
+    source.onopen = () => {
+      setIsConnected(true);
+    };
 
     const eventTypes = Object.keys(handlersRef.current);
     eventTypes.forEach((eventType) => {
@@ -35,17 +41,25 @@ function useSSE(url: string | null, handlers: UseSSEHandlers): UseSSEReturn {
 
     source.onerror = () => {
       source.close();
+      sourceRef.current = null;
       setIsConnected(false);
       setConnectionError(true);
     };
 
     return () => {
       source.close();
+      sourceRef.current = null;
       setIsConnected(false);
     };
   }, [url]);
 
-  return { isConnected, connectionError };
+  const close = () => {
+    sourceRef.current?.close();
+    sourceRef.current = null;
+    setIsConnected(false);
+  };
+
+  return { isConnected, connectionError, close };
 }
 
 export default useSSE;

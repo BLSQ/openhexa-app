@@ -1,8 +1,10 @@
 import { gql } from "@apollo/client";
+import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
 import Link from "core/components/Link";
 import Spinner from "core/components/Spinner";
 import Time from "core/components/Time";
+import Tooltip from "core/components/Tooltip";
 import useAutoScroll from "core/hooks/useAutoScroll";
 import { PipelineRunStatus } from "graphql/types";
 import Linkify from "linkify-react";
@@ -21,6 +23,7 @@ type RunMessagesProps = {
   messages?: SseMessage[];
   isStreaming?: boolean;
   streamError?: string | null;
+  onReload?: () => void;
 };
 
 function getBadgeClassName(priority: string) {
@@ -40,7 +43,13 @@ function getBadgeClassName(priority: string) {
 
 const RunMessages = (props: RunMessagesProps) => {
   const { t } = useTranslation();
-  const { run, messages: messagesOverride, isStreaming, streamError } = props;
+  const {
+    run,
+    messages: messagesOverride,
+    isStreaming,
+    streamError,
+    onReload,
+  } = props;
   const ref = useRef<HTMLDivElement>(null);
   useAutoScroll(ref, "smooth");
 
@@ -109,10 +118,24 @@ const RunMessages = (props: RunMessagesProps) => {
         </div>
       )}
       {streamError && (
-        <div className="text-sm text-amber-600 px-2 py-2">
-          {streamError === "timeout"
-            ? t("Live updates timed out. Refresh the page to reconnect.")
-            : t("Live updates disconnected. Refresh the page to reconnect.")}
+        <div className="flex items-center gap-1.5 text-sm text-amber-600 px-2 py-2">
+          <span>
+            {streamError === "timeout"
+              ? t("Live updates timed out.")
+              : t("Live updates disconnected.")}
+          </span>
+          {onReload && (
+            <Tooltip label={t("Reconnect")} placement="top">
+              <button
+                type="button"
+                onClick={onReload}
+                aria-label={t("Reconnect")}
+                className="group inline-flex items-center justify-center rounded-full p-1 text-amber-600 hover:bg-amber-50 hover:text-amber-700 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <ArrowPathIcon className="h-4 w-4 transition-transform duration-500 group-hover:rotate-180 group-active:rotate-180" />
+              </button>
+            </Tooltip>
+          )}
         </div>
       )}
     </>

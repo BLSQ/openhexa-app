@@ -485,7 +485,7 @@ regex==2024.11.6
     # via
     #   -r requirements.in
     #   openhexa-toolbox
-requests==2.32.5
+requests==2.33.0
     # via
     #   -r requirements.in
     #   azure-core
