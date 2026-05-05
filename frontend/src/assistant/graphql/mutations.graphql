@@ -9,20 +9,3 @@ mutation createAssistantConversation($input: CreateAssistantConversationInput!) 
   }
 }
 
-mutation sendAssistantMessage($input: SendAssistantMessageInput!) {
-  sendAssistantMessage(input: $input) {
-    success
-    errors
-    message {
-      id
-      role
-      content
-      createdAt
-      toolInvocations {
-        toolName
-        toolOutput
-        success
-      }
-    }
-  }
-}

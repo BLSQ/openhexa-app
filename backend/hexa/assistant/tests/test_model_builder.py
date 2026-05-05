@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from django.test import SimpleTestCase, TestCase
 
 from hexa.assistant.exceptions import AssistantException
-from hexa.assistant.model_builder import AiModelBuilder, get_api_name
+from hexa.assistant.model_builder import AiModelBuilder, BuiltModel, get_api_name
 from hexa.user_management.models import AiSettings
 
 
@@ -33,6 +33,17 @@ class AiModelBuilderTest(TestCase):
         )
         self.assertEqual(builder.model_api_name, "claude-haiku-4-5-20251001")
         self.assertEqual(builder.provider_id, AiSettings.Provider.ANTHROPIC)
+
+    def test_build_returns_built_model(self):
+        builder = AiModelBuilder(
+            provider=AiSettings.Provider.ANTHROPIC,
+            model=AiSettings.Model.HAIKU,
+            api_key="test-key",
+        )
+        result = builder.build()
+        self.assertIsInstance(result, BuiltModel)
+        self.assertEqual(result.api_name, "claude-haiku-4-5-20251001")
+        self.assertEqual(result.provider_id, AiSettings.Provider.ANTHROPIC)
 
     def test_build_unsupported_provider_raises_value_error(self):
         builder = AiModelBuilder(

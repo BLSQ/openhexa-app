@@ -1,6 +1,5 @@
 import asyncio
 import base64
-import json
 import random
 import string
 import uuid
@@ -11,6 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from hexa.core.test import TestCase
+from hexa.core.test.utils import collect_async_stream, parse_sse_stream
 from hexa.pipelines.models import (
     Pipeline,
     PipelineRun,
@@ -457,27 +457,6 @@ class ViewsTest(TestCase):
         self.assertEqual(self.PIPELINE.last_run.send_mail_notifications, True)
 
 
-def _parse_sse(content: bytes) -> list[dict]:
-    events = []
-    current: dict = {}
-    for line in content.decode().splitlines():
-        if line.startswith("event:"):
-            current["event"] = line[len("event:") :].strip()
-        elif line.startswith("data:"):
-            current["data"] = json.loads(line[len("data:") :].strip())
-        elif not line and current:
-            events.append(current)
-            current = {}
-    return events
-
-
-async def _collect_async_stream(streaming_content) -> bytes:
-    chunks = []
-    async for chunk in streaming_content:
-        chunks.append(chunk)
-    return b"".join(chunks)
-
-
 class SSEStreamTest(TestCase):
     def setUp(self):
         super().setUp()
@@ -518,8 +497,8 @@ class SSEStreamTest(TestCase):
         return reverse("pipelines:stream_pipeline_run_messages", args=[run_id])
 
     def _consume(self, response) -> list[dict]:
-        content = asyncio.run(_collect_async_stream(response.streaming_content))
-        return _parse_sse(content)
+        content = asyncio.run(collect_async_stream(response.streaming_content))
+        return parse_sse_stream(content)
 
     # --- Auth / permission ---
 
