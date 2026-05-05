@@ -17,7 +17,7 @@ OpenHEXA pipelines are Python-based data applications designed to handle a wide 
 
 ![Pipeline Overview](../assets/images/pipelines/general.png)
 
-Pipelines are written as Python programs, giving you complete control over their behavior and functionality. For detailed development guidance, see our [dedicated pipeline development guide](https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines).
+Pipelines are written as Python programs, giving you complete control over their behavior and functionality. For detailed development guidance, see our [dedicated pipeline development guide](writing-pipelines.md).
 
 ## Run and monitor pipelines
 
@@ -75,7 +75,7 @@ For developers and data engineers, the CLI provides the most flexible approach:
 
 ![Creating Pipeline from CLI](../assets/images/pipelines/from_cli.png)
 
-See our guides: [Using the OpenHEXA CLI](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-CLI) and [Writing OpenHEXA Pipelines](https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines).
+See our guides: [Using the OpenHEXA CLI](cli.md) and [Writing OpenHEXA Pipelines](writing-pipelines.md).
 
 #### 2. From a Jupyter notebook
 You can use a Notebook from the workspace file system to be run as a pipeline. This is the easiest way to create a pipeline:
@@ -216,7 +216,7 @@ Set default parameter values that will be used for scheduled runs.
 
     - **Standard timeout**: 4 hours (default configuration)
     - **Maximum timeout**: 12 hours (configurable by pipeline authors)
-    - **Custom timeouts**: Pipeline developers can [configure custom timeouts](https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines#pipeline-timeouts) within the maximum limit
+    - **Custom timeouts**: Pipeline developers can [configure custom timeouts](writing-pipelines.md#pipeline-timeouts) within the maximum limit
 
 ### Source code access
 

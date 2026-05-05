@@ -3,9 +3,9 @@ site_description: 'OpenHEXA - Open-source data integration platform for public h
 site_url: https://docs.openhexa.com
 
 # Repository
-repo_name: BLSQ/openhexa
-repo_url: https://github.com/BLSQ/openhexa
-edit_uri: wiki
+repo_name: BLSQ/openhexa-app
+repo_url: https://github.com/BLSQ/openhexa-app
+edit_uri: edit/main/docs/
 
 # Documentation directory
 docs_dir: docs
@@ -107,8 +107,18 @@ plugins:
             Connections: Connexions
             Pipelines: Pipelines
             Notebooks: Notebooks
+            Developer Guide: Guide développeur
+            Writing Pipelines: Écrire des pipelines
+            CLI: CLI
+            SDK: SDK
+            Toolbox: Toolbox
+            Notebooks (advanced): Notebooks (avancé)
+            API Authentication: Authentification API
             Administration: Administration
             Admin Guide: Guide d'administration
+            Installation: Installation
+            Architecture: Architecture
+            Legacy: Version héritée
   - awesome-pages
   - glightbox
   - mermaid2:
@@ -123,6 +133,9 @@ plugins:
   - redirects:
       redirect_maps:
         'en/Home.md': 'en/index.md'
+
+hooks:
+  - overrides/hooks/copy_sitemap.py
 
 # Additional configuration
 extra:
@@ -201,5 +214,15 @@ nav:
     - Connections: connections.md
     - Pipelines: pipelines.md
     - Notebooks: notebooks.md
+  - Developer Guide:
+    - Writing Pipelines: writing-pipelines.md
+    - CLI: cli.md
+    - SDK: sdk.md
+    - Toolbox: toolbox.md
+    - Notebooks (advanced): notebooks-advanced.md
+    - API Authentication: api-authentication.md
   - Administration:
     - Admin Guide: admin.md
+    - Installation: installation.md
+    - Architecture: architecture.md
+    - Legacy: legacy.md

@@ -44,7 +44,7 @@ const Help = (props: HelpProps) => {
         </ul>
         <div className="-mx-4 -mb-4 mt-2 border-t border-gray-300 bg-gray-100 px-4 py-4">
           <Link
-            href="https://github.com/BLSQ/openhexa/wiki"
+            href="https://docs.openhexa.com"
             customStyle="text-gray-900 hover:text-gray-500"
             target="_blank"
           >
@@ -56,7 +56,7 @@ const Help = (props: HelpProps) => {
   } else {
     return (
       <Link
-        href="https://github.com/BLSQ/openhexa/wiki"
+        href="https://docs.openhexa.com"
         noStyle
         target="_blank"
       >

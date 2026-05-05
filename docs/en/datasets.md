@@ -33,7 +33,7 @@ You can create datasets in two ways:
 
 
 ### OpenHEXA SDK
-For programmatic dataset creation, use the [OpenHEXA SDK](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK#working-with-datasets) to create and manage datasets through code.
+For programmatic dataset creation, use the [OpenHEXA SDK](sdk.md#working-with-datasets) to create and manage datasets through code.
 
 ## General information
 
@@ -42,7 +42,7 @@ For programmatic dataset creation, use the [OpenHEXA SDK](https://github.com/BLS
 The **General** section provides essential metadata and configuration options for your dataset:
 
 - **Description**: Edit the dataset description to provide context about its contents and purpose
-- **Identifier (Slug)**: A unique identifier that you can use to reference this dataset programmatically with the [OpenHEXA SDK](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK#working-with-datasets)
+- **Identifier (Slug)**: A unique identifier that you can use to reference this dataset programmatically with the [OpenHEXA SDK](sdk.md#working-with-datasets)
 - **Creation Details**: View who created the dataset and when
 - **Source Workspace**: The workspace where the dataset was originally created (see [Access management](#access-management) for sharing options)
 

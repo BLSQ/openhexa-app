@@ -206,7 +206,7 @@ export default function CreateConnectionDialog({
               create a custom connection. Please note that connections are not
               available in already running Jupyter instances. Follow{" "}
               <Link
-                href="https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHEXA#restarting-your-jupyter-server"
+                href="https://docs.openhexa.com/notebooks-advanced/#restarting-your-jupyter-server"
                 target="_blank"
               >
                 this guide

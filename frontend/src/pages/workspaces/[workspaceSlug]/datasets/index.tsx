@@ -84,7 +84,7 @@ const WorkspaceDatasetsPage: NextPageWithLayout = (props: Props) => {
           },
           {
             label: t("Using the OpenHEXA SDK with datasets"),
-            href: "https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK#working-with-datasets",
+            href: "https://docs.openhexa.com/sdk/#working-with-datasets",
           },
         ]}
         header={

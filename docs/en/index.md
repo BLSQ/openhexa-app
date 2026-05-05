@@ -25,55 +25,55 @@ This user manual covers all aspects of using OpenHEXA:
 <div class="quickstart-grid">
   <div class="quickstart-card">
     <div class="number">👤</div>
-    <h3><a href="account/">Account Management</a></h3>
+    <h3><a href="account.md">Account Management</a></h3>
     <p>Manage your profile, security settings, and personal preferences.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">🧭</div>
-    <h3><a href="navigation/">Navigation</a></h3>
+    <h3><a href="navigation.md">Navigation</a></h3>
     <p>Learn to navigate between organizations, workspaces, and find resources quickly.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">🏢</div>
-    <h3><a href="workspaces/">Workspaces</a></h3>
+    <h3><a href="workspaces.md">Workspaces</a></h3>
     <p>Create and manage collaborative project environments for your team.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">📁</div>
-    <h3><a href="files/">File Management</a></h3>
+    <h3><a href="files.md">File Management</a></h3>
     <p>Upload, organize, and share files through the shared filesystem.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">🗄️</div>
-    <h3><a href="database/">Database</a></h3>
+    <h3><a href="database.md">Database</a></h3>
     <p>Work with PostgreSQL databases for structured data storage and analysis.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">📊</div>
-    <h3><a href="datasets/">Datasets</a></h3>
+    <h3><a href="datasets.md">Datasets</a></h3>
     <p>Manage and version your datasets for reproducible analysis.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">🔗</div>
-    <h3><a href="connections/">Connections</a></h3>
+    <h3><a href="connections.md">Connections</a></h3>
     <p>Connect to external data sources and APIs for data integration.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">⚡</div>
-    <h3><a href="pipelines/">Pipelines</a></h3>
+    <h3><a href="pipelines.md">Pipelines</a></h3>
     <p>Create, run, and schedule complex data workflows and ETL processes.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">📓</div>
-    <h3><a href="notebooks/">Notebooks</a></h3>
+    <h3><a href="notebooks.md">Notebooks</a></h3>
     <p>Use Jupyter notebooks for interactive data exploration and analysis.</p>
   </div>
 </div>
@@ -84,35 +84,35 @@ This user manual covers all aspects of using OpenHEXA:
 
 If you're new to OpenHEXA, follow this learning path:
 
-1. **[Account Management](account/)** - Set up your profile and security settings
-2. **[Navigation](navigation/)** - Learn to navigate the platform effectively
-3. **[Workspaces](workspaces/)** - Create your first workspace and understand the environment
-4. **[File Management](files/)** - Upload and organize your data files
-5. **[Notebooks](notebooks/)** - Start exploring data with Jupyter notebooks
+1. **[Account Management](account.md)** - Set up your profile and security settings
+2. **[Navigation](navigation.md)** - Learn to navigate the platform effectively
+3. **[Workspaces](workspaces.md)** - Create your first workspace and understand the environment
+4. **[File Management](files.md)** - Upload and organize your data files
+5. **[Notebooks](notebooks.md)** - Start exploring data with Jupyter notebooks
 
 ### 🛠️ For developers
 
 If you're planning to develop pipelines or work with the API:
 
-- **[Writing OpenHEXA Pipelines](https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines)** - Create custom data workflows
-- **[Using the OpenHEXA CLI](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-CLI)** - Command-line interface
-- **[Using the OpenHEXA SDK](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK)** - Python development kit
-- **[Using the OpenHEXA Toolbox](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-Toolbox)** - Development utilities
-- **[Using Notebooks in OpenHEXA](https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHEXA)** - Advanced notebook usage
+- **[Writing OpenHEXA Pipelines](writing-pipelines.md)** - Create custom data workflows
+- **[Using the OpenHEXA CLI](cli.md)** - Command-line interface
+- **[Using the OpenHEXA SDK](sdk.md)** - Python development kit
+- **[Using the OpenHEXA Toolbox](toolbox.md)** - Development utilities
+- **[Using Notebooks in OpenHEXA](notebooks-advanced.md)** - Advanced notebook usage
 
 
 ### 👥 For administrators
 
 If you're managing teams and organizations:
 
-1. **[Administration](admin/)** - Manage organizations, workspaces, and users
-2. **[Workspaces](workspaces/)** - Configure workspace settings and permissions
+1. **[Administration](admin.md)** - Manage organizations, workspaces, and users
+2. **[Workspaces](workspaces.md)** - Configure workspace settings and permissions
 
 ### 🔧 Installation and administration
 
-- **[Installation Instructions](https://github.com/BLSQ/openhexa/wiki/Installation-instructions)** - Set up your OpenHEXA instance
+- **[Installation Instructions](installation.md)** - Set up your OpenHEXA instance
 - **[Localhosting Installation Instructions](https://github.com/BLSQ/openhexa?tab=readme-ov-file#quick-start)** - Set up your OpenHEXA instance locally
-- **[Technical Architecture](https://github.com/BLSQ/openhexa/wiki/Technical-architecture)** - System design and components
+- **[Technical Architecture](architecture.md)** - System design and components
 
 
 ### 🔍 Need help?

@@ -51,7 +51,7 @@ const CreatePipelineUsingCLI = (props: CreatePipelineUsingCLIProps) => {
           <code>openhexa</code> CLI using the{" "}
           <Link
             target="_blank"
-            href="https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines"
+            href="https://docs.openhexa.com/writing-pipelines/"
           >
             guide
           </Link>{" "}
