@@ -7,6 +7,7 @@ import clsx from "clsx";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
+import { ensureArray } from "core/helpers/array";
 import useForm from "core/hooks/useForm";
 import { PipelineParameter, UpdatePipelineVersionError } from "graphql/types";
 import ParameterField from "../RunPipelineDialog/ParameterField";
@@ -54,6 +55,16 @@ const PipelineVersionConfigDialog = (props: PipelineVersionConfigProps) => {
           errors[param.code] = t(
             "This parameter is required for scheduling the pipeline.",
           );
+        }
+      }
+      const normalizedValues = convertParametersToPipelineInput(version, values);
+      for (const param of version.parameters) {
+        if (errors[param.code]) continue;
+        if (param.type === "int" || param.type === "float") {
+          const val = normalizedValues[param.code];
+          if (ensureArray(val).some((v: any) => isNaN(v))) {
+            errors[param.code] = t("This field must contain only numbers");
+          }
         }
       }
       return errors;
