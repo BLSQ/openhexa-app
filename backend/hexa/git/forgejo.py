@@ -121,15 +121,7 @@ class ForgejoClient(GitClient):
         org_slug = org_slug or self._username
         quoted_path = quote(path, safe="/")
         url = f"{self._url}/api/v1/repos/{org_slug}/{repo_name}/media/{quoted_path}"
-        logger.warning("[get_file/media] GET %s ref=%s", url, ref)
         response = self._session.get(url, params={"ref": ref}, allow_redirects=True)
-        logger.warning(
-            "[get_file/media] status=%s bytes=%s content-type=%s final-url=%s",
-            response.status_code,
-            len(response.content),
-            response.headers.get("Content-Type"),
-            response.url,
-        )
         if not response.ok:
             raise ForgejoAPIError("GET", url, response.status_code, response.text)
         return response.content
