@@ -1,3 +1,4 @@
+import base64
 import os
 import secrets
 
@@ -268,6 +269,14 @@ class GitWebapp(Webapp, GitRepoMixin):
             parent = "/".join(path.split("/")[:-1]) or None
             extension = os.path.splitext(path)[1].lower()
 
+            line_count = None
+            if content is not None:
+                try:
+                    decoded = base64.b64decode(content).decode("utf-8")
+                    line_count = decoded.count("\n") + 1
+                except (ValueError, UnicodeDecodeError):
+                    pass
+
             nodes.append(
                 {
                     "id": path,
@@ -278,7 +287,7 @@ class GitWebapp(Webapp, GitRepoMixin):
                     "parent_id": parent,
                     "auto_select": path == "index.html",
                     "language": self.LANGUAGE_MAP.get(extension) if content else None,
-                    "line_count": content.count("\n") + 1 if content else None,
+                    "line_count": line_count,
                 }
             )
         return nodes

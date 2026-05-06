@@ -1,9 +1,13 @@
 import base64
+import logging
+from urllib.parse import quote
 
 import requests
 from django.conf import settings
 
 from hexa.git.client import GitClient
+
+logger = logging.getLogger(__name__)
 
 
 class ForgejoAPIError(Exception):
@@ -115,13 +119,20 @@ class ForgejoClient(GitClient):
         org_slug: str | None = None,
     ) -> bytes:
         org_slug = org_slug or self._username
-        response = self._request(
-            "GET",
-            f"/repos/{org_slug}/{repo_name}/contents/{path}",
-            params={"ref": ref},
+        quoted_path = quote(path, safe="/")
+        url = f"{self._url}/api/v1/repos/{org_slug}/{repo_name}/media/{quoted_path}"
+        logger.warning("[get_file/media] GET %s ref=%s", url, ref)
+        response = self._session.get(url, params={"ref": ref}, allow_redirects=True)
+        logger.warning(
+            "[get_file/media] status=%s bytes=%s content-type=%s final-url=%s",
+            response.status_code,
+            len(response.content),
+            response.headers.get("Content-Type"),
+            response.url,
         )
-        content = response.json().get("content", "")
-        return base64.b64decode(content)
+        if not response.ok:
+            raise ForgejoAPIError("GET", url, response.status_code, response.text)
+        return response.content
 
     def commit_files(
         self,
@@ -148,10 +159,8 @@ class ForgejoClient(GitClient):
             path = file["path"]
             is_update = path in existing_tree
             content = file["content"]
-            if isinstance(content, str):
-                content = base64.b64encode(content.encode()).decode()
-            elif isinstance(content, bytes):
-                content = base64.b64encode(content).decode()
+            if isinstance(content, bytes):
+                content = base64.b64encode(content).decode("ascii")
             op = {
                 "operation": "update" if is_update else "create",
                 "path": path,
@@ -184,7 +193,7 @@ class ForgejoClient(GitClient):
         *,
         org_slug: str | None = None,
     ) -> list[dict]:
-        """Fetch the full file tree and return a flat list with path, type, and content."""
+        """Fetch the full file tree and return a flat list with path, type, and base64 content."""
         tree = self.get_files_tree(repo_name, ref, org_slug=org_slug)
         nodes: list[dict] = []
 
@@ -196,7 +205,7 @@ class ForgejoClient(GitClient):
                 nodes.append({"path": path, "type": "directory", "content": None})
             elif entry_type == "blob":
                 raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
-                content = raw.decode("utf-8", errors="replace")
+                content = base64.b64encode(raw).decode("ascii")
                 nodes.append({"path": path, "type": "file", "content": content})
 
         return nodes

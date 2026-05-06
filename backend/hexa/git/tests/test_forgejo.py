@@ -1,4 +1,3 @@
-import base64
 
 import responses
 from django.test import TestCase, override_settings
@@ -52,10 +51,9 @@ class ForgejoClientCreateRepositoryTest(TestCase):
 class ForgejoClientGetFileTest(TestCase):
     @responses.activate
     def test_get_file(self):
-        content = base64.b64encode(b"hello world").decode()
         responses.get(
-            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/README.md",
-            json={"content": content, "name": "README.md"},
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/media/README.md",
+            body=b"hello world",
             status=200,
         )
 
@@ -196,7 +194,7 @@ class ForgejoAPIErrorTest(TestCase):
         )
 
         responses.get(
-            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/missing.txt",
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/media/missing.txt",
             json={"message": "not found"},
             status=404,
         )
@@ -350,10 +348,9 @@ class ForgejoClientGetFilesTreeWithOwnerTest(TestCase):
 class ForgejoClientGetFileWithOwnerTest(TestCase):
     @responses.activate
     def test_get_file_with_owner(self):
-        content = base64.b64encode(b"<h1>Hello</h1>").decode()
         responses.get(
-            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/my-repo/contents/index.html",
-            json={"content": content, "name": "index.html"},
+            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/my-repo/media/index.html",
+            body=b"<h1>Hello</h1>",
             status=200,
         )
 
