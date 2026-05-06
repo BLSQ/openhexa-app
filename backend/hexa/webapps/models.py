@@ -269,8 +269,9 @@ class GitWebapp(Webapp, GitRepoMixin):
             parent = "/".join(path.split("/")[:-1]) or None
             extension = os.path.splitext(path)[1].lower()
 
+            language = self.LANGUAGE_MAP.get(extension) if content else None
             line_count = None
-            if content is not None:
+            if content and language:
                 try:
                     decoded = base64.b64decode(content).decode("utf-8")
                     line_count = decoded.count("\n") + 1
@@ -286,7 +287,7 @@ class GitWebapp(Webapp, GitRepoMixin):
                     "content": content,
                     "parent_id": parent,
                     "auto_select": path == "index.html",
-                    "language": self.LANGUAGE_MAP.get(extension) if content else None,
+                    "language": language,
                     "line_count": line_count,
                 }
             )

@@ -5,11 +5,8 @@ import { FilesEditor } from "workspaces/features/FilesEditor/FilesEditor";
 import { FilesEditor_FileFragment } from "workspaces/features/FilesEditor/FilesEditor.generated";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
 import { useWebappFilesLazyQuery } from "webapps/graphql/queries.generated";
-import {
-  base64ToString,
-  fileToBase64,
-  stringToBase64,
-} from "webapps/helpers/base64";
+import { fileToBase64, stringToBase64 } from "webapps/helpers/base64";
+import { decodeFileContent } from "webapps/helpers/files";
 import Spinner from "core/components/Spinner";
 import { ArrowUpTrayIcon, FolderPlusIcon } from "@heroicons/react/24/outline";
 
@@ -56,7 +53,9 @@ const WebappFilesEditor = ({
         const decoded = (data?.webapp?.files ?? []).map((file) => ({
           ...file,
           content:
-            file.content != null ? base64ToString(file.content) : file.content,
+            file.content != null
+              ? decodeFileContent(file.path, file.content)
+              : file.content,
         }));
         setFiles(decoded);
         setIsLoading(false);

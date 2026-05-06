@@ -139,15 +139,25 @@ const FileEditorPane = ({
       )}
       <div className="flex-1 relative overflow-hidden h-full">
         <div className="absolute inset-0">
-          <CodeMirrorClient
-            key={selectedFile.id + (isDiffMode ? "-diff" : "")}
-            value={currentFileContent}
-            readOnly={!isEditable}
-            onChange={onContentChange}
-            extensions={extensions}
-            height="100%"
-            style={{ width: "100%", height: "100%" }}
-          />
+          {/^data:image\/[a-z0-9+.-]+;base64,/i.test(currentFileContent) ? (
+            <div className="flex items-center justify-center h-full bg-gray-50 p-4">
+              <img
+                src={currentFileContent}
+                alt={selectedFile.name}
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+          ) : (
+            <CodeMirrorClient
+              key={selectedFile.id + (isDiffMode ? "-diff" : "")}
+              value={currentFileContent}
+              readOnly={!isEditable}
+              onChange={onContentChange}
+              extensions={extensions}
+              height="100%"
+              style={{ width: "100%", height: "100%" }}
+            />
+          )}
         </div>
       </div>
     </>
