@@ -12,6 +12,12 @@ type ChoicesFromFileWidgetProps = {
   pipelineVersionId: string;
 };
 
+function getInvalidChoices(choices: string[], type: string): string[] {
+  if (type === "int") return choices.filter((c) => isNaN(parseInt(c, 10)));
+  if (type === "float") return choices.filter((c) => isNaN(parseFloat(c)));
+  return [];
+}
+
 const ChoicesFromFileWidget = ({
   parameter,
   value,
@@ -49,19 +55,50 @@ const ChoicesFromFileWidget = ({
   }
 
   const choices = data.pipelineParameterChoices;
+  const invalidChoices = getInvalidChoices(choices, parameter.type);
+
+  const listed = invalidChoices
+    .slice(0, 3)
+    .map((v) => `"${v}"`)
+    .join(", ");
+  const extra = invalidChoices.length - 3;
 
   return (
-    <Select
-      onChange={onChange}
-      aria-label={parameter.code}
-      name={parameter.code}
-      value={parameter.multiple ? ensureArray(value) : value}
-      required={Boolean(parameter.required)}
-      multiple={parameter.multiple}
-      options={choices}
-      getOptionLabel={(option) => option}
-      by={(a: string, b: string) => a === b}
-    />
+    <>
+      <Select
+        onChange={onChange}
+        aria-label={parameter.code}
+        name={parameter.code}
+        value={parameter.multiple ? ensureArray(value) : value}
+        required={Boolean(parameter.required)}
+        multiple={parameter.multiple}
+        options={choices}
+        getOptionLabel={(option) => option}
+        by={(a: string, b: string) => a === b}
+      />
+      {invalidChoices.length > 0 && (
+        <p className="mt-1 text-sm text-amber-600">
+          {extra > 0
+            ? t(
+                "{{count}} choices in this file cannot be used as {{type}} values: {{values}} and {{extra}} more.",
+                {
+                  count: invalidChoices.length,
+                  type: parameter.type,
+                  values: listed,
+                  extra,
+                },
+              )
+            : t(
+                "{{count}} choice(s) in this file cannot be used as {{type}} values: {{values}}.",
+                {
+                  count: invalidChoices.length,
+                  type: parameter.type,
+                  values: listed,
+                },
+              )}
+        </p>
+      )}
+    </>
   );
 };
 
