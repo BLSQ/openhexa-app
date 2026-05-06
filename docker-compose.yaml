@@ -41,7 +41,7 @@ services:
   app:
     # Inherit from the block defined on top and override some fields
     <<: *common
-    command: "start"
+    command: "start --reload"
     restart: unless-stopped
     image: blsq/openhexa-app
     ports:
