@@ -1,4 +1,5 @@
 import { gql, useQuery } from "@apollo/client";
+import BinaryFilePlaceholder from "core/components/BinaryFilePlaceholder";
 import CodeEditor from "core/components/CodeEditor";
 import DataGrid from "core/components/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
@@ -18,15 +19,6 @@ interface DatasetVersionFileSampleProps {
   file: DatasetVersionFileSample_FileFragment;
   version: DatasetVersionFileSample_VersionFragment;
 }
-
-const NoPreviewMessage = () => {
-  const { t } = useTranslation();
-  return (
-    <div className="text-sm text-gray-500 italic w-full flex justify-center p-4">
-      {t("We cannot preview this file type.")}
-    </div>
-  );
-};
 
 const CODE_LANG_BY_EXTENSION: Record<string, string> = {
   json: "json",
@@ -48,13 +40,7 @@ function canSmartPreview(file: DatasetVersionFileSample_FileFragment): boolean {
   return getCodeLang(file.filename) !== null;
 }
 
-const CodePreviewer = ({
-  url,
-  lang,
-}: {
-  url: string;
-  lang: string;
-}) => {
+const CodePreviewer = ({ url, lang }: { url: string; lang: string }) => {
   const [content, setContent] = useState<string | null>(null);
   const [error, setError] = useState(false);
 
@@ -68,7 +54,7 @@ const CodePreviewer = ({
       .catch(() => setError(true));
   }, [url]);
 
-  if (error) return <NoPreviewMessage />;
+  if (error) return <BinaryFilePlaceholder />;
   if (content === null)
     return (
       <div className="flex justify-center items-center h-24 p-4">
@@ -92,11 +78,24 @@ const SmartPreviewer = ({
 }: {
   file: DatasetVersionFileSample_FileFragment;
 }) => {
-  if (!file.downloadUrl || file.size > MAX_SIZE) return <NoPreviewMessage />;
-
+  const { t } = useTranslation();
   const codeLang = getCodeLang(file.filename);
+  const sizeLimit = codeLang ? MAX_TEXT_SIZE : MAX_SIZE;
 
-  if (codeLang && file.size <= MAX_TEXT_SIZE) {
+  if (!file.downloadUrl) return <BinaryFilePlaceholder size={file.size} />;
+  if (file.size > sizeLimit)
+    return (
+      <BinaryFilePlaceholder
+        size={file.size}
+        filename={file.filename}
+        downloadUrl={file.downloadUrl}
+        message={t(
+          "This file is too large to preview. Download it to view the contents.",
+        )}
+      />
+    );
+
+  if (codeLang) {
     return <CodePreviewer url={file.downloadUrl} lang={codeLang} />;
   }
 
@@ -115,13 +114,13 @@ const SmartPreviewer = ({
         className="object-scale-down w-full h-full"
         controls
       >
-        <NoPreviewMessage />
+        <BinaryFilePlaceholder size={file.size} />
       </video>
     );
   } else if (file.contentType.startsWith("audio")) {
     return (
       <audio src={file.downloadUrl} className="w-full h-full" controls>
-        <NoPreviewMessage />
+        <BinaryFilePlaceholder size={file.size} />
       </audio>
     );
   } else if (file.contentType.startsWith("text/html")) {
@@ -152,7 +151,7 @@ const SmartPreviewer = ({
       ></embed>
     );
   }
-  return <NoPreviewMessage />;
+  return <BinaryFilePlaceholder size={file.size} />;
 };
 
 const GET_DATASET_VERSION_FILE_SAMPLE = gql`

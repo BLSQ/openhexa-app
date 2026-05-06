@@ -4,11 +4,26 @@ import { unifiedMergeView } from "@codemirror/merge";
 import { EditorView } from "@codemirror/view";
 import { DocumentIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
+import BinaryFilePlaceholder from "core/components/BinaryFilePlaceholder";
 import CodeMirrorClient from "core/components/CodeMirrorClient/CodeMirrorClient";
+import Filesize from "core/components/Filesize";
 import { useTranslation } from "next-i18next";
 import { useMemo } from "react";
 import { r } from "codemirror-lang-r";
 import { FileNode } from "./types";
+
+const isImageDataUrl = (s: string) =>
+  /^data:image\/[a-z0-9+.-]+;base64,/i.test(s);
+const isBinaryDataUrl = (s: string) =>
+  /^data:[a-z0-9+.-]+\/[a-z0-9+.-]+;base64,/i.test(s);
+
+const dataUrlByteLength = (dataUrl: string): number | null => {
+  const comma = dataUrl.indexOf(",");
+  if (comma < 0) return null;
+  const base64 = dataUrl.slice(comma + 1);
+  const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+  return Math.floor((base64.length * 3) / 4) - padding;
+};
 
 type FileEditorPaneProps = {
   selectedFile: FileNode | null;
@@ -42,6 +57,11 @@ const FileEditorPane = ({
   const isEffectivelyDeleted =
     selectedFile !== null && deletedFilePaths.has(selectedFile.path);
   const isDiffMode = selectedFile !== null && proposedByKey.has(selectedFile.path);
+
+  const isImage = isImageDataUrl(currentFileContent);
+  const isBinary = !isImage && isBinaryDataUrl(currentFileContent);
+  const byteSize =
+    isImage || isBinary ? dataUrlByteLength(currentFileContent) : null;
 
   const extensions = useMemo(
     () => [
@@ -100,10 +120,24 @@ const FileEditorPane = ({
             )}
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            {selectedFile.language}
-            {" • "}
-            {selectedFile.lineCount}
-            {` ${(selectedFile.lineCount ?? 0) > 1 ? t("lines") : t("line")}`}
+            {selectedFile.language && selectedFile.lineCount != null ? (
+              <>
+                {selectedFile.language}
+                {" • "}
+                {selectedFile.lineCount}
+                {` ${selectedFile.lineCount > 1 ? t("lines") : t("line")}`}
+              </>
+            ) : (
+              <>
+                {isImage ? t("Image") : t("Binary")}
+                {byteSize != null && (
+                  <>
+                    {" • "}
+                    <Filesize size={byteSize} />
+                  </>
+                )}
+              </>
+            )}
             {currentFileIsModified && ` • ${t("Modified")}`}
             {saveError && (
               <>
@@ -139,7 +173,7 @@ const FileEditorPane = ({
       )}
       <div className="flex-1 relative overflow-hidden h-full">
         <div className="absolute inset-0">
-          {/^data:image\/[a-z0-9+.-]+;base64,/i.test(currentFileContent) ? (
+          {isImage ? (
             <div className="flex items-center justify-center h-full bg-gray-50 p-4">
               <img
                 src={currentFileContent}
@@ -147,6 +181,13 @@ const FileEditorPane = ({
                 className="max-w-full max-h-full object-contain"
               />
             </div>
+          ) : isBinary ? (
+            <BinaryFilePlaceholder
+              filename={selectedFile.name}
+              downloadUrl={currentFileContent}
+              size={byteSize}
+              message={t("Binary file — preview not available")}
+            />
           ) : (
             <CodeMirrorClient
               key={selectedFile.id + (isDiffMode ? "-diff" : "")}

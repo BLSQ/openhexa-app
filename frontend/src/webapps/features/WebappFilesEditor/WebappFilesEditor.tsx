@@ -43,20 +43,21 @@ const WebappFilesEditor = ({
   });
   const [updateWebapp] = useUpdateWebappMutation();
 
+  const loadFiles = useCallback(async () => {
+    const { data } = await fetchFiles({
+      variables: { workspaceSlug, webappSlug, ref: versionRef },
+    });
+    return (data?.webapp?.files ?? []).map((file) => ({
+      ...file,
+      content: decodeFileContent(file.path, file.content, file.language),
+    }));
+  }, [fetchFiles, workspaceSlug, webappSlug, versionRef]);
+
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
-    fetchFiles({
-      variables: { workspaceSlug, webappSlug, ref: versionRef },
-    }).then(({ data }) => {
+    loadFiles().then((decoded) => {
       if (!cancelled) {
-        const decoded = (data?.webapp?.files ?? []).map((file) => ({
-          ...file,
-          content:
-            file.content != null
-              ? decodeFileContent(file.path, file.content)
-              : file.content,
-        }));
         setFiles(decoded);
         setIsLoading(false);
       }
@@ -64,7 +65,7 @@ const WebappFilesEditor = ({
     return () => {
       cancelled = true;
     };
-  }, [fetchFiles, workspaceSlug, webappSlug, versionRef]);
+  }, [loadFiles]);
 
   const handleUpload = useCallback(
     async (fileList: FileList) => {
@@ -89,6 +90,7 @@ const WebappFilesEditor = ({
         });
         if (data?.updateWebapp?.success) {
           toast.success(t("Files uploaded successfully"));
+          setFiles(await loadFiles());
           onSaveSuccess?.();
         } else {
           toast.error(t("Failed to upload files"));
@@ -100,7 +102,7 @@ const WebappFilesEditor = ({
         onBusyChange?.(false);
       }
     },
-    [webappId, updateWebapp, onSaveSuccess, t],
+    [webappId, updateWebapp, onSaveSuccess, t, loadFiles],
   );
 
   const handleSave = async (
@@ -133,6 +135,7 @@ const WebappFilesEditor = ({
 
       if (data?.updateWebapp?.success) {
         toast.success(t("Web app saved successfully"));
+        setFiles(await loadFiles());
         onSaveSuccess?.();
         return { success: true };
       } else {

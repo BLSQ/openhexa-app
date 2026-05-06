@@ -11,18 +11,20 @@ const IMAGE_MIME_BY_EXT: Record<string, string> = {
   avif: "image/avif",
 };
 
-export const getImageMimeType = (path: string): string | null => {
+const getImageMimeType = (path: string): string | null => {
   const ext = path.split(".").pop()?.toLowerCase();
   return ext ? (IMAGE_MIME_BY_EXT[ext] ?? null) : null;
 };
 
-export const decodeFileContent = (path: string, base64: string): string => {
-  const mime = getImageMimeType(path);
-  if (mime) {
-    return `data:${mime};base64,${base64}`;
+export const decodeFileContent = (
+  path: string,
+  base64: string | null | undefined,
+  language: string | null | undefined,
+): string | null => {
+  if (base64 == null) return null;
+  if (language) {
+    return base64ToString(base64);
   }
-  return base64ToString(base64);
+  const mime = getImageMimeType(path) ?? "application/octet-stream";
+  return `data:${mime};base64,${base64}`;
 };
-
-export const isImageDataUrl = (content: string): boolean =>
-  /^data:image\/[a-z0-9+.-]+;base64,/i.test(content);
