@@ -1154,6 +1154,7 @@ enum CreateWebappError {
 
 """Represents the input for creating a web app."""
 input CreateWebappInput {
+  allowedOperations: [WebappOperationScope!]
   description: String
   icon: String
   isPublic: Boolean
