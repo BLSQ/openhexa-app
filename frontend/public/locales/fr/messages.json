@@ -1,4 +1,8 @@
 {
+  "{{count}} choice in this file cannot be used as a {{type}} value: {{values}}.___one": "1 choix dans ce fichier ne peut pas être utilisé comme valeur {{type}} : {{values}}.",
+  "{{count}} choice in this file cannot be used as a {{type}} value: {{values}}.___many": "{{count}} choix dans ce fichier ne peuvent pas être utilisés comme valeurs {{type}} : {{values}}.",
+  "{{count}} choice in this file cannot be used as a {{type}} value: {{values}}.___other": "{{count}} choix dans ce fichier ne peuvent pas être utilisés comme valeurs {{type}} : {{values}}.",
+  "{{count}} choices in this file cannot be used as {{type}} values: {{values}} and {{extra}} more.": "{{count}} choix dans ce fichier ne peuvent pas être utilisés comme valeurs {{type}} : {{values}} et {{extra}} de plus.",
   "{{count}} param___one": "{{count}} param",
   "{{count}} param___many": "{{count}} params",
   "{{count}} param___other": "{{count}} param",

@@ -39,6 +39,11 @@ def resolve_choices_from_file(bucket_name: str, choices_from_file: dict) -> list
         )
 
     raw = storage.read_object(bucket_name, path)
+    if len(raw) > MAX_CHOICES_FILE_SIZE:
+        raise ValueError(
+            f"Choices file '{path}' is too large ({len(raw)} bytes). "
+            f"Maximum allowed size is {MAX_CHOICES_FILE_SIZE} bytes."
+        )
     text = raw.decode("utf-8")
 
     if fmt == "csv":
@@ -144,6 +149,7 @@ def _extract_from_data(
                 f"Available keys: {', '.join(keys)}."
             )
         data = data[column]
+        column = None  # consumed for the dict key; inner list uses its own detection
 
     if not isinstance(data, list):
         raise ValueError(

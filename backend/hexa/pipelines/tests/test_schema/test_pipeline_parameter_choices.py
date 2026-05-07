@@ -461,6 +461,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
             },
         )
         self.assertIsNone(r["data"]["pipelineParameterChoices"])
+        self.assertTrue(r.get("errors"))
 
     def test_file_too_large(self):
         version = self._create_version(
@@ -483,3 +484,66 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
             r = self._run(version, "district")
         self.assertIsNone(r["data"]["pipelineParameterChoices"])
         self.assertTrue(any("too large" in str(e).lower() for e in r["errors"]))
+
+    # ------------------------------------------------------------------
+    # Dict wrapping array of objects (regression: column bleed-through bug)
+    # ------------------------------------------------------------------
+
+    def test_json_dict_wrapping_single_key_objects(self):
+        """A dict wrapper around an array of single-key objects should auto-detect the inner key."""
+        version = self._create_version(
+            [
+                {
+                    "code": "district",
+                    "type": "str",
+                    "choices_from_file": {
+                        "format": "json",
+                        "path": "data.json",
+                        "column": None,
+                    },
+                }
+            ]
+        )
+        payload = b'{"items": [{"code": "NBI"}, {"code": "MSA"}]}'
+        with (
+            patch(
+                "hexa.pipelines.choices_from_file.storage.get_bucket_object",
+                return_value=_make_storage_object(),
+            ),
+            patch(
+                "hexa.pipelines.choices_from_file.storage.read_object",
+                return_value=payload,
+            ),
+        ):
+            r = self._run(version, "district")
+        self.assertEqual(r["data"]["pipelineParameterChoices"], ["NBI", "MSA"])
+
+    def test_json_dict_wrapping_multi_key_objects_raises(self):
+        """A dict wrapper around an array of multi-key objects requires column for the inner objects."""
+        version = self._create_version(
+            [
+                {
+                    "code": "district",
+                    "type": "str",
+                    "choices_from_file": {
+                        "format": "json",
+                        "path": "data.json",
+                        "column": None,
+                    },
+                }
+            ]
+        )
+        payload = b'{"items": [{"code": "NBI", "name": "Nairobi"}, {"code": "MSA", "name": "Mombasa"}]}'
+        with (
+            patch(
+                "hexa.pipelines.choices_from_file.storage.get_bucket_object",
+                return_value=_make_storage_object(),
+            ),
+            patch(
+                "hexa.pipelines.choices_from_file.storage.read_object",
+                return_value=payload,
+            ),
+        ):
+            r = self._run(version, "district")
+        self.assertIsNone(r["data"]["pipelineParameterChoices"])
+        self.assertTrue(any("multiple keys" in str(e) for e in r["errors"]))

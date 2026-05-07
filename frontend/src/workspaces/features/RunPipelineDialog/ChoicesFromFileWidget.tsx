@@ -2,10 +2,11 @@ import Select from "core/components/forms/Select";
 import Spinner from "core/components/Spinner";
 import { ensureArray } from "core/helpers/array";
 import { useTranslation } from "next-i18next";
+import { ParameterField_ParameterFragment } from "./ParameterField.generated";
 import { useGetPipelineParameterChoicesQuery } from "./ChoicesFromFileWidget.generated";
 
 type ChoicesFromFileWidgetProps = {
-  parameter: any;
+  parameter: ParameterField_ParameterFragment;
   value: any;
   onChange(value: any): void;
   workspaceSlug: string;
@@ -89,7 +90,7 @@ const ChoicesFromFileWidget = ({
                 },
               )
             : t(
-                "{{count}} choice(s) in this file cannot be used as {{type}} values: {{values}}.",
+                "{{count}} choice in this file cannot be used as a {{type}} value: {{values}}.",
                 {
                   count: invalidChoices.length,
                   type: parameter.type,
