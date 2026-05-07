@@ -42,11 +42,11 @@ class GetHelpOrDocTest(MCPTestCase):
         expected = (
             "Call this tool when you are stuck, unsure what to do next, or need guidance on OpenHEXA.\n"
             "\n"
-            "    - Leave topic empty for an overview (orientation, common workflows, tips). Pass a reason\n"
-            "      describing what you are stuck on (e.g. 'unsure which tool to use', 'pipeline failed',\n"
-            "      'cannot find dataset').\n"
-            "    - Pass a topic name to fetch that doc page in full. Reason is optional here.\n"
-            "    \n"
+            "- Leave topic empty for an overview (orientation, common workflows, tips). Pass a reason\n"
+            "  describing what you are stuck on (e.g. 'unsure which tool to use', 'pipeline failed',\n"
+            "  'cannot find dataset').\n"
+            "- Pass a topic name to fetch that doc page in full. Reason is optional here.\n"
+            "\n"
             "\n"
             "    Available topics: cli, notebooks-advanced, sdk, toolbox, writing-pipelines."
         )
