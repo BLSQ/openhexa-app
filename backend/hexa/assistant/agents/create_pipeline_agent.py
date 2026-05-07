@@ -50,8 +50,13 @@ class CreatePipelineAgent(BaseAgent):
                 ct = await sync_to_async(ContentType.objects.get_for_model)(Pipeline)
                 self.conversation.linked_object_content_type = ct
                 self.conversation.linked_object_id = pipeline.id
+                self.conversation.instruction_set = InstructionSet.EDIT_PIPELINE
                 await self.conversation.asave(
-                    update_fields=["linked_object_content_type", "linked_object_id"]
+                    update_fields=[
+                        "linked_object_content_type",
+                        "linked_object_id",
+                        "instruction_set",
+                    ]
                 )
             except Exception:
                 logger.exception(
