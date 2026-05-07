@@ -269,13 +269,13 @@ Loads the list of pipelines on page open, lets you pick one from a dropdown, and
       const { runPipeline } = await gql(`
         mutation($input: RunPipelineInput!) {
           runPipeline(input: $input) {
-            success errors { code message } run { id status }
+            success errors run { id status }
           }
         }
       `, { input: { id, config } });
 
       if (!runPipeline.success) {
-        status.textContent = "Error: " + runPipeline.errors.map(e => e.message).join(", ");
+        status.textContent = "Error: " + runPipeline.errors.join(", ");
         return;
       }
 
