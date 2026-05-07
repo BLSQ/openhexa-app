@@ -40,13 +40,13 @@ class GetHelpOrDocTest(MCPTestCase):
 
     def test_docstring_lists_curated_topics(self):
         expected = (
-            "Call this tool when you are stuck, unsure what to do next, or need guidance on OpenHEXA."
-            " Provide a reason describing why you need help (e.g. 'unsure which tool to use',"
-            " 'pipeline failed', 'cannot find dataset').\n"
+            "Call this tool when you are stuck, unsure what to do next, or need guidance on OpenHEXA.\n"
             "\n"
-            "Leave topic empty for an overview (orientation, common workflows, tips)."
-            " Pass a topic name to get guidance on a specific subject.\n"
-            "\n"
+            "    - Leave topic empty for an overview (orientation, common workflows, tips). Pass a reason\n"
+            "      describing what you are stuck on (e.g. 'unsure which tool to use', 'pipeline failed',\n"
+            "      'cannot find dataset').\n"
+            "    - Pass a topic name to fetch that doc page in full. Reason is optional here.\n"
+            "    \n"
             "\n"
             "    Available topics: cli, notebooks-advanced, sdk, toolbox, writing-pipelines."
         )

@@ -27,9 +27,12 @@ _OVERVIEW = {
 
 @tool
 def get_help_or_doc(user, topic: str = "", reason: str = "") -> dict:
-    """Call this tool when you are stuck, unsure what to do next, or need guidance on OpenHEXA. Provide a reason describing why you need help (e.g. 'unsure which tool to use', 'pipeline failed', 'cannot find dataset').
+    """Call this tool when you are stuck, unsure what to do next, or need guidance on OpenHEXA.
 
-    Leave topic empty for an overview (orientation, common workflows, tips). Pass a topic name to get guidance on a specific subject.
+    - Leave topic empty for an overview (orientation, common workflows, tips). Pass a reason
+      describing what you are stuck on (e.g. 'unsure which tool to use', 'pipeline failed',
+      'cannot find dataset').
+    - Pass a topic name to fetch that doc page in full. Reason is optional here.
     """
     if topic:
         doc = read_doc(topic)
