@@ -32,7 +32,7 @@ const ParameterField = (props: ParameterFieldProps) => {
     (value: any) => {
       if (parameter.multiple && (value === null || value === undefined)) {
         return onChange([]);
-      } else if (parameter.multiple && !parameter.choices) {
+      } else if (parameter.multiple && !parameter.choices && !parameter.choicesFromFile) {
         onChange(value.split("\n"));
       } else {
         onChange(value);

@@ -15,7 +15,7 @@ type ChoicesFromFileWidgetProps = {
 
 function isInvalidChoice(c: string, type: string): boolean {
   if (type === "int") return !Number.isInteger(Number(c));
-  if (type === "float") return isNaN(Number(c));
+  if (type === "float") return isNaN(Number(c)) || !isFinite(Number(c));
   return false;
 }
 

@@ -180,15 +180,8 @@ def resolve_pipeline_parameter_choices(
     request: HttpRequest = info.context["request"]
 
     try:
-        workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=workspace_slug
-        )
-    except Workspace.DoesNotExist:
-        raise ValueError(f"Workspace '{workspace_slug}' not found.")
-
-    try:
-        version = PipelineVersion.objects.get(
-            id=pipeline_version_id, pipeline__workspace=workspace
+        version = PipelineVersion.objects.select_related("pipeline__workspace").get(
+            id=pipeline_version_id, pipeline__workspace__slug=workspace_slug
         )
     except PipelineVersion.DoesNotExist:
         raise ValueError(f"Pipeline version '{pipeline_version_id}' not found.")
@@ -211,6 +204,7 @@ def resolve_pipeline_parameter_choices(
             f"Parameter '{parameter_code}' does not have dynamic choices from file."
         )
 
+    workspace = version.pipeline.workspace
     if workspace.bucket_name is None:
         raise ValueError("Workspace does not have a file storage bucket.")
 

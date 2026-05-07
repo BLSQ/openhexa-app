@@ -103,9 +103,9 @@ type PipelineParameterChoicesFromFile {
 Input for a dynamic choices source backed by a workspace file.
 """
 input PipelineParameterChoicesFromFileInput {
-  path: String!
-  format: String!
-  column: String
+  path: String!    # Path to the file in the workspace file system.
+  format: String!  # File format: "csv", "json", or "yaml".
+  column: String   # Column/key to use as choice values (required for multi-column files).
 }
 
 """

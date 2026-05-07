@@ -81,6 +81,14 @@ const PipelineVersionConfigDialog = (props: PipelineVersionConfigProps) => {
       });
       if (data?.errors?.includes(UpdatePipelineVersionError.PermissionDenied)) {
         throw new Error("You cannot update this version's configuration.");
+      } else if (
+        data?.updatePipelineVersion?.errors?.includes(
+          UpdatePipelineVersionError.InvalidConfig,
+        )
+      ) {
+        throw new Error(
+          t("One or more parameter values do not match the expected type."),
+        );
       } else if (!data?.updatePipelineVersion.success) {
         throw new Error("An error occurred while updating the version.");
       }
