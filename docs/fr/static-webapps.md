@@ -69,11 +69,25 @@ Par défaut, une webapp statique a une liste `allowed_operations` vide, ce qui s
 
 Les champs d'introspection `__typename`, `__schema`, `__type` sont toujours autorisés.
 
+## Le global `window.OPENHEXA`
+
+Quand OpenHEXA sert le HTML de votre webapp statique, il injecte un petit script avant `</head>` qui expose :
+
+```js
+window.OPENHEXA = Object.freeze({
+  workspaceSlug: "my-workspace",   // slug du workspace propriétaire de cette webapp
+  webappSlug: "my-webapp",         // slug de cette webapp
+  isPublic: false,                 // true pour les webapps publiques
+});
+```
+
+Les exemples ci-dessous lisent `workspaceSlug` depuis ce global, donc ils sont copiables-collables dans n'importe quelle webapp sans avoir à modifier de constante. L'injection ne touche que les réponses `text/html` ; les fichiers CSS, JS et JSON ne sont pas modifiés.
+
 ---
 
 ## Exemples de webapps
 
-Chaque exemple ci-dessous est un `index.html` complet que vous pouvez déposer dans une webapp statique. Remplacez `WORKSPACE_SLUG` par le slug de votre workspace. Tous les exemples embarquent la même petite fonction `gql()` pour rester autonomes.
+Chaque exemple ci-dessous est un `index.html` complet que vous pouvez déposer dans une webapp statique. Tous les exemples embarquent la même petite fonction `gql()` pour rester autonomes, et lisent leur slug de workspace depuis `window.OPENHEXA`.
 
 ### USER_READ — Qui suis-je ?
 

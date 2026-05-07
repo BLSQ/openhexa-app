@@ -69,11 +69,25 @@ By default a static webapp has an empty `allowed_operations` list, which means i
 
 Introspection fields `__typename`, `__schema`, `__type` are always allowed.
 
+## The `window.OPENHEXA` global
+
+When OpenHEXA serves your static webapp's HTML it injects a small script before `</head>` that exposes:
+
+```js
+window.OPENHEXA = Object.freeze({
+  workspaceSlug: "my-workspace",   // slug of the workspace owning this webapp
+  webappSlug: "my-webapp",         // this webapp's own slug
+  isPublic: false,                 // true for public webapps
+});
+```
+
+The examples below read `workspaceSlug` from this global, so they're copy-pasteable into any webapp without having to edit a constant. The injection only touches `text/html` responses; CSS, JS, and JSON files are untouched.
+
 ---
 
 ## Example webapps
 
-Each example below is a complete `index.html` you can drop into a static webapp. Replace `WORKSPACE_SLUG` with your workspace's slug. Every example inlines the same tiny `gql()` helper so it's standalone.
+Each example below is a complete `index.html` you can drop into a static webapp. Every example inlines the same tiny `gql()` helper so it's standalone, and reads its workspace slug from `window.OPENHEXA`.
 
 ### USER_READ — Who am I?
 
@@ -95,7 +109,7 @@ Displays the current user and workspace on load.
   <pre id="out">Loading…</pre>
 
   <script>
-    const WORKSPACE_SLUG = "my-workspace";
+    const { workspaceSlug } = window.OPENHEXA;
 
     async function gql(query, variables = {}) {
       const res = await fetch("/graphql/", {
@@ -114,7 +128,7 @@ Displays the current user and workspace on load.
           me { user { id email displayName } }
           workspace(slug: $slug) { slug name description }
         }
-      `, { slug: WORKSPACE_SLUG });
+      `, { slug: workspaceSlug });
       document.getElementById("out").textContent = JSON.stringify(data, null, 2);
     })();
   </script>
@@ -143,7 +157,7 @@ Lists every pipeline in the workspace.
   <ul id="list"><li>Loading…</li></ul>
 
   <script>
-    const WORKSPACE_SLUG = "my-workspace";
+    const { workspaceSlug } = window.OPENHEXA;
 
     async function gql(query, variables = {}) {
       const res = await fetch("/graphql/", {
@@ -163,7 +177,7 @@ Lists every pipeline in the workspace.
             items { id code name description schedule }
           }
         }
-      `, { slug: WORKSPACE_SLUG });
+      `, { slug: workspaceSlug });
 
       const list = document.getElementById("list");
       list.innerHTML = "";
@@ -178,9 +192,9 @@ Lists every pipeline in the workspace.
 </html>
 ```
 
-### PIPELINES_RUN — Run a pipeline and watch it finish
+### PIPELINES_READ + PIPELINES_RUN — Pick a pipeline and run it
 
-Form to run a pipeline by id with a JSON config; polls status until the run completes.
+Loads the list of pipelines on page open, lets you pick one from a dropdown, and runs it with a JSON config. Polls the run status until it terminates. Requires both `PIPELINES_READ` (to list) and `PIPELINES_RUN` (to launch).
 
 ```html
 <!DOCTYPE html>
@@ -190,26 +204,29 @@ Form to run a pipeline by id with a JSON config; polls status until the run comp
   <title>Run a pipeline</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
-    label { display: block; margin: 0.5rem 0 0.25rem; }
-    input, textarea { width: 100%; padding: 0.4rem; box-sizing: border-box; font-family: inherit; }
+    label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
+    select, textarea { width: 100%; padding: 0.4rem; box-sizing: border-box; font-family: inherit; }
     button { margin-top: 1rem; padding: 0.5rem 1rem; }
+    button[disabled] { opacity: 0.5; cursor: not-allowed; }
     #status { margin-top: 1rem; font-weight: 600; }
   </style>
 </head>
 <body>
   <h1>Run a pipeline</h1>
 
-  <label>Pipeline ID (UUID)
-    <input id="pid" placeholder="00000000-0000-0000-0000-000000000000">
+  <label>Pipeline
+    <select id="pipeline" disabled><option>Loading…</option></select>
   </label>
   <label>Config (JSON)
     <textarea id="cfg" rows="4">{}</textarea>
   </label>
-  <button onclick="runIt()">Run</button>
+  <button id="runBtn" disabled onclick="runIt()">Run</button>
 
   <p id="status"></p>
 
   <script>
+    const { workspaceSlug } = window.OPENHEXA;
+
     async function gql(query, variables = {}) {
       const res = await fetch("/graphql/", {
         method: "POST",
@@ -221,8 +238,31 @@ Form to run a pipeline by id with a JSON config; polls status until the run comp
       return json.data;
     }
 
+    // 1. Load the pipeline list and populate the dropdown.
+    (async () => {
+      const { pipelines } = await gql(`
+        query($slug: String!) {
+          pipelines(workspaceSlug: $slug, page: 1, perPage: 100) {
+            items { id code name }
+          }
+        }
+      `, { slug: workspaceSlug });
+
+      const select = document.getElementById("pipeline");
+      if (!pipelines.items.length) {
+        select.innerHTML = '<option>(no pipelines in this workspace)</option>';
+        return;
+      }
+      select.innerHTML = pipelines.items
+        .map(p => `<option value="${p.id}">${p.name} (${p.code})</option>`)
+        .join("");
+      select.disabled = false;
+      document.getElementById("runBtn").disabled = false;
+    })();
+
+    // 2. Run the selected pipeline and poll until it terminates.
     async function runIt() {
-      const id = document.getElementById("pid").value.trim();
+      const id = document.getElementById("pipeline").value;
       const config = JSON.parse(document.getElementById("cfg").value || "{}");
       const status = document.getElementById("status");
 
@@ -287,7 +327,7 @@ Reads the first 100 lines of a CSV at a given path and renders it as a table.
   <div id="table"></div>
 
   <script>
-    const WORKSPACE_SLUG = "my-workspace";
+    const { workspaceSlug } = window.OPENHEXA;
 
     async function gql(query, variables = {}) {
       const res = await fetch("/graphql/", {
@@ -308,7 +348,7 @@ Reads the first 100 lines of a CSV at a given path and renders it as a table.
             success content
           }
         }
-      `, { slug: WORKSPACE_SLUG, path });
+      `, { slug: workspaceSlug, path });
 
       const rows = readFileContent.content.trim().split("\n").map(l => l.split(","));
       const [header, ...body] = rows;
@@ -355,7 +395,7 @@ Pick a file, upload it via a presigned URL.
   <p id="status"></p>
 
   <script>
-    const WORKSPACE_SLUG = "my-workspace";
+    const { workspaceSlug } = window.OPENHEXA;
 
     async function gql(query, variables = {}) {
       const res = await fetch("/graphql/", {
@@ -378,7 +418,7 @@ Pick a file, upload it via a presigned URL.
         mutation($input: PrepareObjectUploadInput!) {
           prepareObjectUpload(input: $input) { success uploadUrl headers }
         }
-      `, { input: { workspaceSlug: WORKSPACE_SLUG, objectKey: key, contentType: blob.type } });
+      `, { input: { workspaceSlug, objectKey: key, contentType: blob.type } });
 
       const res = await fetch(prepareObjectUpload.uploadUrl, {
         method: "PUT",
@@ -413,7 +453,7 @@ Lists datasets visible to the workspace and their latest version.
   <ul id="list"><li>Loading…</li></ul>
 
   <script>
-    const WORKSPACE_SLUG = "my-workspace";
+    const { workspaceSlug } = window.OPENHEXA;
 
     async function gql(query, variables = {}) {
       const res = await fetch("/graphql/", {
@@ -440,7 +480,7 @@ Lists datasets visible to the workspace and their latest version.
             }
           }
         }
-      `, { slug: WORKSPACE_SLUG });
+      `, { slug: workspaceSlug });
 
       const list = document.getElementById("list");
       list.innerHTML = "";
@@ -489,7 +529,7 @@ Tiny form that creates a dataset and prints the new id/slug.
   <p id="out"></p>
 
   <script>
-    const WORKSPACE_SLUG = "my-workspace";
+    const { workspaceSlug } = window.OPENHEXA;
 
     async function gql(query, variables = {}) {
       const res = await fetch("/graphql/", {
@@ -514,7 +554,7 @@ Tiny form that creates a dataset and prints the new id/slug.
             success errors dataset { id slug name }
           }
         }
-      `, { input: { workspaceSlug: WORKSPACE_SLUG, name, description } });
+      `, { input: { workspaceSlug, name, description } });
 
       if (!createDataset.success) {
         out.textContent = "Error: " + (createDataset.errors || []).join(", ");
