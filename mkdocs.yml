@@ -114,6 +114,7 @@ plugins:
             Toolbox: Toolbox
             Notebooks (advanced): Notebooks (avancé)
             API Authentication: Authentification API
+            Static Webapps: Webapps statiques
             Administration: Administration
             Admin Guide: Guide d'administration
             Installation: Installation
@@ -221,6 +222,7 @@ nav:
     - Toolbox: toolbox.md
     - Notebooks (advanced): notebooks-advanced.md
     - API Authentication: api-authentication.md
+    - Static Webapps: static-webapps.md
   - Administration:
     - Admin Guide: admin.md
     - Installation: installation.md

@@ -25,7 +25,14 @@ class GetHelpOrDocTest(MCPTestCase):
         self.assertEqual(result["error"], "Unknown topic 'does-not-exist'.")
         self.assertEqual(
             set(result["available_topics"]),
-            {"cli", "notebooks-advanced", "sdk", "toolbox", "writing-pipelines"},
+            {
+                "cli",
+                "notebooks-advanced",
+                "sdk",
+                "static-webapps",
+                "toolbox",
+                "writing-pipelines",
+            },
         )
 
     def test_known_topic_returns_full_md_content(self):
@@ -48,6 +55,6 @@ class GetHelpOrDocTest(MCPTestCase):
             "- Pass a topic name to fetch that doc page in full. Reason is optional here.\n"
             "\n"
             "\n"
-            "    Available topics: cli, notebooks-advanced, sdk, toolbox, writing-pipelines."
+            "    Available topics: cli, notebooks-advanced, sdk, static-webapps, toolbox, writing-pipelines."
         )
         self.assertEqual(get_help_or_doc.__doc__, expected)
