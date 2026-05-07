@@ -297,9 +297,9 @@ Loads the list of pipelines on page open, lets you pick one from a dropdown, and
 </html>
 ```
 
-### FILES_READ — Preview a CSV from the workspace bucket
+### USER_READ + FILES_READ — Pick a CSV from the workspace bucket and preview it
 
-Reads the first 100 lines of a CSV at a given path and renders it as a table.
+Lists CSV files in the workspace bucket on page load, lets you pick one from a dropdown, and renders the first 100 lines as a table. Requires both `USER_READ` (to list files via `workspace.bucket.objects`) and `FILES_READ` (to read content).
 
 ```html
 <!DOCTYPE html>
@@ -309,21 +309,25 @@ Reads the first 100 lines of a CSV at a given path and renders it as a table.
   <title>Preview CSV</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-    input { width: 100%; padding: 0.4rem; box-sizing: border-box; }
-    button { margin-top: 0.5rem; padding: 0.5rem 1rem; }
+    label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
+    select { width: 100%; padding: 0.4rem; box-sizing: border-box; font-family: inherit; }
+    button { margin-top: 0.75rem; padding: 0.5rem 1rem; }
+    button[disabled] { opacity: 0.5; cursor: not-allowed; }
     table { border-collapse: collapse; margin-top: 1rem; width: 100%; }
     th, td { border: 1px solid #ddd; padding: 0.3rem 0.5rem; font-size: 0.9rem; }
     th { background: #f5f5f5; }
+    #status { margin-top: 1rem; color: #b91c1c; }
   </style>
 </head>
 <body>
   <h1>Preview CSV</h1>
 
-  <label>File path
-    <input id="path" value="outputs/summary.csv">
+  <label>File
+    <select id="file" disabled><option>Loading…</option></select>
   </label>
-  <button onclick="load()">Load</button>
+  <button id="loadBtn" disabled onclick="load()">Load</button>
 
+  <p id="status"></p>
   <div id="table"></div>
 
   <script>
@@ -340,8 +344,43 @@ Reads the first 100 lines of a CSV at a given path and renders it as a table.
       return json.data;
     }
 
+    // 1. List CSV files in the bucket and populate the dropdown.
+    (async () => {
+      const { workspace } = await gql(`
+        query($slug: String!) {
+          workspace(slug: $slug) {
+            bucket {
+              objects(page: 1, perPage: 200, ignoreHiddenFiles: true) {
+                items { key name path type }
+              }
+            }
+          }
+        }
+      `, { slug: workspaceSlug });
+
+      const csvFiles = workspace.bucket.objects.items
+        .filter(o => o.type === "FILE" && o.name.toLowerCase().endsWith(".csv"));
+
+      const select = document.getElementById("file");
+      if (!csvFiles.length) {
+        select.innerHTML = '<option>(no CSV files in this workspace)</option>';
+        return;
+      }
+      select.innerHTML = csvFiles
+        .map(f => `<option value="${f.key}">${f.key}</option>`)
+        .join("");
+      select.disabled = false;
+      document.getElementById("loadBtn").disabled = false;
+    })();
+
+    // 2. Fetch and render the selected file as a table.
     async function load() {
-      const path = document.getElementById("path").value.trim();
+      const path = document.getElementById("file").value;
+      const status = document.getElementById("status");
+      const out = document.getElementById("table");
+      status.textContent = "";
+      out.innerHTML = "";
+
       const { readFileContent } = await gql(`
         query($slug: String!, $path: String!) {
           readFileContent(workspaceSlug: $slug, filePath: $path, startLine: 1, endLine: 100) {
@@ -350,16 +389,20 @@ Reads the first 100 lines of a CSV at a given path and renders it as a table.
         }
       `, { slug: workspaceSlug, path });
 
+      if (!readFileContent.success || !readFileContent.content) {
+        status.textContent = "Could not read this file (it may be empty or unreadable as text).";
+        return;
+      }
+
       const rows = readFileContent.content.trim().split("\n").map(l => l.split(","));
       const [header, ...body] = rows;
-      const html = [
+      out.innerHTML = [
         "<table><thead><tr>",
         header.map(h => `<th>${h}</th>`).join(""),
         "</tr></thead><tbody>",
         body.map(r => "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>").join(""),
         "</tbody></table>",
       ].join("");
-      document.getElementById("table").innerHTML = html;
     }
   </script>
 </body>

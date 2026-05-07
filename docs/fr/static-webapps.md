@@ -297,9 +297,9 @@ Charge la liste des pipelines à l'ouverture de la page, vous laisse en choisir 
 </html>
 ```
 
-### FILES_READ — Aperçu d'un CSV depuis le bucket du workspace
+### USER_READ + FILES_READ — Choisir un CSV dans le bucket du workspace et l'afficher
 
-Lit les 100 premières lignes d'un CSV à un chemin donné et l'affiche dans un tableau.
+Liste les fichiers CSV du bucket au chargement de la page, vous laisse en choisir un dans une liste déroulante, et affiche les 100 premières lignes dans un tableau. Nécessite à la fois `USER_READ` (pour lister les fichiers via `workspace.bucket.objects`) et `FILES_READ` (pour lire le contenu).
 
 ```html
 <!DOCTYPE html>
@@ -309,21 +309,25 @@ Lit les 100 premières lignes d'un CSV à un chemin donné et l'affiche dans un 
   <title>Aperçu CSV</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
-    input { width: 100%; padding: 0.4rem; box-sizing: border-box; }
-    button { margin-top: 0.5rem; padding: 0.5rem 1rem; }
+    label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
+    select { width: 100%; padding: 0.4rem; box-sizing: border-box; font-family: inherit; }
+    button { margin-top: 0.75rem; padding: 0.5rem 1rem; }
+    button[disabled] { opacity: 0.5; cursor: not-allowed; }
     table { border-collapse: collapse; margin-top: 1rem; width: 100%; }
     th, td { border: 1px solid #ddd; padding: 0.3rem 0.5rem; font-size: 0.9rem; }
     th { background: #f5f5f5; }
+    #status { margin-top: 1rem; color: #b91c1c; }
   </style>
 </head>
 <body>
   <h1>Aperçu CSV</h1>
 
-  <label>Chemin du fichier
-    <input id="path" value="outputs/summary.csv">
+  <label>Fichier
+    <select id="file" disabled><option>Chargement…</option></select>
   </label>
-  <button onclick="load()">Charger</button>
+  <button id="loadBtn" disabled onclick="load()">Charger</button>
 
+  <p id="status"></p>
   <div id="table"></div>
 
   <script>
@@ -340,8 +344,43 @@ Lit les 100 premières lignes d'un CSV à un chemin donné et l'affiche dans un 
       return json.data;
     }
 
+    // 1. Lister les fichiers CSV du bucket et remplir la liste déroulante.
+    (async () => {
+      const { workspace } = await gql(`
+        query($slug: String!) {
+          workspace(slug: $slug) {
+            bucket {
+              objects(page: 1, perPage: 200, ignoreHiddenFiles: true) {
+                items { key name path type }
+              }
+            }
+          }
+        }
+      `, { slug: workspaceSlug });
+
+      const csvFiles = workspace.bucket.objects.items
+        .filter(o => o.type === "FILE" && o.name.toLowerCase().endsWith(".csv"));
+
+      const select = document.getElementById("file");
+      if (!csvFiles.length) {
+        select.innerHTML = '<option>(aucun fichier CSV dans ce workspace)</option>';
+        return;
+      }
+      select.innerHTML = csvFiles
+        .map(f => `<option value="${f.key}">${f.key}</option>`)
+        .join("");
+      select.disabled = false;
+      document.getElementById("loadBtn").disabled = false;
+    })();
+
+    // 2. Récupérer et afficher le fichier sélectionné dans un tableau.
     async function load() {
-      const path = document.getElementById("path").value.trim();
+      const path = document.getElementById("file").value;
+      const status = document.getElementById("status");
+      const out = document.getElementById("table");
+      status.textContent = "";
+      out.innerHTML = "";
+
       const { readFileContent } = await gql(`
         query($slug: String!, $path: String!) {
           readFileContent(workspaceSlug: $slug, filePath: $path, startLine: 1, endLine: 100) {
@@ -350,16 +389,20 @@ Lit les 100 premières lignes d'un CSV à un chemin donné et l'affiche dans un 
         }
       `, { slug: workspaceSlug, path });
 
+      if (!readFileContent.success || !readFileContent.content) {
+        status.textContent = "Impossible de lire ce fichier (il est peut-être vide ou non lisible en texte).";
+        return;
+      }
+
       const rows = readFileContent.content.trim().split("\n").map(l => l.split(","));
       const [header, ...body] = rows;
-      const html = [
+      out.innerHTML = [
         "<table><thead><tr>",
         header.map(h => `<th>${h}</th>`).join(""),
         "</tr></thead><tbody>",
         body.map(r => "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>").join(""),
         "</tbody></table>",
       ].join("");
-      document.getElementById("table").innerHTML = html;
     }
   </script>
 </body>
