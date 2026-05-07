@@ -217,12 +217,12 @@ nav:
     - Notebooks: notebooks.md
   - Developer Guide:
     - Writing Pipelines: writing-pipelines.md
+    - Static Webapps: static-webapps.md
     - CLI: cli.md
     - SDK: sdk.md
     - Toolbox: toolbox.md
     - Notebooks (advanced): notebooks-advanced.md
     - API Authentication: api-authentication.md
-    - Static Webapps: static-webapps.md
   - Administration:
     - Admin Guide: admin.md
     - Installation: installation.md
