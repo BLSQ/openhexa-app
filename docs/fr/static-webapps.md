@@ -109,7 +109,7 @@ Affiche l'utilisateur courant et le workspace au chargement.
   <pre id="out">Chargement…</pre>
 
   <script>
-    const WORKSPACE_SLUG = "my-workspace";
+    const { workspaceSlug } = window.OPENHEXA;
 
     async function gql(query, variables = {}) {
       const res = await fetch("/graphql/", {
@@ -128,7 +128,7 @@ Affiche l'utilisateur courant et le workspace au chargement.
           me { user { id email displayName } }
           workspace(slug: $slug) { slug name description }
         }
-      `, { slug: WORKSPACE_SLUG });
+      `, { slug: workspaceSlug });
       document.getElementById("out").textContent = JSON.stringify(data, null, 2);
     })();
   </script>
@@ -157,7 +157,7 @@ Liste tous les pipelines du workspace.
   <ul id="list"><li>Chargement…</li></ul>
 
   <script>
-    const WORKSPACE_SLUG = "my-workspace";
+    const { workspaceSlug } = window.OPENHEXA;
 
     async function gql(query, variables = {}) {
       const res = await fetch("/graphql/", {
@@ -177,7 +177,7 @@ Liste tous les pipelines du workspace.
             items { id code name description schedule }
           }
         }
-      `, { slug: WORKSPACE_SLUG });
+      `, { slug: workspaceSlug });
 
       const list = document.getElementById("list");
       list.innerHTML = "";
@@ -192,9 +192,9 @@ Liste tous les pipelines du workspace.
 </html>
 ```
 
-### PIPELINES_RUN — Lancer un pipeline et attendre la fin
+### PIPELINES_READ + PIPELINES_RUN — Choisir un pipeline et le lancer
 
-Formulaire qui lance un pipeline par son id avec une configuration JSON ; interroge le statut jusqu'à la fin de l'exécution.
+Charge la liste des pipelines à l'ouverture de la page, vous laisse en choisir un dans une liste déroulante, et le lance avec une configuration JSON. Interroge le statut jusqu'à la fin de l'exécution. Nécessite à la fois `PIPELINES_READ` (pour lister) et `PIPELINES_RUN` (pour lancer).
 
 ```html
 <!DOCTYPE html>
@@ -204,26 +204,29 @@ Formulaire qui lance un pipeline par son id avec une configuration JSON ; interr
   <title>Lancer un pipeline</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
-    label { display: block; margin: 0.5rem 0 0.25rem; }
-    input, textarea { width: 100%; padding: 0.4rem; box-sizing: border-box; font-family: inherit; }
+    label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
+    select, textarea { width: 100%; padding: 0.4rem; box-sizing: border-box; font-family: inherit; }
     button { margin-top: 1rem; padding: 0.5rem 1rem; }
+    button[disabled] { opacity: 0.5; cursor: not-allowed; }
     #status { margin-top: 1rem; font-weight: 600; }
   </style>
 </head>
 <body>
   <h1>Lancer un pipeline</h1>
 
-  <label>ID du pipeline (UUID)
-    <input id="pid" placeholder="00000000-0000-0000-0000-000000000000">
+  <label>Pipeline
+    <select id="pipeline" disabled><option>Chargement…</option></select>
   </label>
   <label>Configuration (JSON)
     <textarea id="cfg" rows="4">{}</textarea>
   </label>
-  <button onclick="runIt()">Lancer</button>
+  <button id="runBtn" disabled onclick="runIt()">Lancer</button>
 
   <p id="status"></p>
 
   <script>
+    const { workspaceSlug } = window.OPENHEXA;
+
     async function gql(query, variables = {}) {
       const res = await fetch("/graphql/", {
         method: "POST",
@@ -235,8 +238,31 @@ Formulaire qui lance un pipeline par son id avec une configuration JSON ; interr
       return json.data;
     }
 
+    // 1. Charger la liste des pipelines et remplir la liste déroulante.
+    (async () => {
+      const { pipelines } = await gql(`
+        query($slug: String!) {
+          pipelines(workspaceSlug: $slug, page: 1, perPage: 100) {
+            items { id code name }
+          }
+        }
+      `, { slug: workspaceSlug });
+
+      const select = document.getElementById("pipeline");
+      if (!pipelines.items.length) {
+        select.innerHTML = '<option>(aucun pipeline dans ce workspace)</option>';
+        return;
+      }
+      select.innerHTML = pipelines.items
+        .map(p => `<option value="${p.id}">${p.name} (${p.code})</option>`)
+        .join("");
+      select.disabled = false;
+      document.getElementById("runBtn").disabled = false;
+    })();
+
+    // 2. Lancer le pipeline sélectionné et interroger le statut jusqu'à la fin.
     async function runIt() {
-      const id = document.getElementById("pid").value.trim();
+      const id = document.getElementById("pipeline").value;
       const config = JSON.parse(document.getElementById("cfg").value || "{}");
       const status = document.getElementById("status");
 
@@ -301,7 +327,7 @@ Lit les 100 premières lignes d'un CSV à un chemin donné et l'affiche dans un 
   <div id="table"></div>
 
   <script>
-    const WORKSPACE_SLUG = "my-workspace";
+    const { workspaceSlug } = window.OPENHEXA;
 
     async function gql(query, variables = {}) {
       const res = await fetch("/graphql/", {
@@ -322,7 +348,7 @@ Lit les 100 premières lignes d'un CSV à un chemin donné et l'affiche dans un 
             success content
           }
         }
-      `, { slug: WORKSPACE_SLUG, path });
+      `, { slug: workspaceSlug, path });
 
       const rows = readFileContent.content.trim().split("\n").map(l => l.split(","));
       const [header, ...body] = rows;
@@ -369,7 +395,7 @@ Sélectionnez un fichier, téléversez-le via une URL présignée.
   <p id="status"></p>
 
   <script>
-    const WORKSPACE_SLUG = "my-workspace";
+    const { workspaceSlug } = window.OPENHEXA;
 
     async function gql(query, variables = {}) {
       const res = await fetch("/graphql/", {
@@ -392,7 +418,7 @@ Sélectionnez un fichier, téléversez-le via une URL présignée.
         mutation($input: PrepareObjectUploadInput!) {
           prepareObjectUpload(input: $input) { success uploadUrl headers }
         }
-      `, { input: { workspaceSlug: WORKSPACE_SLUG, objectKey: key, contentType: blob.type } });
+      `, { input: { workspaceSlug: workspaceSlug, objectKey: key, contentType: blob.type } });
 
       const res = await fetch(prepareObjectUpload.uploadUrl, {
         method: "PUT",
@@ -427,7 +453,7 @@ Liste les jeux de données visibles depuis le workspace, avec leur dernière ver
   <ul id="list"><li>Chargement…</li></ul>
 
   <script>
-    const WORKSPACE_SLUG = "my-workspace";
+    const { workspaceSlug } = window.OPENHEXA;
 
     async function gql(query, variables = {}) {
       const res = await fetch("/graphql/", {
@@ -454,7 +480,7 @@ Liste les jeux de données visibles depuis le workspace, avec leur dernière ver
             }
           }
         }
-      `, { slug: WORKSPACE_SLUG });
+      `, { slug: workspaceSlug });
 
       const list = document.getElementById("list");
       list.innerHTML = "";
@@ -503,7 +529,7 @@ Petit formulaire qui crée un jeu de données et affiche le nouvel id/slug.
   <p id="out"></p>
 
   <script>
-    const WORKSPACE_SLUG = "my-workspace";
+    const { workspaceSlug } = window.OPENHEXA;
 
     async function gql(query, variables = {}) {
       const res = await fetch("/graphql/", {
@@ -528,7 +554,7 @@ Petit formulaire qui crée un jeu de données et affiche le nouvel id/slug.
             success errors dataset { id slug name }
           }
         }
-      `, { input: { workspaceSlug: WORKSPACE_SLUG, name, description } });
+      `, { input: { workspaceSlug: workspaceSlug, name, description } });
 
       if (!createDataset.success) {
         out.textContent = "Erreur : " + (createDataset.errors || []).join(", ");
