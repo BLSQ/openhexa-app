@@ -39,7 +39,7 @@ from hexa.pipelines.constants import UNIQUE_PIPELINE_VERSION_NAME
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
-
+# bool is a subclass of int in Python, so it must be excluded explicitly from int/float checks.
 _PRIMITIVE_TYPE_CHECKS = {
     "bool": lambda v: isinstance(v, bool),
     "int": lambda v: isinstance(v, int) and not isinstance(v, bool),

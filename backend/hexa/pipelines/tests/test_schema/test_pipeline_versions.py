@@ -546,11 +546,46 @@ def test_pipeline(input_file, threshold, enable_debug):
         return PipelineVersion.objects.create(
             pipeline=self.PIPELINE,
             parameters=[
-                {"code": "count", "name": "Count", "type": "int", "multiple": False, "required": False, "choices": []},
-                {"code": "score", "name": "Score", "type": "float", "multiple": False, "required": False, "choices": []},
-                {"code": "label", "name": "Label", "type": "str", "multiple": False, "required": False, "choices": []},
-                {"code": "flag", "name": "Flag", "type": "bool", "multiple": False, "required": False, "choices": []},
-                {"code": "conn", "name": "Conn", "type": "dhis2", "multiple": False, "required": False, "choices": []},
+                {
+                    "code": "count",
+                    "name": "Count",
+                    "type": "int",
+                    "multiple": False,
+                    "required": False,
+                    "choices": [],
+                },
+                {
+                    "code": "score",
+                    "name": "Score",
+                    "type": "float",
+                    "multiple": False,
+                    "required": False,
+                    "choices": [],
+                },
+                {
+                    "code": "label",
+                    "name": "Label",
+                    "type": "str",
+                    "multiple": False,
+                    "required": False,
+                    "choices": [],
+                },
+                {
+                    "code": "flag",
+                    "name": "Flag",
+                    "type": "bool",
+                    "multiple": False,
+                    "required": False,
+                    "choices": [],
+                },
+                {
+                    "code": "conn",
+                    "name": "Conn",
+                    "type": "dhis2",
+                    "multiple": False,
+                    "required": False,
+                    "choices": [],
+                },
             ],
         )
 

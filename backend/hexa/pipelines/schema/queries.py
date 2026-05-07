@@ -187,7 +187,9 @@ def resolve_pipeline_parameter_choices(
         raise ValueError(f"Workspace '{workspace_slug}' not found.")
 
     try:
-        version = PipelineVersion.objects.get(id=pipeline_version_id)
+        version = PipelineVersion.objects.get(
+            id=pipeline_version_id, pipeline__workspace=workspace
+        )
     except PipelineVersion.DoesNotExist:
         raise ValueError(f"Pipeline version '{pipeline_version_id}' not found.")
 

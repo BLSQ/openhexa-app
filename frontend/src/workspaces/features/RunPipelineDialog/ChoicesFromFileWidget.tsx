@@ -7,8 +7,8 @@ import { useGetPipelineParameterChoicesQuery } from "./ChoicesFromFileWidget.gen
 
 type ChoicesFromFileWidgetProps = {
   parameter: ParameterField_ParameterFragment;
-  value: any;
-  onChange(value: any): void;
+  value: string | string[] | null;
+  onChange(value: string | string[] | null): void;
   workspaceSlug: string;
   pipelineVersionId: string;
 };
@@ -87,9 +87,9 @@ const ChoicesFromFileWidget = ({
         <p className="mt-1 text-sm text-amber-600">
           {extra > 0
             ? t(
-                "{{count}} choices in this file cannot be used as {{type}} values: {{values}} and {{extra}} more.",
+                "{{total}} choices in this file cannot be used as {{type}} values: {{values}} and {{extra}} more.",
                 {
-                  count: invalidChoices.length,
+                  total: invalidChoices.length,
                   type: parameter.type,
                   values: listed,
                   extra,

@@ -125,9 +125,7 @@ class ExtractFromDataTest(TestCase):
 
     def test_objects_missing_column_key_are_skipped(self):
         data = [{"code": "NBI"}, {"name": "Mombasa"}]
-        self.assertEqual(
-            _extract_from_data(data, "code", self.PATH, self.FMT), ["NBI"]
-        )
+        self.assertEqual(_extract_from_data(data, "code", self.PATH, self.FMT), ["NBI"])
 
 
 class ParseJsonTest(TestCase):

@@ -32,6 +32,8 @@ def resolve_choices_from_file(bucket_name: str, choices_from_file: dict) -> list
     except NotFound:
         raise ValueError(f"Choices file '{path}' not found in workspace storage.")
 
+    # Fast path: reject based on metadata before downloading. The post-read
+    # len() check below is a fallback for backends with inaccurate size metadata.
     if obj.size > MAX_CHOICES_FILE_SIZE:
         raise ValueError(
             f"Choices file '{path}' is too large ({obj.size} bytes). "

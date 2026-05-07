@@ -1,7 +1,7 @@
 {
   "{{count}} choice in this file cannot be used as a {{type}} value: {{values}}.___one": "1 choice in this file cannot be used as a {{type}} value: {{values}}.",
   "{{count}} choice in this file cannot be used as a {{type}} value: {{values}}.___other": "{{count}} choices in this file cannot be used as {{type}} values: {{values}}.",
-  "{{count}} choices in this file cannot be used as {{type}} values: {{values}} and {{extra}} more.": "{{count}} choices in this file cannot be used as {{type}} values: {{values}} and {{extra}} more.",
+  "{{total}} choices in this file cannot be used as {{type}} values: {{values}} and {{extra}} more.": "{{total}} choices in this file cannot be used as {{type}} values: {{values}} and {{extra}} more.",
   "{{count}} param___one": "{{count}} param",
   "{{count}} param___other": "{{count}} param",
   "{{count}} row___one": "{{count}} row",
