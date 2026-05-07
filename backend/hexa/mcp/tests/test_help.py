@@ -28,6 +28,16 @@ class GetHelpOrDocTest(MCPTestCase):
             {"cli", "notebooks-advanced", "sdk", "toolbox", "writing-pipelines"},
         )
 
+    def test_known_topic_returns_full_md_content(self):
+        result = get_help_or_doc(user=self.USER_ADMIN, topic="writing-pipelines")
+        self.assertEqual(result["name"], "writing-pipelines")
+        self.assertEqual(result["title"], "Writing OpenHEXA Pipelines")
+        self.assertIn(
+            "OpenHEXA data pipelines provide a way to help you automate data processing",
+            result["content"],
+        )
+        self.assertIn("## Quickstart", result["content"])
+
     def test_docstring_lists_curated_topics(self):
         expected = (
             "Call this tool when you are stuck, unsure what to do next, or need guidance on OpenHEXA."

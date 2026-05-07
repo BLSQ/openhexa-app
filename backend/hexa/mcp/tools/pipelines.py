@@ -113,7 +113,6 @@ def _build_zipfile_b64(source_code: str) -> str:
 
 
 # TODO : refine cheat sheet
-# TODO : test reading docs
 
 _PIPELINE_AUTHORING_CHEAT_SHEET = """
 OpenHEXA pipeline authoring cheat-sheet
