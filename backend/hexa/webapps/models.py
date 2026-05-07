@@ -324,6 +324,7 @@ class GitWebapp(Webapp, GitRepoMixin):
         icon=None,
         is_public=False,
         files=None,
+        allowed_operations=None,
     ):
         with transaction.atomic():
             webapp = cls.objects.create_if_has_perm(
@@ -335,6 +336,7 @@ class GitWebapp(Webapp, GitRepoMixin):
                 icon=icon,
                 is_public=is_public,
                 created_by=created_by,
+                allowed_operations=allowed_operations or [],
             )
             webapp.repository = f"{workspace.slug}-webapp-{webapp.slug}"
 
@@ -365,6 +367,7 @@ class SupersetWebapp(Webapp):
         description="",
         icon=None,
         is_public=False,
+        allowed_operations=None,
     ):
         with transaction.atomic():
             dashboard = SupersetDashboard.objects.create(
@@ -385,6 +388,7 @@ class SupersetWebapp(Webapp):
                 icon=icon,
                 is_public=is_public,
                 created_by=created_by,
+                allowed_operations=allowed_operations or [],
             )
 
     def update_dashboard(self, superset_instance, external_dashboard_id):
