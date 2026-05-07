@@ -112,6 +112,81 @@ def _build_zipfile_b64(source_code: str) -> str:
     return base64.b64encode(buf.getvalue()).decode("ascii")
 
 
+_PIPELINE_AUTHORING_CHEAT_SHEET = """
+OpenHEXA pipeline authoring cheat-sheet
+---------------------------------------
+
+Imports come from `openhexa.sdk`:
+
+    from openhexa.sdk import current_run, pipeline, parameter, workspace
+
+Structure:
+- The pipeline function uses `@pipeline("code")` and ONLY orchestrates tasks (no data work in it).
+- Tasks use `@<pipeline_name>.task` and contain the actual work.
+- Task return values can be passed as args to other tasks — that defines the DAG and
+  enables parallel execution of independent tasks.
+- Task return values must be picklable. Pass each value as its own argument
+  (no list/dict wrapping of return values).
+- You CANNOT use task return values inside the @pipeline-decorated function — they are proxies
+  resolved only when consumed by another task.
+
+Logging (surfaces in the run UI):
+    current_run.log_debug / log_info / log_warning / log_error / log_critical
+
+Workspace files (read/write under `workspace.files_path`):
+    with open(f"{workspace.files_path}/data.csv") as f: ...
+    current_run.add_file_output(output_path)            # register file output
+
+Workspace database:
+    from sqlalchemy import create_engine
+    engine = create_engine(workspace.database_url)
+    df.to_sql("transformed", con=engine, if_exists="replace")
+    current_run.add_database_output("transformed")      # register table output
+
+Pipeline parameters (declared with `@parameter` decorators stacked above `@pipeline`):
+- First positional arg `code` becomes the function argument name.
+- `type` is one of: `int`, `float`, `str`, `bool`,
+  a connection class (`DHIS2Connection`, `PostgreSQLConnection`, `IASOConnection`, ...),
+  `Dataset`, `File`, or `Secret` (for tokens/passwords).
+- Optional kwargs: `name`, `help`, `choices`, `default`, `required` (default True),
+  `multiple` (default False), `widget`, `connection`.
+
+Connections: declare via `@parameter("conn", type=DHIS2Connection)` — the connection instance
+is passed to the pipeline function automatically.
+
+Timeouts: pass `timeout=<seconds>` to `@pipeline(...)` if the default 4h is not enough
+(max is instance-configured, typically 12h).
+
+Minimal valid skeleton:
+
+    from openhexa.sdk import current_run, pipeline
+
+
+    @pipeline("simple-etl")
+    def simple_etl():
+        count = task_1()
+        task_2(count)
+
+
+    @simple_etl.task
+    def task_1():
+        current_run.log_info("In task 1...")
+        return 42
+
+
+    @simple_etl.task
+    def task_2(count):
+        current_run.log_info(f"In task 2... count is {count}")
+
+
+    if __name__ == "__main__":
+        simple_etl()
+
+For the full reference (file IO recipes, scheduling, widgets, secrets, datasets, debugging),
+call get_help_or_doc(topic="writing-pipelines"). For SDK details, use topic="sdk".
+"""
+
+
 @tool
 def create_pipeline(
     user,
@@ -128,31 +203,6 @@ def create_pipeline(
     Only name, description, and functional_type are supported at creation time.
 
     If source_code is omitted, the pipeline is created without any version.
-
-    The source_code must follow this structure:
-
-        from openhexa.sdk import current_run, pipeline
-
-
-        @pipeline("Simple ETL")
-        def simple_etl():
-            count = task_1()
-            task_2(count)
-
-
-        @simple_etl.task
-        def task_1():
-            current_run.log_info("In task 1...")
-            return 42
-
-
-        @simple_etl.task
-        def task_2(count):
-            current_run.log_info(f"In task 2... count is {count}")
-
-
-        if __name__ == "__main__":
-            simple_etl()
     """
     zipfile_b64 = _build_zipfile_b64(source_code) if source_code else None
 
@@ -210,3 +260,11 @@ def create_pipeline_version(
     if "errors" in data:
         return data
     return data.get("uploadPipeline", {})
+
+
+create_pipeline.__doc__ = (
+    create_pipeline.__doc__ or ""
+) + _PIPELINE_AUTHORING_CHEAT_SHEET
+create_pipeline_version.__doc__ = (
+    create_pipeline_version.__doc__ or ""
+) + _PIPELINE_AUTHORING_CHEAT_SHEET
