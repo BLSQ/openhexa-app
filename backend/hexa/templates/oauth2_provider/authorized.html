@@ -29,7 +29,15 @@
                         <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span><span class="tool-name">{{ tool.name }}</span>{% if tool.description %} <span class="tool-desc">— {{ tool.description }}</span>{% endif %}</span>
+                        <div class="tool-content">
+                            <span class="tool-name">{{ tool.name }}</span>
+                            {% if tool.description %}
+                                <details class="tool-details">
+                                    <summary><span class="tool-desc">— {{ tool.description|truncatechars:140 }}</span><span class="tool-arrow" aria-hidden="true">▸</span></summary>
+                                    <div class="tool-full">{{ tool.description }}</div>
+                                </details>
+                            {% endif %}
+                        </div>
                     </li>
                 {% endfor %}
             </ul>
