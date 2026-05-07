@@ -13,6 +13,7 @@ import GenericConnectionWidget from "./GenericConnectionWidget";
 import FileParameterField from "./FileParameterField";
 import ChoicesFromFileWidget from "./ChoicesFromFileWidget";
 import { ParameterField_ParameterFragment } from "./ParameterField.generated";
+import { ConnectionType } from "graphql/types";
 
 type ParameterFieldProps = {
   parameter: ParameterField_ParameterFragment;
@@ -70,7 +71,7 @@ const ParameterField = (props: ParameterFieldProps) => {
         value={value ?? []}
         onChange={(option) => handleChange(option?.slug)}
         withPortal
-        type={parameter.type}
+        type={parameter.type.toUpperCase() as ConnectionType}
       />
     );
   }
