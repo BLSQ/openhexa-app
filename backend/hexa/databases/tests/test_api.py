@@ -405,12 +405,24 @@ class DatabaseAPITest(TestCase):
             finally:
                 db_conn.close()
 
+            # RW user can still create a table
+            rw_conn = psycopg2.connect(
+                host=host, port=port, dbname=db_name, user=db_name, password=pwd
+            )
+            try:
+                cursor = rw_conn.cursor()
+                cursor.execute("CREATE TABLE should_work (id serial PRIMARY KEY);")
+                cursor.execute(
+                    "SELECT 1 FROM information_schema.tables "
+                    "WHERE table_schema='public' AND table_name='should_work';"
+                )
+                self.assertIsNotNone(cursor.fetchone())
+            finally:
+                rw_conn.close()
+
+            # RO user cannot create a table
             ro_conn = psycopg2.connect(
-                host=host,
-                port=port,
-                dbname=db_name,
-                user=ro_role,
-                password=ro_pwd,
+                host=host, port=port, dbname=db_name, user=ro_role, password=ro_pwd
             )
             try:
                 cursor = ro_conn.cursor()
