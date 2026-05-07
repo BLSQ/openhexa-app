@@ -112,6 +112,9 @@ def _build_zipfile_b64(source_code: str) -> str:
     return base64.b64encode(buf.getvalue()).decode("ascii")
 
 
+# TODO : refine cheat sheet
+# TODO : test reading docs
+
 _PIPELINE_AUTHORING_CHEAT_SHEET = """
 OpenHEXA pipeline authoring cheat-sheet
 ---------------------------------------
