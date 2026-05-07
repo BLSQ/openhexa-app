@@ -1156,6 +1156,7 @@ export enum CreateWebappError {
 
 /** Represents the input for creating a web app. */
 export type CreateWebappInput = {
+  allowedOperations?: InputMaybe<Array<WebappOperationScope>>;
   description?: InputMaybe<Scalars['String']['input']>;
   icon?: InputMaybe<Scalars['String']['input']>;
   isPublic?: InputMaybe<Scalars['Boolean']['input']>;
