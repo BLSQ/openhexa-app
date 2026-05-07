@@ -12,9 +12,10 @@ import { ensureArray } from "core/helpers/array";
 import GenericConnectionWidget from "./GenericConnectionWidget";
 import FileParameterField from "./FileParameterField";
 import ChoicesFromFileWidget from "./ChoicesFromFileWidget";
+import { ParameterField_ParameterFragment } from "./ParameterField.generated";
 
 type ParameterFieldProps = {
-  parameter: any;
+  parameter: ParameterField_ParameterFragment;
   value: any;
   form: any;
   onChange(value: any): void;

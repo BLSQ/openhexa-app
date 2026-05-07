@@ -89,7 +89,7 @@ def _parse_csv(text: str, column: str | None, path: str) -> list[str]:
             f"Available columns: {', '.join(fieldnames)}."
         )
 
-    return [row[column] for row in reader if row.get(column) is not None]
+    return [row[column] for row in reader if row.get(column)]
 
 
 def _parse_json(text: str, column: str | None, path: str) -> list[str]:
@@ -159,7 +159,12 @@ def _extract_from_data(
     if not data:
         return []
 
-    if isinstance(data[0], dict):
+    items_are_dicts = [isinstance(item, dict) for item in data]
+    if any(items_are_dicts):
+        if not all(items_are_dicts):
+            raise ValueError(
+                f"{fmt} file '{path}' contains a mix of objects and scalar values."
+            )
         if column is None:
             keys = list(data[0].keys())
             if len(keys) > 1:

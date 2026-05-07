@@ -13,10 +13,14 @@ type ChoicesFromFileWidgetProps = {
   pipelineVersionId: string;
 };
 
+function isInvalidChoice(c: string, type: string): boolean {
+  if (type === "int") return !Number.isInteger(Number(c));
+  if (type === "float") return isNaN(Number(c));
+  return false;
+}
+
 function getInvalidChoices(choices: string[], type: string): string[] {
-  if (type === "int") return choices.filter((c) => isNaN(parseInt(c, 10)));
-  if (type === "float") return choices.filter((c) => isNaN(parseFloat(c)));
-  return [];
+  return choices.filter((c) => isInvalidChoice(c, type));
 }
 
 const ChoicesFromFileWidget = ({
@@ -34,6 +38,7 @@ const ChoicesFromFileWidget = ({
       pipelineVersionId,
       parameterCode: parameter.code,
     },
+    fetchPolicy: "cache-and-network",
   });
 
   if (loading) {
@@ -75,6 +80,7 @@ const ChoicesFromFileWidget = ({
         multiple={parameter.multiple}
         options={choices}
         getOptionLabel={(option) => option}
+        getOptionDisabled={(option) => isInvalidChoice(option, parameter.type)}
         by={(a: string, b: string) => a === b}
       />
       {invalidChoices.length > 0 && (
