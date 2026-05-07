@@ -4994,6 +4994,7 @@ type UpdatePipelineResult {
 Enum representing the possible errors that can occur when updating a pipeline version.
 """
 enum UpdatePipelineVersionError {
+  INVALID_CONFIG
   NOT_FOUND
   PERMISSION_DENIED
 }

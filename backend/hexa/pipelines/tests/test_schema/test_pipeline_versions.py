@@ -4,7 +4,7 @@ import zipfile
 from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
-from hexa.pipelines.models import Pipeline
+from hexa.pipelines.models import Pipeline, PipelineVersion
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
@@ -541,3 +541,60 @@ def test_pipeline(input_file, threshold, enable_debug):
         )
 
         self.assertEqual(response["data"]["pipelineVersion"]["files"], [])
+
+    def _create_version_with_typed_params(self):
+        return PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            parameters=[
+                {"code": "count", "name": "Count", "type": "int", "multiple": False, "required": False, "choices": []},
+                {"code": "score", "name": "Score", "type": "float", "multiple": False, "required": False, "choices": []},
+                {"code": "label", "name": "Label", "type": "str", "multiple": False, "required": False, "choices": []},
+                {"code": "flag", "name": "Flag", "type": "bool", "multiple": False, "required": False, "choices": []},
+                {"code": "conn", "name": "Conn", "type": "dhis2", "multiple": False, "required": False, "choices": []},
+            ],
+        )
+
+    def test_update_version_config_invalid_types(self):
+        version = self._create_version_with_typed_params()
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation updatePipelineVersion($input: UpdatePipelineVersionInput!) {
+                updatePipelineVersion(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"id": str(version.id), "config": {"count": "not_a_number"}}},
+        )
+        self.assertEqual(r["data"]["updatePipelineVersion"]["success"], False)
+        self.assertIn("INVALID_CONFIG", r["data"]["updatePipelineVersion"]["errors"])
+
+    def test_update_version_config_valid_types(self):
+        version = self._create_version_with_typed_params()
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation updatePipelineVersion($input: UpdatePipelineVersionInput!) {
+                updatePipelineVersion(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(version.id),
+                    "config": {
+                        "count": 5,
+                        "score": 3.14,
+                        "label": "hello",
+                        "flag": True,
+                        "conn": "some-connection-id",
+                    },
+                }
+            },
+        )
+        self.assertEqual(r["data"]["updatePipelineVersion"]["success"], True)
+        self.assertEqual(r["data"]["updatePipelineVersion"]["errors"], [])

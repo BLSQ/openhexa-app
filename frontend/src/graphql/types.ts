@@ -5833,6 +5833,7 @@ export type UpdatePipelineResult = {
 
 /** Enum representing the possible errors that can occur when updating a pipeline version. */
 export enum UpdatePipelineVersionError {
+  InvalidConfig = 'INVALID_CONFIG',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }

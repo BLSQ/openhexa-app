@@ -740,6 +740,7 @@ Enum representing the possible errors that can occur when updating a pipeline ve
 enum UpdatePipelineVersionError {
   NOT_FOUND
   PERMISSION_DENIED
+  INVALID_CONFIG
 }
 
 """

@@ -1,3 +1,4 @@
+import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { gql, useMutation } from "@apollo/client";
 import { Trans, useTranslation } from "next-i18next";
 import { useEffect } from "react";
@@ -157,6 +158,12 @@ const PipelineVersionConfigDialog = (props: PipelineVersionConfigProps) => {
             </Field>
           ))}
         </div>
+        {form.submitError && (
+          <div className="mt-2 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+            <ExclamationCircleIcon className="h-4 w-4 shrink-0 text-red-500" />
+            {form.submitError}
+          </div>
+        )}
       </Dialog.Content>
       <Dialog.Actions>
         <Button onClick={onClose} variant={"outlined"}>
