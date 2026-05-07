@@ -120,6 +120,13 @@ def create_read_only_role(db_name: str, ro_pwd: str, cursor=None):
     """
     ro_role = f"{db_name}_ro"
     with get_cursor(db_name, cursor) as cur:
+        # template1.public ACL granted CREATE to PUBLIC (pre-PG15 default, and
+        # potentially retained across pg_upgrade). Without this REVOKE,
+        # the RO role inherits CREATE on the public schema via PUBLIC and can
+        # create tables. Run before any role-specific GRANTs so the RW role's
+        # explicit GRANT ALL is unaffected.
+        # Adding this to ensure the fix on all databases, also ones we don't manage.
+        cur.execute("REVOKE CREATE ON SCHEMA public FROM PUBLIC;")
         cur.execute(
             sql.SQL("CREATE ROLE {role_name} LOGIN PASSWORD {password};").format(
                 role_name=sql.Identifier(ro_role), password=sql.Literal(ro_pwd)
