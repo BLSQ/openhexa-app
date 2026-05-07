@@ -1,4 +1,5 @@
 import hashlib
+import json
 import re
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -96,9 +97,34 @@ def _inject_powered_by_banner(response):
     return response
 
 
+def _inject_openhexa_context(response, webapp):
+    """Inject `window.OPENHEXA = {...}` into HTML responses so webapp JS knows its workspace."""
+    content_type = response.get("Content-Type", "")
+    if "text/html" not in content_type:
+        return response
+
+    context = {
+        "workspaceSlug": webapp.workspace.slug,
+        "webappSlug": webapp.slug,
+        "isPublic": webapp.is_public,
+    }
+    snippet = f"<script>window.OPENHEXA=Object.freeze({json.dumps(context)});</script>"
+
+    content = response.content.decode(response.charset)
+    head_close = content.find("</head>")
+    if head_close == -1:
+        # No <head> — likely a fragment or non-page asset served as text/html. Skip injection.
+        return response
+    content = content[:head_close] + snippet + content[head_close:]
+    response.content = content.encode(response.charset)
+    response["Content-Length"] = len(response.content)
+    return response
+
+
 def _dispatch_webapp_response(request, webapp, show_powered_by=False):
     if webapp.type == Webapp.WebappType.STATIC:
         response = _serve_static_webapp(webapp, request)
+        response = _inject_openhexa_context(response, webapp)
         if show_powered_by:
             response = _inject_powered_by_banner(response)
     elif webapp.type == Webapp.WebappType.SUPERSET:
