@@ -62,6 +62,12 @@ def reassign_objects_owned_by_ro_role(apps, schema_editor):
                             rw_role=sql.Identifier(db_name),
                         )
                     )
+                    cur.execute(
+                        sql.SQL("REVOKE {ro_role} FROM {admin_role}").format(
+                            ro_role=sql.Identifier(ro_role),
+                            admin_role=sql.Identifier(admin_role),
+                        )
+                    )
             finally:
                 conn.close()
         except Exception as exc:
