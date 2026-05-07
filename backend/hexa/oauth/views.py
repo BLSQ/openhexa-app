@@ -143,22 +143,6 @@ def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
     return JsonResponse(response_data, status=201)
 
 
-def _short_description(description: str) -> str:
-    """Return the first paragraph of a tool description.
-
-    Tool docstrings can carry long reference material (e.g. authoring cheat-sheets) that the LLM
-    needs but that would clutter the OAuth consent screen. We display the leading paragraph only.
-    """
-    return (description or "").strip().split("\n\n", 1)[0].strip()
-
-
-def _consent_tools() -> list[dict]:
-    return [
-        {"name": t["name"], "description": _short_description(t.get("description", ""))}
-        for t in get_tools_list()
-    ]
-
-
 class OAuthAuthorizeView(AuthorizationView):
     login_url = "/login"
 
@@ -166,12 +150,19 @@ class OAuthAuthorizeView(AuthorizationView):
         context = super().get_context_data(**kwargs)
         scopes = self.request.GET.get("scope", "")
         if "openhexa:mcp" in scopes.split():
-            context["tools"] = _consent_tools()
+            context["tools"] = [
+                {"name": t["name"], "description": t.get("description", "")}
+                for t in get_tools_list()
+            ]
         return context
 
     def redirect(self, redirect_to, application):
+        tools = [
+            {"name": t["name"], "description": t.get("description", "")}
+            for t in get_tools_list()
+        ]
         html = render_to_string(
             "oauth2_provider/authorized.html",
-            {"redirect_uri": redirect_to, "tools": _consent_tools()},
+            {"redirect_uri": redirect_to, "tools": tools},
         )
         return HttpResponse(html)
