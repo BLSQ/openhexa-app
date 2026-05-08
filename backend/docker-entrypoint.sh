@@ -39,7 +39,7 @@ case "$command" in
   if [[ "${DJANGO_HOT_RELOAD:-false}" == "true" ]]; then
     uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --reload
   else
-    gunicorn config.asgi:application -k config.workers.UvicornWorkerNoLifespan --bind 0:8000 --workers=3 $arguments
+    gunicorn config.asgi:application -k config.workers.UvicornWorkerNoLifespan --bind 0:8000 --workers=3
   fi
   ;;
 "makemigrations")
