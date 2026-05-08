@@ -1,5 +1,23 @@
 # Changelog
 
+## [5.5.0](https://github.com/BLSQ/openhexa-app/compare/5.4.3...5.5.0) (2026-05-08)
+
+
+### Features
+
+* SSE in agent loop ([#1750](https://github.com/BLSQ/openhexa-app/issues/1750)) ([38732af](https://github.com/BLSQ/openhexa-app/commit/38732afa12dc3437360d5c13b04c3339b00e947c))
+
+
+### Bug Fixes
+
+* folder cant be deleted (HEXA-1622) ([#1774](https://github.com/BLSQ/openhexa-app/issues/1774)) ([823efa7](https://github.com/BLSQ/openhexa-app/commit/823efa773456b164b7f9b794449ddc28328d7878))
+* iframe webapps should render the source url in an iframe and not through subdomain (HEXA-1639) ([#1782](https://github.com/BLSQ/openhexa-app/issues/1782)) ([9f36eaa](https://github.com/BLSQ/openhexa-app/commit/9f36eaa06b63f0cd0c2ab0c023dff70d2f905361))
+* instrument internal ai agent and mcp clients with documentation (HEXA-1631) ([#1788](https://github.com/BLSQ/openhexa-app/issues/1788)) ([3084fb9](https://github.com/BLSQ/openhexa-app/commit/3084fb9e844bdfa574438f1630a57c320186ee52))
+* preview url shows outdated content (HEXA-1636) ([#1779](https://github.com/BLSQ/openhexa-app/issues/1779)) ([1db020d](https://github.com/BLSQ/openhexa-app/commit/1db020d5cb50ac79c3e036e46c1eb6dc2c0b5f92))
+* Read-only user should not be able to create tables (HEXA-1630) ([#1785](https://github.com/BLSQ/openhexa-app/issues/1785)) ([334cb54](https://github.com/BLSQ/openhexa-app/commit/334cb54aa700e7331e7258a9f5c0d58d5a635e71))
+* reloading newly created pipelines from either template or from sdk ([#1776](https://github.com/BLSQ/openhexa-app/issues/1776)) ([ba6a8fb](https://github.com/BLSQ/openhexa-app/commit/ba6a8fbe2f04b25f5e869d1b7e57c22448a15af6))
+* show a button to reconnect in case of pipeline logs SSE drop (HEXA-1632) ([#1778](https://github.com/BLSQ/openhexa-app/issues/1778)) ([1349744](https://github.com/BLSQ/openhexa-app/commit/1349744a979a1ee56ea4fb89173b846c408ff81e))
+
 ## [5.4.3](https://github.com/BLSQ/openhexa-app/compare/5.4.2...5.4.3) (2026-04-27)
 
 
