@@ -5,6 +5,7 @@ import Tabs from "core/components/Tabs";
 import CodeEditor from "core/components/CodeEditor";
 import Dropzone from "core/components/Dropzone";
 import { WebappFileInput } from "graphql/types";
+import { fileToBase64, stringToBase64 } from "webapps/helpers/base64";
 
 type WebappSourceEditorProps = {
   initialTemplate: string;
@@ -21,7 +22,7 @@ const WebappSourceEditor = ({
   const handleTemplateChange = useCallback(
     (value: string) => {
       setTemplateContent(value);
-      onChange([{ path: "index.html", content: value }]);
+      onChange([{ path: "index.html", content: stringToBase64(value) }]);
     },
     [onChange],
   );
@@ -32,7 +33,7 @@ const WebappSourceEditor = ({
         await Promise.all(
           acceptedFiles.map(async (file) => ({
             path: (file.path || file.webkitRelativePath || file.name).replace(/^\//, ""),
-            content: await file.text(),
+            content: await fileToBase64(file),
           })),
         ),
       );
