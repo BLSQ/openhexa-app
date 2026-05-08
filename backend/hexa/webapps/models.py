@@ -25,6 +25,13 @@ from hexa.webapps.validators import validate_subdomain
 from hexa.workspaces.models import Workspace
 
 
+def _base64_decoded_size(b64: str) -> int:
+    if not b64:
+        return 0
+    padding = b64.count("=", -2)
+    return (len(b64) * 3) // 4 - padding
+
+
 def create_webapp_slug(name: str, workspace: Workspace):
     """Generate a unique slug for a webapp within a workspace."""
     suffix = ""
@@ -258,6 +265,8 @@ class GitWebapp(Webapp, GitRepoMixin):
         ".sql": "sql",
     }
 
+    MAX_FILE_CONTENT_SIZE = 5 * 1024 * 1024
+
     def get_files(self, ref="main"):
         raw_files = self.client.get_repository_files(
             self.repository, ref, org_slug=self.git_org.slug
@@ -266,6 +275,10 @@ class GitWebapp(Webapp, GitRepoMixin):
         for entry in raw_files:
             path = entry["path"]
             content = entry.get("content")
+            is_file = entry["type"] == "file"
+            size = _base64_decoded_size(content) if is_file else None
+            if content and size > self.MAX_FILE_CONTENT_SIZE:
+                content = None
             parent = "/".join(path.split("/")[:-1]) or None
             extension = os.path.splitext(path)[1].lower()
 
@@ -287,6 +300,7 @@ class GitWebapp(Webapp, GitRepoMixin):
                     "auto_select": path == "index.html",
                     "language": language,
                     "line_count": line_count,
+                    "size": size,
                 }
             )
         return nodes

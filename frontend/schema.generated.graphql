@@ -2249,6 +2249,7 @@ type FileNode {
   name: String!
   parentId: String
   path: String!
+  size: Int
   type: FileType!
 }
 

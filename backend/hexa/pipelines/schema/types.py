@@ -370,17 +370,20 @@ def resolve_pipeline_version_files(version: PipelineVersion, info, **kwargs):
                         "auto_select": False,
                         "language": None,
                         "line_count": None,
+                        "size": None,
                     }
 
             if path not in files_dict:  # Add the file or directory if not already added
                 content = None
                 language = None
                 line_count = None
+                size = None
                 if not zip_entry.is_dir():
                     file_content = zip_file.read(zip_entry.filename)
                     content = file_content.decode("utf-8")
                     language = get_language_from_path(path)
                     line_count = content.count("\n") + 1 if content else 0
+                    size = len(file_content)
                 files_dict[path] = {
                     "id": version.version_name + "/" + path,
                     "name": path.split("/")[-1] if "/" in path else path,
@@ -393,6 +396,7 @@ def resolve_pipeline_version_files(version: PipelineVersion, info, **kwargs):
                     "auto_select": False,
                     "language": language,
                     "line_count": line_count,
+                    "size": size,
                 }
 
     all_files = sorted(files_dict.values(), key=lambda f: f["name"].lower())

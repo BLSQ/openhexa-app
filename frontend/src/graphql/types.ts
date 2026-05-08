@@ -2276,6 +2276,7 @@ export type FileNode = {
   name: Scalars['String']['output'];
   parentId?: Maybe<Scalars['String']['output']>;
   path: Scalars['String']['output'];
+  size?: Maybe<Scalars['Int']['output']>;
   type: FileType;
 };
 
