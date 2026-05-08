@@ -1,4 +1,3 @@
-import base64
 import os
 import secrets
 
@@ -270,13 +269,7 @@ class GitWebapp(Webapp, GitRepoMixin):
             extension = os.path.splitext(path)[1].lower()
 
             language = self.LANGUAGE_MAP.get(extension) if content else None
-            line_count = None
-            if content and language:
-                try:
-                    decoded = base64.b64decode(content).decode("utf-8")
-                    line_count = decoded.count("\n") + 1
-                except (ValueError, UnicodeDecodeError):
-                    pass
+            line_count = entry.get("line_count") if language else None
 
             nodes.append(
                 {

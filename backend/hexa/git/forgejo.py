@@ -5,6 +5,7 @@ from urllib.parse import quote
 import requests
 from django.conf import settings
 
+from hexa.files.utils import is_safe_path
 from hexa.git.client import GitClient
 
 logger = logging.getLogger(__name__)
@@ -118,6 +119,8 @@ class ForgejoClient(GitClient):
         *,
         org_slug: str | None = None,
     ) -> bytes:
+        if not is_safe_path(path):
+            raise ValueError(f"Unsafe path: {path!r}")
         org_slug = org_slug or self._username
         quoted_path = quote(path, safe="/")
         url = f"{self._url}/api/v1/repos/{org_slug}/{repo_name}/media/{quoted_path}"
@@ -198,7 +201,14 @@ class ForgejoClient(GitClient):
             elif entry_type == "blob":
                 raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
                 content = base64.b64encode(raw).decode("ascii")
-                nodes.append({"path": path, "type": "file", "content": content})
+                nodes.append(
+                    {
+                        "path": path,
+                        "type": "file",
+                        "content": content,
+                        "line_count": raw.count(b"\n") + 1,
+                    }
+                )
 
         return nodes
 
