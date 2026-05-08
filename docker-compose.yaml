@@ -4,6 +4,8 @@ x-app: &common
       context: ./backend
       dockerfile: Dockerfile
       target: app
+      additional_contexts:
+        docs: ./docs
       args:
         - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
         - WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
@@ -22,6 +24,7 @@ x-app: &common
       - openhexa
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-./backend}:/code"
+      - "./docs:/code/docs:ro"
       - "${WORKSPACE_STORAGE_LOCATION:-/data/openhexa}:/data"
 
 services:
@@ -69,6 +72,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: pipelines
+      additional_contexts:
+        docs: ./docs
       args:
         - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
         - WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
@@ -82,6 +87,7 @@ services:
       - IS_LOCAL_DEV=true
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-./backend}:/code"
+      - "./docs:/code/docs:ro"
       - /var/run/docker.sock:/var/run/docker.sock
       - ${HOME}/.kube:/root/.kube:ro
 
@@ -91,6 +97,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: pipelines
+      additional_contexts:
+        docs: ./docs
       args:
         - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
         - WORKSPACE_STORAGE_LOCATION=${WORKSPACE_STORAGE_LOCATION}
@@ -100,6 +108,7 @@ services:
       - "pipelines"
     volumes:  # only used for Github Codespaces
       - "${LOCAL_WORKSPACE_FOLDER:-./backend}:/code"
+      - "./docs:/code/docs:ro"
     depends_on:
       - db
 

@@ -27,6 +27,9 @@ RUN --mount=type=cache,target=/root/.cache \
 # Copy the rest of the application
 COPY . /code/
 
+# Bundle only the English markdown docs consumed by hexa.mcp.docs
+COPY --from=docs en/*.md /code/docs/en/
+
 # Rootless
 ARG UID=1000
 ARG GID=1000
