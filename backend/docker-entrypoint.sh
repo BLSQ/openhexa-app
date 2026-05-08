@@ -36,7 +36,11 @@ case "$command" in
   ;;
 "start")
   wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
-  gunicorn config.asgi:application -k config.workers.UvicornWorkerNoLifespan --bind 0:8000 --workers=3 $arguments
+  if [[ "${DJANGO_HOT_RELOAD:-false}" == "true" ]]; then
+    uvicorn config.asgi:application --host 0.0.0.0 --port 8000 --reload
+  else
+    gunicorn config.asgi:application -k config.workers.UvicornWorkerNoLifespan --bind 0:8000 --workers=3 $arguments
+  fi
   ;;
 "makemigrations")
   wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
