@@ -1,3 +1,4 @@
+import base64
 from unittest.mock import MagicMock, patch
 
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -12,7 +13,12 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
     User,
 )
-from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
+from hexa.webapps.models import (
+    GitWebapp,
+    SupersetWebapp,
+    Webapp,
+    _base64_decoded_size,
+)
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -1008,3 +1014,76 @@ class GitWebappModelTest(TestCase):
 
         webapps = Webapp.objects.filter_for_user(self.user_viewer)
         self.assertIn(git_webapp.webapp_ptr, webapps)
+
+    def test_get_files_strips_content_above_size_limit(self):
+        webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="Size Limit App",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+
+        small_raw = b"<h1>Hi</h1>"
+        small_b64 = base64.b64encode(small_raw).decode("ascii")
+        oversized_raw = b"x" * (GitWebapp.MAX_FILE_CONTENT_SIZE + 1)
+        oversized_b64 = base64.b64encode(oversized_raw).decode("ascii")
+
+        self.mock_git_client.get_repository_files.return_value = [
+            {"path": "index.html", "type": "file", "content": small_b64},
+            {"path": "huge.bin", "type": "file", "content": oversized_b64},
+            {"path": "assets", "type": "directory", "content": None},
+        ]
+
+        files_by_path = {f["path"]: f for f in webapp.get_files()}
+
+        small = files_by_path["index.html"]
+        self.assertEqual(small["content"], small_b64)
+        self.assertEqual(small["size"], len(small_raw))
+
+        huge = files_by_path["huge.bin"]
+        self.assertIsNone(huge["content"])
+        self.assertEqual(huge["size"], len(oversized_raw))
+        self.assertIsNone(huge["language"])
+        self.assertIsNone(huge["line_count"])
+
+        directory = files_by_path["assets"]
+        self.assertIsNone(directory["content"])
+        self.assertIsNone(directory["size"])
+
+    def test_get_files_keeps_content_at_size_limit(self):
+        webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="At Limit App",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+
+        at_limit_raw = b"a" * GitWebapp.MAX_FILE_CONTENT_SIZE
+        at_limit_b64 = base64.b64encode(at_limit_raw).decode("ascii")
+
+        self.mock_git_client.get_repository_files.return_value = [
+            {"path": "exact.bin", "type": "file", "content": at_limit_b64},
+        ]
+
+        [file_node] = webapp.get_files()
+        self.assertEqual(file_node["content"], at_limit_b64)
+        self.assertEqual(file_node["size"], GitWebapp.MAX_FILE_CONTENT_SIZE)
+
+
+class Base64DecodedSizeTest(TestCase):
+    def test_returns_zero_for_empty_or_none(self):
+        self.assertEqual(_base64_decoded_size(""), 0)
+        self.assertEqual(_base64_decoded_size(None), 0)
+
+    def test_matches_decoded_byte_length(self):
+        for raw in [b"a", b"ab", b"abc", b"abcd", b"hello world", b"\x00\x01\x02"]:
+            with self.subTest(raw=raw):
+                encoded = base64.b64encode(raw).decode("ascii")
+                self.assertEqual(_base64_decoded_size(encoded), len(raw))
+
+    def test_matches_decoded_byte_length_for_large_payload(self):
+        raw = b"x" * (5 * 1024 * 1024 + 7)
+        encoded = base64.b64encode(raw).decode("ascii")
+        self.assertEqual(_base64_decoded_size(encoded), len(raw))

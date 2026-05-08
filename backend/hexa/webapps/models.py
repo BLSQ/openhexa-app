@@ -265,7 +265,7 @@ class GitWebapp(Webapp, GitRepoMixin):
         ".sql": "sql",
     }
 
-    MAX_FILE_CONTENT_SIZE = 5 * 1024 * 1024
+    MAX_FILE_CONTENT_SIZE = 2 * 1024 * 1024  # 2 MB
 
     def get_files(self, ref="main"):
         raw_files = self.client.get_repository_files(
