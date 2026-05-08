@@ -1,3 +1,4 @@
+import base64
 from unittest.mock import MagicMock, patch
 from urllib.parse import urlparse
 
@@ -582,8 +583,16 @@ class GitWebappQueryTest(GraphQLTestCase):
         mock_client = MagicMock()
         mock_client.get_commits.return_value = []
         mock_client.get_repository_files.return_value = [
-            {"path": "index.html", "type": "file", "content": "<h1>Hello</h1>"},
-            {"path": "style.css", "type": "file", "content": "body { color: red; }"},
+            {
+                "path": "index.html",
+                "type": "file",
+                "content": base64.b64encode(b"<h1>Hello</h1>").decode("ascii"),
+            },
+            {
+                "path": "style.css",
+                "type": "file",
+                "content": base64.b64encode(b"body { color: red; }").decode("ascii"),
+            },
         ]
         mock_get_client.return_value = mock_client
 
@@ -607,7 +616,10 @@ class GitWebappQueryTest(GraphQLTestCase):
         index_file = next(f for f in files if f["path"] == "index.html")
         self.assertEqual(index_file["name"], "index.html")
         self.assertEqual(index_file["type"], "file")
-        self.assertEqual(index_file["content"], "<h1>Hello</h1>")
+        self.assertEqual(
+            base64.b64decode(index_file["content"]).decode("utf-8"),
+            "<h1>Hello</h1>",
+        )
         self.assertTrue(index_file["autoSelect"])
         self.assertEqual(index_file["language"], "html")
 
@@ -621,12 +633,20 @@ class GitWebappQueryTest(GraphQLTestCase):
         mock_client.get_commits.return_value = []
         mock_client.get_repository_files.return_value = [
             {"path": "assets", "type": "directory", "content": None},
-            {"path": "index.html", "type": "file", "content": "<html></html>"},
-            {"path": "assets/style.css", "type": "file", "content": "body {}"},
+            {
+                "path": "index.html",
+                "type": "file",
+                "content": base64.b64encode(b"<html></html>").decode("ascii"),
+            },
+            {
+                "path": "assets/style.css",
+                "type": "file",
+                "content": base64.b64encode(b"body {}").decode("ascii"),
+            },
             {
                 "path": "assets/script.js",
                 "type": "file",
-                "content": "console.log('hi');",
+                "content": base64.b64encode(b"console.log('hi');").decode("ascii"),
             },
         ]
         mock_get_client.return_value = mock_client
