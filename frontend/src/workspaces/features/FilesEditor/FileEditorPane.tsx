@@ -5,9 +5,13 @@ import { EditorView } from "@codemirror/view";
 import { DocumentIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import CodeMirrorClient from "core/components/CodeMirrorClient/CodeMirrorClient";
+import Filesize from "core/components/Filesize";
 import { useTranslation } from "next-i18next";
 import { useMemo } from "react";
 import { r } from "codemirror-lang-r";
+import ImageFileViewer from "./ImageFileViewer";
+import UnsupportedFileViewer from "./UnsupportedFileViewer";
+import { getImageMimeType } from "./binaryFiles";
 import { FileNode } from "./types";
 
 type FileEditorPaneProps = {
@@ -86,13 +90,17 @@ const FileEditorPane = ({
     );
   }
 
+  const isBinary = !!selectedFile.isBinary;
+  const binaryBase64 = isBinary ? (selectedFile.content ?? "") : "";
+  const imageMime = isBinary ? getImageMimeType(selectedFile.name) : null;
+
   return (
     <>
       <div className="p-3 border-b border-gray-200 bg-white flex items-center justify-between">
         <div>
           <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
             {selectedFile.name}
-            {currentFileIsModified && (
+            {currentFileIsModified && !isBinary && (
               <span
                 className="inline-block w-2 h-2 bg-blue-500 rounded-full"
                 title={t("Modified")}
@@ -100,11 +108,21 @@ const FileEditorPane = ({
             )}
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            {selectedFile.language}
-            {" • "}
-            {selectedFile.lineCount}
-            {` ${(selectedFile.lineCount ?? 0) > 1 ? t("lines") : t("line")}`}
-            {currentFileIsModified && ` • ${t("Modified")}`}
+            {isBinary ? (
+              selectedFile.size != null ? (
+                <Filesize size={selectedFile.size} />
+              ) : (
+                t("Binary file")
+              )
+            ) : (
+              <>
+                {selectedFile.language}
+                {" • "}
+                {selectedFile.lineCount}
+                {` ${(selectedFile.lineCount ?? 0) > 1 ? t("lines") : t("line")}`}
+                {currentFileIsModified && ` • ${t("Modified")}`}
+              </>
+            )}
             {saveError && (
               <>
                 {" • "}
@@ -115,7 +133,7 @@ const FileEditorPane = ({
             )}
           </div>
         </div>
-        {isEditable && currentFileIsModified && hasSaveHandler && (
+        {isEditable && currentFileIsModified && hasSaveHandler && !isBinary && (
           <button
             onClick={onSave}
             disabled={isSaving}
@@ -139,15 +157,27 @@ const FileEditorPane = ({
       )}
       <div className="flex-1 relative overflow-hidden h-full">
         <div className="absolute inset-0">
-          <CodeMirrorClient
-            key={selectedFile.id + (isDiffMode ? "-diff" : "")}
-            value={currentFileContent}
-            readOnly={!isEditable}
-            onChange={onContentChange}
-            extensions={extensions}
-            height="100%"
-            style={{ width: "100%", height: "100%" }}
-          />
+          {isBinary ? (
+            imageMime && binaryBase64 ? (
+              <ImageFileViewer
+                filename={selectedFile.name}
+                base64={binaryBase64}
+                mimeType={imageMime}
+              />
+            ) : (
+              <UnsupportedFileViewer />
+            )
+          ) : (
+            <CodeMirrorClient
+              key={selectedFile.id + (isDiffMode ? "-diff" : "")}
+              value={currentFileContent}
+              readOnly={!isEditable}
+              onChange={onContentChange}
+              extensions={extensions}
+              height="100%"
+              style={{ width: "100%", height: "100%" }}
+            />
+          )}
         </div>
       </div>
     </>

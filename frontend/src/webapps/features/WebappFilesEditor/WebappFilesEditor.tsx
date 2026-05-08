@@ -1,8 +1,10 @@
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { toast } from "react-toastify";
+import { FileType } from "graphql/types";
 import { FilesEditor } from "workspaces/features/FilesEditor/FilesEditor";
 import { FilesEditor_FileFragment } from "workspaces/features/FilesEditor/FilesEditor.generated";
+import { InputFile } from "workspaces/features/FilesEditor/types";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
 import { useWebappFilesLazyQuery } from "webapps/graphql/queries.generated";
 import {
@@ -37,7 +39,7 @@ const WebappFilesEditor = ({
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
-  const [files, setFiles] = useState<FilesEditor_FileFragment[]>([]);
+  const [files, setFiles] = useState<InputFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -53,11 +55,20 @@ const WebappFilesEditor = ({
       variables: { workspaceSlug, webappSlug, ref: versionRef },
     }).then(({ data }) => {
       if (!cancelled) {
-        const decodedFiles = (data?.webapp?.files ?? []).map((file) => ({
-          ...file,
-          content:
-            file.content != null ? base64ToString(file.content) : file.content,
-        }));
+        const decodedFiles: InputFile[] = (data?.webapp?.files ?? []).map(
+          (file) => {
+            if (file.content == null) {
+              if (file.type === FileType.File) {
+                return { ...file, isBinary: true };
+              }
+              return file;
+            }
+            if (!file.language) {
+              return { ...file, isBinary: true };
+            }
+            return { ...file, content: base64ToString(file.content) };
+          },
+        );
         setFiles(decodedFiles);
         setIsLoading(false);
       }

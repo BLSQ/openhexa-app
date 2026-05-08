@@ -3,11 +3,17 @@ import { FileType } from "graphql/types";
 import useNavigationWarning from "core/hooks/useNavigationWarning";
 import useFilesEditorPanelOpen from "workspaces/hooks/useFilesEditorPanelOpen";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
-import { AugmentedFile, FileNode, ProposedFile, SaveResult } from "./types";
+import {
+  AugmentedFile,
+  FileNode,
+  InputFile,
+  ProposedFile,
+  SaveResult,
+} from "./types";
 import { buildFileTree } from "./buildFileTree";
 
 interface UseFilesEditorStateParams {
-  flatFiles: FilesEditor_FileFragment[];
+  flatFiles: InputFile[];
   isEditable: boolean;
   proposedFiles?: ProposedFile[];
   onSave?: (

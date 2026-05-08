@@ -1,16 +1,16 @@
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { gql } from "@apollo/client";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
-import { ProposedFile, SaveResult } from "./types";
+import { InputFile, ProposedFile, SaveResult } from "./types";
 import { useFilesEditorState } from "./useFilesEditorState";
 import FileTree from "./FileTree";
 import FileEditorPane from "./FileEditorPane";
 
-export type { ProposedFile, SaveResult, FileNode } from "./types";
+export type { ProposedFile, SaveResult, FileNode, InputFile } from "./types";
 
 interface FilesEditorProps {
   name: string;
-  files: FilesEditor_FileFragment[];
+  files: InputFile[];
   isEditable?: boolean;
   proposedFiles?: ProposedFile[];
   onSave?: (

@@ -2,9 +2,11 @@ import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 
 export type ProposedFile = { name: string; content: string };
 
-export type AugmentedFile = FilesEditor_FileFragment & { isProposed?: boolean };
+export type InputFile = FilesEditor_FileFragment & { isBinary?: boolean };
 
-export type FileNode = FilesEditor_FileFragment & {
+export type AugmentedFile = InputFile & { isProposed?: boolean };
+
+export type FileNode = InputFile & {
   children: FileNode[];
   isProposed?: boolean;
 };
