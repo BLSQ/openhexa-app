@@ -148,10 +148,8 @@ class ForgejoClient(GitClient):
             path = file["path"]
             is_update = path in existing_tree
             content = file["content"]
-            if isinstance(content, str):
-                content = base64.b64encode(content.encode()).decode()
-            elif isinstance(content, bytes):
-                content = base64.b64encode(content).decode()
+            if isinstance(content, bytes):
+                content = base64.b64encode(content).decode("ascii")
             op = {
                 "operation": "update" if is_update else "create",
                 "path": path,
@@ -184,7 +182,7 @@ class ForgejoClient(GitClient):
         *,
         org_slug: str | None = None,
     ) -> list[dict]:
-        """Fetch the full file tree and return a flat list with path, type, and content."""
+        """Fetch the full file tree and return a flat list with path, type, and base64 content."""
         tree = self.get_files_tree(repo_name, ref, org_slug=org_slug)
         nodes: list[dict] = []
 
@@ -196,7 +194,7 @@ class ForgejoClient(GitClient):
                 nodes.append({"path": path, "type": "directory", "content": None})
             elif entry_type == "blob":
                 raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
-                content = raw.decode("utf-8", errors="replace")
+                content = base64.b64encode(raw).decode("ascii")
                 nodes.append({"path": path, "type": "file", "content": content})
 
         return nodes

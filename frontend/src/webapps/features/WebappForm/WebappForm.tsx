@@ -36,6 +36,7 @@ import {
 import { useDataCardSection } from "core/components/DataCard/context";
 import { getWebappTypeLabel } from "webapps/helpers";
 import { DEFAULT_HTML_TEMPLATE } from "webapps/helpers/templates";
+import { stringToBase64 } from "webapps/helpers/base64";
 
 const ALL_SCOPES = Object.values(WebappOperationScope);
 
@@ -162,7 +163,7 @@ const DEFAULT_BLUESQUARE_SUPERSET_URL = "https://superset.bluesquare.org";
 
 const getDefaultSourceFiles = (type: WebappType): WebappFileInput[] =>
   type === WebappType.Static
-    ? [{ path: "index.html", content: DEFAULT_HTML_TEMPLATE }]
+    ? [{ path: "index.html", content: stringToBase64(DEFAULT_HTML_TEMPLATE) }]
     : [];
 
 const buildSource: Record<WebappType, (values: any) => any> = {

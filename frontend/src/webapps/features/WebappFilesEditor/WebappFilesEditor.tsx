@@ -5,6 +5,11 @@ import { FilesEditor } from "workspaces/features/FilesEditor/FilesEditor";
 import { FilesEditor_FileFragment } from "workspaces/features/FilesEditor/FilesEditor.generated";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
 import { useWebappFilesLazyQuery } from "webapps/graphql/queries.generated";
+import {
+  base64ToString,
+  fileToBase64,
+  stringToBase64,
+} from "webapps/helpers/base64";
 import Spinner from "core/components/Spinner";
 import { ArrowUpTrayIcon, FolderPlusIcon } from "@heroicons/react/24/outline";
 
@@ -48,7 +53,12 @@ const WebappFilesEditor = ({
       variables: { workspaceSlug, webappSlug, ref: versionRef },
     }).then(({ data }) => {
       if (!cancelled) {
-        setFiles(data?.webapp?.files ?? []);
+        const decodedFiles = (data?.webapp?.files ?? []).map((file) => ({
+          ...file,
+          content:
+            file.content != null ? base64ToString(file.content) : file.content,
+        }));
+        setFiles(decodedFiles);
         setIsLoading(false);
       }
     });
@@ -65,7 +75,7 @@ const WebappFilesEditor = ({
         const uploadedFiles = await Promise.all(
           Array.from(fileList).map(async (file) => ({
             path: file.webkitRelativePath || file.name,
-            content: await file.text(),
+            content: await fileToBase64(file),
           })),
         );
         const { data } = await updateWebapp({
@@ -103,7 +113,7 @@ const WebappFilesEditor = ({
         const file = allFiles.find((f) => f.id === fileId);
         return {
           path: file?.path ?? fileId,
-          content,
+          content: stringToBase64(content),
         };
       },
     );
