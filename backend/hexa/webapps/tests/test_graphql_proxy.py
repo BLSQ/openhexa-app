@@ -1,10 +1,13 @@
 import json
+from unittest.mock import patch
 
 from django.contrib.sessions.backends.db import SessionStore
 from django.test import TestCase, override_settings
 
 from hexa.core.test import GraphQLTestCase
-from hexa.pipelines.models import Pipeline
+from hexa.datasets.models import Dataset, DatasetLink
+from hexa.files.backends.base import StorageObject
+from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
 from hexa.user_management.models import User
 from hexa.webapps.graphql_proxy import extract_top_level_fields
 from hexa.webapps.middlewares import WEBAPP_SESSION_COOKIE, WEBAPP_SESSION_MAX_AGE
@@ -146,6 +149,197 @@ class GraphQLProxyMiddlewareTest(TestCase):
         data = json.loads(response.content)
         self.assertEqual(data["data"]["pipeline"]["id"], str(pipeline.id))
         self.assertEqual(data["data"]["pipeline"]["name"], "Test Pipeline")
+
+    def _create_scoped_webapp(self, slug, scopes):
+        return Webapp.objects.create(
+            name=slug,
+            slug=slug,
+            subdomain=slug,
+            url="http://example.com",
+            workspace=self.WORKSPACE,
+            created_by=self.USER,
+            is_public=False,
+            allowed_operations=scopes,
+        )
+
+    def test_allowed_workspace_query_returns_data(self):
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        response = self._graphql_post(
+            "private-app",
+            f'query {{ workspace(slug: "{self.WORKSPACE.slug}") {{ slug name }} }}',
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data["data"]["workspace"]["slug"], self.WORKSPACE.slug)
+        self.assertEqual(data["data"]["workspace"]["name"], self.WORKSPACE.name)
+
+    def test_allowed_pipelines_list_query_returns_data(self):
+        Pipeline.objects.create(workspace=self.WORKSPACE, name="Alpha", code="alpha")
+        Pipeline.objects.create(workspace=self.WORKSPACE, name="Beta", code="beta")
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        response = self._graphql_post(
+            "private-app",
+            f'query {{ pipelines(workspaceSlug: "{self.WORKSPACE.slug}") {{ items {{ code name }} }} }}',
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        codes = {p["code"] for p in data["data"]["pipelines"]["items"]}
+        self.assertEqual(codes, {"alpha", "beta"})
+
+    def test_allowed_pipeline_by_code_query_returns_data(self):
+        Pipeline.objects.create(
+            workspace=self.WORKSPACE, name="By Code", code="by-code"
+        )
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        response = self._graphql_post(
+            "private-app",
+            f'query {{ pipelineByCode(workspaceSlug: "{self.WORKSPACE.slug}", code: "by-code") {{ code name }} }}',
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data["data"]["pipelineByCode"]["code"], "by-code")
+        self.assertEqual(data["data"]["pipelineByCode"]["name"], "By Code")
+
+    def test_allowed_run_pipeline_mutation_creates_run(self):
+        pipeline = Pipeline.objects.create(
+            workspace=self.WORKSPACE, name="Runnable", code="runnable"
+        )
+        PipelineVersion.objects.create(
+            pipeline=pipeline,
+            version_number=1,
+            description="v1",
+            zipfile=b"some_bytes",
+        )
+        webapp = self._create_scoped_webapp(
+            "run-app", [Webapp.OperationScope.PIPELINES_RUN]
+        )
+        session = self._create_webapp_session(webapp, self.USER)
+        response = self._graphql_post(
+            "run-app",
+            f'mutation {{ runPipeline(input: {{id: "{pipeline.id}", config: {{}}}}) {{ success errors run {{ id }} }} }}',
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertTrue(data["data"]["runPipeline"]["success"])
+        self.assertEqual(data["data"]["runPipeline"]["errors"], [])
+        run = PipelineRun.objects.get(id=data["data"]["runPipeline"]["run"]["id"])
+        self.assertEqual(run.pipeline, pipeline)
+        self.assertEqual(run.user, self.USER)
+
+    @patch("hexa.files.schema.queries.storage")
+    def test_allowed_get_file_by_path_query_returns_file(self, mock_storage):
+        self.WORKSPACE.bucket_name = "proxy-ws-bucket"
+        self.WORKSPACE.save()
+        mock_storage.get_bucket_object.return_value = StorageObject(
+            key="data.csv",
+            name="data.csv",
+            path="folder/data.csv",
+            size=42,
+            updated_at=None,
+            type="file",
+        )
+        webapp = self._create_scoped_webapp(
+            "files-read-app", [Webapp.OperationScope.FILES_READ]
+        )
+        session = self._create_webapp_session(webapp, self.USER)
+        response = self._graphql_post(
+            "files-read-app",
+            f'query {{ getFileByPath(workspaceSlug: "{self.WORKSPACE.slug}", path: "folder/data.csv") {{ name path size }} }}',
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(
+            data["data"]["getFileByPath"],
+            {"name": "data.csv", "path": "folder/data.csv", "size": 42},
+        )
+        mock_storage.get_bucket_object.assert_called_once_with(
+            "proxy-ws-bucket", "folder/data.csv"
+        )
+
+    @patch("hexa.files.schema.mutations.storage")
+    def test_allowed_prepare_object_upload_mutation_returns_upload_url(
+        self, mock_storage
+    ):
+        self.WORKSPACE.bucket_name = "proxy-ws-bucket"
+        self.WORKSPACE.save()
+        mock_storage.generate_upload_url.return_value = (
+            "https://signed.example.com/upload",
+            {"X-Upload-Header": "yes"},
+        )
+        webapp = self._create_scoped_webapp(
+            "files-write-app", [Webapp.OperationScope.FILES_WRITE]
+        )
+        session = self._create_webapp_session(webapp, self.USER)
+        response = self._graphql_post(
+            "files-write-app",
+            f'mutation {{ prepareObjectUpload(input: {{workspaceSlug: "{self.WORKSPACE.slug}", objectKey: "uploads/file.bin"}}) {{ success errors uploadUrl }} }}',
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertTrue(data["data"]["prepareObjectUpload"]["success"])
+        self.assertEqual(data["data"]["prepareObjectUpload"]["errors"], [])
+        self.assertEqual(
+            data["data"]["prepareObjectUpload"]["uploadUrl"],
+            "https://signed.example.com/upload",
+        )
+        mock_storage.generate_upload_url.assert_called_once()
+        call_kwargs = mock_storage.generate_upload_url.call_args.kwargs
+        self.assertEqual(call_kwargs["bucket_name"], "proxy-ws-bucket")
+        self.assertEqual(call_kwargs["target_key"], "uploads/file.bin")
+
+    def test_allowed_dataset_query_returns_data(self):
+        dataset = Dataset.objects.create(
+            workspace=self.WORKSPACE,
+            created_by=self.USER,
+            name="Webapp Read",
+            slug="webapp-read",
+        )
+        DatasetLink.objects.create(
+            dataset=dataset, workspace=self.WORKSPACE, created_by=self.USER
+        )
+        webapp = self._create_scoped_webapp(
+            "datasets-read-app", [Webapp.OperationScope.DATASETS_READ]
+        )
+        session = self._create_webapp_session(webapp, self.USER)
+        response = self._graphql_post(
+            "datasets-read-app",
+            f'query {{ dataset(id: "{dataset.id}") {{ id name slug }} }}',
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data["data"]["dataset"]["id"], str(dataset.id))
+        self.assertEqual(data["data"]["dataset"]["name"], "Webapp Read")
+
+    def test_allowed_create_dataset_mutation_returns_data(self):
+        webapp = self._create_scoped_webapp(
+            "datasets-write-app", [Webapp.OperationScope.DATASETS_WRITE]
+        )
+        session = self._create_webapp_session(webapp, self.USER)
+        response = self._graphql_post(
+            "datasets-write-app",
+            f'mutation {{ createDataset(input: {{workspaceSlug: "{self.WORKSPACE.slug}", name: "Webapp Dataset", description: "From webapp"}}) {{ success errors dataset {{ name slug }} }} }}',
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertTrue(data["data"]["createDataset"]["success"])
+        self.assertEqual(data["data"]["createDataset"]["errors"], [])
+        self.assertEqual(
+            data["data"]["createDataset"]["dataset"]["name"], "Webapp Dataset"
+        )
+        dataset = Dataset.objects.get(
+            workspace=self.WORKSPACE,
+            slug=data["data"]["createDataset"]["dataset"]["slug"],
+        )
+        self.assertEqual(dataset.name, "Webapp Dataset")
+        self.assertEqual(dataset.created_by, self.USER)
 
     def test_allowed_me_query_returns_authenticated_user(self):
         session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
