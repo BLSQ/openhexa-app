@@ -85,20 +85,9 @@ def update_static_webapp(
 ) -> dict:
     """Update an existing static web app.
 
-    Provide the webapp UUID (from list_static_webapps) and any fields to change. Only provided
-    non-empty fields are updated.
+    Provide the webapp UUID (from list_static_webapps) and any fields to change. Only provided non-empty fields are updated. Pass files_json as a JSON array of {path, content} objects to replace all files (e.g. '[{"path": "index.html", "content": "<html>...</html>"}]'). Pass name to change the human-readable name, and description to change the description.
 
-    Parameters
-    ----------
-    - files_json: JSON array of {path, content} objects to replace all files.
-    - name: new human-readable name.
-    - description: new description.
-    - allowed_operations: comma-separated list of API scopes the webapp's JS may call via the
-      same-origin /graphql/ proxy. Pass an empty string to leave the current scopes untouched, or
-      "NONE" to revoke all access. Valid scopes: PIPELINES_READ, PIPELINES_RUN, FILES_READ,
-      FILES_WRITE, DATASETS_READ, DATASETS_WRITE, USER_READ. Example: "PIPELINES_READ,FILES_READ".
-      For what each scope grants and example queries the webapp's JS can run, call
-      get_help_or_doc(topic="static-webapps").
+    Pass allowed_operations as a comma-separated list of API scopes the webapp's JS may call via the same-origin /graphql/ proxy — valid values: PIPELINES_READ, PIPELINES_RUN, FILES_READ, FILES_WRITE, DATASETS_READ, DATASETS_WRITE, USER_READ. Leave empty to leave the current scopes untouched, or pass "NONE" to revoke all access. For the full reference (auth model, all top-level fields per scope, sample queries and mutations), call get_help_or_doc(topic="static-webapps").
     """
     update_input: dict = {"id": webapp_id}
     if name:
