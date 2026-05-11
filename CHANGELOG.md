@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.6.0](https://github.com/BLSQ/openhexa-app/compare/5.5.0...5.6.0) (2026-05-11)
+
+
+### Features
+
+* add documentation on how to use the GraphQL API in web apps (HEXA-1642) ([#1789](https://github.com/BLSQ/openhexa-app/issues/1789)) ([e214b6b](https://github.com/BLSQ/openhexa-app/commit/e214b6b7bf51f5340fa0bea77583b6011f7cc1df))
+
+
+### Bug Fixes
+
+* AI agent streaming URL fallback ([#1797](https://github.com/BLSQ/openhexa-app/issues/1797)) ([6b7da38](https://github.com/BLSQ/openhexa-app/commit/6b7da387895662bc878caf7c344a8c322e225f6e))
+* Bring back Django auto reload for local development ([#1790](https://github.com/BLSQ/openhexa-app/issues/1790)) ([1101ceb](https://github.com/BLSQ/openhexa-app/commit/1101ceb3deb8ba0c9e96d3cc561875936a5fe679))
+
 ## [5.5.0](https://github.com/BLSQ/openhexa-app/compare/5.4.3...5.5.0) (2026-05-08)
 
 
