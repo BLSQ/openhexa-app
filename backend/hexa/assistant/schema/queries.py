@@ -34,7 +34,7 @@ def resolve_pipeline_assistant_conversations(pipeline: Pipeline, info, **kwargs)
     request = info.context["request"]
     ct = ContentType.objects.get_for_model(Pipeline)
     return Conversation.objects.filter_for_user(request.user).filter(
-        linked_object_content_type=ct, linked_object_id=pipeline.id
+        linked_object_content_type=ct, linked_object_id=pipeline.id, user=request.user
     )
 
 
