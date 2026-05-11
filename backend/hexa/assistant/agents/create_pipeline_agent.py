@@ -18,50 +18,28 @@ class CreatePipelineAgent(BaseAgent):
     max_tokens = 32768
     
 
-    async def _persist_run(
-        self,
-        response_text,
-        tool_invocations,
-        usage,
-        all_messages,
-        is_first_message,
-        precomputed_naming=None,
-    ):
-        result = await super()._persist_run(
-            response_text,
-            tool_invocations,
-            usage,
-            all_messages,
-            is_first_message,
-            precomputed_naming=precomputed_naming,
-        )
-        await self._link_created_pipeline(tool_invocations)
-        return result
-
-    async def _link_created_pipeline(self, tool_invocations):
-        for inv in tool_invocations.values():
-            if inv.tool_name != "create_pipeline" or not inv.success:
-                continue
-            pipeline_id = (inv.tool_output or {}).get("pipeline", {}).get("id")
-            if not pipeline_id:
-                continue
-            try:
-                pipeline = await Pipeline.objects.aget(id=pipeline_id)
-                ct = await sync_to_async(ContentType.objects.get_for_model)(Pipeline)
-                self.conversation.linked_object_content_type = ct
-                self.conversation.linked_object_id = pipeline.id
-                self.conversation.instruction_set = InstructionSet.EDIT_PIPELINE
-                await self.conversation.asave(
-                    update_fields=[
-                        "linked_object_content_type",
-                        "linked_object_id",
-                        "instruction_set",
-                    ]
-                )
-            except Exception:
-                logger.exception(
-                    "CreatePipelineAgent: failed to link conversation %s to pipeline %s",
-                    self.conversation.id,
-                    pipeline_id,
-                )
-            break
+    async def _on_tool_result(self, invocation) -> None:
+        if invocation.tool_name != "create_pipeline" or not invocation.success:
+            return
+        pipeline_id = (invocation.tool_output or {}).get("pipeline", {}).get("id")
+        if not pipeline_id:
+            return
+        try:
+            pipeline = await Pipeline.objects.aget(id=pipeline_id)
+            ct = await sync_to_async(ContentType.objects.get_for_model)(Pipeline)
+            self.conversation.linked_object_content_type = ct
+            self.conversation.linked_object_id = pipeline.id
+            self.conversation.instruction_set = InstructionSet.EDIT_PIPELINE
+            await self.conversation.asave(
+                update_fields=[
+                    "linked_object_content_type",
+                    "linked_object_id",
+                    "instruction_set",
+                ]
+            )
+        except Exception:
+            logger.exception(
+                "CreatePipelineAgent: failed to link conversation %s to pipeline %s",
+                self.conversation.id,
+                pipeline_id,
+            )
