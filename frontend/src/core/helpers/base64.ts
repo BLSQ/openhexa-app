@@ -16,19 +16,10 @@ export const base64ToString = (value: string): string =>
 export const fileToBase64 = (file: Blob): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onerror = () => reject(reader.error ?? new Error("read failed"));
+    reader.onerror = () => reject(reader.error);
     reader.onload = () => {
-      const result = reader.result;
-      if (typeof result !== "string") {
-        reject(new Error("Unexpected FileReader result"));
-        return;
-      }
-      const comma = result.indexOf(",");
-      if (comma < 0) {
-        reject(new Error("Malformed data URL"));
-        return;
-      }
-      resolve(result.slice(comma + 1));
+      const result = reader.result as string;
+      resolve(result.slice(result.indexOf(",") + 1));
     };
     reader.readAsDataURL(file);
   });
