@@ -40,7 +40,7 @@ type Props = {
 
 function getStreamUrl(conversationId: string): string {
   const apiBasePath =
-    process.env.NEXT_PUBLIC_API_BASE_PATH ?? getPublicEnv().OPENHEXA_BACKEND_URL;
+    process.env.NEXT_PUBLIC_API_BASE_PATH || getPublicEnv().OPENHEXA_BACKEND_URL;
   return `${apiBasePath}/assistant/conversations/${conversationId}/stream/`;
 }
 
