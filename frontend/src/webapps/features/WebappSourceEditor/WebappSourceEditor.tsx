@@ -5,7 +5,7 @@ import Tabs from "core/components/Tabs";
 import CodeEditor from "core/components/CodeEditor";
 import Dropzone from "core/components/Dropzone";
 import { WebappFileInput } from "graphql/types";
-import { fileToBase64, stringToBase64 } from "webapps/helpers/base64";
+import { fileToBase64, stringToBase64 } from "core/helpers/base64";
 
 type WebappSourceEditorProps = {
   initialTemplate: string;

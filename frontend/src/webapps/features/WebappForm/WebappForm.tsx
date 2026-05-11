@@ -36,7 +36,7 @@ import {
 import { useDataCardSection } from "core/components/DataCard/context";
 import { getWebappTypeLabel } from "webapps/helpers";
 import { DEFAULT_HTML_TEMPLATE } from "webapps/helpers/templates";
-import { stringToBase64 } from "webapps/helpers/base64";
+import { stringToBase64 } from "core/helpers/base64";
 
 const ALL_SCOPES = Object.values(WebappOperationScope);
 

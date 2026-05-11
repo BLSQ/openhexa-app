@@ -1,3 +1,6 @@
+export const base64ToBytes = (value: string) =>
+  Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
+
 export const stringToBase64 = (value: string): string => {
   const bytes = new TextEncoder().encode(value);
   let binary = "";
@@ -7,14 +10,8 @@ export const stringToBase64 = (value: string): string => {
   return btoa(binary);
 };
 
-export const base64ToString = (value: string): string => {
-  const binary = atob(value);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
-};
+export const base64ToString = (value: string): string =>
+  new TextDecoder().decode(base64ToBytes(value));
 
 export const fileToBase64 = (file: Blob): Promise<string> =>
   new Promise((resolve, reject) => {

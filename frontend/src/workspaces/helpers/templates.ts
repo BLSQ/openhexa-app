@@ -1,5 +1,6 @@
 import { gql } from "@apollo/client";
 import { getApolloClient } from "core/helpers/apollo";
+import { base64ToBytes } from "core/helpers/base64";
 import "cronstrue/locales/en";
 import "cronstrue/locales/fr";
 import {
@@ -97,9 +98,7 @@ export async function downloadTemplateVersion(versionId: string) {
   }
   const { zipfile } = data.pipelineTemplateVersion.sourcePipelineVersion;
   const { template, versionNumber } = data.pipelineTemplateVersion;
-  const binaryString = atob(zipfile);
-  const bytes = Uint8Array.from(binaryString, (c) => c.charCodeAt(0));
-  const blob = new Blob([bytes], {
+  const blob = new Blob([base64ToBytes(zipfile)], {
     type: "application/zip",
   });
   const url = window.URL.createObjectURL(blob);

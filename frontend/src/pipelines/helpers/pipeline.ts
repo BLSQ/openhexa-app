@@ -1,5 +1,6 @@
 import { gql } from "@apollo/client";
 import { getApolloClient } from "core/helpers/apollo";
+import { base64ToBytes } from "core/helpers/base64";
 import { RunDagError } from "graphql/types";
 import {
   GetPipelineVersionQuery,
@@ -65,9 +66,7 @@ export async function downloadPipelineVersion(versionId: string) {
     throw new Error(`No version found for ${versionId}`);
   }
   const { zipfile, pipeline } = data.pipelineVersion;
-  const binaryString = atob(zipfile);
-  const bytes = Uint8Array.from(binaryString, (c) => c.charCodeAt(0));
-  const blob = new Blob([bytes], {
+  const blob = new Blob([base64ToBytes(zipfile)], {
     type: "application/zip",
   });
   const url = window.URL.createObjectURL(blob);

@@ -9,7 +9,7 @@ import {
   base64ToString,
   fileToBase64,
   stringToBase64,
-} from "webapps/helpers/base64";
+} from "core/helpers/base64";
 import Spinner from "core/components/Spinner";
 import { ArrowUpTrayIcon, FolderPlusIcon } from "@heroicons/react/24/outline";
 
