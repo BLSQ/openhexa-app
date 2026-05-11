@@ -124,7 +124,9 @@ export default function PipelineEditChatPanel({
         if (msg.role !== "assistant") continue;
         const proposal = msg.toolInvocations.find(
           (t: Message["toolInvocations"][0]) =>
-            t.toolName === "propose_pipeline_version" && t.success,
+            t.toolName === "propose_pipeline_version" &&
+            t.success &&
+            t.toolOutput !== null,
         );
         if (proposal?.toolOutput) {
           const files = (proposal.toolOutput as { files: ProposedFile[] })
