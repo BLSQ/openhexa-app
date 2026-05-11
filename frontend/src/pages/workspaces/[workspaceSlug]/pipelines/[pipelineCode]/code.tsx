@@ -71,6 +71,10 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     setProposedFiles(files);
   }, []);
 
+  const handleNewConversation = useCallback(() => {
+    setActiveConversationId(null);
+  }, []);
+
   const handleConversationCreated = useCallback(
     (conversation: PipelineConversation) => {
       setConversations((prev) => [conversation, ...prev]);
@@ -200,6 +204,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                   conversations={conversations}
                   activeConversationId={activeConversationId}
                   onConversationChange={setActiveConversationId}
+                  onNewConversation={handleNewConversation}
                   onConversationCreated={handleConversationCreated}
                   onConversationNameChange={handleConversationNameChange}
                 />

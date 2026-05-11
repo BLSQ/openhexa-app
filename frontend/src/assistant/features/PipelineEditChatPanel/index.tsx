@@ -7,7 +7,6 @@ import { AssistantConversationMessagesQuery } from "assistant/graphql/queries.ge
 import { LinkedObjectType } from "graphql/types";
 import { ProposedFile } from "workspaces/features/FilesEditor/FilesEditor";
 import { PlusIcon } from "@heroicons/react/24/outline";
-import Spinner from "core/components/Spinner";
 import clsx from "clsx";
 
 type Message = NonNullable<
@@ -29,6 +28,7 @@ type Props = {
   conversations: PipelineConversation[];
   activeConversationId: string | null;
   onConversationChange: (id: string) => void;
+  onNewConversation: () => void;
   onConversationCreated: (conversation: PipelineConversation) => void;
   onConversationNameChange: (id: string, name: string) => void;
 };
@@ -50,6 +50,7 @@ export default function PipelineEditChatPanel({
   conversations,
   activeConversationId,
   onConversationChange,
+  onNewConversation,
   onConversationCreated,
   onConversationNameChange,
 }: Props) {
@@ -63,8 +64,7 @@ export default function PipelineEditChatPanel({
     setShowHistory(false);
   }, [activeConversationId]);
 
-  const [createConversation, { loading: creating }] =
-    useCreateAssistantConversationMutation();
+  const [createConversation] = useCreateAssistantConversationMutation();
 
   const handleCreateConversation = useCallback(async () => {
     const result = await createConversation({
@@ -158,7 +158,7 @@ export default function PipelineEditChatPanel({
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-2 mt-0.5">
-          {conversations.length > 1 && (
+          {conversations.length > 0 && (
             <button
               onClick={() => setShowHistory((v) => !v)}
               className={clsx(
@@ -172,16 +172,12 @@ export default function PipelineEditChatPanel({
             </button>
           )}
           <button
-            onClick={handleCreateConversation}
-            disabled={creating}
+            onClick={onNewConversation}
+            disabled={!activeConversationId}
             className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
             title={t("New conversation")}
           >
-            {creating ? (
-              <Spinner size="xs" />
-            ) : (
-              <PlusIcon className="h-4 w-4" />
-            )}
+            <PlusIcon className="h-4 w-4" />
           </button>
         </div>
       </div>
