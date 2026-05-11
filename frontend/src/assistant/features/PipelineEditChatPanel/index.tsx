@@ -97,6 +97,15 @@ export default function PipelineEditChatPanel({
     [activeConversationId, onConversationNameChange],
   );
 
+  const handleConversationNameLoaded = useCallback(
+    (name: string) => {
+      if (activeConversationId) {
+        onConversationNameChange(activeConversationId, name);
+      }
+    },
+    [activeConversationId, onConversationNameChange],
+  );
+
   const handleToolResult = useCallback(
     (toolName: string, output: unknown, success: boolean) => {
       if (toolName !== "propose_pipeline_version" || !success) return;
@@ -202,6 +211,7 @@ export default function PipelineEditChatPanel({
               activeConversationId ? undefined : handleCreateConversation
             }
             onConversationNameChange={handleConversationNameChange}
+            onConversationNameLoaded={handleConversationNameLoaded}
             onToolResult={handleToolResult}
             onMessagesChange={handleMessagesChange}
           />
