@@ -167,6 +167,7 @@ query WorkspacePipelineCodePage(
       id
       name
       createdAt
+      updatedAt
     }
   }
   me {

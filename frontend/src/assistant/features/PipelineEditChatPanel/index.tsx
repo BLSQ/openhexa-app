@@ -18,6 +18,7 @@ export type PipelineConversation = {
   id: string;
   name?: string | null;
   createdAt: string;
+  updatedAt: string;
 };
 
 type Props = {
@@ -82,6 +83,7 @@ export default function PipelineEditChatPanel({
       id: conversation.id,
       name: null,
       createdAt: conversation.createdAt,
+      updatedAt: conversation.updatedAt,
     };
     onConversationCreated(newConv);
     return conversation.id;
@@ -200,7 +202,14 @@ export default function PipelineEditChatPanel({
                   : "text-gray-700",
               )}
             >
-              {conv.name || formatDate(conv.createdAt)}
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate">
+                  {conv.name || t("New conversation")}
+                </span>
+                <span className="shrink-0 text-xs text-gray-400">
+                  {formatDate(conv.updatedAt)}
+                </span>
+              </div>
             </button>
           ))}
         </div>
