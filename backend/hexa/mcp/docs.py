@@ -28,6 +28,7 @@ _ALLOWED_SLUGS = frozenset(
         "sdk",
         "toolbox",
         "notebooks-advanced",
+        "static-webapps",
     }
 )
 

@@ -37,6 +37,7 @@ def resolve_create_webapp(_, info, **kwargs):
 
     icon = decode_base64_image(input["icon"]) if input.get("icon") else None
     is_public = input.get("is_public", False)
+    allowed_operations = input.get("allowed_operations", [])
 
     try:
         with transaction.atomic():
@@ -69,6 +70,7 @@ def resolve_create_webapp(_, info, **kwargs):
                     created_by=user,
                     superset_instance=superset_instance,
                     external_dashboard_id=source["superset"]["dashboard_id"],
+                    allowed_operations=allowed_operations,
                 )
             elif "static" in source:
                 files_input = source["static"]
@@ -88,6 +90,7 @@ def resolve_create_webapp(_, info, **kwargs):
                     created_by=user,
                     webapp_type=Webapp.WebappType.STATIC,
                     files=files,
+                    allowed_operations=allowed_operations,
                 )
             else:
                 webapp = Webapp.objects.create_if_has_perm(
@@ -99,6 +102,7 @@ def resolve_create_webapp(_, info, **kwargs):
                     is_public=is_public,
                     created_by=user,
                     url=source["iframe"]["url"],
+                    allowed_operations=allowed_operations,
                 )
             return {"success": True, "errors": [], "webapp": webapp}
     except PermissionDenied:

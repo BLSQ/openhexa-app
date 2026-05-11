@@ -114,6 +114,7 @@ plugins:
             Toolbox: Toolbox
             Notebooks (advanced): Notebooks (avancé)
             API Authentication: Authentification API
+            Static Webapps: Webapps statiques
             Administration: Administration
             Admin Guide: Guide d'administration
             Installation: Installation
@@ -216,6 +217,7 @@ nav:
     - Notebooks: notebooks.md
   - Developer Guide:
     - Writing Pipelines: writing-pipelines.md
+    - Static Webapps: static-webapps.md
     - CLI: cli.md
     - SDK: sdk.md
     - Toolbox: toolbox.md

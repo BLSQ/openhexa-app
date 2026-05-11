@@ -112,6 +112,26 @@ class CreateStaticWebappTest(MCPTestCase):
             },
         )
 
+    @_mock_forgejo()
+    def test_create_static_webapp_with_allowed_operations(self, _mock):
+        files = [{"path": "index.html", "content": "<html></html>"}]
+        result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("Scoped"),
+            files_json=json.dumps(files),
+            allowed_operations="PIPELINES_READ,FILES_READ",
+        )
+        self.assertTrue(result["success"], result.get("errors"))
+        self.assertCountEqual(
+            result["webapp"]["allowedOperations"],
+            ["PIPELINES_READ", "FILES_READ"],
+        )
+        webapp = Webapp.objects.get(pk=result["webapp"]["id"])
+        self.assertCountEqual(
+            webapp.allowed_operations, ["PIPELINES_READ", "FILES_READ"]
+        )
+
 
 class UpdateStaticWebappTest(MCPTestCase):
     @_mock_forgejo()
@@ -174,3 +194,52 @@ class UpdateStaticWebappTest(MCPTestCase):
             files_json="not json",
         )
         self.assertEqual(result, {"error": "Invalid JSON in files_json"})
+
+    @_mock_forgejo()
+    def test_update_static_webapp_allowed_operations(self, _mock):
+        files = [{"path": "index.html", "content": "<html></html>"}]
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("ScopeUpd"),
+            files_json=json.dumps(files),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_id = str(create_result["webapp"]["id"])
+        self.assertEqual(Webapp.objects.get(pk=webapp_id).allowed_operations, [])
+
+        result = update_static_webapp(
+            user=self.USER_ADMIN,
+            webapp_id=webapp_id,
+            allowed_operations="PIPELINES_READ,DATASETS_READ",
+        )
+        self.assertTrue(result["success"], result)
+        self.assertCountEqual(
+            Webapp.objects.get(pk=webapp_id).allowed_operations,
+            ["PIPELINES_READ", "DATASETS_READ"],
+        )
+
+    @_mock_forgejo()
+    def test_update_static_webapp_allowed_operations_none_resets(self, _mock):
+        files = [{"path": "index.html", "content": "<html></html>"}]
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("ScopeReset"),
+            files_json=json.dumps(files),
+            allowed_operations="PIPELINES_READ,FILES_READ",
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_id = str(create_result["webapp"]["id"])
+        self.assertCountEqual(
+            Webapp.objects.get(pk=webapp_id).allowed_operations,
+            ["PIPELINES_READ", "FILES_READ"],
+        )
+
+        result = update_static_webapp(
+            user=self.USER_ADMIN,
+            webapp_id=webapp_id,
+            allowed_operations="NONE",
+        )
+        self.assertTrue(result["success"], result)
+        self.assertEqual(Webapp.objects.get(pk=webapp_id).allowed_operations, [])

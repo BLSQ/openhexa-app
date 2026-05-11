@@ -101,6 +101,7 @@ input CreateWebappInput {
   isPublic: Boolean
   workspaceSlug: String!
   source: WebappSourceInput!
+  allowedOperations: [WebappOperationScope!]
 }
 
 """
