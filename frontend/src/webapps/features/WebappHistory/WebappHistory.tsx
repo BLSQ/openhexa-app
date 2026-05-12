@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CodeBracketIcon } from "@heroicons/react/24/outline";
 import { useTranslation } from "next-i18next";
 import { DateTime } from "luxon";
 import Link from "next/link";
@@ -10,6 +11,7 @@ import Spinner from "core/components/Spinner";
 import Badge from "core/components/Badge";
 import Clipboard from "core/components/Clipboard";
 import Button from "core/components/Button";
+import Tooltip from "core/components/Tooltip";
 
 const PER_PAGE = 20;
 
@@ -146,12 +148,18 @@ const WebappHistory = ({ workspaceSlug, webappSlug }: WebappHistoryProps) => {
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
-                    <Link
-                      href={`/workspaces/${encodeURIComponent(workspaceSlug)}/webapps/${encodeURIComponent(webappSlug)}/code?ref=${version.id}`}
-                      className="text-xs text-gray-500 hover:text-gray-700 hover:underline"
-                    >
-                      {t("Browse at this point")}
-                    </Link>
+                    <Tooltip
+                      label={t("Browse at this point")}
+                      renderTrigger={(ref) => (
+                        <Link
+                          ref={ref as React.Ref<HTMLAnchorElement>}
+                          href={`/workspaces/${encodeURIComponent(workspaceSlug)}/webapps/${encodeURIComponent(webappSlug)}/code?ref=${version.id}`}
+                          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                        >
+                          <CodeBracketIcon className="h-4 w-4" />
+                        </Link>
+                      )}
+                    />
                     <Clipboard value={version.id}>
                       <code className="rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-600">
                         {shortId}
