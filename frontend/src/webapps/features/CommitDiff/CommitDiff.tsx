@@ -101,7 +101,7 @@ const CommitDiff = ({ workspaceSlug, webappSlug, commitId }: CommitDiffProps) =>
       ) : (
         <>
           <div className="text-sm text-gray-500">
-            {t("{{count}} file(s) changed", { count: files.length })},{" "}
+            {files.length} {t("files changed")},{" "}
             <span className="text-green-700">+{totalAdditions}</span>{" "}
             <span className="text-red-700">-{totalDeletions}</span>
           </div>

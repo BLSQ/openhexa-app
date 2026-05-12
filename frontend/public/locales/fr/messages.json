@@ -1005,5 +1005,8 @@
   "Your subscription has expired. Please renew soon to avoid service interruption.": "Votre abonnement a expiré. Veuillez renouveler bientôt pour éviter toute interruption de service.",
   "Your web app can query the OpenHEXA GraphQL API on behalf of the connected user. Requests are scoped to the permissions you enable below.": "Votre application web peut interroger l'API GraphQL d'OpenHEXA au nom de l'utilisateur connecté. Les requêtes sont limitées aux permissions que vous activez ci-dessous.",
   "Browse at this point": "Parcourir à ce stade",
-  "No changes in this commit.": "Aucun changement dans ce commit."
+  "No changes in this commit.": "Aucun changement dans ce commit.",
+  "files changed": "fichiers modifiés",
+  "← Back to history": "← Retour à l'historique",
+  "Binary file or no diff available": "Fichier binaire ou diff non disponible"
 }
