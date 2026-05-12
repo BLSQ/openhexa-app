@@ -6167,6 +6167,7 @@ export type WhoRegion = {
 export type Webapp = {
   __typename?: 'Webapp';
   allowedOperations: Array<WebappOperationScope>;
+  commitDiff?: Maybe<WebappCommitDiff>;
   createdBy: User;
   description?: Maybe<Scalars['String']['output']>;
   files?: Maybe<Array<FileNode>>;
@@ -6191,6 +6192,12 @@ export type Webapp = {
 
 
 /** Represents a web app. */
+export type WebappCommitDiffArgs = {
+  ref: Scalars['String']['input'];
+};
+
+
+/** Represents a web app. */
 export type WebappFilesArgs = {
   ref?: InputMaybe<Scalars['String']['input']>;
 };
@@ -6200,6 +6207,26 @@ export type WebappFilesArgs = {
 export type WebappVersionsArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type WebappCommitDiff = {
+  __typename?: 'WebappCommitDiff';
+  authorEmail: Scalars['String']['output'];
+  authorName: Scalars['String']['output'];
+  date: Scalars['DateTime']['output'];
+  files: Array<WebappFileDiff>;
+  id: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+};
+
+export type WebappFileDiff = {
+  __typename?: 'WebappFileDiff';
+  additions: Scalars['Int']['output'];
+  deletions: Scalars['Int']['output'];
+  filename: Scalars['String']['output'];
+  patch: Scalars['String']['output'];
+  previousFilename: Scalars['String']['output'];
+  status: Scalars['String']['output'];
 };
 
 export type WebappFileInput = {

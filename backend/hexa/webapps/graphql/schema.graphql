@@ -57,6 +57,24 @@ type WebappVersionsPage {
   page: Int!
 }
 
+type WebappFileDiff {
+  filename: String!
+  previousFilename: String!
+  status: String!
+  additions: Int!
+  deletions: Int!
+  patch: String!
+}
+
+type WebappCommitDiff {
+  id: String!
+  message: String!
+  authorName: String!
+  authorEmail: String!
+  date: DateTime!
+  files: [WebappFileDiff!]!
+}
+
 """
 Represents a web app.
 """
@@ -80,6 +98,7 @@ type Webapp {
   isShortcut: Boolean!
   source: WebappSource!
   versions(page: Int, perPage: Int): WebappVersionsPage
+  commitDiff(ref: String!): WebappCommitDiff
   files(ref: String): [FileNode!]
   permissions: WebappPermissions!
 }

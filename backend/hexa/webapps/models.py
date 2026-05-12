@@ -283,6 +283,79 @@ class GitWebapp(Webapp, GitRepoMixin):
             )
         return nodes
 
+    def get_commit_diff(self, sha: str) -> dict:
+        import difflib
+
+        raw = self.client.get_commit(self.git_org.slug, self.repository, sha)
+        git_commit = raw.get("commit") or {}
+        git_author = git_commit.get("author") or {}
+        parents = raw.get("parents") or []
+        parent_sha = parents[0]["sha"] if parents else None
+
+        current_files = {
+            f["path"]: f["content"] or ""
+            for f in self.get_files(sha)
+            if f["type"] == "file"
+        }
+        parent_files = (
+            {
+                f["path"]: f["content"] or ""
+                for f in self.get_files(parent_sha)
+                if f["type"] == "file"
+            }
+            if parent_sha
+            else {}
+        )
+
+        file_diffs = []
+        for path in sorted(set(current_files) | set(parent_files)):
+            current = current_files.get(path, "")
+            parent = parent_files.get(path, "")
+
+            if current == parent:
+                continue
+
+            if path not in parent_files:
+                status = "added"
+            elif path not in current_files:
+                status = "deleted"
+            else:
+                status = "modified"
+
+            patch_lines = list(
+                difflib.unified_diff(
+                    parent.splitlines(keepends=True),
+                    current.splitlines(keepends=True),
+                    fromfile=f"a/{path}",
+                    tofile=f"b/{path}",
+                )
+            )
+            file_diffs.append(
+                {
+                    "filename": path,
+                    "previous_filename": "",
+                    "status": status,
+                    "additions": sum(
+                        1 for line in patch_lines
+                        if line.startswith("+") and not line.startswith("+++")
+                    ),
+                    "deletions": sum(
+                        1 for line in patch_lines
+                        if line.startswith("-") and not line.startswith("---")
+                    ),
+                    "patch": "".join(patch_lines),
+                }
+            )
+
+        return {
+            "id": raw.get("sha", sha),
+            "message": (git_commit.get("message") or "").strip(),
+            "author_name": git_author.get("name", ""),
+            "author_email": git_author.get("email", ""),
+            "date": git_author.get("date", ""),
+            "files": file_diffs,
+        }
+
     def publish_version(self, version_id):
         if not self.client.commit_exists(
             self.git_org.slug, self.repository, version_id
