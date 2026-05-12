@@ -5436,6 +5436,7 @@ type WHORegion {
 """Represents a web app."""
 type Webapp {
   allowedOperations: [WebappOperationScope!]!
+  commitDiff(ref: String!): WebappCommitDiff
   createdBy: User!
   description: String
   files(ref: String): [FileNode!]
@@ -5465,6 +5466,24 @@ A file to write to a webapp's git repository.
   * TEXT (default)  — content is a UTF-8 string; suitable for hand-written or AI-generated code.
   * BASE64          — content is base64-encoded raw bytes; required for binary files (images, fonts, …).
 """
+type WebappCommitDiff {
+  authorEmail: String!
+  authorName: String!
+  date: DateTime!
+  files: [WebappFileDiff!]!
+  id: String!
+  message: String!
+}
+
+type WebappFileDiff {
+  additions: Int!
+  deletions: Int!
+  filename: String!
+  patch: String!
+  previousFilename: String!
+  status: String!
+}
+
 input WebappFileInput {
   content: String!
   encoding: FileEncoding = TEXT

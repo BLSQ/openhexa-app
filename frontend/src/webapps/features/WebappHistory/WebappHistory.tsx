@@ -130,7 +130,7 @@ const WebappHistory = ({ workspaceSlug, webappSlug }: WebappHistoryProps) => {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <Link
-                        href={`/workspaces/${encodeURIComponent(workspaceSlug)}/webapps/${encodeURIComponent(webappSlug)}/code?ref=${version.id}`}
+                        href={`/workspaces/${encodeURIComponent(workspaceSlug)}/webapps/${encodeURIComponent(webappSlug)}/commits/${version.id}`}
                         className="truncate text-sm font-medium text-gray-900 hover:underline"
                       >
                         {version.message}
@@ -145,7 +145,13 @@ const WebappHistory = ({ workspaceSlug, webappSlug }: WebappHistoryProps) => {
                       {version.authorName} &middot; {relative}
                     </div>
                   </div>
-                  <div className="shrink-0">
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Link
+                      href={`/workspaces/${encodeURIComponent(workspaceSlug)}/webapps/${encodeURIComponent(webappSlug)}/code?ref=${version.id}`}
+                      className="text-xs text-gray-500 hover:text-gray-700 hover:underline"
+                    >
+                      {t("Browse at this point")}
+                    </Link>
                     <Clipboard value={version.id}>
                       <code className="rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-600">
                         {shortId}

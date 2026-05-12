@@ -89,3 +89,12 @@ class GitClient(ABC):
         org_slug: str | None = None,
     ) -> list[dict]:
         ...
+
+    @abstractmethod
+    def get_commit(
+        self,
+        org_slug: str,
+        repo_name: str,
+        sha: str,
+    ) -> dict:
+        ...

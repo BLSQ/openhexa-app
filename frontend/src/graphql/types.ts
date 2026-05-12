@@ -6220,6 +6220,7 @@ export type WhoRegion = {
 export type Webapp = {
   __typename?: 'Webapp';
   allowedOperations: Array<WebappOperationScope>;
+  commitDiff?: Maybe<WebappCommitDiff>;
   createdBy: User;
   description?: Maybe<Scalars['String']['output']>;
   files?: Maybe<Array<FileNode>>;
@@ -6244,6 +6245,12 @@ export type Webapp = {
 
 
 /** Represents a web app. */
+export type WebappCommitDiffArgs = {
+  ref: Scalars['String']['input'];
+};
+
+
+/** Represents a web app. */
 export type WebappFilesArgs = {
   ref?: InputMaybe<Scalars['String']['input']>;
 };
@@ -6262,6 +6269,26 @@ export type WebappVersionsArgs = {
  *   * TEXT (default)  — content is a UTF-8 string; suitable for hand-written or AI-generated code.
  *   * BASE64          — content is base64-encoded raw bytes; required for binary files (images, fonts, …).
  */
+export type WebappCommitDiff = {
+  __typename?: 'WebappCommitDiff';
+  authorEmail: Scalars['String']['output'];
+  authorName: Scalars['String']['output'];
+  date: Scalars['DateTime']['output'];
+  files: Array<WebappFileDiff>;
+  id: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+};
+
+export type WebappFileDiff = {
+  __typename?: 'WebappFileDiff';
+  additions: Scalars['Int']['output'];
+  deletions: Scalars['Int']['output'];
+  filename: Scalars['String']['output'];
+  patch: Scalars['String']['output'];
+  previousFilename: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+};
+
 export type WebappFileInput = {
   content: Scalars['String']['input'];
   encoding?: InputMaybe<FileEncoding>;
