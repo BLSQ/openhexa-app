@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.6.1](https://github.com/BLSQ/openhexa-app/compare/5.6.0...5.6.1) (2026-05-12)
+
+
+### Bug Fixes
+
+* rw roles ([#1802](https://github.com/BLSQ/openhexa-app/issues/1802)) ([d4fd12b](https://github.com/BLSQ/openhexa-app/commit/d4fd12b307eb25f07ee01d19062326d18359ede0))
+
 ## [5.6.0](https://github.com/BLSQ/openhexa-app/compare/5.5.0...5.6.0) (2026-05-11)
 
 
