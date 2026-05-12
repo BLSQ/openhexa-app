@@ -998,11 +998,19 @@ class GitWebappCommitDiffTest(GraphQLTestCase):
         mock_client.get_repository_files.side_effect = [
             [
                 {"path": "index.html", "type": "file", "content": "<h1>Updated</h1>"},
-                {"path": "style.css", "type": "file", "content": "body { color: blue; }"},
+                {
+                    "path": "style.css",
+                    "type": "file",
+                    "content": "body { color: blue; }",
+                },
             ],
             [
                 {"path": "index.html", "type": "file", "content": "<h1>Hello</h1>"},
-                {"path": "style.css", "type": "file", "content": "body { color: blue; }"},
+                {
+                    "path": "style.css",
+                    "type": "file",
+                    "content": "body { color: blue; }",
+                },
             ],
         ]
         mock_get_client.return_value = mock_client
@@ -1071,7 +1079,11 @@ class GitWebappCommitDiffTest(GraphQLTestCase):
         self.client.force_login(self.USER)
         response = self.run_query(
             COMMIT_DIFF_QUERY,
-            {"workspaceSlug": self.WS.slug, "slug": "diff-test-app", "ref": "nonexistent"},
+            {
+                "workspaceSlug": self.WS.slug,
+                "slug": "diff-test-app",
+                "ref": "nonexistent",
+            },
         )
 
         self.assertIsNone(response["data"]["webapp"]["commitDiff"])
