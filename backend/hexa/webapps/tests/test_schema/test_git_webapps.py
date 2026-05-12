@@ -89,6 +89,30 @@ WEBAPP_QUERY = """
 """
 
 
+COMMIT_DIFF_QUERY = """
+    query webappCommitDiff($workspaceSlug: String!, $slug: String!, $ref: String!) {
+        webapp(workspaceSlug: $workspaceSlug, slug: $slug) {
+            id
+            commitDiff(ref: $ref) {
+                id
+                message
+                authorName
+                authorEmail
+                date
+                files {
+                    filename
+                    previousFilename
+                    status
+                    additions
+                    deletions
+                    patch
+                }
+            }
+        }
+    }
+"""
+
+
 class GitWebappCreateTest(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
@@ -846,3 +870,140 @@ class GitWebappDeleteTest(GraphQLTestCase):
         mock_client.archive_repository.assert_called_once_with(
             "no-org", "webapp-todelete"
         )
+
+
+class GitWebappCommitDiffTest(GraphQLTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user("difftestuser@test.com", "password")
+        cls.WS = Workspace.objects.create(name="Diff WS", slug="diff-ws")
+        WorkspaceMembership.objects.create(
+            user=cls.USER,
+            workspace=cls.WS,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        cls.GIT_WEBAPP = GitWebapp.objects.create(
+            workspace=cls.WS,
+            name="Diff Test App",
+            slug="diff-test-app",
+            subdomain="diff-test-app",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER,
+            repository="webapp-diffrepo",
+            published_commit="abc123",
+        )
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_commit_diff_success(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_commit.return_value = {
+            "sha": "abc123",
+            "commit": {
+                "message": "Update homepage\n",
+                "author": {
+                    "name": "Test User",
+                    "email": "test@example.com",
+                    "date": "2024-01-02T00:00:00Z",
+                },
+            },
+            "parents": [{"sha": "def456"}],
+        }
+        mock_client.get_repository_files.side_effect = [
+            [
+                {"path": "index.html", "type": "file", "content": "<h1>Updated</h1>"},
+                {"path": "style.css", "type": "file", "content": "body { color: blue; }"},
+            ],
+            [
+                {"path": "index.html", "type": "file", "content": "<h1>Hello</h1>"},
+                {"path": "style.css", "type": "file", "content": "body { color: blue; }"},
+            ],
+        ]
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            COMMIT_DIFF_QUERY,
+            {"workspaceSlug": self.WS.slug, "slug": "diff-test-app", "ref": "abc123"},
+        )
+
+        diff = response["data"]["webapp"]["commitDiff"]
+        self.assertIsNotNone(diff)
+        self.assertEqual(diff["id"], "abc123")
+        self.assertEqual(diff["message"], "Update homepage")
+        self.assertEqual(diff["authorName"], "Test User")
+        self.assertEqual(diff["authorEmail"], "test@example.com")
+        self.assertEqual(len(diff["files"]), 1)
+        file_diff = diff["files"][0]
+        self.assertEqual(file_diff["filename"], "index.html")
+        self.assertEqual(file_diff["status"], "modified")
+        self.assertGreater(file_diff["additions"], 0)
+        self.assertGreater(file_diff["deletions"], 0)
+        self.assertIn("+", file_diff["patch"])
+        self.assertIn("-", file_diff["patch"])
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_commit_diff_initial_commit_all_added(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_commit.return_value = {
+            "sha": "firstsha",
+            "commit": {
+                "message": "Initial commit",
+                "author": {
+                    "name": "Test User",
+                    "email": "test@example.com",
+                    "date": "2024-01-01T00:00:00Z",
+                },
+            },
+            "parents": [],
+        }
+        mock_client.get_repository_files.return_value = [
+            {"path": "index.html", "type": "file", "content": "<h1>Hello</h1>"},
+        ]
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            COMMIT_DIFF_QUERY,
+            {"workspaceSlug": self.WS.slug, "slug": "diff-test-app", "ref": "firstsha"},
+        )
+
+        diff = response["data"]["webapp"]["commitDiff"]
+        self.assertIsNotNone(diff)
+        self.assertEqual(len(diff["files"]), 1)
+        self.assertEqual(diff["files"][0]["filename"], "index.html")
+        self.assertEqual(diff["files"][0]["status"], "added")
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_commit_diff_forgejo_error_returns_null(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_commit.side_effect = ForgejoAPIError(
+            "GET", "http://forgejo/api", 404, "not found"
+        )
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            COMMIT_DIFF_QUERY,
+            {"workspaceSlug": self.WS.slug, "slug": "diff-test-app", "ref": "nonexistent"},
+        )
+
+        self.assertIsNone(response["data"]["webapp"]["commitDiff"])
+
+    def test_commit_diff_iframe_webapp_returns_null(self):
+        Webapp.objects.create(
+            workspace=self.WS,
+            name="Iframe For Diff",
+            slug="iframe-for-diff",
+            subdomain="iframe-for-diff",
+            type=Webapp.WebappType.IFRAME,
+            created_by=self.USER,
+            url="https://example.com",
+        )
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            COMMIT_DIFF_QUERY,
+            {"workspaceSlug": self.WS.slug, "slug": "iframe-for-diff", "ref": "anyref"},
+        )
+
+        self.assertIsNone(response["data"]["webapp"]["commitDiff"])
