@@ -581,14 +581,12 @@ class PipelineTest(TestCase):
         template, _ = self.PIPELINE.get_or_create_template(
             name=template_name,
             code="test_code",
-            description="Some description",
         )
         self.assertIsNotNone(template)
         self.assertEqual(self.PIPELINE.template.name, template_name)
         self.PIPELINE.get_or_create_template(
             name="SOME RANDOM NAME",
             code="test_code",
-            description="Some description",
         )
         self.assertEqual(
             self.PIPELINE.template.name, template_name
@@ -596,19 +594,15 @@ class PipelineTest(TestCase):
 
         template.delete()
 
-        self.PIPELINE.get_or_create_template(
-            name="New name", code="New code", description="New description"
-        )
+        self.PIPELINE.get_or_create_template(name="New name", code="New code")
         self.assertFalse(template.is_deleted)
         self.assertEqual(template.name, "New name")
         self.assertEqual(template.code, "New code")
-        self.assertEqual(template.description, "New description")
 
     def test_new_template_version(self):
         template, _ = self.PIPELINE.get_or_create_template(
             name="Test Template",
             code="test_code",
-            description="Some description",
         )
         template_version = template.create_version(
             self.PIPELINE.last_version, changelog="First version"

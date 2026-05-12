@@ -101,7 +101,6 @@ class PipelineTemplatesOrganizationPermissionsTest(TestCase):
         cls.PIPELINE_TEMPLATE = PipelineTemplate.objects.create(
             workspace=cls.WORKSPACE,
             name="Test Pipeline Template",
-            description="Test pipeline template for permission testing",
             source_pipeline=cls.SOURCE_PIPELINE_1,
         )
 
@@ -326,7 +325,6 @@ class PipelineTemplatesOrganizationPermissionsTest(TestCase):
             workspace=self.WORKSPACE,
             name="Single Version Template",
             code="single_version_template_code",
-            description="Template with only one version",
             source_pipeline=self.SOURCE_PIPELINE_2,
         )
         unique_pipeline_version = PipelineVersion.objects.create(

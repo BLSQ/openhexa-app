@@ -95,7 +95,6 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
         pipeline_template, template_created = source_pipeline.get_or_create_template(
             name=input.get("name"),
             code=input.get("code"),
-            description=input.get("description"),
         )
         pipeline_template_version = (
             source_pipeline_version.template_version
@@ -104,6 +103,7 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
                 source_pipeline_version,
                 user=request.user,
                 changelog=input.get("changelog"),
+                description=input.get("description"),
             )
         )  # Recreate the version if the source pipeline version has no template version (it can have one if the template was deleted before and restored)
     except IntegrityError as e:

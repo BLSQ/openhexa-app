@@ -209,6 +209,8 @@ Represents a version of a pipeline template.
 type PipelineTemplateVersion {
   id: UUID!  # The ID of the pipeline template version.
   versionNumber: Int!  # The version number of the pipeline template version.
+  name: String  # The name of the pipeline template version.
+  description: String  # The description of the pipeline template version.
   changelog: String  # The changelog of the pipeline template version.
   createdAt: DateTime!  # The creation date of the pipeline template version.
   template: PipelineTemplate!  # The pipeline template associated with the version.
@@ -263,6 +265,8 @@ Represents the input for updating a template version.
 """
 input UpdateTemplateVersionInput {
   id: UUID!  # The ID of the template version to update.
+  name: String  # The name of the template version.
+  description: String  # The description of the template version.
   changelog: String  # The new changelog associated with the template version.
 }
 
