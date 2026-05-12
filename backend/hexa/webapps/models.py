@@ -340,11 +340,13 @@ class GitWebapp(Webapp, GitRepoMixin):
                     "previous_filename": "",
                     "status": status,
                     "additions": sum(
-                        1 for line in patch_lines
+                        1
+                        for line in patch_lines
                         if line.startswith("+") and not line.startswith("+++")
                     ),
                     "deletions": sum(
-                        1 for line in patch_lines
+                        1
+                        for line in patch_lines
                         if line.startswith("-") and not line.startswith("---")
                     ),
                     "patch": "".join(patch_lines),
