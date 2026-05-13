@@ -16,7 +16,6 @@ class CreatePipelineAgent(BaseAgent):
     instruction_set = InstructionSet.CREATE_PIPELINE
     tools = [get_help_or_doc, create_pipeline]
     max_tokens = 32768
-    
 
     async def _on_tool_result(self, invocation) -> None:
         if invocation.tool_name != "create_pipeline" or not invocation.success:
