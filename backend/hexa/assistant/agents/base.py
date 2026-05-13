@@ -74,7 +74,7 @@ def _parse_conversation_title(text: str) -> str:
 class BaseAgent:
     instruction_set = InstructionSet.GENERAL
     tools: list = []
-    max_tokens: int = 4096
+    max_tokens: int = 32768
 
     def __init__(
         self, conversation: Conversation, built_model: BuiltModel | None = None
