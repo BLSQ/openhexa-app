@@ -8,6 +8,7 @@ import { LinkedObjectType } from "graphql/types";
 import { ProposedFile } from "workspaces/features/FilesEditor/FilesEditor";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
+import Time from "core/components/Time/Time";
 
 type Message = NonNullable<
   AssistantConversationMessagesQuery["assistantConversation"]
@@ -33,14 +34,6 @@ type Props = {
   onConversationNameChange: (id: string, name: string) => void;
 };
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 export default function PipelineEditChatPanel({
   pipelineId,
@@ -203,7 +196,7 @@ export default function PipelineEditChatPanel({
                   {conv.name || t("New conversation")}
                 </span>
                 <span className="shrink-0 text-xs text-gray-400">
-                  {formatDate(conv.updatedAt)}
+                  <Time datetime={conv.updatedAt} />
                 </span>
               </div>
             </button>
