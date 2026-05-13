@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.6.2](https://github.com/BLSQ/openhexa-app/compare/5.6.1...5.6.2) (2026-05-13)
+
+
+### Bug Fixes
+
+* fix incorrect Connection import path in toolbox docs ([cb9e75a](https://github.com/BLSQ/openhexa-app/commit/cb9e75ad2fd252076d5c788ed4a646a7e3792ec3))
+
 ## [5.6.1](https://github.com/BLSQ/openhexa-app/compare/5.6.0...5.6.1) (2026-05-12)
 
 
