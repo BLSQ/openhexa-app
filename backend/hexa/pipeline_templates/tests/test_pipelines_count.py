@@ -84,6 +84,7 @@ class PipelinesCountTest(TestCase):
             .with_pipelines_count()
             .filter(
                 Q(name__icontains=search)
+                | Q(description__icontains=search)
                 | Q(versions__description__icontains=search)
                 | Q(tags__name__icontains=search)
                 | Q(functional_type__icontains=search)

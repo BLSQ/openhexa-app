@@ -222,6 +222,7 @@ class PipelineTemplateOrganizationAdminOwnerPermissionsTest(TestCase):
             workspace=cls.WORKSPACE_1,
             name="Template in workspace 1",
             code="template-1",
+            description="Template in workspace where org admin/owner is not a member",
             source_pipeline=cls.PIPELINE_1,
         )
 
@@ -229,6 +230,7 @@ class PipelineTemplateOrganizationAdminOwnerPermissionsTest(TestCase):
             workspace=cls.WORKSPACE_2,
             name="Template in workspace 2",
             code="template-2",
+            description="Template in another workspace in same org",
             source_pipeline=cls.PIPELINE_2,
         )
 
@@ -391,6 +393,7 @@ class PipelineTemplateFunctionalTypeAndTagsTest(TestCase):
         template, created = pipeline_with_metadata.get_or_create_template(
             name="Template from pipeline",
             code="template-from-pipeline",
+            description="Test template",
         )
 
         self.assertTrue(created)

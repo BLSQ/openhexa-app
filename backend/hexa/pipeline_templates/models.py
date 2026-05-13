@@ -103,6 +103,7 @@ class PipelineTemplate(SoftDeletedModel):
 
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=200, default="")
+    description = models.TextField(blank=True)
     workspace = models.ForeignKey(Workspace, on_delete=models.SET_NULL, null=True)
 
     source_pipeline = models.OneToOneField(
@@ -121,11 +122,6 @@ class PipelineTemplate(SoftDeletedModel):
 
     objects = DefaultSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(PipelineTemplateQuerySet)()
-
-    @property
-    def description(self) -> str:
-        last = self.last_version
-        return last.description if last and last.description else ""
 
     def create_version(
         self,
@@ -183,12 +179,9 @@ class PipelineTemplate(SoftDeletedModel):
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("pipeline_templates.update_pipeline_template", self):
             raise PermissionDenied
-        for key in ["name", "functional_type"]:
+        for key in ["name", "description", "functional_type"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
-        if "description" in kwargs and self.last_version:
-            self.last_version.description = kwargs["description"]
-            self.last_version.save(update_fields=["description"])
         if "tags" in kwargs:
             self.tags.set(kwargs["tags"])
         return self.save()
