@@ -61,6 +61,7 @@ export default function ChatPane({
   );
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isPinnedToBottom = useRef(true);
   const apolloClient = useApolloClient();
 
   useEffect(() => {
@@ -158,13 +159,14 @@ export default function ChatPane({
 
   useEffect(() => {
     if (!loadingMessages) {
+      isPinnedToBottom.current = true;
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [loadingMessages, localConversationId]);
 
   useEffect(() => {
-    if (!loadingMore) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!loadingMore && isPinnedToBottom.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "instant" });
     }
   }, [messages.length, pendingUserMessage, streamingText]);
 
@@ -213,6 +215,8 @@ export default function ChatPane({
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
+    isPinnedToBottom.current =
+      container.scrollHeight - container.scrollTop - container.clientHeight < 50;
     if (container.scrollTop === 0 && hasMore && !loadingMore) {
       loadOlderMessages();
     }
