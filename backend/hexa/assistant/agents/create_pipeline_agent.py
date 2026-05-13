@@ -1,5 +1,3 @@
-import logging
-
 from asgiref.sync import sync_to_async
 from django.contrib.contenttypes.models import ContentType
 
@@ -8,8 +6,6 @@ from hexa.assistant.instructions import InstructionSet
 from hexa.mcp.tools.help import get_help_or_doc
 from hexa.mcp.tools.pipelines import create_pipeline
 from hexa.pipelines.models import Pipeline
-
-logger = logging.getLogger(__name__)
 
 
 class CreatePipelineAgent(BaseAgent):
@@ -23,22 +19,9 @@ class CreatePipelineAgent(BaseAgent):
         pipeline_id = (invocation.tool_output or {}).get("pipeline", {}).get("id")
         if not pipeline_id:
             return
-        try:
-            pipeline = await Pipeline.objects.aget(id=pipeline_id)
-            ct = await sync_to_async(ContentType.objects.get_for_model)(Pipeline)
-            self.conversation.linked_object_content_type = ct
-            self.conversation.linked_object_id = pipeline.id
-            self.conversation.instruction_set = InstructionSet.EDIT_PIPELINE
-            await self.conversation.asave(
-                update_fields=[
-                    "linked_object_content_type",
-                    "linked_object_id",
-                    "instruction_set",
-                ]
-            )
-        except Exception:
-            logger.exception(
-                "CreatePipelineAgent: failed to link conversation %s to pipeline %s",
-                self.conversation.id,
-                pipeline_id,
-            )
+        pipeline = await Pipeline.objects.aget(id=pipeline_id)
+        ct = await sync_to_async(ContentType.objects.get_for_model)(Pipeline)
+        self.conversation.linked_object_content_type = ct
+        self.conversation.linked_object_id = pipeline.id
+        self.conversation.instruction_set = InstructionSet.EDIT_PIPELINE
+        await self.conversation.asave()

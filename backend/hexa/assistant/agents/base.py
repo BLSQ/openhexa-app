@@ -220,6 +220,7 @@ class BaseAgent:
                     )
 
     async def _on_tool_result(self, invocation: ToolInvocation) -> None:
+        """Hook called after each tool execution. Override in subclasses to add side-effects."""
         pass
 
     async def _stream_tools_node(
