@@ -303,7 +303,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               )}
             </RenderProperty>
           )}
-          {pipeline.sourceTemplate?.documentation && (
+          {pipeline.sourceTemplate && !pipeline.template && (
             <RenderProperty
               id="documentation"
               accessor="sourceTemplate.documentation"

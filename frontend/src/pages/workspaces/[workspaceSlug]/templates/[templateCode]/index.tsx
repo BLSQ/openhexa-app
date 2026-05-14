@@ -145,18 +145,16 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
               </div>
             )}
           </RenderProperty>
-          {template.documentation && (
-            <RenderProperty
-              id="documentation"
-              accessor="documentation"
-              label={t("Version Documentation")}
-              readonly
-            >
-              {(property) => (
-                <CollapsibleMarkdown content={property.displayValue} />
-              )}
-            </RenderProperty>
-          )}
+          <RenderProperty
+            id="documentation"
+            accessor="documentation"
+            label={t("Version Documentation")}
+            readonly
+          >
+            {(property) => (
+              <CollapsibleMarkdown content={property.displayValue} />
+            )}
+          </RenderProperty>
         </DataCard.FormSection>
       </TemplateLayout>
     </Page>

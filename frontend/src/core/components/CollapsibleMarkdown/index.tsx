@@ -5,7 +5,7 @@ import { useTranslation } from "next-i18next";
 const MAX_HEIGHT = 200;
 
 type CollapsibleMarkdownProps = {
-  content: string;
+  content: string | null | undefined;
 };
 
 const CollapsibleMarkdown = ({ content }: CollapsibleMarkdownProps) => {
@@ -27,7 +27,7 @@ const CollapsibleMarkdown = ({ content }: CollapsibleMarkdownProps) => {
         className="overflow-hidden"
         style={!expanded ? { maxHeight: MAX_HEIGHT } : undefined}
       >
-        <MarkdownViewer sm markdown={content} />
+        <MarkdownViewer sm markdown={content ?? ""} />
       </div>
       {overflows && (
         <button

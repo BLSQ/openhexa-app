@@ -4225,7 +4225,7 @@ export type PipelineTemplateVersion = {
   __typename?: 'PipelineTemplateVersion';
   changelog?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
-  description?: Maybe<Scalars['String']['output']>;
+  documentation?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   isLatestVersion: Scalars['Boolean']['output'];
   name?: Maybe<Scalars['String']['output']>;
@@ -5892,7 +5892,7 @@ export enum UpdateTemplateVersionError {
 /** Represents the input for updating a template version. */
 export type UpdateTemplateVersionInput = {
   changelog?: InputMaybe<Scalars['String']['input']>;
-  description?: InputMaybe<Scalars['String']['input']>;
+  documentation?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
 };

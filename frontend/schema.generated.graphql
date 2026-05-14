@@ -3588,7 +3588,7 @@ type PipelineTemplateResultPage {
 type PipelineTemplateVersion {
   changelog: String
   createdAt: DateTime!
-  description: String
+  documentation: String
   id: UUID!
   isLatestVersion: Boolean!
   name: String
@@ -5072,7 +5072,7 @@ enum UpdateTemplateVersionError {
 """Represents the input for updating a template version."""
 input UpdateTemplateVersionInput {
   changelog: String
-  description: String
+  documentation: String
   id: UUID!
   name: String
 }
