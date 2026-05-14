@@ -15,10 +15,14 @@ const CollapsibleMarkdown = ({ content }: CollapsibleMarkdownProps) => {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (ref.current) {
-      setOverflows(ref.current.scrollHeight > MAX_HEIGHT);
-    }
-  }, [content]);
+    if (!ref.current) return;
+    const el = ref.current;
+    const observer = new ResizeObserver(() => {
+      setOverflows(el.scrollHeight > MAX_HEIGHT);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div>
