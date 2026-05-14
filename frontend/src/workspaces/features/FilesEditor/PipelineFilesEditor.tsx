@@ -1,5 +1,6 @@
 import React, { useCallback } from "react";
 import useCacheKey from "core/hooks/useCacheKey";
+import { fileToBase64 } from "core/helpers/fileEncoding";
 import { FileType, PipelineError } from "graphql/types";
 import { useTranslation } from "react-i18next";
 import { useUploadPipelineMutation } from "workspaces/graphql/mutations.generated";
@@ -51,16 +52,7 @@ export const PipelineFilesEditor = ({
     });
 
     const zipBlob = await zip.generateAsync({ type: "blob" });
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        const base64 = result.split(",")[1];
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(zipBlob);
-    });
+    return fileToBase64(zipBlob);
   };
 
   const handleSave = useCallback(
