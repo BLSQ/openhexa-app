@@ -3,9 +3,9 @@ import Badge from "core/components/Badge";
 import Button from "core/components/Button";
 import Clipboard from "core/components/Clipboard";
 import DataCard from "core/components/DataCard";
+import CollapsibleMarkdown from "core/components/CollapsibleMarkdown";
 import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
 import RenderProperty from "core/components/DataCard/RenderProperty";
-import MarkdownViewer from "core/components/MarkdownViewer";
 import TextProperty from "core/components/DataCard/TextProperty";
 import TagProperty from "core/components/DataCard/TagProperty";
 import Link from "core/components/Link";
@@ -20,7 +20,7 @@ import { PipelineType, PipelineFunctionalType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import PipelineVersionParametersTable from "pipelines/features/PipelineVersionParametersTable";
 import UpgradePipelineFromTemplateDialog from "pipelines/features/UpgradePipelineFromTemplateDialog";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import GeneratePipelineWebhookUrlDialog from "workspaces/features/GeneratePipelineWebhookUrlDialog";
 import PipelineVersionConfigDialog from "workspaces/features/PipelineVersionConfigDialog";
 import {
@@ -35,41 +35,6 @@ import {
   updatePipeline,
 } from "workspaces/helpers/pipelines";
 import PipelineLayout from "workspaces/layouts/PipelineLayout";
-
-const MAX_DOC_HEIGHT = 200;
-
-const TemplateDocumentation = ({ content }: { content: string }) => {
-  const { t } = useTranslation();
-  const [expanded, setExpanded] = useState(false);
-  const [overflows, setOverflows] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (ref.current) {
-      setOverflows(ref.current.scrollHeight > MAX_DOC_HEIGHT);
-    }
-  }, [content]);
-
-  return (
-    <div>
-      <div
-        ref={ref}
-        className="overflow-hidden"
-        style={!expanded ? { maxHeight: MAX_DOC_HEIGHT } : undefined}
-      >
-        <MarkdownViewer sm markdown={content} />
-      </div>
-      {overflows && (
-        <button
-          className="mt-1 text-sm text-blue-600 hover:underline"
-          onClick={() => setExpanded(!expanded)}
-        >
-          {expanded ? t("Show less") : t("Show more")}
-        </button>
-      )}
-    </div>
-  );
-};
 
 type Props = {
   pipelineCode: string;
@@ -346,7 +311,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               readonly
             >
               {(property) => (
-                <TemplateDocumentation content={property.displayValue} />
+                <CollapsibleMarkdown content={property.displayValue} />
               )}
             </RenderProperty>
           )}

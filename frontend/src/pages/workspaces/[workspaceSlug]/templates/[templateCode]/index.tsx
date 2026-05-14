@@ -1,3 +1,4 @@
+import CollapsibleMarkdown from "core/components/CollapsibleMarkdown";
 import DataCard from "core/components/DataCard";
 import TextProperty from "core/components/DataCard/TextProperty";
 import TagProperty from "core/components/DataCard/TagProperty";
@@ -144,6 +145,18 @@ const WorkspaceTemplatePage: NextPageWithLayout = (props: Props) => {
               </div>
             )}
           </RenderProperty>
+          {template.documentation && (
+            <RenderProperty
+              id="documentation"
+              accessor="documentation"
+              label={t("Version Documentation")}
+              readonly
+            >
+              {(property) => (
+                <CollapsibleMarkdown content={property.displayValue} />
+              )}
+            </RenderProperty>
+          )}
         </DataCard.FormSection>
       </TemplateLayout>
     </Page>

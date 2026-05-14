@@ -755,6 +755,7 @@ query WorkspaceTemplatePage($workspaceSlug: String!, $templateCode: String!) {
     code
     name
     description
+    documentation
     validatedAt
     organization {
       name
