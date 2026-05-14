@@ -2240,10 +2240,19 @@ type File {
   updatedAt: DateTime
 }
 
+"""
+How the `content` field of a FileNode (or WebappFileInput) is encoded over the wire.
+"""
+enum FileEncoding {
+  BASE64
+  TEXT
+}
+
 """Represents a file or directory node in a flattened structure."""
 type FileNode {
   autoSelect: Boolean!
   content: String
+  encoding: FileEncoding
   id: String!
   language: String
   lineCount: Int
@@ -5410,8 +5419,16 @@ type Webapp {
   workspace: Workspace!
 }
 
+"""
+A file to write to a webapp's git repository.
+
+`content` is interpreted according to `encoding`:
+  * TEXT (default)  — content is a UTF-8 string; suitable for hand-written or AI-generated code.
+  * BASE64          — content is base64-encoded raw bytes; required for binary files (images, fonts, …).
+"""
 input WebappFileInput {
   content: String!
+  encoding: FileEncoding = TEXT
   path: String!
 }
 
