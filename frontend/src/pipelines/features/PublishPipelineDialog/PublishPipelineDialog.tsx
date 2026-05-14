@@ -191,7 +191,7 @@ const PublishPipelineDialog = ({
             <>
               <Field
                 name="versionName"
-                label={t("Version name")}
+                label={t("Version name. ex: v2")}
                 fullWidth
                 className="mb-3"
                 value={form.formData.versionName}
