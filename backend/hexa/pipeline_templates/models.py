@@ -129,7 +129,7 @@ class PipelineTemplate(SoftDeletedModel):
         user: User = None,
         changelog: str = None,
         name: str = None,
-        description: str = None,
+        documentation: str = None,
     ) -> "PipelineTemplateVersion":
         """Create a new version of the template using a pipeline version as source"""
         return PipelineTemplateVersion.objects.create(
@@ -138,7 +138,7 @@ class PipelineTemplate(SoftDeletedModel):
             user=user,
             changelog=changelog,
             name=name or self.name,
-            description=description,
+            documentation=documentation,
             source_pipeline_version=source_pipeline_version,
         )
 
@@ -236,7 +236,7 @@ class PipelineTemplateVersion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     version_number = models.PositiveIntegerField(editable=False)
     name = models.CharField(max_length=200, blank=True)
-    description = models.TextField(blank=True, null=True)
+    documentation = models.TextField(blank=True, null=True)
     changelog = models.TextField(blank=True, null=True)
     user = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
@@ -297,8 +297,8 @@ class PipelineTemplateVersion(models.Model):
             if principal is None:
                 raise ValueError("principal is required when creating a new pipeline")
             pipeline = self._create_pipeline(principal, workspace)
-        elif self.description:
-            pipeline.description = self.description
+        elif self.documentation:
+            pipeline.description = self.documentation
             pipeline.save(update_fields=["description"])
 
         new_version_config = self._extract_config(pipeline)
@@ -326,7 +326,7 @@ class PipelineTemplateVersion(models.Model):
             "pipeline_templates.update_pipeline_template_version", self
         ):
             raise PermissionDenied
-        for key in ["changelog", "name", "description"]:
+        for key in ["changelog", "name", "documentation"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
         return self.save()

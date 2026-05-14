@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="pipelinetemplateversion",
-            name="description",
+            name="documentation",
             field=models.TextField(blank=True, null=True),
         ),
     ]

@@ -104,7 +104,7 @@ def resolve_pipeline_template_documentation(
     pipeline_template: PipelineTemplate, info, **kwargs
 ):
     last = pipeline_template.last_version
-    return last.description if last else None
+    return last.documentation if last else None
 
 
 @pipeline_template_object.field("pipelinesCount")
