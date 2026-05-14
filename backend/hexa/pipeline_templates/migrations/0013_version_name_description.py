@@ -7,6 +7,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name="pipelinetemplate",
+            name="description",
+            field=models.TextField(blank=True, null=True),
+        ),
         migrations.AddField(
             model_name="pipelinetemplateversion",
             name="name",

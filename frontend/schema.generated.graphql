@@ -3528,6 +3528,7 @@ type PipelineTemplate {
   config: String
   currentVersion: PipelineTemplateVersion
   description: String
+  documentation: String
   functionalType: PipelineFunctionalType
   id: UUID!
   name: String!

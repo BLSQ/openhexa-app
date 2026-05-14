@@ -254,7 +254,7 @@ class PipelineTemplateVersion(models.Model):
         source_pipeline = self.template.source_pipeline
         data = {
             "source_template": self.template,
-            "description": self.template.description,
+            "description": self.template.description or "",
             "config": source_pipeline.config,
             "functional_type": self.template.functional_type,
         }

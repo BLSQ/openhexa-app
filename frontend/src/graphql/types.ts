@@ -4153,6 +4153,7 @@ export type PipelineTemplate = {
   config?: Maybe<Scalars['String']['output']>;
   currentVersion?: Maybe<PipelineTemplateVersion>;
   description?: Maybe<Scalars['String']['output']>;
+  documentation?: Maybe<Scalars['String']['output']>;
   functionalType?: Maybe<PipelineFunctionalType>;
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
