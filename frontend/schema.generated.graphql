@@ -1079,9 +1079,12 @@ input CreatePipelineTemplateVersionInput {
   code: String
   config: String
   description: String
+  documentation: String
+  extractDocumentationFromReadme: Boolean
   name: String
   pipelineId: UUID!
   pipelineVersionId: UUID!
+  versionName: String
   workspaceSlug: String!
 }
 
