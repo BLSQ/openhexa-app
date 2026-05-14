@@ -179,6 +179,7 @@ type PipelineTemplate {
   name: String!  # The name of the pipeline template.
   code: String!  # The code of the pipeline template.
   description: String  # The description of the pipeline template.
+  documentation: String  # Read-only. The description of the latest template version (typically sourced from README.md).
   config: String  # The configuration of the pipeline template.
   versions(page: Int, perPage: Int): TemplateVersionPage!  # Retrieves the template versions associated with the template.
   currentVersion: PipelineTemplateVersion  # The current version of the pipeline template.

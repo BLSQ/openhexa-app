@@ -103,7 +103,7 @@ class PipelineTemplate(SoftDeletedModel):
 
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=200, default="")
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
     workspace = models.ForeignKey(Workspace, on_delete=models.SET_NULL, null=True)
 
     source_pipeline = models.OneToOneField(
@@ -254,7 +254,7 @@ class PipelineTemplateVersion(models.Model):
         source_pipeline = self.template.source_pipeline
         data = {
             "source_template": self.template,
-            "description": self.description or "",
+            "description": self.template.description,
             "config": source_pipeline.config,
             "functional_type": self.template.functional_type,
         }

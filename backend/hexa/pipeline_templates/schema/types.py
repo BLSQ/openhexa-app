@@ -99,6 +99,14 @@ def resolve_pipeline_template_organization(
     return pipeline_template.workspace.organization
 
 
+@pipeline_template_object.field("documentation")
+def resolve_pipeline_template_documentation(
+    pipeline_template: PipelineTemplate, info, **kwargs
+):
+    last = pipeline_template.last_version
+    return last.description if last else None
+
+
 @pipeline_template_object.field("pipelinesCount")
 def resolve_pipeline_template_pipelines_count(
     pipeline_template: PipelineTemplate, info, **kwargs
