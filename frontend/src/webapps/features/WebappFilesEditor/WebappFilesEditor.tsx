@@ -5,6 +5,8 @@ import { FilesEditor } from "workspaces/features/FilesEditor/FilesEditor";
 import { FilesEditor_FileFragment } from "workspaces/features/FilesEditor/FilesEditor.generated";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
 import { useWebappFilesLazyQuery } from "webapps/graphql/queries.generated";
+import { fileToBase64 } from "core/helpers/fileEncoding";
+import { FileEncoding } from "graphql/types";
 import Spinner from "core/components/Spinner";
 import { ArrowUpTrayIcon, FolderPlusIcon } from "@heroicons/react/24/outline";
 
@@ -65,7 +67,8 @@ const WebappFilesEditor = ({
         const uploadedFiles = await Promise.all(
           Array.from(fileList).map(async (file) => ({
             path: file.webkitRelativePath || file.name,
-            content: await file.text(),
+            content: await fileToBase64(file),
+            encoding: FileEncoding.Base64,
           })),
         );
         const { data } = await updateWebapp({

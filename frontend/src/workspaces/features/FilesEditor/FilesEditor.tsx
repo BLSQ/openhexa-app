@@ -102,6 +102,7 @@ FilesEditor.fragment = {
       path
       type
       content
+      encoding
       parentId
       autoSelect
       language
