@@ -107,6 +107,7 @@ const WebappFilesEditor = ({
         return {
           path: file?.path ?? fileId,
           content,
+          encoding: file?.encoding ?? FileEncoding.Text,
         };
       },
     );
