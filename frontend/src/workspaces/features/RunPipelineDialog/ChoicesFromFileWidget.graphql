@@ -1,0 +1,9 @@
+query getPipelineParameterChoices(
+    $pipelineVersionId: UUID!
+    $parameterCode: String!
+) {
+    pipelineParameterChoices(
+        pipelineVersionId: $pipelineVersionId
+        parameterCode: $parameterCode
+    )
+}
