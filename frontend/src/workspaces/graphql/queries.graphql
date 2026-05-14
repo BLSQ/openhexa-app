@@ -114,6 +114,7 @@ query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
       id
       code
       name
+      documentation
     }
     autoUpdateFromTemplate
     hasNewTemplateVersions
