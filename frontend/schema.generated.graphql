@@ -3416,17 +3416,25 @@ type PipelineParameter {
   widget: ParameterWidget
 }
 
+"""File format for a dynamic choices source."""
+enum PipelineParameterChoicesFileFormat {
+  csv
+  json
+  yaml
+  yml
+}
+
 """Describes a dynamic choices source backed by a workspace file."""
 type PipelineParameterChoicesFromFile {
   column: String
-  format: String!
+  format: PipelineParameterChoicesFileFormat
   path: String!
 }
 
 """Input for a dynamic choices source backed by a workspace file."""
 input PipelineParameterChoicesFromFileInput {
   column: String
-  format: String!
+  format: PipelineParameterChoicesFileFormat
   path: String!
 }
 
@@ -3882,7 +3890,7 @@ type Query {
   Resolves the list of choices for a parameter backed by a workspace file.
   Returns a list of string values read from the file at the time of the call.
   """
-  pipelineParameterChoices(parameterCode: String!, pipelineVersionId: UUID!, workspaceSlug: String!): [String!]
+  pipelineParameterChoices(parameterCode: String!, pipelineVersionId: UUID!): [String!]
 
   """Retrieves a pipeline run by ID."""
   pipelineRun(id: UUID!): PipelineRun

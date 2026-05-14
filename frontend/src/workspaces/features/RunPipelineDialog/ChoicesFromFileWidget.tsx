@@ -9,7 +9,6 @@ type ChoicesFromFileWidgetProps = {
   parameter: ParameterField_ParameterFragment;
   value: string | string[] | null;
   onChange(value: string | string[] | null): void;
-  workspaceSlug: string;
   pipelineVersionId: string;
 };
 
@@ -27,14 +26,12 @@ const ChoicesFromFileWidget = ({
   parameter,
   value,
   onChange,
-  workspaceSlug,
   pipelineVersionId,
 }: ChoicesFromFileWidgetProps) => {
   const { t } = useTranslation();
 
   const { data, loading, error } = useGetPipelineParameterChoicesQuery({
     variables: {
-      workspaceSlug,
       pipelineVersionId,
       parameterCode: parameter.code,
     },

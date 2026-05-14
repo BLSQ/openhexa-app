@@ -174,22 +174,15 @@ def resolve_pipeline_version(_, info, **kwargs):
 
 
 @pipelines_query.field("pipelineParameterChoices")
-def resolve_pipeline_parameter_choices(
-    _, info, workspace_slug, pipeline_version_id, parameter_code
-):
+def resolve_pipeline_parameter_choices(_, info, pipeline_version_id, parameter_code):
     request: HttpRequest = info.context["request"]
 
     try:
-        version = PipelineVersion.objects.select_related("pipeline__workspace").get(
-            id=pipeline_version_id, pipeline__workspace__slug=workspace_slug
-        )
+        version = PipelineVersion.objects.filter_for_user(request.user).select_related(
+            "pipeline__workspace"
+        ).get(id=pipeline_version_id)
     except PipelineVersion.DoesNotExist:
         raise ValueError(f"Pipeline version '{pipeline_version_id}' not found.")
-
-    if not request.user.has_perm("pipelines.view_pipeline_version", version):
-        raise PermissionError(
-            "You do not have permission to view this pipeline version."
-        )
 
     param = next(
         (p for p in version.parameters if p.get("code") == parameter_code),

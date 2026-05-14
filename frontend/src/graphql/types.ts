@@ -4035,18 +4035,26 @@ export type PipelineParameter = {
   widget?: Maybe<ParameterWidget>;
 };
 
+/** File format for a dynamic choices source. */
+export enum PipelineParameterChoicesFileFormat {
+  Csv = 'csv',
+  Json = 'json',
+  Yaml = 'yaml',
+  Yml = 'yml'
+}
+
 /** Describes a dynamic choices source backed by a workspace file. */
 export type PipelineParameterChoicesFromFile = {
   __typename?: 'PipelineParameterChoicesFromFile';
   column?: Maybe<Scalars['String']['output']>;
-  format: Scalars['String']['output'];
+  format?: Maybe<PipelineParameterChoicesFileFormat>;
   path: Scalars['String']['output'];
 };
 
 /** Input for a dynamic choices source backed by a workspace file. */
 export type PipelineParameterChoicesFromFileInput = {
   column?: InputMaybe<Scalars['String']['input']>;
-  format: Scalars['String']['input'];
+  format?: InputMaybe<PipelineParameterChoicesFileFormat>;
   path: Scalars['String']['input'];
 };
 
@@ -4720,7 +4728,6 @@ export type QueryPipelineByCodeArgs = {
 export type QueryPipelineParameterChoicesArgs = {
   parameterCode: Scalars['String']['input'];
   pipelineVersionId: Scalars['UUID']['input'];
-  workspaceSlug: Scalars['String']['input'];
 };
 
 

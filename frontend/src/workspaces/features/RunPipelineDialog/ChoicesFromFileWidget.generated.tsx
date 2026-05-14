@@ -4,7 +4,6 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type GetPipelineParameterChoicesQueryVariables = Types.Exact<{
-  workspaceSlug: Types.Scalars['String']['input'];
   pipelineVersionId: Types.Scalars['UUID']['input'];
   parameterCode: Types.Scalars['String']['input'];
 }>;
@@ -14,9 +13,8 @@ export type GetPipelineParameterChoicesQuery = { __typename?: 'Query', pipelineP
 
 
 export const GetPipelineParameterChoicesDocument = gql`
-    query getPipelineParameterChoices($workspaceSlug: String!, $pipelineVersionId: UUID!, $parameterCode: String!) {
+    query getPipelineParameterChoices($pipelineVersionId: UUID!, $parameterCode: String!) {
   pipelineParameterChoices(
-    workspaceSlug: $workspaceSlug
     pipelineVersionId: $pipelineVersionId
     parameterCode: $parameterCode
   )
@@ -35,7 +33,6 @@ export const GetPipelineParameterChoicesDocument = gql`
  * @example
  * const { data, loading, error } = useGetPipelineParameterChoicesQuery({
  *   variables: {
- *      workspaceSlug: // value for 'workspaceSlug'
  *      pipelineVersionId: // value for 'pipelineVersionId'
  *      parameterCode: // value for 'parameterCode'
  *   },

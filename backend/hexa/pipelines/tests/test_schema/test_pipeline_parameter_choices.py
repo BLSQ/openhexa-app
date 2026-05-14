@@ -14,12 +14,10 @@ from hexa.workspaces.models import (
 
 QUERY = """
     query pipelineParameterChoices(
-        $workspaceSlug: String!
         $pipelineVersionId: UUID!
         $parameterCode: String!
     ) {
         pipelineParameterChoices(
-            workspaceSlug: $workspaceSlug
             pipelineVersionId: $pipelineVersionId
             parameterCode: $parameterCode
         )
@@ -83,12 +81,11 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
             + 1,
         )
 
-    def _run(self, version, code):
+    def _query_choices(self, version, code):
         self.client.force_login(self.USER)
         return self.run_query(
             QUERY,
             {
-                "workspaceSlug": self.WORKSPACE.slug,
                 "pipelineVersionId": str(version.id),
                 "parameterCode": code,
             },
@@ -122,7 +119,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 return_value=_CSV_SINGLE_COL,
             ),
         ):
-            r = self._run(version, "district")
+            r = self._query_choices(version, "district")
         self.assertEqual(
             r["data"]["pipelineParameterChoices"], ["Nairobi", "Mombasa", "Kisumu"]
         )
@@ -151,7 +148,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 return_value=_CSV_MULTI_COL,
             ),
         ):
-            r = self._run(version, "district")
+            r = self._query_choices(version, "district")
         self.assertEqual(r["data"]["pipelineParameterChoices"], ["NBI", "MSA"])
 
     def test_csv_multi_column_no_column_raises(self):
@@ -178,7 +175,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 return_value=_CSV_MULTI_COL,
             ),
         ):
-            r = self._run(version, "district")
+            r = self._query_choices(version, "district")
         self.assertIsNone(r["data"]["pipelineParameterChoices"])
         self.assertTrue(any("multiple columns" in str(e) for e in r["errors"]))
 
@@ -206,7 +203,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 return_value=_CSV_SINGLE_COL,
             ),
         ):
-            r = self._run(version, "district")
+            r = self._query_choices(version, "district")
         self.assertIsNone(r["data"]["pipelineParameterChoices"])
         self.assertTrue(any("not found" in str(e).lower() for e in r["errors"]))
 
@@ -238,7 +235,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 return_value=_JSON_FLAT,
             ),
         ):
-            r = self._run(version, "district")
+            r = self._query_choices(version, "district")
         self.assertEqual(
             r["data"]["pipelineParameterChoices"], ["Nairobi", "Mombasa", "Kisumu"]
         )
@@ -267,7 +264,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 return_value=_JSON_OBJECTS,
             ),
         ):
-            r = self._run(version, "district")
+            r = self._query_choices(version, "district")
         self.assertEqual(r["data"]["pipelineParameterChoices"], ["NBI", "MSA"])
 
     def test_json_objects_no_column_raises(self):
@@ -294,7 +291,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 return_value=_JSON_OBJECTS,
             ),
         ):
-            r = self._run(version, "district")
+            r = self._query_choices(version, "district")
         self.assertIsNone(r["data"]["pipelineParameterChoices"])
         self.assertTrue(any("multiple keys" in str(e) for e in r["errors"]))
 
@@ -326,7 +323,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 return_value=_YAML_FLAT,
             ),
         ):
-            r = self._run(version, "district")
+            r = self._query_choices(version, "district")
         self.assertEqual(
             r["data"]["pipelineParameterChoices"], ["Nairobi", "Mombasa", "Kisumu"]
         )
@@ -355,7 +352,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 return_value=_YAML_OBJECTS,
             ),
         ):
-            r = self._run(version, "district")
+            r = self._query_choices(version, "district")
         self.assertEqual(r["data"]["pipelineParameterChoices"], ["NBI", "MSA"])
 
     # ------------------------------------------------------------------
@@ -380,7 +377,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
             "hexa.pipelines.choices_from_file.storage.get_bucket_object",
             side_effect=NotFound("not found"),
         ):
-            r = self._run(version, "district")
+            r = self._query_choices(version, "district")
         self.assertIsNone(r["data"]["pipelineParameterChoices"])
         self.assertTrue(any("not found" in str(e).lower() for e in r["errors"]))
 
@@ -388,7 +385,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         version = self._create_version(
             [{"code": "country", "type": "str", "choices": ["UG", "KE"]}]
         )
-        r = self._run(version, "country")
+        r = self._query_choices(version, "country")
         self.assertIsNone(r["data"]["pipelineParameterChoices"])
         self.assertTrue(
             any("does not have dynamic choices" in str(e) for e in r["errors"])
@@ -408,34 +405,21 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 }
             ]
         )
-        r = self._run(version, "nonexistent")
+        r = self._query_choices(version, "nonexistent")
         self.assertIsNone(r["data"]["pipelineParameterChoices"])
         self.assertTrue(any("not found" in str(e).lower() for e in r["errors"]))
 
-    def test_workspace_not_found(self):
-        version = self._create_version(
-            [
-                {
-                    "code": "district",
-                    "type": "str",
-                    "choices_from_file": {
-                        "format": "csv",
-                        "path": "d.csv",
-                        "column": None,
-                    },
-                }
-            ]
-        )
+    def test_version_not_found(self):
         self.client.force_login(self.USER)
         r = self.run_query(
             QUERY,
             {
-                "workspaceSlug": "nonexistent-slug",
-                "pipelineVersionId": str(version.id),
+                "pipelineVersionId": "00000000-0000-0000-0000-000000000000",
                 "parameterCode": "district",
             },
         )
         self.assertIsNone(r["data"]["pipelineParameterChoices"])
+        self.assertTrue(any("not found" in str(e).lower() for e in r["errors"]))
 
     def test_outsider_cannot_access(self):
         version = self._create_version(
@@ -455,7 +439,6 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         r = self.run_query(
             QUERY,
             {
-                "workspaceSlug": self.WORKSPACE.slug,
                 "pipelineVersionId": str(version.id),
                 "parameterCode": "district",
             },
@@ -481,7 +464,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
             "hexa.pipelines.choices_from_file.storage.get_bucket_object",
             return_value=_make_storage_object(size=10 * 1024 * 1024),
         ):
-            r = self._run(version, "district")
+            r = self._query_choices(version, "district")
         self.assertIsNone(r["data"]["pipelineParameterChoices"])
         self.assertTrue(any("too large" in str(e).lower() for e in r["errors"]))
 
@@ -515,7 +498,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 return_value=payload,
             ),
         ):
-            r = self._run(version, "district")
+            r = self._query_choices(version, "district")
         self.assertEqual(r["data"]["pipelineParameterChoices"], ["NBI", "MSA"])
 
     def test_json_dict_wrapping_multi_key_objects_raises(self):
@@ -544,6 +527,133 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 return_value=payload,
             ),
         ):
-            r = self._run(version, "district")
+            r = self._query_choices(version, "district")
         self.assertIsNone(r["data"]["pipelineParameterChoices"])
         self.assertTrue(any("multiple keys" in str(e) for e in r["errors"]))
+
+    # ------------------------------------------------------------------
+    # Format auto-detection
+    # ------------------------------------------------------------------
+
+    def test_format_auto_detected_from_csv_extension(self):
+        version = self._create_version(
+            [
+                {
+                    "code": "district",
+                    "type": "str",
+                    "choices_from_file": {
+                        "path": "districts.csv",
+                        "column": None,
+                    },
+                }
+            ]
+        )
+        with (
+            patch(
+                "hexa.pipelines.choices_from_file.storage.get_bucket_object",
+                return_value=_make_storage_object(),
+            ),
+            patch(
+                "hexa.pipelines.choices_from_file.storage.read_object",
+                return_value=_CSV_SINGLE_COL,
+            ),
+        ):
+            r = self._query_choices(version, "district")
+        self.assertEqual(
+            r["data"]["pipelineParameterChoices"], ["Nairobi", "Mombasa", "Kisumu"]
+        )
+
+    def test_format_auto_detected_from_yml_extension(self):
+        version = self._create_version(
+            [
+                {
+                    "code": "district",
+                    "type": "str",
+                    "choices_from_file": {
+                        "path": "list.yml",
+                        "column": None,
+                    },
+                }
+            ]
+        )
+        with (
+            patch(
+                "hexa.pipelines.choices_from_file.storage.get_bucket_object",
+                return_value=_make_storage_object(),
+            ),
+            patch(
+                "hexa.pipelines.choices_from_file.storage.read_object",
+                return_value=_YAML_FLAT,
+            ),
+        ):
+            r = self._query_choices(version, "district")
+        self.assertEqual(
+            r["data"]["pipelineParameterChoices"], ["Nairobi", "Mombasa", "Kisumu"]
+        )
+
+    def test_explicit_yml_format_accepted(self):
+        version = self._create_version(
+            [
+                {
+                    "code": "district",
+                    "type": "str",
+                    "choices_from_file": {
+                        "format": "yml",
+                        "path": "list.yaml",
+                        "column": None,
+                    },
+                }
+            ]
+        )
+        with (
+            patch(
+                "hexa.pipelines.choices_from_file.storage.get_bucket_object",
+                return_value=_make_storage_object(),
+            ),
+            patch(
+                "hexa.pipelines.choices_from_file.storage.read_object",
+                return_value=_YAML_FLAT,
+            ),
+        ):
+            r = self._query_choices(version, "district")
+        self.assertEqual(
+            r["data"]["pipelineParameterChoices"], ["Nairobi", "Mombasa", "Kisumu"]
+        )
+
+    def test_unsupported_extension_raises(self):
+        version = self._create_version(
+            [
+                {
+                    "code": "district",
+                    "type": "str",
+                    "choices_from_file": {
+                        "path": "districts.txt",
+                        "column": None,
+                    },
+                }
+            ]
+        )
+        r = self._query_choices(version, "district")
+        self.assertIsNone(r["data"]["pipelineParameterChoices"])
+        self.assertTrue(any("Supported extensions" in str(e) for e in r["errors"]))
+
+    # ------------------------------------------------------------------
+    # Path traversal
+    # ------------------------------------------------------------------
+
+    def test_path_traversal_rejected(self):
+        version = self._create_version(
+            [
+                {
+                    "code": "district",
+                    "type": "str",
+                    "choices_from_file": {
+                        "path": "../secrets.csv",
+                        "column": None,
+                    },
+                }
+            ]
+        )
+        r = self._query_choices(version, "district")
+        self.assertIsNone(r["data"]["pipelineParameterChoices"])
+        self.assertTrue(any("Invalid file path" in str(e) for e in r["errors"]))

@@ -6,8 +6,23 @@ import yaml
 
 from hexa.files import storage
 from hexa.files.backends.exceptions import NotFound
+from hexa.files.utils import is_safe_path
 
 MAX_CHOICES_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+
+_SUPPORTED_FORMATS = {"csv", "json", "yaml"}
+
+
+def _detect_format(path: str) -> str:
+    ext = path.rsplit(".", 1)[-1].lower() if "." in path else ""
+    if ext == "yml":
+        return "yaml"
+    if ext not in _SUPPORTED_FORMATS:
+        raise ValueError(
+            f"Cannot determine file format from path '{path}'. "
+            f"Supported extensions: {', '.join(sorted(_SUPPORTED_FORMATS))}."
+        )
+    return ext
 
 
 def resolve_choices_from_file(bucket_name: str, choices_from_file: dict) -> list[str]:
@@ -16,7 +31,8 @@ def resolve_choices_from_file(bucket_name: str, choices_from_file: dict) -> list
     Args:
         bucket_name: The workspace's storage bucket.
         choices_from_file: The ``choices_from_file`` spec from a pipeline parameter —
-            a dict with keys ``path``, ``format``, and optionally ``column``.
+            a dict with keys ``path``, optionally ``format`` (auto-detected from
+            extension when absent), and optionally ``column``.
 
     Raises
     ------
@@ -24,7 +40,13 @@ def resolve_choices_from_file(bucket_name: str, choices_from_file: dict) -> list
             column/key cannot be resolved.
     """
     path = choices_from_file["path"].lstrip("/")
-    fmt = choices_from_file["format"]
+
+    if not is_safe_path(path):
+        raise ValueError(f"Invalid file path '{path}'.")
+
+    fmt = choices_from_file.get("format") or _detect_format(path)
+    if fmt == "yml":
+        fmt = "yaml"
     column = choices_from_file.get("column")
 
     try:

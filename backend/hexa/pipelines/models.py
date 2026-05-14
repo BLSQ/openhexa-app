@@ -37,7 +37,7 @@ from hexa.core.models.soft_delete import (
 )
 from hexa.pipelines.constants import UNIQUE_PIPELINE_VERSION_NAME
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.models import ConnectionType, Workspace
 
 # bool is a subclass of int in Python, so it must be excluded explicitly from int/float checks.
 _PRIMITIVE_TYPE_CHECKS = {
@@ -50,7 +50,7 @@ _PRIMITIVE_TYPE_CHECKS = {
     "file": lambda v: isinstance(v, str),
 }
 
-_CONNECTION_TYPES = frozenset({"dhis2", "postgresql", "iaso", "s3", "gcs", "custom"})
+_CONNECTION_TYPES = frozenset(ct.value.lower() for ct in ConnectionType)
 
 
 def _is_valid_config_value(value, param_type: str) -> bool:

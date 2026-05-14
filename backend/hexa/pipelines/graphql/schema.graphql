@@ -91,21 +91,31 @@ enum ParameterWidget {
 }
 
 """
+File format for a dynamic choices source.
+"""
+enum PipelineParameterChoicesFileFormat {
+  csv
+  json
+  yaml
+  yml
+}
+
+"""
 Describes a dynamic choices source backed by a workspace file.
 """
 type PipelineParameterChoicesFromFile {
-  path: String!    # Path to the file in the workspace file system.
-  format: String!  # File format: "csv", "json", or "yaml".
-  column: String   # Column/key to use as choice values (required for multi-column files).
+  path: String!                          # Path to the file in the workspace file system.
+  format: PipelineParameterChoicesFileFormat  # File format; omit to auto-detect from path extension.
+  column: String                         # Column/key to use as choice values (required for multi-column files).
 }
 
 """
 Input for a dynamic choices source backed by a workspace file.
 """
 input PipelineParameterChoicesFromFileInput {
-  path: String!    # Path to the file in the workspace file system.
-  format: String!  # File format: "csv", "json", or "yaml".
-  column: String   # Column/key to use as choice values (required for multi-column files).
+  path: String!                          # Path to the file in the workspace file system.
+  format: PipelineParameterChoicesFileFormat  # File format; omit to auto-detect from path extension.
+  column: String                         # Column/key to use as choice values (required for multi-column files).
 }
 
 """
@@ -782,7 +792,7 @@ extend type Query {
   Resolves the list of choices for a parameter backed by a workspace file.
   Returns a list of string values read from the file at the time of the call.
   """
-  pipelineParameterChoices(workspaceSlug: String!, pipelineVersionId: UUID!, parameterCode: String!): [String!] @loginRequired
+  pipelineParameterChoices(pipelineVersionId: UUID!, parameterCode: String!): [String!] @loginRequired
 }
 
 extend type Mutation {

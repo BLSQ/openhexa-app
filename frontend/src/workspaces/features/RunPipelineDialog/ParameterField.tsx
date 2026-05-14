@@ -99,13 +99,12 @@ const ParameterField = (props: ParameterFieldProps) => {
     );
   }
 
-  if (parameter.choicesFromFile && workspaceSlug && pipelineVersionId) {
+  if (parameter.choicesFromFile && pipelineVersionId) {
     return (
       <ChoicesFromFileWidget
         parameter={parameter}
         value={value}
         onChange={handleChange}
-        workspaceSlug={workspaceSlug}
         pipelineVersionId={pipelineVersionId}
       />
     );
