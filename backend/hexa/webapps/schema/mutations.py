@@ -75,7 +75,14 @@ def resolve_create_webapp(_, info, **kwargs):
             elif "static" in source:
                 files_input = source["static"]
                 files = (
-                    [{"path": f["path"], "content": f["content"]} for f in files_input]
+                    [
+                        {
+                            "path": f["path"],
+                            "content": f["content"],
+                            "encoding": f.get("encoding", "TEXT"),
+                        }
+                        for f in files_input
+                    ]
                     if files_input
                     else None
                 )
@@ -202,7 +209,12 @@ def resolve_update_webapp(_, info, **kwargs):
 
         if input.get("files") is not None:
             files = [
-                {"path": f["path"], "content": f["content"]} for f in input["files"]
+                {
+                    "path": f["path"],
+                    "content": f["content"],
+                    "encoding": f.get("encoding", "TEXT"),
+                }
+                for f in input["files"]
             ]
             try:
                 git_webapp.save_files(files, "Update webapp content", user)
