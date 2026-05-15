@@ -511,6 +511,7 @@ export type AssistantToolInvocation = {
   __typename?: 'AssistantToolInvocation';
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
+  resolved: Scalars['Boolean']['output'];
   success: Scalars['Boolean']['output'];
   toolInput: Scalars['JSON']['output'];
   toolName: Scalars['String']['output'];
@@ -2946,6 +2947,7 @@ export type Mutation = {
   resendWorkspaceInvitation: ResendWorkspaceInvitationResult;
   /** Sends a password reset email to the user. */
   resetPassword: ResetPasswordResult;
+  resolveAssistantProposal: ResolveAssistantProposalResult;
   runDAG: RunDagResult;
   /** Runs a pipeline. */
   runPipeline: RunPipelineResult;
@@ -3442,6 +3444,11 @@ export type MutationResendWorkspaceInvitationArgs = {
 
 export type MutationResetPasswordArgs = {
   input: ResetPasswordInput;
+};
+
+
+export type MutationResolveAssistantProposalArgs = {
+  toolInvocationId: Scalars['UUID']['input'];
 };
 
 
@@ -5000,6 +5007,17 @@ export type ResetPasswordInput = {
 export type ResetPasswordResult = {
   __typename?: 'ResetPasswordResult';
   /** Indicates whether the password reset was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
+export enum ResolveAssistantProposalError {
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type ResolveAssistantProposalResult = {
+  __typename?: 'ResolveAssistantProposalResult';
+  errors: Array<ResolveAssistantProposalError>;
   success: Scalars['Boolean']['output'];
 };
 

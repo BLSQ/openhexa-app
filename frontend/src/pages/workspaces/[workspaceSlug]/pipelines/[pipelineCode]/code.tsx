@@ -1,5 +1,6 @@
 import { SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import PipelineEditChatPanel from "assistant/features/PipelineEditChatPanel";
+import { useResolveAssistantProposalMutation } from "assistant/graphql/mutations.generated";
 import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import Page from "core/components/Page";
@@ -35,10 +36,36 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     useState<PipelineVersionPicker_VersionFragment | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [proposedFiles, setProposedFiles] = useState<ProposedFile[] | null>(null);
+  const [proposedToolInvocationId, setProposedToolInvocationId] = useState<string | null>(null);
 
-  const handleProposedFiles = useCallback((files: ProposedFile[] | null) => {
+  const [resolveProposal] = useResolveAssistantProposalMutation();
+
+  const handleProposedFiles = useCallback((files: ProposedFile[] | null, toolInvocationId?: string) => {
     setProposedFiles(files);
+    if (toolInvocationId !== undefined) {
+      setProposedToolInvocationId(toolInvocationId);
+    } else if (files !== null) {
+      // New SSE proposal: clear the stored ID until Apollo refetch provides it.
+      setProposedToolInvocationId(null);
+    }
   }, []);
+
+  const handleDismiss = useCallback(async () => {
+    setProposedFiles(null);
+    const idToDismiss = proposedToolInvocationId;
+    setProposedToolInvocationId(null);
+    if (idToDismiss) {
+      await resolveProposal({
+        variables: { toolInvocationId: idToDismiss },
+        update(cache) {
+          cache.modify({
+            id: cache.identify({ __typename: "AssistantToolInvocation", id: idToDismiss }),
+            fields: { dismissed: () => true },
+          });
+        },
+      });
+    }
+  }, [proposedToolInvocationId, resolveProposal]);
 
   const [isAssistantEnabled] = useFeature("assistant");
   const me = useMe();
@@ -78,6 +105,19 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   ) => {
     setSelectedVersion(version);
     setProposedFiles(null);
+    const idToResolve = proposedToolInvocationId;
+    setProposedToolInvocationId(null);
+    if (idToResolve) {
+      resolveProposal({
+        variables: { toolInvocationId: idToResolve },
+        update(cache) {
+          cache.modify({
+            id: cache.identify({ __typename: "AssistantToolInvocation", id: idToResolve }),
+            fields: { dismissed: () => true },
+          });
+        },
+      });
+    }
     fetchPipelineVersion({
       variables: {
         versionId: version.id,
@@ -128,7 +168,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                     {t("Proposed version from AI assistant")}
                   </span>
                   <button
-                    onClick={() => setProposedFiles(null)}
+                    onClick={handleDismiss}
                     className="flex items-center gap-1 text-blue-500 hover:text-blue-700 text-xs"
                   >
                     <XMarkIcon className="h-3.5 w-3.5" />
