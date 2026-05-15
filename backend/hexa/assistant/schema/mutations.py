@@ -93,9 +93,9 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
 def resolve_dismiss_assistant_proposal(_, info, tool_invocation_id, **kwargs):
     request = info.context["request"]
     try:
-        invocation = ToolInvocation.objects.select_related(
-            "message__conversation"
-        ).get(id=tool_invocation_id)
+        invocation = ToolInvocation.objects.select_related("message__conversation").get(
+            id=tool_invocation_id
+        )
     except ToolInvocation.DoesNotExist:
         return {"success": False, "errors": ["NOT_FOUND"]}
 

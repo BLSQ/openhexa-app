@@ -80,7 +80,11 @@ class EditPipelineAgent(BaseAgent):
     @property
     def _context(self) -> dict:
         ctx = super()._context
-        return {**ctx, "pipeline": self.conversation.linked_object, "conversation": self.conversation}
+        return {
+            **ctx,
+            "pipeline": self.conversation.linked_object,
+            "conversation": self.conversation,
+        }
 
     def _extra_instructions(self) -> str:
         linked_object = self.conversation.linked_object
