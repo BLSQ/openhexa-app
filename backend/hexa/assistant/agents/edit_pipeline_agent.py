@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.models import ToolInvocation
 from hexa.mcp.tools.help import get_help_or_doc
 from hexa.pipelines.models import Pipeline
 
@@ -84,7 +85,28 @@ class EditPipelineAgent(BaseAgent):
 
         lines.append(f"Current version: {current_version.version_name}")
 
-        if current_version.zipfile:
+        pending = (
+            ToolInvocation.objects.filter(
+                message__conversation=self.conversation,
+                tool_name="propose_pipeline_version",
+                success=True,
+                resolved=False,
+            )
+            .order_by("-created_at")
+            .first()
+        )
+
+        if pending and pending.tool_output:
+            proposed_files = pending.tool_output.get("files", [])
+            if proposed_files:
+                lines.append("")
+                lines.append(
+                    "### Files (Pending Proposed Version — not yet accepted by the user)\n"
+                    "Use these files as the base for any further changes."
+                )
+                for f in proposed_files:
+                    lines.append(f"\n#### {f['name']}\n```\n{f['content']}\n```")
+        elif current_version.zipfile:
             lines.append("")
             lines.append("### Files")
             with zipfile.ZipFile(io.BytesIO(bytes(current_version.zipfile)), "r") as zf:
