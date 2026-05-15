@@ -14,7 +14,7 @@ type Props = {
   pipelineId: string;
   workspaceSlug: string;
   monthlyLimitExceeded: boolean;
-  onProposedFiles: (files: ProposedFile[] | null) => void;
+  onProposedFiles: (files: ProposedFile[] | null, toolInvocationId?: string) => void;
 };
 
 export default function PipelineEditChatPanel({
@@ -49,6 +49,7 @@ export default function PipelineEditChatPanel({
       if (toolName !== "propose_pipeline_version" || !success) return;
       const files = (output as { files?: ProposedFile[] })?.files;
       if (Array.isArray(files)) {
+        // No toolInvocationId yet during streaming; Apollo refetch will provide it.
         onProposedFiles(files);
       }
     },
@@ -57,23 +58,24 @@ export default function PipelineEditChatPanel({
 
   const handleMessagesChange = useCallback(
     (messages: Message[]) => {
-      // Historical path: find the most recent successful propose_pipeline_version on load
       for (let i = messages.length - 1; i >= 0; i--) {
         const msg = messages[i];
         if (msg.role !== "assistant") continue;
         const proposal = msg.toolInvocations.find(
           (t: Message["toolInvocations"][0]) =>
-            t.toolName === "propose_pipeline_version" && t.success,
+            t.toolName === "propose_pipeline_version" && t.success && !t.resolved,
         );
         if (proposal?.toolOutput) {
           const files = (proposal.toolOutput as { files: ProposedFile[] })?.files;
           if (Array.isArray(files)) {
-            onProposedFiles(files);
+            onProposedFiles(files, proposal.id);
             return;
           }
         }
       }
-      onProposedFiles(null);
+      // Do not clear proposedFiles here: a proposal shown via SSE may not yet be
+      // in the Apollo cache when this callback fires. Let dismiss / version creation
+      // handle clearing.
     },
     [onProposedFiles],
   );

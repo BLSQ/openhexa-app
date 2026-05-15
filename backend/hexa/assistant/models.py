@@ -188,6 +188,7 @@ class ToolInvocation(Base):
     tool_input = models.JSONField()
     tool_output = models.JSONField(null=True, blank=True)
     success = models.BooleanField(default=True)
+    resolved = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["created_at"]

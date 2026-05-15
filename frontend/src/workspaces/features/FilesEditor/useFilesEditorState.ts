@@ -197,27 +197,37 @@ export const useFilesEditorState = ({
 
   const prevProposedFilesRef = useRef<ProposedFile[] | undefined>(undefined);
   useEffect(() => {
-    if (prevProposedFilesRef.current && !proposedFiles) {
-      setModifiedFiles(new Map());
-    }
+    const prev = prevProposedFilesRef.current;
     prevProposedFilesRef.current = proposedFiles;
-  }, [proposedFiles]);
 
-  useEffect(() => {
+    if (prev && !proposedFiles) {
+      setModifiedFiles(new Map());
+      return;
+    }
     if (!proposedFiles) return;
-    setModifiedFiles((prev) => {
-      const next = new Map(prev);
+
+    // When proposedFiles is a new reference (a new proposal from the agent),
+    // overwrite previously seeded entries so the updated proposal is shown.
+    // When it's the same reference re-running due to flatFiles/proposedDeletions
+    // changing, preserve manual edits by only seeding missing entries.
+    const isNewProposal = prev !== proposedFiles;
+
+    setModifiedFiles((current) => {
+      // New proposal: build fresh so stale entries from the previous proposal
+      // are not carried over for files the new proposal reverted to original.
+      // Same proposal re-running: patch so manual user edits are preserved.
+      const next = isNewProposal ? new Map<string, string>() : new Map(current);
+
       for (const proposed of proposedFiles) {
         const existing = flatFiles.find((f) => f.path === proposed.name);
         if (existing) {
-          if (
-            proposed.content !== (existing.content ?? "") &&
-            !next.has(existing.id)
-          ) {
-            next.set(existing.id, proposed.content);
+          if (proposed.content !== (existing.content ?? "")) {
+            if (isNewProposal || !next.has(existing.id)) {
+              next.set(existing.id, proposed.content);
+            }
           }
         } else {
-          if (!next.has(proposed.name)) {
+          if (isNewProposal || !next.has(proposed.name)) {
             next.set(proposed.name, proposed.content);
           }
         }

@@ -39,7 +39,12 @@ propose_pipeline_version tool — pass only the files you modified or created in
 and list any files to delete in deleted_files. Unchanged files are preserved automatically. \
 Before calling the tool, don't send any message. \
 After using the tool, briefly explain what you changed and why: \
-keep it short but structured, only the 2 or 3 most relevant key points.
+keep it short but structured, only the 2 or 3 most relevant key points.\n\
+If there is a pending proposed version (shown below under "Pending Proposed Version"), \
+the user is currently reviewing it but has not yet accepted it. \
+For any follow-up change request, you MUST call propose_pipeline_version again — \
+build upon the pending proposed files, not the saved version. \
+Never respond with only text when a code change is requested.
 """
 
 _WEBAPPS = """\

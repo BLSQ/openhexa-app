@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.models import Conversation, ToolInvocation
 from hexa.mcp.tools.help import get_help_or_doc
 from hexa.pipelines.models import Pipeline
 
@@ -18,6 +19,7 @@ def propose_pipeline_version(
     pipeline: Pipeline,
     modified_files: list[ProposedFile] | None = None,
     deleted_files: list[str] | None = None,
+    conversation: Conversation | None = None,
 ) -> dict:
     """Propose a new version of the pipeline.
 
@@ -27,16 +29,36 @@ def propose_pipeline_version(
     Unchanged files are preserved automatically.
     """
     current_files: dict[str, str] = {}
-    current_version = pipeline.last_version if pipeline is not None else None
-    if current_version and current_version.zipfile:
-        with zipfile.ZipFile(io.BytesIO(bytes(current_version.zipfile)), "r") as zf:
-            for name in zf.namelist():
-                if name.endswith("/"):
-                    continue
-                try:
-                    current_files[name] = zf.read(name).decode("utf-8")
-                except UnicodeDecodeError:
-                    pass
+
+    # If there's a pending (unresolved) proposal, use it as the base so chained
+    # edits accumulate correctly instead of being rebased onto the saved version.
+    pending = None
+    if conversation is not None:
+        pending = (
+            ToolInvocation.objects.filter(
+                message__conversation=conversation,
+                tool_name="propose_pipeline_version",
+                success=True,
+                resolved=False,
+            )
+            .order_by("-created_at")
+            .first()
+        )
+
+    if pending and pending.tool_output:
+        for f in pending.tool_output.get("files", []):
+            current_files[f["name"]] = f["content"]
+    else:
+        current_version = pipeline.last_version if pipeline is not None else None
+        if current_version and current_version.zipfile:
+            with zipfile.ZipFile(io.BytesIO(bytes(current_version.zipfile)), "r") as zf:
+                for name in zf.namelist():
+                    if name.endswith("/"):
+                        continue
+                    try:
+                        current_files[name] = zf.read(name).decode("utf-8")
+                    except UnicodeDecodeError:
+                        pass
 
     for f in modified_files or []:
         current_files[f.name] = f.content
@@ -58,7 +80,11 @@ class EditPipelineAgent(BaseAgent):
     @property
     def _context(self) -> dict:
         ctx = super()._context
-        return {**ctx, "pipeline": self.conversation.linked_object}
+        return {
+            **ctx,
+            "pipeline": self.conversation.linked_object,
+            "conversation": self.conversation,
+        }
 
     def _extra_instructions(self) -> str:
         linked_object = self.conversation.linked_object
@@ -84,7 +110,28 @@ class EditPipelineAgent(BaseAgent):
 
         lines.append(f"Current version: {current_version.version_name}")
 
-        if current_version.zipfile:
+        pending = (
+            ToolInvocation.objects.filter(
+                message__conversation=self.conversation,
+                tool_name="propose_pipeline_version",
+                success=True,
+                resolved=False,
+            )
+            .order_by("-created_at")
+            .first()
+        )
+
+        if pending and pending.tool_output:
+            proposed_files = pending.tool_output.get("files", [])
+            if proposed_files:
+                lines.append("")
+                lines.append(
+                    "### Files (Pending Proposed Version — not yet accepted by the user)\n"
+                    "Use these files as the base for any further changes."
+                )
+                for f in proposed_files:
+                    lines.append(f"\n#### {f['name']}\n```\n{f['content']}\n```")
+        elif current_version.zipfile:
             lines.append("")
             lines.append("### Files")
             with zipfile.ZipFile(io.BytesIO(bytes(current_version.zipfile)), "r") as zf:

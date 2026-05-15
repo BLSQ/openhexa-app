@@ -31,6 +31,7 @@ type AssistantToolInvocation {
   toolInput: JSON!
   toolOutput: JSON
   success: Boolean!
+  resolved: Boolean!
 }
 
 extend type Workspace {
@@ -62,8 +63,19 @@ type CreateAssistantConversationResult {
   conversation: AssistantConversation
 }
 
+enum ResolveAssistantProposalError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+type ResolveAssistantProposalResult {
+  success: Boolean!
+  errors: [ResolveAssistantProposalError!]!
+}
+
 extend type Mutation {
   createAssistantConversation(input: CreateAssistantConversationInput!): CreateAssistantConversationResult!
+  resolveAssistantProposal(toolInvocationId: UUID!): ResolveAssistantProposalResult!
 }
 
 extend type Query {
