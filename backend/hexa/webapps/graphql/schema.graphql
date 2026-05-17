@@ -72,6 +72,8 @@ type WebappCommitDiff {
   authorName: String!
   authorEmail: String!
   date: DateTime!
+  totalAdditions: Int!
+  totalDeletions: Int!
   files: [WebappFileDiff!]!
 }
 

@@ -5417,6 +5417,8 @@ type WebappCommitDiff {
   files: [WebappFileDiff!]!
   id: String!
   message: String!
+  totalAdditions: Int!
+  totalDeletions: Int!
 }
 
 type WebappFileDiff {

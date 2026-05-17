@@ -81,6 +81,8 @@ query WebappCommitDiff(
       authorName
       authorEmail
       date
+      totalAdditions
+      totalDeletions
       files {
         filename
         previousFilename
