@@ -98,3 +98,12 @@ class GitClient(ABC):
         sha: str,
     ) -> dict:
         ...
+
+    @abstractmethod
+    def get_commit_diff(
+        self,
+        org_slug: str,
+        repo_name: str,
+        sha: str,
+    ) -> str:
+        ...

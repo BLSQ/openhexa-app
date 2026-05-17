@@ -908,24 +908,15 @@ class GitWebappCommitDiffTest(GraphQLTestCase):
             },
             "parents": [{"sha": "def456"}],
         }
-        mock_client.get_repository_files.side_effect = [
-            [
-                {"path": "index.html", "type": "file", "content": "<h1>Updated</h1>"},
-                {
-                    "path": "style.css",
-                    "type": "file",
-                    "content": "body { color: blue; }",
-                },
-            ],
-            [
-                {"path": "index.html", "type": "file", "content": "<h1>Hello</h1>"},
-                {
-                    "path": "style.css",
-                    "type": "file",
-                    "content": "body { color: blue; }",
-                },
-            ],
-        ]
+        mock_client.get_commit_diff.return_value = (
+            "diff --git a/index.html b/index.html\n"
+            "index abc..def 100644\n"
+            "--- a/index.html\n"
+            "+++ b/index.html\n"
+            "@@ -1 +1 @@\n"
+            "-<h1>Hello</h1>\n"
+            "+<h1>Updated</h1>\n"
+        )
         mock_get_client.return_value = mock_client
 
         self.client.force_login(self.USER)
@@ -964,9 +955,15 @@ class GitWebappCommitDiffTest(GraphQLTestCase):
             },
             "parents": [],
         }
-        mock_client.get_repository_files.return_value = [
-            {"path": "index.html", "type": "file", "content": "<h1>Hello</h1>"},
-        ]
+        mock_client.get_commit_diff.return_value = (
+            "diff --git a/index.html b/index.html\n"
+            "new file mode 100644\n"
+            "index 0000000..abc1234\n"
+            "--- /dev/null\n"
+            "+++ b/index.html\n"
+            "@@ -0,0 +1 @@\n"
+            "+<h1>Hello</h1>\n"
+        )
         mock_get_client.return_value = mock_client
 
         self.client.force_login(self.USER)

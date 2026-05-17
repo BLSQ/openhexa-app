@@ -24,6 +24,58 @@ from hexa.webapps.validators import validate_subdomain
 from hexa.workspaces.models import Workspace
 
 
+def _parse_git_diff(diff_text: str) -> list[dict]:
+    files = []
+    current_file = None
+    patch_lines = []
+
+    for line in diff_text.splitlines(keepends=True):
+        if line.startswith("diff --git "):
+            if current_file is not None:
+                current_file["patch"] = "".join(patch_lines)
+                files.append(current_file)
+            current_file = {
+                "filename": "",
+                "previous_filename": "",
+                "status": "modified",
+                "additions": 0,
+                "deletions": 0,
+                "patch": "",
+            }
+            patch_lines = [line]
+        elif current_file is not None:
+            patch_lines.append(line)
+            if line.startswith("new file mode"):
+                current_file["status"] = "added"
+            elif line.startswith("deleted file mode"):
+                current_file["status"] = "deleted"
+            elif line.startswith("rename from "):
+                current_file["previous_filename"] = line[12:].strip()
+                current_file["status"] = "renamed"
+            elif line.startswith("rename to "):
+                current_file["filename"] = line[10:].strip()
+            elif line.startswith("--- "):
+                src = line[4:].strip()
+                if src.startswith("a/"):
+                    current_file["previous_filename"] = src[2:]
+            elif line.startswith("+++ "):
+                dst = line[4:].strip()
+                if dst.startswith("b/"):
+                    current_file["filename"] = dst[2:]
+                elif dst == "/dev/null":
+                    current_file["filename"] = current_file["previous_filename"]
+            elif line.startswith("+") and not line.startswith("+++"):
+                current_file["additions"] += 1
+            elif line.startswith("-") and not line.startswith("---"):
+                current_file["deletions"] += 1
+
+    if current_file is not None:
+        current_file["patch"] = "".join(patch_lines)
+        files.append(current_file)
+
+    return files
+
+
 def create_webapp_slug(name: str, workspace: Workspace):
     """Generate a unique slug for a webapp within a workspace."""
     suffix = ""
@@ -284,70 +336,10 @@ class GitWebapp(Webapp, GitRepoMixin):
         return nodes
 
     def get_commit_diff(self, sha: str) -> dict:
-        import difflib
-
         raw = self.client.get_commit(self.git_org.slug, self.repository, sha)
         git_commit = raw.get("commit") or {}
         git_author = git_commit.get("author") or {}
-        parents = raw.get("parents") or []
-        parent_sha = parents[0]["sha"] if parents else None
-
-        current_files = {
-            f["path"]: f["content"] or ""
-            for f in self.get_files(sha)
-            if f["type"] == "file"
-        }
-        parent_files = (
-            {
-                f["path"]: f["content"] or ""
-                for f in self.get_files(parent_sha)
-                if f["type"] == "file"
-            }
-            if parent_sha
-            else {}
-        )
-
-        file_diffs = []
-        for path in sorted(set(current_files) | set(parent_files)):
-            current = current_files.get(path, "")
-            parent = parent_files.get(path, "")
-
-            if current == parent:
-                continue
-
-            if path not in parent_files:
-                status = "added"
-            elif path not in current_files:
-                status = "deleted"
-            else:
-                status = "modified"
-
-            patch_lines = list(
-                difflib.unified_diff(
-                    parent.splitlines(keepends=True),
-                    current.splitlines(keepends=True),
-                    fromfile=f"a/{path}",
-                    tofile=f"b/{path}",
-                )
-            )
-            file_diffs.append(
-                {
-                    "filename": path,
-                    "previous_filename": "",
-                    "status": status,
-                    "additions": sum(
-                        1
-                        for line in patch_lines
-                        if line.startswith("+") and not line.startswith("+++")
-                    ),
-                    "deletions": sum(
-                        1
-                        for line in patch_lines
-                        if line.startswith("-") and not line.startswith("---")
-                    ),
-                    "patch": "".join(patch_lines),
-                }
-            )
+        diff_text = self.client.get_commit_diff(self.git_org.slug, self.repository, sha)
 
         return {
             "id": raw.get("sha", sha),
@@ -355,7 +347,7 @@ class GitWebapp(Webapp, GitRepoMixin):
             "author_name": git_author.get("name", ""),
             "author_email": git_author.get("email", ""),
             "date": git_author.get("date", ""),
-            "files": file_diffs,
+            "files": _parse_git_diff(diff_text),
         }
 
     def publish_version(self, version_id):
