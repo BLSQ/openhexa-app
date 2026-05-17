@@ -574,6 +574,53 @@ class ForgejoClientUnarchiveRepositoryTest(TestCase):
         self.assertEqual(ctx.exception.status_code, 404)
 
 
+class ForgejoClientGetCommitTest(TestCase):
+    @responses.activate
+    def test_get_commit(self):
+        sha = "abc123def456"
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/my-repo/git/commits/{sha}",
+            json={
+                "sha": sha,
+                "commit": {
+                    "message": "Fix typo\n",
+                    "author": {
+                        "name": "Test User",
+                        "email": "test@example.com",
+                        "date": "2024-01-01T00:00:00Z",
+                    },
+                },
+                "parents": [{"sha": "parentsha"}],
+            },
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        result = client.get_commit("ws-myworkspace", "my-repo", sha)
+
+        self.assertEqual(result["sha"], sha)
+        self.assertEqual(result["commit"]["message"], "Fix typo\n")
+        self.assertEqual(result["commit"]["author"]["name"], "Test User")
+        self.assertEqual(result["parents"][0]["sha"], "parentsha")
+        get_call = responses.calls[0]
+        self.assertIn(f"/git/commits/{sha}", get_call.request.url)
+
+    @responses.activate
+    def test_get_commit_not_found(self):
+        sha = "nonexistent"
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/my-repo/git/commits/{sha}",
+            json={"message": "object does not exist"},
+            status=404,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        with self.assertRaises(ForgejoAPIError) as ctx:
+            client.get_commit("ws-myworkspace", "my-repo", sha)
+
+        self.assertEqual(ctx.exception.status_code, 404)
+
+
 class ForgejoClientGetForgejoClientTest(TestCase):
     @override_settings(
         GIT_SERVER_URL="http://test-forgejo:3000",

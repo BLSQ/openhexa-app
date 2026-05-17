@@ -24,6 +24,58 @@ from hexa.webapps.validators import validate_subdomain
 from hexa.workspaces.models import Workspace
 
 
+def _parse_git_diff(diff_text: str) -> list[dict]:
+    files = []
+    current_file = None
+    patch_lines = []
+
+    for line in diff_text.splitlines(keepends=True):
+        if line.startswith("diff --git "):
+            if current_file is not None:
+                current_file["patch"] = "".join(patch_lines)
+                files.append(current_file)
+            current_file = {
+                "filename": "",
+                "previous_filename": "",
+                "status": "modified",
+                "additions": 0,
+                "deletions": 0,
+                "patch": "",
+            }
+            patch_lines = [line]
+        elif current_file is not None:
+            patch_lines.append(line)
+            if line.startswith("new file mode"):
+                current_file["status"] = "added"
+            elif line.startswith("deleted file mode"):
+                current_file["status"] = "deleted"
+            elif line.startswith("rename from "):
+                current_file["previous_filename"] = line[12:].strip()
+                current_file["status"] = "renamed"
+            elif line.startswith("rename to "):
+                current_file["filename"] = line[10:].strip()
+            elif line.startswith("--- "):
+                src = line[4:].strip()
+                if src.startswith("a/"):
+                    current_file["previous_filename"] = src[2:]
+            elif line.startswith("+++ "):
+                dst = line[4:].strip()
+                if dst.startswith("b/"):
+                    current_file["filename"] = dst[2:]
+                elif dst == "/dev/null":
+                    current_file["filename"] = current_file["previous_filename"]
+            elif line.startswith("+") and not line.startswith("+++"):
+                current_file["additions"] += 1
+            elif line.startswith("-") and not line.startswith("---"):
+                current_file["deletions"] += 1
+
+    if current_file is not None:
+        current_file["patch"] = "".join(patch_lines)
+        files.append(current_file)
+
+    return files
+
+
 def create_webapp_slug(name: str, workspace: Workspace):
     """Generate a unique slug for a webapp within a workspace."""
     suffix = ""
@@ -282,6 +334,24 @@ class GitWebapp(Webapp, GitRepoMixin):
                 }
             )
         return nodes
+
+    def get_commit_diff(self, sha: str) -> dict:
+        raw = self.client.get_commit(self.git_org.slug, self.repository, sha)
+        git_commit = raw.get("commit") or {}
+        git_author = git_commit.get("author") or {}
+        diff_text = self.client.get_commit_diff(self.git_org.slug, self.repository, sha)
+
+        files = _parse_git_diff(diff_text)
+        return {
+            "id": raw.get("sha", sha),
+            "message": (git_commit.get("message") or "").strip(),
+            "author_name": git_author.get("name", ""),
+            "author_email": git_author.get("email", ""),
+            "date": git_author.get("date", ""),
+            "total_additions": sum(f["additions"] for f in files),
+            "total_deletions": sum(f["deletions"] for f in files),
+            "files": files,
+        }
 
     def publish_version(self, version_id):
         if not self.client.commit_exists(

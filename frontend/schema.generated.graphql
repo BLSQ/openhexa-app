@@ -5387,6 +5387,7 @@ type WHORegion {
 """Represents a web app."""
 type Webapp {
   allowedOperations: [WebappOperationScope!]!
+  commitDiff(ref: String!): WebappCommitDiff
   createdBy: User!
   description: String
   files(ref: String): [FileNode!]
@@ -5407,6 +5408,26 @@ type Webapp {
   url: String!
   versions(page: Int, perPage: Int): WebappVersionsPage
   workspace: Workspace!
+}
+
+type WebappCommitDiff {
+  authorEmail: String!
+  authorName: String!
+  date: DateTime!
+  files: [WebappFileDiff!]!
+  id: String!
+  message: String!
+  totalAdditions: Int!
+  totalDeletions: Int!
+}
+
+type WebappFileDiff {
+  additions: Int!
+  deletions: Int!
+  filename: String!
+  patch: String!
+  previousFilename: String!
+  status: String!
 }
 
 input WebappFileInput {

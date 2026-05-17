@@ -43,6 +43,15 @@ export type WebappFilesQueryVariables = Types.Exact<{
 
 export type WebappFilesQuery = { __typename?: 'Query', webapp?: { __typename?: 'Webapp', id: string, files?: Array<{ __typename?: 'FileNode', id: string, name: string, path: string, type: Types.FileType, content?: string | null, parentId?: string | null, autoSelect: boolean, language?: string | null, lineCount?: number | null }> | null } | null };
 
+export type WebappCommitDiffQueryVariables = Types.Exact<{
+  workspaceSlug: Types.Scalars['String']['input'];
+  webappSlug: Types.Scalars['String']['input'];
+  ref: Types.Scalars['String']['input'];
+}>;
+
+
+export type WebappCommitDiffQuery = { __typename?: 'Query', webapp?: { __typename?: 'Webapp', id: string, source: { __typename?: 'GitSource', publishedVersion?: string | null } | { __typename?: 'IframeSource' } | { __typename?: 'SupersetSource' }, commitDiff?: { __typename?: 'WebappCommitDiff', id: string, message: string, authorName: string, authorEmail: string, date: any, totalAdditions: number, totalDeletions: number, files: Array<{ __typename?: 'WebappFileDiff', filename: string, previousFilename: string, status: string, additions: number, deletions: number, patch: string }> } | null } | null };
+
 export const WebappPlay_WebappFragmentDoc = gql`
     fragment WebappPlay_webapp on Webapp {
   slug
@@ -248,3 +257,67 @@ export type WebappFilesQueryHookResult = ReturnType<typeof useWebappFilesQuery>;
 export type WebappFilesLazyQueryHookResult = ReturnType<typeof useWebappFilesLazyQuery>;
 export type WebappFilesSuspenseQueryHookResult = ReturnType<typeof useWebappFilesSuspenseQuery>;
 export type WebappFilesQueryResult = Apollo.QueryResult<WebappFilesQuery, WebappFilesQueryVariables>;
+export const WebappCommitDiffDocument = gql`
+    query WebappCommitDiff($workspaceSlug: String!, $webappSlug: String!, $ref: String!) {
+  webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
+    id
+    source {
+      ... on GitSource {
+        publishedVersion
+      }
+    }
+    commitDiff(ref: $ref) {
+      id
+      message
+      authorName
+      authorEmail
+      date
+      totalAdditions
+      totalDeletions
+      files {
+        filename
+        previousFilename
+        status
+        additions
+        deletions
+        patch
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useWebappCommitDiffQuery__
+ *
+ * To run a query within a React component, call `useWebappCommitDiffQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWebappCommitDiffQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWebappCommitDiffQuery({
+ *   variables: {
+ *      workspaceSlug: // value for 'workspaceSlug'
+ *      webappSlug: // value for 'webappSlug'
+ *      ref: // value for 'ref'
+ *   },
+ * });
+ */
+export function useWebappCommitDiffQuery(baseOptions: Apollo.QueryHookOptions<WebappCommitDiffQuery, WebappCommitDiffQueryVariables> & ({ variables: WebappCommitDiffQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WebappCommitDiffQuery, WebappCommitDiffQueryVariables>(WebappCommitDiffDocument, options);
+      }
+export function useWebappCommitDiffLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WebappCommitDiffQuery, WebappCommitDiffQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WebappCommitDiffQuery, WebappCommitDiffQueryVariables>(WebappCommitDiffDocument, options);
+        }
+export function useWebappCommitDiffSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WebappCommitDiffQuery, WebappCommitDiffQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WebappCommitDiffQuery, WebappCommitDiffQueryVariables>(WebappCommitDiffDocument, options);
+        }
+export type WebappCommitDiffQueryHookResult = ReturnType<typeof useWebappCommitDiffQuery>;
+export type WebappCommitDiffLazyQueryHookResult = ReturnType<typeof useWebappCommitDiffLazyQuery>;
+export type WebappCommitDiffSuspenseQueryHookResult = ReturnType<typeof useWebappCommitDiffSuspenseQuery>;
+export type WebappCommitDiffQueryResult = Apollo.QueryResult<WebappCommitDiffQuery, WebappCommitDiffQueryVariables>;
