@@ -50,7 +50,7 @@ export type WebappCommitDiffQueryVariables = Types.Exact<{
 }>;
 
 
-export type WebappCommitDiffQuery = { __typename?: 'Query', webapp?: { __typename?: 'Webapp', id: string, source: { __typename?: 'GitSource', publishedVersion?: string | null } | { __typename?: 'IframeSource' } | { __typename?: 'SupersetSource' }, commitDiff?: { __typename?: 'WebappCommitDiff', id: string, message: string, authorName: string, authorEmail: string, date: any, files: Array<{ __typename?: 'WebappFileDiff', filename: string, previousFilename: string, status: string, additions: number, deletions: number, patch: string }> } | null } | null };
+export type WebappCommitDiffQuery = { __typename?: 'Query', webapp?: { __typename?: 'Webapp', id: string, source: { __typename?: 'GitSource', publishedVersion?: string | null } | { __typename?: 'IframeSource' } | { __typename?: 'SupersetSource' }, commitDiff?: { __typename?: 'WebappCommitDiff', id: string, message: string, authorName: string, authorEmail: string, date: any, totalAdditions: number, totalDeletions: number, files: Array<{ __typename?: 'WebappFileDiff', filename: string, previousFilename: string, status: string, additions: number, deletions: number, patch: string }> } | null } | null };
 
 export const WebappPlay_WebappFragmentDoc = gql`
     fragment WebappPlay_webapp on Webapp {
@@ -272,6 +272,8 @@ export const WebappCommitDiffDocument = gql`
       authorName
       authorEmail
       date
+      totalAdditions
+      totalDeletions
       files {
         filename
         previousFilename

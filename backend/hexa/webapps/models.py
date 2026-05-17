@@ -345,13 +345,16 @@ class GitWebapp(Webapp, GitRepoMixin):
         git_author = git_commit.get("author") or {}
         diff_text = self.client.get_commit_diff(self.git_org.slug, self.repository, sha)
 
+        files = _parse_git_diff(diff_text)
         return {
             "id": raw.get("sha", sha),
             "message": (git_commit.get("message") or "").strip(),
             "author_name": git_author.get("name", ""),
             "author_email": git_author.get("email", ""),
             "date": git_author.get("date", ""),
-            "files": _parse_git_diff(diff_text),
+            "total_additions": sum(f["additions"] for f in files),
+            "total_deletions": sum(f["deletions"] for f in files),
+            "files": files,
         }
 
     def publish_version(self, version_id):

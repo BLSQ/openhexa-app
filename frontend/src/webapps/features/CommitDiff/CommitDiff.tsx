@@ -55,8 +55,8 @@ const CommitDiff = ({ workspaceSlug, webappSlug, commitId }: CommitDiffProps) =>
     source?.__typename === "GitSource" ? source.publishedVersion : null;
   const isPublished = publishedVersionId === commitId;
 
-  const totalAdditions = files.reduce((sum, f) => sum + f.additions, 0);
-  const totalDeletions = files.reduce((sum, f) => sum + f.deletions, 0);
+  const totalAdditions = diff?.totalAdditions ?? 0;
+  const totalDeletions = diff?.totalDeletions ?? 0;
 
   return (
     <div className="space-y-4">

@@ -6277,6 +6277,8 @@ export type WebappCommitDiff = {
   files: Array<WebappFileDiff>;
   id: Scalars['String']['output'];
   message: Scalars['String']['output'];
+  totalAdditions: Scalars['Int']['output'];
+  totalDeletions: Scalars['Int']['output'];
 };
 
 export type WebappFileDiff = {
