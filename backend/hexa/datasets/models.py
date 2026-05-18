@@ -113,13 +113,12 @@ class DatasetManager(models.Manager):
         description: str,
         files: list[dict] | None = None,
     ):
-        if principal.is_service_principal:
-            if not principal.accessible_workspaces().filter(pk=workspace.pk).exists():
-                raise PermissionDenied
-        elif not principal.has_perm("datasets.create_dataset", workspace):
+        if not principal.can_create_in_workspace(
+            workspace
+        ) and not principal.has_perm("datasets.create_dataset", workspace):
             raise PermissionDenied
 
-        created_by = None if principal.is_service_principal else principal
+        created_by = principal.human_actor
 
         with transaction.atomic():
             dataset = self.create(
@@ -244,16 +243,11 @@ class DatasetVersionManager(models.Manager):
     ):
         from hexa.pipelines.authentication import PipelineRunUser
 
-        if principal.is_service_principal:
-            if (
-                not principal.accessible_workspaces()
-                .filter(pk=dataset.workspace_id)
-                .exists()
-            ):
-                raise PermissionDenied
-        elif not principal.has_perm("datasets.create_dataset_version", dataset):
+        if not principal.can_create_in_workspace(
+            dataset.workspace
+        ) and not principal.has_perm("datasets.create_dataset_version", dataset):
             raise PermissionDenied
-        created_by = None if principal.is_service_principal else principal
+        created_by = principal.human_actor
         pipeline_run = (
             principal.pipeline_run if isinstance(principal, PipelineRunUser) else None
         )
@@ -381,19 +375,14 @@ class DatasetVersionFileManager(models.Manager):
         uri: str,
         content_type: str,
     ):
-        if principal.is_service_principal:
-            if (
-                not principal.accessible_workspaces()
-                .filter(pk=dataset_version.dataset.workspace_id)
-                .exists()
-            ):
-                raise PermissionDenied
-        elif not principal.has_perm(
+        if not principal.can_create_in_workspace(
+            dataset_version.dataset.workspace
+        ) and not principal.has_perm(
             "datasets.create_dataset_version_file", dataset_version
         ):
             raise PermissionDenied
 
-        created_by = None if principal.is_service_principal else principal
+        created_by = principal.human_actor
 
         return self.create(
             dataset_version=dataset_version,

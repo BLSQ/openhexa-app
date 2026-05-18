@@ -8,48 +8,11 @@ from graphql import parse as gql_parse
 
 from config.schema import schema
 from hexa.analytics.api import track
+from hexa.webapps.authentication import WebappUser
 from hexa.webapps.models import Webapp
+from hexa.webapps.scopes import fields_allowed_by
 
 INTROSPECTION_FIELDS = {"__typename", "__schema", "__type"}
-
-SCOPE_FIELDS = {
-    Webapp.OperationScope.PIPELINES_RUN: {"runPipeline", "stopPipeline"},
-    Webapp.OperationScope.PIPELINES_READ: {
-        "pipeline",
-        "pipelines",
-        "pipelineByCode",
-        "pipelineRun",
-        "pipelineVersion",
-    },
-    Webapp.OperationScope.FILES_READ: {
-        "getFileByPath",
-        "readFileContent",
-        "prepareObjectDownload",
-    },
-    Webapp.OperationScope.FILES_WRITE: {
-        "prepareObjectUpload",
-        "createBucketFolder",
-        "deleteBucketObject",
-        "writeFileContent",
-    },
-    Webapp.OperationScope.DATASETS_READ: {
-        "dataset",
-        "datasets",
-        "datasetVersion",
-        "datasetLink",
-    },
-    Webapp.OperationScope.DATASETS_WRITE: {
-        "createDataset",
-        "updateDataset",
-        "deleteDataset",
-        "createDatasetVersion",
-        "updateDatasetVersion",
-        "deleteDatasetVersion",
-        "createDatasetVersionFile",
-        "deleteDatasetLink",
-    },
-    Webapp.OperationScope.USER_READ: {"me", "workspace"},
-}
 
 
 def extract_top_level_fields(query_string: str) -> set[str]:
@@ -115,12 +78,7 @@ def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
         )
 
     requested_fields -= INTROSPECTION_FIELDS
-    allowed_fields = {
-        f
-        for scope in webapp.allowed_operations
-        if scope in SCOPE_FIELDS
-        for f in SCOPE_FIELDS[scope]
-    }
+    allowed_fields = fields_allowed_by(webapp.allowed_operations)
     disallowed = requested_fields - allowed_fields
 
     event_properties = {
@@ -154,4 +112,11 @@ def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
         )
 
     track(request, "webapp_graphql_query", {**event_properties, "status": "allowed"})
+
+    # Wrap the request user as a WebappUser so every downstream resolver sees a
+    # principal whose accessible workspaces/orgs are already scoped to this
+    # webapp and whose has_perm is gated by allowed_operations. Public webapps
+    # carry no real user — the proxy hard-scopes to the webapp's workspace.
+    session_user = request.user if request.user.is_authenticated else None
+    request.user = WebappUser(webapp=webapp, real_user=session_user)
     return _graphql_view(request)

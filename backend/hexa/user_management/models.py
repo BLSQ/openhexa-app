@@ -109,6 +109,28 @@ class UserInterface:
 
         return Organization.objects.none()
 
+    @property
+    def human_actor(self):
+        """The User to credit when this principal causes a write.
+
+        - Real `User` returns itself.
+        - Service principals with no human in the loop (PipelineRunUser,
+          public WebappUser) return None — `created_by` becomes NULL.
+        - Wrapper principals with a human behind them (private WebappUser)
+          return the wrapped user so writes are attributed to them.
+        """
+        return None
+
+    def can_create_in_workspace(self, workspace) -> bool:
+        """Whether this principal may create assets in `workspace` without going through `has_perm`.
+
+        True for service principals tightly bound to a single workspace
+        (PipelineRunUser), which have authority over their workspace by design.
+        False for everyone else (User, WebappUser) — those go through `has_perm`,
+        which for WebappUser also gates by the webapp's allowed_operations.
+        """
+        return False
+
 
 class User(AbstractUser, UserInterface):
     class Meta:
@@ -208,6 +230,10 @@ class User(AbstractUser, UserInterface):
             models.Q(organizationmembership__user=self)
             | models.Q(workspaces__members=self)
         ).distinct()
+
+    @property
+    def human_actor(self):
+        return self
 
     def is_organization_owner(self, organization: Organization | None):
         """Check if user is an owner of the organization"""

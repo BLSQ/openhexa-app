@@ -35,3 +35,6 @@ class PipelineRunUser(UserInterface):
         if workspace.organization_id is None:
             return Organization.objects.none()
         return Organization.objects.filter(pk=workspace.organization_id)
+
+    def can_create_in_workspace(self, workspace) -> bool:
+        return workspace.pk == self.pipeline_run.pipeline.workspace_id

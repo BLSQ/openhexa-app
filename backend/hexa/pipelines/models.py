@@ -454,7 +454,9 @@ class Pipeline(SoftDeletedModel):
             timeout = max_timeout or requested_timeout
 
         run = PipelineRun.objects.create(
-            user=user,
+            # Service / wrapper principals (PipelineRunUser, WebappUser) resolve
+            # to the human behind them — or None for public webapps.
+            user=getattr(user, "human_actor", user),
             pipeline=self,
             pipeline_version=pipeline_version,
             run_id=str(trigger_mode.value) + "__" + str(time.time()),
@@ -890,7 +892,7 @@ class PipelineRun(Base, WithStatus):
             raise PermissionDenied
 
         self.state = PipelineRunState.TERMINATING
-        self.stopped_by = principal
+        self.stopped_by = getattr(principal, "human_actor", principal)
         self.save()
 
     def progress_update(self, percent: int):

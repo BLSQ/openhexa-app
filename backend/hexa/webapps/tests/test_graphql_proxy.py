@@ -454,6 +454,33 @@ class GraphQLProxyMiddlewareTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
+    def test_webapp_cannot_see_pipeline_in_another_workspace(self):
+        # A webapp must be hard-scoped to its own workspace. Even if the
+        # session user is also a member of another workspace, the webapp's
+        # filter_for_user must not expose data from there.
+        other_workspace = Workspace.objects.create(
+            name="Other WS", slug="other-ws", db_name="other_ws_db"
+        )
+        WorkspaceMembership.objects.create(
+            user=self.USER,
+            workspace=other_workspace,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        Pipeline.objects.create(
+            workspace=other_workspace, name="Off-Limits", code="off-limits"
+        )
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        response = self._graphql_post(
+            "private-app",
+            f'query {{ pipelines(workspaceSlug: "{other_workspace.slug}") {{ items {{ code }} }} }}',
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        # The workspace is invisible to the webapp principal so the resolver
+        # returns no pipelines — even though the real user can normally see it.
+        self.assertEqual(data["data"]["pipelines"]["items"], [])
+
     def test_empty_allowed_operations_blocks_everything(self):
         webapp = Webapp.objects.create(
             name="No Ops App",

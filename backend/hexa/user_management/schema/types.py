@@ -82,10 +82,16 @@ me_object = ObjectType("Me")
 @me_object.field("user")
 def resolve_me_user(_, info):
     request = info.context["request"]
-    if has_configured_two_factor(request.user):
-        return request.user if request.user.is_verified() else None
-    elif request.user.is_authenticated:
-        return request.user
+    # `me { user }` resolves to a `User` row — for wrapper principals like
+    # WebappUser, surface the human behind them so the GraphQL `User` selection
+    # works. Service principals with no human (public webapps) get None.
+    user = getattr(request.user, "human_actor", request.user)
+    if user is None:
+        return None
+    if has_configured_two_factor(user):
+        return user if user.is_verified() else None
+    elif user.is_authenticated:
+        return user
     return None
 
 
