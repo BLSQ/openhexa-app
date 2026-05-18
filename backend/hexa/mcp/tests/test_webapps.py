@@ -159,7 +159,9 @@ class UpdateStaticWebappTest(MCPTestCase):
     @_mock_forgejo()
     def test_update_static_webapp_files(self, mock_forgejo):
         client = mock_forgejo.return_value
-        files = [{"path": "index.html", "content": "<html>old</html>"}]
+        files = [
+            {"path": "index.html", "content": "<html>old</html>", "encoding": "TEXT"}
+        ]
         create_result = create_static_webapp(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
@@ -173,7 +175,9 @@ class UpdateStaticWebappTest(MCPTestCase):
         self.assertEqual(client.commit_files.call_args.kwargs["files"], files)
         client.commit_files.reset_mock()
 
-        new_files = [{"path": "index.html", "content": "<html>new</html>"}]
+        new_files = [
+            {"path": "index.html", "content": "<html>new</html>", "encoding": "TEXT"}
+        ]
         result = update_static_webapp(
             user=self.USER_ADMIN,
             webapp_id=webapp_id,

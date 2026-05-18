@@ -280,8 +280,16 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
         mock_client.commit_files.assert_called_once_with(
             "webapp-commitrepo",
             [
-                {"path": "index.html", "content": "<h1>Hello</h1>"},
-                {"path": "style.css", "content": "body { color: red; }"},
+                {
+                    "path": "index.html",
+                    "content": "<h1>Hello</h1>",
+                    "encoding": "TEXT",
+                },
+                {
+                    "path": "style.css",
+                    "content": "body { color: red; }",
+                    "encoding": "TEXT",
+                },
             ],
             "Update webapp content",
             self.USER.display_name or self.USER.email,
@@ -582,8 +590,18 @@ class GitWebappQueryTest(GraphQLTestCase):
         mock_client = MagicMock()
         mock_client.get_commits.return_value = []
         mock_client.get_repository_files.return_value = [
-            {"path": "index.html", "type": "file", "content": "<h1>Hello</h1>"},
-            {"path": "style.css", "type": "file", "content": "body { color: red; }"},
+            {
+                "path": "index.html",
+                "type": "file",
+                "content": "<h1>Hello</h1>",
+                "encoding": "TEXT",
+            },
+            {
+                "path": "style.css",
+                "type": "file",
+                "content": "body { color: red; }",
+                "encoding": "TEXT",
+            },
         ]
         mock_get_client.return_value = mock_client
 
