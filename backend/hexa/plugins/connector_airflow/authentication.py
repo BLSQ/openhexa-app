@@ -13,6 +13,7 @@ class DAGRunUser(UserInterface):
 
     is_active = True
     is_authenticated = True
+    is_service_principal = True
 
     def get_username(self):
         return f"dag_{self.dag_run.id}"

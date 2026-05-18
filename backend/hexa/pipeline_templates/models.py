@@ -18,19 +18,17 @@ from hexa.workspaces.models import Workspace
 
 
 class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
+    # NOTE: Why not just always `.all()` for this one?
     def filter_for_user(self, user: AnonymousUser | User):
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        from hexa.pipelines.authentication import PipelineRunUser
-
-        if isinstance(user, PipelineRunUser):
+        if not user.is_authenticated:
+            return self.none()
+        # Pipeline templates are intentionally cross-workspace for service
+        # principals so a pipeline run can resolve templates authored in any
+        # workspace. Human users only see templates from workspaces they have
+        # access to (direct membership or org admin/owner).
+        if user.is_service_principal:
             return self.all()
-
-        return self._filter_for_user_and_query_object(
-            user,
-            Q(workspace__members=user),
-            return_all_if_superuser=False,
-            return_all_if_organization_admin_or_owner=True,
-        )
+        return self.filter(workspace__in=user.accessible_workspaces().values("pk"))
 
     def filter_by_tags(self, tags):
         """

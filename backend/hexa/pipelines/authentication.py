@@ -9,6 +9,7 @@ class PipelineRunUser(UserInterface):
 
     is_active = True
     is_authenticated = True
+    is_service_principal = True
 
     def get_username(self):
         return f"pipeline_{self.pipeline_run.id}"
@@ -21,3 +22,16 @@ class PipelineRunUser(UserInterface):
 
     def has_feature_flag(self, *args, **kwargs):
         return False
+
+    def accessible_workspaces(self):
+        from hexa.workspaces.models import Workspace
+
+        return Workspace.objects.filter(pk=self.pipeline_run.pipeline.workspace_id)
+
+    def accessible_organizations(self):
+        from hexa.user_management.models import Organization
+
+        workspace = self.pipeline_run.pipeline.workspace
+        if workspace.organization_id is None:
+            return Organization.objects.none()
+        return Organization.objects.filter(pk=workspace.organization_id)

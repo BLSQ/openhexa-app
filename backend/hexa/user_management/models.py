@@ -75,6 +75,7 @@ class UserInterface:
     is_active = False
     is_superuser = False
     is_anonymous = True
+    is_service_principal = False
 
     def has_perm(self, perm, obj=None):
         raise NotImplementedError
@@ -85,6 +86,28 @@ class UserInterface:
     @property
     def is_authenticated(self):
         return False
+
+    def accessible_workspaces(self):
+        """QuerySet of workspaces this principal can read.
+
+        Used by asset `filter_for_user` methods to scope by workspace without
+        branching on principal type. Subclasses override; the default empty
+        queryset is what anonymous/unsupported principals get.
+
+        Archive state is NOT applied here — callers that exclude archived
+        workspaces (e.g. WorkspaceQuerySet.filter_for_user) add that filter
+        themselves so asset queries that historically include archived-workspace
+        items keep doing so.
+        """
+        from hexa.workspaces.models import Workspace
+
+        return Workspace.objects.none()
+
+    def accessible_organizations(self):
+        """QuerySet of organizations this principal can read."""
+        from hexa.user_management.models import Organization
+
+        return Organization.objects.none()
 
 
 class User(AbstractUser, UserInterface):
@@ -154,6 +177,37 @@ class User(AbstractUser, UserInterface):
                 ],
             ).exists()
         )
+
+    def accessible_workspaces(self):
+        """Workspaces this user can access via direct membership or org admin/owner role.
+
+        Does NOT elevate superusers to "all workspaces" — each caller decides
+        whether superuser status should short-circuit to a full scan, since the
+        existing policies differ per asset model.
+        """
+        from hexa.workspaces.models import Workspace
+
+        return Workspace.objects.filter(
+            models.Q(workspacemembership__user=self)
+            | models.Q(
+                organization__organizationmembership__user=self,
+                organization__organizationmembership__role__in=[
+                    OrganizationMembershipRole.OWNER,
+                    OrganizationMembershipRole.ADMIN,
+                ],
+            )
+        ).distinct()
+
+    def accessible_organizations(self):
+        """Organizations this user can access via direct membership or workspace membership.
+
+        Does NOT honour `user_management.manage_all_organizations` — callers
+        decide whether to short-circuit to all orgs.
+        """
+        return Organization.objects.filter(
+            models.Q(organizationmembership__user=self)
+            | models.Q(workspaces__members=self)
+        ).distinct()
 
     def is_organization_owner(self, organization: Organization | None):
         """Check if user is an owner of the organization"""
@@ -263,28 +317,13 @@ class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     def filter_for_user(
         self, user: AnonymousUser | User, *, direct_membership_only: bool = False
     ) -> models.QuerySet:
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        from hexa.pipelines.authentication import PipelineRunUser
-
-        if isinstance(user, PipelineRunUser):
-            return self._filter_for_user_and_query_object(
-                user,
-                models.Q(workspaces=user.pipeline_run.pipeline.workspace),
-            )
-
+        if not user.is_authenticated:
+            return self.none()
         if user.has_perm("user_management.manage_all_organizations"):
             return self.all()
-
-        if direct_membership_only:
-            query = Q(organizationmembership__user=user)
-        else:
-            query = Q(organizationmembership__user=user) | Q(workspaces__members=user)
-
-        return self._filter_for_user_and_query_object(
-            user,
-            query,
-            return_all_if_superuser=True,
-        )
+        if direct_membership_only and not user.is_service_principal:
+            return self.filter(organizationmembership__user=user).distinct()
+        return self.filter(pk__in=user.accessible_organizations().values("pk"))
 
 
 class Organization(Base, SoftDeletedModel):
