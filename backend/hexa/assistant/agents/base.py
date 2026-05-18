@@ -219,9 +219,12 @@ class BaseAgent:
                         "text_delta", TextDeltaPayload(delta=event.delta.content_delta)
                     )
 
-    @staticmethod
+    async def _on_tool_result(self, invocation: ToolInvocation) -> None:
+        """Hook called after each tool execution. Override in subclasses to add side-effects."""
+        pass
+
     async def _stream_tools_node(
-        node, ctx, tool_invocations: dict[str, ToolInvocation]
+        self, node, ctx, tool_invocations: dict[str, ToolInvocation]
     ):
         async with node.stream(ctx) as tools_stream:
             async for event in tools_stream:
@@ -273,13 +276,15 @@ class BaseAgent:
                         inv.tool_output = tool_output
                         inv.success = success
                     else:
-                        tool_invocations[result_part.tool_call_id] = ToolInvocation(
+                        inv = ToolInvocation(
                             tool_call_id=result_part.tool_call_id,
                             tool_name=result_part.tool_name,
                             tool_input="",
                             tool_output=tool_output,
                             success=success,
                         )
+                        tool_invocations[result_part.tool_call_id] = inv
+                    await self._on_tool_result(inv)
                     yield format_sse(
                         "tool_result",
                         ToolResultPayload(
