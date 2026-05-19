@@ -1,4 +1,5 @@
 import base64
+import json
 
 import responses
 from django.test import TestCase, override_settings
@@ -597,8 +598,6 @@ class ForgejoClientFileEncodingTest(TestCase):
             "u@example.com",
         )
 
-        import json
-
         body = json.loads(responses.calls[1].request.body)
         sent = body["files"][0]["content"]
         self.assertEqual(base64.b64decode(sent).decode("utf-8"), "héllo")
@@ -633,8 +632,6 @@ class ForgejoClientFileEncodingTest(TestCase):
             "u",
             "u@example.com",
         )
-
-        import json
 
         body = json.loads(responses.calls[1].request.body)
         sent = body["files"][0]["content"]
