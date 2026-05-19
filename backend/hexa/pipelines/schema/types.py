@@ -11,6 +11,7 @@ from hexa.core.graphql import result_page
 from hexa.databases.utils import get_table_definition
 from hexa.files import storage
 from hexa.files.backends.base import StorageObject
+from hexa.git.enums import FileEncoding
 from hexa.pipeline_templates.models import PipelineTemplateVersion
 from hexa.pipelines.models import (
     Pipeline,
@@ -38,6 +39,7 @@ pipeline_run_status_enum = EnumType("PipelineRunStatus", PipelineRun.STATUS_MAPP
 pipeline_notification_level_enum = EnumType(
     "PipelineNotificationLevel", PipelineNotificationLevel
 )
+file_encoding_enum = EnumType("FileEncoding", FileEncoding)
 pipeline_run_order_by_enum = EnumType(
     "PipelineRunOrderBy",
     {
@@ -472,6 +474,7 @@ bindables = [
     pipeline_run_object,
     pipeline_run_status_enum,
     pipeline_notification_level_enum,
+    file_encoding_enum,
     pipeline_run_order_by_enum,
     pipeline_version_object,
     pipeline_version_permissions,
