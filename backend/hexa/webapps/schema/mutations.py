@@ -7,6 +7,7 @@ from django.core.validators import URLValidator
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 
+from hexa.git.enums import FileEncoding
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.superset.models import SupersetInstance
 from hexa.utils.base64_image_encode_decode import decode_base64_image
@@ -79,7 +80,7 @@ def resolve_create_webapp(_, info, **kwargs):
                         {
                             "path": f["path"],
                             "content": f["content"],
-                            "encoding": f.get("encoding", "TEXT"),
+                            "encoding": f.get("encoding", FileEncoding.TEXT),
                         }
                         for f in files_input
                     ]
@@ -212,7 +213,7 @@ def resolve_update_webapp(_, info, **kwargs):
                 {
                     "path": f["path"],
                     "content": f["content"],
-                    "encoding": f.get("encoding", "TEXT"),
+                    "encoding": f.get("encoding", FileEncoding.TEXT),
                 }
                 for f in input["files"]
             ]

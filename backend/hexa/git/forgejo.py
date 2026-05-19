@@ -4,6 +4,7 @@ import requests
 from django.conf import settings
 
 from hexa.git.client import GitClient
+from hexa.git.enums import FileEncoding
 
 
 class ForgejoAPIError(Exception):
@@ -148,7 +149,7 @@ class ForgejoClient(GitClient):
             path = file["path"]
             is_update = path in existing_tree
             content = file["content"]
-            if file.get("encoding") == "BASE64":
+            if file.get("encoding") == FileEncoding.BASE64:
                 encoded = content
             else:  # text encoding
                 encoded = base64.b64encode(content.encode()).decode()
@@ -211,17 +212,17 @@ class ForgejoClient(GitClient):
 
             raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
             content: str
-            encoding: str
+            encoding: FileEncoding
             if b"\x00" not in raw:
                 try:
                     content = raw.decode("utf-8")
-                    encoding = "TEXT"
+                    encoding = FileEncoding.TEXT
                 except UnicodeDecodeError:
                     content = base64.b64encode(raw).decode("ascii")
-                    encoding = "BASE64"
+                    encoding = FileEncoding.BASE64
             else:
                 content = base64.b64encode(raw).decode("ascii")
-                encoding = "BASE64"
+                encoding = FileEncoding.BASE64
 
             nodes.append(
                 {"path": path, "type": "file", "content": content, "encoding": encoding}
