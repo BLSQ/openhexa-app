@@ -1089,9 +1089,12 @@ export type CreatePipelineTemplateVersionInput = {
   code?: InputMaybe<Scalars['String']['input']>;
   config?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
+  documentation?: InputMaybe<Scalars['String']['input']>;
+  extractDocumentationFromReadme?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   pipelineId: Scalars['UUID']['input'];
   pipelineVersionId: Scalars['UUID']['input'];
+  versionName?: InputMaybe<Scalars['String']['input']>;
   workspaceSlug: Scalars['String']['input'];
 };
 
