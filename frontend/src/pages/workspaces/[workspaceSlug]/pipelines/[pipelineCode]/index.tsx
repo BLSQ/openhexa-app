@@ -3,6 +3,7 @@ import Badge from "core/components/Badge";
 import Button from "core/components/Button";
 import Clipboard from "core/components/Clipboard";
 import DataCard from "core/components/DataCard";
+import CollapsibleMarkdown from "core/components/CollapsibleMarkdown";
 import MarkdownProperty from "core/components/DataCard/MarkdownProperty";
 import RenderProperty from "core/components/DataCard/RenderProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
@@ -299,6 +300,18 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                     </span>
                   )}
                 </div>
+              )}
+            </RenderProperty>
+          )}
+          {pipeline.sourceTemplate && !pipeline.template && (
+            <RenderProperty
+              id="documentation"
+              accessor="sourceTemplate.documentation"
+              label={t("Template Documentation")}
+              readonly
+            >
+              {(property) => (
+                <CollapsibleMarkdown content={property.displayValue} />
               )}
             </RenderProperty>
           )}

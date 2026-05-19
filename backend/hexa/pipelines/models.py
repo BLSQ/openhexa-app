@@ -689,7 +689,7 @@ class Pipeline(SoftDeletedModel):
         merged_config = {**cleaned_pipeline_version_config, **cleaned_provided_config}
         return merged_config
 
-    def get_or_create_template(self, name: str, code: str, description: str):
+    def get_or_create_template(self, name: str, code: str, description: str = ""):
         if not hasattr(self, "template"):
             PipelineTemplate = apps.get_model("pipeline_templates", "PipelineTemplate")
             self.template = PipelineTemplate.objects.create(

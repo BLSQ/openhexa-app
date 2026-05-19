@@ -43,14 +43,20 @@ const PublishPipelineDialog = ({
   const form = useForm<{
     name: string;
     description: string;
+    versionName: string;
     confirmPublishing: boolean;
     changelog: string;
+    documentation: string;
+    extractDocumentationFromReadme: boolean;
   }>({
     initialState: {
       name: pipeline.name?.trim() ?? "",
       description: pipeline.description ?? "",
+      versionName: "",
       confirmPublishing: false,
       changelog: "",
+      documentation: "",
+      extractDocumentationFromReadme: true,
     },
     async onSubmit(values) {
       const pipelineVersionId = pipeline.currentVersion?.id;
@@ -64,7 +70,13 @@ const PublishPipelineDialog = ({
             name: values.name.trim(),
             code: values.name.trim(),
             description: values.description,
+            versionName: values.versionName.trim() || undefined,
             changelog: values.changelog,
+            documentation: values.extractDocumentationFromReadme
+              ? undefined
+              : values.documentation,
+            extractDocumentationFromReadme:
+              values.extractDocumentationFromReadme,
             workspaceSlug: workspace.slug,
             pipelineId: pipeline.id,
             pipelineVersionId: pipelineVersionId,
@@ -139,20 +151,65 @@ const PublishPipelineDialog = ({
       })
     : t("Create a new Template");
 
+  const documentationSection = (
+    <>
+      <Field
+        name="extractDocumentationFromReadme"
+        label={t("Documentation")}
+        className="mt-3"
+      >
+        <Checkbox
+          id="extractDocumentationFromReadme"
+          name="extractDocumentationFromReadme"
+          checked={form.formData.extractDocumentationFromReadme}
+          onChange={form.handleInputChange}
+          label={t("Extract documentation from README.md")}
+        />
+      </Field>
+      {!form.formData.extractDocumentationFromReadme && (
+        <Field name="documentation" label={t("Documentation content")} className="mt-3">
+          <MarkdownEditor
+            id="documentation"
+            contentEditableClassName="min-h-[180px] p-2 prose prose-headings:font-medium"
+            markdown={form.formData.documentation || ""}
+            onChange={(markdown) =>
+              form.handleInputChange({
+                target: { name: "documentation", value: markdown },
+              } as any)
+            }
+          />
+        </Field>
+      )}
+    </>
+  );
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="max-w-4xl" onSubmit={form.handleSubmit}>
       <Dialog.Title>{actionMessage}</Dialog.Title>
       <Dialog.Content>
           {templateAlreadyExists ? (
-            <Field name="changelog" label={t("Changelog")}>
-              <Textarea
-                id="changelog"
-                name="changelog"
-                value={form.formData.changelog}
+            <>
+              <Field
+                name="versionName"
+                label={t("Version name. ex: v2")}
+                fullWidth
+                className="mb-3"
+                value={form.formData.versionName}
                 onChange={form.handleInputChange}
-                rows={10}
+                maxLength={200}
+                help={t("Leave blank to use the template name")}
               />
-            </Field>
+              <Field name="changelog" label={t("Changelog")}>
+                <Textarea
+                  id="changelog"
+                  name="changelog"
+                  value={form.formData.changelog}
+                  onChange={form.handleInputChange}
+                  rows={6}
+                />
+              </Field>
+              {documentationSection}
+            </>
           ) : (
             <>
               <Field
@@ -172,7 +229,7 @@ const PublishPipelineDialog = ({
               >
                 <MarkdownEditor
                   id="description"
-                  contentEditableClassName="min-h-[240px] p-2 prose prose-headings:font-medium"
+                  contentEditableClassName="min-h-[180px] p-2 prose prose-headings:font-medium"
                   markdown={form.formData.description || ""}
                   onChange={(markdown) =>
                     form.handleInputChange({
@@ -181,6 +238,7 @@ const PublishPipelineDialog = ({
                   }
                 />
               </Field>
+              {documentationSection}
             </>
           )}
           <Field
