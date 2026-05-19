@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.7.0](https://github.com/BLSQ/openhexa-app/compare/5.6.2...5.7.0) (2026-05-19)
+
+
+### Features
+
+* pipeline conversation history on code screen(HEXA-1624) ([#1784](https://github.com/BLSQ/openhexa-app/issues/1784)) ([8518cf1](https://github.com/BLSQ/openhexa-app/commit/8518cf13c99c9cf2c276f32f9a11480ca7d3da9d))
+* tighten system instructions ([#1787](https://github.com/BLSQ/openhexa-app/issues/1787)) ([ecd3619](https://github.com/BLSQ/openhexa-app/commit/ecd361965b76449b01ae0d81b7faf6a87afff283))
+
+
+### Bug Fixes
+
+* Correctly set web apps domain in ALLOWED_HOSTS + CORS ([#1801](https://github.com/BLSQ/openhexa-app/issues/1801)) ([741e009](https://github.com/BLSQ/openhexa-app/commit/741e009a4d6336cb54a5978414272b4f11b204fe))
+* Don't corrupt web apps images upon upload (HEXA-1564) ([#1815](https://github.com/BLSQ/openhexa-app/issues/1815)) ([5c806fe](https://github.com/BLSQ/openhexa-app/commit/5c806fe1af07722ab9018680dc1e068dcdbc9ec2))
+
 ## [5.6.2](https://github.com/BLSQ/openhexa-app/compare/5.6.1...5.6.2) (2026-05-13)
 
 
