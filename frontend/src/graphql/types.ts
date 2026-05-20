@@ -1053,8 +1053,8 @@ export type CreatePipelineInput = {
   name: Scalars['String']['input'];
   notebookPath?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
+  version?: InputMaybe<CreatePipelineVersionInput>;
   workspaceSlug: Scalars['String']['input'];
-  zipfile?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Represents the input for adding a recipient to a pipeline. */
@@ -1101,6 +1101,20 @@ export type CreatePipelineTemplateVersionResult = {
   errors?: Maybe<Array<CreatePipelineTemplateVersionError>>;
   pipelineTemplate?: Maybe<PipelineTemplate>;
   success: Scalars['Boolean']['output'];
+};
+
+/**
+ * Configures the first pipeline version, created atomically alongside the pipeline.
+ * Providing this sub-input signals that a first version should be created.
+ */
+export type CreatePipelineVersionInput = {
+  config?: InputMaybe<Scalars['JSON']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  externalLink?: InputMaybe<Scalars['URL']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  parameters?: InputMaybe<Array<ParameterInput>>;
+  timeout?: InputMaybe<Scalars['Int']['input']>;
+  zipfile: Scalars['String']['input'];
 };
 
 /** The CreateTeamError enum represents the possible errors that can occur during the createTeam mutation. */

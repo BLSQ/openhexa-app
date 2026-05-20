@@ -1042,8 +1042,8 @@ input CreatePipelineInput {
   name: String!
   notebookPath: String
   tags: [String!]
+  version: CreatePipelineVersionInput
   workspaceSlug: String!
-  zipfile: String
 }
 
 """Represents the input for adding a recipient to a pipeline."""
@@ -1090,6 +1090,20 @@ type CreatePipelineTemplateVersionResult {
   errors: [CreatePipelineTemplateVersionError!]
   pipelineTemplate: PipelineTemplate
   success: Boolean!
+}
+
+"""
+Configures the first pipeline version, created atomically alongside the pipeline.
+Providing this sub-input signals that a first version should be created.
+"""
+input CreatePipelineVersionInput {
+  config: JSON
+  description: String
+  externalLink: URL
+  name: String
+  parameters: [ParameterInput!]
+  timeout: Int
+  zipfile: String!
 }
 
 """
