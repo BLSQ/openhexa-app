@@ -103,7 +103,7 @@ class PipelineTemplate(SoftDeletedModel):
 
     name = models.CharField(max_length=200)
     code = models.CharField(max_length=200, default="")
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField(blank=True)
     workspace = models.ForeignKey(Workspace, on_delete=models.SET_NULL, null=True)
 
     source_pipeline = models.OneToOneField(
@@ -235,7 +235,7 @@ class PipelineTemplateVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     version_number = models.PositiveIntegerField(editable=False)
-    name = models.CharField(max_length=200, blank=True)
+    name = models.CharField(max_length=250, blank=True)
     documentation = models.TextField(blank=True, null=True)
     changelog = models.TextField(blank=True, null=True)
     user = models.ForeignKey(
@@ -297,9 +297,6 @@ class PipelineTemplateVersion(models.Model):
             if principal is None:
                 raise ValueError("principal is required when creating a new pipeline")
             pipeline = self._create_pipeline(principal, workspace)
-        elif self.documentation:
-            pipeline.description = self.documentation
-            pipeline.save(update_fields=["description"])
 
         new_version_config = self._extract_config(pipeline)
         source_version = self.source_pipeline_version

@@ -123,7 +123,7 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
         pipeline_template, template_created = source_pipeline.get_or_create_template(
             name=input.get("name"),
             code=input.get("code"),
-            description=input.get("description"),
+            description=input.get("description") or "",
         )
         pipeline_template_version = (
             source_pipeline_version.template_version

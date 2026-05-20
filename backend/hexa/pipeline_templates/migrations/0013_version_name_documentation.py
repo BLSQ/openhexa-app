@@ -10,12 +10,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="pipelinetemplate",
             name="description",
-            field=models.TextField(blank=True, null=True),
+            field=models.TextField(blank=True),
         ),
         migrations.AddField(
             model_name="pipelinetemplateversion",
             name="name",
-            field=models.CharField(blank=True, max_length=200, default=""),
+            field=models.CharField(blank=True, max_length=250, default=""),
             preserve_default=False,
         ),
         migrations.AddField(
