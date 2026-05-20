@@ -4,6 +4,7 @@ import requests
 from django.conf import settings
 
 from hexa.git.client import GitClient
+from hexa.git.enums import FileEncoding
 
 
 class ForgejoAPIError(Exception):
@@ -148,14 +149,14 @@ class ForgejoClient(GitClient):
             path = file["path"]
             is_update = path in existing_tree
             content = file["content"]
-            if isinstance(content, str):
-                content = base64.b64encode(content.encode()).decode()
-            elif isinstance(content, bytes):
-                content = base64.b64encode(content).decode()
+            if file.get("encoding") == FileEncoding.BASE64:
+                encoded = content
+            else:  # text encoding
+                encoded = base64.b64encode(content.encode()).decode()
             op = {
                 "operation": "update" if is_update else "create",
                 "path": path,
-                "content": content,
+                "content": encoded,
             }
             if is_update:
                 op["sha"] = existing_tree[path]
@@ -184,7 +185,11 @@ class ForgejoClient(GitClient):
         *,
         org_slug: str | None = None,
     ) -> list[dict]:
-        """Fetch the full file tree and return a flat list with path, type, and content."""
+        """Fetch the full file tree and return a flat list with path, type, content, and encoding.
+
+        Content is either UTF-8 (for text files) or base64 (for binary files).
+        To detect if a blob is binary, check for a NULL byte or a failed UTF-8 decode.
+        """
         tree = self.get_files_tree(repo_name, ref, org_slug=org_slug)
         nodes: list[dict] = []
 
@@ -193,11 +198,35 @@ class ForgejoClient(GitClient):
             entry_type = entry.get("type", "")
 
             if entry_type == "tree":
-                nodes.append({"path": path, "type": "directory", "content": None})
-            elif entry_type == "blob":
-                raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
-                content = raw.decode("utf-8", errors="replace")
-                nodes.append({"path": path, "type": "file", "content": content})
+                nodes.append(
+                    {
+                        "path": path,
+                        "type": "directory",
+                        "content": None,
+                        "encoding": None,
+                    }
+                )
+                continue
+            if entry_type != "blob":
+                continue
+
+            raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
+            content: str
+            encoding: FileEncoding
+            if b"\x00" not in raw:
+                try:
+                    content = raw.decode("utf-8")
+                    encoding = FileEncoding.TEXT
+                except UnicodeDecodeError:
+                    content = base64.b64encode(raw).decode("ascii")
+                    encoding = FileEncoding.BASE64
+            else:
+                content = base64.b64encode(raw).decode("ascii")
+                encoding = FileEncoding.BASE64
+
+            nodes.append(
+                {"path": path, "type": "file", "content": content, "encoding": encoding}
+            )
 
         return nodes
 

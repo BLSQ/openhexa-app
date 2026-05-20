@@ -16,6 +16,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
+from hexa.git.enums import FileEncoding
 from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
@@ -265,8 +266,10 @@ class GitWebapp(Webapp, GitRepoMixin):
         for entry in raw_files:
             path = entry["path"]
             content = entry.get("content")
+            encoding = entry.get("encoding")
             parent = "/".join(path.split("/")[:-1]) or None
             extension = os.path.splitext(path)[1].lower()
+            is_text = encoding == FileEncoding.TEXT and content is not None
 
             nodes.append(
                 {
@@ -275,10 +278,11 @@ class GitWebapp(Webapp, GitRepoMixin):
                     "path": path,
                     "type": entry["type"],
                     "content": content,
+                    "encoding": encoding,
                     "parent_id": parent,
                     "auto_select": path == "index.html",
-                    "language": self.LANGUAGE_MAP.get(extension) if content else None,
-                    "line_count": content.count("\n") + 1 if content else None,
+                    "language": self.LANGUAGE_MAP.get(extension) if is_text else None,
+                    "line_count": content.count("\n") + 1 if is_text else None,
                 }
             )
         return nodes

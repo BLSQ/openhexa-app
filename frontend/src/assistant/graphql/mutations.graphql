@@ -5,6 +5,7 @@ mutation createAssistantConversation($input: CreateAssistantConversationInput!) 
     conversation {
       id
       createdAt
+      updatedAt
     }
   }
 }

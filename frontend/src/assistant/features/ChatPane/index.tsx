@@ -29,7 +29,12 @@ type Props = {
   createConversation?: () => Promise<string | null>;
   // Called after a new conversation is successfully created via createConversation.
   onConversationCreated?: (id: string) => void;
+  // Called when a name arrives via SSE during active streaming.
   onConversationNameChange?: (name: string) => void;
+  // Called when a name is loaded from the server (Apollo cache), not during streaming.
+  // Use this to update the conversation list without triggering a typewriter animation.
+  // Falls back to onConversationNameChange when not provided.
+  onConversationNameLoaded?: (name: string) => void;
   // Called whenever the message list changes (e.g. after a new assistant reply).
   onMessagesChange?: (messages: Message[]) => void;
   // Called immediately when a tool result arrives during streaming.
@@ -50,6 +55,7 @@ export default function ChatPane({
   createConversation,
   onConversationCreated,
   onConversationNameChange,
+  onConversationNameLoaded,
   onMessagesChange,
   onToolResult,
   renderMessageAfter,
@@ -93,8 +99,12 @@ export default function ChatPane({
 
   useEffect(() => {
     const name = data?.assistantConversation?.name;
-    if (name) onConversationNameChange?.(name);
-  }, [data?.assistantConversation?.name, onConversationNameChange]);
+    if (name) {
+      const handler = onConversationNameLoadedRef.current ?? onConversationNameChangeRef.current;
+      handler?.(name);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.assistantConversation?.name]);
 
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
@@ -121,6 +131,12 @@ export default function ChatPane({
 
   const onToolResultRef = useRef(onToolResult);
   onToolResultRef.current = onToolResult;
+
+  const onConversationNameChangeRef = useRef(onConversationNameChange);
+  onConversationNameChangeRef.current = onConversationNameChange;
+
+  const onConversationNameLoadedRef = useRef(onConversationNameLoaded);
+  onConversationNameLoadedRef.current = onConversationNameLoaded;
 
   const { send, isStreaming, streamError } = useStreamingFetch({
     text_delta: (data) => {

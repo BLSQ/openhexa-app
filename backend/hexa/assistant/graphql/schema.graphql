@@ -38,6 +38,10 @@ extend type Workspace {
   assistantConversations: [AssistantConversation!]!
 }
 
+extend type Pipeline {
+  assistantConversations: [AssistantConversation!]!
+}
+
 enum LinkedObjectType {
   Pipeline
 }

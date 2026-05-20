@@ -15,6 +15,7 @@ type Props = {
   onSelect: (id: string) => void;
   onNew: () => void;
   creating: boolean;
+  className?: string;
 };
 
 function formatDate(iso: string) {
@@ -32,9 +33,10 @@ export default function ConversationList({
   onSelect,
   onNew,
   creating,
+  className,
 }: Props) {
   return (
-    <div className="flex w-60 shrink-0 flex-col border-r border-gray-200 bg-white">
+    <div className={clsx("flex w-60 shrink-0 flex-col border-r border-gray-200 bg-white", className)}>
       <div className="border-b border-gray-200 p-3">
         <Button
           className="w-full"

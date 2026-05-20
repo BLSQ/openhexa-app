@@ -2267,11 +2267,18 @@ export type File = {
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };
 
+/** How the `content` field of a FileNode (or WebappFileInput) is encoded over the wire. */
+export enum FileEncoding {
+  Base64 = 'BASE64',
+  Text = 'TEXT'
+}
+
 /** Represents a file or directory node in a flattened structure. */
 export type FileNode = {
   __typename?: 'FileNode';
   autoSelect: Scalars['Boolean']['output'];
   content?: Maybe<Scalars['String']['output']>;
+  encoding?: Maybe<FileEncoding>;
   id: Scalars['String']['output'];
   language?: Maybe<Scalars['String']['output']>;
   lineCount?: Maybe<Scalars['Int']['output']>;
@@ -3932,6 +3939,7 @@ export type PinDatasetResult = {
 /** Represents a pipeline. */
 export type Pipeline = {
   __typename?: 'Pipeline';
+  assistantConversations: Array<AssistantConversation>;
   autoUpdateFromTemplate: Scalars['Boolean']['output'];
   code: Scalars['String']['output'];
   config: Scalars['JSON']['output'];
@@ -6220,8 +6228,16 @@ export type WebappVersionsArgs = {
   perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
+/**
+ * A file to write to a webapp's git repository.
+ *
+ * `content` is interpreted according to `encoding`:
+ *   * TEXT (default)  — content is a UTF-8 string; suitable for hand-written or AI-generated code.
+ *   * BASE64          — content is base64-encoded raw bytes; required for binary files (images, fonts, …).
+ */
 export type WebappFileInput = {
   content: Scalars['String']['input'];
+  encoding?: InputMaybe<FileEncoding>;
   path: Scalars['String']['input'];
 };
 
