@@ -58,6 +58,23 @@ def _parse_parameters_from_zipfile(zipfile_data: bytes) -> list:
         raise PipelineCodeParsingError(str(e))
 
 
+def _validate_pipeline_version_timeout(
+    timeout: int | None, workspace: Workspace
+) -> None:
+    if not timeout:
+        return
+    max_allowed_timeout = int(settings.PIPELINE_RUN_MAX_TIMEOUT)
+    subscription = workspace and workspace.current_subscription
+    if subscription and subscription.max_pipeline_timeout:
+        max_allowed_timeout = min(
+            max_allowed_timeout, subscription.max_pipeline_timeout
+        )
+    if timeout < 0 or timeout > max_allowed_timeout:
+        raise InvalidTimeoutValueError(
+            "Pipeline timeout value cannot be negative or greater than the maximum allowed value."
+        )
+
+
 @pipelines_mutations.field("createPipeline")
 def resolve_create_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -106,14 +123,10 @@ def resolve_create_pipeline(_, info, **kwargs):
                 pipeline.tags.set(tags)
 
             version = None
-            if input.get("zipfile"):
-                zipfile_data = base64.b64decode(input["zipfile"].encode("ascii"))
-                parameters = _parse_parameters_from_zipfile(zipfile_data)
-
-                version = pipeline.upload_new_version(
-                    user=request.user,
-                    zipfile=zipfile_data,
-                    parameters=parameters,
+            version_input = input.get("version")
+            if version_input is not None:
+                version = _create_first_pipeline_version(
+                    request.user, workspace, pipeline, version_input
                 )
 
             event_properties = {
@@ -137,6 +150,10 @@ def resolve_create_pipeline(_, info, **kwargs):
             "errors": ["PIPELINE_CODE_PARSING_ERROR"],
             "details": str(e),
         }
+    except PipelineDoesNotSupportParametersError:
+        return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
+    except InvalidTimeoutValueError:
+        return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
 
     return {
         "pipeline": pipeline,
@@ -144,6 +161,29 @@ def resolve_create_pipeline(_, info, **kwargs):
         "success": True,
         "errors": [],
     }
+
+
+def _create_first_pipeline_version(
+    user: User, workspace: Workspace, pipeline: Pipeline, version_input: dict
+) -> PipelineVersion:
+    zipfile_data = base64.b64decode(version_input["zipfile"].encode("ascii"))
+    parameters = version_input.get("parameters") or _parse_parameters_from_zipfile(
+        zipfile_data
+    )
+
+    timeout = version_input.get("timeout")
+    _validate_pipeline_version_timeout(timeout, workspace)
+
+    return pipeline.upload_new_version(
+        user=user,
+        name=version_input.get("name"),
+        description=version_input.get("description"),
+        external_link=version_input.get("external_link"),
+        zipfile=zipfile_data,
+        parameters=parameters,
+        timeout=timeout,
+        config=version_input.get("config"),
+    )
 
 
 @pipelines_mutations.field("updatePipeline")
@@ -386,19 +426,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
             "errors": ["PIPELINE_NOT_FOUND"],
         }
     try:
-        max_allowed_timeout = int(settings.PIPELINE_RUN_MAX_TIMEOUT)
-        subscription = pipeline.workspace and pipeline.workspace.current_subscription
-        if subscription and subscription.max_pipeline_timeout:
-            max_allowed_timeout = min(
-                max_allowed_timeout, subscription.max_pipeline_timeout
-            )
-
-        if input.get("timeout") and (
-            input.get("timeout") < 0 or input.get("timeout") > max_allowed_timeout
-        ):
-            raise InvalidTimeoutValueError(
-                "Pipeline timeout value cannot be negative or greater than the maximum allowed value."
-            )
+        _validate_pipeline_version_timeout(input.get("timeout"), pipeline.workspace)
 
         zipfile_data = base64.b64decode(input.get("zipfile").encode("ascii"))
         parameters = input.get("parameters")
