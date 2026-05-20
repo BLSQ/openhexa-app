@@ -243,19 +243,19 @@ def create_pipeline(
     user,
     workspace_slug: str,
     name: str,
+    source_code: str,
     description: str = "",
     functional_type: PipelineFunctionalType | None = None,
-    source_code: str | None = None,
 ) -> dict:
-    """Create a new pipeline in the current workspace. Optionally upload Python source code as the first version (v1).
+    """Create a new pipeline in the current workspace and upload Python source code as the first version (v1).
 
     Always provide a meaningful description summarizing what the pipeline does.
     If the pipeline has no clear purpose or is blank, use "" as the description.
-    Only name, description, and functional_type are supported at creation time.
-
-    If source_code is omitted, the pipeline is created without any version.
+    The source_code must follow the OpenHEXA SDK structure (use @pipeline and @task decorators).
     """
-    zipfile_b64 = _build_zipfile_b64(source_code) if source_code else None
+    if not source_code or not source_code.strip():
+        return {"errors": [{"message": "source_code is required and cannot be empty"}]}
+    zipfile_b64 = _build_zipfile_b64(source_code)
 
     data = execute_graphql(
         user,
