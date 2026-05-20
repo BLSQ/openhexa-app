@@ -8,7 +8,7 @@ export type CreateAssistantConversationMutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateAssistantConversationMutation = { __typename?: 'Mutation', createAssistantConversation: { __typename?: 'CreateAssistantConversationResult', success: boolean, errors: Array<Types.CreateAssistantConversationError>, conversation?: { __typename?: 'AssistantConversation', id: string, createdAt: any } | null } };
+export type CreateAssistantConversationMutation = { __typename?: 'Mutation', createAssistantConversation: { __typename?: 'CreateAssistantConversationResult', success: boolean, errors: Array<Types.CreateAssistantConversationError>, conversation?: { __typename?: 'AssistantConversation', id: string, createdAt: any, updatedAt: any } | null } };
 
 
 export const CreateAssistantConversationDocument = gql`
@@ -19,6 +19,7 @@ export const CreateAssistantConversationDocument = gql`
     conversation {
       id
       createdAt
+      updatedAt
     }
   }
 }

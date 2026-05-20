@@ -24,7 +24,7 @@ Vous pouvez utiliser les notebooks dans OpenHEXA à diverses fins :
 
 ### Quand utiliser des pipelines à la place
 
-Envisagez d'utiliser des [pipelines de données OpenHEXA](https://github.com/BLSQ/openhexa/wiki/User-manual#using-pipelines) à la place lorsque vous voulez :
+Envisagez d'utiliser des [pipelines de données OpenHEXA](pipelines.md) à la place lorsque vous voulez :
 
 - Permettre aux utilisateurs non techniques de lancer des flux de travail de traitement de données en utilisant une interface web
 - Planifier l'exécution d'un flux de travail de données à des moments spécifiques
@@ -40,8 +40,8 @@ Le composant notebooks d'OpenHEXA fonctionne comme un environnement Jupyter stan
 
 Ce guide vous accompagne à travers les spécificités de l'environnement notebooks d'OpenHEXA. Vous pourriez également trouver ces guides utiles :
 
-- [Utiliser l'OpenHEXA SDK](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK) : Le SDK OpenHEXA est une bibliothèque Python qui fournit des blocs de construction et des méthodes d'aide pour écrire du code sur OpenHEXA
-- [Utiliser l'OpenHEXA Toolbox](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-Toolbox) : L'OpenHEXA Toolbox est une collection d'utilitaires qui peuvent vous aider avec l'intégration et l'analyse de données de santé
+- [Utiliser l'OpenHEXA SDK](sdk.md) : Le SDK OpenHEXA est une bibliothèque Python qui fournit des blocs de construction et des méthodes d'aide pour écrire du code sur OpenHEXA
+- [Utiliser l'OpenHEXA Toolbox](toolbox.md) : L'OpenHEXA Toolbox est une collection d'utilitaires qui peuvent vous aider avec l'intégration et l'analyse de données de santé
 
 ## Fonctionnalités clés de JupyterLab
 
@@ -106,7 +106,7 @@ Lorsque vous lancez l'environnement notebooks, vous verrez que le système de fi
 
 Vous ne pouvez écrire des données que dans ces deux répertoires. **Vous ne pouvez pas créer de fichiers ou de répertoires à la racine** du système de fichiers.
 
-Pour plus d'informations sur les répertoires `workspace` et `tmp` et comment les utiliser avec Python, consultez la [documentation SDK](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK#reading-and-writing-files). Pour les utilisateurs de R, voir l'exemple de code ci-dessous (nous n'avons pas encore de SDK pour R).
+Pour plus d'informations sur les répertoires `workspace` et `tmp` et comment les utiliser avec Python, consultez la [documentation SDK](sdk.md#reading-and-writing-files). Pour les utilisateurs de R, voir l'exemple de code ci-dessous (nous n'avons pas encore de SDK pour R).
 
 https://github.com/BLSQ/openhexa/assets/690667/8f279c1f-c371-490f-a04f-84a97b028859
 
@@ -143,7 +143,7 @@ https://github.com/BLSQ/openhexa/assets/690667/49e53c15-c251-4283-9450-94ae9bdff
 
 La base de données de l'espace de travail est une base de données [PostgreSQL](https://www.postgresql.org/) standard. Vous pouvez utiliser n'importe quelle bibliothèque prenant en charge PostgreSQL pour y accéder dans un notebook.
 
-Si vous utilisez Python, la méthode recommandée pour obtenir les identifiants de la base de données est d'utiliser le [SDK OpenHEXA](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK#using-the-workspace-database).
+Si vous utilisez Python, la méthode recommandée pour obtenir les identifiants de la base de données est d'utiliser le [SDK OpenHEXA](sdk.md#using-the-workspace-database).
 
 Voici un exemple Python minimal (avec [SQLAlchemy](https://www.sqlalchemy.org/)) pour vous lancer :
 
@@ -193,9 +193,9 @@ df <- dbReadTable(con, "another_table")
 
 ## Utiliser les connexions
 
-Une fois que vous avez ajouté une nouvelle [connexion](https://github.com/BLSQ/openhexa/wiki/User-manual#adding-and-managing-connections), vous pouvez accéder à ses paramètres dans votre environnement Jupyter via le SDK.
+Une fois que vous avez ajouté une nouvelle [connexion](connections.md), vous pouvez accéder à ses paramètres dans votre environnement Jupyter via le SDK.
 
-Pour plus d'informations sur l'utilisation des connexions en Python, consultez la [documentation du SDK OpenHEXA](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK#using-connections). Pour des informations générales sur les connexions, consultez le [Manuel d'utilisation](https://github.com/BLSQ/openhexa/wiki/User-manual#adding-and-managing-connections).
+Pour plus d'informations sur l'utilisation des connexions en Python, consultez la [documentation du SDK OpenHEXA](sdk.md#using-connections). Pour des informations générales sur les connexions, consultez le [Manuel d'utilisation](connections.md).
 
 
 Voici comment vous pouvez accéder aux paramètres de connexion en utilisant Python :
@@ -229,7 +229,7 @@ Cette section contient quelques recettes que vous pourriez trouver utiles.
 
 ### Utiliser s3fs pour interagir avec un bucket S3
 
-Si vous avez besoin de parcourir, télécharger ou téléverser des données dans un bucket Amazon S3, ajoutez d'abord une [connexion](https://github.com/BLSQ/openhexa/wiki/User-manual#adding-and-managing-connections) AWS S3.
+Si vous avez besoin de parcourir, télécharger ou téléverser des données dans un bucket Amazon S3, ajoutez d'abord une [connexion](connections.md) AWS S3.
 
 Une fois que vous avez ajouté la connexion, vous pouvez interagir avec le bucket dans un notebook Jupyter.
 
@@ -254,7 +254,7 @@ fs.get(f"{bucket_name}/data/climate", "/home/hexa/workspace/climate_data", recur
 
 ### Utiliser gcsfs pour interagir avec un bucket Google Cloud Storage
 
-Si vous avez besoin de parcourir, télécharger ou téléverser des données dans un bucket Google Cloud Storage, ajoutez d'abord une [connexion](https://github.com/BLSQ/openhexa/wiki/User-manual#adding-and-managing-connections) GCS.
+Si vous avez besoin de parcourir, télécharger ou téléverser des données dans un bucket Google Cloud Storage, ajoutez d'abord une [connexion](connections.md) GCS.
 
 Une fois que vous avez ajouté la connexion, vous pouvez interagir avec le bucket dans un notebook Jupyter.
 

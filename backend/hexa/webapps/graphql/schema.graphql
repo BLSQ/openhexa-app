@@ -101,6 +101,7 @@ input CreateWebappInput {
   isPublic: Boolean
   workspaceSlug: String!
   source: WebappSourceInput!
+  allowedOperations: [WebappOperationScope!]
 }
 
 """
@@ -127,9 +128,17 @@ input SupersetSourceInput {
   dashboardId: String!
 }
 
+"""
+A file to write to a webapp's git repository.
+
+`content` is interpreted according to `encoding`:
+  * TEXT (default)  — content is a UTF-8 string; suitable for hand-written or AI-generated code.
+  * BASE64          — content is base64-encoded raw bytes; required for binary files (images, fonts, …).
+"""
 input WebappFileInput {
   path: String!
   content: String!
+  encoding: FileEncoding = TEXT
 }
 
 """

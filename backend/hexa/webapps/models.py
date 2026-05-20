@@ -16,6 +16,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
+from hexa.git.enums import FileEncoding
 from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
@@ -174,6 +175,8 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
     @property
     def serve_url(self):
+        if self.type == self.WebappType.IFRAME:
+            return f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.workspace.slug}/webapps/{self.slug}/play"
         return f"{settings.SCHEME}://{self.subdomain}.{settings.WEBAPPS_DOMAIN}/"
 
     def is_favorite(self, user: User):
@@ -263,8 +266,10 @@ class GitWebapp(Webapp, GitRepoMixin):
         for entry in raw_files:
             path = entry["path"]
             content = entry.get("content")
+            encoding = entry.get("encoding")
             parent = "/".join(path.split("/")[:-1]) or None
             extension = os.path.splitext(path)[1].lower()
+            is_text = encoding == FileEncoding.TEXT and content is not None
 
             nodes.append(
                 {
@@ -273,10 +278,11 @@ class GitWebapp(Webapp, GitRepoMixin):
                     "path": path,
                     "type": entry["type"],
                     "content": content,
+                    "encoding": encoding,
                     "parent_id": parent,
                     "auto_select": path == "index.html",
-                    "language": self.LANGUAGE_MAP.get(extension) if content else None,
-                    "line_count": content.count("\n") + 1 if content else None,
+                    "language": self.LANGUAGE_MAP.get(extension) if is_text else None,
+                    "line_count": content.count("\n") + 1 if is_text else None,
                 }
             )
         return nodes
@@ -322,6 +328,7 @@ class GitWebapp(Webapp, GitRepoMixin):
         icon=None,
         is_public=False,
         files=None,
+        allowed_operations=None,
     ):
         with transaction.atomic():
             webapp = cls.objects.create_if_has_perm(
@@ -333,6 +340,7 @@ class GitWebapp(Webapp, GitRepoMixin):
                 icon=icon,
                 is_public=is_public,
                 created_by=created_by,
+                allowed_operations=allowed_operations or [],
             )
             webapp.repository = f"{workspace.slug}-webapp-{webapp.slug}"
 
@@ -363,6 +371,7 @@ class SupersetWebapp(Webapp):
         description="",
         icon=None,
         is_public=False,
+        allowed_operations=None,
     ):
         with transaction.atomic():
             dashboard = SupersetDashboard.objects.create(
@@ -383,6 +392,7 @@ class SupersetWebapp(Webapp):
                 icon=icon,
                 is_public=is_public,
                 created_by=created_by,
+                allowed_operations=allowed_operations or [],
             )
 
     def update_dashboard(self, superset_instance, external_dashboard_id):

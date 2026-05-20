@@ -33,7 +33,7 @@ Vous pouvez créer des jeux de données de deux manières :
 
 
 ### SDK OpenHEXA
-Pour la création programmatique de jeux de données, utilisez le [SDK OpenHEXA](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK#working-with-datasets) pour créer et gérer des jeux de données par code.
+Pour la création programmatique de jeux de données, utilisez le [SDK OpenHEXA](sdk.md#working-with-datasets) pour créer et gérer des jeux de données par code.
 
 ## Informations générales
 
@@ -42,7 +42,7 @@ Pour la création programmatique de jeux de données, utilisez le [SDK OpenHEXA]
 La section **Général** fournit des métadonnées essentielles et des options de configuration pour votre jeu de données :
 
 - **Description** : Modifiez la description du jeu de données pour fournir un contexte sur son contenu et son objectif
-- **Identifiant (Slug)** : Un identifiant unique que vous pouvez utiliser pour référencer ce jeu de données de manière programmatique avec le [SDK OpenHEXA](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK#working-with-datasets)
+- **Identifiant (Slug)** : Un identifiant unique que vous pouvez utiliser pour référencer ce jeu de données de manière programmatique avec le [SDK OpenHEXA](sdk.md#working-with-datasets)
 - **Détails de création** : Voir qui a créé le jeu de données et quand
 - **Espace de travail source** : L'espace de travail où le jeu de données a été créé à l'origine (voir [Gestion des accès](#gestion-des-acces) pour les options de partage)
 

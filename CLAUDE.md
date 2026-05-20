@@ -5,6 +5,7 @@
 Follow these guidelines when writing code:
 
 -   **Comments**: Do not write comments that merely restate what the code does. Only add comments when explaining _why_ something is done a certain way, not _what_ it does.
+-   **Imports**: Place imports at the top of the file. Do not use inline/dynamic imports inside functions or methods unless strictly necessary (e.g., to break a circular import or to defer an optional/expensive dependency).
 
 ## Common Development Commands
 

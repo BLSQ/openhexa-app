@@ -29,6 +29,7 @@ mutation CreateStaticWebapp($input: CreateWebappInput!) {
       description
       url
       type
+      allowedOperations
     }
   }
 }
@@ -44,6 +45,7 @@ mutation UpdateStaticWebapp($input: UpdateWebappInput!) {
       description
       url
       type
+      allowedOperations
     }
   }
 }

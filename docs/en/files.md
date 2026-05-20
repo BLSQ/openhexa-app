@@ -38,4 +38,4 @@ You can perform common file operations:
 The workspace filesystem integrates seamlessly with other OpenHEXA components:
 
 - **Notebooks**: Access files directly from Jupyter notebooks using the workspace filesystem. See [Notebooks](notebooks.md).
-- **Data Pipelines**: Read and write files in your data processing workflows. See [OpenHEXA SDK](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK).
+- **Data Pipelines**: Read and write files in your data processing workflows. See [OpenHEXA SDK](sdk.md).

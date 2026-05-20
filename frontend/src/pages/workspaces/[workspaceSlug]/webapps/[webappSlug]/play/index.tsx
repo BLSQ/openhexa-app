@@ -20,7 +20,11 @@ const WorkspaceWebappPlayPage: NextPageWithLayout = (props: Props) => {
   return (
     <Page title={webapp.name}>
       <WebappIframe
-        url={webapp.serveUrl ?? webapp.url}
+        url={
+          webapp.type === WebappType.Iframe
+            ? webapp.url
+            : (webapp.serveUrl ?? webapp.url)
+        }
         type={webapp.type}
         style={{ height: "100vh" }}
         showPoweredBy={

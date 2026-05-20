@@ -1,4 +1,5 @@
 import psycopg2
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from psycopg2 import OperationalError, sql
 from psycopg2.errors import (
@@ -9,6 +10,8 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT, STATUS_READY
 from hexa.core.test import TestCase
 from hexa.databases.api import (
     create_database,
+    create_read_and_write_role,
+    create_read_only_role,
     delete_database,
     get_database_connection,
     get_db_server_credentials,
@@ -362,3 +365,70 @@ class DatabaseAPITest(TestCase):
                 user=ro_role,
                 password=self.RO_PWD_1,
             )
+
+    def test_read_only_role_cannot_create_table_when_public_grants_create_to_public(
+        self,
+    ):
+        """Mimic the template1 ACL where PUBLIC has CREATE on the public
+        schema, then verify the read-only role still cannot create tables after
+        create_read_only_role has been run on top.
+        """
+        db_name = "ro_create_grant_test"
+        pwd = "rw_pwd"
+        ro_pwd = "ro_pwd"
+        ro_role = f"{db_name}_ro"
+
+        credentials = get_db_server_credentials()
+        host = credentials["host"]
+        port = credentials["port"]
+
+        admin_conn = get_database_connection(settings.WORKSPACES_DATABASE_DEFAULT_DB)
+        admin_conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        try:
+            with admin_conn.cursor() as cursor:
+                cursor.execute(
+                    sql.SQL("CREATE DATABASE {db_name};").format(
+                        db_name=sql.Identifier(db_name),
+                    )
+                )
+        finally:
+            admin_conn.close()
+
+        try:
+            db_conn = get_database_connection(db_name)
+            db_conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+            try:
+                with db_conn.cursor() as cursor:
+                    cursor.execute("GRANT CREATE ON SCHEMA public TO PUBLIC;")
+                    create_read_and_write_role(db_name, pwd, cursor)
+                    create_read_only_role(db_name, ro_pwd, cursor)
+            finally:
+                db_conn.close()
+
+            # RW user can still create a table
+            rw_conn = psycopg2.connect(
+                host=host, port=port, dbname=db_name, user=db_name, password=pwd
+            )
+            try:
+                cursor = rw_conn.cursor()
+                cursor.execute("CREATE TABLE should_work (id serial PRIMARY KEY);")
+                cursor.execute(
+                    "SELECT 1 FROM information_schema.tables "
+                    "WHERE table_schema='public' AND table_name='should_work';"
+                )
+                self.assertIsNotNone(cursor.fetchone())
+            finally:
+                rw_conn.close()
+
+            # RO user cannot create a table
+            ro_conn = psycopg2.connect(
+                host=host, port=port, dbname=db_name, user=ro_role, password=ro_pwd
+            )
+            try:
+                cursor = ro_conn.cursor()
+                with self.assertRaises(InsufficientPrivilege):
+                    cursor.execute("CREATE TABLE should_fail (id serial PRIMARY KEY);")
+            finally:
+                ro_conn.close()
+        finally:
+            delete_database(db_name)

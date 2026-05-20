@@ -139,15 +139,15 @@ export const WorkspaceFilesPage: NextPageWithLayout = (props: Props) => {
         helpLinks={[
           {
             label: t("About the workspace's filesystem"),
-            href: "https://github.com/BLSQ/openhexa/wiki/User-manual#file-management-in-workspaces",
+            href: "https://docs.openhexa.com/files/",
           },
           {
             label: t("Using the filesystem in notebooks"),
-            href: "https://github.com/BLSQ/openhexa/wiki/Using-notebooks-in-OpenHEXA#using-the-workspace-filesystem",
+            href: "https://docs.openhexa.com/notebooks-advanced/#using-the-workspace-filesystem",
           },
           {
             label: t("Using the filesystem in pipelines"),
-            href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines#reading-and-writing-files",
+            href: "https://docs.openhexa.com/writing-pipelines/#reading-and-writing-files",
           },
         ]}
       >

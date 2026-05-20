@@ -38,4 +38,4 @@ Vous pouvez effectuer des opérations courantes sur les fichiers :
 Le système de fichiers de l'espace de travail s'intègre parfaitement avec les autres composants d'OpenHEXA :
 
 - **Notebooks** : Accédez directement aux fichiers depuis les notebooks Jupyter en utilisant le système de fichiers de l'espace de travail. Voir [Notebooks](notebooks.md).
-- **Pipelines de données** : Lisez et écrivez des fichiers dans vos flux de travail de traitement de données. Voir [OpenHEXA SDK](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-SDK).
+- **Pipelines de données** : Lisez et écrivez des fichiers dans vos flux de travail de traitement de données. Voir [OpenHEXA SDK](sdk.md).

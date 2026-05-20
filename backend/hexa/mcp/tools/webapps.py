@@ -17,6 +17,10 @@ def list_static_webapps(
     )
 
 
+def _split_scopes(value: str) -> list[str]:
+    return [s.strip().upper() for s in value.split(",") if s.strip()]
+
+
 @tool
 def create_static_webapp(
     user,
@@ -24,8 +28,22 @@ def create_static_webapp(
     name: str,
     files_json: str,
     description: str = "",
+    allowed_operations: str = "",
 ) -> dict:
-    """Create a static web app in a workspace. Provide files_json as a JSON array of {path, content} objects, e.g. '[{"path": "index.html", "content": "<html>...</html>"}, {"path": "style.css", "content": "body { ... }"}]'. An index.html file is required at minimum. Returns the webapp URL to access it in a browser."""
+    """Create a static web app in a workspace.
+
+    Provide files_json as a JSON array of {path, content} objects, e.g. '[{"path": "index.html", "content": "<html>...</html>"}, {"path": "style.css", "content": "body { ... }"}]'. An index.html file is required at minimum. Returns the webapp URL to access it in a browser.
+
+    Private static webapps can also call OpenHEXA's GraphQL API directly from their JS via a same-origin
+    proxy at POST /graphql/ (auth handled by the webapp session, no token needed). Pass
+    allowed_operations as a comma-separated list of scopes to grant API access at creation time —
+    valid values: PIPELINES_READ, PIPELINES_RUN, FILES_READ, FILES_WRITE, DATASETS_READ, DATASETS_WRITE,
+    USER_READ. Leave empty to create with no API access (you can grant it later via
+    update_static_webapp). When generating the webapp's HTML/JS, you can include
+    fetch('/graphql/', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({query, variables})})
+    calls. For the full reference (auth model, all top-level fields per scope, sample queries and
+    mutations), call get_help_or_doc(topic="static-webapps").
+    """
     try:
         files = json.loads(files_json)
     except json.JSONDecodeError:
@@ -43,6 +61,8 @@ def create_static_webapp(
     }
     if description:
         create_input["description"] = description
+    if allowed_operations:
+        create_input["allowedOperations"] = _split_scopes(allowed_operations)
 
     data = execute_graphql(
         user,
@@ -61,8 +81,14 @@ def update_static_webapp(
     files_json: str = "",
     name: str = "",
     description: str = "",
+    allowed_operations: str = "",
 ) -> dict:
-    """Update an existing static web app. Provide the webapp UUID (from list_static_webapps) and any fields to change. To update files, provide files_json as a JSON array of {path, content} objects — this replaces all files. Only provided non-empty fields are updated."""
+    """Update an existing static web app.
+
+    Provide the webapp UUID (from list_static_webapps) and any fields to change. Only provided non-empty fields are updated. Pass files_json as a JSON array of {path, content} objects to replace all files (e.g. '[{"path": "index.html", "content": "<html>...</html>"}]'). Pass name to change the human-readable name, and description to change the description.
+
+    Pass allowed_operations as a comma-separated list of API scopes the webapp's JS may call via the same-origin /graphql/ proxy — valid values: PIPELINES_READ, PIPELINES_RUN, FILES_READ, FILES_WRITE, DATASETS_READ, DATASETS_WRITE, USER_READ. Leave empty to leave the current scopes untouched, or pass "NONE" to revoke all access. For the full reference (auth model, all top-level fields per scope, sample queries and mutations), call get_help_or_doc(topic="static-webapps").
+    """
     update_input: dict = {"id": webapp_id}
     if name:
         update_input["name"] = name
@@ -78,6 +104,11 @@ def update_static_webapp(
                 "error": "files_json must be a non-empty JSON array of {path, content} objects"
             }
         update_input["files"] = files
+    if allowed_operations:
+        if allowed_operations.strip().upper() == "NONE":
+            update_input["allowedOperations"] = []
+        else:
+            update_input["allowedOperations"] = _split_scopes(allowed_operations)
 
     data = execute_graphql(
         user,

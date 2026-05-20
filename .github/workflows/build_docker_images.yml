@@ -75,6 +75,8 @@ jobs:
         with:
           push: true
           context: backend
+          build-contexts: |
+            docs=docs
           file: backend/Dockerfile
           tags: |
             blsq/openhexa-app:${{ steps.version.outputs.number }}
@@ -87,6 +89,8 @@ jobs:
         with:
           push: true
           context: backend
+          build-contexts: |
+            docs=docs
           file: backend/Dockerfile
           tags: |
             blsq/openhexa-app:main

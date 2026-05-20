@@ -18,10 +18,18 @@
         .scopes { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem 1.25rem; }
         .scopes h3 { font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.75rem; }
         .scopes ul { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
-        .scopes li { display: flex; align-items: baseline; font-size: 0.875rem; line-height: 1.4; }
-        .scopes li svg { width: 1rem; height: 1rem; margin-right: 0.5rem; flex-shrink: 0; position: relative; top: 0.15rem; }
-        .tool-name { font-weight: 600; font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace; font-size: 0.8125rem; white-space: nowrap; }
+        .scopes li { display: flex; align-items: flex-start; font-size: 0.875rem; line-height: 1.4; }
+        .scopes li svg { width: 1rem; height: 1rem; margin-right: 0.5rem; flex-shrink: 0; position: relative; top: 0.2rem; }
+        .tool-content { flex: 1; min-width: 0; }
+        .tool-name { font-weight: 600; font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace; font-size: 0.8125rem; }
         .tool-desc { color: #6b7280; }
+        .tool-details { display: inline; }
+        .tool-details > summary { display: inline; cursor: pointer; list-style: none; color: #6b7280; }
+        .tool-details > summary::-webkit-details-marker { display: none; }
+        .tool-arrow { display: inline-block; margin-left: 0.25rem; color: #9ca3af; transition: transform 0.15s ease; font-size: 0.75rem; }
+        .tool-details[open] .tool-arrow { transform: rotate(90deg); color: #6b7280; }
+        .tool-details[open] .tool-desc { display: none; }
+        .tool-full { display: block; margin-top: 0.25rem; color: #6b7280; font-size: 0.875rem; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
         .error-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 0.5rem; padding: 1rem; }
         .error-box h3 { font-size: 0.875rem; font-weight: 500; color: #991b1b; }
         .error-box p { font-size: 0.875rem; color: #b91c1c; margin-top: 0.25rem; }

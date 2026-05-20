@@ -7,6 +7,7 @@ from django.core.validators import URLValidator
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 
+from hexa.git.enums import FileEncoding
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.superset.models import SupersetInstance
 from hexa.utils.base64_image_encode_decode import decode_base64_image
@@ -37,6 +38,7 @@ def resolve_create_webapp(_, info, **kwargs):
 
     icon = decode_base64_image(input["icon"]) if input.get("icon") else None
     is_public = input.get("is_public", False)
+    allowed_operations = input.get("allowed_operations", [])
 
     try:
         with transaction.atomic():
@@ -69,11 +71,19 @@ def resolve_create_webapp(_, info, **kwargs):
                     created_by=user,
                     superset_instance=superset_instance,
                     external_dashboard_id=source["superset"]["dashboard_id"],
+                    allowed_operations=allowed_operations,
                 )
             elif "static" in source:
                 files_input = source["static"]
                 files = (
-                    [{"path": f["path"], "content": f["content"]} for f in files_input]
+                    [
+                        {
+                            "path": f["path"],
+                            "content": f["content"],
+                            "encoding": f.get("encoding", FileEncoding.TEXT),
+                        }
+                        for f in files_input
+                    ]
                     if files_input
                     else None
                 )
@@ -88,6 +98,7 @@ def resolve_create_webapp(_, info, **kwargs):
                     created_by=user,
                     webapp_type=Webapp.WebappType.STATIC,
                     files=files,
+                    allowed_operations=allowed_operations,
                 )
             else:
                 webapp = Webapp.objects.create_if_has_perm(
@@ -99,6 +110,7 @@ def resolve_create_webapp(_, info, **kwargs):
                     is_public=is_public,
                     created_by=user,
                     url=source["iframe"]["url"],
+                    allowed_operations=allowed_operations,
                 )
             return {"success": True, "errors": [], "webapp": webapp}
     except PermissionDenied:
@@ -198,7 +210,12 @@ def resolve_update_webapp(_, info, **kwargs):
 
         if input.get("files") is not None:
             files = [
-                {"path": f["path"], "content": f["content"]} for f in input["files"]
+                {
+                    "path": f["path"],
+                    "content": f["content"],
+                    "encoding": f.get("encoding", FileEncoding.TEXT),
+                }
+                for f in input["files"]
             ]
             try:
                 git_webapp.save_files(files, "Update webapp content", user)

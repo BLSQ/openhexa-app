@@ -57,7 +57,7 @@ const PipelineVersionsPage: NextPageWithLayout<Props> = ({
           },
           {
             label: t("Writing OpenHEXA pipelines"),
-            href: "https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines",
+            href: "https://docs.openhexa.com/writing-pipelines/",
           },
         ]}
         header={

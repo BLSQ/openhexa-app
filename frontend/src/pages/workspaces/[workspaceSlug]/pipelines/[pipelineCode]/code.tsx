@@ -1,5 +1,7 @@
 import { SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import PipelineEditChatPanel from "assistant/features/PipelineEditChatPanel";
+import PipelineEditChatPanel, {
+  PipelineConversation,
+} from "assistant/features/PipelineEditChatPanel";
 import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import Page from "core/components/Page";
@@ -9,7 +11,7 @@ import { NextPageWithLayout } from "core/helpers/types";
 import useFeature from "identity/hooks/useFeature";
 import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PipelineFilesEditor } from "workspaces/features/FilesEditor/PipelineFilesEditor";
 import { ProposedFile } from "workspaces/features/FilesEditor/FilesEditor";
 import PipelineVersionPicker from "workspaces/features/PipelineVersionPicker";
@@ -33,12 +35,9 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const [selectedVersion, setSelectedVersion] =
     useState<PipelineVersionPicker_VersionFragment | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [proposedFiles, setProposedFiles] = useState<ProposedFile[] | null>(null);
-
-  const handleProposedFiles = useCallback((files: ProposedFile[] | null) => {
-    setProposedFiles(files);
-  }, []);
+  const [proposedFiles, setProposedFiles] = useState<ProposedFile[] | null>(
+    null,
+  );
 
   const [isAssistantEnabled] = useFeature("assistant");
   const me = useMe();
@@ -53,6 +52,46 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   });
   const [fetchPipelineVersion, { data: versionData, loading: versionLoading }] =
     useGetPipelineVersionFilesLazyQuery();
+
+  const [chatOpen, setChatOpen] = useState(false);
+  const [conversations, setConversations] = useState<PipelineConversation[]>([]);
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+
+  const seededRef = useRef(false);
+  useEffect(() => {
+    if (seededRef.current || !data?.pipeline) return;
+    seededRef.current = true;
+    const convs = data.pipeline.assistantConversations;
+    setConversations(convs);
+    setActiveConversationId(convs[0]?.id ?? null);
+    setChatOpen(convs.length > 0);
+  }, [data?.pipeline?.id]);
+
+  const handleProposedFiles = useCallback((files: ProposedFile[] | null) => {
+    setProposedFiles(files);
+  }, []);
+
+  const handleNewConversation = useCallback(() => {
+    setActiveConversationId(null);
+  }, []);
+
+  const handleConversationCreated = useCallback(
+    (conversation: PipelineConversation) => {
+      setConversations((prev) => [conversation, ...prev]);
+      setActiveConversationId(conversation.id);
+      setChatOpen(true);
+    },
+    [],
+  );
+
+  const handleConversationNameChange = useCallback(
+    (id: string, name: string) => {
+      setConversations((prev) =>
+        prev.map((c) => (c.id === id ? { ...c, name } : c)),
+      );
+    },
+    [],
+  );
 
   if (!data?.workspace || !data?.pipeline) {
     return null;
@@ -162,6 +201,12 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                   workspaceSlug={workspaceSlug}
                   monthlyLimitExceeded={monthlyLimitExceeded}
                   onProposedFiles={handleProposedFiles}
+                  conversations={conversations}
+                  activeConversationId={activeConversationId}
+                  onConversationChange={setActiveConversationId}
+                  onNewConversation={handleNewConversation}
+                  onConversationCreated={handleConversationCreated}
+                  onConversationNameChange={handleConversationNameChange}
                 />
               </div>
             )}

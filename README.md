@@ -10,7 +10,7 @@ OpenHEXA is an open-source data integration platform developed by [Bluesquare](h
 Its goal is to facilitate data integration and analysis workflows, in particular in the context of public health
 projects.
 
-Please refer to the [OpenHEXA wiki](https://github.com/BLSQ/openhexa/wiki/Home) for more information about OpenHEXA.
+Please refer to the [OpenHEXA documentation](https://docs.openhexa.com/) for more information about OpenHEXA.
 
 This repository contains the code of the following components:
  - The `backend` component, which mostly offers a GraphQL API and an infrastructure to run data pipelines.
@@ -20,7 +20,7 @@ Other components are available in separate repositories:
   - [openhexa-docker-images](https://github.com/BLSQ/openhexa-docker-images): Docker images used for the pipelines & Jupyterlab environments.
   - [openhexa-sdk-python](https://github.com/BLSQ/openhexa-sdk-python): Python SDK used to build data pipelines.
   - [openhexa-toolbox](https://github.com/BLSQ/openhexa-toolbox): A set of tools to interact with common third parties ([IASO](https://github.com/BLSQ/iaso), [DHIS2](https://github.com/dhis2), ...)
-  - [openhexa](https://github.com/BLSQ/openhexa): The main repository that gathers all the documentation, the wiki and the debian package of OpenHEXA.
+  - [openhexa](https://github.com/BLSQ/openhexa): The main repository that gathers the debian package of OpenHEXA.
 
 # Changelog
 
@@ -73,8 +73,8 @@ npm run lint && npm run format
 
 # Getting started
 
-The [Installation instructions](https://github.com/BLSQ/openhexa/wiki/Installation-instructions#development-installation)
-section of our wiki gives an overview of the local development setup required to run OpenHEXA locally.
+The [Installation instructions](https://docs.openhexa.com/installation/#development-installation)
+section of our documentation gives an overview of the local development setup required to run OpenHEXA locally.
 
 To ease the setup of the environment and management of dependencies, we are using containerization, in particular
 [Docker](https://www.docker.com/). As such, we provide a `docker-compose.yaml` file for local development.
@@ -166,7 +166,7 @@ If you need the pipelines or want to work on them, there are 2 optional services
 docker compose --profile pipelines up
 ```
 
-The [Writing OpenHEXA pipelines](https://github.com/BLSQ/openhexa/wiki/Writing-OpenHexa-pipelines) section of the wiki
+The [Writing OpenHEXA pipelines](https://docs.openhexa.com/writing-pipelines/) section of the documentation
 contains the instructions needed to build and deploy a data pipeline on OpenHEXA.
 
 To deploy and run data pipelines locally, you will need to:

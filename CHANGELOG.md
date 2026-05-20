@@ -1,5 +1,50 @@
 # Changelog
 
+## [5.6.2](https://github.com/BLSQ/openhexa-app/compare/5.6.1...5.6.2) (2026-05-13)
+
+
+### Bug Fixes
+
+* fix incorrect Connection import path in toolbox docs ([cb9e75a](https://github.com/BLSQ/openhexa-app/commit/cb9e75ad2fd252076d5c788ed4a646a7e3792ec3))
+
+## [5.6.1](https://github.com/BLSQ/openhexa-app/compare/5.6.0...5.6.1) (2026-05-12)
+
+
+### Bug Fixes
+
+* rw roles ([#1802](https://github.com/BLSQ/openhexa-app/issues/1802)) ([d4fd12b](https://github.com/BLSQ/openhexa-app/commit/d4fd12b307eb25f07ee01d19062326d18359ede0))
+
+## [5.6.0](https://github.com/BLSQ/openhexa-app/compare/5.5.0...5.6.0) (2026-05-11)
+
+
+### Features
+
+* add documentation on how to use the GraphQL API in web apps (HEXA-1642) ([#1789](https://github.com/BLSQ/openhexa-app/issues/1789)) ([e214b6b](https://github.com/BLSQ/openhexa-app/commit/e214b6b7bf51f5340fa0bea77583b6011f7cc1df))
+
+
+### Bug Fixes
+
+* AI agent streaming URL fallback ([#1797](https://github.com/BLSQ/openhexa-app/issues/1797)) ([6b7da38](https://github.com/BLSQ/openhexa-app/commit/6b7da387895662bc878caf7c344a8c322e225f6e))
+* Bring back Django auto reload for local development ([#1790](https://github.com/BLSQ/openhexa-app/issues/1790)) ([1101ceb](https://github.com/BLSQ/openhexa-app/commit/1101ceb3deb8ba0c9e96d3cc561875936a5fe679))
+
+## [5.5.0](https://github.com/BLSQ/openhexa-app/compare/5.4.3...5.5.0) (2026-05-08)
+
+
+### Features
+
+* SSE in agent loop ([#1750](https://github.com/BLSQ/openhexa-app/issues/1750)) ([38732af](https://github.com/BLSQ/openhexa-app/commit/38732afa12dc3437360d5c13b04c3339b00e947c))
+
+
+### Bug Fixes
+
+* folder cant be deleted (HEXA-1622) ([#1774](https://github.com/BLSQ/openhexa-app/issues/1774)) ([823efa7](https://github.com/BLSQ/openhexa-app/commit/823efa773456b164b7f9b794449ddc28328d7878))
+* iframe webapps should render the source url in an iframe and not through subdomain (HEXA-1639) ([#1782](https://github.com/BLSQ/openhexa-app/issues/1782)) ([9f36eaa](https://github.com/BLSQ/openhexa-app/commit/9f36eaa06b63f0cd0c2ab0c023dff70d2f905361))
+* instrument internal ai agent and mcp clients with documentation (HEXA-1631) ([#1788](https://github.com/BLSQ/openhexa-app/issues/1788)) ([3084fb9](https://github.com/BLSQ/openhexa-app/commit/3084fb9e844bdfa574438f1630a57c320186ee52))
+* preview url shows outdated content (HEXA-1636) ([#1779](https://github.com/BLSQ/openhexa-app/issues/1779)) ([1db020d](https://github.com/BLSQ/openhexa-app/commit/1db020d5cb50ac79c3e036e46c1eb6dc2c0b5f92))
+* Read-only user should not be able to create tables (HEXA-1630) ([#1785](https://github.com/BLSQ/openhexa-app/issues/1785)) ([334cb54](https://github.com/BLSQ/openhexa-app/commit/334cb54aa700e7331e7258a9f5c0d58d5a635e71))
+* reloading newly created pipelines from either template or from sdk ([#1776](https://github.com/BLSQ/openhexa-app/issues/1776)) ([ba6a8fb](https://github.com/BLSQ/openhexa-app/commit/ba6a8fbe2f04b25f5e869d1b7e57c22448a15af6))
+* show a button to reconnect in case of pipeline logs SSE drop (HEXA-1632) ([#1778](https://github.com/BLSQ/openhexa-app/issues/1778)) ([1349744](https://github.com/BLSQ/openhexa-app/commit/1349744a979a1ee56ea4fb89173b846c408ff81e))
+
 ## [5.4.3](https://github.com/BLSQ/openhexa-app/compare/5.4.2...5.4.3) (2026-04-27)
 
 

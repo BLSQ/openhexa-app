@@ -1,7 +1,10 @@
 from ariadne import ObjectType, QueryType
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 
 from hexa.assistant.models import Conversation
+from hexa.pipelines.models import Pipeline
+from hexa.pipelines.schema.types import pipeline_object
 from hexa.workspaces.models import Workspace
 
 assistant_queries = QueryType()
@@ -23,6 +26,15 @@ def resolve_workspace_assistant_conversations(workspace: Workspace, info, **kwar
     request = info.context["request"]
     return Conversation.objects.filter_for_user(request.user).filter(
         workspace=workspace
+    )
+
+
+@pipeline_object.field("assistantConversations")
+def resolve_pipeline_assistant_conversations(pipeline: Pipeline, info, **kwargs):
+    request = info.context["request"]
+    ct = ContentType.objects.get_for_model(Pipeline)
+    return Conversation.objects.filter_for_user(request.user).filter(
+        linked_object_content_type=ct, linked_object_id=pipeline.id, user=request.user
     )
 
 

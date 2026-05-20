@@ -116,7 +116,7 @@ diskcache==5.6.3
     # via openhexa-toolbox
 distro==1.9.0
     # via anthropic
-django==5.2.13
+django==5.2.14
     # via
     #   -r requirements.in
     #   ariadne-django
@@ -582,7 +582,7 @@ ua-parser==1.0.1
     # via -r requirements.in
 ua-parser-builtins==0.18.0.post1
     # via ua-parser
-urllib3==2.6.3
+urllib3==2.7.0
     # via
     #   botocore
     #   docker

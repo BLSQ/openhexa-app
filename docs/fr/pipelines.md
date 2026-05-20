@@ -17,7 +17,7 @@ Les pipelines OpenHEXA sont des applications de données basées sur Python con�
 
 ![Pipeline Overview](../assets/images/pipelines/general.png)
 
-Les pipelines sont écrits comme des programmes Python, vous donnant un contrôle complet sur leur comportement et leurs fonctionnalités. Pour des conseils de développement détaillés, consultez notre [guide dédié au développement de pipelines](https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines).
+Les pipelines sont écrits comme des programmes Python, vous donnant un contrôle complet sur leur comportement et leurs fonctionnalités. Pour des conseils de développement détaillés, consultez notre [guide dédié au développement de pipelines](writing-pipelines.md).
 
 ## Exécuter et surveiller les pipelines
 
@@ -75,7 +75,7 @@ Pour les développeurs et les ingénieurs de données, le CLI fournit l'approche
 
 ![Creating Pipeline from CLI](../assets/images/pipelines/from_cli.png)
 
-Voir nos guides : [Utiliser l'OpenHEXA CLI](https://github.com/BLSQ/openhexa/wiki/Using-the-OpenHEXA-CLI) et [Écrire des pipelines OpenHEXA](https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines).
+Voir nos guides : [Utiliser l'OpenHEXA CLI](cli.md) et [Écrire des pipelines OpenHEXA](writing-pipelines.md).
 
 #### 2. À partir d'un notebook Jupyter
 Vous pouvez utiliser un Notebook du système de fichiers de l'espace de travail pour être exécuté comme un pipeline. C'est la façon la plus simple de créer un pipeline :
@@ -178,7 +178,7 @@ curl -X POST \
 ![Pipeline Runs Interface](../assets/images/pipelines/runs.png)
 
 
-## Planification et notifications
+## Planification et notifications {#scheduling-and-notifications}
 
 Vous pouvez planifier des pipelines pour qu'ils s'exécutent automatiquement à intervalles spécifiés, permettant des flux de travail de traitement de données sans intervention.
 
@@ -216,7 +216,7 @@ Définissez les valeurs de paramètres par défaut qui seront utilisées pour le
 
     - **Délai standard** : 4 heures (configuration par défaut)
     - **Délai maximum** : 12 heures (configurable par les auteurs de pipelines)
-    - **Délais personnalisés** : Les développeurs de pipelines peuvent [configurer des délais personnalisés](https://github.com/BLSQ/openhexa/wiki/Writing-OpenHEXA-pipelines#pipeline-timeouts) dans la limite maximale
+    - **Délais personnalisés** : Les développeurs de pipelines peuvent [configurer des délais personnalisés](writing-pipelines.md#pipeline-timeouts) dans la limite maximale
 
 ### Accès au code source
 
