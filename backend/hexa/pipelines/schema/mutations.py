@@ -157,7 +157,7 @@ def resolve_create_pipeline(_, info, **kwargs):
 
     return {
         "pipeline": pipeline,
-        "pipelineVersion": version,
+        "pipeline_version": version,
         "success": True,
         "errors": [],
     }
