@@ -340,7 +340,7 @@ def _get_docker_client():
 def create_container_docker(run: PipelineRun, image: str, env_vars: dict):
     del env_vars[
         "HEXA_PIPELINE_NAME"
-    ]  # If there are spaces in the pipeline name, it would break the command
+    ]  # If there are spaces in the pipeline name, it will break the command
 
     cmd = (
         'pipeline cloudrun --config="'
