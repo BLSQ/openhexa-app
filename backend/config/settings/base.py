@@ -82,11 +82,14 @@ ALLOWED_HOSTS = (
     else []
 )
 
-# Example: "webapps.openhexa.org"
+# Example: "webapps.openhexa.org" (or "webapps.localhost:8000" for local dev).
 # When not set, the webapps feature is disabled entirely.
 WEBAPPS_DOMAIN = os.environ.get("WEBAPPS_DOMAIN", None)
+# WEBAPPS_DOMAIN may include a port (e.g. for local dev), but the host-only form
+# is what's compared against Host headers and CORS origins.
+WEBAPPS_DOMAIN_HOST = WEBAPPS_DOMAIN.split(":")[0] if WEBAPPS_DOMAIN else None
 if WEBAPPS_DOMAIN:
-    ALLOWED_HOSTS += [f".{WEBAPPS_DOMAIN}"]
+    ALLOWED_HOSTS += [f".{WEBAPPS_DOMAIN_HOST}"]
 
 CORS_ALLOWED_ORIGINS = []
 CSRF_TRUSTED_ORIGINS = []
@@ -131,7 +134,9 @@ if "CORS_ALLOWED_ORIGINS" in os.environ:
 
 CORS_ALLOWED_ORIGIN_REGEXES = []
 if WEBAPPS_DOMAIN:
-    CORS_ALLOWED_ORIGIN_REGEXES.append(rf"^https?://[\w-]+\.{WEBAPPS_DOMAIN}(:\d+)?$")
+    CORS_ALLOWED_ORIGIN_REGEXES.append(
+        rf"^https?://[\w-]+\.{re.escape(WEBAPPS_DOMAIN_HOST)}(:\d+)?$"
+    )
 if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
     CORS_ALLOWED_ORIGIN_REGEXES += os.environ.get("CORS_ALLOWED_ORIGIN_REGEXES").split(
         ","

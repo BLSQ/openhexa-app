@@ -7,6 +7,7 @@ from django.core.validators import URLValidator
 from django.db import IntegrityError, transaction
 from django.http import HttpRequest
 
+from hexa.git.enums import FileEncoding
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.superset.models import SupersetInstance
 from hexa.utils.base64_image_encode_decode import decode_base64_image
@@ -75,7 +76,14 @@ def resolve_create_webapp(_, info, **kwargs):
             elif "static" in source:
                 files_input = source["static"]
                 files = (
-                    [{"path": f["path"], "content": f["content"]} for f in files_input]
+                    [
+                        {
+                            "path": f["path"],
+                            "content": f["content"],
+                            "encoding": f.get("encoding", FileEncoding.TEXT),
+                        }
+                        for f in files_input
+                    ]
                     if files_input
                     else None
                 )
@@ -202,7 +210,12 @@ def resolve_update_webapp(_, info, **kwargs):
 
         if input.get("files") is not None:
             files = [
-                {"path": f["path"], "content": f["content"]} for f in input["files"]
+                {
+                    "path": f["path"],
+                    "content": f["content"],
+                    "encoding": f.get("encoding", FileEncoding.TEXT),
+                }
+                for f in input["files"]
             ]
             try:
                 git_webapp.save_files(files, "Update webapp content", user)

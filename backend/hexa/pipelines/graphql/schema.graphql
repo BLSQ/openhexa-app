@@ -133,6 +133,14 @@ type PipelineVersionPermissions {
 }
 
 """
+How the `content` field of a FileNode (or WebappFileInput) is encoded over the wire.
+"""
+enum FileEncoding {
+  TEXT    # content is a UTF-8 string — natural for code editors and AI agents.
+  BASE64  # content is base64-encoded raw bytes — required for non-UTF-8 / binary files.
+}
+
+"""
 Represents a file or directory node in a flattened structure.
 """
 type FileNode {
@@ -140,7 +148,8 @@ type FileNode {
   name: String!  # The name of the file or directory.
   path: String!  # The full path of the file or directory.
   type: FileType!  # The type (file or directory).
-  content: String  # The decoded content of the file (null for directories).
+  content: String  # The file content (null for directories). See `encoding` for the format.
+  encoding: FileEncoding  # Encoding of `content`. Null for directories.
   parentId: String  # The ID of the parent node (null for root nodes).
   autoSelect: Boolean!  # Whether this file should be auto-selected in the UI.
   language: String  # The detected programming language of the file.

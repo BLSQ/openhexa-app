@@ -280,8 +280,57 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
         mock_client.commit_files.assert_called_once_with(
             "webapp-commitrepo",
             [
-                {"path": "index.html", "content": "<h1>Hello</h1>"},
-                {"path": "style.css", "content": "body { color: red; }"},
+                {
+                    "path": "index.html",
+                    "content": "<h1>Hello</h1>",
+                    "encoding": "TEXT",
+                },
+                {
+                    "path": "style.css",
+                    "content": "body { color: red; }",
+                    "encoding": "TEXT",
+                },
+            ],
+            "Update webapp content",
+            self.USER.display_name or self.USER.email,
+            self.USER.email,
+            org_slug="no-org",
+        )
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_update_files_base64_encoding_propagates(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.commit_files.return_value = "sha-b64"
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            UPDATE_WEBAPP_MUTATION,
+            {
+                "input": {
+                    "id": str(self.GIT_WEBAPP.id),
+                    "files": [
+                        {
+                            "path": "logo.png",
+                            "content": "iVBORw0KGgo=",
+                            "encoding": "BASE64",
+                        },
+                    ],
+                }
+            },
+        )
+
+        result = response["data"]["updateWebapp"]
+        self.assertTrue(result["success"])
+
+        mock_client.commit_files.assert_called_once_with(
+            "webapp-commitrepo",
+            [
+                {
+                    "path": "logo.png",
+                    "content": "iVBORw0KGgo=",
+                    "encoding": "BASE64",
+                },
             ],
             "Update webapp content",
             self.USER.display_name or self.USER.email,
@@ -582,8 +631,18 @@ class GitWebappQueryTest(GraphQLTestCase):
         mock_client = MagicMock()
         mock_client.get_commits.return_value = []
         mock_client.get_repository_files.return_value = [
-            {"path": "index.html", "type": "file", "content": "<h1>Hello</h1>"},
-            {"path": "style.css", "type": "file", "content": "body { color: red; }"},
+            {
+                "path": "index.html",
+                "type": "file",
+                "content": "<h1>Hello</h1>",
+                "encoding": "TEXT",
+            },
+            {
+                "path": "style.css",
+                "type": "file",
+                "content": "body { color: red; }",
+                "encoding": "TEXT",
+            },
         ]
         mock_get_client.return_value = mock_client
 
@@ -614,6 +673,34 @@ class GitWebappQueryTest(GraphQLTestCase):
         css_file = next(f for f in files if f["path"] == "style.css")
         self.assertFalse(css_file["autoSelect"])
         self.assertEqual(css_file["language"], "css")
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_query_git_webapp_files_base64(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_commits.return_value = []
+        mock_client.get_repository_files.return_value = [
+            {
+                "path": "logo.png",
+                "type": "file",
+                "content": "iVBORw0KGgo=",
+                "encoding": "BASE64",
+            },
+        ]
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            WEBAPP_QUERY,
+            {"workspaceSlug": self.WS.slug, "slug": "query-test-app"},
+        )
+
+        files = response["data"]["webapp"]["files"]
+        self.assertEqual(len(files), 1)
+        logo = files[0]
+        self.assertEqual(logo["path"], "logo.png")
+        self.assertEqual(logo["content"], "iVBORw0KGgo=")
+        self.assertIsNone(logo["language"])
+        self.assertIsNone(logo["lineCount"])
 
     @patch("hexa.git.mixins.get_forgejo_client")
     def test_query_git_webapp_files_with_directories(self, mock_get_client):

@@ -159,7 +159,9 @@ class UpdateStaticWebappTest(MCPTestCase):
     @_mock_forgejo()
     def test_update_static_webapp_files(self, mock_forgejo):
         client = mock_forgejo.return_value
-        files = [{"path": "index.html", "content": "<html>old</html>"}]
+        files = [
+            {"path": "index.html", "content": "<html>old</html>", "encoding": "TEXT"}
+        ]
         create_result = create_static_webapp(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
@@ -173,7 +175,9 @@ class UpdateStaticWebappTest(MCPTestCase):
         self.assertEqual(client.commit_files.call_args.kwargs["files"], files)
         client.commit_files.reset_mock()
 
-        new_files = [{"path": "index.html", "content": "<html>new</html>"}]
+        new_files = [
+            {"path": "index.html", "content": "<html>new</html>", "encoding": "TEXT"}
+        ]
         result = update_static_webapp(
             user=self.USER_ADMIN,
             webapp_id=webapp_id,
@@ -184,6 +188,31 @@ class UpdateStaticWebappTest(MCPTestCase):
         self.assertEqual(
             result["webapp"]["url"], f"http://{subdomain}.webapps.localhost:8000/"
         )
+        client.commit_files.assert_called_once()
+        self.assertEqual(client.commit_files.call_args[0][1], new_files)
+
+    @_mock_forgejo()
+    def test_update_static_webapp_files_base64(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("B64Upd"),
+            files_json=json.dumps([{"path": "index.html", "content": "<html></html>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_id = str(create_result["webapp"]["id"])
+        client.commit_files.reset_mock()
+
+        new_files = [
+            {"path": "logo.png", "content": "iVBORw0KGgo=", "encoding": "BASE64"},
+        ]
+        result = update_static_webapp(
+            user=self.USER_ADMIN,
+            webapp_id=webapp_id,
+            files_json=json.dumps(new_files),
+        )
+        self.assertTrue(result["success"], result)
         client.commit_files.assert_called_once()
         self.assertEqual(client.commit_files.call_args[0][1], new_files)
 

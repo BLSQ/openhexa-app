@@ -1,4 +1,5 @@
 import base64
+import json
 
 import responses
 from django.test import TestCase, override_settings
@@ -572,6 +573,134 @@ class ForgejoClientUnarchiveRepositoryTest(TestCase):
             client.unarchive_repository("org-abc123", "missing-repo")
 
         self.assertEqual(ctx.exception.status_code, 404)
+
+
+class ForgejoClientFileEncodingTest(TestCase):
+    @responses.activate
+    def test_commit_files_text_encoding_base64_encodes_content(self):
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/commits",
+            json={"message": "Git Repository is empty."},
+            status=409,
+        )
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents",
+            json={"commit": {"sha": "sha-text"}},
+            status=201,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client.commit_files(
+            "my-repo",
+            [{"path": "hello.txt", "content": "héllo", "encoding": "TEXT"}],
+            "msg",
+            "u",
+            "u@example.com",
+        )
+
+        body = json.loads(responses.calls[1].request.body)
+        sent = body["files"][0]["content"]
+        self.assertEqual(base64.b64decode(sent).decode("utf-8"), "héllo")
+
+    @responses.activate
+    def test_commit_files_base64_encoding_passes_through(self):
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/commits",
+            json={"message": "Git Repository is empty."},
+            status=409,
+        )
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents",
+            json={"commit": {"sha": "sha-bin"}},
+            status=201,
+        )
+
+        # 1x1 transparent PNG bytes — must reach Forgejo intact.
+        png = (
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00"
+            b"\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9c"
+            b"c\xfa\xcf\x00\x00\x00\x02\x00\x01\xe2!\xbc\x33\x00\x00\x00\x00"
+            b"IEND\xaeB`\x82"
+        )
+        b64 = base64.b64encode(png).decode("ascii")
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client.commit_files(
+            "my-repo",
+            [{"path": "pixel.png", "content": b64, "encoding": "BASE64"}],
+            "msg",
+            "u",
+            "u@example.com",
+        )
+
+        body = json.loads(responses.calls[1].request.body)
+        sent = body["files"][0]["content"]
+        self.assertEqual(sent, b64)
+        self.assertEqual(base64.b64decode(sent), png)
+
+    @responses.activate
+    def test_get_repository_files_marks_text_files_as_text(self):
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/git/trees/main",
+            json={"sha": "abc", "tree": [{"path": "index.html", "type": "blob"}]},
+            status=200,
+        )
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/index.html",
+            json={"content": base64.b64encode(b"<h1>hi</h1>").decode("ascii")},
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        files = client.get_repository_files("my-repo")
+
+        self.assertEqual(len(files), 1)
+        self.assertEqual(files[0]["encoding"], "TEXT")
+        self.assertEqual(files[0]["content"], "<h1>hi</h1>")
+
+    @responses.activate
+    def test_get_repository_files_marks_binary_files_as_base64(self):
+        # PNG header contains a NULL byte, treated as binary
+        png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/git/trees/main",
+            json={"sha": "abc", "tree": [{"path": "pixel.png", "type": "blob"}]},
+            status=200,
+        )
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/pixel.png",
+            json={"content": base64.b64encode(png).decode("ascii")},
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        files = client.get_repository_files("my-repo")
+
+        self.assertEqual(len(files), 1)
+        self.assertEqual(files[0]["encoding"], "BASE64")
+        self.assertEqual(base64.b64decode(files[0]["content"]), png)
+
+    @responses.activate
+    def test_get_repository_files_invalid_utf8_marked_base64(self):
+        # \xff is not valid as a UTF-8 lead byte, decoding fails and fallback to binary
+        raw = b"\xff\xfe\xfd"
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/git/trees/main",
+            json={"sha": "abc", "tree": [{"path": "blob.bin", "type": "blob"}]},
+            status=200,
+        )
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/blob.bin",
+            json={"content": base64.b64encode(raw).decode("ascii")},
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        files = client.get_repository_files("my-repo")
+
+        self.assertEqual(len(files), 1)
+        self.assertEqual(files[0]["encoding"], "BASE64")
+        self.assertEqual(base64.b64decode(files[0]["content"]), raw)
 
 
 class ForgejoClientGetForgejoClientTest(TestCase):

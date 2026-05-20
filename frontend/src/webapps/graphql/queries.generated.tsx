@@ -41,7 +41,7 @@ export type WebappFilesQueryVariables = Types.Exact<{
 }>;
 
 
-export type WebappFilesQuery = { __typename?: 'Query', webapp?: { __typename?: 'Webapp', id: string, files?: Array<{ __typename?: 'FileNode', id: string, name: string, path: string, type: Types.FileType, content?: string | null, parentId?: string | null, autoSelect: boolean, language?: string | null, lineCount?: number | null }> | null } | null };
+export type WebappFilesQuery = { __typename?: 'Query', webapp?: { __typename?: 'Webapp', id: string, files?: Array<{ __typename?: 'FileNode', id: string, name: string, path: string, type: Types.FileType, content?: string | null, encoding?: Types.FileEncoding | null, parentId?: string | null, autoSelect: boolean, language?: string | null, lineCount?: number | null }> | null } | null };
 
 export const WebappPlay_WebappFragmentDoc = gql`
     fragment WebappPlay_webapp on Webapp {

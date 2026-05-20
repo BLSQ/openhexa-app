@@ -36,7 +36,7 @@ En dehors d'un espace de travail OpenHEXA, une connexion peut être créée manu
 
 
 ``` python
->>> from openhexa.sdk.workspaces.connections import DHIS2Connection
+>>> from openhexa.sdk.workspaces.connection import DHIS2Connection
 >>> from openhexa.toolbox.dhis2 import DHIS2
 
 >>> # initialiser une nouvelle connexion en dehors d'un espace de travail OpenHEXA
