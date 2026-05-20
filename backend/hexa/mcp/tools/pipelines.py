@@ -257,18 +257,19 @@ def create_pipeline(
     """
     zipfile_b64 = _build_zipfile_b64(source_code) if source_code else None
 
+    create_input = {
+        "workspaceSlug": workspace_slug,
+        "name": name,
+        "description": description or None,
+        "functionalType": functional_type or None,
+    }
+    if zipfile_b64 is not None:
+        create_input["version"] = {"zipfile": zipfile_b64}
+
     data = execute_graphql(
         user,
         "CreatePipeline",
-        {
-            "input": {
-                "workspaceSlug": workspace_slug,
-                "name": name,
-                "description": description or None,
-                "functionalType": functional_type or None,
-                "zipfile": zipfile_b64,
-            }
-        },
+        {"input": create_input},
     )
     if "errors" in data:
         return data
