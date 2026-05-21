@@ -733,7 +733,7 @@ Le décorateur `@parameter` nécessite également l'argument keyword `type`, qui
 Les arguments keyword suivants sont optionnels :
 - `name` : Un nom lisible par l'humain à utiliser pour le label du formulaire dans l'interface web
 - `help` : Un texte d'aide additionnel à afficher dans le formulaire
-- `choices` : Une liste de valeurs valides acceptées pour le paramètre
+- `choices` : Une liste statique de valeurs valides acceptées pour le paramètre, **ou** un objet `ChoicesFromFile` (ou un simple chemin de fichier sous forme de chaîne) pour charger les choix dynamiquement depuis un fichier de l'espace de travail au moment de l'exécution — voir [Utiliser des choix dynamiques depuis un fichier de l'espace de travail](#utiliser-des-choix-dynamiques-depuis-un-fichier-de-lespace-de-travail)
 - `default` : une valeur par défaut optionnelle
 - `required` : si le paramètre est requis, `True` par défaut
 - `widget` : option d'enum pour le widget pour remplir les options du paramètre
@@ -845,6 +845,98 @@ python pipeline.py -f sample_config.json
 Génial ! Poussons ce pipeline vers le cloud pour pouvoir l'exécuter via l'interface web.
 
 <img width="618" alt="Screenshot 2023-04-28 at 16 35 15" src="https://user-images.githubusercontent.com/690667/235177316-4208df73-ec63-46ad-9cc3-1cef9d19e5c3.png">
+
+## Utiliser des choix dynamiques depuis un fichier de l'espace de travail
+
+Au lieu de coder en dur une liste statique, vous pouvez pointer l'argument `choices` vers un fichier stocké dans votre espace de travail. OpenHEXA lit le fichier lorsque le formulaire d'exécution est ouvert et présente son contenu comme les valeurs valides pour le paramètre. Cela est utile lorsque la liste des valeurs valides évolue dans le temps et que vous souhaitez que les utilisateurs voient toujours les dernières options sans avoir à pousser une nouvelle version du pipeline.
+
+Pour utiliser cette fonctionnalité, importez `ChoicesFromFile` depuis le SDK :
+
+```python
+from openhexa.sdk.pipelines.parameter import ChoicesFromFile
+```
+
+Passez ensuite un objet `ChoicesFromFile` à `choices`, ou utilisez la forme raccourcie avec simplement le chemin du fichier :
+
+```python
+from openhexa.sdk import current_run, parameter, pipeline
+from openhexa.sdk.pipelines.parameter import ChoicesFromFile
+
+@pipeline("district-report")
+@parameter(
+    "district",
+    name="District",
+    type=str,
+    choices=ChoicesFromFile("districts.csv"),
+)
+def district_report(district):
+    current_run.log_info(f"Rapport pour {district}")
+```
+
+Pour les cas simples, vous pouvez également passer le chemin du fichier directement sous forme de chaîne — cela équivaut à `ChoicesFromFile(path="districts.csv")` :
+
+```python
+@parameter("district", name="District", type=str, choices="districts.csv")
+```
+
+Le chemin du fichier est relatif à la racine du système de fichiers de l'espace de travail. Le fichier doit être présent dans l'espace de travail lorsque le formulaire d'exécution est ouvert.
+
+### Sélection de la colonne pour les fichiers multi-colonnes
+
+Pour les fichiers contenant plusieurs colonnes ou clés, vous devez spécifier quelle colonne utiliser comme source de choix via l'argument `column` :
+
+```python
+choices=ChoicesFromFile("regions.csv", column="code")
+choices=ChoicesFromFile("regions.json", column="code")
+```
+
+### Formats de fichiers supportés
+
+Le format est auto-détecté à partir de l'extension du fichier (`.csv`, `.json`, `.yaml`, `.yml`). Vous pouvez le surcharger avec l'argument `format` :
+
+```python
+choices=ChoicesFromFile("districts", format="csv", column="name")
+```
+
+**CSV** — le fichier doit avoir une ligne d'en-tête :
+
+```
+# Colonne unique (colonne auto-détectée)
+district
+Nairobi
+Mombasa
+Kisumu
+
+# Multi-colonnes (column= requis)
+code,name
+NBI,Nairobi
+MSA,Mombasa
+```
+
+**JSON / YAML** — plusieurs formes sont supportées :
+
+```json
+// Tableau plat — column non nécessaire
+["Nairobi", "Mombasa", "Kisumu"]
+
+// Tableau d'objets à clé unique — colonne auto-détectée
+[{"code": "NBI"}, {"code": "MSA"}]
+
+// Tableau d'objets multi-clés — column= requis
+[{"code": "NBI", "name": "Nairobi"}, {"code": "MSA", "name": "Mombasa"}]
+
+// Objet enveloppant un tableau — clé auto-détectée s'il n'y en a qu'une
+{"districts": ["Nairobi", "Mombasa", "Kisumu"]}
+
+// Objet enveloppant un tableau — column= requis s'il y a plusieurs clés
+{"codes": ["NBI", "MSA"], "names": ["Nairobi", "Mombasa"]}
+```
+
+### Limitations
+
+- Le fichier de choix ne doit pas dépasser **5 Mo**.
+- `ChoicesFromFile` est uniquement compatible avec les types de paramètres scalaires (`str`, `int`, `float`, `bool`). Il ne peut pas être combiné avec les types connexion, dataset, fichier ou secret.
+- Si le fichier contient des valeurs incompatibles avec le type de paramètre déclaré (par exemple, des chaînes non numériques pour un paramètre `int`), ces options seront désactivées dans le formulaire d'exécution et un avertissement sera affiché.
 
 ## Utiliser des types de paramètres de connexion
 
