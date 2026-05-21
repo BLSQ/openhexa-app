@@ -57,6 +57,14 @@ class GetHelpOrDocTest(MCPTestCase):
             "- Pass a topic name to fetch that doc page in full. Reason is optional here.\n"
             "\n"
             "\n"
-            "    Available topics: cli, notebooks-advanced, sdk, static-webapps, toolbox-dhis2, toolbox-hexa, toolbox-iaso, writing-pipelines."
+            "    Available topics:\n"
+            "    - cli: OpenHEXA comes with a CLI you can install globally on your system. This CLI allows you to interact with the OpenHEXA API and perform various tasks such as creating and managing pipelines, running local jobs and more.\n"
+            "    - notebooks-advanced: The notebooks component of OpenHEXA is a customized [Jupyter](https://jupyter.org/) deployment.\n"
+            "    - sdk: The OpenHEXA Python SDK is a tool that helps you write code for the OpenHEXA platform.\n"
+            "    - static-webapps: Static webapps let you host a small HTML / CSS / JavaScript bundle inside an OpenHEXA workspace and serve it on its own subdomain. They're useful for dashboards, custom data-entry forms, or any front-end that needs to live alongside your pi\n"
+            "    - toolbox-dhis2: An utility library to acquire and process data from a DHIS2 instance.\n"
+            "    - toolbox-hexa: _⚠️ We now recommend using the [SDK OpenHexa Client](sdk.md#using-the-openhexa-client) instead. It contains plenty of (typed) methods and can be semi-automatically extended by the OpenHexa team. The toolbox client will not be maintained/ext\n"
+            "    - toolbox-iaso: Module to fetch data from IASO.\n"
+            "    - writing-pipelines: OpenHEXA data pipelines provide a way to help you automate data processing and modelization operations."
         )
         self.assertEqual(get_help_or_doc.__doc__, expected)

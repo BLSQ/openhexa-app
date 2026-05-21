@@ -48,9 +48,9 @@ def get_help_or_doc(user, topic: str = "", reason: str = "") -> dict:
 _topic_entries = get_index()
 if _topic_entries:
     _lines = [
-        f"    - {entry['name']} — {entry['title']}: {entry['summary']}"
+        f"    - {entry['name']}: {entry['summary']}"
         if entry.get("summary")
-        else f"    - {entry['name']} — {entry['title']}"
+        else f"    - {entry['name']}"
         for entry in _topic_entries
     ]
     get_help_or_doc.__doc__ = (
