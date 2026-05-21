@@ -16,7 +16,9 @@ The present guide will walk you through the creation and the deployment of an Op
 
 - [Using the OpenHEXA SDK](sdk.md): the OpenHEXA SDK is a Python library that provides building blocks and helper methods to write code on OpenHEXA
 - [Using the OpenHEXA CLI](cli.md): the OpenHEXA CLI is a command-line utility that allows you to interact with your OpenHEXA instance from your terminal
-- [Using the OpenHEXA Toolbox](toolbox.md): the OpenHEXA toolbox is a collection of utilities that can assist you in health data science integration and analysis workflows
+- [Using the OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md): Acquire and process data from DHIS2 instances
+- [Using the OpenHEXA Toolbox - IASO](toolbox-iaso.md): Fetch data from IASO
+- [Using the OpenHEXA Toolbox - OpenHEXA Client](toolbox-hexa.md): Legacy GraphQL client (deprecated)
 
 ## Quickstart
 

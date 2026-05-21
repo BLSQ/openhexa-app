@@ -16,7 +16,9 @@ Le présent guide vous accompagnera dans la création et le déploiement d'un pi
 
 - [Utiliser le SDK OpenHEXA](sdk.md) : le SDK OpenHEXA est une bibliothèque Python qui fournit des blocs de construction et des méthodes utilitaires pour écrire du code sur OpenHEXA
 - [Utiliser l'OpenHEXA CLI](cli.md) : l'OpenHEXA CLI est un utilitaire en ligne de commande qui vous permet d'interagir avec votre instance OpenHEXA depuis votre terminal
-- [Utiliser le Toolbox OpenHEXA](toolbox.md) : le toolbox OpenHEXA est une collection d'utilitaires qui peuvent vous aider dans les workflows d'intégration et d'analyse de données de santé
+- [Utiliser l'OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md) : Acquérir et traiter des données depuis des instances DHIS2
+- [Utiliser l'OpenHEXA Toolbox - IASO](toolbox-iaso.md) : Récupérer des données depuis IASO
+- [Utiliser l'OpenHEXA Toolbox - Client OpenHEXA](toolbox-hexa.md) : Client GraphQL hérité (déprécié)
 
 ## Démarrage rapide
 

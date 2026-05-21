@@ -1,9 +1,6 @@
 <div class="hero-section">
-  <h1><i class="fas fa-hexagon" style="margin-right: 0.5rem;"></i>Using the OpenHEXA Toolbox</h1>
+  <h1><i class="fas fa-hexagon" style="margin-right: 0.5rem;"></i>OpenHEXA Toolbox DHIS2</h1>
 </div>
-</div>
-
-# OpenHEXA Toolbox DHIS2
 
 An utility library to acquire and process data from a DHIS2 instance.
 
@@ -443,101 +440,4 @@ True
 
 >>> period_from_string("2022Q3") == q1
 True
-```
-
-
-
-# OpenHEXA Toolbox IASO
-
-Module to fetch data from IASO.
-
-## Installation
-
-``` sh
-pip install openhexa.toolbox
-```
-
-## Usage
-
-### Connect to an instance
-
-Credentials are required to initialize a connection to IASO instance. Credentials should contain the username and
-password to connect to an instance of IASO. You have as well to provide the host name to for the api to connect to:
-* Staging environment https://iaso-staging.bluesquare.org/api
-* Production environment https://iaso.bluesquare.org/api
-
-Import IASO module as:
-```
-from openhexa.toolbox.iaso import IASO
-
-iaso = IASO("https://iaso-staging.bluesquare.org","username", "password")
-```
-
-### Read data
-
-After importing IASO module, you can use provided method to fetch Projects, Organisation Units and Forms that you have
-permissions for.  
-```
-# Fetch projects 
-iaso.get_projects()
-# Fetch organisation units 
-iaso.get_org_units()
-# Fetch submitted forms filtered by form_ids passed in url parameters and with choice to fetch them as dataframe
-iaso.get_form_instances(page=1, limit=1, as_dataframe=True, 
-	dataframe_columns=["Date de création","Date de modification","Org unit"], ids=276)
-# Fetch forms filtered by organisaiton units and projects that you have permissions to
-iaso.get_forms(org_units=[781], projects=[149])
-```
-
-You can as well provide additional parameters to the method to filter on desired values as key value arguments. 
-You can have an overview on the arguments you can filter on API documentation of IASO.
-
-# OpenHEXA Toolbox - OpenHEXA Client (no longer maintained)
-
-_⚠️ We now recommend using the [SDK OpenHexa Client](sdk.md#using-the-openhexa-client) instead. It contains plenty of (typed) methods and can be semi-automatically extended by the OpenHexa team. The toolbox client will not be maintained/extended in the future_
-
-The OpenHEXA class is part of the OpenHexa toolbox, designed for interacting with the OpenHexa platform's API.
-The OpenHEXAClient module enables users to interact with the OpenHEXA backend using GraphQL syntax.
-
-## Installation
-
-``` sh
-pip install openhexa.toolbox
-```
-
-## Usage
-
-### Connect to the API
-
-To initialize the OpenHEXA class, you need to provide the server_url of the OpenHexa instance and either a username/password combination or an API token for authentication.
-Two-factor authentication should be disabled for this method.
-
-```python 
-from openhexa.toolbox.hexa import OpenHEXA
-# We can authenticate using username / password
-hexa = OpenHEXA("https://app.demo.openhexa.org", username="username",  password="password")
-
-# You can also use the token provided by OpenHEXA on the pipelines page.
-hexa = OpenHEXA("https://app.demo.openhexa.org", token="token")
-```
-
-### Play with the API
-
-After importing Hexa module, you can use provided method to fetch Projects, Organisation Units and Forms that you have
-permissions for.
-
-```python
-from openhexa.toolbox.hexa import OpenHEXA
-# Get workspaces
-workspaces = hexa.get_workspaces()
-
-# Get pipelines in a specific workspace
-workspace_slug = workspaces['workspaces']['items'][0]['slug']
-pipelines = hexa.get_pipelines(workspace_slug)
-
-# Run a pipeline
-pipeline_id = pipelines['pipelines']['items'][0]['id']
-run_response = hexa.run_pipeline(id=pipeline_id,config={}, send_notification=True)
-
-print(run_response)
 ```

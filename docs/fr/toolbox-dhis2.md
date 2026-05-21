@@ -1,9 +1,6 @@
 <div class="hero-section">
-  <h1><i class="fas fa-hexagon" style="margin-right: 0.5rem;"></i>Utiliser le Toolbox OpenHEXA</h1>
+  <h1><i class="fas fa-hexagon" style="margin-right: 0.5rem;"></i>OpenHEXA Toolbox DHIS2</h1>
 </div>
-</div>
-
-# OpenHEXA Toolbox DHIS2
 
 Une bibliothèque utilitaire pour acquérir et traiter des données depuis une instance DHIS2.
 
@@ -399,101 +396,4 @@ True
 
 >>> period_from_string("2022Q3") == q1
 True
-```
-
-
-
-# OpenHEXA Toolbox IASO
-
-Module pour récupérer des données depuis IASO.
-
-## Installation
-
-``` sh
-pip install openhexa.toolbox
-```
-
-## Usage
-
-### Connexion à une instance
-
-Des identifiants sont requis pour initialiser une connexion à une instance IASO. Les identifiants doivent contenir le nom d'utilisateur et
-le mot de passe pour se connecter à une instance d'IASO. Vous devez également fournir le nom d'hôte pour que l'API se connecte à :
-* Environnement de staging https://iaso-staging.bluesquare.org/api
-* Environnement de production https://iaso.bluesquare.org/api
-
-Importez le module IASO comme suit :
-```
-from openhexa.toolbox.iaso import IASO
-
-iaso = IASO("https://iaso-staging.bluesquare.org","username", "password")
-```
-
-### Lire les données
-
-Après avoir importé le module IASO, vous pouvez utiliser la méthode fournie pour récupérer les Projects, Organisation Units et Forms pour lesquels vous avez
-des permissions.
-```
-# Récupérer les projets
-iaso.get_projects()
-# Récupérer les unités d'organisation
-iaso.get_org_units()
-# Récupérer les formulaires soumis filtrés par form_ids passés dans les paramètres URL et avec le choix de les récupérer en dataframe
-iaso.get_form_instances(page=1, limit=1, as_dataframe=True,
-	dataframe_columns=["Date de création","Date de modification","Org unit"], ids=276)
-# Récupérer les formulaires filtrés par unités d'organisation et projets pour lesquels vous avez des permissions
-iaso.get_forms(org_units=[781], projects=[149])
-```
-
-Vous pouvez également fournir des paramètres supplémentaires à la méthode pour filtrer sur les valeurs souhaitées sous forme d'arguments key-value.
-Vous pouvez avoir un aperçu des arguments sur lesquels filtrer dans la documentation API d'IASO.
-
-# OpenHEXA Toolbox - Client OpenHEXA (n'est plus maintenu)
-
-_⚠️ Nous recommandons désormais d'utiliser le [Client OpenHexa du SDK](sdk.md#using-the-openhexa-client) à la place. Il contient de nombreuses méthodes (typées) et peut être étendu de manière semi-automatique par l'équipe OpenHexa. Le client toolbox ne sera pas maintenu/étendu à l'avenir._
-
-La classe OpenHEXA fait partie du toolbox OpenHexa, conçue pour interagir avec l'API de la plateforme OpenHexa.
-Le module OpenHEXAClient permet aux utilisateurs d'interagir avec le backend OpenHEXA en utilisant la syntaxe GraphQL.
-
-## Installation
-
-``` sh
-pip install openhexa.toolbox
-```
-
-## Usage
-
-### Connexion à l'API
-
-Pour initialiser la classe OpenHEXA, vous devez fournir le server_url de l'instance OpenHexa et soit une combinaison nom d'utilisateur/mot de passe, soit un jeton API pour l'authentification.
-L'authentification à deux facteurs doit être désactivée pour cette méthode.
-
-```python
-from openhexa.toolbox.hexa import OpenHEXA
-# Nous pouvons nous authentifier avec nom d'utilisateur / mot de passe
-hexa = OpenHEXA("https://app.demo.openhexa.org", username="username",  password="password")
-
-# Vous pouvez également utiliser le jeton fourni par OpenHEXA sur la page des pipelines.
-hexa = OpenHEXA("https://app.demo.openhexa.org", token="token")
-```
-
-### Jouer avec l'API
-
-Après avoir importé le module Hexa, vous pouvez utiliser la méthode fournie pour récupérer les Projects, Organisation Units et Forms pour lesquels vous avez
-des permissions.
-
-```python
-from openhexa.toolbox.hexa import OpenHEXA
-# Obtenir les espaces de travail
-workspaces = hexa.get_workspaces()
-
-# Obtenir les pipelines dans un espace de travail spécifique
-workspace_slug = workspaces['workspaces']['items'][0]['slug']
-pipelines = hexa.get_pipelines(workspace_slug)
-
-# Exécuter un pipeline
-pipeline_id = pipelines['pipelines']['items'][0]['id']
-run_response = hexa.run_pipeline(id=pipeline_id,config={}, send_notification=True)
-
-print(run_response)
 ```
