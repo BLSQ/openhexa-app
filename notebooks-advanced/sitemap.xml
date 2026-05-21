@@ -127,11 +127,25 @@
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/static-webapps/"/>
     </url>
     <url>
-        <loc>https://docs.openhexa.com/toolbox/</loc>
+        <loc>https://docs.openhexa.com/toolbox-dhis2/</loc>
         <lastmod>2026-05-21</lastmod>
         <changefreq>daily</changefreq>
-        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/toolbox/"/>
-        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/toolbox/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/toolbox-dhis2/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/toolbox-dhis2/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/toolbox-hexa/</loc>
+        <lastmod>2026-05-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/toolbox-hexa/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/toolbox-hexa/"/>
+    </url>
+    <url>
+        <loc>https://docs.openhexa.com/toolbox-iaso/</loc>
+        <lastmod>2026-05-21</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/toolbox-iaso/"/>
+        <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/toolbox-iaso/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/workspaces/</loc>
