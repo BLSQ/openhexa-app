@@ -28,7 +28,9 @@ Le composant notebooks d'OpenHEXA fonctionne comme un environnement Jupyter stan
 Le présent guide vous accompagnera à travers les spécificités de l'environnement notebooks d'OpenHEXA. Vous pouvez également trouver les deux guides suivants intéressants :
 
 - [Utiliser le SDK OpenHEXA](sdk.md) : le SDK OpenHEXA est une bibliothèque Python qui fournit des blocs de construction et des méthodes utilitaires pour écrire du code sur OpenHEXA
-- [Utiliser le Toolbox OpenHEXA](toolbox.md) : le toolbox OpenHEXA est une collection d'utilitaires qui peuvent vous aider dans les workflows d'intégration et d'analyse de données de santé
+- [Utiliser l'OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md) : Acquérir et traiter des données depuis des instances DHIS2
+- [Utiliser l'OpenHEXA Toolbox - IASO](toolbox-iaso.md) : Récupérer des données depuis IASO
+- [Utiliser l'OpenHEXA Toolbox - Client OpenHEXA](toolbox-hexa.md) : Client GraphQL hérité (déprécié)
 
 ## Utiliser le système de fichiers de l'espace de travail
 
