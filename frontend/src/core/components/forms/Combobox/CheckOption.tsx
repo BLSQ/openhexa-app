@@ -35,8 +35,9 @@ function CheckOption(props: CheckOptionsProps) {
       className={({ focus, selected }) =>
         clsx(
           "relative cursor-default select-none px-3 py-2 rounded-md mx-1",
-          focus && "bg-gray-100",
+          focus && !disabled && "bg-gray-100",
           selected || forceSelected ? "bg-gray-50" : "",
+          disabled && "opacity-40 cursor-not-allowed",
           className,
         )
       }

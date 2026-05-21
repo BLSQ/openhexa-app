@@ -1,3 +1,4 @@
+import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { gql, useMutation } from "@apollo/client";
 import { Trans, useTranslation } from "next-i18next";
 import { useEffect } from "react";
@@ -7,6 +8,7 @@ import clsx from "clsx";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
+import { ensureArray } from "core/helpers/array";
 import useForm from "core/hooks/useForm";
 import { PipelineParameter, UpdatePipelineVersionError } from "graphql/types";
 import ParameterField from "../RunPipelineDialog/ParameterField";
@@ -56,6 +58,16 @@ const PipelineVersionConfigDialog = (props: PipelineVersionConfigProps) => {
           );
         }
       }
+      const normalizedValues = convertParametersToPipelineInput(version, values);
+      for (const param of version.parameters) {
+        if (errors[param.code]) continue;
+        if (param.type === "int" || param.type === "float") {
+          const val = normalizedValues[param.code];
+          if (ensureArray(val).some((v: any) => isNaN(v))) {
+            errors[param.code] = t("This field must contain only numbers");
+          }
+        }
+      }
       return errors;
     },
     async onSubmit(values) {
@@ -69,6 +81,14 @@ const PipelineVersionConfigDialog = (props: PipelineVersionConfigProps) => {
       });
       if (data?.errors?.includes(UpdatePipelineVersionError.PermissionDenied)) {
         throw new Error("You cannot update this version's configuration.");
+      } else if (
+        data?.updatePipelineVersion?.errors?.includes(
+          UpdatePipelineVersionError.InvalidConfig,
+        )
+      ) {
+        throw new Error(
+          t("One or more parameter values do not match the expected type."),
+        );
       } else if (!data?.updatePipelineVersion.success) {
         throw new Error("An error occurred while updating the version.");
       }
@@ -140,11 +160,18 @@ const PipelineVersionConfigDialog = (props: PipelineVersionConfigProps) => {
                   form.setFieldValue(param.code, value);
                 }}
                 workspaceSlug={version.pipeline.workspace.slug}
+                pipelineVersionId={version.id}
                 form={form}
               />
             </Field>
           ))}
         </div>
+        {form.submitError && (
+          <div className="mt-2 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+            <ExclamationCircleIcon className="h-4 w-4 shrink-0 text-red-500" />
+            {form.submitError}
+          </div>
+        )}
       </Dialog.Content>
       <Dialog.Actions>
         <Button onClick={onClose} variant={"outlined"}>

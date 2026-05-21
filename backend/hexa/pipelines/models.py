@@ -37,7 +37,28 @@ from hexa.core.models.soft_delete import (
 )
 from hexa.pipelines.constants import UNIQUE_PIPELINE_VERSION_NAME
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.models import ConnectionType, Workspace
+
+# bool is a subclass of int in Python, so it must be excluded explicitly from int/float checks.
+_PRIMITIVE_TYPE_CHECKS = {
+    "bool": lambda v: isinstance(v, bool),
+    "int": lambda v: isinstance(v, int) and not isinstance(v, bool),
+    "float": lambda v: isinstance(v, (int, float)) and not isinstance(v, bool),
+    "str": lambda v: isinstance(v, str),
+    "secret": lambda v: isinstance(v, str),
+    "dataset": lambda v: isinstance(v, str),
+    "file": lambda v: isinstance(v, str),
+}
+
+_CONNECTION_TYPES = frozenset(ct.value.lower() for ct in ConnectionType)
+
+
+def _is_valid_config_value(value, param_type: str) -> bool:
+    if param_type in _PRIMITIVE_TYPE_CHECKS:
+        return _PRIMITIVE_TYPE_CHECKS[param_type](value)
+    if param_type in _CONNECTION_TYPES:
+        return isinstance(value, str)
+    return True
 
 
 class PipelineCodeParsingError(Exception):
@@ -199,14 +220,35 @@ class PipelineVersion(models.Model):
         if not principal.has_perm("pipelines.update_pipeline_version", self):
             raise PermissionDenied
 
-        if kwargs.get("config") and self.pipeline.schedule:
-            self.validate_new_config(kwargs.get("config"))
+        if kwargs.get("config"):
+            self.validate_config_types(kwargs["config"])
+            if self.pipeline.schedule:
+                self.validate_new_config(kwargs["config"])
 
         for key in ["name", "description", "external_link", "config"]:
             if key in kwargs and kwargs[key] is not None:
                 setattr(self, key, kwargs[key])
 
         return self.save()
+
+    def validate_config_types(self, config: dict):
+        param_map = {p["code"]: p for p in self.parameters}
+        errors = []
+
+        for code, value in config.items():
+            if code not in param_map or value is None:
+                continue
+
+            param = param_map[code]
+            param_type = param.get("type", "")
+            multiple = param.get("multiple", False)
+            values = value if (multiple and isinstance(value, list)) else [value]
+
+            if any(not _is_valid_config_value(v, param_type) for v in values):
+                errors.append(f"'{code}' (expected {param_type})")
+
+        if errors:
+            raise ValueError(f"Parameters with invalid types: {', '.join(errors)}")
 
     def validate_new_config(self, new_config: dict):
         for parameter in self.parameters:
@@ -449,6 +491,9 @@ class Pipeline(SoftDeletedModel):
         send_mail_notifications: bool = True,
         log_level: PipelineRunLogLevel = PipelineRunLogLevel.INFO,
     ):
+        if pipeline_version and config:
+            pipeline_version.validate_config_types(config)
+
         organization = self.workspace.organization if self.workspace else None
         if organization and organization.is_pipeline_runs_limit_reached():
             raise PipelineRunsLimitReached

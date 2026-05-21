@@ -474,6 +474,11 @@ def resolve_update_pipeline_version(_, info, **kwargs):
             "success": False,
             "errors": ["PERMISSION_DENIED"],
         }
+    except ValueError:
+        return {
+            "success": False,
+            "errors": ["INVALID_CONFIG"],
+        }
 
 
 @pipelines_mutations.field("deletePipelineVersion")

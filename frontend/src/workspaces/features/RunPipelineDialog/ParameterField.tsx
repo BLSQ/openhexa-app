@@ -11,24 +11,29 @@ import DatasetPicker from "datasets/features/DatasetPicker";
 import { ensureArray } from "core/helpers/array";
 import GenericConnectionWidget from "./GenericConnectionWidget";
 import FileParameterField from "./FileParameterField";
+import ChoicesFromFileWidget from "./ChoicesFromFileWidget";
+import { ParameterField_ParameterFragment } from "./ParameterField.generated";
+import { ConnectionType } from "graphql/types";
 
 type ParameterFieldProps = {
-  parameter: any;
+  parameter: ParameterField_ParameterFragment;
   value: any;
   form: any;
   onChange(value: any): void;
   workspaceSlug?: string;
+  pipelineVersionId?: string;
 };
 
 const ParameterField = (props: ParameterFieldProps) => {
   const { t } = useTranslation();
-  const { parameter, value, form, onChange, workspaceSlug } = props;
+  const { parameter, value, form, onChange, workspaceSlug, pipelineVersionId } =
+    props;
 
   const handleChange = useCallback(
     (value: any) => {
       if (parameter.multiple && (value === null || value === undefined)) {
         return onChange([]);
-      } else if (parameter.multiple && !parameter.choices) {
+      } else if (parameter.multiple && !parameter.choices && !parameter.choicesFromFile) {
         onChange(value.split("\n"));
       } else {
         onChange(value);
@@ -66,7 +71,7 @@ const ParameterField = (props: ParameterFieldProps) => {
         value={value ?? []}
         onChange={(option) => handleChange(option?.slug)}
         withPortal
-        type={parameter.type}
+        type={parameter.type.toUpperCase() as ConnectionType}
       />
     );
   }
@@ -90,6 +95,17 @@ const ParameterField = (props: ParameterFieldProps) => {
         value={value}
         onChange={(file) => handleChange(file?.key)}
         parameter={parameter}
+      />
+    );
+  }
+
+  if (parameter.choicesFromFile && pipelineVersionId) {
+    return (
+      <ChoicesFromFileWidget
+        parameter={parameter}
+        value={value}
+        onChange={handleChange}
+        pipelineVersionId={pipelineVersionId}
       />
     );
   }
@@ -197,6 +213,11 @@ ParameterField.fragments = {
       default
       required
       choices
+      choicesFromFile {
+        path
+        format
+        column
+      }
       connection
       widget
       multiple

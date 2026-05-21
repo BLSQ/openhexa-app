@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { ChevronDownIcon, PlayIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, ExclamationCircleIcon, PlayIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
@@ -213,12 +213,14 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                         }}
                         form={form}
                         workspaceSlug={pipeline.workspace?.slug}
+                        pipelineVersionId={activeVersion.id}
                       />
                     </Field>
                   ))}
                 </div>
                 {form.submitError && (
-                  <div className="mt-3 text-sm text-red-600">
+                  <div className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+                    <ExclamationCircleIcon className="h-4 w-4 shrink-0 text-red-500" />
                     {form.submitError}
                   </div>
                 )}
