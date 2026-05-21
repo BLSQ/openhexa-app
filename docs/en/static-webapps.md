@@ -69,6 +69,12 @@ By default a static webapp has an empty `allowed_operations` list, which means i
 
 Introspection fields `__typename`, `__schema`, `__type` are always allowed.
 
+## Exploring the schema
+
+The fastest way to design queries for a webapp is the interactive GraphQL playground at <https://app.openhexa.org/graphql/> (or `/graphql/` on your own install).
+
+Note that the playground shows the **full** schema, not just what the webapp proxy allows. A query that works there can still return `403` from a webapp at runtime if its top-level field isn't covered by the webapp's [scopes](#scope-reference) — cross-check before pasting into webapp code.
+
 ## The `window.OPENHEXA` global
 
 When OpenHEXA serves your static webapp's HTML it injects a small script before `</head>` that exposes:
