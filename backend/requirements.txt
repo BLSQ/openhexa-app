@@ -325,7 +325,7 @@ oauthlib==3.3.1
     #   django-oauth-toolkit
     #   kubernetes
     #   requests-oauthlib
-openhexa-sdk==2.20.0
+openhexa-sdk==2.21.0
     # via
     #   -r requirements.in
     #   openhexa-toolbox

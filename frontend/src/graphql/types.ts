@@ -3854,6 +3854,7 @@ export type OrganizationWorkspaceInvitation = {
 /** Represents an input parameter of a pipeline. */
 export type ParameterInput = {
   choices?: InputMaybe<Array<Scalars['Generic']['input']>>;
+  choicesFromFile?: InputMaybe<PipelineParameterChoicesFromFileInput>;
   code: Scalars['String']['input'];
   connection?: InputMaybe<Scalars['String']['input']>;
   default?: InputMaybe<Scalars['Generic']['input']>;
@@ -4030,6 +4031,7 @@ export enum PipelineOrderBy {
 export type PipelineParameter = {
   __typename?: 'PipelineParameter';
   choices?: Maybe<Array<Scalars['Generic']['output']>>;
+  choicesFromFile?: Maybe<PipelineParameterChoicesFromFile>;
   code: Scalars['String']['output'];
   connection?: Maybe<Scalars['String']['output']>;
   default?: Maybe<Scalars['Generic']['output']>;
@@ -4040,6 +4042,29 @@ export type PipelineParameter = {
   required: Scalars['Boolean']['output'];
   type: ParameterType;
   widget?: Maybe<ParameterWidget>;
+};
+
+/** File format for a dynamic choices source. */
+export enum PipelineParameterChoicesFileFormat {
+  Csv = 'csv',
+  Json = 'json',
+  Yaml = 'yaml',
+  Yml = 'yml'
+}
+
+/** Describes a dynamic choices source backed by a workspace file. */
+export type PipelineParameterChoicesFromFile = {
+  __typename?: 'PipelineParameterChoicesFromFile';
+  column?: Maybe<Scalars['String']['output']>;
+  format?: Maybe<PipelineParameterChoicesFileFormat>;
+  path: Scalars['String']['output'];
+};
+
+/** Input for a dynamic choices source backed by a workspace file. */
+export type PipelineParameterChoicesFromFileInput = {
+  column?: InputMaybe<Scalars['String']['input']>;
+  format?: InputMaybe<PipelineParameterChoicesFileFormat>;
+  path: Scalars['String']['input'];
 };
 
 /** Represents the permissions for a pipeline. */
@@ -4500,6 +4525,11 @@ export type Query = {
   pipeline?: Maybe<Pipeline>;
   /** Retrieves a pipeline by workspace slug and code. */
   pipelineByCode?: Maybe<Pipeline>;
+  /**
+   * Resolves the list of choices for a parameter backed by a workspace file.
+   * Returns a list of string values read from the file at the time of the call.
+   */
+  pipelineParameterChoices?: Maybe<Array<Scalars['String']['output']>>;
   /** Retrieves a pipeline run by ID. */
   pipelineRun?: Maybe<PipelineRun>;
   /** Retrieves a pipeline template version by ID. */
@@ -4701,6 +4731,12 @@ export type QueryPipelineArgs = {
 export type QueryPipelineByCodeArgs = {
   code: Scalars['String']['input'];
   workspaceSlug: Scalars['String']['input'];
+};
+
+
+export type QueryPipelineParameterChoicesArgs = {
+  parameterCode: Scalars['String']['input'];
+  pipelineVersionId: Scalars['UUID']['input'];
 };
 
 
@@ -5813,6 +5849,7 @@ export type UpdatePipelineResult = {
 
 /** Enum representing the possible errors that can occur when updating a pipeline version. */
 export enum UpdatePipelineVersionError {
+  InvalidConfig = 'INVALID_CONFIG',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }

@@ -91,6 +91,34 @@ enum ParameterWidget {
 }
 
 """
+File format for a dynamic choices source.
+"""
+enum PipelineParameterChoicesFileFormat {
+  csv
+  json
+  yaml
+  yml
+}
+
+"""
+Describes a dynamic choices source backed by a workspace file.
+"""
+type PipelineParameterChoicesFromFile {
+  path: String!                          # Path to the file in the workspace file system.
+  format: PipelineParameterChoicesFileFormat  # File format; omit to auto-detect from path extension.
+  column: String                         # Column/key to use as choice values (required for multi-column files).
+}
+
+"""
+Input for a dynamic choices source backed by a workspace file.
+"""
+input PipelineParameterChoicesFromFileInput {
+  path: String!                          # Path to the file in the workspace file system.
+  format: PipelineParameterChoicesFileFormat  # File format; omit to auto-detect from path extension.
+  column: String                         # Column/key to use as choice values (required for multi-column files).
+}
+
+"""
 Represents a parameter of a pipeline.
 """
 type PipelineParameter {
@@ -104,6 +132,7 @@ type PipelineParameter {
   widget: ParameterWidget  # The widget to use for the parameter.
   connection: String  # The connection associated with the parameter.
   choices: [Generic!]  # The list of choices for the parameter.
+  choicesFromFile: PipelineParameterChoicesFromFile  # Dynamic choices loaded from a workspace file.
   directory: String  # The name of the directory restriction (for file browser).
 }
 
@@ -121,6 +150,7 @@ input ParameterInput {
   connection: String # The connection associated with the parameter.
   help: String  # The help text for the parameter.
   choices: [Generic!]  # The list of choices for the parameter.
+  choicesFromFile: PipelineParameterChoicesFromFileInput  # Dynamic choices loaded from a workspace file.
   directory: String  # The name of the directory restriction (for file browser).
 }
 
@@ -729,6 +759,7 @@ Enum representing the possible errors that can occur when updating a pipeline ve
 enum UpdatePipelineVersionError {
   NOT_FOUND
   PERMISSION_DENIED
+  INVALID_CONFIG
 }
 
 """
@@ -765,6 +796,12 @@ extend type Query {
   Retrieves a pipeline run by ID.
   """
   pipelineRun(id: UUID!): PipelineRun @loginRequired
+
+  """
+  Resolves the list of choices for a parameter backed by a workspace file.
+  Returns a list of string values read from the file at the time of the call.
+  """
+  pipelineParameterChoices(pipelineVersionId: UUID!, parameterCode: String!): [String!] @loginRequired
 }
 
 extend type Mutation {
