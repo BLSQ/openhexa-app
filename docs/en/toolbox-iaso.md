@@ -2,7 +2,7 @@
   <h1><i class="fas fa-hexagon" style="margin-right: 0.5rem;"></i>OpenHEXA Toolbox IASO</h1>
 </div>
 
-Module to fetch data from IASO.
+The `openhexa.toolbox.iaso` `IASO` class authenticates against an IASO instance (staging or production) and fetches projects, organisation units, forms, and form submissions — with optional pandas DataFrame output and filters.
 
 ## Installation
 

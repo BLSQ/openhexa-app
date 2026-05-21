@@ -3,7 +3,7 @@
 </div>
 </div>
 
-OpenHEXA data pipelines provide a way to help you automate data processing and modelization operations.
+End-to-end guide to authoring OpenHEXA pipelines: `@pipeline`/`@task` DAGs, parallelism and timeouts, typed parameters (datasets, files, secrets, connections, dynamic choices), `workspace.yaml`, GitHub Actions deploys, and Docker runs.
 
 They are written as Python programs, and offer the following capabilities:
 

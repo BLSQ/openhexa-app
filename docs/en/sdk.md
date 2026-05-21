@@ -3,9 +3,7 @@
 </div>
 </div>
 
-The OpenHEXA Python SDK is a tool that helps you write code for the OpenHEXA platform.
-
-It is particularly useful to write OpenHEXA data pipelines, but can also be used in the OpenHEXA notebooks environment.
+The `openhexa.sdk` Python library lets you write pipelines and notebook code against OpenHEXA: a `workspace` helper for files, database, connections, datasets and webapps, plus a typed `OpenHexaClient` for programmatic and GraphQL access.
 
 ## Getting started
 

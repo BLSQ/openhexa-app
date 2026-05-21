@@ -2,8 +2,7 @@
   <h1><i class="fas fa-hexagon" style="margin-right: 0.5rem;"></i>Using Notebooks in OpenHEXA</h1>
 </div>
 </div>
-
-The notebooks component of OpenHEXA is a customized [Jupyter](https://jupyter.org/) deployment.
+OpenHEXA notebooks are a customized [Jupyter](https://jupyter.org/) environment preloaded with the OpenHEXA SDK and toolboxes — this guide covers the workspace filesystem, the workspace Postgres from Python and R, and S3/GCS access.
 
 Jupyter is a flexible integrated development environment built around notebooks – documents that combine code, documentation, data and rich visualizations. It provides a fast interactive environment for prototyping and explaining code, exploring and visualizing data, and sharing ideas with others. For more information about the Jupyter stack, please refer to the [official Jupyter documentation](https://docs.jupyter.org/en/latest/).
 

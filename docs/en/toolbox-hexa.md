@@ -2,10 +2,7 @@
   <h1><i class="fas fa-hexagon" style="margin-right: 0.5rem;"></i>OpenHEXA Toolbox - OpenHEXA Client (no longer maintained)</h1>
 </div>
 
-_⚠️ We now recommend using the [SDK OpenHexa Client](sdk.md#using-the-openhexa-client) instead. It contains plenty of (typed) methods and can be semi-automatically extended by the OpenHexa team. The toolbox client will not be maintained/extended in the future_
-
-The OpenHEXA class is part of the OpenHexa toolbox, designed for interacting with the OpenHexa platform's API.
-The OpenHEXAClient module enables users to interact with the OpenHEXA backend using GraphQL syntax.
+DEPRECATED — the `openhexa.toolbox.hexa` GraphQL client is no longer maintained. Use the typed `OpenHexaClient` documented in the [SDK guide](sdk.md#using-the-openhexa-client) instead.
 
 ## Installation
 
