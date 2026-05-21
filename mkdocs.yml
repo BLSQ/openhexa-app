@@ -111,7 +111,9 @@ plugins:
             Writing Pipelines: Écrire des pipelines
             CLI: CLI
             SDK: SDK
-            Toolbox: Toolbox
+            Toolbox DHIS2: Toolbox DHIS2
+            Toolbox IASO: Toolbox IASO
+            Toolbox OpenHEXA Client: Toolbox Client OpenHEXA
             Notebooks (advanced): Notebooks (avancé)
             API Authentication: Authentification API
             Static Webapps: Webapps statiques
@@ -220,7 +222,9 @@ nav:
     - Static Webapps: static-webapps.md
     - CLI: cli.md
     - SDK: sdk.md
-    - Toolbox: toolbox.md
+    - Toolbox DHIS2: toolbox-dhis2.md
+    - Toolbox IASO: toolbox-iaso.md
+    - Toolbox OpenHEXA Client: toolbox-hexa.md
     - Notebooks (advanced): notebooks-advanced.md
     - API Authentication: api-authentication.md
   - Administration:
