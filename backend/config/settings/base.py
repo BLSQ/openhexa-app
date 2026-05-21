@@ -16,6 +16,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from corsheaders.defaults import default_headers
+from django.conf import global_settings
 from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -424,6 +425,11 @@ HUB_API_TOKEN = os.environ.get("HUB_API_TOKEN", "")
 GRAPHQL_DEFAULT_PAGE_SIZE = 10
 GRAPHQL_MAX_PAGE_SIZE = 10_000
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = int(
+    os.environ.get(
+        "DATA_UPLOAD_MAX_MEMORY_SIZE", 2 * global_settings.DATA_UPLOAD_MAX_MEMORY_SIZE
+    )
+)
 # Disabling the check on the size of the request body when using the file system storage backend
 # This is needed to allow the upload of large files when they are not stored by an external storage backend
 if os.environ.get("DISABLE_UPLOAD_MAX_SIZE_CHECK", "false") == "true":
