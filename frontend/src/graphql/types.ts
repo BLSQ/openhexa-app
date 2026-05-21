@@ -1089,9 +1089,12 @@ export type CreatePipelineTemplateVersionInput = {
   code?: InputMaybe<Scalars['String']['input']>;
   config?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
+  documentation?: InputMaybe<Scalars['String']['input']>;
+  extractDocumentationFromReadme?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   pipelineId: Scalars['UUID']['input'];
   pipelineVersionId: Scalars['UUID']['input'];
+  versionName?: InputMaybe<Scalars['String']['input']>;
   workspaceSlug: Scalars['String']['input'];
 };
 
@@ -4186,6 +4189,7 @@ export type PipelineTemplate = {
   config?: Maybe<Scalars['String']['output']>;
   currentVersion?: Maybe<PipelineTemplateVersion>;
   description?: Maybe<Scalars['String']['output']>;
+  documentation?: Maybe<Scalars['String']['output']>;
   functionalType?: Maybe<PipelineFunctionalType>;
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
@@ -4257,8 +4261,10 @@ export type PipelineTemplateVersion = {
   __typename?: 'PipelineTemplateVersion';
   changelog?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
+  documentation?: Maybe<Scalars['String']['output']>;
   id: Scalars['UUID']['output'];
   isLatestVersion: Scalars['Boolean']['output'];
+  name?: Maybe<Scalars['String']['output']>;
   permissions: PipelineTemplateVersionPermissions;
   sourcePipelineVersion: PipelineVersion;
   template: PipelineTemplate;
@@ -5934,7 +5940,9 @@ export enum UpdateTemplateVersionError {
 /** Represents the input for updating a template version. */
 export type UpdateTemplateVersionInput = {
   changelog?: InputMaybe<Scalars['String']['input']>;
+  documentation?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Represents the result of updating a template version. */

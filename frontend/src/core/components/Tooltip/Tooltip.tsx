@@ -33,7 +33,7 @@ const Tooltip = (props: Props) => {
             props.children,
           )
         : props.renderTrigger(setTriggerRef)}
-      {typeof window !== "undefined" &&
+      {label && typeof window !== "undefined" &&
         ReactDOM.createPortal(
           <Transition
             show={visible}

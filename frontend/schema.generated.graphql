@@ -1079,9 +1079,12 @@ input CreatePipelineTemplateVersionInput {
   code: String
   config: String
   description: String
+  documentation: String
+  extractDocumentationFromReadme: Boolean
   name: String
   pipelineId: UUID!
   pipelineVersionId: UUID!
+  versionName: String
   workspaceSlug: String!
 }
 
@@ -3562,6 +3565,7 @@ type PipelineTemplate {
   config: String
   currentVersion: PipelineTemplateVersion
   description: String
+  documentation: String
   functionalType: PipelineFunctionalType
   id: UUID!
   name: String!
@@ -3621,8 +3625,10 @@ type PipelineTemplateResultPage {
 type PipelineTemplateVersion {
   changelog: String
   createdAt: DateTime!
+  documentation: String
   id: UUID!
   isLatestVersion: Boolean!
+  name: String
   permissions: PipelineTemplateVersionPermissions!
   sourcePipelineVersion: PipelineVersion!
   template: PipelineTemplate!
@@ -5110,7 +5116,9 @@ enum UpdateTemplateVersionError {
 """Represents the input for updating a template version."""
 input UpdateTemplateVersionInput {
   changelog: String
+  documentation: String
   id: UUID!
+  name: String
 }
 
 """Represents the result of updating a template version."""

@@ -71,7 +71,10 @@ input CreatePipelineTemplateVersionInput {
   name: String  # The name of the pipeline template.
   code: String  # The code of the pipeline template.
   description: String  # The description of the pipeline template.
+  versionName: String  # The name of the pipeline template version.
   changelog: String  # The changelog of the pipeline template version.
+  documentation: String  # The documentation of the pipeline template version. Overrides README extraction.
+  extractDocumentationFromReadme: Boolean  # When true (default), extract documentation from README.md in the pipeline zip.
   config: String  # The configuration of the pipeline template.
   workspaceSlug: String!  # The slug of the pipeline workspace.
   pipelineId: UUID!  # The ID of the pipeline.
@@ -179,6 +182,7 @@ type PipelineTemplate {
   name: String!  # The name of the pipeline template.
   code: String!  # The code of the pipeline template.
   description: String  # The description of the pipeline template.
+  documentation: String  # Read-only. The description of the latest template version (typically sourced from README.md).
   config: String  # The configuration of the pipeline template.
   versions(page: Int, perPage: Int): TemplateVersionPage!  # Retrieves the template versions associated with the template.
   currentVersion: PipelineTemplateVersion  # The current version of the pipeline template.
@@ -209,6 +213,8 @@ Represents a version of a pipeline template.
 type PipelineTemplateVersion {
   id: UUID!  # The ID of the pipeline template version.
   versionNumber: Int!  # The version number of the pipeline template version.
+  name: String  # The name of the pipeline template version.
+  documentation: String  # The documentation of the pipeline template version.
   changelog: String  # The changelog of the pipeline template version.
   createdAt: DateTime!  # The creation date of the pipeline template version.
   template: PipelineTemplate!  # The pipeline template associated with the version.
@@ -263,6 +269,8 @@ Represents the input for updating a template version.
 """
 input UpdateTemplateVersionInput {
   id: UUID!  # The ID of the template version to update.
+  name: String  # The name of the template version.
+  documentation: String  # The documentation of the template version.
   changelog: String  # The new changelog associated with the template version.
 }
 

@@ -3,7 +3,10 @@ import { TrashIcon } from "@heroicons/react/24/outline";
 import Badge from "core/components/Badge";
 import Block from "core/components/Block";
 import Button from "core/components/Button";
+import CollapsibleMarkdown from "core/components/CollapsibleMarkdown";
 import DataCard from "core/components/DataCard";
+import MarkdownEditor from "core/components/MarkdownEditor";
+import RenderProperty from "core/components/DataCard/RenderProperty";
 import TextProperty from "core/components/DataCard/TextProperty";
 import Time from "core/components/Time";
 import { ItemProvider } from "core/hooks/useItemContext";
@@ -76,12 +79,36 @@ const TemplateVersionCard = (props: TemplateVersionCardProps) => {
           collapsible={false}
         >
           <TextProperty
+            id="name"
+            label={t("Name")}
+            accessor="name"
+            sm
+          />
+          <TextProperty
             id="changelog"
             label={t("Changelog")}
             accessor="changelog"
             sm
             markdown
           />
+          <RenderProperty
+            id="documentation"
+            accessor="documentation"
+            label={t("Documentation")}
+          >
+            {(property, section) =>
+              section.isEdited ? (
+                <MarkdownEditor
+                  markdown={property.formValue ?? ""}
+                  onChange={property.setValue}
+                />
+              ) : property.displayValue ? (
+                <CollapsibleMarkdown content={property.displayValue} />
+              ) : (
+                <></>
+              )
+            }
+          </RenderProperty>
         </DataCard.FormSection>
         <Block.Section>
           <div className="flex justify-end items-center gap-2">
@@ -108,7 +135,9 @@ TemplateVersionCard.fragments = {
     fragment TemplateVersionCard_version on PipelineTemplateVersion {
       id
       versionNumber
+      name
       changelog
+      documentation
       createdAt
       isLatestVersion
       user {

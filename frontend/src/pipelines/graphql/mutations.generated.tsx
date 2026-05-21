@@ -45,7 +45,7 @@ export type UpdateTemplateVersionMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateTemplateVersionMutation = { __typename?: 'Mutation', updateTemplateVersion: { __typename?: 'UpdateTemplateVersionResult', success: boolean, errors: Array<Types.UpdateTemplateVersionError>, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, changelog?: string | null, createdAt: any, isLatestVersion: boolean, user?: { __typename?: 'User', displayName: string } | null, permissions: { __typename?: 'PipelineTemplateVersionPermissions', update: boolean, delete: boolean }, template: { __typename?: 'PipelineTemplate', id: string, code: string } } | null } };
+export type UpdateTemplateVersionMutation = { __typename?: 'Mutation', updateTemplateVersion: { __typename?: 'UpdateTemplateVersionResult', success: boolean, errors: Array<Types.UpdateTemplateVersionError>, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, name?: string | null, changelog?: string | null, documentation?: string | null, createdAt: any, isLatestVersion: boolean, user?: { __typename?: 'User', displayName: string } | null, permissions: { __typename?: 'PipelineTemplateVersionPermissions', update: boolean, delete: boolean }, template: { __typename?: 'PipelineTemplate', id: string, code: string } } | null } };
 
 
 export const UpdatePipelineDocument = gql`
