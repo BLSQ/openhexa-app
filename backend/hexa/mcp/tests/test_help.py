@@ -42,7 +42,7 @@ class GetHelpOrDocTest(MCPTestCase):
         self.assertEqual(result["name"], "writing-pipelines")
         self.assertEqual(result["title"], "Writing OpenHEXA Pipelines")
         self.assertIn(
-            "OpenHEXA data pipelines provide a way to help you automate data processing",
+            "End-to-end guide to authoring OpenHEXA pipelines",
             result["content"],
         )
         self.assertIn("## Quickstart", result["content"])
