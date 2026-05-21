@@ -19,6 +19,7 @@ import LinkProperty from "core/components/DataCard/LinkProperty";
 import SubdomainProperty from "core/components/DataCard/SubdomainProperty";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import useCacheKey from "core/hooks/useCacheKey";
+import { isRequestTooLargeError } from "core/helpers/errors";
 import ImageProperty from "core/components/DataCard/ImageProperty";
 import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import useDebounce from "core/hooks/useDebounce";
@@ -277,7 +278,11 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       toast.success(t("Web app updated successfully"));
       clearCache();
     } catch (error) {
-      toast.error(t("An error occurred while updating the web app"));
+      if (isRequestTooLargeError(error)) {
+        toast.error(t("Web app is too large to save."));
+      } else {
+        toast.error(t("An error occurred while updating the web app"));
+      }
     } finally {
       setLoading(false);
     }
@@ -328,7 +333,11 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         )
         .then();
     } catch (error) {
-      toast.error(t("An error occurred while creating the web app"));
+      if (isRequestTooLargeError(error)) {
+        toast.error(t("Web app is too large to create."));
+      } else {
+        toast.error(t("An error occurred while creating the web app"));
+      }
     } finally {
       setLoading(false);
     }

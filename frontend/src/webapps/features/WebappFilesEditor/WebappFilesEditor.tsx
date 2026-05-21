@@ -1,6 +1,7 @@
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { toast } from "react-toastify";
+import { isRequestTooLargeError } from "core/helpers/errors";
 import { FilesEditor } from "workspaces/features/FilesEditor/FilesEditor";
 import { FilesEditor_FileFragment } from "workspaces/features/FilesEditor/FilesEditor.generated";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
@@ -87,8 +88,12 @@ const WebappFilesEditor = ({
         } else {
           toast.error(t("Failed to upload files"));
         }
-      } catch {
-        toast.error(t("An error occurred while uploading files"));
+      } catch (error) {
+        if (isRequestTooLargeError(error)) {
+          toast.error(t("Files are too large to upload."));
+        } else {
+          toast.error(t("An error occurred while uploading files"));
+        }
       } finally {
         setIsUploading(false);
         onBusyChange?.(false);
@@ -135,6 +140,9 @@ const WebappFilesEditor = ({
         return { success: false, error: String(error) };
       }
     } catch (error) {
+      if (isRequestTooLargeError(error)) {
+        return { success: false, error: t("Files are too large to save.") };
+      }
       return {
         success: false,
         error: error instanceof Error ? error.message : "Save failed",
