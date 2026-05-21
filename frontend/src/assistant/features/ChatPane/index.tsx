@@ -1,12 +1,11 @@
 import { ArrowPathIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
+import MarkdownContent from "core/components/MarkdownContent";
 import Spinner from "core/components/Spinner";
 import { getPublicEnv } from "core/helpers/runtimeConfig";
 import useStreamingFetch from "core/hooks/useStreamingFetch";
 import useWordDrain from "core/hooks/useWordDrain";
 import { KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import {
   AssistantConversationMessagesDocument,
   AssistantConversationMessagesQuery,
@@ -322,11 +321,7 @@ export default function ChatPane({
                   {msg.role === "user" ? (
                     msg.content
                   ) : (
-                    <div className="prose prose-sm prose-gray max-w-none">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {msg.content}
-                      </ReactMarkdown>
-                    </div>
+                    <MarkdownContent sm>{msg.content}</MarkdownContent>
                   )}
                 </div>
               </div>
@@ -355,11 +350,7 @@ export default function ChatPane({
             <div className="flex justify-start">
               <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
                 {streamingText ? (
-                  <div className="prose prose-sm prose-gray max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {streamingText}
-                    </ReactMarkdown>
-                  </div>
+                  <MarkdownContent sm>{streamingText}</MarkdownContent>
                 ) : (
                   <Spinner size="xs" className="text-gray-400" />
                 )}

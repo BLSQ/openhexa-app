@@ -14,4 +14,10 @@
 .editor li {
   margin: 0;
 }
-  
+
+/* Suppress the backtick pseudo-elements that Tailwind Typography adds to <code> */
+.editor :global(code)::before,
+.editor :global(code)::after {
+  content: "" !important;
+}
+

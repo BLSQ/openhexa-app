@@ -31,6 +31,7 @@ import {
 } from "@mdxeditor/editor";
 import "@mdxeditor/editor/style.css";
 import clsx from "clsx";
+import MarkdownContent from "../MarkdownContent";
 import styles from "./MarkdownEditor.module.css";
 import { useMemo } from "react";
 
@@ -79,7 +80,8 @@ const MarkdownEditor = ({
   );
 
   const plugins = useMemo(() => {
-    const basePlugins = [
+    if (readOnly) return [];
+    return [
       headingsPlugin(),
       quotePlugin(),
       listsPlugin(),
@@ -96,80 +98,76 @@ const MarkdownEditor = ({
       linkPlugin(),
       linkDialogPlugin(),
       markdownShortcutPlugin(),
-      imagePlugin({ disableImageResize: readOnly }),
+      imagePlugin({ disableImageResize: false }),
+      toolbarPlugin({
+        toolbarClassName: styles.toolbar,
+        toolbarContents: () => (
+          <DiffSourceToggleWrapper>
+            <ConditionalContents
+              options={[
+                {
+                  when: (editor) => editor?.editorType === "codeblock",
+                  contents: () => <ChangeCodeMirrorLanguage />,
+                },
+                {
+                  fallback: () => (
+                    <>
+                      <UndoRedo />
+                      <Separator />
+                      <BoldItalicUnderlineToggles />
+                      <CodeToggle />
+                      <Separator />
+                      <StrikeThroughSupSubToggles />
+                      <Separator />
+                      <ListsToggle options={["bullet", "number"]} />
+                      <Separator />
+                      <ConditionalContents
+                        options={[
+                          {
+                            when: whenInAdmonition,
+                            contents: () => <ChangeAdmonitionType />,
+                          },
+                          { fallback: () => <BlockTypeSelect /> },
+                        ]}
+                      />
+                      <Separator />
+                      <InsertThematicBreak />
+                      <Separator />
+                      <InsertCodeBlock />
+                      <InsertImage />
+                    </>
+                  ),
+                },
+              ]}
+            />
+          </DiffSourceToggleWrapper>
+        ),
+      }),
     ];
-
-    if (!readOnly) {
-      basePlugins.push(
-        toolbarPlugin({
-          toolbarClassName: styles.toolbar,
-          toolbarContents: () => (
-            <DiffSourceToggleWrapper>
-              <ConditionalContents
-                options={[
-                  {
-                    when: (editor) => editor?.editorType === "codeblock",
-                    contents: () => <ChangeCodeMirrorLanguage />,
-                  },
-                  {
-                    fallback: () => (
-                      <>
-                        <UndoRedo />
-                        <Separator />
-                        <BoldItalicUnderlineToggles />
-                        <CodeToggle />
-                        <Separator />
-                        <StrikeThroughSupSubToggles />
-                        <Separator />
-                        <ListsToggle options={["bullet", "number"]} />
-                        <Separator />
-                        <ConditionalContents
-                          options={[
-                            {
-                              when: whenInAdmonition,
-                              contents: () => <ChangeAdmonitionType />,
-                            },
-                            { fallback: () => <BlockTypeSelect /> },
-                          ]}
-                        />
-                        <Separator />
-                        <InsertThematicBreak />
-                        <Separator />
-                        <InsertCodeBlock />
-                        <InsertImage />
-                      </>
-                    ),
-                  },
-                ]}
-              />
-            </DiffSourceToggleWrapper>
-          ),
-        }),
-      );
-    }
-    return basePlugins;
   }, [readOnly, normalizedMarkdown]);
+
+  if (readOnly) {
+    return (
+      <div id={id} className={className}>
+        <MarkdownContent sm={sm}>{markdown}</MarkdownContent>
+      </div>
+    );
+  }
 
   return (
     <div
       id={id}
-      className={clsx(
-        "rounded-md overflow-y-auto",
-        !readOnly && "border border-gray-300",
-        className,
-      )}
+      className={clsx("rounded-md overflow-y-auto border border-gray-300", className)}
     >
       <MDXEditor
         data-testid="markdown-editor"
         markdown={normalizedMarkdown}
         contentEditableClassName={clsx(
-          "max-w-none ring-none outline-none",
+          "max-w-none ring-none outline-none p-2",
           // Standard styles
           "prose prose-headings:font-medium prose-h1:font-medium",
           // Small styles
-          sm &&
-            "prose-sm prose-h1:text-xl prose-h2:text-lg prose-h3:text-md prose-h2:mt-0",
-          !readOnly ? "p-2" : "!p-0",
+          sm && "prose-sm prose-h1:text-xl prose-h2:text-lg prose-h3:text-md prose-h2:mt-0",
           styles.editor,
         )}
         plugins={plugins}
