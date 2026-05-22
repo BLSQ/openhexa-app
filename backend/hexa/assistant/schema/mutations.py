@@ -90,7 +90,7 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
 
 
 @assistant_mutations.field("resolveAssistantProposal")
-def resolve_dismiss_assistant_proposal(_, info, tool_invocation_id, **kwargs):
+def resolve_assistant_proposal(_, info, tool_invocation_id, **kwargs):
     request = info.context["request"]
     try:
         invocation = ToolInvocation.objects.select_related("message__conversation").get(
