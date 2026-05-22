@@ -12,6 +12,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="toolinvocation",
             name="pending",
-            field=models.BooleanField(default=False),
+            field=models.BooleanField(
+                default=False,
+                help_text=(
+                    "True while the proposal is awaiting user action; False once accepted or dismissed. "
+                    "Only meaningful for tool invocations that produce a user-facing proposal "
+                    "(e.g. propose_pipeline_version)."
+                ),
+            ),
         ),
     ]
