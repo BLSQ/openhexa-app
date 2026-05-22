@@ -5069,6 +5069,7 @@ export type ResolveAssistantProposalResult = {
   __typename?: 'ResolveAssistantProposalResult';
   errors: Array<ResolveAssistantProposalError>;
   success: Scalars['Boolean']['output'];
+  toolInvocation?: Maybe<AssistantToolInvocation>;
 };
 
 /** Resource counts */

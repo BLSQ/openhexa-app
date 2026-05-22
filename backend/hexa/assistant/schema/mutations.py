@@ -111,7 +111,7 @@ def resolve_assistant_proposal(_, info, tool_invocation_id, **kwargs):
         resolved=False,
     ).update(resolved=True)
 
-    return {"success": True, "errors": []}
+    return {"success": True, "errors": [], "toolInvocation": invocation}
 
 
 bindables = [assistant_mutations]

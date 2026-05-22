@@ -4128,6 +4128,7 @@ enum ResolveAssistantProposalError {
 type ResolveAssistantProposalResult {
   errors: [ResolveAssistantProposalError!]!
   success: Boolean!
+  toolInvocation: AssistantToolInvocation
 }
 
 """Resource counts"""

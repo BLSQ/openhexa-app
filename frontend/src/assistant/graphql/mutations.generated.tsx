@@ -15,7 +15,7 @@ export type ResolveAssistantProposalMutationVariables = Types.Exact<{
 }>;
 
 
-export type ResolveAssistantProposalMutation = { __typename?: 'Mutation', resolveAssistantProposal: { __typename?: 'ResolveAssistantProposalResult', success: boolean, errors: Array<Types.ResolveAssistantProposalError> } };
+export type ResolveAssistantProposalMutation = { __typename?: 'Mutation', resolveAssistantProposal: { __typename?: 'ResolveAssistantProposalResult', success: boolean, errors: Array<Types.ResolveAssistantProposalError>, toolInvocation?: { __typename?: 'AssistantToolInvocation', id: string, resolved: boolean } | null } };
 
 
 export const CreateAssistantConversationDocument = gql`
@@ -62,6 +62,10 @@ export const ResolveAssistantProposalDocument = gql`
   resolveAssistantProposal(toolInvocationId: $toolInvocationId) {
     success
     errors
+    toolInvocation {
+      id
+      resolved
+    }
   }
 }
     `;

@@ -14,6 +14,10 @@ mutation resolveAssistantProposal($toolInvocationId: UUID!) {
   resolveAssistantProposal(toolInvocationId: $toolInvocationId) {
     success
     errors
+    toolInvocation {
+      id
+      resolved
+    }
   }
 }
 

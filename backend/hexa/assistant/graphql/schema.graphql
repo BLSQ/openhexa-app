@@ -75,6 +75,7 @@ enum ResolveAssistantProposalError {
 type ResolveAssistantProposalResult {
   success: Boolean!
   errors: [ResolveAssistantProposalError!]!
+  toolInvocation: AssistantToolInvocation
 }
 
 extend type Mutation {

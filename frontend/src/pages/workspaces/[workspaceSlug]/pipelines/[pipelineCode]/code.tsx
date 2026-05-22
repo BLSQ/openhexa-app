@@ -58,12 +58,6 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     if (idToDismiss) {
       await resolveProposal({
         variables: { toolInvocationId: idToDismiss },
-        update(cache) {
-          cache.modify({
-            id: cache.identify({ __typename: "AssistantToolInvocation", id: idToDismiss }),
-            fields: { dismissed: () => true },
-          });
-        },
       });
     }
   }, [proposedToolInvocationId, resolveProposal]);
@@ -147,12 +141,6 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     if (idToResolve) {
       resolveProposal({
         variables: { toolInvocationId: idToResolve },
-        update(cache) {
-          cache.modify({
-            id: cache.identify({ __typename: "AssistantToolInvocation", id: idToResolve }),
-            fields: { dismissed: () => true },
-          });
-        },
       });
     }
     fetchPipelineVersion({
