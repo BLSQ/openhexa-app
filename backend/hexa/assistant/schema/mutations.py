@@ -102,14 +102,14 @@ def resolve_assistant_proposal(_, info, tool_invocation_id, **kwargs):
     if invocation.message.conversation.user != request.user:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
-    invocation.resolved = True
-    invocation.save(update_fields=["resolved"])
+    invocation.pending = False
+    invocation.save(update_fields=["pending"])
 
     ToolInvocation.objects.filter(
         message__conversation=invocation.message.conversation,
         tool_name=invocation.tool_name,
-        resolved=False,
-    ).update(resolved=True)
+        pending=True,
+    ).update(pending=False)
 
     return {"success": True, "errors": [], "toolInvocation": invocation}
 

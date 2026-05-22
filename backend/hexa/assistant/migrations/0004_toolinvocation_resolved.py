@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name="toolinvocation",
-            name="resolved",
+            name="pending",
             field=models.BooleanField(default=False),
         ),
     ]
