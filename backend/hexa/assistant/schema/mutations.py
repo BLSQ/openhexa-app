@@ -104,6 +104,13 @@ def resolve_dismiss_assistant_proposal(_, info, tool_invocation_id, **kwargs):
 
     invocation.resolved = True
     invocation.save(update_fields=["resolved"])
+
+    ToolInvocation.objects.filter(
+        message__conversation=invocation.message.conversation,
+        tool_name=invocation.tool_name,
+        resolved=False,
+    ).update(resolved=True)
+
     return {"success": True, "errors": []}
 
 
