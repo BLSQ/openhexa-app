@@ -5,6 +5,9 @@ from pydantic import BaseModel
 
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.instructions import InstructionSet
+from hexa.mcp.tools.connections import list_connections
+from hexa.mcp.tools.datasets import get_dataset, list_datasets, preview_dataset_file
+from hexa.mcp.tools.files import list_files, read_file
 from hexa.mcp.tools.help import get_help_or_doc
 from hexa.pipelines.models import Pipeline
 
@@ -53,7 +56,16 @@ def propose_pipeline_version(
 
 class EditPipelineAgent(BaseAgent):
     instruction_set = InstructionSet.EDIT_PIPELINE
-    tools = [get_help_or_doc, propose_pipeline_version]
+    tools = [
+        get_help_or_doc,
+        list_datasets,
+        get_dataset,
+        preview_dataset_file,
+        list_connections,
+        list_files,
+        read_file,
+        propose_pipeline_version,
+    ]
 
     @property
     def _context(self) -> dict:
