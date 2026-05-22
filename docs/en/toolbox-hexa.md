@@ -58,7 +58,7 @@ See the [SDK guide](sdk.md#using-the-openhexa-client) for end-to-end examples (m
 
 ## Deprecated: `openhexa.toolbox.hexa`
 
-> ⚠️ **Deprecated** — the `openhexa.toolbox.hexa.OpenHEXA` GraphQL client is no longer maintained. Use the `OpenHexaClient` above for any new code, and migrate existing usage when possible. The content below is kept only as a reference for projects that still depend on it.
+> ⚠️ **Deprecated** — the `openhexa.toolbox.hexa.OpenHEXA` client is no longer maintained. Use the `OpenHexaClient` above for any new code, and migrate existing usage when possible. The content below is kept only as a reference for projects that still depend on it.
 
 ### Installation
 
