@@ -3,7 +3,7 @@
 </div>
 </div>
 
-OpenHEXA data pipelines provide a way to help you automate data processing and modelization operations.
+End-to-end guide to authoring OpenHEXA pipelines: `@pipeline`/`@task` DAGs, parallelism and timeouts, typed parameters (datasets, files, secrets, connections, dynamic choices), `workspace.yaml`, GitHub Actions deploys, and Docker runs.
 
 They are written as Python programs, and offer the following capabilities:
 
@@ -18,7 +18,7 @@ The present guide will walk you through the creation and the deployment of an Op
 - [Using the OpenHEXA CLI](cli.md): the OpenHEXA CLI is a command-line utility that allows you to interact with your OpenHEXA instance from your terminal
 - [Using the OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md): Acquire and process data from DHIS2 instances
 - [Using the OpenHEXA Toolbox - IASO](toolbox-iaso.md): Fetch data from IASO
-- [Using the OpenHEXA Toolbox - OpenHEXA Client](toolbox-hexa.md): Legacy GraphQL client (deprecated)
+- [OpenHEXA Client](toolbox-hexa.md): Typed GraphQL client for the OpenHEXA platform
 
 ## Quickstart
 

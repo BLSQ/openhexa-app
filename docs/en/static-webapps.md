@@ -3,7 +3,7 @@
 </div>
 </div>
 
-Static webapps let you host a small HTML / CSS / JavaScript bundle inside an OpenHEXA workspace and serve it on its own subdomain. They're useful for dashboards, custom data-entry forms, or any front-end that needs to live alongside your pipelines and datasets — without standing up a separate hosting environment.
+Static webapps host an HTML/CSS/JavaScript bundle inside an OpenHEXA workspace, served on its own subdomain, and can query OpenHEXA on behalf of viewing users via a pre-authenticated GraphQL endpoint — great for dashboards and custom forms.
 
 OpenHEXA supports three webapp types:
 

@@ -1,4 +1,4 @@
-from hexa.mcp.docs import available_doc_names, get_index, read_doc
+from hexa.mcp.docs import get_index, read_doc
 from hexa.mcp.protocol import tool
 
 _OVERVIEW = {
@@ -45,11 +45,16 @@ def get_help_or_doc(user, topic: str = "", reason: str = "") -> dict:
     return {**_OVERVIEW, "docs": get_index()}
 
 
-_topic_names = available_doc_names()
-if _topic_names:
+_topic_entries = get_index()
+if _topic_entries:
+    _lines = [
+        f"    - {entry['name']}: {entry['summary']}"
+        if entry.get("summary")
+        else f"    - {entry['name']}"
+        for entry in _topic_entries
+    ]
     get_help_or_doc.__doc__ = (
         (get_help_or_doc.__doc__ or "")
-        + "\n\n    Available topics: "
-        + ", ".join(_topic_names)
-        + "."
+        + "\n\n    Available topics:\n"
+        + "\n".join(_lines)
     )

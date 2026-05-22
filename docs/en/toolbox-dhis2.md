@@ -2,7 +2,7 @@
   <h1><i class="fas fa-hexagon" style="margin-right: 0.5rem;"></i>OpenHEXA Toolbox DHIS2</h1>
 </div>
 
-An utility library to acquire and process data from a DHIS2 instance.
+The `openhexa.toolbox.dhis2` library connects to a DHIS2 instance with metadata caching, queries org units, data elements and indicators, fetches dataValueSets and analytics, and handles ISO periods and pyramid enrichment.
 
 ## Installation
 
