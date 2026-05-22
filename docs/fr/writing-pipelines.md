@@ -18,7 +18,7 @@ Le présent guide vous accompagnera dans la création et le déploiement d'un pi
 - [Utiliser l'OpenHEXA CLI](cli.md) : l'OpenHEXA CLI est un utilitaire en ligne de commande qui vous permet d'interagir avec votre instance OpenHEXA depuis votre terminal
 - [Utiliser l'OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md) : Acquérir et traiter des données depuis des instances DHIS2
 - [Utiliser l'OpenHEXA Toolbox - IASO](toolbox-iaso.md) : Récupérer des données depuis IASO
-- [Utiliser l'OpenHEXA Toolbox - Client OpenHEXA](toolbox-hexa.md) : Client GraphQL hérité (déprécié)
+- [Client OpenHEXA](toolbox-hexa.md) : Client GraphQL typé pour la plateforme OpenHEXA
 
 ## Démarrage rapide
 

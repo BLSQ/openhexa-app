@@ -1,19 +1,70 @@
 <div class="hero-section">
-  <h1><i class="fas fa-hexagon" style="margin-right: 0.5rem;"></i>OpenHEXA Toolbox - Client OpenHEXA (n'est plus maintenu)</h1>
+  <h1><i class="fas fa-hexagon" style="margin-right: 0.5rem;"></i>Client OpenHEXA</h1>
 </div>
 
-_⚠️ Nous recommandons désormais d'utiliser le [Client OpenHexa du SDK](sdk.md#using-the-openhexa-client) à la place. Il contient de nombreuses méthodes (typées) et peut être étendu de manière semi-automatique par l'équipe OpenHexa. Le client toolbox ne sera pas maintenu/étendu à l'avenir._
+Le SDK OpenHEXA fournit un `OpenHexaClient` typé pour interagir programmatiquement avec la plateforme OpenHEXA — workspaces, pipelines, exécutions, datasets et webapps — avec un typage complet. Il remplace l'ancien client `openhexa.toolbox.hexa`.
 
-La classe OpenHEXA fait partie du toolbox OpenHexa, conçue pour interagir avec l'API de la plateforme OpenHexa.
-Le module OpenHEXAClient permet aux utilisateurs d'interagir avec le backend OpenHEXA en utilisant la syntaxe GraphQL.
+L'ensemble des méthodes typées est documenté dans le [guide SDK](sdk.md#using-the-openhexa-client) ; cette page couvre l'installation, l'authentification et un tour rapide. L'ancien client `openhexa.toolbox.hexa` est conservé en bas de page pour référence.
 
 ## Installation
 
-``` sh
-pip install openhexa.toolbox
+Le client fait partie du package `openhexa.sdk` :
+
+```sh
+pip install openhexa.sdk
 ```
 
-## Usage
+## Authentification
+
+Dans les notebooks et pipelines OpenHEXA, le client est configuré automatiquement à partir des variables d'environnement `HEXA_SERVER_URL` et `HEXA_TOKEN`. En exécution locale, définissez ces variables vous-même (par exemple via `openhexa config set_url` et `openhexa config set_token`) ou instanciez le client explicitement :
+
+```python
+from openhexa.sdk import OpenHexaClient
+
+client = OpenHexaClient(server_url="https://app.demo.openhexa.org", token="votre-token")
+```
+
+## Utilisation
+
+Le point d'entrée recommandé est l'instance `openhexa` prête à l'emploi, qui récupère la configuration depuis l'environnement :
+
+```python
+from openhexa.sdk.client import openhexa
+
+workspaces_response = openhexa.workspaces()
+for workspace in workspaces_response.items:
+    print(f"{workspace.slug} — {workspace.name}")
+
+pipelines_response = openhexa.pipelines(workspace_slug="mon-workspace", page=1, per_page=10)
+for pipeline in pipelines_response.items:
+    print(f"{pipeline.code} : {pipeline.name}")
+
+pipeline_details = openhexa.pipeline(workspace_slug="mon-workspace", pipeline_code="bikes-in-brussels")
+if pipeline_details:
+    print(f"Planification : {pipeline_details.schedule}")
+
+datasets_response = openhexa.datasets(page=1)
+for dataset in datasets_response.items:
+    print(f"{dataset.slug} — {dataset.name}")
+```
+
+Le client expose un grand nombre de méthodes typées, facilitant la découverte et l'intégration :
+
+![Screenshot 2025-06-27 at 17 00 07](https://github.com/user-attachments/assets/cd2e530e-ba4f-46d5-aa4f-695ae52eb92c)
+
+Consultez le [guide SDK](sdk.md#using-the-openhexa-client) pour des exemples complets (gestion des pipelines, datasets, exécutions et webapps).
+
+---
+
+## Déprécié : `openhexa.toolbox.hexa`
+
+> ⚠️ **Déprécié** — le client GraphQL `openhexa.toolbox.hexa.OpenHEXA` n'est plus maintenu. Utilisez l'`OpenHexaClient` ci-dessus pour tout nouveau code et migrez l'existant lorsque c'est possible. Le contenu ci-dessous est conservé uniquement à titre de référence pour les projets qui en dépendent encore.
+
+### Installation
+
+```sh
+pip install openhexa.toolbox
+```
 
 ### Connexion à l'API
 

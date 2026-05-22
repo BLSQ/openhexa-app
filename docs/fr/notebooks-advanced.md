@@ -30,7 +30,7 @@ Le présent guide vous accompagnera à travers les spécificités de l'environne
 - [Utiliser le SDK OpenHEXA](sdk.md) : le SDK OpenHEXA est une bibliothèque Python qui fournit des blocs de construction et des méthodes utilitaires pour écrire du code sur OpenHEXA
 - [Utiliser l'OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md) : Acquérir et traiter des données depuis des instances DHIS2
 - [Utiliser l'OpenHEXA Toolbox - IASO](toolbox-iaso.md) : Récupérer des données depuis IASO
-- [Utiliser l'OpenHEXA Toolbox - Client OpenHEXA](toolbox-hexa.md) : Client GraphQL hérité (déprécié)
+- [Client OpenHEXA](toolbox-hexa.md) : Client GraphQL typé pour la plateforme OpenHEXA
 
 ## Utiliser le système de fichiers de l'espace de travail
 

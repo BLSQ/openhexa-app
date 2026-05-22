@@ -100,7 +100,7 @@ Si vous prévoyez de développer des pipelines ou de travailler avec l'API :
 - **[Utiliser l'OpenHEXA SDK](sdk.md)** - Kit de développement Python
 - **[Utiliser l'OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md)** - Acquérir et traiter des données depuis des instances DHIS2
 - **[Utiliser l'OpenHEXA Toolbox - IASO](toolbox-iaso.md)** - Récupérer des données depuis IASO
-- **[Utiliser l'OpenHEXA Toolbox - Client OpenHEXA](toolbox-hexa.md)** - Client GraphQL hérité (déprécié)
+- **[Client OpenHEXA](toolbox-hexa.md)** - Client GraphQL typé pour la plateforme OpenHEXA
 - **[Utiliser les notebooks dans OpenHEXA](notebooks-advanced.md)** - Utilisation avancée des notebooks
 - **[Authentification API](api-authentication.md)** - S'authentifier auprès de l'API OpenHEXA
 

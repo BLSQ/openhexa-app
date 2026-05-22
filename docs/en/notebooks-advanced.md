@@ -29,7 +29,7 @@ The present guide will walk you through the specificities of the OpenHEXA notebo
 - [Using the OpenHEXA SDK](sdk.md): the OpenHEXA SDK is a Python library that provides building blocks and helper methods to write code on OpenHEXA
 - [Using the OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md): Acquire and process data from DHIS2 instances
 - [Using the OpenHEXA Toolbox - IASO](toolbox-iaso.md): Fetch data from IASO
-- [Using the OpenHEXA Toolbox - OpenHEXA Client](toolbox-hexa.md): Legacy GraphQL client (deprecated)
+- [OpenHEXA Client](toolbox-hexa.md): Typed GraphQL client for the OpenHEXA platform
 
 ## Using the workspace filesystem
 
