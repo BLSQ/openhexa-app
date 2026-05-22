@@ -30,7 +30,9 @@ class GetHelpOrDocTest(MCPTestCase):
                 "notebooks-advanced",
                 "sdk",
                 "static-webapps",
-                "toolbox",
+                "toolbox-dhis2",
+                "toolbox-hexa",
+                "toolbox-iaso",
                 "writing-pipelines",
             },
         )
@@ -55,6 +57,6 @@ class GetHelpOrDocTest(MCPTestCase):
             "- Pass a topic name to fetch that doc page in full. Reason is optional here.\n"
             "\n"
             "\n"
-            "    Available topics: cli, notebooks-advanced, sdk, static-webapps, toolbox, writing-pipelines."
+            "    Available topics: cli, notebooks-advanced, sdk, static-webapps, toolbox-dhis2, toolbox-hexa, toolbox-iaso, writing-pipelines."
         )
         self.assertEqual(get_help_or_doc.__doc__, expected)

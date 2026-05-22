@@ -800,6 +800,38 @@ def test_pipeline(input_file, threshold, enable_debug):
             pipeline_version_config, r["data"]["runPipeline"]["run"]["config"]
         )
 
+    def test_run_pipeline_with_invalid_config_types(self):
+        self.test_create_pipeline_version(
+            parameters=[
+                {
+                    "code": "count",
+                    "name": "Count",
+                    "type": "int",
+                    "help": "",
+                    "default": None,
+                    "multiple": False,
+                    "required": False,
+                    "choices": [],
+                }
+            ],
+            config={},
+        )
+        pipeline_id = Pipeline.objects.filter_for_user(user=self.USER_ROOT).first().id
+        self.client.force_login(self.USER_ROOT)
+        r = self.run_query(
+            """
+            mutation runPipeline($input: RunPipelineInput!) {
+                runPipeline(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {"input": {"id": str(pipeline_id), "config": {"count": "not_a_number"}}},
+        )
+        self.assertEqual(r["data"]["runPipeline"]["success"], False)
+        self.assertIn("INVALID_CONFIG", r["data"]["runPipeline"]["errors"])
+
     def test_pipeline_by_code(self):
         pipeline = self.test_create_pipeline()
         self.client.force_login(self.USER_ROOT)

@@ -1,4 +1,6 @@
+import io
 import logging
+import zipfile
 
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied
@@ -15,6 +17,23 @@ from hexa.workspaces.models import Workspace
 logger = logging.getLogger(__name__)
 
 pipeline_template_mutations = MutationType()
+
+
+def extract_readme_from_zipfile(zipfile_bytes: bytes) -> str | None:
+    try:
+        with zipfile.ZipFile(io.BytesIO(zipfile_bytes)) as zf:
+            candidates = [
+                name
+                for name in zf.namelist()
+                if name.lower().split("/")[-1] in ("readme.md", "readme.markdown")
+            ]
+            # Prefer root-level README, fall back to any match
+            candidates.sort(key=lambda n: n.count("/"))
+            if candidates:
+                return zf.read(candidates[0]).decode("utf-8", errors="replace")
+    except Exception:
+        logger.exception("Failed to extract README from zipfile")
+    return None
 
 
 def auto_update_pipelines_from_template_version(
@@ -91,11 +110,20 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
     if not source_pipeline_version:
         return {"success": False, "errors": ["PIPELINE_VERSION_NOT_FOUND"]}
 
+    if input.get("extract_documentation_from_readme", True):
+        documentation = (
+            extract_readme_from_zipfile(bytes(source_pipeline_version.zipfile))
+            if source_pipeline_version.zipfile
+            else None
+        )
+    else:
+        documentation = input.get("documentation")
+
     try:
         pipeline_template, template_created = source_pipeline.get_or_create_template(
             name=input.get("name"),
             code=input.get("code"),
-            description=input.get("description"),
+            description=input.get("description") or "",
         )
         pipeline_template_version = (
             source_pipeline_version.template_version
@@ -103,7 +131,9 @@ def resolve_create_pipeline_template_version(_, info, **kwargs):
             else pipeline_template.create_version(
                 source_pipeline_version,
                 user=request.user,
+                name=input.get("version_name"),
                 changelog=input.get("changelog"),
+                documentation=documentation,
             )
         )  # Recreate the version if the source pipeline version has no template version (it can have one if the template was deleted before and restored)
     except IntegrityError as e:

@@ -26,6 +26,7 @@ static/uploads/*
 
 docker-compose.debug.yaml
 docker-compose.dev.yaml
+docker-compose.override.yaml
 
 #### Frontend ####
 # dependencies

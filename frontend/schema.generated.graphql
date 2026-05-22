@@ -1080,9 +1080,12 @@ input CreatePipelineTemplateVersionInput {
   code: String
   config: String
   description: String
+  documentation: String
+  extractDocumentationFromReadme: Boolean
   name: String
   pipelineId: UUID!
   pipelineVersionId: UUID!
+  versionName: String
   workspaceSlug: String!
 }
 
@@ -3253,6 +3256,7 @@ type OrganizationWorkspaceInvitation {
 """Represents an input parameter of a pipeline."""
 input ParameterInput {
   choices: [Generic!]
+  choicesFromFile: PipelineParameterChoicesFromFileInput
   code: String!
   connection: String
   default: Generic
@@ -3415,6 +3419,7 @@ enum PipelineOrderBy {
 """Represents a parameter of a pipeline."""
 type PipelineParameter {
   choices: [Generic!]
+  choicesFromFile: PipelineParameterChoicesFromFile
   code: String!
   connection: String
   default: Generic
@@ -3425,6 +3430,28 @@ type PipelineParameter {
   required: Boolean!
   type: ParameterType!
   widget: ParameterWidget
+}
+
+"""File format for a dynamic choices source."""
+enum PipelineParameterChoicesFileFormat {
+  csv
+  json
+  yaml
+  yml
+}
+
+"""Describes a dynamic choices source backed by a workspace file."""
+type PipelineParameterChoicesFromFile {
+  column: String
+  format: PipelineParameterChoicesFileFormat
+  path: String!
+}
+
+"""Input for a dynamic choices source backed by a workspace file."""
+input PipelineParameterChoicesFromFileInput {
+  column: String
+  format: PipelineParameterChoicesFileFormat
+  path: String!
 }
 
 """Represents the permissions for a pipeline."""
@@ -3540,6 +3567,7 @@ type PipelineTemplate {
   config: String
   currentVersion: PipelineTemplateVersion
   description: String
+  documentation: String
   functionalType: PipelineFunctionalType
   id: UUID!
   name: String!
@@ -3599,8 +3627,10 @@ type PipelineTemplateResultPage {
 type PipelineTemplateVersion {
   changelog: String
   createdAt: DateTime!
+  documentation: String
   id: UUID!
   isLatestVersion: Boolean!
+  name: String
   permissions: PipelineTemplateVersionPermissions!
   sourcePipelineVersion: PipelineVersion!
   template: PipelineTemplate!
@@ -3874,6 +3904,12 @@ type Query {
 
   """Retrieves a pipeline by workspace slug and code."""
   pipelineByCode(code: String!, workspaceSlug: String!): Pipeline
+
+  """
+  Resolves the list of choices for a parameter backed by a workspace file.
+  Returns a list of string values read from the file at the time of the call.
+  """
+  pipelineParameterChoices(parameterCode: String!, pipelineVersionId: UUID!): [String!]
 
   """Retrieves a pipeline run by ID."""
   pipelineRun(id: UUID!): PipelineRun
@@ -4995,6 +5031,7 @@ type UpdatePipelineResult {
 Enum representing the possible errors that can occur when updating a pipeline version.
 """
 enum UpdatePipelineVersionError {
+  INVALID_CONFIG
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -5091,7 +5128,9 @@ enum UpdateTemplateVersionError {
 """Represents the input for updating a template version."""
 input UpdateTemplateVersionInput {
   changelog: String
+  documentation: String
   id: UUID!
+  name: String
 }
 
 """Represents the result of updating a template version."""

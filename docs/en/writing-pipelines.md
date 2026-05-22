@@ -16,7 +16,9 @@ The present guide will walk you through the creation and the deployment of an Op
 
 - [Using the OpenHEXA SDK](sdk.md): the OpenHEXA SDK is a Python library that provides building blocks and helper methods to write code on OpenHEXA
 - [Using the OpenHEXA CLI](cli.md): the OpenHEXA CLI is a command-line utility that allows you to interact with your OpenHEXA instance from your terminal
-- [Using the OpenHEXA Toolbox](toolbox.md): the OpenHEXA toolbox is a collection of utilities that can assist you in health data science integration and analysis workflows
+- [Using the OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md): Acquire and process data from DHIS2 instances
+- [Using the OpenHEXA Toolbox - IASO](toolbox-iaso.md): Fetch data from IASO
+- [Using the OpenHEXA Toolbox - OpenHEXA Client](toolbox-hexa.md): Legacy GraphQL client (deprecated)
 
 ## Quickstart
 
@@ -735,7 +737,7 @@ The `@parameter` decorator also requires the `type` keyword argument, which shou
 The following keyword arguments are optional:
 - `name`: A human-readable name to be used for the form label in the web interface
 - `help`: An additional help text to be displayed in the form
-- `choices`: A list of valid values accepted for the parameter
+- `choices`: A static list of valid values accepted for the parameter, **or** a `ChoicesFromFile` object (or a plain file-path string) to load choices dynamically from a workspace file at run time — see [Using dynamic choices from a workspace file](#using-dynamic-choices-from-a-workspace-file)
 - `default`: an optional default value
 - `required`: whether the parameter is required, `True` by default
 - `widget`: enum option for the widget to fill options for the parameter
@@ -847,6 +849,98 @@ python pipeline.py -f sample_config.json
 Great! Let's push this pipeline to the cloud so that we can run it with the web interface.
 
 <img width="618" alt="Screenshot 2023-04-28 at 16 35 15" src="https://user-images.githubusercontent.com/690667/235177316-4208df73-ec63-46ad-9cc3-1cef9d19e5c3.png">
+
+## Using dynamic choices from a workspace file
+
+Instead of hardcoding a static list, you can point the `choices` argument to a file stored in your workspace. OpenHEXA reads the file when the run form is opened and presents its contents as the valid values for the parameter. This is useful when the list of valid values changes over time and you want pipeline users to always see the latest options without pushing a new pipeline version.
+
+To use this feature, import `ChoicesFromFile` from the SDK:
+
+```python
+from openhexa.sdk.pipelines.parameter import ChoicesFromFile
+```
+
+Then pass a `ChoicesFromFile` object to `choices`, or use the shorthand string form with just the file path:
+
+```python
+from openhexa.sdk import current_run, parameter, pipeline
+from openhexa.sdk.pipelines.parameter import ChoicesFromFile
+
+@pipeline("district-report")
+@parameter(
+    "district",
+    name="District",
+    type=str,
+    choices=ChoicesFromFile("districts.csv"),
+)
+def district_report(district):
+    current_run.log_info(f"Running report for {district}")
+```
+
+For simple cases, you can also pass the file path as a plain string — it is equivalent to `ChoicesFromFile(path="districts.csv")`:
+
+```python
+@parameter("district", name="District", type=str, choices="districts.csv")
+```
+
+The file path is relative to the root of the workspace file system. The file must be present in the workspace when the run form is opened.
+
+### Column selection for multi-column files
+
+For files that contain more than one column or key, you must specify which column to use as the source of choices via the `column` argument:
+
+```python
+choices=ChoicesFromFile("regions.csv", column="code")
+choices=ChoicesFromFile("regions.json", column="code")
+```
+
+### Supported file formats
+
+The format is auto-detected from the file extension (`.csv`, `.json`, `.yaml`, `.yml`). You can override it with the `format` argument:
+
+```python
+choices=ChoicesFromFile("districts", format="csv", column="name")
+```
+
+**CSV** — the file must have a header row:
+
+```
+# Single-column (column auto-detected)
+district
+Nairobi
+Mombasa
+Kisumu
+
+# Multi-column (column= required)
+code,name
+NBI,Nairobi
+MSA,Mombasa
+```
+
+**JSON / YAML** — several shapes are supported:
+
+```json
+// Flat array — no column needed
+["Nairobi", "Mombasa", "Kisumu"]
+
+// Array of single-key objects — column auto-detected
+[{"code": "NBI"}, {"code": "MSA"}]
+
+// Array of multi-key objects — column= required
+[{"code": "NBI", "name": "Nairobi"}, {"code": "MSA", "name": "Mombasa"}]
+
+// Object wrapping an array — key auto-detected when there is only one key
+{"districts": ["Nairobi", "Mombasa", "Kisumu"]}
+
+// Object wrapping an array — column= required when there are multiple keys
+{"codes": ["NBI", "MSA"], "names": ["Nairobi", "Mombasa"]}
+```
+
+### Limitations
+
+- The choices file must not exceed **5 MB**.
+- `ChoicesFromFile` is only compatible with scalar parameter types (`str`, `int`, `float`, `bool`). It cannot be combined with connection, dataset, file, or secret types.
+- If the file contains values that are not compatible with the declared parameter type (for example, non-numeric strings for an `int` parameter), those options will be disabled in the run form and a warning will be shown.
 
 ## Using connection parameter types
 

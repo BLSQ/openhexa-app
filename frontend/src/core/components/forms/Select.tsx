@@ -15,6 +15,7 @@ export type SelectProps<O> = {
   value: O | O[] | null;
   onChange(value: O | O[] | null): void;
   getOptionLabel(option: O): ReactNode | string;
+  getOptionDisabled?: (option: O) => boolean;
   filterOptions?: (options: O[], query: string) => O[];
   displayValue?: (option: O) => string;
   multiple?: boolean;
@@ -53,6 +54,7 @@ function Select<O>(props: SelectProps<O>) {
     displayValue = (o) => o,
     filterOptions = DEFAULT_FILTER_OPTIONS,
     getOptionLabel,
+    getOptionDisabled,
     required,
     loading,
   } = props;
@@ -102,7 +104,11 @@ function Select<O>(props: SelectProps<O>) {
         </div>
       )}
       {filteredOptions.map((option, i) => (
-        <Combobox.CheckOption key={i} value={option}>
+        <Combobox.CheckOption
+          key={i}
+          value={option}
+          disabled={getOptionDisabled?.(option) ?? false}
+        >
           {getOptionLabel(option)}
         </Combobox.CheckOption>
       ))}

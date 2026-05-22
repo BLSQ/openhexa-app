@@ -95,10 +95,14 @@ Si vous êtes nouveau sur OpenHEXA, suivez ce parcours d'apprentissage :
 Si vous prévoyez de développer des pipelines ou de travailler avec l'API :
 
 - **[Écrire des pipelines OpenHEXA](writing-pipelines.md)** - Créez des flux de travail de données personnalisés
+- **[Webapps statiques](static-webapps.md)** - Héberger des applications web statiques dans OpenHEXA
 - **[Utiliser l'OpenHEXA CLI](cli.md)** - Interface en ligne de commande
 - **[Utiliser l'OpenHEXA SDK](sdk.md)** - Kit de développement Python
-- **[Utiliser l'OpenHEXA Toolbox](toolbox.md)** - Utilitaires de développement
+- **[Utiliser l'OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md)** - Acquérir et traiter des données depuis des instances DHIS2
+- **[Utiliser l'OpenHEXA Toolbox - IASO](toolbox-iaso.md)** - Récupérer des données depuis IASO
+- **[Utiliser l'OpenHEXA Toolbox - Client OpenHEXA](toolbox-hexa.md)** - Client GraphQL hérité (déprécié)
 - **[Utiliser les notebooks dans OpenHEXA](notebooks-advanced.md)** - Utilisation avancée des notebooks
+- **[Authentification API](api-authentication.md)** - S'authentifier auprès de l'API OpenHEXA
 
 
 ### 👥 Pour les administrateurs

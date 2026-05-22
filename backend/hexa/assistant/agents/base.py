@@ -236,11 +236,12 @@ class BaseAgent:
                         call.tool_call_id,
                     )
                     raw_args = call.args
-                    tool_input = (
-                        json.loads(raw_args)
-                        if isinstance(raw_args, str)
-                        else json.loads(json.dumps(raw_args, default=str))
-                    )
+                    if isinstance(raw_args, str):
+                        tool_input = json.loads(raw_args) if raw_args else {}
+                    elif raw_args is None:
+                        tool_input = {}
+                    else:
+                        tool_input = json.loads(json.dumps(raw_args, default=str))
                     tool_invocations[call.tool_call_id] = ToolInvocation(
                         tool_call_id=call.tool_call_id,
                         tool_name=call.tool_name,

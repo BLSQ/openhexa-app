@@ -128,6 +128,8 @@ class PipelineTemplate(SoftDeletedModel):
         source_pipeline_version: PipelineVersion,
         user: User = None,
         changelog: str = None,
+        name: str = None,
+        documentation: str = None,
     ) -> "PipelineTemplateVersion":
         """Create a new version of the template using a pipeline version as source"""
         return PipelineTemplateVersion.objects.create(
@@ -135,6 +137,8 @@ class PipelineTemplate(SoftDeletedModel):
             version_number=self.versions.count() + 1,
             user=user,
             changelog=changelog,
+            name=name or self.name,
+            documentation=documentation,
             source_pipeline_version=source_pipeline_version,
         )
 
@@ -231,6 +235,8 @@ class PipelineTemplateVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     version_number = models.PositiveIntegerField(editable=False)
+    name = models.CharField(max_length=250, blank=True)
+    documentation = models.TextField(blank=True, null=True)
     changelog = models.TextField(blank=True, null=True)
     user = models.ForeignKey(
         "user_management.User", null=True, on_delete=models.SET_NULL
@@ -248,7 +254,7 @@ class PipelineTemplateVersion(models.Model):
         source_pipeline = self.template.source_pipeline
         data = {
             "source_template": self.template,
-            "description": self.template.description,
+            "description": self.template.description or "",
             "config": source_pipeline.config,
             "functional_type": self.template.functional_type,
         }
@@ -317,7 +323,7 @@ class PipelineTemplateVersion(models.Model):
             "pipeline_templates.update_pipeline_template_version", self
         ):
             raise PermissionDenied
-        for key in ["changelog"]:
+        for key in ["changelog", "name", "documentation"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
         return self.save()
