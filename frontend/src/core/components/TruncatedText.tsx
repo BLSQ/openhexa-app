@@ -45,6 +45,7 @@ const TruncatedText = ({ children, lines = 3, className, tooltip = false }: Prop
   return (
     <Tooltip
       label={isTruncated ? children : null}
+      delayShow={300}
       renderTrigger={(tooltipRef) => (
         <span
           ref={(el) => {
