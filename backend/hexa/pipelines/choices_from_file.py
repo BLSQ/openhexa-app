@@ -7,20 +7,22 @@ import yaml
 from hexa.files import storage
 from hexa.files.backends.exceptions import NotFound
 from hexa.files.utils import is_safe_path
+from hexa.pipelines.enums import PipelineParameterChoicesFileFormat
 
 MAX_CHOICES_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
-
-_SUPPORTED_FORMATS = {"csv", "json", "yaml"}
 
 
 def _detect_format(path: str) -> str:
     ext = path.rsplit(".", 1)[-1].lower() if "." in path else ""
     if ext == "yml":
         return "yaml"
-    if ext not in _SUPPORTED_FORMATS:
+    try:
+        PipelineParameterChoicesFileFormat(ext)
+    except ValueError:
+        supported = sorted(f.value for f in PipelineParameterChoicesFileFormat)
         raise ValueError(
             f"Cannot determine file format from path '{path}'. "
-            f"Supported extensions: {', '.join(sorted(_SUPPORTED_FORMATS))}."
+            f"Supported extensions: {', '.join(supported)}."
         )
     return ext
 

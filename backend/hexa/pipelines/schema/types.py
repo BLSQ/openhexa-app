@@ -4,6 +4,8 @@ import zipfile
 from pathlib import Path
 
 from ariadne import EnumType, ObjectType, UnionType
+
+from hexa.pipelines.enums import PipelineParameterChoicesFileFormat
 from django.urls import reverse
 from sentry_sdk import capture_exception
 
@@ -26,6 +28,11 @@ from hexa.workspaces.schema.types import workspace_permissions
 pipeline_permissions = ObjectType("PipelinePermissions")
 pipeline_version_permissions = ObjectType("PipelineVersionPermissions")
 pipeline_parameter = ObjectType("PipelineParameter")
+pipeline_parameter_choices_from_file = ObjectType("PipelineParameterChoicesFromFile")
+pipeline_parameter_choices_file_format_enum = EnumType(
+    "PipelineParameterChoicesFileFormat",
+    {fmt.value: fmt.value for fmt in PipelineParameterChoicesFileFormat},
+)
 pipeline_order_by_enum = EnumType(
     "PipelineOrderBy",
     {
@@ -93,6 +100,14 @@ def resolve_pipeline_parameter_multiple(parameter, info, **kwargs):
 @pipeline_parameter.field("choicesFromFile")
 def resolve_pipeline_parameter_choices_from_file(parameter, info, **kwargs):
     return parameter.get("choices_from_file")
+
+
+@pipeline_parameter_choices_from_file.field("format")
+def resolve_choices_from_file_format(obj, info, **kwargs):
+    try:
+        return PipelineParameterChoicesFileFormat(obj.get("format"))
+    except (ValueError, TypeError):
+        return None
 
 
 @pipeline_permissions.field("update")
@@ -474,6 +489,8 @@ def resolve_pipeline_run_dataset_version(run: PipelineRun, info, **kwargs):
 bindables = [
     pipeline_permissions,
     pipeline_parameter,
+    pipeline_parameter_choices_from_file,
+    pipeline_parameter_choices_file_format_enum,
     pipeline_object,
     pipeline_order_by_enum,
     pipeline_run_object,
