@@ -3976,6 +3976,40 @@ export type PipelineVersionsArgs = {
   perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
+/** A statically-derived view of a pipeline version's task graph and declared outputs. */
+export type PipelineDag = {
+  __typename?: 'PipelineDag';
+  edges: Array<PipelineDagEdge>;
+  outputs: Array<PipelineDagOutput>;
+  tasks: Array<PipelineDagTask>;
+};
+
+export type PipelineDagEdge = {
+  __typename?: 'PipelineDagEdge';
+  source: Scalars['String']['output'];
+  target: Scalars['String']['output'];
+};
+
+export type PipelineDagOutput = {
+  __typename?: 'PipelineDagOutput';
+  id: Scalars['String']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  taskId?: Maybe<Scalars['String']['output']>;
+  type: PipelineDagOutputType;
+};
+
+export enum PipelineDagOutputType {
+  Dataset = 'dataset',
+  Db = 'db',
+  File = 'file'
+}
+
+export type PipelineDagTask = {
+  __typename?: 'PipelineDagTask';
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+};
+
 export enum PipelineError {
   CannotUpdateNotebookPipeline = 'CANNOT_UPDATE_NOTEBOOK_PIPELINE',
   DuplicatePipelineVersionName = 'DUPLICATE_PIPELINE_VERSION_NAME',
@@ -4279,6 +4313,7 @@ export type PipelineVersion = {
   __typename?: 'PipelineVersion';
   config?: Maybe<Scalars['JSON']['output']>;
   createdAt: Scalars['DateTime']['output'];
+  dag: PipelineDag;
   description?: Maybe<Scalars['String']['output']>;
   externalLink?: Maybe<Scalars['URL']['output']>;
   files: Array<FileNode>;

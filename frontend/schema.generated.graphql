@@ -3360,6 +3360,38 @@ type Pipeline {
   workspace: Workspace!
 }
 
+"""
+A statically-derived view of a pipeline version's task graph and declared outputs.
+"""
+type PipelineDag {
+  edges: [PipelineDagEdge!]!
+  outputs: [PipelineDagOutput!]!
+  tasks: [PipelineDagTask!]!
+}
+
+type PipelineDagEdge {
+  source: String!
+  target: String!
+}
+
+type PipelineDagOutput {
+  id: String!
+  name: String
+  taskId: String
+  type: PipelineDagOutputType!
+}
+
+enum PipelineDagOutputType {
+  dataset
+  db
+  file
+}
+
+type PipelineDagTask {
+  id: String!
+  name: String!
+}
+
 enum PipelineError {
   CANNOT_UPDATE_NOTEBOOK_PIPELINE
   DUPLICATE_PIPELINE_VERSION_NAME
@@ -3641,6 +3673,7 @@ enum PipelineType {
 type PipelineVersion {
   config: JSON
   createdAt: DateTime!
+  dag: PipelineDag!
   description: String
   externalLink: URL
   files: [FileNode!]!

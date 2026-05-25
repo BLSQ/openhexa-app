@@ -21,6 +21,12 @@ process.env.SENTRY_TRACES_SAMPLE_RATE = "1";
 process.env.DISABLE_ANALYTICS = "true";
 process.env.CONSOLE_URL = "";
 
+// jsdom test env does not expose structuredClone, which @dagrejs/dagre relies on.
+if (typeof globalThis.structuredClone === "undefined") {
+  globalThis.structuredClone = (value) =>
+    value === undefined ? undefined : JSON.parse(JSON.stringify(value));
+}
+
 Settings.defaultLocale = "en";
 Settings.defaultZone = "Europe/Brussels";
 Settings.now = jest.fn().mockImplementation(() => Date.now());

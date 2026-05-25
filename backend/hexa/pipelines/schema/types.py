@@ -13,6 +13,7 @@ from hexa.files import storage
 from hexa.files.backends.base import StorageObject
 from hexa.git.enums import FileEncoding
 from hexa.pipeline_templates.models import PipelineTemplateVersion
+from hexa.pipelines.dag import extract_dag
 from hexa.pipelines.models import (
     Pipeline,
     PipelineNotificationLevel,
@@ -416,6 +417,20 @@ def resolve_pipeline_version_files(version: PipelineVersion, info, **kwargs):
         auto_select_file["auto_select"] = True
 
     return all_files
+
+
+@pipeline_version_object.field("dag")
+def resolve_pipeline_version_dag(version: PipelineVersion, info, **kwargs):
+    """Statically parse the version's pipeline.py into a task graph + outputs."""
+    if not version.zipfile:
+        return {"tasks": [], "edges": [], "outputs": []}
+    try:
+        with zipfile.ZipFile(io.BytesIO(version.zipfile), "r") as zip_file:
+            with zip_file.open("pipeline.py") as f:
+                source = f.read().decode("utf-8")
+    except (KeyError, UnicodeDecodeError, zipfile.BadZipFile):
+        return {"tasks": [], "edges": [], "outputs": []}
+    return extract_dag(source)
 
 
 @pipeline_version_object.field("permissions")

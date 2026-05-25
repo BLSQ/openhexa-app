@@ -17,6 +17,7 @@ import { NextPageWithLayout } from "core/helpers/types";
 import useCacheKey from "core/hooks/useCacheKey";
 import { PipelineType, PipelineFunctionalType } from "graphql/types";
 import { useTranslation } from "next-i18next";
+import PipelineDagView from "pipelines/features/PipelineDagView";
 import PipelineVersionParametersTable from "pipelines/features/PipelineVersionParametersTable";
 import UpgradePipelineFromTemplateDialog from "pipelines/features/UpgradePipelineFromTemplateDialog";
 import { useState } from "react";
@@ -98,6 +99,23 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
   return (
     <Page title={pipeline.name ?? t("Pipeline")}>
       <PipelineLayout workspace={workspace} pipeline={pipeline}>
+        <DataCard.Section title={t("Overview")} collapsible={false}>
+          <PipelineDagView
+            pipelineName={pipeline.name ?? pipeline.code}
+            triggers={{
+              manual: pipeline.permissions.run,
+              schedule: pipeline.schedule,
+              webhook: pipeline.webhookEnabled,
+            }}
+            dag={
+              pipeline.currentVersion?.dag ?? {
+                tasks: [],
+                edges: [],
+                outputs: [],
+              }
+            }
+          />
+        </DataCard.Section>
         <DataCard.FormSection
           title={t("Information")}
           onSave={pipeline.permissions.update ? onSavePipeline : undefined}

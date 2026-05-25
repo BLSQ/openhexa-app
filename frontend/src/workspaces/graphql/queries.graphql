@@ -129,6 +129,22 @@ query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
       description
       config
       externalLink
+      dag {
+        tasks {
+          id
+          name
+        }
+        edges {
+          source
+          target
+        }
+        outputs {
+          id
+          type
+          name
+          taskId
+        }
+      }
       ...PipelineVersionParametersTable_version
       ...PipelineVersionConfigDialog_version
     }

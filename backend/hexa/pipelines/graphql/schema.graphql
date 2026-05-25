@@ -178,6 +178,39 @@ type PipelineVersion {
   permissions: PipelineVersionPermissions!  # The permissions for the pipeline version.
   config: JSON  # The default configuration to set on newly created pipeline runs
   templateVersion: PipelineTemplateVersion  # The template version associated with the pipeline version.
+  dag: PipelineDag!  # Statically-derived task graph and outputs from the version code.
+}
+
+"""
+A statically-derived view of a pipeline version's task graph and declared outputs.
+"""
+type PipelineDag {
+  tasks: [PipelineDagTask!]!  # The tasks (nodes) defined in the pipeline code.
+  edges: [PipelineDagEdge!]!  # Directed task -> task dependencies.
+  outputs: [PipelineDagOutput!]!  # Outputs the code declares, attributed to a task.
+}
+
+type PipelineDagTask {
+  id: String!  # Stable id within the parse (the task function name).
+  name: String!  # The task name.
+}
+
+type PipelineDagEdge {
+  source: String!  # The id of the upstream task.
+  target: String!  # The id of the downstream task.
+}
+
+enum PipelineDagOutputType {
+  file
+  db
+  dataset
+}
+
+type PipelineDagOutput {
+  id: String!  # Stable id within the parse.
+  type: PipelineDagOutputType!  # The kind of output.
+  name: String  # Best-effort name (literal when statically known).
+  taskId: String  # The task that emits it, when known.
 }
 
 """
