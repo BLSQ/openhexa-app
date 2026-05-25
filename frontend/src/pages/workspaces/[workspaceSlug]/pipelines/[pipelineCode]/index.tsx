@@ -107,6 +107,7 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
               schedule: pipeline.schedule,
               webhook: pipeline.webhookEnabled,
             }}
+            parameters={pipeline.currentVersion?.parameters ?? []}
             dag={
               pipeline.currentVersion?.dag ?? {
                 tasks: [],

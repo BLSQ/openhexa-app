@@ -6,9 +6,10 @@ import {
   CircleStackIcon,
   DocumentIcon,
   Squares2X2Icon,
+  AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import { PipelineDagOutputType } from "graphql/types";
-import { DagOutputType } from "./buildDagElements";
+import { DagOutputType, PipelineParameter } from "./buildDagElements";
 
 const TRIGGER_ICON: Record<string, typeof PlayIcon> = {
   manual: PlayIcon,
@@ -116,9 +117,35 @@ export const OutputGroupNode = ({
   );
 };
 
+export const ParametersNode = ({
+  data,
+}: {
+  data: { items: PipelineParameter[] };
+}) => (
+  <div className="min-w-[180px] rounded-lg border border-dashed border-slate-300 bg-slate-50 p-2">
+    <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-600">
+      <AdjustmentsHorizontalIcon className="h-3 w-3" />
+      Parameters
+    </div>
+    {data.items.map((p) => (
+      <div
+        key={p.code}
+        className="mb-1 flex items-center justify-between gap-2 rounded border border-gray-200 bg-white px-2 py-1 text-[11px]"
+      >
+        <span className="text-gray-900">{p.name || p.code}</span>
+        <code className="rounded bg-gray-100 px-1 text-[10px] text-gray-600">
+          {p.type}
+        </code>
+      </div>
+    ))}
+    <Handle type="source" position={Position.Right} className="!bg-gray-300" />
+  </div>
+);
+
 export const nodeTypes = {
   trigger: TriggerNode,
   task: TaskNode,
   pipeline: PipelineNode,
   outputGroup: OutputGroupNode,
+  parameters: ParametersNode,
 };

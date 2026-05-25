@@ -1,5 +1,9 @@
 import { PipelineDagOutputType } from "graphql/types";
-import { buildDagElements, PIPELINE_NODE_ID } from "./buildDagElements";
+import {
+  buildDagElements,
+  PARAMETERS_NODE_ID,
+  PIPELINE_NODE_ID,
+} from "./buildDagElements";
 
 const dag = {
   tasks: [
@@ -27,6 +31,7 @@ const build = (overrides = {}) =>
   buildDagElements({
     triggers: { manual: true, schedule: null, webhook: false },
     dag,
+    parameters: [],
     pipelineName: "Demo",
     ...overrides,
   });
@@ -47,6 +52,7 @@ describe("buildDagElements", () => {
     const { edges } = buildDagElements({
       triggers: { manual: true, schedule: "0 6 * * *", webhook: true },
       dag,
+      parameters: [],
       pipelineName: "Demo",
     });
     const triggerEdges = edges.filter((e) => e.source.startsWith("trigger-"));
@@ -71,6 +77,30 @@ describe("buildDagElements", () => {
   it("omits hidden triggers", () => {
     const { nodes } = build();
     expect(nodes.filter((n) => n.type === "trigger")).toHaveLength(1);
+  });
+
+  it("adds a parameters node connected to the container when parameters exist", () => {
+    const { nodes, edges } = build({
+      parameters: [
+        { code: "output_table", name: "Output table", type: "str" },
+        { code: "rows", name: null, type: "int" },
+      ],
+    });
+    const params = nodes.find((n) => n.id === PARAMETERS_NODE_ID);
+    expect(params?.type).toBe("parameters");
+    expect(
+      (params?.data.items as { code: string }[]).map((p) => p.code),
+    ).toEqual(["output_table", "rows"]);
+    expect(
+      edges.some(
+        (e) => e.source === PARAMETERS_NODE_ID && e.target === PIPELINE_NODE_ID,
+      ),
+    ).toBe(true);
+  });
+
+  it("omits the parameters node when there are no parameters", () => {
+    const { nodes } = build();
+    expect(nodes.some((n) => n.id === PARAMETERS_NODE_ID)).toBe(false);
   });
 
   it("renders a container with no children when there are no tasks", () => {

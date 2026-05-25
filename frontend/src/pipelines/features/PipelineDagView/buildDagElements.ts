@@ -21,13 +21,21 @@ export type Triggers = {
   webhook: boolean;
 };
 
+export type PipelineParameter = {
+  code: string;
+  name?: string | null;
+  type: string;
+};
+
 export const PIPELINE_NODE_ID = "pipeline";
+export const PARAMETERS_NODE_ID = "parameters";
 
 const NODE_W = 180;
 const NODE_H = 44;
 const TRIGGER_W = 160;
 const TRIGGER_H = 44;
 const GROUP_W = 172;
+const PARAMS_W = 200;
 const CONTAINER_PAD = 16; // inner padding around the task graph
 const CONTAINER_HEADER = 30; // top space reserved for the pipeline name
 
@@ -60,10 +68,12 @@ const topLeft = (g: DagreGraph, id: string): { x: number; y: number } => {
 export const buildDagElements = ({
   triggers,
   dag,
+  parameters,
   pipelineName,
 }: {
   triggers: Triggers;
   dag: PipelineDag;
+  parameters: PipelineParameter[];
   pipelineName: string;
 }): { nodes: Node[]; edges: Edge[] } => {
   const nodes: Node[] = [];
@@ -147,13 +157,26 @@ export const buildDagElements = ({
       };
     });
 
-  // --- outer layout: triggers -> pipeline container -> output groups ---
+  // --- parameters: one box listing every parameter as `name : type` ---
+  const hasParameters = parameters.length > 0;
+  const parametersHeight = 36 + parameters.length * 22;
+
+  // --- outer layout: parameters + triggers -> pipeline container -> output groups ---
   const outerSized: Sized[] = [
     ...triggerNodes.map((t) => ({
       id: t.id,
       width: TRIGGER_W,
       height: TRIGGER_H,
     })),
+    ...(hasParameters
+      ? [
+          {
+            id: PARAMETERS_NODE_ID,
+            width: PARAMS_W,
+            height: parametersHeight,
+          },
+        ]
+      : []),
     { id: PIPELINE_NODE_ID, width: containerW, height: containerH },
     ...groupDefs.map((gd) => ({
       id: gd.id,
@@ -163,6 +186,9 @@ export const buildDagElements = ({
   ];
   const outerEdges = [
     ...triggerNodes.map((t) => ({ source: t.id, target: PIPELINE_NODE_ID })),
+    ...(hasParameters
+      ? [{ source: PARAMETERS_NODE_ID, target: PIPELINE_NODE_ID }]
+      : []),
     // synthetic edges so groups lay out to the right of the container; the
     // rendered edges (below) originate from the specific emitting task.
     ...groupDefs.map((gd) => ({ source: PIPELINE_NODE_ID, target: gd.id })),
@@ -178,6 +204,14 @@ export const buildDagElements = ({
       data: { label: t.label, kind: t.kind },
     }),
   );
+  if (hasParameters) {
+    nodes.push({
+      id: PARAMETERS_NODE_ID,
+      type: "parameters",
+      position: topLeft(outer, PARAMETERS_NODE_ID),
+      data: { items: parameters },
+    });
+  }
   nodes.push({
     id: PIPELINE_NODE_ID,
     type: "pipeline",
@@ -214,6 +248,13 @@ export const buildDagElements = ({
       target: PIPELINE_NODE_ID,
     }),
   );
+  if (hasParameters) {
+    edges.push({
+      id: `e-${PARAMETERS_NODE_ID}-${PIPELINE_NODE_ID}`,
+      source: PARAMETERS_NODE_ID,
+      target: PIPELINE_NODE_ID,
+    });
+  }
   if (hasTasks) {
     dag.edges.forEach((e) =>
       edges.push({

@@ -33,6 +33,7 @@ describe("PipelineDagView", () => {
       <PipelineDagView
         pipelineName="Demo"
         triggers={{ manual: true, schedule: null, webhook: false }}
+        parameters={[]}
         dag={dag}
       />,
     );

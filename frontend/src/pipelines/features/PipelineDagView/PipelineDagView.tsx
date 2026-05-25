@@ -1,19 +1,30 @@
 import { useMemo } from "react";
 import { ReactFlow, Background, Controls } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { buildDagElements, PipelineDag, Triggers } from "./buildDagElements";
+import {
+  buildDagElements,
+  PipelineDag,
+  PipelineParameter,
+  Triggers,
+} from "./buildDagElements";
 import { nodeTypes } from "./nodes";
 
 type Props = {
   triggers: Triggers;
   dag: PipelineDag;
+  parameters: PipelineParameter[];
   pipelineName: string;
 };
 
-const PipelineDagView = ({ triggers, dag, pipelineName }: Props) => {
+const PipelineDagView = ({
+  triggers,
+  dag,
+  parameters,
+  pipelineName,
+}: Props) => {
   const { nodes, edges } = useMemo(
-    () => buildDagElements({ triggers, dag, pipelineName }),
-    [triggers, dag, pipelineName],
+    () => buildDagElements({ triggers, dag, parameters, pipelineName }),
+    [triggers, dag, parameters, pipelineName],
   );
 
   return (
