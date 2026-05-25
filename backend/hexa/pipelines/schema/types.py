@@ -4,8 +4,6 @@ import zipfile
 from pathlib import Path
 
 from ariadne import EnumType, ObjectType, UnionType
-
-from hexa.pipelines.enums import PipelineParameterChoicesFileFormat
 from django.urls import reverse
 from sentry_sdk import capture_exception
 
@@ -15,6 +13,7 @@ from hexa.files import storage
 from hexa.files.backends.base import StorageObject
 from hexa.git.enums import FileEncoding
 from hexa.pipeline_templates.models import PipelineTemplateVersion
+from hexa.pipelines.enums import PipelineParameterChoicesFileFormat
 from hexa.pipelines.models import (
     Pipeline,
     PipelineNotificationLevel,
