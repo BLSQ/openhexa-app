@@ -103,9 +103,12 @@ def resolve_pipeline_parameter_choices_from_file(parameter, info, **kwargs):
 
 @pipeline_parameter_choices_from_file.field("format")
 def resolve_choices_from_file_format(obj, info, **kwargs):
+    fmt = obj.get("format")
+    if fmt is None:
+        return None
     try:
-        return PipelineParameterChoicesFileFormat(obj.get("format"))
-    except (ValueError, TypeError):
+        return PipelineParameterChoicesFileFormat.from_extension(fmt)
+    except ValueError:
         return None
 
 
