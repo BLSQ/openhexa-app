@@ -8,6 +8,7 @@ from graphql import parse as gql_parse
 
 from config.schema import schema
 from hexa.analytics.api import track
+from hexa.webapps.authentication import WebappUser
 from hexa.webapps.models import Webapp
 
 INTROSPECTION_FIELDS = {"__typename", "__schema", "__type"}
@@ -154,4 +155,5 @@ def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
         )
 
     track(request, "webapp_graphql_query", {**event_properties, "status": "allowed"})
+    request.user = WebappUser(real_user=request.user, webapp=webapp)
     return _graphql_view(request)

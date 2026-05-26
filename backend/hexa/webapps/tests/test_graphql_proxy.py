@@ -588,3 +588,113 @@ class UpdateWebappAllowedOperationsTest(GraphQLTestCase):
 
         self.WEBAPP.refresh_from_db()
         self.assertEqual(self.WEBAPP.allowed_operations, [])
+
+
+@override_settings(
+    WEBAPPS_DOMAIN=WEBAPPS_DOMAIN,
+    ALLOWED_HOSTS=["*"],
+)
+class GraphQLProxyWorkspaceScopingTest(TestCase):
+    """Workspace-scoping behavior of the webapp GraphQL proxy: a request
+    issued from a webapp embedded in workspace A must only resolve data
+    from workspace A, even when the embedding user is a member of B.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user("multi@test.com", "password")
+        cls.WORKSPACE_A = Workspace.objects.create(name="WS A")
+        cls.WORKSPACE_B = Workspace.objects.create(name="WS B")
+        WorkspaceMembership.objects.create(
+            user=cls.USER,
+            workspace=cls.WORKSPACE_A,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        WorkspaceMembership.objects.create(
+            user=cls.USER,
+            workspace=cls.WORKSPACE_B,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        cls.WEBAPP_A = Webapp.objects.create(
+            name="App A",
+            slug="app-a",
+            subdomain="app-a",
+            url="http://example.com",
+            workspace=cls.WORKSPACE_A,
+            created_by=cls.USER,
+            is_public=False,
+            allowed_operations=[Webapp.OperationScope.PIPELINES_READ],
+        )
+        cls.PIPELINE_A = Pipeline.objects.create(
+            workspace=cls.WORKSPACE_A, name="Pipeline A", code="pa"
+        )
+        cls.PIPELINE_B = Pipeline.objects.create(
+            workspace=cls.WORKSPACE_B, name="Pipeline B", code="pb"
+        )
+
+    def _create_session(self, webapp, user):
+        session = SessionStore()
+        session.set_expiry(WEBAPP_SESSION_MAX_AGE)
+        session["user_id"] = str(user.pk)
+        session["webapp_id"] = str(webapp.pk)
+        session.create()
+        return session
+
+    def _graphql_post(self, subdomain, query, session_key):
+        self.client.cookies[WEBAPP_SESSION_COOKIE] = session_key
+        return self.client.post(
+            "/graphql/",
+            data=json.dumps({"query": query}),
+            content_type="application/json",
+            HTTP_HOST=f"{subdomain}.{WEBAPPS_DOMAIN}",
+        )
+
+    def test_proxy_query_against_own_workspace_returns_data(self):
+        session = self._create_session(self.WEBAPP_A, self.USER)
+        response = self._graphql_post(
+            "app-a",
+            f'query {{ pipelines(workspaceSlug: "{self.WORKSPACE_A.slug}") {{ items {{ code }} }} }}',
+            session.session_key,
+        )
+        self.assertEqual(response.status_code, 200)
+        codes = {
+            p["code"]
+            for p in json.loads(response.content)["data"]["pipelines"]["items"]
+        }
+        self.assertEqual(codes, {"pa"})
+
+    def test_proxy_query_against_other_workspace_is_empty(self):
+        """USER is a member of WORKSPACE_B, but the webapp lives in
+        WORKSPACE_A — the proxy must not let them reach B's data.
+        """
+        session = self._create_session(self.WEBAPP_A, self.USER)
+        response = self._graphql_post(
+            "app-a",
+            f'query {{ pipelines(workspaceSlug: "{self.WORKSPACE_B.slug}") {{ items {{ code }} }} }}',
+            session.session_key,
+        )
+        self.assertEqual(response.status_code, 200)
+        items = json.loads(response.content)["data"]["pipelines"]["items"]
+        self.assertEqual(items, [])
+
+    def test_non_proxy_graphql_unaffected(self):
+        """Hitting the main /graphql/ endpoint (no webapp subdomain) with
+        the same session should not be wrapped in WebappUser. The user
+        keeps full visibility across their workspaces.
+        """
+        self.client.force_login(self.USER)
+        response = self.client.post(
+            "/graphql/",
+            data=json.dumps(
+                {
+                    "query": f'query {{ pipelines(workspaceSlug: "{self.WORKSPACE_B.slug}") {{ items {{ code }} }} }}'
+                }
+            ),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        codes = {
+            p["code"]
+            for p in json.loads(response.content)["data"]["pipelines"]["items"]
+        }
+        self.assertEqual(codes, {"pb"})
