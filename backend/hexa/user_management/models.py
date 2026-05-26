@@ -651,6 +651,8 @@ class TeamManager(models.Manager):
 
 class TeamQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
+        if getattr(user, "is_service_principal", False):
+            return self.none()
         return self._filter_for_user_and_query_object(user, Q(members=user))
 
 
@@ -721,6 +723,8 @@ class MembershipManager(models.Manager):
 
 class MembershipQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
+        if getattr(user, "is_service_principal", False):
+            return self.none()
         return self._filter_for_user_and_query_object(user, Q(team__members=user))
 
 
@@ -851,6 +855,8 @@ class OrganizationInvitationStatus(models.TextChoices):
 
 class OrganizationInvitationQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
+        if getattr(user, "is_service_principal", False):
+            return self.none()
         return self._filter_for_user_and_query_object(
             user,
             Q(organization__organizationmembership__user=user),

@@ -317,6 +317,8 @@ class Workspace(Base):
 
 class WorkspaceMembershipQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
+        if getattr(user, "is_service_principal", False):
+            return self.none()
         return self._filter_for_user_and_query_object(
             user,
             Q(workspace__members=user),
@@ -431,6 +433,8 @@ class WorkspaceInvitationStatus(models.TextChoices):
 
 class WorkspaceInvitationQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
+        if getattr(user, "is_service_principal", False):
+            return self.none()
         return self._filter_for_user_and_query_object(
             user,
             Q(workspace__members=user),
