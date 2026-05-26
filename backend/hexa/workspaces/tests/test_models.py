@@ -594,6 +594,108 @@ class ConnectionTest(TestCase):
         connection.update_if_has_perm(self.USER_SERENA, name="Connection 2")
 
 
+class ConnectionFilterForUserTest(TestCase):
+    """Covers ConnectionQuerySet.filter_for_user across the principal axes:
+    direct workspace member, org admin/owner reaching into a workspace
+    they're not a member of, org member without elevation, external user,
+    and superuser.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.superuser = User.objects.create_user(
+            "su@example.com", "password", is_superuser=True
+        )
+        cls.member = User.objects.create_user("member@example.com", "password")
+        cls.org_owner = User.objects.create_user("owner@example.com", "password")
+        cls.org_admin = User.objects.create_user("orgadmin@example.com", "password")
+        cls.org_member = User.objects.create_user("orgmember@example.com", "password")
+        cls.external = User.objects.create_user("external@example.com", "password")
+
+        cls.organization = Organization.objects.create(name="Org")
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_owner,
+            role=OrganizationMembershipRole.OWNER,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_admin,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_member,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            cls.org_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.superuser,
+                name="Org WS",
+                organization=cls.organization,
+            )
+            cls.other_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.superuser,
+                name="Other WS",
+            )
+
+        WorkspaceMembership.objects.create(
+            user=cls.member,
+            workspace=cls.org_workspace,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
+        cls.connection_org = Connection.objects.create(
+            workspace=cls.org_workspace,
+            user=cls.superuser,
+            name="conn-org",
+            slug="conn-org",
+            connection_type=ConnectionType.CUSTOM,
+        )
+        cls.connection_other = Connection.objects.create(
+            workspace=cls.other_workspace,
+            user=cls.superuser,
+            name="conn-other",
+            slug="conn-other",
+            connection_type=ConnectionType.CUSTOM,
+        )
+
+    def test_workspace_member_sees_only_their_workspace_connections(self):
+        connections = Connection.objects.filter_for_user(self.member)
+        self.assertIn(self.connection_org, connections)
+        self.assertNotIn(self.connection_other, connections)
+
+    def test_org_owner_sees_connections_in_org_workspaces(self):
+        connections = Connection.objects.filter_for_user(self.org_owner)
+        self.assertIn(self.connection_org, connections)
+        self.assertNotIn(self.connection_other, connections)
+
+    def test_org_admin_sees_connections_in_org_workspaces(self):
+        connections = Connection.objects.filter_for_user(self.org_admin)
+        self.assertIn(self.connection_org, connections)
+        self.assertNotIn(self.connection_other, connections)
+
+    def test_org_member_without_workspace_membership_sees_nothing(self):
+        connections = Connection.objects.filter_for_user(self.org_member)
+        self.assertNotIn(self.connection_org, connections)
+        self.assertNotIn(self.connection_other, connections)
+
+    def test_external_user_sees_nothing(self):
+        connections = Connection.objects.filter_for_user(self.external)
+        self.assertEqual(connections.count(), 0)
+
+    def test_superuser_sees_all_connections(self):
+        # Superuser access goes through accessible_workspaces() which returns
+        # all workspaces — so every Connection is visible.
+        connections = Connection.objects.filter_for_user(self.superuser)
+        self.assertIn(self.connection_org, connections)
+        self.assertIn(self.connection_other, connections)
+
+
 class WorkspaceMembershipOrganizationAdminOwnerPermissionsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
