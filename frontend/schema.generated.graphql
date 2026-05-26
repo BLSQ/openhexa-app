@@ -5459,13 +5459,6 @@ type Webapp {
   workspace: Workspace!
 }
 
-"""
-A file to write to a webapp's git repository.
-
-`content` is interpreted according to `encoding`:
-  * TEXT (default)  — content is a UTF-8 string; suitable for hand-written or AI-generated code.
-  * BASE64          — content is base64-encoded raw bytes; required for binary files (images, fonts, …).
-"""
 type WebappCommitDiff {
   authorEmail: String!
   authorName: String!
@@ -5486,6 +5479,13 @@ type WebappFileDiff {
   status: String!
 }
 
+"""
+A file to write to a webapp's git repository.
+
+`content` is interpreted according to `encoding`:
+  * TEXT (default)  — content is a UTF-8 string; suitable for hand-written or AI-generated code.
+  * BASE64          — content is base64-encoded raw bytes; required for binary files (images, fonts, …).
+"""
 input WebappFileInput {
   content: String!
   encoding: FileEncoding = TEXT

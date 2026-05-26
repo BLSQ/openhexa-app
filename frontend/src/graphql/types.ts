@@ -6262,13 +6262,6 @@ export type WebappVersionsArgs = {
   perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
-/**
- * A file to write to a webapp's git repository.
- *
- * `content` is interpreted according to `encoding`:
- *   * TEXT (default)  — content is a UTF-8 string; suitable for hand-written or AI-generated code.
- *   * BASE64          — content is base64-encoded raw bytes; required for binary files (images, fonts, …).
- */
 export type WebappCommitDiff = {
   __typename?: 'WebappCommitDiff';
   authorEmail: Scalars['String']['output'];
@@ -6291,6 +6284,13 @@ export type WebappFileDiff = {
   status: Scalars['String']['output'];
 };
 
+/**
+ * A file to write to a webapp's git repository.
+ *
+ * `content` is interpreted according to `encoding`:
+ *   * TEXT (default)  — content is a UTF-8 string; suitable for hand-written or AI-generated code.
+ *   * BASE64          — content is base64-encoded raw bytes; required for binary files (images, fonts, …).
+ */
 export type WebappFileInput = {
   content: Scalars['String']['input'];
   encoding?: InputMaybe<FileEncoding>;
