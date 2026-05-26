@@ -75,6 +75,7 @@ class UserInterface:
     is_active = False
     is_superuser = False
     is_anonymous = True
+    is_service_principal = False
 
     def has_perm(self, perm, obj=None):
         raise NotImplementedError
@@ -85,6 +86,12 @@ class UserInterface:
     @property
     def is_authenticated(self):
         return False
+
+    def accessible_workspaces(self):
+        raise NotImplementedError
+
+    def accessible_organizations(self):
+        raise NotImplementedError
 
 
 class User(AbstractUser, UserInterface):
@@ -164,6 +171,40 @@ class User(AbstractUser, UserInterface):
                 role=OrganizationMembershipRole.OWNER,
             ).exists()
         )
+
+    def accessible_workspaces(self):
+        # Lazy import to avoid a circular import with hexa.workspaces.models.
+        # Archival is intentionally not filtered here — callers that care
+        # (e.g. WorkspaceQuerySet.filter_for_user) apply that filter themselves.
+        from hexa.workspaces.models import Workspace
+
+        if not self.is_authenticated:
+            return Workspace.objects.none()
+        if self.is_superuser:
+            return Workspace.objects.all()
+
+        organization_access = Q(
+            organization__organizationmembership__user=self,
+            organization__organizationmembership__role__in=[
+                OrganizationMembershipRole.OWNER,
+                OrganizationMembershipRole.ADMIN,
+            ],
+        )
+        workspace_access = Q(workspacemembership__user=self)
+        return Workspace.objects.filter(
+            organization_access | workspace_access
+        ).distinct()
+
+    def accessible_organizations(self):
+        if not self.is_authenticated:
+            return Organization.objects.none()
+        if self.is_superuser or self.has_perm(
+            "user_management.manage_all_organizations"
+        ):
+            return Organization.objects.all()
+        return Organization.objects.filter(
+            Q(organizationmembership__user=self) | Q(workspaces__members=self)
+        ).distinct()
 
     def __str__(self):
         if self.first_name or self.last_name:

@@ -1,5 +1,6 @@
 from hexa.pipelines.models import PipelineRun
-from hexa.user_management.models import UserInterface
+from hexa.user_management.models import Organization, UserInterface
+from hexa.workspaces.models import Workspace
 
 
 class PipelineRunUser(UserInterface):
@@ -9,6 +10,7 @@ class PipelineRunUser(UserInterface):
 
     is_active = True
     is_authenticated = True
+    is_service_principal = True
 
     def get_username(self):
         return f"pipeline_{self.pipeline_run.id}"
@@ -21,3 +23,11 @@ class PipelineRunUser(UserInterface):
 
     def has_feature_flag(self, *args, **kwargs):
         return False
+
+    def accessible_workspaces(self):
+        return Workspace.objects.filter(id=self.pipeline_run.pipeline.workspace_id)
+
+    def accessible_organizations(self):
+        return Organization.objects.filter(
+            workspaces=self.pipeline_run.pipeline.workspace
+        )
