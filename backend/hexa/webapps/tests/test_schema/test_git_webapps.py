@@ -99,14 +99,7 @@ COMMIT_DIFF_QUERY = """
                 authorName
                 authorEmail
                 date
-                files {
-                    filename
-                    previousFilename
-                    status
-                    additions
-                    deletions
-                    patch
-                }
+                rawDiff
             }
         }
     }
@@ -1018,14 +1011,8 @@ class GitWebappCommitDiffTest(GraphQLTestCase):
         self.assertEqual(diff["message"], "Update homepage")
         self.assertEqual(diff["authorName"], "Test User")
         self.assertEqual(diff["authorEmail"], "test@example.com")
-        self.assertEqual(len(diff["files"]), 1)
-        file_diff = diff["files"][0]
-        self.assertEqual(file_diff["filename"], "index.html")
-        self.assertEqual(file_diff["status"], "modified")
-        self.assertGreater(file_diff["additions"], 0)
-        self.assertGreater(file_diff["deletions"], 0)
-        self.assertIn("+", file_diff["patch"])
-        self.assertIn("-", file_diff["patch"])
+        self.assertIn("diff --git", diff["rawDiff"])
+        self.assertIn("+<h1>Updated</h1>", diff["rawDiff"])
 
     @patch("hexa.git.mixins.get_forgejo_client")
     def test_commit_diff_initial_commit_all_added(self, mock_get_client):
@@ -1061,9 +1048,8 @@ class GitWebappCommitDiffTest(GraphQLTestCase):
 
         diff = response["data"]["webapp"]["commitDiff"]
         self.assertIsNotNone(diff)
-        self.assertEqual(len(diff["files"]), 1)
-        self.assertEqual(diff["files"][0]["filename"], "index.html")
-        self.assertEqual(diff["files"][0]["status"], "added")
+        self.assertIn("diff --git", diff["rawDiff"])
+        self.assertIn("new file mode", diff["rawDiff"])
 
     @patch("hexa.git.mixins.get_forgejo_client")
     def test_commit_diff_forgejo_error_returns_null(self, mock_get_client):

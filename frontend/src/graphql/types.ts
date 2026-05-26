@@ -6267,21 +6267,9 @@ export type WebappCommitDiff = {
   authorEmail: Scalars['String']['output'];
   authorName: Scalars['String']['output'];
   date: Scalars['DateTime']['output'];
-  files: Array<WebappFileDiff>;
   id: Scalars['String']['output'];
   message: Scalars['String']['output'];
-  totalAdditions: Scalars['Int']['output'];
-  totalDeletions: Scalars['Int']['output'];
-};
-
-export type WebappFileDiff = {
-  __typename?: 'WebappFileDiff';
-  additions: Scalars['Int']['output'];
-  deletions: Scalars['Int']['output'];
-  filename: Scalars['String']['output'];
-  patch: Scalars['String']['output'];
-  previousFilename: Scalars['String']['output'];
-  status: Scalars['String']['output'];
+  rawDiff: Scalars['String']['output'];
 };
 
 /**

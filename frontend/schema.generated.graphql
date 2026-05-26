@@ -5463,20 +5463,9 @@ type WebappCommitDiff {
   authorEmail: String!
   authorName: String!
   date: DateTime!
-  files: [WebappFileDiff!]!
   id: String!
   message: String!
-  totalAdditions: Int!
-  totalDeletions: Int!
-}
-
-type WebappFileDiff {
-  additions: Int!
-  deletions: Int!
-  filename: String!
-  patch: String!
-  previousFilename: String!
-  status: String!
+  rawDiff: String!
 }
 
 """

@@ -81,16 +81,7 @@ query WebappCommitDiff(
       authorName
       authorEmail
       date
-      totalAdditions
-      totalDeletions
-      files {
-        filename
-        previousFilename
-        status
-        additions
-        deletions
-        patch
-      }
+      rawDiff
     }
   }
 }
