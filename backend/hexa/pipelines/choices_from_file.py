@@ -32,7 +32,11 @@ def resolve_choices_from_file(bucket_name: str, choices_from_file: dict) -> list
         raise ValueError(f"Invalid file path '{path}'.")
 
     raw_fmt = choices_from_file.get("format")
-    fmt = PipelineParameterChoicesFileFormat.from_extension(raw_fmt) if raw_fmt else PipelineParameterChoicesFileFormat.from_path(path)
+    fmt = (
+        PipelineParameterChoicesFileFormat.from_extension(raw_fmt)
+        if raw_fmt
+        else PipelineParameterChoicesFileFormat.from_path(path)
+    )
     column = choices_from_file.get("column")
 
     try:
