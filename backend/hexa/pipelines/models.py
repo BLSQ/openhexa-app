@@ -290,19 +290,10 @@ class PipelineVersion(models.Model):
 
 class PipelineQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     def filter_for_user(self, user: AnonymousUser | User):
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        from hexa.pipelines.authentication import PipelineRunUser
-
-        if isinstance(user, PipelineRunUser):
-            return self._filter_for_user_and_query_object(
-                user,
-                models.Q(workspace=user.pipeline_run.pipeline.workspace),
-            )
+        if not user.is_authenticated:
+            return self.none()
         return self._filter_for_user_and_query_object(
-            user,
-            Q(workspace__members=user),
-            return_all_if_superuser=True,
-            return_all_if_organization_admin_or_owner=True,
+            user, Q(workspace__in=user.accessible_workspaces())
         )
 
     def filter_for_workspace_slugs(
