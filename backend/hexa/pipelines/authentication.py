@@ -9,6 +9,7 @@ class PipelineRunUser(UserInterface):
 
     is_active = True
     is_authenticated = True
+    is_service_principal = True
 
     def get_username(self):
         return f"pipeline_{self.pipeline_run.id}"
