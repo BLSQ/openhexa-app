@@ -898,3 +898,25 @@ class DatasetLinkPipelineRunUserTest(BaseTestMixin, TestCase):
         links = DatasetLink.objects.filter_for_user(self.pipeline_user)
         link_datasets = [link.dataset for link in links]
         self.assertNotIn(self.DATASET_IN_WORKSPACE_3, link_datasets)
+
+    def test_pipeline_user_sees_org_shared_datasets_via_dataset_queryset(self):
+        """DatasetQuerySet.filter_for_user must mirror the DatasetLinkQuerySet
+        behavior for service principals: shared-with-organization datasets in
+        the same org are visible. This pins the fix for the prior asymmetry
+        where Dataset.filter_for_user short-circuited service principals to
+        only see datasets linked into their own workspace.
+        """
+        self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG.shared_with_organization = True
+        self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG.save()
+
+        datasets = Dataset.objects.filter_for_user(self.pipeline_user)
+
+        self.assertIn(self.DATASET_IN_PIPELINE_WORKSPACE, datasets)
+        self.assertIn(self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG, datasets)
+        # Same-org but not shared → still hidden
+        self.assertNotIn(self.DATASET_IN_WORKSPACE_3, datasets)
+        # Different-org dataset → hidden even when shared
+        self.DATASET_IN_DIFFERENT_ORG.shared_with_organization = True
+        self.DATASET_IN_DIFFERENT_ORG.save()
+        datasets = Dataset.objects.filter_for_user(self.pipeline_user)
+        self.assertNotIn(self.DATASET_IN_DIFFERENT_ORG, datasets)

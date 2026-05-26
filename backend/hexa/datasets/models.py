@@ -67,16 +67,16 @@ class DatasetQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | User):
         if not user.is_authenticated:
             return self.none()
-        # Service principals (PipelineRunUser, WebappUser) historically only
-        # see datasets linked into their own workspace; they don't get the
-        # shared-with-organization expansion that interactive users get.
-        query = Q(links__workspace__in=user.accessible_workspaces())
-        if not user.is_service_principal:
-            query |= Q(
-                shared_with_organization=True,
-                workspace__organization__in=user.accessible_organizations(),
+        return self.optimize_query(
+            self._filter_for_user_and_query_object(
+                user,
+                Q(links__workspace__in=user.accessible_workspaces())
+                | Q(
+                    shared_with_organization=True,
+                    workspace__organization__in=user.accessible_organizations(),
+                ),
             )
-        return self.optimize_query(self._filter_for_user_and_query_object(user, query))
+        )
 
     def filter_for_workspace_slugs(
         self, user: AnonymousUser | User, workspace_slugs: list[str]
