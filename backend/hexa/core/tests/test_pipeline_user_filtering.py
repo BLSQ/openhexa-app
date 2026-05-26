@@ -4,8 +4,17 @@ from django.test import TestCase
 
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
-from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.user_management.models import (
+    Organization,
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    User,
+)
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 
 
 class TestPipelineRunUserFiltering(TestCase):
@@ -143,3 +152,111 @@ class TestPipelineRunUserFiltering(TestCase):
             self.pipeline_user
         )
         self.assertEqual(filtered_templates.count(), 2)  # Expect all templates
+
+
+class TestPrincipalAccessors(TestCase):
+    def setUp(self):
+        self.superuser = User.objects.create_user(
+            "root@bluesquarehub.com", "standardpassword", is_superuser=True
+        )
+        self.member = User.objects.create_user(
+            "member@bluesquarehub.com", "standardpassword"
+        )
+        self.outsider = User.objects.create_user(
+            "outsider@bluesquarehub.com", "standardpassword"
+        )
+        self.workspace1 = Workspace.objects.create_if_has_perm(
+            self.superuser, name="WS1", description="Workspace 1"
+        )
+        self.workspace2 = Workspace.objects.create_if_has_perm(
+            self.superuser, name="WS2", description="Workspace 2"
+        )
+        WorkspaceMembership.objects.create(
+            user=self.member,
+            workspace=self.workspace1,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+        self.pipeline_run = MagicMock(PipelineRun)
+        self.pipeline_run.pipeline = MagicMock(Pipeline)
+        self.pipeline_run.pipeline.workspace = self.workspace1
+        self.pipeline_run.pipeline.workspace_id = self.workspace1.id
+        self.pipeline_user = PipelineRunUser(self.pipeline_run)
+
+    def test_user_accessible_workspaces_returns_memberships(self):
+        accessible = self.member.accessible_workspaces()
+        self.assertEqual(list(accessible), [self.workspace1])
+
+    def test_user_accessible_workspaces_empty_for_outsider(self):
+        self.assertEqual(self.outsider.accessible_workspaces().count(), 0)
+
+    def test_user_accessible_workspaces_returns_all_for_superuser(self):
+        self.assertEqual(
+            set(self.superuser.accessible_workspaces()),
+            {self.workspace1, self.workspace2},
+        )
+
+    def test_pipeline_user_accessible_workspaces_returns_pipeline_workspace(self):
+        accessible = self.pipeline_user.accessible_workspaces()
+        self.assertEqual(list(accessible), [self.workspace1])
+
+    def test_user_accessible_workspaces_includes_org_admin_workspaces(self):
+        # An organization admin/owner sees every workspace in the org,
+        # including ones they have no direct WorkspaceMembership for.
+        org_admin = User.objects.create_user(
+            "org-admin@bluesquarehub.com", "standardpassword"
+        )
+        org = Organization.objects.create(
+            name="Org", short_name="org", organization_type="CORPORATE"
+        )
+        OrganizationMembership.objects.create(
+            user=org_admin,
+            organization=org,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        self.workspace1.organization = org
+        self.workspace1.save()
+
+        accessible = org_admin.accessible_workspaces()
+        self.assertIn(self.workspace1, accessible)
+        self.assertNotIn(self.workspace2, accessible)
+
+    def test_user_accessible_workspaces_excludes_org_for_regular_members(self):
+        # A REGULAR (non-admin/owner) organization member should NOT see
+        # workspaces just because they share an org — only direct
+        # WorkspaceMembership grants access.
+        org_member = User.objects.create_user(
+            "org-member@bluesquarehub.com", "standardpassword"
+        )
+        org = Organization.objects.create(
+            name="Org", short_name="org", organization_type="CORPORATE"
+        )
+        OrganizationMembership.objects.create(
+            user=org_member,
+            organization=org,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+        self.workspace1.organization = org
+        self.workspace1.save()
+
+        self.assertEqual(org_member.accessible_workspaces().count(), 0)
+
+    def test_user_accessible_organizations_includes_via_workspace(self):
+        org = Organization.objects.create(
+            name="Org", short_name="org", organization_type="CORPORATE"
+        )
+        self.workspace1.organization = org
+        self.workspace1.save()
+        self.assertEqual(list(self.member.accessible_organizations()), [org])
+
+    def test_pipeline_user_accessible_organizations(self):
+        org = Organization.objects.create(
+            name="Org", short_name="org", organization_type="CORPORATE"
+        )
+        self.workspace1.organization = org
+        self.workspace1.save()
+        self.assertEqual(list(self.pipeline_user.accessible_organizations()), [org])
+
+    def test_is_service_principal_flags(self):
+        self.assertFalse(self.member.is_service_principal)
+        self.assertFalse(self.superuser.is_service_principal)
+        self.assertTrue(self.pipeline_user.is_service_principal)

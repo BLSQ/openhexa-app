@@ -11,7 +11,7 @@ from django.contrib.auth.models import UserManager as BaseUserManager
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models
-from django.db.models import EmailField, Q
+from django.db.models import EmailField, Q, QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
@@ -75,6 +75,7 @@ class UserInterface:
     is_active = False
     is_superuser = False
     is_anonymous = True
+    is_service_principal = False
 
     def has_perm(self, perm, obj=None):
         raise NotImplementedError
@@ -85,6 +86,12 @@ class UserInterface:
     @property
     def is_authenticated(self):
         return False
+
+    def accessible_workspaces(self) -> QuerySet:
+        raise NotImplementedError
+
+    def accessible_organizations(self) -> QuerySet:
+        raise NotImplementedError
 
 
 class User(AbstractUser, UserInterface):
@@ -164,6 +171,37 @@ class User(AbstractUser, UserInterface):
                 role=OrganizationMembershipRole.OWNER,
             ).exists()
         )
+
+    def accessible_workspaces(self) -> QuerySet:
+        from hexa.workspaces.models import Workspace
+
+        if not self.is_authenticated:
+            return Workspace.objects.none()
+        if self.is_superuser:
+            return Workspace.objects.all()
+
+        organization_access = Q(
+            organization__organizationmembership__user=self,
+            organization__organizationmembership__role__in=[
+                OrganizationMembershipRole.OWNER,
+                OrganizationMembershipRole.ADMIN,
+            ],
+        )
+        workspace_access = Q(workspacemembership__user=self)
+        return Workspace.objects.filter(
+            organization_access | workspace_access
+        ).distinct()
+
+    def accessible_organizations(self) -> QuerySet:
+        if not self.is_authenticated:
+            return Organization.objects.none()
+        if self.is_superuser or self.has_perm(
+            "user_management.manage_all_organizations"
+        ):
+            return Organization.objects.all()
+        return Organization.objects.filter(
+            Q(organizationmembership__user=self) | Q(workspaces__members=self)
+        ).distinct()
 
     def __str__(self):
         if self.first_name or self.last_name:
