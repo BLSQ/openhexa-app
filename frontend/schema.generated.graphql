@@ -3435,7 +3435,6 @@ enum PipelineParameterChoicesFileFormat {
   csv
   json
   yaml
-  yml
 }
 
 """Describes a dynamic choices source backed by a workspace file."""
