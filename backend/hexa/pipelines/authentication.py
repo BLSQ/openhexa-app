@@ -1,15 +1,14 @@
 from hexa.pipelines.models import PipelineRun
-from hexa.user_management.models import UserInterface
+from hexa.user_management.models import ServicePrincipal, UserInterface
 
 
-class PipelineRunUser(UserInterface):
+class PipelineRunUser(UserInterface, ServicePrincipal):
     def __init__(self, pipeline_run: PipelineRun):
         super().__init__()
         self.pipeline_run: PipelineRun = pipeline_run
 
     is_active = True
     is_authenticated = True
-    is_service_principal = True
 
     def get_username(self):
         return f"pipeline_{self.pipeline_run.id}"
