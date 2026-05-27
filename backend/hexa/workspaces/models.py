@@ -173,10 +173,6 @@ class WorkspaceQuerySet(BaseQuerySet):
             return self.none()
         if isinstance(user, PipelineRunUser):
             qs = self.filter(pk=user.pipeline_run.pipeline.workspace_id)
-        elif isinstance(user, WebappUser):
-            qs = self.filter_for_user(user, include_archived=True).filter(
-                pk=user.webapp.workspace_id
-            )
         elif isinstance(user, User):
             qs = (
                 self.all()
@@ -192,6 +188,8 @@ class WorkspaceQuerySet(BaseQuerySet):
                     )
                 ).distinct()
             )
+            if isinstance(user, WebappUser):
+                qs = qs.filter(pk=user.webapp.workspace_id)
         else:
             raise NotImplementedError(
                 f"WorkspaceQuerySet.filter_for_user has no dispatch for principal "
