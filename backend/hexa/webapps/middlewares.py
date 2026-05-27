@@ -21,6 +21,7 @@ from django.utils import timezone
 
 from hexa.superset.views import view_superset_dashboard
 from hexa.user_management.models import User
+from hexa.webapps.authentication import WebappUser
 from hexa.webapps.graphql_proxy import handle_graphql_proxy
 from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 from hexa.webapps.utils import extract_webapp_subdomain
@@ -249,6 +250,8 @@ def _handle_webapp_request(request, webapp, *, request_has_user=True):
                 {"errors": [{"message": "Authentication required"}]},
                 status=401,
             )
+
+        request.user = WebappUser(real_user=user, webapp=webapp)
 
         return handle_graphql_proxy(request, webapp)
 
