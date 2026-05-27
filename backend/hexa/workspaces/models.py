@@ -167,11 +167,14 @@ class WorkspaceQuerySet(BaseQuerySet):
         include_archived: bool = False,
     ) -> models.QuerySet:
         from hexa.pipelines.authentication import PipelineRunUser
+        from hexa.webapps.authentication import WebappUser
 
         if not user.is_authenticated:
             return self.none()
         if isinstance(user, PipelineRunUser):
             qs = self.filter(pk=user.pipeline_run.pipeline.workspace_id)
+        elif isinstance(user, WebappUser):
+            qs = self.filter(pk=user.webapp.workspace_id)
         elif isinstance(user, User):
             qs = (
                 self.all()
