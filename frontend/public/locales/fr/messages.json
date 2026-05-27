@@ -24,6 +24,7 @@
   "{{value}}s": "{{value}}s",
   "# if not installed": "# s'il n'est pas installé",
   "# Rows": "# Lignes",
+  "← Back to history": "← Retour à l'historique",
   "+{{count}} more___one": "+{{count}} de plus",
   "+{{count}} more___many": "+{{count}} de plus",
   "+{{count}} more___other": "+{{count}} de plus",
@@ -146,6 +147,7 @@
   "Be aware that this action is irreversible and the execution cannot be resumed. It can lead to an inconsistent state if there was any database or filesystem operation.": "Sachez que cette action est irréversible et que l'exécution ne peut pas être reprise. Elle peut conduire à un état incohérent s'il y a eu une opération sur la base de données ou le système de fichiers.",
   "Breadcrumbs": "Chemin de navigation",
   "Browse": "Parcourir",
+  "Browse at this point": "Parcourir à ce stade",
   "Bucket name": "Nom du bucket",
   "By proceeding, the invitation link for {{email}} will no longer be usable.": "En procédant ainsi, le lien d'invitation pour {{email}} ne sera plus utilisable.",
   "By proceeding, the invitation link for <1>{invitation.email}</1> will no longer be usable.": "En procédant ainsi, le lien d'invitation pour <1>{invitation.email}</1> ne sera plus utilisable.",
@@ -501,6 +503,7 @@
   "Next": "Suivant",
   "No": "Non",
   "No attributes found": "Aucun attribut trouvé",
+  "No changes in this commit.": "Aucun changement dans ce commit.",
   "No commits yet. Edit files and save to get started.": "Aucun commit pour le moment. Modifiez les fichiers et enregistrez pour commencer.",
   "No elements to display": "Aucun élément à afficher",
   "No file selected": "Aucun fichier sélectionné",
@@ -1016,10 +1019,5 @@
   "Your account": "Votre compte",
   "Your subscription has expired. Limits are frozen until you renew.": "Votre abonnement a expiré. Les limites sont gelées jusqu'à ce que vous renouveliez.",
   "Your subscription has expired. Please renew soon to avoid service interruption.": "Votre abonnement a expiré. Veuillez renouveler bientôt pour éviter toute interruption de service.",
-  "Your web app can query the OpenHEXA GraphQL API on behalf of the connected user. Requests are scoped to the permissions you enable below.": "Votre application web peut interroger l'API GraphQL d'OpenHEXA au nom de l'utilisateur connecté. Les requêtes sont limitées aux permissions que vous activez ci-dessous.",
-  "Browse at this point": "Parcourir à ce stade",
-  "No changes in this commit.": "Aucun changement dans ce commit.",
-  "files changed": "fichiers modifiés",
-  "← Back to history": "← Retour à l'historique",
-  "Binary file or no diff available": "Fichier binaire ou diff non disponible"
+  "Your web app can query the OpenHEXA GraphQL API on behalf of the connected user. Requests are scoped to the permissions you enable below.": "Votre application web peut interroger l'API GraphQL d'OpenHEXA au nom de l'utilisateur connecté. Les requêtes sont limitées aux permissions que vous activez ci-dessous."
 }
