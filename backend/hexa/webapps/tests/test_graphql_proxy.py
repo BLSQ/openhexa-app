@@ -602,19 +602,21 @@ class GraphQLProxyWorkspaceScopingTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.USER = User.objects.create_user("multi@test.com", "password")
-        cls.WORKSPACE_A = Workspace.objects.create(name="WS A")
-        cls.WORKSPACE_B = Workspace.objects.create(name="WS B")
-        WorkspaceMembership.objects.create(
-            user=cls.USER,
-            workspace=cls.WORKSPACE_A,
-            role=WorkspaceMembershipRole.ADMIN,
+        cls.USER = User.objects.create_user(
+            "multi@test.com", "password", is_superuser=True
         )
-        WorkspaceMembership.objects.create(
-            user=cls.USER,
-            workspace=cls.WORKSPACE_B,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            cls.WORKSPACE_A = Workspace.objects.create_if_has_perm(
+                principal=cls.USER, name="WS A"
+            )
+            cls.WORKSPACE_B = Workspace.objects.create_if_has_perm(
+                principal=cls.USER, name="WS B"
+            )
+        cls.USER.is_superuser = False
+        cls.USER.save()
         cls.WEBAPP_A = Webapp.objects.create(
             name="App A",
             slug="app-a",
