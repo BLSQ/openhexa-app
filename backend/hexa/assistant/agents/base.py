@@ -38,6 +38,23 @@ from hexa.core.sse import format_sse
 logger = logging.getLogger(__name__)
 
 
+def _parse_tool_args(raw_args) -> dict:
+    if isinstance(raw_args, str):
+        return json.loads(raw_args) if raw_args else {}
+    if raw_args is None:
+        return {}
+    return json.loads(json.dumps(raw_args, default=str))
+
+
+def _parse_tool_output(content) -> object:
+    if isinstance(content, str):
+        try:
+            return json.loads(content)
+        except (json.JSONDecodeError, ValueError):
+            return content
+    return json.loads(json.dumps(content, default=str))
+
+
 def _is_success(content) -> bool:
     if isinstance(content, str):
         try:
@@ -235,13 +252,7 @@ class BaseAgent:
                         call.tool_name,
                         call.tool_call_id,
                     )
-                    raw_args = call.args
-                    if isinstance(raw_args, str):
-                        tool_input = json.loads(raw_args) if raw_args else {}
-                    elif raw_args is None:
-                        tool_input = {}
-                    else:
-                        tool_input = json.loads(json.dumps(raw_args, default=str))
+                    tool_input = _parse_tool_args(call.args)
                     tool_invocations[call.tool_call_id] = ToolInvocation(
                         tool_call_id=call.tool_call_id,
                         tool_name=call.tool_name,
@@ -263,24 +274,19 @@ class BaseAgent:
                         "agent.run_stream: tool_result call_id=%s",
                         result_part.tool_call_id,
                     )
-                    content = result_part.content
-                    if isinstance(content, str):
-                        try:
-                            tool_output = json.loads(content)
-                        except (json.JSONDecodeError, ValueError):
-                            tool_output = content
-                    else:
-                        tool_output = json.loads(json.dumps(content, default=str))
-                    success = _is_success(content)
+                    tool_output = _parse_tool_output(result_part.content)
+                    success = _is_success(result_part.content)
                     if result_part.tool_call_id in tool_invocations:
                         inv = tool_invocations[result_part.tool_call_id]
                         inv.tool_output = tool_output
                         inv.success = success
                     else:
+                        # Pydantic AI can emit a result event with no prior call event
+                        # when tool calls arrive out of order or are streamed in chunks.
                         inv = ToolInvocation(
                             tool_call_id=result_part.tool_call_id,
                             tool_name=result_part.tool_name,
-                            tool_input="",
+                            tool_input={},
                             tool_output=tool_output,
                             success=success,
                         )
