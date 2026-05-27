@@ -148,7 +148,7 @@ class Message(Base):
         Conversation, on_delete=models.CASCADE, related_name="messages"
     )
     role = models.CharField(max_length=20, choices=Role.choices)
-    content = models.TextField()
+    content = models.JSONField()
     input_tokens = models.IntegerField(null=True, blank=True)
     output_tokens = models.IntegerField(null=True, blank=True)
     cost = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)

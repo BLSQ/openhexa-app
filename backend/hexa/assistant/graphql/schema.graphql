@@ -18,7 +18,7 @@ type AssistantMessage {
   id: UUID!
   createdAt: DateTime!
   role: String!
-  content: String!
+  content: JSON!
   inputTokens: Int
   outputTokens: Int
   toolInvocations: [AssistantToolInvocation!]!
@@ -27,6 +27,7 @@ type AssistantMessage {
 type AssistantToolInvocation {
   id: UUID!
   createdAt: DateTime!
+  toolCallId: String!
   toolName: String!
   toolInput: JSON!
   toolOutput: JSON

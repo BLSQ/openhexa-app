@@ -15,6 +15,7 @@ from pydantic_ai.messages import (
     PartStartEvent,
     TextPart,
     TextPartDelta,
+    ToolCallPart,
     ToolReturnPart,
 )
 from pydantic_ai.output import TextOutput
@@ -121,7 +122,7 @@ class BaseAgent:
         user_msg = await Message.objects.acreate(
             conversation=self.conversation,
             role=Message.Role.USER,
-            content=user_input,
+            content=[{"type": "text", "content": user_input}],
         )
         yield format_sse(
             "user_message", UserMessagePayload(id=str(user_msg.id), content=user_input)
@@ -170,14 +171,13 @@ class BaseAgent:
                 precomputed_naming, sse = await self._resolve_naming_task(naming_task)
                 yield sse
 
-            response_text = self._extract_response_text(
-                run_result.new_messages() if run_result else []
-            )
+            new_messages = run_result.new_messages() if run_result else []
+            content_segments = self._extract_content_segments(new_messages)
             all_messages = run_result.all_messages() if run_result else []
             usage = run_result.usage() if run_result else RunUsage()
 
             assistant_message = await self._persist_run(
-                response_text,
+                content_segments,
                 tool_invocations,
                 usage,
                 all_messages,
@@ -297,19 +297,24 @@ class BaseAgent:
                     )
 
     @staticmethod
-    def _extract_response_text(new_messages: list) -> str:
-        texts = [
-            part.content
-            for msg in new_messages
-            if isinstance(msg, ModelResponse)
-            for part in msg.parts
-            if isinstance(part, TextPart) and part.content
-        ]
-        return "\n\n".join(texts)
+    def _extract_content_segments(new_messages: list) -> list[dict]:
+        segments = []
+        for msg in new_messages:
+            if not isinstance(msg, ModelResponse):
+                continue
+            for part in msg.parts:
+                if isinstance(part, TextPart) and part.content:
+                    if segments and segments[-1]["type"] == "text":
+                        segments[-1]["content"] += "\n\n" + part.content
+                    else:
+                        segments.append({"type": "text", "content": part.content})
+                elif isinstance(part, ToolCallPart):
+                    segments.append({"type": "tool", "tool_call_id": part.tool_call_id})
+        return segments
 
     async def _persist_run(
         self,
-        response_text: str,
+        content_segments: list[dict],
         tool_invocations: dict[str, ToolInvocation],
         usage: RunUsage,
         all_messages: list,
@@ -329,7 +334,7 @@ class BaseAgent:
         assistant_message = await Message.objects.acreate(
             conversation=self.conversation,
             role=Message.Role.ASSISTANT,
-            content=response_text,
+            content=content_segments,
             input_tokens=input_tok,
             output_tokens=output_tok,
             cost=cost,

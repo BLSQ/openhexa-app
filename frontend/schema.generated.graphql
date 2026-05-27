@@ -447,7 +447,7 @@ type AssistantConversation {
 }
 
 type AssistantMessage {
-  content: String!
+  content: JSON!
   createdAt: DateTime!
   id: UUID!
   inputTokens: Int
@@ -466,6 +466,7 @@ type AssistantToolInvocation {
   createdAt: DateTime!
   id: UUID!
   success: Boolean!
+  toolCallId: String!
   toolInput: JSON!
   toolName: String!
   toolOutput: JSON

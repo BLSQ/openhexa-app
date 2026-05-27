@@ -114,7 +114,7 @@ class AssistantVCRTest(TestCase):
             role=Message.Role.ASSISTANT
         ).first()
         self.assertIsNotNone(assistant_msg)
-        self.assertIsInstance(assistant_msg.content, str)
+        self.assertIsInstance(assistant_msg.content, list)
         self.assertGreater(len(assistant_msg.content), 0)
 
     @assistant_vcr.use_cassette(os.path.join(CASSETTES_DIR, "simple_chat.yaml"))

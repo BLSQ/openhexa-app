@@ -491,7 +491,7 @@ export type AssistantConversationMessagesArgs = {
 
 export type AssistantMessage = {
   __typename?: 'AssistantMessage';
-  content: Scalars['String']['output'];
+  content: Scalars['JSON']['output'];
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
   inputTokens?: Maybe<Scalars['Int']['output']>;
@@ -512,6 +512,7 @@ export type AssistantToolInvocation = {
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
   success: Scalars['Boolean']['output'];
+  toolCallId: Scalars['String']['output'];
   toolInput: Scalars['JSON']['output'];
   toolName: Scalars['String']['output'];
   toolOutput?: Maybe<Scalars['JSON']['output']>;

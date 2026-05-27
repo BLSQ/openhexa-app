@@ -1,11 +1,11 @@
 import { ArrowPathIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
-import clsx from "clsx";
 import MarkdownContent from "core/components/MarkdownContent";
 import Spinner from "core/components/Spinner";
 import { getPublicEnv } from "core/helpers/runtimeConfig";
 import useStreamingFetch from "core/hooks/useStreamingFetch";
 import useWordDrain from "core/hooks/useWordDrain";
 import { KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import ToolCallCard from "./ToolCallCard";
 import {
   AssistantConversationMessagesDocument,
   AssistantConversationMessagesQuery,
@@ -19,6 +19,14 @@ const PER_PAGE = 20;
 type Message = NonNullable<
   AssistantConversationMessagesQuery["assistantConversation"]
 >["messages"]["items"][0];
+
+type MessageSegment =
+  | { type: "text"; content: string }
+  | { type: "tool"; tool_call_id: string };
+
+type StreamingSegment =
+  | { type: "text"; content: string }
+  | { type: "tool"; toolCallId: string; toolName: string; status: "pending" | "done"; success?: boolean };
 
 type Props = {
   conversationId: string | null;
@@ -107,6 +115,8 @@ export default function ChatPane({
 
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [streamingSegments, setStreamingSegments] = useState<StreamingSegment[]>([]);
+  const accumulatedTextRef = useRef("");
 
   const localConversationIdRef = useRef(localConversationId);
   useEffect(() => {
@@ -115,6 +125,8 @@ export default function ChatPane({
 
   const handleDrained = useCallback(() => {
     setPendingUserMessage(null);
+    setStreamingSegments([]);
+    accumulatedTextRef.current = "";
     setCurrentPage(1);
     if (localConversationIdRef.current) {
       apolloClient.refetchQueries({
@@ -140,18 +152,38 @@ export default function ChatPane({
   const { send, isStreaming, streamError } = useStreamingFetch({
     text_delta: (data) => {
       const { delta } = data as { delta: string };
+      accumulatedTextRef.current += delta;
       feed(delta);
     },
     conversation_name: (data) => {
       const { name } = data as { name: string };
       if (name) onConversationNameChange?.(name);
     },
+    tool_call: (data) => {
+      const { tool_call_id, tool_name } = data as { tool_call_id: string; tool_name: string };
+      const textBefore = accumulatedTextRef.current;
+      accumulatedTextRef.current = "";
+      clear();
+      setStreamingSegments((prev) => [
+        ...prev,
+        ...(textBefore ? [{ type: "text" as const, content: textBefore }] : []),
+        { type: "tool" as const, toolCallId: tool_call_id, toolName: tool_name, status: "pending" as const },
+      ]);
+    },
     tool_result: (data) => {
-      const { tool_name, tool_output, success } = data as {
+      const { tool_call_id, tool_name, tool_output, success } = data as {
+        tool_call_id: string;
         tool_name: string;
         tool_output: unknown;
         success: boolean;
       };
+      setStreamingSegments((prev) =>
+        prev.map((s) =>
+          s.type === "tool" && s.toolCallId === tool_call_id
+            ? { ...s, status: "done" as const, success }
+            : s,
+        ),
+      );
       onToolResultRef.current?.(tool_name, tool_output, success);
     },
     done: (data) => {
@@ -161,6 +193,8 @@ export default function ChatPane({
     },
     error: () => {
       clear();
+      setStreamingSegments([]);
+      accumulatedTextRef.current = "";
       setSendError(t("The AI service encountered an error. Please try again."));
     },
   });
@@ -242,7 +276,7 @@ export default function ChatPane({
     el.style.height = `${el.scrollHeight}px`;
   }, [input]);
 
-  const isActive = isStreaming || streamingText !== null;
+  const isActive = isStreaming || streamingText !== null || streamingSegments.length > 0;
 
   const handleSubmit = async (overrideText?: string) => {
     const text = overrideText ?? input.trim();
@@ -302,32 +336,45 @@ export default function ChatPane({
             </div>
           )}
 
-          {messages.map((msg) => (
-            <div key={msg.id}>
-              <div
-                className={clsx(
-                  "flex",
-                  msg.role === "user" ? "justify-end" : "justify-start",
-                )}
-              >
-                <div
-                  className={clsx(
-                    "max-w-2xl rounded-2xl px-4 py-3 text-sm",
-                    msg.role === "user"
-                      ? "bg-blue-600 text-white whitespace-pre-wrap"
-                      : "bg-gray-100 text-gray-900",
-                  )}
-                >
-                  {msg.role === "user" ? (
-                    msg.content
-                  ) : (
-                    <MarkdownContent sm>{msg.content}</MarkdownContent>
-                  )}
+          {messages.map((msg) => {
+            const segments = msg.content as MessageSegment[];
+            if (msg.role === "user") {
+              const text = segments.find((s) => s.type === "text")?.content ?? "";
+              return (
+                <div key={msg.id}>
+                  <div className="flex justify-end">
+                    <div className="max-w-2xl rounded-2xl px-4 py-3 text-sm bg-blue-600 text-white whitespace-pre-wrap">
+                      {text}
+                    </div>
+                  </div>
                 </div>
+              );
+            }
+            const toolMap = Object.fromEntries(
+              (msg.toolInvocations ?? []).map((inv) => [inv.toolCallId, inv]),
+            );
+            return (
+              <div key={msg.id} className="space-y-2">
+                {segments.map((seg, i) =>
+                  seg.type === "text" ? (
+                    <div key={i} className="flex justify-start">
+                      <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
+                        <MarkdownContent sm>{seg.content}</MarkdownContent>
+                      </div>
+                    </div>
+                  ) : (
+                    <ToolCallCard
+                      key={seg.tool_call_id}
+                      toolName={toolMap[seg.tool_call_id]?.toolName ?? seg.tool_call_id}
+                      status="done"
+                      success={toolMap[seg.tool_call_id]?.success ?? undefined}
+                    />
+                  ),
+                )}
+                {renderMessageAfter?.(msg)}
               </div>
-              {renderMessageAfter?.(msg)}
-            </div>
-          ))}
+            );
+          })}
 
           {pendingUserMessage && (
             <div className="flex flex-col items-end gap-1">
@@ -346,14 +393,35 @@ export default function ChatPane({
             </div>
           )}
 
-          {(isStreaming || streamingText !== null) && (
+          {isStreaming && streamingText === null && streamingSegments.length === 0 && (
+            <div className="flex justify-start">
+              <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm">
+                <Spinner size="xs" className="text-gray-400" />
+              </div>
+            </div>
+          )}
+
+          {streamingSegments.map((seg, i) =>
+            seg.type === "text" ? (
+              <div key={i} className="flex justify-start">
+                <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
+                  <MarkdownContent sm>{seg.content}</MarkdownContent>
+                </div>
+              </div>
+            ) : (
+              <ToolCallCard
+                key={seg.toolCallId}
+                toolName={seg.toolName}
+                status={seg.status}
+                success={seg.success}
+              />
+            ),
+          )}
+
+          {streamingText !== null && (
             <div className="flex justify-start">
               <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
-                {streamingText ? (
-                  <MarkdownContent sm>{streamingText}</MarkdownContent>
-                ) : (
-                  <Spinner size="xs" className="text-gray-400" />
-                )}
+                <MarkdownContent sm>{streamingText}</MarkdownContent>
               </div>
             </div>
           )}
