@@ -13,23 +13,18 @@ from hexa.core.models.soft_delete import (
     SoftDeleteQuerySet,
 )
 from hexa.pipelines.models import Pipeline, PipelineFunctionalType, PipelineVersion
-from hexa.user_management.models import User
+from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.workspaces.models import Workspace
 
 
 class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User):
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        from hexa.pipelines.authentication import PipelineRunUser
-
-        if isinstance(user, PipelineRunUser):
+    def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
+        if not user.is_authenticated:
+            return self.none()
+        if isinstance(user, ServicePrincipal):
             return self.all()
-
-        return self._filter_for_user_and_query_object(
-            user,
-            Q(workspace__members=user),
-            return_all_if_superuser=False,
-            return_all_if_organization_admin_or_owner=True,
+        return self.filter(
+            workspace__in=Workspace.objects.filter_for_user(user, include_archived=True)
         )
 
     def filter_by_tags(self, tags):
@@ -195,7 +190,7 @@ class PipelineTemplate(SoftDeletedModel):
 
 
 class PipelineTemplateVersionQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User):
+    def filter_for_user(self, user: AnonymousUser | UserInterface):
         return self.filter(template__in=PipelineTemplate.objects.filter_for_user(user))
 
     def get_updates_for(self, pipeline: Pipeline):
