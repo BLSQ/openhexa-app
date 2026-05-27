@@ -174,7 +174,9 @@ class WorkspaceQuerySet(BaseQuerySet):
         if isinstance(user, PipelineRunUser):
             qs = self.filter(pk=user.pipeline_run.pipeline.workspace_id)
         elif isinstance(user, WebappUser):
-            qs = self.filter(pk=user.webapp.workspace_id)
+            qs = self.filter_for_user(user.real_user, include_archived=True).filter(
+                pk=user.webapp.workspace_id
+            )
         elif isinstance(user, User):
             qs = (
                 self.all()

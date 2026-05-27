@@ -102,6 +102,13 @@ class TestWebappUserFiltering(TestCase):
         workspaces = Workspace.objects.filter_for_user(self.webapp_user)
         self.assertEqual(list(workspaces), [self.WORKSPACE_A])
 
+    def test_webapp_user_sees_nothing_when_real_user_has_no_workspace_access(self):
+        outsider = User.objects.create_user("outsider@example.com", "password")
+        outsider_webapp_user = WebappUser(real_user=outsider, webapp=self.WEBAPP_A)
+        self.assertEqual(
+            Workspace.objects.filter_for_user(outsider_webapp_user).count(), 0
+        )
+
     def test_pipelines_scoped_to_webapp_workspace(self):
         pipelines = Pipeline.objects.filter_for_user(self.webapp_user)
         self.assertNotIn(self.PIPELINE_B, pipelines)
