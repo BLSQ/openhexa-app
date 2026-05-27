@@ -18,7 +18,6 @@ from hexa.core.models.base import Base, BaseQuerySet
 from hexa.datasets.api import get_blob
 from hexa.files import storage
 from hexa.metadata.models import MetadataMixin
-from hexa.pipelines.authentication import PipelineRunUser
 from hexa.user_management.models import (
     Organization,
     User,
@@ -88,6 +87,7 @@ class DatasetManager(models.Manager):
         description: str,
         files: list[dict] | None = None,
     ):
+        from hexa.pipelines.authentication import PipelineRunUser
         from hexa.workspaces.models import Workspace
 
         if isinstance(principal, PipelineRunUser):
@@ -223,6 +223,7 @@ class DatasetVersionManager(models.Manager):
         changelog: str,
         files: list[dict] | None = None,
     ):
+        from hexa.pipelines.authentication import PipelineRunUser
         from hexa.workspaces.models import Workspace
 
         if isinstance(principal, PipelineRunUser):
@@ -360,6 +361,7 @@ class DatasetVersionFileManager(models.Manager):
         uri: str,
         content_type: str,
     ):
+        from hexa.pipelines.authentication import PipelineRunUser
         from hexa.workspaces.models import Workspace
 
         if isinstance(principal, PipelineRunUser):
