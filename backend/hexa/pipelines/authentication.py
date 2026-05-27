@@ -10,6 +10,11 @@ class PipelineRunUser(UserInterface, ServicePrincipal):
     is_active = True
     is_authenticated = True
 
+    @property
+    def real_user(self):
+        # The user who triggered the run, if any (None for scheduled runs).
+        return self.pipeline_run.user
+
     def get_username(self):
         return f"pipeline_{self.pipeline_run.id}"
 

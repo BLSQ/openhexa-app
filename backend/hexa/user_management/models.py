@@ -90,8 +90,15 @@ class UserInterface:
 class ServicePrincipal:
     """
     Marker mixin for principals that impersonate a workspace rather than a
-    real user account
+    real user account. Subclasses must expose `real_user` — the underlying
+    user that ultimately triggered the action — for audit and attribution
+    (e.g. `created_by`). May be `None` when no human triggered the action,
+    such as scheduled pipeline runs.
     """
+
+    @property
+    def real_user(self) -> User | None:
+        raise NotImplementedError
 
 
 class User(AbstractUser, UserInterface):
