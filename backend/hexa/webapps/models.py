@@ -20,7 +20,7 @@ from hexa.git.enums import FileEncoding
 from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
-from hexa.user_management.models import User, UserInterface
+from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.webapps.validators import validate_subdomain
 from hexa.workspaces.models import Workspace
 
@@ -390,3 +390,20 @@ class SupersetWebapp(Webapp):
         self.superset_dashboard.save()
         self.url = self.superset_dashboard.get_absolute_url()
         self.save()
+
+
+class WebappUser(User, ServicePrincipal):
+    class Meta:
+        proxy = True
+
+    webapp = None
+
+    @classmethod
+    def from_user(cls, user: User, webapp: Webapp) -> "WebappUser":
+        """Cast an existing User row to a WebappUser view tied to `webapp`."""
+        instance = cls.objects.get(pk=user.pk)
+        instance.webapp = webapp
+        return instance
+
+    def get_username(self):
+        return f"webapp_{self.webapp.id}_as_{self.email}"

@@ -167,6 +167,7 @@ class WorkspaceQuerySet(BaseQuerySet):
         include_archived: bool = False,
     ) -> models.QuerySet:
         from hexa.pipelines.authentication import PipelineRunUser
+        from hexa.webapps.models import WebappUser
 
         if not user.is_authenticated:
             return self.none()
@@ -187,6 +188,8 @@ class WorkspaceQuerySet(BaseQuerySet):
                     )
                 ).distinct()
             )
+            if isinstance(user, WebappUser):
+                qs = qs.filter(pk=user.webapp.workspace_id)
         else:
             raise NotImplementedError(
                 f"WorkspaceQuerySet.filter_for_user has no dispatch for principal "
