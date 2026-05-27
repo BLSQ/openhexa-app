@@ -6,20 +6,21 @@ class PipelineParameterChoicesFileFormat(enum.StrEnum):
     JSON = "json"
     YAML = "yaml"
 
+    _ALIASES = enum.nonmember({"yml": "yaml"})
+
     @classmethod
     def supported_extensions(cls) -> list[str]:
-        return sorted({f.value for f in cls} | {"yml"})
+        return sorted({fmt.value for fmt in cls} | cls._ALIASES.keys())
 
     @classmethod
     def graphql_enum_values(cls) -> dict[str, str]:
-        return {**{fmt.value: fmt.value for fmt in cls}, "yml": "yml"}
+        return {**{fmt.value: fmt.value for fmt in cls}, **cls._ALIASES}
 
     @classmethod
     def from_extension(cls, ext: str) -> "PipelineParameterChoicesFileFormat":
-        if ext == "yml":
-            return cls.YAML
         try:
-            return cls(ext)
+            resolved_ext = cls._ALIASES.get(ext, ext)
+            return cls(resolved_ext)
         except ValueError:
             raise ValueError(
                 f"Unsupported format/extension '{ext}'. "
