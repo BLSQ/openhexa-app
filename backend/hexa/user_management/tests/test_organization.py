@@ -167,13 +167,23 @@ class OrganizationFilterForUserDispatchTest(TestCase):
             role=OrganizationMembershipRole.MEMBER,
         )
 
-        cls.org_workspace = Workspace.objects.create(
-            name="Org Workspace", organization=cls.org
-        )
-        cls.standalone_workspace = Workspace.objects.create(name="Standalone WS")
-        cls.other_org_workspace = Workspace.objects.create(
-            name="Other Org WS", organization=cls.other_org
-        )
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            cls.org_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.superuser,
+                name="Org Workspace",
+                organization=cls.org,
+            )
+            cls.standalone_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.superuser, name="Standalone WS"
+            )
+            cls.other_org_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.superuser,
+                name="Other Org WS",
+                organization=cls.other_org,
+            )
         WorkspaceMembership.objects.create(
             workspace=cls.org_workspace,
             user=cls.workspace_only_user,
