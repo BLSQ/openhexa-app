@@ -4051,7 +4051,8 @@ export type PipelineParameter = {
 export enum PipelineParameterChoicesFileFormat {
   Csv = 'csv',
   Json = 'json',
-  Yaml = 'yaml'
+  Yaml = 'yaml',
+  Yml = 'yml'
 }
 
 /** Describes a dynamic choices source backed by a workspace file. */

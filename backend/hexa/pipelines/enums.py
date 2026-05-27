@@ -11,6 +11,10 @@ class PipelineParameterChoicesFileFormat(enum.StrEnum):
         return sorted({f.value for f in cls} | {"yml"})
 
     @classmethod
+    def graphql_enum_values(cls) -> dict[str, str]:
+        return {**{fmt.value: fmt.value for fmt in cls}, "yml": "yml"}
+
+    @classmethod
     def from_extension(cls, ext: str) -> "PipelineParameterChoicesFileFormat":
         if ext == "yml":
             return cls.YAML

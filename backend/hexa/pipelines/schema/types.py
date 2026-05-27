@@ -30,7 +30,7 @@ pipeline_parameter = ObjectType("PipelineParameter")
 pipeline_parameter_choices_from_file = ObjectType("PipelineParameterChoicesFromFile")
 pipeline_parameter_choices_file_format_enum = EnumType(
     "PipelineParameterChoicesFileFormat",
-    {fmt.value: fmt.value for fmt in PipelineParameterChoicesFileFormat},
+    PipelineParameterChoicesFileFormat.graphql_enum_values(),
 )
 pipeline_order_by_enum = EnumType(
     "PipelineOrderBy",

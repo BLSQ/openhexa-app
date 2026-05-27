@@ -97,6 +97,7 @@ enum PipelineParameterChoicesFileFormat {
   csv
   json
   yaml
+  yml
 }
 
 """
