@@ -21,7 +21,6 @@ from hexa.metadata.models import MetadataMixin
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.user_management.models import (
     Organization,
-    ServicePrincipal,
     User,
     UserInterface,
 )
@@ -91,7 +90,7 @@ class DatasetManager(models.Manager):
     ):
         from hexa.workspaces.models import Workspace
 
-        if isinstance(principal, ServicePrincipal):
+        if isinstance(principal, PipelineRunUser):
             if (
                 not Workspace.objects.filter_for_user(principal, include_archived=True)
                 .filter(pk=workspace.pk)
@@ -226,7 +225,7 @@ class DatasetVersionManager(models.Manager):
     ):
         from hexa.workspaces.models import Workspace
 
-        if isinstance(principal, ServicePrincipal):
+        if isinstance(principal, PipelineRunUser):
             if (
                 not Workspace.objects.filter_for_user(principal, include_archived=True)
                 .filter(pk=dataset.workspace_id)
@@ -363,7 +362,7 @@ class DatasetVersionFileManager(models.Manager):
     ):
         from hexa.workspaces.models import Workspace
 
-        if isinstance(principal, ServicePrincipal):
+        if isinstance(principal, PipelineRunUser):
             if (
                 not Workspace.objects.filter_for_user(principal, include_archived=True)
                 .filter(pk=dataset_version.dataset.workspace_id)
