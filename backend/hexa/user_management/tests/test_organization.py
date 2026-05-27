@@ -168,11 +168,13 @@ class OrganizationFilterForUserDispatchTest(TestCase):
         )
 
         cls.org_workspace = Workspace.objects.create(
-            name="Org Workspace", organization=cls.org
+            name="Org Workspace", slug="org-workspace", organization=cls.org
         )
-        cls.standalone_workspace = Workspace.objects.create(name="Standalone WS")
+        cls.standalone_workspace = Workspace.objects.create(
+            name="Standalone WS", slug="standalone-ws"
+        )
         cls.other_org_workspace = Workspace.objects.create(
-            name="Other Org WS", organization=cls.other_org
+            name="Other Org WS", slug="other-org-ws", organization=cls.other_org
         )
         WorkspaceMembership.objects.create(
             workspace=cls.org_workspace,
