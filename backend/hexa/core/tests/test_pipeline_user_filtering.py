@@ -28,6 +28,7 @@ class TestPipelineRunUserFiltering(TestCase):
         self.pipeline_run = MagicMock(PipelineRun)
         self.pipeline_run.pipeline = MagicMock(Pipeline)
         self.pipeline_run.pipeline.workspace = self.WORKSPACE1
+        self.pipeline_run.pipeline.workspace_id = self.WORKSPACE1.id
         self.pipeline_user = PipelineRunUser(self.pipeline_run)
 
     def test_pipeline_user_filtering(self):
