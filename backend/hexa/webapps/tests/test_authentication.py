@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from django.test import TestCase
 
 from hexa.datasets.models import Dataset
@@ -12,8 +10,7 @@ from hexa.user_management.models import (
     Team,
     User,
 )
-from hexa.webapps.authentication import WebappUser
-from hexa.webapps.models import Webapp
+from hexa.webapps.models import Webapp, WebappUser
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceInvitation,
@@ -63,40 +60,15 @@ class TestWebappUserFiltering(TestCase):
             description="",
         )
 
-        cls.webapp_user = WebappUser(real_user=cls.REAL_USER, webapp=cls.WEBAPP_A)
+        cls.webapp_user = WebappUser.from_user(cls.REAL_USER, cls.WEBAPP_A)
 
     def test_is_service_principal(self):
         self.assertIsInstance(self.webapp_user, ServicePrincipal)
 
-    def test_is_active_delegates_to_real_user(self):
-        self.REAL_USER.is_active = True
-        self.assertTrue(self.webapp_user.is_active)
-        self.REAL_USER.is_active = False
-        self.assertFalse(self.webapp_user.is_active)
-
-    def test_is_authenticated_delegates_to_real_user(self):
-        self.assertTrue(self.webapp_user.is_authenticated)
-
-    def test_has_perm_delegates_to_real_user(self):
-        with patch.object(
-            self.REAL_USER, "has_perm", return_value="DELEGATED"
-        ) as mock_has_perm:
-            result = self.webapp_user.has_perm("some.perm", self.WORKSPACE_A)
-
-        mock_has_perm.assert_called_once_with("some.perm", self.WORKSPACE_A)
-        self.assertEqual(result, "DELEGATED")
-
-    def test_has_feature_flag_delegates_to_real_user(self):
-        with patch.object(
-            self.REAL_USER, "has_feature_flag", return_value="DELEGATED"
-        ) as mock_flag:
-            result = self.webapp_user.has_feature_flag("some_flag")
-
-        mock_flag.assert_called_once_with("some_flag")
-        self.assertEqual(result, "DELEGATED")
-
-    def test_real_user_accessor_returns_embedding_user(self):
-        self.assertEqual(self.webapp_user.real_user, self.REAL_USER)
+    def test_is_a_user(self):
+        self.assertIsInstance(self.webapp_user, User)
+        self.assertEqual(self.webapp_user.pk, self.REAL_USER.pk)
+        self.assertEqual(self.webapp_user.email, self.REAL_USER.email)
 
     def test_workspaces_scoped_to_webapp_workspace(self):
         workspaces = Workspace.objects.filter_for_user(self.webapp_user)
@@ -104,7 +76,7 @@ class TestWebappUserFiltering(TestCase):
 
     def test_webapp_user_sees_nothing_when_real_user_has_no_workspace_access(self):
         outsider = User.objects.create_user("outsider@example.com", "password")
-        outsider_webapp_user = WebappUser(real_user=outsider, webapp=self.WEBAPP_A)
+        outsider_webapp_user = WebappUser.from_user(outsider, self.WEBAPP_A)
         self.assertEqual(
             Workspace.objects.filter_for_user(outsider_webapp_user).count(), 0
         )

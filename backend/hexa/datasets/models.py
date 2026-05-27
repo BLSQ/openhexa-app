@@ -18,6 +18,7 @@ from hexa.core.models.base import Base, BaseQuerySet
 from hexa.datasets.api import get_blob
 from hexa.files import storage
 from hexa.metadata.models import MetadataMixin
+from hexa.pipelines.authentication import PipelineRunUser
 from hexa.user_management.models import (
     Organization,
     ServicePrincipal,
@@ -100,11 +101,7 @@ class DatasetManager(models.Manager):
         elif not principal.has_perm("datasets.create_dataset", workspace):
             raise PermissionDenied
 
-        created_by = (
-            principal.real_user
-            if isinstance(principal, ServicePrincipal)
-            else principal
-        )
+        created_by = None if isinstance(principal, PipelineRunUser) else principal
 
         with transaction.atomic():
             dataset = self.create(
@@ -238,11 +235,7 @@ class DatasetVersionManager(models.Manager):
                 raise PermissionDenied
         elif not principal.has_perm("datasets.create_dataset_version", dataset):
             raise PermissionDenied
-        created_by = (
-            principal.real_user
-            if isinstance(principal, ServicePrincipal)
-            else principal
-        )
+        created_by = None if isinstance(principal, PipelineRunUser) else principal
         pipeline_run = getattr(principal, "pipeline_run", None)
 
         uploaded_uris = []
@@ -382,11 +375,7 @@ class DatasetVersionFileManager(models.Manager):
         ):
             raise PermissionDenied
 
-        created_by = (
-            principal.real_user
-            if isinstance(principal, ServicePrincipal)
-            else principal
-        )
+        created_by = None if isinstance(principal, PipelineRunUser) else principal
 
         return self.create(
             dataset_version=dataset_version,
