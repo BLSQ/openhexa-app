@@ -176,6 +176,16 @@ class AsyncMixpanelTest(TestCase):
     This test suite ensures, through sanity checks, that the open-source and community-maintained AsyncBufferedConsumer implementation works as expected.
     """
 
+    def test_consumer_uses_configured_api_host(self):
+        """The consumer must be constructed with MIXPANEL_API_HOST so events
+        bypass the deprecated US->EU forwarding (sunset July 2026)."""
+        consumer = AsyncBufferedConsumer(
+            request_timeout=4, api_host="api-eu.mixpanel.com"
+        )
+        endpoints = consumer._consumer._endpoints
+        self.assertEqual(endpoints["events"], "https://api-eu.mixpanel.com/track")
+        self.assertEqual(endpoints["people"], "https://api-eu.mixpanel.com/engage")
+
     @mock.patch("mixpanel_async.AsyncBufferedConsumer._sync_flush")
     def test_async_mixpanel_queues_events(self, mock_sync_flush):
         consumer = AsyncBufferedConsumer(request_timeout=4, flush_first=False)
