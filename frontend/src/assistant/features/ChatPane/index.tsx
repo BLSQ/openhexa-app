@@ -367,17 +367,8 @@ export default function ChatPane({
           {(isStreaming || streamingText !== null || frozenAssistantMessage !== null) && (
             <div className="flex justify-start">
               <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
-<<<<<<< HEAD
-                {streamingText ? (
-                  <MarkdownContent sm>{streamingText}</MarkdownContent>
-=======
                 {(streamingText || frozenAssistantMessage) ? (
-                  <div className="prose prose-sm prose-gray max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {streamingText ?? frozenAssistantMessage!}
-                    </ReactMarkdown>
-                  </div>
->>>>>>> a3b7d1d5 (fix:remove the flicker by freezing bubbles in refetch)
+                  <MarkdownContent sm>{streamingText ?? frozenAssistantMessage!}</MarkdownContent>
                 ) : (
                   <Spinner size="xs" className="text-gray-400" />
                 )}
