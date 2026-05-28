@@ -47,11 +47,13 @@ function RunParametersCell({
   const remainingCount = params.length - MAX_VISIBLE_PARAMS;
 
   return (
-    <div className="w-72 whitespace-normal space-y-0.5 text-xs text-gray-600">
+    <div className="max-w-md whitespace-normal space-y-0.5 text-xs text-gray-600">
       {visibleParams.map((p) => (
-        <div key={p.code} className="flex min-w-0 gap-1">
-          <span className="shrink-0 text-gray-400">{p.name}:</span>
-          <TruncatedText lines={3} tooltip>{formatParamValue(p)}</TruncatedText>
+        <div key={p.code} className="flex min-w-0 items-baseline gap-1">
+          <TruncatedText lines={1} tooltip className="shrink-0 max-w-[45%] text-gray-400">
+            {`${p.name}:`}
+          </TruncatedText>
+          <TruncatedText lines={3} tooltip className="flex-1">{formatParamValue(p)}</TruncatedText>
         </div>
       ))}
       {shouldShowToggle && !isExpanded && (
