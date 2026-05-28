@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import Tooltip from "core/components/Tooltip";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "next-i18next";
 
 const LINE_CLAMP_CLASSES: Record<number, string> = {
   1: "line-clamp-1",
@@ -16,23 +17,56 @@ type Props = {
   lines?: number;
   className?: string;
   tooltip?: boolean;
+  expandable?: boolean;
 };
 
-const TruncatedText = ({ children, lines = 3, className, tooltip = false }: Props) => {
+const TruncatedText = ({
+  children,
+  lines = 3,
+  className,
+  tooltip = false,
+  expandable = false,
+}: Props) => {
+  const { t } = useTranslation();
   const ref = useRef<HTMLSpanElement | null>(null);
   const [isTruncated, setIsTruncated] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const spanClass = clsx(
     "min-w-0 whitespace-normal break-words",
-    LINE_CLAMP_CLASSES[lines] ?? "line-clamp-3",
+    !isExpanded && (LINE_CLAMP_CLASSES[lines] ?? "line-clamp-3"),
     className,
   );
+
+  useEffect(() => {
+    if (expandable && ref.current) {
+      setIsTruncated(ref.current.scrollHeight > ref.current.clientHeight);
+    }
+  }, [children, expandable]);
 
   const checkTruncation = () => {
     if (ref.current) {
       setIsTruncated(ref.current.scrollHeight > ref.current.clientHeight);
     }
   };
+
+  if (expandable) {
+    return (
+      <div>
+        <span ref={ref} className={spanClass}>
+          {children}
+        </span>
+        {(isTruncated || isExpanded) && (
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="cursor-pointer text-xs text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            {isExpanded ? t("Show less") : t("Show more")}
+          </button>
+        )}
+      </div>
+    );
+  }
 
   if (!tooltip) {
     return (
