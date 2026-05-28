@@ -2,6 +2,7 @@ import { useTranslation } from "next-i18next";
 import { DateTime } from "luxon";
 import Link from "next/link";
 import { html } from "diff2html";
+import DOMPurify from "dompurify";
 import { useWebappCommitDiffQuery } from "webapps/graphql/queries.generated";
 import Spinner from "core/components/Spinner";
 import Badge from "core/components/Badge";
@@ -35,7 +36,7 @@ const CommitDiff = ({ workspaceSlug, webappSlug, commitId }: CommitDiffProps) =>
   const isPublished = publishedVersionId === commitId;
 
   const diffHtml = diff?.rawDiff
-    ? html(diff.rawDiff, { drawFileList: true, matching: "lines", outputFormat: "line-by-line" })
+    ? DOMPurify.sanitize(html(diff.rawDiff, { drawFileList: true, matching: "lines", outputFormat: "line-by-line" }))
     : null;
 
   return (
