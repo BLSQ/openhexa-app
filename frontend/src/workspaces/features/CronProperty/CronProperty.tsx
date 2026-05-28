@@ -7,6 +7,7 @@ import Link from "core/components/Link";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import {
   getCronExpressionDescription,
+  getCronExpressionNextRun,
   validateCronExpression,
 } from "workspaces/helpers/pipelines";
 
@@ -31,6 +32,8 @@ const CronProperty = (props: CronPropertyProps) => {
   });
 
   if (section.isEdited && !property.readonly) {
+    const description = getCronExpressionDescription(property.formValue);
+    const nextRun = getCronExpressionNextRun(property.formValue);
     return (
       <DataCard.Property property={property}>
         <div className="flex items-center gap-2">
@@ -44,9 +47,20 @@ const CronProperty = (props: CronPropertyProps) => {
             fullWidth={false}
           />
           <span className="grow-0 text-gray-500 italic">
-            ({getCronExpressionDescription(property.formValue) ?? t("Invalid")})
+            {description ? `${description} (UTC)` : t("Invalid")}
           </span>
         </div>
+        {nextRun && (
+          <div
+            className="text-xs text-gray-500 mt-1"
+            suppressHydrationWarning={true}
+          >
+            {t("Next run: {{date}} ({{timeZone}})", {
+              date: nextRun.formatted,
+              timeZone: nextRun.timeZone,
+            })}
+          </div>
+        )}
         <Trans>
           <div className="text-xs text-gray-500 mt-1">
             Use{" "}
@@ -73,13 +87,30 @@ const CronProperty = (props: CronPropertyProps) => {
       </DataCard.Property>
     );
   } else {
+    const description = property.displayValue
+      ? getCronExpressionDescription(property.displayValue)
+      : null;
+    const nextRun = property.displayValue
+      ? getCronExpressionNextRun(property.displayValue)
+      : null;
     return (
       <DataCard.Property property={property}>
         <div className={className}>
           {property.displayValue
-            ? getCronExpressionDescription(property.displayValue)
+            ? description && `${description} (UTC)`
             : property.defaultValue}
         </div>
+        {nextRun && (
+          <div
+            className="text-xs text-gray-500 mt-1"
+            suppressHydrationWarning={true}
+          >
+            {t("Next run: {{date}} ({{timeZone}})", {
+              date: nextRun.formatted,
+              timeZone: nextRun.timeZone,
+            })}
+          </div>
+        )}
       </DataCard.Property>
     );
   }

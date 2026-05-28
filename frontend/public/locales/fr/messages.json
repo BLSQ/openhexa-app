@@ -499,6 +499,7 @@
   "New Template '{{name}}' created successfully.": "Nouveau modèle '{{name}}' créé avec succès.",
   "New Template Version for '{{templateName}}' created successfully.": "Nouvelle version de modèle pour '{{templateName}}' créée avec succès.",
   "Next": "Suivant",
+  "Next run: {{date}} ({{timeZone}})": "Prochaine exécution : {{date}} ({{timeZone}})",
   "No": "Non",
   "No attributes found": "Aucun attribut trouvé",
   "No commits yet. Edit files and save to get started.": "Aucun commit pour le moment. Modifiez les fichiers et enregistrez pour commencer.",

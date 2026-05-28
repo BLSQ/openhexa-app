@@ -490,6 +490,7 @@
   "New Template '{{name}}' created successfully.": "New Template '{{name}}' created successfully.",
   "New Template Version for '{{templateName}}' created successfully.": "New Template Version for '{{templateName}}' created successfully.",
   "Next": "Next",
+  "Next run: {{date}} ({{timeZone}})": "Next run: {{date}} ({{timeZone}})",
   "No": "No",
   "No attributes found": "No attributes found",
   "No commits yet. Edit files and save to get started.": "No commits yet. Edit files and save to get started.",
