@@ -348,7 +348,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                   displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
                 >
                   {config.map((entry) => (
-                    <DescriptionList.Item key={entry.name} label={entry.name} titleClassName="break-words">
+                    <DescriptionList.Item key={entry.name} label={entry.name}>
                       {renderParameterValue(entry)}
                     </DescriptionList.Item>
                   ))}
