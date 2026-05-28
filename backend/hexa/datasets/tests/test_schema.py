@@ -749,6 +749,81 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             r["data"],
         )
 
+    def test_get_file_sample_no_row_unsupported_file(self):
+        self.test_create_dataset_version()
+        superuser = User.objects.get(email="superuser@blsq.com")
+        dataset = Dataset.objects.get(name="Dataset")
+        self.client.force_login(superuser)
+        file = DatasetVersionFile.objects.create(
+            dataset_version=dataset.latest_version,
+            uri=dataset.latest_version.get_full_uri("report.txt"),
+            created_by=superuser,
+        )
+        with self.assertNoLogs("root", level="WARNING"):
+            r = self.run_query(
+                """
+                        query GetDatasetVersionFile($id: ID!) {
+                          datasetVersionFile(id: $id) {
+                            filename
+                            fileSample {
+                              status
+                            }
+                          }
+                        }
+            """,
+                {"id": str(file.id)},
+            )
+        self.assertEqual(
+            {
+                "datasetVersionFile": {
+                    "filename": file.filename,
+                    "fileSample": None,
+                }
+            },
+            r["data"],
+        )
+
+    def test_get_file_sample_no_row_supported_file_warns(self):
+        self.test_create_dataset_version()
+        superuser = User.objects.get(email="superuser@blsq.com")
+        dataset = Dataset.objects.get(name="Dataset")
+        self.client.force_login(superuser)
+        file = DatasetVersionFile.objects.create(
+            dataset_version=dataset.latest_version,
+            uri=dataset.latest_version.get_full_uri("file.csv"),
+            created_by=superuser,
+        )
+        with self.assertLogs(level="WARNING") as captured:
+            r = self.run_query(
+                """
+                        query GetDatasetVersionFile($id: ID!) {
+                          datasetVersionFile(id: $id) {
+                            filename
+                            fileSample {
+                              status
+                            }
+                          }
+                        }
+            """,
+                {"id": str(file.id)},
+            )
+        self.assertEqual(
+            {
+                "datasetVersionFile": {
+                    "filename": file.filename,
+                    "fileSample": None,
+                }
+            },
+            r["data"],
+        )
+        self.assertTrue(
+            any(
+                "No sample found for supported file file.csv" in message
+                for message in captured.output
+            ),
+            captured.output,
+        )
+
     def test_get_file_metadata_fail(self):
         self.test_create_dataset_version()
         superuser = User.objects.get(email="superuser@blsq.com")
