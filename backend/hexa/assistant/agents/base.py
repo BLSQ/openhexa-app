@@ -38,12 +38,18 @@ from hexa.core.sse import format_sse
 logger = logging.getLogger(__name__)
 
 
+def _json_default(obj):
+    if hasattr(obj, "isoformat"):
+        return obj.isoformat()
+    return str(obj)
+
+
 def _parse_tool_args(raw_args) -> dict:
     if isinstance(raw_args, str):
         return json.loads(raw_args) if raw_args else {}
     if raw_args is None:
         return {}
-    return json.loads(json.dumps(raw_args, default=str))
+    return json.loads(json.dumps(raw_args, default=_json_default))
 
 
 def _parse_tool_output(content) -> object:
@@ -52,7 +58,7 @@ def _parse_tool_output(content) -> object:
             return json.loads(content)
         except (json.JSONDecodeError, ValueError):
             return content
-    return json.loads(json.dumps(content, default=str))
+    return json.loads(json.dumps(content, default=_json_default))
 
 
 def _is_success(content) -> bool:

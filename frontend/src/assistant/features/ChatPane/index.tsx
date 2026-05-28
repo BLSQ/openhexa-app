@@ -337,7 +337,7 @@ export default function ChatPane({
           )}
 
           {messages.map((msg) => {
-            const segments = msg.content as MessageSegment[];
+            const segments = Array.isArray(msg.content) ? (msg.content as MessageSegment[]) : [];
             if (msg.role === "user") {
               const text = segments.find((s) => s.type === "text")?.content ?? "";
               return (

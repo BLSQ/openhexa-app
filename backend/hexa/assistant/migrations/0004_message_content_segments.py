@@ -20,7 +20,12 @@ class Migration(migrations.Migration):
             reverse_sql="""
                 ALTER TABLE assistant_message
                   ALTER COLUMN content TYPE text
-                  USING (content->0->>'content');
+                  USING (COALESCE((
+                    SELECT elem->>'content'
+                    FROM jsonb_array_elements(content) AS elem
+                    WHERE elem->>'type' = 'text'
+                    LIMIT 1
+                  ), ''));
             """,
         ),
         migrations.RunSQL(
