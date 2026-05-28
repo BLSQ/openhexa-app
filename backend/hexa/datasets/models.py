@@ -450,14 +450,25 @@ class DatasetVersionFile(MetadataMixin, Base):
         return blob.size
 
     def generate_metadata(self):
-        from hexa.datasets.queue import dataset_file_metadata_queue
+        from hexa.datasets.queue import dataset_file_metadata_queue, is_file_supported
 
-        dataset_file_metadata_queue.enqueue(
-            "generate_file_metadata",
-            {
-                "file_id": str(self.id),
-            },
-        )
+        with transaction.atomic():
+            if is_file_supported(self.filename):
+                DatasetFileSample.objects.update_or_create(
+                    dataset_version_file=self,
+                    defaults={
+                        "sample": [],
+                        "status": DatasetFileSample.STATUS_PROCESSING,
+                        "status_reason": None,
+                    },
+                )
+
+            dataset_file_metadata_queue.enqueue(
+                "generate_file_metadata",
+                {
+                    "file_id": str(self.id),
+                },
+            )
 
     class Meta:
         ordering = ["uri"]
