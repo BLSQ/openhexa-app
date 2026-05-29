@@ -28,6 +28,10 @@ type StreamingSegment =
   | { type: "text"; content: string }
   | { type: "tool"; toolCallId: string; toolName: string; status: "pending" | "done"; success?: boolean };
 
+type RenderableSegment =
+  | { type: "text"; content: string }
+  | { type: "tool"; key: string; toolName: string; status: "pending" | "done"; success?: boolean };
+
 type Props = {
   conversationId: string | null;
   monthlyLimitExceeded: boolean;
@@ -49,6 +53,29 @@ type Props = {
   // Optional per-message renderer. Rendered below each assistant message bubble.
   renderMessageAfter?: (message: Message) => ReactNode;
 };
+
+function SegmentList({ segments }: { segments: RenderableSegment[] }) {
+  return (
+    <>
+      {segments.map((seg, i) =>
+        seg.type === "text" ? (
+          <div key={i} className="flex justify-start">
+            <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
+              <MarkdownContent sm>{seg.content}</MarkdownContent>
+            </div>
+          </div>
+        ) : (
+          <ToolCallCard
+            key={seg.key}
+            toolName={seg.toolName}
+            status={seg.status}
+            success={seg.success}
+          />
+        ),
+      )}
+    </>
+  );
+}
 
 function getStreamUrl(conversationId: string): string {
   const apiBasePath =
@@ -116,7 +143,6 @@ export default function ChatPane({
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
   const [streamingSegments, setStreamingSegments] = useState<StreamingSegment[]>([]);
-  const accumulatedTextRef = useRef("");
 
   const localConversationIdRef = useRef(localConversationId);
   useEffect(() => {
@@ -126,7 +152,6 @@ export default function ChatPane({
   const handleDrained = useCallback(() => {
     setPendingUserMessage(null);
     setStreamingSegments([]);
-    accumulatedTextRef.current = "";
     setCurrentPage(1);
     if (localConversationIdRef.current) {
       apolloClient.refetchQueries({
@@ -135,7 +160,7 @@ export default function ChatPane({
     }
   }, [apolloClient]);
 
-  const { text: streamingText, feed, markDone, clear } = useWordDrain({
+  const { text: streamingText, feed, markDone, clear, flush } = useWordDrain({
     interval: 30,
     onDrained: handleDrained,
   });
@@ -152,7 +177,6 @@ export default function ChatPane({
   const { send, isStreaming, streamError } = useStreamingFetch({
     text_delta: (data) => {
       const { delta } = data as { delta: string };
-      accumulatedTextRef.current += delta;
       feed(delta);
     },
     conversation_name: (data) => {
@@ -161,9 +185,7 @@ export default function ChatPane({
     },
     tool_call: (data) => {
       const { tool_call_id, tool_name } = data as { tool_call_id: string; tool_name: string };
-      const textBefore = accumulatedTextRef.current;
-      accumulatedTextRef.current = "";
-      clear();
+      const textBefore = flush();
       setStreamingSegments((prev) => [
         ...prev,
         ...(textBefore ? [{ type: "text" as const, content: textBefore }] : []),
@@ -194,16 +216,17 @@ export default function ChatPane({
     error: () => {
       clear();
       setStreamingSegments([]);
-      accumulatedTextRef.current = "";
       setSendError(t("The AI service encountered an error. Please try again."));
     },
   });
 
   useEffect(() => {
     if (streamError) {
+      clear();
+      setStreamingSegments([]);
       setSendError(t("Could not connect to the server. Please check your connection and try again."));
     }
-  }, [streamError]);
+  }, [streamError, clear, t]);
 
   useEffect(() => {
     if (!loadingMessages) {
@@ -276,7 +299,22 @@ export default function ChatPane({
     el.style.height = `${el.scrollHeight}px`;
   }, [input]);
 
-  const isActive = isStreaming || streamingText !== null || streamingSegments.length > 0;
+  const streamingRenderSegments: RenderableSegment[] = [
+    ...streamingSegments.map((seg) =>
+      seg.type === "text"
+        ? { type: "text" as const, content: seg.content }
+        : {
+            type: "tool" as const,
+            key: seg.toolCallId,
+            toolName: seg.toolName,
+            status: seg.status,
+            success: seg.success,
+          },
+    ),
+    ...(streamingText !== null ? [{ type: "text" as const, content: streamingText }] : []),
+  ];
+
+  const isActive = isStreaming || streamingRenderSegments.length > 0;
 
   const handleSubmit = async (overrideText?: string) => {
     const text = overrideText ?? input.trim();
@@ -341,11 +379,9 @@ export default function ChatPane({
             if (msg.role === "user") {
               const text = segments.find((s) => s.type === "text")?.content ?? "";
               return (
-                <div key={msg.id}>
-                  <div className="flex justify-end">
-                    <div className="max-w-2xl rounded-2xl px-4 py-3 text-sm bg-blue-600 text-white whitespace-pre-wrap">
-                      {text}
-                    </div>
+                <div key={msg.id} className="flex justify-end">
+                  <div className="max-w-2xl rounded-2xl px-4 py-3 text-sm bg-blue-600 text-white whitespace-pre-wrap">
+                    {text}
                   </div>
                 </div>
               );
@@ -353,24 +389,20 @@ export default function ChatPane({
             const toolMap = Object.fromEntries(
               (msg.toolInvocations ?? []).map((inv) => [inv.toolCallId, inv]),
             );
+            const renderableSegments: RenderableSegment[] = segments.map((seg) =>
+              seg.type === "text"
+                ? { type: "text", content: seg.content }
+                : {
+                    type: "tool",
+                    key: seg.tool_call_id,
+                    toolName: toolMap[seg.tool_call_id]?.toolName ?? seg.tool_call_id,
+                    status: "done" as const,
+                    success: toolMap[seg.tool_call_id]?.success,
+                  },
+            );
             return (
               <div key={msg.id} className="space-y-2">
-                {segments.map((seg, i) =>
-                  seg.type === "text" ? (
-                    <div key={i} className="flex justify-start">
-                      <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
-                        <MarkdownContent sm>{seg.content}</MarkdownContent>
-                      </div>
-                    </div>
-                  ) : (
-                    <ToolCallCard
-                      key={seg.tool_call_id}
-                      toolName={toolMap[seg.tool_call_id]?.toolName ?? seg.tool_call_id}
-                      status="done"
-                      success={toolMap[seg.tool_call_id]?.success ?? undefined}
-                    />
-                  ),
-                )}
+                <SegmentList segments={renderableSegments} />
                 {renderMessageAfter?.(msg)}
               </div>
             );
@@ -393,7 +425,7 @@ export default function ChatPane({
             </div>
           )}
 
-          {isStreaming && streamingText === null && streamingSegments.length === 0 && (
+          {isStreaming && streamingRenderSegments.length === 0 && (
             <div className="flex justify-start">
               <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm">
                 <Spinner size="xs" className="text-gray-400" />
@@ -401,28 +433,9 @@ export default function ChatPane({
             </div>
           )}
 
-          {streamingSegments.map((seg, i) =>
-            seg.type === "text" ? (
-              <div key={i} className="flex justify-start">
-                <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
-                  <MarkdownContent sm>{seg.content}</MarkdownContent>
-                </div>
-              </div>
-            ) : (
-              <ToolCallCard
-                key={seg.toolCallId}
-                toolName={seg.toolName}
-                status={seg.status}
-                success={seg.success}
-              />
-            ),
-          )}
-
-          {streamingText !== null && (
-            <div className="flex justify-start">
-              <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
-                <MarkdownContent sm>{streamingText}</MarkdownContent>
-              </div>
+          {streamingRenderSegments.length > 0 && (
+            <div className="space-y-2">
+              <SegmentList segments={streamingRenderSegments} />
             </div>
           )}
 
