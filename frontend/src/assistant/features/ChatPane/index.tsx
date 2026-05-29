@@ -159,9 +159,10 @@ export default function ChatPane({
       if (name) onConversationNameChange?.(name);
       markDone();
     },
-    error: () => {
+    error: (data) => {
       clear();
-      setSendError(t("The AI service encountered an error. Please try again."));
+      const { message } = (data ?? {}) as { message?: string };
+      setSendError(message ?? t("The AI service encountered an error. Please try again."));
     },
   });
 
