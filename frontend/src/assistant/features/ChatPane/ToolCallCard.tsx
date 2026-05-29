@@ -1,6 +1,7 @@
 import { CheckIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import Spinner from "core/components/Spinner";
 import { formatToolName } from "assistant/helpers/toolNames";
+import { useTranslation } from "next-i18next";
 
 type Props = {
   toolName: string;
@@ -9,7 +10,8 @@ type Props = {
 };
 
 export default function ToolCallCard({ toolName, status, success }: Props) {
-  const label = formatToolName(toolName);
+  const { t } = useTranslation();
+  const label = t(`tool.${toolName}`, { defaultValue: formatToolName(toolName) });
 
   return (
     <div className="flex justify-start pl-1">
