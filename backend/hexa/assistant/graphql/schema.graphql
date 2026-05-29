@@ -31,7 +31,7 @@ type AssistantToolInvocation {
   toolInput: JSON!
   toolOutput: JSON
   success: Boolean!
-  pending: Boolean!
+  proposalPending: Boolean!
 }
 
 extend type Workspace {

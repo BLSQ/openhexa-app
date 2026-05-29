@@ -42,7 +42,7 @@ def propose_pipeline_version(
                 message__conversation=conversation,
                 tool_name="propose_pipeline_version",
                 success=True,
-                pending=True,
+                proposal_pending=True,
             )
             .order_by("-created_at")
             .first()
@@ -127,7 +127,7 @@ class EditPipelineAgent(BaseAgent):
                 message__conversation=self.conversation,
                 tool_name="propose_pipeline_version",
                 success=True,
-                pending=True,
+                proposal_pending=True,
             )
             .order_by("-created_at")
             .first()

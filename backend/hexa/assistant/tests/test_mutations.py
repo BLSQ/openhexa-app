@@ -40,7 +40,7 @@ class ResolveAssistantProposalMutationTest(GraphQLTestCase):
             tool_input={},
             tool_output={"files": []},
             success=True,
-            pending=True,
+            proposal_pending=True,
         )
 
     def setUp(self):
@@ -63,8 +63,8 @@ class ResolveAssistantProposalMutationTest(GraphQLTestCase):
 
         proposal_1.refresh_from_db()
         proposal_2.refresh_from_db()
-        self.assertFalse(proposal_1.pending)
-        self.assertFalse(proposal_2.pending)
+        self.assertFalse(proposal_1.proposal_pending)
+        self.assertFalse(proposal_2.proposal_pending)
 
     def test_resolving_does_not_affect_other_tool_names(self):
         other_invocation = self._make_invocation(
@@ -79,4 +79,4 @@ class ResolveAssistantProposalMutationTest(GraphQLTestCase):
         )
 
         other_invocation.refresh_from_db()
-        self.assertTrue(other_invocation.pending)
+        self.assertTrue(other_invocation.proposal_pending)

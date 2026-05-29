@@ -465,7 +465,7 @@ type AssistantMessagePage {
 type AssistantToolInvocation {
   createdAt: DateTime!
   id: UUID!
-  pending: Boolean!
+  proposalPending: Boolean!
   success: Boolean!
   toolInput: JSON!
   toolName: String!

@@ -16,7 +16,7 @@ mutation resolveAssistantProposal($toolInvocationId: UUID!) {
     errors
     toolInvocation {
       id
-      pending
+      proposalPending
     }
   }
 }

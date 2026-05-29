@@ -511,7 +511,7 @@ export type AssistantToolInvocation = {
   __typename?: 'AssistantToolInvocation';
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
-  pending: Scalars['Boolean']['output'];
+  proposalPending: Scalars['Boolean']['output'];
   success: Scalars['Boolean']['output'];
   toolInput: Scalars['JSON']['output'];
   toolName: Scalars['String']['output'];
