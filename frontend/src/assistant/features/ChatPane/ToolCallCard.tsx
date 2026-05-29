@@ -1,6 +1,6 @@
 import { CheckIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import Spinner from "core/components/Spinner";
-import { formatToolName } from "assistant/helpers/toolNames";
+import { formatToolName, getToolLabels } from "assistant/helpers/toolNames";
 import { useTranslation } from "next-i18next";
 
 type Props = {
@@ -11,7 +11,7 @@ type Props = {
 
 export default function ToolCallCard({ toolName, status, success }: Props) {
   const { t } = useTranslation();
-  const label = t(`tool.${toolName}`, { defaultValue: formatToolName(toolName) });
+  const label = formatToolName(toolName, getToolLabels(t));
   const isError = status === "done" && success === false;
 
   return (
