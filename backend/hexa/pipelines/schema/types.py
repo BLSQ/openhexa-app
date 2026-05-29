@@ -37,6 +37,8 @@ pipeline_order_by_enum = EnumType(
     {
         "NAME_DESC": "-name",
         "NAME_ASC": "name",
+        "CREATED_AT_DESC": "-created_at",
+        "CREATED_AT_ASC": "created_at",
         "LAST_RUN_DATE_DESC": "-last_run_date",
         "LAST_RUN_DATE_ASC": "last_run_date",
     },

@@ -4025,6 +4025,8 @@ export enum PipelineNotificationLevel {
 
 /** Enum representing the possible orderings for pipelines. */
 export enum PipelineOrderBy {
+  CreatedAtAsc = 'CREATED_AT_ASC',
+  CreatedAtDesc = 'CREATED_AT_DESC',
   LastRunDateAsc = 'LAST_RUN_DATE_ASC',
   LastRunDateDesc = 'LAST_RUN_DATE_DESC',
   NameAsc = 'NAME_ASC',

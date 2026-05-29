@@ -101,6 +101,7 @@ export default function ChatPane({
   );
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isPinnedToBottom = useRef(true);
   const apolloClient = useApolloClient();
 
   useEffect(() => {
@@ -141,6 +142,7 @@ export default function ChatPane({
   }, [data?.assistantConversation?.name]);
 
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
+  const [frozenAssistantMessage, setFrozenAssistantMessage] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
   const [streamingSegments, setStreamingSegments] = useState<StreamingSegment[]>([]);
 
@@ -149,14 +151,24 @@ export default function ChatPane({
     localConversationIdRef.current = localConversationId;
   }, [localConversationId]);
 
+  // Kept up-to-date so handleDrained can read the last drained text without a stale closure.
+  const lastStreamingTextRef = useRef<string | null>(null);
+
   const handleDrained = useCallback(() => {
-    setPendingUserMessage(null);
-    setStreamingSegments([]);
+    setFrozenAssistantMessage(lastStreamingTextRef.current);
     setCurrentPage(1);
     if (localConversationIdRef.current) {
-      apolloClient.refetchQueries({
-        include: [AssistantConversationMessagesDocument],
-      });
+      apolloClient
+        .refetchQueries({ include: [AssistantConversationMessagesDocument] })
+        .then(() => {
+          setPendingUserMessage(null);
+          setFrozenAssistantMessage(null);
+          setStreamingSegments([]);
+        });
+    } else {
+      setPendingUserMessage(null);
+      setFrozenAssistantMessage(null);
+      setStreamingSegments([]);
     }
   }, [apolloClient]);
 
@@ -164,6 +176,10 @@ export default function ChatPane({
     interval: 30,
     onDrained: handleDrained,
   });
+
+  if (streamingText !== null) {
+    lastStreamingTextRef.current = streamingText;
+  }
 
   const onToolResultRef = useRef(onToolResult);
   onToolResultRef.current = onToolResult;
@@ -230,13 +246,14 @@ export default function ChatPane({
 
   useEffect(() => {
     if (!loadingMessages) {
+      isPinnedToBottom.current = true;
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [loadingMessages, localConversationId]);
 
   useEffect(() => {
-    if (!loadingMore) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!loadingMore && isPinnedToBottom.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "instant" });
     }
   }, [messages.length, pendingUserMessage, streamingText]);
 
@@ -285,6 +302,8 @@ export default function ChatPane({
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
+    isPinnedToBottom.current =
+      container.scrollHeight - container.scrollTop - container.clientHeight < 50;
     if (container.scrollTop === 0 && hasMore && !loadingMore) {
       loadOlderMessages();
     }
@@ -311,7 +330,11 @@ export default function ChatPane({
             success: seg.success,
           },
     ),
-    ...(streamingText !== null ? [{ type: "text" as const, content: streamingText }] : []),
+    ...(streamingText !== null
+      ? [{ type: "text" as const, content: streamingText }]
+      : frozenAssistantMessage !== null
+      ? [{ type: "text" as const, content: frozenAssistantMessage }]
+      : []),
   ];
 
   const isActive = isStreaming || streamingRenderSegments.length > 0;

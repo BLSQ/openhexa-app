@@ -127,9 +127,9 @@ const GridView = ({
           )}
         </BaseColumn>
         <DateColumn
-          accessor={"currentVersion.createdAt"}
+          id="createdAt"
+          accessor={"createdAt"}
           label={t("Created At")}
-          disableSortBy={true}
         />
       </DataGrid>
     </Block>

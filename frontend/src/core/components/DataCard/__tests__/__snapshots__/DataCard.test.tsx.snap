@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`DataCard renders 1`] = `
 <div>
@@ -38,7 +38,7 @@ exports[`DataCard renders 1`] = `
                   class="flex text-sm font-medium text-gray-500 col-span-1 items-center"
                 >
                   <span
-                    class="inline"
+                    class="w-full break-all"
                   >
                     Name
                   </span>
