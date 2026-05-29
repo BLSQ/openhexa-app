@@ -107,6 +107,7 @@ PipelineCard.fragments = {
       schedule
       description
       type
+      createdAt
       sourceTemplate {
         id
         name
