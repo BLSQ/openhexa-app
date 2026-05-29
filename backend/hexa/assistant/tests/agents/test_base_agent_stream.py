@@ -1,6 +1,9 @@
 from contextlib import asynccontextmanager
 from unittest.mock import patch
 
+from pydantic import ValidationError as PydanticValidationError
+from pydantic_ai.exceptions import UnexpectedModelBehavior, UsageLimitExceeded
+
 from asgiref.sync import async_to_sync
 from pydantic_ai.models.test import TestModel
 
@@ -9,7 +12,12 @@ from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message
 from hexa.core.test.utils import parse_sse_stream
 
-from ._helpers import _AgentWithFakeTool, _make_tool_call_model, make_built_model
+from ._helpers import (
+    _AgentWithFakeTool,
+    _make_tool_call_model,
+    _make_truncated_tool_call_model,
+    make_built_model,
+)
 from ._testcase import AgentTestCase
 
 
@@ -137,3 +145,91 @@ class BaseAgentRunStreamTest(AgentTestCase):
         events = _collect_stream(agent, "Use the tool")
         tool_result = next(e for e in events if e["event"] == "tool_result")
         self.assertTrue(tool_result["data"]["success"])
+
+    def test_truncated_tool_call_yields_user_friendly_error(self):
+        model = _make_truncated_tool_call_model("_fake_tool")
+        agent = _AgentWithFakeTool(self.conversation, make_built_model(model))
+        events = _collect_stream(agent, "Use the tool")
+        error_events = [e for e in events if e["event"] == "error"]
+        self.assertEqual(len(error_events), 1)
+        self.assertIn("maximum token limit", error_events[0]["data"]["message"])
+
+    def test_truncated_tool_call_does_not_yield_generic_error(self):
+        model = _make_truncated_tool_call_model("_fake_tool")
+        agent = _AgentWithFakeTool(self.conversation, make_built_model(model))
+        events = _collect_stream(agent, "Use the tool")
+        error_events = [e for e in events if e["event"] == "error"]
+        self.assertNotEqual(error_events[0]["data"]["message"], "An error occurred")
+
+    def test_usage_limit_exceeded_yields_user_friendly_error(self):
+        @asynccontextmanager
+        async def _usage_limit_iter(*args, **kwargs):
+            raise UsageLimitExceeded("Exceeded the output_tokens_limit of 32768")
+            yield  # pragma: no cover
+
+        agent = BaseAgent(
+            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+        )
+        with patch.object(agent.agent, "iter", _usage_limit_iter):
+            events = _collect_stream(agent, "Do something complex")
+        error_events = [e for e in events if e["event"] == "error"]
+        self.assertEqual(len(error_events), 1)
+        self.assertIn("maximum token limit", error_events[0]["data"]["message"])
+
+    def test_token_budget_exhausted_yields_user_friendly_error(self):
+        @asynccontextmanager
+        async def _exhausted_iter(*args, **kwargs):
+            raise UnexpectedModelBehavior(
+                "Model token limit (3) exceeded before any response was generated."
+            )
+            yield  # pragma: no cover
+
+        agent = BaseAgent(
+            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+        )
+        with patch.object(agent.agent, "iter", _exhausted_iter):
+            events = _collect_stream(agent, "Do something complex")
+        error_events = [e for e in events if e["event"] == "error"]
+        self.assertEqual(len(error_events), 1)
+        self.assertIn("maximum token limit", error_events[0]["data"]["message"])
+
+    def test_other_unexpected_model_behavior_yields_generic_error(self):
+        @asynccontextmanager
+        async def _unexpected_iter(*args, **kwargs):
+            raise UnexpectedModelBehavior("Model returned something totally unexpected")
+            yield  # pragma: no cover
+
+        agent = BaseAgent(
+            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+        )
+        with patch.object(agent.agent, "iter", _unexpected_iter):
+            events = _collect_stream(agent, "Do something")
+        error_events = [e for e in events if e["event"] == "error"]
+        self.assertEqual(len(error_events), 1)
+        self.assertEqual(error_events[0]["data"]["message"], "An error occurred")
+
+    def test_truncated_args_validation_error_yields_user_friendly_error(self):
+        try:
+            from pydantic import BaseModel
+
+            class _M(BaseModel):
+                required_field: str
+
+            _M.model_validate({})
+        except PydanticValidationError as validation_err:
+
+            @asynccontextmanager
+            async def _truncated_args_iter(*args, **kwargs):
+                exc = UnexpectedModelBehavior("Tool args were invalid")
+                exc.__cause__ = validation_err
+                raise exc
+                yield  # pragma: no cover
+
+            agent = BaseAgent(
+                self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+            )
+            with patch.object(agent.agent, "iter", _truncated_args_iter):
+                events = _collect_stream(agent, "Do something complex")
+            error_events = [e for e in events if e["event"] == "error"]
+            self.assertEqual(len(error_events), 1)
+            self.assertIn("maximum token limit", error_events[0]["data"]["message"])

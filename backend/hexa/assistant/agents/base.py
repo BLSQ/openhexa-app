@@ -6,6 +6,8 @@ from decimal import Decimal
 
 import genai_prices
 from pydantic_ai import Agent, ModelRetry, ModelSettings, RunUsage
+from pydantic import ValidationError
+from pydantic_ai.exceptions import UnexpectedModelBehavior, UsageLimitExceeded
 from pydantic_ai.messages import (
     FunctionToolCallEvent,
     FunctionToolResultEvent,
@@ -19,6 +21,7 @@ from pydantic_ai.messages import (
 )
 from pydantic_ai.output import TextOutput
 
+from hexa.assistant.exceptions import MaxTokensTruncationError
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.model_builder import AiModelBuilder, BuiltModel
 from hexa.assistant.models import Conversation, Message, ToolInvocation
@@ -74,7 +77,7 @@ def _parse_conversation_title(text: str) -> str:
 class BaseAgent:
     instruction_set = InstructionSet.GENERAL
     tools: list = []
-    max_tokens: int = 32768
+    max_tokens: int = 100
 
     def __init__(
         self, conversation: Conversation, built_model: BuiltModel | None = None
@@ -192,11 +195,43 @@ class BaseAgent:
                 ),
             )
 
-        except json.JSONDecodeError:
+        except UsageLimitExceeded:
             logger.exception(
-                "agent.run_stream: malformed tool args (likely truncated by max_tokens)"
+                "agent.run_stream: usage limit exceeded (max_tokens limit reached)"
             )
-            yield format_sse("error", ErrorPayload(message="An error occurred"))
+            yield format_sse(
+                "error",
+                ErrorPayload(
+                    message="I hit the maximum token limit before completing my response. Try breaking your request into smaller steps."
+                ),
+            )
+        except MaxTokensTruncationError:
+            logger.exception(
+                "agent.run_stream: tool call args truncated (max_tokens limit reached)"
+            )
+            yield format_sse(
+                "error",
+                ErrorPayload(
+                    message="I hit the maximum token limit before completing my response. Try breaking your request into smaller steps."
+                ),
+            )
+        except UnexpectedModelBehavior as e:
+            is_truncation = "token limit" in str(e) or isinstance(
+                e.__cause__, ValidationError
+            )
+            if is_truncation:
+                logger.exception(
+                    "agent.run_stream: token budget exhausted (max_tokens limit reached)"
+                )
+                yield format_sse(
+                    "error",
+                    ErrorPayload(
+                        message="I hit the maximum token limit before completing my response. Try breaking your request into smaller steps."
+                    ),
+                )
+            else:
+                logger.exception("agent.run_stream: unexpected model behavior")
+                yield format_sse("error", ErrorPayload(message="An error occurred"))
         except Exception:
             logger.exception("agent.run_stream: error during streaming")
             yield format_sse("error", ErrorPayload(message="An error occurred"))
@@ -237,7 +272,12 @@ class BaseAgent:
                     )
                     raw_args = call.args
                     if isinstance(raw_args, str):
-                        tool_input = json.loads(raw_args) if raw_args else {}
+                        try:
+                            tool_input = json.loads(raw_args) if raw_args else {}
+                        except json.JSONDecodeError as e:
+                            raise MaxTokensTruncationError(
+                                f"Tool call args truncated for {call.tool_name}"
+                            ) from e
                     elif raw_args is None:
                         tool_input = {}
                     else:
