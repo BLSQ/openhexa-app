@@ -1,12 +1,11 @@
 import { ArrowPathIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
+import MarkdownContent from "core/components/MarkdownContent";
 import Spinner from "core/components/Spinner";
 import { getPublicEnv } from "core/helpers/runtimeConfig";
 import useStreamingFetch from "core/hooks/useStreamingFetch";
 import useWordDrain from "core/hooks/useWordDrain";
 import { KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import {
   AssistantConversationMessagesDocument,
   AssistantConversationMessagesQuery,
@@ -67,6 +66,7 @@ export default function ChatPane({
   );
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isPinnedToBottom = useRef(true);
   const apolloClient = useApolloClient();
 
   useEffect(() => {
@@ -107,6 +107,7 @@ export default function ChatPane({
   }, [data?.assistantConversation?.name]);
 
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
+  const [frozenAssistantMessage, setFrozenAssistantMessage] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
 
   const localConversationIdRef = useRef(localConversationId);
@@ -114,13 +115,22 @@ export default function ChatPane({
     localConversationIdRef.current = localConversationId;
   }, [localConversationId]);
 
+  // Kept up-to-date so handleDrained can read the last drained text without a stale closure.
+  const lastStreamingTextRef = useRef<string | null>(null);
+
   const handleDrained = useCallback(() => {
-    setPendingUserMessage(null);
+    setFrozenAssistantMessage(lastStreamingTextRef.current);
     setCurrentPage(1);
     if (localConversationIdRef.current) {
-      apolloClient.refetchQueries({
-        include: [AssistantConversationMessagesDocument],
-      });
+      apolloClient
+        .refetchQueries({ include: [AssistantConversationMessagesDocument] })
+        .then(() => {
+          setPendingUserMessage(null);
+          setFrozenAssistantMessage(null);
+        });
+    } else {
+      setPendingUserMessage(null);
+      setFrozenAssistantMessage(null);
     }
   }, [apolloClient]);
 
@@ -128,6 +138,10 @@ export default function ChatPane({
     interval: 30,
     onDrained: handleDrained,
   });
+
+  if (streamingText !== null) {
+    lastStreamingTextRef.current = streamingText;
+  }
 
   const onToolResultRef = useRef(onToolResult);
   onToolResultRef.current = onToolResult;
@@ -174,13 +188,14 @@ export default function ChatPane({
 
   useEffect(() => {
     if (!loadingMessages) {
+      isPinnedToBottom.current = true;
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [loadingMessages, localConversationId]);
 
   useEffect(() => {
-    if (!loadingMore) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!loadingMore && isPinnedToBottom.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "instant" });
     }
   }, [messages.length, pendingUserMessage, streamingText]);
 
@@ -229,6 +244,8 @@ export default function ChatPane({
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
+    isPinnedToBottom.current =
+      container.scrollHeight - container.scrollTop - container.clientHeight < 50;
     if (container.scrollTop === 0 && hasMore && !loadingMore) {
       loadOlderMessages();
     }
@@ -322,11 +339,7 @@ export default function ChatPane({
                   {msg.role === "user" ? (
                     msg.content
                   ) : (
-                    <div className="prose prose-sm prose-gray max-w-none">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {msg.content}
-                      </ReactMarkdown>
-                    </div>
+                    <MarkdownContent sm>{msg.content}</MarkdownContent>
                   )}
                 </div>
               </div>
@@ -351,15 +364,11 @@ export default function ChatPane({
             </div>
           )}
 
-          {(isStreaming || streamingText !== null) && (
+          {(isStreaming || streamingText !== null || frozenAssistantMessage !== null) && (
             <div className="flex justify-start">
               <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
-                {streamingText ? (
-                  <div className="prose prose-sm prose-gray max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {streamingText}
-                    </ReactMarkdown>
-                  </div>
+                {(streamingText || frozenAssistantMessage) ? (
+                  <MarkdownContent sm>{streamingText ?? frozenAssistantMessage!}</MarkdownContent>
                 ) : (
                   <Spinner size="xs" className="text-gray-400" />
                 )}

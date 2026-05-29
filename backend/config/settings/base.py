@@ -582,6 +582,9 @@ WORKSPACE_BUCKET_VERSIONING_ENABLED = False
 
 # MIXPANEL
 MIXPANEL_TOKEN = os.environ.get("MIXPANEL_TOKEN")
+# EU data residency: route directly to the EU ingestion endpoint instead of
+# relying on the deprecated US->EU forwarding (sunset July 2026).
+MIXPANEL_API_HOST = os.environ.get("MIXPANEL_API_HOST", "api-eu.mixpanel.com")
 
 #############
 # Legacy OH #

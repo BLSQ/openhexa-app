@@ -13,6 +13,7 @@ from hexa.files import storage
 from hexa.files.backends.base import StorageObject
 from hexa.git.enums import FileEncoding
 from hexa.pipeline_templates.models import PipelineTemplateVersion
+from hexa.pipelines.enums import PipelineParameterChoicesFileFormat
 from hexa.pipelines.models import (
     Pipeline,
     PipelineNotificationLevel,
@@ -26,11 +27,18 @@ from hexa.workspaces.schema.types import workspace_permissions
 pipeline_permissions = ObjectType("PipelinePermissions")
 pipeline_version_permissions = ObjectType("PipelineVersionPermissions")
 pipeline_parameter = ObjectType("PipelineParameter")
+pipeline_parameter_choices_from_file = ObjectType("PipelineParameterChoicesFromFile")
+pipeline_parameter_choices_file_format_enum = EnumType(
+    "PipelineParameterChoicesFileFormat",
+    PipelineParameterChoicesFileFormat.graphql_enum_values(),
+)
 pipeline_order_by_enum = EnumType(
     "PipelineOrderBy",
     {
         "NAME_DESC": "-name",
         "NAME_ASC": "name",
+        "CREATED_AT_DESC": "-created_at",
+        "CREATED_AT_ASC": "created_at",
         "LAST_RUN_DATE_DESC": "-last_run_date",
         "LAST_RUN_DATE_ASC": "last_run_date",
     },
@@ -93,6 +101,17 @@ def resolve_pipeline_parameter_multiple(parameter, info, **kwargs):
 @pipeline_parameter.field("choicesFromFile")
 def resolve_pipeline_parameter_choices_from_file(parameter, info, **kwargs):
     return parameter.get("choices_from_file")
+
+
+@pipeline_parameter_choices_from_file.field("format")
+def resolve_choices_from_file_format(obj, info, **kwargs):
+    fmt = obj.get("format")
+    if fmt is None:
+        return None
+    try:
+        return PipelineParameterChoicesFileFormat.from_extension(fmt)
+    except ValueError:
+        return None
 
 
 @pipeline_permissions.field("update")
@@ -474,6 +493,8 @@ def resolve_pipeline_run_dataset_version(run: PipelineRun, info, **kwargs):
 bindables = [
     pipeline_permissions,
     pipeline_parameter,
+    pipeline_parameter_choices_from_file,
+    pipeline_parameter_choices_file_format_enum,
     pipeline_object,
     pipeline_order_by_enum,
     pipeline_run_object,

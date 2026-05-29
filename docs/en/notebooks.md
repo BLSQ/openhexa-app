@@ -43,7 +43,7 @@ This guide walks you through the specifics of the OpenHEXA notebooks environment
 - [Using the OpenHEXA SDK](sdk.md): The OpenHEXA SDK is a Python library that provides building blocks and helper methods for writing code on OpenHEXA
 - [Using the OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md): Acquire and process data from DHIS2 instances
 - [Using the OpenHEXA Toolbox - IASO](toolbox-iaso.md): Fetch data from IASO
-- [Using the OpenHEXA Toolbox - OpenHEXA Client](toolbox-hexa.md): Legacy GraphQL client (deprecated)
+- [OpenHEXA Client](toolbox-hexa.md): Typed GraphQL client for the OpenHEXA platform
 
 ## Key JupyterLab features
 

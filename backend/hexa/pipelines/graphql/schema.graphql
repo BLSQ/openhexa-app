@@ -415,6 +415,8 @@ Enum representing the possible orderings for pipelines.
 enum PipelineOrderBy {
   NAME_DESC
   NAME_ASC
+  CREATED_AT_DESC
+  CREATED_AT_ASC
   LAST_RUN_DATE_DESC
   LAST_RUN_DATE_ASC
 }

@@ -1,5 +1,25 @@
 # Changelog
 
+## [5.7.0](https://github.com/BLSQ/openhexa-app/compare/5.6.2...5.7.0) (2026-05-26)
+
+
+### Features
+
+* disallow empty pipelines ([#1813](https://github.com/BLSQ/openhexa-app/issues/1813)) ([907bbd8](https://github.com/BLSQ/openhexa-app/commit/907bbd8637e9b95244a70ea5660b851bb666620f))
+* expose read only data exploration tools to agent (HEXA-1653) ([#1823](https://github.com/BLSQ/openhexa-app/issues/1823)) ([4e6f58c](https://github.com/BLSQ/openhexa-app/commit/4e6f58c8f5469f3ab101200beae045311f021f09))
+* pipeline conversation history on code screen(HEXA-1624) ([#1784](https://github.com/BLSQ/openhexa-app/issues/1784)) ([8518cf1](https://github.com/BLSQ/openhexa-app/commit/8518cf13c99c9cf2c276f32f9a11480ca7d3da9d))
+* pipeline run parameters - dynamic choices (HEXA-1620) ([#1780](https://github.com/BLSQ/openhexa-app/issues/1780)) ([91b3912](https://github.com/BLSQ/openhexa-app/commit/91b39126fd671240a390491a5591bde618033c04))
+* Pipelines template version name & documentation (HEXA-1546) ([#1807](https://github.com/BLSQ/openhexa-app/issues/1807)) ([79b6e79](https://github.com/BLSQ/openhexa-app/commit/79b6e79df551d1acf0dd1578ed975aa1b5f5fcb6))
+* tighten system instructions ([#1787](https://github.com/BLSQ/openhexa-app/issues/1787)) ([ecd3619](https://github.com/BLSQ/openhexa-app/commit/ecd361965b76449b01ae0d81b7faf6a87afff283))
+
+
+### Bug Fixes
+
+* Correctly set web apps domain in ALLOWED_HOSTS + CORS ([#1801](https://github.com/BLSQ/openhexa-app/issues/1801)) ([741e009](https://github.com/BLSQ/openhexa-app/commit/741e009a4d6336cb54a5978414272b4f11b204fe))
+* Don't corrupt web apps images upon upload (HEXA-1564) ([#1815](https://github.com/BLSQ/openhexa-app/issues/1815)) ([5c806fe](https://github.com/BLSQ/openhexa-app/commit/5c806fe1af07722ab9018680dc1e068dcdbc9ec2))
+* improve get_help_or_doc index of reachable documentation + improve documentation summaries (HEXA-1653) ([#1826](https://github.com/BLSQ/openhexa-app/issues/1826)) ([fd9100c](https://github.com/BLSQ/openhexa-app/commit/fd9100c44cc7cad4bef42b8f2170869422bfcdb5))
+* split toolbox documentation (HEXA-1653) ([#1824](https://github.com/BLSQ/openhexa-app/issues/1824)) ([75eac6b](https://github.com/BLSQ/openhexa-app/commit/75eac6b64807a7720ab140af03d187e45e9bf4fd))
+
 ## [5.6.2](https://github.com/BLSQ/openhexa-app/compare/5.6.1...5.6.2) (2026-05-13)
 
 

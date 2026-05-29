@@ -250,7 +250,7 @@ httpx==0.28.1
     #   pydantic-graph
 humanize==4.12.3
     # via openhexa-toolbox
-idna==3.10
+idna==3.15
     # via
     #   anyio
     #   httpx
