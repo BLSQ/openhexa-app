@@ -178,7 +178,8 @@ class AsyncMixpanelTest(TestCase):
 
     def test_consumer_uses_configured_api_host(self):
         """The consumer must be constructed with MIXPANEL_API_HOST so events
-        bypass the deprecated US->EU forwarding (sunset July 2026)."""
+        bypass the deprecated US->EU forwarding (sunset July 2026).
+        """
         consumer = AsyncBufferedConsumer(
             request_timeout=4, api_host="api-eu.mixpanel.com"
         )
@@ -214,7 +215,7 @@ class AsyncMixpanelTest(TestCase):
         mixpanel = Mixpanel(token="dummy_token", consumer=consumer)
 
         for i in range(3):
-            mixpanel.track("event", "event_name", {"prop": f"value{i+1}"})
+            mixpanel.track("event", "event_name", {"prop": f"value{i + 1}"})
 
         # Simulate a bit more than the flush_after time passing
         mock_datetime.now.return_value = (
