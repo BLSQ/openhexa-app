@@ -2,322 +2,322 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>https://docs.openhexa.com/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/account/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/account/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/account/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/admin/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/admin/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/admin/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/api-authentication/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/api-authentication/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/api-authentication/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/architecture/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/architecture/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/architecture/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/cli/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/cli/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/cli/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/connections/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/connections/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/connections/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/database/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/database/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/database/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/datasets/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/datasets/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/datasets/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/files/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/files/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/files/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/installation/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/installation/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/installation/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/legacy/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/legacy/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/legacy/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/navigation/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/navigation/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/navigation/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/notebooks-advanced/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/notebooks-advanced/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/notebooks-advanced/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/notebooks/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/notebooks/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/notebooks/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/pipelines/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/pipelines/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/pipelines/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/sdk/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/sdk/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/sdk/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/static-webapps/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/static-webapps/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/static-webapps/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/toolbox-dhis2/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/toolbox-dhis2/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/toolbox-dhis2/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/toolbox-hexa/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/toolbox-hexa/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/toolbox-hexa/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/toolbox-iaso/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/toolbox-iaso/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/toolbox-iaso/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/workspaces/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/workspaces/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/workspaces/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/writing-pipelines/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/writing-pipelines/"/>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/writing-pipelines/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/account/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/account/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/account/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/admin/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/admin/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/admin/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/api-authentication/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/api-authentication/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/api-authentication/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/architecture/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/architecture/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/architecture/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/cli/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/cli/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/cli/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/connections/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/connections/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/connections/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/database/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/database/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/database/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/datasets/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/datasets/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/datasets/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/files/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/files/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/files/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/installation/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/installation/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/installation/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/legacy/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/legacy/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/legacy/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/navigation/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/navigation/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/navigation/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/notebooks-advanced/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/notebooks-advanced/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/notebooks-advanced/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/notebooks/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/notebooks/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/notebooks/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/pipelines/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/pipelines/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/pipelines/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/sdk/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/sdk/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/sdk/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/static-webapps/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/static-webapps/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/static-webapps/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/toolbox-dhis2/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/toolbox-dhis2/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/toolbox-dhis2/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/toolbox-hexa/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/toolbox-hexa/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/toolbox-hexa/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/toolbox-iaso/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/toolbox-iaso/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/toolbox-iaso/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/workspaces/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/workspaces/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/workspaces/"/>
     </url>
     <url>
         <loc>https://docs.openhexa.com/fr/writing-pipelines/</loc>
-        <lastmod>2026-05-22</lastmod>
+        <lastmod>2026-05-29</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="fr" href="https://docs.openhexa.com/fr/writing-pipelines/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://docs.openhexa.com/writing-pipelines/"/>
