@@ -25,8 +25,6 @@ from hexa.webapps.validators import validate_subdomain
 from hexa.workspaces.models import Workspace
 
 
-
-
 def create_webapp_slug(name: str, workspace: Workspace):
     """Generate a unique slug for a webapp within a workspace."""
     suffix = ""
