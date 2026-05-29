@@ -252,6 +252,144 @@ def test_pipeline(input_file, threshold, enable_debug):
             pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).get()
             self.assertEqual(pipeline.type, PipelineType.NOTEBOOK)
 
+    CREATE_PIPELINE_WITH_VERSION_MUTATION = """
+        mutation createPipeline($input: CreatePipelineInput!) {
+            createPipeline(input: $input) {
+                success
+                errors
+                pipeline { code name }
+                pipelineVersion { name parameters { code } }
+            }
+        }
+    """
+
+    def test_create_pipeline_with_first_version(self):
+        self.assertEqual(0, len(Pipeline.objects.all()))
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            self.CREATE_PIPELINE_WITH_VERSION_MUTATION,
+            {
+                "input": {
+                    "name": "AtomicPipeline",
+                    "workspaceSlug": self.WS1.slug,
+                    "version": {
+                        "zipfile": self.zip_pipeline_py,
+                        "name": "v1",
+                    },
+                }
+            },
+        )
+
+        result = r["data"]["createPipeline"]
+        self.assertTrue(result["success"])
+        self.assertEqual(result["errors"], [])
+        self.assertEqual(result["pipeline"]["name"], "AtomicPipeline")
+        self.assertEqual(result["pipelineVersion"]["name"], "v1")
+        self.assertEqual(
+            [p["code"] for p in result["pipelineVersion"]["parameters"]],
+            ["file_path"],
+        )
+        pipeline = Pipeline.objects.filter_for_user(self.USER_ROOT).get()
+        self.assertEqual(pipeline.versions.count(), 1)
+
+    def test_create_pipeline_with_first_version_negative_timeout(self):
+        self.assertEqual(0, len(Pipeline.objects.all()))
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            self.CREATE_PIPELINE_WITH_VERSION_MUTATION,
+            {
+                "input": {
+                    "name": "AtomicPipeline",
+                    "workspaceSlug": self.WS1.slug,
+                    "version": {
+                        "zipfile": self.zip_pipeline_py,
+                        "timeout": -1,
+                    },
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["createPipeline"]["errors"], ["INVALID_TIMEOUT_VALUE"]
+        )
+        self.assertFalse(r["data"]["createPipeline"]["success"])
+        self.assertEqual(0, Pipeline.objects.all().count())
+
+    def test_create_pipeline_with_first_version_timeout_too_high(self):
+        self.assertEqual(0, len(Pipeline.objects.all()))
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            self.CREATE_PIPELINE_WITH_VERSION_MUTATION,
+            {
+                "input": {
+                    "name": "AtomicPipeline",
+                    "workspaceSlug": self.WS1.slug,
+                    "version": {
+                        "zipfile": self.zip_pipeline_py,
+                        "timeout": int(settings.PIPELINE_RUN_MAX_TIMEOUT) + 1,
+                    },
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["createPipeline"]["errors"], ["INVALID_TIMEOUT_VALUE"]
+        )
+        self.assertFalse(r["data"]["createPipeline"]["success"])
+        self.assertEqual(0, Pipeline.objects.all().count())
+
+    def test_create_pipeline_with_first_version_bad_zipfile(self):
+        self.assertEqual(0, len(Pipeline.objects.all()))
+        self.client.force_login(self.USER_ROOT)
+
+        bad_zip = base64.b64encode(b"not a real zip").decode("ascii")
+        r = self.run_query(
+            self.CREATE_PIPELINE_WITH_VERSION_MUTATION,
+            {
+                "input": {
+                    "name": "AtomicPipeline",
+                    "workspaceSlug": self.WS1.slug,
+                    "version": {"zipfile": bad_zip},
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["createPipeline"]["errors"], ["PIPELINE_CODE_PARSING_ERROR"]
+        )
+        self.assertFalse(r["data"]["createPipeline"]["success"])
+        self.assertEqual(0, Pipeline.objects.all().count())
+
+    def test_create_pipeline_with_first_version_explicit_parameters(self):
+        self.assertEqual(0, len(Pipeline.objects.all()))
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            self.CREATE_PIPELINE_WITH_VERSION_MUTATION,
+            {
+                "input": {
+                    "name": "AtomicPipeline",
+                    "workspaceSlug": self.WS1.slug,
+                    "version": {
+                        "zipfile": self.zip_pipeline_py,
+                        "parameters": pipelines_parameters_with_scalars,
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["createPipeline"]["success"])
+        self.assertEqual(
+            [
+                p["code"]
+                for p in r["data"]["createPipeline"]["pipelineVersion"]["parameters"]
+            ],
+            [p["code"] for p in pipelines_parameters_with_scalars],
+        )
+
     def test_list_pipelines(self):
         self.assertEqual(0, len(PipelineRun.objects.all()))
         self._create_pipeline(name="Pipeline DHIS2")
