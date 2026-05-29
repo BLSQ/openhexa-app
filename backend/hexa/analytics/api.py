@@ -16,7 +16,8 @@ if settings.MIXPANEL_TOKEN:
             # It’s a good practice to set connect timeouts to slightly larger than a multiple of 3, which is the default TCP packet retransmission window.
             # https://requests.readthedocs.io/en/latest/user/advanced/#timeouts
             # request_timeout is an int, so using 4 seconds
-            request_timeout=4
+            request_timeout=4,
+            api_host=settings.MIXPANEL_API_HOST,
         ),
     )
 
