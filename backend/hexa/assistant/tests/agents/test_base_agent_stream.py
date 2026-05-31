@@ -161,7 +161,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
         error_events = [e for e in events if e["event"] == "error"]
         self.assertNotEqual(error_events[0]["data"]["message"], "An error occurred")
 
-    def test_usage_limit_exceeded_yields_user_friendly_error(self):
+    def test_usage_limit_exceeded_token_limit_yields_user_friendly_error(self):
         @asynccontextmanager
         async def _usage_limit_iter(*args, **kwargs):
             raise UsageLimitExceeded("Exceeded the output_tokens_limit of 32768")
@@ -175,6 +175,21 @@ class BaseAgentRunStreamTest(AgentTestCase):
         error_events = [e for e in events if e["event"] == "error"]
         self.assertEqual(len(error_events), 1)
         self.assertIn("maximum token limit", error_events[0]["data"]["message"])
+
+    def test_usage_limit_exceeded_request_limit_yields_loop_error(self):
+        @asynccontextmanager
+        async def _loop_iter(*args, **kwargs):
+            raise UsageLimitExceeded("Exceeded the request_limit of 10")
+            yield  # pragma: no cover
+
+        agent = BaseAgent(
+            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+        )
+        with patch.object(agent.agent, "iter", _loop_iter):
+            events = _collect_stream(agent, "Do something complex")
+        error_events = [e for e in events if e["event"] == "error"]
+        self.assertEqual(len(error_events), 1)
+        self.assertIn("too many attempts", error_events[0]["data"]["message"])
 
     def test_token_budget_exhausted_yields_user_friendly_error(self):
         @asynccontextmanager

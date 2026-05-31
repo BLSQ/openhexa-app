@@ -5,7 +5,7 @@ from collections.abc import AsyncGenerator
 from decimal import Decimal
 
 import genai_prices
-from pydantic_ai import Agent, ModelRetry, ModelSettings, RunUsage
+from pydantic_ai import Agent, ModelRetry, ModelSettings, RunUsage, UsageLimits
 from pydantic import ValidationError
 from pydantic_ai.exceptions import UnexpectedModelBehavior, UsageLimitExceeded
 from pydantic_ai.messages import (
@@ -77,7 +77,8 @@ def _parse_conversation_title(text: str) -> str:
 class BaseAgent:
     instruction_set = InstructionSet.GENERAL
     tools: list = []
-    max_tokens: int = 100
+    max_tokens: int = 800
+    max_requests: int = 10
 
     def __init__(
         self, conversation: Conversation, built_model: BuiltModel | None = None
@@ -150,7 +151,9 @@ class BaseAgent:
             tool_invocations: dict[str, ToolInvocation] = {}
 
             async with self.agent.iter(
-                user_input, message_history=history
+                user_input,
+                message_history=history,
+                usage_limits=UsageLimits(request_limit=self.max_requests),
             ) as agent_run:
                 async for node in agent_run:
                     if naming_task is not None and naming_task.done():
@@ -195,16 +198,27 @@ class BaseAgent:
                 ),
             )
 
-        except UsageLimitExceeded:
-            logger.exception(
-                "agent.run_stream: usage limit exceeded (max_tokens limit reached)"
-            )
-            yield format_sse(
-                "error",
-                ErrorPayload(
-                    message="I hit the maximum token limit before completing my response. Try breaking your request into smaller steps."
-                ),
-            )
+        except UsageLimitExceeded as e:
+            if "request_limit" in str(e):
+                logger.exception(
+                    "agent.run_stream: request limit exceeded (agent stuck in loop)"
+                )
+                yield format_sse(
+                    "error",
+                    ErrorPayload(
+                        message="I got stuck making too many attempts without finishing. Try breaking your request into smaller steps."
+                    ),
+                )
+            else:
+                logger.exception(
+                    "agent.run_stream: usage limit exceeded (max_tokens limit reached)"
+                )
+                yield format_sse(
+                    "error",
+                    ErrorPayload(
+                        message="I hit the maximum token limit before completing my response. Try breaking your request into smaller steps."
+                    ),
+                )
         except MaxTokensTruncationError:
             logger.exception(
                 "agent.run_stream: tool call args truncated (max_tokens limit reached)"
