@@ -5452,6 +5452,7 @@ type WHORegion {
 """Represents a web app."""
 type Webapp {
   allowedOperations: [WebappOperationScope!]!
+  commitDiff(ref: String!): WebappCommitDiff
   createdBy: User!
   description: String
   files(ref: String): [FileNode!]
@@ -5472,6 +5473,15 @@ type Webapp {
   url: String!
   versions(page: Int, perPage: Int): WebappVersionsPage
   workspace: Workspace!
+}
+
+type WebappCommitDiff {
+  authorEmail: String!
+  authorName: String!
+  date: DateTime!
+  id: String!
+  message: String!
+  rawDiff: String!
 }
 
 """

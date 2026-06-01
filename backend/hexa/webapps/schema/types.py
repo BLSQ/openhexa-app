@@ -118,6 +118,17 @@ def resolve_versions(webapp: Webapp, info, page=None, per_page=None, **kwargs):
         return {"items": [], "page": page or 1}
 
 
+@webapp_object.field("commitDiff")
+def resolve_commit_diff(webapp: Webapp, info, ref: str, **kwargs):
+    if webapp.type != Webapp.WebappType.STATIC:
+        return None
+    git_webapp = GitWebapp.objects.get(pk=webapp.pk)
+    try:
+        return git_webapp.get_commit_diff(ref)
+    except ForgejoAPIError:
+        return None
+
+
 @webapp_object.field("files")
 def resolve_files(webapp: Webapp, info, ref=None, **kwargs):
     if webapp.type != Webapp.WebappType.STATIC:
