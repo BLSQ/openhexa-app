@@ -6,7 +6,11 @@ from decimal import Decimal
 
 import genai_prices
 from pydantic_ai import Agent, ModelRetry, ModelSettings, RunUsage, UsageLimits
-from pydantic_ai.exceptions import UnexpectedModelBehavior, UsageLimitExceeded
+from pydantic_ai.exceptions import (
+    IncompleteToolCall,
+    UnexpectedModelBehavior,
+    UsageLimitExceeded,
+)
 from pydantic_ai.messages import (
     FunctionToolCallEvent,
     FunctionToolResultEvent,
@@ -20,7 +24,7 @@ from pydantic_ai.messages import (
 )
 from pydantic_ai.output import TextOutput
 
-from hexa.assistant.exceptions import MaxTokensTruncationError
+
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.model_builder import AiModelBuilder, BuiltModel
 from hexa.assistant.models import Conversation, Message, ToolInvocation
@@ -218,9 +222,9 @@ class BaseAgent:
                         message="I hit the maximum token limit before completing my response. Try breaking your request into smaller steps."
                     ),
                 )
-        except MaxTokensTruncationError:
+        except IncompleteToolCall:
             logger.exception(
-                "agent.run_stream: tool call args truncated (max_tokens limit reached)"
+                "agent.run_stream: tool call incomplete (max_tokens limit reached)"
             )
             yield format_sse(
                 "error",
@@ -228,20 +232,9 @@ class BaseAgent:
                     message="I hit the maximum token limit before completing my response. Try breaking your request into smaller steps."
                 ),
             )
-        except UnexpectedModelBehavior as e:
-            if "token limit" in str(e):
-                logger.exception(
-                    "agent.run_stream: token budget exhausted (max_tokens limit reached)"
-                )
-                yield format_sse(
-                    "error",
-                    ErrorPayload(
-                        message="I hit the maximum token limit before completing my response. Try breaking your request into smaller steps."
-                    ),
-                )
-            else:
-                logger.exception("agent.run_stream: unexpected model behavior")
-                yield format_sse("error", ErrorPayload(message="An error occurred"))
+        except UnexpectedModelBehavior:
+            logger.exception("agent.run_stream: unexpected model behavior")
+            yield format_sse("error", ErrorPayload(message="An error occurred"))
         except Exception:
             logger.exception("agent.run_stream: error during streaming")
             yield format_sse("error", ErrorPayload(message="An error occurred"))
@@ -285,12 +278,7 @@ class BaseAgent:
                     )
                     raw_args = call.args
                     if isinstance(raw_args, str):
-                        try:
-                            tool_input = json.loads(raw_args) if raw_args else {}
-                        except json.JSONDecodeError as e:
-                            raise MaxTokensTruncationError(
-                                f"Tool call args truncated for {call.tool_name}"
-                            ) from e
+                        tool_input = json.loads(raw_args) if raw_args else {}
                     elif raw_args is None:
                         tool_input = {}
                     else:
