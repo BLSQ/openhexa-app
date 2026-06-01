@@ -189,7 +189,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
             events = _collect_stream(agent, "Do something complex")
         error_events = [e for e in events if e["event"] == "error"]
         self.assertEqual(len(error_events), 1)
-        self.assertIn("too many attempts", error_events[0]["data"]["message"])
+        self.assertIn("loop", error_events[0]["data"]["message"])
 
     def test_token_budget_exhausted_yields_user_friendly_error(self):
         @asynccontextmanager
@@ -223,28 +223,30 @@ class BaseAgentRunStreamTest(AgentTestCase):
         self.assertEqual(len(error_events), 1)
         self.assertEqual(error_events[0]["data"]["message"], "An error occurred")
 
-    def test_truncated_args_validation_error_yields_user_friendly_error(self):
-        try:
-            from pydantic import BaseModel
+    def test_unexpected_model_behavior_with_validation_error_cause_yields_generic_error(
+        self,
+    ):
+        from pydantic import BaseModel
 
-            class _M(BaseModel):
-                required_field: str
+        class _M(BaseModel):
+            required_field: str
 
+        with self.assertRaises(PydanticValidationError) as ctx:
             _M.model_validate({})
-        except PydanticValidationError as validation_err:
+        validation_err = ctx.exception
 
-            @asynccontextmanager
-            async def _truncated_args_iter(*args, **kwargs):
-                exc = UnexpectedModelBehavior("Tool args were invalid")
-                exc.__cause__ = validation_err
-                raise exc
-                yield  # pragma: no cover
+        @asynccontextmanager
+        async def _truncated_args_iter(*args, **kwargs):
+            exc = UnexpectedModelBehavior("Tool args were invalid")
+            exc.__cause__ = validation_err
+            raise exc
+            yield  # pragma: no cover
 
-            agent = BaseAgent(
-                self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
-            )
-            with patch.object(agent.agent, "iter", _truncated_args_iter):
-                events = _collect_stream(agent, "Do something complex")
-            error_events = [e for e in events if e["event"] == "error"]
-            self.assertEqual(len(error_events), 1)
-            self.assertIn("maximum token limit", error_events[0]["data"]["message"])
+        agent = BaseAgent(
+            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+        )
+        with patch.object(agent.agent, "iter", _truncated_args_iter):
+            events = _collect_stream(agent, "Do something complex")
+        error_events = [e for e in events if e["event"] == "error"]
+        self.assertEqual(len(error_events), 1)
+        self.assertEqual(error_events[0]["data"]["message"], "An error occurred")

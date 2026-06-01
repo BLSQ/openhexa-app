@@ -6,7 +6,6 @@ from decimal import Decimal
 
 import genai_prices
 from pydantic_ai import Agent, ModelRetry, ModelSettings, RunUsage, UsageLimits
-from pydantic import ValidationError
 from pydantic_ai.exceptions import UnexpectedModelBehavior, UsageLimitExceeded
 from pydantic_ai.messages import (
     FunctionToolCallEvent,
@@ -206,7 +205,7 @@ class BaseAgent:
                 yield format_sse(
                     "error",
                     ErrorPayload(
-                        message="I got stuck making too many attempts without finishing. Try breaking your request into smaller steps."
+                        message="I got stuck in a loop — likely because my responses were too long and kept getting cut off. Try breaking your request into smaller steps."
                     ),
                 )
             else:
@@ -230,10 +229,7 @@ class BaseAgent:
                 ),
             )
         except UnexpectedModelBehavior as e:
-            is_truncation = "token limit" in str(e) or isinstance(
-                e.__cause__, ValidationError
-            )
-            if is_truncation:
+            if "token limit" in str(e):
                 logger.exception(
                     "agent.run_stream: token budget exhausted (max_tokens limit reached)"
                 )
@@ -249,6 +245,9 @@ class BaseAgent:
         except Exception:
             logger.exception("agent.run_stream: error during streaming")
             yield format_sse("error", ErrorPayload(message="An error occurred"))
+        finally:
+            if naming_task is not None and not naming_task.done():
+                naming_task.cancel()
 
     @staticmethod
     async def _stream_model_node(node, ctx):
