@@ -750,7 +750,7 @@
   "Show more": "Afficher plus",
   "Showing {{ start }} to {{ end }} of {{ totalItems }} results": "Afficher les résultats de {{ start }} à {{ end }} de {{ totalItems }}",
   "Sign in": "Connexion",
-  "Sign in with {{name}}": "",
+  "Sign in with {{name}}": "Se connecter avec {{name}}",
   "Sign out": "Se déconnecter",
   "Sign up": "S'inscrire",
   "Size": "Taille",
