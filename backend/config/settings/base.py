@@ -67,9 +67,7 @@ def _load_oidc_providers() -> list[dict]:
     e.g. "who-ciam" reads from OIDC_WHO_CIAM_CLIENT_ID.
     """
     provider_ids = [
-        p.strip()
-        for p in os.environ.get("OIDC_PROVIDERS", "").split(",")
-        if p.strip()
+        p.strip() for p in os.environ.get("OIDC_PROVIDERS", "").split(",") if p.strip()
     ]
     providers = []
     for provider_id in provider_ids:
