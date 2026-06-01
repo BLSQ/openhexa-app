@@ -89,7 +89,10 @@ query RegisterPage {
 query SignupPage {
   config {
     allowSelfRegistration
-    whoCiamEnabled
-    whoCiamDisplayName
+    oidcProviders {
+      id
+      displayName
+      loginUrl
+    }
   }
 }

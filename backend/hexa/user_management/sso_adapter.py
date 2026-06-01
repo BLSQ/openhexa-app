@@ -1,10 +1,12 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
+from allauth.socialaccount.models import SocialLogin
+from django.http import HttpRequest
 
 from hexa.user_management.models import User
 
 
 class OpenHexaSocialAccountAdapter(DefaultSocialAccountAdapter):
-    def pre_social_login(self, request, sociallogin):
+    def pre_social_login(self, request: HttpRequest, sociallogin: SocialLogin) -> None:
         """Auto-link an incoming OIDC identity to an existing OpenHEXA user by email."""
         if sociallogin.is_existing:
             return
@@ -19,10 +21,14 @@ class OpenHexaSocialAccountAdapter(DefaultSocialAccountAdapter):
         except User.DoesNotExist:
             pass
 
-    def is_auto_signup_allowed(self, request, sociallogin):
+    def is_auto_signup_allowed(
+        self, request: HttpRequest, sociallogin: SocialLogin
+    ) -> bool:
         return True
 
-    def save_user(self, request, sociallogin, form=None):
+    def save_user(
+        self, request: HttpRequest, sociallogin: SocialLogin, form: object | None = None
+    ) -> User:
         """Create a new OpenHEXA user from the OIDC claims."""
         data = sociallogin.account.extra_data
         email = (data.get("email") or "").strip().lower()
@@ -37,5 +43,5 @@ class OpenHexaSocialAccountAdapter(DefaultSocialAccountAdapter):
         sociallogin.save(request)
         return user
 
-    def get_login_redirect_url(self, request):
+    def get_login_redirect_url(self, request: HttpRequest) -> str:
         return request.GET.get("next") or "/"

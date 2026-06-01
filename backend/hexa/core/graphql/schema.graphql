@@ -1,3 +1,12 @@
+type OidcProvider {
+    id: String!
+    displayName: String!
+    """
+    URL to initiate the login flow for this provider.
+    """
+    loginUrl: String!
+}
+
 type Config {
     """
     List of requirements for the password.
@@ -8,13 +17,9 @@ type Config {
     """
     allowSelfRegistration: Boolean!
     """
-    Whether WHO CIAM / generic OIDC login is enabled.
+    Configured external OIDC login providers. Empty when none are enabled.
     """
-    whoCiamEnabled: Boolean!
-    """
-    Display name shown on the WHO CIAM login button.
-    """
-    whoCiamDisplayName: String!
+    oidcProviders: [OidcProvider!]!
 }
 
 extend type Query {

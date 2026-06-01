@@ -80,7 +80,7 @@ for app_config in get_hexa_app_configs(connector_only=True):
     except (NotImplementedError, ModuleNotFoundError):
         pass
 
-if settings.WHO_CIAM_ENABLED:
+if settings.OIDC_PROVIDERS:
     import allauth.urls
 
     urlpatterns.append(path("accounts/", include(allauth.urls)))

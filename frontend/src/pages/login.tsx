@@ -236,29 +236,31 @@ const LoginPage: NextPageWithLayout = () => {
             </Button>
           )}
         </div>
-        {configData?.config?.whoCiamEnabled && !showOTPForm && (
-          <>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 border-t border-gray-300" />
-              <span className="text-sm text-gray-500">{t("or")}</span>
-              <div className="flex-1 border-t border-gray-300" />
-            </div>
-            <a
-              href={`/accounts/openid_connect/who-ciam/login/?next=${encodeURIComponent((router.query.next as string) ?? "/")}`}
-              className={clsx(
-                ButtonClasses.base,
-                ButtonClasses.secondary,
-                ButtonClasses.md,
-                "w-full rounded-sm",
-              )}
-            >
-              <GlobeAltIcon className="-ml-1 mr-1.5 h-4 w-4" aria-hidden />
-              {t("Sign in with {{name}}", {
-                name: configData.config.whoCiamDisplayName,
-              })}
-            </a>
-          </>
-        )}
+        {!showOTPForm &&
+          (configData?.config?.oidcProviders ?? []).length > 0 && (
+            <>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 border-t border-gray-300" />
+                <span className="text-sm text-gray-500">{t("or")}</span>
+                <div className="flex-1 border-t border-gray-300" />
+              </div>
+              {configData!.config!.oidcProviders.map((provider) => (
+                <a
+                  key={provider.id}
+                  href={`${provider.loginUrl}?next=${encodeURIComponent((router.query.next as string) ?? "/")}`}
+                  className={clsx(
+                    ButtonClasses.base,
+                    ButtonClasses.secondary,
+                    ButtonClasses.md,
+                    "w-full rounded-sm",
+                  )}
+                >
+                  <GlobeAltIcon className="-ml-1 mr-1.5 h-4 w-4" aria-hidden />
+                  {t("Sign in with {{name}}", { name: provider.displayName })}
+                </a>
+              ))}
+            </>
+          )}
         {configData?.config?.allowSelfRegistration && (
           <div className="mt-4 text-center text-sm">
             <span className="text-gray-600">{t("Don't have an account?")}</span>{" "}

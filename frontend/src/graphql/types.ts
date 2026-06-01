@@ -580,12 +580,10 @@ export type Config = {
   __typename?: 'Config';
   /** Whether self-registration is enabled. */
   allowSelfRegistration: Scalars['Boolean']['output'];
+  /** Configured external OIDC login providers. Empty when none are enabled. */
+  oidcProviders: Array<OidcProvider>;
   /** List of requirements for the password. */
   passwordRequirements?: Maybe<Array<Scalars['String']['output']>>;
-  /** Display name shown on the WHO CIAM login button. */
-  whoCiamDisplayName: Scalars['String']['output'];
-  /** Whether WHO CIAM / generic OIDC login is enabled. */
-  whoCiamEnabled: Scalars['Boolean']['output'];
 };
 
 /** Represents a connection to an external data source or service. */
@@ -3667,6 +3665,14 @@ export type NotebookServer = {
   name: Scalars['String']['output'];
   ready: Scalars['Boolean']['output'];
   url: Scalars['String']['output'];
+};
+
+export type OidcProvider = {
+  __typename?: 'OidcProvider';
+  displayName: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  /** URL to initiate the login flow for this provider. */
+  loginUrl: Scalars['String']['output'];
 };
 
 /** The direction in which to order a list of items. */

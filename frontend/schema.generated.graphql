@@ -519,14 +519,11 @@ type Config {
   """Whether self-registration is enabled."""
   allowSelfRegistration: Boolean!
 
+  """Configured external OIDC login providers. Empty when none are enabled."""
+  oidcProviders: [OidcProvider!]!
+
   """List of requirements for the password."""
   passwordRequirements: [String!]
-
-  """Display name shown on the WHO CIAM login button."""
-  whoCiamDisplayName: String!
-
-  """Whether WHO CIAM / generic OIDC login is enabled."""
-  whoCiamEnabled: Boolean!
 }
 
 """Represents a connection to an external data source or service."""
@@ -3101,6 +3098,14 @@ type NotebookServer {
   name: String!
   ready: Boolean!
   url: String!
+}
+
+type OidcProvider {
+  displayName: String!
+  id: String!
+
+  """URL to initiate the login flow for this provider."""
+  loginUrl: String!
 }
 
 scalar OpaqueID

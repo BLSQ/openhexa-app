@@ -51,13 +51,48 @@ DEBUG = os.environ.get("DEBUG", "false") == "true"
 
 ALLOW_SELF_REGISTRATION = os.environ.get("ALLOW_SELF_REGISTRATION", "false") == "true"
 
-# WHO CIAM / generic OIDC SSO
-WHO_CIAM_ENABLED = os.environ.get("WHO_CIAM_ENABLED", "false") == "true"
-WHO_CIAM_CLIENT_ID = os.environ.get("WHO_CIAM_CLIENT_ID", "")
-WHO_CIAM_CLIENT_SECRET = os.environ.get("WHO_CIAM_CLIENT_SECRET", "")
-# Base URL of the OIDC provider; allauth appends /.well-known/openid-configuration
-WHO_CIAM_SERVER_URL = os.environ.get("WHO_CIAM_SERVER_URL", "")
-WHO_CIAM_DISPLAY_NAME = os.environ.get("WHO_CIAM_DISPLAY_NAME", "WHO")
+
+def _load_oidc_providers() -> list[dict]:
+    """Parse OIDC provider configs from environment variables.
+
+    Set OIDC_PROVIDERS to a comma-separated list of provider IDs (e.g. "who,wfp").
+    For each provider ID set:
+      OIDC_{ID}_CLIENT_ID      — OAuth2 client ID (required)
+      OIDC_{ID}_SERVER_URL     — OIDC discovery base URL (required); allauth appends
+                                 /.well-known/openid-configuration
+      OIDC_{ID}_CLIENT_SECRET  — OAuth2 client secret
+      OIDC_{ID}_DISPLAY_NAME   — label shown on the login button (defaults to ID uppercased)
+
+    Hyphens in provider IDs map to underscores in env var names,
+    e.g. "who-ciam" reads from OIDC_WHO_CIAM_CLIENT_ID.
+    """
+    provider_ids = [
+        p.strip()
+        for p in os.environ.get("OIDC_PROVIDERS", "").split(",")
+        if p.strip()
+    ]
+    providers = []
+    for provider_id in provider_ids:
+        env_key = provider_id.upper().replace("-", "_")
+        client_id = os.environ.get(f"OIDC_{env_key}_CLIENT_ID", "")
+        server_url = os.environ.get(f"OIDC_{env_key}_SERVER_URL", "")
+        if not client_id or not server_url:
+            continue
+        providers.append(
+            {
+                "id": provider_id,
+                "client_id": client_id,
+                "client_secret": os.environ.get(f"OIDC_{env_key}_CLIENT_SECRET", ""),
+                "server_url": server_url,
+                "display_name": os.environ.get(
+                    f"OIDC_{env_key}_DISPLAY_NAME", provider_id.upper()
+                ),
+            }
+        )
+    return providers
+
+
+OIDC_PROVIDERS = _load_oidc_providers()
 
 # Trust the X_FORWARDED_PROTO header from the proxy or load balancer so Django is aware it is accessed by https
 if os.environ.get("TRUST_FORWARDED_PROTO", "false") == "true":
@@ -366,19 +401,20 @@ ACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_ADAPTER = "hexa.user_management.sso_adapter.OpenHexaSocialAccountAdapter"
 
-if WHO_CIAM_ENABLED:
+if OIDC_PROVIDERS:
     SOCIALACCOUNT_PROVIDERS = {
         "openid_connect": {
             "SERVERS": [
                 {
-                    "id": "who-ciam",
-                    "name": WHO_CIAM_DISPLAY_NAME,
-                    "server_url": WHO_CIAM_SERVER_URL,
+                    "id": p["id"],
+                    "name": p["display_name"],
+                    "server_url": p["server_url"],
                     "APP": {
-                        "client_id": WHO_CIAM_CLIENT_ID,
-                        "secret": WHO_CIAM_CLIENT_SECRET,
+                        "client_id": p["client_id"],
+                        "secret": p["client_secret"],
                     },
                 }
+                for p in OIDC_PROVIDERS
             ]
         }
     }

@@ -31,14 +31,16 @@ def resolve_config_allow_self_registration(_, info):
     return settings.ALLOW_SELF_REGISTRATION
 
 
-@config_object.field("whoCiamEnabled")
-def resolve_config_who_ciam_enabled(_, info):
-    return settings.WHO_CIAM_ENABLED
-
-
-@config_object.field("whoCiamDisplayName")
-def resolve_config_who_ciam_display_name(_, info):
-    return settings.WHO_CIAM_DISPLAY_NAME
+@config_object.field("oidcProviders")
+def resolve_config_oidc_providers(_, info):
+    return [
+        {
+            "id": p["id"],
+            "displayName": p["display_name"],
+            "loginUrl": f"/accounts/openid_connect/{p['id']}/login/",
+        }
+        for p in settings.OIDC_PROVIDERS
+    ]
 
 
 config_bindables = [config_query, config_object]
