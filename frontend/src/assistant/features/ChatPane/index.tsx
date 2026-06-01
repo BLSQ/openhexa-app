@@ -419,6 +419,9 @@ export default function ChatPane({
             </div>
           </div>
         )}
+        <p className="mt-2 text-center text-xs text-gray-400">
+          {t("AI can make mistakes. Always verify important information.")}
+        </p>
       </div>
     </div>
   );
