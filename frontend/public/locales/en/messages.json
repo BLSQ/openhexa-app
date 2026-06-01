@@ -741,6 +741,7 @@
   "Show more": "Show more",
   "Showing {{ start }} to {{ end }} of {{ totalItems }} results": "Showing {{ start }} to {{ end }} of {{ totalItems }} results",
   "Sign in": "Sign in",
+  "Sign in with {{name}}": "Sign in with {{name}}",
   "Sign out": "Sign out",
   "Sign up": "Sign up",
   "Size": "Size",

@@ -23,7 +23,7 @@ export type RegisterPageQuery = { __typename?: 'Query', config: { __typename?: '
 export type SignupPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type SignupPageQuery = { __typename?: 'Query', config: { __typename?: 'Config', allowSelfRegistration: boolean } };
+export type SignupPageQuery = { __typename?: 'Query', config: { __typename?: 'Config', allowSelfRegistration: boolean, whoCiamEnabled: boolean, whoCiamDisplayName: string } };
 
 
 export const GetUserDocument = gql`
@@ -215,6 +215,8 @@ export const SignupPageDocument = gql`
     query SignupPage {
   config {
     allowSelfRegistration
+    whoCiamEnabled
+    whoCiamDisplayName
   }
 }
     `;

@@ -7,6 +7,14 @@ type Config {
     Whether self-registration is enabled.
     """
     allowSelfRegistration: Boolean!
+    """
+    Whether WHO CIAM / generic OIDC login is enabled.
+    """
+    whoCiamEnabled: Boolean!
+    """
+    Display name shown on the WHO CIAM login button.
+    """
+    whoCiamDisplayName: String!
 }
 
 extend type Query {

@@ -43,6 +43,10 @@ rf run_front:
 	@echo "Running frontend"
 	npm run dev --prefix frontend
 
+if install_front:
+	@echo "Installing frontend libraries"
+	npm install --prefix frontend
+
 tf tests_frontend:
 	@echo "Running frontend tests"
 	npm run test:ci --prefix frontend

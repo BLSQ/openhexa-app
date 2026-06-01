@@ -1,6 +1,8 @@
 import Input from "core/components/forms/Input";
 import Spinner from "core/components/Spinner";
 import Button from "core/components/Button";
+import { Classes as ButtonClasses } from "core/components/Button/Button";
+import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import { useLoginMutation } from "identity/graphql/mutations.generated";
 import { useSignupPageQuery } from "identity/graphql/queries.generated";
 import { createGetServerSideProps } from "core/helpers/page";
@@ -234,6 +236,29 @@ const LoginPage: NextPageWithLayout = () => {
             </Button>
           )}
         </div>
+        {configData?.config?.whoCiamEnabled && !showOTPForm && (
+          <>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 border-t border-gray-300" />
+              <span className="text-sm text-gray-500">{t("or")}</span>
+              <div className="flex-1 border-t border-gray-300" />
+            </div>
+            <a
+              href={`/accounts/openid_connect/who-ciam/login/?next=${encodeURIComponent((router.query.next as string) ?? "/")}`}
+              className={clsx(
+                ButtonClasses.base,
+                ButtonClasses.secondary,
+                ButtonClasses.md,
+                "w-full rounded-sm",
+              )}
+            >
+              <GlobeAltIcon className="-ml-1 mr-1.5 h-4 w-4" aria-hidden />
+              {t("Sign in with {{name}}", {
+                name: configData.config.whoCiamDisplayName,
+              })}
+            </a>
+          </>
+        )}
         {configData?.config?.allowSelfRegistration && (
           <div className="mt-4 text-center text-sm">
             <span className="text-gray-600">{t("Don't have an account?")}</span>{" "}

@@ -582,6 +582,10 @@ export type Config = {
   allowSelfRegistration: Scalars['Boolean']['output'];
   /** List of requirements for the password. */
   passwordRequirements?: Maybe<Array<Scalars['String']['output']>>;
+  /** Display name shown on the WHO CIAM login button. */
+  whoCiamDisplayName: Scalars['String']['output'];
+  /** Whether WHO CIAM / generic OIDC login is enabled. */
+  whoCiamEnabled: Scalars['Boolean']['output'];
 };
 
 /** Represents a connection to an external data source or service. */

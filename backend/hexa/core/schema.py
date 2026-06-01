@@ -31,4 +31,14 @@ def resolve_config_allow_self_registration(_, info):
     return settings.ALLOW_SELF_REGISTRATION
 
 
+@config_object.field("whoCiamEnabled")
+def resolve_config_who_ciam_enabled(_, info):
+    return settings.WHO_CIAM_ENABLED
+
+
+@config_object.field("whoCiamDisplayName")
+def resolve_config_who_ciam_display_name(_, info):
+    return settings.WHO_CIAM_DISPLAY_NAME
+
+
 config_bindables = [config_query, config_object]

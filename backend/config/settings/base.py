@@ -51,6 +51,14 @@ DEBUG = os.environ.get("DEBUG", "false") == "true"
 
 ALLOW_SELF_REGISTRATION = os.environ.get("ALLOW_SELF_REGISTRATION", "false") == "true"
 
+# WHO CIAM / generic OIDC SSO
+WHO_CIAM_ENABLED = os.environ.get("WHO_CIAM_ENABLED", "false") == "true"
+WHO_CIAM_CLIENT_ID = os.environ.get("WHO_CIAM_CLIENT_ID", "")
+WHO_CIAM_CLIENT_SECRET = os.environ.get("WHO_CIAM_CLIENT_SECRET", "")
+# Base URL of the OIDC provider; allauth appends /.well-known/openid-configuration
+WHO_CIAM_SERVER_URL = os.environ.get("WHO_CIAM_SERVER_URL", "")
+WHO_CIAM_DISPLAY_NAME = os.environ.get("WHO_CIAM_DISPLAY_NAME", "WHO")
+
 # Trust the X_FORWARDED_PROTO header from the proxy or load balancer so Django is aware it is accessed by https
 if os.environ.get("TRUST_FORWARDED_PROTO", "false") == "true":
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -236,6 +244,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.postgres",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
     "corsheaders",
     "django_countries",
     "django_ltree",
@@ -273,6 +282,11 @@ INSTALLED_APPS = [
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
+    # allauth (always installed for clean migrations; OIDC providers enabled via WHO_CIAM_ENABLED)
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.openid_connect",
 ]
 
 MIDDLEWARE = [
@@ -297,6 +311,7 @@ MIDDLEWARE = [
     "hexa.webapps.middlewares.webapp_subdomain_middleware",
     "hexa.user_management.middlewares.login_required_middleware",
     "hexa.analytics.middlewares.set_analytics_middleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -337,6 +352,36 @@ DATABASES = {
 # Auth settings
 LOGIN_URL = "core:login"
 LOGOUT_REDIRECT_URL = "core:login"
+LOGIN_REDIRECT_URL = "/"
+
+# Required by django.contrib.sites (used by allauth)
+SITE_ID = 1
+
+# allauth configuration
+# https://docs.allauth.org/en/latest/socialaccount/configuration.html
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_ADAPTER = "hexa.user_management.sso_adapter.OpenHexaSocialAccountAdapter"
+
+if WHO_CIAM_ENABLED:
+    SOCIALACCOUNT_PROVIDERS = {
+        "openid_connect": {
+            "SERVERS": [
+                {
+                    "id": "who-ciam",
+                    "name": WHO_CIAM_DISPLAY_NAME,
+                    "server_url": WHO_CIAM_SERVER_URL,
+                    "APP": {
+                        "client_id": WHO_CIAM_CLIENT_ID,
+                        "secret": WHO_CIAM_CLIENT_SECRET,
+                    },
+                }
+            ]
+        }
+    }
 
 # Custom user model
 # https://docs.djangoproject.com/en/4.0/topics/auth/customizing/#substituting-a-custom-user-model
@@ -367,6 +412,7 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "hexa.user_management.backends.PermissionsBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
 # by default users need to login every 2 weeks -> update to 1 year
