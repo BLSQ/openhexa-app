@@ -23,6 +23,7 @@ class CreatePipelineAgent(BaseAgent):
         read_file,
         create_pipeline,
     ]
+
     async def _on_tool_result(self, invocation) -> None:
         if invocation.tool_name != "create_pipeline" or not invocation.success:
             return

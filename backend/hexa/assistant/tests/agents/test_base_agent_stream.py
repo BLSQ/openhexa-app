@@ -1,9 +1,12 @@
 from contextlib import asynccontextmanager
 from unittest.mock import patch
 
-from pydantic_ai.exceptions import IncompleteToolCall, UnexpectedModelBehavior, UsageLimitExceeded
-
 from asgiref.sync import async_to_sync
+from pydantic_ai.exceptions import (
+    IncompleteToolCall,
+    UnexpectedModelBehavior,
+    UsageLimitExceeded,
+)
 from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.base import BaseAgent
@@ -217,4 +220,3 @@ class BaseAgentRunStreamTest(AgentTestCase):
         error_events = [e for e in events if e["event"] == "error"]
         self.assertEqual(len(error_events), 1)
         self.assertEqual(error_events[0]["data"]["message"], "An error occurred")
-

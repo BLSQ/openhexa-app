@@ -24,7 +24,6 @@ from pydantic_ai.messages import (
 )
 from pydantic_ai.output import TextOutput
 
-
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.model_builder import AiModelBuilder, BuiltModel
 from hexa.assistant.models import Conversation, Message, ToolInvocation
