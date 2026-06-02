@@ -28,7 +28,7 @@ export type Scalars = {
 };
 
 export type AccessmodAccessRequest = {
-  __typename: 'AccessmodAccessRequest';
+  __typename?: 'AccessmodAccessRequest';
   acceptedTos: Scalars['Boolean']['output'];
   createdAt: Scalars['DateTime']['output'];
   email: Scalars['String']['output'];
@@ -40,7 +40,7 @@ export type AccessmodAccessRequest = {
 };
 
 export type AccessmodAccessRequestPage = {
-  __typename: 'AccessmodAccessRequestPage';
+  __typename?: 'AccessmodAccessRequestPage';
   items: Array<AccessmodAccessRequest>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -54,7 +54,7 @@ export enum AccessmodAccessRequestStatus {
 }
 
 export type AccessmodAccessibilityAnalysis = AccessmodAnalysis & AccessmodOwnership & {
-  __typename: 'AccessmodAccessibilityAnalysis';
+  __typename?: 'AccessmodAccessibilityAnalysis';
   algorithm?: Maybe<AccessmodAccessibilityAnalysisAlgorithm>;
   author: User;
   barrier?: Maybe<AccessmodFileset>;
@@ -99,7 +99,7 @@ export type AccessmodAnalysis = {
 };
 
 export type AccessmodAnalysisPage = {
-  __typename: 'AccessmodAnalysisPage';
+  __typename?: 'AccessmodAnalysisPage';
   items: Array<AccessmodAnalysis>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -107,7 +107,7 @@ export type AccessmodAnalysisPage = {
 };
 
 export type AccessmodAnalysisPermissions = {
-  __typename: 'AccessmodAnalysisPermissions';
+  __typename?: 'AccessmodAnalysisPermissions';
   delete: Scalars['Boolean']['output'];
   run: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
@@ -129,7 +129,7 @@ export enum AccessmodAnalysisType {
 }
 
 export type AccessmodFile = {
-  __typename: 'AccessmodFile';
+  __typename?: 'AccessmodFile';
   createdAt: Scalars['DateTime']['output'];
   fileset?: Maybe<AccessmodFileset>;
   id: Scalars['String']['output'];
@@ -140,7 +140,7 @@ export type AccessmodFile = {
 };
 
 export type AccessmodFileset = AccessmodOwnership & {
-  __typename: 'AccessmodFileset';
+  __typename?: 'AccessmodFileset';
   author: User;
   createdAt: Scalars['DateTime']['output'];
   files: Array<AccessmodFile>;
@@ -167,7 +167,7 @@ export enum AccessmodFilesetMode {
 }
 
 export type AccessmodFilesetPage = {
-  __typename: 'AccessmodFilesetPage';
+  __typename?: 'AccessmodFilesetPage';
   items: Array<AccessmodFileset>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -175,14 +175,14 @@ export type AccessmodFilesetPage = {
 };
 
 export type AccessmodFilesetPermissions = {
-  __typename: 'AccessmodFilesetPermissions';
+  __typename?: 'AccessmodFilesetPermissions';
   createFile: Scalars['Boolean']['output'];
   delete: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 
 export type AccessmodFilesetRole = {
-  __typename: 'AccessmodFilesetRole';
+  __typename?: 'AccessmodFilesetRole';
   code: AccessmodFilesetRoleCode;
   createdAt: Scalars['DateTime']['output'];
   format: AccessmodFilesetFormat;
@@ -218,7 +218,7 @@ export enum AccessmodFilesetStatus {
 }
 
 export type AccessmodGeographicCoverageAnalysis = AccessmodAnalysis & AccessmodOwnership & {
-  __typename: 'AccessmodGeographicCoverageAnalysis';
+  __typename?: 'AccessmodGeographicCoverageAnalysis';
   anisotropic?: Maybe<Scalars['Boolean']['output']>;
   author: User;
   catchmentAreas?: Maybe<AccessmodFileset>;
@@ -246,7 +246,7 @@ export type AccessmodOwnership = {
 };
 
 export type AccessmodProject = AccessmodOwnership & {
-  __typename: 'AccessmodProject';
+  __typename?: 'AccessmodProject';
   author: User;
   country: Country;
   createdAt: Scalars['DateTime']['output'];
@@ -264,7 +264,7 @@ export type AccessmodProject = AccessmodOwnership & {
 };
 
 export type AccessmodProjectMember = {
-  __typename: 'AccessmodProjectMember';
+  __typename?: 'AccessmodProjectMember';
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['String']['output'];
   mode: PermissionMode;
@@ -276,7 +276,7 @@ export type AccessmodProjectMember = {
 };
 
 export type AccessmodProjectMemberPermissions = {
-  __typename: 'AccessmodProjectMemberPermissions';
+  __typename?: 'AccessmodProjectMemberPermissions';
   delete: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
@@ -289,7 +289,7 @@ export enum AccessmodProjectOrder {
 }
 
 export type AccessmodProjectPage = {
-  __typename: 'AccessmodProjectPage';
+  __typename?: 'AccessmodProjectPage';
   items: Array<AccessmodProject>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -297,7 +297,7 @@ export type AccessmodProjectPage = {
 };
 
 export type AccessmodProjectPermissions = {
-  __typename: 'AccessmodProjectPermissions';
+  __typename?: 'AccessmodProjectPermissions';
   createAnalysis: Scalars['Boolean']['output'];
   createFileset: Scalars['Boolean']['output'];
   createMember: Scalars['Boolean']['output'];
@@ -307,7 +307,7 @@ export type AccessmodProjectPermissions = {
 };
 
 export type AccessmodZonalStatistics = AccessmodAnalysis & AccessmodOwnership & {
-  __typename: 'AccessmodZonalStatistics';
+  __typename?: 'AccessmodZonalStatistics';
   author: User;
   boundaries?: Maybe<AccessmodFileset>;
   createdAt: Scalars['DateTime']['output'];
@@ -343,7 +343,7 @@ export type AddOrganizationMemberInput = {
 
 /** The AddOrganizationMemberResult type represents the result of the addOrganizationMember mutation. */
 export type AddOrganizationMemberResult = {
-  __typename: 'AddOrganizationMemberResult';
+  __typename?: 'AddOrganizationMemberResult';
   /** The list of errors that occurred during the addOrganizationMember mutation. */
   errors: Array<AddOrganizationMemberError>;
   /** The created organization membership object. */
@@ -361,13 +361,13 @@ export type AddPipelineOutputInput = {
 
 /** Represents the result of adding an output to a pipeline. */
 export type AddPipelineOutputResult = {
-  __typename: 'AddPipelineOutputResult';
+  __typename?: 'AddPipelineOutputResult';
   errors: Array<PipelineError>;
   success: Scalars['Boolean']['output'];
 };
 
 export type AddPipelineRecipientResult = {
-  __typename: 'AddPipelineRecipientResult';
+  __typename?: 'AddPipelineRecipientResult';
   errors: Array<PipelineRecipientError>;
   recipient?: Maybe<PipelineRecipient>;
   success: Scalars['Boolean']['output'];
@@ -385,7 +385,7 @@ export type AddToFavoritesInput = {
 
 /** Represents the result of adding a web app to favorites. */
 export type AddToFavoritesResult = {
-  __typename: 'AddToFavoritesResult';
+  __typename?: 'AddToFavoritesResult';
   errors: Array<AddToFavoritesError>;
   success: Scalars['Boolean']['output'];
 };
@@ -403,19 +403,19 @@ export type AddWebappToShortcutsInput = {
 
 /** Represents the result of adding a webapp to shortcuts. */
 export type AddWebappToShortcutsResult = {
-  __typename: 'AddWebappToShortcutsResult';
+  __typename?: 'AddWebappToShortcutsResult';
   errors: Array<AddWebappToShortcutsError>;
   success: Scalars['Boolean']['output'];
 };
 
 export type AiLabel = {
-  __typename: 'AiLabel';
+  __typename?: 'AiLabel';
   label: Scalars['String']['output'];
   value: Scalars['String']['output'];
 };
 
 export type AiLabels = {
-  __typename: 'AiLabels';
+  __typename?: 'AiLabels';
   models: Array<AiLabel>;
   providers: Array<AiLabel>;
 };
@@ -433,7 +433,7 @@ export enum AiProvider {
 }
 
 export type AiSettings = {
-  __typename: 'AiSettings';
+  __typename?: 'AiSettings';
   enabled?: Maybe<Scalars['Boolean']['output']>;
   hasApiKey?: Maybe<Scalars['Boolean']['output']>;
   model?: Maybe<AiModel>;
@@ -449,7 +449,7 @@ export type ApproveAccessmodAccessRequestInput = {
 };
 
 export type ApproveAccessmodAccessRequestResult = {
-  __typename: 'ApproveAccessmodAccessRequestResult';
+  __typename?: 'ApproveAccessmodAccessRequestResult';
   errors: Array<ApproveAccessmodAccessRequestError>;
   success: Scalars['Boolean']['output'];
 };
@@ -467,13 +467,13 @@ export type ArchiveWorkspaceInput = {
 
 /** Represents the result of archiving a workspace. */
 export type ArchiveWorkspaceResult = {
-  __typename: 'ArchiveWorkspaceResult';
+  __typename?: 'ArchiveWorkspaceResult';
   errors: Array<ArchiveWorkspaceError>;
   success: Scalars['Boolean']['output'];
 };
 
 export type AssistantConversation = {
-  __typename: 'AssistantConversation';
+  __typename?: 'AssistantConversation';
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
   messages: AssistantMessagePage;
@@ -490,7 +490,7 @@ export type AssistantConversationMessagesArgs = {
 };
 
 export type AssistantMessage = {
-  __typename: 'AssistantMessage';
+  __typename?: 'AssistantMessage';
   content: Array<AssistantMessageSegment>;
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
@@ -500,7 +500,7 @@ export type AssistantMessage = {
 };
 
 export type AssistantMessagePage = {
-  __typename: 'AssistantMessagePage';
+  __typename?: 'AssistantMessagePage';
   items: Array<AssistantMessage>;
   totalItems: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
@@ -509,12 +509,12 @@ export type AssistantMessagePage = {
 export type AssistantMessageSegment = AssistantTextSegment | AssistantToolSegment;
 
 export type AssistantTextSegment = {
-  __typename: 'AssistantTextSegment';
+  __typename?: 'AssistantTextSegment';
   content: Scalars['String']['output'];
 };
 
 export type AssistantToolSegment = {
-  __typename: 'AssistantToolSegment';
+  __typename?: 'AssistantToolSegment';
   success: Scalars['Boolean']['output'];
   toolCallId: Scalars['String']['output'];
   toolInput: Scalars['JSON']['output'];
@@ -524,7 +524,7 @@ export type AssistantToolSegment = {
 
 /** The Avatar type represents the avatar of a user. */
 export type Avatar = {
-  __typename: 'Avatar';
+  __typename?: 'Avatar';
   /** The color of the user's avatar. */
   color: Scalars['String']['output'];
   /** The initials of the user's avatar. */
@@ -533,7 +533,7 @@ export type Avatar = {
 
 /** A bucket is where all the files and data related to a workspace are stored. */
 export type Bucket = {
-  __typename: 'Bucket';
+  __typename?: 'Bucket';
   name: Scalars['String']['output'];
   object?: Maybe<BucketObject>;
   objects: BucketObjectPage;
@@ -557,7 +557,7 @@ export type BucketObjectsArgs = {
 
 /** An object in a workspace's bucket. */
 export type BucketObject = {
-  __typename: 'BucketObject';
+  __typename?: 'BucketObject';
   key: Scalars['String']['output'];
   name: Scalars['String']['output'];
   path: Scalars['String']['output'];
@@ -568,7 +568,7 @@ export type BucketObject = {
 
 /** A page of objects in a workspace's bucket. */
 export type BucketObjectPage = {
-  __typename: 'BucketObjectPage';
+  __typename?: 'BucketObjectPage';
   hasNextPage: Scalars['Boolean']['output'];
   hasPreviousPage: Scalars['Boolean']['output'];
   items: Array<BucketObject>;
@@ -582,7 +582,7 @@ export enum BucketObjectType {
 }
 
 export type Config = {
-  __typename: 'Config';
+  __typename?: 'Config';
   /** Whether self-registration is enabled. */
   allowSelfRegistration: Scalars['Boolean']['output'];
   /** List of requirements for the password. */
@@ -605,7 +605,7 @@ export type Connection = {
 
 /** Represents a field in a connection. */
 export type ConnectionField = {
-  __typename: 'ConnectionField';
+  __typename?: 'ConnectionField';
   code: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   secret: Scalars['Boolean']['output'];
@@ -622,7 +622,7 @@ export type ConnectionFieldInput = {
 
 /** Represents the permissions of a connection. */
 export type ConnectionPermissions = {
-  __typename: 'ConnectionPermissions';
+  __typename?: 'ConnectionPermissions';
   delete: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
@@ -663,7 +663,7 @@ export type ConvertExternalCollaboratorToMemberInput = {
 
 /** The ConvertExternalCollaboratorToMemberResult type represents the result of the convertExternalCollaboratorToMember mutation. */
 export type ConvertExternalCollaboratorToMemberResult = {
-  __typename: 'ConvertExternalCollaboratorToMemberResult';
+  __typename?: 'ConvertExternalCollaboratorToMemberResult';
   /** The list of errors that occurred during the convertExternalCollaboratorToMember mutation. */
   errors: Array<ConvertExternalCollaboratorToMemberError>;
   /** The created organization membership object. */
@@ -673,7 +673,7 @@ export type ConvertExternalCollaboratorToMemberResult = {
 };
 
 export type Country = {
-  __typename: 'Country';
+  __typename?: 'Country';
   alpha3: Scalars['String']['output'];
   code: Scalars['String']['output'];
   flag: Scalars['String']['output'];
@@ -698,7 +698,7 @@ export type CreateAccessmodAccessibilityAnalysisInput = {
 };
 
 export type CreateAccessmodAccessibilityAnalysisResult = {
-  __typename: 'CreateAccessmodAccessibilityAnalysisResult';
+  __typename?: 'CreateAccessmodAccessibilityAnalysisResult';
   analysis?: Maybe<AccessmodAccessibilityAnalysis>;
   errors: Array<CreateAccessmodAccessibilityAnalysisError>;
   success: Scalars['Boolean']['output'];
@@ -715,7 +715,7 @@ export type CreateAccessmodFileInput = {
 };
 
 export type CreateAccessmodFileResult = {
-  __typename: 'CreateAccessmodFileResult';
+  __typename?: 'CreateAccessmodFileResult';
   errors: Array<CreateAccessmodFileError>;
   file?: Maybe<AccessmodFile>;
   success: Scalars['Boolean']['output'];
@@ -735,7 +735,7 @@ export type CreateAccessmodFilesetInput = {
 };
 
 export type CreateAccessmodFilesetResult = {
-  __typename: 'CreateAccessmodFilesetResult';
+  __typename?: 'CreateAccessmodFilesetResult';
   errors: Array<CreateAccessmodFilesetError>;
   fileset?: Maybe<AccessmodFileset>;
   success: Scalars['Boolean']['output'];
@@ -770,14 +770,14 @@ export type CreateAccessmodProjectMemberInput = {
 };
 
 export type CreateAccessmodProjectMemberResult = {
-  __typename: 'CreateAccessmodProjectMemberResult';
+  __typename?: 'CreateAccessmodProjectMemberResult';
   errors: Array<CreateAccessmodProjectMemberError>;
   member?: Maybe<AccessmodProjectMember>;
   success: Scalars['Boolean']['output'];
 };
 
 export type CreateAccessmodProjectResult = {
-  __typename: 'CreateAccessmodProjectResult';
+  __typename?: 'CreateAccessmodProjectResult';
   errors: Array<CreateAccessmodProjectError>;
   project?: Maybe<AccessmodProject>;
   success: Scalars['Boolean']['output'];
@@ -793,7 +793,7 @@ export type CreateAccessmodZonalStatisticsInput = {
 };
 
 export type CreateAccessmodZonalStatisticsResult = {
-  __typename: 'CreateAccessmodZonalStatisticsResult';
+  __typename?: 'CreateAccessmodZonalStatisticsResult';
   analysis?: Maybe<AccessmodZonalStatistics>;
   errors: Array<CreateAccessmodZonalStatisticsError>;
   success: Scalars['Boolean']['output'];
@@ -815,7 +815,7 @@ export type CreateAssistantConversationInput = {
 };
 
 export type CreateAssistantConversationResult = {
-  __typename: 'CreateAssistantConversationResult';
+  __typename?: 'CreateAssistantConversationResult';
   conversation?: Maybe<AssistantConversation>;
   errors: Array<CreateAssistantConversationError>;
   success: Scalars['Boolean']['output'];
@@ -837,7 +837,7 @@ export type CreateBucketFolderInput = {
 
 /** The result of creating a folder in a workspace's bucket. */
 export type CreateBucketFolderResult = {
-  __typename: 'CreateBucketFolderResult';
+  __typename?: 'CreateBucketFolderResult';
   errors: Array<CreateBucketFolderError>;
   folder?: Maybe<BucketObject>;
   success: Scalars['Boolean']['output'];
@@ -862,7 +862,7 @@ export type CreateConnectionInput = {
 
 /** Represents the result of creating a connection. */
 export type CreateConnectionResult = {
-  __typename: 'CreateConnectionResult';
+  __typename?: 'CreateConnectionResult';
   connection?: Maybe<Connection>;
   errors: Array<CreateConnectionError>;
   success: Scalars['Boolean']['output'];
@@ -885,7 +885,7 @@ export type CreateDatasetInput = {
 
 /** Result of creating a dataset. */
 export type CreateDatasetResult = {
-  __typename: 'CreateDatasetResult';
+  __typename?: 'CreateDatasetResult';
   dataset?: Maybe<Dataset>;
   errors: Array<CreateDatasetError>;
   link?: Maybe<DatasetLink>;
@@ -918,7 +918,7 @@ export type CreateDatasetVersionFileInput = {
 
 /** Result of creating a dataset version file. */
 export type CreateDatasetVersionFileResult = {
-  __typename: 'CreateDatasetVersionFileResult';
+  __typename?: 'CreateDatasetVersionFileResult';
   errors: Array<CreateDatasetVersionFileError>;
   /** The created file object */
   file?: Maybe<DatasetVersionFile>;
@@ -940,7 +940,7 @@ export type CreateDatasetVersionInput = {
 
 /** Result of creating a dataset version. */
 export type CreateDatasetVersionResult = {
-  __typename: 'CreateDatasetVersionResult';
+  __typename?: 'CreateDatasetVersionResult';
   errors: Array<CreateDatasetVersionError>;
   success: Scalars['Boolean']['output'];
   version?: Maybe<DatasetVersion>;
@@ -968,7 +968,7 @@ export type CreateMembershipInput = {
 
 /** The CreateMembershipResult type represents the result of the createMembership mutation. */
 export type CreateMembershipResult = {
-  __typename: 'CreateMembershipResult';
+  __typename?: 'CreateMembershipResult';
   /** The list of errors that occurred during the createMembership mutation. */
   errors: Array<CreateMembershipError>;
   /** The created membership object. */
@@ -1017,7 +1017,7 @@ export type CreateOrganizationInput = {
 
 /** The CreateOrganizationResult type represents the result of the createOrganization mutation. */
 export type CreateOrganizationResult = {
-  __typename: 'CreateOrganizationResult';
+  __typename?: 'CreateOrganizationResult';
   /** The list of errors that occurred during the createOrganization mutation. */
   errors: Array<CreateOrganizationError>;
   /** The created organization object. */
@@ -1043,7 +1043,7 @@ export type CreatePipelineFromTemplateVersionInput = {
 
 /** Represents the result of creating a new pipeline from a template version. */
 export type CreatePipelineFromTemplateVersionResult = {
-  __typename: 'CreatePipelineFromTemplateVersionResult';
+  __typename?: 'CreatePipelineFromTemplateVersionResult';
   errors?: Maybe<Array<CreatePipelineFromTemplateVersionError>>;
   pipeline?: Maybe<Pipeline>;
   success: Scalars['Boolean']['output'];
@@ -1071,7 +1071,7 @@ export type CreatePipelineRecipientInput = {
 
 /** Represents the result of creating a pipeline. */
 export type CreatePipelineResult = {
-  __typename: 'CreatePipelineResult';
+  __typename?: 'CreatePipelineResult';
   errors: Array<PipelineError>;
   pipeline?: Maybe<Pipeline>;
   pipelineVersion?: Maybe<PipelineVersion>;
@@ -1105,7 +1105,7 @@ export type CreatePipelineTemplateVersionInput = {
 
 /** Represents the result of creating a new pipeline template version. */
 export type CreatePipelineTemplateVersionResult = {
-  __typename: 'CreatePipelineTemplateVersionResult';
+  __typename?: 'CreatePipelineTemplateVersionResult';
   errors?: Maybe<Array<CreatePipelineTemplateVersionError>>;
   pipelineTemplate?: Maybe<PipelineTemplate>;
   success: Scalars['Boolean']['output'];
@@ -1127,7 +1127,7 @@ export type CreateTeamInput = {
 
 /** The CreateTeamResult type represents the result of the createTeam mutation. */
 export type CreateTeamResult = {
-  __typename: 'CreateTeamResult';
+  __typename?: 'CreateTeamResult';
   /** The list of errors that occurred during the createTeam mutation. */
   errors: Array<CreateTeamError>;
   /** Indicates whether the createTeam mutation was successful. */
@@ -1138,7 +1138,7 @@ export type CreateTeamResult = {
 
 /** Represents the permission details for creating a template version. */
 export type CreateTemplateVersionPermission = {
-  __typename: 'CreateTemplateVersionPermission';
+  __typename?: 'CreateTemplateVersionPermission';
   isAllowed: Scalars['Boolean']['output'];
   reasons: Array<CreateTemplateVersionPermissionReason>;
 };
@@ -1175,7 +1175,7 @@ export type CreateWebappInput = {
 
 /** Represents the result of creating a web app. */
 export type CreateWebappResult = {
-  __typename: 'CreateWebappResult';
+  __typename?: 'CreateWebappResult';
   errors: Array<CreateWebappError>;
   success: Scalars['Boolean']['output'];
   webapp?: Maybe<Webapp>;
@@ -1202,7 +1202,7 @@ export type CreateWorkspaceInput = {
 
 /** Represents the permission details for creating a workspace. */
 export type CreateWorkspacePermission = {
-  __typename: 'CreateWorkspacePermission';
+  __typename?: 'CreateWorkspacePermission';
   isAllowed: Scalars['Boolean']['output'];
   reasons: Array<CreateWorkspacePermissionReason>;
 };
@@ -1215,7 +1215,7 @@ export enum CreateWorkspacePermissionReason {
 
 /** Represents the result of creating a workspace. */
 export type CreateWorkspaceResult = {
-  __typename: 'CreateWorkspaceResult';
+  __typename?: 'CreateWorkspaceResult';
   errors: Array<CreateWorkspaceError>;
   success: Scalars['Boolean']['output'];
   workspace?: Maybe<Workspace>;
@@ -1223,7 +1223,7 @@ export type CreateWorkspaceResult = {
 
 /** Custom connection object */
 export type CustomConnection = Connection & {
-  __typename: 'CustomConnection';
+  __typename?: 'CustomConnection';
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
   fields: Array<ConnectionField>;
@@ -1237,7 +1237,7 @@ export type CustomConnection = Connection & {
 };
 
 export type Dag = {
-  __typename: 'DAG';
+  __typename?: 'DAG';
   countries: Array<Country>;
   description?: Maybe<Scalars['String']['output']>;
   externalId: Scalars['String']['output'];
@@ -1260,7 +1260,7 @@ export type DagRunsArgs = {
 };
 
 export type DagPage = {
-  __typename: 'DAGPage';
+  __typename?: 'DAGPage';
   items: Array<Dag>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -1268,7 +1268,7 @@ export type DagPage = {
 };
 
 export type DagRun = {
-  __typename: 'DAGRun';
+  __typename?: 'DAGRun';
   config?: Maybe<Scalars['JSON']['output']>;
   duration?: Maybe<Scalars['Int']['output']>;
   executionDate?: Maybe<Scalars['DateTime']['output']>;
@@ -1288,7 +1288,7 @@ export type DagRun = {
 };
 
 export type DagRunMessage = {
-  __typename: 'DAGRunMessage';
+  __typename?: 'DAGRunMessage';
   message: Scalars['String']['output'];
   priority: Scalars['String']['output'];
   timestamp?: Maybe<Scalars['DateTime']['output']>;
@@ -1300,13 +1300,13 @@ export enum DagRunOrderBy {
 }
 
 export type DagRunOutput = {
-  __typename: 'DAGRunOutput';
+  __typename?: 'DAGRunOutput';
   title: Scalars['String']['output'];
   uri: Scalars['String']['output'];
 };
 
 export type DagRunPage = {
-  __typename: 'DAGRunPage';
+  __typename?: 'DAGRunPage';
   items: Array<DagRun>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -1328,7 +1328,7 @@ export enum DagRunTrigger {
 }
 
 export type DagTemplate = {
-  __typename: 'DAGTemplate';
+  __typename?: 'DAGTemplate';
   code: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
   sampleConfig?: Maybe<Scalars['JSON']['output']>;
@@ -1336,7 +1336,7 @@ export type DagTemplate = {
 
 /** DHIS2 connection object */
 export type Dhis2Connection = Connection & {
-  __typename: 'DHIS2Connection';
+  __typename?: 'DHIS2Connection';
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
   fields: Array<ConnectionField>;
@@ -1375,7 +1375,7 @@ export enum Dhis2ConnectionStatus {
 
 /** DHIS2 metadata item */
 export type Dhis2MetadataItem = {
-  __typename: 'DHIS2MetadataItem';
+  __typename?: 'DHIS2MetadataItem';
   id?: Maybe<Scalars['String']['output']>;
   label: Scalars['String']['output'];
 };
@@ -1394,7 +1394,7 @@ export enum Dhis2MetadataType {
 
 /** DHIS2 metadata query result */
 export type Dhis2QueryResultPage = {
-  __typename: 'DHIS2QueryResultPage';
+  __typename?: 'DHIS2QueryResultPage';
   error?: Maybe<Dhis2ConnectionError>;
   items?: Maybe<Array<Dhis2MetadataItem>>;
   pageNumber: Scalars['Int']['output'];
@@ -1404,7 +1404,7 @@ export type Dhis2QueryResultPage = {
 };
 
 export type Database = {
-  __typename: 'Database';
+  __typename?: 'Database';
   credentials?: Maybe<DatabaseCredentials>;
   readOnlyCredentials?: Maybe<DatabaseCredentials>;
   table?: Maybe<DatabaseTable>;
@@ -1423,7 +1423,7 @@ export type DatabaseTablesArgs = {
 };
 
 export type DatabaseCredentials = {
-  __typename: 'DatabaseCredentials';
+  __typename?: 'DatabaseCredentials';
   dbName: Scalars['String']['output'];
   host: Scalars['String']['output'];
   password: Scalars['String']['output'];
@@ -1434,7 +1434,7 @@ export type DatabaseCredentials = {
 
 /** Represents a database table. */
 export type DatabaseTable = {
-  __typename: 'DatabaseTable';
+  __typename?: 'DatabaseTable';
   /** The columns of the table. */
   columns: Array<TableColumn>;
   /** The number of rows in the table. */
@@ -1458,7 +1458,7 @@ export type DatabaseTableRowsArgs = {
 
 /** Represents a paginated list of database tables. */
 export type DatabaseTablePage = {
-  __typename: 'DatabaseTablePage';
+  __typename?: 'DatabaseTablePage';
   /** The tables in the current page. */
   items: Array<DatabaseTable>;
   /** The page number of the result. */
@@ -1470,14 +1470,14 @@ export type DatabaseTablePage = {
 };
 
 export type DatabaseTableResult = SearchResult & {
-  __typename: 'DatabaseTableResult';
+  __typename?: 'DatabaseTableResult';
   databaseTable: DatabaseTable;
   score: Scalars['Float']['output'];
   workspace: Workspace;
 };
 
 export type DatabaseTableResultPage = {
-  __typename: 'DatabaseTableResultPage';
+  __typename?: 'DatabaseTableResultPage';
   items: Array<DatabaseTableResult>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -1486,7 +1486,7 @@ export type DatabaseTableResultPage = {
 
 /** Dataset is a collection of files that are related to each other and are versioned. */
 export type Dataset = MetadataObject & {
-  __typename: 'Dataset';
+  __typename?: 'Dataset';
   attributes: Array<MetadataAttribute>;
   createdAt: Scalars['DateTime']['output'];
   createdBy?: Maybe<User>;
@@ -1527,7 +1527,7 @@ export type DatasetVersionsArgs = {
 
 /** File sample for dataset file */
 export type DatasetFileSample = {
-  __typename: 'DatasetFileSample';
+  __typename?: 'DatasetFileSample';
   sample?: Maybe<Scalars['JSON']['output']>;
   status: FileSampleStatus;
   statusReason?: Maybe<Scalars['String']['output']>;
@@ -1535,7 +1535,7 @@ export type DatasetFileSample = {
 
 /** A link of a dataset with a workspace. */
 export type DatasetLink = {
-  __typename: 'DatasetLink';
+  __typename?: 'DatasetLink';
   createdAt: Scalars['DateTime']['output'];
   createdBy?: Maybe<User>;
   dataset: Dataset;
@@ -1547,7 +1547,7 @@ export type DatasetLink = {
 
 /** A page of dataset links. */
 export type DatasetLinkPage = {
-  __typename: 'DatasetLinkPage';
+  __typename?: 'DatasetLinkPage';
   items: Array<DatasetLink>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -1556,7 +1556,7 @@ export type DatasetLinkPage = {
 
 /** Permissions of a dataset link. */
 export type DatasetLinkPermissions = {
-  __typename: 'DatasetLinkPermissions';
+  __typename?: 'DatasetLinkPermissions';
   /** Permissions to delete the link between the workspace and the dataset */
   delete: Scalars['Boolean']['output'];
   /** Permissions to pin the dataset for the workspace */
@@ -1565,7 +1565,7 @@ export type DatasetLinkPermissions = {
 
 /** A page of datasets. */
 export type DatasetPage = {
-  __typename: 'DatasetPage';
+  __typename?: 'DatasetPage';
   items: Array<Dataset>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -1574,7 +1574,7 @@ export type DatasetPage = {
 
 /** Permissions of a dataset. */
 export type DatasetPermissions = {
-  __typename: 'DatasetPermissions';
+  __typename?: 'DatasetPermissions';
   /** Permissions to create a new version of the dataset */
   createVersion: Scalars['Boolean']['output'];
   /** Permissions to delete the dataset */
@@ -1584,13 +1584,13 @@ export type DatasetPermissions = {
 };
 
 export type DatasetResult = SearchResult & {
-  __typename: 'DatasetResult';
+  __typename?: 'DatasetResult';
   dataset: Dataset;
   score: Scalars['Float']['output'];
 };
 
 export type DatasetResultPage = {
-  __typename: 'DatasetResultPage';
+  __typename?: 'DatasetResultPage';
   items: Array<DatasetResult>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -1599,7 +1599,7 @@ export type DatasetResultPage = {
 
 /** A version of a dataset. A version is a snapshot of the dataset at a point in time. */
 export type DatasetVersion = MetadataObject & {
-  __typename: 'DatasetVersion';
+  __typename?: 'DatasetVersion';
   attributes: Array<MetadataAttribute>;
   changelog?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
@@ -1630,7 +1630,7 @@ export type DatasetVersionFilesArgs = {
 
 /** A file in a dataset version. */
 export type DatasetVersionFile = MetadataObject & {
-  __typename: 'DatasetVersionFile';
+  __typename?: 'DatasetVersionFile';
   attributes: Array<MetadataAttribute>;
   contentType: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
@@ -1661,7 +1661,7 @@ export type DatasetVersionFileContentInput = {
 
 /** A page of dataset version files. */
 export type DatasetVersionFilePage = {
-  __typename: 'DatasetVersionFilePage';
+  __typename?: 'DatasetVersionFilePage';
   items: Array<DatasetVersionFile>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -1670,7 +1670,7 @@ export type DatasetVersionFilePage = {
 
 /** A page of dataset versions. */
 export type DatasetVersionPage = {
-  __typename: 'DatasetVersionPage';
+  __typename?: 'DatasetVersionPage';
   items: Array<DatasetVersion>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -1679,7 +1679,7 @@ export type DatasetVersionPage = {
 
 /** Permissions of a dataset version. */
 export type DatasetVersionPermissions = {
-  __typename: 'DatasetVersionPermissions';
+  __typename?: 'DatasetVersionPermissions';
   /** Permissions to delete the dataset version */
   delete: Scalars['Boolean']['output'];
   /** Permissions to download the content of the dataset version */
@@ -1701,7 +1701,7 @@ export type DeclineWorkspaceInvitationInput = {
 
 /** Represents the result of declining a workspace invitation. */
 export type DeclineWorkspaceInvitationResult = {
-  __typename: 'DeclineWorkspaceInvitationResult';
+  __typename?: 'DeclineWorkspaceInvitationResult';
   errors: Array<DeclineWorkspaceInvitationError>;
   invitation?: Maybe<WorkspaceInvitation>;
   success: Scalars['Boolean']['output'];
@@ -1717,7 +1717,7 @@ export type DeleteAccessmodAnalysisInput = {
 };
 
 export type DeleteAccessmodAnalysisResult = {
-  __typename: 'DeleteAccessmodAnalysisResult';
+  __typename?: 'DeleteAccessmodAnalysisResult';
   errors: Array<DeleteAccessmodAnalysisError>;
   success: Scalars['Boolean']['output'];
 };
@@ -1732,7 +1732,7 @@ export type DeleteAccessmodFilesetInput = {
 };
 
 export type DeleteAccessmodFilesetResult = {
-  __typename: 'DeleteAccessmodFilesetResult';
+  __typename?: 'DeleteAccessmodFilesetResult';
   errors: Array<DeleteAccessmodFilesetError>;
   success: Scalars['Boolean']['output'];
 };
@@ -1757,13 +1757,13 @@ export type DeleteAccessmodProjectMemberInput = {
 };
 
 export type DeleteAccessmodProjectMemberResult = {
-  __typename: 'DeleteAccessmodProjectMemberResult';
+  __typename?: 'DeleteAccessmodProjectMemberResult';
   errors: Array<DeleteAccessmodProjectMemberError>;
   success: Scalars['Boolean']['output'];
 };
 
 export type DeleteAccessmodProjectResult = {
-  __typename: 'DeleteAccessmodProjectResult';
+  __typename?: 'DeleteAccessmodProjectResult';
   errors: Array<DeleteAccessmodProjectError>;
   success: Scalars['Boolean']['output'];
 };
@@ -1783,7 +1783,7 @@ export type DeleteBucketObjectInput = {
 
 /** The result of deleting an object from a workspace's bucket. */
 export type DeleteBucketObjectResult = {
-  __typename: 'DeleteBucketObjectResult';
+  __typename?: 'DeleteBucketObjectResult';
   errors: Array<DeleteBucketObjectError>;
   success: Scalars['Boolean']['output'];
 };
@@ -1801,7 +1801,7 @@ export type DeleteConnectionInput = {
 
 /** Represents the result of deleting a connection. */
 export type DeleteConnectionResult = {
-  __typename: 'DeleteConnectionResult';
+  __typename?: 'DeleteConnectionResult';
   errors: Array<DeleteConnectionError>;
   success: Scalars['Boolean']['output'];
 };
@@ -1830,14 +1830,14 @@ export type DeleteDatasetLinkInput = {
 
 /** Result of deleting a dataset link. */
 export type DeleteDatasetLinkResult = {
-  __typename: 'DeleteDatasetLinkResult';
+  __typename?: 'DeleteDatasetLinkResult';
   errors: Array<DeleteDatasetLinkError>;
   success: Scalars['Boolean']['output'];
 };
 
 /** Result of deleting a dataset. */
 export type DeleteDatasetResult = {
-  __typename: 'DeleteDatasetResult';
+  __typename?: 'DeleteDatasetResult';
   errors: Array<DeleteDatasetError>;
   success: Scalars['Boolean']['output'];
 };
@@ -1855,7 +1855,7 @@ export type DeleteDatasetVersionInput = {
 
 /** Result of deleting a dataset version. */
 export type DeleteDatasetVersionResult = {
-  __typename: 'DeleteDatasetVersionResult';
+  __typename?: 'DeleteDatasetVersionResult';
   errors: Array<DeleteDatasetVersionError>;
   success: Scalars['Boolean']['output'];
 };
@@ -1880,7 +1880,7 @@ export type DeleteExternalCollaboratorInput = {
 
 /** The DeleteExternalCollaboratorResult type represents the result of the deleteExternalCollaborator mutation. */
 export type DeleteExternalCollaboratorResult = {
-  __typename: 'DeleteExternalCollaboratorResult';
+  __typename?: 'DeleteExternalCollaboratorResult';
   /** The list of errors that occurred during the deleteExternalCollaborator mutation. */
   errors: Array<DeleteExternalCollaboratorError>;
   /** Indicates whether the deleteExternalCollaborator mutation was successful. */
@@ -1903,7 +1903,7 @@ export type DeleteMembershipInput = {
 
 /** The DeleteMembershipResult type represents the result of the deleteMembership mutation. */
 export type DeleteMembershipResult = {
-  __typename: 'DeleteMembershipResult';
+  __typename?: 'DeleteMembershipResult';
   /** The list of errors that occurred during the deleteMembership mutation. */
   errors: Array<DeleteMembershipError>;
   /** Indicates whether the deleteMembership mutation was successful. */
@@ -1924,7 +1924,7 @@ export type DeleteMetadataAttributeInput = {
 };
 
 export type DeleteMetadataAttributeResult = {
-  __typename: 'DeleteMetadataAttributeResult';
+  __typename?: 'DeleteMetadataAttributeResult';
   errors: Array<DeleteMetadataAttributeError>;
   success: Scalars['Boolean']['output'];
 };
@@ -1957,7 +1957,7 @@ export type DeleteOrganizationInvitationInput = {
 
 /** The DeleteOrganizationInvitationResult type represents the result of the deleteOrganizationInvitation mutation. */
 export type DeleteOrganizationInvitationResult = {
-  __typename: 'DeleteOrganizationInvitationResult';
+  __typename?: 'DeleteOrganizationInvitationResult';
   errors: Array<DeleteOrganizationInvitationError>;
   success: Scalars['Boolean']['output'];
 };
@@ -1980,7 +1980,7 @@ export type DeleteOrganizationMemberInput = {
 
 /** The DeleteOrganizationMemberResult type represents the result of the deleteOrganizationMember mutation. */
 export type DeleteOrganizationMemberResult = {
-  __typename: 'DeleteOrganizationMemberResult';
+  __typename?: 'DeleteOrganizationMemberResult';
   /** The list of errors that occurred during the deleteOrganizationMember mutation. */
   errors: Array<DeleteOrganizationMemberError>;
   /** Indicates whether the deleteOrganizationMember mutation was successful. */
@@ -1989,7 +1989,7 @@ export type DeleteOrganizationMemberResult = {
 
 /** The DeleteOrganizationResult type represents the result of the deleteOrganization mutation. */
 export type DeleteOrganizationResult = {
-  __typename: 'DeleteOrganizationResult';
+  __typename?: 'DeleteOrganizationResult';
   /** The list of errors that occurred during the deleteOrganization mutation. */
   errors: Array<DeleteOrganizationError>;
   /** Indicates whether the deleteOrganization mutation was successful. */
@@ -2007,14 +2007,14 @@ export type DeletePipelineRecipientInput = {
 };
 
 export type DeletePipelineRecipientResult = {
-  __typename: 'DeletePipelineRecipientResult';
+  __typename?: 'DeletePipelineRecipientResult';
   errors: Array<PipelineRecipientError>;
   success: Scalars['Boolean']['output'];
 };
 
 /** Represents the result of deleting a pipeline. */
 export type DeletePipelineResult = {
-  __typename: 'DeletePipelineResult';
+  __typename?: 'DeletePipelineResult';
   errors: Array<PipelineError>;
   success: Scalars['Boolean']['output'];
 };
@@ -2026,7 +2026,7 @@ export type DeletePipelineTemplateInput = {
 
 /** Represents the result of deleting a template. */
 export type DeletePipelineTemplateResult = {
-  __typename: 'DeletePipelineTemplateResult';
+  __typename?: 'DeletePipelineTemplateResult';
   errors: Array<PipelineTemplateError>;
   success: Scalars['Boolean']['output'];
 };
@@ -2044,7 +2044,7 @@ export type DeletePipelineVersionInput = {
 
 /** Represents the result of deleting a pipeline version. */
 export type DeletePipelineVersionResult = {
-  __typename: 'DeletePipelineVersionResult';
+  __typename?: 'DeletePipelineVersionResult';
   errors: Array<DeletePipelineVersionError>;
   success: Scalars['Boolean']['output'];
 };
@@ -2065,7 +2065,7 @@ export type DeleteTeamInput = {
 
 /** The DeleteTeamResult type represents the result of the deleteTeam mutation. */
 export type DeleteTeamResult = {
-  __typename: 'DeleteTeamResult';
+  __typename?: 'DeleteTeamResult';
   /** The list of errors that occurred during the deleteTeam mutation. */
   errors: Array<DeleteTeamError>;
   /** Indicates whether the deleteTeam mutation was successful. */
@@ -2084,7 +2084,7 @@ export type DeleteTemplateVersionInput = {
 
 /** Represents the result of deleting a template version. */
 export type DeleteTemplateVersionResult = {
-  __typename: 'DeleteTemplateVersionResult';
+  __typename?: 'DeleteTemplateVersionResult';
   errors: Array<DeleteTemplateVersionError>;
   success: Scalars['Boolean']['output'];
 };
@@ -2103,7 +2103,7 @@ export type DeleteWebappInput = {
 
 /** Represents the result of deleting a web app. */
 export type DeleteWebappResult = {
-  __typename: 'DeleteWebappResult';
+  __typename?: 'DeleteWebappResult';
   errors: Array<DeleteWebappError>;
   success: Scalars['Boolean']['output'];
 };
@@ -2122,7 +2122,7 @@ export type DeleteWorkspaceDatabaseTableInput = {
 
 /** Represents the result of deleting a database table in a workspace. */
 export type DeleteWorkspaceDatabaseTableResult = {
-  __typename: 'DeleteWorkspaceDatabaseTableResult';
+  __typename?: 'DeleteWorkspaceDatabaseTableResult';
   errors: Array<DeleteWorkspaceDatabaseTableError>;
   success: Scalars['Boolean']['output'];
 };
@@ -2151,7 +2151,7 @@ export type DeleteWorkspaceInvitationInput = {
 
 /** Represents the result of deleting a workspace invitation. */
 export type DeleteWorkspaceInvitationResult = {
-  __typename: 'DeleteWorkspaceInvitationResult';
+  __typename?: 'DeleteWorkspaceInvitationResult';
   errors: Array<DeleteWorkspaceInvitationError>;
   success: Scalars['Boolean']['output'];
 };
@@ -2169,14 +2169,14 @@ export type DeleteWorkspaceMemberInput = {
 
 /** Represents the result of deleting a workspace member. */
 export type DeleteWorkspaceMemberResult = {
-  __typename: 'DeleteWorkspaceMemberResult';
+  __typename?: 'DeleteWorkspaceMemberResult';
   errors: Array<DeleteWorkspaceMemberError>;
   success: Scalars['Boolean']['output'];
 };
 
 /** Represents the result of deleting a workspace. */
 export type DeleteWorkspaceResult = {
-  __typename: 'DeleteWorkspaceResult';
+  __typename?: 'DeleteWorkspaceResult';
   errors: Array<DeleteWorkspaceError>;
   success: Scalars['Boolean']['output'];
 };
@@ -2190,7 +2190,7 @@ export type DenyAccessmodAccessRequestInput = {
 };
 
 export type DenyAccessmodAccessRequestResult = {
-  __typename: 'DenyAccessmodAccessRequestResult';
+  __typename?: 'DenyAccessmodAccessRequestResult';
   errors: Array<DenyAccessmodAccessRequestError>;
   success: Scalars['Boolean']['output'];
 };
@@ -2208,7 +2208,7 @@ export type DisableTwoFactorInput = {
 
 /** The DisableTwoFactorResult type represents the result of the disableTwoFactor mutation. */
 export type DisableTwoFactorResult = {
-  __typename: 'DisableTwoFactorResult';
+  __typename?: 'DisableTwoFactorResult';
   errors?: Maybe<Array<DisableTwoFactorError>>;
   success: Scalars['Boolean']['output'];
 };
@@ -2226,7 +2226,7 @@ export type EnableTwoFactorInput = {
 
 /** The EnableTwoFactorResult type represents the result of the enableTwoFactor mutation. */
 export type EnableTwoFactorResult = {
-  __typename: 'EnableTwoFactorResult';
+  __typename?: 'EnableTwoFactorResult';
   errors?: Maybe<Array<EnableTwoFactorError>>;
   success: Scalars['Boolean']['output'];
   verified?: Maybe<Scalars['Boolean']['output']>;
@@ -2234,7 +2234,7 @@ export type EnableTwoFactorResult = {
 
 /** Represents an external collaborator who has workspace access but no organization membership. */
 export type ExternalCollaborator = OrganizationMember & {
-  __typename: 'ExternalCollaborator';
+  __typename?: 'ExternalCollaborator';
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
   user: User;
@@ -2243,7 +2243,7 @@ export type ExternalCollaborator = OrganizationMember & {
 
 /** Represents a page of external collaborators. */
 export type ExternalCollaboratorPage = {
-  __typename: 'ExternalCollaboratorPage';
+  __typename?: 'ExternalCollaboratorPage';
   items: Array<ExternalCollaborator>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -2252,7 +2252,7 @@ export type ExternalCollaboratorPage = {
 
 /** The FeatureFlag type represents a feature flag in the system. */
 export type FeatureFlag = {
-  __typename: 'FeatureFlag';
+  __typename?: 'FeatureFlag';
   /** The code of the feature flag. */
   code: Scalars['String']['output'];
   /**
@@ -2263,7 +2263,7 @@ export type FeatureFlag = {
 };
 
 export type File = {
-  __typename: 'File';
+  __typename?: 'File';
   key: Scalars['String']['output'];
   name: Scalars['String']['output'];
   path: Scalars['String']['output'];
@@ -2282,7 +2282,7 @@ export enum FileEncoding {
 
 /** Represents a file or directory node in a flattened structure. */
 export type FileNode = {
-  __typename: 'FileNode';
+  __typename?: 'FileNode';
   autoSelect: Scalars['Boolean']['output'];
   content?: Maybe<Scalars['String']['output']>;
   encoding?: Maybe<FileEncoding>;
@@ -2296,14 +2296,14 @@ export type FileNode = {
 };
 
 export type FileResult = SearchResult & {
-  __typename: 'FileResult';
+  __typename?: 'FileResult';
   file: File;
   score: Scalars['Float']['output'];
   workspace: Workspace;
 };
 
 export type FileResultPage = {
-  __typename: 'FileResultPage';
+  __typename?: 'FileResultPage';
   items: Array<FileResult>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -2324,7 +2324,7 @@ export enum FileType {
 
 /** GCS connection object */
 export type GcsConnection = Connection & {
-  __typename: 'GCSConnection';
+  __typename?: 'GCSConnection';
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
   fields: Array<ConnectionField>;
@@ -2345,7 +2345,7 @@ export enum GenerateChallengeError {
 
 /** The GenerateChallengeResult type represents the result of the generateChallenge mutation. */
 export type GenerateChallengeResult = {
-  __typename: 'GenerateChallengeResult';
+  __typename?: 'GenerateChallengeResult';
   errors?: Maybe<Array<GenerateChallengeError>>;
   success: Scalars['Boolean']['output'];
 };
@@ -2359,7 +2359,7 @@ export type GenerateDatasetUploadUrlInput = {
 
 /** Result of creating an upload url */
 export type GenerateDatasetUploadUrlResult = {
-  __typename: 'GenerateDatasetUploadUrlResult';
+  __typename?: 'GenerateDatasetUploadUrlResult';
   errors: Array<CreateDatasetVersionFileError>;
   headers?: Maybe<Scalars['JSON']['output']>;
   success: Scalars['Boolean']['output'];
@@ -2382,7 +2382,7 @@ export type GenerateNewDatabasePasswordInput = {
 
 /** The result of generating a new database password. */
 export type GenerateNewDatabasePasswordResult = {
-  __typename: 'GenerateNewDatabasePasswordResult';
+  __typename?: 'GenerateNewDatabasePasswordResult';
   /** The errors that occurred during password generation. */
   errors: Array<GenerateNewDatabasePasswordError>;
   /** Indicates if the password generation was successful. */
@@ -2402,7 +2402,7 @@ export type GeneratePipelineWebhookUrlInput = {
 };
 
 export type GeneratePipelineWebhookUrlResult = {
-  __typename: 'GeneratePipelineWebhookUrlResult';
+  __typename?: 'GeneratePipelineWebhookUrlResult';
   errors: Array<GeneratePipelineWebhookUrlError>;
   pipeline?: Maybe<Pipeline>;
   success: Scalars['Boolean']['output'];
@@ -2421,7 +2421,7 @@ export type GenerateWorkspaceTokenInput = {
 
 /** Represents the result of generating a workspace token. */
 export type GenerateWorkspaceTokenResult = {
-  __typename: 'GenerateWorkspaceTokenResult';
+  __typename?: 'GenerateWorkspaceTokenResult';
   errors: Array<GenerateWorkspaceTokenError>;
   success: Scalars['Boolean']['output'];
   token?: Maybe<Scalars['String']['output']>;
@@ -2429,21 +2429,21 @@ export type GenerateWorkspaceTokenResult = {
 
 /** Represents a generic output of a pipeline run. */
 export type GenericOutput = {
-  __typename: 'GenericOutput';
+  __typename?: 'GenericOutput';
   name?: Maybe<Scalars['String']['output']>;
   type: Scalars['String']['output'];
   uri: Scalars['String']['output'];
 };
 
 export type GitSource = {
-  __typename: 'GitSource';
+  __typename?: 'GitSource';
   publishedVersion?: Maybe<Scalars['String']['output']>;
   repository: Scalars['String']['output'];
 };
 
 /** IASO connection object */
 export type IasoConnection = Connection & {
-  __typename: 'IASOConnection';
+  __typename?: 'IASOConnection';
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
   fields: Array<ConnectionField>;
@@ -2475,7 +2475,7 @@ export enum IasoConnectionError {
 
 /** IASO metadata item */
 export type IasoMetadataItem = {
-  __typename: 'IASOMetadataItem';
+  __typename?: 'IASOMetadataItem';
   id?: Maybe<Scalars['Int']['output']>;
   label: Scalars['String']['output'];
 };
@@ -2494,7 +2494,7 @@ export type IasoQueryFilterInput = {
 
 /** IASO metadata query result */
 export type IasoQueryResultPage = {
-  __typename: 'IASOQueryResultPage';
+  __typename?: 'IASOQueryResultPage';
   error?: Maybe<IasoConnectionError>;
   items?: Maybe<Array<IasoMetadataItem>>;
   pageNumber: Scalars['Int']['output'];
@@ -2504,7 +2504,7 @@ export type IasoQueryResultPage = {
 };
 
 export type IframeSource = {
-  __typename: 'IframeSource';
+  __typename?: 'IframeSource';
   url: Scalars['String']['output'];
 };
 
@@ -2541,7 +2541,7 @@ export type InviteOrganizationMemberInput = {
 
 /** The InviteOrganizationMemberResult type represents the result of the inviteOrganizationMember mutation. */
 export type InviteOrganizationMemberResult = {
-  __typename: 'InviteOrganizationMemberResult';
+  __typename?: 'InviteOrganizationMemberResult';
   /** The list of errors that occurred during the inviteOrganizationMember mutation. */
   errors: Array<InviteOrganizationMemberError>;
   /** Indicates whether the inviteOrganizationMember mutation was successful. */
@@ -2557,7 +2557,7 @@ export type InviteWorkspaceMemberInput = {
 
 /** Represents the result of inviting a member to a workspace. */
 export type InviteWorkspaceMemberResult = {
-  __typename: 'InviteWorkspaceMemberResult';
+  __typename?: 'InviteWorkspaceMemberResult';
   errors: Array<InviteWorkspaceMembershipError>;
   success: Scalars['Boolean']['output'];
   workspaceMembership?: Maybe<WorkspaceMembership>;
@@ -2590,7 +2590,7 @@ export type IssueWorkspaceTokenInput = {
 
 /** Represents the result of issuing a workspace JWT token. */
 export type IssueWorkspaceTokenPayload = {
-  __typename: 'IssueWorkspaceTokenPayload';
+  __typename?: 'IssueWorkspaceTokenPayload';
   errors: Array<IssueWorkspaceTokenError>;
   expiresAt?: Maybe<Scalars['DateTime']['output']>;
   role?: Maybe<WorkspaceMembershipRole>;
@@ -2614,7 +2614,7 @@ export type JoinWorkspaceInput = {
 
 /** Represents the result of joining a workspace. */
 export type JoinWorkspaceResult = {
-  __typename: 'JoinWorkspaceResult';
+  __typename?: 'JoinWorkspaceResult';
   errors: Array<JoinWorkspaceError>;
   invitation?: Maybe<WorkspaceInvitation>;
   success: Scalars['Boolean']['output'];
@@ -2630,7 +2630,7 @@ export type LaunchAccessmodAnalysisInput = {
 };
 
 export type LaunchAccessmodAnalysisResult = {
-  __typename: 'LaunchAccessmodAnalysisResult';
+  __typename?: 'LaunchAccessmodAnalysisResult';
   analysis?: Maybe<AccessmodAnalysis>;
   errors: Array<LaunchAccessmodAnalysisError>;
   success: Scalars['Boolean']['output'];
@@ -2646,7 +2646,7 @@ export type LaunchNotebookServerInput = {
 };
 
 export type LaunchNotebookServerResult = {
-  __typename: 'LaunchNotebookServerResult';
+  __typename?: 'LaunchNotebookServerResult';
   errors: Array<LaunchNotebookServerError>;
   server?: Maybe<NotebookServer>;
   success: Scalars['Boolean']['output'];
@@ -2668,7 +2668,7 @@ export type LinkDatasetInput = {
 
 /** Result of linking a dataset with a workspace. */
 export type LinkDatasetResult = {
-  __typename: 'LinkDatasetResult';
+  __typename?: 'LinkDatasetResult';
   errors: Array<LinkDatasetError>;
   link?: Maybe<DatasetLink>;
   success: Scalars['Boolean']['output'];
@@ -2686,7 +2686,7 @@ export type LogPipelineMessageInput = {
 
 /** Represents the result of logging a pipeline message. */
 export type LogPipelineMessageResult = {
-  __typename: 'LogPipelineMessageResult';
+  __typename?: 'LogPipelineMessageResult';
   errors: Array<PipelineError>;
   success: Scalars['Boolean']['output'];
 };
@@ -2713,7 +2713,7 @@ export type LoginInput = {
 
 /** The LoginResult type represents the result of the login mutation. */
 export type LoginResult = {
-  __typename: 'LoginResult';
+  __typename?: 'LoginResult';
   /** The list of errors that occurred during the login process. */
   errors?: Maybe<Array<LoginError>>;
   /** Indicates whether the login was successful. */
@@ -2722,14 +2722,14 @@ export type LoginResult = {
 
 /** The LogoutResult type represents the result of the logout mutation. */
 export type LogoutResult = {
-  __typename: 'LogoutResult';
+  __typename?: 'LogoutResult';
   /** Indicates whether the logout was successful. */
   success: Scalars['Boolean']['output'];
 };
 
 /** The Me type represents the currently authenticated user. */
 export type Me = {
-  __typename: 'Me';
+  __typename?: 'Me';
   assistantMonthlyCost: Scalars['Int']['output'];
   assistantMonthlyLimitExceeded: Scalars['Boolean']['output'];
   assistantTotalCost: Scalars['Int']['output'];
@@ -2744,7 +2744,7 @@ export type Me = {
 
 /** The MePermissions type represents the permissions of the currently authenticated user. */
 export type MePermissions = {
-  __typename: 'MePermissions';
+  __typename?: 'MePermissions';
   /** Indicates whether the user has permission to access the admin panel. */
   adminPanel: Scalars['Boolean']['output'];
   createAccessmodProject: Scalars['Boolean']['output'];
@@ -2758,7 +2758,7 @@ export type MePermissions = {
 
 /** The Membership type represents a membership of a user in a team. */
 export type Membership = {
-  __typename: 'Membership';
+  __typename?: 'Membership';
   /** The date when the membership was created. */
   createdAt: Scalars['DateTime']['output'];
   /** The unique identifier of the membership. */
@@ -2777,7 +2777,7 @@ export type Membership = {
 
 /** The MembershipPage type represents a paginated list of memberships. */
 export type MembershipPage = {
-  __typename: 'MembershipPage';
+  __typename?: 'MembershipPage';
   /** The list of memberships on the current page. */
   items: Array<Membership>;
   /** The current page number. */
@@ -2790,7 +2790,7 @@ export type MembershipPage = {
 
 /** The MembershipPermissions type represents the permissions of a membership. */
 export type MembershipPermissions = {
-  __typename: 'MembershipPermissions';
+  __typename?: 'MembershipPermissions';
   /** Indicates whether the user has permission to delete the membership. */
   delete: Scalars['Boolean']['output'];
   /** Indicates whether the user has permission to update the membership. */
@@ -2816,7 +2816,7 @@ export enum MessagePriority {
 
 /** Generic metadata attribute */
 export type MetadataAttribute = {
-  __typename: 'MetadataAttribute';
+  __typename?: 'MetadataAttribute';
   createdAt: Scalars['DateTime']['output'];
   createdBy?: Maybe<User>;
   id: Scalars['UUID']['output'];
@@ -2835,7 +2835,7 @@ export type MetadataObject = {
 };
 
 export type Mutation = {
-  __typename: 'Mutation';
+  __typename?: 'Mutation';
   /** Adds an output to a pipeline. */
   addPipelineOutput: AddPipelineOutputResult;
   /** Adds a recipient to a pipeline. */
@@ -3650,7 +3650,7 @@ export type MutationWriteFileContentArgs = {
 };
 
 export type NotebookServer = {
-  __typename: 'NotebookServer';
+  __typename?: 'NotebookServer';
   name: Scalars['String']['output'];
   ready: Scalars['Boolean']['output'];
   url: Scalars['String']['output'];
@@ -3664,7 +3664,7 @@ export enum OrderByDirection {
 
 /** The Organization type represents an organization in the system. */
 export type Organization = {
-  __typename: 'Organization';
+  __typename?: 'Organization';
   /** The contact information of the organization. */
   contactInfo: Scalars['String']['output'];
   /** Dataset links available in the organization */
@@ -3775,7 +3775,7 @@ export type OrganizationInput = {
 
 /** Represents an invitation to join an organization. */
 export type OrganizationInvitation = {
-  __typename: 'OrganizationInvitation';
+  __typename?: 'OrganizationInvitation';
   createdAt: Scalars['DateTime']['output'];
   email: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
@@ -3789,7 +3789,7 @@ export type OrganizationInvitation = {
 
 /** Represents a page of organization invitations. */
 export type OrganizationInvitationPage = {
-  __typename: 'OrganizationInvitationPage';
+  __typename?: 'OrganizationInvitationPage';
   items: Array<OrganizationInvitation>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -3816,7 +3816,7 @@ export type OrganizationMember = {
 
 /** Represents a membership in an organization. */
 export type OrganizationMembership = OrganizationMember & {
-  __typename: 'OrganizationMembership';
+  __typename?: 'OrganizationMembership';
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
   organization: Organization;
@@ -3828,7 +3828,7 @@ export type OrganizationMembership = OrganizationMember & {
 
 /** Represents a page of organization memberships. */
 export type OrganizationMembershipPage = {
-  __typename: 'OrganizationMembershipPage';
+  __typename?: 'OrganizationMembershipPage';
   items: Array<OrganizationMembership>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -3843,7 +3843,7 @@ export enum OrganizationMembershipRole {
 }
 
 export type OrganizationPermissions = {
-  __typename: 'OrganizationPermissions';
+  __typename?: 'OrganizationPermissions';
   archiveWorkspace: Scalars['Boolean']['output'];
   createWorkspace: CreateWorkspacePermission;
   delete: Scalars['Boolean']['output'];
@@ -3854,7 +3854,7 @@ export type OrganizationPermissions = {
 
 /** Represents a workspace invitation within an organization invitation. */
 export type OrganizationWorkspaceInvitation = {
-  __typename: 'OrganizationWorkspaceInvitation';
+  __typename?: 'OrganizationWorkspaceInvitation';
   role: WorkspaceMembershipRole;
   workspace: Workspace;
 };
@@ -3932,7 +3932,7 @@ export type PinDatasetInput = {
 
 /** Result of pinning or unpinning a dataset for a workspace. */
 export type PinDatasetResult = {
-  __typename: 'PinDatasetResult';
+  __typename?: 'PinDatasetResult';
   errors: Array<PinDatasetError>;
   link?: Maybe<DatasetLink>;
   success: Scalars['Boolean']['output'];
@@ -3940,7 +3940,7 @@ export type PinDatasetResult = {
 
 /** Represents a pipeline. */
 export type Pipeline = {
-  __typename: 'Pipeline';
+  __typename?: 'Pipeline';
   assistantConversations: Array<AssistantConversation>;
   autoUpdateFromTemplate: Scalars['Boolean']['output'];
   code: Scalars['String']['output'];
@@ -4039,7 +4039,7 @@ export enum PipelineOrderBy {
 
 /** Represents a parameter of a pipeline. */
 export type PipelineParameter = {
-  __typename: 'PipelineParameter';
+  __typename?: 'PipelineParameter';
   choices?: Maybe<Array<Scalars['Generic']['output']>>;
   choicesFromFile?: Maybe<PipelineParameterChoicesFromFile>;
   code: Scalars['String']['output'];
@@ -4064,7 +4064,7 @@ export enum PipelineParameterChoicesFileFormat {
 
 /** Describes a dynamic choices source backed by a workspace file. */
 export type PipelineParameterChoicesFromFile = {
-  __typename: 'PipelineParameterChoicesFromFile';
+  __typename?: 'PipelineParameterChoicesFromFile';
   column?: Maybe<Scalars['String']['output']>;
   format?: Maybe<PipelineParameterChoicesFileFormat>;
   path: Scalars['String']['output'];
@@ -4079,7 +4079,7 @@ export type PipelineParameterChoicesFromFileInput = {
 
 /** Represents the permissions for a pipeline. */
 export type PipelinePermissions = {
-  __typename: 'PipelinePermissions';
+  __typename?: 'PipelinePermissions';
   createTemplateVersion: CreateTemplateVersionPermission;
   createVersion: Scalars['Boolean']['output'];
   delete: Scalars['Boolean']['output'];
@@ -4091,7 +4091,7 @@ export type PipelinePermissions = {
 
 /** Represents a recipient of a pipeline. */
 export type PipelineRecipient = {
-  __typename: 'PipelineRecipient';
+  __typename?: 'PipelineRecipient';
   id: Scalars['UUID']['output'];
   notificationLevel: PipelineNotificationLevel;
   pipeline: Pipeline;
@@ -4107,13 +4107,13 @@ export enum PipelineRecipientError {
 }
 
 export type PipelineResult = SearchResult & {
-  __typename: 'PipelineResult';
+  __typename?: 'PipelineResult';
   pipeline: Pipeline;
   score: Scalars['Float']['output'];
 };
 
 export type PipelineResultPage = {
-  __typename: 'PipelineResultPage';
+  __typename?: 'PipelineResultPage';
   items: Array<PipelineResult>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -4122,7 +4122,7 @@ export type PipelineResultPage = {
 
 /** Represents a pipeline run. */
 export type PipelineRun = {
-  __typename: 'PipelineRun';
+  __typename?: 'PipelineRun';
   code: Scalars['String']['output'];
   config: Scalars['JSON']['output'];
   datasetVersions: Array<DatasetVersion>;
@@ -4148,7 +4148,7 @@ export type PipelineRun = {
 
 /** Represents a message associated with a pipeline run. */
 export type PipelineRunMessage = {
-  __typename: 'PipelineRunMessage';
+  __typename?: 'PipelineRunMessage';
   message: Scalars['String']['output'];
   priority: MessagePriority;
   timestamp?: Maybe<Scalars['DateTime']['output']>;
@@ -4165,7 +4165,7 @@ export type PipelineRunOutput = BucketObject | DatabaseTable | GenericOutput;
 
 /** Represents a page of pipeline runs. */
 export type PipelineRunPage = {
-  __typename: 'PipelineRunPage';
+  __typename?: 'PipelineRunPage';
   items: Array<PipelineRun>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -4191,7 +4191,7 @@ export enum PipelineRunTrigger {
 
 /** Represents a pipeline template. */
 export type PipelineTemplate = {
-  __typename: 'PipelineTemplate';
+  __typename?: 'PipelineTemplate';
   code: Scalars['String']['output'];
   config?: Maybe<Scalars['String']['output']>;
   currentVersion?: Maybe<PipelineTemplateVersion>;
@@ -4235,7 +4235,7 @@ export enum PipelineTemplateOrderBy {
 
 /** Represents paged result of fetching pipeline templates. */
 export type PipelineTemplatePage = {
-  __typename: 'PipelineTemplatePage';
+  __typename?: 'PipelineTemplatePage';
   items: Array<PipelineTemplate>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -4244,19 +4244,19 @@ export type PipelineTemplatePage = {
 
 /** Represents the permissions for a pipeline template. */
 export type PipelineTemplatePermissions = {
-  __typename: 'PipelineTemplatePermissions';
+  __typename?: 'PipelineTemplatePermissions';
   delete: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 
 export type PipelineTemplateResult = SearchResult & {
-  __typename: 'PipelineTemplateResult';
+  __typename?: 'PipelineTemplateResult';
   pipelineTemplate: PipelineTemplate;
   score: Scalars['Float']['output'];
 };
 
 export type PipelineTemplateResultPage = {
-  __typename: 'PipelineTemplateResultPage';
+  __typename?: 'PipelineTemplateResultPage';
   items: Array<PipelineTemplateResult>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -4265,7 +4265,7 @@ export type PipelineTemplateResultPage = {
 
 /** Represents a version of a pipeline template. */
 export type PipelineTemplateVersion = {
-  __typename: 'PipelineTemplateVersion';
+  __typename?: 'PipelineTemplateVersion';
   changelog?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['DateTime']['output'];
   documentation?: Maybe<Scalars['String']['output']>;
@@ -4281,7 +4281,7 @@ export type PipelineTemplateVersion = {
 
 /** Represents the permissions for a pipeline template version. */
 export type PipelineTemplateVersionPermissions = {
-  __typename: 'PipelineTemplateVersionPermissions';
+  __typename?: 'PipelineTemplateVersionPermissions';
   delete: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
@@ -4294,7 +4294,7 @@ export type PipelineTokenInput = {
 
 /** Represents the result of retrieving a pipeline token. */
 export type PipelineTokenResult = {
-  __typename: 'PipelineTokenResult';
+  __typename?: 'PipelineTokenResult';
   errors: Array<PipelineError>;
   success: Scalars['Boolean']['output'];
   token?: Maybe<Scalars['String']['output']>;
@@ -4314,7 +4314,7 @@ export enum PipelineType {
 
 /** Represents a version of a pipeline. */
 export type PipelineVersion = {
-  __typename: 'PipelineVersion';
+  __typename?: 'PipelineVersion';
   config?: Maybe<Scalars['JSON']['output']>;
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
@@ -4338,7 +4338,7 @@ export type PipelineVersion = {
 
 /** Represents a page of pipeline versions. */
 export type PipelineVersionPage = {
-  __typename: 'PipelineVersionPage';
+  __typename?: 'PipelineVersionPage';
   items: Array<PipelineVersion>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -4347,14 +4347,14 @@ export type PipelineVersionPage = {
 
 /** Represents the permissions for a pipeline version. */
 export type PipelineVersionPermissions = {
-  __typename: 'PipelineVersionPermissions';
+  __typename?: 'PipelineVersionPermissions';
   delete: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 
 /** Represents a page of pipelines. */
 export type PipelinesPage = {
-  __typename: 'PipelinesPage';
+  __typename?: 'PipelinesPage';
   items: Array<Pipeline>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -4363,7 +4363,7 @@ export type PipelinesPage = {
 
 /** PostgreSQL connection object */
 export type PostgreSqlConnection = Connection & {
-  __typename: 'PostgreSQLConnection';
+  __typename?: 'PostgreSQLConnection';
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
   fields: Array<ConnectionField>;
@@ -4381,7 +4381,7 @@ export type PrepareAccessmodFileDownloadInput = {
 };
 
 export type PrepareAccessmodFileDownloadResult = {
-  __typename: 'PrepareAccessmodFileDownloadResult';
+  __typename?: 'PrepareAccessmodFileDownloadResult';
   downloadUrl?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
 };
@@ -4392,7 +4392,7 @@ export type PrepareAccessmodFileUploadInput = {
 };
 
 export type PrepareAccessmodFileUploadResult = {
-  __typename: 'PrepareAccessmodFileUploadResult';
+  __typename?: 'PrepareAccessmodFileUploadResult';
   fileUri?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
   uploadUrl?: Maybe<Scalars['String']['output']>;
@@ -4403,7 +4403,7 @@ export type PrepareAccessmodFilesetVisualizationDownloadInput = {
 };
 
 export type PrepareAccessmodFilesetVisualizationDownloadResult = {
-  __typename: 'PrepareAccessmodFilesetVisualizationDownloadResult';
+  __typename?: 'PrepareAccessmodFilesetVisualizationDownloadResult';
   success: Scalars['Boolean']['output'];
   url?: Maybe<Scalars['String']['output']>;
 };
@@ -4413,7 +4413,7 @@ export type PrepareDownloadUrlInput = {
 };
 
 export type PrepareDownloadUrlResult = {
-  __typename: 'PrepareDownloadURLResult';
+  __typename?: 'PrepareDownloadURLResult';
   success: Scalars['Boolean']['output'];
   url?: Maybe<Scalars['URL']['output']>;
 };
@@ -4433,7 +4433,7 @@ export type PrepareObjectDownloadInput = {
 
 /** The result of preparing to download an object from a workspace's bucket. */
 export type PrepareObjectDownloadResult = {
-  __typename: 'PrepareObjectDownloadResult';
+  __typename?: 'PrepareObjectDownloadResult';
   downloadUrl?: Maybe<Scalars['URL']['output']>;
   errors: Array<PrepareObjectDownloadError>;
   success: Scalars['Boolean']['output'];
@@ -4457,7 +4457,7 @@ export type PrepareObjectUploadInput = {
 
 /** The result of preparing to upload an object to a workspace's bucket. It contains a URL that can be used to upload the object using a PUT request. */
 export type PrepareObjectUploadResult = {
-  __typename: 'PrepareObjectUploadResult';
+  __typename?: 'PrepareObjectUploadResult';
   errors: Array<PrepareObjectUploadError>;
   headers?: Maybe<Scalars['JSON']['output']>;
   success: Scalars['Boolean']['output'];
@@ -4479,14 +4479,14 @@ export type PrepareVersionFileDownloadInput = {
 
 /** Result of preparing a dataset version file download. */
 export type PrepareVersionFileDownloadResult = {
-  __typename: 'PrepareVersionFileDownloadResult';
+  __typename?: 'PrepareVersionFileDownloadResult';
   downloadUrl?: Maybe<Scalars['String']['output']>;
   errors: Array<PrepareVersionFileDownloadError>;
   success: Scalars['Boolean']['output'];
 };
 
 export type Query = {
-  __typename: 'Query';
+  __typename?: 'Query';
   accessmodAccessRequests: AccessmodAccessRequestPage;
   accessmodAnalyses: AccessmodAnalysisPage;
   accessmodAnalysis?: Maybe<AccessmodAnalysis>;
@@ -4913,7 +4913,7 @@ export enum ReadFileContentError {
 }
 
 export type ReadFileContentResult = {
-  __typename: 'ReadFileContentResult';
+  __typename?: 'ReadFileContentResult';
   content?: Maybe<Scalars['String']['output']>;
   errors: Array<ReadFileContentError>;
   size?: Maybe<Scalars['Int']['output']>;
@@ -4950,7 +4950,7 @@ export type RegisterInput = {
 
 /** The RegisterResult type represents the result of the register mutation. */
 export type RegisterResult = {
-  __typename: 'RegisterResult';
+  __typename?: 'RegisterResult';
   /** The list of errors that occurred during the registration process. */
   errors?: Maybe<Array<RegisterError>>;
   /** Indicates whether the registration was successful. */
@@ -4969,7 +4969,7 @@ export type RemoveFromFavoritesInput = {
 
 /** Represents the result of removing a web app from favorites. */
 export type RemoveFromFavoritesResult = {
-  __typename: 'RemoveFromFavoritesResult';
+  __typename?: 'RemoveFromFavoritesResult';
   errors: Array<RemoveFromFavoritesError>;
   success: Scalars['Boolean']['output'];
 };
@@ -4986,7 +4986,7 @@ export type RemoveWebappFromShortcutsInput = {
 
 /** Represents the result of removing a webapp from shortcuts. */
 export type RemoveWebappFromShortcutsResult = {
-  __typename: 'RemoveWebappFromShortcutsResult';
+  __typename?: 'RemoveWebappFromShortcutsResult';
   errors: Array<RemoveWebappFromShortcutsError>;
   success: Scalars['Boolean']['output'];
 };
@@ -5005,7 +5005,7 @@ export type RequestAccessmodAccessInput = {
 };
 
 export type RequestAccessmodAccessInputResult = {
-  __typename: 'RequestAccessmodAccessInputResult';
+  __typename?: 'RequestAccessmodAccessInputResult';
   errors: Array<RequestAccessmodAccessError>;
   success: Scalars['Boolean']['output'];
 };
@@ -5024,7 +5024,7 @@ export type ResendOrganizationInvitationInput = {
 
 /** The ResendOrganizationInvitationResult type represents the result of the resendOrganizationInvitation mutation. */
 export type ResendOrganizationInvitationResult = {
-  __typename: 'ResendOrganizationInvitationResult';
+  __typename?: 'ResendOrganizationInvitationResult';
   errors: Array<ResendOrganizationInvitationError>;
   success: Scalars['Boolean']['output'];
 };
@@ -5042,7 +5042,7 @@ export type ResendWorkspaceInvitationInput = {
 
 /** Represents the result of resending a workspace invitation. */
 export type ResendWorkspaceInvitationResult = {
-  __typename: 'ResendWorkspaceInvitationResult';
+  __typename?: 'ResendWorkspaceInvitationResult';
   errors: Array<ResendWorkspaceInvitationError>;
   success: Scalars['Boolean']['output'];
 };
@@ -5055,14 +5055,14 @@ export type ResetPasswordInput = {
 
 /** The ResetPasswordResult type represents the result of the resetPassword mutation. */
 export type ResetPasswordResult = {
-  __typename: 'ResetPasswordResult';
+  __typename?: 'ResetPasswordResult';
   /** Indicates whether the password reset was successful. */
   success: Scalars['Boolean']['output'];
 };
 
 /** Resource counts */
 export type ResourceCounts = {
-  __typename: 'ResourceCounts';
+  __typename?: 'ResourceCounts';
   /** Number of pipeline runs. */
   pipelineRuns: Scalars['Int']['output'];
   /** Number of users. */
@@ -5100,7 +5100,7 @@ export type RunDagInput = {
 };
 
 export type RunDagResult = {
-  __typename: 'RunDAGResult';
+  __typename?: 'RunDAGResult';
   dag?: Maybe<Dag>;
   dagRun?: Maybe<DagRun>;
   errors: Array<RunDagError>;
@@ -5118,14 +5118,14 @@ export type RunPipelineInput = {
 
 /** Represents the result of running a pipeline. */
 export type RunPipelineResult = {
-  __typename: 'RunPipelineResult';
+  __typename?: 'RunPipelineResult';
   errors: Array<PipelineError>;
   run?: Maybe<PipelineRun>;
   success: Scalars['Boolean']['output'];
 };
 
 export type S3Bucket = {
-  __typename: 'S3Bucket';
+  __typename?: 'S3Bucket';
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['String']['output'];
   name: Scalars['String']['output'];
@@ -5134,7 +5134,7 @@ export type S3Bucket = {
 
 /** S3 connection object */
 export type S3Connection = Connection & {
-  __typename: 'S3Connection';
+  __typename?: 'S3Connection';
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
   fields: Array<ConnectionField>;
@@ -5148,7 +5148,7 @@ export type S3Connection = Connection & {
 };
 
 export type S3Object = {
-  __typename: 'S3Object';
+  __typename?: 'S3Object';
   bucket: S3Bucket;
   createdAt: Scalars['DateTime']['output'];
   etag: Scalars['String']['output'];
@@ -5164,7 +5164,7 @@ export type S3Object = {
 };
 
 export type S3ObjectPage = {
-  __typename: 'S3ObjectPage';
+  __typename?: 'S3ObjectPage';
   items: Array<S3Object>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -5188,7 +5188,7 @@ export type SetDagRunFavoriteInput = {
 };
 
 export type SetDagRunFavoriteResult = {
-  __typename: 'SetDAGRunFavoriteResult';
+  __typename?: 'SetDAGRunFavoriteResult';
   dagRun?: Maybe<DagRun>;
   errors: Array<SetDagRunFavoriteError>;
   success: Scalars['Boolean']['output'];
@@ -5209,7 +5209,7 @@ export type SetMetadataAttributeInput = {
 };
 
 export type SetMetadataAttributeResult = {
-  __typename: 'SetMetadataAttributeResult';
+  __typename?: 'SetMetadataAttributeResult';
   attribute?: Maybe<MetadataAttribute>;
   errors: Array<SetMetadataAttributeError>;
   success: Scalars['Boolean']['output'];
@@ -5241,7 +5241,7 @@ export type SetPasswordInput = {
 
 /** The SetPasswordResult type represents the result of the setPassword mutation. */
 export type SetPasswordResult = {
-  __typename: 'SetPasswordResult';
+  __typename?: 'SetPasswordResult';
   /** The error that occurred during the setPassword mutation. */
   error?: Maybe<SetPasswordError>;
   /** Indicates whether the password was set successfully. */
@@ -5250,7 +5250,7 @@ export type SetPasswordResult = {
 
 /** Represents a shortcut item in the sidebar. */
 export type ShortcutItem = {
-  __typename: 'ShortcutItem';
+  __typename?: 'ShortcutItem';
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
   order: Scalars['Int']['output'];
@@ -5271,7 +5271,7 @@ export type SignupInput = {
 
 /** Result of signup mutation. */
 export type SignupResult = {
-  __typename: 'SignupResult';
+  __typename?: 'SignupResult';
   /** The list of errors that occurred during the signup process. */
   errors?: Maybe<Array<SignupError>>;
   /** Indicates whether the signup request was successful. */
@@ -5285,14 +5285,14 @@ export type StopPipelineInput = {
 
 /** Represents the result of stopping a pipeline. */
 export type StopPipelineResult = {
-  __typename: 'StopPipelineResult';
+  __typename?: 'StopPipelineResult';
   errors: Array<PipelineError>;
   success: Scalars['Boolean']['output'];
 };
 
 /** Subscription details from the Bluesquare Console. */
 export type Subscription = {
-  __typename: 'Subscription';
+  __typename?: 'Subscription';
   /** The date when the subscription ends. */
   endDate: Scalars['Date']['output'];
   /** Whether the subscription has expired. */
@@ -5314,14 +5314,14 @@ export type Subscription = {
 
 /** Represents a Superset instance. */
 export type SupersetInstance = {
-  __typename: 'SupersetInstance';
+  __typename?: 'SupersetInstance';
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
   url: Scalars['String']['output'];
 };
 
 export type SupersetSource = {
-  __typename: 'SupersetSource';
+  __typename?: 'SupersetSource';
   dashboardId: Scalars['String']['output'];
   instance: SupersetInstance;
 };
@@ -5333,14 +5333,14 @@ export type SupersetSourceInput = {
 };
 
 export type TableColumn = {
-  __typename: 'TableColumn';
+  __typename?: 'TableColumn';
   name: Scalars['String']['output'];
   type: Scalars['String']['output'];
 };
 
 /** Represents a paginated list of rows from a database table. */
 export type TableRowsPage = {
-  __typename: 'TableRowsPage';
+  __typename?: 'TableRowsPage';
   /** Indicates if there is a next page available. */
   hasNextPage: Scalars['Boolean']['output'];
   /** Indicates if there is a previous page available. */
@@ -5353,14 +5353,14 @@ export type TableRowsPage = {
 
 /** A tag is a label. */
 export type Tag = {
-  __typename: 'Tag';
+  __typename?: 'Tag';
   id: Scalars['String']['output'];
   name: Scalars['String']['output'];
 };
 
 /** The Team type represents a team in the system. */
 export type Team = {
-  __typename: 'Team';
+  __typename?: 'Team';
   /** The date when the team was created. */
   createdAt: Scalars['DateTime']['output'];
   /** The unique identifier of the team. */
@@ -5384,7 +5384,7 @@ export type TeamMembershipsArgs = {
 
 /** The TeamPage type represents a paginated list of teams. */
 export type TeamPage = {
-  __typename: 'TeamPage';
+  __typename?: 'TeamPage';
   /** The list of teams on the current page. */
   items: Array<Team>;
   /** The current page number. */
@@ -5397,7 +5397,7 @@ export type TeamPage = {
 
 /** The TeamPermissions type represents the permissions of a team. */
 export type TeamPermissions = {
-  __typename: 'TeamPermissions';
+  __typename?: 'TeamPermissions';
   /** Indicates whether the user has permission to create a membership in the team. */
   createMembership: Scalars['Boolean']['output'];
   /** Indicates whether the user has permission to delete the team. */
@@ -5408,7 +5408,7 @@ export type TeamPermissions = {
 
 /** Represents a page of template versions. */
 export type TemplateVersionPage = {
-  __typename: 'TemplateVersionPage';
+  __typename?: 'TemplateVersionPage';
   items: Array<PipelineTemplateVersion>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -5427,7 +5427,7 @@ export type TestConnectionInput = {
 
 /** Represents the result of testing a connection. */
 export type TestConnectionResult = {
-  __typename: 'TestConnectionResult';
+  __typename?: 'TestConnectionResult';
   errors?: Maybe<Scalars['String']['output']>;
   success: Scalars['Boolean']['output'];
 };
@@ -5457,7 +5457,7 @@ export type UpdateAccessmodAccessibilityAnalysisInput = {
 };
 
 export type UpdateAccessmodAccessibilityAnalysisResult = {
-  __typename: 'UpdateAccessmodAccessibilityAnalysisResult';
+  __typename?: 'UpdateAccessmodAccessibilityAnalysisResult';
   analysis?: Maybe<AccessmodAccessibilityAnalysis>;
   errors: Array<UpdateAccessmodAccessibilityAnalysisError>;
   success: Scalars['Boolean']['output'];
@@ -5476,7 +5476,7 @@ export type UpdateAccessmodFilesetInput = {
 };
 
 export type UpdateAccessmodFilesetResult = {
-  __typename: 'UpdateAccessmodFilesetResult';
+  __typename?: 'UpdateAccessmodFilesetResult';
   errors: Array<UpdateAccessmodFilesetError>;
   fileset?: Maybe<AccessmodFileset>;
   success: Scalars['Boolean']['output'];
@@ -5506,14 +5506,14 @@ export type UpdateAccessmodProjectMemberInput = {
 };
 
 export type UpdateAccessmodProjectMemberResult = {
-  __typename: 'UpdateAccessmodProjectMemberResult';
+  __typename?: 'UpdateAccessmodProjectMemberResult';
   errors: Array<UpdateAccessmodProjectMemberError>;
   member?: Maybe<AccessmodProjectMember>;
   success: Scalars['Boolean']['output'];
 };
 
 export type UpdateAccessmodProjectResult = {
-  __typename: 'UpdateAccessmodProjectResult';
+  __typename?: 'UpdateAccessmodProjectResult';
   errors: Array<UpdateAccessmodProjectError>;
   project?: Maybe<AccessmodProject>;
   success: Scalars['Boolean']['output'];
@@ -5534,7 +5534,7 @@ export type UpdateAccessmodZonalStatisticsInput = {
 };
 
 export type UpdateAccessmodZonalStatisticsResult = {
-  __typename: 'UpdateAccessmodZonalStatisticsResult';
+  __typename?: 'UpdateAccessmodZonalStatisticsResult';
   analysis?: Maybe<AccessmodZonalStatistics>;
   errors: Array<UpdateAccessmodZonalStatisticsError>;
   success: Scalars['Boolean']['output'];
@@ -5558,7 +5558,7 @@ export type UpdateConnectionInput = {
 
 /** Represents the result of updating a connection. */
 export type UpdateConnectionResult = {
-  __typename: 'UpdateConnectionResult';
+  __typename?: 'UpdateConnectionResult';
   connection?: Maybe<Connection>;
   errors: Array<UpdateConnectionError>;
   success: Scalars['Boolean']['output'];
@@ -5578,7 +5578,7 @@ export type UpdateDagInput = {
 };
 
 export type UpdateDagResult = {
-  __typename: 'UpdateDAGResult';
+  __typename?: 'UpdateDAGResult';
   dag?: Maybe<Dag>;
   errors: Array<UpdateDagError>;
   success: Scalars['Boolean']['output'];
@@ -5600,7 +5600,7 @@ export type UpdateDatasetInput = {
 
 /** Result of updating a dataset. */
 export type UpdateDatasetResult = {
-  __typename: 'UpdateDatasetResult';
+  __typename?: 'UpdateDatasetResult';
   dataset?: Maybe<Dataset>;
   errors: Array<UpdateDatasetError>;
   success: Scalars['Boolean']['output'];
@@ -5621,7 +5621,7 @@ export type UpdateDatasetVersionInput = {
 
 /** Result of updating a dataset version. */
 export type UpdateDatasetVersionResult = {
-  __typename: 'UpdateDatasetVersionResult';
+  __typename?: 'UpdateDatasetVersionResult';
   errors: Array<UpdateDatasetVersionError>;
   success: Scalars['Boolean']['output'];
   version?: Maybe<DatasetVersion>;
@@ -5649,7 +5649,7 @@ export type UpdateExternalCollaboratorInput = {
 
 /** The UpdateExternalCollaboratorResult type represents the result of the updateExternalCollaborator mutation. */
 export type UpdateExternalCollaboratorResult = {
-  __typename: 'UpdateExternalCollaboratorResult';
+  __typename?: 'UpdateExternalCollaboratorResult';
   /** The list of errors that occurred during the updateExternalCollaborator mutation. */
   errors: Array<UpdateExternalCollaboratorError>;
   /** Indicates whether the updateExternalCollaborator mutation was successful. */
@@ -5676,7 +5676,7 @@ export type UpdateMembershipInput = {
 
 /** The UpdateMembershipResult type represents the result of the updateMembership mutation. */
 export type UpdateMembershipResult = {
-  __typename: 'UpdateMembershipResult';
+  __typename?: 'UpdateMembershipResult';
   /** The list of errors that occurred during the updateMembership mutation. */
   errors: Array<UpdateMembershipError>;
   /** The updated membership object. */
@@ -5733,7 +5733,7 @@ export type UpdateOrganizationMemberInput = {
 
 /** The UpdateOrganizationMemberResult type represents the result of the updateOrganizationMember mutation. */
 export type UpdateOrganizationMemberResult = {
-  __typename: 'UpdateOrganizationMemberResult';
+  __typename?: 'UpdateOrganizationMemberResult';
   /** The list of errors that occurred during the updateOrganizationMember mutation. */
   errors: Array<UpdateOrganizationMemberError>;
   /** The updated organization membership object. */
@@ -5744,7 +5744,7 @@ export type UpdateOrganizationMemberResult = {
 
 /** The UpdateOrganizationResult type represents the result of the updateOrganization mutation. */
 export type UpdateOrganizationResult = {
-  __typename: 'UpdateOrganizationResult';
+  __typename?: 'UpdateOrganizationResult';
   /** The list of errors that occurred during the updateOrganization mutation. */
   errors: Array<UpdateOrganizationError>;
   /** The updated organization object. */
@@ -5788,7 +5788,7 @@ export type UpdateOrganizationSubscriptionInput = {
 
 /** The UpdateOrganizationSubscriptionResult type represents the result of the updateOrganizationSubscription mutation. */
 export type UpdateOrganizationSubscriptionResult = {
-  __typename: 'UpdateOrganizationSubscriptionResult';
+  __typename?: 'UpdateOrganizationSubscriptionResult';
   /** The list of errors that occurred during the updateOrganizationSubscription mutation. */
   errors: Array<UpdateOrganizationSubscriptionError>;
   /** The updated organization object. */
@@ -5808,7 +5808,7 @@ export enum UpdatePipelineError {
 
 /** Represents the result of updating a pipeline heartbeat. */
 export type UpdatePipelineHeartbeatResult = {
-  __typename: 'UpdatePipelineHeartbeatResult';
+  __typename?: 'UpdatePipelineHeartbeatResult';
   errors: Array<PipelineError>;
   success: Scalars['Boolean']['output'];
 };
@@ -5834,7 +5834,7 @@ export type UpdatePipelineProgressInput = {
 
 /** Represents the result of updating the progress of a pipeline. */
 export type UpdatePipelineProgressResult = {
-  __typename: 'UpdatePipelineProgressResult';
+  __typename?: 'UpdatePipelineProgressResult';
   errors: Array<PipelineError>;
   success: Scalars['Boolean']['output'];
 };
@@ -5846,7 +5846,7 @@ export type UpdatePipelineRecipientInput = {
 };
 
 export type UpdatePipelineRecipientResult = {
-  __typename: 'UpdatePipelineRecipientResult';
+  __typename?: 'UpdatePipelineRecipientResult';
   errors: Array<PipelineRecipientError>;
   recipient?: Maybe<PipelineRecipient>;
   success: Scalars['Boolean']['output'];
@@ -5854,7 +5854,7 @@ export type UpdatePipelineRecipientResult = {
 
 /** Represents the result of updating a pipeline. */
 export type UpdatePipelineResult = {
-  __typename: 'UpdatePipelineResult';
+  __typename?: 'UpdatePipelineResult';
   errors: Array<UpdatePipelineError>;
   pipeline?: Maybe<Pipeline>;
   success: Scalars['Boolean']['output'];
@@ -5878,7 +5878,7 @@ export type UpdatePipelineVersionInput = {
 
 /** Represents the result of updating a pipeline version. */
 export type UpdatePipelineVersionResult = {
-  __typename: 'UpdatePipelineVersionResult';
+  __typename?: 'UpdatePipelineVersionResult';
   errors: Array<UpdatePipelineVersionError>;
   pipelineVersion?: Maybe<PipelineVersion>;
   success: Scalars['Boolean']['output'];
@@ -5904,7 +5904,7 @@ export type UpdateTeamInput = {
 
 /** The UpdateTeamResult type represents the result of the updateTeam mutation. */
 export type UpdateTeamResult = {
-  __typename: 'UpdateTeamResult';
+  __typename?: 'UpdateTeamResult';
   /** The list of errors that occurred during the updateTeam mutation. */
   errors: Array<UpdateTeamError>;
   /** Indicates whether the updateTeam mutation was successful. */
@@ -5932,7 +5932,7 @@ export type UpdateTemplateInput = {
 
 /** Represents the result of updating a template. */
 export type UpdateTemplateResult = {
-  __typename: 'UpdateTemplateResult';
+  __typename?: 'UpdateTemplateResult';
   errors: Array<UpdateTemplateError>;
   success: Scalars['Boolean']['output'];
   template?: Maybe<PipelineTemplate>;
@@ -5954,7 +5954,7 @@ export type UpdateTemplateVersionInput = {
 
 /** Represents the result of updating a template version. */
 export type UpdateTemplateVersionResult = {
-  __typename: 'UpdateTemplateVersionResult';
+  __typename?: 'UpdateTemplateVersionResult';
   errors: Array<UpdateTemplateVersionError>;
   success: Scalars['Boolean']['output'];
   templateVersion?: Maybe<PipelineTemplateVersion>;
@@ -5982,7 +5982,7 @@ export type UpdateUserAiSettingsInput = {
 
 /** The UpdateUserAiSettingsResult type represents the result of the updateUser mutation. */
 export type UpdateUserAiSettingsResult = {
-  __typename: 'UpdateUserAiSettingsResult';
+  __typename?: 'UpdateUserAiSettingsResult';
   /** The list of errors that occurred during the updateUser mutation. */
   errors: Array<UpdateUserAiSettingsError>;
   /** Indicates whether the user update was successful. */
@@ -6011,7 +6011,7 @@ export type UpdateUserInput = {
 
 /** The UpdateUserResult type represents the result of the updateUser mutation. */
 export type UpdateUserResult = {
-  __typename: 'UpdateUserResult';
+  __typename?: 'UpdateUserResult';
   /** The list of errors that occurred during the updateUser mutation. */
   errors: Array<UpdateUserError>;
   /** Indicates whether the user update was successful. */
@@ -6056,7 +6056,7 @@ export type UpdateWebappInput = {
 
 /** Represents the result of updating a web app. */
 export type UpdateWebappResult = {
-  __typename: 'UpdateWebappResult';
+  __typename?: 'UpdateWebappResult';
   errors: Array<UpdateWebappError>;
   success: Scalars['Boolean']['output'];
   webapp?: Maybe<Webapp>;
@@ -6097,7 +6097,7 @@ export type UpdateWorkspaceMemberInput = {
 
 /** Represents the result of updating a workspace member. */
 export type UpdateWorkspaceMemberResult = {
-  __typename: 'UpdateWorkspaceMemberResult';
+  __typename?: 'UpdateWorkspaceMemberResult';
   errors: Array<UpdateWorkspaceMemberError>;
   success: Scalars['Boolean']['output'];
   workspaceMembership?: Maybe<WorkspaceMembership>;
@@ -6105,7 +6105,7 @@ export type UpdateWorkspaceMemberResult = {
 
 /** Represents the result of updating a workspace. */
 export type UpdateWorkspaceResult = {
-  __typename: 'UpdateWorkspaceResult';
+  __typename?: 'UpdateWorkspaceResult';
   errors: Array<UpdateWorkspaceError>;
   success: Scalars['Boolean']['output'];
   workspace?: Maybe<Workspace>;
@@ -6125,7 +6125,7 @@ export type UpgradePipelineVersionFromTemplateInput = {
 
 /** Represents the result of upgrading a pipeline version from the latest template version. */
 export type UpgradePipelineVersionFromTemplateResult = {
-  __typename: 'UpgradePipelineVersionFromTemplateResult';
+  __typename?: 'UpgradePipelineVersionFromTemplateResult';
   errors: Array<UpgradePipelineVersionFromTemplateError>;
   pipelineVersion?: Maybe<PipelineVersion>;
   success: Scalars['Boolean']['output'];
@@ -6150,7 +6150,7 @@ export type UploadPipelineInput = {
 
 /** Represents the result of uploading a pipeline. */
 export type UploadPipelineResult = {
-  __typename: 'UploadPipelineResult';
+  __typename?: 'UploadPipelineResult';
   details?: Maybe<Scalars['String']['output']>;
   errors: Array<PipelineError>;
   pipelineVersion?: Maybe<PipelineVersion>;
@@ -6159,7 +6159,7 @@ export type UploadPipelineResult = {
 
 /** The User type represents a user in the system. */
 export type User = {
-  __typename: 'User';
+  __typename?: 'User';
   /** User AI settings. */
   aiSettings?: Maybe<AiSettings>;
   /** The avatar of the user. */
@@ -6195,13 +6195,13 @@ export type VerifyDeviceInput = {
 
 /** The VerifyDeviceResult type represents the result of the verifyDevice mutation. */
 export type VerifyDeviceResult = {
-  __typename: 'VerifyDeviceResult';
+  __typename?: 'VerifyDeviceResult';
   errors?: Maybe<Array<VerifyDeviceError>>;
   success: Scalars['Boolean']['output'];
 };
 
 export type WhoBoundary = {
-  __typename: 'WHOBoundary';
+  __typename?: 'WHOBoundary';
   administrative_level: Scalars['Int']['output'];
   country: Country;
   extent: Scalars['String']['output'];
@@ -6211,21 +6211,21 @@ export type WhoBoundary = {
 };
 
 export type WhoInfo = {
-  __typename: 'WHOInfo';
+  __typename?: 'WHOInfo';
   defaultCRS: Scalars['Int']['output'];
   region?: Maybe<WhoRegion>;
   simplifiedExtent?: Maybe<Scalars['SimplifiedExtentType']['output']>;
 };
 
 export type WhoRegion = {
-  __typename: 'WHORegion';
+  __typename?: 'WHORegion';
   code: Scalars['String']['output'];
   name: Scalars['String']['output'];
 };
 
 /** Represents a web app. */
 export type Webapp = {
-  __typename: 'Webapp';
+  __typename?: 'Webapp';
   allowedOperations: Array<WebappOperationScope>;
   createdBy: User;
   description?: Maybe<Scalars['String']['output']>;
@@ -6287,7 +6287,7 @@ export enum WebappOperationScope {
 
 /** Represents the permissions for a web app. */
 export type WebappPermissions = {
-  __typename: 'WebappPermissions';
+  __typename?: 'WebappPermissions';
   delete: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
@@ -6308,7 +6308,7 @@ export enum WebappType {
 }
 
 export type WebappVersion = {
-  __typename: 'WebappVersion';
+  __typename?: 'WebappVersion';
   authorEmail: Scalars['String']['output'];
   authorName: Scalars['String']['output'];
   date: Scalars['DateTime']['output'];
@@ -6317,14 +6317,14 @@ export type WebappVersion = {
 };
 
 export type WebappVersionsPage = {
-  __typename: 'WebappVersionsPage';
+  __typename?: 'WebappVersionsPage';
   items: Array<WebappVersion>;
   page: Scalars['Int']['output'];
 };
 
 /** Represents a page of webapps. */
 export type WebappsPage = {
-  __typename: 'WebappsPage';
+  __typename?: 'WebappsPage';
   items: Array<Webapp>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -6333,7 +6333,7 @@ export type WebappsPage = {
 
 /** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type Workspace = {
-  __typename: 'Workspace';
+  __typename?: 'Workspace';
   assistantConversations: Array<AssistantConversation>;
   /** File storage of the workspace represented as a bucket */
   bucket: Bucket;
@@ -6387,7 +6387,7 @@ export type WorkspaceMembersArgs = {
 
 /** Represents an invitation to join a workspace. */
 export type WorkspaceInvitation = {
-  __typename: 'WorkspaceInvitation';
+  __typename?: 'WorkspaceInvitation';
   createdAt: Scalars['DateTime']['output'];
   email: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
@@ -6410,7 +6410,7 @@ export type WorkspaceInvitationInput = {
 
 /** Represents a page of workspace invitations. */
 export type WorkspaceInvitationPage = {
-  __typename: 'WorkspaceInvitationPage';
+  __typename?: 'WorkspaceInvitationPage';
   items: Array<WorkspaceInvitation>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -6426,7 +6426,7 @@ export enum WorkspaceInvitationStatus {
 
 /** Represents a membership in a workspace. */
 export type WorkspaceMembership = {
-  __typename: 'WorkspaceMembership';
+  __typename?: 'WorkspaceMembership';
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
   organizationMembership?: Maybe<OrganizationMembership>;
@@ -6438,7 +6438,7 @@ export type WorkspaceMembership = {
 
 /** Represents a page of workspace memberships. */
 export type WorkspaceMembershipPage = {
-  __typename: 'WorkspaceMembershipPage';
+  __typename?: 'WorkspaceMembershipPage';
   items: Array<WorkspaceMembership>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -6454,7 +6454,7 @@ export enum WorkspaceMembershipRole {
 
 /** Represents a page of workspaces. */
 export type WorkspacePage = {
-  __typename: 'WorkspacePage';
+  __typename?: 'WorkspacePage';
   items: Array<Workspace>;
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
@@ -6471,7 +6471,7 @@ export type WorkspacePermissionInput = {
 
 /** Represents the permissions of a workspace. */
 export type WorkspacePermissions = {
-  __typename: 'WorkspacePermissions';
+  __typename?: 'WorkspacePermissions';
   createConnection: Scalars['Boolean']['output'];
   /** Permissions to create a dataset in the workspace */
   createDataset: Scalars['Boolean']['output'];
@@ -6492,7 +6492,7 @@ export type WorkspacePermissions = {
 
 /** Represents a minimal workspace reference in the token payload. */
 export type WorkspaceRef = {
-  __typename: 'WorkspaceRef';
+  __typename?: 'WorkspaceRef';
   id: Scalars['UUID']['output'];
   slug: Scalars['String']['output'];
 };
@@ -6513,7 +6513,7 @@ export type WriteFileContentInput = {
 };
 
 export type WriteFileContentResult = {
-  __typename: 'WriteFileContentResult';
+  __typename?: 'WriteFileContentResult';
   errors: Array<WriteFileContentError>;
   filePath?: Maybe<Scalars['String']['output']>;
   size?: Maybe<Scalars['Int']['output']>;

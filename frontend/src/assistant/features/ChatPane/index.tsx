@@ -405,17 +405,18 @@ export default function ChatPane({
                 </div>
               );
             }
-            const renderableSegments: RenderableSegment[] = segments.map((seg) =>
-              seg.__typename === "AssistantTextSegment"
-                ? { type: "text", content: seg.content }
-                : {
-                    type: "tool",
-                    key: seg.toolCallId,
-                    toolName: seg.toolName,
-                    status: "done" as const,
-                    success: seg.success,
-                  },
-            );
+            const renderableSegments: RenderableSegment[] = segments.map((seg): RenderableSegment => {
+              if ("content" in seg) {
+                return { type: "text", content: seg.content };
+              }
+              return {
+                type: "tool",
+                key: seg.toolCallId,
+                toolName: seg.toolName,
+                status: "done" as const,
+                success: seg.success,
+              };
+            });
             return (
               <div key={msg.id} className="space-y-2">
                 <SegmentList segments={renderableSegments} />

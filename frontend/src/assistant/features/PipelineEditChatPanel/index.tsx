@@ -14,6 +14,8 @@ type Message = NonNullable<
   AssistantConversationMessagesQuery["assistantConversation"]
 >["messages"]["items"][0];
 
+type ToolSegment = Extract<Message["content"][number], { toolCallId: string }>;
+
 export type PipelineConversation = {
   id: string;
   name?: string | null;
@@ -117,8 +119,9 @@ export default function PipelineEditChatPanel({
       for (let i = messages.length - 1; i >= 0; i--) {
         const msg = messages[i];
         if (msg.role !== "assistant") continue;
-        const proposal = msg.toolInvocations.find(
-          (t: Message["toolInvocations"][0]) =>
+        const toolSegments = msg.content.filter((s): s is ToolSegment => "toolCallId" in s);
+        const proposal = toolSegments.find(
+          (t) =>
             t.toolName === "propose_pipeline_version" &&
             t.success &&
             t.toolOutput !== null,
