@@ -10,6 +10,7 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.types import MessageSegment, MessageSegmentAdapter
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.core.models.soft_delete import (
     DefaultSoftDeletedManager,
@@ -174,6 +175,10 @@ class Message(Base):
                 name="asst_msg_pagination_idx",
             ),
         ]
+
+    @property
+    def content_segments(self) -> list[MessageSegment]:
+        return MessageSegmentAdapter.validate_python(self.content)
 
     def __str__(self):
         return f"Message({self.id}, role={self.role})"

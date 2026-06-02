@@ -18,7 +18,7 @@ export type AssistantConversationMessagesQueryVariables = Types.Exact<{
 }>;
 
 
-export type AssistantConversationMessagesQuery = { __typename?: 'Query', assistantConversation?: { __typename?: 'AssistantConversation', id: string, name?: string | null, messages: { __typename?: 'AssistantMessagePage', totalItems: number, totalPages: number, items: Array<{ __typename?: 'AssistantMessage', id: string, role: string, content: any, createdAt: any, toolInvocations: Array<{ __typename?: 'AssistantToolInvocation', id: string, createdAt: any, toolCallId: string, toolName: string, toolInput: any, toolOutput?: any | null, success: boolean }> }> } } | null };
+export type AssistantConversationMessagesQuery = { __typename?: 'Query', assistantConversation?: { __typename?: 'AssistantConversation', id: string, name?: string | null, messages: { __typename?: 'AssistantMessagePage', totalItems: number, totalPages: number, items: Array<{ __typename?: 'AssistantMessage', id: string, role: string, createdAt: any, content: Array<{ __typename?: 'AssistantTextSegment', content: string } | { __typename?: 'AssistantToolSegment', toolCallId: string, toolName: string, toolInput: any, toolOutput?: any | null, success: boolean }> }> } } | null };
 
 
 export const AssistantPageDocument = gql`
@@ -79,17 +79,19 @@ export const AssistantConversationMessagesDocument = gql`
       items {
         id
         role
-        content
-        createdAt
-        toolInvocations {
-          id
-          createdAt
-          toolCallId
-          toolName
-          toolInput
-          toolOutput
-          success
+        content {
+          ... on AssistantTextSegment {
+            content
+          }
+          ... on AssistantToolSegment {
+            toolCallId
+            toolName
+            toolInput
+            toolOutput
+            success
+          }
         }
+        createdAt
       }
       totalItems
       totalPages

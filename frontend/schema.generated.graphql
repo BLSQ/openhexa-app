@@ -447,13 +447,12 @@ type AssistantConversation {
 }
 
 type AssistantMessage {
-  content: JSON!
+  content: [AssistantMessageSegment!]!
   createdAt: DateTime!
   id: UUID!
   inputTokens: Int
   outputTokens: Int
   role: String!
-  toolInvocations: [AssistantToolInvocation!]!
 }
 
 type AssistantMessagePage {
@@ -462,9 +461,13 @@ type AssistantMessagePage {
   totalPages: Int!
 }
 
-type AssistantToolInvocation {
-  createdAt: DateTime!
-  id: UUID!
+union AssistantMessageSegment = AssistantTextSegment | AssistantToolSegment
+
+type AssistantTextSegment {
+  content: String!
+}
+
+type AssistantToolSegment {
   success: Boolean!
   toolCallId: String!
   toolInput: JSON!

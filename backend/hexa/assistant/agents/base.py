@@ -23,6 +23,7 @@ from pydantic_ai.output import TextOutput
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.model_builder import AiModelBuilder, BuiltModel
 from hexa.assistant.models import Conversation, Message, ToolInvocation
+from hexa.assistant.types import TextSegment, ToolSegment
 from hexa.assistant.sse_types import (
     ConversationNamePayload,
     DonePayload,
@@ -145,7 +146,7 @@ class BaseAgent:
         user_msg = await Message.objects.acreate(
             conversation=self.conversation,
             role=Message.Role.USER,
-            content=[{"type": "text", "content": user_input}],
+            content=[TextSegment(content=user_input).model_dump()],
         )
         yield format_sse(
             "user_message", UserMessagePayload(id=str(user_msg.id), content=user_input)
@@ -309,24 +310,28 @@ class BaseAgent:
                     )
 
     @staticmethod
-    def _extract_content_segments(new_messages: list) -> list[dict]:
-        segments = []
+    def _extract_content_segments(
+        new_messages: list,
+    ) -> list[TextSegment | ToolSegment]:
+        segments: list[TextSegment | ToolSegment] = []
         for msg in new_messages:
             if not isinstance(msg, ModelResponse):
                 continue
             for part in msg.parts:
                 if isinstance(part, TextPart) and part.content:
-                    if segments and segments[-1]["type"] == "text":
-                        segments[-1]["content"] += "\n\n" + part.content
+                    if segments and isinstance(segments[-1], TextSegment):
+                        segments[-1] = TextSegment(
+                            content=segments[-1].content + "\n\n" + part.content,
+                        )
                     else:
-                        segments.append({"type": "text", "content": part.content})
+                        segments.append(TextSegment(content=part.content))
                 elif isinstance(part, ToolCallPart):
-                    segments.append({"type": "tool", "tool_call_id": part.tool_call_id})
+                    segments.append(ToolSegment(tool_call_id=part.tool_call_id))
         return segments
 
     async def _persist_run(
         self,
-        content_segments: list[dict],
+        content_segments: list[TextSegment | ToolSegment],
         tool_invocations: dict[str, ToolInvocation],
         usage: RunUsage,
         all_messages: list,
@@ -346,7 +351,7 @@ class BaseAgent:
         assistant_message = await Message.objects.acreate(
             conversation=self.conversation,
             role=Message.Role.ASSISTANT,
-            content=content_segments,
+            content=[s.model_dump() for s in content_segments],
             input_tokens=input_tok,
             output_tokens=output_tok,
             cost=cost,

@@ -20,10 +20,6 @@ type Message = NonNullable<
   AssistantConversationMessagesQuery["assistantConversation"]
 >["messages"]["items"][0];
 
-type MessageSegment =
-  | { type: "text"; content: string }
-  | { type: "tool"; tool_call_id: string };
-
 type StreamingSegment =
   | { type: "text"; content: string }
   | { type: "tool"; toolCallId: string; toolName: string; status: "pending" | "done"; success?: boolean };
@@ -398,9 +394,9 @@ export default function ChatPane({
           )}
 
           {messages.map((msg) => {
-            const segments = Array.isArray(msg.content) ? (msg.content as MessageSegment[]) : [];
+            const segments = msg.content;
             if (msg.role === "user") {
-              const text = segments.find((s) => s.type === "text")?.content ?? "";
+              const text = segments.find((s) => s.__typename === "AssistantTextSegment")?.content ?? "";
               return (
                 <div key={msg.id} className="flex justify-end">
                   <div className="max-w-2xl rounded-2xl px-4 py-3 text-sm bg-blue-600 text-white whitespace-pre-wrap">
@@ -409,18 +405,15 @@ export default function ChatPane({
                 </div>
               );
             }
-            const toolMap = Object.fromEntries(
-              (msg.toolInvocations ?? []).map((inv) => [inv.toolCallId, inv]),
-            );
             const renderableSegments: RenderableSegment[] = segments.map((seg) =>
-              seg.type === "text"
+              seg.__typename === "AssistantTextSegment"
                 ? { type: "text", content: seg.content }
                 : {
                     type: "tool",
-                    key: seg.tool_call_id,
-                    toolName: toolMap[seg.tool_call_id]?.toolName ?? seg.tool_call_id,
+                    key: seg.toolCallId,
+                    toolName: seg.toolName,
                     status: "done" as const,
-                    success: toolMap[seg.tool_call_id]?.success,
+                    success: seg.success,
                   },
             );
             return (

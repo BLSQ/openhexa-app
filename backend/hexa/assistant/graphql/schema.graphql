@@ -14,24 +14,27 @@ type AssistantConversation {
   messages(page: Int = 1, perPage: Int = 20): AssistantMessagePage!
 }
 
-type AssistantMessage {
-  id: UUID!
-  createdAt: DateTime!
-  role: String!
-  content: JSON!
-  inputTokens: Int
-  outputTokens: Int
-  toolInvocations: [AssistantToolInvocation!]!
+type AssistantTextSegment {
+  content: String!
 }
 
-type AssistantToolInvocation {
-  id: UUID!
-  createdAt: DateTime!
+type AssistantToolSegment {
   toolCallId: String!
   toolName: String!
   toolInput: JSON!
   toolOutput: JSON
   success: Boolean!
+}
+
+union AssistantMessageSegment = AssistantTextSegment | AssistantToolSegment
+
+type AssistantMessage {
+  id: UUID!
+  createdAt: DateTime!
+  role: String!
+  content: [AssistantMessageSegment!]!
+  inputTokens: Int
+  outputTokens: Int
 }
 
 extend type Workspace {
