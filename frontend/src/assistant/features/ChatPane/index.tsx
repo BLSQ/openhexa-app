@@ -406,7 +406,7 @@ export default function ChatPane({
               );
             }
             const renderableSegments: RenderableSegment[] = segments.map((seg) =>
-              <seg.__typename === "AssistantTextSegment">
+              seg.__typename === "AssistantTextSegment"
                 ? { type: "text", content: seg.content }
                 : {
                     type: "tool",
