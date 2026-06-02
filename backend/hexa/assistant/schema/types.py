@@ -28,10 +28,10 @@ def resolve_message_content(message: Message, info, **kwargs):
             inv = invocations.get(seg.tool_call_id)
             result.append({
                 "__typename": "AssistantToolSegment",
-                "toolCallId": seg.tool_call_id,
-                "toolName": inv.tool_name if inv else seg.tool_call_id,
-                "toolInput": inv.tool_input if inv else {},
-                "toolOutput": inv.tool_output if inv else None,
+                "tool_call_id": seg.tool_call_id,
+                "tool_name": inv.tool_name if inv else seg.tool_call_id,
+                "tool_input": inv.tool_input if inv else {},
+                "tool_output": inv.tool_output if inv else None,
                 "success": inv.success if inv else False,
             })
     return result
