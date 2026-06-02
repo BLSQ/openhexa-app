@@ -25,55 +25,55 @@ This user manual covers all aspects of using OpenHEXA:
 <div class="quickstart-grid">
   <div class="quickstart-card">
     <div class="number">👤</div>
-    <h3><a href="account.md">Account Management</a></h3>
+    <h3><a href="account/">Account Management</a></h3>
     <p>Manage your profile, security settings, and personal preferences.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">🧭</div>
-    <h3><a href="navigation.md">Navigation</a></h3>
+    <h3><a href="navigation/">Navigation</a></h3>
     <p>Learn to navigate between organizations, workspaces, and find resources quickly.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">🏢</div>
-    <h3><a href="workspaces.md">Workspaces</a></h3>
+    <h3><a href="workspaces/">Workspaces</a></h3>
     <p>Create and manage collaborative project environments for your team.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">📁</div>
-    <h3><a href="files.md">File Management</a></h3>
+    <h3><a href="files/">File Management</a></h3>
     <p>Upload, organize, and share files through the shared filesystem.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">🗄️</div>
-    <h3><a href="database.md">Database</a></h3>
+    <h3><a href="database/">Database</a></h3>
     <p>Work with PostgreSQL databases for structured data storage and analysis.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">📊</div>
-    <h3><a href="datasets.md">Datasets</a></h3>
+    <h3><a href="datasets/">Datasets</a></h3>
     <p>Manage and version your datasets for reproducible analysis.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">🔗</div>
-    <h3><a href="connections.md">Connections</a></h3>
+    <h3><a href="connections/">Connections</a></h3>
     <p>Connect to external data sources and APIs for data integration.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">⚡</div>
-    <h3><a href="pipelines.md">Pipelines</a></h3>
+    <h3><a href="pipelines/">Pipelines</a></h3>
     <p>Create, run, and schedule complex data workflows and ETL processes.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">📓</div>
-    <h3><a href="notebooks.md">Notebooks</a></h3>
+    <h3><a href="notebooks/">Notebooks</a></h3>
     <p>Use Jupyter notebooks for interactive data exploration and analysis.</p>
   </div>
 </div>
