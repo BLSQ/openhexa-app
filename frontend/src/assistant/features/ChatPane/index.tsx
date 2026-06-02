@@ -396,7 +396,7 @@ export default function ChatPane({
           {messages.map((msg) => {
             const segments = msg.content;
             if (msg.role === "user") {
-              const text = segments.find((s) => s.__typename === "AssistantTextSegment")?.content ?? "";
+              const text = segments.find((s): s is { __typename: "AssistantTextSegment"; content: string } => s.__typename === "AssistantTextSegment")?.content ?? "";
               return (
                 <div key={msg.id} className="flex justify-end">
                   <div className="max-w-2xl rounded-2xl px-4 py-3 text-sm bg-blue-600 text-white whitespace-pre-wrap">
@@ -406,7 +406,7 @@ export default function ChatPane({
               );
             }
             const renderableSegments: RenderableSegment[] = segments.map((seg) =>
-              seg.__typename === "AssistantTextSegment"
+              <seg.__typename === "AssistantTextSegment">
                 ? { type: "text", content: seg.content }
                 : {
                     type: "tool",

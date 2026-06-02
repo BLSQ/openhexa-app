@@ -23,7 +23,6 @@ from pydantic_ai.output import TextOutput
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.model_builder import AiModelBuilder, BuiltModel
 from hexa.assistant.models import Conversation, Message, ToolInvocation
-from hexa.assistant.types import TextSegment, ToolSegment
 from hexa.assistant.sse_types import (
     ConversationNamePayload,
     DonePayload,
@@ -34,6 +33,7 @@ from hexa.assistant.sse_types import (
     UserMessagePayload,
 )
 from hexa.assistant.tool_binding import bind_context
+from hexa.assistant.types import TextSegment, ToolSegment
 from hexa.core.sse import format_sse
 
 logger = logging.getLogger(__name__)

@@ -23,17 +23,21 @@ def resolve_message_content(message: Message, info, **kwargs):
     result = []
     for seg in message.content_segments:
         if isinstance(seg, TextSegment):
-            result.append({"__typename": "AssistantTextSegment", "content": seg.content})
+            result.append(
+                {"__typename": "AssistantTextSegment", "content": seg.content}
+            )
         elif isinstance(seg, ToolSegment):
             inv = invocations.get(seg.tool_call_id)
-            result.append({
-                "__typename": "AssistantToolSegment",
-                "tool_call_id": seg.tool_call_id,
-                "tool_name": inv.tool_name if inv else seg.tool_call_id,
-                "tool_input": inv.tool_input if inv else {},
-                "tool_output": inv.tool_output if inv else None,
-                "success": inv.success if inv else False,
-            })
+            result.append(
+                {
+                    "__typename": "AssistantToolSegment",
+                    "tool_call_id": seg.tool_call_id,
+                    "tool_name": inv.tool_name if inv else seg.tool_call_id,
+                    "tool_input": inv.tool_input if inv else {},
+                    "tool_output": inv.tool_output if inv else None,
+                    "success": inv.success if inv else False,
+                }
+            )
     return result
 
 

@@ -55,9 +55,7 @@ class MessageSegmentAdapterTest(TestCase):
 
     def test_rejects_unknown_type(self):
         with self.assertRaises(ValidationError):
-            MessageSegmentAdapter.validate_python(
-                [{"type": "unknown", "content": "x"}]
-            )
+            MessageSegmentAdapter.validate_python([{"type": "unknown", "content": "x"}])
 
     def test_empty_list(self):
         result = MessageSegmentAdapter.validate_python([])

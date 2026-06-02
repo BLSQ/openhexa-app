@@ -103,7 +103,9 @@ class MessageContentSegmentsMigrationTest(TransactionTestCase):
             tool_input={},
             success=True,
         )
-        ToolInvocation.objects.filter(pk=inv_second.pk).update(created_at=now + timedelta(seconds=1))
+        ToolInvocation.objects.filter(pk=inv_second.pk).update(
+            created_at=now + timedelta(seconds=1)
+        )
         ToolInvocation.objects.filter(pk=inv_first.pk).update(created_at=now)
 
         self.migrator.migrate(*self.migrate_to)
