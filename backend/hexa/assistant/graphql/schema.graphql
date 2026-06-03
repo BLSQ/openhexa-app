@@ -91,4 +91,5 @@ extend type Me {
   assistantMonthlyLimitExceeded: Boolean!
   assistantMonthlyCost: Int! # in microdollars (millionths of a dollar)
   assistantTotalCost: Int! # in microdollars (millionths of a dollar)
+  assistantMonthlyLimit: Int! # effective limit in microdollars (per-user budget for managed providers)
 }
