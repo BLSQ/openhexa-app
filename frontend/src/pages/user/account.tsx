@@ -53,6 +53,7 @@ function AccountPage() {
               labels={data.aiLabels}
               monthlyCost={data.me.assistantMonthlyCost / 1_000_000}
               totalCost={data.me.assistantTotalCost / 1_000_000}
+              monthlyLimit={data.me.assistantMonthlyLimit / 1_000_000}
               refetch={refetch}
             />
           )}
