@@ -30,6 +30,7 @@ query AssistantConversationMessages($id: UUID!, $page: Int = 1, $perPage: Int = 
             toolInput
             toolOutput
             success
+            proposalPending
         }
       }
       totalItems

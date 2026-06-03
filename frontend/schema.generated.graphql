@@ -465,6 +465,7 @@ type AssistantMessagePage {
 type AssistantToolInvocation {
   createdAt: DateTime!
   id: UUID!
+  proposalPending: Boolean!
   success: Boolean!
   toolInput: JSON!
   toolName: String!
@@ -3007,6 +3008,7 @@ type Mutation {
 
   """Sends a password reset email to the user."""
   resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
+  resolveAssistantProposal(toolInvocationId: UUID!): ResolveAssistantProposalResult!
   runDAG(input: RunDAGInput!): RunDAGResult!
 
   """Runs a pipeline."""
@@ -4132,6 +4134,17 @@ The ResetPasswordResult type represents the result of the resetPassword mutation
 type ResetPasswordResult {
   """Indicates whether the password reset was successful."""
   success: Boolean!
+}
+
+enum ResolveAssistantProposalError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+type ResolveAssistantProposalResult {
+  errors: [ResolveAssistantProposalError!]!
+  success: Boolean!
+  toolInvocation: AssistantToolInvocation
 }
 
 """Resource counts"""
