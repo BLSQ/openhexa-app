@@ -1,7 +1,9 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.models import SocialLogin
+from django.conf import settings
 from django.http import HttpRequest
 
+from hexa.core.utils import get_email_attachments, send_mail
 from hexa.user_management.models import User
 
 
@@ -41,7 +43,32 @@ class OpenHexaSocialAccountAdapter(DefaultSocialAccountAdapter):
 
         sociallogin.user = user
         sociallogin.save(request)
+
+        self._send_new_account_email(user, sociallogin.account.provider)
         return user
 
     def get_login_redirect_url(self, request: HttpRequest) -> str:
         return request.GET.get("next") or "/"
+
+    def _send_new_account_email(self, user: User, provider_id: str) -> None:
+        provider_config = next(
+            (p for p in settings.OIDC_PROVIDERS if p["id"] == provider_id),
+            None,
+        )
+        if not provider_config:
+            return
+        recipients = provider_config.get("new_account_email_recipients", [])
+        if not recipients:
+            return
+
+        display_name = provider_config.get("display_name", provider_id.upper())
+        send_mail(
+            title=f"New OpenHEXA account created via {display_name}",
+            recipient_list=recipients,
+            template_name="user_management/mails/sso_new_account",
+            template_variables={
+                "new_user": user,
+                "provider_name": display_name,
+            },
+            attachments=get_email_attachments(),
+        )

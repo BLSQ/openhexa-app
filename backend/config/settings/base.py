@@ -85,6 +85,13 @@ def _load_oidc_providers() -> list[dict]:
                 "display_name": os.environ.get(
                     f"OIDC_{env_key}_DISPLAY_NAME", provider_id.upper()
                 ),
+                "new_account_email_recipients": [
+                    r.strip()
+                    for r in os.environ.get(
+                        f"OIDC_{env_key}_NEW_ACCOUNT_EMAIL_RECIPIENTS", ""
+                    ).split(",")
+                    if r.strip()
+                ],
             }
         )
     return providers
@@ -411,6 +418,8 @@ if OIDC_PROVIDERS:
                         "client_id": p["client_id"],
                         "secret": p["client_secret"],
                     },
+                    "OAUTH_PKCE_ENABLED": True,
+                    "SCOPE": ["openid", "profile", "email"],
                 }
                 for p in OIDC_PROVIDERS
             ]

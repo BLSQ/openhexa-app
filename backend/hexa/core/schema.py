@@ -36,8 +36,8 @@ def resolve_config_oidc_providers(_, info):
     return [
         {
             "id": p["id"],
-            "displayName": p["display_name"],
-            "loginUrl": f"/accounts/openid_connect/{p['id']}/login/",
+            "display_name": p["display_name"],
+            "login_url": f"/accounts/openid_connect/{p['id']}/login/",
         }
         for p in settings.OIDC_PROVIDERS
     ]
