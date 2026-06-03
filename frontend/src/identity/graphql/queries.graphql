@@ -33,6 +33,7 @@ query AccountPage {
     hasTwoFactorEnabled
     assistantMonthlyCost
     assistantTotalCost
+    assistantMonthlyLimit
     user {
       firstName
       lastName
@@ -46,6 +47,7 @@ query AccountPage {
         provider
         model
         hasApiKey
+        monthlyBudgetCents
       }
       ...User_user
     }
