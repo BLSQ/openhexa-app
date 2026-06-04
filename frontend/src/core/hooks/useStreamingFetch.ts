@@ -69,6 +69,10 @@ function useStreamingFetch(handlers: StreamHandlers): UseStreamingFetchReturn {
         });
 
         if (!response.ok) {
+          if (response.status === 429) {
+            setStreamError("limit_exceeded");
+            return;
+          }
           throw new Error(`HTTP ${response.status}`);
         }
 
