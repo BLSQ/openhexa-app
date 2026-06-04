@@ -506,6 +506,7 @@
   "New Template '{{name}}' created successfully.": "Nouveau modèle '{{name}}' créé avec succès.",
   "New Template Version for '{{templateName}}' created successfully.": "Nouvelle version de modèle pour '{{templateName}}' créée avec succès.",
   "Next": "Suivant",
+  "Next run: {{date}} ({{timeZone}})": "Prochaine exécution : {{date}} ({{timeZone}})",
   "No": "Non",
   "No attributes found": "Aucun attribut trouvé",
   "No changes in this commit.": "Aucun changement dans ce commit.",
