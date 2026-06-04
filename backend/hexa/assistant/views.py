@@ -1,13 +1,12 @@
 import json
 import uuid
-from decimal import Decimal
 
 from asgiref.sync import sync_to_async
-from django.conf import settings
 from django.http import HttpRequest, HttpResponse, HttpResponseNotAllowed, JsonResponse
 
 from hexa.assistant.models import Conversation
 from hexa.core.sse import sse_response, with_keepalive
+from hexa.user_management.models import AiSettings
 
 
 async def stream_assistant_message(
@@ -38,7 +37,8 @@ async def stream_assistant_message(
     monthly_cost = await sync_to_async(Conversation.get_monthly_cost_for_user)(
         request.user
     )
-    if monthly_cost >= Decimal(settings.ASSISTANT_MONTHLY_LIMIT):
+    ai_settings, _ = await AiSettings.objects.aget_or_create(user=request.user)
+    if monthly_cost >= ai_settings.effective_monthly_limit():
         return JsonResponse({"error": "Monthly limit exceeded"}, status=429)
 
     agent = await sync_to_async(lambda: conversation.agent)()
