@@ -219,4 +219,6 @@ class BaseAgentRunStreamTest(AgentTestCase):
             events = _collect_stream(agent, "Do something")
         error_events = [e for e in events if e["event"] == "error"]
         self.assertEqual(len(error_events), 1)
-        self.assertEqual(error_events[0]["data"]["error_code"], "UNEXPECTED_MODEL_BEHAVIOR")
+        self.assertEqual(
+            error_events[0]["data"]["error_code"], "UNEXPECTED_MODEL_BEHAVIOR"
+        )
