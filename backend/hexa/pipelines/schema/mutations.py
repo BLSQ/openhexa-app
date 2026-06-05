@@ -58,6 +58,56 @@ def _parse_parameters_from_zipfile(zipfile_data: bytes) -> list:
         raise PipelineCodeParsingError(str(e))
 
 
+class InvalidVersionFilesError(Exception):
+    """Raised when a pipeline version's file input is malformed or ambiguous."""
+
+
+def _build_zipfile_from_files(files: list[dict]) -> bytes:
+    if not files:
+        raise InvalidVersionFilesError("files must be a non-empty list")
+    seen: set[str] = set()
+    buf = io.BytesIO()
+    with ZipFile(buf, "w") as zf:
+        for entry in files:
+            path = entry.get("path")
+            content = entry.get("content")
+            if not isinstance(path, str) or not path or not isinstance(content, str):
+                raise InvalidVersionFilesError(
+                    "each file must have a non-empty 'path' and a 'content' string"
+                )
+            if path in seen:
+                raise InvalidVersionFilesError(f"duplicate path in files: {path}")
+            seen.add(path)
+            encoding = (entry.get("encoding") or "TEXT").upper()
+            if encoding == "BASE64":
+                try:
+                    data = base64.b64decode(content, validate=True)
+                except (ValueError, base64.binascii.Error) as e:
+                    raise InvalidVersionFilesError(
+                        f"invalid base64 content for {path}: {e}"
+                    )
+            elif encoding == "TEXT":
+                data = content.encode("utf-8")
+            else:
+                raise InvalidVersionFilesError(
+                    f"invalid encoding {encoding!r} for {path} — must be TEXT or BASE64"
+                )
+            zf.writestr(path, data)
+    return buf.getvalue()
+
+
+def _resolve_version_zipfile_bytes(version_input: dict) -> bytes:
+    has_zipfile = version_input.get("zipfile") is not None
+    has_files = version_input.get("files") is not None
+    if has_zipfile and has_files:
+        raise InvalidVersionFilesError("provide either 'zipfile' or 'files', not both")
+    if not has_zipfile and not has_files:
+        raise InvalidVersionFilesError("either 'zipfile' or 'files' is required")
+    if has_zipfile:
+        return base64.b64decode(version_input["zipfile"].encode("ascii"))
+    return _build_zipfile_from_files(version_input["files"])
+
+
 def _validate_pipeline_version_timeout(
     timeout: int | None, workspace: Workspace
 ) -> None:
@@ -154,6 +204,12 @@ def resolve_create_pipeline(_, info, **kwargs):
         return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
     except InvalidTimeoutValueError:
         return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
+    except InvalidVersionFilesError as e:
+        return {
+            "success": False,
+            "errors": ["INVALID_VERSION_FILES"],
+            "details": str(e),
+        }
 
     return {
         "pipeline": pipeline,
@@ -166,7 +222,7 @@ def resolve_create_pipeline(_, info, **kwargs):
 def _create_first_pipeline_version(
     user: User, workspace: Workspace, pipeline: Pipeline, version_input: dict
 ) -> PipelineVersion:
-    zipfile_data = base64.b64decode(version_input["zipfile"].encode("ascii"))
+    zipfile_data = _resolve_version_zipfile_bytes(version_input)
     parameters = version_input.get("parameters") or _parse_parameters_from_zipfile(
         zipfile_data
     )
@@ -428,7 +484,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
     try:
         _validate_pipeline_version_timeout(input.get("timeout"), pipeline.workspace)
 
-        zipfile_data = base64.b64decode(input.get("zipfile").encode("ascii"))
+        zipfile_data = _resolve_version_zipfile_bytes(input)
         parameters = input.get("parameters")
 
         if not parameters:
@@ -473,6 +529,12 @@ def resolve_upload_pipeline(_, info, **kwargs):
         }
     except InvalidTimeoutValueError:
         return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
+    except InvalidVersionFilesError as e:
+        return {
+            "success": False,
+            "errors": ["INVALID_VERSION_FILES"],
+            "details": str(e),
+        }
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
     except IntegrityError as e:
