@@ -30,6 +30,7 @@ from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.assistant.sse_types import (
     ConversationNamePayload,
     DonePayload,
+    ErrorCode,
     ErrorPayload,
     TextDeltaPayload,
     ToolCallPayload,
@@ -207,9 +208,7 @@ class BaseAgent:
                 )
                 yield format_sse(
                     "error",
-                    ErrorPayload(
-                        message="I got stuck in a loop — likely because my responses were too long and kept getting cut off. Try breaking your request into smaller steps."
-                    ),
+                    ErrorPayload(error_code=ErrorCode.AGENT_STUCK_IN_LOOP),
                 )
             else:
                 logger.exception(
@@ -217,9 +216,7 @@ class BaseAgent:
                 )
                 yield format_sse(
                     "error",
-                    ErrorPayload(
-                        message="I hit the maximum token limit before completing my response. Try breaking your request into smaller steps."
-                    ),
+                    ErrorPayload(error_code=ErrorCode.MAX_TOKENS_REACHED),
                 )
         except IncompleteToolCall:
             logger.exception(
@@ -227,16 +224,14 @@ class BaseAgent:
             )
             yield format_sse(
                 "error",
-                ErrorPayload(
-                    message="I hit the maximum token limit before completing my response. Try breaking your request into smaller steps."
-                ),
+                ErrorPayload(error_code=ErrorCode.MAX_TOKENS_REACHED),
             )
         except UnexpectedModelBehavior:
             logger.exception("agent.run_stream: unexpected model behavior")
-            yield format_sse("error", ErrorPayload(message="An error occurred"))
+            yield format_sse("error", ErrorPayload(error_code=ErrorCode.UNEXPECTED_MODEL_BEHAVIOR))
         except Exception:
             logger.exception("agent.run_stream: error during streaming")
-            yield format_sse("error", ErrorPayload(message="An error occurred"))
+            yield format_sse("error", ErrorPayload(error_code=ErrorCode.UNKNOWN_ERROR))
         finally:
             if naming_task is not None and not naming_task.done():
                 naming_task.cancel()

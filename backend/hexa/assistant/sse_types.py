@@ -32,5 +32,12 @@ class DonePayload(TypedDict):
     name: str | None
 
 
+class ErrorCode(str):
+    AGENT_STUCK_IN_LOOP = "AGENT_STUCK_IN_LOOP"
+    MAX_TOKENS_REACHED = "MAX_TOKENS_REACHED"
+    UNEXPECTED_MODEL_BEHAVIOR = "UNEXPECTED_MODEL_BEHAVIOR"
+    UNKNOWN_ERROR = "UNKNOWN_ERROR"
+
+
 class ErrorPayload(TypedDict):
-    message: str
+    error_code: str
