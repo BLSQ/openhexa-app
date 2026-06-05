@@ -398,6 +398,7 @@ enum PipelineError {
   PIPELINE_CODE_PARSING_ERROR
   WORKSPACE_NOT_FOUND
   INVALID_CONFIG
+  INVALID_VERSION_FILES
   PIPELINE_ALREADY_COMPLETED
   PIPELINE_ALREADY_STOPPED
   INVALID_TIMEOUT_VALUE
@@ -422,11 +423,28 @@ enum PipelineOrderBy {
 }
 
 """
+A single file in a pipeline version.
+
+`content` is interpreted according to `encoding`:
+  * TEXT (default)  — content is a UTF-8 string; suitable for Python code, requirements.txt, READMEs.
+  * BASE64          — content is base64-encoded raw bytes; use for binary assets bundled with the pipeline.
+"""
+input PipelineFileInput {
+  path: String!  # File path relative to the pipeline root (e.g. "pipeline.py", "lib/helpers.py").
+  content: String!
+  encoding: FileEncoding = TEXT
+}
+
+"""
 Configures the first pipeline version, created atomically alongside the pipeline.
 Providing this sub-input signals that a first version should be created.
+
+Provide exactly one of `zipfile` (base64-encoded ZIP) or `files` (list of source files
+the server will zip up). `files` requires a `pipeline.py` at the root.
 """
 input CreatePipelineVersionInput {
-  zipfile: String!  # Base64-encoded ZIP file containing the version code.
+  zipfile: String  # Base64-encoded ZIP file containing the version code.
+  files: [PipelineFileInput!]  # Source files; the server builds the zip.
   name: String  # The name of the first pipeline version.
   description: String  # The description of the first pipeline version.
   externalLink: URL  # The external link associated with the first pipeline version.
@@ -631,7 +649,8 @@ input UploadPipelineInput {
   description: String  # The description of the pipeline.
   externalLink: URL  # The external link associated with the pipeline.
   parameters: [ParameterInput!]  # The parameters of the pipeline.
-  zipfile: String!  # The path to the ZIP file containing the pipeline.
+  zipfile: String  # Base64-encoded ZIP file containing the version code. Exactly one of `zipfile` or `files` must be provided.
+  files: [PipelineFileInput!]  # Source files; the server builds the zip. Exactly one of `zipfile` or `files` must be provided.
   config: JSON # The default configuration to set on newly created pipeline runs
   timeout: Int  # The timeout value for the pipeline.
   tags: [String!]  # The names of tags to associate with the pipeline.

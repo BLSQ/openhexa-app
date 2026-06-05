@@ -1110,15 +1110,19 @@ export type CreatePipelineTemplateVersionResult = {
 /**
  * Configures the first pipeline version, created atomically alongside the pipeline.
  * Providing this sub-input signals that a first version should be created.
+ *
+ * Provide exactly one of `zipfile` (base64-encoded ZIP) or `files` (list of source files
+ * the server will zip up). `files` requires a `pipeline.py` at the root.
  */
 export type CreatePipelineVersionInput = {
   config?: InputMaybe<Scalars['JSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   externalLink?: InputMaybe<Scalars['URL']['input']>;
+  files?: InputMaybe<Array<PipelineFileInput>>;
   name?: InputMaybe<Scalars['String']['input']>;
   parameters?: InputMaybe<Array<ParameterInput>>;
   timeout?: InputMaybe<Scalars['Int']['input']>;
-  zipfile: Scalars['String']['input'];
+  zipfile?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** The CreateTeamError enum represents the possible errors that can occur during the createTeam mutation. */
@@ -4007,6 +4011,7 @@ export enum PipelineError {
   FileNotFound = 'FILE_NOT_FOUND',
   InvalidConfig = 'INVALID_CONFIG',
   InvalidTimeoutValue = 'INVALID_TIMEOUT_VALUE',
+  InvalidVersionFiles = 'INVALID_VERSION_FILES',
   PermissionDenied = 'PERMISSION_DENIED',
   PipelineAlreadyCompleted = 'PIPELINE_ALREADY_COMPLETED',
   PipelineAlreadyStopped = 'PIPELINE_ALREADY_STOPPED',
@@ -4018,6 +4023,19 @@ export enum PipelineError {
   TableNotFound = 'TABLE_NOT_FOUND',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
+
+/**
+ * A single file in a pipeline version.
+ *
+ * `content` is interpreted according to `encoding`:
+ *   * TEXT (default)  — content is a UTF-8 string; suitable for Python code, requirements.txt, READMEs.
+ *   * BASE64          — content is base64-encoded raw bytes; use for binary assets bundled with the pipeline.
+ */
+export type PipelineFileInput = {
+  content: Scalars['String']['input'];
+  encoding?: InputMaybe<FileEncoding>;
+  path: Scalars['String']['input'];
+};
 
 /**
  * Represents the functional purpose of a pipeline in data workflows.
@@ -6166,6 +6184,7 @@ export type UploadPipelineInput = {
   config?: InputMaybe<Scalars['JSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   externalLink?: InputMaybe<Scalars['URL']['input']>;
+  files?: InputMaybe<Array<PipelineFileInput>>;
   functionalType?: InputMaybe<PipelineFunctionalType>;
   name?: InputMaybe<Scalars['String']['input']>;
   parameters?: InputMaybe<Array<ParameterInput>>;
@@ -6173,7 +6192,7 @@ export type UploadPipelineInput = {
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   timeout?: InputMaybe<Scalars['Int']['input']>;
   workspaceSlug: Scalars['String']['input'];
-  zipfile: Scalars['String']['input'];
+  zipfile?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Represents the result of uploading a pipeline. */
