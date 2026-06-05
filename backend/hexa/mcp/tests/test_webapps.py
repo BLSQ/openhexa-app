@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from hexa.mcp.tools.webapps import (
     create_static_webapp,
+    get_static_webapp,
     list_static_webapps,
     update_static_webapp,
 )
@@ -22,6 +23,7 @@ def _make_mock_client():
     client = MagicMock()
     client.get_commits.return_value = [{"id": INITIAL_SHA}]
     client.commit_files.return_value = INITIAL_SHA
+    client.get_repository_files.return_value = []
     return client
 
 
@@ -54,6 +56,70 @@ class ListStaticWebappsTest(MCPTestCase):
             user=self.USER_OUTSIDER, workspace_slug=self.WORKSPACE.slug
         )
         self.assertEqual(result["webapps"]["totalItems"], 0)
+
+
+class GetStaticWebappTest(MCPTestCase):
+    @_mock_forgejo()
+    def test_get_static_webapp(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        files = [{"path": "index.html", "content": "<html>hi</html>"}]
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("Get"),
+            files_json=json.dumps(files),
+            allowed_operations="PIPELINES_READ",
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_slug = create_result["webapp"]["slug"]
+
+        client.get_repository_files.return_value = [
+            {
+                "path": "index.html",
+                "type": "file",
+                "content": "<html>hi</html>",
+                "encoding": "TEXT",
+            }
+        ]
+
+        result = get_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            webapp_slug=webapp_slug,
+        )
+        self.assertEqual(result["slug"], webapp_slug)
+        self.assertEqual(result["type"], "STATIC")
+        self.assertEqual(result["allowedOperations"], ["PIPELINES_READ"])
+        self.assertEqual(len(result["files"]), 1)
+        self.assertEqual(result["files"][0]["path"], "index.html")
+        self.assertEqual(result["files"][0]["content"], "<html>hi</html>")
+        self.assertEqual(result["files"][0]["encoding"], "TEXT")
+
+    def test_get_static_webapp_not_found(self):
+        result = get_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            webapp_slug="does-not-exist",
+        )
+        self.assertEqual(result, {"error": "Webapp not found"})
+
+    @_mock_forgejo()
+    def test_get_static_webapp_no_access(self, _mock):
+        files = [{"path": "index.html", "content": "<html></html>"}]
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("GetOutsider"),
+            files_json=json.dumps(files),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+
+        result = get_static_webapp(
+            user=self.USER_OUTSIDER,
+            workspace_slug=self.WORKSPACE.slug,
+            webapp_slug=create_result["webapp"]["slug"],
+        )
+        self.assertEqual(result, {"error": "Webapp not found"})
 
 
 class CreateStaticWebappTest(MCPTestCase):
