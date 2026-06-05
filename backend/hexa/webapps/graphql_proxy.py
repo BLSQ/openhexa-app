@@ -1,5 +1,6 @@
 import json
 
+import sentry_sdk
 from ariadne_django.views import GraphQLView
 from django.conf import settings
 from django.http import HttpRequest, JsonResponse
@@ -150,4 +151,6 @@ def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
         )
 
     track(request, "webapp_graphql_query", {**event_properties, "status": "allowed"})
-    return _graphql_view(request)
+    with sentry_sdk.new_scope() as scope:
+        scope.set_tag("webapp_graphql", True)
+        return _graphql_view(request)
