@@ -308,6 +308,10 @@ class BaseAgent:
                         try:
                             tool_output = json.loads(content)
                         except (json.JSONDecodeError, ValueError):
+                            logger.warning(
+                                "agent.run_stream: tool result is not valid JSON, using raw string call_id=%s",
+                                result_part.tool_call_id,
+                            )
                             tool_output = content
                     else:
                         tool_output = json.loads(json.dumps(content, default=str))
