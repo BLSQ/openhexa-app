@@ -160,7 +160,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
             events = _collect_stream(agent, "Use the tool")
         error_events = [e for e in events if e["event"] == "error"]
         self.assertEqual(len(error_events), 1)
-        self.assertIn("maximum token limit", error_events[0]["data"]["message"])
+        self.assertEqual(error_events[0]["data"]["error_code"], "MAX_TOKENS_REACHED")
 
     def test_incomplete_tool_call_does_not_yield_generic_error(self):
         @asynccontextmanager
@@ -174,7 +174,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
         with patch.object(agent.agent, "iter", _incomplete_iter):
             events = _collect_stream(agent, "Use the tool")
         error_events = [e for e in events if e["event"] == "error"]
-        self.assertNotEqual(error_events[0]["data"]["message"], "An error occurred")
+        self.assertNotEqual(error_events[0]["data"]["error_code"], "UNKNOWN_ERROR")
 
     def test_usage_limit_exceeded_token_limit_yields_user_friendly_error(self):
         @asynccontextmanager
@@ -189,7 +189,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
             events = _collect_stream(agent, "Do something complex")
         error_events = [e for e in events if e["event"] == "error"]
         self.assertEqual(len(error_events), 1)
-        self.assertIn("maximum token limit", error_events[0]["data"]["message"])
+        self.assertEqual(error_events[0]["data"]["error_code"], "MAX_TOKENS_REACHED")
 
     def test_usage_limit_exceeded_request_limit_yields_loop_error(self):
         @asynccontextmanager
@@ -204,7 +204,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
             events = _collect_stream(agent, "Do something complex")
         error_events = [e for e in events if e["event"] == "error"]
         self.assertEqual(len(error_events), 1)
-        self.assertIn("loop", error_events[0]["data"]["message"])
+        self.assertEqual(error_events[0]["data"]["error_code"], "AGENT_STUCK_IN_LOOP")
 
     def test_other_unexpected_model_behavior_yields_generic_error(self):
         @asynccontextmanager
