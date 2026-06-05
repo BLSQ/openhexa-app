@@ -473,6 +473,7 @@ Represents the result of creating a pipeline.
 type CreatePipelineResult {
   success: Boolean!  # Indicates if the pipeline was created successfully.
   errors: [PipelineError!]!  # The list of errors that occurred during the creation of the pipeline.
+  details: String  # Additional details about the failure (e.g. why files were rejected).
   pipeline: Pipeline  # The created pipeline.
   pipelineVersion: PipelineVersion  # The first pipeline version, if a zipfile was provided.
 }
