@@ -228,7 +228,9 @@ class BaseAgent:
             )
         except UnexpectedModelBehavior:
             logger.exception("agent.run_stream: unexpected model behavior")
-            yield format_sse("error", ErrorPayload(error_code=ErrorCode.UNEXPECTED_MODEL_BEHAVIOR))
+            yield format_sse(
+                "error", ErrorPayload(error_code=ErrorCode.UNEXPECTED_MODEL_BEHAVIOR)
+            )
         except Exception:
             logger.exception("agent.run_stream: error during streaming")
             yield format_sse("error", ErrorPayload(error_code=ErrorCode.UNKNOWN_ERROR))
