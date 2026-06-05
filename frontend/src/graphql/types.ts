@@ -1068,6 +1068,7 @@ export type CreatePipelineRecipientInput = {
 /** Represents the result of creating a pipeline. */
 export type CreatePipelineResult = {
   __typename?: 'CreatePipelineResult';
+  details?: Maybe<Scalars['String']['output']>;
   errors: Array<PipelineError>;
   pipeline?: Maybe<Pipeline>;
   pipelineVersion?: Maybe<PipelineVersion>;

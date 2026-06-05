@@ -1,3 +1,7 @@
+import io
+import json
+from zipfile import ZipFile
+
 from hexa.mcp.tools.pipelines import (
     create_pipeline_version,
     get_pipeline,
@@ -208,15 +212,21 @@ class UpdatePipelineTest(MCPTestCase):
         self.assertIn("NOT_FOUND", result["errors"])
 
 
+def _zip_contents(zipfile_bytes: bytes) -> dict[str, bytes]:
+    with ZipFile(io.BytesIO(zipfile_bytes)) as zf:
+        return {name: zf.read(name) for name in zf.namelist()}
+
+
 class CreatePipelineVersionTest(MCPTestCase):
-    SOURCE_CODE = 'from openhexa.sdk import pipeline\n\n@pipeline("test")\ndef test_pipeline():\n    pass'
+    PIPELINE_PY = 'from openhexa.sdk import pipeline\n\n@pipeline("test")\ndef test_pipeline():\n    pass'
+    FILES_JSON = json.dumps([{"path": "pipeline.py", "content": PIPELINE_PY}])
 
     def test_create_pipeline_version(self):
         result = create_pipeline_version(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
             pipeline_code="test-pipeline",
-            source_code=self.SOURCE_CODE,
+            files_json=self.FILES_JSON,
         )
         self.assertTrue(result["success"])
         self.assertEqual(result["pipelineVersion"]["versionNumber"], 2)
@@ -226,13 +236,17 @@ class CreatePipelineVersionTest(MCPTestCase):
         self.assertEqual(version.version_number, 2)
         self.assertEqual(version.user, self.USER_ADMIN)
         self.assertIsNotNone(version.zipfile)
+        self.assertEqual(
+            _zip_contents(version.zipfile),
+            {"pipeline.py": self.PIPELINE_PY.encode("utf-8")},
+        )
 
     def test_create_pipeline_version_with_name(self):
         result = create_pipeline_version(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
             pipeline_code="test-pipeline",
-            source_code=self.SOURCE_CODE,
+            files_json=self.FILES_JSON,
             name="My release",
             description="A new version",
         )
@@ -243,12 +257,65 @@ class CreatePipelineVersionTest(MCPTestCase):
         self.assertEqual(version.name, "My release")
         self.assertEqual(version.description, "A new version")
 
+    def test_create_pipeline_version_multiple_files(self):
+        files = [
+            {"path": "pipeline.py", "content": self.PIPELINE_PY},
+            {
+                "path": "helpers.py",
+                "content": "def clean(df):\n    return df.dropna()\n",
+            },
+            {"path": "requirements.txt", "content": "pandas\nrequests\n"},
+        ]
+        result = create_pipeline_version(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            pipeline_code="test-pipeline",
+            files_json=json.dumps(files),
+        )
+        self.assertTrue(result["success"], result)
+
+        version = PipelineVersion.objects.get(id=result["pipelineVersion"]["id"])
+        contents = _zip_contents(version.zipfile)
+        self.assertEqual(
+            set(contents), {"pipeline.py", "helpers.py", "requirements.txt"}
+        )
+        self.assertEqual(
+            contents["helpers.py"], b"def clean(df):\n    return df.dropna()\n"
+        )
+        self.assertEqual(contents["requirements.txt"], b"pandas\nrequests\n")
+
+    def test_create_pipeline_version_invalid_json(self):
+        result = create_pipeline_version(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            pipeline_code="test-pipeline",
+            files_json="not json",
+        )
+        self.assertEqual(result["errors"][0]["message"], "Invalid JSON in files_json")
+
+    def test_create_pipeline_version_invalid_files_surface_resolver_error(self):
+        result = create_pipeline_version(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            pipeline_code="test-pipeline",
+            files_json=json.dumps(
+                [
+                    {"path": "pipeline.py", "content": self.PIPELINE_PY},
+                    {"path": "pipeline.py", "content": "x = 1"},
+                ]
+            ),
+        )
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["INVALID_VERSION_FILES"])
+        self.assertIn("duplicate path", result["details"])
+        self.assertIn("pipeline.py", result["details"])
+
     def test_create_pipeline_version_not_found(self):
         result = create_pipeline_version(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
             pipeline_code="nonexistent",
-            source_code=self.SOURCE_CODE,
+            files_json=self.FILES_JSON,
         )
         self.assertFalse(result["success"])
         self.assertIn("PIPELINE_NOT_FOUND", result["errors"])
@@ -258,7 +325,7 @@ class CreatePipelineVersionTest(MCPTestCase):
             user=self.USER_OUTSIDER,
             workspace_slug=self.WORKSPACE.slug,
             pipeline_code="test-pipeline",
-            source_code=self.SOURCE_CODE,
+            files_json=self.FILES_JSON,
         )
         self.assertFalse(result["success"])
         self.assertIn("PIPELINE_NOT_FOUND", result["errors"])
