@@ -7,6 +7,7 @@ from ariadne import (
 )
 from django.conf import settings
 from django.contrib.auth.password_validation import password_validators_help_texts
+from django.urls import reverse
 
 config_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -38,7 +39,8 @@ def resolve_config_oidc_providers(_, info):
         {
             "id": p["id"],
             "display_name": p["display_name"],
-            "login_url": f"{base}/accounts/oidc/{p['id']}/login/",
+            "login_url": base
+            + reverse("openid_connect_login", kwargs={"provider_id": p["id"]}),
         }
         for p in settings.OIDC_PROVIDERS
     ]

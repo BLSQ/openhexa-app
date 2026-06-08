@@ -404,6 +404,11 @@ ACCOUNT_LOGIN_METHODS = {"email"}
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "none"
 SOCIALACCOUNT_AUTO_SIGNUP = True
+# Login buttons are plain <a> links (no form POST), so allauth must accept GET to
+# initiate the OAuth dance.  The trade-off is that the login endpoint has no
+# CSRF token check, which could enable login-CSRF if an attacker can lure a
+# victim into starting the flow.  Mitigated by PKCE (OAUTH_PKCE_ENABLED=True)
+# and the fact that the callback validates the state parameter.
 SOCIALACCOUNT_LOGIN_ON_GET = True
 SOCIALACCOUNT_ADAPTER = "hexa.user_management.sso_adapter.OpenHexaSocialAccountAdapter"
 
