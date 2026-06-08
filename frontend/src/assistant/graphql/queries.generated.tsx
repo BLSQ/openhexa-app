@@ -1,16 +1,8 @@
 import * as Types from '../../graphql/types';
 
 import { gql } from '@apollo/client';
-import { WorkspaceLayout_WorkspaceFragmentDoc } from '../../workspaces/layouts/WorkspaceLayout/WorkspaceLayout.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type AssistantPageQueryVariables = Types.Exact<{
-  workspaceSlug: Types.Scalars['String']['input'];
-}>;
-
-
-export type AssistantPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, assistantConversations: Array<{ __typename?: 'AssistantConversation', id: string, name?: string | null, createdAt: any }>, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } } | null } | null, me: { __typename?: 'Me', assistantMonthlyLimitExceeded: boolean } };
-
 export type AssistantConversationMessagesQueryVariables = Types.Exact<{
   id: Types.Scalars['UUID']['input'];
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
@@ -21,55 +13,6 @@ export type AssistantConversationMessagesQueryVariables = Types.Exact<{
 export type AssistantConversationMessagesQuery = { __typename?: 'Query', assistantConversation?: { __typename?: 'AssistantConversation', id: string, name?: string | null, messages: { __typename?: 'AssistantMessagePage', totalItems: number, totalPages: number, items: Array<{ __typename?: 'AssistantMessage', id: string, role: string, content: string, createdAt: any, toolInvocations: Array<{ __typename?: 'AssistantToolInvocation', id: string, createdAt: any, toolName: string, toolInput: any, toolOutput?: any | null, success: boolean }> }> } } | null };
 
 
-export const AssistantPageDocument = gql`
-    query AssistantPage($workspaceSlug: String!) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    ...WorkspaceLayout_workspace
-    assistantConversations {
-      id
-      name
-      createdAt
-    }
-  }
-  me {
-    assistantMonthlyLimitExceeded
-  }
-}
-    ${WorkspaceLayout_WorkspaceFragmentDoc}`;
-
-/**
- * __useAssistantPageQuery__
- *
- * To run a query within a React component, call `useAssistantPageQuery` and pass it any options that fit your needs.
- * When your component renders, `useAssistantPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useAssistantPageQuery({
- *   variables: {
- *      workspaceSlug: // value for 'workspaceSlug'
- *   },
- * });
- */
-export function useAssistantPageQuery(baseOptions: Apollo.QueryHookOptions<AssistantPageQuery, AssistantPageQueryVariables> & ({ variables: AssistantPageQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<AssistantPageQuery, AssistantPageQueryVariables>(AssistantPageDocument, options);
-      }
-export function useAssistantPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AssistantPageQuery, AssistantPageQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<AssistantPageQuery, AssistantPageQueryVariables>(AssistantPageDocument, options);
-        }
-export function useAssistantPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AssistantPageQuery, AssistantPageQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<AssistantPageQuery, AssistantPageQueryVariables>(AssistantPageDocument, options);
-        }
-export type AssistantPageQueryHookResult = ReturnType<typeof useAssistantPageQuery>;
-export type AssistantPageLazyQueryHookResult = ReturnType<typeof useAssistantPageLazyQuery>;
-export type AssistantPageSuspenseQueryHookResult = ReturnType<typeof useAssistantPageSuspenseQuery>;
-export type AssistantPageQueryResult = Apollo.QueryResult<AssistantPageQuery, AssistantPageQueryVariables>;
 export const AssistantConversationMessagesDocument = gql`
     query AssistantConversationMessages($id: UUID!, $page: Int = 1, $perPage: Int = 20) {
   assistantConversation(id: $id) {
