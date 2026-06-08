@@ -36,9 +36,9 @@ def setup_sentry(dsn):
         if _is_chained_exception(hint, AuthenticationError):
             return None
         # Webapp GraphQL errors are caused by external clients using outdated or incorrect API queries.
-        # We keep them for investigation but downgrade to warning so error-level alerts don't fire.
+        # They are expected and do not warrant a Sentry report.
         if event.get("tags", {}).get("webapp_graphql"):
-            event["level"] = "warning"
+            return None
         return event
 
     # Exclude /ready from sentry
