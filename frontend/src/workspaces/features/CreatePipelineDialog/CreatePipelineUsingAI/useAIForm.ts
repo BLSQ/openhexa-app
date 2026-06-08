@@ -1,6 +1,7 @@
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getErrorCodeMessage } from "assistant/helpers";
 import { InstructionSet } from "assistant/instructions";
 import { getPublicEnv } from "core/helpers/runtimeConfig";
 import useStreamingFetch from "core/hooks/useStreamingFetch";
@@ -115,20 +116,7 @@ export function useAIForm(
     },
     error: (data) => {
       const { error_code } = (data ?? {}) as { error_code?: string };
-      const errorMessages: Record<string, string> = {
-        AGENT_STUCK_IN_LOOP: t(
-          "I got stuck in a loop — try breaking your request into smaller steps.",
-        ),
-        MAX_TOKENS_REACHED: t(
-          "I hit the maximum token limit — try breaking your request into smaller steps.",
-        ),
-        UNEXPECTED_MODEL_BEHAVIOR: t("An unexpected error occurred. Please try again."),
-        UNKNOWN_ERROR: t("An error occurred. Please try again."),
-      };
-      setError_(
-        (error_code && errorMessages[error_code]) ??
-          t("The AI service encountered an error. Please try again."),
-      );
+      setError_(getErrorCodeMessage(t, error_code));
     },
   });
 
