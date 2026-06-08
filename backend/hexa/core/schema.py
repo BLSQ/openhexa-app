@@ -33,11 +33,12 @@ def resolve_config_allow_self_registration(_, info):
 
 @config_object.field("oidcProviders")
 def resolve_config_oidc_providers(_, info):
+    base = settings.BASE_URL.rstrip("/")
     return [
         {
             "id": p["id"],
             "display_name": p["display_name"],
-            "login_url": f"/accounts/openid_connect/{p['id']}/login/",
+            "login_url": f"{base}/accounts/oidc/{p['id']}/login/",
         }
         for p in settings.OIDC_PROVIDERS
     ]

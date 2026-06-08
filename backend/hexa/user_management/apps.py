@@ -13,4 +13,6 @@ class UserManagementConfig(CoreAppConfig):
         "password_reset_confirm",
         "password_reset_done",
         "password_reset_complete",
+        "openid_connect_login",
+        "openid_connect_callback",
     ]

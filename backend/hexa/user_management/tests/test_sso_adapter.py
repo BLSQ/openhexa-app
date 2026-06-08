@@ -15,7 +15,7 @@ _WHO_CONFIG = {
 }
 
 
-def _make_sociallogin(email, provider_id="who", is_existing=False, extra=None):
+def _make_sociallogin(email, provider_id="who", is_existing=False, extra=None, state=None):
     account = MagicMock()
     account.provider = provider_id
     account.extra_data = {
@@ -28,6 +28,7 @@ def _make_sociallogin(email, provider_id="who", is_existing=False, extra=None):
     sociallogin = MagicMock()
     sociallogin.account = account
     sociallogin.is_existing = is_existing
+    sociallogin.state = state if state is not None else {}
     return sociallogin
 
 
@@ -65,6 +66,31 @@ class PreSocialLoginTest(TestCase):
         self.adapter.pre_social_login(self.request, sociallogin)
 
         sociallogin.connect.assert_not_called()
+
+    @override_settings(NEW_FRONTEND_DOMAIN="http://localhost:3000")
+    def test_converts_relative_next_url_to_absolute_frontend_url(self):
+        sociallogin = _make_sociallogin("unknown@who.int", state={"next": "/workspaces/"})
+
+        self.adapter.pre_social_login(self.request, sociallogin)
+
+        self.assertEqual(sociallogin.state["next"], "http://localhost:3000/workspaces/")
+
+    @override_settings(NEW_FRONTEND_DOMAIN="http://localhost:3000")
+    def test_does_not_modify_absolute_next_url(self):
+        sociallogin = _make_sociallogin(
+            "unknown@who.int", state={"next": "http://localhost:3000/workspaces/"}
+        )
+
+        self.adapter.pre_social_login(self.request, sociallogin)
+
+        self.assertEqual(sociallogin.state["next"], "http://localhost:3000/workspaces/")
+
+    def test_handles_missing_next_in_state(self):
+        sociallogin = _make_sociallogin("unknown@who.int", state={})
+
+        self.adapter.pre_social_login(self.request, sociallogin)
+
+        self.assertEqual(sociallogin.state, {})
 
 
 @override_settings(OIDC_PROVIDERS=[_WHO_CONFIG])

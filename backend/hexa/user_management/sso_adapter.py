@@ -9,7 +9,20 @@ from hexa.user_management.models import User
 
 class OpenHexaSocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request: HttpRequest, sociallogin: SocialLogin) -> None:
-        """Auto-link an incoming OIDC identity to an existing OpenHEXA user by email."""
+        # Allauth stores state["next"] as the post-login redirect URL.  If it's a
+        # relative path, Django would redirect the browser to the backend (port 8000)
+        # instead of the Next.js frontend (port 3000).  Prefix with the frontend
+        # domain so the browser lands on the right page.
+        next_url = sociallogin.state.get("next", "")
+        if (
+            next_url
+            and not next_url.startswith(("http://", "https://"))
+            and settings.NEW_FRONTEND_DOMAIN
+        ):
+            sociallogin.state["next"] = (
+                f"{settings.NEW_FRONTEND_DOMAIN.rstrip('/')}{next_url}"
+            )
+
         if sociallogin.is_existing:
             return
 
