@@ -13,6 +13,7 @@ import {
 } from "assistant/graphql/queries.generated";
 import { useApolloClient } from "@apollo/client";
 import { useTranslation } from "next-i18next";
+import { getErrorCodeMessage } from "assistant/helpers";
 
 const PER_PAGE = 20;
 
@@ -174,9 +175,10 @@ export default function ChatPane({
       if (name) onConversationNameChange?.(name);
       markDone();
     },
-    error: () => {
+    error: (data) => {
       clear();
-      setSendError(t("The AI service encountered an error. Please try again."));
+      const { error_code } = (data ?? {}) as { error_code?: string };
+      setSendError(getErrorCodeMessage(t, error_code));
     },
   });
 

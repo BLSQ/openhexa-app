@@ -2,6 +2,11 @@ from contextlib import asynccontextmanager
 from unittest.mock import patch
 
 from asgiref.sync import async_to_sync
+from pydantic_ai.exceptions import (
+    IncompleteToolCall,
+    UnexpectedModelBehavior,
+    UsageLimitExceeded,
+)
 from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.base import BaseAgent
@@ -9,7 +14,11 @@ from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message
 from hexa.core.test.utils import parse_sse_stream
 
-from ._helpers import _AgentWithFakeTool, _make_tool_call_model, make_built_model
+from ._helpers import (
+    _AgentWithFakeTool,
+    _make_tool_call_model,
+    make_built_model,
+)
 from ._testcase import AgentTestCase
 
 
@@ -137,3 +146,79 @@ class BaseAgentRunStreamTest(AgentTestCase):
         events = _collect_stream(agent, "Use the tool")
         tool_result = next(e for e in events if e["event"] == "tool_result")
         self.assertTrue(tool_result["data"]["success"])
+
+    def test_incomplete_tool_call_yields_user_friendly_error(self):
+        @asynccontextmanager
+        async def _incomplete_iter(*args, **kwargs):
+            raise IncompleteToolCall("Tool call was cut off by token limit")
+            yield  # pragma: no cover
+
+        agent = _AgentWithFakeTool(
+            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+        )
+        with patch.object(agent.agent, "iter", _incomplete_iter):
+            events = _collect_stream(agent, "Use the tool")
+        error_events = [e for e in events if e["event"] == "error"]
+        self.assertEqual(len(error_events), 1)
+        self.assertEqual(error_events[0]["data"]["error_code"], "MAX_TOKENS_REACHED")
+
+    def test_incomplete_tool_call_does_not_yield_generic_error(self):
+        @asynccontextmanager
+        async def _incomplete_iter(*args, **kwargs):
+            raise IncompleteToolCall("Tool call was cut off by token limit")
+            yield  # pragma: no cover
+
+        agent = _AgentWithFakeTool(
+            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+        )
+        with patch.object(agent.agent, "iter", _incomplete_iter):
+            events = _collect_stream(agent, "Use the tool")
+        error_events = [e for e in events if e["event"] == "error"]
+        self.assertNotEqual(error_events[0]["data"]["error_code"], "UNKNOWN_ERROR")
+
+    def test_usage_limit_exceeded_token_limit_yields_user_friendly_error(self):
+        @asynccontextmanager
+        async def _usage_limit_iter(*args, **kwargs):
+            raise UsageLimitExceeded("Exceeded the output_tokens_limit of 32768")
+            yield  # pragma: no cover
+
+        agent = BaseAgent(
+            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+        )
+        with patch.object(agent.agent, "iter", _usage_limit_iter):
+            events = _collect_stream(agent, "Do something complex")
+        error_events = [e for e in events if e["event"] == "error"]
+        self.assertEqual(len(error_events), 1)
+        self.assertEqual(error_events[0]["data"]["error_code"], "MAX_TOKENS_REACHED")
+
+    def test_usage_limit_exceeded_request_limit_yields_loop_error(self):
+        @asynccontextmanager
+        async def _loop_iter(*args, **kwargs):
+            raise UsageLimitExceeded("Exceeded the request_limit of 10")
+            yield  # pragma: no cover
+
+        agent = BaseAgent(
+            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+        )
+        with patch.object(agent.agent, "iter", _loop_iter):
+            events = _collect_stream(agent, "Do something complex")
+        error_events = [e for e in events if e["event"] == "error"]
+        self.assertEqual(len(error_events), 1)
+        self.assertEqual(error_events[0]["data"]["error_code"], "AGENT_STUCK_IN_LOOP")
+
+    def test_other_unexpected_model_behavior_yields_generic_error(self):
+        @asynccontextmanager
+        async def _unexpected_iter(*args, **kwargs):
+            raise UnexpectedModelBehavior("Model returned something totally unexpected")
+            yield  # pragma: no cover
+
+        agent = BaseAgent(
+            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+        )
+        with patch.object(agent.agent, "iter", _unexpected_iter):
+            events = _collect_stream(agent, "Do something")
+        error_events = [e for e in events if e["event"] == "error"]
+        self.assertEqual(len(error_events), 1)
+        self.assertEqual(
+            error_events[0]["data"]["error_code"], "UNEXPECTED_MODEL_BEHAVIOR"
+        )
