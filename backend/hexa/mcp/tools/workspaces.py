@@ -35,7 +35,8 @@ def update_workspace(
     - description: new description
     - countries: JSON array of ISO alpha-2 country codes, e.g. '["US", "FR", "KE"]'
     - docker_image: custom Docker image for pipeline execution, e.g. 'eu.gcr.io/my-org/my-image:latest'
-    Only provided non-empty fields are updated. Requires update permission on the workspace (ADMIN role or higher)."""
+    Only provided non-empty fields are updated. Requires update permission on the workspace (ADMIN role or higher).
+    """
     update_input = {"slug": slug}
     if name:
         update_input["name"] = name

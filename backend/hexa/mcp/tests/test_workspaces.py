@@ -45,7 +45,6 @@ class GetWorkspaceTest(MCPTestCase):
         self.assertIsNone(result["workspace"])
 
 
-
 class UpdateWorkspaceTest(MCPTestCase):
     def test_update_name(self):
         result = update_workspace(
@@ -101,5 +100,3 @@ class UpdateWorkspaceTest(MCPTestCase):
         result = update_workspace(user=self.USER_ADMIN, slug=self.WORKSPACE.slug)
         self.assertTrue(result["success"])
         self.assertEqual(result["workspace"]["name"], "Test Workspace")
-
-
