@@ -64,7 +64,9 @@ def _parse_tool_output(content) -> object:
         try:
             return json.loads(content)
         except (json.JSONDecodeError, ValueError):
-            logger.warning("agent.run_stream: tool result is not valid JSON, using raw string")
+            logger.warning(
+                "agent.run_stream: tool result is not valid JSON, using raw string"
+            )
             return content
     return json.loads(json.dumps(content, default=_json_default))
 
