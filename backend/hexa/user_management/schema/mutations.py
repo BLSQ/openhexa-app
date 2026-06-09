@@ -144,6 +144,9 @@ def resolve_login(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     mutation_input = kwargs["input"]
 
+    if not settings.PASSWORD_LOGIN_ENABLED:
+        return {"success": False, "errors": ["INVALID_CREDENTIALS"]}
+
     trimmed_email = remove_whitespace(mutation_input["email"])
 
     user_candidate = authenticate(

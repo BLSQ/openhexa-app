@@ -582,6 +582,8 @@ export type Config = {
   allowSelfRegistration: Scalars['Boolean']['output'];
   /** Configured external OIDC login providers. Empty when none are enabled. */
   oidcProviders: Array<OidcProvider>;
+  /** Whether username/password login is enabled. False when OIDC providers are configured. */
+  passwordLoginEnabled: Scalars['Boolean']['output'];
   /** List of requirements for the password. */
   passwordRequirements?: Maybe<Array<Scalars['String']['output']>>;
 };

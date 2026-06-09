@@ -30,7 +30,9 @@ interface LoginForm {
 const LoginPage: NextPageWithLayout = () => {
   const router = useRouter();
   const [doLogin] = useLoginMutation();
-  const { data: configData } = useSignupPageQuery();
+  const { data: configData, loading: configLoading } = useSignupPageQuery();
+  const passwordLoginEnabled = configData?.config?.passwordLoginEnabled ?? true;
+  const oidcProviders = configData?.config?.oidcProviders ?? [];
   const [showOTPForm, setOTPForm] = useState(false);
   const { t } = useTranslation();
 
@@ -126,125 +128,140 @@ const LoginPage: NextPageWithLayout = () => {
             {t("Sign in")}
           </h2>
         </div>
-        {showOTPForm ? (
-          <>
-            <div className=" text-gray-600">
-              <p>{t("Enter the OTP code you received in your mailbox.")}</p>
-            </div>
-            <Field
-              fullWidth
-              name="token"
-              data-testid="token"
-              label={t("OTP Code")}
-              value={form.formData.token}
-              placeholder="123456"
-              onChange={form.handleInputChange}
-              required
-            />
-            <div className="my-2 flex items-center justify-between gap-2">
-              {form.submitError && (
-                <div data-testid="error" className="text-sm text-red-600">
-                  <span>{form.submitError}</span>
-                </div>
-              )}
-              <button
-                type="button"
-                className="text-blue-600"
-                onClick={sendNewCode}
-              >
-                {t("Send a new code")}
-              </button>
-            </div>
-          </>
+        {configLoading ? (
+          <div className="flex justify-center py-4">
+            <Spinner size="sm" />
+          </div>
         ) : (
           <>
-            <div className="-space-y-px pt-2">
-              <label className="sr-only" htmlFor="email">
-                {t("Email address")}
-              </label>
-              <Input
-                name="email"
-                fullWidth
-                data-testid="email"
-                value={form.formData.email}
-                required
-                type="text"
-                className="rounded-b-none"
-                onChange={form.handleInputChange}
-                autoComplete="email"
-                placeholder={t("Email address")}
-                disabled={form.isSubmitting}
-                error={form.touched.email && form.errors.email}
-              />
-              <label className="sr-only" htmlFor="password">
-                {t("Password")}
-              </label>
-              <Input
-                name="password"
-                value={form.formData.password}
-                required
-                fullWidth
-                data-testid="password"
-                type="password"
-                placeholder={t("Password")}
-                onChange={form.handleInputChange}
-                autoComplete="current-password"
-                disabled={form.isSubmitting}
-                error={form.touched.password && form.errors.password}
-                className="rounded-t-none"
-              />
-              {form.submitError && (
-                <div
-                  data-testid="error"
-                  className={"pt-2 text-sm text-red-600"}
-                >
-                  {form.submitError}
+            {passwordLoginEnabled && (
+              <>
+                {showOTPForm ? (
+                  <>
+                    <div className="text-gray-600">
+                      <p>
+                        {t("Enter the OTP code you received in your mailbox.")}
+                      </p>
+                    </div>
+                    <Field
+                      fullWidth
+                      name="token"
+                      data-testid="token"
+                      label={t("OTP Code")}
+                      value={form.formData.token}
+                      placeholder="123456"
+                      onChange={form.handleInputChange}
+                      required
+                    />
+                    <div className="my-2 flex items-center justify-between gap-2">
+                      {form.submitError && (
+                        <div
+                          data-testid="error"
+                          className="text-sm text-red-600"
+                        >
+                          <span>{form.submitError}</span>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        className="text-blue-600"
+                        onClick={sendNewCode}
+                      >
+                        {t("Send a new code")}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="-space-y-px pt-2">
+                      <label className="sr-only" htmlFor="email">
+                        {t("Email address")}
+                      </label>
+                      <Input
+                        name="email"
+                        fullWidth
+                        data-testid="email"
+                        value={form.formData.email}
+                        required
+                        type="text"
+                        className="rounded-b-none"
+                        onChange={form.handleInputChange}
+                        autoComplete="email"
+                        placeholder={t("Email address")}
+                        disabled={form.isSubmitting}
+                        error={form.touched.email && form.errors.email}
+                      />
+                      <label className="sr-only" htmlFor="password">
+                        {t("Password")}
+                      </label>
+                      <Input
+                        name="password"
+                        value={form.formData.password}
+                        required
+                        fullWidth
+                        data-testid="password"
+                        type="password"
+                        placeholder={t("Password")}
+                        onChange={form.handleInputChange}
+                        autoComplete="current-password"
+                        disabled={form.isSubmitting}
+                        error={form.touched.password && form.errors.password}
+                        className="rounded-t-none"
+                      />
+                      {form.submitError && (
+                        <div
+                          data-testid="error"
+                          className={"pt-2 text-sm text-red-600"}
+                        >
+                          {form.submitError}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-end">
+                      <div className="text-sm">
+                        <Link
+                          href="/auth/password_reset/"
+                          customStyle="text-blue-600 hover:text-blue-500"
+                        >
+                          {t("Forgot your password?")}
+                        </Link>
+                      </div>
+                    </div>
+                  </>
+                )}
+                <div className="space-y-2">
+                  <Button
+                    data-testid="submit"
+                    disabled={form.isSubmitting}
+                    type="submit"
+                    className="w-full"
+                  >
+                    {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
+                    {t("Sign in")}
+                  </Button>
+                  {showOTPForm && (
+                    <Button
+                      variant="secondary"
+                      type="reset"
+                      size="sm"
+                      className="w-full"
+                      onClick={onBack}
+                    >
+                      {t("Back")}
+                    </Button>
+                  )}
                 </div>
-              )}
-            </div>
-            <div className="flex items-center justify-end">
-              <div className="text-sm">
-                <Link
-                  href="/auth/password_reset/"
-                  customStyle="text-blue-600 hover:text-blue-500"
-                >
-                  {t("Forgot your password?")}
-                </Link>
-              </div>
-            </div>
-          </>
-        )}
-        <div className="space-y-2">
-          <Button
-            data-testid="submit"
-            disabled={form.isSubmitting}
-            type="submit"
-            className="w-full"
-          >
-            {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
-            {t("Sign in")}
-          </Button>
-          {showOTPForm && (
-            <Button
-              variant="secondary"
-              type="reset"
-              size="sm"
-              className="w-full"
-              onClick={onBack}
-            >
-              {t("Back")}
-            </Button>
-          )}
-        </div>
-        {!showOTPForm &&
-          (configData?.config?.oidcProviders ?? []).length > 0 && (
-            <>
+              </>
+            )}
+            {!showOTPForm && passwordLoginEnabled && oidcProviders.length > 0 && (
               <div className="flex items-center gap-3">
                 <div className="flex-1 border-t border-gray-300" />
                 <span className="text-sm text-gray-500">{t("or")}</span>
                 <div className="flex-1 border-t border-gray-300" />
               </div>
-              {configData!.config!.oidcProviders.map((provider) => (
+            )}
+            {!showOTPForm &&
+              oidcProviders.map((provider) => (
                 <a
                   key={provider.id}
                   href={`${provider.loginUrl}?next=${encodeURIComponent((router.query.next as string) ?? "/")}`}
@@ -259,8 +276,8 @@ const LoginPage: NextPageWithLayout = () => {
                   {t("Sign in with {{name}}", { name: provider.displayName })}
                 </a>
               ))}
-            </>
-          )}
+          </>
+        )}
         {configData?.config?.allowSelfRegistration && (
           <div className="mt-4 text-center text-sm">
             <span className="text-gray-600">{t("Don't have an account?")}</span>{" "}

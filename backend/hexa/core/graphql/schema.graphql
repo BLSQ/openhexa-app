@@ -20,6 +20,10 @@ type Config {
     Configured external OIDC login providers. Empty when none are enabled.
     """
     oidcProviders: [OidcProvider!]!
+    """
+    Whether username/password login is enabled. False when OIDC providers are configured.
+    """
+    passwordLoginEnabled: Boolean!
 }
 
 extend type Query {

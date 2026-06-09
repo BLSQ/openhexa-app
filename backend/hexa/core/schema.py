@@ -32,6 +32,11 @@ def resolve_config_allow_self_registration(_, info):
     return settings.ALLOW_SELF_REGISTRATION
 
 
+@config_object.field("passwordLoginEnabled")
+def resolve_config_password_login_enabled(_, info):
+    return settings.PASSWORD_LOGIN_ENABLED
+
+
 @config_object.field("oidcProviders")
 def resolve_config_oidc_providers(_, info):
     base = settings.BASE_URL.rstrip("/")

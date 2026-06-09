@@ -89,6 +89,7 @@ query RegisterPage {
 query SignupPage {
   config {
     allowSelfRegistration
+    passwordLoginEnabled
     oidcProviders {
       id
       displayName
