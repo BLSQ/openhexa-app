@@ -25,55 +25,55 @@ Ce manuel d'utilisation couvre tous les aspects de l'utilisation d'OpenHEXA :
 <div class="quickstart-grid">
   <div class="quickstart-card">
     <div class="number">👤</div>
-    <h3><a href="account.md">Gestion du compte</a></h3>
+    <h3><a href="account/">Gestion du compte</a></h3>
     <p>Gérez votre profil, vos paramètres de sécurité et vos préférences personnelles.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">🧭</div>
-    <h3><a href="navigation.md">Navigation</a></h3>
+    <h3><a href="navigation/">Navigation</a></h3>
     <p>Apprenez à naviguer entre les organisations, les espaces de travail et à trouver rapidement des ressources.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">🏢</div>
-    <h3><a href="workspaces.md">Espaces de travail</a></h3>
+    <h3><a href="workspaces/">Espaces de travail</a></h3>
     <p>Créez et gérez des environnements de projet collaboratifs pour votre équipe.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">📁</div>
-    <h3><a href="files.md">Gestion des fichiers</a></h3>
+    <h3><a href="files/">Gestion des fichiers</a></h3>
     <p>Téléchargez, organisez et partagez des fichiers via le système de fichiers partagé.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">🗄️</div>
-    <h3><a href="database.md">Base de données</a></h3>
+    <h3><a href="database/">Base de données</a></h3>
     <p>Travaillez avec des bases de données PostgreSQL pour le stockage et l'analyse de données structurées.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">📊</div>
-    <h3><a href="datasets.md">Jeux de données</a></h3>
+    <h3><a href="datasets/">Jeux de données</a></h3>
     <p>Gérez et versionnez vos jeux de données pour une analyse reproductible.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">🔗</div>
-    <h3><a href="connections.md">Connexions</a></h3>
+    <h3><a href="connections/">Connexions</a></h3>
     <p>Connectez-vous à des sources de données externes et à des API pour l'intégration de données.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">⚡</div>
-    <h3><a href="pipelines.md">Pipelines</a></h3>
+    <h3><a href="pipelines/">Pipelines</a></h3>
     <p>Créez, exécutez et planifiez des flux de travail de données complexes et des processus ETL.</p>
   </div>
   
   <div class="quickstart-card">
     <div class="number">📓</div>
-    <h3><a href="notebooks.md">Notebooks</a></h3>
+    <h3><a href="notebooks/">Notebooks</a></h3>
     <p>Utilisez les notebooks Jupyter pour l'exploration et l'analyse interactives de données.</p>
   </div>
 </div>

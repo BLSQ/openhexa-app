@@ -249,6 +249,10 @@ def generate_file_metadata_task(file_id: str) -> None:
         logger.exception(
             f"Failed to load dataframe for file {version_file.id}", exc_info=e
         )
+        DatasetFileSample.objects.filter(dataset_version_file=version_file).update(
+            status=DatasetFileSample.STATUS_FAILED,
+            status_reason=str(e),
+        )
         return
     logger.info("Finished sample generation, calculating profiling")
     add_system_attributes(version_file, df)

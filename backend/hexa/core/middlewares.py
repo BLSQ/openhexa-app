@@ -1,11 +1,39 @@
 import logging
 
+from django.core.exceptions import RequestDataTooBig
 from django.db import connection
-from django.http import HttpRequest
+from django.http import HttpRequest, JsonResponse
 from django.utils import timezone
 from oauth2_provider.models import AccessToken
 
 logger = logging.getLogger(__name__)
+security_logger = logging.getLogger("django.security.RequestDataTooBig")
+
+
+class RequestTooBigMiddleware:
+    """Convert RequestDataTooBig into a 413 JSON response.
+
+    Uses process_exception so Django's built-in SuspiciousOperation handling
+    (which would convert to a generic 400) doesn't run first. Re-emits the
+    security log Django would have produced so Sentry's LoggingIntegration
+    still captures the event without us touching sentry_sdk.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request: HttpRequest):
+        return self.get_response(request)
+
+    def process_exception(self, request: HttpRequest, exception: Exception):
+        if not isinstance(exception, RequestDataTooBig):
+            return None
+        security_logger.error(
+            str(exception),
+            exc_info=exception,
+            extra={"status_code": 413, "request": request},
+        )
+        return JsonResponse({"error": "REQUEST_TOO_LARGE"}, status=413)
 
 
 def set_remote_addr_from_forwarded_for(get_response):

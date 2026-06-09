@@ -515,6 +515,8 @@ export type AssistantTextSegment = {
 
 export type AssistantToolSegment = {
   __typename?: 'AssistantToolSegment';
+  id?: Maybe<Scalars['UUID']['output']>;
+  proposalPending: Scalars['Boolean']['output'];
   success: Scalars['Boolean']['output'];
   toolCallId: Scalars['String']['output'];
   toolInput: Scalars['JSON']['output'];
@@ -1058,8 +1060,8 @@ export type CreatePipelineInput = {
   name: Scalars['String']['input'];
   notebookPath?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
+  version?: InputMaybe<CreatePipelineVersionInput>;
   workspaceSlug: Scalars['String']['input'];
-  zipfile?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Represents the input for adding a recipient to a pipeline. */
@@ -1109,6 +1111,20 @@ export type CreatePipelineTemplateVersionResult = {
   errors?: Maybe<Array<CreatePipelineTemplateVersionError>>;
   pipelineTemplate?: Maybe<PipelineTemplate>;
   success: Scalars['Boolean']['output'];
+};
+
+/**
+ * Configures the first pipeline version, created atomically alongside the pipeline.
+ * Providing this sub-input signals that a first version should be created.
+ */
+export type CreatePipelineVersionInput = {
+  config?: InputMaybe<Scalars['JSON']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  externalLink?: InputMaybe<Scalars['URL']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  parameters?: InputMaybe<Array<ParameterInput>>;
+  timeout?: InputMaybe<Scalars['Int']['input']>;
+  zipfile: Scalars['String']['input'];
 };
 
 /** The CreateTeamError enum represents the possible errors that can occur during the createTeam mutation. */
@@ -2961,6 +2977,7 @@ export type Mutation = {
   resendWorkspaceInvitation: ResendWorkspaceInvitationResult;
   /** Sends a password reset email to the user. */
   resetPassword: ResetPasswordResult;
+  resolveAssistantProposal: ResolveAssistantProposalResult;
   runDAG: RunDagResult;
   /** Runs a pipeline. */
   runPipeline: RunPipelineResult;
@@ -3457,6 +3474,11 @@ export type MutationResendWorkspaceInvitationArgs = {
 
 export type MutationResetPasswordArgs = {
   input: ResetPasswordInput;
+};
+
+
+export type MutationResolveAssistantProposalArgs = {
+  toolInvocationId: Scalars['UUID']['input'];
 };
 
 
@@ -5060,6 +5082,18 @@ export type ResetPasswordResult = {
   success: Scalars['Boolean']['output'];
 };
 
+export enum ResolveAssistantProposalError {
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type ResolveAssistantProposalResult = {
+  __typename?: 'ResolveAssistantProposalResult';
+  errors: Array<ResolveAssistantProposalError>;
+  success: Scalars['Boolean']['output'];
+  toolInvocation?: Maybe<AssistantToolSegment>;
+};
+
 /** Resource counts */
 export type ResourceCounts = {
   __typename?: 'ResourceCounts';
@@ -6227,6 +6261,7 @@ export type WhoRegion = {
 export type Webapp = {
   __typename?: 'Webapp';
   allowedOperations: Array<WebappOperationScope>;
+  commitDiff?: Maybe<WebappCommitDiff>;
   createdBy: User;
   description?: Maybe<Scalars['String']['output']>;
   files?: Maybe<Array<FileNode>>;
@@ -6251,6 +6286,12 @@ export type Webapp = {
 
 
 /** Represents a web app. */
+export type WebappCommitDiffArgs = {
+  ref: Scalars['String']['input'];
+};
+
+
+/** Represents a web app. */
 export type WebappFilesArgs = {
   ref?: InputMaybe<Scalars['String']['input']>;
 };
@@ -6260,6 +6301,16 @@ export type WebappFilesArgs = {
 export type WebappVersionsArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type WebappCommitDiff = {
+  __typename?: 'WebappCommitDiff';
+  authorEmail: Scalars['String']['output'];
+  authorName: Scalars['String']['output'];
+  date: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+  rawDiff: Scalars['String']['output'];
 };
 
 /**

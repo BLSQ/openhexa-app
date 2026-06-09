@@ -468,6 +468,8 @@ type AssistantTextSegment {
 }
 
 type AssistantToolSegment {
+  id: UUID
+  proposalPending: Boolean!
   success: Boolean!
   toolCallId: String!
   toolInput: JSON!
@@ -1046,8 +1048,8 @@ input CreatePipelineInput {
   name: String!
   notebookPath: String
   tags: [String!]
+  version: CreatePipelineVersionInput
   workspaceSlug: String!
-  zipfile: String
 }
 
 """Represents the input for adding a recipient to a pipeline."""
@@ -1097,6 +1099,20 @@ type CreatePipelineTemplateVersionResult {
   errors: [CreatePipelineTemplateVersionError!]
   pipelineTemplate: PipelineTemplate
   success: Boolean!
+}
+
+"""
+Configures the first pipeline version, created atomically alongside the pipeline.
+Providing this sub-input signals that a first version should be created.
+"""
+input CreatePipelineVersionInput {
+  config: JSON
+  description: String
+  externalLink: URL
+  name: String
+  parameters: [ParameterInput!]
+  timeout: Int
+  zipfile: String!
 }
 
 """
@@ -2997,6 +3013,7 @@ type Mutation {
 
   """Sends a password reset email to the user."""
   resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
+  resolveAssistantProposal(toolInvocationId: UUID!): ResolveAssistantProposalResult!
   runDAG(input: RunDAGInput!): RunDAGResult!
 
   """Runs a pipeline."""
@@ -4122,6 +4139,17 @@ The ResetPasswordResult type represents the result of the resetPassword mutation
 type ResetPasswordResult {
   """Indicates whether the password reset was successful."""
   success: Boolean!
+}
+
+enum ResolveAssistantProposalError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+type ResolveAssistantProposalResult {
+  errors: [ResolveAssistantProposalError!]!
+  success: Boolean!
+  toolInvocation: AssistantToolSegment
 }
 
 """Resource counts"""
@@ -5442,6 +5470,7 @@ type WHORegion {
 """Represents a web app."""
 type Webapp {
   allowedOperations: [WebappOperationScope!]!
+  commitDiff(ref: String!): WebappCommitDiff
   createdBy: User!
   description: String
   files(ref: String): [FileNode!]
@@ -5462,6 +5491,15 @@ type Webapp {
   url: String!
   versions(page: Int, perPage: Int): WebappVersionsPage
   workspace: Workspace!
+}
+
+type WebappCommitDiff {
+  authorEmail: String!
+  authorName: String!
+  date: DateTime!
+  id: String!
+  message: String!
+  rawDiff: String!
 }
 
 """

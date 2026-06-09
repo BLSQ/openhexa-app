@@ -422,6 +422,20 @@ enum PipelineOrderBy {
 }
 
 """
+Configures the first pipeline version, created atomically alongside the pipeline.
+Providing this sub-input signals that a first version should be created.
+"""
+input CreatePipelineVersionInput {
+  zipfile: String!  # Base64-encoded ZIP file containing the version code.
+  name: String  # The name of the first pipeline version.
+  description: String  # The description of the first pipeline version.
+  externalLink: URL  # The external link associated with the first pipeline version.
+  parameters: [ParameterInput!]  # The parameters of the first pipeline version (defaults to those parsed from the zipfile).
+  timeout: Int  # The timeout, in seconds, of the first pipeline version.
+  config: JSON  # The default configuration applied to runs of the first pipeline version.
+}
+
+"""
 Represents the input for creating a pipeline.
 """
 input CreatePipelineInput {
@@ -432,7 +446,7 @@ input CreatePipelineInput {
   notebookPath: String  # The path to the notebook file for the pipeline.
   functionalType: PipelineFunctionalType  # The functional type of the pipeline.
   tags: [String!]  # The names of tags to associate with the pipeline.
-  zipfile: String  # Optional base64-encoded ZIP file to upload as the first pipeline version.
+  version: CreatePipelineVersionInput  # Optional first pipeline version, created atomically with the pipeline.
 }
 
 """

@@ -230,6 +230,18 @@ class ForgejoClient(GitClient):
 
         return nodes
 
+    def get_commit(self, org_slug: str, repo_name: str, sha: str) -> dict:
+        response = self._request(
+            "GET", f"/repos/{org_slug}/{repo_name}/git/commits/{sha}"
+        )
+        return response.json()
+
+    def get_commit_diff(self, org_slug: str, repo_name: str, sha: str) -> str:
+        response = self._request(
+            "GET", f"/repos/{org_slug}/{repo_name}/git/commits/{sha}.diff"
+        )
+        return response.text
+
     def commit_exists(self, org_slug: str, repo_name: str, sha: str) -> bool:
         try:
             self._request("GET", f"/repos/{org_slug}/{repo_name}/git/commits/{sha}")

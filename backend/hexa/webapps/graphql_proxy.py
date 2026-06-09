@@ -29,7 +29,6 @@ SCOPE_FIELDS = {
     Webapp.OperationScope.FILES_WRITE: {
         "prepareObjectUpload",
         "createBucketFolder",
-        "deleteBucketObject",
         "writeFileContent",
     },
     Webapp.OperationScope.DATASETS_READ: {
@@ -41,12 +40,9 @@ SCOPE_FIELDS = {
     Webapp.OperationScope.DATASETS_WRITE: {
         "createDataset",
         "updateDataset",
-        "deleteDataset",
         "createDatasetVersion",
         "updateDatasetVersion",
-        "deleteDatasetVersion",
         "createDatasetVersionFile",
-        "deleteDatasetLink",
     },
     Webapp.OperationScope.USER_READ: {"me", "workspace"},
 }

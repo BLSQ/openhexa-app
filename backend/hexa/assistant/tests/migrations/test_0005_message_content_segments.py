@@ -10,8 +10,8 @@ from hexa.workspaces.models import Workspace
 
 
 class MessageContentSegmentsMigrationTest(TransactionTestCase):
-    migrate_from = ("assistant", "0003_conversation_generic_linked_object")
-    migrate_to = ("assistant", "0004_message_content_segments")
+    migrate_from = ("assistant", "0004_toolinvocation_resolved")
+    migrate_to = ("assistant", "0005_message_content_segments")
 
     def setUp(self):
         self.migrator = Migrator()

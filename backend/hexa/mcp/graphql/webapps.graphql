@@ -18,6 +18,34 @@ query ListStaticWebapps($workspaceSlug: String, $page: Int, $perPage: Int) {
   }
 }
 
+query GetStaticWebapp($workspaceSlug: String!, $slug: String!) {
+  webapp(workspaceSlug: $workspaceSlug, slug: $slug) {
+    id
+    slug
+    name
+    description
+    url
+    type
+    isPublic
+    allowedOperations
+    workspace {
+      slug
+    }
+    files {
+      path
+      type
+      content
+      encoding
+      language
+      lineCount
+    }
+    permissions {
+      update
+      delete
+    }
+  }
+}
+
 mutation CreateStaticWebapp($input: CreateWebappInput!) {
   createWebapp(input: $input) {
     success

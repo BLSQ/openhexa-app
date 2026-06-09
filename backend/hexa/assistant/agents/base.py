@@ -5,7 +5,12 @@ from collections.abc import AsyncGenerator
 from decimal import Decimal
 
 import genai_prices
-from pydantic_ai import Agent, ModelRetry, ModelSettings, RunUsage
+from pydantic_ai import Agent, ModelRetry, ModelSettings, RunUsage, UsageLimits
+from pydantic_ai.exceptions import (
+    IncompleteToolCall,
+    UnexpectedModelBehavior,
+    UsageLimitExceeded,
+)
 from pydantic_ai.messages import (
     FunctionToolCallEvent,
     FunctionToolResultEvent,
@@ -26,6 +31,7 @@ from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.assistant.sse_types import (
     ConversationNamePayload,
     DonePayload,
+    ErrorCode,
     ErrorPayload,
     TextDeltaPayload,
     ToolCallPayload,
@@ -58,6 +64,7 @@ def _parse_tool_output(content) -> object:
         try:
             return json.loads(content)
         except (json.JSONDecodeError, ValueError):
+            logger.warning("agent.run_stream: tool result is not valid JSON, using raw string")
             return content
     return json.loads(json.dumps(content, default=_json_default))
 
@@ -100,6 +107,7 @@ class BaseAgent:
     instruction_set = InstructionSet.GENERAL
     tools: list = []
     max_tokens: int = 32768
+    max_requests: int = 10
 
     def __init__(
         self, conversation: Conversation, built_model: BuiltModel | None = None
@@ -172,7 +180,9 @@ class BaseAgent:
             tool_invocations: dict[str, ToolInvocation] = {}
 
             async with self.agent.iter(
-                user_input, message_history=history
+                user_input,
+                message_history=history,
+                usage_limits=UsageLimits(request_limit=self.max_requests),
             ) as agent_run:
                 async for node in agent_run:
                     if naming_task is not None and naming_task.done():
@@ -216,14 +226,42 @@ class BaseAgent:
                 ),
             )
 
-        except json.JSONDecodeError:
+        except UsageLimitExceeded as e:
+            if "request_limit" in str(e):
+                logger.exception(
+                    "agent.run_stream: request limit exceeded (agent stuck in loop)"
+                )
+                yield format_sse(
+                    "error",
+                    ErrorPayload(error_code=ErrorCode.AGENT_STUCK_IN_LOOP),
+                )
+            else:
+                logger.exception(
+                    "agent.run_stream: usage limit exceeded (max_tokens limit reached)"
+                )
+                yield format_sse(
+                    "error",
+                    ErrorPayload(error_code=ErrorCode.MAX_TOKENS_REACHED),
+                )
+        except IncompleteToolCall:
             logger.exception(
-                "agent.run_stream: malformed tool args (likely truncated by max_tokens)"
+                "agent.run_stream: tool call incomplete (max_tokens limit reached)"
             )
-            yield format_sse("error", ErrorPayload(message="An error occurred"))
+            yield format_sse(
+                "error",
+                ErrorPayload(error_code=ErrorCode.MAX_TOKENS_REACHED),
+            )
+        except UnexpectedModelBehavior:
+            logger.exception("agent.run_stream: unexpected model behavior")
+            yield format_sse(
+                "error", ErrorPayload(error_code=ErrorCode.UNEXPECTED_MODEL_BEHAVIOR)
+            )
         except Exception:
             logger.exception("agent.run_stream: error during streaming")
-            yield format_sse("error", ErrorPayload(message="An error occurred"))
+            yield format_sse("error", ErrorPayload(error_code=ErrorCode.UNKNOWN_ERROR))
+        finally:
+            if naming_task is not None and not naming_task.done():
+                naming_task.cancel()
 
     @staticmethod
     async def _stream_model_node(node, ctx):

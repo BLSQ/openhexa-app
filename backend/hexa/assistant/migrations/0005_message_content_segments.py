@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
     atomic = False
 
     dependencies = [
-        ("assistant", "0003_conversation_generic_linked_object"),
+        ("assistant", "0004_toolinvocation_resolved"),
     ]
 
     operations = [

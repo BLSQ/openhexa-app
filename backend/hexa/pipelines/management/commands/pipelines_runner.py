@@ -8,7 +8,9 @@ from enum import Enum
 from logging import getLogger
 from time import sleep
 
+import docker
 import requests
+import urllib3
 from django import db
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -325,10 +327,17 @@ def monitor_pod_kube(run: PipelineRun, pod):
     return success, stdout
 
 
-def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
-    import docker
-    import urllib3
+def _get_docker_client():
+    try:
+        docker_client = docker.DockerClient(base_url="unix://var/run/docker.sock")
+        docker_client.ping()
+    except:
+        logger.exception("Docker client error", exc_info=True)
+        raise
+    return docker_client
 
+
+def create_container_docker(run: PipelineRun, image: str, env_vars: dict):
     del env_vars[
         "HEXA_PIPELINE_NAME"
     ]  # If there are spaces in the pipeline name, it will break the command
@@ -338,12 +347,7 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
         + base64.b64encode(json.dumps(run.config).encode("utf-8")).decode("utf-8")
         + '"'
     )
-    try:
-        docker_client = docker.DockerClient(base_url="unix://var/run/docker.sock")
-        docker_client.ping()
-    except:
-        logger.exception("Docker client error", exc_info=True)
-        raise
+    docker_client = _get_docker_client()
 
     env_vars.update(
         {
@@ -363,9 +367,12 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
                 "mode": "rw",
             }
         }
+    container_name = generate_pipeline_container_name(run)
     container = docker_client.containers.run(
         image=image,
         command=cmd,
+        name=container_name,
+        labels={"hexa-run-id": str(run.id)},
         privileged=True,
         network="openhexa",
         platform="linux/amd64",
@@ -374,7 +381,29 @@ def run_pipeline_docker(run: PipelineRun, image: str, env_vars: dict):
         detach=True,
     )
     logger.debug("Container %s started", container.id)
+    return container
 
+
+def attach_to_container_docker(run: PipelineRun):
+    """Find an existing Docker container for a previously-running pipeline run.
+
+    Allows the runner to re-attach (rather than spawn a duplicate container)
+    when it restarts while pipelines are still in RUNNING state.
+    """
+    docker_client = _get_docker_client()
+    container_name = generate_pipeline_container_name(run)
+
+    try:
+        container = docker_client.containers.get(container_name)
+    except docker.errors.NotFound:
+        logger.info("No container found for run %s, exiting attachment process", run.id)
+        sys.exit(0)
+
+    logger.info("Re-attached to container %s for run %s", container.id, run.id)
+    return container
+
+
+def monitor_container_docker(run: PipelineRun, container):
     while True:
         run.refresh_from_db()
         run.last_heartbeat = timezone.now()
@@ -441,7 +470,12 @@ def run_pipeline(run: PipelineRun, create_container: bool = True):
 
     try:
         if spawner == "docker":
-            success, container_logs = run_pipeline_docker(run, image, env_vars)
+            container = (
+                create_container_docker(run, image, env_vars)
+                if create_container
+                else attach_to_container_docker(run)
+            )
+            success, container_logs = monitor_container_docker(run, container)
         elif spawner == "kubernetes":
             pod = (
                 create_pod_kube(run, image, env_vars)

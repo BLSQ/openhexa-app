@@ -19,11 +19,13 @@ type AssistantTextSegment {
 }
 
 type AssistantToolSegment {
+  id: UUID
   toolCallId: String!
   toolName: String!
   toolInput: JSON!
   toolOutput: JSON
   success: Boolean!
+  proposalPending: Boolean!
 }
 
 union AssistantMessageSegment = AssistantTextSegment | AssistantToolSegment
@@ -70,8 +72,20 @@ type CreateAssistantConversationResult {
   conversation: AssistantConversation
 }
 
+enum ResolveAssistantProposalError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+type ResolveAssistantProposalResult {
+  success: Boolean!
+  errors: [ResolveAssistantProposalError!]!
+  toolInvocation: AssistantToolSegment
+}
+
 extend type Mutation {
   createAssistantConversation(input: CreateAssistantConversationInput!): CreateAssistantConversationResult!
+  resolveAssistantProposal(toolInvocationId: UUID!): ResolveAssistantProposalResult!
 }
 
 extend type Query {

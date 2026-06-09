@@ -57,6 +57,15 @@ type WebappVersionsPage {
   page: Int!
 }
 
+type WebappCommitDiff {
+  id: String!
+  message: String!
+  authorName: String!
+  authorEmail: String!
+  date: DateTime!
+  rawDiff: String!
+}
+
 """
 Represents a web app.
 """
@@ -80,6 +89,7 @@ type Webapp {
   isShortcut: Boolean!
   source: WebappSource!
   versions(page: Int, perPage: Int): WebappVersionsPage
+  commitDiff(ref: String!): WebappCommitDiff
   files(ref: String): [FileNode!]
   permissions: WebappPermissions!
 }

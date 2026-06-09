@@ -13,7 +13,7 @@ import {
   WorkspaceDatasetFilesPageQuery,
   WorkspaceDatasetFilesPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
-import { DatasetExplorer_FileFragment } from "datasets/features/DatasetExplorer/fragments.generated";
+import { DatasetExplorer_FileFragment } from "datasets/features/DatasetExplorer/DatasetExplorer.generated";
 
 export type WorkspaceDatasetFilesPageProps = {
   isSpecificVersion: boolean;

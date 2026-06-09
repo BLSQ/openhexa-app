@@ -193,6 +193,14 @@ class ToolInvocation(Base):
     tool_input = models.JSONField()
     tool_output = models.JSONField(null=True, blank=True)
     success = models.BooleanField(default=True)
+    proposal_pending = models.BooleanField(
+        default=False,
+        help_text=(
+            "True while the proposal is awaiting user action; False once accepted or dismissed. "
+            "Only meaningful for tool invocations that produce a user-facing proposal "
+            "(e.g. propose_pipeline_version)."
+        ),
+    )
 
     class Meta:
         ordering = ["created_at"]
