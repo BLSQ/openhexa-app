@@ -21,11 +21,36 @@ query GetWorkspace($slug: String!) {
     slug
     name
     description
+    dockerImage
+    countries {
+      code
+      name
+    }
     createdAt
     updatedAt
     permissions {
       createObject
       update
+      manageMembers
     }
   }
 }
+
+mutation UpdateWorkspace($input: UpdateWorkspaceInput!) {
+  updateWorkspace(input: $input) {
+    success
+    errors
+    workspace {
+      slug
+      name
+      description
+      dockerImage
+      countries {
+        code
+        name
+      }
+      updatedAt
+    }
+  }
+}
+

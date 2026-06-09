@@ -1,4 +1,4 @@
-from hexa.mcp.tools.workspaces import get_workspace, list_workspaces
+from hexa.mcp.tools.workspaces import get_workspace, list_workspaces, update_workspace
 
 from .testutils import MCPTestCase
 
@@ -43,3 +43,60 @@ class GetWorkspaceTest(MCPTestCase):
     def test_get_workspace_no_access(self):
         result = get_workspace(user=self.USER_OUTSIDER, slug=self.WORKSPACE.slug)
         self.assertIsNone(result["workspace"])
+
+
+class UpdateWorkspaceTest(MCPTestCase):
+    def test_update_name(self):
+        result = update_workspace(
+            user=self.USER_ADMIN, slug=self.WORKSPACE.slug, name="Renamed Workspace"
+        )
+        self.assertTrue(result["success"])
+        self.assertEqual(result["workspace"]["name"], "Renamed Workspace")
+
+    def test_update_description(self):
+        result = update_workspace(
+            user=self.USER_ADMIN,
+            slug=self.WORKSPACE.slug,
+            description="Updated description",
+        )
+        self.assertTrue(result["success"])
+        self.assertEqual(result["workspace"]["description"], "Updated description")
+
+    def test_update_docker_image(self):
+        result = update_workspace(
+            user=self.USER_ADMIN,
+            slug=self.WORKSPACE.slug,
+            docker_image="eu.gcr.io/my-org/my-image:latest",
+        )
+        self.assertTrue(result["success"])
+        self.assertEqual(
+            result["workspace"]["dockerImage"], "eu.gcr.io/my-org/my-image:latest"
+        )
+
+    def test_update_countries(self):
+        result = update_workspace(
+            user=self.USER_ADMIN,
+            slug=self.WORKSPACE.slug,
+            countries='["US", "FR"]',
+        )
+        self.assertTrue(result["success"])
+        codes = [c["code"] for c in result["workspace"]["countries"]]
+        self.assertIn("US", codes)
+        self.assertIn("FR", codes)
+
+    def test_update_invalid_countries_json(self):
+        result = update_workspace(
+            user=self.USER_ADMIN, slug=self.WORKSPACE.slug, countries="not-valid-json"
+        )
+        self.assertIn("error", result)
+
+    def test_update_permission_denied(self):
+        result = update_workspace(
+            user=self.USER_VIEWER, slug=self.WORKSPACE.slug, name="Should Fail"
+        )
+        self.assertFalse(result.get("success", True))
+
+    def test_update_no_fields_is_noop(self):
+        result = update_workspace(user=self.USER_ADMIN, slug=self.WORKSPACE.slug)
+        self.assertTrue(result["success"])
+        self.assertEqual(result["workspace"]["name"], "Test Workspace")
