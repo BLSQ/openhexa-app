@@ -271,7 +271,7 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-jwcrypto==1.5.6
+jwcrypto==1.5.7
     # via django-oauth-toolkit
 kubernetes==33.1.0
     # via -r requirements.in
