@@ -217,6 +217,7 @@ export const useFilesEditorState = ({
       // are not carried over for files the new proposal reverted to original.
       // Same proposal re-running: patch so manual user edits are preserved.
       const next = isNewProposal ? new Map<string, string>() : new Map(current);
+
       for (const proposed of proposedFiles) {
         const existing = flatFiles.find((f) => f.path === proposed.name);
         if (existing) {

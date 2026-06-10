@@ -398,13 +398,17 @@ export function getFunctionalTypeDescription(
 ): string {
   switch (functionalType) {
     case PipelineFunctionalType.Extraction:
-      return i18n!.t("Ingests data from external sources like APIs, databases, or files");
+      return i18n!.t(
+        "Ingests data from external sources like APIs, databases, or files",
+      );
     case PipelineFunctionalType.Transformation:
       return i18n!.t("Processes, cleans, validates, or enriches data");
     case PipelineFunctionalType.Loading:
       return i18n!.t("Outputs data to warehouses, databases, or files");
     case PipelineFunctionalType.Computation:
-      return i18n!.t("Performs analytics, machine learning, or statistical analysis");
+      return i18n!.t(
+        "Performs analytics, machine learning, or statistical analysis",
+      );
   }
 }
 
