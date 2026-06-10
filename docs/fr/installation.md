@@ -98,6 +98,8 @@ Le composant [openhexa-app](https://github.com/BLSQ/openhexa-app) est une applic
 1. Créer un `CronJob` dans Kubernetes pour les commandes `environment_sync` et `datasource_sync`
 1. Créer un `Secret` et un `ConfigMap` pour les valeurs requises par le composant app (voir `settings.py` pour la référence des paramètres)
 
+Pour configurer la connexion OIDC externe (par ex. Microsoft Entra ID / WHO CIAM), voir **[Authentification unique (SSO)](sso.md)**.
+
 ### Déploiement du Frontend
 
 Le composant [openhexa-frontend](https://github.com/BLSQ/openhexa-frontend) est une application React [NextJS](https://nextjs.org/). Le déploiement avec Kubernetes consiste à :

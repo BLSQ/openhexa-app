@@ -111,6 +111,7 @@ Si vous gérez des équipes et des organisations :
 
 1. **[Administration](admin.md)** - Gérez les organisations, les espaces de travail et les utilisateurs
 2. **[Espaces de travail](workspaces.md)** - Configurez les paramètres et les permissions des espaces de travail
+3. **[Authentification unique (SSO)](sso.md)** - Configurez des fournisseurs d'identité OIDC externes
 
 ### 🔧 Installation et administration
 
