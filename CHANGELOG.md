@@ -1,5 +1,37 @@
 # Changelog
 
+## [5.8.0](https://github.com/BLSQ/openhexa-app/compare/5.7.0...5.8.0) (2026-06-10)
+
+
+### Features
+
+* add update workspace mcp tool ([#1854](https://github.com/BLSQ/openhexa-app/issues/1854)) ([223b3c1](https://github.com/BLSQ/openhexa-app/commit/223b3c1cbaf43d48769fdbc47d323dcafc3d09ee))
+* ai can make mistakes disclaimer (HEXA-1675) ([#1843](https://github.com/BLSQ/openhexa-app/issues/1843)) ([3ff78f5](https://github.com/BLSQ/openhexa-app/commit/3ff78f573bcda93bf457aff6268f5a13650cf022))
+* improve markdown code styles ([#1821](https://github.com/BLSQ/openhexa-app/issues/1821)) ([9639ec4](https://github.com/BLSQ/openhexa-app/commit/9639ec499d36791e96e31c18f84d6779df964e9a))
+* MCP tool to get webapp by slug (HEXA-1688) ([#1846](https://github.com/BLSQ/openhexa-app/issues/1846)) ([8a90a06](https://github.com/BLSQ/openhexa-app/commit/8a90a064c7183395071872791a28d0ec9eb0b533))
+* sort pipelines by creation date ([#1822](https://github.com/BLSQ/openhexa-app/issues/1822)) ([a42ccaa](https://github.com/BLSQ/openhexa-app/commit/a42ccaa8d9aa8167b8f0d8f5e50cfad1fdcf57a3))
+* webb app diffs and browse at this point button ([#1804](https://github.com/BLSQ/openhexa-app/issues/1804)) ([8e5757f](https://github.com/BLSQ/openhexa-app/commit/8e5757fcade7112a6443e61f3b8637f586f6c35b))
+
+
+### Bug Fixes
+
+* add GraphQL documentation for static webapps + remove delete operations from webapp scope (HEXA-1653) ([#1825](https://github.com/BLSQ/openhexa-app/issues/1825)) ([462d895](https://github.com/BLSQ/openhexa-app/commit/462d89543eb0ef661e374b0c17acf3b5e9f3d6dc))
+* allow to create a complete version from a pipeline creation (HEXA-1661) ([#1819](https://github.com/BLSQ/openhexa-app/issues/1819)) ([f86f732](https://github.com/BLSQ/openhexa-app/commit/f86f732ecd3fbc81bf8be8bb6b08c2f27af01e35))
+* Clarify the cron schedule to avoid user confusing ([#1840](https://github.com/BLSQ/openhexa-app/issues/1840)) ([cc8bf97](https://github.com/BLSQ/openhexa-app/commit/cc8bf97dbada87f975ab8f05261eda1c7e6f062f))
+* docker pipeline runner is restarting all running pipelines on restart (HEXA-1660) ([#1818](https://github.com/BLSQ/openhexa-app/issues/1818)) ([f634020](https://github.com/BLSQ/openhexa-app/commit/f63402006f6f738539ce3fa665f5a1cac09c539c))
+* error on hitting maximum tokens is not well handled on ai agent (Hexa-1635)  ([#1841](https://github.com/BLSQ/openhexa-app/issues/1841)) ([0f5ff16](https://github.com/BLSQ/openhexa-app/commit/0f5ff1611eedf6c58a489112f202ae4eb7c81a95))
+* Improve agents change proposals (HEXA-1646) ([#1814](https://github.com/BLSQ/openhexa-app/issues/1814)) ([aa505a4](https://github.com/BLSQ/openhexa-app/commit/aa505a44b49da7c77efb8a1122823eea892984d4))
+* increase request size limit (HEXA-1662) ([#1820](https://github.com/BLSQ/openhexa-app/issues/1820)) ([64cc88e](https://github.com/BLSQ/openhexa-app/commit/64cc88e8262830689119712c67a49f3233098a21))
+* Long Runs parameters not breaking layout (HEXA-1656) ([#1831](https://github.com/BLSQ/openhexa-app/issues/1831)) ([92e1d21](https://github.com/BLSQ/openhexa-app/commit/92e1d21665741449b6a743b3e036e0a76646ddc8))
+* MCP create pipeline version only takes a single file (HEXA-1648) ([#1848](https://github.com/BLSQ/openhexa-app/issues/1848)) ([950ba24](https://github.com/BLSQ/openhexa-app/commit/950ba247d49f1091d6a173958b27699052201549))
+* prevent scroll glitch in response streaming in chatpanel ([#1811](https://github.com/BLSQ/openhexa-app/issues/1811)) ([b086220](https://github.com/BLSQ/openhexa-app/commit/b08622035f11c67b28d1adeecc5385c175e536a6))
+* route Mixpanel events directly to EU endpoint ([#1837](https://github.com/BLSQ/openhexa-app/issues/1837)) ([e77e325](https://github.com/BLSQ/openhexa-app/commit/e77e3251d585146e1b23b617555a60d66cefd235))
+* sentry issue no sample found for file xxx (HEXA-1672) ([#1839](https://github.com/BLSQ/openhexa-app/issues/1839)) ([30119a3](https://github.com/BLSQ/openhexa-app/commit/30119a31a7bb7590e649abf9887271bfdcdb668d))
+* silence webapp GraphQL errors to warning in Sentry ([#1847](https://github.com/BLSQ/openhexa-app/issues/1847)) ([6d3a88d](https://github.com/BLSQ/openhexa-app/commit/6d3a88da9105eb48943961dbcc009a83b903109e))
+* stringify object values in file sample for rendering ([#1849](https://github.com/BLSQ/openhexa-app/issues/1849)) ([1e149b5](https://github.com/BLSQ/openhexa-app/commit/1e149b53d876e83f6d056f25540c8b8f866bee5a))
+* unknown format in dynamic choices param (HEXA-1620) ([#1830](https://github.com/BLSQ/openhexa-app/issues/1830)) ([eda62e2](https://github.com/BLSQ/openhexa-app/commit/eda62e2f959964b4bc0f4aba19857d9eb7e101c3))
+* user manual links ([2a87963](https://github.com/BLSQ/openhexa-app/commit/2a87963b71a595ef72700486e0389071c0abedb0))
+
 ## [5.7.0](https://github.com/BLSQ/openhexa-app/compare/5.6.2...5.7.0) (2026-05-26)
 
 
