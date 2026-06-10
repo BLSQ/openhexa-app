@@ -323,7 +323,7 @@ INSTALLED_APPS = [
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
-    # allauth (always installed for clean migrations; OIDC providers enabled via WHO_CIAM_ENABLED)
+    # allauth (always installed for clean migrations; OIDC providers enabled via env vars OIDC_PROVIDERS)
     "allauth",
     "allauth.account",
     "allauth.socialaccount",

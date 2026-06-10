@@ -1,3 +1,6 @@
+from urllib.parse import urlparse
+
+from django.conf import settings
 from django.db import migrations
 
 
@@ -6,9 +9,12 @@ def ensure_default_site(apps, schema_editor):
     # django.contrib.sites normally creates this row via post_migrate, but pg-dump
     # restores and some CI setups skip that signal.  This migration guarantees the row
     # exists regardless of how the database was provisioned.
+    # update_or_create (not get_or_create) so that re-running migrate keeps the domain
+    # in sync with BASE_URL — avoids leaving the Django-default "example.com" in place.
     Site = apps.get_model("sites", "Site")
-    Site.objects.get_or_create(
-        id=1, defaults={"domain": "example.com", "name": "example.com"}
+    domain = urlparse(settings.BASE_URL).netloc
+    Site.objects.update_or_create(
+        id=1, defaults={"domain": domain, "name": domain}
     )
 
 
