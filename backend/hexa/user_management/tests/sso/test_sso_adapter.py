@@ -4,7 +4,7 @@ from allauth.core.exceptions import ImmediateHttpResponse
 from django.test import TestCase, override_settings
 
 from hexa.user_management.models import User
-from hexa.user_management.sso_adapter import OpenHexaSocialAccountAdapter
+from hexa.user_management.sso.sso_adapter import OpenHexaSocialAccountAdapter
 
 _WHO_CONFIG = {
     "id": "who",
@@ -131,7 +131,7 @@ class SaveUserTest(TestCase):
     def test_creates_user_from_oidc_claims(self):
         sociallogin = _make_sociallogin("jane@who.int")
 
-        with patch("hexa.user_management.sso_adapter.send_mail"):
+        with patch("hexa.user_management.sso.sso_adapter.send_mail"):
             user = self.adapter.save_user(self.request, sociallogin)
 
         self.assertEqual(user.email, "jane@who.int")
@@ -143,7 +143,7 @@ class SaveUserTest(TestCase):
     def test_normalises_email_to_lowercase(self):
         sociallogin = _make_sociallogin("Jane.WHO@WHO.INT")
 
-        with patch("hexa.user_management.sso_adapter.send_mail"):
+        with patch("hexa.user_management.sso.sso_adapter.send_mail"):
             user = self.adapter.save_user(self.request, sociallogin)
 
         self.assertEqual(user.email, "jane.who@who.int")
@@ -151,7 +151,7 @@ class SaveUserTest(TestCase):
     def test_sends_notification_email_to_configured_recipients(self):
         sociallogin = _make_sociallogin("jane@who.int")
 
-        with patch("hexa.user_management.sso_adapter.send_mail") as mock_send:
+        with patch("hexa.user_management.sso.sso_adapter.send_mail") as mock_send:
             self.adapter.save_user(self.request, sociallogin)
 
         mock_send.assert_called_once()
@@ -169,7 +169,7 @@ class SaveUserTest(TestCase):
     def test_skips_email_when_no_recipients_configured(self):
         sociallogin = _make_sociallogin("jane@who.int")
 
-        with patch("hexa.user_management.sso_adapter.send_mail") as mock_send:
+        with patch("hexa.user_management.sso.sso_adapter.send_mail") as mock_send:
             self.adapter.save_user(self.request, sociallogin)
 
         mock_send.assert_not_called()
@@ -178,14 +178,16 @@ class SaveUserTest(TestCase):
     def test_skips_email_when_provider_not_in_settings(self):
         sociallogin = _make_sociallogin("jane@who.int")
 
-        with patch("hexa.user_management.sso_adapter.send_mail") as mock_send:
+        with patch("hexa.user_management.sso.sso_adapter.send_mail") as mock_send:
             self.adapter.save_user(self.request, sociallogin)
 
         mock_send.assert_not_called()
 
     def test_raises_when_email_claim_is_missing(self):
         sociallogin = _make_sociallogin("")
-        sociallogin.account.extra_data = {"userinfo": {"given_name": "Jane", "family_name": "Doe"}}
+        sociallogin.account.extra_data = {
+            "userinfo": {"given_name": "Jane", "family_name": "Doe"}
+        }
 
         with self.assertRaises(ValueError):
             self.adapter.save_user(self.request, sociallogin)
@@ -196,7 +198,7 @@ class SaveUserTest(TestCase):
         sociallogin = _make_sociallogin("jane@who.int")
 
         with patch(
-            "hexa.user_management.sso_adapter.send_mail",
+            "hexa.user_management.sso.sso_adapter.send_mail",
             side_effect=Exception("SMTP down"),
         ):
             user = self.adapter.save_user(self.request, sociallogin)
@@ -228,7 +230,7 @@ class SaveUserTest(TestCase):
             }
         }
 
-        with patch("hexa.user_management.sso_adapter.send_mail"):
+        with patch("hexa.user_management.sso.sso_adapter.send_mail"):
             user = self.adapter.save_user(self.request, sociallogin)
 
         self.assertEqual(user.first_name, "Jane")

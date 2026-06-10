@@ -70,6 +70,8 @@ Set the following environment variables in your deployment:
 | `OIDC_{ID}_CLIENT_SECRET` | No | OAuth2 client secret. Required for confidential clients. |
 | `OIDC_{ID}_DISPLAY_NAME` | No | Label shown on the login button. Defaults to the provider ID uppercased. |
 | `OIDC_{ID}_NEW_ACCOUNT_EMAIL_RECIPIENTS` | No | Comma-separated list of admin email addresses to notify when a new OpenHEXA account is auto-created via this provider. |
+| `OIDC_{ID}_CALLBACK_PATH` | No | Custom redirect URI path without a leading slash, e.g. `polio/login/callback/`. Set this when the identity provider has a legacy redirect URI registered at a non-standard path and you want OpenHEXA to honour that registration without asking the IdP admin to add a new one. |
+| `OIDC_{ID}_LOGIN_PATH` | No | Companion login path, e.g. `polio/login/`. Only needed when `OIDC_{ID}_CALLBACK_PATH` is set and users will initiate login from this URL directly. |
 
 **Naming convention:** Replace `{ID}` with the provider ID uppercased. Hyphens in provider IDs map to underscores, so provider `who-ciam` uses `OIDC_WHO_CIAM_CLIENT_ID`.
 

@@ -62,6 +62,11 @@ def _load_oidc_providers() -> list[dict]:
                                  /.well-known/openid-configuration
       OIDC_{ID}_CLIENT_SECRET  — OAuth2 client secret
       OIDC_{ID}_DISPLAY_NAME   — label shown on the login button (defaults to ID uppercased)
+      OIDC_{ID}_CALLBACK_PATH  — custom redirect_uri path without leading slash, e.g.
+                                 "polio/login/callback/". Use when the IdP has a legacy
+                                 redirect_uri registered at a non-standard path.
+      OIDC_{ID}_LOGIN_PATH     — companion login path, e.g. "polio/login/". Optional;
+                                 only needed if users will hit this URL directly.
 
     Hyphens in provider IDs map to underscores in env var names,
     e.g. "who-ciam" reads from OIDC_WHO_CIAM_CLIENT_ID.
@@ -92,6 +97,8 @@ def _load_oidc_providers() -> list[dict]:
                     ).split(",")
                     if r.strip()
                 ],
+                "callback_path": os.environ.get(f"OIDC_{env_key}_CALLBACK_PATH", ""),
+                "login_path": os.environ.get(f"OIDC_{env_key}_LOGIN_PATH", ""),
             }
         )
     return providers
@@ -411,7 +418,9 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 # victim into starting the flow.  Mitigated by PKCE (OAUTH_PKCE_ENABLED=True)
 # and the fact that the callback validates the state parameter.
 SOCIALACCOUNT_LOGIN_ON_GET = True
-SOCIALACCOUNT_ADAPTER = "hexa.user_management.sso_adapter.OpenHexaSocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = (
+    "hexa.user_management.sso.sso_adapter.OpenHexaSocialAccountAdapter"
+)
 
 if OIDC_PROVIDERS:
     SOCIALACCOUNT_PROVIDERS = {
