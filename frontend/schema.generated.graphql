@@ -1056,6 +1056,7 @@ input CreatePipelineRecipientInput {
 
 """Represents the result of creating a pipeline."""
 type CreatePipelineResult {
+  details: String
   errors: [PipelineError!]!
   pipeline: Pipeline
   pipelineVersion: PipelineVersion
@@ -1099,15 +1100,19 @@ type CreatePipelineTemplateVersionResult {
 """
 Configures the first pipeline version, created atomically alongside the pipeline.
 Providing this sub-input signals that a first version should be created.
+
+Provide exactly one of `zipfile` (base64-encoded ZIP) or `files` (list of source files
+the server will zip up). `files` requires a `pipeline.py` at the root.
 """
 input CreatePipelineVersionInput {
   config: JSON
   description: String
   externalLink: URL
+  files: [PipelineFileInput!]
   name: String
   parameters: [ParameterInput!]
   timeout: Int
-  zipfile: String!
+  zipfile: String
 }
 
 """
@@ -3386,6 +3391,7 @@ enum PipelineError {
   FILE_NOT_FOUND
   INVALID_CONFIG
   INVALID_TIMEOUT_VALUE
+  INVALID_VERSION_FILES
   PERMISSION_DENIED
   PIPELINE_ALREADY_COMPLETED
   PIPELINE_ALREADY_STOPPED
@@ -3396,6 +3402,19 @@ enum PipelineError {
   PIPELINE_VERSION_NOT_FOUND
   TABLE_NOT_FOUND
   WORKSPACE_NOT_FOUND
+}
+
+"""
+A single file in a pipeline version.
+
+`content` is interpreted according to `encoding`:
+  * TEXT (default)  — content is a UTF-8 string; suitable for Python code, requirements.txt, READMEs.
+  * BASE64          — content is base64-encoded raw bytes; use for binary assets bundled with the pipeline.
+"""
+input PipelineFileInput {
+  content: String!
+  encoding: FileEncoding = TEXT
+  path: String!
 }
 
 """
@@ -5368,6 +5387,7 @@ input UploadPipelineInput {
   config: JSON
   description: String
   externalLink: URL
+  files: [PipelineFileInput!]
   functionalType: PipelineFunctionalType
   name: String
   parameters: [ParameterInput!]
@@ -5375,7 +5395,7 @@ input UploadPipelineInput {
   tags: [String!]
   timeout: Int
   workspaceSlug: String!
-  zipfile: String!
+  zipfile: String
 }
 
 """Represents the result of uploading a pipeline."""
