@@ -1,6 +1,7 @@
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getErrorCodeMessage } from "assistant/helpers";
 import { InstructionSet } from "assistant/instructions";
 import { getPublicEnv } from "core/helpers/runtimeConfig";
 import useStreamingFetch from "core/hooks/useStreamingFetch";
@@ -114,10 +115,8 @@ export function useAIForm(
       }
     },
     error: (data) => {
-      const { message } = (data ?? {}) as { message?: string };
-      setError_(
-        message ?? t("The AI service encountered an error. Please try again."),
-      );
+      const { error_code } = (data ?? {}) as { error_code?: string };
+      setError_(getErrorCodeMessage(t, error_code));
     },
   });
 

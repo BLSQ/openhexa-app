@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { toast } from "react-toastify";
+import { isRequestTooLargeError } from "core/helpers/errors";
 import {
   useCreateWebappMutation,
   useUpdateWebappMutation,
@@ -277,7 +278,11 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       toast.success(t("Web app updated successfully"));
       clearCache();
     } catch (error) {
-      toast.error(t("An error occurred while updating the web app"));
+      if (isRequestTooLargeError(error)) {
+        toast.error(t("Web app is too large to create."));
+      } else {
+        toast.error(t("An error occurred while creating the web app"));
+      }
     } finally {
       setLoading(false);
     }
@@ -328,7 +333,11 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
         )
         .then();
     } catch (error) {
-      toast.error(t("An error occurred while creating the web app"));
+      if (isRequestTooLargeError(error)) {
+        toast.error(t("Web app is too large to save."));
+      } else {
+        toast.error(t("An error occurred while updating the web app"));
+      }
     } finally {
       setLoading(false);
     }

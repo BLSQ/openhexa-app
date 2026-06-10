@@ -14,6 +14,7 @@ import { CookiesProvider } from "react-cookie";
 import { Cookies } from "react-cookie";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "diff2html/bundles/css/diff2html.min.css";
 import "../styles/globals.css";
 import OverlayProgress from "./OverlayProgress";
 
