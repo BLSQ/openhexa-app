@@ -9,7 +9,8 @@ import Title from "core/components/Title";
 import { useTranslation } from "next-i18next";
 import DatasetVersionFileSample from "../DatasetVersionFileSample";
 import DownloadVersionFile from "../DownloadVersionFile";
-import { DatasetExplorer_FileFragment, DatasetExplorer_VersionFragment } from "./DatasetExplorer.generated";
+import { DatasetExplorer_VersionFragment } from "./DatasetExplorer.generated";
+import { DatasetExplorer_FileFragment } from "./fragments.generated";
 import ErrorBoundary from "core/components/ErrorBoundary";
 import DatasetVersionFileColumns from "../DatasetVersionFileColumns";
 import Pagination from "core/components/Pagination";
@@ -122,28 +123,7 @@ const DatasetExplorer = ({
   );
 };
 
-const fileFragment = gql`
-  fragment DatasetExplorer_file on DatasetVersionFile {
-    id
-    filename
-    createdAt
-    createdBy {
-      displayName
-    }
-    ...DownloadVersionFile_file
-    ...DatasetVersionFileSample_file
-    ...DatasetVersionFileColumns_file
-    contentType
-    size
-    uri
-  }
-  ${DownloadVersionFile.fragments.file}
-  ${DatasetVersionFileSample.fragments.file}
-  ${DatasetVersionFileColumns.fragments.file}
-`;
-
 DatasetExplorer.fragments = {
-  file: fileFragment,
   version: gql`
     fragment DatasetExplorer_version on DatasetVersion {
       id
@@ -158,7 +138,6 @@ DatasetExplorer.fragments = {
       ...DatasetVersionFileSample_version
       ...DatasetVersionFileColumns_version
     }
-    ${fileFragment}
     ${DatasetVersionFileSample.fragments.version}
     ${DatasetVersionFileColumns.fragments.version}
   `,
