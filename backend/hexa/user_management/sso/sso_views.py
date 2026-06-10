@@ -1,10 +1,14 @@
-from django.http import Http404, HttpRequest
-
 from allauth.account.internal.decorators import login_not_required
 from allauth.socialaccount.models import SocialApp
-from allauth.socialaccount.providers.oauth2.views import OAuth2CallbackView, OAuth2LoginView
-from allauth.socialaccount.providers.openid_connect.views import OpenIDConnectOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.views import (
+    OAuth2CallbackView,
+    OAuth2LoginView,
+)
+from allauth.socialaccount.providers.openid_connect.views import (
+    OpenIDConnectOAuth2Adapter,
+)
 from allauth.utils import build_absolute_uri
+from django.http import Http404, HttpRequest
 
 
 class _FixedCallbackAdapter(OpenIDConnectOAuth2Adapter):
@@ -15,7 +19,9 @@ class _FixedCallbackAdapter(OpenIDConnectOAuth2Adapter):
     that registration without asking the IdP admin to add a new one.
     """
 
-    def __init__(self, request: HttpRequest, provider_id: str, callback_path: str) -> None:
+    def __init__(
+        self, request: HttpRequest, provider_id: str, callback_path: str
+    ) -> None:
         super().__init__(request, provider_id)
         self._callback_path = callback_path
 

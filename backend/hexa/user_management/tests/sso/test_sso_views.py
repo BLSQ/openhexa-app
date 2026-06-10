@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from django.test import RequestFactory, TestCase, override_settings
+from django.test import RequestFactory, TestCase
 
 from hexa.user_management.sso.sso_views import (
     _FixedCallbackAdapter,
@@ -34,7 +34,9 @@ class FixedCallbackAdapterTest(TestCase):
         adapter = _FixedCallbackAdapter(request, "who-ciam", "polio/login/callback/")
 
         with patch.object(
-            type(adapter), "redirect_uri_protocol", new_callable=lambda: property(lambda self: "https")
+            type(adapter),
+            "redirect_uri_protocol",
+            new_callable=lambda: property(lambda self: "https"),
         ):
             url = adapter.get_callback_url(request, app=MagicMock())
 
@@ -45,7 +47,9 @@ class FixedCallbackAdapterTest(TestCase):
         adapter = _FixedCallbackAdapter(request, "who-ciam", "/polio/login/callback/")
 
         with patch.object(
-            type(adapter), "redirect_uri_protocol", new_callable=lambda: property(lambda self: "https")
+            type(adapter),
+            "redirect_uri_protocol",
+            new_callable=lambda: property(lambda self: "https"),
         ):
             url = adapter.get_callback_url(request, app=MagicMock())
 
@@ -56,7 +60,9 @@ class FixedCallbackAdapterTest(TestCase):
         adapter = _FixedCallbackAdapter(request, "who-ciam", "polio/login/callback/")
 
         with patch.object(
-            type(adapter), "redirect_uri_protocol", new_callable=lambda: property(lambda self: "http")
+            type(adapter),
+            "redirect_uri_protocol",
+            new_callable=lambda: property(lambda self: "http"),
         ):
             url = adapter.get_callback_url(request, app=MagicMock())
 
@@ -92,7 +98,9 @@ class MakeCompatViewTest(TestCase):
         from allauth.socialaccount.models import SocialApp
         from django.test import RequestFactory as RF
 
-        view = make_compat_callback_view("nonexistent-provider", "polio/login/callback/")
+        view = make_compat_callback_view(
+            "nonexistent-provider", "polio/login/callback/"
+        )
         request = RF().get("/polio/login/callback/")
 
         with patch(
