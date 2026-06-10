@@ -131,7 +131,7 @@ export default function PipelineEditChatPanel({
           const files = (proposal.toolOutput as { files: ProposedFile[] })
             ?.files;
           if (Array.isArray(files)) {
-            onProposedFiles(files, proposal.id);
+            onProposedFiles(files, proposal.id ?? undefined);
             return;
           }
         }
