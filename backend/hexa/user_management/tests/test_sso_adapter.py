@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+from allauth.core.exceptions import ImmediateHttpResponse
 from django.test import TestCase, override_settings
 
 from hexa.user_management.models import User
@@ -20,11 +21,14 @@ def _make_sociallogin(
 ):
     account = MagicMock()
     account.provider = provider_id
+    # Use the real allauth >= 65.11 nested format: {"userinfo": {...}, "id_token": {...}}
     account.extra_data = {
-        "email": email,
-        "given_name": "Jane",
-        "family_name": "Doe",
-        **(extra or {}),
+        "userinfo": {
+            "email": email,
+            "given_name": "Jane",
+            "family_name": "Doe",
+            **(extra or {}),
+        }
     }
 
     sociallogin = MagicMock()
@@ -55,13 +59,6 @@ class PreSocialLoginTest(TestCase):
 
         sociallogin.connect.assert_not_called()
 
-    def test_skips_when_no_email_in_claims(self):
-        sociallogin = _make_sociallogin("", extra={"email": ""})
-
-        self.adapter.pre_social_login(self.request, sociallogin)
-
-        sociallogin.connect.assert_not_called()
-
     def test_skips_when_no_matching_user(self):
         sociallogin = _make_sociallogin("unknown@who.int")
 
@@ -69,13 +66,23 @@ class PreSocialLoginTest(TestCase):
 
         sociallogin.connect.assert_not_called()
 
-    def test_skips_account_link_when_email_not_verified(self):
+    def test_redirects_to_login_when_email_not_verified(self):
         User.objects.create_user("jane@who.int", "unused-password")
         sociallogin = _make_sociallogin("jane@who.int", extra={"email_verified": False})
 
-        self.adapter.pre_social_login(self.request, sociallogin)
+        with self.assertRaises(ImmediateHttpResponse) as ctx:
+            self.adapter.pre_social_login(self.request, sociallogin)
 
+        self.assertEqual(ctx.exception.response.status_code, 302)
         sociallogin.connect.assert_not_called()
+
+    def test_redirects_to_login_when_no_email_in_claims(self):
+        sociallogin = _make_sociallogin("", extra={"email": ""})
+
+        with self.assertRaises(ImmediateHttpResponse) as ctx:
+            self.adapter.pre_social_login(self.request, sociallogin)
+
+        self.assertEqual(ctx.exception.response.status_code, 302)
 
     def test_links_when_email_verified_claim_absent(self):
         """Providers like Entra ID often omit email_verified; should default to allowed."""
@@ -178,7 +185,7 @@ class SaveUserTest(TestCase):
 
     def test_raises_when_email_claim_is_missing(self):
         sociallogin = _make_sociallogin("")
-        sociallogin.account.extra_data = {"given_name": "Jane", "family_name": "Doe"}
+        sociallogin.account.extra_data = {"userinfo": {"given_name": "Jane", "family_name": "Doe"}}
 
         with self.assertRaises(ValueError):
             self.adapter.save_user(self.request, sociallogin)
@@ -210,13 +217,15 @@ class SaveUserTest(TestCase):
         """Handles providers that use first_name/last_name instead of given_name/family_name."""
         sociallogin = _make_sociallogin(
             "jane@who.int",
-            extra={"email": "jane@who.int", "first_name": "Jane", "last_name": "Doe"},
+            extra={"first_name": "Jane", "last_name": "Doe"},
         )
         # Override extra_data to not include given_name/family_name
         sociallogin.account.extra_data = {
-            "email": "jane@who.int",
-            "first_name": "Jane",
-            "last_name": "Doe",
+            "userinfo": {
+                "email": "jane@who.int",
+                "first_name": "Jane",
+                "last_name": "Doe",
+            }
         }
 
         with patch("hexa.user_management.sso_adapter.send_mail"):

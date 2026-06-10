@@ -13,9 +13,7 @@ def ensure_default_site(apps, schema_editor):
     # in sync with BASE_URL — avoids leaving the Django-default "example.com" in place.
     Site = apps.get_model("sites", "Site")
     domain = urlparse(settings.BASE_URL).netloc
-    Site.objects.update_or_create(
-        id=1, defaults={"domain": domain, "name": domain}
-    )
+    Site.objects.update_or_create(id=1, defaults={"domain": domain, "name": domain})
 
 
 class Migration(migrations.Migration):

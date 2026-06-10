@@ -15,4 +15,7 @@ class UserManagementConfig(CoreAppConfig):
         "password_reset_complete",
         "openid_connect_login",
         "openid_connect_callback",
+        "socialaccount_signup",
+        "socialaccount_login_error",
+        "socialaccount_login_cancelled",
     ]

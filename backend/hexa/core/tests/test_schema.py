@@ -129,6 +129,4 @@ class OidcProvidersConfigTest(GraphQLTestCase):
         response = self.run_query(_OIDC_QUERY)
         login_url = response["data"]["config"]["oidcProviders"][0]["loginUrl"]
         self.assertNotIn("//accounts", login_url)
-        self.assertEqual(
-            login_url, "http://app.example.com/accounts/oidc/who/login/"
-        )
+        self.assertEqual(login_url, "http://app.example.com/accounts/oidc/who/login/")
