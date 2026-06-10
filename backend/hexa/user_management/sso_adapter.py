@@ -3,6 +3,7 @@ import logging
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.socialaccount.models import SocialLogin
 from django.conf import settings
+from django.db import transaction
 from django.http import HttpRequest
 
 from hexa.core.utils import get_email_attachments, send_mail
@@ -68,12 +69,13 @@ class OpenHexaSocialAccountAdapter(DefaultSocialAccountAdapter):
         first_name = (data.get("given_name") or data.get("first_name") or "").strip()
         last_name = (data.get("family_name") or data.get("last_name") or "").strip()
 
-        user = User(email=email, first_name=first_name, last_name=last_name)
-        user.set_unusable_password()
-        user.save()
+        with transaction.atomic():
+            user = User(email=email, first_name=first_name, last_name=last_name)
+            user.set_unusable_password()
+            user.save()
 
-        sociallogin.user = user
-        sociallogin.save(request)
+            sociallogin.user = user
+            sociallogin.save(request)
 
         try:
             self._send_new_account_email(user, sociallogin.account.provider)

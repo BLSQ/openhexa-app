@@ -197,6 +197,15 @@ class SaveUserTest(TestCase):
         self.assertEqual(user.email, "jane@who.int")
         self.assertTrue(User.objects.filter(email="jane@who.int").exists())
 
+    def test_user_not_persisted_when_sociallogin_save_fails(self):
+        sociallogin = _make_sociallogin("jane@who.int")
+        sociallogin.save = MagicMock(side_effect=Exception("DB error"))
+
+        with self.assertRaises(Exception):
+            self.adapter.save_user(self.request, sociallogin)
+
+        self.assertFalse(User.objects.filter(email="jane@who.int").exists())
+
     def test_falls_back_to_first_name_last_name_claims(self):
         """Handles providers that use first_name/last_name instead of given_name/family_name."""
         sociallogin = _make_sociallogin(
