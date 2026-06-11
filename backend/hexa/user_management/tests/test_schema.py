@@ -28,6 +28,7 @@ from hexa.user_management.models import (
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceInvitation,
+    WorkspaceInvitationStatus,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
@@ -1647,6 +1648,77 @@ class RegisterTest(GraphQLTestCase):
         self.assertEqual(
             self.ORG_INVITATION.status, OrganizationInvitationStatus.ACCEPTED
         )
+
+    def test_register_accepts_all_pending_invitations(self):
+        """Registering with one invitation token also accepts the other pending
+        invitations for the same email.
+        """
+        other_workspace = Workspace.objects.create(
+            name="Other Workspace",
+            slug="other-workspace",
+            db_name="db_other_workspace",
+            bucket_name="bucket_other_workspace",
+        )
+        other_invitation = WorkspaceInvitation.objects.create(
+            workspace=other_workspace,
+            email=self.WORKSPACE_INVITATION.email,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+        org_invitation = OrganizationInvitation.objects.create(
+            organization=self.ORGANIZATION,
+            email=self.WORKSPACE_INVITATION.email,
+            role=OrganizationMembershipRole.MEMBER,
+            invited_by=self.ORG_OWNER,
+        )
+
+        r = self.run_query(
+            """
+            mutation register($input: RegisterInput!) {
+                register(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "password1": "Pa$$Word1",
+                    "password2": "Pa$$Word1",
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "invitationToken": self.WORKSPACE_INVITATION.generate_token(),
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["register"]["success"])
+
+        user = User.objects.get(email=self.WORKSPACE_INVITATION.email)
+        self.assertTrue(
+            WorkspaceMembership.objects.filter(
+                user=user, workspace=self.WORKSPACE, role=WorkspaceMembershipRole.EDITOR
+            ).exists()
+        )
+        self.assertTrue(
+            WorkspaceMembership.objects.filter(
+                user=user,
+                workspace=other_workspace,
+                role=WorkspaceMembershipRole.VIEWER,
+            ).exists()
+        )
+        self.assertTrue(
+            OrganizationMembership.objects.filter(
+                user=user, organization=self.ORGANIZATION
+            ).exists()
+        )
+        self.WORKSPACE_INVITATION.refresh_from_db()
+        other_invitation.refresh_from_db()
+        org_invitation.refresh_from_db()
+        self.assertEqual(
+            self.WORKSPACE_INVITATION.status, WorkspaceInvitationStatus.ACCEPTED
+        )
+        self.assertEqual(other_invitation.status, WorkspaceInvitationStatus.ACCEPTED)
+        self.assertEqual(org_invitation.status, OrganizationInvitationStatus.ACCEPTED)
 
     def test_register_with_signup_request(self):
         """Test registration using a self-registration signup request token."""
