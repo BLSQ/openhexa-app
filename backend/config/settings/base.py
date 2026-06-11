@@ -51,6 +51,62 @@ DEBUG = os.environ.get("DEBUG", "false") == "true"
 
 ALLOW_SELF_REGISTRATION = os.environ.get("ALLOW_SELF_REGISTRATION", "false") == "true"
 
+
+def _load_oidc_providers() -> list[dict]:
+    """Parse OIDC provider configs from environment variables.
+
+    Set OIDC_PROVIDERS to a comma-separated list of provider IDs (e.g. "who,wfp").
+    For each provider ID set:
+      OIDC_{ID}_CLIENT_ID      — OAuth2 client ID (required)
+      OIDC_{ID}_SERVER_URL     — OIDC discovery base URL (required); allauth appends
+                                 /.well-known/openid-configuration
+      OIDC_{ID}_CLIENT_SECRET  — OAuth2 client secret
+      OIDC_{ID}_DISPLAY_NAME   — label shown on the login button (defaults to ID uppercased)
+      OIDC_{ID}_CALLBACK_PATH  — custom redirect_uri path without leading slash, e.g.
+                                 "polio/login/callback/". Use when the IdP has a legacy
+                                 redirect_uri registered at a non-standard path.
+      OIDC_{ID}_LOGIN_PATH     — companion login path, e.g. "polio/login/". Optional;
+                                 only needed if users will hit this URL directly.
+
+    Hyphens in provider IDs map to underscores in env var names,
+    e.g. "who-ciam" reads from OIDC_WHO_CIAM_CLIENT_ID.
+    """
+    provider_ids = [
+        p.strip() for p in os.environ.get("OIDC_PROVIDERS", "").split(",") if p.strip()
+    ]
+    providers = []
+    for provider_id in provider_ids:
+        env_key = provider_id.upper().replace("-", "_")
+        client_id = os.environ.get(f"OIDC_{env_key}_CLIENT_ID", "")
+        server_url = os.environ.get(f"OIDC_{env_key}_SERVER_URL", "")
+        if not client_id or not server_url:
+            continue
+        providers.append(
+            {
+                "id": provider_id,
+                "client_id": client_id,
+                "client_secret": os.environ.get(f"OIDC_{env_key}_CLIENT_SECRET", ""),
+                "server_url": server_url,
+                "display_name": os.environ.get(
+                    f"OIDC_{env_key}_DISPLAY_NAME", provider_id.upper()
+                ),
+                "new_account_email_recipients": [
+                    r.strip()
+                    for r in os.environ.get(
+                        f"OIDC_{env_key}_NEW_ACCOUNT_EMAIL_RECIPIENTS", ""
+                    ).split(",")
+                    if r.strip()
+                ],
+                "callback_path": os.environ.get(f"OIDC_{env_key}_CALLBACK_PATH", ""),
+                "login_path": os.environ.get(f"OIDC_{env_key}_LOGIN_PATH", ""),
+            }
+        )
+    return providers
+
+
+OIDC_PROVIDERS = _load_oidc_providers()
+PASSWORD_LOGIN_ENABLED = not bool(OIDC_PROVIDERS)
+
 # Trust the X_FORWARDED_PROTO header from the proxy or load balancer so Django is aware it is accessed by https
 if os.environ.get("TRUST_FORWARDED_PROTO", "false") == "true":
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -236,6 +292,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.postgres",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
     "corsheaders",
     "django_countries",
     "django_ltree",
@@ -273,6 +330,11 @@ INSTALLED_APPS = [
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
+    # allauth (always installed for clean migrations; OIDC providers enabled via env vars OIDC_PROVIDERS)
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.openid_connect",
 ]
 
 MIDDLEWARE = [
@@ -298,6 +360,7 @@ MIDDLEWARE = [
     "hexa.webapps.middlewares.webapp_subdomain_middleware",
     "hexa.user_management.middlewares.login_required_middleware",
     "hexa.analytics.middlewares.set_analytics_middleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -338,6 +401,47 @@ DATABASES = {
 # Auth settings
 LOGIN_URL = "core:login"
 LOGOUT_REDIRECT_URL = "core:login"
+LOGIN_REDIRECT_URL = "/"
+
+# Required by django.contrib.sites (used by allauth)
+SITE_ID = 1
+
+# allauth configuration
+# https://docs.allauth.org/en/latest/socialaccount/configuration.html
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_AUTO_SIGNUP = True
+# Login buttons are plain <a> links (no form POST), so allauth must accept GET to
+# initiate the OAuth dance.  The trade-off is that the login endpoint has no
+# CSRF token check, which could enable login-CSRF if an attacker can lure a
+# victim into starting the flow.  Mitigated by PKCE (OAUTH_PKCE_ENABLED=True)
+# and the fact that the callback validates the state parameter.
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_ADAPTER = (
+    "hexa.user_management.sso.sso_adapter.OpenHexaSocialAccountAdapter"
+)
+
+if OIDC_PROVIDERS:
+    SOCIALACCOUNT_PROVIDERS = {
+        "openid_connect": {
+            "SERVERS": [
+                {
+                    "id": p["id"],
+                    "name": p["display_name"],
+                    "server_url": p["server_url"],
+                    "APP": {
+                        "client_id": p["client_id"],
+                        "secret": p["client_secret"],
+                    },
+                    "OAUTH_PKCE_ENABLED": True,
+                    "SCOPE": ["openid", "profile", "email"],
+                }
+                for p in OIDC_PROVIDERS
+            ]
+        }
+    }
 
 # Custom user model
 # https://docs.djangoproject.com/en/4.0/topics/auth/customizing/#substituting-a-custom-user-model
@@ -368,6 +472,7 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "hexa.user_management.backends.PermissionsBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
 # by default users need to login every 2 weeks -> update to 1 year

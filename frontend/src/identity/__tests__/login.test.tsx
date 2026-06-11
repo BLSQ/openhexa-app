@@ -5,6 +5,7 @@ import {
   LoginDocument,
   useLoginMutation,
 } from "identity/graphql/mutations.generated";
+import { useSignupPageQuery } from "identity/graphql/queries.generated";
 import mockRouter from "next-router-mock";
 import router from "next/router";
 import LoginPage from "pages/login";
@@ -20,7 +21,40 @@ jest.mock("identity/graphql/mutations.generated", () => {
   };
 });
 
+jest.mock("identity/graphql/queries.generated", () => ({
+  ...jest.requireActual("identity/graphql/queries.generated"),
+  __esModule: true,
+  useSignupPageQuery: jest.fn(() => ({
+    data: {
+      config: {
+        allowSelfRegistration: false,
+        passwordLoginEnabled: true,
+        oidcProviders: [],
+      },
+    },
+    loading: false,
+  })),
+}));
+
 const useLoginMutationMock = useLoginMutation as jest.Mock;
+const useSignupPageQueryMock = useSignupPageQuery as jest.Mock;
+
+const DEFAULT_CONFIG = {
+  data: {
+    config: {
+      allowSelfRegistration: false,
+      passwordLoginEnabled: true,
+      oidcProviders: [],
+    },
+  },
+  loading: false,
+};
+
+const WHO_PROVIDER = {
+  id: "who",
+  displayName: "WHO",
+  loginUrl: "http://localhost:8000/accounts/oidc/who/login/",
+};
 describe("LoginPage: No Two Factor Authentication", () => {
   beforeEach(() => {
     mockRouter.setCurrentUrl("/");
@@ -153,6 +187,116 @@ describe("LoginPage: No Two Factor Authentication", () => {
     );
 
     expect(errorMessage).toBeInTheDocument();
+  });
+});
+
+describe("LoginPage: Loading state", () => {
+  beforeEach(() => {
+    mockRouter.setCurrentUrl("/");
+    useSignupPageQueryMock.mockReturnValue({ data: undefined, loading: true });
+  });
+
+  afterEach(() => {
+    useSignupPageQueryMock.mockReturnValue(DEFAULT_CONFIG);
+  });
+
+  it("shows a spinner and no form while config is loading", () => {
+    render(
+      <TestApp>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    expect(screen.getByTestId("spinner")).toBeInTheDocument();
+    expect(screen.queryByTestId("email")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("password")).not.toBeInTheDocument();
+  });
+});
+
+describe("LoginPage: SSO-only (password login disabled)", () => {
+  beforeEach(() => {
+    mockRouter.setCurrentUrl("/");
+    useSignupPageQueryMock.mockReturnValue({
+      data: {
+        config: {
+          allowSelfRegistration: false,
+          passwordLoginEnabled: false,
+          oidcProviders: [WHO_PROVIDER],
+        },
+      },
+      loading: false,
+    });
+  });
+
+  afterEach(() => {
+    useSignupPageQueryMock.mockReturnValue(DEFAULT_CONFIG);
+  });
+
+  it("shows SSO button and hides the password form", () => {
+    render(
+      <TestApp>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    expect(
+      screen.getByRole("link", { name: /sign in with/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("email")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("password")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Sign in" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("SSO link points to the provider login URL with next param", () => {
+    mockRouter.setCurrentUrl("/login?next=%2Fdashboard");
+    render(
+      <TestApp>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    const link = screen.getByRole("link", { name: /sign in with/i });
+    expect(link).toHaveAttribute(
+      "href",
+      `${WHO_PROVIDER.loginUrl}?next=%2Fdashboard`,
+    );
+  });
+});
+
+describe("LoginPage: Mixed mode (password + SSO)", () => {
+  beforeEach(() => {
+    mockRouter.setCurrentUrl("/");
+    useSignupPageQueryMock.mockReturnValue({
+      data: {
+        config: {
+          allowSelfRegistration: false,
+          passwordLoginEnabled: true,
+          oidcProviders: [WHO_PROVIDER],
+        },
+      },
+      loading: false,
+    });
+  });
+
+  afterEach(() => {
+    useSignupPageQueryMock.mockReturnValue(DEFAULT_CONFIG);
+  });
+
+  it("shows the password form, the or divider, and the SSO button", () => {
+    render(
+      <TestApp>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    expect(screen.getByTestId("email")).toBeInTheDocument();
+    expect(screen.getByTestId("password")).toBeInTheDocument();
+    expect(screen.getByText("or")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /sign in with/i }),
+    ).toBeInTheDocument();
   });
 });
 

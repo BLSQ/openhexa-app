@@ -93,3 +93,4 @@ vcrpy
 
 # OAuth
 django-oauth-toolkit>=3.0.0
+django-allauth[socialaccount]

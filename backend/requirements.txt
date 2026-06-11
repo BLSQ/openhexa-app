@@ -26,6 +26,7 @@ ariadne-django==0.3.0
 asgiref==3.9.0
     # via
     #   django
+    #   django-allauth
     #   django-cors-headers
     #   django-countries
 attrs==25.3.0
@@ -120,6 +121,7 @@ django==5.2.14
     # via
     #   -r requirements.in
     #   ariadne-django
+    #   django-allauth
     #   django-cors-headers
     #   django-debug-toolbar
     #   django-ltree
@@ -128,6 +130,8 @@ django==5.2.14
     #   django-otp
     #   django-postgres-queue
     #   django-storages
+django-allauth[socialaccount]==65.18.0
+    # via -r requirements.in
 django-cors-headers==4.7.0
     # via -r requirements.in
 django-countries==7.6.1
@@ -322,6 +326,7 @@ numpy==2.3.1
     #   shapely
 oauthlib==3.3.1
     # via
+    #   django-allauth
     #   django-oauth-toolkit
     #   kubernetes
     #   requests-oauthlib
@@ -439,6 +444,7 @@ pygments==2.20.0
     #   rich
 pyjwt[crypto]==2.12.0
     # via
+    #   django-allauth
     #   msal
     #   openhexa-toolbox
 pyogrio==0.11.0
@@ -490,6 +496,7 @@ requests==2.33.0
     #   -r requirements.in
     #   azure-core
     #   dhis2-py
+    #   django-allauth
     #   django-oauth-toolkit
     #   docker
     #   google-api-core

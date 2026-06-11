@@ -12,6 +12,10 @@ rl run_light:
 	@echo "Running backend without workers"
 	docker compose up
 
+rsso run_with_sso:
+	@echo "Running backend with mock SSO"
+	docker compose -f docker-compose.yaml -f docker-compose.oidc.yaml up
+
 t tests:
 	@echo "Running tests"
 	docker compose run -u $(id -u):$(id -g) app coveraged-test
@@ -42,6 +46,10 @@ s shell:
 rf run_front:
 	@echo "Running frontend"
 	npm run dev --prefix frontend
+
+if install_front:
+	@echo "Installing frontend libraries"
+	npm install --prefix frontend
 
 tf tests_frontend:
 	@echo "Running frontend tests"

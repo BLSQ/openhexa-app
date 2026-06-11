@@ -581,6 +581,10 @@ export type Config = {
   __typename?: 'Config';
   /** Whether self-registration is enabled. */
   allowSelfRegistration: Scalars['Boolean']['output'];
+  /** Configured external OIDC login providers. Empty when none are enabled. */
+  oidcProviders: Array<OidcProvider>;
+  /** Whether username/password login is enabled. False when OIDC providers are configured. */
+  passwordLoginEnabled: Scalars['Boolean']['output'];
   /** List of requirements for the password. */
   passwordRequirements?: Maybe<Array<Scalars['String']['output']>>;
 };
@@ -3675,6 +3679,14 @@ export type NotebookServer = {
   name: Scalars['String']['output'];
   ready: Scalars['Boolean']['output'];
   url: Scalars['String']['output'];
+};
+
+export type OidcProvider = {
+  __typename?: 'OidcProvider';
+  displayName: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  /** URL to initiate the login flow for this provider. */
+  loginUrl: Scalars['String']['output'];
 };
 
 /** The direction in which to order a list of items. */

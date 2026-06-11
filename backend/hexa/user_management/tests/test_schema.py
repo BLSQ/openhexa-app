@@ -399,6 +399,7 @@ class SchemaTest(GraphQLTestCase):
             r["data"]["team"],
         )
 
+    @override_settings(PASSWORD_LOGIN_ENABLED=True)
     def test_login_without_two_factor(self):
         r = self.run_query(
             """
@@ -416,6 +417,7 @@ class SchemaTest(GraphQLTestCase):
             r["data"]["login"],
         )
 
+    @override_settings(PASSWORD_LOGIN_ENABLED=True)
     def test_login_with_whitespace(self):
         r = self.run_query(
             """
@@ -449,6 +451,7 @@ class SchemaTest(GraphQLTestCase):
             {"success": False, "errors": ["INVALID_CREDENTIALS"]}, r["data"]["login"]
         )
 
+    @override_settings(PASSWORD_LOGIN_ENABLED=True)
     def test_login_invalid_otp(self):
         r = self.run_query(
             """
@@ -476,6 +479,7 @@ class SchemaTest(GraphQLTestCase):
         It should act as a normal login without two factor
         """
 
+    @override_settings(PASSWORD_LOGIN_ENABLED=True)
     def test_login_valid_otp(self):
         device = default_device(self.USER_JANE)
         device.generate_challenge()
