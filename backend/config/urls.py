@@ -85,9 +85,16 @@ for app_config in get_hexa_app_configs(connector_only=True):
     except (NotImplementedError, ModuleNotFoundError):
         pass
 
-if settings.OIDC_PROVIDERS:
-    urlpatterns.append(path("accounts/", include(allauth.urls)))
+# allauth URLs are mounted unconditionally (not only when OIDC_PROVIDERS is
+# set): reverse("openid_connect_login") must work regardless of the
+# environment — the GraphQL config resolver builds provider login URLs with
+# it, and tests override OIDC_PROVIDERS after the URLconf has been built at
+# import time. allauth raises Http404 for providers that are not configured,
+# and login_required_middleware keeps everything except the ANONYMOUS_URLS
+# names behind the login screen.
+urlpatterns.append(path("accounts/", include(allauth.urls)))
 
+if settings.OIDC_PROVIDERS:
     for _provider in settings.OIDC_PROVIDERS:
         _callback_path = _provider.get("callback_path", "")
         if _callback_path:
