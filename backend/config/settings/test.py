@@ -1,5 +1,10 @@
 import os
 
+# Logfire (configured in hexa.assistant.apps) must not export spans during
+# tests: its gzipped OTLP requests get captured by `responses` mocks and break
+# tests that inspect mocked request bodies.
+os.environ["LOGFIRE_SEND_TO_LOGFIRE"] = "false"
+
 STORAGE_BACKEND = "dummy"
 
 from .base import *  # noqa: E402, F401, F403
