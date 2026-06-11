@@ -10,6 +10,7 @@ from django.urls import reverse
 
 from hexa.core.utils import get_email_attachments, send_mail
 from hexa.user_management.models import User
+from hexa.user_management.utils import accept_pending_invitations
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +89,8 @@ class OpenHexaSocialAccountAdapter(DefaultSocialAccountAdapter):
 
             sociallogin.user = user
             sociallogin.save(request)
+
+            accept_pending_invitations(user)
 
         try:
             self._send_new_account_email(user, sociallogin.account.provider)
