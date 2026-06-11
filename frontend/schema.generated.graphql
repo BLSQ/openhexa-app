@@ -3296,6 +3296,8 @@ input ParameterInput {
   connection: String
   default: Generic
   directory: String
+  disableWhen: Boolean
+  disables: [String!]
   help: String
   multiple: Boolean
   name: String
@@ -3475,6 +3477,8 @@ type PipelineParameter {
   connection: String
   default: Generic
   directory: String
+  disableWhen: Boolean!
+  disables: [String!]!
   help: String
   multiple: Boolean!
   name: String!

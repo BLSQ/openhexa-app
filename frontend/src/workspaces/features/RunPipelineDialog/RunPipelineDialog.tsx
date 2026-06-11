@@ -14,6 +14,7 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import {
   convertParametersToPipelineInput,
+  getDisabledParameterCodes,
   isConnectionParameter,
   runPipeline,
 } from "workspaces/helpers/pipelines";
@@ -120,7 +121,14 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
         activeVersion,
         values,
       );
+      const disabledCodes = getDisabledParameterCodes(
+        activeVersion.parameters,
+        values,
+      );
       for (const parameter of activeVersion.parameters) {
+        if (disabledCodes.has(parameter.code)) {
+          continue;
+        }
         const val = normalizedValues[parameter.code];
         if (parameter.type === "int" || parameter.type === "float") {
           if (ensureArray(val).length === 0 && parameter.required) {
@@ -152,6 +160,11 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   useEffect(() => {
     form.resetForm();
   }, [form, activeVersion]);
+
+  const disabledParameterCodes = getDisabledParameterCodes(
+    activeVersion?.parameters ?? [],
+    form.formData,
+  );
 
   if (!pipeline.permissions.run) {
     return null;
@@ -191,32 +204,43 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                       "grid-cols-2 gap-x-5",
                   )}
                 >
-                  {activeVersion.parameters.map((param, i) => (
-                    <Field
-                      required={param.required || param.type === "bool"}
-                      key={i}
-                      name={param.code}
-                      label={param.name}
-                      help={param.help}
-                      error={
-                        form.touched[param.code] && form.errors[param.code]
-                      }
-                    >
-                      <ParameterField
-                        parameter={param}
-                        value={
-                          form.formData[param.code] ??
-                          (param.multiple ? [] : "")
+                  {activeVersion.parameters.map((param, i) => {
+                    const isDisabled = disabledParameterCodes.has(param.code);
+                    return (
+                      <Field
+                        required={
+                          (param.required || param.type === "bool") &&
+                          !isDisabled
                         }
-                        onChange={(value: any) => {
-                          form.setFieldValue(param.code, value);
-                        }}
-                        form={form}
-                        workspaceSlug={pipeline.workspace?.slug}
-                        pipelineVersionId={activeVersion.id}
-                      />
-                    </Field>
-                  ))}
+                        key={i}
+                        name={param.code}
+                        label={param.name}
+                        help={param.help}
+                        error={
+                          form.touched[param.code] && form.errors[param.code]
+                        }
+                      >
+                        <fieldset
+                          disabled={isDisabled}
+                          className={clsx(isDisabled && "opacity-50")}
+                        >
+                          <ParameterField
+                            parameter={param}
+                            value={
+                              form.formData[param.code] ??
+                              (param.multiple ? [] : "")
+                            }
+                            onChange={(value: any) => {
+                              form.setFieldValue(param.code, value);
+                            }}
+                            form={form}
+                            workspaceSlug={pipeline.workspace?.slug}
+                            pipelineVersionId={activeVersion.id}
+                          />
+                        </fieldset>
+                      </Field>
+                    );
+                  })}
                 </div>
                 {form.submitError && (
                   <div className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">

@@ -134,6 +134,8 @@ type PipelineParameter {
   choices: [Generic!]  # The list of choices for the parameter.
   choicesFromFile: PipelineParameterChoicesFromFile  # Dynamic choices loaded from a workspace file.
   directory: String  # The name of the directory restriction (for file browser).
+  disables: [String!]!  # Codes of parameters disabled when this (boolean) parameter matches `disableWhen`.
+  disableWhen: Boolean!  # The boolean value of this parameter that triggers disabling of `disables` (default true).
 }
 
 """
@@ -152,6 +154,8 @@ input ParameterInput {
   choices: [Generic!]  # The list of choices for the parameter.
   choicesFromFile: PipelineParameterChoicesFromFileInput  # Dynamic choices loaded from a workspace file.
   directory: String  # The name of the directory restriction (for file browser).
+  disables: [String!]  # Codes of parameters disabled when this (boolean) parameter matches `disableWhen`.
+  disableWhen: Boolean  # The boolean value of this parameter that triggers disabling of `disables` (default true).
 }
 
 """

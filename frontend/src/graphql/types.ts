@@ -3900,6 +3900,8 @@ export type ParameterInput = {
   connection?: InputMaybe<Scalars['String']['input']>;
   default?: InputMaybe<Scalars['Generic']['input']>;
   directory?: InputMaybe<Scalars['String']['input']>;
+  disableWhen?: InputMaybe<Scalars['Boolean']['input']>;
+  disables?: InputMaybe<Array<Scalars['String']['input']>>;
   help?: InputMaybe<Scalars['String']['input']>;
   multiple?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
@@ -4093,6 +4095,8 @@ export type PipelineParameter = {
   connection?: Maybe<Scalars['String']['output']>;
   default?: Maybe<Scalars['Generic']['output']>;
   directory?: Maybe<Scalars['String']['output']>;
+  disableWhen: Scalars['Boolean']['output'];
+  disables: Array<Scalars['String']['output']>;
   help?: Maybe<Scalars['String']['output']>;
   multiple: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];

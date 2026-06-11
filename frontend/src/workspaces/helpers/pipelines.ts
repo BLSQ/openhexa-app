@@ -128,12 +128,44 @@ export const isConnectionParameter = (type: string) => {
     .includes(type.toLowerCase());
 };
 
+export const getDisabledParameterCodes = (
+  parameters: {
+    code: string;
+    disables?: string[] | null;
+    disableWhen?: boolean | null;
+  }[],
+  fields: { [key: string]: any },
+): Set<string> => {
+  const disabled = new Set<string>();
+  for (const parameter of parameters) {
+    if (!parameter.disables?.length) {
+      continue;
+    }
+    const triggerValue = parameter.disableWhen ?? true;
+    if (Boolean(fields[parameter.code]) === triggerValue) {
+      parameter.disables.forEach((code) => disabled.add(code));
+    }
+  }
+  return disabled;
+};
+
 export const convertParametersToPipelineInput = (
-  version: { parameters: { code: string; type: string; multiple: boolean }[] },
+  version: {
+    parameters: {
+      code: string;
+      type: string;
+      multiple: boolean;
+      disables?: string[] | null;
+    }[];
+  },
   fields: { [key: string]: any },
 ): any => {
+  const disabledCodes = getDisabledParameterCodes(version.parameters, fields);
   const params: { [key: string]: any } = {};
   for (const parameter of version.parameters) {
+    if (disabledCodes.has(parameter.code)) {
+      continue;
+    }
     const val = fields[parameter.code];
 
     if (parameter.type === "int") {
