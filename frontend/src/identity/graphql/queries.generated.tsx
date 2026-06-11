@@ -18,7 +18,7 @@ export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', 
 export type RegisterPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type RegisterPageQuery = { __typename?: 'Query', config: { __typename?: 'Config', passwordRequirements?: Array<string> | null } };
+export type RegisterPageQuery = { __typename?: 'Query', config: { __typename?: 'Config', passwordRequirements?: Array<string> | null, passwordLoginEnabled: boolean, oidcProviders: Array<{ __typename?: 'OidcProvider', id: string, displayName: string, loginUrl: string }> } };
 
 export type SignupPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
@@ -176,6 +176,12 @@ export const RegisterPageDocument = gql`
     query RegisterPage {
   config {
     passwordRequirements
+    passwordLoginEnabled
+    oidcProviders {
+      id
+      displayName
+      loginUrl
+    }
   }
 }
     `;

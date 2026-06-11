@@ -83,6 +83,12 @@ query AccountPage {
 query RegisterPage {
   config {
     passwordRequirements
+    passwordLoginEnabled
+    oidcProviders {
+      id
+      displayName
+      loginUrl
+    }
   }
 }
 
