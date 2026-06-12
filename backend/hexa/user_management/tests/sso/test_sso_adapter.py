@@ -3,8 +3,25 @@ from unittest.mock import MagicMock, patch
 from allauth.core.exceptions import ImmediateHttpResponse
 from django.test import TestCase, override_settings
 
-from hexa.user_management.models import User
+from hexa.user_management.models import (
+    Organization,
+    OrganizationInvitation,
+    OrganizationInvitationStatus,
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    SignupRequest,
+    SignupRequestStatus,
+    User,
+)
 from hexa.user_management.sso.sso_adapter import OpenHexaSocialAccountAdapter
+from hexa.workspaces.models import (
+    OrganizationWorkspaceInvitation,
+    Workspace,
+    WorkspaceInvitation,
+    WorkspaceInvitationStatus,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 
 _WHO_CONFIG = {
     "id": "who",
@@ -258,3 +275,132 @@ class IsAutoSignupAllowedTest(TestCase):
     def test_denied_when_email_absent(self):
         sociallogin = _make_sociallogin("")
         self.assertFalse(self.adapter.is_auto_signup_allowed(self.request, sociallogin))
+
+
+@override_settings(OIDC_PROVIDERS=[_WHO_CONFIG])
+class SaveUserAcceptsPendingInvitationsTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.ORGANIZATION = Organization.objects.create(name="WHO")
+        cls.WORKSPACE = Workspace.objects.create(
+            name="Workspace", slug="workspace", organization=cls.ORGANIZATION
+        )
+
+    def setUp(self):
+        self.adapter = OpenHexaSocialAccountAdapter()
+        self.request = MagicMock()
+
+    def _save_user(self, email="jane@who.int"):
+        sociallogin = _make_sociallogin(email)
+        with patch("hexa.user_management.sso.sso_adapter.send_mail"):
+            return self.adapter.save_user(self.request, sociallogin)
+
+    def test_accepts_pending_workspace_invitation(self):
+        invitation = WorkspaceInvitation.objects.create(
+            workspace=self.WORKSPACE,
+            email="jane@who.int",
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+
+        user = self._save_user()
+
+        membership = WorkspaceMembership.objects.get(
+            user=user, workspace=self.WORKSPACE
+        )
+        self.assertEqual(membership.role, WorkspaceMembershipRole.EDITOR)
+        invitation.refresh_from_db()
+        self.assertEqual(invitation.status, WorkspaceInvitationStatus.ACCEPTED)
+
+    def test_accepts_pending_organization_invitation_with_workspaces(self):
+        org_invitation = OrganizationInvitation.objects.create(
+            organization=self.ORGANIZATION,
+            email="jane@who.int",
+            role=OrganizationMembershipRole.MEMBER,
+        )
+        OrganizationWorkspaceInvitation.objects.create(
+            organization_invitation=org_invitation,
+            workspace=self.WORKSPACE,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        user = self._save_user()
+
+        org_membership = OrganizationMembership.objects.get(
+            user=user, organization=self.ORGANIZATION
+        )
+        self.assertEqual(org_membership.role, OrganizationMembershipRole.MEMBER)
+        workspace_membership = WorkspaceMembership.objects.get(
+            user=user, workspace=self.WORKSPACE
+        )
+        self.assertEqual(workspace_membership.role, WorkspaceMembershipRole.VIEWER)
+        org_invitation.refresh_from_db()
+        self.assertEqual(org_invitation.status, OrganizationInvitationStatus.ACCEPTED)
+
+    def test_overlapping_invitations_create_single_membership(self):
+        """A direct workspace invitation and an organization invitation covering the
+        same workspace must not raise on the membership unique constraint; the
+        direct invitation's role wins.
+        """
+        workspace_invitation = WorkspaceInvitation.objects.create(
+            workspace=self.WORKSPACE,
+            email="jane@who.int",
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+        org_invitation = OrganizationInvitation.objects.create(
+            organization=self.ORGANIZATION,
+            email="jane@who.int",
+            role=OrganizationMembershipRole.MEMBER,
+        )
+        OrganizationWorkspaceInvitation.objects.create(
+            organization_invitation=org_invitation,
+            workspace=self.WORKSPACE,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        user = self._save_user()
+
+        membership = WorkspaceMembership.objects.get(
+            user=user, workspace=self.WORKSPACE
+        )
+        self.assertEqual(membership.role, WorkspaceMembershipRole.EDITOR)
+        workspace_invitation.refresh_from_db()
+        org_invitation.refresh_from_db()
+        self.assertEqual(
+            workspace_invitation.status, WorkspaceInvitationStatus.ACCEPTED
+        )
+        self.assertEqual(org_invitation.status, OrganizationInvitationStatus.ACCEPTED)
+
+    def test_accepts_pending_signup_request(self):
+        signup_request = SignupRequest.objects.create(email="jane@who.int")
+
+        self._save_user()
+
+        signup_request.refresh_from_db()
+        self.assertEqual(signup_request.status, SignupRequestStatus.ACCEPTED)
+
+    def test_ignores_invitations_for_other_emails(self):
+        other_invitation = WorkspaceInvitation.objects.create(
+            workspace=self.WORKSPACE,
+            email="someone.else@who.int",
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+
+        user = self._save_user()
+
+        self.assertFalse(WorkspaceMembership.objects.filter(user=user).exists())
+        other_invitation.refresh_from_db()
+        self.assertEqual(other_invitation.status, WorkspaceInvitationStatus.PENDING)
+
+    def test_ignores_non_pending_invitations(self):
+        declined_invitation = WorkspaceInvitation.objects.create(
+            workspace=self.WORKSPACE,
+            email="jane@who.int",
+            role=WorkspaceMembershipRole.EDITOR,
+            status=WorkspaceInvitationStatus.DECLINED,
+        )
+
+        user = self._save_user()
+
+        self.assertFalse(WorkspaceMembership.objects.filter(user=user).exists())
+        declined_invitation.refresh_from_db()
+        self.assertEqual(declined_invitation.status, WorkspaceInvitationStatus.DECLINED)
