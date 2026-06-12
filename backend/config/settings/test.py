@@ -1,10 +1,19 @@
 import os
 
+# Logfire (configured in hexa.assistant.apps) must not export spans during
+# tests: its gzipped OTLP requests get captured by `responses` mocks and break
+# tests that inspect mocked request bodies.
+os.environ["LOGFIRE_SEND_TO_LOGFIRE"] = "false"
+
 STORAGE_BACKEND = "dummy"
 
 from .base import *  # noqa: E402, F401, F403
 
 DEBUG = False
+
+# Speed up tests: the default PBKDF2 hasher is intentionally slow (~100ms per
+# hash), which adds up since many tests create users in setUp/setUpTestData.
+PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
 ALLOWED_HOSTS = ["*"]
 CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
