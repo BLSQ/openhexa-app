@@ -431,9 +431,7 @@ class ScheduledPipelineVersionTest(TestCase):
     def test_schedulable_when_required_disabled_param_has_no_default(self):
         # Sanity: a disabled required param needs no default to be schedulable.
         version = self._disabling_version({"run_report_only": True})
-        data_input = next(
-            p for p in version.parameters if p["code"] == "data_input"
-        )
+        data_input = next(p for p in version.parameters if p["code"] == "data_input")
         self.assertNotIn("default", data_input)
         self.assertTrue(version.is_schedulable)
         version.delete()
