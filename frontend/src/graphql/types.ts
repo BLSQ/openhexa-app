@@ -491,13 +491,12 @@ export type AssistantConversationMessagesArgs = {
 
 export type AssistantMessage = {
   __typename?: 'AssistantMessage';
-  content: Scalars['String']['output'];
+  content: Array<AssistantMessageSegment>;
   createdAt: Scalars['DateTime']['output'];
   id: Scalars['UUID']['output'];
   inputTokens?: Maybe<Scalars['Int']['output']>;
   outputTokens?: Maybe<Scalars['Int']['output']>;
   role: Scalars['String']['output'];
-  toolInvocations: Array<AssistantToolInvocation>;
 };
 
 export type AssistantMessagePage = {
@@ -507,12 +506,19 @@ export type AssistantMessagePage = {
   totalPages: Scalars['Int']['output'];
 };
 
-export type AssistantToolInvocation = {
-  __typename?: 'AssistantToolInvocation';
-  createdAt: Scalars['DateTime']['output'];
-  id: Scalars['UUID']['output'];
+export type AssistantMessageSegment = AssistantTextSegment | AssistantToolSegment;
+
+export type AssistantTextSegment = {
+  __typename?: 'AssistantTextSegment';
+  content: Scalars['String']['output'];
+};
+
+export type AssistantToolSegment = {
+  __typename?: 'AssistantToolSegment';
+  id?: Maybe<Scalars['UUID']['output']>;
   proposalPending: Scalars['Boolean']['output'];
   success: Scalars['Boolean']['output'];
+  toolCallId: Scalars['String']['output'];
   toolInput: Scalars['JSON']['output'];
   toolName: Scalars['String']['output'];
   toolOutput?: Maybe<Scalars['JSON']['output']>;
@@ -581,6 +587,10 @@ export type Config = {
   __typename?: 'Config';
   /** Whether self-registration is enabled. */
   allowSelfRegistration: Scalars['Boolean']['output'];
+  /** Configured external OIDC login providers. Empty when none are enabled. */
+  oidcProviders: Array<OidcProvider>;
+  /** Whether username/password login is enabled. False when OIDC providers are configured. */
+  passwordLoginEnabled: Scalars['Boolean']['output'];
   /** List of requirements for the password. */
   passwordRequirements?: Maybe<Array<Scalars['String']['output']>>;
 };
@@ -3677,6 +3687,14 @@ export type NotebookServer = {
   url: Scalars['String']['output'];
 };
 
+export type OidcProvider = {
+  __typename?: 'OidcProvider';
+  displayName: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+  /** URL to initiate the login flow for this provider. */
+  loginUrl: Scalars['String']['output'];
+};
+
 /** The direction in which to order a list of items. */
 export enum OrderByDirection {
   Asc = 'ASC',
@@ -5104,7 +5122,7 @@ export type ResolveAssistantProposalResult = {
   __typename?: 'ResolveAssistantProposalResult';
   errors: Array<ResolveAssistantProposalError>;
   success: Scalars['Boolean']['output'];
-  toolInvocation?: Maybe<AssistantToolInvocation>;
+  toolInvocation?: Maybe<AssistantToolSegment>;
 };
 
 /** Resource counts */

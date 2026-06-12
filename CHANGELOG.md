@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.9.0](https://github.com/BLSQ/openhexa-app/compare/5.8.0...5.9.0) (2026-06-11)
+
+
+### Features
+
+* Add WHO CIAM login (HEXA-1606) ([#1842](https://github.com/BLSQ/openhexa-app/issues/1842)) ([e47403d](https://github.com/BLSQ/openhexa-app/commit/e47403d0b2c30bfc6db3603ebf5686ccc841c1c9))
+
 ## [5.8.0](https://github.com/BLSQ/openhexa-app/compare/5.7.0...5.8.0) (2026-06-10)
 
 

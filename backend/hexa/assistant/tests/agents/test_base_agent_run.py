@@ -29,7 +29,10 @@ class BaseAgentRunTest(AgentTestCase):
         run_agent(agent, "What can you do?")
         user_messages = self.conversation.messages.filter(role=Message.Role.USER)
         self.assertEqual(user_messages.count(), 1)
-        self.assertEqual(user_messages.first().content, "What can you do?")
+        self.assertEqual(
+            user_messages.first().content,
+            [{"type": "text", "content": "What can you do?"}],
+        )
 
     def test_run_saves_assistant_message(self):
         agent = BaseAgent(
@@ -40,7 +43,9 @@ class BaseAgentRunTest(AgentTestCase):
             role=Message.Role.ASSISTANT
         )
         self.assertEqual(assistant_messages.count(), 1)
-        self.assertEqual(assistant_messages.first().content, "Hello!")
+        self.assertEqual(
+            assistant_messages.first().content, [{"type": "text", "content": "Hello!"}]
+        )
 
     def test_run_updates_messages_history(self):
         agent = BaseAgent(

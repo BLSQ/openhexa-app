@@ -1,3 +1,12 @@
+type OidcProvider {
+    id: String!
+    displayName: String!
+    """
+    URL to initiate the login flow for this provider.
+    """
+    loginUrl: String!
+}
+
 type Config {
     """
     List of requirements for the password.
@@ -7,6 +16,14 @@ type Config {
     Whether self-registration is enabled.
     """
     allowSelfRegistration: Boolean!
+    """
+    Configured external OIDC login providers. Empty when none are enabled.
+    """
+    oidcProviders: [OidcProvider!]!
+    """
+    Whether username/password login is enabled. False when OIDC providers are configured.
+    """
+    passwordLoginEnabled: Boolean!
 }
 
 extend type Query {

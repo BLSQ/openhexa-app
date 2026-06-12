@@ -83,11 +83,23 @@ query AccountPage {
 query RegisterPage {
   config {
     passwordRequirements
+    passwordLoginEnabled
+    oidcProviders {
+      id
+      displayName
+      loginUrl
+    }
   }
 }
 
 query SignupPage {
   config {
     allowSelfRegistration
+    passwordLoginEnabled
+    oidcProviders {
+      id
+      displayName
+      loginUrl
+    }
   }
 }

@@ -111,6 +111,7 @@ If you're managing teams and organizations:
 
 1. **[Administration](admin.md)** - Manage organizations, workspaces, and users
 2. **[Workspaces](workspaces.md)** - Configure workspace settings and permissions
+3. **[Single Sign-On (SSO)](sso.md)** - Configure external OIDC identity providers
 
 ### 🔧 Installation and administration
 

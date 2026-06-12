@@ -447,13 +447,12 @@ type AssistantConversation {
 }
 
 type AssistantMessage {
-  content: String!
+  content: [AssistantMessageSegment!]!
   createdAt: DateTime!
   id: UUID!
   inputTokens: Int
   outputTokens: Int
   role: String!
-  toolInvocations: [AssistantToolInvocation!]!
 }
 
 type AssistantMessagePage {
@@ -462,11 +461,17 @@ type AssistantMessagePage {
   totalPages: Int!
 }
 
-type AssistantToolInvocation {
-  createdAt: DateTime!
-  id: UUID!
+union AssistantMessageSegment = AssistantTextSegment | AssistantToolSegment
+
+type AssistantTextSegment {
+  content: String!
+}
+
+type AssistantToolSegment {
+  id: UUID
   proposalPending: Boolean!
   success: Boolean!
+  toolCallId: String!
   toolInput: JSON!
   toolName: String!
   toolOutput: JSON
@@ -519,6 +524,14 @@ enum BucketObjectType {
 type Config {
   """Whether self-registration is enabled."""
   allowSelfRegistration: Boolean!
+
+  """Configured external OIDC login providers. Empty when none are enabled."""
+  oidcProviders: [OidcProvider!]!
+
+  """
+  Whether username/password login is enabled. False when OIDC providers are configured.
+  """
+  passwordLoginEnabled: Boolean!
 
   """List of requirements for the password."""
   passwordRequirements: [String!]
@@ -3104,6 +3117,14 @@ type NotebookServer {
   url: String!
 }
 
+type OidcProvider {
+  displayName: String!
+  id: String!
+
+  """URL to initiate the login flow for this provider."""
+  loginUrl: String!
+}
+
 scalar OpaqueID
 
 """The direction in which to order a list of items."""
@@ -4163,7 +4184,7 @@ enum ResolveAssistantProposalError {
 type ResolveAssistantProposalResult {
   errors: [ResolveAssistantProposalError!]!
   success: Boolean!
-  toolInvocation: AssistantToolInvocation
+  toolInvocation: AssistantToolSegment
 }
 
 """Resource counts"""

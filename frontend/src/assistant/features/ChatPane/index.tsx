@@ -1,11 +1,11 @@
 import { ArrowPathIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
-import clsx from "clsx";
 import MarkdownContent from "core/components/MarkdownContent";
 import Spinner from "core/components/Spinner";
 import { getPublicEnv } from "core/helpers/runtimeConfig";
 import useStreamingFetch from "core/hooks/useStreamingFetch";
 import useWordDrain from "core/hooks/useWordDrain";
 import { KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import ToolCallCard from "./ToolCallCard";
 import {
   AssistantConversationMessagesDocument,
   AssistantConversationMessagesQuery,
@@ -20,6 +20,14 @@ const PER_PAGE = 20;
 type Message = NonNullable<
   AssistantConversationMessagesQuery["assistantConversation"]
 >["messages"]["items"][0];
+
+type StreamingSegment =
+  | { type: "text"; content: string }
+  | { type: "tool"; toolCallId: string; toolName: string; status: "pending" | "done"; success?: boolean };
+
+type RenderableSegment =
+  | { type: "text"; content: string }
+  | { type: "tool"; key: string; toolName: string; status: "pending" | "done"; success?: boolean };
 
 type Props = {
   conversationId: string | null;
@@ -42,6 +50,29 @@ type Props = {
   // Optional per-message renderer. Rendered below each assistant message bubble.
   renderMessageAfter?: (message: Message) => ReactNode;
 };
+
+function SegmentList({ segments }: { segments: RenderableSegment[] }) {
+  return (
+    <>
+      {segments.map((seg, i) =>
+        seg.type === "text" ? (
+          <div key={i} className="flex justify-start">
+            <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
+              <MarkdownContent sm>{seg.content}</MarkdownContent>
+            </div>
+          </div>
+        ) : (
+          <ToolCallCard
+            key={seg.key}
+            toolName={seg.toolName}
+            status={seg.status}
+            success={seg.success}
+          />
+        ),
+      )}
+    </>
+  );
+}
 
 function getStreamUrl(conversationId: string): string {
   const apiBasePath =
@@ -110,6 +141,7 @@ export default function ChatPane({
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
   const [frozenAssistantMessage, setFrozenAssistantMessage] = useState<string | null>(null);
   const [sendError, setSendError] = useState<string | null>(null);
+  const [streamingSegments, setStreamingSegments] = useState<StreamingSegment[]>([]);
 
   const localConversationIdRef = useRef(localConversationId);
   useEffect(() => {
@@ -128,14 +160,16 @@ export default function ChatPane({
         .then(() => {
           setPendingUserMessage(null);
           setFrozenAssistantMessage(null);
+          setStreamingSegments([]);
         });
     } else {
       setPendingUserMessage(null);
       setFrozenAssistantMessage(null);
+      setStreamingSegments([]);
     }
   }, [apolloClient]);
 
-  const { text: streamingText, feed, markDone, clear } = useWordDrain({
+  const { text: streamingText, feed, markDone, clear, flush } = useWordDrain({
     interval: 30,
     onDrained: handleDrained,
   });
@@ -162,12 +196,29 @@ export default function ChatPane({
       const { name } = data as { name: string };
       if (name) onConversationNameChange?.(name);
     },
+    tool_call: (data) => {
+      const { tool_call_id, tool_name } = data as { tool_call_id: string; tool_name: string };
+      const textBefore = flush();
+      setStreamingSegments((prev) => [
+        ...prev,
+        ...(textBefore ? [{ type: "text" as const, content: textBefore }] : []),
+        { type: "tool" as const, toolCallId: tool_call_id, toolName: tool_name, status: "pending" as const },
+      ]);
+    },
     tool_result: (data) => {
-      const { tool_name, tool_output, success } = data as {
+      const { tool_call_id, tool_name, tool_output, success } = data as {
+        tool_call_id: string;
         tool_name: string;
         tool_output: unknown;
         success: boolean;
       };
+      setStreamingSegments((prev) =>
+        prev.map((s) =>
+          s.type === "tool" && s.toolCallId === tool_call_id
+            ? { ...s, status: "done" as const, success }
+            : s,
+        ),
+      );
       onToolResultRef.current?.(tool_name, tool_output, success);
     },
     done: (data) => {
@@ -177,6 +228,7 @@ export default function ChatPane({
     },
     error: (data) => {
       clear();
+      setStreamingSegments([]);
       const { error_code } = (data ?? {}) as { error_code?: string };
       setSendError(getErrorCodeMessage(t, error_code));
     },
@@ -184,9 +236,11 @@ export default function ChatPane({
 
   useEffect(() => {
     if (streamError) {
+      clear();
+      setStreamingSegments([]);
       setSendError(t("Could not connect to the server. Please check your connection and try again."));
     }
-  }, [streamError]);
+  }, [streamError, clear, t]);
 
   useEffect(() => {
     if (!loadingMessages) {
@@ -274,7 +328,26 @@ export default function ChatPane({
     el.style.height = `${el.scrollHeight}px`;
   }, [input]);
 
-  const isActive = isStreaming || streamingText !== null;
+  const streamingRenderSegments: RenderableSegment[] = [
+    ...streamingSegments.map((seg) =>
+      seg.type === "text"
+        ? { type: "text" as const, content: seg.content }
+        : {
+            type: "tool" as const,
+            key: seg.toolCallId,
+            toolName: seg.toolName,
+            status: seg.status,
+            success: seg.success,
+          },
+    ),
+    ...(streamingText !== null
+      ? [{ type: "text" as const, content: streamingText }]
+      : frozenAssistantMessage !== null
+      ? [{ type: "text" as const, content: frozenAssistantMessage }]
+      : []),
+  ];
+
+  const isActive = isStreaming || streamingRenderSegments.length > 0;
 
   const handleSubmit = async (overrideText?: string) => {
     const text = overrideText ?? input.trim();
@@ -334,32 +407,37 @@ export default function ChatPane({
             </div>
           )}
 
-          {messages.map((msg) => (
-            <div key={msg.id}>
-              <div
-                className={clsx(
-                  "flex",
-                  msg.role === "user" ? "justify-end" : "justify-start",
-                )}
-              >
-                <div
-                  className={clsx(
-                    "max-w-2xl rounded-2xl px-4 py-3 text-sm",
-                    msg.role === "user"
-                      ? "bg-blue-600 text-white whitespace-pre-wrap"
-                      : "bg-gray-100 text-gray-900",
-                  )}
-                >
-                  {msg.role === "user" ? (
-                    msg.content
-                  ) : (
-                    <MarkdownContent sm>{msg.content}</MarkdownContent>
-                  )}
+          {messages.map((msg) => {
+            const segments = msg.content;
+            if (msg.role === "user") {
+              const text = segments.find((s): s is { __typename: "AssistantTextSegment"; content: string } => s.__typename === "AssistantTextSegment")?.content ?? "";
+              return (
+                <div key={msg.id} className="flex justify-end">
+                  <div className="max-w-2xl rounded-2xl px-4 py-3 text-sm bg-blue-600 text-white whitespace-pre-wrap">
+                    {text}
+                  </div>
                 </div>
+              );
+            }
+            const renderableSegments: RenderableSegment[] = segments.map((seg): RenderableSegment => {
+              if ("content" in seg) {
+                return { type: "text", content: seg.content };
+              }
+              return {
+                type: "tool",
+                key: seg.toolCallId,
+                toolName: seg.toolName,
+                status: "done" as const,
+                success: seg.success,
+              };
+            });
+            return (
+              <div key={msg.id} className="space-y-2">
+                <SegmentList segments={renderableSegments} />
+                {renderMessageAfter?.(msg)}
               </div>
-              {renderMessageAfter?.(msg)}
-            </div>
-          ))}
+            );
+          })}
 
           {pendingUserMessage && (
             <div className="flex flex-col items-end gap-1">
@@ -378,15 +456,17 @@ export default function ChatPane({
             </div>
           )}
 
-          {(isStreaming || streamingText !== null || frozenAssistantMessage !== null) && (
+          {isStreaming && streamingRenderSegments.length === 0 && (
             <div className="flex justify-start">
-              <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm text-gray-900">
-                {(streamingText || frozenAssistantMessage) ? (
-                  <MarkdownContent sm>{streamingText ?? frozenAssistantMessage!}</MarkdownContent>
-                ) : (
-                  <Spinner size="xs" className="text-gray-400" />
-                )}
+              <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm">
+                <Spinner size="xs" className="text-gray-400" />
               </div>
+            </div>
+          )}
+
+          {streamingRenderSegments.length > 0 && (
+            <div className="space-y-2">
+              <SegmentList segments={streamingRenderSegments} />
             </div>
           )}
 

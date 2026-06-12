@@ -16,6 +16,10 @@
       "AccessmodProject",
       "AccessmodZonalStatistics"
     ],
+    "AssistantMessageSegment": [
+      "AssistantTextSegment",
+      "AssistantToolSegment"
+    ],
     "Connection": [
       "CustomConnection",
       "DHIS2Connection",
