@@ -434,4 +434,142 @@ describe("RunPipelineDialog", () => {
       false,
     );
   });
+
+  const pipelineWithDisablingToggle = () =>
+    pipelineWithParameters([
+      {
+        code: "run_report_only",
+        name: "Run report only",
+        type: "bool",
+        default: false,
+        widget: null,
+        connection: null,
+        required: false,
+        choices: null,
+        multiple: false,
+        disables: ["data_input"],
+        disableWhen: true,
+      },
+      {
+        code: "data_input",
+        name: "data_input",
+        type: "str",
+        default: null,
+        widget: null,
+        connection: null,
+        required: true,
+        choices: null,
+        multiple: false,
+        disables: [],
+        disableWhen: true,
+      },
+    ]);
+
+  it("skips required validation for a parameter disabled by a toggle", async () => {
+    const pipeline = pipelineWithDisablingToggle();
+    const mockFetch = jest
+      .fn()
+      .mockResolvedValue({ data: { pipelineByCode: pipeline } });
+    useLazyQueryMock.mockReturnValue([
+      mockFetch,
+      { loading: false, data: { pipelineByCode: pipeline } },
+    ]);
+
+    const user = userEvent.setup();
+    render(
+      <RunPipelineDialog pipeline={pipeline}>
+        {(onClick) => (
+          <button data-testid="trigger" onClick={onClick}>
+            Trigger
+          </button>
+        )}
+      </RunPipelineDialog>,
+    );
+    await user.click(await screen.findByTestId("trigger"));
+
+    // data_input is required and empty: submitting must be blocked.
+    await submitForm(user);
+    expect(runPipelineMock).not.toHaveBeenCalled();
+
+    // Turning the toggle on disables data_input and exempts it from validation.
+    await user.click(await screen.findByRole("switch"));
+    await submitForm(user);
+    expect(runPipelineMock).toHaveBeenCalledWith(
+      pipeline.id,
+      { run_report_only: true },
+      pipeline.currentVersion.id,
+      true,
+      false,
+    );
+  });
+
+  it("re-enables validation for a parameter when its toggle is turned back off", async () => {
+    const pipeline = pipelineWithDisablingToggle();
+    const mockFetch = jest
+      .fn()
+      .mockResolvedValue({ data: { pipelineByCode: pipeline } });
+    useLazyQueryMock.mockReturnValue([
+      mockFetch,
+      { loading: false, data: { pipelineByCode: pipeline } },
+    ]);
+
+    const user = userEvent.setup();
+    render(
+      <RunPipelineDialog pipeline={pipeline}>
+        {(onClick) => (
+          <button data-testid="trigger" onClick={onClick}>
+            Trigger
+          </button>
+        )}
+      </RunPipelineDialog>,
+    );
+    await user.click(await screen.findByTestId("trigger"));
+
+    // Toggle on then off again: data_input is required once more.
+    const toggle = await screen.findByRole("switch");
+    await user.click(toggle);
+    await user.click(toggle);
+    await submitForm(user);
+    expect(runPipelineMock).not.toHaveBeenCalled();
+
+    // Filling it in unblocks the run, and the toggle value is sent.
+    await user.type(await screen.findByLabelText("data_input"), "real");
+    await submitForm(user);
+    expect(runPipelineMock).toHaveBeenCalledWith(
+      pipeline.id,
+      { run_report_only: false, data_input: "real" },
+      pipeline.currentVersion.id,
+      true,
+      false,
+    );
+  });
+
+  it("shows which toggle disabled a parameter", async () => {
+    const pipeline = pipelineWithDisablingToggle();
+    const mockFetch = jest
+      .fn()
+      .mockResolvedValue({ data: { pipelineByCode: pipeline } });
+    useLazyQueryMock.mockReturnValue([
+      mockFetch,
+      { loading: false, data: { pipelineByCode: pipeline } },
+    ]);
+
+    const user = userEvent.setup();
+    render(
+      <RunPipelineDialog pipeline={pipeline}>
+        {(onClick) => (
+          <button data-testid="trigger" onClick={onClick}>
+            Trigger
+          </button>
+        )}
+      </RunPipelineDialog>,
+    );
+    await user.click(await screen.findByTestId("trigger"));
+
+    // The i18n mock returns the key verbatim, so we assert on the prefix
+    // rather than the interpolated controller name.
+    expect(screen.queryByText(/Disabled by/)).not.toBeInTheDocument();
+    await user.click(await screen.findByRole("switch"));
+    expect(await screen.findByText(/Disabled by/)).toBeInTheDocument();
+  });
 });

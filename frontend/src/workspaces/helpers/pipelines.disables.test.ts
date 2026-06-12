@@ -1,6 +1,7 @@
 import {
   convertParametersToPipelineInput,
   getDisabledParameterCodes,
+  getParameterDisablers,
 } from "./pipelines";
 
 const parameters = [
@@ -59,6 +60,37 @@ describe("getDisabledParameterCodes", () => {
       "tuning",
     ]);
     expect(getDisabledParameterCodes(params, { enable_advanced: true }).size).toBe(0);
+  });
+});
+
+describe("getParameterDisablers", () => {
+  it("lists each controller once even if it repeats a target in `disables`", () => {
+    const params = [
+      {
+        code: "skip_coffee",
+        type: "bool",
+        multiple: false,
+        disables: ["coffee_int", "coffee_choices", "coffee_int"],
+      },
+      { code: "coffee_int", type: "int", multiple: false },
+      { code: "coffee_choices", type: "str", multiple: false },
+    ];
+    const disablers = getParameterDisablers(params, { skip_coffee: true });
+    expect(disablers.get("coffee_int")).toEqual(["skip_coffee"]);
+    expect(disablers.get("coffee_choices")).toEqual(["skip_coffee"]);
+  });
+
+  it("lists every distinct controller disabling the same target", () => {
+    const params = [
+      { code: "toggle_a", type: "bool", multiple: false, disables: ["x"] },
+      { code: "toggle_b", type: "bool", multiple: false, disables: ["x"] },
+      { code: "x", type: "str", multiple: false },
+    ];
+    const disablers = getParameterDisablers(params, {
+      toggle_a: true,
+      toggle_b: true,
+    });
+    expect(disablers.get("x")).toEqual(["toggle_a", "toggle_b"]);
   });
 });
 

@@ -128,25 +128,45 @@ export const isConnectionParameter = (type: string) => {
     .includes(type.toLowerCase());
 };
 
-export const getDisabledParameterCodes = (
-  parameters: {
-    code: string;
-    disables?: string[] | null;
-    disableWhen?: boolean | null;
-  }[],
+type DisablingParameter = {
+  code: string;
+  disables?: string[] | null;
+  disableWhen?: boolean | null;
+};
+
+/**
+ * Maps each disabled parameter code to the codes of the (boolean) parameters
+ * that are currently disabling it. The single source of truth for the
+ * conditional-parameters logic; `getDisabledParameterCodes` is derived from it.
+ */
+export const getParameterDisablers = (
+  parameters: DisablingParameter[],
   fields: { [key: string]: any },
-): Set<string> => {
-  const disabled = new Set<string>();
+): Map<string, string[]> => {
+  const disablers = new Map<string, string[]>();
   for (const parameter of parameters) {
     if (!parameter.disables?.length) {
       continue;
     }
     const triggerValue = parameter.disableWhen ?? true;
     if (Boolean(fields[parameter.code]) === triggerValue) {
-      parameter.disables.forEach((code) => disabled.add(code));
+      for (const code of new Set(parameter.disables)) {
+        const controllers = disablers.get(code) ?? [];
+        if (!controllers.includes(parameter.code)) {
+          controllers.push(parameter.code);
+        }
+        disablers.set(code, controllers);
+      }
     }
   }
-  return disabled;
+  return disablers;
+};
+
+export const getDisabledParameterCodes = (
+  parameters: DisablingParameter[],
+  fields: { [key: string]: any },
+): Set<string> => {
+  return new Set(getParameterDisablers(parameters, fields).keys());
 };
 
 export const convertParametersToPipelineInput = (
@@ -159,8 +179,9 @@ export const convertParametersToPipelineInput = (
     }[];
   },
   fields: { [key: string]: any },
+  disabledCodes?: Set<string>,
 ): any => {
-  const disabledCodes = getDisabledParameterCodes(version.parameters, fields);
+  disabledCodes ??= getDisabledParameterCodes(version.parameters, fields);
   const params: { [key: string]: any } = {};
   for (const parameter of version.parameters) {
     if (disabledCodes.has(parameter.code)) {

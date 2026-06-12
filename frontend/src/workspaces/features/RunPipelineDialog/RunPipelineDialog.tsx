@@ -1,5 +1,9 @@
 import { gql } from "@apollo/client";
-import { ChevronDownIcon, ExclamationCircleIcon, PlayIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronDownIcon,
+  ExclamationCircleIcon,
+  PlayIcon,
+} from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
@@ -11,10 +15,11 @@ import useForm from "core/hooks/useForm";
 import { PipelineType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   convertParametersToPipelineInput,
   getDisabledParameterCodes,
+  getParameterDisablers,
   isConnectionParameter,
   runPipeline,
 } from "workspaces/helpers/pipelines";
@@ -117,13 +122,14 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       if (!activeVersion) {
         return errors;
       }
-      const normalizedValues = convertParametersToPipelineInput(
-        activeVersion,
-        values,
-      );
       const disabledCodes = getDisabledParameterCodes(
         activeVersion.parameters,
         values,
+      );
+      const normalizedValues = convertParametersToPipelineInput(
+        activeVersion,
+        values,
+        disabledCodes,
       );
       for (const parameter of activeVersion.parameters) {
         if (disabledCodes.has(parameter.code)) {
@@ -161,10 +167,18 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
     form.resetForm();
   }, [form, activeVersion]);
 
-  const disabledParameterCodes = getDisabledParameterCodes(
-    activeVersion?.parameters ?? [],
-    form.formData,
+  const parameterDisablers = useMemo(
+    () => getParameterDisablers(activeVersion?.parameters ?? [], form.formData),
+    [activeVersion, form.formData],
   );
+
+  const parameterNameByCode = useMemo(() => {
+    const map: { [code: string]: string } = {};
+    for (const param of activeVersion?.parameters ?? []) {
+      map[param.code] = param.name;
+    }
+    return map;
+  }, [activeVersion]);
 
   if (!pipeline.permissions.run) {
     return null;
@@ -205,7 +219,8 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                   )}
                 >
                   {activeVersion.parameters.map((param, i) => {
-                    const isDisabled = disabledParameterCodes.has(param.code);
+                    const disablingCodes = parameterDisablers.get(param.code);
+                    const isDisabled = !!disablingCodes;
                     return (
                       <Field
                         required={
@@ -216,6 +231,17 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                         name={param.code}
                         label={param.name}
                         help={param.help}
+                        note={
+                          disablingCodes
+                            ? t("Disabled by {{names}}", {
+                                names: disablingCodes
+                                  .map(
+                                    (code) => parameterNameByCode[code] ?? code,
+                                  )
+                                  .join(", "),
+                              })
+                            : undefined
+                        }
                         error={
                           form.touched[param.code] && form.errors[param.code]
                         }
