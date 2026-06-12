@@ -898,3 +898,41 @@ class DatasetLinkPipelineRunUserTest(BaseTestMixin, TestCase):
         links = DatasetLink.objects.filter_for_user(self.pipeline_user)
         link_datasets = [link.dataset for link in links]
         self.assertNotIn(self.DATASET_IN_WORKSPACE_3, link_datasets)
+
+    def test_pipeline_user_sees_org_shared_datasets_via_dataset_queryset(self):
+        """A pipeline run sees datasets shared with its workspace's organization."""
+        self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG.shared_with_organization = True
+        self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG.save()
+        self.DATASET_IN_DIFFERENT_ORG.shared_with_organization = True
+        self.DATASET_IN_DIFFERENT_ORG.save()
+
+        datasets = Dataset.objects.filter_for_user(self.pipeline_user)
+
+        self.assertIn(self.DATASET_IN_PIPELINE_WORKSPACE, datasets)
+        self.assertIn(self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG, datasets)
+        # Same-org but not shared → still hidden.
+        self.assertNotIn(self.DATASET_IN_WORKSPACE_3, datasets)
+        # Different-org dataset → hidden even when shared.
+        self.assertNotIn(self.DATASET_IN_DIFFERENT_ORG, datasets)
+
+    def test_pipeline_user_attributes_dataset_to_triggering_user(self):
+        """`created_by` is set to the user who triggered the run."""
+        self.pipeline_run.user = self.USER_ADMIN
+        dataset = Dataset.objects.create_if_has_perm(
+            self.pipeline_user,
+            self.WORKSPACE,
+            name="Pipeline-created Dataset",
+            description="",
+        )
+        self.assertEqual(dataset.created_by, self.USER_ADMIN)
+
+    def test_pipeline_user_leaves_created_by_null_for_scheduled_run(self):
+        """A scheduled run (no triggering user) leaves created_by null."""
+        self.pipeline_run.user = None
+        dataset = Dataset.objects.create_if_has_perm(
+            self.pipeline_user,
+            self.WORKSPACE,
+            name="Scheduled-created Dataset",
+            description="",
+        )
+        self.assertIsNone(dataset.created_by)

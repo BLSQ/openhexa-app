@@ -35,6 +35,7 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
     OrganizationSubscription,
     User,
+    UserInterface,
 )
 
 
@@ -159,34 +160,43 @@ class WorkspaceManager(models.Manager):
 
 
 class WorkspaceQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
+    def filter_for_user(
+        self,
+        user: AnonymousUser | UserInterface,
+        *,
+        include_archived: bool = False,
+    ) -> models.QuerySet:
         from hexa.pipelines.authentication import PipelineRunUser
 
+        if not user.is_authenticated:
+            return self.none()
         if isinstance(user, PipelineRunUser):
-            return self._filter_for_user_and_query_object(
-                user,
-                Q(id=user.pipeline_run.pipeline.workspace.id, archived=False),
-                return_all_if_superuser=False,
+            qs = self.filter(pk=user.pipeline_run.pipeline.workspace_id)
+        elif isinstance(user, User):
+            qs = (
+                self.all()
+                if user.is_superuser
+                else self.filter(
+                    Q(workspacemembership__user=user)
+                    | Q(
+                        organization__organizationmembership__user=user,
+                        organization__organizationmembership__role__in=[
+                            OrganizationMembershipRole.OWNER,
+                            OrganizationMembershipRole.ADMIN,
+                        ],
+                    )
+                ).distinct()
             )
         else:
-            organization_access = Q(
-                organization__organizationmembership__user=user,
-                organization__organizationmembership__role__in=[
-                    OrganizationMembershipRole.OWNER,
-                    OrganizationMembershipRole.ADMIN,
-                ],
+            raise NotImplementedError(
+                f"WorkspaceQuerySet.filter_for_user has no dispatch for principal "
+                f"type {type(user).__name__}"
             )
-            workspace_access = Q(workspacemembership__user=user)
-            return self._filter_for_user_and_query_object(
-                user,
-                organization_access | workspace_access,
-                return_all_if_superuser=True,
-            ).filter(archived=False)
+        return qs if include_archived else qs.filter(archived=False)
 
     def filter_for_workspace_slugs(
         self,
-        user: AnonymousUser | User,
+        user: AnonymousUser | UserInterface,
         workspace_slugs: list[str],
     ) -> models.QuerySet:
         if not user.is_authenticated:
@@ -337,12 +347,9 @@ class Workspace(Base):
 
 
 class WorkspaceMembershipQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
-        return self._filter_for_user_and_query_object(
-            user,
-            Q(workspace__members=user),
-            return_all_if_superuser=False,
-            return_all_if_organization_admin_or_owner=True,
+    def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
+        return self.filter(
+            workspace__in=Workspace.objects.filter_for_user(user, include_archived=True)
         )
 
 
@@ -451,12 +458,9 @@ class WorkspaceInvitationStatus(models.TextChoices):
 
 
 class WorkspaceInvitationQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
-        return self._filter_for_user_and_query_object(
-            user,
-            Q(workspace__members=user),
-            return_all_if_superuser=False,
-            return_all_if_organization_admin_or_owner=True,
+    def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
+        return self.filter(
+            workspace__in=Workspace.objects.filter_for_user(user, include_archived=True)
         )
 
 
@@ -526,23 +530,10 @@ class WorkspaceInvitation(Invitation):
 
 
 class ConnectionQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        from hexa.pipelines.authentication import PipelineRunUser
-
-        if isinstance(user, PipelineRunUser):
-            return self._filter_for_user_and_query_object(
-                user,
-                Q(workspace=user.pipeline_run.pipeline.workspace),
-                return_all_if_superuser=False,
-            )
-        else:
-            return self._filter_for_user_and_query_object(
-                user,
-                Q(workspace__members=user),
-                return_all_if_superuser=False,
-                return_all_if_organization_admin_or_owner=True,
-            )
+    def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
+        return self.filter(
+            workspace__in=Workspace.objects.filter_for_user(user, include_archived=True)
+        )
 
 
 class ConnectionManager(models.Manager):

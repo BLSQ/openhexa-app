@@ -20,7 +20,7 @@ from hexa.git.enums import FileEncoding
 from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
-from hexa.user_management.models import User
+from hexa.user_management.models import User, UserInterface
 from hexa.webapps.validators import validate_subdomain
 from hexa.workspaces.models import Workspace
 
@@ -57,20 +57,9 @@ def create_webapp_subdomain(slug: str, workspace: Workspace, max_tries=10):
 
 
 class WebappQuerySet(BaseQuerySet, SoftDeleteQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User):
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        from hexa.pipelines.authentication import PipelineRunUser
-
-        if isinstance(user, PipelineRunUser):
-            return self._filter_for_user_and_query_object(
-                user,
-                models.Q(workspace=user.pipeline_run.pipeline.workspace),
-            )
-        return self._filter_for_user_and_query_object(
-            user,
-            Q(workspace__members=user),
-            return_all_if_superuser=True,
-            return_all_if_organization_admin_or_owner=True,
+    def filter_for_user(self, user: AnonymousUser | UserInterface):
+        return self.filter(
+            workspace__in=Workspace.objects.filter_for_user(user, include_archived=True)
         )
 
     def filter_favorites(self, user: User):
