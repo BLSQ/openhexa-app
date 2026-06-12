@@ -7,8 +7,15 @@ import { useLazyQuery } from "@apollo/client";
 import { UserEvent } from "@testing-library/user-event/dist/types/setup/setup";
 import { runPipeline } from "workspaces/helpers/pipelines";
 import RunPipelineDialog from "../RunPipelineDialog";
-import { ParameterField_ParameterFragment } from "./ParameterField.generated";
-import { PipelineType } from "graphql/types";
+import { RunPipelineDialog_PipelineFragment } from "./RunPipelineDialog.generated";
+import { ParameterType, PipelineType } from "graphql/types";
+import { makeParameter } from "./parameterFixtures";
+
+type TestPipeline = RunPipelineDialog_PipelineFragment & {
+  currentVersion: NonNullable<
+    RunPipelineDialog_PipelineFragment["currentVersion"]
+  >;
+};
 
 jest.mock("@apollo/client", () => ({
   ...jest.requireActual("@apollo/client"),
@@ -25,8 +32,8 @@ jest.mock("workspaces/helpers/pipelines", () => ({
 const useLazyQueryMock = useLazyQuery as jest.Mock;
 
 const pipelineWithParameters = (
-  parameters: Array<ParameterField_ParameterFragment>,
-) => {
+  parameters: Array<Parameters<typeof makeParameter>[0]>,
+): TestPipeline => {
   return {
     id: v4(),
     code: "code",
@@ -39,12 +46,12 @@ const pipelineWithParameters = (
     },
     currentVersion: {
       id: v4(),
-      name: "3",
+      versionName: "3",
       createdAt: "2023-06-21T13:27:59.928Z",
       user: {
         displayName: "test",
       },
-      parameters,
+      parameters: parameters.map(makeParameter),
     },
   };
 };
@@ -61,7 +68,7 @@ describe("RunPipelineDialog", () => {
       {
         code: "is_ok",
         name: "is_ok",
-        type: "bool",
+        type: ParameterType.Bool,
         default: null,
         widget: null,
         connection: null,
@@ -139,7 +146,7 @@ describe("RunPipelineDialog", () => {
       {
         code: "is_ok",
         name: "is_ok",
-        type: "bool",
+        type: ParameterType.Bool,
         default: null,
         widget: null,
         connection: null,
@@ -178,7 +185,7 @@ describe("RunPipelineDialog", () => {
       {
         code: "int",
         name: "int",
-        type: "int",
+        type: ParameterType.Int,
         required: false,
         choices: null,
         widget: null,
@@ -221,7 +228,7 @@ describe("RunPipelineDialog", () => {
       {
         code: "int_param",
         name: "int_param",
-        type: "int",
+        type: ParameterType.Int,
         default: null,
         required: true,
         choices: null,
@@ -233,7 +240,7 @@ describe("RunPipelineDialog", () => {
       {
         code: "float_param",
         name: "float_param",
-        type: "float",
+        type: ParameterType.Float,
         default: 2.1,
         required: false,
         choices: null,
@@ -285,7 +292,7 @@ describe("RunPipelineDialog", () => {
       {
         code: "multi",
         name: "multi",
-        type: "str",
+        type: ParameterType.Str,
         default: null,
         widget: null,
         connection: null,
@@ -336,7 +343,7 @@ describe("RunPipelineDialog", () => {
       {
         code: "string",
         name: "string",
-        type: "str",
+        type: ParameterType.Str,
         default: null,
         widget: null,
         connection: null,
@@ -387,7 +394,7 @@ describe("RunPipelineDialog", () => {
       {
         code: "choices_param",
         name: "choices_param",
-        type: "int",
+        type: ParameterType.Int,
         default: null,
         widget: null,
         connection: null,
@@ -440,7 +447,7 @@ describe("RunPipelineDialog", () => {
       {
         code: "run_report_only",
         name: "Run report only",
-        type: "bool",
+        type: ParameterType.Bool,
         default: false,
         widget: null,
         connection: null,
@@ -453,7 +460,7 @@ describe("RunPipelineDialog", () => {
       {
         code: "data_input",
         name: "data_input",
-        type: "str",
+        type: ParameterType.Str,
         default: null,
         widget: null,
         connection: null,
