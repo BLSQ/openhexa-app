@@ -3099,6 +3099,11 @@ def test_pipeline(input_file, threshold, enable_debug):
         self.assertFalse(
             r["data"]["pipeline"]["permissions"]["createTemplateVersion"]["isAllowed"]
         )
+        template.delete()
+        r = self._get_pipeline(source_pipeline.id)
+        self.assertTrue(
+            r["data"]["pipeline"]["permissions"]["createTemplateVersion"]["isAllowed"]
+        )
 
     def test_upload_pipeline_with_valid_tags(self):
         self.client.force_login(self.USER_ROOT)

@@ -173,7 +173,7 @@ def resolve_pipeline_permissions_create_template_version(
     )
     current_version_has_template = pipeline.last_version and hasattr(
         pipeline.last_version, "template_version"
-    )
+    ) and not pipeline.last_version.template_version.template.is_deleted
     pipeline_is_created_from_a_template = pipeline.source_template
     pipeline_is_notebook = pipeline.type == PipelineType.NOTEBOOK
     is_allowed = (
