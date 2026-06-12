@@ -4,6 +4,7 @@ import hashlib
 import secrets
 import uuid
 from datetime import timedelta
+from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser, AnonymousUser
@@ -179,6 +180,7 @@ class AiSettings(models.Model):
                 name="ai_settings_enabled_requires_full_config",
                 check=(
                     Q(enabled=False)
+                    | (Q(provider="anthropic_vertex") & Q(model__isnull=False))
                     | (
                         Q(provider__isnull=False)
                         & Q(model__isnull=False)
@@ -190,6 +192,7 @@ class AiSettings(models.Model):
 
     class Provider(models.TextChoices):
         ANTHROPIC = "anthropic", "Anthropic"
+        ANTHROPIC_VERTEX = "anthropic_vertex", "Anthropic (Vertex AI)"
 
     class Model(models.TextChoices):
         HAIKU = "haiku", "Claude Haiku 4.5"
@@ -208,6 +211,11 @@ class AiSettings(models.Model):
     provider = models.CharField(max_length=20, choices=Provider.choices, null=True)
     model = models.CharField(max_length=30, choices=Model.choices, null=True)
     api_key = EncryptedTextField(max_length=255, null=True)
+    monthly_budget_cents = models.PositiveIntegerField(
+        null=True,
+        default=500,
+        help_text="Per-user monthly spend cap in USD cents (e.g. 500 = $5/month). Only enforced for managed providers (e.g. Vertex). Null disables the per-user cap.",
+    )
 
     @property
     def has_api_key(self) -> bool:
@@ -228,8 +236,20 @@ class AiSettings(models.Model):
         ]
 
     def validate(self):
-        if self.enabled and not (self.provider and self.model and self.api_key):
+        if not self.enabled:
+            return
+        if not (self.provider and self.model):
             raise ValidationError("Incomplete config")
+        if self.provider != AiSettings.Provider.ANTHROPIC_VERTEX and not self.api_key:
+            raise ValidationError("Incomplete config")
+
+    def effective_monthly_limit(self) -> Decimal:
+        if (
+            self.provider == AiSettings.Provider.ANTHROPIC_VERTEX
+            and self.monthly_budget_cents is not None
+        ):
+            return Decimal(self.monthly_budget_cents) / 100
+        return Decimal(settings.ASSISTANT_MONTHLY_LIMIT)
 
 
 class OrganizationType(models.TextChoices):

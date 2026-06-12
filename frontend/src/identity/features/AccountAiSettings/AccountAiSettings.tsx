@@ -19,6 +19,7 @@ import SwitchProperty from "core/components/DataCard/SwitchProperty";
 
 const MODELS: Record<string, string[]> = {
   anthropic: ["", AiModel.Opus, AiModel.Sonnet, AiModel.Haiku],
+  anthropic_vertex: ["", AiModel.Opus, AiModel.Sonnet, AiModel.Haiku],
 };
 
 type AccountAiSettingsProps = {
@@ -26,11 +27,13 @@ type AccountAiSettingsProps = {
   labels: Maybe<AiLabels>;
   monthlyCost: number;
   totalCost: number;
+  monthlyLimit: number;
   refetch: any;
 };
 
 const AccountAiSettings = (props: AccountAiSettingsProps) => {
-  const { settings, labels, monthlyCost, totalCost, refetch } = props;
+  const { settings, labels, monthlyCost, totalCost, monthlyLimit, refetch } = props;
+  const { t } = useTranslation();
   const [updateUserAiSettings] = useUpdateUserAiSettingsMutation();
   const [provider, setProvider] = useState<string | null | undefined>(settings?.provider);
   const modelOptions: string[] = provider ? (MODELS[provider] ?? []) : [];
@@ -49,7 +52,40 @@ const AccountAiSettings = (props: AccountAiSettingsProps) => {
   const getProviderLabel = (type: AiProvider | string): string => providersMap[type] || String(type);
   const getModelLabel = (type: AiModel | string): string => modelsMap[type] || String(type);
 
-  const { t } = useTranslation();
+  const isVertex = settings?.provider === AiProvider.AnthropicVertex;
+
+  if (isVertex) {
+    return (
+      <DataCard.Section title={t("AI Agents")} collapsible={false}>
+        <p className="text-sm text-gray-600 mb-4">
+          {t(
+            "AI is configured by your administrator. Contact them to change the provider, model, or budget.",
+          )}
+        </p>
+        <dl className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div>
+            <dt className="text-gray-500">{t("Provider")}</dt>
+            <dd className="font-medium">{getProviderLabel(settings.provider!)}</dd>
+          </div>
+          <div>
+            <dt className="text-gray-500">{t("Model")}</dt>
+            <dd className="font-medium">
+              {settings.model ? getModelLabel(settings.model) : "—"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-gray-500">{t("Monthly budget")}</dt>
+            <dd className="font-medium">
+              {t("${{used}} / ${{limit}} used this month", {
+                used: monthlyCost.toFixed(2),
+                limit: monthlyLimit.toFixed(2),
+              })}
+            </dd>
+          </div>
+        </dl>
+      </DataCard.Section>
+    );
+  }
 
   const onSave: OnSaveFn = async (values, item) => {
     await updateUserAiSettings({

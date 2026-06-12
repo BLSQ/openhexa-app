@@ -429,7 +429,8 @@ export enum AiModel {
 
 /** Represents the available AI providers. */
 export enum AiProvider {
-  Anthropic = 'anthropic'
+  Anthropic = 'anthropic',
+  AnthropicVertex = 'anthropic_vertex'
 }
 
 export type AiSettings = {
@@ -437,6 +438,7 @@ export type AiSettings = {
   enabled?: Maybe<Scalars['Boolean']['output']>;
   hasApiKey?: Maybe<Scalars['Boolean']['output']>;
   model?: Maybe<AiModel>;
+  monthlyBudgetCents?: Maybe<Scalars['Int']['output']>;
   provider?: Maybe<AiProvider>;
 };
 
@@ -2750,6 +2752,7 @@ export type LogoutResult = {
 export type Me = {
   __typename?: 'Me';
   assistantMonthlyCost: Scalars['Int']['output'];
+  assistantMonthlyLimit: Scalars['Int']['output'];
   assistantMonthlyLimitExceeded: Scalars['Boolean']['output'];
   assistantTotalCost: Scalars['Int']['output'];
   /** The feature flags assigned to the currently authenticated user. */

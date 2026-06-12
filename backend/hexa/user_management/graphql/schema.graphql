@@ -464,6 +464,7 @@ type AiSettings {
     provider: AiProvider
     model: AiModel
     hasApiKey: Boolean
+    monthlyBudgetCents: Int
 }
 
 """
@@ -471,6 +472,7 @@ Represents the available AI providers.
 """
 enum AiProvider {
     anthropic
+    anthropic_vertex
 }
 
 """

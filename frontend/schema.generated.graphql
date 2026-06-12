@@ -395,12 +395,14 @@ enum AiModel {
 """Represents the available AI providers."""
 enum AiProvider {
   anthropic
+  anthropic_vertex
 }
 
 type AiSettings {
   enabled: Boolean
   hasApiKey: Boolean
   model: AiModel
+  monthlyBudgetCents: Int
   provider: AiProvider
 }
 
@@ -2736,6 +2738,7 @@ type LogoutResult {
 """The Me type represents the currently authenticated user."""
 type Me {
   assistantMonthlyCost: Int!
+  assistantMonthlyLimit: Int!
   assistantMonthlyLimitExceeded: Boolean!
   assistantTotalCost: Int!
 

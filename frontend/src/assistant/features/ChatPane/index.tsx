@@ -183,7 +183,9 @@ export default function ChatPane({
   });
 
   useEffect(() => {
-    if (streamError) {
+    if (streamError === "limit_exceeded") {
+      setSendError(t("Monthly AI usage limit reached. Please contact your administrator."));
+    } else if (streamError) {
       setSendError(t("Could not connect to the server. Please check your connection and try again."));
     }
   }, [streamError]);

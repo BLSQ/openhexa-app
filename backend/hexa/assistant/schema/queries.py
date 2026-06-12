@@ -1,5 +1,4 @@
 from ariadne import ObjectType, QueryType
-from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 
 from hexa.assistant.models import Conversation
@@ -42,7 +41,7 @@ def resolve_pipeline_assistant_conversations(pipeline: Pipeline, info, **kwargs)
 def resolve_assistant_monthly_limit_exceeded(me, info, **kwargs):
     request = info.context["request"]
     monthly_cost = Conversation.get_monthly_cost_for_user(request.user)
-    return monthly_cost >= settings.ASSISTANT_MONTHLY_LIMIT
+    return monthly_cost >= request.user.ai_settings_safe.effective_monthly_limit()
 
 
 @me_object.field("assistantMonthlyCost")
@@ -63,6 +62,16 @@ def resolve_assistant_total_cost(me, info, **kwargs):
     request = info.context["request"]
     total_cost = Conversation.get_total_cost_for_user(request.user)
     return int(total_cost * 1_000_000)
+
+
+@me_object.field("assistantMonthlyLimit")
+def resolve_assistant_monthly_limit(me, info, **kwargs):
+    """
+    Effective monthly cap in microdollars. Per-user for managed providers, global otherwise.
+    """
+    request = info.context["request"]
+    monthly_limit = request.user.ai_settings_safe.effective_monthly_limit()
+    return int(monthly_limit * 1_000_000)
 
 
 bindables = [assistant_queries, workspace_object, me_object]

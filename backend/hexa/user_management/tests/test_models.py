@@ -1,5 +1,6 @@
 import uuid
 from datetime import timedelta
+from decimal import Decimal
 
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.test import override_settings
@@ -7,6 +8,7 @@ from django.utils import timezone
 
 from hexa.core.test import TestCase
 from hexa.user_management.models import (
+    AiSettings,
     Feature,
     FeatureFlag,
     Membership,
@@ -335,3 +337,39 @@ class OrganizationSubscriptionTest(TestCase):
         self.assertTrue(self.organization.is_users_limit_reached())
         self.assertTrue(self.organization.is_workspaces_limit_reached())
         self.assertTrue(self.organization.is_pipeline_runs_limit_reached())
+
+
+class AiSettingsTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="ai-test@openhexa.org", password="Whatever123"
+        )
+
+    @override_settings(ASSISTANT_MONTHLY_LIMIT=200)
+    def test_effective_limit_falls_back_to_global_for_anthropic(self):
+        ai_settings = self.user.ai_settings_safe
+        ai_settings.provider = AiSettings.Provider.ANTHROPIC
+        ai_settings.monthly_budget_cents = 500
+        self.assertEqual(ai_settings.effective_monthly_limit(), Decimal(200))
+
+    @override_settings(ASSISTANT_MONTHLY_LIMIT=200)
+    def test_effective_limit_uses_per_user_for_vertex(self):
+        ai_settings = self.user.ai_settings_safe
+        ai_settings.provider = AiSettings.Provider.ANTHROPIC_VERTEX
+        ai_settings.monthly_budget_cents = 500
+        self.assertEqual(ai_settings.effective_monthly_limit(), Decimal(5))
+
+    @override_settings(ASSISTANT_MONTHLY_LIMIT=200)
+    def test_effective_limit_falls_back_when_vertex_budget_is_null(self):
+        ai_settings = self.user.ai_settings_safe
+        ai_settings.provider = AiSettings.Provider.ANTHROPIC_VERTEX
+        ai_settings.monthly_budget_cents = None
+        self.assertEqual(ai_settings.effective_monthly_limit(), Decimal(200))
+
+    def test_vertex_validate_does_not_require_api_key(self):
+        ai_settings = self.user.ai_settings_safe
+        ai_settings.enabled = True
+        ai_settings.provider = AiSettings.Provider.ANTHROPIC_VERTEX
+        ai_settings.model = AiSettings.Model.SONNET
+        ai_settings.api_key = None
+        ai_settings.validate()  # must not raise
