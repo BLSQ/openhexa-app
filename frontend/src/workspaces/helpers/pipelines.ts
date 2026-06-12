@@ -149,14 +149,16 @@ export const getParameterDisablers = (
       continue;
     }
     const triggerValue = parameter.disableWhen ?? true;
-    if (Boolean(fields[parameter.code]) === triggerValue) {
-      for (const code of new Set(parameter.disables)) {
-        const controllers = disablers.get(code) ?? [];
-        if (!controllers.includes(parameter.code)) {
-          controllers.push(parameter.code);
-        }
-        disablers.set(code, controllers);
+    if (Boolean(fields[parameter.code]) !== triggerValue) {
+      continue;
+    }
+    for (const code of parameter.disables) {
+      const controllers = disablers.get(code) ?? [];
+      // The `includes` guard also collapses a code repeated within `disables`.
+      if (!controllers.includes(parameter.code)) {
+        controllers.push(parameter.code);
       }
+      disablers.set(code, controllers);
     }
   }
   return disablers;

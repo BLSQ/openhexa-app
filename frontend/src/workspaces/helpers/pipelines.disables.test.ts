@@ -28,7 +28,7 @@ describe("getDisabledParameterCodes", () => {
     const disabled = getDisabledParameterCodes(parameters, {
       run_report_only: true,
     });
-    expect([...disabled].sort()).toEqual(["data_input", "year"]);
+    expect(Array.from(disabled).sort()).toEqual(["data_input", "year"]);
   });
 
   it("unions the targets of several active controllers", () => {
@@ -42,7 +42,7 @@ describe("getDisabledParameterCodes", () => {
       toggle_a: true,
       toggle_b: true,
     });
-    expect([...disabled].sort()).toEqual(["x", "y"]);
+    expect(Array.from(disabled).sort()).toEqual(["x", "y"]);
   });
 
   it("disables when off for disableWhen=false (enable toggle)", () => {
@@ -56,10 +56,12 @@ describe("getDisabledParameterCodes", () => {
       },
       { code: "tuning", type: "str", multiple: false },
     ];
-    expect([...getDisabledParameterCodes(params, { enable_advanced: false })]).toEqual([
-      "tuning",
-    ]);
-    expect(getDisabledParameterCodes(params, { enable_advanced: true }).size).toBe(0);
+    expect(
+      Array.from(getDisabledParameterCodes(params, { enable_advanced: false })),
+    ).toEqual(["tuning"]);
+    expect(
+      getDisabledParameterCodes(params, { enable_advanced: true }).size,
+    ).toBe(0);
   });
 });
 
