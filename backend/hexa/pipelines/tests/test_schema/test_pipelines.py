@@ -68,8 +68,9 @@ class PipelinesV2Test(GraphQLTestCase):
             "standardpassword",
         )
 
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             cls.WS1 = Workspace.objects.create_if_has_perm(
                 cls.USER_ROOT,
@@ -3097,6 +3098,11 @@ def test_pipeline(input_file, threshold, enable_debug):
         template.create_version(source_pipeline.last_version)
         r = self._get_pipeline(source_pipeline.id)
         self.assertFalse(
+            r["data"]["pipeline"]["permissions"]["createTemplateVersion"]["isAllowed"]
+        )
+        template.delete()
+        r = self._get_pipeline(source_pipeline.id)
+        self.assertTrue(
             r["data"]["pipeline"]["permissions"]["createTemplateVersion"]["isAllowed"]
         )
 

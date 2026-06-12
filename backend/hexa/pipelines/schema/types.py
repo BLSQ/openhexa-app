@@ -171,8 +171,10 @@ def resolve_pipeline_permissions_create_template_version(
     user_has_permission = request.user.is_authenticated and request.user.has_perm(
         "pipeline_templates.create_pipeline_template_version", pipeline.workspace
     )
-    current_version_has_template = pipeline.last_version and hasattr(
-        pipeline.last_version, "template_version"
+    current_version_has_template = (
+        pipeline.last_version
+        and hasattr(pipeline.last_version, "template_version")
+        and not pipeline.last_version.template_version.template.is_deleted
     )
     pipeline_is_created_from_a_template = pipeline.source_template
     pipeline_is_notebook = pipeline.type == PipelineType.NOTEBOOK
