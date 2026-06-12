@@ -2127,6 +2127,74 @@ def test_pipeline(input_file, threshold, enable_debug):
         self.assertEqual(None, param1["help"])
         self.assertEqual(True, param1["required"])
 
+    def test_upload_pipeline_with_disables_parameter(self):
+        """A boolean parameter's `disables` list is stored and resolved (empty list when unset)."""
+        pipeline = self.test_create_pipeline()
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                    pipelineVersion {
+                        parameters {
+                            code
+                            disables
+                            disableWhen
+                        }
+                    }
+                }
+            }""",
+            {
+                "input": {
+                    "code": pipeline.code,
+                    "workspaceSlug": self.WS1.slug,
+                    "name": "Version with disabling parameter",
+                    "zipfile": "",
+                    "parameters": [
+                        {
+                            "code": "run_report_only",
+                            "type": "bool",
+                            "required": False,
+                            "default": False,
+                            "disables": ["data_input"],
+                        },
+                        {
+                            "code": "enable_advanced",
+                            "type": "bool",
+                            "required": False,
+                            "default": False,
+                            "disables": ["tuning"],
+                            "disableWhen": False,
+                        },
+                        {
+                            "code": "data_input",
+                            "type": "str",
+                            "required": True,
+                        },
+                        {
+                            "code": "tuning",
+                            "type": "str",
+                            "required": True,
+                        },
+                    ],
+                }
+            },
+        )
+
+        self.assertEqual(True, r["data"]["uploadPipeline"]["success"])
+        params = {
+            p["code"]: p
+            for p in r["data"]["uploadPipeline"]["pipelineVersion"]["parameters"]
+        }
+        self.assertEqual(["data_input"], params["run_report_only"]["disables"])
+        self.assertEqual(True, params["run_report_only"]["disableWhen"])
+        self.assertEqual(False, params["enable_advanced"]["disableWhen"])
+        self.assertEqual([], params["data_input"]["disables"])
+        self.assertEqual(True, params["data_input"]["disableWhen"])
+
     def test_upload_pipeline_parsing_fallback(self):
         """Test that parsing incorrect fails gracefully."""
         pipeline = self.test_create_pipeline()

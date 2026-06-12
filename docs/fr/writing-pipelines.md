@@ -741,6 +741,7 @@ Les arguments keyword suivants sont optionnels :
 - `widget` : option d'enum pour le widget pour remplir les options du paramètre
 - `connection` : nom du code de connexion à utiliser dans le widget
 - `multiple` : si les arguments doivent accepter une liste de valeurs plutôt qu'une seule valeur, `False` par défaut
+- `disables` : une liste de codes de paramètres à désactiver lorsque ce paramètre (booléen) est activé — voir [Désactiver des paramètres avec une bascule](#désactiver-des-paramètres-avec-une-bascule)
 
 Champ `widget` optionnel, à ce moment `DHIS2Widget`, `IASOWidget` sont supportés. Un champ `connection` doit être renseigné pour pouvoir définir un champ `widget`.
 
@@ -939,6 +940,76 @@ MSA,Mombasa
 - Le fichier de choix ne doit pas dépasser **5 Mo**.
 - `ChoicesFromFile` est uniquement compatible avec les types de paramètres scalaires (`str`, `int`, `float`, `bool`). Il ne peut pas être combiné avec les types connexion, dataset, fichier ou secret.
 - Si le fichier contient des valeurs incompatibles avec le type de paramètre déclaré (par exemple, des chaînes non numériques pour un paramètre `int`), ces options seront désactivées dans le formulaire d'exécution et un avertissement sera affiché.
+
+## Désactiver des paramètres avec une bascule
+
+Alors que les [choix dynamiques](#utiliser-des-choix-dynamiques-depuis-un-fichier-de-lespace-de-travail) modifient *quelles valeurs* un paramètre peut prendre, l'option `disables` modifie *quels paramètres sont actifs* en fonction d'un autre paramètre.
+
+Un cas fréquent : un pipeline possède plusieurs paramètres obligatoires servant à traiter les données, mais il propose aussi un mode d'exécution « allégé » (par exemple, régénérer un rapport à partir d'une exécution précédente) qui n'en a pas besoin. Sans `disables`, les utilisateurs devraient saisir des valeurs factices dans les paramètres obligatoires simplement pour pouvoir lancer l'exécution.
+
+Avec `disables`, vous ajoutez un paramètre booléen qui sert de bascule. Lorsqu'il est activé, les paramètres qu'il liste sont :
+
+- masqués/grisés dans le formulaire d'exécution,
+- exemptés de la vérification « requis »,
+- omis de la configuration d'exécution — la fonction du pipeline reçoit leur valeur par défaut (ou `None`).
+
+```python
+from openhexa.sdk import current_run, parameter, pipeline
+
+
+@pipeline("snt-report")
+@parameter(
+    "run_report_only",
+    name="Exécuter uniquement le rapport",
+    help="Ignorer le traitement des données et régénérer uniquement le rapport.",
+    type=bool,
+    default=False,
+    disables=["data_input", "year"],
+)
+@parameter("data_input", name="Données d'entrée", type=str, required=True)
+@parameter("year", name="Année", type=int, required=True)
+@parameter("report_name", name="Nom du rapport", type=str, required=False)
+def snt_report(run_report_only, data_input, year, report_name):
+    if run_report_only:
+        # data_input et year valent None ici — ils ont été désactivés dans le formulaire.
+        current_run.log_info("Régénération du rapport uniquement")
+        generate_report(report_name)
+        return
+
+    process_data(data_input, year)
+    generate_report(report_name)
+```
+
+Dans le formulaire d'exécution, cocher **Exécuter uniquement le rapport** grise `data_input` et `year` et permet à l'utilisateur de lancer l'exécution sans les remplir. `report_name` n'est pas listé dans `disables`, il reste donc modifiable.
+
+### Désactiver lorsque la bascule est *désactivée* (`disable_when`)
+
+Par défaut, les paramètres listés sont désactivés lorsque la bascule est **activée** (`disable_when=True`). Pour une bascule de type « activer » — où les paramètres supplémentaires ne doivent être actifs que lorsque la bascule est cochée — utilisez `disable_when=False` :
+
+```python
+@parameter(
+    "enable_advanced",
+    name="Activer les options avancées",
+    type=bool,
+    default=False,
+    disables=["batch_size", "threads"],
+    disable_when=False,
+)
+@parameter("batch_size", name="Taille de lot", type=int, required=True)
+@parameter("threads", name="Threads", type=int, required=True)
+@pipeline("my-pipeline")
+def my_pipeline(enable_advanced, batch_size, threads): ...
+```
+
+Ici, `batch_size` et `threads` sont grisés tant que **Activer les options avancées** n'est pas coché, et redeviennent modifiables (et de nouveau requis) une fois la case cochée.
+
+### Règles et comportement
+
+- Seuls les paramètres **booléens** peuvent déclarer `disables`.
+- `disable_when` (par défaut `True`) est la valeur de la bascule qui déclenche la désactivation ; elle doit être un booléen.
+- Un paramètre est désactivé dès qu'**une** bascule dont la valeur correspond à son `disable_when` le liste (l'effet est cumulatif si vous avez plusieurs bascules).
+- Une bascule ne peut pas se désactiver elle-même, ni désactiver une autre bascule (le chaînage n'est pas supporté).
+- Les paramètres désactivés ne sont validés ni dans le formulaire web ni à l'exécution, de sorte qu'un pipeline peut s'exécuter même si un paramètre désactivé est requis et laissé vide.
 
 ## Utiliser des types de paramètres de connexion
 

@@ -6,6 +6,7 @@ from django.utils import timezone
 from hexa.core.test import TestCase
 from hexa.pipelines.models import (
     Pipeline,
+    PipelineDoesNotSupportParametersError,
     PipelineRun,
     PipelineRunState,
     PipelineRunTrigger,
@@ -322,3 +323,165 @@ class ScheduledPipelineVersionTest(TestCase):
         self.PIPELINE.scheduled_pipeline_version = None
         self.PIPELINE.save()
         unschedulable_version.delete()
+
+    def _disabling_version(self, config):
+        return PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            name="disabling",
+            parameters=[
+                {
+                    "code": "run_report_only",
+                    "type": "bool",
+                    "required": False,
+                    "default": False,
+                    "disables": ["data_input"],
+                },
+                {"code": "data_input", "type": "str", "required": True},
+            ],
+            config=config,
+        )
+
+    def test_schedulable_when_required_param_disabled_by_active_controller(self):
+        # Controller stored as on → data_input is disabled → required check waived.
+        version = self._disabling_version({"run_report_only": True})
+        self.assertTrue(version.is_schedulable)
+        version.delete()
+
+    def test_not_schedulable_when_controller_off_and_required_param_empty(self):
+        # Controller off (default) → data_input active and required with no value → not schedulable.
+        version = self._disabling_version({})
+        self.assertFalse(version.is_schedulable)
+        version.delete()
+
+    def test_schedulable_with_disable_when_false_controller_off(self):
+        version = PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            name="enable-toggle",
+            parameters=[
+                {
+                    "code": "enable_advanced",
+                    "type": "bool",
+                    "required": False,
+                    "default": False,
+                    "disables": ["tuning"],
+                    "disable_when": False,
+                },
+                {"code": "tuning", "type": "str", "required": True},
+            ],
+            config={},
+        )
+        # enable_advanced off (default) matches disable_when=False → tuning disabled → schedulable.
+        self.assertTrue(version.is_schedulable)
+        version.delete()
+
+    def test_not_schedulable_with_disable_when_false_controller_on(self):
+        version = PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            name="enable-toggle-on",
+            parameters=[
+                {
+                    "code": "enable_advanced",
+                    "type": "bool",
+                    "required": False,
+                    "default": False,
+                    "disables": ["tuning"],
+                    "disable_when": False,
+                },
+                {"code": "tuning", "type": "str", "required": True},
+            ],
+            config={"enable_advanced": True},
+        )
+        # Controller on → does NOT match disable_when=False → tuning active, required, empty → not schedulable.
+        self.assertFalse(version.is_schedulable)
+        version.delete()
+
+    def test_not_schedulable_when_controller_explicitly_false_in_config(self):
+        # Explicit False in config (not just default) keeps the required param active.
+        version = self._disabling_version({"run_report_only": False})
+        self.assertFalse(version.is_schedulable)
+        version.delete()
+
+    def test_schedulable_unions_multiple_controllers(self):
+        version = PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            name="multi-controller",
+            parameters=[
+                {
+                    "code": "toggle_a",
+                    "type": "bool",
+                    "required": False,
+                    "default": False,
+                    "disables": ["x_param"],
+                },
+                {
+                    "code": "toggle_b",
+                    "type": "bool",
+                    "required": False,
+                    "default": False,
+                    "disables": ["x_param", "y_param"],
+                },
+                {"code": "x_param", "type": "str", "required": True},
+                {"code": "y_param", "type": "str", "required": True},
+            ],
+            config={"toggle_a": True, "toggle_b": True},
+        )
+        self.assertTrue(version.is_schedulable)
+        version.delete()
+
+    def test_schedulable_when_required_disabled_param_has_no_default(self):
+        # Sanity: a disabled required param needs no default to be schedulable.
+        version = self._disabling_version({"run_report_only": True})
+        data_input = next(p for p in version.parameters if p["code"] == "data_input")
+        self.assertNotIn("default", data_input)
+        self.assertTrue(version.is_schedulable)
+        version.delete()
+
+    def test_get_disabled_parameter_codes_handles_none_config(self):
+        version = self._disabling_version({})
+        # Controller defaults to False → no params disabled.
+        self.assertEqual(version.get_disabled_parameter_codes(None), set())
+        version.delete()
+
+    def _scheduled_disabling_version(self, current_config):
+        """A version that currently has `data_input` set and is disabled-capable."""
+        return PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            name="scheduled-disabling",
+            parameters=[
+                {
+                    "code": "run_report_only",
+                    "type": "bool",
+                    "required": False,
+                    "default": False,
+                    "disables": ["data_input"],
+                },
+                {"code": "data_input", "type": "str", "required": True},
+            ],
+            config=current_config,
+        )
+
+    def test_validate_new_config_allows_dropping_disabled_required_param(self):
+        version = self._scheduled_disabling_version(
+            {"run_report_only": False, "data_input": "real_value"}
+        )
+        # New config turns the controller on → data_input disabled → dropping it is allowed.
+        version.validate_new_config({"run_report_only": True, "data_input": None})
+        version.delete()
+
+    def test_validate_new_config_rejects_dropping_active_required_param(self):
+        version = self._scheduled_disabling_version(
+            {"run_report_only": False, "data_input": "real_value"}
+        )
+        # Controller stays off → data_input active and required → dropping its value must raise.
+        with self.assertRaises(PipelineDoesNotSupportParametersError):
+            version.validate_new_config({"run_report_only": False, "data_input": None})
+        version.delete()
+
+    def test_validate_new_config_passes_when_value_kept(self):
+        version = self._scheduled_disabling_version(
+            {"run_report_only": False, "data_input": "real_value"}
+        )
+        version.validate_new_config(
+            {"run_report_only": False, "data_input": "still_here"}
+        )
+        version.delete()

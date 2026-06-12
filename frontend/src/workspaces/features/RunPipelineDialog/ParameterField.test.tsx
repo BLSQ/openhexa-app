@@ -1,21 +1,20 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { ParameterType } from "graphql/types";
 import ParameterField from "./ParameterField";
+import { makeParameter } from "./parameterFixtures";
 
 describe("ParameterField", () => {
   it("renders a switch for boolean parameter", async () => {
     const user = userEvent.setup();
     const onChange = jest.fn();
-    const param = {
+    const param = makeParameter({
       code: "is_ok",
       name: "is_ok",
-      type: "bool",
+      type: ParameterType.Bool,
       default: false,
-      required: false,
-      choices: null,
-      multiple: false,
-    };
+    });
     const form = {};
 
     render(
@@ -40,17 +39,12 @@ describe("ParameterField", () => {
   it("renders number input for int param", async () => {
     const onChange = jest.fn();
     const user = userEvent.setup();
-    const param = {
+    const param = makeParameter({
       code: "int_param",
       name: "int",
-      type: "int",
+      type: ParameterType.Int,
       default: 0,
-      required: false,
-      choices: null,
-      multiple: false,
-      connection: null,
-      widget: null,
-    };
+    });
     const form = {};
     render(
       <ParameterField
@@ -73,17 +67,13 @@ describe("ParameterField", () => {
   it("renders for multiple int param", async () => {
     const onChange = jest.fn();
     const user = userEvent.setup();
-    const param = {
+    const param = makeParameter({
       code: "int_param",
       name: "int",
-      type: "int",
+      type: ParameterType.Int,
       default: "",
-      required: false,
-      choices: null,
       multiple: true,
-      connection: null,
-      widget: null,
-    };
+    });
     const form = {};
 
     const { debug } = render(
@@ -105,17 +95,12 @@ describe("ParameterField", () => {
   it("renders an input of type string", async () => {
     const onChange = jest.fn();
     const user = userEvent.setup();
-    const param = {
+    const param = makeParameter({
       code: "str_param",
       name: "str_param",
-      type: "str",
+      type: ParameterType.Str,
       default: 0,
-      required: false,
-      choices: null,
-      multiple: false,
-      connection: null,
-      widget: null,
-    };
+    });
     const form = {};
 
     render(
@@ -136,17 +121,13 @@ describe("ParameterField", () => {
   it("renders a select if param have choices", async () => {
     const onChange = jest.fn();
     const user = userEvent.setup();
-    const param = {
+    const param = makeParameter({
       code: "choice_param",
       name: "choice__param",
-      type: "int",
+      type: ParameterType.Int,
       default: 1,
-      required: false,
       choices: [1, 2, 3],
-      multiple: false,
-      connection: null,
-      widget: null,
-    };
+    });
     const form = {};
 
     render(
@@ -167,17 +148,13 @@ describe("ParameterField", () => {
   it("renders a select if param have choices and multiple", async () => {
     const onChange = jest.fn();
     const user = userEvent.setup();
-    const param = {
+    const param = makeParameter({
       code: "choice_param",
       name: "choice__param",
-      type: "int",
-      default: null,
-      required: false,
-      widget: null,
-      connection: null,
+      type: ParameterType.Int,
       choices: [1, 2, 3],
       multiple: true,
-    };
+    });
     const form = {};
 
     render(
@@ -198,17 +175,14 @@ describe("ParameterField", () => {
   it("renders a select if param have choices and multiple with default value", async () => {
     const onChange = jest.fn();
     const user = userEvent.setup();
-    const param = {
+    const param = makeParameter({
       code: "choice_param",
       name: "choice__param",
-      type: "str",
+      type: ParameterType.Str,
       default: "a",
-      required: false,
       choices: ["a", "b", "c"],
       multiple: true,
-      widget: null,
-      connection: null,
-    };
+    });
     const form = {};
     render(
       <ParameterField
@@ -227,17 +201,13 @@ describe("ParameterField", () => {
 
   it("renders a textarea for param multiple", async () => {
     const onChange = jest.fn();
-    const param = {
+    const param = makeParameter({
       code: "multi_param",
       name: "multi_param",
-      type: "str",
+      type: ParameterType.Str,
       default: "",
-      required: false,
-      choices: null,
       multiple: true,
-      widget: null,
-      connection: null,
-    };
+    });
     const form = {};
     const user = userEvent.setup();
 
