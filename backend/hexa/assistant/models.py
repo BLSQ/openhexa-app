@@ -10,6 +10,7 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.types import MessageSegment, MessageSegmentAdapter
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.core.models.soft_delete import (
     DefaultSoftDeletedManager,
@@ -148,7 +149,7 @@ class Message(Base):
         Conversation, on_delete=models.CASCADE, related_name="messages"
     )
     role = models.CharField(max_length=20, choices=Role.choices)
-    content = models.TextField()
+    content = models.JSONField()
     input_tokens = models.IntegerField(null=True, blank=True)
     output_tokens = models.IntegerField(null=True, blank=True)
     cost = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
@@ -174,6 +175,10 @@ class Message(Base):
                 name="asst_msg_pagination_idx",
             ),
         ]
+
+    @property
+    def content_segments(self) -> list[MessageSegment]:
+        return MessageSegmentAdapter.validate_python(self.content)
 
     def __str__(self):
         return f"Message({self.id}, role={self.role})"

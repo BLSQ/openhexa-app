@@ -6,17 +6,21 @@ query AssistantConversationMessages($id: UUID!, $page: Int = 1, $perPage: Int = 
       items {
         id
         role
-        content
-        createdAt
-        toolInvocations {
+        content {
+          ... on AssistantTextSegment {
+            content
+          }
+          ... on AssistantToolSegment {
             id
-            createdAt
+            toolCallId
             toolName
             toolInput
             toolOutput
             success
             proposalPending
+          }
         }
+        createdAt
       }
       totalItems
       totalPages

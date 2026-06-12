@@ -20,6 +20,12 @@ type UseWordDrainReturn = {
   markDone: () => void;
   /** Immediately discard the queue and reset to idle without calling `onDrained`. */
   clear: () => void;
+  /**
+   * Snapshot all text fed so far, then immediately reset to idle (like `clear`).
+   * Use this when a mid-stream event (e.g. a tool call) needs to capture the
+   * accumulated text as a completed segment before resuming.
+   */
+  flush: () => string;
 };
 
 /**
@@ -36,6 +42,7 @@ type UseWordDrainReturn = {
 function useWordDrain({ interval = 30, onDrained }: Options = {}): UseWordDrainReturn {
   const [text, setText] = useState<string | null>(null);
   const queueRef = useRef("");
+  const allTextRef = useRef("");
   const doneRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onDrainedRef = useRef(onDrained);
@@ -66,6 +73,7 @@ function useWordDrain({ interval = 30, onDrained }: Options = {}): UseWordDrainR
       } else if (doneRef.current) {
         stop();
         doneRef.current = false;
+        allTextRef.current = "";
         setText(null);
         onDrainedRef.current?.();
       }
@@ -77,6 +85,7 @@ function useWordDrain({ interval = 30, onDrained }: Options = {}): UseWordDrainR
   const feed = useCallback(
     (chunk: string) => {
       queueRef.current += chunk;
+      allTextRef.current += chunk;
       start();
     },
     [start],
@@ -89,12 +98,19 @@ function useWordDrain({ interval = 30, onDrained }: Options = {}): UseWordDrainR
 
   const clear = useCallback(() => {
     queueRef.current = "";
+    allTextRef.current = "";
     doneRef.current = false;
     stop();
     setText(null);
   }, [stop]);
 
-  return { text, feed, markDone, clear };
+  const flush = useCallback((): string => {
+    const captured = allTextRef.current;
+    clear();
+    return captured;
+  }, [clear]);
+
+  return { text, feed, markDone, clear, flush };
 }
 
 export default useWordDrain;

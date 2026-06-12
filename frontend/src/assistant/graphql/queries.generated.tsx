@@ -10,7 +10,7 @@ export type AssistantConversationMessagesQueryVariables = Types.Exact<{
 }>;
 
 
-export type AssistantConversationMessagesQuery = { __typename?: 'Query', assistantConversation?: { __typename?: 'AssistantConversation', id: string, name?: string | null, messages: { __typename?: 'AssistantMessagePage', totalItems: number, totalPages: number, items: Array<{ __typename?: 'AssistantMessage', id: string, role: string, content: string, createdAt: any, toolInvocations: Array<{ __typename?: 'AssistantToolInvocation', id: string, createdAt: any, toolName: string, toolInput: any, toolOutput?: any | null, success: boolean, proposalPending: boolean }> }> } } | null };
+export type AssistantConversationMessagesQuery = { __typename?: 'Query', assistantConversation?: { __typename?: 'AssistantConversation', id: string, name?: string | null, messages: { __typename?: 'AssistantMessagePage', totalItems: number, totalPages: number, items: Array<{ __typename?: 'AssistantMessage', id: string, role: string, createdAt: any, content: Array<{ __typename?: 'AssistantTextSegment', content: string } | { __typename?: 'AssistantToolSegment', id?: string | null, toolCallId: string, toolName: string, toolInput: any, toolOutput?: any | null, success: boolean, proposalPending: boolean }> }> } } | null };
 
 
 export const AssistantConversationMessagesDocument = gql`
@@ -22,17 +22,21 @@ export const AssistantConversationMessagesDocument = gql`
       items {
         id
         role
-        content
-        createdAt
-        toolInvocations {
-          id
-          createdAt
-          toolName
-          toolInput
-          toolOutput
-          success
-          proposalPending
+        content {
+          ... on AssistantTextSegment {
+            content
+          }
+          ... on AssistantToolSegment {
+            id
+            toolCallId
+            toolName
+            toolInput
+            toolOutput
+            success
+            proposalPending
+          }
         }
+        createdAt
       }
       totalItems
       totalPages
