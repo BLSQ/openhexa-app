@@ -86,14 +86,8 @@ class DatasetManager(models.Manager):
         description: str,
         files: list[dict] | None = None,
     ):
-        from hexa.workspaces.models import Workspace
-
         if isinstance(principal, ServicePrincipal):
-            if (
-                not Workspace.objects.filter_for_user(principal)
-                .filter(pk=workspace.pk)
-                .exists()
-            ):
+            if principal.workspace_id != workspace.pk:
                 raise PermissionDenied
         elif not principal.has_perm("datasets.create_dataset", workspace):
             raise PermissionDenied
@@ -225,14 +219,8 @@ class DatasetVersionManager(models.Manager):
         changelog: str,
         files: list[dict] | None = None,
     ):
-        from hexa.workspaces.models import Workspace
-
         if isinstance(principal, ServicePrincipal):
-            if (
-                not Workspace.objects.filter_for_user(principal)
-                .filter(pk=dataset.workspace_id)
-                .exists()
-            ):
+            if principal.workspace_id != dataset.workspace_id:
                 raise PermissionDenied
         elif not principal.has_perm("datasets.create_dataset_version", dataset):
             raise PermissionDenied
@@ -366,14 +354,8 @@ class DatasetVersionFileManager(models.Manager):
         uri: str,
         content_type: str,
     ):
-        from hexa.workspaces.models import Workspace
-
         if isinstance(principal, ServicePrincipal):
-            if (
-                not Workspace.objects.filter_for_user(principal)
-                .filter(pk=dataset_version.dataset.workspace_id)
-                .exists()
-            ):
+            if principal.workspace_id != dataset_version.dataset.workspace_id:
                 raise PermissionDenied
         elif not principal.has_perm(
             "datasets.create_dataset_version_file", dataset_version
