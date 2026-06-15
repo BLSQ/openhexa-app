@@ -52,7 +52,9 @@ class DatasetQuerySet(BaseQuerySet):
         from hexa.workspaces.models import Workspace
 
         accessible_workspaces = Workspace.objects.filter_for_user(user)
-        accessible_organizations = Organization.objects.filter_for_user(user)
+        accessible_organizations = Organization.objects.filter_for_user(
+            user, direct_membership_only=True
+        )
         return self.optimize_query(
             self.filter(
                 Q(links__workspace__in=accessible_workspaces)
@@ -568,7 +570,9 @@ class DatasetLinkQuerySet(BaseQuerySet):
         from hexa.workspaces.models import Workspace
 
         accessible_workspaces = Workspace.objects.filter_for_user(user)
-        accessible_organizations = Organization.objects.filter_for_user(user)
+        accessible_organizations = Organization.objects.filter_for_user(
+            user, direct_membership_only=True
+        )
         return self.optimize_query(
             self.filter(
                 Q(workspace__in=accessible_workspaces)
