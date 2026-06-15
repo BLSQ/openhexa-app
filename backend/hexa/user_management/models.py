@@ -847,7 +847,11 @@ class OrganizationInvitationStatus(models.TextChoices):
 
 class OrganizationInvitationQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
-        return self.filter(organization__in=Organization.objects.filter_for_user(user))
+        return self.filter(
+            organization__in=Organization.objects.filter_for_user(
+                user, direct_membership_only=True
+            )
+        )
 
 
 class OrganizationInvitationManager(InvitationManager):
