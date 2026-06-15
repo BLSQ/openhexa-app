@@ -1,0 +1,61 @@
+import clsx from "clsx";
+import SyntaxHighlighter from "react-syntax-highlighter";
+import { github } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { useMemo } from "react";
+import Clipboard from "core/components/Clipboard";
+
+type Props = {
+  value: unknown;
+  className?: string;
+  // Cap the rendered height; content scrolls past it. Defaults to a compact panel.
+  maxHeight?: number;
+};
+
+function stringify(value: unknown): string {
+  if (typeof value === "string") return value;
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+}
+
+export default function JsonView({ value, className, maxHeight = 320 }: Props) {
+  // A raw string output (e.g. a non-JSON tool result) reads better as plain text
+  // than as a quoted JSON scalar, so only highlight when it is structured data.
+  const isStructured = typeof value === "object" && value !== null;
+  const text = useMemo(() => stringify(value), [value]);
+
+  return (
+    <div className={clsx("group relative", className)}>
+      <div className="absolute right-1.5 top-1.5 z-10 opacity-0 transition-opacity group-hover:opacity-100">
+        <Clipboard value={text} iconClassName="h-3.5 w-3.5 text-gray-400" />
+      </div>
+      <div className="overflow-y-auto" style={{ maxHeight }}>
+        {isStructured ? (
+          <SyntaxHighlighter
+            language="json"
+            style={github}
+            wrapLongLines
+            customStyle={{
+              margin: 0,
+              borderRadius: "0.375rem",
+              fontSize: "0.75rem",
+              background: "#ffffff",
+              border: "1px solid #e5e7eb",
+              padding: "0.625rem 0.75rem",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
+          >
+            {text}
+          </SyntaxHighlighter>
+        ) : (
+          <pre className="m-0 whitespace-pre-wrap break-words rounded-md border border-gray-200 bg-white px-3 py-2.5 font-mono text-xs text-gray-800">
+            {text}
+          </pre>
+        )}
+      </div>
+    </div>
+  );
+}
