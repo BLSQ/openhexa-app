@@ -930,16 +930,17 @@ class OrganizationInvitation(Invitation):
         """Accept the invitation and create organization/workspace memberships."""
         from hexa.workspaces.models import WorkspaceMembership
 
-        OrganizationMembership.objects.create(
+        # get_or_create in case the user is already a member
+        OrganizationMembership.objects.get_or_create(
             organization=self.organization,
             user=user,
-            role=self.role,
+            defaults={"role": self.role},
         )
         for ws_invitation in self.workspace_invitations.all():
-            WorkspaceMembership.objects.create(
+            WorkspaceMembership.objects.get_or_create(
                 workspace=ws_invitation.workspace,
                 user=user,
-                role=ws_invitation.role,
+                defaults={"role": ws_invitation.role},
             )
         self.status = OrganizationInvitationStatus.ACCEPTED
         self.save()

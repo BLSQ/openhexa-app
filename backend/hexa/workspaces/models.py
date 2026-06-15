@@ -514,10 +514,11 @@ class WorkspaceInvitation(Invitation):
 
     def accept(self, user: User):
         """Accept the invitation and create workspace membership."""
-        WorkspaceMembership.objects.create(
+        # get_or_create in case the user is already a member
+        WorkspaceMembership.objects.get_or_create(
             workspace=self.workspace,
             user=user,
-            role=self.role,
+            defaults={"role": self.role},
         )
         self.status = WorkspaceInvitationStatus.ACCEPTED
         self.save()

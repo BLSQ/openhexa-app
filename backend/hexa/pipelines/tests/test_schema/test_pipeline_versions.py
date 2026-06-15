@@ -633,3 +633,148 @@ def test_pipeline(input_file, threshold, enable_debug):
         )
         self.assertEqual(r["data"]["updatePipelineVersion"]["success"], True)
         self.assertEqual(r["data"]["updatePipelineVersion"]["errors"], [])
+
+
+class UploadPipelineFilesInputTest(GraphQLTestCase):
+    """Tests for UploadPipelineInput.files — the alternative to a base64 zipfile."""
+
+    PIPELINE_PY = (
+        "from openhexa.sdk import pipeline\n\n"
+        '@pipeline("test")\n'
+        "def test_pipeline():\n"
+        "    pass\n"
+    )
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER_ROOT = User.objects.create_user(
+            "root-files@bluesquarehub.com",
+            "standardpassword",
+            is_superuser=True,
+        )
+        cls.USER_ADMIN = User.objects.create_user(
+            "admin-files@bluesquarehub.com",
+            "standardpassword",
+        )
+        with patch("hexa.workspaces.models.create_database"), patch(
+            "hexa.workspaces.models.load_database_sample_data"
+        ):
+            cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+                cls.USER_ROOT,
+                name="WS Files",
+                description="Files-input workspace",
+            )
+        WorkspaceMembership.objects.create(
+            workspace=cls.WORKSPACE,
+            user=cls.USER_ADMIN,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        cls.PIPELINE = Pipeline.objects.create(
+            code="pipeline-files", name="Files Pipeline", workspace=cls.WORKSPACE
+        )
+
+    def _upload(self, **input_overrides):
+        self.client.force_login(self.USER_ADMIN)
+        return self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success
+                    errors
+                    details
+                    pipelineVersion { id versionNumber }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WORKSPACE.slug,
+                    "pipelineCode": self.PIPELINE.code,
+                    **input_overrides,
+                }
+            },
+        )
+
+    def _zip_contents(self, version: PipelineVersion) -> dict[str, bytes]:
+        with zipfile.ZipFile(io.BytesIO(version.zipfile)) as zf:
+            return {name: zf.read(name) for name in zf.namelist()}
+
+    def test_upload_with_files_builds_zip(self):
+        files = [
+            {"path": "pipeline.py", "content": self.PIPELINE_PY},
+            {"path": "lib/helpers.py", "content": "def clean(df):\n    return df\n"},
+            {"path": "requirements.txt", "content": "pandas\n"},
+        ]
+        r = self._upload(name="v-files", files=files)
+        self.assertTrue(r["data"]["uploadPipeline"]["success"], r["data"])
+
+        version = PipelineVersion.objects.get(
+            id=r["data"]["uploadPipeline"]["pipelineVersion"]["id"]
+        )
+        contents = self._zip_contents(version)
+        self.assertEqual(
+            set(contents), {"pipeline.py", "lib/helpers.py", "requirements.txt"}
+        )
+        self.assertEqual(contents["requirements.txt"], b"pandas\n")
+
+    def test_upload_with_base64_file(self):
+        binary_payload = b"\x89PNG\r\n\x1a\n\x00"
+        files = [
+            {"path": "pipeline.py", "content": self.PIPELINE_PY},
+            {
+                "path": "assets/logo.png",
+                "content": base64.b64encode(binary_payload).decode("ascii"),
+                "encoding": "BASE64",
+            },
+        ]
+        r = self._upload(name="v-b64", files=files)
+        self.assertTrue(r["data"]["uploadPipeline"]["success"], r["data"])
+
+        version = PipelineVersion.objects.get(
+            id=r["data"]["uploadPipeline"]["pipelineVersion"]["id"]
+        )
+        self.assertEqual(self._zip_contents(version)["assets/logo.png"], binary_payload)
+
+    def test_upload_rejects_both_zipfile_and_files(self):
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w") as zf:
+            zf.writestr("pipeline.py", self.PIPELINE_PY)
+        zip_b64 = base64.b64encode(zip_buffer.getvalue()).decode("ascii")
+
+        r = self._upload(
+            name="v-both",
+            zipfile=zip_b64,
+            files=[{"path": "pipeline.py", "content": self.PIPELINE_PY}],
+        )
+        self.assertFalse(r["data"]["uploadPipeline"]["success"])
+        self.assertEqual(
+            r["data"]["uploadPipeline"]["errors"], ["INVALID_VERSION_FILES"]
+        )
+
+    def test_upload_rejects_neither_zipfile_nor_files(self):
+        r = self._upload(name="v-neither")
+        self.assertFalse(r["data"]["uploadPipeline"]["success"])
+        self.assertEqual(
+            r["data"]["uploadPipeline"]["errors"], ["INVALID_VERSION_FILES"]
+        )
+
+    def test_upload_rejects_duplicate_paths(self):
+        files = [
+            {"path": "pipeline.py", "content": self.PIPELINE_PY},
+            {"path": "pipeline.py", "content": "x = 1\n"},
+        ]
+        r = self._upload(name="v-dup", files=files)
+        self.assertFalse(r["data"]["uploadPipeline"]["success"])
+        self.assertEqual(
+            r["data"]["uploadPipeline"]["errors"], ["INVALID_VERSION_FILES"]
+        )
+        self.assertIn("duplicate", r["data"]["uploadPipeline"]["details"].lower())
+
+    def test_upload_missing_pipeline_py_is_not_enforced(self):
+        files = [{"path": "helpers.py", "content": "x = 1\n"}]
+        r = self._upload(name="v-nopipeline", files=files)
+        self.assertTrue(r["data"]["uploadPipeline"]["success"], r["data"])
+        version = PipelineVersion.objects.get(
+            id=r["data"]["uploadPipeline"]["pipelineVersion"]["id"]
+        )
+        self.assertEqual(version.parameters, [])

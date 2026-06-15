@@ -274,6 +274,20 @@ class GitWebapp(Webapp, GitRepoMixin):
             )
         return nodes
 
+    def get_commit_diff(self, sha: str) -> dict:
+        raw = self.client.get_commit(self.git_org.slug, self.repository, sha)
+        git_commit = raw.get("commit") or {}
+        git_author = git_commit.get("author") or {}
+        raw_diff = self.client.get_commit_diff(self.git_org.slug, self.repository, sha)
+        return {
+            "id": raw.get("sha", sha),
+            "message": (git_commit.get("message") or "").strip(),
+            "author_name": git_author.get("name", ""),
+            "author_email": git_author.get("email", ""),
+            "date": git_author.get("date", ""),
+            "raw_diff": raw_diff,
+        }
+
     def publish_version(self, version_id):
         if not self.client.commit_exists(
             self.git_org.slug, self.repository, version_id

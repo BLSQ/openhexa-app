@@ -63,11 +63,17 @@ By default a static webapp has an empty `allowed_operations` list, which means i
 | `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion` |
 | `PIPELINES_RUN` | `runPipeline`, `stopPipeline` |
 | `FILES_READ` | `getFileByPath`, `readFileContent`, `prepareObjectDownload` |
-| `FILES_WRITE` | `prepareObjectUpload`, `createBucketFolder`, `deleteBucketObject`, `writeFileContent` |
+| `FILES_WRITE` | `prepareObjectUpload`, `createBucketFolder`, `writeFileContent` |
 | `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
-| `DATASETS_WRITE` | `createDataset`, `updateDataset`, `deleteDataset`, `createDatasetVersion`, `updateDatasetVersion`, `deleteDatasetVersion`, `createDatasetVersionFile`, `deleteDatasetLink` |
+| `DATASETS_WRITE` | `createDataset`, `updateDataset`, `createDatasetVersion`, `updateDatasetVersion`, `createDatasetVersionFile` |
 
 Introspection fields `__typename`, `__schema`, `__type` are always allowed.
+
+## Exploring the schema
+
+The fastest way to design queries for a webapp is the interactive GraphQL playground at <https://app.openhexa.org/graphql/> (or `/graphql/` on your own install).
+
+Note that the playground shows the **full** schema, not just what the webapp proxy allows. A query that works there can still return `403` from a webapp at runtime if its top-level field isn't covered by the webapp's [scopes](#scope-reference) — cross-check before pasting into webapp code.
 
 ## The `window.OPENHEXA` global
 
@@ -92,6 +98,47 @@ Each example below is a complete `index.html` you can drop into a static webapp.
 ### USER_READ — Who am I?
 
 Displays the current user and workspace on load.
+
+<details markdown="1">
+<summary>Schema</summary>
+
+```graphql
+type Query {
+  me: Me!
+  workspace(slug: String!): Workspace
+}
+
+type Me {
+  user: User
+  features: [FeatureFlag!]!
+  permissions: MePermissions!
+}
+
+type User {
+  id: UUID!
+  email: String!
+  firstName: String
+  lastName: String
+  displayName: String!
+  language: String!
+  avatar: Avatar!
+}
+
+type Workspace {
+  slug: String!
+  name: String!
+  description: String
+  countries: [Country!]!
+  organization: Organization
+  createdAt: DateTime!
+  updatedAt: DateTime
+  createdBy: User!
+}
+```
+
+[Browse the full schema in the playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
@@ -139,6 +186,46 @@ Displays the current user and workspace on load.
 ### PIPELINES_READ — List pipelines
 
 Lists every pipeline in the workspace.
+
+<details markdown="1">
+<summary>Schema</summary>
+
+```graphql
+type Query {
+  pipelines(
+    workspaceSlug: String
+    name: String
+    search: String
+    tags: [String!]
+    functionalType: PipelineFunctionalType
+    lastRunStates: [PipelineRunStatus!]
+    page: Int
+    perPage: Int
+    orderBy: PipelineOrderBy
+  ): PipelinesPage!
+}
+
+type PipelinesPage {
+  items: [Pipeline!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+}
+
+type Pipeline {
+  id: UUID!
+  code: String!
+  name: String
+  description: String
+  schedule: String
+  currentVersion: PipelineVersion
+  type: PipelineType!
+}
+```
+
+[Browse the full schema in the playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
@@ -195,6 +282,60 @@ Lists every pipeline in the workspace.
 ### PIPELINES_READ + PIPELINES_RUN — Pick a pipeline and run it
 
 Loads the list of pipelines on page open, lets you pick one from a dropdown, and runs it with a JSON config. Polls the run status until it terminates. Requires both `PIPELINES_READ` (to list) and `PIPELINES_RUN` (to launch).
+
+<details markdown="1">
+<summary>Schema</summary>
+
+```graphql
+type Query {
+  pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage!
+  pipeline(id: UUID!): Pipeline
+  pipelineRun(id: UUID!): PipelineRun
+}
+
+type Mutation {
+  runPipeline(input: RunPipelineInput): RunPipelineResult!
+  stopPipeline(input: StopPipelineInput!): StopPipelineResult!
+}
+
+input RunPipelineInput {
+  id: UUID!
+  versionId: UUID
+  config: JSON!
+  sendMailNotifications: Boolean
+  enableDebugLogs: Boolean
+}
+
+input StopPipelineInput {
+  runId: UUID!
+}
+
+type RunPipelineResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+  run: PipelineRun
+}
+
+type StopPipelineResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+}
+
+type PipelineRun {
+  id: UUID!
+  status: PipelineRunStatus!
+  progress: Int!
+  executionDate: DateTime
+  duration: Int
+  outputs: [PipelineRunOutput!]!
+}
+
+union PipelineRunOutput = BucketObject | GenericOutput | DatabaseTable
+```
+
+[Browse the full schema in the playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
@@ -300,6 +441,57 @@ Loads the list of pipelines on page open, lets you pick one from a dropdown, and
 ### USER_READ + FILES_READ — Pick a CSV from the workspace bucket and preview it
 
 Lists CSV files in the workspace bucket on page load, lets you pick one from a dropdown, and renders the first 100 lines as a table. Requires both `USER_READ` (to list files via `workspace.bucket.objects`) and `FILES_READ` (to read content).
+
+<details markdown="1">
+<summary>Schema</summary>
+
+```graphql
+type Query {
+  getFileByPath(workspaceSlug: String!, path: String!): BucketObject
+  readFileContent(
+    workspaceSlug: String!
+    filePath: String!
+    startLine: Int
+    endLine: Int
+  ): ReadFileContentResult!
+}
+
+type Mutation {
+  prepareObjectDownload(input: PrepareObjectDownloadInput!): PrepareObjectDownloadResult!
+}
+
+input PrepareObjectDownloadInput {
+  workspaceSlug: String!
+  objectKey: String!
+  forceAttachment: Boolean = true
+}
+
+type BucketObject {
+  key: String!
+  name: String!
+  path: String!
+  size: BigInt
+  updatedAt: DateTime
+  type: BucketObjectType!
+}
+
+type ReadFileContentResult {
+  success: Boolean!
+  errors: [ReadFileContentError!]!
+  content: String
+  size: Int
+}
+
+type PrepareObjectDownloadResult {
+  success: Boolean!
+  downloadUrl: URL
+  errors: [PrepareObjectDownloadError!]!
+}
+```
+
+[Browse the full schema in the playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
@@ -413,6 +605,46 @@ Lists CSV files in the workspace bucket on page load, lets you pick one from a d
 
 Pick a file, upload it via a presigned URL.
 
+<details markdown="1">
+<summary>Schema</summary>
+
+```graphql
+type Mutation {
+  prepareObjectUpload(input: PrepareObjectUploadInput!): PrepareObjectUploadResult!
+  writeFileContent(input: WriteFileContentInput!): WriteFileContentResult!
+  createBucketFolder(input: CreateBucketFolderInput!): CreateBucketFolderResult!
+}
+
+input PrepareObjectUploadInput {
+  workspaceSlug: String!
+  objectKey: String!
+  contentType: String
+}
+
+input WriteFileContentInput {
+  workspaceSlug: String!
+  filePath: String!
+  content: String!
+  overwrite: Boolean = false
+}
+
+input CreateBucketFolderInput { workspaceSlug: String!, folderKey: String! }
+
+type PrepareObjectUploadResult {
+  uploadUrl: URL
+  headers: JSON
+  success: Boolean!
+  errors: [PrepareObjectUploadError!]!
+}
+
+type WriteFileContentResult { success: Boolean!, errors: [WriteFileContentError!]!, filePath: String, size: Int }
+type CreateBucketFolderResult { success: Boolean!, errors: [CreateBucketFolderError!]!, folder: BucketObject }
+```
+
+[Browse the full schema in the playground →](https://app.openhexa.org/graphql/)
+
+</details>
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -479,6 +711,43 @@ Pick a file, upload it via a presigned URL.
 
 Lists datasets visible to the workspace and their latest version.
 
+<details markdown="1">
+<summary>Schema</summary>
+
+```graphql
+type Query {
+  datasets(query: String, page: Int = 1, perPage: Int = 15): DatasetPage!
+  dataset(id: ID!): Dataset
+  datasetVersion(id: ID!): DatasetVersion
+  datasetLink(id: ID!): DatasetLink
+}
+
+type DatasetPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [Dataset!]!
+}
+
+type Dataset {
+  id: ID!
+  slug: String!
+  name: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User
+  workspace: Workspace
+  versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
+  latestVersion: DatasetVersion
+  links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+}
+```
+
+[Browse the full schema in the playground →](https://app.openhexa.org/graphql/)
+
+</details>
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -543,6 +812,47 @@ Lists datasets visible to the workspace and their latest version.
 ### DATASETS_WRITE — Create a new dataset
 
 Tiny form that creates a dataset and prints the new id/slug.
+
+<details markdown="1">
+<summary>Schema</summary>
+
+```graphql
+type Mutation {
+  createDataset(input: CreateDatasetInput!): CreateDatasetResult!
+  createDatasetVersion(input: CreateDatasetVersionInput!): CreateDatasetVersionResult!
+  createDatasetVersionFile(input: CreateDatasetVersionFileInput!): CreateDatasetVersionFileResult!
+  updateDataset(input: UpdateDatasetInput!): UpdateDatasetResult!
+  updateDatasetVersion(input: UpdateDatasetVersionInput!): UpdateDatasetVersionResult!
+}
+
+input CreateDatasetInput {
+  workspaceSlug: String!
+  name: String!
+  description: String
+  files: [DatasetVersionFileContentInput!]
+}
+
+input DatasetVersionFileContentInput { uri: String!, contentType: String!, content: String! }
+
+input CreateDatasetVersionInput {
+  datasetId: ID!
+  name: String!
+  changelog: String
+  files: [DatasetVersionFileContentInput!]
+}
+
+input CreateDatasetVersionFileInput { versionId: ID!, contentType: String!, uri: String! }
+
+type CreateDatasetResult { link: DatasetLink, dataset: Dataset, success: Boolean!, errors: [CreateDatasetError!]! }
+type CreateDatasetVersionResult { version: DatasetVersion, success: Boolean!, errors: [CreateDatasetVersionError!]! }
+type CreateDatasetVersionFileResult { file: DatasetVersionFile, uploadUrl: String!, success: Boolean!, errors: [CreateDatasetVersionFileError!]! }
+type UpdateDatasetResult { dataset: Dataset, success: Boolean!, errors: [UpdateDatasetError!]! }
+type UpdateDatasetVersionResult { version: DatasetVersion, success: Boolean!, errors: [UpdateDatasetVersionError!]! }
+```
+
+[Browse the full schema in the playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>

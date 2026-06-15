@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from itertools import chain
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -7,7 +8,16 @@ from django_otp import devices_for_user, user_has_device
 
 from hexa.analytics.api import track
 from hexa.core.utils import get_email_attachments, send_mail
-from hexa.user_management.models import Organization, ServiceAccount
+from hexa.user_management.models import (
+    Organization,
+    OrganizationInvitation,
+    OrganizationInvitationStatus,
+    ServiceAccount,
+    SignupRequest,
+    SignupRequestStatus,
+    User,
+)
+from hexa.workspaces.models import WorkspaceInvitation, WorkspaceInvitationStatus
 
 USER_DEFAULT_DEVICE_ATTR_NAME = "_default_device"
 DEVICE_DEFAULT_NAME = "default"
@@ -128,3 +138,20 @@ def send_signup_email(signup_request):
             "email": signup_request.email,
         },
     )
+
+
+def accept_pending_invitations(user: User):
+    """Accept all pending invitations matching the user's email."""
+    pending_invitations = chain(
+        WorkspaceInvitation.objects.filter(
+            email=user.email, status=WorkspaceInvitationStatus.PENDING
+        ),
+        OrganizationInvitation.objects.filter(
+            email=user.email, status=OrganizationInvitationStatus.PENDING
+        ),
+        SignupRequest.objects.filter(
+            email=user.email, status=SignupRequestStatus.PENDING
+        ),
+    )
+    for invitation in pending_invitations:
+        invitation.accept(user)

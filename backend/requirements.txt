@@ -8,12 +8,13 @@ affine==2.4.0
     # via rasterio
 annotated-types==0.7.0
     # via pydantic
-anthropic==0.84.0
+anthropic==0.109.1
     # via pydantic-ai-slim
 anyio==4.9.0
     # via
     #   anthropic
     #   httpx
+    #   httpx2
     #   starlette
 ariadne==0.26.2
     # via
@@ -26,6 +27,7 @@ ariadne-django==0.3.0
 asgiref==3.9.0
     # via
     #   django
+    #   django-allauth
     #   django-cors-headers
     #   django-countries
 attrs==25.3.0
@@ -120,6 +122,7 @@ django==5.2.14
     # via
     #   -r requirements.in
     #   ariadne-django
+    #   django-allauth
     #   django-cors-headers
     #   django-debug-toolbar
     #   django-ltree
@@ -128,6 +131,8 @@ django==5.2.14
     #   django-otp
     #   django-postgres-queue
     #   django-storages
+django-allauth[socialaccount]==65.18.0
+    # via -r requirements.in
 django-cors-headers==4.7.0
     # via -r requirements.in
 django-countries==7.6.1
@@ -164,7 +169,7 @@ filetype==1.2.0
     # via -r requirements.in
 fiona==1.10.1
     # via openhexa-toolbox
-genai-prices==0.0.55
+genai-prices==0.0.66
     # via pydantic-ai-slim
 geopandas==1.1.2
     # via
@@ -238,22 +243,27 @@ gunicorn==23.0.0
 h11==0.16.0
     # via
     #   httpcore
+    #   httpcore2
     #   uvicorn
 httpcore==1.0.9
     # via httpx
+httpcore2==2.3.0
+    # via httpx2
 httpx==0.28.1
     # via
     #   anthropic
     #   ariadne-codegen
-    #   genai-prices
     #   pydantic-ai-slim
     #   pydantic-graph
+httpx2==2.3.0
+    # via genai-prices
 humanize==4.12.3
     # via openhexa-toolbox
 idna==3.15
     # via
     #   anyio
     #   httpx
+    #   httpx2
     #   requests
 importlib-metadata==8.7.0
     # via opentelemetry-api
@@ -271,7 +281,7 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-jwcrypto==1.5.6
+jwcrypto==1.5.7
     # via django-oauth-toolkit
 kubernetes==33.1.0
     # via -r requirements.in
@@ -322,6 +332,7 @@ numpy==2.3.1
     #   shapely
 oauthlib==3.3.1
     # via
+    #   django-allauth
     #   django-oauth-toolkit
     #   kubernetes
     #   requests-oauthlib
@@ -406,7 +417,7 @@ psycopg2-binary==2.9.10
     # via -r requirements.in
 py-partiql-parser==0.6.1
     # via moto
-pyarrow==20.0.0
+pyarrow==23.0.1
     # via -r requirements.in
 pyasn1==0.6.3
     # via
@@ -425,11 +436,11 @@ pydantic==2.12.5
     #   pydantic-ai-slim
     #   pydantic-graph
     #   rio-cogeo
-pydantic-ai-slim[anthropic]==1.63.0
+pydantic-ai-slim[anthropic]==1.107.0
     # via -r requirements.in
 pydantic-core==2.41.5
     # via pydantic
-pydantic-graph==1.63.0
+pydantic-graph==1.107.0
     # via pydantic-ai-slim
 pyflakes==3.4.0
     # via autoflake
@@ -439,6 +450,7 @@ pygments==2.20.0
     #   rich
 pyjwt[crypto]==2.12.0
     # via
+    #   django-allauth
     #   msal
     #   openhexa-toolbox
 pyogrio==0.11.0
@@ -490,6 +502,7 @@ requests==2.33.0
     #   -r requirements.in
     #   azure-core
     #   dhis2-py
+    #   django-allauth
     #   django-oauth-toolkit
     #   docker
     #   google-api-core
@@ -554,6 +567,10 @@ toml==0.10.2
     # via ariadne-codegen
 tqdm==4.67.1
     # via -r requirements.in
+truststore==0.10.4
+    # via
+    #   httpcore2
+    #   httpx2
 typing-extensions==4.14.1
     # via
     #   anthropic

@@ -87,9 +87,10 @@ azure-storage-blob
 azure-identity
 
 # AI assistant
-pydantic-ai-slim[anthropic]==1.63.0
+pydantic-ai-slim[anthropic]==1.107.0
 logfire==4.30.0
 vcrpy
 
 # OAuth
 django-oauth-toolkit>=3.0.0
+django-allauth[socialaccount]

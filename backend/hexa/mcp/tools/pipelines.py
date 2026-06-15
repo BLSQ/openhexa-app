@@ -1,7 +1,4 @@
-import base64
-import io
 import json
-from zipfile import ZipFile
 
 from hexa.mcp.protocol import tool
 from hexa.pipelines.models import PipelineFunctionalType
@@ -105,11 +102,12 @@ def update_pipeline(
     return data["updatePipeline"]
 
 
-def _build_zipfile_b64(source_code: str) -> str:
-    buf = io.BytesIO()
-    with ZipFile(buf, "w") as zf:
-        zf.writestr("pipeline.py", source_code)
-    return base64.b64encode(buf.getvalue()).decode("ascii")
+def _parse_files_json(files_json: str) -> tuple[list[dict] | None, dict | None]:
+    try:
+        files = json.loads(files_json)
+    except json.JSONDecodeError:
+        return None, {"errors": [{"message": "Invalid JSON in files_json"}]}
+    return files, None
 
 
 _PIPELINE_AUTHORING_CHEAT_SHEET = """
@@ -243,32 +241,43 @@ def create_pipeline(
     user,
     workspace_slug: str,
     name: str,
-    source_code: str,
+    files_json: str,
     description: str = "",
     functional_type: PipelineFunctionalType | None = None,
 ) -> dict:
-    """Create a new pipeline in the current workspace and upload Python source code as the first version (v1).
+    r"""Create a new pipeline in the current workspace and upload its files as the first version (v1).
 
     Always provide a meaningful description summarizing what the pipeline does.
     If the pipeline has no clear purpose or is blank, use "" as the description.
-    The source_code must follow the OpenHEXA SDK structure (use @pipeline and @task decorators).
+
+    Provide files_json as a JSON array of {path, content, encoding?} objects, e.g.
+    '[{"path": "pipeline.py", "content": "from openhexa.sdk import pipeline\n..."},
+      {"path": "helpers.py", "content": "def clean(df): ..."},
+      {"path": "requirements.txt", "content": "pandas\nrequests"}]'.
+
+    A file named 'pipeline.py' is required at the root and must follow the OpenHEXA SDK
+    structure (use @pipeline and @task decorators). Other files (helper modules, requirements.txt,
+    READMEs, config) can be added alongside it.
+
+    `encoding` defaults to TEXT (UTF-8 string). Use BASE64 for binary assets bundled with the
+    pipeline (rare — workspace files are usually the right place for data).
     """
-    if not source_code or not source_code.strip():
-        return {"errors": [{"message": "source_code is required and cannot be empty"}]}
-    zipfile_b64 = _build_zipfile_b64(source_code)
+    files, error = _parse_files_json(files_json)
+    if error is not None:
+        return error
+
+    create_input = {
+        "workspaceSlug": workspace_slug,
+        "name": name,
+        "description": description or None,
+        "functionalType": functional_type or None,
+        "version": {"files": files},
+    }
 
     data = execute_graphql(
         user,
         "CreatePipeline",
-        {
-            "input": {
-                "workspaceSlug": workspace_slug,
-                "name": name,
-                "description": description or None,
-                "functionalType": functional_type or None,
-                "zipfile": zipfile_b64,
-            }
-        },
+        {"input": create_input},
     )
     if "errors" in data:
         return data
@@ -280,20 +289,34 @@ def create_pipeline_version(
     user,
     workspace_slug: str,
     pipeline_code: str,
-    source_code: str,
+    files_json: str,
     name: str = "",
     description: str = "",
 ) -> dict:
-    """Upload a new version of an existing pipeline. Requires the workspace slug, the pipeline code (from get_pipeline), and the Python source code for the new version.
+    r"""Upload a new version of an existing pipeline. Requires the workspace slug, the pipeline code (from get_pipeline), and the files that make up the new version.
 
     Optionally provide a version name and description. The version number is auto-incremented.
 
-    The source_code must follow the OpenHEXA SDK structure (use @pipeline and @task decorators).
-    Use get_pipeline first to read the current source code, then modify it and pass it here.
+    Provide files_json as a JSON array of {path, content, encoding?} objects, e.g.
+    '[{"path": "pipeline.py", "content": "from openhexa.sdk import pipeline\n..."},
+      {"path": "helpers.py", "content": "def clean(df): ..."},
+      {"path": "requirements.txt", "content": "pandas\nrequests"}]'.
+
+    A file named 'pipeline.py' is required at the root and must follow the OpenHEXA SDK
+    structure (use @pipeline and @task decorators). Other files (helper modules, requirements.txt,
+    READMEs, config) can be added alongside it.
+
+    `encoding` defaults to TEXT (UTF-8 string). Use BASE64 for binary assets bundled with the
+    pipeline (rare — workspace files are usually the right place for data).
+
+    Use get_pipeline first to read the current files, then modify them and pass the full set here
+    — each upload replaces the previous version's files entirely.
 
     Returns the created version details including id, version number, and parsed parameters.
     """
-    zipfile_b64 = _build_zipfile_b64(source_code)
+    files, error = _parse_files_json(files_json)
+    if error is not None:
+        return error
 
     data = execute_graphql(
         user,
@@ -302,7 +325,7 @@ def create_pipeline_version(
             "input": {
                 "workspaceSlug": workspace_slug,
                 "pipelineCode": pipeline_code,
-                "zipfile": zipfile_b64,
+                "files": files,
                 "name": name or None,
                 "description": description or None,
             }

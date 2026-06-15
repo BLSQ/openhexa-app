@@ -1,0 +1,18 @@
+# Local-only mock OIDC provider for testing the SSO callbacks without a real IdP.
+# Run with:
+#   docker compose -f docker-compose.yaml -f docker-compose.oidc.yaml up
+#
+# Requires "127.0.0.1 mock-oidc" in /etc/hosts so the browser and the app
+# container resolve the issuer to the same host:port (mock-oidc:8080).
+services:
+  mock-oidc:
+    image: ghcr.io/navikt/mock-oauth2-server:2.1.10
+    ports:
+      - "8080:8080"
+    networks:
+      - openhexa
+
+networks:
+  openhexa:
+    name: openhexa
+    external: true

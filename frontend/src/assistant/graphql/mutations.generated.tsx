@@ -10,6 +10,13 @@ export type CreateAssistantConversationMutationVariables = Types.Exact<{
 
 export type CreateAssistantConversationMutation = { __typename?: 'Mutation', createAssistantConversation: { __typename?: 'CreateAssistantConversationResult', success: boolean, errors: Array<Types.CreateAssistantConversationError>, conversation?: { __typename?: 'AssistantConversation', id: string, createdAt: any, updatedAt: any } | null } };
 
+export type ResolveAssistantProposalMutationVariables = Types.Exact<{
+  toolInvocationId: Types.Scalars['UUID']['input'];
+}>;
+
+
+export type ResolveAssistantProposalMutation = { __typename?: 'Mutation', resolveAssistantProposal: { __typename?: 'ResolveAssistantProposalResult', success: boolean, errors: Array<Types.ResolveAssistantProposalError>, toolInvocation?: { __typename?: 'AssistantToolSegment', id?: string | null, proposalPending: boolean } | null } };
+
 
 export const CreateAssistantConversationDocument = gql`
     mutation createAssistantConversation($input: CreateAssistantConversationInput!) {
@@ -50,3 +57,41 @@ export function useCreateAssistantConversationMutation(baseOptions?: Apollo.Muta
 export type CreateAssistantConversationMutationHookResult = ReturnType<typeof useCreateAssistantConversationMutation>;
 export type CreateAssistantConversationMutationResult = Apollo.MutationResult<CreateAssistantConversationMutation>;
 export type CreateAssistantConversationMutationOptions = Apollo.BaseMutationOptions<CreateAssistantConversationMutation, CreateAssistantConversationMutationVariables>;
+export const ResolveAssistantProposalDocument = gql`
+    mutation resolveAssistantProposal($toolInvocationId: UUID!) {
+  resolveAssistantProposal(toolInvocationId: $toolInvocationId) {
+    success
+    errors
+    toolInvocation {
+      id
+      proposalPending
+    }
+  }
+}
+    `;
+export type ResolveAssistantProposalMutationFn = Apollo.MutationFunction<ResolveAssistantProposalMutation, ResolveAssistantProposalMutationVariables>;
+
+/**
+ * __useResolveAssistantProposalMutation__
+ *
+ * To run a mutation, you first call `useResolveAssistantProposalMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useResolveAssistantProposalMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [resolveAssistantProposalMutation, { data, loading, error }] = useResolveAssistantProposalMutation({
+ *   variables: {
+ *      toolInvocationId: // value for 'toolInvocationId'
+ *   },
+ * });
+ */
+export function useResolveAssistantProposalMutation(baseOptions?: Apollo.MutationHookOptions<ResolveAssistantProposalMutation, ResolveAssistantProposalMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ResolveAssistantProposalMutation, ResolveAssistantProposalMutationVariables>(ResolveAssistantProposalDocument, options);
+      }
+export type ResolveAssistantProposalMutationHookResult = ReturnType<typeof useResolveAssistantProposalMutation>;
+export type ResolveAssistantProposalMutationResult = Apollo.MutationResult<ResolveAssistantProposalMutation>;
+export type ResolveAssistantProposalMutationOptions = Apollo.BaseMutationOptions<ResolveAssistantProposalMutation, ResolveAssistantProposalMutationVariables>;

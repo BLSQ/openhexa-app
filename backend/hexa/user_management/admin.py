@@ -99,6 +99,7 @@ class CustomUserAdmin(UserAdmin):
         "last_login",
         "is_staff",
         "is_superuser",
+        "is_active",
         "teams",
         "assistant_usage_this_month",
         "assistant_usage",

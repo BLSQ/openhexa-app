@@ -5,7 +5,7 @@ const port = process.env.PORT ?? 3000;
 const dev = process.env.NODE_ENV !== "production";
 const api_url = process.env.OPENHEXA_BACKEND_URL ?? "localhost:8000";
 const api_base_path = process.env.NEXT_PUBLIC_API_BASE_PATH ?? "";
-const max_request_body_size = process.env.MAX_REQUEST_BODY_SIZE;
+const max_request_body_size = process.env.MAX_REQUEST_BODY_SIZE ?? "10mb";
 
 const app = next({ dev });
 const handle = app.getRequestHandler();
@@ -83,7 +83,9 @@ app.prepare().then(async () => {
     if (perfLogs && req.path.includes("/_next/data/")) {
       const start = performance.now();
       res.on("finish", () => {
-        console.log(`[server] ${req.path} total: ${(performance.now() - start).toFixed(1)}ms`);
+        console.log(
+          `[server] ${req.path} total: ${(performance.now() - start).toFixed(1)}ms`,
+        );
       });
     }
     handle(req, res);

@@ -1,4 +1,5 @@
 from django.contrib.auth.password_validation import password_validators_help_texts
+from django.test import override_settings
 
 from hexa.core.test import GraphQLTestCase
 from hexa.plugins.connector_airflow.models import (
@@ -64,3 +65,68 @@ class CoreDashboardTest(GraphQLTestCase):
             response["data"]["config"]["passwordRequirements"],
             password_validators_help_texts(),
         )
+
+
+_WHO_PROVIDER = {
+    "id": "who",
+    "display_name": "WHO",
+    "client_id": "test-client-id",
+    "client_secret": "test-secret",
+    "server_url": "https://login.microsoftonline.com/test-tenant/v2.0",
+}
+
+_OIDC_QUERY = """
+    query {
+        config {
+            oidcProviders {
+                id
+                displayName
+                loginUrl
+            }
+        }
+    }
+"""
+
+
+class OidcProvidersConfigTest(GraphQLTestCase):
+    @override_settings(OIDC_PROVIDERS=[])
+    def test_returns_empty_list_when_no_providers(self):
+        response = self.run_query(_OIDC_QUERY)
+        self.assertEqual(response["data"]["config"]["oidcProviders"], [])
+
+    @override_settings(
+        BASE_URL="http://app.example.com",
+        OIDC_PROVIDERS=[_WHO_PROVIDER],
+    )
+    def test_returns_provider_with_correct_fields(self):
+        response = self.run_query(_OIDC_QUERY)
+        providers = response["data"]["config"]["oidcProviders"]
+        self.assertEqual(len(providers), 1)
+        self.assertEqual(providers[0]["id"], "who")
+        self.assertEqual(providers[0]["displayName"], "WHO")
+        self.assertEqual(
+            providers[0]["loginUrl"],
+            "http://app.example.com/accounts/oidc/who/login/",
+        )
+
+    @override_settings(
+        BASE_URL="http://app.example.com",
+        OIDC_PROVIDERS=[
+            _WHO_PROVIDER,
+            {**_WHO_PROVIDER, "id": "wfp", "display_name": "WFP"},
+        ],
+    )
+    def test_returns_all_providers_in_order(self):
+        response = self.run_query(_OIDC_QUERY)
+        providers = response["data"]["config"]["oidcProviders"]
+        self.assertEqual([p["id"] for p in providers], ["who", "wfp"])
+
+    @override_settings(
+        BASE_URL="http://app.example.com/",
+        OIDC_PROVIDERS=[_WHO_PROVIDER],
+    )
+    def test_login_url_has_no_double_slash_when_base_url_has_trailing_slash(self):
+        response = self.run_query(_OIDC_QUERY)
+        login_url = response["data"]["config"]["oidcProviders"][0]["loginUrl"]
+        self.assertNotIn("//accounts", login_url)
+        self.assertEqual(login_url, "http://app.example.com/accounts/oidc/who/login/")

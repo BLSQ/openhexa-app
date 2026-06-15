@@ -5,7 +5,12 @@ from collections.abc import AsyncGenerator
 from decimal import Decimal
 
 import genai_prices
-from pydantic_ai import Agent, ModelRetry, ModelSettings, RunUsage
+from pydantic_ai import Agent, ModelRetry, ModelSettings, RunUsage, UsageLimits
+from pydantic_ai.exceptions import (
+    IncompleteToolCall,
+    UnexpectedModelBehavior,
+    UsageLimitExceeded,
+)
 from pydantic_ai.messages import (
     FunctionToolCallEvent,
     FunctionToolResultEvent,
@@ -15,6 +20,7 @@ from pydantic_ai.messages import (
     PartStartEvent,
     TextPart,
     TextPartDelta,
+    ToolCallPart,
     ToolReturnPart,
 )
 from pydantic_ai.output import TextOutput
@@ -25,6 +31,7 @@ from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.assistant.sse_types import (
     ConversationNamePayload,
     DonePayload,
+    ErrorCode,
     ErrorPayload,
     TextDeltaPayload,
     ToolCallPayload,
@@ -32,9 +39,36 @@ from hexa.assistant.sse_types import (
     UserMessagePayload,
 )
 from hexa.assistant.tool_binding import bind_context
+from hexa.assistant.types import TextSegment, ToolSegment
 from hexa.core.sse import format_sse
 
 logger = logging.getLogger(__name__)
+
+
+def _json_default(obj):
+    if hasattr(obj, "isoformat"):
+        return obj.isoformat()
+    return str(obj)
+
+
+def _parse_tool_args(raw_args) -> dict:
+    if isinstance(raw_args, str):
+        return json.loads(raw_args) if raw_args else {}
+    if raw_args is None:
+        return {}
+    return json.loads(json.dumps(raw_args, default=_json_default))
+
+
+def _parse_tool_output(content) -> object:
+    if isinstance(content, str):
+        try:
+            return json.loads(content)
+        except (json.JSONDecodeError, ValueError):
+            logger.warning(
+                "agent.run_stream: tool result is not valid JSON, using raw string"
+            )
+            return content
+    return json.loads(json.dumps(content, default=_json_default))
 
 
 def _is_success(content) -> bool:
@@ -75,6 +109,7 @@ class BaseAgent:
     instruction_set = InstructionSet.GENERAL
     tools: list = []
     max_tokens: int = 32768
+    max_requests: int = 10
 
     def __init__(
         self, conversation: Conversation, built_model: BuiltModel | None = None
@@ -121,7 +156,7 @@ class BaseAgent:
         user_msg = await Message.objects.acreate(
             conversation=self.conversation,
             role=Message.Role.USER,
-            content=user_input,
+            content=[TextSegment(content=user_input).model_dump()],
         )
         yield format_sse(
             "user_message", UserMessagePayload(id=str(user_msg.id), content=user_input)
@@ -147,7 +182,9 @@ class BaseAgent:
             tool_invocations: dict[str, ToolInvocation] = {}
 
             async with self.agent.iter(
-                user_input, message_history=history
+                user_input,
+                message_history=history,
+                usage_limits=UsageLimits(request_limit=self.max_requests),
             ) as agent_run:
                 async for node in agent_run:
                     if naming_task is not None and naming_task.done():
@@ -170,14 +207,13 @@ class BaseAgent:
                 precomputed_naming, sse = await self._resolve_naming_task(naming_task)
                 yield sse
 
-            response_text = self._extract_response_text(
-                run_result.new_messages() if run_result else []
-            )
+            new_messages = run_result.new_messages() if run_result else []
+            content_segments = self._extract_content_segments(new_messages)
             all_messages = run_result.all_messages() if run_result else []
             usage = run_result.usage() if run_result else RunUsage()
 
             assistant_message = await self._persist_run(
-                response_text,
+                content_segments,
                 tool_invocations,
                 usage,
                 all_messages,
@@ -192,14 +228,42 @@ class BaseAgent:
                 ),
             )
 
-        except json.JSONDecodeError:
+        except UsageLimitExceeded as e:
+            if "request_limit" in str(e):
+                logger.exception(
+                    "agent.run_stream: request limit exceeded (agent stuck in loop)"
+                )
+                yield format_sse(
+                    "error",
+                    ErrorPayload(error_code=ErrorCode.AGENT_STUCK_IN_LOOP),
+                )
+            else:
+                logger.exception(
+                    "agent.run_stream: usage limit exceeded (max_tokens limit reached)"
+                )
+                yield format_sse(
+                    "error",
+                    ErrorPayload(error_code=ErrorCode.MAX_TOKENS_REACHED),
+                )
+        except IncompleteToolCall:
             logger.exception(
-                "agent.run_stream: malformed tool args (likely truncated by max_tokens)"
+                "agent.run_stream: tool call incomplete (max_tokens limit reached)"
             )
-            yield format_sse("error", ErrorPayload(message="An error occurred"))
+            yield format_sse(
+                "error",
+                ErrorPayload(error_code=ErrorCode.MAX_TOKENS_REACHED),
+            )
+        except UnexpectedModelBehavior:
+            logger.exception("agent.run_stream: unexpected model behavior")
+            yield format_sse(
+                "error", ErrorPayload(error_code=ErrorCode.UNEXPECTED_MODEL_BEHAVIOR)
+            )
         except Exception:
             logger.exception("agent.run_stream: error during streaming")
-            yield format_sse("error", ErrorPayload(message="An error occurred"))
+            yield format_sse("error", ErrorPayload(error_code=ErrorCode.UNKNOWN_ERROR))
+        finally:
+            if naming_task is not None and not naming_task.done():
+                naming_task.cancel()
 
     @staticmethod
     async def _stream_model_node(node, ctx):
@@ -235,13 +299,7 @@ class BaseAgent:
                         call.tool_name,
                         call.tool_call_id,
                     )
-                    raw_args = call.args
-                    if isinstance(raw_args, str):
-                        tool_input = json.loads(raw_args) if raw_args else {}
-                    elif raw_args is None:
-                        tool_input = {}
-                    else:
-                        tool_input = json.loads(json.dumps(raw_args, default=str))
+                    tool_input = _parse_tool_args(call.args)
                     tool_invocations[call.tool_call_id] = ToolInvocation(
                         tool_call_id=call.tool_call_id,
                         tool_name=call.tool_name,
@@ -263,24 +321,19 @@ class BaseAgent:
                         "agent.run_stream: tool_result call_id=%s",
                         result_part.tool_call_id,
                     )
-                    content = result_part.content
-                    if isinstance(content, str):
-                        try:
-                            tool_output = json.loads(content)
-                        except (json.JSONDecodeError, ValueError):
-                            tool_output = content
-                    else:
-                        tool_output = json.loads(json.dumps(content, default=str))
-                    success = _is_success(content)
+                    tool_output = _parse_tool_output(result_part.content)
+                    success = _is_success(result_part.content)
                     if result_part.tool_call_id in tool_invocations:
                         inv = tool_invocations[result_part.tool_call_id]
                         inv.tool_output = tool_output
                         inv.success = success
                     else:
+                        # Pydantic AI can emit a result event with no prior call event
+                        # when tool calls arrive out of order or are streamed in chunks.
                         inv = ToolInvocation(
                             tool_call_id=result_part.tool_call_id,
                             tool_name=result_part.tool_name,
-                            tool_input="",
+                            tool_input={},
                             tool_output=tool_output,
                             success=success,
                         )
@@ -297,19 +350,28 @@ class BaseAgent:
                     )
 
     @staticmethod
-    def _extract_response_text(new_messages: list) -> str:
-        texts = [
-            part.content
-            for msg in new_messages
-            if isinstance(msg, ModelResponse)
-            for part in msg.parts
-            if isinstance(part, TextPart) and part.content
-        ]
-        return "\n\n".join(texts)
+    def _extract_content_segments(
+        new_messages: list,
+    ) -> list[TextSegment | ToolSegment]:
+        segments: list[TextSegment | ToolSegment] = []
+        for msg in new_messages:
+            if not isinstance(msg, ModelResponse):
+                continue
+            for part in msg.parts:
+                if isinstance(part, TextPart) and part.content:
+                    if segments and isinstance(segments[-1], TextSegment):
+                        segments[-1] = TextSegment(
+                            content=segments[-1].content + "\n\n" + part.content,
+                        )
+                    else:
+                        segments.append(TextSegment(content=part.content))
+                elif isinstance(part, ToolCallPart):
+                    segments.append(ToolSegment(tool_call_id=part.tool_call_id))
+        return segments
 
     async def _persist_run(
         self,
-        response_text: str,
+        content_segments: list[TextSegment | ToolSegment],
         tool_invocations: dict[str, ToolInvocation],
         usage: RunUsage,
         all_messages: list,
@@ -329,7 +391,7 @@ class BaseAgent:
         assistant_message = await Message.objects.acreate(
             conversation=self.conversation,
             role=Message.Role.ASSISTANT,
-            content=response_text,
+            content=[s.model_dump() for s in content_segments],
             input_tokens=input_tok,
             output_tokens=output_tok,
             cost=cost,

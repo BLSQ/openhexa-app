@@ -58,6 +58,73 @@ def _parse_parameters_from_zipfile(zipfile_data: bytes) -> list:
         raise PipelineCodeParsingError(str(e))
 
 
+class InvalidVersionFilesError(Exception):
+    """Raised when a pipeline version's file input is malformed or ambiguous."""
+
+
+def _build_zipfile_from_files(files: list[dict]) -> bytes:
+    if not files:
+        raise InvalidVersionFilesError("files must be a non-empty list")
+    seen: set[str] = set()
+    buf = io.BytesIO()
+    with ZipFile(buf, "w") as zf:
+        for entry in files:
+            path = entry.get("path")
+            content = entry.get("content")
+            if not isinstance(path, str) or not path or not isinstance(content, str):
+                raise InvalidVersionFilesError(
+                    "each file must have a non-empty 'path' and a 'content' string"
+                )
+            if path in seen:
+                raise InvalidVersionFilesError(f"duplicate path in files: {path}")
+            seen.add(path)
+            encoding = (entry.get("encoding") or "TEXT").upper()
+            if encoding == "BASE64":
+                try:
+                    data = base64.b64decode(content, validate=True)
+                except (ValueError, base64.binascii.Error) as e:
+                    raise InvalidVersionFilesError(
+                        f"invalid base64 content for {path}: {e}"
+                    )
+            elif encoding == "TEXT":
+                data = content.encode("utf-8")
+            else:
+                raise InvalidVersionFilesError(
+                    f"invalid encoding {encoding!r} for {path} — must be TEXT or BASE64"
+                )
+            zf.writestr(path, data)
+    return buf.getvalue()
+
+
+def _resolve_version_zipfile_bytes(version_input: dict) -> bytes:
+    has_zipfile = version_input.get("zipfile") is not None
+    has_files = version_input.get("files") is not None
+    if has_zipfile and has_files:
+        raise InvalidVersionFilesError("provide either 'zipfile' or 'files', not both")
+    if not has_zipfile and not has_files:
+        raise InvalidVersionFilesError("either 'zipfile' or 'files' is required")
+    if has_zipfile:
+        return base64.b64decode(version_input["zipfile"].encode("ascii"))
+    return _build_zipfile_from_files(version_input["files"])
+
+
+def _validate_pipeline_version_timeout(
+    timeout: int | None, workspace: Workspace
+) -> None:
+    if not timeout:
+        return
+    max_allowed_timeout = int(settings.PIPELINE_RUN_MAX_TIMEOUT)
+    subscription = workspace and workspace.current_subscription
+    if subscription and subscription.max_pipeline_timeout:
+        max_allowed_timeout = min(
+            max_allowed_timeout, subscription.max_pipeline_timeout
+        )
+    if timeout < 0 or timeout > max_allowed_timeout:
+        raise InvalidTimeoutValueError(
+            "Pipeline timeout value cannot be negative or greater than the maximum allowed value."
+        )
+
+
 @pipelines_mutations.field("createPipeline")
 def resolve_create_pipeline(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -106,14 +173,10 @@ def resolve_create_pipeline(_, info, **kwargs):
                 pipeline.tags.set(tags)
 
             version = None
-            if input.get("zipfile"):
-                zipfile_data = base64.b64decode(input["zipfile"].encode("ascii"))
-                parameters = _parse_parameters_from_zipfile(zipfile_data)
-
-                version = pipeline.upload_new_version(
-                    user=request.user,
-                    zipfile=zipfile_data,
-                    parameters=parameters,
+            version_input = input.get("version")
+            if version_input is not None:
+                version = _create_first_pipeline_version(
+                    request.user, workspace, pipeline, version_input
                 )
 
             event_properties = {
@@ -137,13 +200,46 @@ def resolve_create_pipeline(_, info, **kwargs):
             "errors": ["PIPELINE_CODE_PARSING_ERROR"],
             "details": str(e),
         }
+    except PipelineDoesNotSupportParametersError:
+        return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
+    except InvalidTimeoutValueError:
+        return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
+    except InvalidVersionFilesError as e:
+        return {
+            "success": False,
+            "errors": ["INVALID_VERSION_FILES"],
+            "details": str(e),
+        }
 
     return {
         "pipeline": pipeline,
-        "pipelineVersion": version,
+        "pipeline_version": version,
         "success": True,
         "errors": [],
     }
+
+
+def _create_first_pipeline_version(
+    user: User, workspace: Workspace, pipeline: Pipeline, version_input: dict
+) -> PipelineVersion:
+    zipfile_data = _resolve_version_zipfile_bytes(version_input)
+    parameters = version_input.get("parameters") or _parse_parameters_from_zipfile(
+        zipfile_data
+    )
+
+    timeout = version_input.get("timeout")
+    _validate_pipeline_version_timeout(timeout, workspace)
+
+    return pipeline.upload_new_version(
+        user=user,
+        name=version_input.get("name"),
+        description=version_input.get("description"),
+        external_link=version_input.get("external_link"),
+        zipfile=zipfile_data,
+        parameters=parameters,
+        timeout=timeout,
+        config=version_input.get("config"),
+    )
 
 
 @pipelines_mutations.field("updatePipeline")
@@ -386,21 +482,9 @@ def resolve_upload_pipeline(_, info, **kwargs):
             "errors": ["PIPELINE_NOT_FOUND"],
         }
     try:
-        max_allowed_timeout = int(settings.PIPELINE_RUN_MAX_TIMEOUT)
-        subscription = pipeline.workspace and pipeline.workspace.current_subscription
-        if subscription and subscription.max_pipeline_timeout:
-            max_allowed_timeout = min(
-                max_allowed_timeout, subscription.max_pipeline_timeout
-            )
+        _validate_pipeline_version_timeout(input.get("timeout"), pipeline.workspace)
 
-        if input.get("timeout") and (
-            input.get("timeout") < 0 or input.get("timeout") > max_allowed_timeout
-        ):
-            raise InvalidTimeoutValueError(
-                "Pipeline timeout value cannot be negative or greater than the maximum allowed value."
-            )
-
-        zipfile_data = base64.b64decode(input.get("zipfile").encode("ascii"))
+        zipfile_data = _resolve_version_zipfile_bytes(input)
         parameters = input.get("parameters")
 
         if not parameters:
@@ -445,6 +529,12 @@ def resolve_upload_pipeline(_, info, **kwargs):
         }
     except InvalidTimeoutValueError:
         return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
+    except InvalidVersionFilesError as e:
+        return {
+            "success": False,
+            "errors": ["INVALID_VERSION_FILES"],
+            "details": str(e),
+        }
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
     except IntegrityError as e:

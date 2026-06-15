@@ -1,6 +1,7 @@
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { StopIcon } from "@heroicons/react/24/solid";
 import Badge from "core/components/Badge";
+import TruncatedText from "core/components/TruncatedText";
 import Block from "core/components/Block";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
@@ -110,7 +111,8 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
 
   const renderParameterValue = (entry: PipelineParameter & { value: any }) => {
     if (entry.type === "str" && entry.value) {
-      return entry.multiple ? entry.value.join(", ") : entry.value;
+      const text = entry.multiple ? entry.value.join(", ") : entry.value;
+      return <TruncatedText lines={6} expandable>{text}</TruncatedText>;
     }
     if (entry.type === "bool") {
       return <Switch checked={entry.value} disabled />;
@@ -119,10 +121,11 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
       (entry.type === "int" || entry.type === "float") &&
       !isNil(entry.value)
     ) {
-      return entry.multiple ? entry.value.join(", ") : entry.value;
+      const text = entry.multiple ? entry.value.join(", ") : String(entry.value);
+      return <TruncatedText lines={6} expandable>{text}</TruncatedText>;
     }
     if (isConnectionParameter(entry.type) && entry.value) {
-      return entry.value;
+      return <TruncatedText lines={6} expandable>{entry.value}</TruncatedText>;
     }
     if (entry.type === "dataset") {
       return (
@@ -136,7 +139,7 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
       );
     }
     if (entry.type === "file" && entry.value) {
-      return entry.value;
+      return <TruncatedText lines={6} expandable>{entry.value}</TruncatedText>;
     }
     if (entry.type === "secret" && entry.value) {
       return "••••••";

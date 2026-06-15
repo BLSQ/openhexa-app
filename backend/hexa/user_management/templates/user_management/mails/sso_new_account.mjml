@@ -1,0 +1,53 @@
+{% load i18n %}
+{% autoescape off %}
+
+<mjml>
+  <mj-head>
+    <mj-attributes>
+      <mj-font name="Inter Tight" href="https://fonts.googleapis.com/css?family=Inter Tight" />
+      <mj-all font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans','Helvetica Neue', sans-serif" />
+      <mj-text font-size="14px" color="#1c2024" line-height="1.7" font-weight="400" />
+      <mj-button font-weight="800" font-size="12px" text-transform="uppercase" letter-spacing="2px" border-radius="40px" />
+    </mj-attributes>
+  </mj-head>
+
+  <mj-body background-color="#efeeea" width="600px">
+    <mj-section padding="60px 0 0 0"></mj-section>
+    <mj-section background-color="#2e2e2e" border-radius="18px 18px 0 0" padding="30px 0">
+      <mj-column>
+        <mj-image title="OpenHEXA" align="center" width="339px" src="cid:logo_with_text_white.png" padding="10px 25px 10px 25px"></mj-image>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#ffffff" padding="40px 40px 30px 40px">
+      <mj-column>
+        <mj-text font-size="24px" font-weight="800" font-family="'Inter Tight', sans-serif" line-height="1.5">
+          {% trans "New SSO account created" %}
+        </mj-text>
+        <mj-text color="#333333" padding-top="10px">
+          {% blocktranslate with provider=provider_name email=new_user.email %}
+          A new OpenHEXA account was automatically created when <strong>{{ email }}</strong> signed in via <strong>{{ provider }}</strong>.
+          {% endblocktranslate %}
+        </mj-text>
+        <mj-table padding-top="20px">
+          {% if new_user.first_name or new_user.last_name %}
+          <tr>
+            <td style="padding: 6px 12px 6px 0; color: #6b7280; font-weight: 600;">{% trans "Name" %}</td>
+            <td style="padding: 6px 0;">{{ new_user.get_full_name }}</td>
+          </tr>
+          {% endif %}
+          <tr>
+            <td style="padding: 6px 12px 6px 0; color: #6b7280; font-weight: 600;">{% trans "Email" %}</td>
+            <td style="padding: 6px 0;">{{ new_user.email }}</td>
+          </tr>
+        </mj-table>
+      </mj-column>
+    </mj-section>
+
+    <mj-wrapper padding="20px 50px 40px 50px" border="none" text-align="center" background-color="#ffffff" border-radius="0 0 18px 18px">
+    </mj-wrapper>
+
+  </mj-body>
+</mjml>
+
+{% endautoescape %}

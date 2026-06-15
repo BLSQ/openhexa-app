@@ -39,6 +39,11 @@ class SentryBeforeSendTest(TestCase):
         event = {"tags": {"connection_test": True}}
         self.assertIsNone(self.before_send(event, self._make_hint(exc)))
 
+    def test_filters_webapp_graphql_errors(self):
+        exc = Exception("Unknown type 'PipelineRunOutputFile'")
+        event = {"tags": {"webapp_graphql": True}, "level": "error"}
+        self.assertIsNone(self.before_send(event, self._make_hint(exc)))
+
     def test_circular_exception_chain_does_not_loop(self):
         exc_a = ValueError("a")
         exc_b = ValueError("b")

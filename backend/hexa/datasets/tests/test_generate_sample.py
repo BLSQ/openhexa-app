@@ -269,6 +269,62 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
             with self.assertRaises(EmptyDataError):
                 load_df(version_file)
 
+    def test_generate_metadata_pre_creates_processing_row_for_supported_file(self):
+        version_file = DatasetVersionFile.objects.create_if_has_perm(
+            self.USER_SERENA,
+            self.DATASET_VERSION,
+            uri="example.csv",
+            content_type="text/csv",
+        )
+
+        with patch(
+            "hexa.datasets.queue.dataset_file_metadata_queue.enqueue"
+        ) as mock_enqueue:
+            version_file.generate_metadata()
+
+        mock_enqueue.assert_called_once()
+        sample = DatasetFileSample.objects.get(dataset_version_file=version_file)
+        self.assertEqual(sample.status, DatasetFileSample.STATUS_PROCESSING)
+        self.assertEqual(sample.sample, [])
+        self.assertIsNone(sample.status_reason)
+
+    def test_generate_metadata_skips_row_for_unsupported_file(self):
+        version_file = DatasetVersionFile.objects.create_if_has_perm(
+            self.USER_SERENA,
+            self.DATASET_VERSION,
+            uri="report.txt",
+            content_type="text/plain",
+        )
+
+        with patch(
+            "hexa.datasets.queue.dataset_file_metadata_queue.enqueue"
+        ) as mock_enqueue:
+            version_file.generate_metadata()
+
+        mock_enqueue.assert_called_once()
+        self.assertFalse(
+            DatasetFileSample.objects.filter(dataset_version_file=version_file).exists()
+        )
+
+    def test_generate_metadata_is_atomic_when_enqueue_fails(self):
+        version_file = DatasetVersionFile.objects.create_if_has_perm(
+            self.USER_SERENA,
+            self.DATASET_VERSION,
+            uri="example.csv",
+            content_type="text/csv",
+        )
+
+        with patch(
+            "hexa.datasets.queue.dataset_file_metadata_queue.enqueue",
+            side_effect=RuntimeError("queue down"),
+        ):
+            with self.assertRaises(RuntimeError):
+                version_file.generate_metadata()
+
+        self.assertFalse(
+            DatasetFileSample.objects.filter(dataset_version_file=version_file).exists()
+        )
+
     def test_generate_profile(self):
         df = pd.DataFrame(
             {

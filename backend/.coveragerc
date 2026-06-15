@@ -1,6 +1,12 @@
 [run]
 omit = */migrations/*
 source = hexa/
+# Required so coverage keeps measuring inside the worker processes spawned by
+# `manage.py test --parallel`; the per-process data files are merged with
+# `coverage combine` before reporting.
+parallel = True
+concurrency = multiprocessing
+sigterm = True
 
 [html]
 directory = htmlcov/

@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import Button from "core/components/Button";
+import { Classes as ButtonClasses } from "core/components/Button/Button";
 import Link from "core/components/Link";
 import Page from "core/components/Page";
 import Spinner from "core/components/Spinner";
@@ -11,6 +12,7 @@ import CenteredLayout from "core/layouts/centered";
 import { RegisterError } from "graphql/types";
 import { useRegisterMutation } from "identity/graphql/mutations.generated";
 import { useRegisterPageQuery } from "identity/graphql/queries.generated";
+import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import { useTranslation } from "next-i18next";
 import Image from "next/legacy/image";
 import logoWithTextBlack from "public/images/logo_with_text_black.svg";
@@ -33,7 +35,9 @@ const RegisterPage: NextPageWithLayout = (props: {
   const [register] = useRegisterMutation();
   const { t } = useTranslation();
 
-  const { data } = useRegisterPageQuery();
+  const { data, loading: configLoading } = useRegisterPageQuery();
+  const passwordLoginEnabled = data?.config?.passwordLoginEnabled ?? true;
+  const oidcProviders = data?.config?.oidcProviders ?? [];
 
   const form = useForm<RegisterForm>({
     onSubmit: async (values) => {
@@ -106,76 +110,110 @@ const RegisterPage: NextPageWithLayout = (props: {
             <Link href="/login">{t("Go to login page")}</Link>
           </p>
         </div>
-        <div className=" pt-2 space-y-4">
-          <Field
-            name="email"
-            label={t("Email address")}
-            required
-            disabled
-            fullWidth
-            help={t(
-              "You cannot change your email address. It's the one you've been invited with",
+        {configLoading ? (
+          <div className="flex justify-center py-4">
+            <Spinner size="sm" />
+          </div>
+        ) : (
+          <>
+            {passwordLoginEnabled && (
+              <>
+                <div className="pt-2 space-y-4">
+                  <Field
+                    name="email"
+                    label={t("Email address")}
+                    required
+                    disabled
+                    fullWidth
+                    help={t(
+                      "You cannot change your email address. It's the one you've been invited with",
+                    )}
+                    value={email}
+                  />
+                  <Field
+                    name="firstName"
+                    label={t("First name")}
+                    required
+                    fullWidth
+                    value={form.formData.firstName}
+                    onChange={form.handleInputChange}
+                    error={form.errors.firstName}
+                  />
+                  <Field
+                    name="lastName"
+                    label={t("Last name")}
+                    required
+                    fullWidth
+                    value={form.formData.lastName}
+                    onChange={form.handleInputChange}
+                    error={form.errors.lastName}
+                  />
+                  <Field
+                    name="password1"
+                    type="password"
+                    required
+                    fullWidth
+                    label={t("Password")}
+                    value={form.formData.password1}
+                    onChange={form.handleInputChange}
+                    help={
+                      <ul>
+                        {data?.config?.passwordRequirements?.map((el, i) => (
+                          <li key={i}>{el}</li>
+                        ))}
+                      </ul>
+                    }
+                    error={form.errors.password1}
+                  />
+                  <Field
+                    name="password2"
+                    type="password"
+                    required
+                    fullWidth
+                    label={t("Confirm Password")}
+                    value={form.formData.password2}
+                    onChange={form.handleInputChange}
+                    error={form.errors.password2}
+                  />
+                  <div className="text-red-500">{form.submitError}</div>
+                </div>
+                <div className="space-y-2">
+                  <Button
+                    data-testid="submit"
+                    disabled={form.isSubmitting}
+                    type="submit"
+                    className="w-full"
+                  >
+                    {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
+                    {t("Create account")}
+                  </Button>
+                </div>
+              </>
             )}
-            value={email}
-          />
-          <Field
-            name="firstName"
-            label={t("First name")}
-            required
-            fullWidth
-            value={form.formData.firstName}
-            onChange={form.handleInputChange}
-            error={form.errors.firstName}
-          />
-          <Field
-            name="lastName"
-            label={t("Last name")}
-            required
-            fullWidth
-            value={form.formData.lastName}
-            onChange={form.handleInputChange}
-            error={form.errors.lastName}
-          />
-          <Field
-            name="password1"
-            type="password"
-            required
-            fullWidth
-            label={t("Password")}
-            value={form.formData.password1}
-            onChange={form.handleInputChange}
-            help={
-              <ul>
-                {data?.config?.passwordRequirements?.map((el, i) => (
-                  <li key={i}>{el}</li>
-                ))}
-              </ul>
-            }
-            error={form.errors.password1}
-          />
-          <Field
-            name="password2"
-            type="password"
-            required
-            fullWidth
-            label={t("Confirm Password")}
-            value={form.formData.password2}
-            onChange={form.handleInputChange}
-            error={form.errors.password2}
-          />
-          <div className="text-red-500">{form.submitError}</div>
-        </div>
-        <div className="space-y-2">
-          <Button
-            data-testid="submit"
-            disabled={form.isSubmitting}
-            type="submit"
-            className="w-full"
-          >
-            {form.isSubmitting && <Spinner size="xs" className="mr-1" />}
-            {t("Create account")}
-          </Button>
-        </div>
+            {passwordLoginEnabled && oidcProviders.length > 0 && (
+              <div className="flex items-center gap-3">
+                <div className="flex-1 border-t border-gray-300" />
+                <span className="text-sm text-gray-500">{t("or")}</span>
+                <div className="flex-1 border-t border-gray-300" />
+              </div>
+            )}
+            {oidcProviders.map((provider) => (
+              <a
+                key={provider.id}
+                href={`${provider.loginUrl}?next=${encodeURIComponent("/workspaces")}`}
+                className={clsx(
+                  ButtonClasses.base,
+                  ButtonClasses.secondary,
+                  ButtonClasses.md,
+                  "w-full rounded-sm",
+                )}
+              >
+                <GlobeAltIcon className="-ml-1 mr-1.5 h-4 w-4" aria-hidden />
+                {t("Sign up with {{name}}", { name: provider.displayName })}
+              </a>
+            ))}
+          </>
+        )}
       </form>
     </Page>
   );
