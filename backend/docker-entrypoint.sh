@@ -59,14 +59,22 @@ case "$command" in
   wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
   export DJANGO_SETTINGS_MODULE=config.settings.test
   python manage.py makemigrations --check
-  python manage.py test $arguments
+  python manage.py test --parallel auto $arguments
   ;;
 "coveraged-test")
   wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
   export DJANGO_SETTINGS_MODULE=config.settings.test
+  # sysmon uses Python 3.12+'s sys.monitoring, which has much lower tracing
+  # overhead than the default coverage core
+  export COVERAGE_CORE=${COVERAGE_CORE:-sysmon}
   python manage.py makemigrations --check
-  coverage run manage.py test $arguments
+  coverage erase
+  # Combine & report even when tests fail, but preserve the test exit code
+  test_status=0
+  coverage run manage.py test --parallel auto $arguments || test_status=$?
+  coverage combine --quiet
   coverage report --skip-empty --fail-under=80
+  exit $test_status
   ;;
 "manage")
   wait-for-it ${DATABASE_HOST:-db}:${DATABASE_PORT:-5432}
