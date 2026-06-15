@@ -409,12 +409,14 @@ class WebappUser(User, ServicePrincipal):
         proxy = True
 
     webapp = None
+    real_user = None
 
     @classmethod
     def from_user(cls, user: User, webapp: Webapp) -> "WebappUser":
         """Cast an existing User row to a WebappUser view tied to `webapp`."""
         instance = cls.objects.get(pk=user.pk)
         instance.webapp = webapp
+        instance.real_user = user
         return instance
 
     @property
