@@ -447,13 +447,12 @@ type AssistantConversation {
 }
 
 type AssistantMessage {
-  content: String!
+  content: [AssistantMessageSegment!]!
   createdAt: DateTime!
   id: UUID!
   inputTokens: Int
   outputTokens: Int
   role: String!
-  toolInvocations: [AssistantToolInvocation!]!
 }
 
 type AssistantMessagePage {
@@ -462,10 +461,17 @@ type AssistantMessagePage {
   totalPages: Int!
 }
 
-type AssistantToolInvocation {
-  createdAt: DateTime!
-  id: UUID!
+union AssistantMessageSegment = AssistantTextSegment | AssistantToolSegment
+
+type AssistantTextSegment {
+  content: String!
+}
+
+type AssistantToolSegment {
+  id: UUID
+  proposalPending: Boolean!
   success: Boolean!
+  toolCallId: String!
   toolInput: JSON!
   toolName: String!
   toolOutput: JSON
@@ -518,6 +524,14 @@ enum BucketObjectType {
 type Config {
   """Whether self-registration is enabled."""
   allowSelfRegistration: Boolean!
+
+  """Configured external OIDC login providers. Empty when none are enabled."""
+  oidcProviders: [OidcProvider!]!
+
+  """
+  Whether username/password login is enabled. False when OIDC providers are configured.
+  """
+  passwordLoginEnabled: Boolean!
 
   """List of requirements for the password."""
   passwordRequirements: [String!]
@@ -1042,8 +1056,8 @@ input CreatePipelineInput {
   name: String!
   notebookPath: String
   tags: [String!]
+  version: CreatePipelineVersionInput
   workspaceSlug: String!
-  zipfile: String
 }
 
 """Represents the input for adding a recipient to a pipeline."""
@@ -1055,6 +1069,7 @@ input CreatePipelineRecipientInput {
 
 """Represents the result of creating a pipeline."""
 type CreatePipelineResult {
+  details: String
   errors: [PipelineError!]!
   pipeline: Pipeline
   pipelineVersion: PipelineVersion
@@ -1093,6 +1108,24 @@ type CreatePipelineTemplateVersionResult {
   errors: [CreatePipelineTemplateVersionError!]
   pipelineTemplate: PipelineTemplate
   success: Boolean!
+}
+
+"""
+Configures the first pipeline version, created atomically alongside the pipeline.
+Providing this sub-input signals that a first version should be created.
+
+Provide exactly one of `zipfile` (base64-encoded ZIP) or `files` (list of source files
+the server will zip up). `files` requires a `pipeline.py` at the root.
+"""
+input CreatePipelineVersionInput {
+  config: JSON
+  description: String
+  externalLink: URL
+  files: [PipelineFileInput!]
+  name: String
+  parameters: [ParameterInput!]
+  timeout: Int
+  zipfile: String
 }
 
 """
@@ -2993,6 +3026,7 @@ type Mutation {
 
   """Sends a password reset email to the user."""
   resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
+  resolveAssistantProposal(toolInvocationId: UUID!): ResolveAssistantProposalResult!
   runDAG(input: RunDAGInput!): RunDAGResult!
 
   """Runs a pipeline."""
@@ -3081,6 +3115,14 @@ type NotebookServer {
   name: String!
   ready: Boolean!
   url: String!
+}
+
+type OidcProvider {
+  displayName: String!
+  id: String!
+
+  """URL to initiate the login flow for this provider."""
+  loginUrl: String!
 }
 
 scalar OpaqueID
@@ -3370,6 +3412,7 @@ enum PipelineError {
   FILE_NOT_FOUND
   INVALID_CONFIG
   INVALID_TIMEOUT_VALUE
+  INVALID_VERSION_FILES
   PERMISSION_DENIED
   PIPELINE_ALREADY_COMPLETED
   PIPELINE_ALREADY_STOPPED
@@ -3380,6 +3423,19 @@ enum PipelineError {
   PIPELINE_VERSION_NOT_FOUND
   TABLE_NOT_FOUND
   WORKSPACE_NOT_FOUND
+}
+
+"""
+A single file in a pipeline version.
+
+`content` is interpreted according to `encoding`:
+  * TEXT (default)  — content is a UTF-8 string; suitable for Python code, requirements.txt, READMEs.
+  * BASE64          — content is base64-encoded raw bytes; use for binary assets bundled with the pipeline.
+"""
+input PipelineFileInput {
+  content: String!
+  encoding: FileEncoding = TEXT
+  path: String!
 }
 
 """
@@ -3408,6 +3464,8 @@ enum PipelineNotificationLevel {
 
 """Enum representing the possible orderings for pipelines."""
 enum PipelineOrderBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
   LAST_RUN_DATE_ASC
   LAST_RUN_DATE_DESC
   NAME_ASC
@@ -4116,6 +4174,17 @@ The ResetPasswordResult type represents the result of the resetPassword mutation
 type ResetPasswordResult {
   """Indicates whether the password reset was successful."""
   success: Boolean!
+}
+
+enum ResolveAssistantProposalError {
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+type ResolveAssistantProposalResult {
+  errors: [ResolveAssistantProposalError!]!
+  success: Boolean!
+  toolInvocation: AssistantToolSegment
 }
 
 """Resource counts"""
@@ -5339,6 +5408,7 @@ input UploadPipelineInput {
   config: JSON
   description: String
   externalLink: URL
+  files: [PipelineFileInput!]
   functionalType: PipelineFunctionalType
   name: String
   parameters: [ParameterInput!]
@@ -5346,7 +5416,7 @@ input UploadPipelineInput {
   tags: [String!]
   timeout: Int
   workspaceSlug: String!
-  zipfile: String!
+  zipfile: String
 }
 
 """Represents the result of uploading a pipeline."""
@@ -5436,6 +5506,7 @@ type WHORegion {
 """Represents a web app."""
 type Webapp {
   allowedOperations: [WebappOperationScope!]!
+  commitDiff(ref: String!): WebappCommitDiff
   createdBy: User!
   description: String
   files(ref: String): [FileNode!]
@@ -5456,6 +5527,15 @@ type Webapp {
   url: String!
   versions(page: Int, perPage: Int): WebappVersionsPage
   workspace: Workspace!
+}
+
+type WebappCommitDiff {
+  authorEmail: String!
+  authorName: String!
+  date: DateTime!
+  id: String!
+  message: String!
+  rawDiff: String!
 }
 
 """

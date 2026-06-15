@@ -5,6 +5,7 @@ import { TextColumn } from "core/components/DataGrid/TextColumn";
 import DescriptionList from "core/components/DescriptionList";
 import Spinner from "core/components/Spinner";
 import { ApolloComponent } from "core/helpers/types";
+import mapValues from "lodash/mapValues";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -47,6 +48,9 @@ function getCodeLang(filename: string): string | null {
 function canSmartPreview(file: DatasetVersionFileSample_FileFragment): boolean {
   return getCodeLang(file.filename) !== null;
 }
+
+const stringifyIfObject = (v: unknown) =>
+  v && typeof v === "object" ? JSON.stringify(v) : v;
 
 const CodePreviewer = ({
   url,
@@ -202,7 +206,9 @@ export const DatasetVersionFileSample: ApolloComponent<
         status: "UNSUPPORTED",
       };
     } else if (data.datasetVersionFile.fileSample.status === "FINISHED") {
-      const sample = data.datasetVersionFile.fileSample.sample;
+      const sample = data.datasetVersionFile.fileSample.sample.map(
+        (row: Record<string, unknown>) => mapValues(row, stringifyIfObject),
+      );
       const rows = data.datasetVersionFile.rows;
       const properties = data.datasetVersionFile.properties ?? {};
       const columnOrder: string[] | undefined = properties.column_order;

@@ -94,6 +94,18 @@ class ServicePrincipal:
     queries that wouldn't make sense for service principals.
     """
 
+    @property
+    def real_user(self) -> User | None:
+        raise NotImplementedError
+
+    @property
+    def workspace(self):
+        raise NotImplementedError
+
+    @property
+    def workspace_id(self):
+        raise NotImplementedError
+
 
 class User(AbstractUser, UserInterface):
     class Meta:
@@ -279,11 +291,7 @@ class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
         if not user.is_authenticated:
             return self.none()
         if isinstance(user, ServicePrincipal):
-            return self.filter(
-                workspaces__in=Workspace.objects.filter_for_user(
-                    user, include_archived=True
-                )
-            )
+            return self.filter(workspaces__in=Workspace.objects.filter_for_user(user))
         if user.is_superuser or user.has_perm(
             "user_management.manage_all_organizations"
         ):
@@ -835,7 +843,11 @@ class OrganizationInvitationStatus(models.TextChoices):
 
 class OrganizationInvitationQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
-        return self.filter(organization__in=Organization.objects.filter_for_user(user))
+        return self.filter(
+            organization__in=Organization.objects.filter_for_user(
+                user, direct_membership_only=True
+            )
+        )
 
 
 class OrganizationInvitationManager(InvitationManager):
@@ -914,16 +926,17 @@ class OrganizationInvitation(Invitation):
         """Accept the invitation and create organization/workspace memberships."""
         from hexa.workspaces.models import WorkspaceMembership
 
-        OrganizationMembership.objects.create(
+        # get_or_create in case the user is already a member
+        OrganizationMembership.objects.get_or_create(
             organization=self.organization,
             user=user,
-            role=self.role,
+            defaults={"role": self.role},
         )
         for ws_invitation in self.workspace_invitations.all():
-            WorkspaceMembership.objects.create(
+            WorkspaceMembership.objects.get_or_create(
                 workspace=ws_invitation.workspace,
                 user=user,
-                role=ws_invitation.role,
+                defaults={"role": ws_invitation.role},
             )
         self.status = OrganizationInvitationStatus.ACCEPTED
         self.save()

@@ -2,6 +2,7 @@ import { gql } from "@apollo/client";
 import { getApolloClient } from "core/helpers/apollo";
 import cronstrue from "cronstrue";
 import CronParser from "cron-parser";
+import { DateTime } from "luxon";
 import "cronstrue/locales/en";
 import "cronstrue/locales/fr";
 import {
@@ -104,7 +105,7 @@ export async function updatePipeline(
 
 export function validateCronExpression(cronExpression: string) {
   try {
-    validateFiveFieldCron(cronExpression)
+    validateFiveFieldCron(cronExpression);
     CronParser.parse(cronExpression);
     return true;
   } catch (err) {
@@ -116,7 +117,7 @@ function validateFiveFieldCron(cronExpression: string): void {
   const fields = cronExpression.trim().split(/\s+/);
   if (fields.length !== 5) {
     throw new Error(
-      `Invalid cron expression: expected 5 fields, got ${fields.length}`
+      `Invalid cron expression: expected 5 fields, got ${fields.length}`,
     );
   }
 }
@@ -171,6 +172,30 @@ export function getCronExpressionDescription(
   }
   try {
     return cronstrue.toString(cronExpression, { locale });
+  } catch (err) {
+    return null;
+  }
+}
+
+// Schedules are interpreted in UTC by the backend scheduler. This computes the
+// next occurrence as an absolute instant and renders it in the viewer's local
+// zone/locale via Luxon (Settings.defaultZone/defaultLocale are set globally in
+// _app.tsx), so it stays correct across DST and day-shifts.
+export function getCronExpressionNextRun(
+  cronExpression: string,
+): { formatted: string; timeZone: string } | null {
+  if (!validateCronExpression(cronExpression)) {
+    return null;
+  }
+  try {
+    const next = CronParser.parse(cronExpression, { tz: "UTC" })
+      .next()
+      .toDate();
+    const dt = DateTime.fromJSDate(next);
+    return {
+      formatted: dt.toLocaleString(DateTime.DATETIME_MED_WITH_WEEKDAY),
+      timeZone: dt.zoneName ?? "",
+    };
   } catch (err) {
     return null;
   }
@@ -319,8 +344,11 @@ export async function deletePipelineVersion(versionId: string) {
  * @param hasSourceTemplate - Whether the pipeline was created from a template
  * @returns User-friendly display name for the pipeline's technical format
  */
-export function formatPipelineSource(pipelineType: PipelineType, hasSourceTemplate?: boolean): string {
-  if (hasSourceTemplate){
+export function formatPipelineSource(
+  pipelineType: PipelineType,
+  hasSourceTemplate?: boolean,
+): string {
+  if (hasSourceTemplate) {
     return i18n!.t("Template");
   }
 
@@ -344,7 +372,9 @@ export function formatPipelineSource(pipelineType: PipelineType, hasSourceTempla
  * formatPipelineFunctionalType(PipelineFunctionalType.Extraction) // "Extraction"
  * formatPipelineFunctionalType(PipelineFunctionalType.Transformation) // "Transformation"
  */
-export function formatPipelineFunctionalType(functionalType: PipelineFunctionalType): string {
+export function formatPipelineFunctionalType(
+  functionalType: PipelineFunctionalType,
+): string {
   switch (functionalType) {
     case PipelineFunctionalType.Extraction:
       return i18n!.t("Extraction");
@@ -363,16 +393,22 @@ export function formatPipelineFunctionalType(functionalType: PipelineFunctionalT
  * @param functionalType - The functional type to describe
  * @returns Detailed description of the functional type's purpose
  */
-export function getFunctionalTypeDescription(functionalType: PipelineFunctionalType): string {
+export function getFunctionalTypeDescription(
+  functionalType: PipelineFunctionalType,
+): string {
   switch (functionalType) {
     case PipelineFunctionalType.Extraction:
-      return i18n!.t("Ingests data from external sources like APIs, databases, or files");
+      return i18n!.t(
+        "Ingests data from external sources like APIs, databases, or files",
+      );
     case PipelineFunctionalType.Transformation:
       return i18n!.t("Processes, cleans, validates, or enriches data");
     case PipelineFunctionalType.Loading:
       return i18n!.t("Outputs data to warehouses, databases, or files");
     case PipelineFunctionalType.Computation:
-      return i18n!.t("Performs analytics, machine learning, or statistical analysis");
+      return i18n!.t(
+        "Performs analytics, machine learning, or statistical analysis",
+      );
   }
 }
 

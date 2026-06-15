@@ -47,6 +47,7 @@ from hexa.workspaces.models import (
 
 from ..utils import (
     DEVICE_DEFAULT_NAME,
+    accept_pending_invitations,
     default_device,
     has_configured_two_factor,
     send_organization_add_user_email,
@@ -143,6 +144,9 @@ def resolve_delete_team(_, info, **kwargs):
 def resolve_login(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     mutation_input = kwargs["input"]
+
+    if not settings.PASSWORD_LOGIN_ENABLED:
+        return {"success": False, "errors": ["INVALID_CREDENTIALS"]}
 
     trimmed_email = remove_whitespace(mutation_input["email"])
 
@@ -241,7 +245,7 @@ def resolve_register(_, info, **kwargs):
             first_name=mutation_input["first_name"],
             last_name=mutation_input["last_name"],
         )
-        invitation.accept(user)
+        accept_pending_invitations(user)
 
     track(
         request,

@@ -9,12 +9,31 @@ from ._graphql import execute_graphql
 def list_static_webapps(
     user, workspace_slug: str, page: int = 1, per_page: int = 10
 ) -> dict:
-    """List static web apps in a workspace. The returned URL can be used to access each webapp in a browser."""
+    """List static web apps in a workspace. The returned URL can be used to access each webapp in a browser. Use get_static_webapp with a webapp slug to inspect its files and configuration."""
     return execute_graphql(
         user,
         "ListStaticWebapps",
         {"workspaceSlug": workspace_slug, "page": page, "perPage": per_page},
     )
+
+
+@tool
+def get_static_webapp(user, workspace_slug: str, webapp_slug: str) -> dict:
+    """Get full details of a static web app: metadata, allowed API operations, and the current files with their contents.
+
+    Use the slug from list_static_webapps (not the UUID). File contents are returned with an `encoding` field — TEXT for UTF-8 strings, BASE64 for binary files. Returns the webapp's `id` which can be passed to update_static_webapp.
+    """
+    data = execute_graphql(
+        user,
+        "GetStaticWebapp",
+        {"workspaceSlug": workspace_slug, "slug": webapp_slug},
+    )
+    if "errors" in data:
+        return data
+    webapp = data.get("webapp")
+    if webapp is None:
+        return {"error": "Webapp not found"}
+    return webapp
 
 
 def _split_scopes(value: str) -> list[str]:

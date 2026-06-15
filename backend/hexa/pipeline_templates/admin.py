@@ -7,7 +7,8 @@ from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVer
 @admin.register(PipelineTemplate)
 class PipelineTemplateAdmin(GlobalObjectsModelAdmin):
     list_display = ("name", "code", "workspace", "validated_at", "is_deleted")
-    list_filter = ("workspace", "validated_at")
+    list_select_related = ("workspace",)
+    list_filter = ("validated_at",)
     search_fields = ("id", "code", "name")
     fields = (
         "name",
@@ -22,12 +23,13 @@ class PipelineTemplateAdmin(GlobalObjectsModelAdmin):
         "updated_at",
         "deleted_at",
     )
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = ("workspace", "source_pipeline", "created_at", "updated_at")
 
 
 @admin.register(PipelineTemplateVersion)
 class PipelineTemplateVersionAdmin(admin.ModelAdmin):
     list_display = ("version_number", "template", "created_at")
-    list_filter = ("template", "template__workspace")
+    list_select_related = ("template",)
+    list_filter = ("template__workspace",)
     search_fields = ("template__name", "template__code", "template__id")
-    autocomplete_fields = ["source_pipeline_version"]
+    readonly_fields = ("template", "source_pipeline_version")

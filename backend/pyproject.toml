@@ -1,6 +1,6 @@
 [project]
 name = "openhexa-app"
-version = "5.7.0"
+version = "5.10.0"
 authors = [
     {name = "BLSQ", email = "tech@bluesquarehub.com"},
 ]
@@ -47,31 +47,3 @@ ignore = [
 [tool.ruff.lint.pydocstyle]
 convention = "numpy" # Accepts: "google", "numpy", or "pep257".
 
-[tool.coverage.report]
-exclude_lines = [
-    # Have to re-enable the standard pragma
-    "pragma: no cover",
-
-    # Don't complain about missing debug-only code:
-    "def __repr__",
-    "if self\\.debug",
-
-    # Don't complain if tests don't hit defensive assertion code:
-    "raise AssertionError",
-    "raise NotImplementedError",
-
-    # Don't complain if non-runnable code isn't run:
-    "if 0:",
-    "if __name__ == .__main__.:",
-]
-
-omit = [
-    "*/__init__.py",
-    "*/migrations/*",
-    "*/tests/*",
-    "config/*",
-    "*/admin.py",
-    "*/apps.py",
-    "*/urls.py",
-    "manage.py",
-]

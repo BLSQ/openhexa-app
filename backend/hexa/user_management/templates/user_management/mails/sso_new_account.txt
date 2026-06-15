@@ -1,0 +1,8 @@
+{% load i18n %}{% autoescape off %}
+{% blocktranslate with provider=provider_name email=new_user.email %}A new OpenHEXA account was automatically created when {{ email }} signed in via {{ provider }}.{% endblocktranslate %}
+
+{% if new_user.first_name or new_user.last_name %}{% blocktranslate with name=new_user.get_full_name %}Name: {{ name }}{% endblocktranslate %}
+{% endif %}{% blocktranslate with email=new_user.email %}Email: {{ email }}{% endblocktranslate %}
+
+{% trans "The OpenHEXA Team" %}
+{% endautoescape %}

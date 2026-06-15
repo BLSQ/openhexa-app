@@ -449,6 +449,45 @@ class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
         datasets = Dataset.objects.filter_for_user(self.USER_SERENA)
         self.assertNotIn(org_dataset, datasets)
 
+    def test_dataset_filter_for_user_excludes_external_collaborator_in_same_org(self):
+        """An external collaborator — a member of one workspace in the
+        organization but not a member of the organization itself — must not see
+        organization-shared datasets belonging to other workspaces in that org.
+        """
+        shared_workspace = Workspace.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            name="Shared Dataset Workspace",
+            description="Holds the organization-shared dataset",
+            organization=self.ORGANIZATION,
+        )
+        org_dataset = Dataset.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            shared_workspace,
+            name="Org Dataset",
+            description="Organization shared dataset",
+        )
+        org_dataset.shared_with_organization = True
+        org_dataset.save()
+
+        collaborator = User.objects.create_user("collaborator@example.com", "password")
+        collaborator_workspace = Workspace.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            name="Collaborator Workspace",
+            description="The only workspace the collaborator belongs to",
+            organization=self.ORGANIZATION,
+        )
+        WorkspaceMembership.objects.create(
+            workspace=collaborator_workspace,
+            user=collaborator,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+
+        self.assertNotIn(org_dataset, Dataset.objects.filter_for_user(collaborator))
+        self.assertNotIn(
+            org_dataset.links.first(),
+            DatasetLink.objects.filter_for_user(collaborator),
+        )
+
     def test_dataset_filter_for_user_excludes_non_shared_datasets(self):
         other_workspace = Workspace.objects.create_if_has_perm(
             self.USER_ADMIN,

@@ -73,6 +73,23 @@ def make_built_model(test_model) -> BuiltModel:
     return BuiltModel(model=test_model, api_name="test", provider_id="test")
 
 
+def _make_truncated_tool_call_model(tool_name: str) -> FunctionModel:
+    """Returns a model that yields a tool call with truncated (invalid) JSON args."""
+    stream_calls = []
+
+    async def stream_func(messages, agent_info):
+        stream_calls.append(1)
+        yield {
+            0: DeltaToolCall(
+                name=tool_name,
+                json_args='{"arg": "trun',  # deliberately truncated
+                tool_call_id="call-truncated-001",
+            )
+        }
+
+    return FunctionModel(stream_function=stream_func)
+
+
 def _make_zipfile(*files: tuple[str, str]) -> bytes:
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:

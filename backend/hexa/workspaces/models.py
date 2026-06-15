@@ -34,6 +34,7 @@ from hexa.user_management.models import (
     OrganizationInvitation,
     OrganizationMembershipRole,
     OrganizationSubscription,
+    ServicePrincipal,
     User,
     UserInterface,
 )
@@ -166,13 +167,12 @@ class WorkspaceQuerySet(BaseQuerySet):
         *,
         include_archived: bool = False,
     ) -> models.QuerySet:
-        from hexa.pipelines.authentication import PipelineRunUser
         from hexa.webapps.models import WebappUser
 
         if not user.is_authenticated:
             return self.none()
-        if isinstance(user, PipelineRunUser):
-            qs = self.filter(pk=user.pipeline_run.pipeline.workspace_id)
+        if isinstance(user, ServicePrincipal):
+            qs = self.filter(pk=user.workspace_id)
         elif isinstance(user, User):
             qs = (
                 self.all()
@@ -351,9 +351,7 @@ class Workspace(Base):
 
 class WorkspaceMembershipQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
-        return self.filter(
-            workspace__in=Workspace.objects.filter_for_user(user, include_archived=True)
-        )
+        return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
 
 
 class WorkspaceMembershipRole(models.TextChoices):
@@ -462,9 +460,7 @@ class WorkspaceInvitationStatus(models.TextChoices):
 
 class WorkspaceInvitationQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
-        return self.filter(
-            workspace__in=Workspace.objects.filter_for_user(user, include_archived=True)
-        )
+        return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
 
 
 class WorkspaceInvitationManager(InvitationManager):
@@ -522,10 +518,11 @@ class WorkspaceInvitation(Invitation):
 
     def accept(self, user: User):
         """Accept the invitation and create workspace membership."""
-        WorkspaceMembership.objects.create(
+        # get_or_create in case the user is already a member
+        WorkspaceMembership.objects.get_or_create(
             workspace=self.workspace,
             user=user,
-            role=self.role,
+            defaults={"role": self.role},
         )
         self.status = WorkspaceInvitationStatus.ACCEPTED
         self.save()
@@ -533,9 +530,7 @@ class WorkspaceInvitation(Invitation):
 
 class ConnectionQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
-        return self.filter(
-            workspace__in=Workspace.objects.filter_for_user(user, include_archived=True)
-        )
+        return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
 
 
 class ConnectionManager(models.Manager):

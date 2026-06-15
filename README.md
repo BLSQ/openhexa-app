@@ -234,6 +234,47 @@ As an example, use the following command to run the migrations:
 docker compose run app migrate
 ```
 
+## Testing SSO / OIDC login locally
+
+To exercise the external OIDC login flow (the `OpenHexaSocialAccountAdapter` callbacks in
+`hexa/user_management/sso_adapter.py`) without a real identity provider, you can run a throwaway
+mock OIDC server via `docker-compose.oidc.yaml`.
+
+1. Make the issuer resolve to the same `host:port` from both your browser and the `app` container:
+
+    ```bash
+    echo "127.0.0.1 mock-oidc" | sudo tee -a /etc/hosts
+    ```
+
+2. Enable the `mock` provider in your `.env` (already wired to `docker-compose.oidc.yaml`):
+
+    ```bash
+    OIDC_PROVIDERS=mock
+    OIDC_MOCK_CLIENT_ID=test-client
+    OIDC_MOCK_CLIENT_SECRET=test-secret
+    OIDC_MOCK_SERVER_URL=http://mock-oidc:8080/default
+    OIDC_MOCK_DISPLAY_NAME=Mock SSO
+    OIDC_MOCK_NEW_ACCOUNT_EMAIL_RECIPIENTS=admin@example.org
+    ```
+
+3. Start everything (the override adds the `mock-oidc` service to the `openhexa` network):
+
+    ```bash
+    docker compose -f docker-compose.yaml -f docker-compose.oidc.yaml up
+    ```
+
+A "Mock SSO" button appears on the login page (password login hides itself whenever `OIDC_PROVIDERS`
+is non-empty). Clicking it shows the mock server's login form where you enter a `sub` and an optional
+JSON claims object, letting you drive each adapter branch:
+
+- **New user (auto-signup):** `{"email":"new@who.int","email_verified":true,"given_name":"New","family_name":"User"}`
+- **Link to an existing user:** create the local user first, then log in with `{"email":"existing@who.int","email_verified":true}`
+- **Rejected (unverified email):** `{"email":"x@who.int","email_verified":false}`
+
+The new-account notification emails land in MailHog. If login fails with an `iss` mismatch, double-check
+the `/etc/hosts` entry and that port `8080` is published, so the issuer is `http://mock-oidc:8080/default`
+from both the browser and the backend.
+
 ## Analytics
 We use [Mixpanel](https://mixpanel.com/home/) to track users and their actions. If you want to enable it, set the `MIXPANEL_TOKEN` environment variable with the token from your Mixpanel project and restart the application.
 

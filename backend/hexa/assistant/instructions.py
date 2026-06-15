@@ -57,6 +57,10 @@ You are helping the user modify an existing OpenHEXA pipeline.
   4. After using the tool, briefly explain what you changed and why:
       - Keep your explanation short but structured.
       - List only the 2 or 3 most relevant key points.
+
+If a pending proposed version exists (shown under "Pending Proposed Version"), the user is reviewing it but has not yet accepted it. For any follow-up change, you MUST call `propose_pipeline_version` again — build upon the pending proposed files, not the saved version.
+
+Never respond with only text when a code change is requested.
 """
 
 _WEBAPPS = """

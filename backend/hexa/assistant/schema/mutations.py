@@ -4,7 +4,7 @@ from ariadne import MutationType
 from django.core.exceptions import PermissionDenied
 
 from hexa.assistant.instructions import InstructionSet
-from hexa.assistant.models import Conversation
+from hexa.assistant.models import Conversation, ToolInvocation
 from hexa.pipelines.models import Pipeline
 from hexa.workspaces.models import Workspace
 
@@ -87,6 +87,31 @@ def resolve_create_assistant_conversation(_, info, input, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"], "conversation": None}
 
     return {"success": True, "errors": [], "conversation": conversation}
+
+
+@assistant_mutations.field("resolveAssistantProposal")
+def resolve_assistant_proposal(_, info, tool_invocation_id, **kwargs):
+    request = info.context["request"]
+    try:
+        invocation = ToolInvocation.objects.select_related("message__conversation").get(
+            id=tool_invocation_id
+        )
+    except ToolInvocation.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"]}
+
+    if invocation.message.conversation.user != request.user:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+    invocation.proposal_pending = False
+    invocation.save(update_fields=["proposal_pending"])
+
+    ToolInvocation.objects.filter(
+        message__conversation=invocation.message.conversation,
+        tool_name=invocation.tool_name,
+        proposal_pending=True,
+    ).update(proposal_pending=False)
+
+    return {"success": True, "errors": [], "toolInvocation": invocation}
 
 
 bindables = [assistant_mutations]

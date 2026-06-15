@@ -7,22 +7,9 @@ import yaml
 from hexa.files import storage
 from hexa.files.backends.exceptions import NotFound
 from hexa.files.utils import is_safe_path
+from hexa.pipelines.enums import PipelineParameterChoicesFileFormat
 
 MAX_CHOICES_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
-
-_SUPPORTED_FORMATS = {"csv", "json", "yaml"}
-
-
-def _detect_format(path: str) -> str:
-    ext = path.rsplit(".", 1)[-1].lower() if "." in path else ""
-    if ext == "yml":
-        return "yaml"
-    if ext not in _SUPPORTED_FORMATS:
-        raise ValueError(
-            f"Cannot determine file format from path '{path}'. "
-            f"Supported extensions: {', '.join(sorted(_SUPPORTED_FORMATS))}."
-        )
-    return ext
 
 
 def resolve_choices_from_file(bucket_name: str, choices_from_file: dict) -> list[str]:
@@ -44,9 +31,12 @@ def resolve_choices_from_file(bucket_name: str, choices_from_file: dict) -> list
     if not is_safe_path(path):
         raise ValueError(f"Invalid file path '{path}'.")
 
-    fmt = choices_from_file.get("format") or _detect_format(path)
-    if fmt == "yml":
-        fmt = "yaml"
+    raw_fmt = choices_from_file.get("format")
+    fmt = (
+        PipelineParameterChoicesFileFormat.from_extension(raw_fmt)
+        if raw_fmt
+        else PipelineParameterChoicesFileFormat.from_path(path)
+    )
     column = choices_from_file.get("column")
 
     try:
@@ -70,11 +60,11 @@ def resolve_choices_from_file(bucket_name: str, choices_from_file: dict) -> list
         )
     text = raw.decode("utf-8")
 
-    if fmt == "csv":
+    if fmt is PipelineParameterChoicesFileFormat.CSV:
         return _parse_csv(text, column, path)
-    elif fmt == "json":
+    elif fmt is PipelineParameterChoicesFileFormat.JSON:
         return _parse_json(text, column, path)
-    elif fmt == "yaml":
+    elif fmt is PipelineParameterChoicesFileFormat.YAML:
         return _parse_yaml(text, column, path)
     else:
         raise ValueError(f"Unsupported file format '{fmt}'.")

@@ -18,7 +18,9 @@ def restore_pipelines(modeladmin, request, queryset):
 
 @admin.register(Pipeline)
 class PipelineAdmin(GlobalObjectsModelAdmin):
+    readonly_fields = ("workspace", "source_template", "scheduled_pipeline_version")
     list_display = ("name", "code", "workspace")
+    list_select_related = ("workspace",)
     list_filter = ("workspace",)
     search_fields = ("id", "code", "name")
     actions = [restore_pipelines]
@@ -28,21 +30,27 @@ class PipelineAdmin(GlobalObjectsModelAdmin):
 class PipelineRunAdmin(admin.ModelAdmin):
     readonly_fields = ("pipeline", "pipeline_version")
     list_display = (
+        "run_id",
         "pipeline",
-        "trigger_mode",
         "state",
         "execution_date",
-        "timeout",
-        "cpu_limit",
-        "memory_limit",
+        "duration",
+        "limits",
     )
-    list_filter = ("trigger_mode", "state", "execution_date", "pipeline")
+    list_select_related = ("pipeline",)
+    list_filter = ("trigger_mode", "state", "execution_date")
     search_fields = ("pipeline__name", "pipeline__code", "pipeline__id", "id")
+    date_hierarchy = "execution_date"
+
+    @admin.display(description="Limits (CPU / Memory / Timeout)")
+    def limits(self, obj):
+        return f"{obj.cpu_limit} / {obj.memory_limit} / {obj.timeout}"
 
 
 @admin.register(PipelineVersion)
 class PipelineVersionAdmin(admin.ModelAdmin):
     list_display = ("version_number", "name", "pipeline", "created_at")
+    list_select_related = ("pipeline",)
     list_filter = ("pipeline", "pipeline__workspace")
     search_fields = ("name", "pipeline__name", "pipeline__code", "pipeline__id")
 

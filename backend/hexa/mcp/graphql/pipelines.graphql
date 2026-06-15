@@ -161,6 +161,7 @@ mutation CreatePipeline($input: CreatePipelineInput!) {
   createPipeline(input: $input) {
     success
     errors
+    details
     pipeline {
       id
       code
@@ -177,6 +178,7 @@ mutation UploadPipeline($input: UploadPipelineInput!) {
   uploadPipeline(input: $input) {
     success
     errors
+    details
     pipelineVersion {
       id
       versionNumber

@@ -7,6 +7,7 @@ from ariadne import (
 )
 from django.conf import settings
 from django.contrib.auth.password_validation import password_validators_help_texts
+from django.urls import reverse
 
 config_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -29,6 +30,25 @@ def resolve_config_password_requirements(_, info):
 @config_object.field("allowSelfRegistration")
 def resolve_config_allow_self_registration(_, info):
     return settings.ALLOW_SELF_REGISTRATION
+
+
+@config_object.field("passwordLoginEnabled")
+def resolve_config_password_login_enabled(_, info):
+    return settings.PASSWORD_LOGIN_ENABLED
+
+
+@config_object.field("oidcProviders")
+def resolve_config_oidc_providers(_, info):
+    base = settings.BASE_URL.rstrip("/")
+    return [
+        {
+            "id": p["id"],
+            "display_name": p["display_name"],
+            "login_url": base
+            + reverse("openid_connect_login", kwargs={"provider_id": p["id"]}),
+        }
+        for p in settings.OIDC_PROVIDERS
+    ]
 
 
 config_bindables = [config_query, config_object]

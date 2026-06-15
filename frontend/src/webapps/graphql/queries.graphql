@@ -62,3 +62,26 @@ query WebappFiles($workspaceSlug: String!, $webappSlug: String!, $ref: String) {
     }
   }
 }
+
+query WebappCommitDiff(
+  $workspaceSlug: String!
+  $webappSlug: String!
+  $ref: String!
+) {
+  webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
+    id
+    source {
+      ... on GitSource {
+        publishedVersion
+      }
+    }
+    commitDiff(ref: $ref) {
+      id
+      message
+      authorName
+      authorEmail
+      date
+      rawDiff
+    }
+  }
+}

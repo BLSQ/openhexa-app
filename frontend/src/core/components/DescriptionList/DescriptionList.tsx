@@ -78,7 +78,7 @@ DescriptionList.Item = function Item({
           titleClassName,
         )}
       >
-        <span className="inline">{label}</span>
+        <span className="w-full break-all">{label}</span>
         {help && (
           <Tooltip
             placement="top"

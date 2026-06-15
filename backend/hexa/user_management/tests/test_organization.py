@@ -10,6 +10,7 @@ from hexa.user_management.models import (
     Feature,
     FeatureFlag,
     Organization,
+    OrganizationInvitation,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
@@ -103,6 +104,35 @@ class OrganizationModelTests(TestCase):
             self.user3, direct_membership_only=True
         )
         self.assertNotIn(self.organization, queryset)
+
+    def test_invitations_not_visible_to_external_collaborator(self):
+        """A workspace member who is not a direct organization member must not
+        see the organization's invitations.
+        """
+        workspace = Workspace.objects.create(
+            name="Test Workspace",
+            organization=self.organization,
+        )
+        WorkspaceMembership.objects.create(
+            workspace=workspace,
+            user=self.user3,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+        invitation = OrganizationInvitation.objects.create(
+            organization=self.organization,
+            email="invitee@example.com",
+            role=OrganizationMembershipRole.MEMBER,
+            invited_by=self.user1,
+        )
+
+        self.assertIn(
+            invitation,
+            OrganizationInvitation.objects.filter_for_user(self.user1),
+        )
+        self.assertNotIn(
+            invitation,
+            OrganizationInvitation.objects.filter_for_user(self.user3),
+        )
 
     def test_update_own_membership_role(self):
         with self.assertRaises(PermissionDenied):

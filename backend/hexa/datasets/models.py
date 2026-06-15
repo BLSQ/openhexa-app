@@ -20,6 +20,7 @@ from hexa.files import storage
 from hexa.metadata.models import MetadataMixin
 from hexa.user_management.models import (
     Organization,
+    ServicePrincipal,
     User,
     UserInterface,
 )
@@ -50,10 +51,10 @@ class DatasetQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
         from hexa.workspaces.models import Workspace
 
-        accessible_workspaces = Workspace.objects.filter_for_user(
-            user, include_archived=True
+        accessible_workspaces = Workspace.objects.filter_for_user(user)
+        accessible_organizations = Organization.objects.filter_for_user(
+            user, direct_membership_only=True
         )
-        accessible_organizations = Organization.objects.filter_for_user(user)
         return self.optimize_query(
             self.filter(
                 Q(links__workspace__in=accessible_workspaces)
@@ -87,20 +88,17 @@ class DatasetManager(models.Manager):
         description: str,
         files: list[dict] | None = None,
     ):
-        from hexa.pipelines.authentication import PipelineRunUser
-        from hexa.workspaces.models import Workspace
-
-        if isinstance(principal, PipelineRunUser):
-            if (
-                not Workspace.objects.filter_for_user(principal, include_archived=True)
-                .filter(pk=workspace.pk)
-                .exists()
-            ):
+        if isinstance(principal, ServicePrincipal):
+            if principal.workspace_id != workspace.pk:
                 raise PermissionDenied
         elif not principal.has_perm("datasets.create_dataset", workspace):
             raise PermissionDenied
 
-        created_by = None if isinstance(principal, PipelineRunUser) else principal
+        created_by = (
+            principal.real_user
+            if isinstance(principal, ServicePrincipal)
+            else principal
+        )
 
         with transaction.atomic():
             dataset = self.create(
@@ -223,19 +221,16 @@ class DatasetVersionManager(models.Manager):
         changelog: str,
         files: list[dict] | None = None,
     ):
-        from hexa.pipelines.authentication import PipelineRunUser
-        from hexa.workspaces.models import Workspace
-
-        if isinstance(principal, PipelineRunUser):
-            if (
-                not Workspace.objects.filter_for_user(principal, include_archived=True)
-                .filter(pk=dataset.workspace_id)
-                .exists()
-            ):
+        if isinstance(principal, ServicePrincipal):
+            if principal.workspace_id != dataset.workspace_id:
                 raise PermissionDenied
         elif not principal.has_perm("datasets.create_dataset_version", dataset):
             raise PermissionDenied
-        created_by = None if isinstance(principal, PipelineRunUser) else principal
+        created_by = (
+            principal.real_user
+            if isinstance(principal, ServicePrincipal)
+            else principal
+        )
         pipeline_run = getattr(principal, "pipeline_run", None)
 
         uploaded_uris = []
@@ -361,22 +356,19 @@ class DatasetVersionFileManager(models.Manager):
         uri: str,
         content_type: str,
     ):
-        from hexa.pipelines.authentication import PipelineRunUser
-        from hexa.workspaces.models import Workspace
-
-        if isinstance(principal, PipelineRunUser):
-            if (
-                not Workspace.objects.filter_for_user(principal, include_archived=True)
-                .filter(pk=dataset_version.dataset.workspace_id)
-                .exists()
-            ):
+        if isinstance(principal, ServicePrincipal):
+            if principal.workspace_id != dataset_version.dataset.workspace_id:
                 raise PermissionDenied
         elif not principal.has_perm(
             "datasets.create_dataset_version_file", dataset_version
         ):
             raise PermissionDenied
 
-        created_by = None if isinstance(principal, PipelineRunUser) else principal
+        created_by = (
+            principal.real_user
+            if isinstance(principal, ServicePrincipal)
+            else principal
+        )
 
         return self.create(
             dataset_version=dataset_version,
@@ -433,14 +425,25 @@ class DatasetVersionFile(MetadataMixin, Base):
         return blob.size
 
     def generate_metadata(self):
-        from hexa.datasets.queue import dataset_file_metadata_queue
+        from hexa.datasets.queue import dataset_file_metadata_queue, is_file_supported
 
-        dataset_file_metadata_queue.enqueue(
-            "generate_file_metadata",
-            {
-                "file_id": str(self.id),
-            },
-        )
+        with transaction.atomic():
+            if is_file_supported(self.filename):
+                DatasetFileSample.objects.update_or_create(
+                    dataset_version_file=self,
+                    defaults={
+                        "sample": [],
+                        "status": DatasetFileSample.STATUS_PROCESSING,
+                        "status_reason": None,
+                    },
+                )
+
+            dataset_file_metadata_queue.enqueue(
+                "generate_file_metadata",
+                {
+                    "file_id": str(self.id),
+                },
+            )
 
     class Meta:
         ordering = ["uri"]
@@ -566,10 +569,10 @@ class DatasetLinkQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
         from hexa.workspaces.models import Workspace
 
-        accessible_workspaces = Workspace.objects.filter_for_user(
-            user, include_archived=True
+        accessible_workspaces = Workspace.objects.filter_for_user(user)
+        accessible_organizations = Organization.objects.filter_for_user(
+            user, direct_membership_only=True
         )
-        accessible_organizations = Organization.objects.filter_for_user(user)
         return self.optimize_query(
             self.filter(
                 Q(workspace__in=accessible_workspaces)

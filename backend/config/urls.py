@@ -16,6 +16,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+import allauth.urls
 from ariadne_django.views import GraphQLView
 from django.conf import settings
 from django.contrib import admin
@@ -23,6 +24,10 @@ from django.urls import include, path, re_path
 
 from hexa.app import get_hexa_app_configs
 from hexa.mcp.views import mcp_endpoint
+from hexa.user_management.sso.sso_views import (
+    make_compat_callback_view,
+    make_compat_login_view,
+)
 from hexa.user_management.views import LogoutView
 
 from .schema import schema
@@ -79,6 +84,34 @@ for app_config in get_hexa_app_configs(connector_only=True):
         )
     except (NotImplementedError, ModuleNotFoundError):
         pass
+
+# allauth URLs are mounted unconditionally (not only when OIDC_PROVIDERS is
+# set): reverse("openid_connect_login") must work regardless of the
+# environment — the GraphQL config resolver builds provider login URLs with
+# it, and tests override OIDC_PROVIDERS after the URLconf has been built at
+# import time. allauth raises Http404 for providers that are not configured,
+# and login_required_middleware keeps everything except the ANONYMOUS_URLS
+# names behind the login screen.
+urlpatterns.append(path("accounts/", include(allauth.urls)))
+
+if settings.OIDC_PROVIDERS:
+    for _provider in settings.OIDC_PROVIDERS:
+        _callback_path = _provider.get("callback_path", "")
+        if _callback_path:
+            urlpatterns.append(
+                path(
+                    _callback_path,
+                    make_compat_callback_view(_provider["id"], _callback_path),
+                )
+            )
+            _login_path = _provider.get("login_path", "")
+            if _login_path:
+                urlpatterns.append(
+                    path(
+                        _login_path,
+                        make_compat_login_view(_provider["id"], _callback_path),
+                    )
+                )
 
 if settings.DEBUG:
     import debug_toolbar

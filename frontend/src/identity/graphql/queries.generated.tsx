@@ -18,12 +18,12 @@ export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', 
 export type RegisterPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type RegisterPageQuery = { __typename?: 'Query', config: { __typename?: 'Config', passwordRequirements?: Array<string> | null } };
+export type RegisterPageQuery = { __typename?: 'Query', config: { __typename?: 'Config', passwordRequirements?: Array<string> | null, passwordLoginEnabled: boolean, oidcProviders: Array<{ __typename?: 'OidcProvider', id: string, displayName: string, loginUrl: string }> } };
 
 export type SignupPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type SignupPageQuery = { __typename?: 'Query', config: { __typename?: 'Config', allowSelfRegistration: boolean } };
+export type SignupPageQuery = { __typename?: 'Query', config: { __typename?: 'Config', allowSelfRegistration: boolean, passwordLoginEnabled: boolean, oidcProviders: Array<{ __typename?: 'OidcProvider', id: string, displayName: string, loginUrl: string }> } };
 
 
 export const GetUserDocument = gql`
@@ -176,6 +176,12 @@ export const RegisterPageDocument = gql`
     query RegisterPage {
   config {
     passwordRequirements
+    passwordLoginEnabled
+    oidcProviders {
+      id
+      displayName
+      loginUrl
+    }
   }
 }
     `;
@@ -215,6 +221,12 @@ export const SignupPageDocument = gql`
     query SignupPage {
   config {
     allowSelfRegistration
+    passwordLoginEnabled
+    oidcProviders {
+      id
+      displayName
+      loginUrl
+    }
   }
 }
     `;

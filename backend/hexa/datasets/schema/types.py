@@ -13,6 +13,7 @@ from hexa.datasets.models import (
     DatasetVersion,
     DatasetVersionFile,
 )
+from hexa.datasets.queue import is_file_supported
 from hexa.files import storage
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
@@ -237,7 +238,10 @@ def resolve_version_file_metadata(obj: DatasetVersionFile, info, **kwargs):
     try:
         return obj.sample_entry
     except DatasetFileSample.DoesNotExist:
-        logging.error(f"No sample found for file {obj.filename} with id {obj.id}")
+        if is_file_supported(obj.filename):
+            logging.warning(
+                f"No sample found for supported file {obj.filename} with id {obj.id}"
+            )
         return None
 
 

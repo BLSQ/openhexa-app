@@ -7,6 +7,7 @@ from django.utils import timezone
 from kubernetes.client import ApiException
 
 from hexa.pipelines.management.commands.pipelines_runner import (
+    attach_to_container_docker,
     attach_to_pod_kube,
     create_pod_kube,
     monitor_pod_kube,
@@ -31,9 +32,14 @@ class TestRunPipeline(TestCase):
         DEFAULT_WORKSPACE_IMAGE="default_workspace_image",
         PIPELINE_SCHEDULER_SPAWNER="docker",
     )
-    @patch("hexa.pipelines.management.commands.pipelines_runner.run_pipeline_docker")
+    @patch(
+        "hexa.pipelines.management.commands.pipelines_runner.monitor_container_docker"
+    )
+    @patch(
+        "hexa.pipelines.management.commands.pipelines_runner.create_container_docker"
+    )
     @patch("os.fork", return_value=0)
-    def test_env_vars(self, _, mock_run_pipeline_docker):
+    def test_env_vars(self, _, mock_create_container, mock_monitor_container):
         mock_run = MagicMock(spec=PipelineRun)
         mock_run.id = 123
         mock_run.access_token = "someAccessToken"
@@ -46,7 +52,7 @@ class TestRunPipeline(TestCase):
         mock_run.pipeline.code = "pipeline_code"
         mock_run.send_mail_notifications = False
 
-        mock_run_pipeline_docker.return_value = (True, "SomeLogs")
+        mock_monitor_container.return_value = (True, "SomeLogs")
 
         with self.assertRaises(SystemExit):
             run_pipeline(mock_run)
@@ -62,9 +68,63 @@ class TestRunPipeline(TestCase):
             "HEXA_LOG_LEVEL": str(PipelineRunLogLevel.DEBUG),
             "HEXA_NOTEBOOK_PATH": "/path/to/notebook",
         }
-        mock_run_pipeline_docker.assert_called_once_with(
+        mock_create_container.assert_called_once_with(
             mock_run, "docker_image", expected_env_vars
         )
+
+    @override_settings(
+        INTERNAL_BASE_URL="http://testserver",
+        DEFAULT_WORKSPACE_IMAGE="default_workspace_image",
+        PIPELINE_SCHEDULER_SPAWNER="docker",
+    )
+    @patch(
+        "hexa.pipelines.management.commands.pipelines_runner.monitor_container_docker"
+    )
+    @patch(
+        "hexa.pipelines.management.commands.pipelines_runner.attach_to_container_docker"
+    )
+    @patch(
+        "hexa.pipelines.management.commands.pipelines_runner.create_container_docker"
+    )
+    @patch("os.fork", return_value=0)
+    def test_docker_reattach_does_not_create_new_container(
+        self, _, mock_create_container, mock_attach_container, mock_monitor_container
+    ):
+        mock_run = MagicMock(spec=PipelineRun)
+        mock_run.id = 123
+        mock_run.access_token = "someAccessToken"
+        mock_run.log_level = PipelineRunLogLevel.DEBUG
+        mock_run.pipeline.workspace.slug = "test_workspace"
+        mock_run.pipeline.workspace.docker_image = "docker_image"
+        mock_run.pipeline.name = "test_pipeline"
+        mock_run.pipeline.type = PipelineType.ZIPFILE
+        mock_run.pipeline.code = "pipeline_code"
+        mock_run.send_mail_notifications = False
+
+        mock_monitor_container.return_value = (True, "SomeLogs")
+
+        with self.assertRaises(SystemExit):
+            run_pipeline(mock_run, create_container=False)
+
+        mock_attach_container.assert_called_once_with(mock_run)
+        mock_create_container.assert_not_called()
+
+    @patch("hexa.pipelines.management.commands.pipelines_runner.docker")
+    def test_attach_to_container_docker_exits_when_missing(self, mock_docker):
+        mock_client = Mock()
+        mock_docker.DockerClient.return_value = mock_client
+        mock_docker.errors.NotFound = Exception
+        mock_client.containers.get.side_effect = mock_docker.errors.NotFound("missing")
+
+        mock_run = MagicMock(spec=PipelineRun)
+        mock_run.id = 123
+        mock_run.pipeline.workspace.slug = "test_workspace"
+        mock_run.pipeline.code = "pipeline_code"
+
+        with self.assertRaises(SystemExit) as cm:
+            attach_to_container_docker(mock_run)
+
+        self.assertEqual(cm.exception.code, 0)
 
 
 class TestKubernetesPipelineIntegration(TestCase):

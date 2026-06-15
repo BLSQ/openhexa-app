@@ -35,6 +35,10 @@ def setup_sentry(dsn):
         # Authentication errors are also expected user errors, and can be caused by various issues (expired token, misconfiguration, etc.)
         if _is_chained_exception(hint, AuthenticationError):
             return None
+        # Webapp GraphQL errors are caused by external clients using outdated or incorrect API queries.
+        # They are expected and do not warrant a Sentry report.
+        if event.get("tags", {}).get("webapp_graphql"):
+            return None
         return event
 
     # Exclude /ready from sentry
