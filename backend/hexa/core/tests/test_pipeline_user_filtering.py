@@ -29,7 +29,15 @@ class TestPipelineRunUserFiltering(TestCase):
         self.pipeline_run.pipeline = MagicMock(Pipeline)
         self.pipeline_run.pipeline.workspace = self.WORKSPACE1
         self.pipeline_run.pipeline.workspace_id = self.WORKSPACE1.id
+        self.pipeline_run.user = self.USER_ROOT
         self.pipeline_user = PipelineRunUser(self.pipeline_run)
+
+    def test_real_user_returns_triggering_user(self):
+        self.assertEqual(self.pipeline_user.real_user, self.USER_ROOT)
+
+    def test_real_user_is_none_for_scheduled_run(self):
+        self.pipeline_run.user = None
+        self.assertIsNone(self.pipeline_user.real_user)
 
     def test_pipeline_user_filtering(self):
         Pipeline.objects.create(
