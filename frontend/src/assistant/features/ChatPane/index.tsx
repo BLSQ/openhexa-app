@@ -297,11 +297,23 @@ export default function ChatPane({
     });
   }, [loadingMore, hasMore, localConversationId, currentPage, fetchMore]);
 
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const onWheel = (e: WheelEvent) => {
+      if (e.deltaY < 0) {
+        isPinnedToBottom.current = false;
+      }
+    };
+    container.addEventListener("wheel", onWheel, { passive: true });
+    return () => container.removeEventListener("wheel", onWheel);
+  }, []);
+
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
     isPinnedToBottom.current =
-      container.scrollHeight - container.scrollTop - container.clientHeight < 50;
+      container.scrollHeight - container.scrollTop - container.clientHeight < 8;
     if (container.scrollTop === 0 && hasMore && !loadingMore) {
       loadOlderMessages();
     }
