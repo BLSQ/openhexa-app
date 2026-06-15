@@ -135,7 +135,7 @@ def resolve_files(webapp: Webapp, info, ref=None, **kwargs):
         return None
     git_webapp = GitWebapp.objects.get(pk=webapp.pk)
     try:
-        return git_webapp.get_files(ref=ref)
+        return git_webapp.get_files(ref=ref or "main")
     except ForgejoAPIError:
         return []
 
