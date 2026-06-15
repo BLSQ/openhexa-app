@@ -34,6 +34,7 @@ from hexa.user_management.models import (
     OrganizationInvitation,
     OrganizationMembershipRole,
     OrganizationSubscription,
+    ServicePrincipal,
     User,
     UserInterface,
 )
@@ -166,12 +167,10 @@ class WorkspaceQuerySet(BaseQuerySet):
         *,
         include_archived: bool = False,
     ) -> models.QuerySet:
-        from hexa.pipelines.authentication import PipelineRunUser
-
         if not user.is_authenticated:
             return self.none()
-        if isinstance(user, PipelineRunUser):
-            qs = self.filter(pk=user.pipeline_run.pipeline.workspace_id)
+        if isinstance(user, ServicePrincipal):
+            qs = self.filter(pk=user.workspace_id)
         elif isinstance(user, User):
             qs = (
                 self.all()

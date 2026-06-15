@@ -94,10 +94,20 @@ class ServicePrincipal:
     user that ultimately triggered the action — for audit and attribution
     (e.g. `created_by`). May be `None` when no human triggered the action,
     such as scheduled pipeline runs.
+
+    They also expose the workspace they are bound to.
     """
 
     @property
     def real_user(self) -> User | None:
+        raise NotImplementedError
+
+    @property
+    def workspace(self):
+        raise NotImplementedError
+
+    @property
+    def workspace_id(self):
         raise NotImplementedError
 
 

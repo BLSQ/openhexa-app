@@ -15,6 +15,14 @@ class PipelineRunUser(UserInterface, ServicePrincipal):
         # The user who triggered the run, if any (None for scheduled runs).
         return self.pipeline_run.user
 
+    @property
+    def workspace(self):
+        return self.pipeline_run.pipeline.workspace
+
+    @property
+    def workspace_id(self):
+        return self.pipeline_run.pipeline.workspace_id
+
     def get_username(self):
         return f"pipeline_{self.pipeline_run.id}"
 
