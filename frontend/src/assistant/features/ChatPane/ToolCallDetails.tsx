@@ -1,6 +1,7 @@
 import Spinner from "core/components/Spinner";
 import { useTranslation } from "next-i18next";
-import { resolveToolRenderer } from "./toolRenderers";
+import ToolValueSection from "./ToolValueSection";
+import { RenderContext } from "./renderers";
 
 type Props = {
   toolName: string;
@@ -16,17 +17,6 @@ function isEmpty(value: unknown): boolean {
   return value === "";
 }
 
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1">
-      <div className="text-[0.7rem] font-medium uppercase tracking-wide text-gray-400">
-        {label}
-      </div>
-      {children}
-    </div>
-  );
-}
-
 export default function ToolCallDetails({
   toolName,
   toolInput,
@@ -35,30 +25,45 @@ export default function ToolCallDetails({
   status,
 }: Props) {
   const { t } = useTranslation();
-  const render = resolveToolRenderer(toolName);
   const hasInput = !isEmpty(toolInput);
   const hasOutput = toolOutput !== undefined && toolOutput !== null;
+
+  const baseCtx = { toolName, success, input: toolInput, output: toolOutput };
 
   return (
     <div className="mt-1.5 space-y-3 rounded-lg border border-gray-200 bg-gray-50/60 p-3">
       {hasInput && (
-        <Section label={t("Input")}>
-          {render({ value: toolInput, kind: "input", toolName, success })}
-        </Section>
+        <ToolValueSection
+          label={t("Input")}
+          value={toolInput}
+          ctx={{ ...baseCtx, kind: "input" } as RenderContext}
+        />
       )}
 
-      <Section label={t("Output")}>
-        {status === "pending" ? (
+      {status === "pending" ? (
+        <div className="space-y-1">
+          <div className="text-[0.7rem] font-medium uppercase tracking-wide text-gray-400">
+            {t("Output")}
+          </div>
           <div className="flex items-center gap-1.5 text-xs italic text-gray-400">
             <Spinner size="xs" className="text-gray-400" />
             {t("Running…")}
           </div>
-        ) : hasOutput ? (
-          render({ value: toolOutput, kind: "output", toolName, success })
-        ) : (
+        </div>
+      ) : hasOutput ? (
+        <ToolValueSection
+          label={t("Output")}
+          value={toolOutput}
+          ctx={{ ...baseCtx, kind: "output" } as RenderContext}
+        />
+      ) : (
+        <div className="space-y-1">
+          <div className="text-[0.7rem] font-medium uppercase tracking-wide text-gray-400">
+            {t("Output")}
+          </div>
           <div className="text-xs italic text-gray-400">{t("No output")}</div>
-        )}
-      </Section>
+        </div>
+      )}
     </div>
   );
 }
