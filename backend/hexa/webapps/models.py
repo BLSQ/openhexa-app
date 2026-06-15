@@ -417,5 +417,13 @@ class WebappUser(User, ServicePrincipal):
         instance.webapp = webapp
         return instance
 
+    @property
+    def workspace(self):
+        return self.webapp.workspace
+
+    @property
+    def workspace_id(self):
+        return self.webapp.workspace_id
+
     def get_username(self):
         return f"webapp_{self.webapp.id}_as_{self.email}"
