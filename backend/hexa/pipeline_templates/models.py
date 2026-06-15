@@ -23,9 +23,7 @@ class PipelineTemplateQuerySet(BaseQuerySet, SoftDeleteQuerySet):
             return self.none()
         if isinstance(user, ServicePrincipal):
             return self.all()
-        return self.filter(
-            workspace__in=Workspace.objects.filter_for_user(user, include_archived=True)
-        )
+        return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
 
     def filter_by_tags(self, tags):
         """

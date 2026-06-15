@@ -295,11 +295,7 @@ class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
         if not user.is_authenticated:
             return self.none()
         if isinstance(user, ServicePrincipal):
-            return self.filter(
-                workspaces__in=Workspace.objects.filter_for_user(
-                    user, include_archived=True
-                )
-            )
+            return self.filter(workspaces__in=Workspace.objects.filter_for_user(user))
         if user.is_superuser or user.has_perm(
             "user_management.manage_all_organizations"
         ):

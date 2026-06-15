@@ -51,9 +51,7 @@ class DatasetQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
         from hexa.workspaces.models import Workspace
 
-        accessible_workspaces = Workspace.objects.filter_for_user(
-            user, include_archived=True
-        )
+        accessible_workspaces = Workspace.objects.filter_for_user(user)
         accessible_organizations = Organization.objects.filter_for_user(user)
         return self.optimize_query(
             self.filter(
@@ -92,7 +90,7 @@ class DatasetManager(models.Manager):
 
         if isinstance(principal, ServicePrincipal):
             if (
-                not Workspace.objects.filter_for_user(principal, include_archived=True)
+                not Workspace.objects.filter_for_user(principal)
                 .filter(pk=workspace.pk)
                 .exists()
             ):
@@ -231,7 +229,7 @@ class DatasetVersionManager(models.Manager):
 
         if isinstance(principal, ServicePrincipal):
             if (
-                not Workspace.objects.filter_for_user(principal, include_archived=True)
+                not Workspace.objects.filter_for_user(principal)
                 .filter(pk=dataset.workspace_id)
                 .exists()
             ):
@@ -372,7 +370,7 @@ class DatasetVersionFileManager(models.Manager):
 
         if isinstance(principal, ServicePrincipal):
             if (
-                not Workspace.objects.filter_for_user(principal, include_archived=True)
+                not Workspace.objects.filter_for_user(principal)
                 .filter(pk=dataset_version.dataset.workspace_id)
                 .exists()
             ):
@@ -576,9 +574,7 @@ class DatasetLinkQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
         from hexa.workspaces.models import Workspace
 
-        accessible_workspaces = Workspace.objects.filter_for_user(
-            user, include_archived=True
-        )
+        accessible_workspaces = Workspace.objects.filter_for_user(user)
         accessible_organizations = Organization.objects.filter_for_user(user)
         return self.optimize_query(
             self.filter(

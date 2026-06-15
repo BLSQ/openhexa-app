@@ -290,9 +290,7 @@ class PipelineVersion(models.Model):
 
 class PipelineQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface):
-        return self.filter(
-            workspace__in=Workspace.objects.filter_for_user(user, include_archived=True)
-        )
+        return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
 
     def filter_for_workspace_slugs(
         self, user: AnonymousUser | UserInterface, workspace_slugs: list[str]

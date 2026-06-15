@@ -58,9 +58,7 @@ def create_webapp_subdomain(slug: str, workspace: Workspace, max_tries=10):
 
 class WebappQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface):
-        return self.filter(
-            workspace__in=Workspace.objects.filter_for_user(user, include_archived=True)
-        )
+        return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
 
     def filter_favorites(self, user: User):
         return self.filter(favorites=user)

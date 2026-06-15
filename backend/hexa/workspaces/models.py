@@ -347,9 +347,7 @@ class Workspace(Base):
 
 class WorkspaceMembershipQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
-        return self.filter(
-            workspace__in=Workspace.objects.filter_for_user(user, include_archived=True)
-        )
+        return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
 
 
 class WorkspaceMembershipRole(models.TextChoices):
@@ -458,9 +456,7 @@ class WorkspaceInvitationStatus(models.TextChoices):
 
 class WorkspaceInvitationQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
-        return self.filter(
-            workspace__in=Workspace.objects.filter_for_user(user, include_archived=True)
-        )
+        return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
 
 
 class WorkspaceInvitationManager(InvitationManager):
@@ -529,9 +525,7 @@ class WorkspaceInvitation(Invitation):
 
 class ConnectionQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
-        return self.filter(
-            workspace__in=Workspace.objects.filter_for_user(user, include_archived=True)
-        )
+        return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
 
 
 class ConnectionManager(models.Manager):
