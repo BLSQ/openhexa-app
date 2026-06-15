@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.10.0](https://github.com/BLSQ/openhexa-app/compare/5.9.0...5.10.0) (2026-06-15)
+
+
+### Features
+
+* Visualise agent tools ([#1838](https://github.com/BLSQ/openhexa-app/issues/1838)) ([ac09e79](https://github.com/BLSQ/openhexa-app/commit/ac09e79fbabafc1e193c76df5a5caa60e4f0cf10))
+
+
+### Bug Fixes
+
+* allow re-publishing pipeline after deletion ([#1862](https://github.com/BLSQ/openhexa-app/issues/1862)) ([e347f05](https://github.com/BLSQ/openhexa-app/commit/e347f0532476dfff619a30b2b34845cbdedcaa54))
+* remove autos-scroll down when assistant is responding ([#1856](https://github.com/BLSQ/openhexa-app/issues/1856)) ([85a7ce2](https://github.com/BLSQ/openhexa-app/commit/85a7ce2179e9577e16d85d0b5b3455de67f2caa6))
+* Small Django admin improvements ([#1853](https://github.com/BLSQ/openhexa-app/issues/1853)) ([2da0e55](https://github.com/BLSQ/openhexa-app/commit/2da0e55e33b4f7833b266acae239a19f8575aeef))
+
 ## [5.9.0](https://github.com/BLSQ/openhexa-app/compare/5.8.0...5.9.0) (2026-06-11)
 
 
