@@ -327,6 +327,7 @@ INSTALLED_APPS = [
     "oauth2_provider",
     "hexa.assistant",
     "hexa.mcp",
+    "hexa.workspace_duplicator",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
