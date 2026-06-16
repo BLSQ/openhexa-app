@@ -222,6 +222,30 @@ class PipelineTest(TestCase):
         mail_run_recipients(run)
         self.assertEqual(len(mail.outbox), 3)
 
+    def test_mail_run_recipients_send_failure_does_not_propagate(self):
+        self.client.force_login(self.USER_ADMIN)
+        self.create_recipient(
+            pipeline=self.PIPELINE,
+            user=self.USER_ADMIN,
+            notification_level=PipelineNotificationLevel.ALL,
+        )
+
+        run = self.PIPELINE.run(
+            user=self.USER_ADMIN,
+            pipeline_version=self.PIPELINE.last_version,
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            config={},
+        )
+
+        run.state = PipelineRunState.SUCCESS
+        run.save()
+
+        with patch(
+            "hexa.core.utils.EmailMultiAlternatives.send",
+            side_effect=Exception("Authentication failed"),
+        ):
+            mail_run_recipients(run)
+
     def test_get_config_from_previous_version(self):
         pipeline = Pipeline.objects.create(
             name="Test pipeline",
