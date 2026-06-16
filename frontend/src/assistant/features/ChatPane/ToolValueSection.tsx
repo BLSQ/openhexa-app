@@ -1,12 +1,14 @@
+import { ArrowsPointingOutIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Clipboard from "core/components/Clipboard";
 import Dialog from "core/components/Dialog";
 import JsonView from "core/components/JsonView";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "next-i18next";
+import RendererBoundary from "./renderers/RendererBoundary";
 import { resolveSemanticRenderer, RenderContext } from "./renderers";
 
-const COLLAPSED_MAX_PX = 220;
+const COLLAPSED_MAX_PX = 260;
 
 type Props = {
   label: string;
@@ -66,11 +68,13 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
   const [overflowing, setOverflowing] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
 
-  const content =
+  const body = () =>
     mode === "pretty" && semantic ? (
-      semantic.render(value, ctx)
+      <RendererBoundary value={value}>
+        {semantic.render(value, ctx)}
+      </RendererBoundary>
     ) : (
-      <JsonView value={value} maxHeight={null} />
+      <JsonView value={value} maxHeight={null} hideCopy />
     );
 
   useEffect(() => {
@@ -84,8 +88,12 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
     return () => observer.disconnect();
   }, [value, mode]);
 
-  const controls = (
-    <div className="flex items-center gap-2">
+  // A structured view always benefits from the roomy modal; raw/plain content
+  // only needs it once it overflows the inline preview.
+  const canExpand = !!semantic || overflowing;
+
+  const controls = (withExpand: boolean) => (
+    <>
       {semantic && (
         <ViewToggle
           formattedLabel={t(semantic.label)}
@@ -93,25 +101,37 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
           onChange={setMode}
         />
       )}
+      {withExpand && canExpand && (
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          title={t("Expand")}
+          className="rounded-sm text-gray-400 transition-colors hover:text-gray-600"
+        >
+          <ArrowsPointingOutIcon className="h-3.5 w-3.5" />
+        </button>
+      )}
       <Clipboard value={rawText(value)} iconClassName="h-3.5 w-3.5 text-gray-400" />
-    </div>
+    </>
   );
 
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between">
-        <span className="text-[0.7rem] font-medium uppercase tracking-wide text-gray-400">
+    <div className="w-full space-y-1">
+      {/* Header sits in its own row above the box; the box (not this row) owns
+          the table's horizontal scroll, so the controls stay put on wide content. */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="min-w-0 truncate text-[0.7rem] font-medium uppercase tracking-wide text-gray-400">
           {label}
         </span>
-        {controls}
+        <div className="flex shrink-0 items-center gap-2">{controls(true)}</div>
       </div>
 
       <div
         ref={boxRef}
-        className="relative overflow-hidden"
+        className="relative w-full overflow-hidden"
         style={{ maxHeight: COLLAPSED_MAX_PX }}
       >
-        {content}
+        {body()}
         {overflowing && (
           <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-white via-white/95 to-transparent pb-1 pt-8">
             <button
@@ -126,18 +146,14 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
       </div>
 
       {modalOpen && (
-        <Dialog
-          open
-          onClose={() => setModalOpen(false)}
-          maxWidth="max-w-3xl"
-        >
+        <Dialog open onClose={() => setModalOpen(false)} maxWidth="max-w-3xl">
           <Dialog.Title onClose={() => setModalOpen(false)}>
             <div className="flex items-center gap-3 text-base">
               <span>{label}</span>
-              {controls}
+              <div className="flex items-center gap-2">{controls(false)}</div>
             </div>
           </Dialog.Title>
-          <Dialog.Content>{content}</Dialog.Content>
+          <Dialog.Content>{body()}</Dialog.Content>
         </Dialog>
       )}
     </div>

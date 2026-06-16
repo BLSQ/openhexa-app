@@ -71,6 +71,21 @@ describe("ToolCallCard", () => {
     expect(screen.getByText("Running…")).toBeInTheDocument();
   });
 
+  it("hides the redundant input section for propose_pipeline_version", () => {
+    render(
+      <ToolCallCard
+        toolName="propose_pipeline_version"
+        status="done"
+        success
+        toolInput={{ modified_files: [{ name: "pipeline.py", content: "x" }] }}
+        toolOutput={{ files: [{ name: "pipeline.py", content: "x" }] }}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { expanded: false }));
+    expect(screen.queryByText("Input")).not.toBeInTheDocument();
+    expect(screen.getByText("Output")).toBeInTheDocument();
+  });
+
   it("renders an error state when the tool failed", () => {
     render(
       <ToolCallCard
