@@ -95,6 +95,44 @@ class GetStaticWebappTest(MCPTestCase):
         self.assertEqual(result["files"][0]["content"], "<html>hi</html>")
         self.assertEqual(result["files"][0]["encoding"], "TEXT")
 
+    @_mock_forgejo()
+    def test_get_static_webapp_defaults_ref_to_main(self, mock_forgejo):
+        """The MCP query does not supply a ref, which reaches the resolver as
+        None. It must fall back to "main" rather than requesting a "None" ref
+        (which Forgejo 404s, leaving the files list empty).
+        """
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("Ref"),
+            files_json=json.dumps([{"path": "index.html", "content": "<html></html>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_slug = create_result["webapp"]["slug"]
+
+        def files_for_ref(repo_name, ref, **kwargs):
+            if ref != "main":
+                return []
+            return [
+                {
+                    "path": "index.html",
+                    "type": "file",
+                    "content": "<html></html>",
+                    "encoding": "TEXT",
+                }
+            ]
+
+        client.get_repository_files.side_effect = files_for_ref
+
+        result = get_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            webapp_slug=webapp_slug,
+        )
+        self.assertEqual(len(result["files"]), 1)
+        self.assertEqual(result["files"][0]["path"], "index.html")
+
     def test_get_static_webapp_not_found(self):
         result = get_static_webapp(
             user=self.USER_ADMIN,
