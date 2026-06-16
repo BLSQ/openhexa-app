@@ -79,6 +79,7 @@ const RENDERERS: SemanticRenderer[] = [
   {
     id: "table",
     label: "Table",
+    wide: true,
     match: (value) => findTabularArray(value) !== null,
     render: (value) => <TableValue rows={findTabularArray(value)!} />,
   },

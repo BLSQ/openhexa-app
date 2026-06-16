@@ -20,6 +20,9 @@ export type SemanticRenderer = {
   id: string;
   // i18n key for the "formatted" toggle label.
   label: string;
+  // Hint that this view benefits from more horizontal/vertical room (e.g. wide
+  // tables): the section gives it a taller inline preview and a wider modal.
+  wide?: boolean;
   match: (value: unknown, ctx: RenderContext) => boolean;
   render: (value: unknown, ctx: RenderContext) => ReactNode;
 };

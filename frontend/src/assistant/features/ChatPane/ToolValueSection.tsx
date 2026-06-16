@@ -9,6 +9,7 @@ import RendererBoundary from "./renderers/RendererBoundary";
 import { resolveSemanticRenderer, RenderContext } from "./renderers";
 
 const COLLAPSED_MAX_PX = 260;
+const COLLAPSED_MAX_WIDE_PX = 380;
 
 type Props = {
   label: string;
@@ -91,6 +92,12 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
   // A structured view always benefits from the roomy modal; raw/plain content
   // only needs it once it overflows the inline preview.
   const canExpand = !!semantic || overflowing;
+  const isWideRenderer = !!semantic?.wide;
+  // Taller inline preview only while the wide view is actually showing; modal
+  // width stays stable so it doesn't jump when toggling to raw inside it.
+  const previewMaxPx =
+    mode === "pretty" && isWideRenderer ? COLLAPSED_MAX_WIDE_PX : COLLAPSED_MAX_PX;
+  const modalMaxWidth = isWideRenderer ? "max-w-6xl" : "max-w-3xl";
 
   const controls = (withExpand: boolean) => (
     <>
@@ -129,7 +136,7 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
       <div
         ref={boxRef}
         className="relative w-full overflow-hidden"
-        style={{ maxHeight: COLLAPSED_MAX_PX }}
+        style={{ maxHeight: previewMaxPx }}
       >
         {body()}
         {overflowing && (
@@ -146,7 +153,7 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
       </div>
 
       {modalOpen && (
-        <Dialog open onClose={() => setModalOpen(false)} maxWidth="max-w-3xl">
+        <Dialog open onClose={() => setModalOpen(false)} maxWidth={modalMaxWidth}>
           <Dialog.Title onClose={() => setModalOpen(false)}>
             <div className="flex items-center gap-3 text-base">
               <span>{label}</span>
