@@ -5,6 +5,7 @@ import Dialog from "core/components/Dialog";
 import JsonView from "core/components/JsonView";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "next-i18next";
+import { formatToolName, getToolLabels } from "assistant/helpers/toolNames";
 import RendererBoundary from "./renderers/RendererBoundary";
 import { resolveSemanticRenderer, RenderContext } from "./renderers";
 
@@ -98,6 +99,11 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
   const previewMaxPx =
     mode === "pretty" && isWideRenderer ? COLLAPSED_MAX_WIDE_PX : COLLAPSED_MAX_PX;
   const modalMaxWidth = isWideRenderer ? "max-w-6xl" : "max-w-3xl";
+  const toolLabel = formatToolName(ctx.toolName, getToolLabels(t));
+  // Wide views (tables) commonly overflow horizontally without overflowing
+  // vertically, so offer the modal even when the inline box isn't clipped.
+  const showBottomCta =
+    overflowing || (isWideRenderer && mode === "pretty");
 
   const controls = (withExpand: boolean) => (
     <>
@@ -140,23 +146,28 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
       >
         {body()}
         {overflowing && (
-          <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-white via-white/95 to-transparent pb-1 pt-8">
-            <button
-              type="button"
-              onClick={() => setModalOpen(true)}
-              className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 shadow-sm hover:bg-gray-50"
-            >
-              {t("Show more")}
-            </button>
-          </div>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent" />
         )}
       </div>
+
+      {showBottomCta && (
+        <div className="flex justify-center pt-0.5">
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 shadow-sm hover:bg-gray-50"
+          >
+            {overflowing ? t("Show more") : t("Expand")}
+          </button>
+        </div>
+      )}
 
       {modalOpen && (
         <Dialog open onClose={() => setModalOpen(false)} maxWidth={modalMaxWidth}>
           <Dialog.Title onClose={() => setModalOpen(false)}>
             <div className="flex items-center gap-3 text-base">
-              <span>{label}</span>
+              <span className="font-medium text-gray-900">{toolLabel}</span>
+              <span className="text-sm font-normal text-gray-400">{label}</span>
               <div className="flex items-center gap-2">{controls(false)}</div>
             </div>
           </Dialog.Title>
