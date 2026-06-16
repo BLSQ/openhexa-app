@@ -7,7 +7,11 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { formatToolName, getToolLabels } from "assistant/helpers/toolNames";
 import RendererBoundary from "./renderers/RendererBoundary";
-import { resolveSemanticRenderer, RenderContext } from "./renderers";
+import {
+  getRendererLabel,
+  resolveSemanticRenderer,
+  RenderContext,
+} from "./renderers";
 
 const COLLAPSED_MAX_PX = 260;
 const COLLAPSED_MAX_WIDE_PX = 380;
@@ -109,7 +113,7 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
     <>
       {semantic && (
         <ViewToggle
-          formattedLabel={t(semantic.label)}
+          formattedLabel={getRendererLabel(t, semantic.label)}
           mode={mode}
           onChange={setMode}
         />

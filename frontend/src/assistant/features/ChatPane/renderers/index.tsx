@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import { TOOL } from "assistant/helpers/tools";
 import CodeValue from "./CodeValue";
 import FileSetValue, { FileEntry } from "./FileSetValue";
@@ -91,4 +92,22 @@ export function resolveSemanticRenderer(
   ctx: RenderContext,
 ): SemanticRenderer | null {
   return RENDERERS.find((r) => r.match(value, ctx)) ?? null;
+}
+
+// Renderer labels are stored as plain keys on RENDERERS, so translate them
+// through literal t() calls here — the i18next parser only extracts string
+// literals and would otherwise warn (and purge) on a dynamic `t(label)`.
+export function getRendererLabel(t: TFunction, label: string): string {
+  switch (label) {
+    case "Files":
+      return t("Files");
+    case "Code":
+      return t("Code");
+    case "Document":
+      return t("Document");
+    case "Table":
+      return t("Table");
+    default:
+      return label;
+  }
 }
