@@ -1,3 +1,4 @@
+import { TOOL } from "assistant/helpers/tools";
 import CodeValue from "./CodeValue";
 import FileSetValue, { FileEntry } from "./FileSetValue";
 import FileSystemValue from "./FileSystemValue";
@@ -35,21 +36,21 @@ const RENDERERS: SemanticRenderer[] = [
     id: "files-changeset",
     label: "Files",
     match: (value, ctx) =>
-      ctx.toolName === "propose_pipeline_version" && fileSet(value) !== null,
+      ctx.toolName === TOOL.PROPOSE_PIPELINE_VERSION && fileSet(value) !== null,
     render: (value) => <FileSetValue files={fileSet(value)!} />,
   },
   {
     id: "files",
     label: "Files",
     match: (value, ctx) =>
-      ctx.toolName === "list_files" && findTabularArray(value) !== null,
+      ctx.toolName === TOOL.LIST_FILES && findTabularArray(value) !== null,
     render: (value) => <FileSystemValue files={findTabularArray(value)!} />,
   },
   {
     id: "code",
     label: "Code",
     match: (value, ctx) =>
-      ctx.toolName === "read_file" &&
+      ctx.toolName === TOOL.READ_FILE &&
       ctx.kind === "output" &&
       isPlainObject(value) &&
       asString(value.content) !== null,
@@ -68,7 +69,7 @@ const RENDERERS: SemanticRenderer[] = [
     id: "markdown",
     label: "Document",
     match: (value, ctx) =>
-      ctx.toolName === "get_help_or_doc" &&
+      ctx.toolName === TOOL.GET_HELP_OR_DOC &&
       ctx.kind === "output" &&
       isPlainObject(value) &&
       asString(value.content) !== null,

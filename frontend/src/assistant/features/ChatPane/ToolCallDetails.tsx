@@ -1,5 +1,6 @@
 import Spinner from "core/components/Spinner";
 import { useTranslation } from "next-i18next";
+import { getToolConfig } from "assistant/helpers/toolConfig";
 import ToolValueSection from "./ToolValueSection";
 import { RenderContext } from "./renderers";
 
@@ -17,11 +18,6 @@ function isEmpty(value: unknown): boolean {
   return value === "";
 }
 
-// Tools whose input merely restates their output (e.g. propose_pipeline_version
-// echoes the proposed file content back in its result), so the input section
-// would be redundant noise.
-const INPUT_HIDDEN_TOOLS = new Set(["propose_pipeline_version"]);
-
 export default function ToolCallDetails({
   toolName,
   toolInput,
@@ -30,7 +26,7 @@ export default function ToolCallDetails({
   status,
 }: Props) {
   const { t } = useTranslation();
-  const hasInput = !isEmpty(toolInput) && !INPUT_HIDDEN_TOOLS.has(toolName);
+  const hasInput = !isEmpty(toolInput) && !getToolConfig(toolName).hideInput;
   const hasOutput = toolOutput !== undefined && toolOutput !== null;
 
   const baseCtx = { toolName, success, input: toolInput, output: toolOutput };
