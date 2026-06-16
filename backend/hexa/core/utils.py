@@ -1,11 +1,14 @@
 import os
 import typing
 from email.mime.image import MIMEImage
+from logging import getLogger
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from mjml import mjml2html
+
+logger = getLogger(__name__)
 
 
 def get_email_attachments():
@@ -31,6 +34,7 @@ def send_mail(
     template_name: str,
     template_variables: typing.Mapping,
     attachments: typing.Sequence[typing.Tuple[str, bytes, str]] = None,
+    fail_without_raising: bool = False,
 ):
     text_message = render_to_string(f"{template_name}.txt", template_variables)
     html_message = mjml2html(
@@ -55,4 +59,10 @@ def send_mail(
             else:
                 mail.attach(filename, content, mimetype)
 
-    return mail.send()
+    try:
+        return mail.send()
+    except Exception as e:
+        if not fail_without_raising:
+            raise
+        logger.error("Failed to send mail '%s' to %s: %s", title, recipient_list, e)
+        return 0
