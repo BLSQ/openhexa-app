@@ -303,10 +303,18 @@ class DatabaseUtilsTest(TestCase):
         )
 
     def test_execute_database_query_is_read_only(self):
-        with self.assertRaises(InsufficientPrivilege):
-            execute_database_query(
-                self.WORKSPACE, "CREATE TABLE should_not_exist (id int);"
-            )
+        self._seed_demo_table([(1, "a")])
+        write_statements = [
+            "INSERT INTO demo (id, label) VALUES (2, 'b');",
+            "UPDATE demo SET label = 'x';",
+            "DELETE FROM demo;",
+            "DROP TABLE demo;",
+            "CREATE TABLE should_not_exist (id int);",
+        ]
+        for statement in write_statements:
+            with self.subTest(statement=statement):
+                with self.assertRaises(InsufficientPrivilege):
+                    execute_database_query(self.WORKSPACE, statement)
 
     def test_execute_database_query_enforces_statement_timeout(self):
         # pg_sleep runs far longer than the timeout, so the statement is cancelled.
