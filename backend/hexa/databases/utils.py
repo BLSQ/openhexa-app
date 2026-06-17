@@ -15,6 +15,11 @@ from .api import get_db_server_credentials
 
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
+# Default number of rows returned by execute_database_query when the caller does
+# not request a specific limit. This caps how many rows are materialized into
+# Python objects and serialized, regardless of how many the query would return.
+EXECUTE_SQL_MAX_ROWS = 1000
+
 
 def get_row_count_estimate(cursor, table_name: str) -> int:
     """Get a fast row count estimate using EXPLAIN."""
@@ -71,6 +76,63 @@ def get_workspace_database_connection(workspace: Workspace):
         user=workspace.db_name,
         password=workspace.db_password,
     )
+
+
+def get_workspace_database_ro_connection(workspace: Workspace):
+    credentials = get_db_server_credentials()
+    host = credentials["host"]
+    port = credentials["port"]
+
+    return psycopg2.connect(
+        host=host,
+        port=port,
+        dbname=workspace.db_name,
+        user=workspace.db_ro_username,
+        password=workspace.db_ro_password,
+    )
+
+
+def execute_database_query(
+    workspace: Workspace,
+    query: str,
+    timeout_ms: int = 10_000,
+    max_rows: int = EXECUTE_SQL_MAX_ROWS,
+):
+    """Execute a SQL query against the workspace database using the read-only role.
+
+    A per-statement timeout is set so that a single request cannot hold database
+    resources for an extended period of time. At most ``max_rows`` rows are
+    returned; ``truncated`` indicates whether the result was capped.
+    """
+    conn = None
+    try:
+        conn = get_workspace_database_ro_connection(workspace)
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(
+                sql.SQL("SET LOCAL statement_timeout = {timeout};").format(
+                    timeout=sql.Literal(timeout_ms)
+                )
+            )
+            cursor.execute(query)
+            # cursor.description is None for statements that do not return rows
+            columns = (
+                [column.name for column in cursor.description]
+                if cursor.description
+                else []
+            )
+            # Fetch one extra row to detect (without returning) that more exist.
+            fetched = cursor.fetchmany(max_rows + 1) if cursor.description else []
+        truncated = len(fetched) > max_rows
+        rows = fetched[:max_rows]
+        return {
+            "columns": columns,
+            "rows": rows,
+            "row_count": len(rows),
+            "truncated": truncated,
+        }
+    finally:
+        if conn:
+            conn.close()
 
 
 def get_database_definition(workspace: Workspace):
