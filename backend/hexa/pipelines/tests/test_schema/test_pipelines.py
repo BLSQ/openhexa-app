@@ -2127,6 +2127,60 @@ def test_pipeline(input_file, threshold, enable_debug):
         self.assertEqual(None, param1["help"])
         self.assertEqual(True, param1["required"])
 
+    def test_upload_pipeline_auto_extract_normalizes_disable_when(self):
+        """The zip-parse path stores camelCase SDK keys (disableWhen) as snake_case."""
+        pipeline = self.test_create_pipeline()
+        self.client.force_login(self.USER_ROOT)
+
+        pipeline_py = (
+            "from openhexa.sdk import pipeline, parameter\n\n"
+            '@parameter("enable_advanced", type=bool, default=False, '
+            'disables=["tuning"], disable_when=False)\n'
+            '@parameter("tuning", type=str, required=False)\n'
+            '@pipeline(name="Toggle Pipeline")\n'
+            "def toggle_pipeline(enable_advanced, tuning):\n"
+            "    pass\n"
+        )
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+            zipf.writestr("pipeline.py", pipeline_py)
+        zip_data = base64.b64encode(zip_buffer.getvalue()).decode("ascii")
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) {
+                    success errors
+                    pipelineVersion { parameters { code disables disableWhen } }
+                }
+            }""",
+            {
+                "input": {
+                    "code": pipeline.code,
+                    "workspaceSlug": self.WS1.slug,
+                    "name": "auto disable_when",
+                    "zipfile": zip_data,
+                }
+            },
+        )
+
+        self.assertEqual(True, r["data"]["uploadPipeline"]["success"])
+        params = {
+            p["code"]: p
+            for p in r["data"]["uploadPipeline"]["pipelineVersion"]["parameters"]
+        }
+        self.assertEqual(["tuning"], params["enable_advanced"]["disables"])
+        self.assertEqual(False, params["enable_advanced"]["disableWhen"])
+
+        # Stored representation must be canonical snake_case (no camelCase leakage).
+        version = Pipeline.objects.get(code=pipeline.code).last_version
+        controller = next(
+            p for p in version.parameters if p["code"] == "enable_advanced"
+        )
+        self.assertIn("disable_when", controller)
+        self.assertNotIn("disableWhen", controller)
+        self.assertEqual(False, controller["disable_when"])
+
     def test_upload_pipeline_with_disables_parameter(self):
         """A boolean parameter's `disables` list is stored and resolved (empty list when unset)."""
         pipeline = self.test_create_pipeline()
