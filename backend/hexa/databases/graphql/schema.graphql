@@ -12,6 +12,29 @@ type Database {
 
   # 'readOnlyCredentials' field returns the read-only credentials for dashboards and visualization tools.
   readOnlyCredentials: DatabaseCredentials
+
+  # 'executeSQL' runs a read-only SQL query against the workspace database and returns the result.
+  executeSQL(query: String!): ExecuteSQLResult!
+}
+
+"""
+Represents the result of executing a SQL query against the workspace database.
+"""
+type ExecuteSQLResult {
+  """
+  The names of the columns returned by the query.
+  """
+  columns: [String!]!
+
+  """
+  The rows returned by the query, each one a JSON object keyed by column name.
+  """
+  rows: [JSON!]!
+
+  """
+  The number of rows returned by the query.
+  """
+  rowCount: Int!
 }
 
 # The 'DatabaseCredentials' type represents the credentials used to connect to a database.
