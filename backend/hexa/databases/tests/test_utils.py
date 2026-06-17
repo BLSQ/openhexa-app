@@ -1,6 +1,7 @@
 from unittest import mock
 
-from psycopg2.errors import UndefinedTable
+from psycopg2.errors import InsufficientPrivilege, UndefinedTable
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from psycopg2.extras import DictRow
 
 from hexa.core.test import TestCase
@@ -9,10 +10,12 @@ from hexa.databases.utils import (
     TableNotFound,
     TableRowsPage,
     delete_table,
+    execute_database_query,
     get_database_definition,
     get_row_count,
     get_table_definition,
     get_table_rows,
+    get_workspace_database_connection,
 )
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
@@ -245,3 +248,62 @@ class DatabaseUtilsTest(TestCase):
         cursor.execute.return_value = "DROP TABLE"
 
         delete_table(self.WORKSPACE, table_name)
+
+    def _seed_demo_table(self, rows):
+        """Create a `demo` table on the workspace database using the read-write role."""
+        conn = get_workspace_database_connection(self.WORKSPACE)
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("DROP TABLE IF EXISTS demo;")
+                cursor.execute("CREATE TABLE demo (id int, label text);")
+                cursor.executemany(
+                    "INSERT INTO demo (id, label) VALUES (%s, %s);", rows
+                )
+        finally:
+            conn.close()
+
+    def test_execute_database_query(self):
+        self._seed_demo_table([(1, "a"), (2, "b"), (3, "c")])
+
+        result = execute_database_query(
+            self.WORKSPACE, "SELECT id, label FROM demo ORDER BY id"
+        )
+
+        self.assertEqual(
+            {
+                "columns": ["id", "label"],
+                "rows": [
+                    {"id": 1, "label": "a"},
+                    {"id": 2, "label": "b"},
+                    {"id": 3, "label": "c"},
+                ],
+                "row_count": 3,
+                "truncated": False,
+            },
+            result,
+        )
+
+    def test_execute_database_query_truncates_to_max_rows(self):
+        self._seed_demo_table([(1, "a"), (2, "b"), (3, "c")])
+
+        result = execute_database_query(
+            self.WORKSPACE, "SELECT id FROM demo ORDER BY id", max_rows=2
+        )
+
+        self.assertEqual([{"id": 1}, {"id": 2}], result["rows"])
+        self.assertEqual(2, result["row_count"])
+        self.assertTrue(result["truncated"])
+
+    def test_execute_database_query_no_result_set(self):
+        result = execute_database_query(self.WORKSPACE, "SET search_path TO public")
+
+        self.assertEqual(
+            {"columns": [], "rows": [], "row_count": 0, "truncated": False}, result
+        )
+
+    def test_execute_database_query_is_read_only(self):
+        with self.assertRaises(InsufficientPrivilege):
+            execute_database_query(
+                self.WORKSPACE, "CREATE TABLE should_not_exist (id int);"
+            )
