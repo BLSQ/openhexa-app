@@ -8,6 +8,7 @@ class InstructionSet(TextChoices):
     CREATE_PIPELINE = "create_pipeline", "Create Pipeline"
     EDIT_PIPELINE = "edit_pipeline", "Edit Pipeline"
     CREATE_WEBAPPS = "create_webapps", "Create Web Apps"
+    EDIT_WEBAPP = "edit_webapp", "Edit Web App"
 
 
 PIPELINE_DOC_TOPICS = ("writing-pipelines", "sdk")
@@ -68,11 +69,34 @@ _WEBAPPS = """
 You are responsible for creating a new web app for the user.
 """
 
+_EDIT_WEBAPP = """
+# Your task
+You are helping the user modify an existing OpenHEXA static web app (HTML/CSS/JavaScript files).
+- The web app metadata is provided below. Current file contents are NOT pre-loaded — call `get_static_webapp` first to retrieve them before making any changes.
+- When the user asks for changes:
+  1. If you do not yet have the current files, call `get_static_webapp` to fetch them.
+  2. Analyze the existing files carefully.
+  3. Call the `propose_webapp_changes` tool — pass only the files you modified or created in `modified_files`, and list files to delete in `deleted_files`. Unchanged files are preserved automatically.
+  4. Before using the tool, do not send any messages.
+  5. After using the tool, briefly explain what you changed and why:
+      - Keep your explanation short but structured.
+      - List only the 2 or 3 most relevant key points.
+
+If a pending proposed version exists (shown under "Pending Proposed Version"), the user is reviewing it but has not yet accepted it. For any follow-up change, you MUST call `propose_webapp_changes` again — build upon the pending proposed files, not the saved version.
+
+Never respond with only text when a code change is requested.
+
+# Web app files
+Static web apps consist of HTML, CSS, and JavaScript files served as-is. An `index.html` file at the root is required.
+The web app may also call OpenHEXA's GraphQL API via a same-origin proxy at POST /graphql/ — no auth token needed, the user's session handles it.
+"""
+
 _INSTRUCTION_SETS: dict[InstructionSet | tuple[str, str], str] = {
     InstructionSet.GENERAL: _BASE,
     InstructionSet.CREATE_PIPELINE: _BASE + _CREATE_PIPELINE + _PIPELINE_DOCS,
     InstructionSet.EDIT_PIPELINE: _BASE + _EDIT_PIPELINE + _PIPELINE_DOCS,
     InstructionSet.CREATE_WEBAPPS: _BASE + _WEBAPPS,
+    InstructionSet.EDIT_WEBAPP: _BASE + _EDIT_WEBAPP,
 }
 
 

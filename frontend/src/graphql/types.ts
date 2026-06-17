@@ -2774,7 +2774,8 @@ export type LinkDatasetResult = {
 };
 
 export enum LinkedObjectType {
-  Pipeline = 'Pipeline'
+  Pipeline = 'Pipeline',
+  StaticWebapp = 'StaticWebapp'
 }
 
 /** Represents the input for logging a pipeline message. */
@@ -6378,6 +6379,7 @@ export type WhoRegion = {
 export type Webapp = {
   __typename?: 'Webapp';
   allowedOperations: Array<WebappOperationScope>;
+  assistantConversations: Array<AssistantConversation>;
   commitDiff?: Maybe<WebappCommitDiff>;
   createdBy: User;
   description?: Maybe<Scalars['String']['output']>;

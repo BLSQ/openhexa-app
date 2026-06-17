@@ -47,8 +47,13 @@ extend type Pipeline {
   assistantConversations: [AssistantConversation!]!
 }
 
+extend type Webapp {
+  assistantConversations: [AssistantConversation!]!
+}
+
 enum LinkedObjectType {
   Pipeline
+  StaticWebapp
 }
 
 input CreateAssistantConversationInput {

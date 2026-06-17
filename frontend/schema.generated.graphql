@@ -2772,6 +2772,7 @@ type LinkDatasetResult {
 
 enum LinkedObjectType {
   Pipeline
+  StaticWebapp
 }
 
 """Represents the input for logging a pipeline message."""
@@ -5601,6 +5602,7 @@ type WHORegion {
 """Represents a web app."""
 type Webapp {
   allowedOperations: [WebappOperationScope!]!
+  assistantConversations: [AssistantConversation!]!
   commitDiff(ref: String!): WebappCommitDiff
   createdBy: User!
   description: String
