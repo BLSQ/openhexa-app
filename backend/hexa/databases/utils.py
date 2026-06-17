@@ -15,11 +15,6 @@ from .api import get_db_server_credentials
 
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
-# Default number of rows returned by execute_database_query when the caller does
-# not request a specific limit. This caps how many rows are materialized into
-# Python objects and serialized, regardless of how many the query would return.
-EXECUTE_SQL_MAX_ROWS = 1000
-
 
 def get_row_count_estimate(cursor, table_name: str) -> int:
     """Get a fast row count estimate using EXPLAIN."""
@@ -96,7 +91,7 @@ def execute_database_query(
     workspace: Workspace,
     query: str,
     timeout_ms: int = 10_000,
-    max_rows: int = EXECUTE_SQL_MAX_ROWS,
+    max_rows: int = 1000,
 ):
     """Execute a SQL query against the workspace database using the read-only role.
 

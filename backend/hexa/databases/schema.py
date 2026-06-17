@@ -8,12 +8,15 @@ from ariadne import (
 )
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
+from graphql import GraphQLError
+from psycopg2 import Error as Psycopg2Error
 
 from hexa.core.graphql import result_page
 from hexa.workspaces.models import Workspace
 
 from .utils import (
     OrderByDirectionEnum,
+    execute_database_query,
     get_database_definition,
     get_table_definition,
     get_table_rows,
@@ -58,6 +61,20 @@ def resolve_database_credentials(workspace: Workspace, info, **kwargs):
             "url": workspace.db_url,
         }
     return None
+
+
+@database_object.field("executeSQL")
+def resolve_database_execute_sql(
+    workspace: Workspace, info, query: str, max_rows: int | None = None, **kwargs
+):
+    request: HttpRequest = info.context["request"]
+    if not request.user.has_perm("databases.run_query", workspace):
+        raise GraphQLError("Permission denied")
+    max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
+    try:
+        return execute_database_query(workspace, query, **max_rows_kwarg)
+    except Psycopg2Error as e:
+        raise GraphQLError(str(e).strip()) from e
 
 
 @database_object.field("readOnlyCredentials")
