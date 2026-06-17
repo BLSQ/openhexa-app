@@ -417,7 +417,7 @@ class DatabaseTest(GraphQLTestCase):
     def test_execute_sql_statement_timeout(self):
         self.client.force_login(self.USER_SABRINA)
         # Run the real query against the real database, but with a low timeout so
-        # the statement is cancelled quickly instead of waiting the full sleep.
+        # the statement is canceled quickly instead of waiting the full sleep.
         fast_execute = functools.partial(execute_database_query, timeout_ms=100)
         with mock.patch("hexa.databases.schema.execute_database_query", fast_execute):
             r = self._execute_sql("SELECT pg_sleep(3);")
