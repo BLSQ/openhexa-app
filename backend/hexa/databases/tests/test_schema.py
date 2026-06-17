@@ -1,10 +1,16 @@
+import functools
 import uuid
 from unittest import mock
 
 from django.conf import settings
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from hexa.core.test import GraphQLTestCase
-from hexa.databases.utils import TableRowsPage
+from hexa.databases.utils import (
+    TableRowsPage,
+    execute_database_query,
+    get_workspace_database_connection,
+)
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
@@ -326,6 +332,98 @@ class DatabaseTest(GraphQLTestCase):
                 },
                 r["data"]["workspace"]["database"],
             )
+
+    def _seed_demo_table(self, rows):
+        """Create a `demo` table on the workspace database using the read-write role."""
+        conn = get_workspace_database_connection(self.WORKSPACE)
+        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("DROP TABLE IF EXISTS demo;")
+                cursor.execute("CREATE TABLE demo (id int, label text);")
+                cursor.executemany(
+                    "INSERT INTO demo (id, label) VALUES (%s, %s);", rows
+                )
+        finally:
+            conn.close()
+
+    def _execute_sql(self, query, max_rows=None):
+        return self.run_query(
+            """
+            query workspaceById($slug: String!, $query: String!, $maxRows: Int) {
+                workspace(slug: $slug) {
+                    database {
+                        executeSQL(query: $query, maxRows: $maxRows) {
+                            columns
+                            rows
+                            rowCount
+                            truncated
+                        }
+                    }
+                }
+            }
+            """,
+            {
+                "slug": str(self.WORKSPACE.slug),
+                "query": query,
+                "maxRows": max_rows,
+            },
+        )
+
+    def test_execute_sql(self):
+        self.client.force_login(self.USER_SABRINA)
+        self._seed_demo_table([(1, "a"), (2, "b")])
+
+        r = self._execute_sql("SELECT id, label FROM demo ORDER BY id")
+
+        self.assertEqual(
+            {
+                "executeSQL": {
+                    "columns": ["id", "label"],
+                    "rows": [{"id": 1, "label": "a"}, {"id": 2, "label": "b"}],
+                    "rowCount": 2,
+                    "truncated": False,
+                }
+            },
+            r["data"]["workspace"]["database"],
+        )
+
+    def test_execute_sql_truncated(self):
+        self.client.force_login(self.USER_SABRINA)
+        self._seed_demo_table([(1, "a"), (2, "b"), (3, "c")])
+
+        r = self._execute_sql("SELECT id FROM demo ORDER BY id", max_rows=2)
+
+        self.assertEqual(
+            {
+                "executeSQL": {
+                    "columns": ["id"],
+                    "rows": [{"id": 1}, {"id": 2}],
+                    "rowCount": 2,
+                    "truncated": True,
+                }
+            },
+            r["data"]["workspace"]["database"],
+        )
+
+    def test_execute_sql_error(self):
+        self.client.force_login(self.USER_SABRINA)
+
+        r = self._execute_sql("SELCT 1")
+
+        self.assertIsNone(r["data"]["workspace"])
+        self.assertIn("syntax error", r["errors"][0]["message"])
+
+    def test_execute_sql_statement_timeout(self):
+        self.client.force_login(self.USER_SABRINA)
+        # Run the real query against the real database, but with a low timeout so
+        # the statement is cancelled quickly instead of waiting the full sleep.
+        fast_execute = functools.partial(execute_database_query, timeout_ms=100)
+        with mock.patch("hexa.databases.schema.execute_database_query", fast_execute):
+            r = self._execute_sql("SELECT pg_sleep(3);")
+
+        self.assertIsNone(r["data"]["workspace"])
+        self.assertIn("statement timeout", r["errors"][0]["message"])
 
     def test_generate_workspace_database_new_password_not_found(self):
         self.client.force_login(self.USER_SABRINA)
