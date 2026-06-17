@@ -1431,9 +1431,15 @@ export type Dhis2QueryResultPage = {
 export type Database = {
   __typename?: 'Database';
   credentials?: Maybe<DatabaseCredentials>;
+  executeSQL: ExecuteSqlResult;
   readOnlyCredentials?: Maybe<DatabaseCredentials>;
   table?: Maybe<DatabaseTable>;
   tables: DatabaseTablePage;
+};
+
+
+export type DatabaseExecuteSqlArgs = {
+  query: Scalars['String']['input'];
 };
 
 
@@ -2255,6 +2261,17 @@ export type EnableTwoFactorResult = {
   errors?: Maybe<Array<EnableTwoFactorError>>;
   success: Scalars['Boolean']['output'];
   verified?: Maybe<Scalars['Boolean']['output']>;
+};
+
+/** Represents the result of executing a SQL query against the workspace database. */
+export type ExecuteSqlResult = {
+  __typename?: 'ExecuteSQLResult';
+  /** The names of the columns returned by the query. */
+  columns: Array<Scalars['String']['output']>;
+  /** The number of rows returned by the query. */
+  rowCount: Scalars['Int']['output'];
+  /** The rows returned by the query, each one a JSON object keyed by column name. */
+  rows: Array<Scalars['JSON']['output']>;
 };
 
 /** Represents an external collaborator who has workspace access but no organization membership. */
