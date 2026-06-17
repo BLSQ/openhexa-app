@@ -1439,6 +1439,7 @@ export type Database = {
 
 
 export type DatabaseExecuteSqlArgs = {
+  maxRows?: InputMaybe<Scalars['Int']['input']>;
   query: Scalars['String']['input'];
 };
 
@@ -2268,10 +2269,12 @@ export type ExecuteSqlResult = {
   __typename?: 'ExecuteSQLResult';
   /** The names of the columns returned by the query. */
   columns: Array<Scalars['String']['output']>;
-  /** The number of rows returned by the query. */
+  /** The number of rows returned by the query (after any truncation). */
   rowCount: Scalars['Int']['output'];
   /** The rows returned by the query, each one a JSON object keyed by column name. */
   rows: Array<Scalars['JSON']['output']>;
+  /** Whether the result was truncated because it exceeded the maximum number of rows. */
+  truncated: Scalars['Boolean']['output'];
 };
 
 /** Represents an external collaborator who has workspace access but no organization membership. */

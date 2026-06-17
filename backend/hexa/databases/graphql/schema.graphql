@@ -14,7 +14,8 @@ type Database {
   readOnlyCredentials: DatabaseCredentials
 
   # 'executeSQL' runs a read-only SQL query against the workspace database and returns the result.
-  executeSQL(query: String!): ExecuteSQLResult!
+  # 'maxRows' caps the number of returned rows; it defaults to a safe limit when omitted.
+  executeSQL(query: String!, maxRows: Int): ExecuteSQLResult!
 }
 
 """
@@ -32,9 +33,14 @@ type ExecuteSQLResult {
   rows: [JSON!]!
 
   """
-  The number of rows returned by the query.
+  The number of rows returned by the query (after any truncation).
   """
   rowCount: Int!
+
+  """
+  Whether the result was truncated because it exceeded the maximum number of rows.
+  """
+  truncated: Boolean!
 }
 
 # The 'DatabaseCredentials' type represents the credentials used to connect to a database.

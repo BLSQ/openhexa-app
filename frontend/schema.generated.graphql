@@ -1403,7 +1403,7 @@ type DHIS2QueryResultPage {
 
 type Database {
   credentials: DatabaseCredentials
-  executeSQL(query: String!): ExecuteSQLResult!
+  executeSQL(maxRows: Int, query: String!): ExecuteSQLResult!
   readOnlyCredentials: DatabaseCredentials
   table(name: String!): DatabaseTable
   tables(page: Int, perPage: Int): DatabaseTablePage!
@@ -2247,13 +2247,18 @@ type ExecuteSQLResult {
   """The names of the columns returned by the query."""
   columns: [String!]!
 
-  """The number of rows returned by the query."""
+  """The number of rows returned by the query (after any truncation)."""
   rowCount: Int!
 
   """
   The rows returned by the query, each one a JSON object keyed by column name.
   """
   rows: [JSON!]!
+
+  """
+  Whether the result was truncated because it exceeded the maximum number of rows.
+  """
+  truncated: Boolean!
 }
 
 """
