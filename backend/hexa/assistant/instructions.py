@@ -8,6 +8,7 @@ class InstructionSet(TextChoices):
     CREATE_PIPELINE = "create_pipeline", "Create Pipeline"
     EDIT_PIPELINE = "edit_pipeline", "Edit Pipeline"
     CREATE_WEBAPPS = "create_webapps", "Create Web Apps"
+    EDIT_WEBAPP = "edit_webapp", "Edit Web App"
 
 
 PIPELINE_DOC_TOPICS = ("writing-pipelines", "sdk")
@@ -68,11 +69,41 @@ _WEBAPPS = """
 You are responsible for creating a new web app for the user.
 """
 
+_EDIT_WEBAPP = """
+# Your task
+You are helping the user modify an existing OpenHEXA static web app (HTML/CSS/JavaScript files).
+- The web app metadata and current file list are pre-loaded in your context below.
+- File contents are NOT pre-loaded. Call `get_static_webapp_file` with the webapp slug and file path to read a specific file before modifying it. The workspace slug is injected automatically — do not pass it.
+- Only read files you intend to modify. Do not read large files (e.g. a shared stylesheet) unless you are actually changing them.
+- When the user asks for changes:
+  1. Read only the files you will modify using `get_static_webapp_file`. For large files, pass `start_line` and `end_line` to read only the section that needs to change.
+  2. Analyze the existing content carefully.
+  3. Call the `propose_webapp_version` tool:
+     - For **new files or complete rewrites**: use `modified_files` with the full content.
+     - For **targeted edits to existing files** (a few lines in a large file): use `file_patches` with `{path, old_string, new_string}`. This avoids sending the whole file — only pass the lines that change. `old_string` must match the current file exactly.
+     - Use `deleted_files` to remove files.
+     - You can mix `modified_files` and `file_patches` in the same call.
+  4. Before using the tool, do not send any messages.
+  5. After using the tool, briefly explain what you changed and why:
+      - Keep your explanation short but structured.
+      - List only the 2 or 3 most relevant key points.
+
+If a pending proposed version exists (shown under "Pending Proposed Version"), the user is reviewing it but has not yet accepted it. For any follow-up change, you MUST call `propose_webapp_version` again — build upon the pending proposed files, not the saved version. Read large pending files with `get_static_webapp_file` if their content is not shown inline.
+
+Never respond with only text when a code change is requested.
+
+# Web app files
+Static web apps consist of HTML, CSS, and JavaScript files served as-is. An `index.html` file at the root is required.
+The web app may also call OpenHEXA's GraphQL API via a same-origin proxy at POST /graphql/ — no auth token needed, the user's session handles it.
+If you need the full API reference (available scopes, GraphQL schema, example queries), call `get_help_or_doc(topic="static-webapps")`.
+"""
+
 _INSTRUCTION_SETS: dict[InstructionSet | tuple[str, str], str] = {
     InstructionSet.GENERAL: _BASE,
     InstructionSet.CREATE_PIPELINE: _BASE + _CREATE_PIPELINE + _PIPELINE_DOCS,
     InstructionSet.EDIT_PIPELINE: _BASE + _EDIT_PIPELINE + _PIPELINE_DOCS,
     InstructionSet.CREATE_WEBAPPS: _BASE + _WEBAPPS,
+    InstructionSet.EDIT_WEBAPP: _BASE + _EDIT_WEBAPP,
 }
 
 

@@ -4,7 +4,12 @@ from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.webapps.models import GitWebapp
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 
 CONVERSATION_MESSAGES_QUERY = """
   query AssistantConversationMessages($id: UUID!) {
@@ -159,3 +164,103 @@ class AssistantConversationMessagesQueryTest(GraphQLTestCase):
         self.assertEqual(segments[1]["__typename"], "AssistantToolSegment")
         self.assertEqual(segments[2]["__typename"], "AssistantTextSegment")
         self.assertEqual(segments[2]["content"], "Second")
+
+
+WEBAPP_ASSISTANT_CONVERSATIONS_QUERY = """
+  query WebappAssistantConversations($workspaceSlug: String!, $webappSlug: String!) {
+    webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
+      assistantConversations {
+        id
+      }
+    }
+  }
+"""
+
+
+class WebappAssistantConversationsQueryTest(GraphQLTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            "webapp-conv-test@example.com", "password", is_superuser=True
+        )
+        with patch("hexa.workspaces.models.create_database"):
+            cls.workspace = Workspace.objects.create_if_has_perm(
+                cls.user, name="Webapp Conv WS", description=""
+            )
+        WorkspaceMembership.objects.get_or_create(
+            user=cls.user,
+            workspace=cls.workspace,
+            defaults={"role": WorkspaceMembershipRole.ADMIN},
+        )
+        cls.webapp = GitWebapp.objects.create(
+            workspace=cls.workspace,
+            name="Test Webapp",
+            slug="test-webapp",
+            subdomain="test-webapp-conv",
+            type=GitWebapp.WebappType.STATIC,
+            created_by=cls.user,
+            repository="test-repo",
+        )
+        cls.other_webapp = GitWebapp.objects.create(
+            workspace=cls.workspace,
+            name="Other Webapp",
+            slug="other-webapp",
+            subdomain="other-webapp-conv",
+            type=GitWebapp.WebappType.STATIC,
+            created_by=cls.user,
+            repository="other-repo",
+        )
+
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.user)
+
+    def _query(self):
+        return self.run_query(
+            WEBAPP_ASSISTANT_CONVERSATIONS_QUERY,
+            variables={
+                "workspaceSlug": self.workspace.slug,
+                "webappSlug": self.webapp.slug,
+            },
+        )
+
+    def test_returns_conversations_linked_to_webapp(self):
+        conv = Conversation.objects.create(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.EDIT_WEBAPP,
+            linked_object=self.webapp,
+        )
+
+        result = self._query()
+        ids = [c["id"] for c in result["data"]["webapp"]["assistantConversations"]]
+        self.assertIn(str(conv.id), ids)
+
+    def test_excludes_conversations_linked_to_other_webapp(self):
+        Conversation.objects.create(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.EDIT_WEBAPP,
+            linked_object=self.other_webapp,
+        )
+        conv_for_webapp = Conversation.objects.create(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.EDIT_WEBAPP,
+            linked_object=self.webapp,
+        )
+
+        result = self._query()
+        ids = [c["id"] for c in result["data"]["webapp"]["assistantConversations"]]
+        self.assertEqual(ids, [str(conv_for_webapp.id)])
+
+    def test_excludes_unlinked_workspace_conversations(self):
+        Conversation.objects.create(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.GENERAL,
+        )
+
+        result = self._query()
+        ids = [c["id"] for c in result["data"]["webapp"]["assistantConversations"]]
+        self.assertEqual(ids, [])
