@@ -1,6 +1,6 @@
 from unittest import mock
 
-from psycopg2.errors import InsufficientPrivilege, UndefinedTable
+from psycopg2.errors import InsufficientPrivilege, QueryCanceled, UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from psycopg2.extras import DictRow
 
@@ -306,4 +306,11 @@ class DatabaseUtilsTest(TestCase):
         with self.assertRaises(InsufficientPrivilege):
             execute_database_query(
                 self.WORKSPACE, "CREATE TABLE should_not_exist (id int);"
+            )
+
+    def test_execute_database_query_enforces_statement_timeout(self):
+        # pg_sleep runs far longer than the timeout, so the statement is cancelled.
+        with self.assertRaises(QueryCanceled):
+            execute_database_query(
+                self.WORKSPACE, "SELECT pg_sleep(3);", timeout_ms=100
             )
