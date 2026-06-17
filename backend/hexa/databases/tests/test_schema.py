@@ -348,12 +348,15 @@ class DatabaseTest(GraphQLTestCase):
             conn.close()
 
     def _execute_sql(self, query, max_rows=None):
-        return self.run_query(
+        r = self.run_query(
             """
             query workspaceById($slug: String!, $query: String!, $maxRows: Int) {
                 workspace(slug: $slug) {
                     database {
                         executeSQL(query: $query, maxRows: $maxRows) {
+                            success
+                            errors
+                            errorMessage
                             columns
                             rows
                             rowCount
@@ -369,50 +372,56 @@ class DatabaseTest(GraphQLTestCase):
                 "maxRows": max_rows,
             },
         )
+        return r["data"]["workspace"]["database"]["executeSQL"]
 
     def test_execute_sql(self):
         self.client.force_login(self.USER_SABRINA)
         self._seed_demo_table([(1, "a"), (2, "b")])
 
-        r = self._execute_sql("SELECT id, label FROM demo ORDER BY id")
+        result = self._execute_sql("SELECT id, label FROM demo ORDER BY id")
 
         self.assertEqual(
             {
-                "executeSQL": {
-                    "columns": ["id", "label"],
-                    "rows": [{"id": 1, "label": "a"}, {"id": 2, "label": "b"}],
-                    "rowCount": 2,
-                    "truncated": False,
-                }
+                "success": True,
+                "errors": [],
+                "errorMessage": None,
+                "columns": ["id", "label"],
+                "rows": [{"id": 1, "label": "a"}, {"id": 2, "label": "b"}],
+                "rowCount": 2,
+                "truncated": False,
             },
-            r["data"]["workspace"]["database"],
+            result,
         )
 
     def test_execute_sql_truncated(self):
         self.client.force_login(self.USER_SABRINA)
         self._seed_demo_table([(1, "a"), (2, "b"), (3, "c")])
 
-        r = self._execute_sql("SELECT id FROM demo ORDER BY id", max_rows=2)
+        result = self._execute_sql("SELECT id FROM demo ORDER BY id", max_rows=2)
 
-        self.assertEqual(
-            {
-                "executeSQL": {
-                    "columns": ["id"],
-                    "rows": [{"id": 1}, {"id": 2}],
-                    "rowCount": 2,
-                    "truncated": True,
-                }
-            },
-            r["data"]["workspace"]["database"],
-        )
+        self.assertTrue(result["success"])
+        self.assertEqual([{"id": 1}, {"id": 2}], result["rows"])
+        self.assertEqual(2, result["rowCount"])
+        self.assertTrue(result["truncated"])
 
     def test_execute_sql_error(self):
         self.client.force_login(self.USER_SABRINA)
 
-        r = self._execute_sql("SELCT 1")
+        result = self._execute_sql("SELCT 1")
 
-        self.assertIsNone(r["data"]["workspace"])
-        self.assertIn("syntax error", r["errors"][0]["message"])
+        self.assertFalse(result["success"])
+        self.assertEqual(["QUERY_ERROR"], result["errors"])
+        self.assertIn("syntax error", result["errorMessage"])
+        self.assertIsNone(result["rows"])
+
+    def test_execute_sql_permission_denied(self):
+        self.client.force_login(self.USER_SABRINA)
+        with mock.patch("hexa.databases.permissions.run_query", return_value=False):
+            result = self._execute_sql("SELECT 1")
+
+        self.assertFalse(result["success"])
+        self.assertEqual(["PERMISSION_DENIED"], result["errors"])
+        self.assertIsNone(result["rows"])
 
     def test_execute_sql_statement_timeout(self):
         self.client.force_login(self.USER_SABRINA)
@@ -420,10 +429,11 @@ class DatabaseTest(GraphQLTestCase):
         # the statement is canceled quickly instead of waiting the full sleep.
         fast_execute = functools.partial(execute_database_query, timeout_ms=100)
         with mock.patch("hexa.databases.schema.execute_database_query", fast_execute):
-            r = self._execute_sql("SELECT pg_sleep(3);")
+            result = self._execute_sql("SELECT pg_sleep(3);")
 
-        self.assertIsNone(r["data"]["workspace"])
-        self.assertIn("statement timeout", r["errors"][0]["message"])
+        self.assertFalse(result["success"])
+        self.assertEqual(["QUERY_TIMEOUT"], result["errors"])
+        self.assertIn("statement timeout", result["errorMessage"])
 
     def test_generate_workspace_database_new_password_not_found(self):
         self.client.force_login(self.USER_SABRINA)
