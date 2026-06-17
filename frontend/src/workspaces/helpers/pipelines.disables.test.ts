@@ -130,4 +130,25 @@ describe("convertParametersToPipelineInput with disables", () => {
       report_name: "Q1",
     });
   });
+
+  it("keeps disabled values when given an empty disabled set (defaults dialog)", () => {
+    // The defaults dialog passes `new Set()` so a template across both toggle
+    // branches is preserved even while the controller is on.
+    const config = convertParametersToPipelineInput(
+      { parameters },
+      {
+        run_report_only: true,
+        data_input: "kept",
+        year: 2024,
+        report_name: "Q1",
+      },
+      new Set<string>(),
+    );
+    expect(config).toEqual({
+      run_report_only: true,
+      data_input: "kept",
+      year: 2024,
+      report_name: "Q1",
+    });
+  });
 });
