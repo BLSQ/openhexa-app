@@ -19,28 +19,63 @@ type Database {
 }
 
 """
+Possible errors when executing a SQL query against the workspace database.
+"""
+enum ExecuteSQLError {
+  """
+  The user is not allowed to run queries against this workspace database.
+  """
+  PERMISSION_DENIED
+
+  """
+  The query was cancelled because it exceeded the statement timeout.
+  """
+  QUERY_TIMEOUT
+
+  """
+  The query could not be executed (e.g. invalid SQL or a disallowed operation).
+  """
+  QUERY_ERROR
+}
+
+"""
 Represents the result of executing a SQL query against the workspace database.
 """
 type ExecuteSQLResult {
   """
+  Indicates whether the query executed successfully.
+  """
+  success: Boolean!
+
+  """
+  The errors that occurred while executing the query.
+  """
+  errors: [ExecuteSQLError!]!
+
+  """
+  The underlying database error message, when the query failed.
+  """
+  errorMessage: String
+
+  """
   The names of the columns returned by the query.
   """
-  columns: [String!]!
+  columns: [String!]
 
   """
   The rows returned by the query, each one a JSON object keyed by column name.
   """
-  rows: [JSON!]!
+  rows: [JSON!]
 
   """
   The number of rows returned by the query (after any truncation).
   """
-  rowCount: Int!
+  rowCount: Int
 
   """
   Whether the result was truncated because it exceeded the maximum number of rows.
   """
-  truncated: Boolean!
+  truncated: Boolean
 }
 
 # The 'DatabaseCredentials' type represents the credentials used to connect to a database.

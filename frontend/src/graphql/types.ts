@@ -2264,17 +2264,33 @@ export type EnableTwoFactorResult = {
   verified?: Maybe<Scalars['Boolean']['output']>;
 };
 
+/** Possible errors when executing a SQL query against the workspace database. */
+export enum ExecuteSqlError {
+  /** The user is not allowed to run queries against this workspace database. */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** The query could not be executed (e.g. invalid SQL or a disallowed operation). */
+  QueryError = 'QUERY_ERROR',
+  /** The query was cancelled because it exceeded the statement timeout. */
+  QueryTimeout = 'QUERY_TIMEOUT'
+}
+
 /** Represents the result of executing a SQL query against the workspace database. */
 export type ExecuteSqlResult = {
   __typename?: 'ExecuteSQLResult';
   /** The names of the columns returned by the query. */
-  columns: Array<Scalars['String']['output']>;
+  columns?: Maybe<Array<Scalars['String']['output']>>;
+  /** The underlying database error message, when the query failed. */
+  errorMessage?: Maybe<Scalars['String']['output']>;
+  /** The errors that occurred while executing the query. */
+  errors: Array<ExecuteSqlError>;
   /** The number of rows returned by the query (after any truncation). */
-  rowCount: Scalars['Int']['output'];
+  rowCount?: Maybe<Scalars['Int']['output']>;
   /** The rows returned by the query, each one a JSON object keyed by column name. */
-  rows: Array<Scalars['JSON']['output']>;
+  rows?: Maybe<Array<Scalars['JSON']['output']>>;
+  /** Indicates whether the query executed successfully. */
+  success: Scalars['Boolean']['output'];
   /** Whether the result was truncated because it exceeded the maximum number of rows. */
-  truncated: Scalars['Boolean']['output'];
+  truncated?: Maybe<Scalars['Boolean']['output']>;
 };
 
 /** Represents an external collaborator who has workspace access but no organization membership. */
