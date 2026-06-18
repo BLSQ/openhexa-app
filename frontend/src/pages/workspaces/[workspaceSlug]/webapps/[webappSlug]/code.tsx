@@ -1,4 +1,5 @@
-import { SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { SparklesIcon } from "@heroicons/react/24/outline";
+import AssistantProposalBanner from "assistant/features/AssistantProposalBanner";
 import WebappEditChatPanel, {
   WebappConversation,
   WebappProposedFile,
@@ -255,27 +256,12 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
             )}
           </div>
           {proposedFiles && (
-            <div className="flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm">
-              <span className="font-medium text-blue-700">
-                {t("Proposed changes from AI assistant")}
-              </span>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleAcceptProposal}
-                  disabled={isEditorBusy}
-                  className="text-xs font-medium text-blue-700 hover:text-blue-900 disabled:opacity-50"
-                >
-                  {t("Apply")}
-                </button>
-                <button
-                  onClick={handleDismiss}
-                  className="flex items-center gap-1 text-blue-500 hover:text-blue-700 text-xs"
-                >
-                  <XMarkIcon className="h-3.5 w-3.5" />
-                  {t("Dismiss")}
-                </button>
-              </div>
-            </div>
+            <AssistantProposalBanner
+              label={t("Proposed changes from AI assistant")}
+              onAccept={handleAcceptProposal}
+              acceptDisabled={isEditorBusy}
+              onDismiss={handleDismiss}
+            />
           )}
           <div className="flex gap-4 min-h-[60vh] max-h-[65vh] overflow-hidden">
             <div className="relative flex-1 min-h-0">

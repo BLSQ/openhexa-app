@@ -1,4 +1,5 @@
-import { SparklesIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { SparklesIcon } from "@heroicons/react/24/outline";
+import AssistantProposalBanner from "assistant/features/AssistantProposalBanner";
 import PipelineEditChatPanel, {
   PipelineConversation,
 } from "assistant/features/PipelineEditChatPanel";
@@ -188,18 +189,10 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
           <div className="flex gap-4 min-h-[60vh] max-h-[65vh] overflow-hidden">
             <div className="relative flex-1 min-w-0 flex flex-col">
               {proposedFiles && (
-                <div className="shrink-0 mb-2 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm">
-                  <span className="font-medium text-blue-700">
-                    {t("Proposed version from AI assistant")}
-                  </span>
-                  <button
-                    onClick={handleDismiss}
-                    className="flex items-center gap-1 text-blue-500 hover:text-blue-700 text-xs"
-                  >
-                    <XMarkIcon className="h-3.5 w-3.5" />
-                    {t("Dismiss")}
-                  </button>
-                </div>
+                <AssistantProposalBanner
+                  label={t("Proposed version from AI assistant")}
+                  onDismiss={handleDismiss}
+                />
               )}
               <div className="relative flex-1 min-h-0">
                 {(loading || versionLoading) && (
