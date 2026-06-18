@@ -71,7 +71,7 @@ describe("ToolCallCard", () => {
     expect(screen.getByText("Running…")).toBeInTheDocument();
   });
 
-  it("hides the redundant input section for propose_pipeline_version", () => {
+  it("shows the changeset and hides the redundant output for propose_pipeline_version", () => {
     render(
       <ToolCallCard
         toolName="propose_pipeline_version"
@@ -82,8 +82,11 @@ describe("ToolCallCard", () => {
       />,
     );
     fireEvent.click(screen.getByRole("button", { expanded: false }));
+    // The changeset is shown under a "Proposed changes" header, not "Input",
+    // and the full-version output is dropped (it lives in the FilesEditor diff).
+    expect(screen.getByText("Proposed changes")).toBeInTheDocument();
     expect(screen.queryByText("Input")).not.toBeInTheDocument();
-    expect(screen.getByText("Output")).toBeInTheDocument();
+    expect(screen.queryByText("Output")).not.toBeInTheDocument();
   });
 
   it("renders an error state when the tool failed", () => {

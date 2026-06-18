@@ -29,6 +29,12 @@ function fileSet(value: unknown): FileEntry[] | null {
   return null;
 }
 
+// The names listed in a propose_pipeline_version input's `deleted_files`.
+function deletedFiles(value: unknown): string[] {
+  if (!isPlainObject(value) || !Array.isArray(value.deleted_files)) return [];
+  return value.deleted_files.filter((f): f is string => typeof f === "string");
+}
+
 // Ordered by specificity: tool-specific renderers first, generic shape-based
 // ones last. The first whose `match` returns true wins; otherwise the caller
 // falls back to the raw JSON view.
@@ -37,8 +43,11 @@ const RENDERERS: SemanticRenderer[] = [
     id: "files-changeset",
     label: "Files",
     match: (value, ctx) =>
-      ctx.toolName === TOOL.PROPOSE_PIPELINE_VERSION && fileSet(value) !== null,
-    render: (value) => <FileSetValue files={fileSet(value)!} />,
+      ctx.toolName === TOOL.PROPOSE_PIPELINE_VERSION &&
+      (fileSet(value) !== null || deletedFiles(value).length > 0),
+    render: (value) => (
+      <FileSetValue files={fileSet(value) ?? []} deleted={deletedFiles(value)} />
+    ),
   },
   {
     id: "files",

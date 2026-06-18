@@ -37,6 +37,28 @@ describe("resolveSemanticRenderer", () => {
     expect(container.textContent).toContain("return 42");
   });
 
+  it("picks the file-set renderer for a deletion-only changeset", () => {
+    const r = resolveSemanticRenderer(
+      { deleted_files: ["old.py"] },
+      ctx({ toolName: "propose_pipeline_version", kind: "input" }),
+    );
+    expect(r?.id).toBe("files-changeset");
+  });
+
+  it("renders modified and deleted files together", () => {
+    const value = {
+      modified_files: [{ name: "pipeline.py", content: "print(1)" }],
+      deleted_files: ["old.py"],
+    };
+    const r = resolveSemanticRenderer(
+      value,
+      ctx({ toolName: "propose_pipeline_version", kind: "input" }),
+    );
+    render(<>{r!.render(value, ctx({ kind: "input" }))}</>);
+    expect(screen.getByText("pipeline.py")).toBeInTheDocument();
+    expect(screen.getByText("old.py")).toBeInTheDocument();
+  });
+
   it("picks the file-system renderer for list_files", () => {
     const value = { items: [{ name: "a.csv", type: "file", size: 12 }] };
     const r = resolveSemanticRenderer(value, ctx({ toolName: "list_files" }));

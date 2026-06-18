@@ -1,6 +1,7 @@
 import Spinner from "core/components/Spinner";
+import { TFunction } from "i18next";
 import { useTranslation } from "next-i18next";
-import { getToolConfig } from "assistant/helpers/toolConfig";
+import { getToolConfig, ToolInputLabel } from "assistant/helpers/toolConfig";
 import ToolValueSection from "./ToolValueSection";
 import { RenderContext } from "./renderers";
 
@@ -14,8 +15,24 @@ type Props = {
 
 function isEmpty(value: unknown): boolean {
   if (value == null) return true;
-  if (typeof value === "object") return Object.keys(value as object).length === 0;
+  if (typeof value === "object")
+    return Object.keys(value as object).length === 0;
   return value === "";
+}
+
+// Translate the configured input-label override through a literal t() map: the
+// i18next parser only extracts string literals, so passing the variable to the
+// translate function directly would get it purged. The ToolInputLabel union
+// keeps this map exhaustive.
+function inputLabel(
+  t: TFunction,
+  override: ToolInputLabel | undefined,
+): string {
+  if (!override) return t("Input");
+  const labels: Record<ToolInputLabel, string> = {
+    "Proposed changes": t("Proposed changes"),
+  };
+  return labels[override];
 }
 
 export default function ToolCallDetails({
@@ -26,7 +43,8 @@ export default function ToolCallDetails({
   status,
 }: Props) {
   const { t } = useTranslation();
-  const hasInput = !isEmpty(toolInput) && !getToolConfig(toolName).hideInput;
+  const config = getToolConfig(toolName);
+  const hasInput = !isEmpty(toolInput);
   const hasOutput = !isEmpty(toolOutput);
 
   const baseCtx = { toolName, success, input: toolInput, output: toolOutput };
@@ -35,13 +53,13 @@ export default function ToolCallDetails({
     <div className="mt-1.5 space-y-3 rounded-lg border border-gray-200 bg-gray-50/60 p-3">
       {hasInput && (
         <ToolValueSection
-          label={t("Input")}
+          label={inputLabel(t, config.inputLabel)}
           value={toolInput}
           ctx={{ ...baseCtx, kind: "input" } as RenderContext}
         />
       )}
 
-      {status === "pending" ? (
+      {config.hideOutput ? null : status === "pending" ? (
         <div className="space-y-1">
           <div className="text-[0.7rem] font-medium uppercase tracking-wide text-gray-400">
             {t("Output")}
