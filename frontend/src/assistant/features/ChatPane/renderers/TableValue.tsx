@@ -1,9 +1,9 @@
 import clsx from "clsx";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { columnsOf, formatCell, Row } from "./tabular";
 
 export default function TableValue({ rows }: { rows: Row[] }) {
-  const columns = columnsOf(rows);
+  const columns = useMemo(() => columnsOf(rows), [rows]);
   // Cells are truncated for scannability; clicking one expands it in place so
   // large values (long descriptions, content blobs) stay readable.
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});

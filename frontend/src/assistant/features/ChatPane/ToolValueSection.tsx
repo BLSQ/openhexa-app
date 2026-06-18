@@ -3,7 +3,7 @@ import clsx from "clsx";
 import Clipboard from "core/components/Clipboard";
 import Dialog from "core/components/Dialog";
 import JsonView from "core/components/JsonView";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { formatToolName, getToolLabels } from "assistant/helpers/toolNames";
 import RendererBoundary from "./renderers/RendererBoundary";
@@ -68,7 +68,13 @@ function ViewToggle({
 
 export default function ToolValueSection({ label, value, ctx }: Props) {
   const { t } = useTranslation();
-  const semantic = resolveSemanticRenderer(value, ctx);
+  // ctx is rebuilt on every parent render, so depend on the stable fields the
+  // resolver actually reads rather than the object identity.
+  const semantic = useMemo(
+    () => resolveSemanticRenderer(value, ctx),
+    [value, ctx.toolName, ctx.kind, ctx.input],
+  );
+  const raw = useMemo(() => rawText(value), [value]);
   const [mode, setMode] = useState<"pretty" | "raw">(semantic ? "pretty" : "raw");
   const [modalOpen, setModalOpen] = useState(false);
   const [overflowing, setOverflowing] = useState(false);
@@ -128,7 +134,7 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
           <ArrowsPointingOutIcon className="h-3.5 w-3.5" />
         </button>
       )}
-      <Clipboard value={rawText(value)} iconClassName="h-3.5 w-3.5 text-gray-400" />
+      <Clipboard value={raw} iconClassName="h-3.5 w-3.5 text-gray-400" />
     </>
   );
 

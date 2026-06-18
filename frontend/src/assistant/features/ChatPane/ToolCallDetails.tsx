@@ -27,7 +27,7 @@ export default function ToolCallDetails({
 }: Props) {
   const { t } = useTranslation();
   const hasInput = !isEmpty(toolInput) && !getToolConfig(toolName).hideInput;
-  const hasOutput = toolOutput !== undefined && toolOutput !== null;
+  const hasOutput = !isEmpty(toolOutput);
 
   const baseCtx = { toolName, success, input: toolInput, output: toolOutput };
 

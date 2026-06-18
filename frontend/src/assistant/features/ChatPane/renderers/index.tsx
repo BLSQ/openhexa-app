@@ -6,7 +6,7 @@ import FileSystemValue from "./FileSystemValue";
 import MarkdownValue from "./MarkdownValue";
 import TableValue from "./TableValue";
 import { findTabularArray, isPlainObject } from "./tabular";
-import { RenderContext, SemanticRenderer } from "./types";
+import { RendererLabel, RenderContext, SemanticRenderer } from "./types";
 
 export type { RenderContext } from "./types";
 
@@ -96,18 +96,15 @@ export function resolveSemanticRenderer(
 
 // Renderer labels are stored as plain keys on RENDERERS, so translate them
 // through literal t() calls here — the i18next parser only extracts string
-// literals and would otherwise warn (and purge) on a dynamic `t(label)`.
-export function getRendererLabel(t: TFunction, label: string): string {
-  switch (label) {
-    case "Files":
-      return t("Files");
-    case "Code":
-      return t("Code");
-    case "Document":
-      return t("Document");
-    case "Table":
-      return t("Table");
-    default:
-      return label;
-  }
+// literals and would otherwise warn (and purge) on a dynamic `t(label)`. The
+// RendererLabel union keeps this map exhaustive: a new label won't type-check
+// until it is registered here.
+export function getRendererLabel(t: TFunction, label: RendererLabel): string {
+  const labels: Record<RendererLabel, string> = {
+    Files: t("Files"),
+    Code: t("Code"),
+    Document: t("Document"),
+    Table: t("Table"),
+  };
+  return labels[label];
 }

@@ -3,6 +3,7 @@ import SyntaxHighlighter from "react-syntax-highlighter";
 import { github } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import { useMemo } from "react";
 import Clipboard from "core/components/Clipboard";
+import { CODE_BLOCK_STYLE } from "core/components/codeBlockStyle";
 
 type Props = {
   value: unknown;
@@ -51,16 +52,7 @@ export default function JsonView({
             language="json"
             style={github}
             wrapLongLines
-            customStyle={{
-              margin: 0,
-              borderRadius: "0.375rem",
-              fontSize: "0.75rem",
-              background: "#ffffff",
-              border: "1px solid #e5e7eb",
-              padding: "0.625rem 0.75rem",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-            }}
+            customStyle={CODE_BLOCK_STYLE}
           >
             {text}
           </SyntaxHighlighter>
