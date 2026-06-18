@@ -336,7 +336,7 @@ oauthlib==3.3.1
     #   django-oauth-toolkit
     #   kubernetes
     #   requests-oauthlib
-openhexa-sdk==2.21.0
+openhexa-sdk==2.22.0
     # via
     #   -r requirements.in
     #   openhexa-toolbox
@@ -574,6 +574,7 @@ truststore==0.10.4
 typing-extensions==4.14.1
     # via
     #   anthropic
+    #   anyio
     #   ariadne
     #   azure-core
     #   azure-identity
@@ -585,8 +586,10 @@ typing-extensions==4.14.1
     #   opentelemetry-exporter-otlp-proto-http
     #   opentelemetry-sdk
     #   opentelemetry-semantic-conventions
+    #   psycopg
     #   pydantic
     #   pydantic-core
+    #   starlette
     #   typing-inspection
 typing-inspection==0.4.2
     # via

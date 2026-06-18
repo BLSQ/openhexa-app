@@ -1,5 +1,9 @@
 import { gql } from "@apollo/client";
-import { ChevronDownIcon, ExclamationCircleIcon, PlayIcon } from "@heroicons/react/24/outline";
+import {
+  ChevronDownIcon,
+  ExclamationCircleIcon,
+  PlayIcon,
+} from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
@@ -11,9 +15,11 @@ import useForm from "core/hooks/useForm";
 import { PipelineType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   convertParametersToPipelineInput,
+  getDisabledParameterCodes,
+  getParameterDisablers,
   isConnectionParameter,
   runPipeline,
 } from "workspaces/helpers/pipelines";
@@ -116,11 +122,19 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
       if (!activeVersion) {
         return errors;
       }
+      const disabledCodes = getDisabledParameterCodes(
+        activeVersion.parameters,
+        values,
+      );
       const normalizedValues = convertParametersToPipelineInput(
         activeVersion,
         values,
+        disabledCodes,
       );
       for (const parameter of activeVersion.parameters) {
+        if (disabledCodes.has(parameter.code)) {
+          continue;
+        }
         const val = normalizedValues[parameter.code];
         if (parameter.type === "int" || parameter.type === "float") {
           if (ensureArray(val).length === 0 && parameter.required) {
@@ -152,6 +166,19 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   useEffect(() => {
     form.resetForm();
   }, [form, activeVersion]);
+
+  const parameterDisablers = useMemo(
+    () => getParameterDisablers(activeVersion?.parameters ?? [], form.formData),
+    [activeVersion, form.formData],
+  );
+
+  const parameterNameByCode = useMemo(() => {
+    const map: { [code: string]: string } = {};
+    for (const param of activeVersion?.parameters ?? []) {
+      map[param.code] = param.name;
+    }
+    return map;
+  }, [activeVersion]);
 
   if (!pipeline.permissions.run) {
     return null;
@@ -191,32 +218,55 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
                       "grid-cols-2 gap-x-5",
                   )}
                 >
-                  {activeVersion.parameters.map((param, i) => (
-                    <Field
-                      required={param.required || param.type === "bool"}
-                      key={i}
-                      name={param.code}
-                      label={param.name}
-                      help={param.help}
-                      error={
-                        form.touched[param.code] && form.errors[param.code]
-                      }
-                    >
-                      <ParameterField
-                        parameter={param}
-                        value={
-                          form.formData[param.code] ??
-                          (param.multiple ? [] : "")
+                  {activeVersion.parameters.map((param, i) => {
+                    const disablingCodes = parameterDisablers.get(param.code);
+                    const isDisabled = !!disablingCodes;
+                    return (
+                      <Field
+                        required={
+                          (param.required || param.type === "bool") &&
+                          !isDisabled
                         }
-                        onChange={(value: any) => {
-                          form.setFieldValue(param.code, value);
-                        }}
-                        form={form}
-                        workspaceSlug={pipeline.workspace?.slug}
-                        pipelineVersionId={activeVersion.id}
-                      />
-                    </Field>
-                  ))}
+                        key={i}
+                        name={param.code}
+                        label={param.name}
+                        help={param.help}
+                        note={
+                          disablingCodes
+                            ? t("Disabled by {{names}}", {
+                                names: disablingCodes
+                                  .map(
+                                    (code) => parameterNameByCode[code] ?? code,
+                                  )
+                                  .join(", "),
+                              })
+                            : undefined
+                        }
+                        error={
+                          form.touched[param.code] && form.errors[param.code]
+                        }
+                      >
+                        <fieldset
+                          disabled={isDisabled}
+                          className={clsx(isDisabled && "opacity-50")}
+                        >
+                          <ParameterField
+                            parameter={param}
+                            value={
+                              form.formData[param.code] ??
+                              (param.multiple ? [] : "")
+                            }
+                            onChange={(value: any) => {
+                              form.setFieldValue(param.code, value);
+                            }}
+                            form={form}
+                            workspaceSlug={pipeline.workspace?.slug}
+                            pipelineVersionId={activeVersion.id}
+                          />
+                        </fieldset>
+                      </Field>
+                    );
+                  })}
                 </div>
                 {form.submitError && (
                   <div className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
