@@ -1,5 +1,6 @@
 import base64
 import io
+import re
 import tempfile
 from pathlib import Path
 from zipfile import ZipFile
@@ -45,13 +46,36 @@ def get_bucket_object(bucket_name, file):
     return storage.get_bucket_object(bucket_name, file)
 
 
+_CAMEL_CASE_RE = re.compile(r"(?<!^)(?=[A-Z])")
+
+
+def _to_snake_case(name: str) -> str:
+    return _CAMEL_CASE_RE.sub("_", name).lower()
+
+
+def _normalize_parameter_keys(parameters: list) -> list:
+    """Convert top-level parameter keys to snake_case.
+
+    The SDK's ``to_dict()`` emits camelCase for multi-word keys (e.g. ``disableWhen``,
+    ``choicesFromFile``). On the explicit-upload path ariadne's ``convert_names_case`` normalizes
+    those to snake_case, but this zip-parsing path stores the dicts directly — so we normalize here
+    to keep the stored representation canonical (snake_case), which is what all readers expect.
+    """
+    return [
+        {_to_snake_case(key): value for key, value in param.items()}
+        for param in parameters
+    ]
+
+
 def _parse_parameters_from_zipfile(zipfile_data: bytes) -> list:
     try:
         with tempfile.TemporaryDirectory() as temp_dir:
             with ZipFile(io.BytesIO(zipfile_data), "r") as zip_file:
                 zip_file.extractall(temp_dir)
             sdk_pipeline = get_pipeline(Path(temp_dir))
-            return [p.to_dict() for p in sdk_pipeline.parameters]
+            return _normalize_parameter_keys(
+                [p.to_dict() for p in sdk_pipeline.parameters]
+            )
     except PipelineNotFound:
         return []
     except Exception as e:

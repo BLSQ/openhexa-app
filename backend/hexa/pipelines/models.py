@@ -250,8 +250,31 @@ class PipelineVersion(models.Model):
         if errors:
             raise ValueError(f"Parameters with invalid types: {', '.join(errors)}")
 
-    def validate_new_config(self, new_config: dict):
+    def get_disabled_parameter_codes(self, config: dict) -> set:
+        """Return the codes of parameters disabled by an active controller for the given config.
+
+        A controller is a boolean parameter declaring ``disables=[...]``. It is "active" when its effective
+        value (from ``config``, falling back to its ``default``) equals its ``disable_when`` (``True`` by
+        default). A parameter is disabled if any active controller lists it. This mirrors the SDK runtime and
+        the frontend run form so schedulability matches what a run would actually validate.
+        """
+        config = config or {}
+        disabled = set()
         for parameter in self.parameters:
+            disables = parameter.get("disables")
+            if not disables:
+                continue
+            disable_when = parameter.get("disable_when", True)
+            effective_value = config.get(parameter["code"], parameter.get("default"))
+            if bool(effective_value) == disable_when:
+                disabled.update(disables)
+        return disabled
+
+    def validate_new_config(self, new_config: dict):
+        disabled = self.get_disabled_parameter_codes(new_config)
+        for parameter in self.parameters:
+            if parameter["code"] in disabled:
+                continue
             if (
                 parameter.get("required")
                 and parameter.get("default") is None
@@ -263,8 +286,10 @@ class PipelineVersion(models.Model):
 
     @property
     def is_schedulable(self):
+        disabled = self.get_disabled_parameter_codes(self.config)
         return all(
-            parameter.get("required") is False
+            parameter["code"] in disabled
+            or parameter.get("required") is False
             or parameter.get("default") is not None
             or self.config.get(parameter["code"]) is not None
             for parameter in self.parameters

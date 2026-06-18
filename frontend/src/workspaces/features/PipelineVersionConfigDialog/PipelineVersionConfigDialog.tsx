@@ -2,7 +2,11 @@ import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 import { gql, useMutation } from "@apollo/client";
 import { Trans, useTranslation } from "next-i18next";
 import { useEffect } from "react";
-import { convertParametersToPipelineInput } from "workspaces/helpers/pipelines";
+import {
+  convertParametersToPipelineInput,
+  getDisabledParameterCodes,
+  getParameterDisablers,
+} from "workspaces/helpers/pipelines";
 
 import clsx from "clsx";
 import Button from "core/components/Button";
@@ -45,7 +49,11 @@ const PipelineVersionConfigDialog = (props: PipelineVersionConfigProps) => {
   const form = useForm<{ [key: string]: any }>({
     validate(values) {
       const errors = {} as any;
+      // A disabled parameter is inert under the current toggle, so it is neither
+      // required nor type-checked here — mirroring `is_schedulable` on the backend.
+      const disabledCodes = getDisabledParameterCodes(version.parameters, values);
       for (const param of version.parameters) {
+        if (disabledCodes.has(param.code)) continue;
         if (
           isParameterRequired(param) &&
           (values[param.code] === null ||
@@ -58,9 +66,14 @@ const PipelineVersionConfigDialog = (props: PipelineVersionConfigProps) => {
           );
         }
       }
-      const normalizedValues = convertParametersToPipelineInput(version, values);
+      // Keep disabled values when normalizing so we only validate active fields.
+      const normalizedValues = convertParametersToPipelineInput(
+        version,
+        values,
+        new Set(),
+      );
       for (const param of version.parameters) {
-        if (errors[param.code]) continue;
+        if (errors[param.code] || disabledCodes.has(param.code)) continue;
         if (param.type === "int" || param.type === "float") {
           const val = normalizedValues[param.code];
           if (ensureArray(val).some((v: any) => isNaN(v))) {
@@ -75,7 +88,9 @@ const PipelineVersionConfigDialog = (props: PipelineVersionConfigProps) => {
         variables: {
           input: {
             id: version.id,
-            config: convertParametersToPipelineInput(version, values),
+            // Default values are a template across both toggle states, so we keep
+            // values for disabled parameters instead of omitting them.
+            config: convertParametersToPipelineInput(version, values, new Set()),
           },
         },
       });
@@ -106,6 +121,11 @@ const PipelineVersionConfigDialog = (props: PipelineVersionConfigProps) => {
   useEffect(() => {
     form.resetForm();
   }, [form, version, open]);
+
+  const disablers = getParameterDisablers(version.parameters, form.formData);
+  const parameterNames = new Map(
+    version.parameters.map((p) => [p.code, p.name]),
+  );
 
   return (
     <Dialog
@@ -143,28 +163,43 @@ const PipelineVersionConfigDialog = (props: PipelineVersionConfigProps) => {
             version.parameters.length > 4 && "grid-cols-2 gap-x-5",
           )}
         >
-          {version.parameters.map((param, i) => (
-            <Field
-              showOptional={Boolean(version.pipeline.schedule)}
-              key={i}
-              name={param.code}
-              label={param.name}
-              help={param.help}
-              required={isParameterRequired(param)}
-              error={form.touched[param.code] && form.errors[param.code]}
-            >
-              <ParameterField
-                parameter={param}
-                value={form.formData[param.code]}
-                onChange={(value: any) => {
-                  form.setFieldValue(param.code, value);
-                }}
-                workspaceSlug={version.pipeline.workspace.slug}
-                pipelineVersionId={version.id}
-                form={form}
-              />
-            </Field>
-          ))}
+          {version.parameters.map((param, i) => {
+            const disablerCodes = disablers.get(param.code);
+            const isDisabled = Boolean(disablerCodes?.length);
+            const disablerNames = disablerCodes
+              ?.map((code) => parameterNames.get(code) ?? code)
+              .join('", "');
+            return (
+              <Field
+                showOptional={Boolean(version.pipeline.schedule)}
+                key={i}
+                name={param.code}
+                label={param.name}
+                help={param.help}
+                required={isParameterRequired(param) && !isDisabled}
+                error={form.touched[param.code] && form.errors[param.code]}
+              >
+                <ParameterField
+                  parameter={param}
+                  value={form.formData[param.code]}
+                  onChange={(value: any) => {
+                    form.setFieldValue(param.code, value);
+                  }}
+                  workspaceSlug={version.pipeline.workspace.slug}
+                  pipelineVersionId={version.id}
+                  form={form}
+                />
+                {isDisabled && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    {t(
+                      'While "{{names}}" disables it, this value is not sent to the run — the pipeline uses the default declared in its code (or no value if none is declared), not the value set here. It is kept for runs where the parameter is re-enabled.',
+                      { names: disablerNames },
+                    )}
+                  </p>
+                )}
+              </Field>
+            );
+          })}
         </div>
         {form.submitError && (
           <div className="mt-2 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
