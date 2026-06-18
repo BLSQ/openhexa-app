@@ -9,7 +9,7 @@ export default function TableValue({ rows }: { rows: Row[] }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   return (
-    <div className="overflow-x-auto rounded-md border border-gray-200 pb-1.5">
+    <div className="overflow-x-auto rounded-md border border-gray-200 bg-white pb-1.5">
       <table className="min-w-full border-collapse text-xs">
         <thead className="bg-gray-50 text-gray-500">
           <tr>
