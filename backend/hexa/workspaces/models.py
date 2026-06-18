@@ -167,9 +167,15 @@ class WorkspaceQuerySet(BaseQuerySet):
         *,
         include_archived: bool = False,
     ) -> models.QuerySet:
+        from hexa.webapps.models import WebappUser
+
         if not user.is_authenticated:
             return self.none()
-        if isinstance(user, ServicePrincipal):
+
+        # WebappUser subclasses both User and ServicePrincipal, so it is
+        # excluded here to fall through to the User branch below, where it is
+        # further scoped to its webapp's workspace.
+        if isinstance(user, ServicePrincipal) and not isinstance(user, WebappUser):
             qs = self.filter(pk=user.workspace_id)
         elif isinstance(user, User):
             qs = (
@@ -186,6 +192,8 @@ class WorkspaceQuerySet(BaseQuerySet):
                     )
                 ).distinct()
             )
+            if isinstance(user, WebappUser):
+                qs = qs.filter(pk=user.workspace_id)
         else:
             raise NotImplementedError(
                 f"WorkspaceQuerySet.filter_for_user has no dispatch for principal "

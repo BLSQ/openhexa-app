@@ -88,14 +88,10 @@ class UserInterface:
 
 
 class ServicePrincipal:
-    """
-    Marker mixin for principals that impersonate a workspace rather than a
-    real user account. Subclasses must expose `real_user` — the underlying
-    user that ultimately triggered the action — for audit and attribution
-    (e.g. `created_by`). May be `None` when no human triggered the action,
-    such as scheduled pipeline runs.
-
-    They also expose the workspace they are bound to.
+    """Marker mixin for principals that impersonate a workspace rather than
+    a real user account (PipelineRunUser, WebappUser, ...). Used as
+    `isinstance(user, ServicePrincipal)` to short-circuit user-membership
+    queries that wouldn't make sense for service principals.
     """
 
     @property

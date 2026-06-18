@@ -22,7 +22,7 @@ from django.utils import timezone
 from hexa.superset.views import view_superset_dashboard
 from hexa.user_management.models import User
 from hexa.webapps.graphql_proxy import handle_graphql_proxy
-from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
+from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp, WebappUser
 from hexa.webapps.utils import extract_webapp_subdomain
 from hexa.webapps.views import serve_webapp
 
@@ -217,8 +217,8 @@ def _check_webapp_session(request, webapp):
     except User.DoesNotExist:
         return None
 
-    request.user = user
-    return user
+    request.user = WebappUser.from_user(user, webapp)
+    return request.user
 
 
 def _webapp_from_session_key(session_key):
@@ -243,8 +243,7 @@ def _handle_webapp_request(request, webapp, *, request_has_user=True):
         if webapp.is_public:
             return HttpResponseNotFound("Not available")
 
-        user = _check_webapp_session(request, webapp)
-        if not user:
+        if not _check_webapp_session(request, webapp):
             return JsonResponse(
                 {"errors": [{"message": "Authentication required"}]},
                 status=401,
