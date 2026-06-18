@@ -133,6 +133,7 @@ class ForgejoClient(GitClient):
         author_email: str,
         *,
         org_slug: str | None = None,
+        delete_paths: list[str] | None = None,
     ) -> str:
         org_slug = org_slug or self._username
         commits = self.get_commits(org_slug, repo_name, limit=1)
@@ -161,6 +162,19 @@ class ForgejoClient(GitClient):
             if is_update:
                 op["sha"] = existing_tree[path]
             operations.append(op)
+
+        for path in delete_paths or []:
+            if path in existing_tree:
+                operations.append(
+                    {
+                        "operation": "delete",
+                        "path": path,
+                        "sha": existing_tree[path],
+                    }
+                )
+
+        if not operations:
+            return commits[0]["id"] if commits else ""
 
         branch_key = "branch" if existing_tree else "new_branch"
         response = self._request(
