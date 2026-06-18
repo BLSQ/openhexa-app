@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.10.1](https://github.com/BLSQ/openhexa-app/compare/5.10.0...5.10.1) (2026-06-16)
+
+
+### Bug Fixes
+
+* fallback to "main" ref when none is provided in `get_static_webapp` MCP query (HEXA-1701) ([#1863](https://github.com/BLSQ/openhexa-app/issues/1863)) ([60463d5](https://github.com/BLSQ/openhexa-app/commit/60463d506f49c75ff9656dc02b540fee190df320))
+
 ## [5.10.0](https://github.com/BLSQ/openhexa-app/compare/5.9.0...5.10.0) (2026-06-15)
 
 

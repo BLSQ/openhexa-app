@@ -103,6 +103,16 @@ def resolve_pipeline_parameter_choices_from_file(parameter, info, **kwargs):
     return parameter.get("choices_from_file")
 
 
+@pipeline_parameter.field("disables")
+def resolve_pipeline_parameter_disables(parameter, info, **kwargs):
+    return parameter.get("disables") or []
+
+
+@pipeline_parameter.field("disableWhen")
+def resolve_pipeline_parameter_disable_when(parameter, info, **kwargs):
+    return parameter.get("disable_when", True)
+
+
 @pipeline_parameter_choices_from_file.field("format")
 def resolve_choices_from_file_format(obj, info, **kwargs):
     fmt = obj.get("format")

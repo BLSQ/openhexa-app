@@ -245,7 +245,8 @@ class GitWebapp(Webapp, GitRepoMixin):
         ".sql": "sql",
     }
 
-    def get_files(self, ref="main"):
+    def get_files(self, ref=None):
+        ref = ref or "main"
         raw_files = self.client.get_repository_files(
             self.repository, ref, org_slug=self.git_org.slug
         )
