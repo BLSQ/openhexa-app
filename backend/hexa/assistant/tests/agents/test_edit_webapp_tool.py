@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from hexa.assistant.agents.edit_webapp_agent import ProposedFile, propose_webapp_changes
 from hexa.assistant.instructions import InstructionSet
@@ -6,10 +6,8 @@ from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import TestCase
 from hexa.git.enums import FileEncoding
 from hexa.user_management.models import User
-from hexa.webapps.models import GitWebapp, Webapp
+from hexa.webapps.models import GitWebapp
 from hexa.workspaces.models import Workspace
-
-from unittest.mock import patch
 
 
 def _make_webapp_stub(files=None):
@@ -35,10 +33,12 @@ class ProposeWebappChangesToolTest(TestCase):
         )
 
     def test_merges_modified_file_into_existing_files(self):
-        webapp = _make_webapp_stub([
-            _make_file_entry("index.html", "<h1>Original</h1>"),
-            _make_file_entry("style.css", "body {}"),
-        ])
+        webapp = _make_webapp_stub(
+            [
+                _make_file_entry("index.html", "<h1>Original</h1>"),
+                _make_file_entry("style.css", "body {}"),
+            ]
+        )
         result = propose_webapp_changes(
             webapp,
             [ProposedFile(path="index.html", content="<h1>Updated</h1>")],
@@ -48,9 +48,11 @@ class ProposeWebappChangesToolTest(TestCase):
         self.assertEqual(files["style.css"], "body {}")
 
     def test_adds_new_file_to_existing_webapp(self):
-        webapp = _make_webapp_stub([
-            _make_file_entry("index.html", "<h1>Home</h1>"),
-        ])
+        webapp = _make_webapp_stub(
+            [
+                _make_file_entry("index.html", "<h1>Home</h1>"),
+            ]
+        )
         result = propose_webapp_changes(
             webapp,
             [ProposedFile(path="about.html", content="<h1>About</h1>")],
@@ -60,10 +62,12 @@ class ProposeWebappChangesToolTest(TestCase):
         self.assertIn("about.html", files)
 
     def test_deletes_file_from_existing_webapp(self):
-        webapp = _make_webapp_stub([
-            _make_file_entry("index.html", "<h1>Home</h1>"),
-            _make_file_entry("old.html", "<h1>Old</h1>"),
-        ])
+        webapp = _make_webapp_stub(
+            [
+                _make_file_entry("index.html", "<h1>Home</h1>"),
+                _make_file_entry("old.html", "<h1>Old</h1>"),
+            ]
+        )
         result = propose_webapp_changes(
             webapp,
             modified_files=[],
@@ -74,9 +78,11 @@ class ProposeWebappChangesToolTest(TestCase):
         self.assertNotIn("old.html", files)
 
     def test_empty_modified_files_returns_existing_files_unchanged(self):
-        webapp = _make_webapp_stub([
-            _make_file_entry("index.html", "<h1>Home</h1>"),
-        ])
+        webapp = _make_webapp_stub(
+            [
+                _make_file_entry("index.html", "<h1>Home</h1>"),
+            ]
+        )
         result = propose_webapp_changes(webapp, modified_files=[])
         self.assertEqual(
             result,
@@ -84,10 +90,12 @@ class ProposeWebappChangesToolTest(TestCase):
         )
 
     def test_binary_files_are_excluded(self):
-        webapp = _make_webapp_stub([
-            _make_file_entry("index.html", "<h1>Home</h1>", FileEncoding.TEXT),
-            _make_file_entry("logo.png", "binarydata", FileEncoding.BASE64),
-        ])
+        webapp = _make_webapp_stub(
+            [
+                _make_file_entry("index.html", "<h1>Home</h1>", FileEncoding.TEXT),
+                _make_file_entry("logo.png", "binarydata", FileEncoding.BASE64),
+            ]
+        )
         result = propose_webapp_changes(webapp, modified_files=[])
         files = {f["path"] for f in result["files"]}
         self.assertIn("index.html", files)
@@ -149,10 +157,14 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
 
     def test_no_pending_proposal_falls_back_to_live_files(self):
         conversation = self._make_conversation()
-        webapp = _make_webapp_stub([
-            _make_file_entry("index.html", "<h1>Live</h1>"),
-        ])
-        result = propose_webapp_changes(webapp, modified_files=[], conversation=conversation)
+        webapp = _make_webapp_stub(
+            [
+                _make_file_entry("index.html", "<h1>Live</h1>"),
+            ]
+        )
+        result = propose_webapp_changes(
+            webapp, modified_files=[], conversation=conversation
+        )
         files = {f["path"] for f in result["files"]}
         self.assertIn("index.html", files)
         webapp.get_files.assert_called_once()

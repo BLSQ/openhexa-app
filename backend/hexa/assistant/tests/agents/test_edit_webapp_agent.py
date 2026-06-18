@@ -56,7 +56,9 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
         self.assertIn("Shows health indicators.", agent._extra_instructions())
 
     def test_webapp_without_description_omits_description_line(self):
-        webapp = self._make_webapp(name="No Desc App", slug="no-desc-app", description="")
+        webapp = self._make_webapp(
+            name="No Desc App", slug="no-desc-app", description=""
+        )
         agent = self._make_agent(webapp=webapp)
         self.assertNotIn("Description:", agent._extra_instructions())
 
@@ -93,7 +95,9 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
             tool_input={},
             success=True,
             proposal_pending=True,
-            tool_output={"files": [{"path": "index.html", "content": "<h1>Draft</h1>"}]},
+            tool_output={
+                "files": [{"path": "index.html", "content": "<h1>Draft</h1>"}]
+            },
         )
 
         instructions = agent._extra_instructions()
