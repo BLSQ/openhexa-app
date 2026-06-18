@@ -310,7 +310,7 @@ class GitWebapp(Webapp, GitRepoMixin):
         self.published_commit = version_id
         self.save()
 
-    def save_files(self, files, message, user):
+    def save_files(self, files, message, user, delete_paths=None):
         sha = self.client.commit_files(
             self.repository,
             files,
@@ -318,6 +318,7 @@ class GitWebapp(Webapp, GitRepoMixin):
             user.display_name or user.email,
             user.email,
             org_slug=self.git_org.slug,
+            delete_paths=delete_paths,
         )
         self.published_commit = sha
         self.save()
