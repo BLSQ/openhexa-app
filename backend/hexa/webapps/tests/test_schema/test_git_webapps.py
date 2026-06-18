@@ -312,6 +312,37 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
             self.USER.display_name or self.USER.email,
             self.USER.email,
             org_slug="no-org",
+            delete_paths=None,
+        )
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_update_files_to_delete_propagates(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.commit_files.return_value = "sha-del"
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            UPDATE_WEBAPP_MUTATION,
+            {
+                "input": {
+                    "id": str(self.GIT_WEBAPP.id),
+                    "filesToDelete": ["old.js", "legacy/style.css"],
+                }
+            },
+        )
+
+        result = response["data"]["updateWebapp"]
+        self.assertTrue(result["success"])
+
+        mock_client.commit_files.assert_called_once_with(
+            "webapp-commitrepo",
+            [],
+            "Update webapp content",
+            self.USER.display_name or self.USER.email,
+            self.USER.email,
+            org_slug="no-org",
+            delete_paths=["old.js", "legacy/style.css"],
         )
 
     @patch("hexa.git.mixins.get_forgejo_client")
@@ -353,6 +384,7 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
             self.USER.display_name or self.USER.email,
             self.USER.email,
             org_slug="no-org",
+            delete_paths=None,
         )
 
     @patch("hexa.git.mixins.get_forgejo_client")
