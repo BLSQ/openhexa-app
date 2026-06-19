@@ -11,7 +11,17 @@ from hexa.git.enums import FileEncoding
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.superset.models import SupersetInstance
 from hexa.utils.base64_image_encode_decode import decode_base64_image
-from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp, validate_subdomain
+from hexa.webapps.models import (
+    GitWebapp,
+    SupersetWebapp,
+    Webapp,
+    WebappFileBinaryError,
+    WebappFileNoChangeError,
+    WebappFilePathNotFoundError,
+    WebappFileStringNotFoundError,
+    WebappFileStringNotUniqueError,
+    validate_subdomain,
+)
 from hexa.workspaces.models import Workspace
 
 logger = logging.getLogger(__name__)
@@ -249,6 +259,53 @@ def resolve_update_webapp(_, info, **kwargs):
         return {"success": True, "errors": [], "webapp": webapp}
     except IntegrityError:
         return {"success": False, "errors": ["ALREADY_EXISTS"], "webapp": None}
+
+
+@webapps_mutations.field("editWebappFile")
+def resolve_edit_webapp_file(_, info, **kwargs):
+    if not settings.WEBAPPS_DOMAIN:
+        return {"success": False, "errors": ["WEBAPPS_NOT_CONFIGURED"], "webapp": None}
+
+    request: HttpRequest = info.context["request"]
+    user = request.user
+    input = kwargs["input"]
+
+    try:
+        webapp = Webapp.objects.filter_for_user(user).get(id=input["id"])
+    except Webapp.DoesNotExist:
+        return {"success": False, "errors": ["WEBAPP_NOT_FOUND"], "webapp": None}
+
+    if not user.has_perm("webapps.update_webapp", webapp):
+        return {"success": False, "errors": ["PERMISSION_DENIED"], "webapp": None}
+
+    try:
+        git_webapp = GitWebapp.objects.get(pk=webapp.pk)
+    except GitWebapp.DoesNotExist:
+        return {"success": False, "errors": ["TYPE_MISMATCH"], "webapp": None}
+
+    try:
+        git_webapp.edit_file(
+            input["path"],
+            input["old_string"],
+            input["new_string"],
+            user,
+            replace_all=input.get("replace_all", False),
+        )
+    except WebappFileNoChangeError:
+        return {"success": False, "errors": ["NO_CHANGE"], "webapp": None}
+    except WebappFilePathNotFoundError:
+        return {"success": False, "errors": ["PATH_NOT_FOUND"], "webapp": None}
+    except WebappFileBinaryError:
+        return {"success": False, "errors": ["BINARY_FILE"], "webapp": None}
+    except WebappFileStringNotFoundError:
+        return {"success": False, "errors": ["STRING_NOT_FOUND"], "webapp": None}
+    except WebappFileStringNotUniqueError:
+        return {"success": False, "errors": ["STRING_NOT_UNIQUE"], "webapp": None}
+    except ForgejoAPIError as e:
+        logger.error("Failed to edit webapp file: %s", e)
+        return {"success": False, "errors": ["SAVE_FAILED"], "webapp": None}
+
+    return {"success": True, "errors": [], "webapp": git_webapp}
 
 
 @webapps_mutations.field("deleteWebapp")
