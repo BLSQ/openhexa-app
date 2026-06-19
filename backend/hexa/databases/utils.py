@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 import psycopg2
+from django.conf import settings
 from psycopg2 import sql
 from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -91,14 +92,16 @@ def execute_database_query(
     workspace: Workspace,
     query: str,
     timeout_ms: int = 10_000,
-    max_rows: int = 1000,
+    max_rows: int = 50,
 ):
     """Execute a SQL query against the workspace database using the read-only role.
 
     A per-statement timeout is set so that a single request cannot hold database
     resources for an extended period of time. At most ``max_rows`` rows are
-    returned; ``truncated`` indicates whether the result was capped.
+    returned, capped to ``settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS``;
+    ``truncated`` indicates whether the result was capped.
     """
+    max_rows = min(max_rows, settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS)
     conn = None
     try:
         conn = get_workspace_database_ro_connection(workspace)
