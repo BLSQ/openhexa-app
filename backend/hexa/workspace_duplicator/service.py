@@ -53,11 +53,16 @@ def _build_target(
     email: str | None,
     password: str | None,
     organization_id: str | None,
+    workspace_name: str | None,
 ) -> Endpoint:
     if url:
         client = build_client(url, email, password, label="target")
-        return Endpoint.remote(client, organization_id=organization_id)
-    return Endpoint.local(organization_id=organization_id)
+        return Endpoint.remote(
+            client, organization_id=organization_id, workspace_name=workspace_name
+        )
+    return Endpoint.local(
+        organization_id=organization_id, workspace_name=workspace_name
+    )
 
 
 def _verify_side(side: str, build: Callable[[], Endpoint]) -> tuple[Endpoint | None, str | None]:
@@ -88,6 +93,7 @@ def _verify_endpoints(
     target_email: str | None,
     target_password: str | None,
     target_organization_id: str | None,
+    target_workspace_name: str | None,
 ) -> tuple[Endpoint, Endpoint]:
     """Verify and build both endpoints, raising :class:`CredentialError` on failure."""
     source, source_err = _verify_side(
@@ -97,7 +103,11 @@ def _verify_endpoints(
     target, target_err = _verify_side(
         "target",
         lambda: _build_target(
-            target_url, target_email, target_password, target_organization_id
+            target_url,
+            target_email,
+            target_password,
+            target_organization_id,
+            target_workspace_name,
         ),
     )
     errors = [e for e in (source_err, target_err) if e]
@@ -116,6 +126,7 @@ def run_migration(
     target_email: str | None,
     target_password: str | None,
     target_organization_id: str | None = None,
+    target_workspace_name: str | None = None,
     resources: set[str] | None = None,
 ) -> DuplicationResult:
     """Verify both endpoints, then duplicate the workspace, returning the result."""
@@ -128,5 +139,6 @@ def run_migration(
         target_email=target_email,
         target_password=target_password,
         target_organization_id=target_organization_id,
+        target_workspace_name=target_workspace_name,
     )
     return duplicate_workspace(source, target, resources=resources)

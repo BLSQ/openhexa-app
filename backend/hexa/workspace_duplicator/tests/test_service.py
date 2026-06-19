@@ -25,6 +25,7 @@ def _kwargs(**overrides):
         "target_email": "admin@example.org",
         "target_password": "secret",
         "target_organization_id": "org-1",
+        "target_workspace_name": None,
     }
     data.update(overrides)
     return data

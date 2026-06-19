@@ -47,15 +47,18 @@ Example usage:
 ```
 # Localhost to localhost
 ./manage.py migrate_workspace \
-	--slug my-workspace \
+	--source-workspace-slug my-workspace \
 	--source-url http://app:8000/graphql/ \
 	--source-email root@openhexa.org \
 	--source-password root \
 	--target-url http://app:8000/graphql/ \
-	--target-organization org-uuid \
+	--target-organization org-uuid \ # optional
+	--target-workspace-name "My Workspace (copy)" \ # optional
 	--target-email root@openhexa.org \
 	--target-password root
 ```
+
+Note: `--target-workspace-name` is optional and defaults to the same name as the source workspace.
 
 ### Django Admin:
 

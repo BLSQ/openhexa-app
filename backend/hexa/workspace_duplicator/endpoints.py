@@ -9,6 +9,9 @@ lives inside each resource copier (it reads from ``source``, writes to
   (set by the workspace-metadata copier).
 - ``REMOTE`` — another server, reached over GraphQL through ``transport.py``.
   ``client`` is an authenticated SDK ``Client`` and ``slug`` the workspace slug.
+
+``workspace_name`` is a target-only override: when set, the target workspace is
+created with this name instead of the source workspace's name.
 """
 
 from __future__ import annotations
@@ -32,6 +35,7 @@ class Endpoint:
     client: Client | None = None
     workspace: Any = None
     organization_id: str | None = None
+    workspace_name: str | None = None
 
     @classmethod
     def local(
@@ -40,12 +44,14 @@ class Endpoint:
         *,
         workspace: Any = None,
         organization_id: str | None = None,
+        workspace_name: str | None = None,
     ) -> Endpoint:
         return cls(
             EndpointMode.LOCAL,
             slug=slug,
             workspace=workspace,
             organization_id=organization_id,
+            workspace_name=workspace_name,
         )
 
     @classmethod
@@ -55,12 +61,14 @@ class Endpoint:
         slug: str | None = None,
         *,
         organization_id: str | None = None,
+        workspace_name: str | None = None,
     ) -> Endpoint:
         return cls(
             EndpointMode.REMOTE,
             slug=slug,
             client=client,
             organization_id=organization_id,
+            workspace_name=workspace_name,
         )
 
     @property
