@@ -17,12 +17,37 @@ from hexa.core.models.soft_delete import (
     SoftDeleteQuerySet,
 )
 from hexa.git.enums import FileEncoding
+from hexa.git.exceptions import GitFileNotFound
 from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.webapps.validators import validate_subdomain
 from hexa.workspaces.models import Workspace
+
+
+class WebappFileEditError(Exception):
+    """Base class for errors raised by GitWebapp.edit_file."""
+
+
+class WebappFilePathNotFoundError(WebappFileEditError):
+    """The file path does not exist in the webapp repository."""
+
+
+class WebappFileBinaryError(WebappFileEditError):
+    """The target file is not UTF-8 text and cannot be edited as a string."""
+
+
+class WebappFileStringNotFoundError(WebappFileEditError):
+    """old_string was not found in the file."""
+
+
+class WebappFileStringNotUniqueError(WebappFileEditError):
+    """old_string matched more than once and replace_all was not set."""
+
+
+class WebappFileNoChangeError(WebappFileEditError):
+    """old_string and new_string are identical; there is nothing to change."""
 
 
 def create_webapp_slug(name: str, workspace: Workspace):
@@ -310,6 +335,44 @@ class GitWebapp(Webapp, GitRepoMixin):
         self.published_commit = sha
         self.save()
         return sha
+
+    def edit_file(self, path, old_string, new_string, user, replace_all=False):
+        """Apply a string find/replace to a single file and commit the result.
+
+        Lets a caller change part of a file without resending its whole content.
+        Raises a WebappFileEditError subclass when the edit cannot be applied safely.
+        """
+        if old_string == new_string:
+            raise WebappFileNoChangeError(path)
+
+        try:
+            raw = self.client.get_file(
+                self.repository, path, ref="main", org_slug=self.git_org.slug
+            )
+        except GitFileNotFound:
+            raise WebappFilePathNotFoundError(path)
+
+        try:
+            content = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            raise WebappFileBinaryError(path)
+
+        occurrences = content.count(old_string)
+        if occurrences == 0:
+            raise WebappFileStringNotFoundError(path)
+        if occurrences > 1 and not replace_all:
+            raise WebappFileStringNotUniqueError(path)
+
+        if replace_all:
+            new_content = content.replace(old_string, new_string)
+        else:
+            new_content = content.replace(old_string, new_string, 1)
+
+        return self.save_files(
+            [{"path": path, "content": new_content, "encoding": FileEncoding.TEXT}],
+            f"Edit {path}",
+            user,
+        )
 
     def delete_if_has_perm(self, principal):
         if not principal.has_perm("webapps.delete_webapp", self):
