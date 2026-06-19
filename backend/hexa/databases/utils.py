@@ -6,6 +6,7 @@ from typing import Dict, List, Tuple
 import psycopg2
 import sqlparse
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 from psycopg2 import sql
 from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -16,6 +17,18 @@ from hexa.workspaces.models import Workspace
 from .api import get_db_server_credentials
 
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
+
+
+class ResultJSONEncoder(DjangoJSONEncoder):
+    """Make arbitrary query results JSON-safe."""
+
+    def default(self, o):
+        if isinstance(o, (bytes, bytearray, memoryview)):
+            return "\\x" + bytes(o).hex()
+        try:
+            return super().default(o)
+        except TypeError:
+            return str(o)
 
 
 class MultipleStatementsError(Exception):
@@ -134,7 +147,7 @@ def execute_database_query(
             # Fetch one extra row to detect (without returning) that more exist.
             fetched = cursor.fetchmany(max_rows + 1) if cursor.description else []
         truncated = len(fetched) > max_rows
-        rows = fetched[:max_rows]
+        rows = json.loads(json.dumps(fetched[:max_rows], cls=ResultJSONEncoder))
         return {
             "columns": columns,
             "rows": rows,
