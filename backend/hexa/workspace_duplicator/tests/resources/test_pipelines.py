@@ -5,6 +5,7 @@ from django.test import SimpleTestCase
 from hexa.workspace_duplicator.endpoints import Endpoint
 from hexa.workspace_duplicator.resources.pipelines import PipelinesCopier
 from hexa.workspace_duplicator.results import DuplicationResult
+from hexa.workspace_duplicator.transport import GraphQLError
 
 
 class PipelinesCopierRemoteTest(SimpleTestCase):
@@ -54,6 +55,31 @@ class PipelinesCopierRemoteTest(SimpleTestCase):
         self.assertEqual(self.result.pipelines.skipped, ["nb"])
         self.assertTrue(
             any("notebookPath" in w for w in self.result.pipelines.warnings)
+        )
+
+    @patch("hexa.workspace_duplicator.resources.pipelines._create_on_target")
+    @patch("hexa.workspace_duplicator.resources.pipelines._fetch_source_detail")
+    @patch("hexa.workspace_duplicator.resources.pipelines._list_source_ids")
+    def test_failed_pipeline_is_recorded_and_does_not_abort(
+        self, mock_ids, mock_detail, mock_create
+    ):
+        mock_ids.return_value = [("pid-1", "bad-one"), ("pid-2", "good-one")]
+        self.target.client.pipeline.return_value = None
+        mock_detail.side_effect = [
+            {"type": "notebook", "notebookPath": "nb.ipynb"},
+            {"type": "notebook", "notebookPath": "nb.ipynb"},
+        ]
+        mock_create.side_effect = [
+            GraphQLError("createPipeline failed for 'bad-one': FILE_NOT_FOUND"),
+            ("tgt-pid", "good-one"),
+        ]
+
+        PipelinesCopier().copy(self.source, self.target, self.result)
+
+        self.assertEqual(self.result.pipelines.failed, ["bad-one"])
+        self.assertEqual(self.result.pipelines.created, [("good-one", [])])
+        self.assertTrue(
+            any("bad-one" in w for w in self.result.pipelines.warnings)
         )
 
     def test_local_endpoint_not_yet_implemented(self):

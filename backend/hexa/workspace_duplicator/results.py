@@ -46,6 +46,9 @@ class PipelinesResult:
     skipped: list[str] = field(default_factory=list)
     """Pipeline codes that already existed on target or could not be migrated."""
 
+    failed: list[str] = field(default_factory=list)
+    """Pipeline codes whose creation failed; user must handle manually."""
+
     warnings: list[str] = field(default_factory=list)
     """Human-readable warnings to print in the summary."""
 
@@ -128,6 +131,12 @@ def format_summary(result: DuplicationResult) -> str:
         if pipes.skipped:
             lines.append(f"Pipelines skipped (already existed): {len(pipes.skipped)}")
             lines.extend(f"  * {code}" for code in pipes.skipped)
+        if pipes.failed:
+            lines.append(
+                f"Pipelines that could NOT be migrated "
+                f"({len(pipes.failed)} — handle manually):"
+            )
+            lines.extend(f"  * {code}" for code in pipes.failed)
         if pipes.warnings:
             lines.append("Pipeline warnings:")
             lines.extend(f"  - {w}" for w in pipes.warnings)

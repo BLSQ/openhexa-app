@@ -97,37 +97,59 @@ class PipelinesCopier(ResourceCopier):
             if existing is not None:
                 pipes_result.skipped.append(src_code)
                 continue
-
-            detail = _fetch_source_detail(source.client, pipeline_id)
-            is_notebook = detail.get("type") == "notebook"
-
-            if is_notebook and not detail.get("notebookPath"):
-                pipes_result.warnings.append(
-                    f"notebook pipeline '{src_code}' has no notebookPath; skipped."
+            try:
+                self._copy_pipeline(
+                    source, target, pipeline_id, src_code, pipes_result
                 )
-                pipes_result.skipped.append(src_code)
-                continue
-
-            target_pid, target_code = _create_on_target(
-                target.client, target.slug, detail
-            )
-            if target_code != src_code:
+            except GraphQLError as exc:
+                # Collect and continue (like the datasets copier) so one bad
+                # pipeline doesn't abort the rest of the migration. The common
+                # case is a notebook pipeline whose .ipynb wasn't copied to the
+                # target (files deselected), which fails with FILE_NOT_FOUND.
+                pipes_result.failed.append(src_code)
                 pipes_result.warnings.append(
-                    f"pipeline created as '{target_code}' (source was '{src_code}'; "
-                    "server re-derives the code from the name)."
+                    f"pipeline '{src_code}' could not be migrated — handle "
+                    f"manually ({exc})."
                 )
 
-            uploaded_names, scheduled_version_id = _upload_versions(
-                target.client,
-                target.slug,
-                target_code,
-                detail,
-                is_notebook,
-                pipes_result,
+    def _copy_pipeline(
+        self,
+        source: Endpoint,
+        target: Endpoint,
+        pipeline_id: str,
+        src_code: str,
+        pipes_result: PipelinesResult,
+    ) -> None:
+        detail = _fetch_source_detail(source.client, pipeline_id)
+        is_notebook = detail.get("type") == "notebook"
+
+        if is_notebook and not detail.get("notebookPath"):
+            pipes_result.warnings.append(
+                f"notebook pipeline '{src_code}' has no notebookPath; skipped."
+            )
+            pipes_result.skipped.append(src_code)
+            return
+
+        target_pid, target_code = _create_on_target(
+            target.client, target.slug, detail
+        )
+        if target_code != src_code:
+            pipes_result.warnings.append(
+                f"pipeline created as '{target_code}' (source was '{src_code}'; "
+                "server re-derives the code from the name)."
             )
 
-            _update_settings(target.client, target_pid, detail, scheduled_version_id)
-            pipes_result.created.append((target_code, uploaded_names))
+        uploaded_names, scheduled_version_id = _upload_versions(
+            target.client,
+            target.slug,
+            target_code,
+            detail,
+            is_notebook,
+            pipes_result,
+        )
+
+        _update_settings(target.client, target_pid, detail, scheduled_version_id)
+        pipes_result.created.append((target_code, uploaded_names))
 
 
 # ---------------------------------------------------------------------------
