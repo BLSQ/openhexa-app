@@ -51,6 +51,26 @@ class PipelinesResult:
 
 
 @dataclass
+class DatasetsResult:
+    """What the datasets copier did, for the summary."""
+
+    created: list[tuple[str, list[str]]] = field(default_factory=list)
+    """(dataset_slug, [version_name, ...]) for each dataset created on target."""
+
+    skipped: list[str] = field(default_factory=list)
+    """Dataset slugs that already existed on target."""
+
+    failed: list[str] = field(default_factory=list)
+    """Dataset slugs whose creation failed; user must handle manually."""
+
+    files_copied: int = 0
+    """Total dataset version files successfully copied across all datasets."""
+
+    warnings: list[str] = field(default_factory=list)
+    """Human-readable warnings (e.g. a single version file that failed to copy)."""
+
+
+@dataclass
 class TemplatesResult:
     """What the templates copier did, for the summary."""
 
@@ -79,6 +99,7 @@ class DuplicationResult:
     files: FilesResult | None = None
     connections: ConnectionsResult | None = None
     pipelines: PipelinesResult | None = None
+    datasets: DatasetsResult | None = None
     warnings: list[str] = field(default_factory=list)
 
     def warn(self, message: str) -> None:
@@ -131,6 +152,28 @@ def format_summary(result: DuplicationResult) -> str:
         if pipes.warnings:
             lines.append("Pipeline warnings:")
             lines.extend(f"  - {w}" for w in pipes.warnings)
+
+    if result.datasets is not None:
+        dsets = result.datasets
+        lines.append(
+            f"Datasets created: {len(dsets.created)} "
+            f"({dsets.files_copied} file(s) copied)"
+        )
+        for slug, vnames in dsets.created:
+            lines.append(f"  * {slug}")
+            lines.extend(f"      - {vn}" for vn in vnames)
+        if dsets.skipped:
+            lines.append(f"Datasets skipped (already existed): {len(dsets.skipped)}")
+            lines.extend(f"  * {slug}" for slug in dsets.skipped)
+        if dsets.failed:
+            lines.append(
+                f"Datasets that could NOT be migrated "
+                f"({len(dsets.failed)} — handle manually):"
+            )
+            lines.extend(f"  * {slug}" for slug in dsets.failed)
+        if dsets.warnings:
+            lines.append("Dataset warnings:")
+            lines.extend(f"  - {w}" for w in dsets.warnings)
 
     if result.warnings:
         lines.append("Warnings:")

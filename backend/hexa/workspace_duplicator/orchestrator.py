@@ -16,6 +16,7 @@ from hexa.workspace_duplicator.endpoints import Endpoint
 from hexa.workspace_duplicator.resources.base import ResourceCopier
 from hexa.workspace_duplicator.resources.connections import ConnectionsCopier
 from hexa.workspace_duplicator.resources.database import DatabaseCopier
+from hexa.workspace_duplicator.resources.datasets import DatasetsCopier
 from hexa.workspace_duplicator.resources.files import FilesCopier
 from hexa.workspace_duplicator.resources.pipelines import PipelinesCopier
 from hexa.workspace_duplicator.resources.workspace import WorkspaceMetadataCopier
@@ -27,7 +28,7 @@ WORKSPACE_COPIERS: list[ResourceCopier] = [
     DatabaseCopier(),  # LOCAL→LOCAL: native pg; else skip + warning
     ConnectionsCopier(),
     PipelinesCopier(),
-    # DatasetsCopier(),  # future — append here
+    DatasetsCopier(),
 ]
 
 

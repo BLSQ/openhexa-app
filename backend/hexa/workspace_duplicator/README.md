@@ -29,6 +29,7 @@ order (see `orchestrator.WORKSPACE_COPIERS`):
 | `database`    | `DatabaseCopier`          | native pg copy only if **both** sides LOCAL; else skipped + warned. Local copy not yet implemented |
 | `connections` | `ConnectionsCopier`       | connections + secret fields                                                                        |
 | `pipelines`   | `PipelinesCopier`         | pipelines + versions (depends on `files` for notebook pipelines)                                   |
+| `datasets`    | `DatasetsCopier`          | datasets owned by the workspace + all versions + version files                                     |
 
 `templates.py` (`TemplatesCopier`) is **not** in the registry — template pipelines are server-wide and copied by a separate flow.
 
