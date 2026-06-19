@@ -19,7 +19,6 @@ class DatabaseCopier(ResourceCopier):
         self, source: Endpoint, target: Endpoint, result: DuplicationResult
     ) -> None:
         if source.is_remote or target.is_remote:
-            print("=> Skipping database copy (requires both endpoints local).")
             result.warn(
                 "Database not copied — both endpoints must be local (same cluster)."
             )

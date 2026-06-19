@@ -6,7 +6,6 @@ Native same-server file copy is a deferred follow-up (see the implementation
 plan); until then both LOCAL and REMOTE endpoints use the client here.
 """
 
-import sys
 from collections.abc import Iterator
 from typing import Any
 
@@ -172,18 +171,13 @@ class FilesCopier(ResourceCopier):
         files_result = FilesResult()
         result.files = files_result
 
-        print("=> Listing source files ...")
         for obj in walk(source.client, source.slug):
             path = obj["key"]
-            size = obj.get("size") or 0
             try:
-                print(f"   - copying '{path}' ({size} bytes) ...")
                 content = download(source.client, source.slug, path)
                 upload(target.client, target.slug, path, content)
                 files_result.copied.append((path, len(content)))
             except GraphQLError:
-                # Surface the failure in the live log without dumping the (often
-                # HTML) server response. The full path goes into failed for the
-                # final summary so the user can re-attempt manually.
-                print(f"\tFAILED to copy '{path}'", file=sys.stderr)
+                # The full path goes into failed for the final summary so the
+                # user can re-attempt it manually.
                 files_result.failed.append(path)

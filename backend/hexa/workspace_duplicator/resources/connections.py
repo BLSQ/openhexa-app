@@ -16,7 +16,6 @@ connection by slug valid.
 The LOCAL (ORM) branch is implemented in a later phase.
 """
 
-import sys
 from typing import Any
 
 from openhexa.graphql.graphql_client.client import Client
@@ -66,13 +65,11 @@ class ConnectionsCopier(ResourceCopier):
         conns_result = ConnectionsResult()
         result.connections = conns_result
 
-        print("=> Listing source connections ...")
         conns = _list_connections(source.client, source.slug)
         if conns is None:
             raise GraphQLError(
                 f"source workspace '{source.slug}' not found while listing connections"
             )
-        print(f"   found {len(conns)} connection(s)")
 
         existing = {
             c["slug"] for c in (_list_connections(target.client, target.slug) or [])
@@ -81,11 +78,9 @@ class ConnectionsCopier(ResourceCopier):
         for conn in conns:
             slug = conn["slug"]
             if slug in existing:
-                print(f"   - connection '{slug}' already exists on target — skipping")
                 conns_result.skipped.append(slug)
                 continue
             try:
-                print(f"   - migrating connection '{slug}' ...")
                 fields_in = _build_fields(conn, conns_result)
                 res = target.client.create_connection(
                     input=CreateConnectionInput(
@@ -103,12 +98,9 @@ class ConnectionsCopier(ResourceCopier):
                         + ",".join(e.value for e in (res.errors or []))
                     )
                 conns_result.created.append((slug, len(fields_in)))
-            except GraphQLError as exc:
+            except GraphQLError:
                 # Collect and continue (like files) so one bad connection
                 # doesn't abort the rest of the migration.
-                print(
-                    f"\tFAILED to migrate connection '{slug}': {exc}", file=sys.stderr
-                )
                 conns_result.failed.append(slug)
 
 
