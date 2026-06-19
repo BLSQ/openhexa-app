@@ -8,12 +8,16 @@ from ariadne import (
 )
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
+from psycopg2 import Error as Psycopg2Error
+from psycopg2.errors import QueryCanceled
 
 from hexa.core.graphql import result_page
 from hexa.workspaces.models import Workspace
 
 from .utils import (
+    MultipleStatementsError,
     OrderByDirectionEnum,
+    execute_database_query,
     get_database_definition,
     get_table_definition,
     get_table_rows,
@@ -58,6 +62,37 @@ def resolve_database_credentials(workspace: Workspace, info, **kwargs):
             "url": workspace.db_url,
         }
     return None
+
+
+@database_object.field("executeSQL")
+def resolve_database_execute_sql(
+    workspace: Workspace, info, query: str, max_rows: int | None = None, **kwargs
+):
+    request: HttpRequest = info.context["request"]
+    if not request.user.has_perm("databases.run_query", workspace):
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
+    try:
+        result = execute_database_query(workspace, query, **max_rows_kwarg)
+    except MultipleStatementsError as e:
+        return {
+            "success": False,
+            "errors": ["MULTIPLE_STATEMENTS"],
+            "error_message": str(e),
+        }
+    except QueryCanceled as e:
+        return {
+            "success": False,
+            "errors": ["QUERY_TIMEOUT"],
+            "error_message": str(e).strip(),
+        }
+    except Psycopg2Error as e:
+        return {
+            "success": False,
+            "errors": ["QUERY_ERROR"],
+            "error_message": str(e).strip(),
+        }
+    return {"success": True, "errors": [], **result}
 
 
 @database_object.field("readOnlyCredentials")

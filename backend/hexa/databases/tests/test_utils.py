@@ -1,14 +1,17 @@
 from unittest import mock
 
-from psycopg2.errors import UndefinedTable
+from psycopg2.errors import InsufficientPrivilege, QueryCanceled, UndefinedTable
 from psycopg2.extras import DictRow
 
 from hexa.core.test import TestCase
+from hexa.databases.tests.helpers import seed_demo_table
 from hexa.databases.utils import (
+    MultipleStatementsError,
     OrderByDirectionEnum,
     TableNotFound,
     TableRowsPage,
     delete_table,
+    execute_database_query,
     get_database_definition,
     get_row_count,
     get_table_definition,
@@ -245,3 +248,96 @@ class DatabaseUtilsTest(TestCase):
         cursor.execute.return_value = "DROP TABLE"
 
         delete_table(self.WORKSPACE, table_name)
+
+    def test_execute_database_query(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
+
+        result = execute_database_query(
+            self.WORKSPACE, "SELECT id, label FROM demo ORDER BY id"
+        )
+
+        self.assertEqual(
+            {
+                "columns": ["id", "label"],
+                "rows": [
+                    {"id": 1, "label": "a"},
+                    {"id": 2, "label": "b"},
+                    {"id": 3, "label": "c"},
+                ],
+                "row_count": 3,
+                "truncated": False,
+            },
+            result,
+        )
+
+    def test_execute_database_query_truncates_to_max_rows(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
+
+        result = execute_database_query(
+            self.WORKSPACE, "SELECT id FROM demo ORDER BY id", max_rows=2
+        )
+
+        self.assertEqual([{"id": 1}, {"id": 2}], result["rows"])
+        self.assertEqual(2, result["row_count"])
+        self.assertTrue(result["truncated"])
+
+    def test_execute_database_query_defaults_to_50_rows(self):
+        result = execute_database_query(
+            self.WORKSPACE, "SELECT generate_series(1, 100) AS id"
+        )
+
+        self.assertEqual(50, result["row_count"])
+        self.assertTrue(result["truncated"])
+
+    def test_execute_database_query_caps_at_hard_limit(self):
+        with self.settings(WORKSPACE_DATABASE_QUERY_MAX_ROWS=2):
+            result = execute_database_query(
+                self.WORKSPACE,
+                "SELECT generate_series(1, 100) AS id",
+                max_rows=1000,
+            )
+
+        self.assertEqual(2, result["row_count"])
+        self.assertTrue(result["truncated"])
+
+    def test_execute_database_query_no_result_set(self):
+        result = execute_database_query(self.WORKSPACE, "SET search_path TO public")
+
+        self.assertEqual(
+            {"columns": [], "rows": [], "row_count": 0, "truncated": False}, result
+        )
+
+    def test_execute_database_query_is_read_only(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+        write_statements = [
+            "INSERT INTO demo (id, label) VALUES (2, 'b');",
+            "UPDATE demo SET label = 'x';",
+            "DELETE FROM demo;",
+            "DROP TABLE demo;",
+            "CREATE TABLE should_not_exist (id int);",
+        ]
+        for statement in write_statements:
+            with self.subTest(statement=statement):
+                with self.assertRaises(InsufficientPrivilege):
+                    execute_database_query(self.WORKSPACE, statement)
+
+    def test_execute_database_query_enforces_statement_timeout(self):
+        # pg_sleep runs far longer than the timeout, so the statement is cancelled.
+        with self.assertRaises(QueryCanceled):
+            execute_database_query(
+                self.WORKSPACE, "SELECT pg_sleep(3);", timeout_ms=100
+            )
+
+    def test_execute_database_query_serializes_binary_values(self):
+        result = execute_database_query(self.WORKSPACE, "SELECT 'abc'::bytea AS data")
+        self.assertEqual([{"data": "\\x616263"}], result["rows"])
+
+    def test_execute_database_query_rejects_multiple_statements(self):
+        with self.assertRaises(MultipleStatementsError):
+            execute_database_query(self.WORKSPACE, "SELECT 1; SELECT 2")
+
+    def test_execute_database_query_allows_trailing_semicolon(self):
+        result = execute_database_query(self.WORKSPACE, "SELECT 1 AS id;")
+
+        self.assertEqual(1, result["row_count"])
+        self.assertEqual([{"id": 1}], result["rows"])
