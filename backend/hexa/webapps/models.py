@@ -20,7 +20,7 @@ from hexa.git.enums import FileEncoding
 from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
-from hexa.user_management.models import User
+from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.webapps.validators import validate_subdomain
 from hexa.workspaces.models import Workspace
 
@@ -57,21 +57,8 @@ def create_webapp_subdomain(slug: str, workspace: Workspace, max_tries=10):
 
 
 class WebappQuerySet(BaseQuerySet, SoftDeleteQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User):
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        from hexa.pipelines.authentication import PipelineRunUser
-
-        if isinstance(user, PipelineRunUser):
-            return self._filter_for_user_and_query_object(
-                user,
-                models.Q(workspace=user.pipeline_run.pipeline.workspace),
-            )
-        return self._filter_for_user_and_query_object(
-            user,
-            Q(workspace__members=user),
-            return_all_if_superuser=True,
-            return_all_if_organization_admin_or_owner=True,
-        )
+    def filter_for_user(self, user: AnonymousUser | UserInterface):
+        return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
 
     def filter_favorites(self, user: User):
         return self.filter(favorites=user)
@@ -310,7 +297,7 @@ class GitWebapp(Webapp, GitRepoMixin):
         self.published_commit = version_id
         self.save()
 
-    def save_files(self, files, message, user):
+    def save_files(self, files, message, user, delete_paths=None):
         sha = self.client.commit_files(
             self.repository,
             files,
@@ -318,6 +305,7 @@ class GitWebapp(Webapp, GitRepoMixin):
             user.display_name or user.email,
             user.email,
             org_slug=self.git_org.slug,
+            delete_paths=delete_paths,
         )
         self.published_commit = sha
         self.save()
@@ -416,3 +404,30 @@ class SupersetWebapp(Webapp):
         self.superset_dashboard.save()
         self.url = self.superset_dashboard.get_absolute_url()
         self.save()
+
+
+class WebappUser(User, ServicePrincipal):
+    class Meta:
+        proxy = True
+
+    webapp = None
+    real_user = None
+
+    @classmethod
+    def from_user(cls, user: User, webapp: Webapp) -> "WebappUser":
+        """Cast an existing User row to a WebappUser view tied to `webapp`."""
+        instance = cls.objects.get(pk=user.pk)
+        instance.webapp = webapp
+        instance.real_user = user
+        return instance
+
+    @property
+    def workspace(self):
+        return self.webapp.workspace
+
+    @property
+    def workspace_id(self):
+        return self.webapp.workspace_id
+
+    def get_username(self):
+        return f"webapp_{self.webapp.id}_as_{self.email}"

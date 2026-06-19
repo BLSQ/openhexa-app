@@ -3942,6 +3942,8 @@ export type ParameterInput = {
   connection?: InputMaybe<Scalars['String']['input']>;
   default?: InputMaybe<Scalars['Generic']['input']>;
   directory?: InputMaybe<Scalars['String']['input']>;
+  disableWhen?: InputMaybe<Scalars['Boolean']['input']>;
+  disables?: InputMaybe<Array<Scalars['String']['input']>>;
   help?: InputMaybe<Scalars['String']['input']>;
   multiple?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
@@ -4135,6 +4137,8 @@ export type PipelineParameter = {
   connection?: Maybe<Scalars['String']['output']>;
   default?: Maybe<Scalars['Generic']['output']>;
   directory?: Maybe<Scalars['String']['output']>;
+  disableWhen: Scalars['Boolean']['output'];
+  disables: Array<Scalars['String']['output']>;
   help?: Maybe<Scalars['String']['output']>;
   multiple: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
@@ -6146,6 +6150,7 @@ export type UpdateWebappInput = {
   allowedOperations?: InputMaybe<Array<WebappOperationScope>>;
   description?: InputMaybe<Scalars['String']['input']>;
   files?: InputMaybe<Array<WebappFileInput>>;
+  filesToDelete?: InputMaybe<Array<Scalars['String']['input']>>;
   icon?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
   isPublic?: InputMaybe<Scalars['Boolean']['input']>;

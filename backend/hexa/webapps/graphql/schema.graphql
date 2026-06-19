@@ -185,6 +185,7 @@ input UpdateWebappInput {
   allowedOperations: [WebappOperationScope!]
   source: UpdateWebappSourceInput
   files: [WebappFileInput!]
+  filesToDelete: [String!]
   publishedVersionId: String
 }
 
