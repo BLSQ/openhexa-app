@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.urls import path
+
+from hexa.workspace_duplicator.admin import migrate_workspace_view
 
 from .models import (
     Connection,
@@ -46,6 +49,17 @@ class WorkspaceAdmin(admin.ModelAdmin):
     )
 
     inlines = [WorkspaceMembershipInline, WorkspaceInvitationInline]
+    change_list_template = "admin/workspaces/workspace/change_list.html"
+
+    def get_urls(self):
+        custom = [
+            path(
+                "migrate/",
+                self.admin_site.admin_view(migrate_workspace_view),
+                name="workspaces_workspace_migrate",
+            ),
+        ]
+        return custom + super().get_urls()
 
 
 @admin.register(WorkspaceMembership)
