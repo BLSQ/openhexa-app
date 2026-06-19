@@ -152,3 +152,44 @@ def update_static_webapp(
     if "errors" in data:
         return data
     return data["updateWebapp"]
+
+
+@tool
+def edit_static_webapp_file(
+    user,
+    webapp_id: str,
+    path: str,
+    old_string: str,
+    new_string: str,
+    replace_all: bool = False,
+) -> dict:
+    """Make a precise find/replace edit to a single file in a static web app.
+
+    Use this for small changes to an EXISTING text file — you send only the snippet that
+    changes, not the whole file. The backend reads the current file, replaces old_string with
+    new_string, and commits. Prefer this over update_static_webapp when changing a few lines of
+    a large file.
+
+    Provide the webapp UUID (from list_static_webapps) and the file path (e.g. "index.html").
+    old_string must match the current file content exactly (including whitespace and
+    indentation) and, unless replace_all is true, must appear exactly once — include enough
+    surrounding context to make it unique. Set replace_all=true to replace every occurrence.
+
+    Use update_static_webapp instead to add new files or rewrite a file wholesale. This tool
+    only edits existing UTF-8 text files (not binary files such as images).
+    """
+    edit_input = {
+        "id": webapp_id,
+        "path": path,
+        "oldString": old_string,
+        "newString": new_string,
+        "replaceAll": replace_all,
+    }
+    data = execute_graphql(
+        user,
+        "EditWebappFile",
+        {"input": edit_input},
+    )
+    if "errors" in data:
+        return data
+    return data["editWebappFile"]
