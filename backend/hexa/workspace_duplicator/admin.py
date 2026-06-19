@@ -38,6 +38,7 @@ def migrate_workspace_view(request):
                         target_email=data["target_email"],
                         target_password=data["target_password"],
                         target_organization_id=data["target_organization"] or None,
+                        target_workspace_name=data["target_workspace_name"] or None,
                         resources=set(data["resources"]),
                     )
                 summary = format_summary(result)

@@ -50,6 +50,12 @@ class MigrateWorkspaceForm(forms.Form):
         label="Target organization id",
         help_text="Optional UUID of the organization to create the workspace under.",
     )
+    target_workspace_name = forms.CharField(
+        required=False,
+        label="Target workspace name",
+        help_text="Optional name for the target workspace. "
+        "Defaults to the source workspace name.",
+    )
 
     resources = forms.MultipleChoiceField(
         required=False,

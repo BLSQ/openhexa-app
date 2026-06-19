@@ -25,7 +25,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--slug", required=True, help="Slug of the source workspace."
+            "--source-workspace-slug",
+            required=True,
+            help="Slug of the source workspace.",
         )
         parser.add_argument(
             "--source-url",
@@ -45,6 +47,12 @@ class Command(BaseCommand):
             "--target-organization",
             default=None,
             help="Optional UUID of the organization on the target server.",
+        )
+        parser.add_argument(
+            "--target-workspace-name",
+            default=None,
+            help="Optional name for the target workspace. "
+            "Defaults to the source workspace name.",
         )
         parser.add_argument(
             "--resources",
@@ -90,11 +98,12 @@ class Command(BaseCommand):
                     source_url=options["source_url"],
                     source_email=options["source_email"],
                     source_password=options["source_password"],
-                    source_slug=options["slug"],
+                    source_slug=options["source_workspace_slug"],
                     target_url=options["target_url"],
                     target_email=options["target_email"],
                     target_password=options["target_password"],
                     target_organization_id=options["target_organization"],
+                    target_workspace_name=options["target_workspace_name"],
                     resources=resources,
                 )
         except CredentialError as exc:

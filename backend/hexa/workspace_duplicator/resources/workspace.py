@@ -30,7 +30,7 @@ class WorkspaceMetadataCopier(ResourceCopier):
         self, source: Endpoint, target: Endpoint, result: DuplicationResult
     ) -> None:
         src_ws = self._read_source(source)
-        result.workspace_name = src_ws.name
+        result.workspace_name = target.workspace_name or src_ws.name
 
         if target.is_remote:
             target_slug = self._create_remote(target, src_ws, result)
@@ -70,7 +70,7 @@ class WorkspaceMetadataCopier(ResourceCopier):
         ]
         created = target.client.create_workspace(
             input=CreateWorkspaceInput(
-                name=src_ws.name,
+                name=target.workspace_name or src_ws.name,
                 description=src_ws.description or "",
                 countries=countries,
                 load_sample_data=False,
