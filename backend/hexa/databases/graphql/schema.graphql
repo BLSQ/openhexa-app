@@ -14,7 +14,8 @@ type Database {
   readOnlyCredentials: DatabaseCredentials
 
   # 'executeSQL' runs a read-only SQL query against the workspace database and returns the result.
-  # 'maxRows' caps the number of returned rows; it defaults to a safe limit when omitted.
+  # 'maxRows' caps the number of returned rows; it defaults to 50 when omitted and is itself
+  # capped to a server-side hard limit.
   executeSQL(query: String!, maxRows: Int): ExecuteSQLResult!
 }
 
