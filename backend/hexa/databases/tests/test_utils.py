@@ -6,6 +6,7 @@ from psycopg2.extras import DictRow
 from hexa.core.test import TestCase
 from hexa.databases.tests.helpers import seed_demo_table
 from hexa.databases.utils import (
+    MultipleStatementsError,
     OrderByDirectionEnum,
     TableNotFound,
     TableRowsPage,
@@ -326,3 +327,13 @@ class DatabaseUtilsTest(TestCase):
             execute_database_query(
                 self.WORKSPACE, "SELECT pg_sleep(3);", timeout_ms=100
             )
+
+    def test_execute_database_query_rejects_multiple_statements(self):
+        with self.assertRaises(MultipleStatementsError):
+            execute_database_query(self.WORKSPACE, "SELECT 1; SELECT 2")
+
+    def test_execute_database_query_allows_trailing_semicolon(self):
+        result = execute_database_query(self.WORKSPACE, "SELECT 1 AS id;")
+
+        self.assertEqual(1, result["row_count"])
+        self.assertEqual([{"id": 1}], result["rows"])

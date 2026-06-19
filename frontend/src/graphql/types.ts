@@ -2266,6 +2266,8 @@ export type EnableTwoFactorResult = {
 
 /** Possible errors when executing a SQL query against the workspace database. */
 export enum ExecuteSqlError {
+  /** More than one SQL statement was submitted; only a single statement is allowed. */
+  MultipleStatements = 'MULTIPLE_STATEMENTS',
   /** The user is not allowed to run queries against this workspace database. */
   PermissionDenied = 'PERMISSION_DENIED',
   /** The query could not be executed (e.g. invalid SQL or a disallowed operation). */

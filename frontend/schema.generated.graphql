@@ -2245,6 +2245,11 @@ Possible errors when executing a SQL query against the workspace database.
 """
 enum ExecuteSQLError {
   """
+  More than one SQL statement was submitted; only a single statement is allowed.
+  """
+  MULTIPLE_STATEMENTS
+
+  """
   The user is not allowed to run queries against this workspace database.
   """
   PERMISSION_DENIED

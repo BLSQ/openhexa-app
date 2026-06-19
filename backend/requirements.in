@@ -18,6 +18,7 @@ psycopg2-binary
 python-slugify
 responses
 stringcase
+sqlparse
 tblib
 whitenoise
 sentry-sdk

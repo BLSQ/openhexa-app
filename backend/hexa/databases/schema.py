@@ -15,6 +15,7 @@ from hexa.core.graphql import result_page
 from hexa.workspaces.models import Workspace
 
 from .utils import (
+    MultipleStatementsError,
     OrderByDirectionEnum,
     execute_database_query,
     get_database_definition,
@@ -73,6 +74,12 @@ def resolve_database_execute_sql(
     max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
     try:
         result = execute_database_query(workspace, query, **max_rows_kwarg)
+    except MultipleStatementsError as e:
+        return {
+            "success": False,
+            "errors": ["MULTIPLE_STATEMENTS"],
+            "error_message": str(e),
+        }
     except QueryCanceled as e:
         return {
             "success": False,

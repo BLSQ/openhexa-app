@@ -37,6 +37,11 @@ enum ExecuteSQLError {
   The query could not be executed (e.g. invalid SQL or a disallowed operation).
   """
   QUERY_ERROR
+
+  """
+  More than one SQL statement was submitted; only a single statement is allowed.
+  """
+  MULTIPLE_STATEMENTS
 }
 
 """

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 import psycopg2
+import sqlparse
 from django.conf import settings
 from psycopg2 import sql
 from psycopg2.errors import UndefinedTable
@@ -15,6 +16,17 @@ from hexa.workspaces.models import Workspace
 from .api import get_db_server_credentials
 
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
+
+
+class MultipleStatementsError(Exception):
+    """Raised when more than one SQL statement is submitted for execution."""
+
+
+def ensure_single_statement(query: str) -> None:
+    """Reject input that contains more than one SQL statement."""
+    statements = [s for s in sqlparse.split(query) if s.strip().rstrip(";").strip()]
+    if len(statements) > 1:
+        raise MultipleStatementsError("Only a single SQL statement can be executed.")
 
 
 def get_row_count_estimate(cursor, table_name: str) -> int:
@@ -101,6 +113,7 @@ def execute_database_query(
     returned, capped to ``settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS``;
     ``truncated`` indicates whether the result was capped.
     """
+    ensure_single_statement(query)
     max_rows = min(max_rows, settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS)
     conn = None
     try:

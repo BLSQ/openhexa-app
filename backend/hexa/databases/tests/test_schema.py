@@ -420,6 +420,15 @@ class DatabaseTest(GraphQLTestCase):
         self.assertEqual(["QUERY_TIMEOUT"], result["errors"])
         self.assertIn("statement timeout", result["errorMessage"])
 
+    def test_execute_sql_multiple_statements(self):
+        self.client.force_login(self.USER_SABRINA)
+
+        result = self._execute_sql("SELECT 1; SELECT 2")
+
+        self.assertFalse(result["success"])
+        self.assertEqual(["MULTIPLE_STATEMENTS"], result["errors"])
+        self.assertIsNone(result["rows"])
+
     def test_generate_workspace_database_new_password_not_found(self):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
