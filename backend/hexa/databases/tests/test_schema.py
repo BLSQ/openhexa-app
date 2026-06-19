@@ -378,6 +378,14 @@ class DatabaseTest(GraphQLTestCase):
             result,
         )
 
+    def test_execute_sql_serializes_binary_values(self):
+        self.client.force_login(self.USER_SABRINA)
+
+        result = self._execute_sql("SELECT 'abc'::bytea AS data")
+
+        self.assertTrue(result["success"])
+        self.assertEqual([{"data": "\\x616263"}], result["rows"])
+
     def test_execute_sql_truncated(self):
         self.client.force_login(self.USER_SABRINA)
         seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
