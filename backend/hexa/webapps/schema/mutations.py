@@ -202,23 +202,32 @@ def resolve_update_webapp(_, info, **kwargs):
             }
         webapp.subdomain = subdomain
 
-    if input.get("files") is not None or input.get("published_version_id") is not None:
+    if (
+        input.get("files") is not None
+        or input.get("files_to_delete") is not None
+        or input.get("published_version_id") is not None
+    ):
         try:
             git_webapp = GitWebapp.objects.get(pk=webapp.pk)
         except GitWebapp.DoesNotExist:
             return {"success": False, "errors": ["TYPE_MISMATCH"], "webapp": None}
 
-        if input.get("files") is not None:
+        if input.get("files") is not None or input.get("files_to_delete") is not None:
             files = [
                 {
                     "path": f["path"],
                     "content": f["content"],
                     "encoding": f.get("encoding", FileEncoding.TEXT),
                 }
-                for f in input["files"]
+                for f in input.get("files") or []
             ]
             try:
-                git_webapp.save_files(files, "Update webapp content", user)
+                git_webapp.save_files(
+                    files,
+                    "Update webapp content",
+                    user,
+                    delete_paths=input.get("files_to_delete"),
+                )
             except ForgejoAPIError as e:
                 logger.error("Failed to save webapp files: %s", e)
                 return {"success": False, "errors": ["SAVE_FAILED"], "webapp": None}

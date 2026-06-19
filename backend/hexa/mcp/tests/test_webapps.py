@@ -320,6 +320,62 @@ class UpdateStaticWebappTest(MCPTestCase):
         client.commit_files.assert_called_once()
         self.assertEqual(client.commit_files.call_args[0][1], new_files)
 
+    @_mock_forgejo()
+    def test_update_static_webapp_delete_files(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("DelUpd"),
+            files_json=json.dumps([{"path": "index.html", "content": "<html></html>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_id = str(create_result["webapp"]["id"])
+        client.commit_files.reset_mock()
+
+        result = update_static_webapp(
+            user=self.USER_ADMIN,
+            webapp_id=webapp_id,
+            files_to_delete_json=json.dumps(["old.js", "legacy/style.css"]),
+        )
+        self.assertTrue(result["success"], result)
+        client.commit_files.assert_called_once()
+        self.assertEqual(client.commit_files.call_args[0][1], [])
+        self.assertEqual(
+            client.commit_files.call_args.kwargs["delete_paths"],
+            ["old.js", "legacy/style.css"],
+        )
+
+    @_mock_forgejo()
+    def test_update_static_webapp_files_and_delete_combined(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("DelAddUpd"),
+            files_json=json.dumps([{"path": "index.html", "content": "<html></html>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_id = str(create_result["webapp"]["id"])
+        client.commit_files.reset_mock()
+
+        new_files = [{"path": "app.js", "content": "console.log(1)"}]
+        result = update_static_webapp(
+            user=self.USER_ADMIN,
+            webapp_id=webapp_id,
+            files_json=json.dumps(new_files),
+            files_to_delete_json=json.dumps(["old.js"]),
+        )
+        self.assertTrue(result["success"], result)
+        client.commit_files.assert_called_once()
+        self.assertEqual(
+            client.commit_files.call_args[0][1],
+            [{"path": "app.js", "content": "console.log(1)", "encoding": "TEXT"}],
+        )
+        self.assertEqual(
+            client.commit_files.call_args.kwargs["delete_paths"], ["old.js"]
+        )
+
     def test_update_static_webapp_invalid_files_json(self):
         result = update_static_webapp(
             user=self.USER_ADMIN,
@@ -327,6 +383,25 @@ class UpdateStaticWebappTest(MCPTestCase):
             files_json="not json",
         )
         self.assertEqual(result, {"error": "Invalid JSON in files_json"})
+
+    def test_update_static_webapp_invalid_files_to_delete_json(self):
+        result = update_static_webapp(
+            user=self.USER_ADMIN,
+            webapp_id="00000000-0000-0000-0000-000000000000",
+            files_to_delete_json="not json",
+        )
+        self.assertEqual(result, {"error": "Invalid JSON in files_to_delete_json"})
+
+    def test_update_static_webapp_files_to_delete_not_strings(self):
+        result = update_static_webapp(
+            user=self.USER_ADMIN,
+            webapp_id="00000000-0000-0000-0000-000000000000",
+            files_to_delete_json=json.dumps([{"path": "x"}]),
+        )
+        self.assertEqual(
+            result,
+            {"error": "files_to_delete_json must be a JSON array of path strings"},
+        )
 
     @_mock_forgejo()
     def test_update_static_webapp_allowed_operations(self, _mock):

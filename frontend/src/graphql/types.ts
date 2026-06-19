@@ -6114,6 +6114,7 @@ export type UpdateWebappInput = {
   allowedOperations?: InputMaybe<Array<WebappOperationScope>>;
   description?: InputMaybe<Scalars['String']['input']>;
   files?: InputMaybe<Array<WebappFileInput>>;
+  filesToDelete?: InputMaybe<Array<Scalars['String']['input']>>;
   icon?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
   isPublic?: InputMaybe<Scalars['Boolean']['input']>;

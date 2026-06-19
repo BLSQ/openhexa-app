@@ -5313,6 +5313,7 @@ input UpdateWebappInput {
   allowedOperations: [WebappOperationScope!]
   description: String
   files: [WebappFileInput!]
+  filesToDelete: [String!]
   icon: String
   id: UUID!
   isPublic: Boolean
