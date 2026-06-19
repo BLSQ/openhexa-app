@@ -2215,6 +2215,41 @@ type DisableTwoFactorResult {
   success: Boolean!
 }
 
+"""Represents the error message for a web app file edit."""
+enum EditWebappFileError {
+  BINARY_FILE
+  NO_CHANGE
+  PATH_NOT_FOUND
+  PERMISSION_DENIED
+  SAVE_FAILED
+  STRING_NOT_FOUND
+  STRING_NOT_UNIQUE
+  TYPE_MISMATCH
+  WEBAPPS_NOT_CONFIGURED
+  WEBAPP_NOT_FOUND
+}
+
+"""
+Input for a string find/replace edit on a single webapp file.
+
+Changes part of an existing TEXT file without resending its whole content. `oldString` must
+match exactly; unless `replaceAll` is true it must match exactly once.
+"""
+input EditWebappFileInput {
+  id: UUID!
+  newString: String!
+  oldString: String!
+  path: String!
+  replaceAll: Boolean
+}
+
+"""Represents the result of editing a web app file."""
+type EditWebappFileResult {
+  errors: [EditWebappFileError!]!
+  success: Boolean!
+  webapp: Webapp
+}
+
 """
 The EnableTwoFactorError enum represents the possible errors that can occur during the enableTwoFactor mutation.
 """
@@ -2957,6 +2992,7 @@ type Mutation {
   Disables two-factor authentication for the currently authenticated user.
   """
   disableTwoFactor(input: DisableTwoFactorInput): DisableTwoFactorResult!
+  editWebappFile(input: EditWebappFileInput!): EditWebappFileResult!
 
   """
   Enables two-factor authentication for the currently authenticated user.

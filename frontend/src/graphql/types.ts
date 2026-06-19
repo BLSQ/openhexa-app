@@ -2238,6 +2238,42 @@ export type DisableTwoFactorResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Represents the error message for a web app file edit. */
+export enum EditWebappFileError {
+  BinaryFile = 'BINARY_FILE',
+  NoChange = 'NO_CHANGE',
+  PathNotFound = 'PATH_NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED',
+  SaveFailed = 'SAVE_FAILED',
+  StringNotFound = 'STRING_NOT_FOUND',
+  StringNotUnique = 'STRING_NOT_UNIQUE',
+  TypeMismatch = 'TYPE_MISMATCH',
+  WebappsNotConfigured = 'WEBAPPS_NOT_CONFIGURED',
+  WebappNotFound = 'WEBAPP_NOT_FOUND'
+}
+
+/**
+ * Input for a string find/replace edit on a single webapp file.
+ *
+ * Changes part of an existing TEXT file without resending its whole content. `oldString` must
+ * match exactly; unless `replaceAll` is true it must match exactly once.
+ */
+export type EditWebappFileInput = {
+  id: Scalars['UUID']['input'];
+  newString: Scalars['String']['input'];
+  oldString: Scalars['String']['input'];
+  path: Scalars['String']['input'];
+  replaceAll?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** Represents the result of editing a web app file. */
+export type EditWebappFileResult = {
+  __typename?: 'EditWebappFileResult';
+  errors: Array<EditWebappFileError>;
+  success: Scalars['Boolean']['output'];
+  webapp?: Maybe<Webapp>;
+};
+
 /** The EnableTwoFactorError enum represents the possible errors that can occur during the enableTwoFactor mutation. */
 export enum EnableTwoFactorError {
   AlreadyEnabled = 'ALREADY_ENABLED',
@@ -2936,6 +2972,7 @@ export type Mutation = {
   denyAccessmodAccessRequest: DenyAccessmodAccessRequestResult;
   /** Disables two-factor authentication for the currently authenticated user. */
   disableTwoFactor: DisableTwoFactorResult;
+  editWebappFile: EditWebappFileResult;
   /** Enables two-factor authentication for the currently authenticated user. */
   enableTwoFactor: EnableTwoFactorResult;
   /** Generates a challenge for two-factor authentication. */
@@ -3328,6 +3365,11 @@ export type MutationDenyAccessmodAccessRequestArgs = {
 
 export type MutationDisableTwoFactorArgs = {
   input?: InputMaybe<DisableTwoFactorInput>;
+};
+
+
+export type MutationEditWebappFileArgs = {
+  input: EditWebappFileInput;
 };
 
 
