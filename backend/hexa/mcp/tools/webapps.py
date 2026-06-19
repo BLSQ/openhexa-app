@@ -107,6 +107,8 @@ def update_static_webapp(
 
     Provide the webapp UUID (from list_static_webapps) and any fields to change. Only provided non-empty fields are updated. Pass name to change the human-readable name, and description to change the description.
 
+    For small changes to a single existing file (editing a few lines, changing a string), prefer edit_static_webapp_file instead — it takes a find/replace snippet so you don't resend the whole file. Use this tool to add new files, delete files, rewrite a file wholesale, or update metadata/scopes.
+
     Files are updated incrementally — you do NOT need to resend the whole bundle. Pass files_json as a JSON array of {path, content} objects containing only the files you want to add or change (e.g. '[{"path": "app.js", "content": "..."}]'); any file you omit is left exactly as it is. Matching is by path: an existing path is overwritten, a new path is created. To remove files, pass files_to_delete_json as a JSON array of paths (e.g. '["old.js", "legacy/style.css"]'); paths that don't exist are ignored. You can combine files_json and files_to_delete_json in a single call — they are applied as one commit.
 
     Pass allowed_operations as a comma-separated list of API scopes the webapp's JS may call via the same-origin /graphql/ proxy — valid values: PIPELINES_READ, PIPELINES_RUN, FILES_READ, FILES_WRITE, DATASETS_READ, DATASETS_WRITE, USER_READ. Leave empty to leave the current scopes untouched, or pass "NONE" to revoke all access. For the full reference (auth model, all top-level fields per scope, sample queries and mutations), call get_help_or_doc(topic="static-webapps").
