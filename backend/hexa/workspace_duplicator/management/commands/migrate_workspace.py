@@ -59,7 +59,6 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--debug",
-            "-v",
             action="store_true",
             help="Print each GraphQL request (operation + variables) and response status.",
         )
@@ -83,21 +82,21 @@ class Command(BaseCommand):
         return selected
 
     def handle(self, *args, **options):
-        transport.DEBUG = options["debug"]
         resources = self._resolve_resources(options["resources"], options["exclude"])
 
         try:
-            result = run_migration(
-                source_url=options["source_url"],
-                source_email=options["source_email"],
-                source_password=options["source_password"],
-                source_slug=options["slug"],
-                target_url=options["target_url"],
-                target_email=options["target_email"],
-                target_password=options["target_password"],
-                target_organization_id=options["target_organization"],
-                resources=resources,
-            )
+            with transport.debug_logging(options["debug"]):
+                result = run_migration(
+                    source_url=options["source_url"],
+                    source_email=options["source_email"],
+                    source_password=options["source_password"],
+                    source_slug=options["slug"],
+                    target_url=options["target_url"],
+                    target_email=options["target_email"],
+                    target_password=options["target_password"],
+                    target_organization_id=options["target_organization"],
+                    resources=resources,
+                )
         except GraphQLError as exc:
             raise CommandError(str(exc))
 

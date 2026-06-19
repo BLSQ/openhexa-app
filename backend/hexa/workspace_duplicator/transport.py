@@ -1,19 +1,52 @@
 """GraphQL transport: SDK-backed clients, error type, request wrapper, debug."""
 
+import logging
 import sys
+from contextlib import contextmanager
 from typing import Any
 
 import httpx
 from openhexa.graphql.graphql_client.client import Client
 
-# Toggled by the CLI's --debug / -v. Module-global so the gql() wrapper and the
-# SDK-call helpers don't need to thread it through every signature.
+# Module-global so the gql() wrapper and the SDK-call helpers don't need to
+# thread it through every signature. Toggle it via debug_logging() rather than
+# assigning directly, so the httpx/httpcore wire logging moves in lockstep and
+# the change is always restored afterwards.
 DEBUG = False
+
+# The SDK's httpx client logs every request/connection; these libraries are the
+# source of the connect_tcp/start_tls/HTTP-request noise, gated behind --debug.
+_HTTP_LOGGERS = ("httpx", "httpcore")
 
 
 def _dbg(msg: str) -> None:
     if DEBUG:
         sys.stderr.write(f"[debug] {msg}\n")
+
+
+@contextmanager
+def debug_logging(enabled: bool):
+    """Toggle GraphQL + httpx/httpcore debug logging for the block, then restore.
+
+    Both entry points use this so the toggle behaves identically. It matters
+    most for the admin view: that runs in a long-lived process, so a bare
+    assignment to ``DEBUG`` (or a logger level) would leak into later requests.
+    """
+    global DEBUG
+    loggers = {name: logging.getLogger(name) for name in _HTTP_LOGGERS}
+    prev_debug = DEBUG
+    prev_levels = {name: lg.level for name, lg in loggers.items()}
+
+    DEBUG = enabled
+    level = logging.DEBUG if enabled else logging.WARNING
+    for lg in loggers.values():
+        lg.setLevel(level)
+    try:
+        yield
+    finally:
+        DEBUG = prev_debug
+        for name, lg in loggers.items():
+            lg.setLevel(prev_levels[name])
 
 
 def _short(value: Any, limit: int = 200) -> str:

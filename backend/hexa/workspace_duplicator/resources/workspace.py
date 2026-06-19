@@ -7,7 +7,6 @@ name, so we never pass one). The LOCAL (ORM) branch is implemented in a later
 phase.
 """
 
-import sys
 from typing import Any
 
 from openhexa.graphql.graphql_client.input_types import (
@@ -33,33 +32,31 @@ class WorkspaceMetadataCopier(ResourceCopier):
         src_ws = self._read_source(source)
         result.workspace_name = src_ws.name
 
-        print("=> Creating target workspace ...")
         if target.is_remote:
-            target_slug = self._create_remote(target, src_ws)
+            target_slug = self._create_remote(target, src_ws, result)
         else:
             target_slug = self._create_local(target, src_ws)
 
         target.slug = target_slug
         result.workspace_slug = target_slug
-        print(f"   created with slug '{target_slug}'")
         if source.slug and target_slug != source.slug:
-            print(
-                f"   note: the server picked its own slug — '{target_slug}' "
-                f"instead of source slug '{source.slug}'. The createWorkspace "
-                "mutation always derives the slug from the workspace name."
+            result.warn(
+                f"target workspace got slug '{target_slug}' instead of source "
+                f"slug '{source.slug}' — createWorkspace always derives the slug "
+                "from the workspace name."
             )
 
     def _read_source(self, source: Endpoint) -> Any:
         if source.is_remote:
-            print(f"=> Fetching source workspace '{source.slug}' ...")
             src_ws = source.client.workspace(slug=source.slug)
             if src_ws is None:
                 raise GraphQLError(f"source workspace '{source.slug}' not found")
-            print(f"   name: {src_ws.name!r}")
             return src_ws
         return source.workspace
 
-    def _create_remote(self, target: Endpoint, src_ws: Any) -> str:
+    def _create_remote(
+        self, target: Endpoint, src_ws: Any, result: DuplicationResult
+    ) -> str:
         """Create the workspace on a remote target, returning the server slug.
 
         The server (see resolve_create_workspace + create_workspace_slug in
@@ -94,10 +91,9 @@ class WorkspaceMetadataCopier(ResourceCopier):
                 )
             )
             if not upd.success:
-                print(
-                    f"  warning: could not set dockerImage="
-                    f"'{src_ws.docker_image}': " + ",".join(upd.errors or []),
-                    file=sys.stderr,
+                result.warn(
+                    f"could not set dockerImage='{src_ws.docker_image}': "
+                    + ",".join(upd.errors or [])
                 )
         return created_slug
 

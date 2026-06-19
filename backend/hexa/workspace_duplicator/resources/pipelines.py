@@ -88,20 +88,16 @@ class PipelinesCopier(ResourceCopier):
         pipes_result = PipelinesResult()
         result.pipelines = pipes_result
 
-        print("=> Listing source pipelines ...")
         pairs = _list_source_ids(source.client, source.slug)
-        print(f"   found {len(pairs)} pipeline(s)")
 
         for pipeline_id, src_code in pairs:
             existing = target.client.pipeline(
                 workspace_slug=target.slug, pipeline_code=src_code
             )
             if existing is not None:
-                print(f"   - pipeline '{src_code}' already exists on target — skipping")
                 pipes_result.skipped.append(src_code)
                 continue
 
-            print(f"   - migrating pipeline '{src_code}' ...")
             detail = _fetch_source_detail(source.client, pipeline_id)
             is_notebook = detail.get("type") == "notebook"
 
@@ -116,12 +112,10 @@ class PipelinesCopier(ResourceCopier):
                 target.client, target.slug, detail
             )
             if target_code != src_code:
-                print(
-                    f"       created pipeline as '{target_code}' (source was "
-                    f"'{src_code}'; server re-derives code from name) — id={target_pid}"
+                pipes_result.warnings.append(
+                    f"pipeline created as '{target_code}' (source was '{src_code}'; "
+                    "server re-derives the code from the name)."
                 )
-            else:
-                print(f"       created pipeline '{target_code}' (id={target_pid})")
 
             uploaded_names, scheduled_version_id = _upload_versions(
                 target.client,
@@ -338,7 +332,6 @@ def _upload_versions(
     for v in versions:
         up = _upload_version(target, target_slug, target_code, v)
         uploaded_names.append(up["versionName"])
-        print(f"       uploaded version v{v['versionNumber']} -> {up['versionName']}")
         if (
             scheduled_src_number is not None
             and up.get("versionNumber") == scheduled_src_number
