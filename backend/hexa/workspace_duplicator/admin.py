@@ -8,13 +8,13 @@ never persisted).
 """
 
 from django.contrib import admin, messages
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import PermissionDenied
 from django.template.response import TemplateResponse
 
 from hexa.workspace_duplicator import transport
 from hexa.workspace_duplicator.forms import MigrateWorkspaceForm
 from hexa.workspace_duplicator.results import format_summary
-from hexa.workspace_duplicator.service import run_migration
+from hexa.workspace_duplicator.service import CredentialError, run_migration
 from hexa.workspace_duplicator.transport import GraphQLError
 
 
@@ -42,8 +42,9 @@ def migrate_workspace_view(request):
                     )
                 summary = format_summary(result)
                 messages.success(request, "Workspace duplication finished.")
-            except ObjectDoesNotExist as exc:
-                messages.error(request, f"Workspace not found: {exc}")
+            except CredentialError as exc:
+                for err in exc.errors:
+                    messages.error(request, err)
             except (GraphQLError, NotImplementedError) as exc:
                 messages.error(request, f"Duplication failed: {exc}")
     else:

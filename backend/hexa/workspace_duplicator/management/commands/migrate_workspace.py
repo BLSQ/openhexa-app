@@ -12,7 +12,7 @@ from django.core.management.base import BaseCommand, CommandError
 from hexa.workspace_duplicator import transport
 from hexa.workspace_duplicator.orchestrator import WORKSPACE_COPIERS
 from hexa.workspace_duplicator.results import format_summary
-from hexa.workspace_duplicator.service import run_migration
+from hexa.workspace_duplicator.service import CredentialError, run_migration
 from hexa.workspace_duplicator.transport import GraphQLError
 
 
@@ -97,6 +97,11 @@ class Command(BaseCommand):
                     target_organization_id=options["target_organization"],
                     resources=resources,
                 )
+        except CredentialError as exc:
+            raise CommandError(
+                "Endpoint verification failed:\n"
+                + "\n".join(f"  - {e}" for e in exc.errors)
+            )
         except GraphQLError as exc:
             raise CommandError(str(exc))
 
