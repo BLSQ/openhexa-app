@@ -3,13 +3,12 @@ import uuid
 from unittest import mock
 
 from django.conf import settings
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from hexa.core.test import GraphQLTestCase
+from hexa.databases.tests.helpers import seed_demo_table
 from hexa.databases.utils import (
     TableRowsPage,
     execute_database_query,
-    get_workspace_database_connection,
 )
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
@@ -333,20 +332,6 @@ class DatabaseTest(GraphQLTestCase):
                 r["data"]["workspace"]["database"],
             )
 
-    def _seed_demo_table(self, rows):
-        """Create a `demo` table on the workspace database using the read-write role."""
-        conn = get_workspace_database_connection(self.WORKSPACE)
-        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("DROP TABLE IF EXISTS demo;")
-                cursor.execute("CREATE TABLE demo (id int, label text);")
-                cursor.executemany(
-                    "INSERT INTO demo (id, label) VALUES (%s, %s);", rows
-                )
-        finally:
-            conn.close()
-
     def _execute_sql(self, query, max_rows=None):
         r = self.run_query(
             """
@@ -376,7 +361,7 @@ class DatabaseTest(GraphQLTestCase):
 
     def test_execute_sql(self):
         self.client.force_login(self.USER_SABRINA)
-        self._seed_demo_table([(1, "a"), (2, "b")])
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
 
         result = self._execute_sql("SELECT id, label FROM demo ORDER BY id")
 
@@ -395,7 +380,7 @@ class DatabaseTest(GraphQLTestCase):
 
     def test_execute_sql_truncated(self):
         self.client.force_login(self.USER_SABRINA)
-        self._seed_demo_table([(1, "a"), (2, "b"), (3, "c")])
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
 
         result = self._execute_sql("SELECT id FROM demo ORDER BY id", max_rows=2)
 

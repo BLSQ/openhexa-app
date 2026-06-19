@@ -1,10 +1,10 @@
 from unittest import mock
 
 from psycopg2.errors import InsufficientPrivilege, QueryCanceled, UndefinedTable
-from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from psycopg2.extras import DictRow
 
 from hexa.core.test import TestCase
+from hexa.databases.tests.helpers import seed_demo_table
 from hexa.databases.utils import (
     OrderByDirectionEnum,
     TableNotFound,
@@ -15,7 +15,6 @@ from hexa.databases.utils import (
     get_row_count,
     get_table_definition,
     get_table_rows,
-    get_workspace_database_connection,
 )
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
@@ -249,22 +248,8 @@ class DatabaseUtilsTest(TestCase):
 
         delete_table(self.WORKSPACE, table_name)
 
-    def _seed_demo_table(self, rows):
-        """Create a `demo` table on the workspace database using the read-write role."""
-        conn = get_workspace_database_connection(self.WORKSPACE)
-        conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("DROP TABLE IF EXISTS demo;")
-                cursor.execute("CREATE TABLE demo (id int, label text);")
-                cursor.executemany(
-                    "INSERT INTO demo (id, label) VALUES (%s, %s);", rows
-                )
-        finally:
-            conn.close()
-
     def test_execute_database_query(self):
-        self._seed_demo_table([(1, "a"), (2, "b"), (3, "c")])
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
 
         result = execute_database_query(
             self.WORKSPACE, "SELECT id, label FROM demo ORDER BY id"
@@ -285,13 +270,32 @@ class DatabaseUtilsTest(TestCase):
         )
 
     def test_execute_database_query_truncates_to_max_rows(self):
-        self._seed_demo_table([(1, "a"), (2, "b"), (3, "c")])
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
 
         result = execute_database_query(
             self.WORKSPACE, "SELECT id FROM demo ORDER BY id", max_rows=2
         )
 
         self.assertEqual([{"id": 1}, {"id": 2}], result["rows"])
+        self.assertEqual(2, result["row_count"])
+        self.assertTrue(result["truncated"])
+
+    def test_execute_database_query_defaults_to_50_rows(self):
+        result = execute_database_query(
+            self.WORKSPACE, "SELECT generate_series(1, 100) AS id"
+        )
+
+        self.assertEqual(50, result["row_count"])
+        self.assertTrue(result["truncated"])
+
+    def test_execute_database_query_caps_at_hard_limit(self):
+        with self.settings(WORKSPACE_DATABASE_QUERY_MAX_ROWS=2):
+            result = execute_database_query(
+                self.WORKSPACE,
+                "SELECT generate_series(1, 100) AS id",
+                max_rows=1000,
+            )
+
         self.assertEqual(2, result["row_count"])
         self.assertTrue(result["truncated"])
 
@@ -303,7 +307,7 @@ class DatabaseUtilsTest(TestCase):
         )
 
     def test_execute_database_query_is_read_only(self):
-        self._seed_demo_table([(1, "a")])
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
         write_statements = [
             "INSERT INTO demo (id, label) VALUES (2, 'b');",
             "UPDATE demo SET label = 'x';",
