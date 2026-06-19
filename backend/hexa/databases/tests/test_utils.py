@@ -328,6 +328,10 @@ class DatabaseUtilsTest(TestCase):
                 self.WORKSPACE, "SELECT pg_sleep(3);", timeout_ms=100
             )
 
+    def test_execute_database_query_serializes_binary_values(self):
+        result = execute_database_query(self.WORKSPACE, "SELECT 'abc'::bytea AS data")
+        self.assertEqual([{"data": "\\x616263"}], result["rows"])
+
     def test_execute_database_query_rejects_multiple_statements(self):
         with self.assertRaises(MultipleStatementsError):
             execute_database_query(self.WORKSPACE, "SELECT 1; SELECT 2")
