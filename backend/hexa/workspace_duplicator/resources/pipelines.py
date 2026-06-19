@@ -133,11 +133,6 @@ class PipelinesCopier(ResourceCopier):
         target_pid, target_code = _create_on_target(
             target.client, target.slug, detail
         )
-        if target_code != src_code:
-            pipes_result.warnings.append(
-                f"pipeline created as '{target_code}' (source was '{src_code}'; "
-                "server re-derives the code from the name)."
-            )
 
         uploaded_names, scheduled_version_id = _upload_versions(
             target.client,
