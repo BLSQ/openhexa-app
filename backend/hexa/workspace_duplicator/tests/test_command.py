@@ -12,9 +12,7 @@ class ResolveResourcesTest(SimpleTestCase):
         self.command = Command()
 
     def test_empty_means_all(self):
-        self.assertEqual(
-            self.command._resolve_resources(None), _known_resource_names()
-        )
+        self.assertEqual(self.command._resolve_resources(None), _known_resource_names())
 
     def test_explicit_subset(self):
         self.assertEqual(

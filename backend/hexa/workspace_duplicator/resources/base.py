@@ -33,4 +33,5 @@ class ResourceCopier(ABC):
         target: Endpoint,
         result: DuplicationResult,
         reporter: ProgressReporter,
-    ) -> None: ...
+    ) -> None:
+        ...

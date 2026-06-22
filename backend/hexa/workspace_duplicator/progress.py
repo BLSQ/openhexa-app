@@ -18,7 +18,8 @@ LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR")
 
 @runtime_checkable
 class ProgressReporter(Protocol):
-    def log(self, message: str, *, level: str = "INFO") -> None: ...
+    def log(self, message: str, *, level: str = "INFO") -> None:
+        ...
 
 
 class BaseReporter:

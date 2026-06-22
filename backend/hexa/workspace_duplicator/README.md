@@ -8,8 +8,8 @@ Right now, this is a Django app **without models**. In the future, some models w
 
 A single `orchestrator.duplicate_workspace(source, target, *, resources)` owns an ordered registry of **resource copiers** and runs the selected ones in dependency order. Both sides are `Endpoint` values:
 
-- **LOCAL** — same server, read/written via the Django ORM.
-- **REMOTE** — another server, reached over GraphQL through `transport.py` after a superuser login.
+- **LOCAL**: same server, read/written via the Django ORM.
+- **REMOTE**: another server, reached over GraphQL through `transport.py` after a superuser login.
 
 The read-vs-write asymmetry lives inside each copier (it reads from `source`, writes to `target`), so the orchestration is written once and shared by every entry point. The medium (ORM vs GraphQL) is chosen per endpoint, per resource.
 
