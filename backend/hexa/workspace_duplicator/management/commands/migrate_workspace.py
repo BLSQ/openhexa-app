@@ -9,7 +9,6 @@ session cookie via the GraphQL ``login`` mutation.
 
 from django.core.management.base import BaseCommand, CommandError
 
-from hexa.workspace_duplicator import transport
 from hexa.workspace_duplicator.orchestrator import WORKSPACE_COPIERS
 from hexa.workspace_duplicator.progress import StreamReporter
 from hexa.workspace_duplicator.results import format_summary
@@ -61,11 +60,6 @@ class Command(BaseCommand):
             help="Comma-separated resources to copy (default: all). "
             f"Known: {','.join(sorted(_known_resource_names()))}.",
         )
-        parser.add_argument(
-            "--debug",
-            action="store_true",
-            help="Print each GraphQL request (operation + variables) and response status.",
-        )
 
     def _resolve_resources(self, resources: str | None):
         known = _known_resource_names()
@@ -85,23 +79,22 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         resources = self._resolve_resources(options["resources"])
-        reporter = StreamReporter(self.stdout, verbose=options["debug"])
+        reporter = StreamReporter(self.stdout)
 
         try:
-            with transport.debug_logging(options["debug"]):
-                result = run_migration(
-                    source_url=options["source_url"],
-                    source_email=options["source_email"],
-                    source_password=options["source_password"],
-                    source_slug=options["source_workspace_slug"],
-                    target_url=options["target_url"],
-                    target_email=options["target_email"],
-                    target_password=options["target_password"],
-                    target_organization_id=options["target_organization"],
-                    target_workspace_name=options["target_workspace_name"],
-                    resources=resources,
-                    reporter=reporter,
-                )
+            result = run_migration(
+                source_url=options["source_url"],
+                source_email=options["source_email"],
+                source_password=options["source_password"],
+                source_slug=options["source_workspace_slug"],
+                target_url=options["target_url"],
+                target_email=options["target_email"],
+                target_password=options["target_password"],
+                target_organization_id=options["target_organization"],
+                target_workspace_name=options["target_workspace_name"],
+                resources=resources,
+                reporter=reporter,
+            )
         except CredentialError as exc:
             raise CommandError(
                 "Endpoint verification failed:\n"

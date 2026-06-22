@@ -13,7 +13,7 @@ entrypoint supplies:
 from typing import Protocol, runtime_checkable
 
 # Ordered low -> high so a reporter can filter by a minimum level.
-LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR")
+LEVELS = ("INFO", "WARNING", "ERROR")
 
 
 @runtime_checkable
@@ -32,9 +32,6 @@ class BaseReporter:
     def warning(self, message: str) -> None:
         self.log(message, level="WARNING")
 
-    def debug(self, message: str) -> None:
-        self.log(message, level="DEBUG")
-
     def error(self, message: str) -> None:
         self.log(message, level="ERROR")
 
@@ -50,18 +47,12 @@ class NullReporter(BaseReporter):
 
 
 class StreamReporter(BaseReporter):
-    """Write progress live to a stream (CLI: ``self.stdout``).
+    """Write progress live to a stream (CLI: ``self.stdout``)."""
 
-    ``verbose`` mirrors ``--debug``: DEBUG-level lines are dropped unless set.
-    """
-
-    def __init__(self, stream, *, verbose: bool = False):
+    def __init__(self, stream):
         self.stream = stream
-        self.verbose = verbose
 
     def log(self, message: str, *, level: str = "INFO") -> None:
-        if level == "DEBUG" and not self.verbose:
-            return
         prefix = "" if level == "INFO" else f"[{level}] "
         self.stream.write(f"{prefix}{message}\n")
 

@@ -88,7 +88,7 @@ class ConnectionsCopier(ResourceCopier):
             slug = conn["slug"]
             if slug in existing:
                 conns_result.skipped.append(slug)
-                reporter.debug(f"   skipped connection '{slug}' (already exists)")
+                reporter.info(f"   skipped connection '{slug}' (already exists)")
                 continue
             try:
                 fields_in = _build_fields(conn, conns_result)

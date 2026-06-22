@@ -256,6 +256,16 @@ LOGGING = {
             "level": "INFO",
             "propagate": True,
         },
+        # httpx/httpcore log every request/connection at INFO/DEBUG, which generates
+        # a lot of noise (e.g. when running the workspace duplicator).
+        "httpx": {
+            "level": "WARNING",
+            "propagate": True,
+        },
+        "httpcore": {
+            "level": "WARNING",
+            "propagate": True,
+        },
         "": {
             "handlers": ["default"],
             "level": "DEBUG" if DEBUG_LOGGING else "INFO",

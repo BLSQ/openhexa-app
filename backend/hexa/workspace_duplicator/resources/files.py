@@ -16,7 +16,7 @@ from hexa.workspace_duplicator.endpoints import Endpoint
 from hexa.workspace_duplicator.progress import ProgressReporter
 from hexa.workspace_duplicator.resources.base import ResourceCopier
 from hexa.workspace_duplicator.results import DuplicationResult, FilesResult
-from hexa.workspace_duplicator.transport import GraphQLError, _dbg, gql
+from hexa.workspace_duplicator.transport import GraphQLError, gql
 
 OBJECTS_PAGE_SIZE = 100
 
@@ -74,7 +74,6 @@ def download(source: Client, ws_slug: str, file_path: str) -> bytes:
             + ",".join(result.get("errors") or [])
         )
     url = result["downloadUrl"]
-    _dbg(f"download {file_path} <- {url}")
     with httpx.Client(timeout=300) as c:
         resp = c.get(url)
     if not resp.is_success:
@@ -114,7 +113,6 @@ def upload(
     url = result["uploadUrl"]
     headers = dict(result.get("headers") or {})
     headers.setdefault("Content-Type", content_type)
-    _dbg(f"upload {file_path} ({len(content)} bytes) -> {url}")
     with httpx.Client(timeout=300) as c:
         resp = c.put(url, content=content, headers=headers)
     if not resp.is_success:
@@ -182,7 +180,7 @@ class FilesCopier(ResourceCopier):
                 content = download(source.client, source.slug, path)
                 upload(target.client, target.slug, path, content)
                 files_result.copied.append((path, len(content)))
-                reporter.debug(f"   copied {path} ({len(content)} bytes)")
+                reporter.info(f"   copied {path} ({len(content)} bytes)")
             except GraphQLError:
                 # The full path goes into failed for the final summary so the
                 # user can re-attempt it manually.

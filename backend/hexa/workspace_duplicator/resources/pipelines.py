@@ -105,7 +105,7 @@ class PipelinesCopier(ResourceCopier):
             )
             if existing is not None:
                 pipes_result.skipped.append(src_code)
-                reporter.debug(f"   skipped pipeline '{src_code}' (already exists)")
+                reporter.info(f"   skipped pipeline '{src_code}' (already exists)")
                 continue
             try:
                 reporter.info(f"   copying pipeline '{src_code}' ...")

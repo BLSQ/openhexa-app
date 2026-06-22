@@ -11,7 +11,6 @@ from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
 from django.template.response import TemplateResponse
 
-from hexa.workspace_duplicator import transport
 from hexa.workspace_duplicator.forms import MigrateWorkspaceForm
 from hexa.workspace_duplicator.progress import BufferReporter
 from hexa.workspace_duplicator.results import format_summary
@@ -31,20 +30,19 @@ def migrate_workspace_view(request):
             data = form.cleaned_data
             reporter = BufferReporter()
             try:
-                with transport.debug_logging(data["debug"]):
-                    result = run_migration(
-                        source_url=data["source_url"],
-                        source_email=data["source_email"],
-                        source_password=data["source_password"],
-                        source_slug=data["source_slug"],
-                        target_url=data["target_url"],
-                        target_email=data["target_email"],
-                        target_password=data["target_password"],
-                        target_organization_id=data["target_organization"] or None,
-                        target_workspace_name=data["target_workspace_name"] or None,
-                        resources=set(data["resources"]),
-                        reporter=reporter,
-                    )
+                result = run_migration(
+                    source_url=data["source_url"],
+                    source_email=data["source_email"],
+                    source_password=data["source_password"],
+                    source_slug=data["source_slug"],
+                    target_url=data["target_url"],
+                    target_email=data["target_email"],
+                    target_password=data["target_password"],
+                    target_organization_id=data["target_organization"] or None,
+                    target_workspace_name=data["target_workspace_name"] or None,
+                    resources=set(data["resources"]),
+                    reporter=reporter,
+                )
                 summary = format_summary(result)
                 log = reporter.render()
                 messages.success(request, "Workspace duplication finished.")

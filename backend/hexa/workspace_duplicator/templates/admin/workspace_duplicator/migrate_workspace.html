@@ -43,10 +43,6 @@
         <h2>{% trans 'Resources' %}</h2>
         {% include "admin/workspace_duplicator/_field_row.html" with field=form.resources %}
     </fieldset>
-    <fieldset class="module aligned">
-        <h2>{% trans 'Options' %}</h2>
-        {% include "admin/workspace_duplicator/_field_row.html" with field=form.debug %}
-    </fieldset>
     <div class="submit-row">
         <input type="submit" value="{% trans 'Run migration' %}" class="default">
     </div>

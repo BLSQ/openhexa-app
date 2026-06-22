@@ -64,12 +64,6 @@ class MigrateWorkspaceForm(forms.Form):
         help_text="The workspace-metadata copier always runs.",
     )
 
-    debug = forms.BooleanField(
-        required=False,
-        label="Debug logging",
-        help_text="Log every GraphQL request and HTTP call to the server logs.",
-    )
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["resources"].initial = _default_resources()
