@@ -1,6 +1,8 @@
 # workspace_duplicator
 
-Copy an OpenHEXA workspace (and its resources) from one server to another — or between two workspaces on the same server. This is a Django app **with no models**.
+Copy an OpenHEXA workspace (and its resources) from one server to another, or between two workspaces on the same server.
+
+Right now, this is a Django app **without models**. In the future, some models will be introduced to support moving the execution of this script to an async job.
 
 ## How it works
 
@@ -40,8 +42,6 @@ Both are simple wrappers around `service.run_migration`, so we can easily mainta
 
 ### CLI
 
-TODO: Add more examples.
-
 Example usage:
 
 ```
@@ -56,6 +56,18 @@ Example usage:
 	--target-workspace-name "My Workspace (copy)" \ # optional
 	--target-email root@openhexa.org \
 	--target-password root
+
+# Production to demo
+./manage.py migrate_workspace \
+	--source-workspace-slug my-workspace \
+	--source-url https://api.openhexa.org/graphql/ \
+	--source-email me@bluesquarehub.com \
+	--source-password 'my-prod-pw' \
+	--target-url https://api.demo.openhexa.org/graphql/ \
+	--target-organization 002f2f74-7cdb-452c-8ef5-28cc27c04fbe \ # BLSQ org
+	--target-workspace-name "My Workspace (copy)" \
+	--target-email me@bluesquarehub.com \
+	--target-password 'my-demo-pw''
 ```
 
 Note: `--target-workspace-name` is optional and defaults to the same name as the source workspace.
