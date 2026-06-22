@@ -54,22 +54,6 @@ class PipelinesResult:
 
 
 @dataclass
-class TemplatesResult:
-    """What the templates copier did, for the summary."""
-
-    created: list[str] = field(default_factory=list)
-    """Names of templates newly created on target (didn't exist before)."""
-
-    versions_added: list[tuple[str, list[int]]] = field(default_factory=list)
-    """(template_name, [versionNumber, ...]) for versions added this run."""
-
-    skipped_unchanged: list[str] = field(default_factory=list)
-    """Names of templates that were already fully present on target."""
-
-    warnings: list[str] = field(default_factory=list)
-
-
-@dataclass
 class DuplicationResult:
     """Aggregate of a single workspace duplication run.
 
