@@ -78,6 +78,20 @@ On the workspaces list page, there's a new button "Migrate workspace". This prov
 
 The view is Superuser-only and entered credentials are used transiently and never persisted.
 
+## Progress reporting (`progress.py`)
+
+The script never writes to stdout or calls `print` directly. Instead, each entry point supplies a **`ProgressReporter`** that is threaded through `service.run_migration` → `orchestrator.duplicate_workspace` → every copier. This keeps the orchestration and copiers oblivious to where their output goes.
+
+A reporter exposes `log(message, *, level=...)` plus the `info` / `warning` / `debug` / `error` shortcuts.
+
+| reporter         | used by                 | behavior                                                                     |
+| ---------------- | ----------------------- | ---------------------------------------------------------------------------- |
+| `NullReporter`   | default / backend tests | discards everything, so the script can run without a caller                  |
+| `StreamReporter` | CLI                     | writes live to `self.stdout`; `verbose` (from `--debug`) gates `DEBUG` lines |
+| `BufferReporter` | Django admin view       | collects lines in memory; `render()` produces the text shown after the run   |
+
+Note: `BufferReporter` is also the shape a future async-job reporter could follow, by appending lines to a "logs" field on a run record (see the docstring).
+
 ## Results
 
 Copiers record what they did/skipped/failed on a shared `DuplicationResult` (per-resource result dataclasses in `results.py`). `format_summary()` renders the human-readable summary shown by both the CLI and the admin page.
