@@ -13,7 +13,8 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_GET
 
 from hexa.files.utils import is_safe_path
-from hexa.git.forgejo import ForgejoAPIError, get_forgejo_client
+from hexa.git.exceptions import GitFileNotFound
+from hexa.git.forgejo import get_forgejo_client
 from hexa.webapps.models import Webapp
 from hexa.webapps.utils import extract_webapp_subdomain
 
@@ -83,12 +84,10 @@ def serve_webapp(request, git_webapp, path="index.html"):
             git_webapp.published_commit,
             org_slug=git_webapp.git_org.slug,
         )
-    except ForgejoAPIError as e:
-        if e.status_code == 404:
-            if path == "index.html":
-                return HttpResponseNotFound("No index.html found")
-            return HttpResponseNotFound("File not found")
-        raise
+    except GitFileNotFound:
+        if path == "index.html":
+            return HttpResponseNotFound("No index.html found")
+        return HttpResponseNotFound("File not found")
 
     content_type, _ = mimetypes.guess_type(path)
     if not content_type:

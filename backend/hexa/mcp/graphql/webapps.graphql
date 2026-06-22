@@ -77,3 +77,17 @@ mutation UpdateStaticWebapp($input: UpdateWebappInput!) {
     }
   }
 }
+
+mutation EditWebappFile($input: EditWebappFileInput!) {
+  editWebappFile(input: $input) {
+    success
+    errors
+    webapp {
+      id
+      slug
+      name
+      url
+      type
+    }
+  }
+}

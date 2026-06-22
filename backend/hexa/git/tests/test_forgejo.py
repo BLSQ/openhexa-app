@@ -4,6 +4,7 @@ import json
 import responses
 from django.test import TestCase, override_settings
 
+from hexa.git.exceptions import GitFileNotFound
 from hexa.git.forgejo import ForgejoAPIError, ForgejoClient, get_forgejo_client
 
 FORGEJO_URL = "http://forgejo-test:3000"
@@ -291,7 +292,7 @@ class ForgejoAPIErrorTest(TestCase):
         self.assertIn("404", str(error))
 
     @responses.activate
-    def test_request_error_propagation(self):
+    def test_get_file_missing_raises_git_file_not_found(self):
         client = ForgejoClient(
             url=FORGEJO_URL,
             username=USERNAME,
@@ -303,10 +304,26 @@ class ForgejoAPIErrorTest(TestCase):
             json={"message": "not found"},
             status=404,
         )
-        with self.assertRaises(ForgejoAPIError) as ctx:
+        with self.assertRaises(GitFileNotFound):
             client.get_file("my-repo", "missing.txt")
 
-        self.assertEqual(ctx.exception.status_code, 404)
+    @responses.activate
+    def test_get_file_other_error_propagates(self):
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+        )
+
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/boom.txt",
+            json={"message": "server error"},
+            status=500,
+        )
+        with self.assertRaises(ForgejoAPIError) as ctx:
+            client.get_file("my-repo", "boom.txt")
+
+        self.assertEqual(ctx.exception.status_code, 500)
         self.assertEqual(ctx.exception.method, "GET")
 
 

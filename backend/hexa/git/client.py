@@ -45,6 +45,7 @@ class GitClient(ABC):
         *,
         org_slug: str | None = None,
     ) -> bytes:
+        """Return the raw bytes of a file. Raises GitFileNotFound if the path does not exist."""
         ...
 
     @abstractmethod

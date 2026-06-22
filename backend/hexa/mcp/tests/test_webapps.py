@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from hexa.mcp.tools.webapps import (
     create_static_webapp,
+    edit_static_webapp_file,
     get_static_webapp,
     list_static_webapps,
     update_static_webapp,
@@ -451,3 +452,62 @@ class UpdateStaticWebappTest(MCPTestCase):
         )
         self.assertTrue(result["success"], result)
         self.assertEqual(Webapp.objects.get(pk=webapp_id).allowed_operations, [])
+
+
+class EditStaticWebappFileTest(MCPTestCase):
+    @_mock_forgejo()
+    def test_edit_static_webapp_file(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("EditFile"),
+            files_json=json.dumps([{"path": "index.html", "content": "<h1>old</h1>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_id = str(create_result["webapp"]["id"])
+
+        client.get_file.return_value = b"<h1>old</h1>"
+        client.commit_files.reset_mock()
+
+        result = edit_static_webapp_file(
+            user=self.USER_ADMIN,
+            webapp_id=webapp_id,
+            path="index.html",
+            old_string="<h1>old</h1>",
+            new_string="<h1>new</h1>",
+        )
+
+        self.assertTrue(result["success"], result)
+        client.commit_files.assert_called_once()
+        self.assertEqual(
+            client.commit_files.call_args[0][1],
+            [{"path": "index.html", "content": "<h1>new</h1>", "encoding": "TEXT"}],
+        )
+
+    @_mock_forgejo()
+    def test_edit_static_webapp_file_string_not_found(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("EditMiss"),
+            files_json=json.dumps([{"path": "index.html", "content": "<h1>hi</h1>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_id = str(create_result["webapp"]["id"])
+
+        client.get_file.return_value = b"<h1>hi</h1>"
+        client.commit_files.reset_mock()
+
+        result = edit_static_webapp_file(
+            user=self.USER_ADMIN,
+            webapp_id=webapp_id,
+            path="index.html",
+            old_string="not present",
+            new_string="x",
+        )
+
+        self.assertFalse(result["success"])
+        self.assertIn("STRING_NOT_FOUND", result["errors"])
+        client.commit_files.assert_not_called()
