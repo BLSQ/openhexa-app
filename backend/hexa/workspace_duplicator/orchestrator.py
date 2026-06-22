@@ -5,9 +5,6 @@ dependency order: workspace metadata first (it creates the target and yields its
 handle), files before pipelines (notebook pipelines need their .ipynb present
 first). The medium (ORM vs GraphQL) is decided per endpoint inside each copier,
 so this orchestration is written once and shared by every flow (CLI + admin).
-
-The template copier is intentionally **not** in this registry — templates are
-server-wide and copied independently by the #2 flow.
 """
 
 from collections.abc import Iterable
@@ -23,8 +20,8 @@ from hexa.workspace_duplicator.resources.workspace import WorkspaceMetadataCopie
 from hexa.workspace_duplicator.results import DuplicationResult
 
 WORKSPACE_COPIERS: list[ResourceCopier] = [
-    WorkspaceMetadataCopier(),  # mandatory — creates target workspace, sets target handle
-    FilesCopier(),
+    WorkspaceMetadataCopier(),  # Mandatory first step
+    FilesCopier(),  # Before pipelines, needed for .ipynb files (notebook pipelines)
     DatabaseCopier(),  # LOCAL→LOCAL: native pg; else skip + warning
     ConnectionsCopier(),
     PipelinesCopier(),

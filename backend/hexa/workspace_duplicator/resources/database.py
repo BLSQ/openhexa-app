@@ -25,7 +25,8 @@ class DatabaseCopier(ResourceCopier):
     ) -> None:
         if source.is_remote or target.is_remote:
             message = (
-                "Database not copied — both endpoints must be local (same cluster)."
+                "Database not copied: both endpoints must be local on the (same instance)."
+                "Please perform a manual pg_dump / pg_restore."
             )
             result.warn(message)
             reporter.warning(f"   {message}")

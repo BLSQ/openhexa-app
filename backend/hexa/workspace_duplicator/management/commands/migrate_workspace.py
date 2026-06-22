@@ -62,25 +62,18 @@ class Command(BaseCommand):
             f"Known: {','.join(sorted(_known_resource_names()))}.",
         )
         parser.add_argument(
-            "--exclude",
-            default=None,
-            help="Comma-separated resources to skip (applied after --resources).",
-        )
-        parser.add_argument(
             "--debug",
             action="store_true",
             help="Print each GraphQL request (operation + variables) and response status.",
         )
 
-    def _resolve_resources(self, resources: str | None, exclude: str | None):
+    def _resolve_resources(self, resources: str | None):
         known = _known_resource_names()
         selected = (
             known.copy()
             if not resources
             else {r.strip() for r in resources.split(",") if r.strip()}
         )
-        if exclude:
-            selected -= {r.strip() for r in exclude.split(",") if r.strip()}
 
         unknown = selected - known
         if unknown:
@@ -91,7 +84,7 @@ class Command(BaseCommand):
         return selected
 
     def handle(self, *args, **options):
-        resources = self._resolve_resources(options["resources"], options["exclude"])
+        resources = self._resolve_resources(options["resources"])
         reporter = StreamReporter(self.stdout, verbose=options["debug"])
 
         try:
