@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 from django.test import SimpleTestCase
 
 from hexa.workspace_duplicator.endpoints import Endpoint
+from hexa.workspace_duplicator.progress import NullReporter
 from hexa.workspace_duplicator.resources.connections import ConnectionsCopier
 from hexa.workspace_duplicator.results import DuplicationResult
 
@@ -34,7 +35,7 @@ class ConnectionsCopierRemoteTest(SimpleTestCase):
             success=True, connection=MagicMock()
         )
 
-        ConnectionsCopier().copy(self.source, self.target, self.result)
+        ConnectionsCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertEqual(self.result.connections.created, [("db", 1)])
         self.assertEqual(self.result.connections.skipped, [])
@@ -46,7 +47,7 @@ class ConnectionsCopierRemoteTest(SimpleTestCase):
             [{"slug": "db"}],  # already on target
         ]
 
-        ConnectionsCopier().copy(self.source, self.target, self.result)
+        ConnectionsCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertEqual(self.result.connections.skipped, ["db"])
         self.target.client.create_connection.assert_not_called()
@@ -61,10 +62,12 @@ class ConnectionsCopierRemoteTest(SimpleTestCase):
             success=True, connection=MagicMock()
         )
 
-        ConnectionsCopier().copy(self.source, self.target, self.result)
+        ConnectionsCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertTrue(any("secret" in w for w in self.result.connections.warnings))
 
     def test_local_endpoint_not_yet_implemented(self):
         with self.assertRaises(NotImplementedError):
-            ConnectionsCopier().copy(Endpoint.local("src"), self.target, self.result)
+            ConnectionsCopier().copy(
+                Endpoint.local("src"), self.target, self.result, NullReporter()
+            )

@@ -9,6 +9,7 @@ did/skipped/failed on the shared :class:`DuplicationResult`.
 from abc import ABC, abstractmethod
 
 from hexa.workspace_duplicator.endpoints import Endpoint
+from hexa.workspace_duplicator.progress import ProgressReporter
 from hexa.workspace_duplicator.results import DuplicationResult
 
 
@@ -27,5 +28,9 @@ class ResourceCopier(ABC):
 
     @abstractmethod
     def copy(
-        self, source: Endpoint, target: Endpoint, result: DuplicationResult
+        self,
+        source: Endpoint,
+        target: Endpoint,
+        result: DuplicationResult,
+        reporter: ProgressReporter,
     ) -> None: ...

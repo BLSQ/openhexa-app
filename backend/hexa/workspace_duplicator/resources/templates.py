@@ -23,7 +23,6 @@ Idempotent: matches templates by name (globally unique) and existing
 versions by ``versionNumber``.
 """
 
-import sys
 import time
 from typing import Any
 
@@ -33,6 +32,7 @@ from openhexa.graphql.graphql_client.input_types import (
     CreateWorkspaceInput,
 )
 
+from hexa.workspace_duplicator.progress import ProgressReporter
 from hexa.workspace_duplicator.resources.pipelines import _upload_version
 from hexa.workspace_duplicator.results import TemplatesResult
 from hexa.workspace_duplicator.transport import GraphQLError, gql
@@ -144,26 +144,30 @@ mutation UpdateTemplate($input: UpdateTemplateInput!) {
 # ---------------------------------------------------------------------------
 
 
-def migrate_all(source: Client, target: Client) -> TemplatesResult:
+def migrate_all(
+    source: Client,
+    target: Client,
+    reporter: ProgressReporter,
+) -> TemplatesResult:
     """Migrate every template from `source` into `target`."""
     result = TemplatesResult()
 
-    print(f"=> Ensuring '{HOST_WORKSPACE_NAME}' workspace exists on target ...")
+    reporter.info(f"=> Ensuring '{HOST_WORKSPACE_NAME}' workspace exists on target ...")
     host_ws_slug = _ensure_host_workspace(target)
-    print(f"   host workspace slug: '{host_ws_slug}'")
+    reporter.info(f"   host workspace slug: '{host_ws_slug}'")
 
     # Listed once so re-runs find host pipelines whose code the server
     # re-derived from name (e.g. underscores -> dashes), not the source's
     # raw code.
     host_pipelines_by_name = _list_pipelines_by_name(target, host_ws_slug)
 
-    print("=> Listing source templates ...")
+    reporter.info("=> Listing source templates ...")
     src_templates = _list_all_source_templates(source)
-    print(f"   found {len(src_templates)} template(s)")
+    reporter.info(f"   found {len(src_templates)} template(s)")
 
-    print("=> Listing existing target templates ...")
+    reporter.info("=> Listing existing target templates ...")
     target_by_name = _list_all_target_templates(target)
-    print(f"   target already has {len(target_by_name)} template(s)")
+    reporter.info(f"   target already has {len(target_by_name)} template(s)")
 
     for src in src_templates:
         try:
@@ -175,11 +179,12 @@ def migrate_all(source: Client, target: Client) -> TemplatesResult:
                 host_ws_slug,
                 host_pipelines_by_name,
                 result,
+                reporter,
             )
         except GraphQLError as exc:
             msg = f"template '{src['name']}' (code='{src['code']}'): {exc}"
             result.warnings.append(msg)
-            print(f"     FAILED: {msg}", file=sys.stderr)
+            reporter.warning(f"     FAILED: {msg}")
 
     return result
 
@@ -192,10 +197,11 @@ def _migrate_one(
     host_ws_slug: str,
     host_pipelines_by_name: dict[str, str],
     result: TemplatesResult,
+    reporter: ProgressReporter,
 ) -> None:
     name = src_template["name"]
     code = src_template["code"]
-    print(f"   - template '{name}' (code='{code}') ...")
+    reporter.info(f"   - template '{name}' (code='{code}') ...")
 
     src_pipe = src_template.get("sourcePipeline")
     if src_pipe is None:
@@ -211,14 +217,14 @@ def _migrate_one(
         host_pipe_code = existing_target["sourcePipeline"]["code"]
         host_pipe_ws = existing_target["sourcePipeline"]["workspace"]["slug"]
         existing_version_numbers = _fetch_target_template_version_numbers(target, code)
-        print(
+        reporter.info(
             f"       already exists on target at "
             f"'{host_pipe_ws}/{host_pipe_code}'; "
             f"{len(existing_version_numbers)} version(s) present"
         )
     else:
         host_pipe_code, host_pipe_ws = _resolve_or_create_host_pipeline(
-            target, src_pipe, host_ws_slug, host_pipelines_by_name
+            target, src_pipe, host_ws_slug, host_pipelines_by_name, reporter
         )
         existing_version_numbers = set()
 
@@ -254,6 +260,7 @@ def _migrate_one(
         src_pipe_ver = ver["sourcePipelineVersion"]
         target_pv_id = _ensure_host_pipeline_version(
             target,
+            reporter,
             host_pipe_ws,
             host_pipe_code,
             src_pipe_ver,
@@ -289,7 +296,7 @@ def _migrate_one(
         if target_template_id is None and cptv.get("pipelineTemplate"):
             target_template_id = cptv["pipelineTemplate"]["id"]
 
-        print(f"       added template version v{vnum}")
+        reporter.info(f"       added template version v{vnum}")
         added.append(vnum)
         time.sleep(PER_VERSION_DELAY_SECONDS)
 
@@ -302,7 +309,7 @@ def _migrate_one(
 
     # 4. Apply metadata (idempotent re-application is fine).
     if target_template_id is not None:
-        _apply_metadata(target, src_template, target_template_id)
+        _apply_metadata(target, src_template, target_template_id, reporter)
 
     # 5. Warn on validated-on-source.
     if src_template.get("validatedAt"):
@@ -355,6 +362,7 @@ def _resolve_or_create_host_pipeline(
     src_pipeline: dict[str, Any],
     host_ws_slug: str,
     host_pipelines_by_name: dict[str, str],
+    reporter: ProgressReporter,
 ) -> tuple[str, str]:
     """Return (pipeline_code, workspace_slug) of the host pipeline to use.
 
@@ -373,7 +381,7 @@ def _resolve_or_create_host_pipeline(
     if src_ws_slug:
         existing = target.pipeline(workspace_slug=src_ws_slug, pipeline_code=src_code)
         if existing is not None:
-            print(
+            reporter.info(
                 f"       reusing already-migrated source pipeline "
                 f"'{src_ws_slug}/{existing.code}'"
             )
@@ -382,7 +390,9 @@ def _resolve_or_create_host_pipeline(
     # Fallback: ensure pipeline exists inside the dedicated host workspace.
     if src_name in host_pipelines_by_name:
         host_code = host_pipelines_by_name[src_name]
-        print(f"       reusing existing host pipeline '{host_ws_slug}/{host_code}'")
+        reporter.info(
+            f"       reusing existing host pipeline '{host_ws_slug}/{host_code}'"
+        )
         return host_code, host_ws_slug
 
     create_result = target.create_pipeline(
@@ -398,12 +408,13 @@ def _resolve_or_create_host_pipeline(
         )
     new_code = create_result.pipeline.code
     host_pipelines_by_name[src_name] = new_code
-    print(f"       created host pipeline '{host_ws_slug}/{new_code}'")
+    reporter.info(f"       created host pipeline '{host_ws_slug}/{new_code}'")
     return new_code, host_ws_slug
 
 
 def _ensure_host_pipeline_version(
     target: Client,
+    reporter: ProgressReporter,
     ws_slug: str,
     pipeline_code: str,
     src_pipeline_version: dict[str, Any],
@@ -425,7 +436,9 @@ def _ensure_host_pipeline_version(
         )
 
     up = _upload_version(target, ws_slug, pipeline_code, src_pipeline_version)
-    print(f"       uploaded host pipeline version v{src_vnum} -> {up['versionName']}")
+    reporter.info(
+        f"       uploaded host pipeline version v{src_vnum} -> {up['versionName']}"
+    )
     host_versions_by_number[up["versionNumber"]] = up["id"]
     return up["id"]
 
@@ -561,7 +574,10 @@ def _fetch_pipeline_versions_by_number(
 
 
 def _apply_metadata(
-    target: Client, src_template: dict[str, Any], target_template_id: str
+    target: Client,
+    src_template: dict[str, Any],
+    target_template_id: str,
+    reporter: ProgressReporter,
 ) -> None:
     tags = [t["name"] for t in (src_template.get("tags") or [])]
     input_: dict[str, Any] = {
@@ -582,8 +598,7 @@ def _apply_metadata(
     )
     upd = data["updatePipelineTemplate"]
     if not upd["success"]:
-        print(
-            f"       warning: updatePipelineTemplate failed for "
-            f"'{src_template['name']}': " + ",".join(upd.get("errors") or []),
-            file=sys.stderr,
+        reporter.warning(
+            f"       updatePipelineTemplate failed for "
+            f"'{src_template['name']}': " + ",".join(upd.get("errors") or [])
         )

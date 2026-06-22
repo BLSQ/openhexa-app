@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 from django.test import SimpleTestCase
 
 from hexa.workspace_duplicator.endpoints import Endpoint
+from hexa.workspace_duplicator.progress import NullReporter
 from hexa.workspace_duplicator.resources.workspace import WorkspaceMetadataCopier
 from hexa.workspace_duplicator.results import DuplicationResult
 from hexa.workspace_duplicator.transport import GraphQLError
@@ -31,7 +32,7 @@ class WorkspaceMetadataCopierRemoteTest(SimpleTestCase):
         )
         result = DuplicationResult()
 
-        WorkspaceMetadataCopier().copy(source, target, result)
+        WorkspaceMetadataCopier().copy(source, target, result, NullReporter())
 
         self.assertEqual(target.slug, "my-workspace-ab12")
         self.assertEqual(result.workspace_slug, "my-workspace-ab12")
@@ -47,7 +48,7 @@ class WorkspaceMetadataCopierRemoteTest(SimpleTestCase):
         target.client.update_workspace.return_value = MagicMock(success=True)
         result = DuplicationResult()
 
-        WorkspaceMetadataCopier().copy(source, target, result)
+        WorkspaceMetadataCopier().copy(source, target, result, NullReporter())
 
         target.client.update_workspace.assert_called_once()
 
@@ -57,7 +58,9 @@ class WorkspaceMetadataCopierRemoteTest(SimpleTestCase):
         target = Endpoint.remote(MagicMock())
 
         with self.assertRaises(GraphQLError):
-            WorkspaceMetadataCopier().copy(source, target, DuplicationResult())
+            WorkspaceMetadataCopier().copy(
+                source, target, DuplicationResult(), NullReporter()
+            )
 
     def test_local_target_not_yet_implemented(self):
         source = Endpoint.remote(MagicMock(), "src")
@@ -65,4 +68,6 @@ class WorkspaceMetadataCopierRemoteTest(SimpleTestCase):
         target = Endpoint.local()
 
         with self.assertRaises(NotImplementedError):
-            WorkspaceMetadataCopier().copy(source, target, DuplicationResult())
+            WorkspaceMetadataCopier().copy(
+                source, target, DuplicationResult(), NullReporter()
+            )

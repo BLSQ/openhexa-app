@@ -7,6 +7,7 @@ native local copy is implemented in a later phase.
 """
 
 from hexa.workspace_duplicator.endpoints import Endpoint
+from hexa.workspace_duplicator.progress import ProgressReporter
 from hexa.workspace_duplicator.resources.base import ResourceCopier
 from hexa.workspace_duplicator.results import DuplicationResult
 
@@ -16,12 +17,18 @@ class DatabaseCopier(ResourceCopier):
     label = "Workspace database"
 
     def copy(
-        self, source: Endpoint, target: Endpoint, result: DuplicationResult
+        self,
+        source: Endpoint,
+        target: Endpoint,
+        result: DuplicationResult,
+        reporter: ProgressReporter,
     ) -> None:
         if source.is_remote or target.is_remote:
-            result.warn(
+            message = (
                 "Database not copied — both endpoints must be local (same cluster)."
             )
+            result.warn(message)
+            reporter.warning(f"   {message}")
             return
         self._copy_local(source, target, result)
 

@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 from django.test import SimpleTestCase
 
 from hexa.workspace_duplicator.endpoints import Endpoint
+from hexa.workspace_duplicator.progress import NullReporter
 from hexa.workspace_duplicator.resources.pipelines import PipelinesCopier
 from hexa.workspace_duplicator.results import DuplicationResult
 from hexa.workspace_duplicator.transport import GraphQLError
@@ -28,7 +29,7 @@ class PipelinesCopierRemoteTest(SimpleTestCase):
         mock_create.return_value = ("tgt-pid", "my-pipeline")
         mock_upload.return_value = (["v1"], None)
 
-        PipelinesCopier().copy(self.source, self.target, self.result)
+        PipelinesCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertEqual(self.result.pipelines.created, [("my-pipeline", ["v1"])])
         mock_update.assert_called_once()
@@ -38,7 +39,7 @@ class PipelinesCopierRemoteTest(SimpleTestCase):
         mock_ids.return_value = [("pid-1", "my-pipeline")]
         self.target.client.pipeline.return_value = MagicMock()  # already exists
 
-        PipelinesCopier().copy(self.source, self.target, self.result)
+        PipelinesCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertEqual(self.result.pipelines.skipped, ["my-pipeline"])
         self.assertEqual(self.result.pipelines.created, [])
@@ -50,7 +51,7 @@ class PipelinesCopierRemoteTest(SimpleTestCase):
         self.target.client.pipeline.return_value = None
         mock_detail.return_value = {"type": "notebook", "notebookPath": None}
 
-        PipelinesCopier().copy(self.source, self.target, self.result)
+        PipelinesCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertEqual(self.result.pipelines.skipped, ["nb"])
         self.assertTrue(
@@ -74,14 +75,14 @@ class PipelinesCopierRemoteTest(SimpleTestCase):
             ("tgt-pid", "good-one"),
         ]
 
-        PipelinesCopier().copy(self.source, self.target, self.result)
+        PipelinesCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertEqual(self.result.pipelines.failed, ["bad-one"])
         self.assertEqual(self.result.pipelines.created, [("good-one", [])])
-        self.assertTrue(
-            any("bad-one" in w for w in self.result.pipelines.warnings)
-        )
+        self.assertTrue(any("bad-one" in w for w in self.result.pipelines.warnings))
 
     def test_local_endpoint_not_yet_implemented(self):
         with self.assertRaises(NotImplementedError):
-            PipelinesCopier().copy(Endpoint.local("src"), self.target, self.result)
+            PipelinesCopier().copy(
+                Endpoint.local("src"), self.target, self.result, NullReporter()
+            )

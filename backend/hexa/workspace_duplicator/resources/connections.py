@@ -26,6 +26,7 @@ from openhexa.graphql.graphql_client.input_types import (
 )
 
 from hexa.workspace_duplicator.endpoints import Endpoint
+from hexa.workspace_duplicator.progress import ProgressReporter
 from hexa.workspace_duplicator.resources.base import ResourceCopier
 from hexa.workspace_duplicator.results import ConnectionsResult, DuplicationResult
 from hexa.workspace_duplicator.transport import GraphQLError, gql
@@ -49,10 +50,14 @@ class ConnectionsCopier(ResourceCopier):
     label = "Connections"
 
     def copy(
-        self, source: Endpoint, target: Endpoint, result: DuplicationResult
+        self,
+        source: Endpoint,
+        target: Endpoint,
+        result: DuplicationResult,
+        reporter: ProgressReporter,
     ) -> None:
         if source.is_remote and target.is_remote:
-            self._copy_remote(source, target, result)
+            self._copy_remote(source, target, result, reporter)
         else:
             raise NotImplementedError(
                 "LOCAL connections copy (native ORM clone) is implemented in a "
@@ -60,7 +65,11 @@ class ConnectionsCopier(ResourceCopier):
             )
 
     def _copy_remote(
-        self, source: Endpoint, target: Endpoint, result: DuplicationResult
+        self,
+        source: Endpoint,
+        target: Endpoint,
+        result: DuplicationResult,
+        reporter: ProgressReporter,
     ) -> None:
         conns_result = ConnectionsResult()
         result.connections = conns_result
@@ -79,6 +88,7 @@ class ConnectionsCopier(ResourceCopier):
             slug = conn["slug"]
             if slug in existing:
                 conns_result.skipped.append(slug)
+                reporter.debug(f"   skipped connection '{slug}' (already exists)")
                 continue
             try:
                 fields_in = _build_fields(conn, conns_result)
@@ -98,10 +108,12 @@ class ConnectionsCopier(ResourceCopier):
                         + ",".join(e.value for e in (res.errors or []))
                     )
                 conns_result.created.append((slug, len(fields_in)))
+                reporter.info(f"   created connection '{slug}'")
             except GraphQLError:
                 # Collect and continue (like files) so one bad connection
                 # doesn't abort the rest of the migration.
                 conns_result.failed.append(slug)
+                reporter.warning(f"   FAILED to create connection '{slug}'")
 
 
 def _list_connections(client: Client, slug: str) -> list[dict[str, Any]] | None:

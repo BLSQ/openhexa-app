@@ -16,6 +16,7 @@ from openhexa.graphql.graphql_client.input_types import (
 )
 
 from hexa.workspace_duplicator.endpoints import Endpoint
+from hexa.workspace_duplicator.progress import ProgressReporter
 from hexa.workspace_duplicator.resources.base import ResourceCopier
 from hexa.workspace_duplicator.results import DuplicationResult
 from hexa.workspace_duplicator.transport import GraphQLError
@@ -27,7 +28,11 @@ class WorkspaceMetadataCopier(ResourceCopier):
     mandatory = True
 
     def copy(
-        self, source: Endpoint, target: Endpoint, result: DuplicationResult
+        self,
+        source: Endpoint,
+        target: Endpoint,
+        result: DuplicationResult,
+        reporter: ProgressReporter,
     ) -> None:
         src_ws = self._read_source(source)
         result.workspace_name = target.workspace_name or src_ws.name
@@ -39,6 +44,9 @@ class WorkspaceMetadataCopier(ResourceCopier):
 
         target.slug = target_slug
         result.workspace_slug = target_slug
+        reporter.info(
+            f"   created workspace {result.workspace_name!r} (slug '{target_slug}')"
+        )
         if source.slug and target_slug != source.slug:
             result.warn(
                 f"target workspace got slug '{target_slug}' instead of source "

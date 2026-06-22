@@ -13,6 +13,7 @@ server-wide and copied independently by the #2 flow.
 from collections.abc import Iterable
 
 from hexa.workspace_duplicator.endpoints import Endpoint
+from hexa.workspace_duplicator.progress import ProgressReporter
 from hexa.workspace_duplicator.resources.base import ResourceCopier
 from hexa.workspace_duplicator.resources.connections import ConnectionsCopier
 from hexa.workspace_duplicator.resources.database import DatabaseCopier
@@ -48,13 +49,16 @@ def _resolve_selection(
 def duplicate_workspace(
     source: Endpoint,
     target: Endpoint,
+    reporter: ProgressReporter,
     *,
     resources: set[str] | None = None,
 ) -> DuplicationResult:
     """Duplicate a workspace from ``source`` to ``target``.
 
     Runs the selected copiers in registry (dependency) order, recording the
-    outcome on a single :class:`DuplicationResult`.
+    outcome on a single :class:`DuplicationResult`. Live progress is emitted
+    through ``reporter``; pass a :class:`~hexa.workspace_duplicator.progress.NullReporter`
+    to discard it.
     """
     selected = _resolve_selection(WORKSPACE_COPIERS, resources)
     selected_names = {c.name for c in selected}
@@ -62,8 +66,9 @@ def duplicate_workspace(
     for copier in selected:
         for dep in copier.depends_on:
             if dep not in selected_names:
-                result.warn(
-                    f"{copier.name}: dependency '{dep}' not selected — may be incomplete"
-                )
-        copier.copy(source, target, result)
+                message = f"{copier.name}: dependency '{dep}' not selected — may be incomplete"
+                result.warn(message)
+                reporter.warning(message)
+        reporter.info(f"=> Copying {copier.name} ...")
+        copier.copy(source, target, result, reporter)
     return result

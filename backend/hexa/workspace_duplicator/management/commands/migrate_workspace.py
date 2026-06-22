@@ -11,6 +11,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from hexa.workspace_duplicator import transport
 from hexa.workspace_duplicator.orchestrator import WORKSPACE_COPIERS
+from hexa.workspace_duplicator.progress import StreamReporter
 from hexa.workspace_duplicator.results import format_summary
 from hexa.workspace_duplicator.service import CredentialError, run_migration
 from hexa.workspace_duplicator.transport import GraphQLError
@@ -91,6 +92,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         resources = self._resolve_resources(options["resources"], options["exclude"])
+        reporter = StreamReporter(self.stdout, verbose=options["debug"])
 
         try:
             with transport.debug_logging(options["debug"]):
@@ -105,6 +107,7 @@ class Command(BaseCommand):
                     target_organization_id=options["target_organization"],
                     target_workspace_name=options["target_workspace_name"],
                     resources=resources,
+                    reporter=reporter,
                 )
         except CredentialError as exc:
             raise CommandError(

@@ -5,6 +5,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.test import SimpleTestCase
 
 from hexa.workspace_duplicator.endpoints import Endpoint
+from hexa.workspace_duplicator.progress import NullReporter
 from hexa.workspace_duplicator.service import (
     CredentialError,
     _verify_endpoints,
@@ -131,7 +132,9 @@ class RunMigrationTest(SimpleTestCase):
         sentinel = object()
         mock_dup.return_value = sentinel
 
-        result = run_migration(resources={"workspace"}, **_kwargs())
+        result = run_migration(
+            resources={"workspace"}, reporter=NullReporter(), **_kwargs()
+        )
 
         self.assertIs(result, sentinel)
         mock_dup.assert_called_once()
@@ -142,6 +145,6 @@ class RunMigrationTest(SimpleTestCase):
         mock_build.side_effect = GraphQLError("source login failed: bad")
 
         with self.assertRaises(CredentialError):
-            run_migration(**_kwargs())
+            run_migration(reporter=NullReporter(), **_kwargs())
 
         mock_dup.assert_not_called()

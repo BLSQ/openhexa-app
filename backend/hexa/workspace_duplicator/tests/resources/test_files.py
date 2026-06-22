@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 from django.test import SimpleTestCase
 
 from hexa.workspace_duplicator.endpoints import Endpoint
+from hexa.workspace_duplicator.progress import NullReporter
 from hexa.workspace_duplicator.resources.files import FilesCopier
 from hexa.workspace_duplicator.results import DuplicationResult
 from hexa.workspace_duplicator.transport import GraphQLError
@@ -23,7 +24,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
         )
         mock_download.side_effect = [b"abc", b"hello"]
 
-        FilesCopier().copy(self.source, self.target, self.result)
+        FilesCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertEqual(self.result.files.copied, [("a.txt", 3), ("dir/b.txt", 5)])
         self.assertEqual(mock_upload.call_count, 2)
@@ -39,7 +40,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
         )
         mock_download.side_effect = [GraphQLError("boom"), b"ok"]
 
-        FilesCopier().copy(self.source, self.target, self.result)
+        FilesCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertEqual(self.result.files.failed, ["bad.txt"])
         self.assertEqual(self.result.files.copied, [("ok.txt", 2)])

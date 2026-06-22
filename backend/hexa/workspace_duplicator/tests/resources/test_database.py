@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 from django.test import SimpleTestCase
 
 from hexa.workspace_duplicator.endpoints import Endpoint
+from hexa.workspace_duplicator.progress import NullReporter
 from hexa.workspace_duplicator.resources.database import DatabaseCopier
 from hexa.workspace_duplicator.results import DuplicationResult
 
@@ -13,7 +14,7 @@ class DatabaseCopierTest(SimpleTestCase):
         target = Endpoint.local("tgt")
         result = DuplicationResult()
 
-        DatabaseCopier().copy(source, target, result)
+        DatabaseCopier().copy(source, target, result, NullReporter())
 
         self.assertTrue(
             any("both endpoints must be local" in w for w in result.warnings)
@@ -24,7 +25,7 @@ class DatabaseCopierTest(SimpleTestCase):
         target = Endpoint.remote(MagicMock(), "tgt")
         result = DuplicationResult()
 
-        DatabaseCopier().copy(source, target, result)
+        DatabaseCopier().copy(source, target, result, NullReporter())
 
         self.assertTrue(
             any("both endpoints must be local" in w for w in result.warnings)
@@ -36,4 +37,4 @@ class DatabaseCopierTest(SimpleTestCase):
         result = DuplicationResult()
 
         with self.assertRaises(NotImplementedError):
-            DatabaseCopier().copy(source, target, result)
+            DatabaseCopier().copy(source, target, result, NullReporter())

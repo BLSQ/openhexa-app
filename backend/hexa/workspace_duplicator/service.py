@@ -21,6 +21,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from hexa.workspace_duplicator.endpoints import Endpoint
 from hexa.workspace_duplicator.orchestrator import duplicate_workspace
+from hexa.workspace_duplicator.progress import ProgressReporter
 from hexa.workspace_duplicator.results import DuplicationResult
 from hexa.workspace_duplicator.transport import GraphQLError, build_client
 from hexa.workspaces.models import Workspace
@@ -65,7 +66,9 @@ def _build_target(
     )
 
 
-def _verify_side(side: str, build: Callable[[], Endpoint]) -> tuple[Endpoint | None, str | None]:
+def _verify_side(
+    side: str, build: Callable[[], Endpoint]
+) -> tuple[Endpoint | None, str | None]:
     """Build one endpoint, returning ``(endpoint, error_message)``.
 
     Building a remote endpoint authenticates against its server, so this is also
@@ -128,6 +131,7 @@ def run_migration(
     target_organization_id: str | None = None,
     target_workspace_name: str | None = None,
     resources: set[str] | None = None,
+    reporter: ProgressReporter,
 ) -> DuplicationResult:
     """Verify both endpoints, then duplicate the workspace, returning the result."""
     source, target = _verify_endpoints(
@@ -141,4 +145,4 @@ def run_migration(
         target_organization_id=target_organization_id,
         target_workspace_name=target_workspace_name,
     )
-    return duplicate_workspace(source, target, resources=resources)
+    return duplicate_workspace(source, target, reporter, resources=resources)

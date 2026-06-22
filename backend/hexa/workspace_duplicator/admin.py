@@ -13,6 +13,7 @@ from django.template.response import TemplateResponse
 
 from hexa.workspace_duplicator import transport
 from hexa.workspace_duplicator.forms import MigrateWorkspaceForm
+from hexa.workspace_duplicator.progress import BufferReporter
 from hexa.workspace_duplicator.results import format_summary
 from hexa.workspace_duplicator.service import CredentialError, run_migration
 from hexa.workspace_duplicator.transport import GraphQLError
@@ -23,10 +24,12 @@ def migrate_workspace_view(request):
         raise PermissionDenied
 
     summary = None
+    log = None
     if request.method == "POST":
         form = MigrateWorkspaceForm(request.POST)
         if form.is_valid():
             data = form.cleaned_data
+            reporter = BufferReporter()
             try:
                 with transport.debug_logging(data["debug"]):
                     result = run_migration(
@@ -40,8 +43,10 @@ def migrate_workspace_view(request):
                         target_organization_id=data["target_organization"] or None,
                         target_workspace_name=data["target_workspace_name"] or None,
                         resources=set(data["resources"]),
+                        reporter=reporter,
                     )
                 summary = format_summary(result)
+                log = reporter.render()
                 messages.success(request, "Workspace duplication finished.")
             except CredentialError as exc:
                 for err in exc.errors:
@@ -56,6 +61,7 @@ def migrate_workspace_view(request):
         "title": "Migrate workspace",
         "form": form,
         "summary": summary,
+        "log": log,
     }
     return TemplateResponse(
         request, "admin/workspace_duplicator/migrate_workspace.html", context

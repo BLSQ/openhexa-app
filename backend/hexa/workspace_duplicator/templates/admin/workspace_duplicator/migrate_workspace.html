@@ -52,6 +52,11 @@
     </div>
 </form>
 
+{% if log %}
+<h2>{% trans 'Log' %}</h2>
+<pre>{{ log }}</pre>
+{% endif %}
+
 {% if summary %}
 <h2>{% trans 'Summary' %}</h2>
 <pre>{{ summary }}</pre>

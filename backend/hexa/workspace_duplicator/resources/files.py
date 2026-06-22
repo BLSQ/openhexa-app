@@ -13,6 +13,7 @@ import httpx
 from openhexa.graphql.graphql_client.client import Client
 
 from hexa.workspace_duplicator.endpoints import Endpoint
+from hexa.workspace_duplicator.progress import ProgressReporter
 from hexa.workspace_duplicator.resources.base import ResourceCopier
 from hexa.workspace_duplicator.results import DuplicationResult, FilesResult
 from hexa.workspace_duplicator.transport import GraphQLError, _dbg, gql
@@ -166,7 +167,11 @@ class FilesCopier(ResourceCopier):
     label = "Files (bucket)"
 
     def copy(
-        self, source: Endpoint, target: Endpoint, result: DuplicationResult
+        self,
+        source: Endpoint,
+        target: Endpoint,
+        result: DuplicationResult,
+        reporter: ProgressReporter,
     ) -> None:
         files_result = FilesResult()
         result.files = files_result
@@ -177,7 +182,14 @@ class FilesCopier(ResourceCopier):
                 content = download(source.client, source.slug, path)
                 upload(target.client, target.slug, path, content)
                 files_result.copied.append((path, len(content)))
+                reporter.debug(f"   copied {path} ({len(content)} bytes)")
             except GraphQLError:
                 # The full path goes into failed for the final summary so the
                 # user can re-attempt it manually.
                 files_result.failed.append(path)
+                reporter.warning(f"   FAILED to copy {path}")
+
+        reporter.info(
+            f"   {len(files_result.copied)} file(s) copied, "
+            f"{len(files_result.failed)} failed"
+        )

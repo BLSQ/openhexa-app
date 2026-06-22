@@ -16,6 +16,7 @@ from openhexa.graphql.graphql_client.client import Client
 from openhexa.graphql.graphql_client.input_types import CreatePipelineInput
 
 from hexa.workspace_duplicator.endpoints import Endpoint
+from hexa.workspace_duplicator.progress import ProgressReporter
 from hexa.workspace_duplicator.resources.base import ResourceCopier
 from hexa.workspace_duplicator.results import DuplicationResult, PipelinesResult
 from hexa.workspace_duplicator.transport import GraphQLError, gql
@@ -72,10 +73,14 @@ class PipelinesCopier(ResourceCopier):
     depends_on = ("files",)
 
     def copy(
-        self, source: Endpoint, target: Endpoint, result: DuplicationResult
+        self,
+        source: Endpoint,
+        target: Endpoint,
+        result: DuplicationResult,
+        reporter: ProgressReporter,
     ) -> None:
         if source.is_remote and target.is_remote:
-            self._copy_remote(source, target, result)
+            self._copy_remote(source, target, result, reporter)
         else:
             raise NotImplementedError(
                 "LOCAL pipelines copy (native ORM clone) is implemented in a "
@@ -83,7 +88,11 @@ class PipelinesCopier(ResourceCopier):
             )
 
     def _copy_remote(
-        self, source: Endpoint, target: Endpoint, result: DuplicationResult
+        self,
+        source: Endpoint,
+        target: Endpoint,
+        result: DuplicationResult,
+        reporter: ProgressReporter,
     ) -> None:
         pipes_result = PipelinesResult()
         result.pipelines = pipes_result
@@ -96,10 +105,12 @@ class PipelinesCopier(ResourceCopier):
             )
             if existing is not None:
                 pipes_result.skipped.append(src_code)
+                reporter.debug(f"   skipped pipeline '{src_code}' (already exists)")
                 continue
             try:
+                reporter.info(f"   copying pipeline '{src_code}' ...")
                 self._copy_pipeline(
-                    source, target, pipeline_id, src_code, pipes_result
+                    source, target, pipeline_id, src_code, pipes_result, reporter
                 )
             except GraphQLError as exc:
                 # Collect and continue (like the datasets copier) so one bad
@@ -111,6 +122,7 @@ class PipelinesCopier(ResourceCopier):
                     f"pipeline '{src_code}' could not be migrated — handle "
                     f"manually ({exc})."
                 )
+                reporter.warning(f"   FAILED to migrate pipeline '{src_code}' ({exc})")
 
     def _copy_pipeline(
         self,
@@ -119,6 +131,7 @@ class PipelinesCopier(ResourceCopier):
         pipeline_id: str,
         src_code: str,
         pipes_result: PipelinesResult,
+        reporter: ProgressReporter,
     ) -> None:
         detail = _fetch_source_detail(source.client, pipeline_id)
         is_notebook = detail.get("type") == "notebook"
@@ -128,11 +141,12 @@ class PipelinesCopier(ResourceCopier):
                 f"notebook pipeline '{src_code}' has no notebookPath; skipped."
             )
             pipes_result.skipped.append(src_code)
+            reporter.warning(
+                f"   skipped notebook pipeline '{src_code}' (no notebookPath)"
+            )
             return
 
-        target_pid, target_code = _create_on_target(
-            target.client, target.slug, detail
-        )
+        target_pid, target_code = _create_on_target(target.client, target.slug, detail)
 
         uploaded_names, scheduled_version_id = _upload_versions(
             target.client,
@@ -145,6 +159,9 @@ class PipelinesCopier(ResourceCopier):
 
         _update_settings(target.client, target_pid, detail, scheduled_version_id)
         pipes_result.created.append((target_code, uploaded_names))
+        reporter.info(
+            f"   created pipeline '{target_code}' ({len(uploaded_names)} version(s))"
+        )
 
 
 # ---------------------------------------------------------------------------

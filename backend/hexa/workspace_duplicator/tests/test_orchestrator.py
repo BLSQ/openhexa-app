@@ -8,6 +8,7 @@ from hexa.workspace_duplicator.orchestrator import (
     _resolve_selection,
     duplicate_workspace,
 )
+from hexa.workspace_duplicator.progress import NullReporter
 from hexa.workspace_duplicator.resources.base import ResourceCopier
 
 
@@ -19,8 +20,9 @@ class FakeCopier(ResourceCopier):
         self.depends_on = depends_on
         self.calls = []
 
-    def copy(self, source, target, result):
+    def copy(self, source, target, result, reporter):
         self.calls.append((source, target))
+        reporter.info(f"ran:{self.name}")
         result.warn(f"ran:{self.name}")
 
 
@@ -52,7 +54,7 @@ class DuplicateWorkspaceTest(SimpleTestCase):
             FakeCopier("pipelines", depends_on=("files",)),
         ]
         with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
-            result = duplicate_workspace(object(), object())
+            result = duplicate_workspace(object(), object(), NullReporter())
         ran = [w for w in result.warnings if w.startswith("ran:")]
         self.assertEqual(ran, ["ran:workspace", "ran:files", "ran:pipelines"])
 
@@ -63,7 +65,9 @@ class DuplicateWorkspaceTest(SimpleTestCase):
             FakeCopier("pipelines", depends_on=("files",)),
         ]
         with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
-            result = duplicate_workspace(object(), object(), resources={"pipelines"})
+            result = duplicate_workspace(
+                object(), object(), NullReporter(), resources={"pipelines"}
+            )
         self.assertTrue(
             any("dependency 'files' not selected" in w for w in result.warnings)
         )
@@ -78,6 +82,6 @@ class DuplicateWorkspaceTest(SimpleTestCase):
         ]
         with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
             result = duplicate_workspace(
-                object(), object(), resources={"files", "pipelines"}
+                object(), object(), NullReporter(), resources={"files", "pipelines"}
             )
         self.assertFalse(any("not selected" in w for w in result.warnings))
