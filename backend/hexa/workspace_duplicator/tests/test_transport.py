@@ -25,7 +25,9 @@ class GqlErrorTranslationTest(SimpleTestCase):
 
     def test_returns_data_on_success(self):
         client = self._client()
-        self.assertEqual(gql(client, "query Q { ok }", operation_name="Q"), {"ok": True})
+        self.assertEqual(
+            gql(client, "query Q { ok }", operation_name="Q"), {"ok": True}
+        )
 
     def test_http_error_raises_graphql_error(self):
         client = self._client(is_success=False, status_code=500)
