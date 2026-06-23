@@ -7,7 +7,13 @@ import {
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import useEventListener from "core/hooks/useEventListener";
-import { FormEventHandler, ReactElement, ReactNode, useRef } from "react";
+import {
+  CSSProperties,
+  FormEventHandler,
+  ReactElement,
+  ReactNode,
+  useRef,
+} from "react";
 
 type DialogProps = {
   open: boolean;
@@ -25,6 +31,10 @@ type DialogProps = {
   // backdrop flush against the visible box so clicking just outside it closes the
   // dialog. `maxWidth` still acts as the upper bound.
   fitContent?: boolean;
+  // Extra inline styles merged onto the panel box. Used to drive a dynamic
+  // width/height (e.g. a drag-resizable dialog) that can't be expressed with
+  // static classes. The `maxHeight` viewport cap still applies unless overridden.
+  style?: CSSProperties;
 };
 
 const DialogTitle = (props: { children: ReactNode; onClose?: () => void }) => {
@@ -86,6 +96,7 @@ function Dialog(props: DialogProps) {
     className,
     maxWidth,
     fitContent = false,
+    style,
   } = props;
 
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -132,7 +143,7 @@ function Dialog(props: DialogProps) {
               "flex flex-col",
               className,
             )}
-            style={{ maxHeight: "calc(100vh - 5rem)" }}
+            style={{ maxHeight: "calc(100vh - 5rem)", ...style }}
           >
             {children}
           </ContentElement>

@@ -3,7 +3,13 @@ import clsx from "clsx";
 import Clipboard from "core/components/Clipboard";
 import Dialog from "core/components/Dialog";
 import JsonView from "core/components/JsonView";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  PointerEvent as ReactPointerEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "next-i18next";
 import { formatToolName, getToolLabels } from "assistant/helpers/toolNames";
 import RendererBoundary from "./renderers/RendererBoundary";
@@ -11,6 +17,18 @@ import { resolveSemanticRenderer, RenderContext } from "./renderers";
 
 const COLLAPSED_MAX_PX = 260;
 const COLLAPSED_MAX_WIDE_PX = 380;
+
+// Modal resize bounds. MIN_* match the dialog's floor; the max is derived from
+// the viewport at drag time (95% wide, and the same `100vh - 5rem` cap the
+// Dialog panel enforces) so the box always stays on-screen.
+const MODAL_MIN_WIDTH = 400;
+const MODAL_MIN_HEIGHT = 300;
+const MODAL_VIEWPORT_MARGIN_PX = 80;
+const MODAL_DEFAULT_WIDTH = 760;
+const MODAL_DEFAULT_WIDE_WIDTH = 1100;
+const MODAL_DEFAULT_HEIGHT_RATIO = 0.75;
+
+type ModalSize = { width: number; height: number };
 
 type Props = {
   label: string;
@@ -76,14 +94,76 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
   const [modalMode, setModalMode] = useState<"pretty" | "raw">(defaultMode);
   const [modalOpen, setModalOpen] = useState(false);
   const [overflowing, setOverflowing] = useState(false);
+  // null until the modal is first opened, at which point it's seeded from the
+  // viewport; drag handles then drive it. Persists across opens so the box
+  // reopens at the size the user last left it.
+  const [modalSize, setModalSize] = useState<ModalSize | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
+
+  const isWideRenderer = !!semantic?.wide;
 
   // The modal keeps its own view mode so toggling Raw/formatted there doesn't
   // also flip the inline conversation snippet. It opens showing whatever the
   // inline preview was last set to.
   const openModal = () => {
     setModalMode(mode);
+    setModalSize(
+      (prev) =>
+        prev ?? {
+          width: Math.min(
+            isWideRenderer ? MODAL_DEFAULT_WIDE_WIDTH : MODAL_DEFAULT_WIDTH,
+            window.innerWidth * 0.95,
+          ),
+          height: Math.round(
+            window.innerHeight * MODAL_DEFAULT_HEIGHT_RATIO,
+          ),
+        },
+    );
     setModalOpen(true);
+  };
+
+  const startResize = (
+    e: ReactPointerEvent,
+    edges: { right?: boolean; bottom?: boolean },
+  ) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const start = modalSize ?? {
+      width: isWideRenderer ? MODAL_DEFAULT_WIDE_WIDTH : MODAL_DEFAULT_WIDTH,
+      height: Math.round(window.innerHeight * MODAL_DEFAULT_HEIGHT_RATIO),
+    };
+    const maxW = window.innerWidth * 0.95;
+    const maxH = window.innerHeight - MODAL_VIEWPORT_MARGIN_PX;
+
+    const onMove = (ev: PointerEvent) => {
+      // The panel is horizontally centered, so the right edge moves at half the
+      // width delta (both sides shift) — double the X delta so it tracks the
+      // cursor. Vertically the panel is top-anchored, so the bottom edge already
+      // moves 1:1 with the height delta; no doubling there.
+      setModalSize({
+        width: edges.right
+          ? Math.max(
+              MODAL_MIN_WIDTH,
+              Math.min(start.width + (ev.clientX - startX) * 2, maxW),
+            )
+          : start.width,
+        height: edges.bottom
+          ? Math.max(
+              MODAL_MIN_HEIGHT,
+              Math.min(start.height + (ev.clientY - startY), maxH),
+            )
+          : start.height,
+      });
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      document.body.style.userSelect = "";
+    };
+    document.body.style.userSelect = "none";
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
   };
 
   const body = (viewMode: "pretty" | "raw") =>
@@ -109,7 +189,6 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
   // A structured view always benefits from the roomy modal; raw/plain content
   // only needs it once it overflows the inline preview.
   const canExpand = !!semantic || overflowing;
-  const isWideRenderer = !!semantic?.wide;
   // Taller inline preview only while the wide view is actually showing; modal
   // width stays stable so it doesn't jump when toggling to raw inside it.
   const previewMaxPx =
@@ -194,13 +273,18 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
         // fitContent keeps the panel hugging the resizable box, so the backdrop
         // stays flush against it and clicking just outside closes the dialog.
         fitContent
+        // Drag-resizable via the custom handles below. Until first opened the
+        // box uses its default classes; once a size exists it's driven by state
+        // and capped by the Dialog's own `100vh - 5rem` height limit.
+        style={
+          modalSize
+            ? { width: modalSize.width, height: modalSize.height }
+            : undefined
+        }
         className={clsx(
-          // Drag-resizable in both directions. It opens at a limited default
-          // height (h-[75vh]) so there's space below the modal, but the user can
-          // drag it taller — up to the panel cap from Dialog (calc(100vh-5rem)),
-          // which keeps it inside the viewport.
-          "resize overflow-auto h-[75vh] min-h-[300px] min-w-[400px] max-w-[90vw]",
-          isWideRenderer ? "w-[1100px]" : "w-[760px]",
+          "relative overflow-hidden min-h-[300px] min-w-[400px] max-w-[95vw]",
+          !modalSize && "h-[75vh]",
+          !modalSize && (isWideRenderer ? "w-[1100px]" : "w-[760px]"),
         )}
       >
         <Dialog.Title onClose={() => setModalOpen(false)}>
@@ -213,6 +297,37 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
           </div>
         </Dialog.Title>
         <Dialog.Content className="pb-4">{body(modalMode)}</Dialog.Content>
+
+        {/* Resize handles: thin hit-targets on the right and bottom edges, each
+            showing a subtle gray highlight on hover. The corner is an invisible
+            target rendered first so it acts as a `peer` for the two strips —
+            hovering it lights up BOTH at once (an L at the corner) to signal a
+            two-axis resize, instead of a button-like grip. */}
+        <div
+          onPointerDown={(e) => startResize(e, { right: true, bottom: true })}
+          title={t("Drag to resize")}
+          className="peer/corner absolute bottom-0 right-0 z-10 flex h-4 w-4 cursor-nwse-resize items-end justify-end p-0.5 text-gray-400 transition-colors hover:text-gray-600"
+        >
+          <svg
+            viewBox="0 0 12 12"
+            className="h-3 w-3"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.25"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <path d="M11 4 4 11 M11 7 7 11 M11 10 10 11" />
+          </svg>
+        </div>
+        <div
+          onPointerDown={(e) => startResize(e, { right: true })}
+          className="absolute inset-y-0 right-0 w-1.5 cursor-ew-resize transition-colors hover:bg-gray-200/70 peer-hover/corner:bg-gray-200/70"
+        />
+        <div
+          onPointerDown={(e) => startResize(e, { bottom: true })}
+          className="absolute inset-x-0 bottom-0 h-1.5 cursor-ns-resize transition-colors hover:bg-gray-200/70 peer-hover/corner:bg-gray-200/70"
+        />
       </Dialog>
     </div>
   );
