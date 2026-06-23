@@ -199,9 +199,11 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
         // stays flush against it and clicking just outside closes the dialog.
         fitContent
         className={clsx(
-          // Drag-resizable in both directions. The box bounds itself (below the
-          // panel cap) so growing it never overflows the viewport.
-          "resize overflow-auto min-h-[300px] min-w-[400px] max-w-[90vw]",
+          // Drag-resizable in both directions. It opens at a limited default
+          // height (h-[75vh]) so there's space below the modal, but the user can
+          // drag it taller — up to the panel cap from Dialog (calc(100vh-5rem)),
+          // which keeps it inside the viewport.
+          "resize overflow-auto h-[75vh] min-h-[300px] min-w-[400px] max-w-[90vw]",
           isWideRenderer ? "w-[1100px]" : "w-[760px]",
         )}
       >
