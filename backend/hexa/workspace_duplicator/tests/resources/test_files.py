@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock, patch
 
+import httpx
 from django.test import SimpleTestCase
 
 from hexa.workspace_duplicator.endpoints import Endpoint
@@ -44,3 +45,37 @@ class FilesCopierRemoteTest(SimpleTestCase):
 
         self.assertEqual(self.result.files.failed, ["bad.txt"])
         self.assertEqual(self.result.files.copied, [("ok.txt", 2)])
+
+    @patch("hexa.workspace_duplicator.resources.files.upload")
+    @patch("hexa.workspace_duplicator.resources.files.download")
+    @patch("hexa.workspace_duplicator.resources.files.walk")
+    def test_httpx_error_during_transfer_is_recorded_and_loop_continues(
+        self, mock_walk, mock_download, mock_upload
+    ):
+        mock_walk.return_value = iter(
+            [{"key": "bad.txt", "size": 1}, {"key": "ok.txt", "size": 2}]
+        )
+        mock_download.side_effect = [httpx.ReadTimeout("blip"), b"ok"]
+
+        FilesCopier().copy(self.source, self.target, self.result, NullReporter())
+
+        self.assertEqual(self.result.files.failed, ["bad.txt"])
+        self.assertEqual(self.result.files.copied, [("ok.txt", 2)])
+
+    @patch("hexa.workspace_duplicator.resources.files.upload")
+    @patch("hexa.workspace_duplicator.resources.files.download")
+    @patch("hexa.workspace_duplicator.resources.files.walk")
+    def test_walk_failure_keeps_earlier_successes(
+        self, mock_walk, mock_download, mock_upload
+    ):
+        def walk_then_fail():
+            yield {"key": "a.txt", "size": 3}
+            raise GraphQLError("listing page 2 failed")
+
+        mock_walk.return_value = walk_then_fail()
+        mock_download.side_effect = [b"abc"]
+
+        FilesCopier().copy(self.source, self.target, self.result, NullReporter())
+
+        self.assertEqual(self.result.files.copied, [("a.txt", 3)])
+        self.assertEqual(self.result.files.failed, ["<listing>"])

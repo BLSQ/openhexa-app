@@ -4,6 +4,7 @@ from typing import Any
 
 import httpx
 from openhexa.graphql.graphql_client.client import Client
+from openhexa.graphql.graphql_client.exceptions import GraphQLClientError
 
 
 class GraphQLError(RuntimeError):
@@ -27,7 +28,17 @@ def gql(
             f"{operation_name or '<anon>'} returned HTTP {resp.status_code}: "
             f"{resp.text[:2000]}"
         )
-    return client.get_data(resp)
+    try:
+        # A 200 response can still carry a top-level `errors` array (any
+        # resolver exception or query error). get_data raises the SDK's
+        # GraphQLClientError in that case, which the module's callers expect
+        # as our GraphQLError — translate it here so a single server-side
+        # error is recorded per-item instead of aborting the whole copy.
+        return client.get_data(resp)
+    except GraphQLClientError as exc:
+        raise GraphQLError(
+            f"{operation_name or '<anon>'} GraphQL error: {exc}"
+        ) from exc
 
 
 def build_client(server_url: str, email: str, password: str, *, label: str) -> Client:

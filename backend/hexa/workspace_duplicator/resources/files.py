@@ -181,16 +181,31 @@ class FilesCopier(ResourceCopier):
         # self-authenticating and some storage backends reject requests that
         # also send an Authorization header.
         with httpx.Client(timeout=300) as http_client:
-            for obj in walk(source.client, source.slug):
+            # walk() is a generator whose paginated/recursive gql() calls can
+            # themselves raise (page 2+, a subdir listing). Driving it via
+            # next() lets us record a listing failure and keep the files copied
+            # so far instead of letting the error escape copy() and lose them.
+            walker = walk(source.client, source.slug)
+            while True:
+                try:
+                    obj = next(walker)
+                except StopIteration:
+                    break
+                except (GraphQLError, httpx.HTTPError) as exc:
+                    files_result.failed.append("<listing>")
+                    reporter.warning(f"   FAILED to list remaining files: {exc}")
+                    break
                 path = obj["key"]
                 try:
                     content = download(source.client, source.slug, path, http_client)
                     upload(target.client, target.slug, path, content, http_client)
                     files_result.copied.append((path, len(content)))
                     reporter.info(f"   copied {path} ({len(content)} bytes)")
-                except GraphQLError:
-                    # The full path goes into failed for the final summary so the
-                    # user can re-attempt it manually.
+                except (GraphQLError, httpx.HTTPError):
+                    # Both presigned download/upload (httpx) and the prepare
+                    # mutations (GraphQL) can fail per-file. The full path goes
+                    # into failed for the final summary so the user can
+                    # re-attempt it manually.
                     files_result.failed.append(path)
                     reporter.warning(f"   FAILED to copy {path}")
 
