@@ -347,7 +347,7 @@ def _upload_versions(
     uploaded_names: list[str] = []
     scheduled_version_id: str | None = None
     scheduled_src = detail.get("scheduledPipelineVersion") or {}
-    scheduled_src_number = scheduled_src.get("versionNumber")
+    scheduled_src_id = scheduled_src.get("id")
 
     if is_notebook:
         if detail.get("versions"):
@@ -366,9 +366,9 @@ def _upload_versions(
     for v in versions:
         up = _upload_version(target, target_slug, target_code, v)
         uploaded_names.append(up["versionName"])
-        if (
-            scheduled_src_number is not None
-            and up.get("versionNumber") == scheduled_src_number
-        ):
+        # Match on the source version's identity, not its number: the target
+        # re-numbers versions sequentially from 1, so source numbering gaps
+        # (deleted versions) would never line up.
+        if scheduled_src_id is not None and v["id"] == scheduled_src_id:
             scheduled_version_id = up["id"]
     return uploaded_names, scheduled_version_id

@@ -4,8 +4,11 @@ from django.test import SimpleTestCase
 
 from hexa.workspace_duplicator.endpoints import Endpoint
 from hexa.workspace_duplicator.progress import NullReporter
-from hexa.workspace_duplicator.resources.pipelines import PipelinesCopier
-from hexa.workspace_duplicator.results import DuplicationResult
+from hexa.workspace_duplicator.resources.pipelines import (
+    PipelinesCopier,
+    _upload_versions,
+)
+from hexa.workspace_duplicator.results import DuplicationResult, PipelinesResult
 from hexa.workspace_duplicator.transport import GraphQLError
 
 
@@ -86,3 +89,47 @@ class PipelinesCopierRemoteTest(SimpleTestCase):
             PipelinesCopier().copy(
                 Endpoint.local("src"), self.target, self.result, NullReporter()
             )
+
+
+class UploadVersionsTest(SimpleTestCase):
+    @patch("hexa.workspace_duplicator.resources.pipelines._upload_version")
+    def test_scheduled_version_binds_across_source_numbering_gaps(self, mock_upload):
+        # Source has a gap (versions 2-4 deleted); the scheduled version is the
+        # source's v5. The target re-numbers uploads sequentially from 1, so a
+        # number-based match would never bind. The match must follow source id.
+        detail = {
+            "scheduledPipelineVersion": {"id": "sv-5", "versionNumber": 5},
+            "versions": [
+                {"id": "sv-1", "versionNumber": 1},
+                {"id": "sv-5", "versionNumber": 5},
+            ],
+        }
+        mock_upload.side_effect = [
+            {"id": "tv-a", "versionName": "v1", "versionNumber": 1},
+            {"id": "tv-b", "versionName": "v2", "versionNumber": 2},
+        ]
+
+        uploaded_names, scheduled_version_id = _upload_versions(
+            MagicMock(), "tgt", "my-pipeline", detail, False, PipelinesResult()
+        )
+
+        self.assertEqual(uploaded_names, ["v1", "v2"])
+        self.assertEqual(scheduled_version_id, "tv-b")
+
+    @patch("hexa.workspace_duplicator.resources.pipelines._upload_version")
+    def test_no_scheduled_version_leaves_binding_unset(self, mock_upload):
+        detail = {
+            "scheduledPipelineVersion": None,
+            "versions": [{"id": "sv-1", "versionNumber": 1}],
+        }
+        mock_upload.return_value = {
+            "id": "tv-a",
+            "versionName": "v1",
+            "versionNumber": 1,
+        }
+
+        _, scheduled_version_id = _upload_versions(
+            MagicMock(), "tgt", "my-pipeline", detail, False, PipelinesResult()
+        )
+
+        self.assertIsNone(scheduled_version_id)
