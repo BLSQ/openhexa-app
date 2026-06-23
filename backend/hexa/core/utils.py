@@ -64,5 +64,5 @@ def send_mail(
     except Exception as e:
         if not fail_without_raising:
             raise
-        logger.error("Failed to send mail '%s' to %s: %s", title, recipient_list, e)
+        logger.exception("Failed to send mail '%s' to %s: %s", title, recipient_list, e)
         return 0
