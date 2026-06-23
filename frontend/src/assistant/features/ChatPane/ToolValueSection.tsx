@@ -75,13 +75,23 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
     [value, ctx.toolName, ctx.kind, ctx.input],
   );
   const raw = useMemo(() => rawText(value), [value]);
-  const [mode, setMode] = useState<"pretty" | "raw">(semantic ? "pretty" : "raw");
+  const defaultMode: "pretty" | "raw" = semantic ? "pretty" : "raw";
+  const [mode, setMode] = useState<"pretty" | "raw">(defaultMode);
+  const [modalMode, setModalMode] = useState<"pretty" | "raw">(defaultMode);
   const [modalOpen, setModalOpen] = useState(false);
   const [overflowing, setOverflowing] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
 
-  const body = () =>
-    mode === "pretty" && semantic ? (
+  // The modal keeps its own view mode so toggling Raw/formatted there doesn't
+  // also flip the inline conversation snippet. It opens showing whatever the
+  // inline preview was last set to.
+  const openModal = () => {
+    setModalMode(mode);
+    setModalOpen(true);
+  };
+
+  const body = (viewMode: "pretty" | "raw") =>
+    viewMode === "pretty" && semantic ? (
       <RendererBoundary value={value}>
         {semantic.render(value, ctx)}
       </RendererBoundary>
@@ -107,27 +117,31 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
   // Taller inline preview only while the wide view is actually showing; modal
   // width stays stable so it doesn't jump when toggling to raw inside it.
   const previewMaxPx =
-    mode === "pretty" && isWideRenderer ? COLLAPSED_MAX_WIDE_PX : COLLAPSED_MAX_PX;
-  const modalMaxWidth = isWideRenderer ? "max-w-6xl" : "max-w-3xl";
+    mode === "pretty" && isWideRenderer
+      ? COLLAPSED_MAX_WIDE_PX
+      : COLLAPSED_MAX_PX;
   const toolLabel = formatToolName(ctx.toolName, getToolLabels(t));
   // Wide views (tables) commonly overflow horizontally without overflowing
   // vertically, so offer the modal even when the inline box isn't clipped.
-  const showBottomCta =
-    overflowing || (isWideRenderer && mode === "pretty");
+  const showBottomCta = overflowing || (isWideRenderer && mode === "pretty");
 
-  const controls = (withExpand: boolean) => (
+  const controls = (
+    withExpand: boolean,
+    viewMode: "pretty" | "raw",
+    onModeChange: (mode: "pretty" | "raw") => void,
+  ) => (
     <>
       {semantic && (
         <ViewToggle
           formattedLabel={getRendererLabel(t, semantic.label)}
-          mode={mode}
-          onChange={setMode}
+          mode={viewMode}
+          onChange={onModeChange}
         />
       )}
       {withExpand && canExpand && (
         <button
           type="button"
-          onClick={() => setModalOpen(true)}
+          onClick={openModal}
           title={t("Expand")}
           className="rounded-sm text-gray-400 transition-colors hover:text-gray-600"
         >
@@ -146,7 +160,9 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
         <span className="min-w-0 truncate text-[0.7rem] font-medium uppercase tracking-wide text-gray-400">
           {label}
         </span>
-        <div className="flex shrink-0 items-center gap-2">{controls(true)}</div>
+        <div className="flex shrink-0 items-center gap-2">
+          {controls(true, mode, setMode)}
+        </div>
       </div>
 
       <div
@@ -154,7 +170,7 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
         className="relative w-full overflow-hidden"
         style={{ maxHeight: previewMaxPx }}
       >
-        {body()}
+        {body(mode)}
         {overflowing && (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent" />
         )}
@@ -164,7 +180,7 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
         <div className="flex justify-center pt-0.5">
           <button
             type="button"
-            onClick={() => setModalOpen(true)}
+            onClick={openModal}
             className="rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 shadow-sm hover:bg-gray-50"
           >
             {overflowing ? t("Show more") : t("Expand")}
@@ -172,18 +188,34 @@ export default function ToolValueSection({ label, value, ctx }: Props) {
         </div>
       )}
 
-      {modalOpen && (
-        <Dialog open onClose={() => setModalOpen(false)} maxWidth={modalMaxWidth}>
-          <Dialog.Title onClose={() => setModalOpen(false)}>
-            <div className="flex items-center gap-3 text-base">
-              <span className="font-medium text-gray-900">{toolLabel}</span>
-              <span className="text-sm font-normal text-gray-400">{label}</span>
-              <div className="flex items-center gap-2">{controls(false)}</div>
+      {/* Always mounted with `open` toggled (not conditionally rendered) so
+          headlessui can play the enter/leave transitions; conditional mounting
+          would pop it in and out with no animation. */}
+      <Dialog
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        maxWidth="max-w-[95vw]"
+        // fitContent keeps the panel hugging the resizable box, so the backdrop
+        // stays flush against it and clicking just outside closes the dialog.
+        fitContent
+        className={clsx(
+          // Drag-resizable in both directions. The box bounds itself (below the
+          // panel cap) so growing it never overflows the viewport.
+          "resize overflow-auto min-h-[300px] min-w-[400px] max-w-[90vw]",
+          isWideRenderer ? "w-[1100px]" : "w-[760px]",
+        )}
+      >
+        <Dialog.Title onClose={() => setModalOpen(false)}>
+          <div className="flex items-center gap-3 text-base">
+            <span className="font-medium text-gray-900">{toolLabel}</span>
+            <span className="text-sm font-normal text-gray-400">{label}</span>
+            <div className="flex items-center gap-2">
+              {controls(false, modalMode, setModalMode)}
             </div>
-          </Dialog.Title>
-          <Dialog.Content>{body()}</Dialog.Content>
-        </Dialog>
-      )}
+          </div>
+        </Dialog.Title>
+        <Dialog.Content className="pb-4">{body(modalMode)}</Dialog.Content>
+      </Dialog>
     </div>
   );
 }

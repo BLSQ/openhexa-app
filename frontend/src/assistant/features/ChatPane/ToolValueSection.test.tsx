@@ -66,4 +66,26 @@ describe("ToolValueSection", () => {
     expect(within(dialog).getByText("Output")).toBeInTheDocument();
     expect(within(dialog).getByRole("table")).toBeInTheDocument();
   });
+
+  it("keeps the modal and inline view modes independent", () => {
+    render(
+      <ToolValueSection
+        label="Output"
+        value={[{ name: "covid", country: "BE" }]}
+        ctx={ctx()}
+      />,
+    );
+    fireEvent.click(screen.getAllByRole("button", { name: "Expand" })[0]);
+    const dialog = screen.getByRole("dialog");
+
+    // Switching to Raw inside the modal must not collapse the inline table.
+    fireEvent.click(within(dialog).getByText("Raw"));
+    expect(within(dialog).queryByRole("table")).not.toBeInTheDocument();
+    // The open modal makes the background inert (aria-hidden), so query the
+    // still-present inline table with hidden: true.
+    const inline = document.querySelector(".relative.w-full.overflow-hidden");
+    expect(
+      within(inline as HTMLElement).getByRole("table", { hidden: true }),
+    ).toBeInTheDocument();
+  });
 });

@@ -20,6 +20,11 @@ type DialogProps = {
   className?: string;
   maxWidth?: string;
   persistent?: boolean;
+  // Shrink the panel to fit its content instead of stretching to `maxWidth`.
+  // Use this for content that sizes itself (e.g. a resizable body); it keeps the
+  // backdrop flush against the visible box so clicking just outside it closes the
+  // dialog. `maxWidth` still acts as the upper bound.
+  fitContent?: boolean;
 };
 
 const DialogTitle = (props: { children: ReactNode; onClose?: () => void }) => {
@@ -80,6 +85,7 @@ function Dialog(props: DialogProps) {
     closeOnEsc = true,
     className,
     maxWidth,
+    fitContent = false,
   } = props;
 
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -112,7 +118,8 @@ function Dialog(props: DialogProps) {
           transition
           className={clsx(
             "duration-300 transform ease-out data-[closed]:scale-95 data-[closed]:opacity-0",
-            "my-8 inline-block px-2 sm:w-full sm:px-4 tall:my-20 max-h-full",
+            "my-8 inline-block px-2 sm:px-4 tall:my-20 max-h-full",
+            !fitContent && "sm:w-full",
             maxWidth ?? "max-w-lg",
             centered && "sm:align-middle",
           )}
