@@ -31,7 +31,6 @@ class Migration(migrations.Migration):
                 ("html_body", models.TextField(blank=True, default="")),
                 ("attachments", models.JSONField(default=list)),
                 ("error_message", models.TextField(blank=True, default="")),
-                ("sent_at", models.DateTimeField(blank=True, null=True)),
             ],
             options={
                 "db_table": "core_failed_email",

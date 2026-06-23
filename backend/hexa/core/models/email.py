@@ -19,7 +19,6 @@ class FailedEmail(Base):
     html_body = models.TextField(blank=True, default="")
     attachments = models.JSONField(default=list)
     error_message = models.TextField(blank=True, default="")
-    sent_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = "core_failed_email"
