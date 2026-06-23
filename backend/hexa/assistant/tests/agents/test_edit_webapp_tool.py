@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, patch
 
-from hexa.assistant.agents.edit_webapp_agent import ProposedFile, propose_webapp_changes
+from hexa.assistant.agents.edit_webapp_agent import ProposedFile, propose_webapp_version
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import TestCase
@@ -23,7 +23,7 @@ def _make_file_entry(path, content, encoding=FileEncoding.TEXT):
 class ProposeWebappChangesToolTest(TestCase):
     def test_no_existing_files_returns_modified_files(self):
         webapp = _make_webapp_stub()
-        result = propose_webapp_changes(
+        result = propose_webapp_version(
             webapp,
             [ProposedFile(path="index.html", content="<h1>Hello</h1>")],
         )
@@ -39,7 +39,7 @@ class ProposeWebappChangesToolTest(TestCase):
                 _make_file_entry("style.css", "body {}"),
             ]
         )
-        result = propose_webapp_changes(
+        result = propose_webapp_version(
             webapp,
             [ProposedFile(path="index.html", content="<h1>Updated</h1>")],
         )
@@ -53,7 +53,7 @@ class ProposeWebappChangesToolTest(TestCase):
                 _make_file_entry("index.html", "<h1>Home</h1>"),
             ]
         )
-        result = propose_webapp_changes(
+        result = propose_webapp_version(
             webapp,
             [ProposedFile(path="about.html", content="<h1>About</h1>")],
         )
@@ -68,7 +68,7 @@ class ProposeWebappChangesToolTest(TestCase):
                 _make_file_entry("old.html", "<h1>Old</h1>"),
             ]
         )
-        result = propose_webapp_changes(
+        result = propose_webapp_version(
             webapp,
             modified_files=[],
             deleted_files=["old.html"],
@@ -83,7 +83,7 @@ class ProposeWebappChangesToolTest(TestCase):
                 _make_file_entry("index.html", "<h1>Home</h1>"),
             ]
         )
-        result = propose_webapp_changes(webapp, modified_files=[])
+        result = propose_webapp_version(webapp, modified_files=[])
         self.assertEqual(
             result,
             {"files": [{"path": "index.html", "content": "<h1>Home</h1>"}]},
@@ -96,7 +96,7 @@ class ProposeWebappChangesToolTest(TestCase):
                 _make_file_entry("logo.png", "binarydata", FileEncoding.BASE64),
             ]
         )
-        result = propose_webapp_changes(webapp, modified_files=[])
+        result = propose_webapp_version(webapp, modified_files=[])
         files = {f["path"] for f in result["files"]}
         self.assertIn("index.html", files)
         self.assertNotIn("logo.png", files)
@@ -128,7 +128,7 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
         )
         return ToolInvocation.objects.create(
             message=message,
-            tool_name="propose_webapp_changes",
+            tool_name="propose_webapp_version",
             tool_call_id="call-pending-001",
             tool_input={},
             success=True,
@@ -145,7 +145,7 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
         self._make_pending_invocation(conversation, pending_files)
 
         webapp = _make_webapp_stub()
-        result = propose_webapp_changes(
+        result = propose_webapp_version(
             webapp,
             [ProposedFile(path="index.html", content="<h1>Updated</h1>")],
             conversation=conversation,
@@ -162,7 +162,7 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
                 _make_file_entry("index.html", "<h1>Live</h1>"),
             ]
         )
-        result = propose_webapp_changes(
+        result = propose_webapp_version(
             webapp, modified_files=[], conversation=conversation
         )
         files = {f["path"] for f in result["files"]}

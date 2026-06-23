@@ -90,7 +90,7 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
         )
         ToolInvocation.objects.create(
             message=message,
-            tool_name="propose_webapp_changes",
+            tool_name="propose_webapp_version",
             tool_call_id="call-pending-001",
             tool_input={},
             success=True,
@@ -121,13 +121,13 @@ class EditWebappAgentToolCallTest(AgentTestCase):
         )
 
     @patch("hexa.git.mixins.get_forgejo_client")
-    def test_propose_webapp_changes_call_is_persisted(self, mock_get_client):
+    def test_propose_webapp_version_call_is_persisted(self, mock_get_client):
         mock_client = mock_get_client.return_value
         mock_client.get_repository_files.return_value = []
 
         files_arg = [{"path": "index.html", "content": "<h1>New</h1>"}]
         model = _make_tool_call_model(
-            "propose_webapp_changes", {"modified_files": files_arg}
+            "propose_webapp_version", {"modified_files": files_arg}
         )
         conversation = Conversation(
             user=self.user,
@@ -139,7 +139,7 @@ class EditWebappAgentToolCallTest(AgentTestCase):
         agent = EditWebappAgent(conversation, make_built_model(model))
         run_agent(agent, "Update the web app")
         invocation = self.first_tool_invocation(conversation)
-        self.assertEqual(invocation.tool_name, "propose_webapp_changes")
+        self.assertEqual(invocation.tool_name, "propose_webapp_version")
         self.assertTrue(invocation.success)
         self.assertIn("files", invocation.tool_output)
         self.assertEqual(invocation.tool_output["files"][0]["path"], "index.html")

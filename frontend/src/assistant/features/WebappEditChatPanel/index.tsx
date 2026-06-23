@@ -37,7 +37,7 @@ export default function WebappEditChatPanel({
       {...rest}
       linkedObjectId={webappId}
       linkedObjectType={LinkedObjectType.StaticWebapp}
-      proposalToolName="propose_webapp_changes"
+      proposalToolName="propose_webapp_version"
       onProposedFiles={handleProposedFiles}
     />
   );

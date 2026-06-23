@@ -17,7 +17,7 @@ class ProposedFile(BaseModel):
     content: str
 
 
-def propose_webapp_changes(
+def propose_webapp_version(
     webapp: GitWebapp,
     modified_files: list[ProposedFile] | None = None,
     deleted_files: list[str] | None = None,
@@ -36,7 +36,7 @@ def propose_webapp_changes(
         pending = (
             ToolInvocation.objects.filter(
                 message__conversation=conversation,
-                tool_name="propose_webapp_changes",
+                tool_name="propose_webapp_version",
                 success=True,
                 proposal_pending=True,
             )
@@ -71,7 +71,7 @@ class EditWebappAgent(BaseAgent):
         list_connections,
         list_files,
         read_file,
-        propose_webapp_changes,
+        propose_webapp_version,
     ]
 
     @property
@@ -104,7 +104,7 @@ class EditWebappAgent(BaseAgent):
         pending = (
             ToolInvocation.objects.filter(
                 message__conversation=self.conversation,
-                tool_name="propose_webapp_changes",
+                tool_name="propose_webapp_version",
                 success=True,
                 proposal_pending=True,
             )
