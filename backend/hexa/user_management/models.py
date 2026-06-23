@@ -87,6 +87,26 @@ class UserInterface:
         return False
 
 
+class ServicePrincipal:
+    """Marker mixin for principals that impersonate a workspace rather than
+    a real user account (PipelineRunUser, WebappUser, ...). Used as
+    `isinstance(user, ServicePrincipal)` to short-circuit user-membership
+    queries that wouldn't make sense for service principals.
+    """
+
+    @property
+    def real_user(self) -> User | None:
+        raise NotImplementedError
+
+    @property
+    def workspace(self):
+        raise NotImplementedError
+
+    @property
+    def workspace_id(self):
+        raise NotImplementedError
+
+
 class User(AbstractUser, UserInterface):
     class Meta:
         db_table = "identity_user"
@@ -261,30 +281,26 @@ class OrganizationManager(DefaultSoftDeletedManager):
 
 class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     def filter_for_user(
-        self, user: AnonymousUser | User, *, direct_membership_only: bool = False
+        self,
+        user: AnonymousUser | UserInterface,
+        *,
+        direct_membership_only: bool = False,
     ) -> models.QuerySet:
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        from hexa.pipelines.authentication import PipelineRunUser
+        from hexa.workspaces.models import Workspace
 
-        if isinstance(user, PipelineRunUser):
-            return self._filter_for_user_and_query_object(
-                user,
-                models.Q(workspaces=user.pipeline_run.pipeline.workspace),
-            )
-
-        if user.has_perm("user_management.manage_all_organizations"):
+        if not user.is_authenticated:
+            return self.none()
+        if isinstance(user, ServicePrincipal):
+            return self.filter(workspaces__in=Workspace.objects.filter_for_user(user))
+        if user.is_superuser or user.has_perm(
+            "user_management.manage_all_organizations"
+        ):
             return self.all()
-
         if direct_membership_only:
-            query = Q(organizationmembership__user=user)
-        else:
-            query = Q(organizationmembership__user=user) | Q(workspaces__members=user)
-
-        return self._filter_for_user_and_query_object(
-            user,
-            query,
-            return_all_if_superuser=True,
-        )
+            return self.filter(organizationmembership__user=user).distinct()
+        return self.filter(
+            Q(organizationmembership__user=user) | Q(workspaces__members=user)
+        ).distinct()
 
 
 class Organization(Base, SoftDeletedModel):
@@ -622,7 +638,9 @@ class TeamManager(models.Manager):
 
 
 class TeamQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
+    def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
+        if isinstance(user, ServicePrincipal):
+            return self.none()
         return self._filter_for_user_and_query_object(user, Q(members=user))
 
 
@@ -692,7 +710,9 @@ class MembershipManager(models.Manager):
 
 
 class MembershipQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
+    def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
+        if isinstance(user, ServicePrincipal):
+            return self.none()
         return self._filter_for_user_and_query_object(user, Q(team__members=user))
 
 
@@ -822,11 +842,11 @@ class OrganizationInvitationStatus(models.TextChoices):
 
 
 class OrganizationInvitationQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User) -> models.QuerySet:
-        return self._filter_for_user_and_query_object(
-            user,
-            Q(organization__organizationmembership__user=user),
-            return_all_if_superuser=False,
+    def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
+        return self.filter(
+            organization__in=Organization.objects.filter_for_user(
+                user, direct_membership_only=True
+            )
         )
 
 

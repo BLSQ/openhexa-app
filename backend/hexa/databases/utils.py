@@ -4,6 +4,9 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 import psycopg2
+import sqlparse
+from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 from psycopg2 import sql
 from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -14,6 +17,29 @@ from hexa.workspaces.models import Workspace
 from .api import get_db_server_credentials
 
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
+
+
+class ResultJSONEncoder(DjangoJSONEncoder):
+    """Make arbitrary query results JSON-safe."""
+
+    def default(self, o):
+        if isinstance(o, (bytes, bytearray, memoryview)):
+            return "\\x" + bytes(o).hex()
+        try:
+            return super().default(o)
+        except TypeError:
+            return str(o)
+
+
+class MultipleStatementsError(Exception):
+    """Raised when more than one SQL statement is submitted for execution."""
+
+
+def ensure_single_statement(query: str) -> None:
+    """Reject input that contains more than one SQL statement."""
+    statements = [s for s in sqlparse.split(query) if s.strip().rstrip(";").strip()]
+    if len(statements) > 1:
+        raise MultipleStatementsError("Only a single SQL statement can be executed.")
 
 
 def get_row_count_estimate(cursor, table_name: str) -> int:
@@ -71,6 +97,66 @@ def get_workspace_database_connection(workspace: Workspace):
         user=workspace.db_name,
         password=workspace.db_password,
     )
+
+
+def get_workspace_database_ro_connection(workspace: Workspace):
+    credentials = get_db_server_credentials()
+    host = credentials["host"]
+    port = credentials["port"]
+
+    return psycopg2.connect(
+        host=host,
+        port=port,
+        dbname=workspace.db_name,
+        user=workspace.db_ro_username,
+        password=workspace.db_ro_password,
+    )
+
+
+def execute_database_query(
+    workspace: Workspace,
+    query: str,
+    timeout_ms: int = 10_000,
+    max_rows: int = 50,
+):
+    """Execute a SQL query against the workspace database using the read-only role.
+
+    A per-statement timeout is set so that a single request cannot hold database
+    resources for an extended period of time. At most ``max_rows`` rows are
+    returned, capped to ``settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS``;
+    ``truncated`` indicates whether the result was capped.
+    """
+    ensure_single_statement(query)
+    max_rows = min(max_rows, settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS)
+    conn = None
+    try:
+        conn = get_workspace_database_ro_connection(workspace)
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(
+                sql.SQL("SET LOCAL statement_timeout = {timeout};").format(
+                    timeout=sql.Literal(timeout_ms)
+                )
+            )
+            cursor.execute(query)
+            # cursor.description is None for statements that do not return rows
+            columns = (
+                [column.name for column in cursor.description]
+                if cursor.description
+                else []
+            )
+            # Fetch one extra row to detect (without returning) that more exist.
+            fetched = cursor.fetchmany(max_rows + 1) if cursor.description else []
+        truncated = len(fetched) > max_rows
+        rows = json.loads(json.dumps(fetched[:max_rows], cls=ResultJSONEncoder))
+        return {
+            "columns": columns,
+            "rows": rows,
+            "row_count": len(rows),
+            "truncated": truncated,
+        }
+    finally:
+        if conn:
+            conn.close()
 
 
 def get_database_definition(workspace: Workspace):

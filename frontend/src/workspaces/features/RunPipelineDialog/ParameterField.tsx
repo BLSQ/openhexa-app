@@ -222,6 +222,8 @@ ParameterField.fragments = {
       widget
       multiple
       directory
+      disables
+      disableWhen
     }
   `,
 };

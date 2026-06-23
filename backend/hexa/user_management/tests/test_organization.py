@@ -1,12 +1,16 @@
 from unittest.mock import MagicMock, patch
 
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.test import TestCase
 
+from hexa.pipelines.authentication import PipelineRunUser
+from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.user_management.models import (
     Feature,
     FeatureFlag,
     Organization,
+    OrganizationInvitation,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
@@ -101,6 +105,35 @@ class OrganizationModelTests(TestCase):
         )
         self.assertNotIn(self.organization, queryset)
 
+    def test_invitations_not_visible_to_external_collaborator(self):
+        """A workspace member who is not a direct organization member must not
+        see the organization's invitations.
+        """
+        workspace = Workspace.objects.create(
+            name="Test Workspace",
+            organization=self.organization,
+        )
+        WorkspaceMembership.objects.create(
+            workspace=workspace,
+            user=self.user3,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+        invitation = OrganizationInvitation.objects.create(
+            organization=self.organization,
+            email="invitee@example.com",
+            role=OrganizationMembershipRole.MEMBER,
+            invited_by=self.user1,
+        )
+
+        self.assertIn(
+            invitation,
+            OrganizationInvitation.objects.filter_for_user(self.user1),
+        )
+        self.assertNotIn(
+            invitation,
+            OrganizationInvitation.objects.filter_for_user(self.user3),
+        )
+
     def test_update_own_membership_role(self):
         with self.assertRaises(PermissionDenied):
             self.membership.update_if_has_perm(
@@ -130,6 +163,145 @@ class OrganizationModelTests(TestCase):
         """Test that an admin cannot delete the membership of an owner of the organization."""
         with self.assertRaises(PermissionDenied):
             self.membership2.delete_if_has_perm(principal=self.user1)
+
+
+class OrganizationFilterForUserDispatchTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.superuser = User.objects.create_user(
+            "root@example.com", "password", is_superuser=True
+        )
+        cls.org_owner = User.objects.create_user("owner@example.com", "password")
+        cls.org_admin = User.objects.create_user("orgadmin@example.com", "password")
+        cls.org_member = User.objects.create_user("orgmember@example.com", "password")
+        cls.workspace_only_user = User.objects.create_user(
+            "wsonly@example.com", "password"
+        )
+        cls.external = User.objects.create_user("external@example.com", "password")
+
+        cls.org = Organization.objects.create(name="Org A")
+        cls.other_org = Organization.objects.create(name="Org B")
+        OrganizationMembership.objects.create(
+            organization=cls.org,
+            user=cls.org_owner,
+            role=OrganizationMembershipRole.OWNER,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.org,
+            user=cls.org_admin,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.org,
+            user=cls.org_member,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            cls.org_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.superuser,
+                name="Org Workspace",
+                organization=cls.org,
+            )
+            cls.standalone_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.superuser, name="Standalone WS"
+            )
+            cls.other_org_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.superuser,
+                name="Other Org WS",
+                organization=cls.other_org,
+            )
+        WorkspaceMembership.objects.create(
+            workspace=cls.org_workspace,
+            user=cls.workspace_only_user,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+    def test_anonymous_user_sees_nothing(self):
+        self.assertEqual(
+            Organization.objects.filter_for_user(AnonymousUser()).count(), 0
+        )
+
+    def test_anonymous_user_with_direct_membership_only_sees_nothing(self):
+        self.assertEqual(
+            Organization.objects.filter_for_user(
+                AnonymousUser(), direct_membership_only=True
+            ).count(),
+            0,
+        )
+
+    def test_superuser_sees_all(self):
+        result = set(Organization.objects.filter_for_user(self.superuser))
+        self.assertEqual(result, {self.org, self.other_org})
+
+    def test_org_owner_sees_their_org(self):
+        self.assertIn(self.org, Organization.objects.filter_for_user(self.org_owner))
+        self.assertNotIn(
+            self.other_org, Organization.objects.filter_for_user(self.org_owner)
+        )
+
+    def test_org_member_sees_their_org(self):
+        self.assertIn(self.org, Organization.objects.filter_for_user(self.org_member))
+
+    def test_workspace_only_user_sees_org_via_workspace(self):
+        self.assertIn(
+            self.org,
+            Organization.objects.filter_for_user(self.workspace_only_user),
+        )
+
+    def test_direct_membership_only_excludes_workspace_path(self):
+        self.assertNotIn(
+            self.org,
+            Organization.objects.filter_for_user(
+                self.workspace_only_user, direct_membership_only=True
+            ),
+        )
+
+    def test_direct_membership_only_keeps_direct_members(self):
+        self.assertIn(
+            self.org,
+            Organization.objects.filter_for_user(
+                self.org_member, direct_membership_only=True
+            ),
+        )
+
+    def test_external_user_sees_nothing(self):
+        self.assertEqual(Organization.objects.filter_for_user(self.external).count(), 0)
+
+    def test_pipeline_run_user_sees_orgs_of_its_workspace(self):
+        pipeline_run = MagicMock(PipelineRun)
+        pipeline_run.pipeline = MagicMock(Pipeline)
+        pipeline_run.pipeline.workspace_id = self.org_workspace.id
+        principal = PipelineRunUser(pipeline_run)
+
+        result = list(Organization.objects.filter_for_user(principal))
+        self.assertEqual(result, [self.org])
+
+    def test_pipeline_run_user_in_standalone_workspace_sees_no_orgs(self):
+        pipeline_run = MagicMock(PipelineRun)
+        pipeline_run.pipeline = MagicMock(Pipeline)
+        pipeline_run.pipeline.workspace_id = self.standalone_workspace.id
+        principal = PipelineRunUser(pipeline_run)
+
+        self.assertEqual(Organization.objects.filter_for_user(principal).count(), 0)
+
+    def test_pipeline_run_user_ignores_direct_membership_only_flag(self):
+        pipeline_run = MagicMock(PipelineRun)
+        pipeline_run.pipeline = MagicMock(Pipeline)
+        pipeline_run.pipeline.workspace_id = self.org_workspace.id
+        principal = PipelineRunUser(pipeline_run)
+
+        self.assertEqual(
+            list(
+                Organization.objects.filter_for_user(
+                    principal, direct_membership_only=True
+                )
+            ),
+            [self.org],
+        )
 
 
 class CreateWorkspacePermissionTests(TestCase):

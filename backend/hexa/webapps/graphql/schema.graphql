@@ -185,6 +185,7 @@ input UpdateWebappInput {
   allowedOperations: [WebappOperationScope!]
   source: UpdateWebappSourceInput
   files: [WebappFileInput!]
+  filesToDelete: [String!]
   publishedVersionId: String
 }
 
@@ -225,6 +226,45 @@ enum UpdateWebappError {
   SUBDOMAIN_INVALID_FORMAT
   SUBDOMAIN_ALREADY_TAKEN
   SUBDOMAIN_REQUIRED
+}
+
+"""
+Input for a string find/replace edit on a single webapp file.
+
+Changes part of an existing TEXT file without resending its whole content. `oldString` must
+match exactly; unless `replaceAll` is true it must match exactly once.
+"""
+input EditWebappFileInput {
+  id: UUID!
+  path: String!
+  oldString: String!
+  newString: String!
+  replaceAll: Boolean
+}
+
+"""
+Represents the result of editing a web app file.
+"""
+type EditWebappFileResult {
+  success: Boolean!
+  errors: [EditWebappFileError!]!
+  webapp: Webapp
+}
+
+"""
+Represents the error message for a web app file edit.
+"""
+enum EditWebappFileError {
+  WEBAPPS_NOT_CONFIGURED
+  WEBAPP_NOT_FOUND
+  PERMISSION_DENIED
+  TYPE_MISMATCH
+  PATH_NOT_FOUND
+  BINARY_FILE
+  STRING_NOT_FOUND
+  STRING_NOT_UNIQUE
+  NO_CHANGE
+  SAVE_FAILED
 }
 
 """
@@ -312,6 +352,7 @@ extend type Query {
 extend type Mutation {
   createWebapp(input: CreateWebappInput!): CreateWebappResult! @loginRequired
   updateWebapp(input: UpdateWebappInput!): UpdateWebappResult! @loginRequired
+  editWebappFile(input: EditWebappFileInput!): EditWebappFileResult! @loginRequired
   deleteWebapp(input: DeleteWebappInput!): DeleteWebappResult! @loginRequired
   addToFavorites(input: AddToFavoritesInput!): AddToFavoritesResult! @loginRequired
   removeFromFavorites(input: RemoveFromFavoritesInput!): RemoveFromFavoritesResult! @loginRequired

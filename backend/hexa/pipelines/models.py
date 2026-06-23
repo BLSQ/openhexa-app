@@ -36,7 +36,7 @@ from hexa.core.models.soft_delete import (
     SoftDeleteQuerySet,
 )
 from hexa.pipelines.constants import UNIQUE_PIPELINE_VERSION_NAME
-from hexa.user_management.models import User
+from hexa.user_management.models import User, UserInterface
 from hexa.workspaces.models import ConnectionType, Workspace
 
 # bool is a subclass of int in Python, so it must be excluded explicitly from int/float checks.
@@ -145,7 +145,7 @@ class PipelineRunTrigger(models.TextChoices):
 
 
 class PipelineVersionQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User):
+    def filter_for_user(self, user: AnonymousUser | UserInterface):
         return self.filter(pipeline__in=Pipeline.objects.filter_for_user(user))
 
 
@@ -250,8 +250,31 @@ class PipelineVersion(models.Model):
         if errors:
             raise ValueError(f"Parameters with invalid types: {', '.join(errors)}")
 
-    def validate_new_config(self, new_config: dict):
+    def get_disabled_parameter_codes(self, config: dict) -> set:
+        """Return the codes of parameters disabled by an active controller for the given config.
+
+        A controller is a boolean parameter declaring ``disables=[...]``. It is "active" when its effective
+        value (from ``config``, falling back to its ``default``) equals its ``disable_when`` (``True`` by
+        default). A parameter is disabled if any active controller lists it. This mirrors the SDK runtime and
+        the frontend run form so schedulability matches what a run would actually validate.
+        """
+        config = config or {}
+        disabled = set()
         for parameter in self.parameters:
+            disables = parameter.get("disables")
+            if not disables:
+                continue
+            disable_when = parameter.get("disable_when", True)
+            effective_value = config.get(parameter["code"], parameter.get("default"))
+            if bool(effective_value) == disable_when:
+                disabled.update(disables)
+        return disabled
+
+    def validate_new_config(self, new_config: dict):
+        disabled = self.get_disabled_parameter_codes(new_config)
+        for parameter in self.parameters:
+            if parameter["code"] in disabled:
+                continue
             if (
                 parameter.get("required")
                 and parameter.get("default") is None
@@ -263,8 +286,10 @@ class PipelineVersion(models.Model):
 
     @property
     def is_schedulable(self):
+        disabled = self.get_disabled_parameter_codes(self.config)
         return all(
-            parameter.get("required") is False
+            parameter["code"] in disabled
+            or parameter.get("required") is False
             or parameter.get("default") is not None
             or self.config.get(parameter["code"]) is not None
             for parameter in self.parameters
@@ -289,24 +314,11 @@ class PipelineVersion(models.Model):
 
 
 class PipelineQuerySet(BaseQuerySet, SoftDeleteQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User):
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        from hexa.pipelines.authentication import PipelineRunUser
-
-        if isinstance(user, PipelineRunUser):
-            return self._filter_for_user_and_query_object(
-                user,
-                models.Q(workspace=user.pipeline_run.pipeline.workspace),
-            )
-        return self._filter_for_user_and_query_object(
-            user,
-            Q(workspace__members=user),
-            return_all_if_superuser=True,
-            return_all_if_organization_admin_or_owner=True,
-        )
+    def filter_for_user(self, user: AnonymousUser | UserInterface):
+        return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
 
     def filter_for_workspace_slugs(
-        self, user: AnonymousUser | User, workspace_slugs: list[str]
+        self, user: AnonymousUser | UserInterface, workspace_slugs: list[str]
     ):
         return (
             self.filter_for_user(user)
@@ -821,7 +833,7 @@ class PipelineRecipient(Base):
 
 
 class PipelineRunQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User):
+    def filter_for_user(self, user: AnonymousUser | UserInterface):
         return self.filter(pipeline__in=Pipeline.objects.filter_for_user(user))
 
 

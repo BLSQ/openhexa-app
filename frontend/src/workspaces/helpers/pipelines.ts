@@ -128,12 +128,67 @@ export const isConnectionParameter = (type: string) => {
     .includes(type.toLowerCase());
 };
 
-export const convertParametersToPipelineInput = (
-  version: { parameters: { code: string; type: string; multiple: boolean }[] },
+type DisablingParameter = {
+  code: string;
+  disables?: string[] | null;
+  disableWhen?: boolean | null;
+};
+
+/**
+ * Maps each disabled parameter code to the codes of the (boolean) parameters
+ * that are currently disabling it. The single source of truth for the
+ * conditional-parameters logic; `getDisabledParameterCodes` is derived from it.
+ */
+export const getParameterDisablers = (
+  parameters: DisablingParameter[],
   fields: { [key: string]: any },
+): Map<string, string[]> => {
+  const disablers = new Map<string, string[]>();
+  for (const parameter of parameters) {
+    if (!parameter.disables?.length) {
+      continue;
+    }
+    const triggerValue = parameter.disableWhen ?? true;
+    if (Boolean(fields[parameter.code]) !== triggerValue) {
+      continue;
+    }
+    for (const code of parameter.disables) {
+      const controllers = disablers.get(code) ?? [];
+      // The `includes` guard also collapses a code repeated within `disables`.
+      if (!controllers.includes(parameter.code)) {
+        controllers.push(parameter.code);
+      }
+      disablers.set(code, controllers);
+    }
+  }
+  return disablers;
+};
+
+export const getDisabledParameterCodes = (
+  parameters: DisablingParameter[],
+  fields: { [key: string]: any },
+): Set<string> => {
+  return new Set(getParameterDisablers(parameters, fields).keys());
+};
+
+export const convertParametersToPipelineInput = (
+  version: {
+    parameters: {
+      code: string;
+      type: string;
+      multiple: boolean;
+      disables?: string[] | null;
+    }[];
+  },
+  fields: { [key: string]: any },
+  disabledCodes?: Set<string>,
 ): any => {
+  disabledCodes ??= getDisabledParameterCodes(version.parameters, fields);
   const params: { [key: string]: any } = {};
   for (const parameter of version.parameters) {
+    if (disabledCodes.has(parameter.code)) {
+      continue;
+    }
     const val = fields[parameter.code];
 
     if (parameter.type === "int") {

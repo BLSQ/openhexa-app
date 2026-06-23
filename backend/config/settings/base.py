@@ -602,6 +602,11 @@ WORKSPACES_DATABASE_PROXY_HOST = os.environ.get("WORKSPACES_DATABASE_PROXY_HOST"
 OVERRIDE_WORKSPACES_DATABASE_HOST = os.environ.get(
     "OVERRIDE_WORKSPACES_DATABASE_HOST", ""
 )
+# Hard ceiling on the number of rows the executeSQL query can return, whatever
+# the caller requests.
+WORKSPACE_DATABASE_QUERY_MAX_ROWS = int(
+    os.environ.get("WORKSPACE_DATABASE_QUERY_MAX_ROWS", "100000")
+)
 
 # Datasets config
 WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET", "hexa-datasets")

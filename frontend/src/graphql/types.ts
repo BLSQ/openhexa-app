@@ -1431,9 +1431,16 @@ export type Dhis2QueryResultPage = {
 export type Database = {
   __typename?: 'Database';
   credentials?: Maybe<DatabaseCredentials>;
+  executeSQL: ExecuteSqlResult;
   readOnlyCredentials?: Maybe<DatabaseCredentials>;
   table?: Maybe<DatabaseTable>;
   tables: DatabaseTablePage;
+};
+
+
+export type DatabaseExecuteSqlArgs = {
+  maxRows?: InputMaybe<Scalars['Int']['input']>;
+  query: Scalars['String']['input'];
 };
 
 
@@ -2238,6 +2245,42 @@ export type DisableTwoFactorResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Represents the error message for a web app file edit. */
+export enum EditWebappFileError {
+  BinaryFile = 'BINARY_FILE',
+  NoChange = 'NO_CHANGE',
+  PathNotFound = 'PATH_NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED',
+  SaveFailed = 'SAVE_FAILED',
+  StringNotFound = 'STRING_NOT_FOUND',
+  StringNotUnique = 'STRING_NOT_UNIQUE',
+  TypeMismatch = 'TYPE_MISMATCH',
+  WebappsNotConfigured = 'WEBAPPS_NOT_CONFIGURED',
+  WebappNotFound = 'WEBAPP_NOT_FOUND'
+}
+
+/**
+ * Input for a string find/replace edit on a single webapp file.
+ *
+ * Changes part of an existing TEXT file without resending its whole content. `oldString` must
+ * match exactly; unless `replaceAll` is true it must match exactly once.
+ */
+export type EditWebappFileInput = {
+  id: Scalars['UUID']['input'];
+  newString: Scalars['String']['input'];
+  oldString: Scalars['String']['input'];
+  path: Scalars['String']['input'];
+  replaceAll?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+/** Represents the result of editing a web app file. */
+export type EditWebappFileResult = {
+  __typename?: 'EditWebappFileResult';
+  errors: Array<EditWebappFileError>;
+  success: Scalars['Boolean']['output'];
+  webapp?: Maybe<Webapp>;
+};
+
 /** The EnableTwoFactorError enum represents the possible errors that can occur during the enableTwoFactor mutation. */
 export enum EnableTwoFactorError {
   AlreadyEnabled = 'ALREADY_ENABLED',
@@ -2255,6 +2298,37 @@ export type EnableTwoFactorResult = {
   errors?: Maybe<Array<EnableTwoFactorError>>;
   success: Scalars['Boolean']['output'];
   verified?: Maybe<Scalars['Boolean']['output']>;
+};
+
+/** Possible errors when executing a SQL query against the workspace database. */
+export enum ExecuteSqlError {
+  /** More than one SQL statement was submitted; only a single statement is allowed. */
+  MultipleStatements = 'MULTIPLE_STATEMENTS',
+  /** The user is not allowed to run queries against this workspace database. */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** The query could not be executed (e.g. invalid SQL or a disallowed operation). */
+  QueryError = 'QUERY_ERROR',
+  /** The query was cancelled because it exceeded the statement timeout. */
+  QueryTimeout = 'QUERY_TIMEOUT'
+}
+
+/** Represents the result of executing a SQL query against the workspace database. */
+export type ExecuteSqlResult = {
+  __typename?: 'ExecuteSQLResult';
+  /** The names of the columns returned by the query. */
+  columns?: Maybe<Array<Scalars['String']['output']>>;
+  /** The underlying database error message, when the query failed. */
+  errorMessage?: Maybe<Scalars['String']['output']>;
+  /** The errors that occurred while executing the query. */
+  errors: Array<ExecuteSqlError>;
+  /** The number of rows returned by the query (after any truncation). */
+  rowCount?: Maybe<Scalars['Int']['output']>;
+  /** The rows returned by the query, each one a JSON object keyed by column name. */
+  rows?: Maybe<Array<Scalars['JSON']['output']>>;
+  /** Indicates whether the query executed successfully. */
+  success: Scalars['Boolean']['output'];
+  /** Whether the result was truncated because it exceeded the maximum number of rows. */
+  truncated?: Maybe<Scalars['Boolean']['output']>;
 };
 
 /** Represents an external collaborator who has workspace access but no organization membership. */
@@ -2936,6 +3010,7 @@ export type Mutation = {
   denyAccessmodAccessRequest: DenyAccessmodAccessRequestResult;
   /** Disables two-factor authentication for the currently authenticated user. */
   disableTwoFactor: DisableTwoFactorResult;
+  editWebappFile: EditWebappFileResult;
   /** Enables two-factor authentication for the currently authenticated user. */
   enableTwoFactor: EnableTwoFactorResult;
   /** Generates a challenge for two-factor authentication. */
@@ -3328,6 +3403,11 @@ export type MutationDenyAccessmodAccessRequestArgs = {
 
 export type MutationDisableTwoFactorArgs = {
   input?: InputMaybe<DisableTwoFactorInput>;
+};
+
+
+export type MutationEditWebappFileArgs = {
+  input: EditWebappFileInput;
 };
 
 
@@ -3906,6 +3986,8 @@ export type ParameterInput = {
   connection?: InputMaybe<Scalars['String']['input']>;
   default?: InputMaybe<Scalars['Generic']['input']>;
   directory?: InputMaybe<Scalars['String']['input']>;
+  disableWhen?: InputMaybe<Scalars['Boolean']['input']>;
+  disables?: InputMaybe<Array<Scalars['String']['input']>>;
   help?: InputMaybe<Scalars['String']['input']>;
   multiple?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
@@ -4099,6 +4181,8 @@ export type PipelineParameter = {
   connection?: Maybe<Scalars['String']['output']>;
   default?: Maybe<Scalars['Generic']['output']>;
   directory?: Maybe<Scalars['String']['output']>;
+  disableWhen: Scalars['Boolean']['output'];
+  disables: Array<Scalars['String']['output']>;
   help?: Maybe<Scalars['String']['output']>;
   multiple: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
@@ -6110,6 +6194,7 @@ export type UpdateWebappInput = {
   allowedOperations?: InputMaybe<Array<WebappOperationScope>>;
   description?: InputMaybe<Scalars['String']['input']>;
   files?: InputMaybe<Array<WebappFileInput>>;
+  filesToDelete?: InputMaybe<Array<Scalars['String']['input']>>;
   icon?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
   isPublic?: InputMaybe<Scalars['Boolean']['input']>;

@@ -1403,6 +1403,7 @@ type DHIS2QueryResultPage {
 
 type Database {
   credentials: DatabaseCredentials
+  executeSQL(maxRows: Int, query: String!): ExecuteSQLResult!
   readOnlyCredentials: DatabaseCredentials
   table(name: String!): DatabaseTable
   tables(page: Int, perPage: Int): DatabaseTablePage!
@@ -2215,6 +2216,41 @@ type DisableTwoFactorResult {
   success: Boolean!
 }
 
+"""Represents the error message for a web app file edit."""
+enum EditWebappFileError {
+  BINARY_FILE
+  NO_CHANGE
+  PATH_NOT_FOUND
+  PERMISSION_DENIED
+  SAVE_FAILED
+  STRING_NOT_FOUND
+  STRING_NOT_UNIQUE
+  TYPE_MISMATCH
+  WEBAPPS_NOT_CONFIGURED
+  WEBAPP_NOT_FOUND
+}
+
+"""
+Input for a string find/replace edit on a single webapp file.
+
+Changes part of an existing TEXT file without resending its whole content. `oldString` must
+match exactly; unless `replaceAll` is true it must match exactly once.
+"""
+input EditWebappFileInput {
+  id: UUID!
+  newString: String!
+  oldString: String!
+  path: String!
+  replaceAll: Boolean
+}
+
+"""Represents the result of editing a web app file."""
+type EditWebappFileResult {
+  errors: [EditWebappFileError!]!
+  success: Boolean!
+  webapp: Webapp
+}
+
 """
 The EnableTwoFactorError enum represents the possible errors that can occur during the enableTwoFactor mutation.
 """
@@ -2237,6 +2273,59 @@ type EnableTwoFactorResult {
   errors: [EnableTwoFactorError!]
   success: Boolean!
   verified: Boolean
+}
+
+"""
+Possible errors when executing a SQL query against the workspace database.
+"""
+enum ExecuteSQLError {
+  """
+  More than one SQL statement was submitted; only a single statement is allowed.
+  """
+  MULTIPLE_STATEMENTS
+
+  """
+  The user is not allowed to run queries against this workspace database.
+  """
+  PERMISSION_DENIED
+
+  """
+  The query could not be executed (e.g. invalid SQL or a disallowed operation).
+  """
+  QUERY_ERROR
+
+  """The query was cancelled because it exceeded the statement timeout."""
+  QUERY_TIMEOUT
+}
+
+"""
+Represents the result of executing a SQL query against the workspace database.
+"""
+type ExecuteSQLResult {
+  """The names of the columns returned by the query."""
+  columns: [String!]
+
+  """The underlying database error message, when the query failed."""
+  errorMessage: String
+
+  """The errors that occurred while executing the query."""
+  errors: [ExecuteSQLError!]!
+
+  """The number of rows returned by the query (after any truncation)."""
+  rowCount: Int
+
+  """
+  The rows returned by the query, each one a JSON object keyed by column name.
+  """
+  rows: [JSON!]
+
+  """Indicates whether the query executed successfully."""
+  success: Boolean!
+
+  """
+  Whether the result was truncated because it exceeded the maximum number of rows.
+  """
+  truncated: Boolean
 }
 
 """
@@ -2957,6 +3046,7 @@ type Mutation {
   Disables two-factor authentication for the currently authenticated user.
   """
   disableTwoFactor(input: DisableTwoFactorInput): DisableTwoFactorResult!
+  editWebappFile(input: EditWebappFileInput!): EditWebappFileResult!
 
   """
   Enables two-factor authentication for the currently authenticated user.
@@ -3301,6 +3391,8 @@ input ParameterInput {
   connection: String
   default: Generic
   directory: String
+  disableWhen: Boolean
+  disables: [String!]
   help: String
   multiple: Boolean
   name: String
@@ -3480,6 +3572,8 @@ type PipelineParameter {
   connection: String
   default: Generic
   directory: String
+  disableWhen: Boolean!
+  disables: [String!]!
   help: String
   multiple: Boolean!
   name: String!
@@ -5309,6 +5403,7 @@ input UpdateWebappInput {
   allowedOperations: [WebappOperationScope!]
   description: String
   files: [WebappFileInput!]
+  filesToDelete: [String!]
   icon: String
   id: UUID!
   isPublic: Boolean

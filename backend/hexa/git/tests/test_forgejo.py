@@ -4,6 +4,7 @@ import json
 import responses
 from django.test import TestCase, override_settings
 
+from hexa.git.exceptions import GitFileNotFound
 from hexa.git.forgejo import ForgejoAPIError, ForgejoClient, get_forgejo_client
 
 FORGEJO_URL = "http://forgejo-test:3000"
@@ -177,6 +178,108 @@ class ForgejoClientCommitFilesTest(TestCase):
         post_body = responses.calls[2].request.body
         self.assertIn(b'"operation": "update"', post_body)
 
+    @responses.activate
+    def test_commit_files_delete(self):
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/commits",
+            json=[
+                {
+                    "sha": "existingsha",
+                    "commit": {
+                        "message": "previous commit",
+                        "author": {
+                            "name": "User",
+                            "email": "u@example.com",
+                            "date": "2024-01-01T00:00:00Z",
+                        },
+                    },
+                }
+            ],
+            status=200,
+        )
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/git/trees/main",
+            json={
+                "sha": "abc123",
+                "tree": [
+                    {"path": "keep.txt", "type": "blob", "sha": "keepsha"},
+                    {"path": "old.txt", "type": "blob", "sha": "oldsha"},
+                ],
+            },
+            status=200,
+        )
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents",
+            json={"commit": {"sha": "deletedsha"}},
+            status=201,
+        )
+
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+        )
+        sha = client.commit_files(
+            "my-repo",
+            [{"path": "new.txt", "content": "hi"}],
+            "remove old, add new",
+            "Test User",
+            "test@example.com",
+            delete_paths=["old.txt", "missing.txt"],
+        )
+
+        self.assertEqual(sha, "deletedsha")
+        post_body = json.loads(responses.calls[2].request.body)
+        operations = {op["operation"]: op for op in post_body["files"]}
+        self.assertEqual(operations["create"]["path"], "new.txt")
+        self.assertEqual(operations["delete"]["path"], "old.txt")
+        self.assertEqual(operations["delete"]["sha"], "oldsha")
+        self.assertNotIn("missing.txt", [op["path"] for op in post_body["files"]])
+
+    @responses.activate
+    def test_commit_files_delete_missing_path_is_noop(self):
+        # Deleting a path that isn't in the repo produces no operation; with
+        # nothing else to commit we return the current HEAD instead of sending
+        # an empty (and rejected) commit to Forgejo.
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/commits",
+            json=[
+                {
+                    "sha": "headsha",
+                    "commit": {
+                        "message": "previous commit",
+                        "author": {
+                            "name": "User",
+                            "email": "u@example.com",
+                            "date": "2024-01-01T00:00:00Z",
+                        },
+                    },
+                }
+            ],
+            status=200,
+        )
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/git/trees/main",
+            json={"sha": "abc123", "tree": []},
+            status=200,
+        )
+
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+        )
+        sha = client.commit_files(
+            "my-repo",
+            [],
+            "nothing to do",
+            "Test User",
+            "test@example.com",
+            delete_paths=["missing.txt"],
+        )
+
+        self.assertEqual(sha, "headsha")
+
 
 class ForgejoAPIErrorTest(TestCase):
     def test_error_attributes(self):
@@ -189,7 +292,7 @@ class ForgejoAPIErrorTest(TestCase):
         self.assertIn("404", str(error))
 
     @responses.activate
-    def test_request_error_propagation(self):
+    def test_get_file_missing_raises_git_file_not_found(self):
         client = ForgejoClient(
             url=FORGEJO_URL,
             username=USERNAME,
@@ -201,10 +304,26 @@ class ForgejoAPIErrorTest(TestCase):
             json={"message": "not found"},
             status=404,
         )
-        with self.assertRaises(ForgejoAPIError) as ctx:
+        with self.assertRaises(GitFileNotFound):
             client.get_file("my-repo", "missing.txt")
 
-        self.assertEqual(ctx.exception.status_code, 404)
+    @responses.activate
+    def test_get_file_other_error_propagates(self):
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+        )
+
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/boom.txt",
+            json={"message": "server error"},
+            status=500,
+        )
+        with self.assertRaises(ForgejoAPIError) as ctx:
+            client.get_file("my-repo", "boom.txt")
+
+        self.assertEqual(ctx.exception.status_code, 500)
         self.assertEqual(ctx.exception.method, "GET")
 
 
