@@ -53,6 +53,7 @@ def mail_run_recipients(run: PipelineRun):
                         "image/svg+xml",
                     ),
                 ],
+                fail_without_raising=True,
             )
 
 
@@ -84,6 +85,7 @@ def mail_skipped_run_recipients(pipeline, scheduled_time):
                         "image/svg+xml",
                     ),
                 ],
+                fail_without_raising=True,
             )
 
 

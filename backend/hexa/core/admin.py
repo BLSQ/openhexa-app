@@ -1,10 +1,12 @@
 from typing import Any, Sequence
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db.models.query import QuerySet
 from django.http import HttpRequest
 
 from hexa.core.filters import SoftDeleteFilter
+from hexa.core.models import FailedEmail
+from hexa.core.utils import resend_failed_email
 
 
 @admin.display
@@ -56,3 +58,44 @@ class GlobalObjectsModelAdmin(admin.ModelAdmin):
         if "is_deleted" in request.GET:
             list_display = list(list_display) + ["deleted_at"]
         return list_display
+
+
+@admin.action(description="Resend selected emails")
+def resend_failed_emails(modeladmin, request, queryset):
+    succeeded, failed = 0, 0
+    for failed_email in queryset:
+        try:
+            resend_failed_email(failed_email)
+            succeeded += 1
+        except Exception as e:
+            failed += 1
+            modeladmin.message_user(
+                request,
+                f"Failed to resend '{failed_email.subject}': {e}",
+                level=messages.ERROR,
+            )
+    if succeeded:
+        modeladmin.message_user(
+            request, f"Resent {succeeded} email(s).", level=messages.SUCCESS
+        )
+
+
+@admin.register(FailedEmail)
+class FailedEmailAdmin(admin.ModelAdmin):
+    list_display = ("subject", "recipients_display", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("subject", "recipients", "error_message")
+    readonly_fields = (
+        "subject",
+        "recipients",
+        "text_body",
+        "html_body",
+        "attachments",
+        "error_message",
+        "created_at",
+    )
+    actions = [resend_failed_emails]
+
+    @admin.display(description="Recipients")
+    def recipients_display(self, obj):
+        return ", ".join(obj.recipients)
