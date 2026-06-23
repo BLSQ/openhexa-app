@@ -10,7 +10,7 @@ from django.test import override_settings
 from django.utils import timezone
 
 from hexa.core.test import GraphQLTestCase, TestCase
-from hexa.git.forgejo import ForgejoAPIError
+from hexa.git.exceptions import GitFileNotFound
 from hexa.superset.models import SupersetInstance
 from hexa.user_management.models import (
     Organization,
@@ -457,9 +457,7 @@ class GitWebappServeViewTest(TestCase):
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_serve_file_not_found_in_forgejo(self, mock_get_client):
         mock_client = MagicMock()
-        mock_client.get_file.side_effect = ForgejoAPIError(
-            "GET", "http://forgejo/api", 404, "not found"
-        )
+        mock_client.get_file.side_effect = GitFileNotFound("nonexistent.html")
         mock_get_client.return_value = mock_client
 
         self._create_webapp_session(self.PRIVATE_WEBAPP, self.USER_MEMBER)

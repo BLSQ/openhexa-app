@@ -743,6 +743,7 @@ The following keyword arguments are optional:
 - `widget`: enum option for the widget to fill options for the parameter
 - `connection`: name of the connection code to be used in the wdiget
 - `multiple` whether the arguments should accept a list of values rather than a single value, `False` by default
+- `disables`: a list of parameter codes that should be disabled when this (boolean) parameter is enabled — see [Disabling parameters with a toggle](#disabling-parameters-with-a-toggle)
 
 Optional `widget` field, at the moment `DHIS2Widget`, `IASOWidget` are supported. A `connection` field has to be filled-in to be able to set a `widget` field.
 
@@ -941,6 +942,76 @@ MSA,Mombasa
 - The choices file must not exceed **5 MB**.
 - `ChoicesFromFile` is only compatible with scalar parameter types (`str`, `int`, `float`, `bool`). It cannot be combined with connection, dataset, file, or secret types.
 - If the file contains values that are not compatible with the declared parameter type (for example, non-numeric strings for an `int` parameter), those options will be disabled in the run form and a warning will be shown.
+
+## Disabling parameters with a toggle
+
+While [dynamic choices](#using-dynamic-choices-from-a-workspace-file) change *what values* a parameter can take, the `disables` option changes *which parameters are active at all* depending on another parameter.
+
+A common case: a pipeline has several mandatory parameters used to process data, but it also offers a "lighter" run mode (for example, regenerating a report from a previous run) that does not need any of them. Without `disables`, users would have to fill in dummy values for the mandatory parameters just to be able to launch the run.
+
+With `disables`, you add a boolean parameter that acts as a toggle. When it is enabled, the parameters it lists are:
+
+- hidden/greyed out in the run form,
+- exempted from the "required" check,
+- omitted from the run config — the pipeline function receives their default value (or `None`).
+
+```python
+from openhexa.sdk import current_run, parameter, pipeline
+
+
+@pipeline("snt-report")
+@parameter(
+    "run_report_only",
+    name="Run report only",
+    help="Skip data processing and only regenerate the report.",
+    type=bool,
+    default=False,
+    disables=["data_input", "year"],
+)
+@parameter("data_input", name="Data input", type=str, required=True)
+@parameter("year", name="Year", type=int, required=True)
+@parameter("report_name", name="Report name", type=str, required=False)
+def snt_report(run_report_only, data_input, year, report_name):
+    if run_report_only:
+        # data_input and year are None here — they were disabled in the form.
+        current_run.log_info("Regenerating report only")
+        generate_report(report_name)
+        return
+
+    process_data(data_input, year)
+    generate_report(report_name)
+```
+
+In the run form, ticking **Run report only** greys out `data_input` and `year` and lets the user launch the run without filling them in. `report_name` is not listed in `disables`, so it stays editable.
+
+### Disabling when the toggle is *off* (`disable_when`)
+
+By default the listed parameters are disabled when the toggle is **on** (`disable_when=True`). For an "enable" toggle — where the extra parameters should be active only when the toggle is ticked — set `disable_when=False`:
+
+```python
+@parameter(
+    "enable_advanced",
+    name="Enable advanced options",
+    type=bool,
+    default=False,
+    disables=["batch_size", "threads"],
+    disable_when=False,
+)
+@parameter("batch_size", name="Batch size", type=int, required=True)
+@parameter("threads", name="Threads", type=int, required=True)
+@pipeline("my-pipeline")
+def my_pipeline(enable_advanced, batch_size, threads): ...
+```
+
+Here `batch_size` and `threads` are greyed out while **Enable advanced options** is unticked, and become editable (and required again) once it is ticked.
+
+### Rules and behavior
+
+- Only **boolean** parameters can declare `disables`.
+- `disable_when` (default `True`) is the value of the toggle that triggers disabling; it must be a boolean.
+- A parameter is disabled whenever **any** toggle whose value matches its `disable_when` lists it (the effect is cumulative if you have several toggles).
+- A toggle cannot disable itself, and it cannot disable another toggle (chaining is not supported).
+- Disabled parameters are validated neither in the web form nor at run time, so a pipeline can run even if a disabled parameter is required and left empty.
 
 ## Using connection parameter types
 

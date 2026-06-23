@@ -1,5 +1,5 @@
 from hexa.core.test import TestCase
-from hexa.databases.permissions import view_database_credentials
+from hexa.databases.permissions import run_query, view_database_credentials
 from hexa.user_management.models import (
     Organization,
     OrganizationMembership,
@@ -117,6 +117,22 @@ class DatabasesOrganizationPermissionsTest(TestCase):
         self.assertFalse(
             view_database_credentials(self.USER_WORKSPACE_VIEWER, self.WORKSPACE)
         )
+
+    def test_workspace_members_can_run_query(self):
+        """Any workspace member, including viewers, can run read-only SQL queries"""
+        self.assertTrue(run_query(self.USER_WORKSPACE_ADMIN, self.WORKSPACE))
+        self.assertTrue(run_query(self.USER_WORKSPACE_EDITOR, self.WORKSPACE))
+        self.assertTrue(run_query(self.USER_WORKSPACE_VIEWER, self.WORKSPACE))
+
+    def test_organization_admin_or_owner_can_run_query(self):
+        """Organization owners and admins can run queries even without workspace membership"""
+        self.assertTrue(run_query(self.USER_ORG_OWNER, self.WORKSPACE))
+        self.assertTrue(run_query(self.USER_ORG_ADMIN, self.WORKSPACE))
+
+    def test_non_member_cannot_run_query(self):
+        """Users without workspace membership or org admin/owner rights cannot run queries"""
+        self.assertFalse(run_query(self.USER_ORG_MEMBER, self.WORKSPACE))
+        self.assertFalse(run_query(self.USER_NON_ORG_MEMBER, self.WORKSPACE))
 
     def test_permissions_with_null_organization(self):
         """Test permissions when workspace has no organization"""

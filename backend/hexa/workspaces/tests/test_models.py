@@ -1,12 +1,15 @@
 import hashlib
 import uuid
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.test import override_settings
 
 from hexa.core.test import TestCase
 from hexa.files import storage
+from hexa.pipelines.authentication import PipelineRunUser
+from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.user_management.models import (
     Feature,
     FeatureFlag,
@@ -426,6 +429,167 @@ class WorkspaceOrganizationRoleTest(TestCase):
         self.assertNotIn(self.org_workspace, accessible_workspaces)
 
 
+class WorkspaceFilterForUserDispatchTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.superuser = User.objects.create_user(
+            "root@example.com", "password", is_superuser=True
+        )
+        cls.member = User.objects.create_user("member@example.com", "password")
+        cls.org_owner = User.objects.create_user("owner@example.com", "password")
+        cls.org_admin = User.objects.create_user("orgadmin@example.com", "password")
+        cls.org_member = User.objects.create_user("orgmember@example.com", "password")
+        cls.external = User.objects.create_user("external@example.com", "password")
+
+        cls.organization = Organization.objects.create(name="Org")
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_owner,
+            role=OrganizationMembershipRole.OWNER,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_admin,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_member,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            cls.org_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.superuser,
+                name="Org WS",
+                organization=cls.organization,
+            )
+            cls.standalone_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.superuser,
+                name="Standalone WS",
+            )
+            cls.archived_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.superuser,
+                name="Archived WS",
+                organization=cls.organization,
+            )
+        cls.archived_workspace.archived = True
+        cls.archived_workspace.save()
+
+        WorkspaceMembership.objects.create(
+            user=cls.member,
+            workspace=cls.org_workspace,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+
+    def test_anonymous_user_sees_nothing(self):
+        self.assertEqual(Workspace.objects.filter_for_user(AnonymousUser()).count(), 0)
+
+    def test_anonymous_user_with_include_archived_still_sees_nothing(self):
+        self.assertEqual(
+            Workspace.objects.filter_for_user(
+                AnonymousUser(), include_archived=True
+            ).count(),
+            0,
+        )
+
+    def test_superuser_sees_all_non_archived(self):
+        result = set(Workspace.objects.filter_for_user(self.superuser))
+        self.assertEqual(result, {self.org_workspace, self.standalone_workspace})
+
+    def test_superuser_sees_archived_with_flag(self):
+        result = set(
+            Workspace.objects.filter_for_user(self.superuser, include_archived=True)
+        )
+        self.assertEqual(
+            result,
+            {self.org_workspace, self.standalone_workspace, self.archived_workspace},
+        )
+
+    def test_workspace_member_sees_only_their_workspace(self):
+        self.assertEqual(
+            list(Workspace.objects.filter_for_user(self.member)), [self.org_workspace]
+        )
+
+    def test_org_owner_sees_all_org_workspaces(self):
+        result = set(Workspace.objects.filter_for_user(self.org_owner))
+        self.assertIn(self.org_workspace, result)
+        self.assertNotIn(self.standalone_workspace, result)
+
+    def test_org_admin_sees_all_org_workspaces(self):
+        result = set(Workspace.objects.filter_for_user(self.org_admin))
+        self.assertIn(self.org_workspace, result)
+        self.assertNotIn(self.standalone_workspace, result)
+
+    def test_plain_org_member_does_not_auto_access_workspaces(self):
+        self.assertEqual(Workspace.objects.filter_for_user(self.org_member).count(), 0)
+
+    def test_external_user_sees_nothing(self):
+        self.assertEqual(Workspace.objects.filter_for_user(self.external).count(), 0)
+
+    def test_org_admin_and_workspace_membership_dedupes(self):
+        WorkspaceMembership.objects.create(
+            user=self.org_admin,
+            workspace=self.org_workspace,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+        result = list(Workspace.objects.filter_for_user(self.org_admin))
+        self.assertEqual(result.count(self.org_workspace), 1)
+
+    def test_archived_workspace_excluded_by_default(self):
+        WorkspaceMembership.objects.create(
+            user=self.member,
+            workspace=self.archived_workspace,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+        self.assertNotIn(
+            self.archived_workspace,
+            Workspace.objects.filter_for_user(self.member),
+        )
+
+    def test_archived_workspace_included_with_flag(self):
+        WorkspaceMembership.objects.create(
+            user=self.member,
+            workspace=self.archived_workspace,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+        self.assertIn(
+            self.archived_workspace,
+            Workspace.objects.filter_for_user(self.member, include_archived=True),
+        )
+
+    def test_pipeline_run_user_sees_only_pipeline_workspace(self):
+        pipeline_run = MagicMock(PipelineRun)
+        pipeline_run.pipeline = MagicMock(Pipeline)
+        pipeline_run.pipeline.workspace_id = self.org_workspace.id
+        principal = PipelineRunUser(pipeline_run)
+
+        result = list(Workspace.objects.filter_for_user(principal))
+        self.assertEqual(result, [self.org_workspace])
+
+    def test_pipeline_run_user_with_archived_workspace(self):
+        pipeline_run = MagicMock(PipelineRun)
+        pipeline_run.pipeline = MagicMock(Pipeline)
+        pipeline_run.pipeline.workspace_id = self.archived_workspace.id
+        principal = PipelineRunUser(pipeline_run)
+
+        self.assertEqual(Workspace.objects.filter_for_user(principal).count(), 0)
+        self.assertEqual(
+            list(Workspace.objects.filter_for_user(principal, include_archived=True)),
+            [self.archived_workspace],
+        )
+
+    def test_unknown_principal_type_raises(self):
+        class FakePrincipal:
+            is_authenticated = True
+
+        with self.assertRaises(NotImplementedError):
+            Workspace.objects.filter_for_user(FakePrincipal())
+
+
 class ConnectionTest(TestCase):
     USER_SERENA = None
     USER_ADMIN = None
@@ -592,6 +756,99 @@ class ConnectionTest(TestCase):
             connection_type=ConnectionType.CUSTOM,
         )
         connection.update_if_has_perm(self.USER_SERENA, name="Connection 2")
+
+
+class ConnectionFilterForUserTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.superuser = User.objects.create_user(
+            "su@example.com", "password", is_superuser=True
+        )
+        cls.member = User.objects.create_user("member@example.com", "password")
+        cls.org_owner = User.objects.create_user("owner@example.com", "password")
+        cls.org_admin = User.objects.create_user("orgadmin@example.com", "password")
+        cls.org_member = User.objects.create_user("orgmember@example.com", "password")
+        cls.external = User.objects.create_user("external@example.com", "password")
+
+        cls.organization = Organization.objects.create(name="Org")
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_owner,
+            role=OrganizationMembershipRole.OWNER,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_admin,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_member,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            cls.org_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.superuser,
+                name="Org WS",
+                organization=cls.organization,
+            )
+            cls.other_workspace = Workspace.objects.create_if_has_perm(
+                principal=cls.superuser,
+                name="Other WS",
+            )
+
+        WorkspaceMembership.objects.create(
+            user=cls.member,
+            workspace=cls.org_workspace,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
+        cls.connection_org = Connection.objects.create(
+            workspace=cls.org_workspace,
+            user=cls.superuser,
+            name="conn-org",
+            slug="conn-org",
+            connection_type=ConnectionType.CUSTOM,
+        )
+        cls.connection_other = Connection.objects.create(
+            workspace=cls.other_workspace,
+            user=cls.superuser,
+            name="conn-other",
+            slug="conn-other",
+            connection_type=ConnectionType.CUSTOM,
+        )
+
+    def test_workspace_member_sees_only_their_workspace_connections(self):
+        connections = Connection.objects.filter_for_user(self.member)
+        self.assertIn(self.connection_org, connections)
+        self.assertNotIn(self.connection_other, connections)
+
+    def test_org_owner_sees_connections_in_org_workspaces(self):
+        connections = Connection.objects.filter_for_user(self.org_owner)
+        self.assertIn(self.connection_org, connections)
+        self.assertNotIn(self.connection_other, connections)
+
+    def test_org_admin_sees_connections_in_org_workspaces(self):
+        connections = Connection.objects.filter_for_user(self.org_admin)
+        self.assertIn(self.connection_org, connections)
+        self.assertNotIn(self.connection_other, connections)
+
+    def test_org_member_without_workspace_membership_sees_nothing(self):
+        connections = Connection.objects.filter_for_user(self.org_member)
+        self.assertEqual(connections.count(), 0)
+
+    def test_external_user_sees_nothing(self):
+        connections = Connection.objects.filter_for_user(self.external)
+        self.assertEqual(connections.count(), 0)
+
+    def test_superuser_sees_all_connections(self):
+        connections = Connection.objects.filter_for_user(self.superuser)
+        self.assertIn(self.connection_org, connections)
+        self.assertIn(self.connection_other, connections)
 
 
 class WorkspaceMembershipOrganizationAdminOwnerPermissionsTest(TestCase):

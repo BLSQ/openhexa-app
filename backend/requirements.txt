@@ -336,7 +336,7 @@ oauthlib==3.3.1
     #   django-oauth-toolkit
     #   kubernetes
     #   requests-oauthlib
-openhexa-sdk==2.21.0
+openhexa-sdk==2.22.0
     # via
     #   -r requirements.in
     #   openhexa-toolbox
@@ -553,6 +553,7 @@ sniffio==1.3.1
     #   anyio
 sqlparse==0.5.4
     # via
+    #   -r requirements.in
     #   django
     #   django-debug-toolbar
 starlette==0.49.1

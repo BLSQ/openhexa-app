@@ -18,7 +18,12 @@ from hexa.core.models.base import Base, BaseQuerySet
 from hexa.datasets.api import get_blob
 from hexa.files import storage
 from hexa.metadata.models import MetadataMixin
-from hexa.user_management.models import OrganizationMembershipRole, User
+from hexa.user_management.models import (
+    Organization,
+    ServicePrincipal,
+    User,
+    UserInterface,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,89 +43,62 @@ def create_dataset_slug(name: str, workspace):
 
 class DatasetQuerySet(BaseQuerySet):
     @staticmethod
-    def _workspace_query(user):
-        return Q(links__workspace__members=user)
-
-    @staticmethod
-    def _org_shared_query(user):
-        return Q(
-            shared_with_organization=True,
-            workspace__organization__organizationmembership__user=user,
-        )
-
-    @staticmethod
-    def _org_admin_or_owner_query(user):
-        return Q(
-            workspace__organization__organizationmembership__user=user,
-            workspace__organization__organizationmembership__role__in=[
-                OrganizationMembershipRole.ADMIN,
-                OrganizationMembershipRole.OWNER,
-            ],
-        )
-
-    @staticmethod
     def optimize_query(qs: models.QuerySet) -> models.QuerySet:
         return qs.select_related(
             "workspace", "workspace__organization", "created_by"
         ).prefetch_related("versions", "links", "links__workspace")
 
-    def filter_for_user(self, user: AnonymousUser | User):
-        from hexa.pipelines.authentication import PipelineRunUser
+    def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
+        from hexa.workspaces.models import Workspace
 
-        if isinstance(user, PipelineRunUser):
-            return self._filter_for_user_and_query_object(
-                user, models.Q(links__workspace=user.pipeline_run.pipeline.workspace)
-            )
-        else:
-            return self.optimize_query(
-                self._filter_for_user_and_query_object(
-                    user,
-                    self._workspace_query(user) | self._org_shared_query(user),
-                    return_all_if_superuser=True,
-                    return_all_if_organization_admin_or_owner=True,
+        accessible_workspaces = Workspace.objects.filter_for_user(user)
+        accessible_organizations = Organization.objects.filter_for_user(
+            user, direct_membership_only=True
+        )
+        return self.optimize_query(
+            self.filter(
+                Q(links__workspace__in=accessible_workspaces)
+                | Q(
+                    shared_with_organization=True,
+                    workspace__organization__in=accessible_organizations,
                 )
-            )
+            ).distinct()
+        )
 
     def filter_for_workspace_slugs(
-        self, user: AnonymousUser | User, workspace_slugs: list[str]
+        self, user: AnonymousUser | UserInterface, workspace_slugs: list[str]
     ):
-        return self.optimize_query(
-            self._filter_for_user_and_query_object(
-                user,
-                self._workspace_query(user) & Q(workspace__slug__in=workspace_slugs)
-                | (
-                    self._org_shared_query(user)
-                    & Q(links__workspace__slug__in=workspace_slugs)
-                )
-                | (
-                    self._org_admin_or_owner_query(user)
-                    & Q(workspace__slug__in=workspace_slugs)
-                ),
-                return_all_if_superuser=False,
-            )
+        # Datasets auto-link to their primary workspace, so `links__workspace`
+        # uniformly covers both primary and shared scopes — no separate
+        # primary-workspace clause needed.
+        return (
+            self.filter_for_user(user)
+            .filter(links__workspace__slug__in=workspace_slugs)
+            .distinct()
         )
 
 
 class DatasetManager(models.Manager):
     def create_if_has_perm(
         self,
-        principal: User,
+        principal: UserInterface,
         workspace: any,
         *,
         name: str,
         description: str,
         files: list[dict] | None = None,
     ):
-        from hexa.pipelines.authentication import PipelineRunUser
-
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        if isinstance(principal, PipelineRunUser):
-            if principal.pipeline_run.pipeline.workspace != workspace:
+        if isinstance(principal, ServicePrincipal):
+            if principal.workspace_id != workspace.pk:
                 raise PermissionDenied
         elif not principal.has_perm("datasets.create_dataset", workspace):
             raise PermissionDenied
 
-        created_by = principal if not isinstance(principal, PipelineRunUser) else None
+        created_by = (
+            principal.real_user
+            if isinstance(principal, ServicePrincipal)
+            else principal
+        )
 
         with transaction.atomic():
             dataset = self.create(
@@ -224,7 +202,7 @@ class Dataset(MetadataMixin, Base):
 
 
 class DatasetVersionQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User):
+    def filter_for_user(self, user: AnonymousUser | UserInterface):
         # TODO: It should also check workspace where it's added
         return self._filter_for_user_and_query_object(
             user,
@@ -236,25 +214,24 @@ class DatasetVersionQuerySet(BaseQuerySet):
 class DatasetVersionManager(models.Manager):
     def create_if_has_perm(
         self,
-        principal: User,
+        principal: UserInterface,
         dataset: Dataset,
         *,
         name: str,
         changelog: str,
         files: list[dict] | None = None,
     ):
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        from hexa.pipelines.authentication import PipelineRunUser
-
-        if isinstance(principal, PipelineRunUser):
-            if principal.pipeline_run.pipeline.workspace != dataset.workspace:
+        if isinstance(principal, ServicePrincipal):
+            if principal.workspace_id != dataset.workspace_id:
                 raise PermissionDenied
         elif not principal.has_perm("datasets.create_dataset_version", dataset):
             raise PermissionDenied
-        created_by = principal if not isinstance(principal, PipelineRunUser) else None
-        pipeline_run = (
-            principal.pipeline_run if isinstance(principal, PipelineRunUser) else None
+        created_by = (
+            principal.real_user
+            if isinstance(principal, ServicePrincipal)
+            else principal
         )
+        pipeline_run = getattr(principal, "pipeline_run", None)
 
         uploaded_uris = []
         with transaction.atomic():
@@ -357,7 +334,7 @@ class DatasetVersion(MetadataMixin, Base):
 
 
 class DatasetVersionFileQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | User):
+    def filter_for_user(self, user: AnonymousUser | UserInterface):
         return self._filter_for_user_and_query_object(
             user,
             models.Q(
@@ -373,27 +350,25 @@ class DatasetVersionFileQuerySet(BaseQuerySet):
 class DatasetVersionFileManager(models.Manager):
     def create_if_has_perm(
         self,
-        principal: User,
+        principal: UserInterface,
         dataset_version: DatasetVersion,
         *,
         uri: str,
         content_type: str,
     ):
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        from hexa.pipelines.authentication import PipelineRunUser
-
-        if isinstance(principal, PipelineRunUser):
-            if (
-                principal.pipeline_run.pipeline.workspace
-                != dataset_version.dataset.workspace
-            ):
+        if isinstance(principal, ServicePrincipal):
+            if principal.workspace_id != dataset_version.dataset.workspace_id:
                 raise PermissionDenied
         elif not principal.has_perm(
             "datasets.create_dataset_version_file", dataset_version
         ):
             raise PermissionDenied
 
-        created_by = principal if not isinstance(principal, PipelineRunUser) else None
+        created_by = (
+            principal.real_user
+            if isinstance(principal, ServicePrincipal)
+            else principal
+        )
 
         return self.create(
             dataset_version=dataset_version,
@@ -591,35 +566,22 @@ class DatasetLinkQuerySet(BaseQuerySet):
         )
         return qs
 
-    def filter_for_user(self, user: AnonymousUser | User):
-        # FIXME: Use a generic permission system instead of differencing between User and PipelineRunUser
-        from hexa.pipelines.authentication import PipelineRunUser
+    def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
+        from hexa.workspaces.models import Workspace
 
-        if isinstance(user, PipelineRunUser):
-            workspace = user.pipeline_run.pipeline.workspace
-            return self.optimize_query(
-                self._filter_for_user_and_query_object(
-                    user,
-                    models.Q(workspace=workspace)
-                    | models.Q(
-                        dataset__shared_with_organization=True,
-                        workspace__organization=workspace.organization,
-                    ),
+        accessible_workspaces = Workspace.objects.filter_for_user(user)
+        accessible_organizations = Organization.objects.filter_for_user(
+            user, direct_membership_only=True
+        )
+        return self.optimize_query(
+            self.filter(
+                Q(workspace__in=accessible_workspaces)
+                | Q(
+                    dataset__shared_with_organization=True,
+                    workspace__organization__in=accessible_organizations,
                 )
-            )
-        else:
-            return self.optimize_query(
-                self._filter_for_user_and_query_object(
-                    user,
-                    models.Q(workspace__members=user)
-                    | models.Q(
-                        dataset__shared_with_organization=True,
-                        workspace__organization__organizationmembership__user=user,
-                    ),
-                    return_all_if_superuser=True,
-                    return_all_if_organization_admin_or_owner=True,
-                )
-            )
+            ).distinct()
+        )
 
 
 class DatasetLink(Base):

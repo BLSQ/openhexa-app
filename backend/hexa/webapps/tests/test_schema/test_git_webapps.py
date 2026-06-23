@@ -5,6 +5,7 @@ from django.contrib.sessions.backends.db import SessionStore
 from django.test import override_settings
 
 from hexa.core.test import GraphQLTestCase
+from hexa.git.exceptions import GitFileNotFound
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.user_management.models import User
 from hexa.webapps.models import GitWebapp, Webapp
@@ -83,6 +84,19 @@ WEBAPP_QUERY = """
                 autoSelect
                 language
                 lineCount
+            }
+        }
+    }
+"""
+
+
+EDIT_WEBAPP_FILE_MUTATION = """
+    mutation editWebappFile($input: EditWebappFileInput!) {
+        editWebappFile(input: $input) {
+            success
+            errors
+            webapp {
+                id
             }
         }
     }
@@ -312,6 +326,37 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
             self.USER.display_name or self.USER.email,
             self.USER.email,
             org_slug="no-org",
+            delete_paths=None,
+        )
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_update_files_to_delete_propagates(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.commit_files.return_value = "sha-del"
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            UPDATE_WEBAPP_MUTATION,
+            {
+                "input": {
+                    "id": str(self.GIT_WEBAPP.id),
+                    "filesToDelete": ["old.js", "legacy/style.css"],
+                }
+            },
+        )
+
+        result = response["data"]["updateWebapp"]
+        self.assertTrue(result["success"])
+
+        mock_client.commit_files.assert_called_once_with(
+            "webapp-commitrepo",
+            [],
+            "Update webapp content",
+            self.USER.display_name or self.USER.email,
+            self.USER.email,
+            org_slug="no-org",
+            delete_paths=["old.js", "legacy/style.css"],
         )
 
     @patch("hexa.git.mixins.get_forgejo_client")
@@ -353,6 +398,7 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
             self.USER.display_name or self.USER.email,
             self.USER.email,
             org_slug="no-org",
+            delete_paths=None,
         )
 
     @patch("hexa.git.mixins.get_forgejo_client")
@@ -418,6 +464,178 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
         result = response["data"]["updateWebapp"]
         self.assertFalse(result["success"])
         self.assertIn("SAVE_FAILED", result["errors"])
+
+
+class GitWebappEditFileTest(GraphQLTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user("edituser@test.com", "password")
+        cls.WS = Workspace.objects.create(name="Edit WS", slug="edit-ws")
+        WorkspaceMembership.objects.create(
+            user=cls.USER,
+            workspace=cls.WS,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        cls.GIT_WEBAPP = GitWebapp.objects.create(
+            workspace=cls.WS,
+            name="Edit Test App",
+            slug="edit-test-app",
+            subdomain="edit-test-app",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER,
+            repository="webapp-editrepo",
+        )
+
+    def _run(self, mutation_input):
+        self.client.force_login(self.USER)
+        return self.run_query(
+            EDIT_WEBAPP_FILE_MUTATION,
+            {"input": {"id": str(self.GIT_WEBAPP.id), **mutation_input}},
+        )["data"]["editWebappFile"]
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_edit_file_success(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<h1>old title</h1>\n<p>keep me</p>"
+        mock_client.commit_files.return_value = "sha-edit"
+        mock_get_client.return_value = mock_client
+
+        result = self._run(
+            {
+                "path": "index.html",
+                "oldString": "<h1>old title</h1>",
+                "newString": "<h1>new title</h1>",
+            }
+        )
+
+        self.assertTrue(result["success"], result)
+        mock_client.get_file.assert_called_once_with(
+            "webapp-editrepo", "index.html", ref="main", org_slug="no-org"
+        )
+        mock_client.commit_files.assert_called_once_with(
+            "webapp-editrepo",
+            [
+                {
+                    "path": "index.html",
+                    "content": "<h1>new title</h1>\n<p>keep me</p>",
+                    "encoding": "TEXT",
+                }
+            ],
+            "Edit index.html",
+            self.USER.display_name or self.USER.email,
+            self.USER.email,
+            org_slug="no-org",
+            delete_paths=None,
+        )
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_edit_file_replace_all(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"a foo b foo c"
+        mock_client.commit_files.return_value = "sha-all"
+        mock_get_client.return_value = mock_client
+
+        result = self._run(
+            {
+                "path": "app.js",
+                "oldString": "foo",
+                "newString": "bar",
+                "replaceAll": True,
+            }
+        )
+
+        self.assertTrue(result["success"], result)
+        self.assertEqual(
+            mock_client.commit_files.call_args[0][1],
+            [{"path": "app.js", "content": "a bar b bar c", "encoding": "TEXT"}],
+        )
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_edit_file_not_unique(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"foo and foo"
+        mock_get_client.return_value = mock_client
+
+        result = self._run({"path": "app.js", "oldString": "foo", "newString": "bar"})
+
+        self.assertFalse(result["success"])
+        self.assertIn("STRING_NOT_UNIQUE", result["errors"])
+        mock_client.commit_files.assert_not_called()
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_edit_file_string_not_found(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"nothing here"
+        mock_get_client.return_value = mock_client
+
+        result = self._run(
+            {"path": "app.js", "oldString": "missing", "newString": "bar"}
+        )
+
+        self.assertFalse(result["success"])
+        self.assertIn("STRING_NOT_FOUND", result["errors"])
+        mock_client.commit_files.assert_not_called()
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_edit_file_no_change(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_get_client.return_value = mock_client
+
+        result = self._run({"path": "app.js", "oldString": "same", "newString": "same"})
+
+        self.assertFalse(result["success"])
+        self.assertIn("NO_CHANGE", result["errors"])
+        mock_client.get_file.assert_not_called()
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_edit_file_binary(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"\xff\xfe\x00binary"
+        mock_get_client.return_value = mock_client
+
+        result = self._run({"path": "logo.png", "oldString": "x", "newString": "y"})
+
+        self.assertFalse(result["success"])
+        self.assertIn("BINARY_FILE", result["errors"])
+        mock_client.commit_files.assert_not_called()
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_edit_file_path_not_found(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.side_effect = GitFileNotFound("missing.html")
+        mock_get_client.return_value = mock_client
+
+        result = self._run({"path": "missing.html", "oldString": "x", "newString": "y"})
+
+        self.assertFalse(result["success"])
+        self.assertIn("PATH_NOT_FOUND", result["errors"])
+        mock_client.commit_files.assert_not_called()
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_edit_file_permission_denied(self, mock_get_client):
+        mock_get_client.return_value = MagicMock()
+        viewer = User.objects.create_user("editviewer@test.com", "password")
+        WorkspaceMembership.objects.create(
+            user=viewer,
+            workspace=self.WS,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        self.client.force_login(viewer)
+        result = self.run_query(
+            EDIT_WEBAPP_FILE_MUTATION,
+            {
+                "input": {
+                    "id": str(self.GIT_WEBAPP.id),
+                    "path": "index.html",
+                    "oldString": "x",
+                    "newString": "y",
+                }
+            },
+        )["data"]["editWebappFile"]
+
+        self.assertFalse(result["success"])
+        self.assertIn("PERMISSION_DENIED", result["errors"])
 
 
 class GitWebappPublishVersionTest(GraphQLTestCase):

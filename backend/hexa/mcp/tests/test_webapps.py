@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from hexa.mcp.tools.webapps import (
     create_static_webapp,
+    edit_static_webapp_file,
     get_static_webapp,
     list_static_webapps,
     update_static_webapp,
@@ -94,6 +95,44 @@ class GetStaticWebappTest(MCPTestCase):
         self.assertEqual(result["files"][0]["path"], "index.html")
         self.assertEqual(result["files"][0]["content"], "<html>hi</html>")
         self.assertEqual(result["files"][0]["encoding"], "TEXT")
+
+    @_mock_forgejo()
+    def test_get_static_webapp_defaults_ref_to_main(self, mock_forgejo):
+        """The MCP query does not supply a ref, which reaches the resolver as
+        None. It must fall back to "main" rather than requesting a "None" ref
+        (which Forgejo 404s, leaving the files list empty).
+        """
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("Ref"),
+            files_json=json.dumps([{"path": "index.html", "content": "<html></html>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_slug = create_result["webapp"]["slug"]
+
+        def files_for_ref(repo_name, ref, **kwargs):
+            if ref != "main":
+                return []
+            return [
+                {
+                    "path": "index.html",
+                    "type": "file",
+                    "content": "<html></html>",
+                    "encoding": "TEXT",
+                }
+            ]
+
+        client.get_repository_files.side_effect = files_for_ref
+
+        result = get_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            webapp_slug=webapp_slug,
+        )
+        self.assertEqual(len(result["files"]), 1)
+        self.assertEqual(result["files"][0]["path"], "index.html")
 
     def test_get_static_webapp_not_found(self):
         result = get_static_webapp(
@@ -282,6 +321,62 @@ class UpdateStaticWebappTest(MCPTestCase):
         client.commit_files.assert_called_once()
         self.assertEqual(client.commit_files.call_args[0][1], new_files)
 
+    @_mock_forgejo()
+    def test_update_static_webapp_delete_files(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("DelUpd"),
+            files_json=json.dumps([{"path": "index.html", "content": "<html></html>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_id = str(create_result["webapp"]["id"])
+        client.commit_files.reset_mock()
+
+        result = update_static_webapp(
+            user=self.USER_ADMIN,
+            webapp_id=webapp_id,
+            files_to_delete_json=json.dumps(["old.js", "legacy/style.css"]),
+        )
+        self.assertTrue(result["success"], result)
+        client.commit_files.assert_called_once()
+        self.assertEqual(client.commit_files.call_args[0][1], [])
+        self.assertEqual(
+            client.commit_files.call_args.kwargs["delete_paths"],
+            ["old.js", "legacy/style.css"],
+        )
+
+    @_mock_forgejo()
+    def test_update_static_webapp_files_and_delete_combined(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("DelAddUpd"),
+            files_json=json.dumps([{"path": "index.html", "content": "<html></html>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_id = str(create_result["webapp"]["id"])
+        client.commit_files.reset_mock()
+
+        new_files = [{"path": "app.js", "content": "console.log(1)"}]
+        result = update_static_webapp(
+            user=self.USER_ADMIN,
+            webapp_id=webapp_id,
+            files_json=json.dumps(new_files),
+            files_to_delete_json=json.dumps(["old.js"]),
+        )
+        self.assertTrue(result["success"], result)
+        client.commit_files.assert_called_once()
+        self.assertEqual(
+            client.commit_files.call_args[0][1],
+            [{"path": "app.js", "content": "console.log(1)", "encoding": "TEXT"}],
+        )
+        self.assertEqual(
+            client.commit_files.call_args.kwargs["delete_paths"], ["old.js"]
+        )
+
     def test_update_static_webapp_invalid_files_json(self):
         result = update_static_webapp(
             user=self.USER_ADMIN,
@@ -289,6 +384,25 @@ class UpdateStaticWebappTest(MCPTestCase):
             files_json="not json",
         )
         self.assertEqual(result, {"error": "Invalid JSON in files_json"})
+
+    def test_update_static_webapp_invalid_files_to_delete_json(self):
+        result = update_static_webapp(
+            user=self.USER_ADMIN,
+            webapp_id="00000000-0000-0000-0000-000000000000",
+            files_to_delete_json="not json",
+        )
+        self.assertEqual(result, {"error": "Invalid JSON in files_to_delete_json"})
+
+    def test_update_static_webapp_files_to_delete_not_strings(self):
+        result = update_static_webapp(
+            user=self.USER_ADMIN,
+            webapp_id="00000000-0000-0000-0000-000000000000",
+            files_to_delete_json=json.dumps([{"path": "x"}]),
+        )
+        self.assertEqual(
+            result,
+            {"error": "files_to_delete_json must be a JSON array of path strings"},
+        )
 
     @_mock_forgejo()
     def test_update_static_webapp_allowed_operations(self, _mock):
@@ -338,3 +452,62 @@ class UpdateStaticWebappTest(MCPTestCase):
         )
         self.assertTrue(result["success"], result)
         self.assertEqual(Webapp.objects.get(pk=webapp_id).allowed_operations, [])
+
+
+class EditStaticWebappFileTest(MCPTestCase):
+    @_mock_forgejo()
+    def test_edit_static_webapp_file(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("EditFile"),
+            files_json=json.dumps([{"path": "index.html", "content": "<h1>old</h1>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_id = str(create_result["webapp"]["id"])
+
+        client.get_file.return_value = b"<h1>old</h1>"
+        client.commit_files.reset_mock()
+
+        result = edit_static_webapp_file(
+            user=self.USER_ADMIN,
+            webapp_id=webapp_id,
+            path="index.html",
+            old_string="<h1>old</h1>",
+            new_string="<h1>new</h1>",
+        )
+
+        self.assertTrue(result["success"], result)
+        client.commit_files.assert_called_once()
+        self.assertEqual(
+            client.commit_files.call_args[0][1],
+            [{"path": "index.html", "content": "<h1>new</h1>", "encoding": "TEXT"}],
+        )
+
+    @_mock_forgejo()
+    def test_edit_static_webapp_file_string_not_found(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("EditMiss"),
+            files_json=json.dumps([{"path": "index.html", "content": "<h1>hi</h1>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_id = str(create_result["webapp"]["id"])
+
+        client.get_file.return_value = b"<h1>hi</h1>"
+        client.commit_files.reset_mock()
+
+        result = edit_static_webapp_file(
+            user=self.USER_ADMIN,
+            webapp_id=webapp_id,
+            path="index.html",
+            old_string="not present",
+            new_string="x",
+        )
+
+        self.assertFalse(result["success"])
+        self.assertIn("STRING_NOT_FOUND", result["errors"])
+        client.commit_files.assert_not_called()
