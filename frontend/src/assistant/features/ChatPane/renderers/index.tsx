@@ -1,4 +1,3 @@
-import type { TFunction } from "i18next";
 import { TOOL } from "assistant/helpers/tools";
 import CodeValue from "./CodeValue";
 import FileSetValue, { FileEntry } from "./FileSetValue";
@@ -6,7 +5,7 @@ import FileSystemValue from "./FileSystemValue";
 import MarkdownValue from "./MarkdownValue";
 import TableValue from "./TableValue";
 import { findTabularArray, isPlainObject } from "./tabular";
-import { RendererLabel, RenderContext, SemanticRenderer } from "./types";
+import { RenderContext, SemanticRenderer } from "./types";
 
 export type { RenderContext } from "./types";
 
@@ -38,10 +37,15 @@ function deletedFiles(value: unknown): string[] {
 // Ordered by specificity: tool-specific renderers first, generic shape-based
 // ones last. The first whose `match` returns true wins; otherwise the caller
 // falls back to the raw JSON view.
+//
+// `label` is a translator thunk (`(t) => t("Files")`) rather than a plain key:
+// the i18next parser only extracts literal `t("…")` calls, so keeping the call
+// here — co-located with the renderer — lets the key be picked up while staying
+// the single source of truth (no separate label→t() map to keep in sync).
 const RENDERERS: SemanticRenderer[] = [
   {
     id: "files-changeset",
-    label: "Files",
+    label: (t) => t("Files"),
     match: (value, ctx) =>
       ctx.toolName === TOOL.PROPOSE_PIPELINE_VERSION &&
       (fileSet(value) !== null || deletedFiles(value).length > 0),
@@ -51,14 +55,14 @@ const RENDERERS: SemanticRenderer[] = [
   },
   {
     id: "files",
-    label: "Files",
+    label: (t) => t("Files"),
     match: (value, ctx) =>
       ctx.toolName === TOOL.LIST_FILES && findTabularArray(value) !== null,
     render: (value) => <FileSystemValue files={findTabularArray(value)!} />,
   },
   {
     id: "code",
-    label: "Code",
+    label: (t) => t("Code"),
     match: (value, ctx) =>
       ctx.toolName === TOOL.READ_FILE &&
       ctx.kind === "output" &&
@@ -77,7 +81,7 @@ const RENDERERS: SemanticRenderer[] = [
   },
   {
     id: "markdown",
-    label: "Document",
+    label: (t) => t("Document"),
     match: (value, ctx) =>
       ctx.toolName === TOOL.GET_HELP_OR_DOC &&
       ctx.kind === "output" &&
@@ -89,7 +93,7 @@ const RENDERERS: SemanticRenderer[] = [
   },
   {
     id: "table",
-    label: "Table",
+    label: (t) => t("Table"),
     wide: true,
     match: (value) => findTabularArray(value) !== null,
     render: (value) => <TableValue rows={findTabularArray(value)!} />,
@@ -101,19 +105,4 @@ export function resolveSemanticRenderer(
   ctx: RenderContext,
 ): SemanticRenderer | null {
   return RENDERERS.find((r) => r.match(value, ctx)) ?? null;
-}
-
-// Renderer labels are stored as plain keys on RENDERERS, so translate them
-// through literal t() calls here — the i18next parser only extracts string
-// literals and would otherwise warn (and purge) on a dynamic `t(label)`. The
-// RendererLabel union keeps this map exhaustive: a new label won't type-check
-// until it is registered here.
-export function getRendererLabel(t: TFunction, label: RendererLabel): string {
-  const labels: Record<RendererLabel, string> = {
-    Files: t("Files"),
-    Code: t("Code"),
-    Document: t("Document"),
-    Table: t("Table"),
-  };
-  return labels[label];
 }

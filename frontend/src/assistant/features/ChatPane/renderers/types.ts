@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import { ReactNode } from "react";
 
 export type ToolValueKind = "input" | "output";
@@ -13,18 +14,15 @@ export type RenderContext = {
   output: unknown;
 };
 
-// The "formatted" toggle label of a renderer. A closed union (rather than a bare
-// string) so a new renderer is forced to register a translation in
-// `getRendererLabel` — the type won't compile otherwise.
-export type RendererLabel = "Files" | "Code" | "Document" | "Table";
-
 // A semantic renderer offers a prettier alternative to raw JSON for a value it
 // recognizes. `match` lets it decline so resolution falls through to the next
 // candidate (and ultimately to the raw JSON view).
 export type SemanticRenderer = {
   id: string;
-  // i18n key for the "formatted" toggle label.
-  label: RendererLabel;
+  // The "formatted" toggle label, given as a translator thunk so the i18n key
+  // lives here as a literal `t("…")` call the parser can extract — see the note
+  // in renderers/index.tsx.
+  label: (t: TFunction) => string;
   // Hint that this view benefits from more horizontal/vertical room (e.g. wide
   // tables): the section gives it a taller inline preview and a wider modal.
   wide?: boolean;

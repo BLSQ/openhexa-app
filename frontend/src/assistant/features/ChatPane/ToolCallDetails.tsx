@@ -1,7 +1,6 @@
 import Spinner from "core/components/Spinner";
-import { TFunction } from "i18next";
 import { useTranslation } from "next-i18next";
-import { getToolConfig, ToolInputLabel } from "assistant/helpers/toolConfig";
+import { getToolConfig } from "assistant/helpers/toolConfig";
 import ToolValueSection from "./ToolValueSection";
 import { RenderContext } from "./renderers";
 
@@ -18,21 +17,6 @@ function isEmpty(value: unknown): boolean {
   if (typeof value === "object")
     return Object.keys(value as object).length === 0;
   return value === "";
-}
-
-// Translate the configured input-label override through a literal t() map: the
-// i18next parser only extracts string literals, so passing the variable to the
-// translate function directly would get it purged. The ToolInputLabel union
-// keeps this map exhaustive.
-function inputLabel(
-  t: TFunction,
-  override: ToolInputLabel | undefined,
-): string {
-  if (!override) return t("Input");
-  const labels: Record<ToolInputLabel, string> = {
-    "Proposed changes": t("Proposed changes"),
-  };
-  return labels[override];
 }
 
 export default function ToolCallDetails({
@@ -53,7 +37,7 @@ export default function ToolCallDetails({
     <div className="mt-1.5 space-y-3 rounded-lg border border-gray-200 bg-gray-50/60 p-3">
       {hasInput && (
         <ToolValueSection
-          label={inputLabel(t, config.inputLabel)}
+          label={config.inputLabel?.(t) ?? t("Input")}
           value={toolInput}
           ctx={{ ...baseCtx, kind: "input" } as RenderContext}
         />
