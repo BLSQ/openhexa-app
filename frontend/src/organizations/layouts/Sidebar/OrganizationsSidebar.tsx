@@ -34,7 +34,7 @@ const OrganizationsSidebar = ({ organizations }: OrganizationsSidebarProps) => {
             label={t("Organizations")}
             compact={!isSidebarOpen}
           />
-          <div className="mt-5 flex grow flex-col">
+          <div className="mt-5 flex grow flex-col overflow-y-auto scrollbar-visible">
             {organizations.map((organization) => (
               <NavItem
                 Icon={BuildingOffice2Icon}
