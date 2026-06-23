@@ -53,7 +53,9 @@ query ListObjects($slug: String!, $prefix: String, $page: Int!, $perPage: Int!) 
 """
 
 
-def download(source: Client, ws_slug: str, file_path: str) -> bytes:
+def download(
+    source: Client, ws_slug: str, file_path: str, http_client: httpx.Client
+) -> bytes:
     """Download a file from the source workspace via a presigned URL."""
     data = gql(
         source,
@@ -74,8 +76,7 @@ def download(source: Client, ws_slug: str, file_path: str) -> bytes:
             + ",".join(result.get("errors") or [])
         )
     url = result["downloadUrl"]
-    with httpx.Client(timeout=300) as c:
-        resp = c.get(url)
+    resp = http_client.get(url)
     if not resp.is_success:
         raise GraphQLError(
             f"download of '{file_path}' returned HTTP {resp.status_code}: "
@@ -89,6 +90,7 @@ def upload(
     ws_slug: str,
     file_path: str,
     content: bytes,
+    http_client: httpx.Client,
     content_type: str = "application/octet-stream",
 ) -> None:
     """Upload bytes to the target workspace at the given object key."""
@@ -113,8 +115,7 @@ def upload(
     url = result["uploadUrl"]
     headers = dict(result.get("headers") or {})
     headers.setdefault("Content-Type", content_type)
-    with httpx.Client(timeout=300) as c:
-        resp = c.put(url, content=content, headers=headers)
+    resp = http_client.put(url, content=content, headers=headers)
     if not resp.is_success:
         raise GraphQLError(
             f"upload of '{file_path}' returned HTTP {resp.status_code}: "
@@ -174,18 +175,24 @@ class FilesCopier(ResourceCopier):
         files_result = FilesResult()
         result.files = files_result
 
-        for obj in walk(source.client, source.slug):
-            path = obj["key"]
-            try:
-                content = download(source.client, source.slug, path)
-                upload(target.client, target.slug, path, content)
-                files_result.copied.append((path, len(content)))
-                reporter.info(f"   copied {path} ({len(content)} bytes)")
-            except GraphQLError:
-                # The full path goes into failed for the final summary so the
-                # user can re-attempt it manually.
-                files_result.failed.append(path)
-                reporter.warning(f"   FAILED to copy {path}")
+        # One shared client for all presigned download/upload requests so the
+        # connection pool reuses TLS handshakes across files instead of paying
+        # one per file. It carries no auth headers: presigned URLs are
+        # self-authenticating and some storage backends reject requests that
+        # also send an Authorization header.
+        with httpx.Client(timeout=300) as http_client:
+            for obj in walk(source.client, source.slug):
+                path = obj["key"]
+                try:
+                    content = download(source.client, source.slug, path, http_client)
+                    upload(target.client, target.slug, path, content, http_client)
+                    files_result.copied.append((path, len(content)))
+                    reporter.info(f"   copied {path} ({len(content)} bytes)")
+                except GraphQLError:
+                    # The full path goes into failed for the final summary so the
+                    # user can re-attempt it manually.
+                    files_result.failed.append(path)
+                    reporter.warning(f"   FAILED to copy {path}")
 
         reporter.info(
             f"   {len(files_result.copied)} file(s) copied, "
