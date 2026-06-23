@@ -41,6 +41,8 @@ query PipelineDetail($id: UUID!, $vPage: Int!, $vPerPage: Int!) {
                 parameters {
                     code name type multiple required default help
                     widget connection choices
+                    choicesFromFile { path format column }
+                    directory disables disableWhen
                 }
             }
         }
