@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { toast } from "react-toastify";
@@ -110,11 +111,23 @@ const ApiAccessContent = ({
         </div>
       </div>
 
-      <div>
+      <div
+        className={clsx(
+          "rounded-md border p-3 transition-colors",
+          section.isEdited
+            ? "border-blue-200 bg-blue-50/40"
+            : "border-gray-200 bg-gray-50",
+        )}
+      >
         <p className="text-xs font-medium text-gray-500 mb-2">
           {t("Allowed operations")}
         </p>
-        <div className="space-y-2">
+        <div
+          className={clsx(
+            "space-y-2",
+            !section.isEdited && "opacity-60 cursor-not-allowed select-none",
+          )}
+        >
           {ALL_SCOPES.map((scope) => (
             <Checkbox
               key={scope}
