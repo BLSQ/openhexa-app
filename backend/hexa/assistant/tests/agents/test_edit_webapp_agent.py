@@ -128,7 +128,7 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
         instructions = agent._extra_instructions()
         self.assertIn("index.html", instructions)
         self.assertIn("style.css", instructions)
-        self.assertNotIn("<h1>Hi</h1>", instructions)
+        self.assertIn("<h1>Hi</h1>", instructions)
         self.assertIn("get_static_webapp_file", instructions)
 
     def test_binary_files_marked_in_manifest(self):
