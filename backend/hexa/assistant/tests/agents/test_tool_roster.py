@@ -10,11 +10,17 @@ class AgentToolsSchemaTest(TestCase):
         """The committed AssistantToolName enum must mirror the agent registry.
 
         GraphQL codegen turns this file into the frontend's tool enum, so it must
-        never drift. If this fails you added, removed, or renamed an agent tool:
-        regenerate it with `docker compose run app manage dump_agent_tools`, then
-        run `npm run codegen` in the frontend.
+        never drift from the tools the agents actually expose.
         """
         self.assertEqual(
             AGENT_TOOLS_SCHEMA_PATH.read_text(),
             render_agent_tools_schema(),
+            msg=(
+                f"\n\n{AGENT_TOOLS_SCHEMA_PATH.name} is out of sync with the agent "
+                "registry (a tool was added, removed, or renamed). Regenerate and "
+                "commit it:\n"
+                "  1. docker compose run app manage dump_agent_tools\n"
+                "  2. cd frontend && npm run codegen\n"
+                "  3. commit the updated .generated.graphql and types.ts\n"
+            ),
         )
