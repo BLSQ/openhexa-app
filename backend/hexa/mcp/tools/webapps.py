@@ -1,6 +1,8 @@
 import json
 
+from hexa.git.exceptions import GitFileNotFound
 from hexa.mcp.protocol import tool
+from hexa.webapps.models import GitWebapp, WebappFileBinaryError
 
 from ._graphql import execute_graphql
 
@@ -195,3 +197,30 @@ def edit_static_webapp_file(
     if "errors" in data:
         return data
     return data["editWebappFile"]
+
+
+@tool
+def get_static_webapp_file(
+    user, workspace_slug: str, webapp_slug: str, path: str
+) -> dict:
+    """Read the content of a single text file from a static web app.
+
+    Use get_static_webapp to discover available file paths first, then call this tool
+    to read the content of a specific file. Binary files (images, fonts, etc.) cannot
+    be read with this tool.
+    """
+    try:
+        webapp = GitWebapp.objects.filter_for_user(user).get(
+            workspace__slug=workspace_slug, slug=webapp_slug
+        )
+    except GitWebapp.DoesNotExist:
+        return {"error": "Webapp not found"}
+
+    try:
+        content = webapp.get_file_content(path)
+    except GitFileNotFound:
+        return {"error": f"File not found: {path}"}
+    except WebappFileBinaryError:
+        return {"error": f"Binary files cannot be read as text: {path}"}
+
+    return {"path": path, "content": content}

@@ -6,6 +6,7 @@ from hexa.mcp.tools.webapps import (
     create_static_webapp,
     edit_static_webapp_file,
     get_static_webapp,
+    get_static_webapp_file,
     list_static_webapps,
     update_static_webapp,
 )
@@ -452,6 +453,107 @@ class UpdateStaticWebappTest(MCPTestCase):
         )
         self.assertTrue(result["success"], result)
         self.assertEqual(Webapp.objects.get(pk=webapp_id).allowed_operations, [])
+
+
+class GetStaticWebappFileTest(MCPTestCase):
+    @_mock_forgejo()
+    def test_get_static_webapp_file_returns_content(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("GetFile"),
+            files_json=json.dumps([{"path": "index.html", "content": "<h1>Hello</h1>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_slug = create_result["webapp"]["slug"]
+
+        client.get_file.return_value = b"<h1>Hello</h1>"
+
+        result = get_static_webapp_file(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            webapp_slug=webapp_slug,
+            path="index.html",
+        )
+        self.assertEqual(result["path"], "index.html")
+        self.assertEqual(result["content"], "<h1>Hello</h1>")
+
+    @_mock_forgejo()
+    def test_get_static_webapp_file_not_found(self, mock_forgejo):
+        from hexa.git.exceptions import GitFileNotFound
+
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("GetFileMiss"),
+            files_json=json.dumps([{"path": "index.html", "content": "<h1>Hi</h1>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_slug = create_result["webapp"]["slug"]
+
+        client.get_file.side_effect = GitFileNotFound("missing.html")
+
+        result = get_static_webapp_file(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            webapp_slug=webapp_slug,
+            path="missing.html",
+        )
+        self.assertIn("error", result)
+        self.assertIn("missing.html", result["error"])
+
+    @_mock_forgejo()
+    def test_get_static_webapp_file_binary_rejected(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("GetFileBin"),
+            files_json=json.dumps([{"path": "index.html", "content": "<h1>Hi</h1>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_slug = create_result["webapp"]["slug"]
+
+        client.get_file.return_value = bytes(range(256))
+
+        result = get_static_webapp_file(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            webapp_slug=webapp_slug,
+            path="logo.png",
+        )
+        self.assertIn("error", result)
+        self.assertIn("Binary", result["error"])
+
+    def test_get_static_webapp_file_webapp_not_found(self):
+        result = get_static_webapp_file(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            webapp_slug="does-not-exist",
+            path="index.html",
+        )
+        self.assertEqual(result, {"error": "Webapp not found"})
+
+    @_mock_forgejo()
+    def test_get_static_webapp_file_no_access(self, mock_forgejo):
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("GetFileNoAccess"),
+            files_json=json.dumps([{"path": "index.html", "content": "<h1>Hi</h1>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_slug = create_result["webapp"]["slug"]
+
+        result = get_static_webapp_file(
+            user=self.USER_OUTSIDER,
+            workspace_slug=self.WORKSPACE.slug,
+            webapp_slug=webapp_slug,
+            path="index.html",
+        )
+        self.assertEqual(result, {"error": "Webapp not found"})
 
 
 class EditStaticWebappFileTest(MCPTestCase):

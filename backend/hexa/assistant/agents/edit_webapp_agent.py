@@ -8,8 +8,10 @@ from hexa.mcp.tools.connections import list_connections
 from hexa.mcp.tools.datasets import get_dataset, list_datasets, preview_dataset_file
 from hexa.mcp.tools.files import list_files, read_file
 from hexa.mcp.tools.help import get_help_or_doc
-from hexa.mcp.tools.webapps import get_static_webapp
+from hexa.mcp.tools.webapps import get_static_webapp_file
 from hexa.webapps.models import GitWebapp
+
+_MAX_INLINE_LINES = 300
 
 
 class ProposedFile(BaseModel):
@@ -64,7 +66,7 @@ class EditWebappAgent(BaseAgent):
     instruction_set = InstructionSet.EDIT_WEBAPP
     tools = [
         get_help_or_doc,
-        get_static_webapp,
+        get_static_webapp_file,
         list_datasets,
         get_dataset,
         preview_dataset_file,
@@ -97,6 +99,7 @@ class EditWebappAgent(BaseAgent):
             "## Current Web App",
             f"Name: {webapp.name}",
             f"Slug: {webapp.slug}",
+            f"Workspace: {webapp.workspace.slug}",
         ]
         if webapp.description:
             lines.append(f"Description: {webapp.description}")
@@ -121,6 +124,31 @@ class EditWebappAgent(BaseAgent):
                     "Use these files as the base for any further changes."
                 )
                 for f in proposed_files:
-                    lines.append(f"\n#### {f['path']}\n```\n{f['content']}\n```")
+                    content = f["content"]
+                    line_count = content.count("\n") + 1
+                    if line_count > _MAX_INLINE_LINES:
+                        lines.append(
+                            f"\n#### {f['path']} ({line_count} lines — not shown)\n"
+                            f"This file is part of the pending version. "
+                            f"Omit it from `modified_files` to preserve it unchanged."
+                        )
+                    else:
+                        lines.append(f"\n#### {f['path']}\n```\n{content}\n```")
+        else:
+            all_files = webapp.get_files()
+            lines.append("")
+            lines.append(
+                "### Files\n"
+                f"Call `get_static_webapp_file` with webapp slug `{webapp.slug}` "
+                f"and the file path to read any text file."
+            )
+            for f in all_files:
+                if f.get("encoding") == FileEncoding.TEXT:
+                    line_info = (
+                        f" ({f['line_count']} lines)" if f.get("line_count") else ""
+                    )
+                    lines.append(f"- `{f['path']}`{line_info}")
+                else:
+                    lines.append(f"- `{f['path']}` (binary)")
 
         return "\n".join(lines)
