@@ -15,6 +15,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         AGENT_TOOLS_SCHEMA_PATH.write_text(render_agent_tools_schema())
-        self.stdout.write(
-            self.style.SUCCESS(f"Wrote {AGENT_TOOLS_SCHEMA_PATH.name}")
-        )
+        self.stdout.write(self.style.SUCCESS(f"Wrote {AGENT_TOOLS_SCHEMA_PATH.name}"))

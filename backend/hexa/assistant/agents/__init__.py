@@ -34,7 +34,8 @@ def all_agent_tool_names() -> set[str]:
     across agents, so it includes agent-only tools like ``propose_pipeline_version``
     that are not in ``hexa.mcp.tools``. This is the source of truth for the
     generated ``AssistantToolName`` GraphQL enum the frontend keys off (see
-    ``AGENT_TOOLS_SCHEMA_PATH`` and ``dump_agent_tools``)."""
+    ``AGENT_TOOLS_SCHEMA_PATH`` and ``dump_agent_tools``).
+    """
     return {func.__name__ for cls in _AGENT_REGISTRY.values() for func in cls.tools}
 
 
