@@ -70,9 +70,9 @@ const OrganizationAiSettings = ({
   };
 
   return (
-    <DataCard item={organization}>
+    <DataCard item={organization} className="mt-6">
       <DataCard.FormSection
-        title={t("AI Agents")}
+        title={t("AI assistant")}
         onSave={canEdit ? onSave : undefined}
         collapsible={false}
         displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
