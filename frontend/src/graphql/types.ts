@@ -513,6 +513,18 @@ export type AssistantTextSegment = {
   content: Scalars['String']['output'];
 };
 
+export enum AssistantToolName {
+  CreatePipeline = 'create_pipeline',
+  GetDataset = 'get_dataset',
+  GetHelpOrDoc = 'get_help_or_doc',
+  ListConnections = 'list_connections',
+  ListDatasets = 'list_datasets',
+  ListFiles = 'list_files',
+  PreviewDatasetFile = 'preview_dataset_file',
+  ProposePipelineVersion = 'propose_pipeline_version',
+  ReadFile = 'read_file'
+}
+
 export type AssistantToolSegment = {
   __typename?: 'AssistantToolSegment';
   id?: Maybe<Scalars['UUID']['output']>;

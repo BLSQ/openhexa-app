@@ -18,7 +18,7 @@ type ToolUiConfig = {
 };
 
 const TOOL_CONFIG: Record<string, ToolUiConfig> = {
-  [TOOL.PROPOSE_PIPELINE_VERSION]: {
+  [TOOL.ProposePipelineVersion]: {
     hideOutput: true,
     inputLabel: (t) => t("Proposed changes"),
   },

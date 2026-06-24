@@ -1,5 +1,7 @@
 overwrite: true
-schema: "../backend/**/schema.graphql" # /!\ We have decided to directly source schemas from the django apps, it means that schemas of disabled apps will still be included in the codegen process
+schema:
+  - "../backend/**/schema.graphql" # /!\ We have decided to directly source schemas from the django apps, it means that schemas of disabled apps will still be included in the codegen process
+  - "../backend/**/*.generated.graphql" # codegen-only SDL generated from Python (e.g. the agent tool enum); not loaded into the runtime schema
 documents: "src/**/!(*.generated).{ts,tsx,graphql}"
 generates:
   src/graphql/types.ts:

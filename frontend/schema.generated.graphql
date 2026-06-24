@@ -467,6 +467,18 @@ type AssistantTextSegment {
   content: String!
 }
 
+enum AssistantToolName {
+  create_pipeline
+  get_dataset
+  get_help_or_doc
+  list_connections
+  list_datasets
+  list_files
+  preview_dataset_file
+  propose_pipeline_version
+  read_file
+}
+
 type AssistantToolSegment {
   id: UUID
   proposalPending: Boolean!
