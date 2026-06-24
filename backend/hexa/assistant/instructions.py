@@ -15,8 +15,6 @@ PIPELINE_DOC_TOPICS = ("writing-pipelines", "sdk")
 
 _PIPELINE_DOCS = "\n\n".join(read_doc(name)["content"] for name in PIPELINE_DOC_TOPICS)
 
-_webapp_doc = read_doc("static-webapps")
-_WEBAPP_DOCS = _webapp_doc["content"] if _webapp_doc else ""
 
 
 _BASE = """
@@ -98,6 +96,7 @@ Never respond with only text when a code change is requested.
 # Web app files
 Static web apps consist of HTML, CSS, and JavaScript files served as-is. An `index.html` file at the root is required.
 The web app may also call OpenHEXA's GraphQL API via a same-origin proxy at POST /graphql/ — no auth token needed, the user's session handles it.
+If you need the full API reference (available scopes, GraphQL schema, example queries), call `get_help_or_doc(topic="static-webapps")`.
 """
 
 _INSTRUCTION_SETS: dict[InstructionSet | tuple[str, str], str] = {
@@ -105,7 +104,7 @@ _INSTRUCTION_SETS: dict[InstructionSet | tuple[str, str], str] = {
     InstructionSet.CREATE_PIPELINE: _BASE + _CREATE_PIPELINE + _PIPELINE_DOCS,
     InstructionSet.EDIT_PIPELINE: _BASE + _EDIT_PIPELINE + _PIPELINE_DOCS,
     InstructionSet.CREATE_WEBAPPS: _BASE + _WEBAPPS,
-    InstructionSet.EDIT_WEBAPP: _BASE + _EDIT_WEBAPP + _WEBAPP_DOCS,
+    InstructionSet.EDIT_WEBAPP: _BASE + _EDIT_WEBAPP,
 }
 
 
