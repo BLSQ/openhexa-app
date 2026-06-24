@@ -14,6 +14,7 @@ from hexa.mcp.tools.webapps import get_static_webapp_file
 from hexa.webapps.models import GitWebapp
 
 _MAX_INLINE_LINES = 300
+_WEBAPP_ENTRY_POINT = "index.html"
 
 
 class ProposedFile(BaseModel):
@@ -189,14 +190,21 @@ class EditWebappAgent(BaseAgent):
             lines.append(
                 "### Files\n"
                 f"Call `get_static_webapp_file` with webapp slug `{webapp.slug}` "
-                f"and the file path to read any text file."
+                f"and the file path to read any text file. "
+                f"For large files pass `start_line` and `end_line` to read only the relevant section."
             )
             for f in all_files:
                 if f.get("encoding") == FileEncoding.TEXT:
-                    line_info = (
-                        f" ({f['line_count']} lines)" if f.get("line_count") else ""
-                    )
-                    lines.append(f"- `{f['path']}`{line_info}")
+                    line_count = f.get("line_count") or 0
+                    if (
+                        f["path"] == _WEBAPP_ENTRY_POINT
+                        and line_count <= _MAX_INLINE_LINES
+                        and f.get("content") is not None
+                    ):
+                        lines.append(f"\n#### {f['path']}\n```\n{f['content']}\n```")
+                    else:
+                        line_info = f" ({line_count} lines)" if line_count else ""
+                        lines.append(f"- `{f['path']}`{line_info}")
                 else:
                     lines.append(f"- `{f['path']}` (binary)")
 
