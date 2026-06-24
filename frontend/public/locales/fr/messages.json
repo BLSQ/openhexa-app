@@ -705,6 +705,7 @@
   "Resend invitation to <1>{invitation.email}</1> ?": "Renvoyer l'invitation à <1>{invitation.email}</1> ?",
   "Reset password": "Réinitialiser le mot de passe",
   "Restart all opened notebooks": "Redémarrer tous les notebooks ouverts",
+  "Results will appear here after you run a query.": "",
   "Revoke": "Révoquer",
   "Role": "Rôle",
   "Role for all workspaces": "Rôle pour tous les workspaces",

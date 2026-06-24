@@ -695,6 +695,7 @@
   "Resend invitation to <1>{invitation.email}</1> ?": "Resend invitation to <1>{invitation.email}</1> ?",
   "Reset password": "Reset password",
   "Restart all opened notebooks": "Restart all opened notebooks",
+  "Results will appear here after you run a query.": "Results will appear here after you run a query.",
   "Revoke": "Revoke",
   "Role": "Role",
   "Role for all workspaces": "Role for all workspaces",

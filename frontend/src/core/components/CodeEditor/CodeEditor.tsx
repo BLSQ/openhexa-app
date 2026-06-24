@@ -1,5 +1,6 @@
 import { json } from "@codemirror/lang-json";
 import { python } from "@codemirror/lang-python";
+import { sql } from "@codemirror/lang-sql";
 import { xml } from "@codemirror/lang-xml";
 import { yaml } from "@codemirror/lang-yaml";
 import CodeMirror from "@uiw/react-codemirror";
@@ -12,7 +13,7 @@ type CodeEditorProps = {
   editable?: boolean;
   minHeight?: string;
   height?: string;
-  lang?: "json" | "python" | "xml" | "yaml" | string;
+  lang?: "json" | "python" | "xml" | "yaml" | "sql" | string;
   className?: string;
 };
 
@@ -38,6 +39,8 @@ function CodeEditor(props: CodeEditorProps) {
         return [xml()];
       case "yaml":
         return [yaml()];
+      case "sql":
+        return [sql()];
       default:
         return [];
     }

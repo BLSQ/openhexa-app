@@ -3,6 +3,7 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
+import DataStudioEditor from "workspaces/features/DataStudioEditor";
 import {
   useWorkspaceDataStudioPageQuery,
   WorkspaceDataStudioPageDocument,
@@ -43,7 +44,7 @@ const WorkspaceDataStudioPage: NextPageWithLayout = (props: Props) => {
         }
       >
         <WorkspaceLayout.PageContent>
-          <p className="text-gray-500">{t("Data Studio")}</p>
+          <DataStudioEditor workspaceSlug={workspace.slug} />
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
     </Page>
