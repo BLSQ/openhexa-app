@@ -399,6 +399,11 @@ def resolve_organization_subscription(organization: Organization, info, **kwargs
     return organization.current_subscription
 
 
+@organization_object.field("aiSettings")
+def resolve_organization_ai_settings(organization: Organization, info, **kwargs):
+    return organization.ai_settings_safe
+
+
 subscription_object = ObjectType("Subscription")
 
 

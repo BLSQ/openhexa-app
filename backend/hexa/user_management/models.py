@@ -137,11 +137,6 @@ class User(AbstractUser, UserInterface):
 
         return self.email[:2].upper()
 
-    @property
-    def ai_settings_safe(self) -> AiSettings:
-        obj, _ = AiSettings.objects.get_or_create(user=self)
-        return obj
-
     def has_feature_flag(self, code: str) -> bool:
         return (
             Feature.objects.are_enabled_for_user(user=self).filter(code=code).exists()
@@ -199,16 +194,14 @@ class AiSettings(models.Model):
                 name="ai_settings_enabled_requires_full_config",
                 check=(
                     Q(enabled=False)
-                    | (
-                        Q(provider__isnull=False)
-                        & Q(model__isnull=False)
-                        & Q(api_key__isnull=False)
-                    )
+                    | Q(provider="managed")
+                    | (Q(model__isnull=False) & Q(api_key__isnull=False))
                 ),
             )
         ]
 
     class Provider(models.TextChoices):
+        MANAGED = "managed", "Managed"
         ANTHROPIC = "anthropic", "Anthropic"
 
     class Model(models.TextChoices):
@@ -216,16 +209,18 @@ class AiSettings(models.Model):
         OPUS = "opus", "Claude Opus 4.6"
         SONNET = "sonnet", "Claude Sonnet 4.6"
 
-    user = models.OneToOneField(
-        User,
+    organization = models.OneToOneField(
+        "Organization",
         primary_key=True,
         null=False,
         blank=False,
         on_delete=models.CASCADE,
         related_name="ai_settings",
     )
-    enabled = models.BooleanField(default=False)
-    provider = models.CharField(max_length=20, choices=Provider.choices, null=True)
+    enabled = models.BooleanField(default=True)
+    provider = models.CharField(
+        max_length=20, choices=Provider.choices, default=Provider.MANAGED
+    )
     model = models.CharField(max_length=30, choices=Model.choices, null=True)
     api_key = EncryptedTextField(max_length=255, null=True)
 
@@ -248,7 +243,11 @@ class AiSettings(models.Model):
         ]
 
     def validate(self):
-        if self.enabled and not (self.provider and self.model and self.api_key):
+        if (
+            self.enabled
+            and self.provider != AiSettings.Provider.MANAGED
+            and not (self.model and self.api_key)
+        ):
             raise ValidationError("Incomplete config")
 
 
@@ -362,6 +361,11 @@ class Organization(Base, SoftDeletedModel):
         for repo in client.list_org_repositories(self.slug):
             if repo.get("archived"):
                 client.unarchive_repository(self.slug, repo["name"])
+
+    @property
+    def ai_settings_safe(self) -> AiSettings:
+        obj, _ = AiSettings.objects.get_or_create(organization=self)
+        return obj
 
     def filter_workspaces_for_user(self, user):
         workspaces = self.workspaces.exclude(archived=True)

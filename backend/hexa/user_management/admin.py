@@ -107,7 +107,7 @@ class CustomUserAdmin(UserAdmin):
 
     list_filter = ("last_login", "is_staff", "is_superuser", "is_active")
     filter_horizontal = ("user_permissions",)
-    inlines = [MembershipInline, FeatureFlagInline, AiSettingsInline]
+    inlines = [MembershipInline, FeatureFlagInline]
     fieldsets = (
         (
             None,
@@ -240,7 +240,7 @@ class CustomUserAdmin(UserAdmin):
 class AiSettingsAdmin(admin.ModelAdmin):
     form = AiSettingsAdminForm
     list_display = (
-        "user",
+        "organization",
         "enabled",
         "provider",
         "model",
@@ -248,7 +248,7 @@ class AiSettingsAdmin(admin.ModelAdmin):
     )
 
     list_filter = ("provider", "enabled", "model")
-    search_fields = ("user__username", "user__email")
+    search_fields = ("organization__name", "organization__slug")
 
     def has_api_key(self, obj: AiSettings):
         return obj.has_api_key
@@ -299,7 +299,11 @@ class OrganizationAdmin(GlobalObjectsModelAdmin):
     search_fields = ("name", "short_name")
     readonly_fields = ("created_at", "updated_at", "deleted_at")
     ordering = ("-created_at",)
-    inlines = [OrganizationMembershipInline, OrganizationSubscriptionInline]
+    inlines = [
+        OrganizationMembershipInline,
+        OrganizationSubscriptionInline,
+        AiSettingsInline,
+    ]
     actions = [restore_organizations]
 
     def is_active(self, obj):
