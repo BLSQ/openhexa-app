@@ -23,11 +23,27 @@ type Message = NonNullable<
 
 type StreamingSegment =
   | { type: "text"; content: string }
-  | { type: "tool"; toolCallId: string; toolName: string; status: "pending" | "done"; success?: boolean };
+  | {
+      type: "tool";
+      toolCallId: string;
+      toolName: string;
+      status: "pending" | "done";
+      success?: boolean;
+      toolInput?: unknown;
+      toolOutput?: unknown;
+    };
 
 type RenderableSegment =
   | { type: "text"; content: string }
-  | { type: "tool"; key: string; toolName: string; status: "pending" | "done"; success?: boolean };
+  | {
+      type: "tool";
+      key: string;
+      toolName: string;
+      status: "pending" | "done";
+      success?: boolean;
+      toolInput?: unknown;
+      toolOutput?: unknown;
+    };
 
 type Props = {
   conversationId: string | null;
@@ -67,6 +83,8 @@ function SegmentList({ segments }: { segments: RenderableSegment[] }) {
             toolName={seg.toolName}
             status={seg.status}
             success={seg.success}
+            toolInput={seg.toolInput}
+            toolOutput={seg.toolOutput}
           />
         ),
       )}
@@ -197,12 +215,22 @@ export default function ChatPane({
       if (name) onConversationNameChange?.(name);
     },
     tool_call: (data) => {
-      const { tool_call_id, tool_name } = data as { tool_call_id: string; tool_name: string };
+      const { tool_call_id, tool_name, tool_args } = data as {
+        tool_call_id: string;
+        tool_name: string;
+        tool_args?: unknown;
+      };
       const textBefore = flush();
       setStreamingSegments((prev) => [
         ...prev,
         ...(textBefore ? [{ type: "text" as const, content: textBefore }] : []),
-        { type: "tool" as const, toolCallId: tool_call_id, toolName: tool_name, status: "pending" as const },
+        {
+          type: "tool" as const,
+          toolCallId: tool_call_id,
+          toolName: tool_name,
+          status: "pending" as const,
+          toolInput: tool_args,
+        },
       ]);
     },
     tool_result: (data) => {
@@ -215,7 +243,7 @@ export default function ChatPane({
       setStreamingSegments((prev) =>
         prev.map((s) =>
           s.type === "tool" && s.toolCallId === tool_call_id
-            ? { ...s, status: "done" as const, success }
+            ? { ...s, status: "done" as const, success, toolOutput: tool_output }
             : s,
         ),
       );
@@ -338,6 +366,8 @@ export default function ChatPane({
             toolName: seg.toolName,
             status: seg.status,
             success: seg.success,
+            toolInput: seg.toolInput,
+            toolOutput: seg.toolOutput,
           },
     ),
     ...(streamingText !== null
@@ -429,6 +459,8 @@ export default function ChatPane({
                 toolName: seg.toolName,
                 status: "done" as const,
                 success: seg.success,
+                toolInput: seg.toolInput,
+                toolOutput: seg.toolOutput,
               };
             });
             return (
