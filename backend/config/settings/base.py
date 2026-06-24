@@ -597,6 +597,11 @@ PIPELINE_RUN_MAX_TIMEOUT = os.environ.get("PIPELINE_RUN_MAX_TIMEOUT", 43200)
 
 # AI Assistant config
 ASSISTANT_MONTHLY_LIMIT = int(os.environ.get("ASSISTANT_MONTHLY_LIMIT", 200))
+# Whether this OpenHEXA instance is managed (hosted) by us. When managed,
+# organizations can only enable/disable the AI assistant and the managed
+# provider is used implicitly. When not managed, admins configure their own
+# provider, model and API key.
+ASSISTANT_MANAGED = os.environ.get("ASSISTANT_MANAGED", "false") == "true"
 # Vertex AI (managed Claude provider). Auth is via ambient ADC — set
 # GOOGLE_APPLICATION_CREDENTIALS in the runtime environment, do not pass keys
 # through Django. europe-west1 keeps data in the EU for GDPR.

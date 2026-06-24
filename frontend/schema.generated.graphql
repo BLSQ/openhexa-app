@@ -526,6 +526,11 @@ type Config {
   """Whether self-registration is enabled."""
   allowSelfRegistration: Boolean!
 
+  """
+  Whether this instance's AI assistant is managed (hosted) by us. When true, organizations can only enable/disable the assistant; when false they configure their own provider, model and API key.
+  """
+  assistantManaged: Boolean!
+
   """Configured external OIDC login providers. Empty when none are enabled."""
   oidcProviders: [OidcProvider!]!
 

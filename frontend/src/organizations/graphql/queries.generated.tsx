@@ -16,7 +16,7 @@ export type OrganizationQuery = { __typename?: 'Query', organization?: { __typen
 export type AiLabelsQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type AiLabelsQuery = { __typename?: 'Query', aiLabels: { __typename?: 'AiLabels', providers: Array<{ __typename?: 'AiLabel', value: string, label: string }>, models: Array<{ __typename?: 'AiLabel', value: string, label: string }> } };
+export type AiLabelsQuery = { __typename?: 'Query', aiLabels: { __typename?: 'AiLabels', providers: Array<{ __typename?: 'AiLabel', value: string, label: string }>, models: Array<{ __typename?: 'AiLabel', value: string, label: string }> }, config: { __typename?: 'Config', assistantManaged: boolean } };
 
 export type OrganizationWithWorkspacesQueryVariables = Types.Exact<{
   id: Types.Scalars['UUID']['input'];
@@ -209,6 +209,9 @@ export const AiLabelsDocument = gql`
       value
       label
     }
+  }
+  config {
+    assistantManaged
   }
 }
     `;

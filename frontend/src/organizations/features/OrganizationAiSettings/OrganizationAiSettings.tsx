@@ -30,6 +30,7 @@ const OrganizationAiSettings = ({
 
   const { data: labelsData } = useAiLabelsQuery();
   const labels = labelsData?.aiLabels;
+  const isManagedInstance = Boolean(labelsData?.config?.assistantManaged);
 
   const [updateOrganizationAiSettings] =
     useUpdateOrganizationAiSettingsMutation();
@@ -59,8 +60,8 @@ const OrganizationAiSettings = ({
         input: {
           organizationId: organization.id,
           enabled: values.enableAI,
-          provider: values.provider,
-          ...(usesManagedProvider(values.provider)
+          provider: isManagedInstance ? AiProvider.Managed : values.provider,
+          ...(isManagedInstance
             ? {}
             : { model: values.model, apiKey: values.apiKey }),
         },
@@ -85,13 +86,17 @@ const OrganizationAiSettings = ({
           id="provider"
           accessor="aiSettings.provider"
           label={t("Provider")}
-          options={[AiProvider.Managed, AiProvider.Anthropic]}
+          options={[AiProvider.Anthropic]}
           getOptionLabel={getProviderLabel}
           onChange={(value: string) => {
             setProvider(value);
           }}
-          visible={(_, __, values) => Boolean(values.enableAI)}
-          required={(_, __, values) => Boolean(values.enableAI)}
+          visible={(_, __, values) =>
+            Boolean(values.enableAI) && !isManagedInstance
+          }
+          required={(_, __, values) =>
+            Boolean(values.enableAI) && !isManagedInstance
+          }
         />
         <SimpleSelectProperty
           id="model"
@@ -100,10 +105,14 @@ const OrganizationAiSettings = ({
           options={modelOptions}
           getOptionLabel={getModelLabel}
           visible={(_, __, values) =>
-            Boolean(values.enableAI) && !usesManagedProvider(values.provider)
+            Boolean(values.enableAI) &&
+            !isManagedInstance &&
+            !usesManagedProvider(values.provider)
           }
           required={(_, __, values) =>
-            Boolean(values.enableAI) && !usesManagedProvider(values.provider)
+            Boolean(values.enableAI) &&
+            !isManagedInstance &&
+            !usesManagedProvider(values.provider)
           }
         />
         <TextProperty
@@ -115,10 +124,13 @@ const OrganizationAiSettings = ({
           }
           label={t("API Key")}
           visible={(_, __, values) =>
-            Boolean(values.enableAI) && !usesManagedProvider(values.provider)
+            Boolean(values.enableAI) &&
+            !isManagedInstance &&
+            !usesManagedProvider(values.provider)
           }
           required={(_, __, values) =>
             Boolean(values.enableAI) &&
+            !isManagedInstance &&
             !usesManagedProvider(values.provider) &&
             !settings?.hasApiKey
           }
