@@ -2,13 +2,14 @@ from unittest.mock import patch
 
 from pydantic_ai.models.test import TestModel
 
-from hexa.assistant.agents.edit_webapp_agent import EditWebappAgent, _MAX_INLINE_LINES
+from hexa.assistant.agents.edit_webapp_agent import _MAX_INLINE_LINES, EditWebappAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.webapps.models import GitWebapp, Webapp
 
 from ._helpers import _make_tool_call_model, make_built_model, run_agent
 from ._testcase import AgentTestCase
+
 
 class EditWebappAgentExtraInstructionsTest(AgentTestCase):
     def setUp(self):
@@ -109,8 +110,18 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
 
     def test_file_manifest_shown_when_no_pending_proposal(self):
         self.mock_forgejo.return_value.get_repository_files.return_value = [
-            {"path": "index.html", "type": "file", "content": "<h1>Hi</h1>", "encoding": "TEXT"},
-            {"path": "style.css", "type": "file", "content": "body {}", "encoding": "TEXT"},
+            {
+                "path": "index.html",
+                "type": "file",
+                "content": "<h1>Hi</h1>",
+                "encoding": "TEXT",
+            },
+            {
+                "path": "style.css",
+                "type": "file",
+                "content": "body {}",
+                "encoding": "TEXT",
+            },
         ]
         webapp = self._make_webapp(name="Manifest App", slug="manifest-app")
         agent = self._make_agent(webapp=webapp)
@@ -122,7 +133,12 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
 
     def test_binary_files_marked_in_manifest(self):
         self.mock_forgejo.return_value.get_repository_files.return_value = [
-            {"path": "index.html", "type": "file", "content": "<h1>Hi</h1>", "encoding": "TEXT"},
+            {
+                "path": "index.html",
+                "type": "file",
+                "content": "<h1>Hi</h1>",
+                "encoding": "TEXT",
+            },
             {"path": "logo.png", "type": "file", "content": None, "encoding": "BASE64"},
         ]
         webapp = self._make_webapp(name="Binary App", slug="binary-app")

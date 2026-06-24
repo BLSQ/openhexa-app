@@ -16,7 +16,6 @@ PIPELINE_DOC_TOPICS = ("writing-pipelines", "sdk")
 _PIPELINE_DOCS = "\n\n".join(read_doc(name)["content"] for name in PIPELINE_DOC_TOPICS)
 
 
-
 _BASE = """
 You are OpenHEXA Assistant, an AI helper embedded in OpenHEXA, a data integration and analytics platform focused on public health projects.
 You assist data professionals with pipelines, datasets, workspaces, web apps, and data infrastructure.

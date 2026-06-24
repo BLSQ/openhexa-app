@@ -237,6 +237,11 @@ def get_static_webapp_file(
         s = max(1, start_line or 1) - 1
         e = min(total, end_line or total)
         content = "\n".join(all_lines[s:e])
-        return {"path": path, "content": content, "lines": f"{s + 1}-{e}", "total_lines": total}
+        return {
+            "path": path,
+            "content": content,
+            "lines": f"{s + 1}-{e}",
+            "total_lines": total,
+        }
 
     return {"path": path, "content": content}

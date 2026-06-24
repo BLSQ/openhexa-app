@@ -463,7 +463,9 @@ class GetStaticWebappFileTest(MCPTestCase):
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
             name=_unique_name("GetFile"),
-            files_json=json.dumps([{"path": "index.html", "content": "<h1>Hello</h1>"}]),
+            files_json=json.dumps(
+                [{"path": "index.html", "content": "<h1>Hello</h1>"}]
+            ),
         )
         self.assertTrue(create_result["success"], create_result.get("errors"))
         webapp_slug = create_result["webapp"]["slug"]

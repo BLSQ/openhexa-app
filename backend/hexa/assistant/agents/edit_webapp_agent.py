@@ -55,7 +55,9 @@ def propose_webapp_version(
             raw = json.loads(file_patches)
             file_patches = [FilePatch(**item) for item in raw]
         except (json.JSONDecodeError, TypeError, ValueError):
-            return {"error": "file_patches must be a list of {path, old_string, new_string} objects."}
+            return {
+                "error": "file_patches must be a list of {path, old_string, new_string} objects."
+            }
 
     if not modified_files and not file_patches and not deleted_files:
         return {
@@ -102,7 +104,9 @@ def propose_webapp_version(
                     "Make sure it matches the current content exactly, including whitespace."
                 )
             }
-        current_files[patch.path] = original.replace(patch.old_string, patch.new_string, 1)
+        current_files[patch.path] = original.replace(
+            patch.old_string, patch.new_string, 1
+        )
 
     for f in modified_files or []:
         current_files[f.path] = f.content

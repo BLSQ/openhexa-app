@@ -113,9 +113,7 @@ class ProposeWebappChangesToolTest(TestCase):
         self.assertIn("<a>About</a>", files["index.html"])
 
     def test_file_patch_old_string_not_found_returns_error(self):
-        webapp = _make_webapp_stub(
-            [_make_file_entry("index.html", "<nav></nav>")]
-        )
+        webapp = _make_webapp_stub([_make_file_entry("index.html", "<nav></nav>")])
         result = propose_webapp_version(
             webapp,
             file_patches=[
@@ -129,9 +127,7 @@ class ProposeWebappChangesToolTest(TestCase):
         webapp = _make_webapp_stub([])
         result = propose_webapp_version(
             webapp,
-            file_patches=[
-                FilePatch(path="ghost.html", old_string="x", new_string="y")
-            ],
+            file_patches=[FilePatch(path="ghost.html", old_string="x", new_string="y")],
         )
         self.assertIn("error", result)
         self.assertIn("not found", result["error"])

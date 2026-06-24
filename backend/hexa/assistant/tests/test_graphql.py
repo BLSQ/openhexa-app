@@ -5,7 +5,11 @@ from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import User
 from hexa.webapps.models import GitWebapp
-from hexa.workspaces.models import Workspace, WorkspaceMembership, WorkspaceMembershipRole
+from hexa.workspaces.models import (
+    Workspace,
+    WorkspaceMembership,
+    WorkspaceMembershipRole,
+)
 
 CONVERSATION_MESSAGES_QUERY = """
   query AssistantConversationMessages($id: UUID!) {
