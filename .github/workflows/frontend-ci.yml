@@ -5,11 +5,13 @@ on:
     paths:
       - 'frontend/**'
       - 'backend/**/schema.graphql'
+      - 'backend/**/*.generated.graphql'
   push:
     branches: [main]
     paths:
       - 'frontend/**'
       - 'backend/**/schema.graphql'
+      - 'backend/**/*.generated.graphql'
 
 env:
   CI: true
