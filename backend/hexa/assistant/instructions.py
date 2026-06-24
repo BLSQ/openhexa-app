@@ -15,6 +15,9 @@ PIPELINE_DOC_TOPICS = ("writing-pipelines", "sdk")
 
 _PIPELINE_DOCS = "\n\n".join(read_doc(name)["content"] for name in PIPELINE_DOC_TOPICS)
 
+_webapp_doc = read_doc("static-webapps")
+_WEBAPP_DOCS = _webapp_doc["content"] if _webapp_doc else ""
+
 
 _BASE = """
 You are OpenHEXA Assistant, an AI helper embedded in OpenHEXA, a data integration and analytics platform focused on public health projects.
@@ -102,7 +105,7 @@ _INSTRUCTION_SETS: dict[InstructionSet | tuple[str, str], str] = {
     InstructionSet.CREATE_PIPELINE: _BASE + _CREATE_PIPELINE + _PIPELINE_DOCS,
     InstructionSet.EDIT_PIPELINE: _BASE + _EDIT_PIPELINE + _PIPELINE_DOCS,
     InstructionSet.CREATE_WEBAPPS: _BASE + _WEBAPPS,
-    InstructionSet.EDIT_WEBAPP: _BASE + _EDIT_WEBAPP,
+    InstructionSet.EDIT_WEBAPP: _BASE + _EDIT_WEBAPP + _WEBAPP_DOCS,
 }
 
 
