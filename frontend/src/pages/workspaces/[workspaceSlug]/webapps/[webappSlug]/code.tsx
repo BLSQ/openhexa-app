@@ -13,7 +13,7 @@ import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useFeature from "identity/hooks/useFeature";
 import useMe from "identity/hooks/useMe";
-import { FileEncoding, WebappType } from "graphql/types";
+import { WebappType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -52,7 +52,6 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
   const [updateWebapp] = useUpdateWebappMutation();
   const [resolveProposal] = useResolveAssistantProposalMutation();
   const [isPublishing, setIsPublishing] = useState(false);
-  const [isEditorBusy, setIsEditorBusy] = useState(false);
 
   const [proposedFiles, setProposedFiles] = useState<
     WebappProposedFile[] | null
@@ -84,52 +83,15 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
     }
   }, [proposedToolInvocationId, resolveProposal]);
 
-  const handleAcceptProposal = useCallback(async () => {
-    if (!proposedFiles || !data?.webapp) return;
-    setIsEditorBusy(true);
-    try {
-      const { data: updateData } = await updateWebapp({
-        variables: {
-          input: {
-            id: data.webapp.id,
-            files: proposedFiles.map((f) => ({
-              path: f.path,
-              content: f.content,
-              encoding: FileEncoding.Text,
-            })),
-          },
-        },
-        refetchQueries: ["WebappVersions"],
-        awaitRefetchQueries: true,
-      });
-      if (updateData?.updateWebapp?.success) {
-        toast.success(t("AI proposal applied successfully"));
-        refetch().then();
-        const idToResolve = proposedToolInvocationId;
-        setProposedFiles(null);
-        setProposedToolInvocationId(null);
-        if (idToResolve) {
-          await resolveProposal({
-            variables: { toolInvocationId: idToResolve },
-          });
-        }
-      } else {
-        toast.error(t("Failed to apply AI proposal"));
-      }
-    } catch {
-      toast.error(t("Failed to apply AI proposal"));
-    } finally {
-      setIsEditorBusy(false);
+  const handleSaveSuccess = useCallback(() => {
+    refetch().then();
+    const idToResolve = proposedToolInvocationId;
+    setProposedFiles(null);
+    setProposedToolInvocationId(null);
+    if (idToResolve) {
+      resolveProposal({ variables: { toolInvocationId: idToResolve } });
     }
-  }, [
-    proposedFiles,
-    proposedToolInvocationId,
-    data?.webapp,
-    updateWebapp,
-    resolveProposal,
-    refetch,
-    t,
-  ]);
+  }, [proposedToolInvocationId, resolveProposal, refetch]);
 
   const [isAssistantEnabled] = useFeature("assistant");
   const me = useMe();
@@ -221,7 +183,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
         webapp={webapp}
         currentTab="code"
         extraActions={
-          webapp.permissions.update && !isViewingPublished && !isEditorBusy ? (
+          webapp.permissions.update && !isViewingPublished ? (
             <Button
               variant="primary"
               onClick={handlePublish}
@@ -258,8 +220,6 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
           {proposedFiles && (
             <AssistantProposalBanner
               label={t("Proposed changes from AI assistant")}
-              onAccept={handleAcceptProposal}
-              acceptDisabled={isEditorBusy}
               onDismiss={handleDismiss}
             />
           )}
@@ -272,8 +232,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
                 isEditable={webapp.permissions.update}
                 versionRef={selectedVersion?.id}
                 proposedFiles={proposedFiles ?? undefined}
-                onSaveSuccess={() => refetch()}
-                onBusyChange={setIsEditorBusy}
+                onSaveSuccess={handleSaveSuccess}
               />
             </div>
             {chatOpen && showAssistant && (
