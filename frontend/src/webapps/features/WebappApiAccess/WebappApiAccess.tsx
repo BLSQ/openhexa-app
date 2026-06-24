@@ -113,21 +113,16 @@ const ApiAccessContent = ({
 
       <div
         className={clsx(
-          "rounded-md border p-3 transition-colors",
+          "rounded-md border p-3",
           section.isEdited
-            ? "border-blue-200 bg-blue-50/40"
-            : "border-gray-200 bg-gray-50",
+            ? "border-blue-300 bg-blue-50"
+            : "border-gray-200 bg-gray-100",
         )}
       >
         <p className="text-xs font-medium text-gray-500 mb-2">
           {t("Allowed operations")}
         </p>
-        <div
-          className={clsx(
-            "space-y-2",
-            !section.isEdited && "opacity-60 cursor-not-allowed select-none",
-          )}
-        >
+        <div className="space-y-2">
           {ALL_SCOPES.map((scope) => (
             <Checkbox
               key={scope}
