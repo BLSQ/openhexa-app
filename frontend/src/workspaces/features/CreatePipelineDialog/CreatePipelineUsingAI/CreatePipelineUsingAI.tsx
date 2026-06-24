@@ -4,7 +4,6 @@ import {
   XCircleIcon,
 } from "@heroicons/react/24/solid";
 import { SparklesIcon } from "@heroicons/react/24/outline";
-import AiDisabledBanner from "assistant/components/AiDisabledBanner";
 import Spinner from "core/components/Spinner";
 import Textarea from "core/components/forms/Textarea/Textarea";
 import { useTranslation } from "next-i18next";
@@ -67,13 +66,9 @@ function Step({ label, status, detail }: StepProps) {
 
 type CreatePipelineUsingAIProps = {
   form: AIFormInstance;
-  aiEnabled: boolean;
 };
 
-const CreatePipelineUsingAI = ({
-  form,
-  aiEnabled,
-}: CreatePipelineUsingAIProps) => {
+const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
   const { t } = useTranslation();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -130,7 +125,7 @@ const CreatePipelineUsingAI = ({
     return StepStatus.Pending;
   };
 
-  return aiEnabled ? (
+  return (
     <div className="space-y-5">
       <div className="flex flex-col items-center gap-4 py-4 text-center">
         <div className="rounded-xl bg-blue-50 p-4">
@@ -237,8 +232,6 @@ const CreatePipelineUsingAI = ({
         {t("AI can make mistakes. Always verify important information.")}
       </p>
     </div>
-  ) : (
-    <AiDisabledBanner />
   );
 };
 
