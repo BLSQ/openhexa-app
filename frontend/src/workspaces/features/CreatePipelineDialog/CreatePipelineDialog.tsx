@@ -31,6 +31,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   const { t } = useTranslation();
   const { open, onClose, workspace } = props;
   const [isAssistantEnabled] = useFeature("assistant");
+  const aiEnabled = workspace.organization?.aiSettings?.enabled ?? false;
 
   const [activeMethod, setActiveMethod] = useState<Method>(null);
 
@@ -51,7 +52,9 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
     notebook: t("From Notebook"),
     cli: t("From OpenHEXA CLI"),
   };
-  const dialogTitle = activeMethod ? TITLES[activeMethod] : t("Create a pipeline");
+  const dialogTitle = activeMethod
+    ? TITLES[activeMethod]
+    : t("Create a pipeline");
 
   return (
     <Dialog
@@ -75,20 +78,20 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
         <div className={activeMethod !== null ? "hidden" : "space-y-4"}>
           <div className="flex gap-3">
             {isAssistantEnabled && (
-            <button
-              onClick={() => setActiveMethod("ai")}
-              className="flex flex-1 flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 hover:shadow-md"
-            >
-              <div className="mb-4 rounded-lg bg-blue-50 p-2.5">
-                <SparklesIcon className="h-5 w-5 text-blue-400" />
-              </div>
-              <span className="font-semibold text-gray-900">
-                {t("Create with AI")}
-              </span>
-              <span className="mt-1 text-sm leading-relaxed text-gray-500">
-                {t("Describe what you want, AI writes the code")}
-              </span>
-            </button>
+              <button
+                onClick={() => setActiveMethod("ai")}
+                className="flex flex-1 flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 hover:shadow-md"
+              >
+                <div className="mb-4 rounded-lg bg-blue-50 p-2.5">
+                  <SparklesIcon className="h-5 w-5 text-blue-400" />
+                </div>
+                <span className="font-semibold text-gray-900">
+                  {t("Create with AI")}
+                </span>
+                <span className="mt-1 text-sm leading-relaxed text-gray-500">
+                  {t("Describe what you want, AI writes the code")}
+                </span>
+              </button>
             )}
             <button
               onClick={() => setActiveMethod("template")}
@@ -121,14 +124,19 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
           </div>
         </div>
 
-        {activeMethod === "ai" && <CreatePipelineUsingAI form={aiForm} />}
+        {activeMethod === "ai" && (
+          <CreatePipelineUsingAI form={aiForm} aiEnabled={aiEnabled} />
+        )}
 
         <div className={activeMethod !== "template" ? "hidden" : undefined}>
           <PipelineTemplates workspace={workspace} showCard={false} />
         </div>
 
         <div className={activeMethod !== "notebook" ? "hidden" : undefined}>
-          <CreatePipelineUsingNotebook form={notebookForm} workspace={workspace} />
+          <CreatePipelineUsingNotebook
+            form={notebookForm}
+            workspace={workspace}
+          />
         </div>
 
         <div className={activeMethod !== "cli" ? "hidden" : undefined}>
@@ -163,7 +171,9 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
           <Button
             disabled={notebookForm.isSubmitting}
             onClick={notebookForm.handleSubmit}
-            leadingIcon={notebookForm.isSubmitting ? <Spinner size="xs" /> : null}
+            leadingIcon={
+              notebookForm.isSubmitting ? <Spinner size="xs" /> : null
+            }
           >
             {t("Create")}
           </Button>
@@ -177,6 +187,12 @@ CreatePipelineDialog.fragments = {
   workspace: gql`
     fragment CreatePipelineDialog_workspace on Workspace {
       slug
+      organization {
+        id
+        aiSettings {
+          enabled
+        }
+      }
       ...BucketObjectPicker_workspace
     }
     ${BucketObjectPicker.fragments.workspace}
