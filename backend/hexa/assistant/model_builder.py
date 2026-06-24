@@ -49,7 +49,8 @@ class AiModelBuilder:
 
     @classmethod
     def from_conversation(cls, conversation: Conversation) -> "AiModelBuilder":
-        ai_settings: AiSettings = conversation.user.ai_settings_safe
+        organization = conversation.workspace.organization
+        ai_settings: AiSettings = organization.ai_settings_safe
         if not ai_settings.enabled:
             raise AssistantException("AI settings are not enabled")
         return cls(
