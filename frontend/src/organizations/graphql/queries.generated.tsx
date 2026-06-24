@@ -4,21 +4,26 @@ import { gql } from '@apollo/client';
 import { UserAvatar_UserFragmentDoc } from '../../identity/features/UserAvatar.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type Organization_OrganizationFragment = { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean, createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean, reasons: Array<Types.CreateWorkspacePermissionReason> } }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number }, usage: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number }, subscription?: { __typename?: 'Subscription', subscriptionId: string, planCode: string, startDate: any, endDate: any, isExpired: boolean, isInGracePeriod: boolean, limits: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number } } | null };
+export type Organization_OrganizationFragment = { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null, provider?: Types.AiProvider | null, model?: Types.AiModel | null, hasApiKey?: boolean | null } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean, createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean, reasons: Array<Types.CreateWorkspacePermissionReason> } }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number }, usage: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number }, subscription?: { __typename?: 'Subscription', subscriptionId: string, planCode: string, startDate: any, endDate: any, isExpired: boolean, isInGracePeriod: boolean, limits: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number } } | null };
 
 export type OrganizationQueryVariables = Types.Exact<{
   id: Types.Scalars['UUID']['input'];
 }>;
 
 
-export type OrganizationQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean, createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean, reasons: Array<Types.CreateWorkspacePermissionReason> } }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number }, usage: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number }, subscription?: { __typename?: 'Subscription', subscriptionId: string, planCode: string, startDate: any, endDate: any, isExpired: boolean, isInGracePeriod: boolean, limits: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number } } | null } | null };
+export type OrganizationQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null, provider?: Types.AiProvider | null, model?: Types.AiModel | null, hasApiKey?: boolean | null } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean, createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean, reasons: Array<Types.CreateWorkspacePermissionReason> } }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number }, usage: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number }, subscription?: { __typename?: 'Subscription', subscriptionId: string, planCode: string, startDate: any, endDate: any, isExpired: boolean, isInGracePeriod: boolean, limits: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number } } | null } | null };
+
+export type AiLabelsQueryVariables = Types.Exact<{ [key: string]: never; }>;
+
+
+export type AiLabelsQuery = { __typename?: 'Query', aiLabels: { __typename?: 'AiLabels', providers: Array<{ __typename?: 'AiLabel', value: string, label: string }>, models: Array<{ __typename?: 'AiLabel', value: string, label: string }> } };
 
 export type OrganizationWithWorkspacesQueryVariables = Types.Exact<{
   id: Types.Scalars['UUID']['input'];
 }>;
 
 
-export type OrganizationWithWorkspacesQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, permissions: { __typename?: 'OrganizationPermissions', archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean, createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean, reasons: Array<Types.CreateWorkspacePermissionReason> } }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number }, usage: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number }, subscription?: { __typename?: 'Subscription', subscriptionId: string, planCode: string, startDate: any, endDate: any, isExpired: boolean, isInGracePeriod: boolean, limits: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number } } | null } | null };
+export type OrganizationWithWorkspacesQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> }, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null, provider?: Types.AiProvider | null, model?: Types.AiModel | null, hasApiKey?: boolean | null } | null, permissions: { __typename?: 'OrganizationPermissions', archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean, createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean, reasons: Array<Types.CreateWorkspacePermissionReason> } }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number }, usage: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number }, subscription?: { __typename?: 'Subscription', subscriptionId: string, planCode: string, startDate: any, endDate: any, isExpired: boolean, isInGracePeriod: boolean, limits: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number } } | null } | null };
 
 export type OrganizationsQueryVariables = Types.Exact<{
   directMembershipOnly?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
@@ -37,7 +42,7 @@ export type OrganizationDatasetsQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationDatasetsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, datasetLinks: { __typename?: 'DatasetLinkPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'DatasetLink', id: string, workspace: { __typename?: 'Workspace', slug: string, name: string }, dataset: { __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } } }> }, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean, createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean, reasons: Array<Types.CreateWorkspacePermissionReason> } }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number }, usage: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number }, subscription?: { __typename?: 'Subscription', subscriptionId: string, planCode: string, startDate: any, endDate: any, isExpired: boolean, isInGracePeriod: boolean, limits: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number } } | null } | null };
+export type OrganizationDatasetsQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, datasetLinks: { __typename?: 'DatasetLinkPage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'DatasetLink', id: string, workspace: { __typename?: 'Workspace', slug: string, name: string }, dataset: { __typename?: 'Dataset', id: string, slug: string, name: string, description?: string | null, updatedAt: any, sharedWithOrganization: boolean, workspace?: { __typename?: 'Workspace', slug: string, name: string } | null, links: { __typename?: 'DatasetLinkPage', items: Array<{ __typename?: 'DatasetLink', workspace: { __typename?: 'Workspace', slug: string, name: string } }> } } }> }, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null, provider?: Types.AiProvider | null, model?: Types.AiModel | null, hasApiKey?: boolean | null } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean, createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean, reasons: Array<Types.CreateWorkspacePermissionReason> } }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number }, usage: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number }, subscription?: { __typename?: 'Subscription', subscriptionId: string, planCode: string, startDate: any, endDate: any, isExpired: boolean, isInGracePeriod: boolean, limits: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number } } | null } | null };
 
 export type OrganizationWorkspace_WorkspaceFragment = { __typename?: 'Workspace', slug: string, name: string, createdAt: any, updatedAt?: any | null, countries: Array<{ __typename?: 'Country', code: string }>, createdBy: { __typename?: 'User', displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, members: { __typename?: 'WorkspaceMembershipPage', totalItems: number }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, delete: boolean } };
 
@@ -49,7 +54,7 @@ export type OrganizationWorkspacesQueryVariables = Types.Exact<{
 }>;
 
 
-export type OrganizationWorkspacesQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean, createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean, reasons: Array<Types.CreateWorkspacePermissionReason> } }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number }, usage: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number }, subscription?: { __typename?: 'Subscription', subscriptionId: string, planCode: string, startDate: any, endDate: any, isExpired: boolean, isInGracePeriod: boolean, limits: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number } } | null } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, createdAt: any, updatedAt?: any | null, countries: Array<{ __typename?: 'Country', code: string }>, createdBy: { __typename?: 'User', displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, members: { __typename?: 'WorkspaceMembershipPage', totalItems: number }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, delete: boolean } }> } };
+export type OrganizationWorkspacesQuery = { __typename?: 'Query', organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null, provider?: Types.AiProvider | null, model?: Types.AiModel | null, hasApiKey?: boolean | null } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean, createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean, reasons: Array<Types.CreateWorkspacePermissionReason> } }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number }, usage: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number }, subscription?: { __typename?: 'Subscription', subscriptionId: string, planCode: string, startDate: any, endDate: any, isExpired: boolean, isInGracePeriod: boolean, limits: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number } } | null } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, pageNumber: number, totalPages: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, createdAt: any, updatedAt?: any | null, countries: Array<{ __typename?: 'Country', code: string }>, createdBy: { __typename?: 'User', displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, members: { __typename?: 'WorkspaceMembershipPage', totalItems: number }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, delete: boolean } }> } };
 
 export const Organization_OrganizationFragmentDoc = gql`
     fragment Organization_organization on Organization {
@@ -57,6 +62,12 @@ export const Organization_OrganizationFragmentDoc = gql`
   name
   shortName
   logo
+  aiSettings {
+    enabled
+    provider
+    model
+    hasApiKey
+  }
   workspaces {
     totalItems
   }
@@ -187,6 +198,52 @@ export type OrganizationQueryHookResult = ReturnType<typeof useOrganizationQuery
 export type OrganizationLazyQueryHookResult = ReturnType<typeof useOrganizationLazyQuery>;
 export type OrganizationSuspenseQueryHookResult = ReturnType<typeof useOrganizationSuspenseQuery>;
 export type OrganizationQueryResult = Apollo.QueryResult<OrganizationQuery, OrganizationQueryVariables>;
+export const AiLabelsDocument = gql`
+    query AiLabels {
+  aiLabels {
+    providers {
+      value
+      label
+    }
+    models {
+      value
+      label
+    }
+  }
+}
+    `;
+
+/**
+ * __useAiLabelsQuery__
+ *
+ * To run a query within a React component, call `useAiLabelsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAiLabelsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAiLabelsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useAiLabelsQuery(baseOptions?: Apollo.QueryHookOptions<AiLabelsQuery, AiLabelsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AiLabelsQuery, AiLabelsQueryVariables>(AiLabelsDocument, options);
+      }
+export function useAiLabelsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AiLabelsQuery, AiLabelsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AiLabelsQuery, AiLabelsQueryVariables>(AiLabelsDocument, options);
+        }
+export function useAiLabelsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AiLabelsQuery, AiLabelsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AiLabelsQuery, AiLabelsQueryVariables>(AiLabelsDocument, options);
+        }
+export type AiLabelsQueryHookResult = ReturnType<typeof useAiLabelsQuery>;
+export type AiLabelsLazyQueryHookResult = ReturnType<typeof useAiLabelsLazyQuery>;
+export type AiLabelsSuspenseQueryHookResult = ReturnType<typeof useAiLabelsSuspenseQuery>;
+export type AiLabelsQueryResult = Apollo.QueryResult<AiLabelsQuery, AiLabelsQueryVariables>;
 export const OrganizationWithWorkspacesDocument = gql`
     query OrganizationWithWorkspaces($id: UUID!) {
   organization(id: $id) {

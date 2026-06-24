@@ -10,7 +10,6 @@ import Spinner from "core/components/Spinner";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useFeature from "identity/hooks/useFeature";
-import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PipelineFilesEditor } from "workspaces/features/FilesEditor/PipelineFilesEditor";
@@ -36,20 +35,27 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const [selectedVersion, setSelectedVersion] =
     useState<PipelineVersionPicker_VersionFragment | null>(null);
-  const [proposedFiles, setProposedFiles] = useState<ProposedFile[] | null>(null);
-  const [proposedToolInvocationId, setProposedToolInvocationId] = useState<string | null>(null);
+  const [proposedFiles, setProposedFiles] = useState<ProposedFile[] | null>(
+    null,
+  );
+  const [proposedToolInvocationId, setProposedToolInvocationId] = useState<
+    string | null
+  >(null);
 
   const [resolveProposal] = useResolveAssistantProposalMutation();
 
-  const handleProposedFiles = useCallback((files: ProposedFile[] | null, toolInvocationId?: string) => {
-    setProposedFiles(files);
-    if (toolInvocationId !== undefined) {
-      setProposedToolInvocationId(toolInvocationId);
-    } else if (files !== null) {
-      // New SSE proposal: clear the stored ID until Apollo refetch provides it.
-      setProposedToolInvocationId(null);
-    }
-  }, []);
+  const handleProposedFiles = useCallback(
+    (files: ProposedFile[] | null, toolInvocationId?: string) => {
+      setProposedFiles(files);
+      if (toolInvocationId !== undefined) {
+        setProposedToolInvocationId(toolInvocationId);
+      } else if (files !== null) {
+        // New SSE proposal: clear the stored ID until Apollo refetch provides it.
+        setProposedToolInvocationId(null);
+      }
+    },
+    [],
+  );
 
   const handleDismiss = useCallback(async () => {
     setProposedFiles(null);
@@ -63,9 +69,6 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   }, [proposedToolInvocationId, resolveProposal]);
 
   const [isAssistantEnabled] = useFeature("assistant");
-  const me = useMe();
-  const aiEnabled = me?.user?.aiSettings?.enabled ?? false;
-  const showAssistant = isAssistantEnabled && aiEnabled;
 
   const { data, loading } = useWorkspacePipelineCodePageQuery({
     variables: {
@@ -73,12 +76,19 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
       pipelineCode,
     },
   });
+
+  const aiEnabled = data?.workspace?.organization?.aiSettings?.enabled ?? false;
+  const showAssistant = isAssistantEnabled && aiEnabled;
   const [fetchPipelineVersion, { data: versionData, loading: versionLoading }] =
     useGetPipelineVersionFilesLazyQuery();
 
   const [chatOpen, setChatOpen] = useState(false);
-  const [conversations, setConversations] = useState<PipelineConversation[]>([]);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<PipelineConversation[]>(
+    [],
+  );
+  const [activeConversationId, setActiveConversationId] = useState<
+    string | null
+  >(null);
 
   const seededRef = useRef(false);
   useEffect(() => {

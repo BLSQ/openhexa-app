@@ -429,7 +429,8 @@ export enum AiModel {
 
 /** Represents the available AI providers. */
 export enum AiProvider {
-  Anthropic = 'anthropic'
+  Anthropic = 'anthropic',
+  Managed = 'managed'
 }
 
 export type AiSettings = {
@@ -3088,6 +3089,8 @@ export type Mutation = {
   updateExternalCollaborator: UpdateExternalCollaboratorResult;
   updateMembership: UpdateMembershipResult;
   updateOrganization: UpdateOrganizationResult;
+  /** Updates the AI settings of the currently authenticated user. */
+  updateOrganizationAiSettings: UpdateOrganizationAiSettingsResult;
   updateOrganizationMember: UpdateOrganizationMemberResult;
   updateOrganizationSubscription: UpdateOrganizationSubscriptionResult;
   /** Updates an existing pipeline. */
@@ -3110,8 +3113,6 @@ export type Mutation = {
   updateTemplateVersion: UpdateTemplateVersionResult;
   /** Updates the profile of the currently authenticated user. */
   updateUser: UpdateUserResult;
-  /** Updates the AI settings of the currently authenticated user. */
-  updateUserAiSettings: UpdateUserAiSettingsResult;
   updateWebapp: UpdateWebappResult;
   updateWorkspace: UpdateWorkspaceResult;
   updateWorkspaceMember: UpdateWorkspaceMemberResult;
@@ -3671,6 +3672,11 @@ export type MutationUpdateOrganizationArgs = {
 };
 
 
+export type MutationUpdateOrganizationAiSettingsArgs = {
+  input: UpdateOrganizationAiSettingsInput;
+};
+
+
 export type MutationUpdateOrganizationMemberArgs = {
   input: UpdateOrganizationMemberInput;
 };
@@ -3718,11 +3724,6 @@ export type MutationUpdateTemplateVersionArgs = {
 
 export type MutationUpdateUserArgs = {
   input: UpdateUserInput;
-};
-
-
-export type MutationUpdateUserAiSettingsArgs = {
-  input: UpdateUserAiSettingsInput;
 };
 
 
@@ -3784,6 +3785,8 @@ export enum OrderByDirection {
 /** The Organization type represents an organization in the system. */
 export type Organization = {
   __typename?: 'Organization';
+  /** The AI settings of the organization. */
+  aiSettings?: Maybe<AiSettings>;
   /** The contact information of the organization. */
   contactInfo: Scalars['String']['output'];
   /** Dataset links available in the organization */
@@ -5834,6 +5837,41 @@ export type UpdateMembershipResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** The UpdateOrganizationAiSettingsError enum represents the possible errors that can occur during the updateOrganizationAiSettings mutation. */
+export enum UpdateOrganizationAiSettingsError {
+  /** Indicates that enabling AI requires provider, model, and api_key to all be set. */
+  IncompleteConfig = 'INCOMPLETE_CONFIG',
+  /** Indicates that the organization does not exist. */
+  NotFound = 'NOT_FOUND',
+  /** Indicates that the user does not have permission to update the organization AI settings. */
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/** The UpdateOrganizationAiSettingsInput type represents the input for the updateOrganizationAiSettings mutation. */
+export type UpdateOrganizationAiSettingsInput = {
+  /** Indicates the AI API KEY */
+  apiKey?: InputMaybe<Scalars['String']['input']>;
+  /** Indicates if AI is enabled */
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Indicates the AI model from the provider used */
+  model?: InputMaybe<Scalars['String']['input']>;
+  /** The organization whose AI settings are updated. */
+  organizationId: Scalars['UUID']['input'];
+  /** Indicates the AI provider used */
+  provider?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** The UpdateOrganizationAiSettingsResult type represents the result of the updateOrganizationAiSettings mutation. */
+export type UpdateOrganizationAiSettingsResult = {
+  __typename?: 'UpdateOrganizationAiSettingsResult';
+  /** The list of errors that occurred during the mutation. */
+  errors: Array<UpdateOrganizationAiSettingsError>;
+  /** The updated organization object. */
+  organization?: Maybe<Organization>;
+  /** Indicates whether the update was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
 /** The UpdateOrganizationError enum represents the possible errors that can occur during the updateOrganization mutation. */
 export enum UpdateOrganizationError {
   /** Indicates that the provided logo is in an invalid format. */
@@ -6109,37 +6147,6 @@ export type UpdateTemplateVersionResult = {
   templateVersion?: Maybe<PipelineTemplateVersion>;
 };
 
-/** The UpdateUserAiSettingsError enum represents the possible errors that can occur during the updateUser mutation. */
-export enum UpdateUserAiSettingsError {
-  /** Indicates that enabling AI requires provider, model, and api_key to all be set. */
-  IncompleteConfig = 'INCOMPLETE_CONFIG',
-  /** Indicates that the user does not have permission to update their profile. */
-  PermissionDenied = 'PERMISSION_DENIED'
-}
-
-/** The UpdateUserAiSettingsInput type represents the input for the updateAiSettings mutation. */
-export type UpdateUserAiSettingsInput = {
-  /** Indicates the AI API KEY */
-  apiKey?: InputMaybe<Scalars['String']['input']>;
-  /** Indicates if AI is enabled */
-  enabled?: InputMaybe<Scalars['Boolean']['input']>;
-  /** Indicates the AI model from the provider used */
-  model?: InputMaybe<Scalars['String']['input']>;
-  /** Indicates the AI provider used */
-  provider?: InputMaybe<Scalars['String']['input']>;
-};
-
-/** The UpdateUserAiSettingsResult type represents the result of the updateUser mutation. */
-export type UpdateUserAiSettingsResult = {
-  __typename?: 'UpdateUserAiSettingsResult';
-  /** The list of errors that occurred during the updateUser mutation. */
-  errors: Array<UpdateUserAiSettingsError>;
-  /** Indicates whether the user update was successful. */
-  success: Scalars['Boolean']['output'];
-  /** The updated user object. */
-  user?: Maybe<User>;
-};
-
 /** The UpdateUserError enum represents the possible errors that can occur during the updateUser mutation. */
 export enum UpdateUserError {
   /** Indicates that the provided language is invalid. */
@@ -6311,8 +6318,6 @@ export type UploadPipelineResult = {
 /** The User type represents a user in the system. */
 export type User = {
   __typename?: 'User';
-  /** User AI settings. */
-  aiSettings?: Maybe<AiSettings>;
   /** The avatar of the user. */
   avatar: Avatar;
   /** The date when the user joined the system. */

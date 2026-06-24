@@ -21,9 +21,6 @@ query GetUser {
         initials
         color
       }
-      aiSettings {
-        enabled
-      }
     }
   }
 }
@@ -31,8 +28,6 @@ query GetUser {
 query AccountPage {
   me {
     hasTwoFactorEnabled
-    assistantMonthlyCost
-    assistantTotalCost
     user {
       firstName
       lastName
@@ -41,24 +36,7 @@ query AccountPage {
       id
       email
       language
-      aiSettings {
-        enabled
-        provider
-        model
-        hasApiKey
-      }
       ...User_user
-    }
-  }
-
-  aiLabels {
-    providers {
-      value
-      label
-    }
-    models {
-      value
-      label
     }
   }
 
