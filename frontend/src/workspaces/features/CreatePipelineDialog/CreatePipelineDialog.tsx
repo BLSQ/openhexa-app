@@ -77,7 +77,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
 
         <div className={activeMethod !== null ? "hidden" : "space-y-4"}>
           <div className="flex gap-3">
-            {isAssistantEnabled && (
+            {isAssistantEnabled && aiEnabled && (
               <button
                 onClick={() => setActiveMethod("ai")}
                 className="flex flex-1 flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 hover:shadow-md"
@@ -124,9 +124,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
           </div>
         </div>
 
-        {activeMethod === "ai" && (
-          <CreatePipelineUsingAI form={aiForm} aiEnabled={aiEnabled} />
-        )}
+        {activeMethod === "ai" && <CreatePipelineUsingAI form={aiForm} />}
 
         <div className={activeMethod !== "template" ? "hidden" : undefined}>
           <PipelineTemplates workspace={workspace} showCard={false} />
