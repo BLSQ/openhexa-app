@@ -584,8 +584,13 @@ PIPELINE_DEFAULT_CONTAINER_MEMORY_REQUEST = os.environ.get(
 PIPELINE_RUN_DEFAULT_TIMEOUT = os.environ.get("PIPELINE_RUN_DEFAULT_TIMEOUT", 14400)
 PIPELINE_RUN_MAX_TIMEOUT = os.environ.get("PIPELINE_RUN_MAX_TIMEOUT", 43200)
 
-# AI Assistant monthly limit in USD
+# AI Assistant config
 ASSISTANT_MONTHLY_LIMIT = int(os.environ.get("ASSISTANT_MONTHLY_LIMIT", 200))
+# Vertex AI (managed Claude provider). Auth is via ambient ADC — set
+# GOOGLE_APPLICATION_CREDENTIALS in the runtime environment, do not pass keys
+# through Django. europe-west1 keeps data in the EU for GDPR.
+VERTEX_PROJECT_ID = os.environ.get("VERTEX_PROJECT_ID")
+VERTEX_REGION = os.environ.get("VERTEX_REGION", "europe-west1")
 
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"
