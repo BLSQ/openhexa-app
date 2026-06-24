@@ -1,3 +1,5 @@
+import json
+
 from pydantic import BaseModel
 
 from hexa.assistant.agents.base import BaseAgent
@@ -19,18 +21,50 @@ class ProposedFile(BaseModel):
     content: str
 
 
+class FilePatch(BaseModel):
+    path: str
+    old_string: str
+    new_string: str
+
+
 def propose_webapp_version(
     webapp: GitWebapp,
     modified_files: list[ProposedFile] | None = None,
+    file_patches: list[FilePatch] | str | None = None,
     deleted_files: list[str] | None = None,
     conversation: Conversation | None = None,
 ) -> dict:
     """Propose changes to the web app files.
 
-    Pass the files you modified or created in modified_files (each with a 'path' and 'content').
+    Two ways to describe changes — use whichever fits:
+
+    - modified_files: pass the full new content for files you created or rewrote entirely
+      (each entry needs a 'path' and 'content').
+    - file_patches: for targeted edits to existing files, pass {path, old_string, new_string}.
+      The backend finds old_string in the current file and replaces it with new_string.
+      Prefer this over modified_files when changing a few lines of a large file — you
+      only need to read and reproduce the lines that actually change.
+
     List any files to remove in deleted_files.
     Unchanged files are preserved automatically.
+    You can mix modified_files and file_patches in the same call.
     """
+    if isinstance(file_patches, str):
+        try:
+            raw = json.loads(file_patches)
+            file_patches = [FilePatch(**item) for item in raw]
+        except (json.JSONDecodeError, TypeError, ValueError):
+            return {"error": "file_patches must be a list of {path, old_string, new_string} objects."}
+
+    if not modified_files and not file_patches and not deleted_files:
+        return {
+            "error": (
+                "No changes provided. Pass modified files in modified_files, "
+                "targeted find/replace edits in file_patches, or paths to remove "
+                "in deleted_files. Do not call this tool until you have the actual changes ready."
+            )
+        }
+
     current_files: dict[str, str] = {}
 
     pending = None
@@ -53,6 +87,21 @@ def propose_webapp_version(
         for f in webapp.get_files():
             if f.get("encoding") == FileEncoding.TEXT and f.get("content") is not None:
                 current_files[f["path"]] = f["content"]
+
+    for patch in file_patches or []:
+        if patch.path not in current_files:
+            return {
+                "error": f"Cannot patch '{patch.path}': file not found in the current version."
+            }
+        original = current_files[patch.path]
+        if patch.old_string not in original:
+            return {
+                "error": (
+                    f"Cannot patch '{patch.path}': old_string not found in the file. "
+                    "Make sure it matches the current content exactly, including whitespace."
+                )
+            }
+        current_files[patch.path] = original.replace(patch.old_string, patch.new_string, 1)
 
     for f in modified_files or []:
         current_files[f.path] = f.content

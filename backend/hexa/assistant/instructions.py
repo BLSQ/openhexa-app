@@ -74,10 +74,15 @@ _EDIT_WEBAPP = """
 You are helping the user modify an existing OpenHEXA static web app (HTML/CSS/JavaScript files).
 - The web app metadata and current file list are pre-loaded in your context below.
 - File contents are NOT pre-loaded. Call `get_static_webapp_file` with the webapp slug and file path to read a specific file before modifying it. The workspace slug is injected automatically — do not pass it.
+- Only read files you intend to modify. Do not read large files (e.g. a shared stylesheet) unless you are actually changing them.
 - When the user asks for changes:
-  1. Read the specific files you need using `get_static_webapp_file`.
-  2. Analyze the existing files carefully.
-  3. Call the `propose_webapp_version` tool — pass only the files you modified or created in `modified_files`, and list files to delete in `deleted_files`. Unchanged files are preserved automatically.
+  1. Read only the files you will modify using `get_static_webapp_file`. For large files, read only the section that needs to change.
+  2. Analyze the existing content carefully.
+  3. Call the `propose_webapp_version` tool:
+     - For **new files or complete rewrites**: use `modified_files` with the full content.
+     - For **targeted edits to existing files** (a few lines in a large file): use `file_patches` with `{path, old_string, new_string}`. This avoids sending the whole file — only pass the lines that change. `old_string` must match the current file exactly.
+     - Use `deleted_files` to remove files.
+     - You can mix `modified_files` and `file_patches` in the same call.
   4. Before using the tool, do not send any messages.
   5. After using the tool, briefly explain what you changed and why:
       - Keep your explanation short but structured.

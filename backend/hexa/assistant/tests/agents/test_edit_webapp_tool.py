@@ -1,6 +1,10 @@
 from unittest.mock import MagicMock, patch
 
-from hexa.assistant.agents.edit_webapp_agent import ProposedFile, propose_webapp_version
+from hexa.assistant.agents.edit_webapp_agent import (
+    FilePatch,
+    ProposedFile,
+    propose_webapp_version,
+)
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import TestCase
@@ -77,17 +81,91 @@ class ProposeWebappChangesToolTest(TestCase):
         self.assertIn("index.html", files)
         self.assertNotIn("old.html", files)
 
-    def test_empty_modified_files_returns_existing_files_unchanged(self):
+    def test_empty_call_returns_error(self):
+        webapp = _make_webapp_stub()
+        result = propose_webapp_version(webapp)
+        self.assertIn("error", result)
+
+    def test_empty_modified_files_with_no_deletions_returns_error(self):
         webapp = _make_webapp_stub(
             [
                 _make_file_entry("index.html", "<h1>Home</h1>"),
             ]
         )
         result = propose_webapp_version(webapp, modified_files=[])
-        self.assertEqual(
-            result,
-            {"files": [{"path": "index.html", "content": "<h1>Home</h1>"}]},
+        self.assertIn("error", result)
+
+    def test_file_patch_applies_to_existing_file(self):
+        webapp = _make_webapp_stub(
+            [_make_file_entry("index.html", "<nav>\n<a>Home</a>\n</nav>")]
         )
+        result = propose_webapp_version(
+            webapp,
+            file_patches=[
+                FilePatch(
+                    path="index.html",
+                    old_string="<a>Home</a>",
+                    new_string="<a>Home</a>\n<a>About</a>",
+                )
+            ],
+        )
+        files = {f["path"]: f["content"] for f in result["files"]}
+        self.assertIn("<a>About</a>", files["index.html"])
+
+    def test_file_patch_old_string_not_found_returns_error(self):
+        webapp = _make_webapp_stub(
+            [_make_file_entry("index.html", "<nav></nav>")]
+        )
+        result = propose_webapp_version(
+            webapp,
+            file_patches=[
+                FilePatch(path="index.html", old_string="MISSING", new_string="x")
+            ],
+        )
+        self.assertIn("error", result)
+        self.assertIn("old_string not found", result["error"])
+
+    def test_file_patch_on_missing_file_returns_error(self):
+        webapp = _make_webapp_stub([])
+        result = propose_webapp_version(
+            webapp,
+            file_patches=[
+                FilePatch(path="ghost.html", old_string="x", new_string="y")
+            ],
+        )
+        self.assertIn("error", result)
+        self.assertIn("not found", result["error"])
+
+    def test_file_patches_as_json_string_is_parsed(self):
+        webapp = _make_webapp_stub(
+            [_make_file_entry("index.html", "<title>Old</title>")]
+        )
+        patches_json = '[{"path": "index.html", "old_string": "<title>Old</title>", "new_string": "<title>New</title>"}]'
+        result = propose_webapp_version(webapp, file_patches=patches_json)
+        self.assertNotIn("error", result)
+        files = {f["path"]: f["content"] for f in result["files"]}
+        self.assertEqual(files["index.html"], "<title>New</title>")
+
+    def test_file_patches_as_invalid_json_string_returns_error(self):
+        webapp = _make_webapp_stub([])
+        result = propose_webapp_version(webapp, file_patches="not-json")
+        self.assertIn("error", result)
+
+    def test_file_patches_alone_satisfy_validation(self):
+        webapp = _make_webapp_stub(
+            [_make_file_entry("index.html", "<title>Old</title>")]
+        )
+        result = propose_webapp_version(
+            webapp,
+            file_patches=[
+                FilePatch(
+                    path="index.html",
+                    old_string="<title>Old</title>",
+                    new_string="<title>New</title>",
+                )
+            ],
+        )
+        self.assertNotIn("error", result)
 
     def test_binary_files_are_excluded(self):
         webapp = _make_webapp_stub(
@@ -96,7 +174,10 @@ class ProposeWebappChangesToolTest(TestCase):
                 _make_file_entry("logo.png", "binarydata", FileEncoding.BASE64),
             ]
         )
-        result = propose_webapp_version(webapp, modified_files=[])
+        result = propose_webapp_version(
+            webapp,
+            [ProposedFile(path="index.html", content="<h1>Updated</h1>")],
+        )
         files = {f["path"] for f in result["files"]}
         self.assertIn("index.html", files)
         self.assertNotIn("logo.png", files)
@@ -163,7 +244,9 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
             ]
         )
         result = propose_webapp_version(
-            webapp, modified_files=[], conversation=conversation
+            webapp,
+            [ProposedFile(path="index.html", content="<h1>Updated</h1>")],
+            conversation=conversation,
         )
         files = {f["path"] for f in result["files"]}
         self.assertIn("index.html", files)
