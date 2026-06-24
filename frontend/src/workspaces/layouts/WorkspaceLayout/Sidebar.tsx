@@ -8,6 +8,7 @@ import {
   ChevronRightIcon,
   ChevronUpIcon,
   CircleStackIcon,
+  CommandLineIcon,
   Cog6ToothIcon,
   FolderOpenIcon,
   GlobeAltIcon,
@@ -54,9 +55,7 @@ const NavItem = (props: {
       className={clsx(
         className,
         "text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white",
-        isCurrent
-          ? "text-white"
-          : " text-gray-300",
+        isCurrent ? "text-white" : " text-gray-300",
         compact && "justify-center ",
       )}
     >
@@ -114,6 +113,11 @@ const Sidebar = (props: SidebarProps) => {
       href: `/workspaces/${encodeURIComponent(slug)}/databases`,
       label: t("Database"),
       Icon: CircleStackIcon,
+    },
+    {
+      href: `/workspaces/${encodeURIComponent(slug)}/data-studio`,
+      label: t("Data Studio"),
+      Icon: CommandLineIcon,
     },
     {
       href: `/workspaces/${encodeURIComponent(slug)}/datasets`,
