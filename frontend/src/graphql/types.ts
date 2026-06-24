@@ -588,6 +588,8 @@ export type Config = {
   __typename?: 'Config';
   /** Whether self-registration is enabled. */
   allowSelfRegistration: Scalars['Boolean']['output'];
+  /** Whether this instance's AI assistant is managed (hosted) by us. When true, organizations can only enable/disable the assistant; when false they configure their own provider, model and API key. */
+  assistantManaged: Scalars['Boolean']['output'];
   /** Configured external OIDC login providers. Empty when none are enabled. */
   oidcProviders: Array<OidcProvider>;
   /** Whether username/password login is enabled. False when OIDC providers are configured. */

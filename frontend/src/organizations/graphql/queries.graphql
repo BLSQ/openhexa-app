@@ -66,6 +66,9 @@ query AiLabels {
       label
     }
   }
+  config {
+    assistantManaged
+  }
 }
 
 query OrganizationWithWorkspaces($id: UUID!) {
