@@ -448,7 +448,7 @@ pygments==2.20.0
     # via
     #   dhis2-py
     #   rich
-pyjwt[crypto]==2.12.0
+pyjwt[crypto]==2.13.0
     # via
     #   django-allauth
     #   msal
