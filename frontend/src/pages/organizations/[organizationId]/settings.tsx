@@ -11,7 +11,6 @@ import Page from "core/components/Page";
 import OrganizationSettings from "organizations/features/OrganizationSettings";
 import OrganizationAiSettings from "organizations/features/OrganizationAiSettings";
 import OrganizationUsageLimits from "organizations/features/OrganizationUsageLimits";
-import useFeature from "identity/hooks/useFeature";
 
 type Props = {
   organization: OrganizationQuery["organization"];
@@ -21,7 +20,6 @@ const OrganizationSettingsPage: NextPageWithLayout<Props> = ({
   organization: SSROrganization,
 }) => {
   const { t } = useTranslation();
-  const [isAssistantEnabled] = useFeature("assistant");
 
   const { data: clientOrganization } = useOrganizationQuery({
     variables: { id: SSROrganization?.id },
@@ -50,9 +48,7 @@ const OrganizationSettingsPage: NextPageWithLayout<Props> = ({
         }
       >
         <OrganizationSettings organization={organization} />
-        {isAssistantEnabled && (
-          <OrganizationAiSettings organization={organization} />
-        )}
+        <OrganizationAiSettings organization={organization} />
         <OrganizationUsageLimits organization={organization} />
       </OrganizationLayout>
     </Page>
