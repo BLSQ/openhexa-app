@@ -5217,6 +5217,8 @@ export type ResolveAssistantProposalResult = {
 /** Resource counts */
 export type ResourceCounts = {
   __typename?: 'ResourceCounts';
+  /** AI budget / usage in USD. As usage: AI spend for the current month. As a limit: the monthly AI budget. */
+  aiBudget: Scalars['Float']['output'];
   /** Number of pipeline runs. */
   pipelineRuns: Scalars['Int']['output'];
   /** Number of users. */

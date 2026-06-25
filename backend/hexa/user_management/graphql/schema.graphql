@@ -1181,6 +1181,11 @@ type ResourceCounts {
     Number of pipeline runs.
     """
     pipelineRuns: Int!
+
+    """
+    AI budget / usage in USD. As usage: AI spend for the current month. As a limit: the monthly AI budget.
+    """
+    aiBudget: Float!
 }
 
 """

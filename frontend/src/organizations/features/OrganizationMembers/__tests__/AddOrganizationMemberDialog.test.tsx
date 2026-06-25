@@ -48,6 +48,7 @@ const MOCK_ORGANIZATION = {
     users: 0,
     workspaces: 2,
     pipelineRuns: 0,
+    aiBudget: 0,
   },
   subscription: null,
 };
