@@ -4,8 +4,8 @@
 {% block object-tools-items %}
 {% if user.is_superuser %}
 <li>
-    <a href="{% url 'admin:workspaces_workspace_migrate' %}" class="addlink">
-        {% trans 'Migrate workspace' %}
+    <a href="{% url 'admin:workspaces_workspace_copy' %}" class="addlink">
+        {% trans 'Copy workspace' %}
     </a>
 </li>
 {% endif %}

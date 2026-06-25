@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 
-from hexa.workspace_duplicator.admin import migrate_workspace_view
+from hexa.workspace_copier.admin import copy_workspace_view
 
 from .models import (
     Connection,
@@ -54,9 +54,9 @@ class WorkspaceAdmin(admin.ModelAdmin):
     def get_urls(self):
         custom = [
             path(
-                "migrate/",
-                self.admin_site.admin_view(migrate_workspace_view),
-                name="workspaces_workspace_migrate",
+                "copy/",
+                self.admin_site.admin_view(copy_workspace_view),
+                name="workspaces_workspace_copy",
             ),
         ]
         return custom + super().get_urls()
