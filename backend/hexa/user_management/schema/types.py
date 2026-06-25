@@ -390,6 +390,7 @@ def resolve_organization_usage(organization: Organization, info, **kwargs):
         "users": organization.get_users_count(),
         "workspaces": organization.get_workspaces_count(),
         "pipeline_runs": organization.get_monthly_pipeline_runs_count(),
+        "ai_budget": organization.get_monthly_ai_cost(),
     }
 
 
@@ -413,6 +414,7 @@ def resolve_subscription_limits(subscription: OrganizationSubscription, info):
         "users": subscription.users_limit,
         "workspaces": subscription.workspaces_limit,
         "pipeline_runs": subscription.pipeline_runs_limit,
+        "ai_budget": subscription.monthly_ai_budget,
     }
 
 

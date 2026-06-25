@@ -1818,6 +1818,7 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
                         users
                         workspaces
                         pipelineRuns
+                        aiBudget
                     }
                     subscription {
                         subscriptionId
@@ -1828,6 +1829,7 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
                             users
                             workspaces
                             pipelineRuns
+                            aiBudget
                         }
                     }
                 }
@@ -1841,6 +1843,7 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(usage["users"], 2)
         self.assertEqual(usage["workspaces"], 0)
         self.assertEqual(usage["pipelineRuns"], 0)
+        self.assertEqual(usage["aiBudget"], 0)
         self.assertEqual(
             subscription["subscriptionId"],
             "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
@@ -1851,6 +1854,7 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(subscription["limits"]["users"], 10)
         self.assertEqual(subscription["limits"]["workspaces"], 5)
         self.assertEqual(subscription["limits"]["pipelineRuns"], 1000)
+        self.assertEqual(subscription["limits"]["aiBudget"], 50)
 
 
 class CreateWorkspacePermissionTest(GraphQLTestCase, OrganizationTestMixin):

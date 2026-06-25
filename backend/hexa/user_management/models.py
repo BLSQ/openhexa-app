@@ -11,7 +11,7 @@ from django.contrib.auth.models import UserManager as BaseUserManager
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models
-from django.db.models import EmailField, Q
+from django.db.models import EmailField, Q, Sum
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
@@ -443,6 +443,19 @@ class Organization(Base, SoftDeletedModel):
             .exclude(state=PipelineRunState.SKIPPED)
             .count()
         )
+
+    def get_monthly_ai_cost(self) -> float:
+        """Sum AI assistant cost (USD) for the current calendar month across the organization's workspaces."""
+        from hexa.assistant.models import Message
+
+        today = timezone.now().date()
+        month_start = today.replace(day=1)
+        total = Message.objects.filter(
+            conversation__workspace__organization=self,
+            role=Message.Role.ASSISTANT,
+            created_at__date__gte=month_start,
+        ).aggregate(total=Sum("cost"))["total"]
+        return float(round(total or 0, ndigits=2))
 
     @property
     def is_frozen(self) -> bool:

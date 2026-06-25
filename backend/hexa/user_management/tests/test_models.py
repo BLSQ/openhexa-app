@@ -1,9 +1,11 @@
 from datetime import timedelta
+from decimal import Decimal
 
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.test import override_settings
 from django.utils import timezone
 
+from hexa.assistant.models import Conversation, Message
 from hexa.core.test import TestCase
 from hexa.user_management.models import (
     Feature,
@@ -230,6 +232,37 @@ class OrganizationSubscriptionTest(TestCase):
             organization=self.organization,
         )
         self.assertTrue(self.organization.is_workspaces_limit_reached())
+
+    def test_get_monthly_ai_cost(self):
+        self.assertEqual(self.organization.get_monthly_ai_cost(), 0)
+
+        workspace = Workspace.objects.create(
+            name="AI Workspace",
+            slug="ai-workspace",
+            organization=self.organization,
+        )
+        conversation = Conversation.objects.create(user=self.owner, workspace=workspace)
+        Message.objects.create(
+            conversation=conversation,
+            role=Message.Role.ASSISTANT,
+            content=[],
+            cost=Decimal("12.40"),
+        )
+        Message.objects.create(
+            conversation=conversation,
+            role=Message.Role.ASSISTANT,
+            content=[],
+            cost=Decimal("0.30"),
+        )
+        # User messages should be ignored.
+        Message.objects.create(
+            conversation=conversation,
+            role=Message.Role.USER,
+            content=[],
+            cost=Decimal("99"),
+        )
+
+        self.assertEqual(self.organization.get_monthly_ai_cost(), 12.70)
 
     def test_current_subscription_returns_expired(self):
         self.subscription.delete()

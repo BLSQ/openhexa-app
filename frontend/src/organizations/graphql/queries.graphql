@@ -33,6 +33,7 @@ fragment Organization_organization on Organization {
     users
     workspaces
     pipelineRuns
+    aiBudget
   }
   subscription {
     subscriptionId
@@ -45,6 +46,7 @@ fragment Organization_organization on Organization {
       users
       workspaces
       pipelineRuns
+      aiBudget
     }
   }
 }
