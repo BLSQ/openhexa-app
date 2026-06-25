@@ -272,9 +272,7 @@ class OrganizationSubscriptionTest(TestCase):
             slug="ai-budget-workspace",
             organization=self.organization,
         )
-        conversation = Conversation.objects.create(
-            user=self.owner, workspace=workspace
-        )
+        conversation = Conversation.objects.create(user=self.owner, workspace=workspace)
         # The subscription's monthly AI budget is 50 (default).
         Message.objects.create(
             conversation=conversation,
