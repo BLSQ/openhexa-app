@@ -46,9 +46,8 @@ class CopyWorkspaceForm(forms.Form):
         required=False, label="Target superuser password", widget=forms.PasswordInput
     )
     target_organization = forms.CharField(
-        required=False,
         label="Target organization id",
-        help_text="Optional UUID of the organization to create the workspace under.",
+        help_text="UUID of the organization to create the workspace under.",
     )
     target_workspace_name = forms.CharField(
         required=False,

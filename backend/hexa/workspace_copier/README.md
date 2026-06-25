@@ -52,7 +52,7 @@ Example usage:
 	--source-email root@openhexa.org \
 	--source-password root \
 	--target-url http://app:8000/graphql/ \
-	--target-organization org-uuid \ # optional
+	--target-organization org-uuid \
 	--target-workspace-name "My Workspace (copy)" \ # optional
 	--target-email root@openhexa.org \
 	--target-password root

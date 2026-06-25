@@ -53,7 +53,7 @@ def _build_target(
     url: str | None,
     email: str | None,
     password: str | None,
-    organization_id: str | None,
+    organization_id: str,
     workspace_name: str | None,
 ) -> Endpoint:
     if url:
@@ -95,7 +95,7 @@ def _verify_endpoints(
     target_url: str | None,
     target_email: str | None,
     target_password: str | None,
-    target_organization_id: str | None,
+    target_organization_id: str,
     target_workspace_name: str | None,
 ) -> tuple[Endpoint, Endpoint]:
     """Verify and build both endpoints, raising :class:`CredentialError` on failure."""
@@ -128,7 +128,7 @@ def run_copy(
     target_url: str | None,
     target_email: str | None,
     target_password: str | None,
-    target_organization_id: str | None = None,
+    target_organization_id: str,
     target_workspace_name: str | None = None,
     resources: set[str] | None = None,
     reporter: ProgressReporter,

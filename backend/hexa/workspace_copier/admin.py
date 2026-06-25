@@ -38,7 +38,7 @@ def copy_workspace_view(request):
                     target_url=data["target_url"],
                     target_email=data["target_email"],
                     target_password=data["target_password"],
-                    target_organization_id=data["target_organization"] or None,
+                    target_organization_id=data["target_organization"],
                     target_workspace_name=data["target_workspace_name"] or None,
                     resources=set(data["resources"]),
                     reporter=reporter,

@@ -45,8 +45,8 @@ class Command(BaseCommand):
         parser.add_argument("--target-password", default="")
         parser.add_argument(
             "--target-organization",
-            default=None,
-            help="Optional UUID of the organization on the target server.",
+            required=True,
+            help="UUID of the organization on the target server.",
         )
         parser.add_argument(
             "--target-workspace-name",

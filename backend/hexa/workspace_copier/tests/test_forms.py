@@ -12,7 +12,7 @@ def _base_data(**overrides):
         "target_url": "",
         "target_email": "",
         "target_password": "",
-        "target_organization": "",
+        "target_organization": "org-1",
         "resources": ["connections"],
     }
     data.update(overrides)
@@ -23,6 +23,11 @@ class CopyWorkspaceFormTest(SimpleTestCase):
     def test_local_endpoints_need_no_credentials(self):
         form = CopyWorkspaceForm(data=_base_data())
         self.assertTrue(form.is_valid(), form.errors)
+
+    def test_target_organization_is_required(self):
+        form = CopyWorkspaceForm(data=_base_data(target_organization=""))
+        self.assertFalse(form.is_valid())
+        self.assertIn("target_organization", form.errors)
 
     def test_remote_source_requires_credentials(self):
         form = CopyWorkspaceForm(
