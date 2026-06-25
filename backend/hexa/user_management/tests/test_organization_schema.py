@@ -17,6 +17,7 @@ from hexa.user_management.models import (
     OrganizationSubscription,
     User,
 )
+from hexa.user_management.tests.testutils import create_subscription
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -1475,16 +1476,11 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
             user=self.owner,
             role=OrganizationMembershipRole.OWNER,
         )
-        self.subscription = OrganizationSubscription.objects.create(
-            organization=self.organization,
+        self.subscription = create_subscription(
+            self.organization,
             subscription_id=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-            plan_code="openhexa_starter",
             start_date=date(2025, 1, 1),
             end_date=date(2025, 12, 31),
-            users_limit=10,
-            workspaces_limit=5,
-            pipeline_runs_limit=1000,
-            monthly_ai_budget=50,
         )
 
         # Create organization without subscription
@@ -1806,16 +1802,11 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
         today = timezone.now().date()
         start_date = today - timedelta(days=30)
         end_date = today + timedelta(days=335)
-        OrganizationSubscription.objects.create(
-            organization=self.organization,
+        create_subscription(
+            self.organization,
             subscription_id=uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-            plan_code="openhexa_starter",
             start_date=start_date,
             end_date=end_date,
-            users_limit=10,
-            workspaces_limit=5,
-            pipeline_runs_limit=1000,
-            monthly_ai_budget=50,
         )
 
         self.client.force_login(self.owner)
@@ -1905,17 +1896,9 @@ class CreateWorkspacePermissionTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(perm["reasons"], [])
 
     def test_denied_when_workspaces_limit_reached(self):
-        today = timezone.now().date()
-        OrganizationSubscription.objects.create(
-            organization=self.organization,
-            subscription_id=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-            plan_code="openhexa_starter",
-            start_date=today - timedelta(days=30),
-            end_date=today + timedelta(days=335),
-            users_limit=10,
+        create_subscription(
+            self.organization,
             workspaces_limit=0,
-            pipeline_runs_limit=1000,
-            monthly_ai_budget=50,
         )
         perm = self._get_permission(self.owner)
         self.assertFalse(perm["isAllowed"])
@@ -1923,18 +1906,7 @@ class CreateWorkspacePermissionTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertNotIn("PERMISSION_DENIED", perm["reasons"])
 
     def test_allowed_when_below_workspaces_limit(self):
-        today = timezone.now().date()
-        OrganizationSubscription.objects.create(
-            organization=self.organization,
-            subscription_id=uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-            plan_code="openhexa_starter",
-            start_date=today - timedelta(days=30),
-            end_date=today + timedelta(days=335),
-            users_limit=10,
-            workspaces_limit=5,
-            pipeline_runs_limit=1000,
-            monthly_ai_budget=50,
-        )
+        create_subscription(self.organization)
         perm = self._get_permission(self.owner)
         self.assertTrue(perm["isAllowed"])
         self.assertEqual(perm["reasons"], [])
@@ -1950,17 +1922,11 @@ class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
             self.owner, "Test Organization", "Description", short_name="SLIM"
         )
 
-        today = timezone.now().date()
-        self.subscription = OrganizationSubscription.objects.create(
-            organization=self.organization,
-            subscription_id=uuid.UUID("11111111-1111-1111-1111-111111111111"),
-            plan_code="openhexa_starter",
-            start_date=today - timedelta(days=30),
-            end_date=today + timedelta(days=335),
+        self.subscription = create_subscription(
+            self.organization,
             users_limit=2,
             workspaces_limit=1,
             pipeline_runs_limit=5,
-            monthly_ai_budget=10,
         )
 
     @patch("hexa.user_management.schema.mutations.send_organization_invite")
