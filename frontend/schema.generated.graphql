@@ -4307,6 +4307,9 @@ input ResourceCountsInput {
   """Maximum pipeline timeout in seconds."""
   maxPipelineTimeout: Int
 
+  """Monthly AI budget in USD."""
+  monthlyAiBudget: Int!
+
   """JupyterHub profile to use (e.g., "trial")."""
   notebookProfile: String
 

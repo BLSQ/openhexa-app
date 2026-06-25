@@ -502,6 +502,7 @@ class OrganizationSubscription(Base):
     users_limit = models.PositiveIntegerField()
     workspaces_limit = models.PositiveIntegerField()
     pipeline_runs_limit = models.PositiveIntegerField()
+    monthly_ai_budget = models.PositiveIntegerField()
 
     max_pipeline_timeout = models.PositiveIntegerField(null=True, blank=True)
     pipeline_cpu_limit = models.CharField(max_length=32, blank=True, null=True)

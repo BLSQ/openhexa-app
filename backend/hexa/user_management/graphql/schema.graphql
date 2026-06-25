@@ -2197,6 +2197,11 @@ input ResourceCountsInput {
     JupyterHub profile to use (e.g., "trial").
     """
     notebookProfile: String
+
+    """
+    Monthly AI budget in USD.
+    """
+    monthlyAiBudget: Int!
 }
 
 """
