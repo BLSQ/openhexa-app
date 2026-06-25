@@ -8,7 +8,6 @@ import clsx from "clsx";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
 import Dialog from "core/components/Dialog";
-import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
 import PipelineTemplates from "pipelines/features/PipelineTemplates/PipelineTemplates";
 import { useEffect, useState } from "react";
@@ -31,7 +30,6 @@ type CreatePipelineDialogProps = {
 const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   const { t } = useTranslation();
   const { open, onClose, workspace } = props;
-  const [isAssistantEnabled] = useFeature("assistant");
   const aiEnabled = workspace.organization?.aiSettings?.enabled ?? false;
   const aiBudgetLimitReached =
     workspace.organization?.aiBudgetLimitReached ?? false;
@@ -80,7 +78,7 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
 
         <div className={activeMethod !== null ? "hidden" : "space-y-4"}>
           <div className="flex gap-3">
-            {isAssistantEnabled && aiEnabled && (
+            {aiEnabled && (
               <button
                 onClick={() => setActiveMethod("ai")}
                 disabled={aiBudgetLimitReached}

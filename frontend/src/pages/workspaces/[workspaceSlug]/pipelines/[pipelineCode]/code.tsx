@@ -10,7 +10,6 @@ import Spinner from "core/components/Spinner";
 import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
-import useFeature from "identity/hooks/useFeature";
 import { useTranslation } from "next-i18next";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PipelineFilesEditor } from "workspaces/features/FilesEditor/PipelineFilesEditor";
@@ -69,8 +68,6 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     }
   }, [proposedToolInvocationId, resolveProposal]);
 
-  const [isAssistantEnabled] = useFeature("assistant");
-
   const { data, loading } = useWorkspacePipelineCodePageQuery({
     variables: {
       workspaceSlug,
@@ -81,7 +78,6 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const aiEnabled = data?.workspace?.organization?.aiSettings?.enabled ?? false;
   const aiBudgetLimitReached =
     data?.workspace?.organization?.aiBudgetLimitReached ?? false;
-  const showAssistant = isAssistantEnabled && aiEnabled;
   const [fetchPipelineVersion, { data: versionData, loading: versionLoading }] =
     useGetPipelineVersionFilesLazyQuery();
 
@@ -186,7 +182,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                 onChange={onVersionChange}
               />
             </div>
-            {showAssistant && (
+            {aiEnabled && (
               <div className="ml-auto">
                 <SubscriptionLimitTooltip
                   isLimitReached={aiBudgetLimitReached}
@@ -239,7 +235,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                 />
               </div>
             </div>
-            {chatOpen && showAssistant && (
+            {chatOpen && aiEnabled && (
               <div className="w-[440px] shrink-0">
                 <PipelineEditChatPanel
                   pipelineId={pipeline.id}
