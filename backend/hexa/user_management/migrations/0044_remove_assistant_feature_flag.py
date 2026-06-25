@@ -16,5 +16,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(remove_feature_flag),
+        migrations.RunPython(remove_feature_flag, migrations.RunPython.noop),
     ]

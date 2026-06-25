@@ -217,9 +217,13 @@ class AiSettings(models.Model):
         on_delete=models.CASCADE,
         related_name="ai_settings",
     )
-    enabled = models.BooleanField(default=True)
+    # Conservative defaults: nothing is auto-enabled and no managed provider is
+    # assumed. The instance-type-aware defaults (managed -> on/managed) are applied
+    # by Organization.ai_settings_safe and the data migration, so a self-hosted
+    # instance never silently ends up on the managed provider it cannot use.
+    enabled = models.BooleanField(default=False)
     provider = models.CharField(
-        max_length=20, choices=Provider.choices, default=Provider.MANAGED
+        max_length=20, choices=Provider.choices, default=Provider.ANTHROPIC
     )
     model = models.CharField(max_length=30, choices=Model.choices, null=True)
     api_key = EncryptedTextField(max_length=255, null=True)
@@ -364,7 +368,14 @@ class Organization(Base, SoftDeletedModel):
 
     @property
     def ai_settings_safe(self) -> AiSettings:
-        obj, _ = AiSettings.objects.get_or_create(organization=self)
+        # Managed (hosted) instances default to the assistant being on with our
+        # hosted provider; self-hosted instances start disabled until an admin
+        # configures their own provider and API key.
+        if settings.ASSISTANT_MANAGED:
+            defaults = {"enabled": True, "provider": AiSettings.Provider.MANAGED}
+        else:
+            defaults = {"enabled": False, "provider": AiSettings.Provider.ANTHROPIC}
+        obj, _ = AiSettings.objects.get_or_create(organization=self, defaults=defaults)
         return obj
 
     def filter_workspaces_for_user(self, user):

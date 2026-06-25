@@ -1,4 +1,5 @@
 import django.db.models.deletion
+from django.conf import settings
 from django.db import migrations, models
 
 import hexa.core.models.cryptography
@@ -7,9 +8,17 @@ import hexa.core.models.cryptography
 def create_default_ai_settings(apps, schema_editor):
     Organization = apps.get_model("user_management", "Organization")
     AiSettings = apps.get_model("user_management", "AiSettings")
+    # Managed (hosted) instances default to the assistant being on with our hosted
+    # provider; self-hosted instances start disabled until an admin configures their
+    # own provider and API key.
+    managed = settings.ASSISTANT_MANAGED
     AiSettings.objects.bulk_create(
         [
-            AiSettings(organization=organization, enabled=True, provider="managed")
+            AiSettings(
+                organization=organization,
+                enabled=managed,
+                provider="managed" if managed else "anthropic",
+            )
             for organization in Organization.objects.all()
         ]
     )
@@ -39,7 +48,7 @@ class Migration(migrations.Migration):
                         to="user_management.organization",
                     ),
                 ),
-                ("enabled", models.BooleanField(default=True)),
+                ("enabled", models.BooleanField(default=False)),
                 (
                     "provider",
                     models.CharField(
@@ -47,7 +56,7 @@ class Migration(migrations.Migration):
                             ("managed", "Managed"),
                             ("anthropic", "Anthropic"),
                         ],
-                        default="managed",
+                        default="anthropic",
                         max_length=20,
                     ),
                 ),
