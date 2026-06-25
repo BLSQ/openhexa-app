@@ -275,6 +275,7 @@ class OrganizationSubscriptionInline(admin.TabularInline):
         "users_limit",
         "workspaces_limit",
         "pipeline_runs_limit",
+        "monthly_ai_budget",
     )
 
 
@@ -396,6 +397,7 @@ class OrganizationSubscriptionAdmin(admin.ModelAdmin):
         "pipeline_cpu_limit",
         "pipeline_memory_limit",
         "notebook_profile",
+        "monthly_ai_budget",
         "created_at",
     )
     list_filter = ("plan_code", "start_date", "end_date")
@@ -441,6 +443,7 @@ class OrganizationSubscriptionAdmin(admin.ModelAdmin):
                     "pipeline_cpu_limit",
                     "pipeline_memory_limit",
                     "notebook_profile",
+                    "monthly_ai_budget",
                 )
             },
         ),

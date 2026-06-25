@@ -1166,6 +1166,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1190,6 +1191,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(subscription.users_limit, 10)
         self.assertEqual(subscription.workspaces_limit, 5)
         self.assertEqual(subscription.pipeline_runs_limit, 1000)
+        self.assertEqual(subscription.monthly_ai_budget, 50)
         self.assertEqual(subscription.start_date, date(2026, 1, 1))
         self.assertEqual(subscription.end_date, date(2026, 12, 31))
 
@@ -1228,6 +1230,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1271,6 +1274,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1317,6 +1321,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1366,6 +1371,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1400,6 +1406,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1434,6 +1441,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1476,6 +1484,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
             users_limit=10,
             workspaces_limit=5,
             pipeline_runs_limit=1000,
+            monthly_ai_budget=50,
         )
 
         # Create organization without subscription
@@ -1512,6 +1521,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
                         "users": 50,
                         "workspaces": 20,
                         "pipelineRuns": 10000,
+                        "monthlyAiBudget": 200,
                     },
                 }
             },
@@ -1525,6 +1535,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
         self.assertEqual(self.subscription.users_limit, 50)
         self.assertEqual(self.subscription.workspaces_limit, 20)
         self.assertEqual(self.subscription.pipeline_runs_limit, 10000)
+        self.assertEqual(self.subscription.monthly_ai_budget, 200)
         self.assertEqual(self.subscription.end_date, date(2026, 12, 31))
 
     def test_update_subscription_creates_new_for_new_subscription_id(self):
@@ -1551,6 +1562,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
                         "users": 100,
                         "workspaces": 50,
                         "pipelineRuns": 50000,
+                        "monthlyAiBudget": 100,
                     },
                 }
             },
@@ -1599,6 +1611,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1639,6 +1652,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1680,6 +1694,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1724,6 +1739,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
                         "users": 100,
                         "workspaces": 50,
                         "pipelineRuns": 50000,
+                        "monthlyAiBudget": 100,
                     },
                 }
             },
@@ -1799,6 +1815,7 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
             users_limit=10,
             workspaces_limit=5,
             pipeline_runs_limit=1000,
+            monthly_ai_budget=50,
         )
 
         self.client.force_login(self.owner)
@@ -1898,6 +1915,7 @@ class CreateWorkspacePermissionTest(GraphQLTestCase, OrganizationTestMixin):
             users_limit=10,
             workspaces_limit=0,
             pipeline_runs_limit=1000,
+            monthly_ai_budget=50,
         )
         perm = self._get_permission(self.owner)
         self.assertFalse(perm["isAllowed"])
@@ -1915,6 +1933,7 @@ class CreateWorkspacePermissionTest(GraphQLTestCase, OrganizationTestMixin):
             users_limit=10,
             workspaces_limit=5,
             pipeline_runs_limit=1000,
+            monthly_ai_budget=50,
         )
         perm = self._get_permission(self.owner)
         self.assertTrue(perm["isAllowed"])
@@ -1941,6 +1960,7 @@ class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
             users_limit=2,
             workspaces_limit=1,
             pipeline_runs_limit=5,
+            monthly_ai_budget=10,
         )
 
     @patch("hexa.user_management.schema.mutations.send_organization_invite")

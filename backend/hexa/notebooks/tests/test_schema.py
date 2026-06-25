@@ -53,6 +53,7 @@ class NotebooksTest(GraphQLTestCase):
             workspaces_limit=5,
             pipeline_runs_limit=100,
             notebook_profile="trial",
+            monthly_ai_budget=10,
         )
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(

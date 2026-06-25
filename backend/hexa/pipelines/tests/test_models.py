@@ -973,6 +973,7 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
             users_limit=10,
             workspaces_limit=5,
             pipeline_runs_limit=100,
+            monthly_ai_budget=10,
             max_pipeline_timeout=3600,
         )
         run = self.PIPELINE.run(
@@ -992,6 +993,7 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
             users_limit=10,
             workspaces_limit=5,
             pipeline_runs_limit=100,
+            monthly_ai_budget=10,
             max_pipeline_timeout=10000,
         )
         run = self.PIPELINE.run(
@@ -1011,6 +1013,7 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
             users_limit=10,
             workspaces_limit=5,
             pipeline_runs_limit=100,
+            monthly_ai_budget=10,
             pipeline_cpu_limit="1",
             pipeline_memory_limit="1G",
         )

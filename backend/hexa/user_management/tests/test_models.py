@@ -191,6 +191,7 @@ class OrganizationSubscriptionTest(TestCase):
             users_limit=2,
             workspaces_limit=1,
             pipeline_runs_limit=5,
+            monthly_ai_budget=10,
         )
 
     def test_current_subscription_returns_active(self):
@@ -211,6 +212,7 @@ class OrganizationSubscriptionTest(TestCase):
             users_limit=100,
             workspaces_limit=50,
             pipeline_runs_limit=10000,
+            monthly_ai_budget=100,
         )
 
         self.assertEqual(
@@ -253,6 +255,7 @@ class OrganizationSubscriptionTest(TestCase):
             users_limit=2,
             workspaces_limit=1,
             pipeline_runs_limit=5,
+            monthly_ai_budget=10,
         )
         self.assertIsNone(self.organization.active_subscription)
         self.assertEqual(
@@ -273,6 +276,7 @@ class OrganizationSubscriptionTest(TestCase):
             users_limit=10,
             workspaces_limit=10,
             pipeline_runs_limit=100,
+            monthly_ai_budget=50,
         )
         recent_expired = OrganizationSubscription.objects.create(
             organization=self.organization,
@@ -283,6 +287,7 @@ class OrganizationSubscriptionTest(TestCase):
             users_limit=2,
             workspaces_limit=1,
             pipeline_runs_limit=5,
+            monthly_ai_budget=10,
         )
         self.assertEqual(
             self.organization.current_subscription.subscription_id,
@@ -301,6 +306,7 @@ class OrganizationSubscriptionTest(TestCase):
             users_limit=2,
             workspaces_limit=1,
             pipeline_runs_limit=5,
+            monthly_ai_budget=10,
         )
 
         self.assertTrue(expired_subscription.is_expired)
@@ -327,6 +333,7 @@ class OrganizationSubscriptionTest(TestCase):
             users_limit=100,
             workspaces_limit=100,
             pipeline_runs_limit=1000,
+            monthly_ai_budget=100,
         )
 
         self.assertTrue(expired_subscription.is_expired)
