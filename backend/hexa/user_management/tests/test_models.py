@@ -264,6 +264,26 @@ class OrganizationSubscriptionTest(TestCase):
 
         self.assertEqual(self.organization.get_monthly_ai_cost(), 12.70)
 
+    def test_is_ai_budget_limit_reached(self):
+        self.assertFalse(self.organization.is_ai_budget_limit_reached())
+
+        workspace = Workspace.objects.create(
+            name="AI Budget Workspace",
+            slug="ai-budget-workspace",
+            organization=self.organization,
+        )
+        conversation = Conversation.objects.create(
+            user=self.owner, workspace=workspace
+        )
+        # The subscription's monthly AI budget is 50 (default).
+        Message.objects.create(
+            conversation=conversation,
+            role=Message.Role.ASSISTANT,
+            content=[],
+            cost=Decimal("50"),
+        )
+        self.assertTrue(self.organization.is_ai_budget_limit_reached())
+
     def test_current_subscription_returns_expired(self):
         self.subscription.delete()
         today = timezone.now().date()

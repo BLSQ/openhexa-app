@@ -3231,6 +3231,9 @@ enum OrderByDirection {
 
 """The Organization type represents an organization in the system."""
 type Organization {
+  """Whether the organization has reached its monthly AI budget."""
+  aiBudgetLimitReached: Boolean!
+
   """The AI settings of the organization."""
   aiSettings: AiSettings
 

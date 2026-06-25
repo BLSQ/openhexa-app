@@ -7,6 +7,7 @@ import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import Page from "core/components/Page";
 import Spinner from "core/components/Spinner";
+import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useFeature from "identity/hooks/useFeature";
@@ -78,6 +79,8 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   });
 
   const aiEnabled = data?.workspace?.organization?.aiSettings?.enabled ?? false;
+  const aiBudgetLimitReached =
+    data?.workspace?.organization?.aiBudgetLimitReached ?? false;
   const showAssistant = isAssistantEnabled && aiEnabled;
   const [fetchPipelineVersion, { data: versionData, loading: versionLoading }] =
     useGetPipelineVersionFilesLazyQuery();
@@ -97,7 +100,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     const convs = data.pipeline.assistantConversations;
     setConversations(convs);
     setActiveConversationId(convs[0]?.id ?? null);
-    setChatOpen(convs.length > 0);
+    setChatOpen(convs.length > 0 && !aiBudgetLimitReached);
   }, [data?.pipeline?.id]);
 
   const handleNewConversation = useCallback(() => {
@@ -184,15 +187,21 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
               />
             </div>
             {showAssistant && (
-              <Button
-                onClick={() => setChatOpen((o) => !o)}
-                variant="secondary"
-                size="md"
-                leadingIcon={<SparklesIcon className="h-4 w-4" />}
-                className="ml-auto"
-              >
-                {t("AI Assistant")}
-              </Button>
+              <div className="ml-auto">
+                <SubscriptionLimitTooltip
+                  isLimitReached={aiBudgetLimitReached}
+                  title={t("Monthly AI budget reached")}
+                >
+                  <Button
+                    onClick={() => setChatOpen((o) => !o)}
+                    variant="secondary"
+                    size="md"
+                    leadingIcon={<SparklesIcon className="h-4 w-4" />}
+                  >
+                    {t("AI Assistant")}
+                  </Button>
+                </SubscriptionLimitTooltip>
+              </div>
             )}
           </div>
           <div className="flex gap-4 min-h-[60vh] max-h-[65vh] overflow-hidden">

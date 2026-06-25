@@ -1161,6 +1161,11 @@ type Organization {
     The AI settings of the organization.
     """
     aiSettings: AiSettings
+
+    """
+    Whether the organization has reached its monthly AI budget.
+    """
+    aiBudgetLimitReached: Boolean!
 }
 
 """

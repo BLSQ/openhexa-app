@@ -405,6 +405,13 @@ def resolve_organization_ai_settings(organization: Organization, info, **kwargs)
     return organization.ai_settings_safe
 
 
+@organization_object.field("aiBudgetLimitReached")
+def resolve_organization_ai_budget_limit_reached(
+    organization: Organization, info, **kwargs
+):
+    return organization.is_ai_budget_limit_reached()
+
+
 subscription_object = ObjectType("Subscription")
 
 
