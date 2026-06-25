@@ -484,6 +484,12 @@ class Organization(Base, SoftDeletedModel):
             return False
         return self.is_frozen or subscription.is_pipeline_runs_limit_reached()
 
+    def is_ai_budget_limit_reached(self) -> bool:
+        subscription = self.current_subscription
+        if not subscription:
+            return False
+        return self.is_frozen or subscription.is_ai_budget_limit_reached()
+
 
 class OrganizationSubscription(Base):
     """
@@ -552,6 +558,10 @@ class OrganizationSubscription(Base):
             self.organization.get_monthly_pipeline_runs_count()
             >= self.pipeline_runs_limit
         )
+
+    def is_ai_budget_limit_reached(self) -> bool:
+        """Check if the organization has reached its monthly AI budget."""
+        return self.organization.get_monthly_ai_cost() >= self.monthly_ai_budget
 
 
 class OrganizationMembershipRole(models.TextChoices):

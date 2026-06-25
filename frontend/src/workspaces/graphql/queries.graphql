@@ -154,6 +154,7 @@ query WorkspacePipelineCodePage(
       aiSettings {
         enabled
       }
+      aiBudgetLimitReached
     }
     ...PipelineLayout_workspace
   }

@@ -3787,6 +3787,8 @@ export enum OrderByDirection {
 /** The Organization type represents an organization in the system. */
 export type Organization = {
   __typename?: 'Organization';
+  /** Whether the organization has reached its monthly AI budget. */
+  aiBudgetLimitReached: Scalars['Boolean']['output'];
   /** The AI settings of the organization. */
   aiSettings?: Maybe<AiSettings>;
   /** The contact information of the organization. */

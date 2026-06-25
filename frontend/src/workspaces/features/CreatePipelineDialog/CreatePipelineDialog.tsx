@@ -4,6 +4,7 @@ import {
   SparklesIcon,
   DocumentTextIcon,
 } from "@heroicons/react/24/outline";
+import clsx from "clsx";
 import Button from "core/components/Button/Button";
 import Spinner from "core/components/Spinner";
 import Dialog from "core/components/Dialog";
@@ -32,6 +33,8 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   const { open, onClose, workspace } = props;
   const [isAssistantEnabled] = useFeature("assistant");
   const aiEnabled = workspace.organization?.aiSettings?.enabled ?? false;
+  const aiBudgetLimitReached =
+    workspace.organization?.aiBudgetLimitReached ?? false;
 
   const [activeMethod, setActiveMethod] = useState<Method>(null);
 
@@ -80,7 +83,13 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
             {isAssistantEnabled && aiEnabled && (
               <button
                 onClick={() => setActiveMethod("ai")}
-                className="flex flex-1 flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 hover:shadow-md"
+                disabled={aiBudgetLimitReached}
+                className={clsx(
+                  "flex flex-1 flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all",
+                  aiBudgetLimitReached
+                    ? "cursor-not-allowed opacity-60"
+                    : "hover:border-blue-400 hover:bg-blue-50 hover:shadow-md",
+                )}
               >
                 <div className="mb-4 rounded-lg bg-blue-50 p-2.5">
                   <SparklesIcon className="h-5 w-5 text-blue-400" />
@@ -91,6 +100,11 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
                 <span className="mt-1 text-sm leading-relaxed text-gray-500">
                   {t("Describe what you want, AI writes the code")}
                 </span>
+                {aiBudgetLimitReached && (
+                  <span className="mt-2 text-xs font-medium text-amber-600">
+                    {t("Monthly AI budget reached")}
+                  </span>
+                )}
               </button>
             )}
             <button
@@ -190,6 +204,7 @@ CreatePipelineDialog.fragments = {
         aiSettings {
           enabled
         }
+        aiBudgetLimitReached
       }
       ...BucketObjectPicker_workspace
     }
