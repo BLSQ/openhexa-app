@@ -10,6 +10,7 @@ import { fileToBase64 } from "core/helpers/fileEncoding";
 import { FileEncoding } from "graphql/types";
 import Spinner from "core/components/Spinner";
 import { ArrowUpTrayIcon, FolderPlusIcon } from "@heroicons/react/24/outline";
+import GitClonePopover from "webapps/features/GitClonePopover/GitClonePopover";
 
 type WebappFilesEditorProps = {
   webappId: string;
@@ -18,6 +19,7 @@ type WebappFilesEditorProps = {
   isEditable: boolean;
   versionRef?: string;
   versionPicker?: ReactNode;
+  cloneUrl?: string | null;
   onSaveSuccess?: () => void;
   onBusyChange?: (busy: boolean) => void;
 };
@@ -29,6 +31,7 @@ const WebappFilesEditor = ({
   isEditable,
   versionRef,
   versionPicker,
+  cloneUrl,
   onSaveSuccess,
   onBusyChange,
 }: WebappFilesEditorProps) => {
@@ -156,64 +159,67 @@ const WebappFilesEditor = ({
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        {versionPicker && <div className="w-96">{versionPicker}</div>}
-        {isEditable && (
-          <div className="flex items-center gap-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              className="hidden"
-              aria-hidden="true"
-              onChange={(e) => {
-                if (e.target.files?.length) {
-                  handleUpload(e.target.files).then();
-                  e.target.value = "";
-                }
-              }}
-            />
-            <input
-              ref={folderInputRef}
-              type="file"
-              className="hidden"
-              aria-hidden="true"
-              onChange={(e) => {
-                if (e.target.files?.length) {
-                  handleUpload(e.target.files).then();
-                  e.target.value = "";
-                }
-              }}
-              {...({ webkitdirectory: "", directory: "" } as Record<
-                string,
-                string
-              >)}
-            />
-            <button
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <Spinner size="xs" className="text-gray-500" />
-              ) : (
-                <ArrowUpTrayIcon className="h-4 w-4 text-gray-500" />
-              )}
-              {isUploading ? t("Uploading...") : t("Upload files")}
-            </button>
-            <button
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={() => folderInputRef.current?.click()}
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <Spinner size="xs" className="text-gray-500" />
-              ) : (
-                <FolderPlusIcon className="h-4 w-4 text-gray-500" />
-              )}
-              {isUploading ? t("Uploading...") : t("Upload folder")}
-            </button>
-          </div>
-        )}
+        {versionPicker ? <div className="w-96">{versionPicker}</div> : <div />}
+        <div className="flex items-center gap-2">
+          {cloneUrl && <GitClonePopover cloneUrl={cloneUrl} />}
+          {isEditable && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                aria-hidden="true"
+                onChange={(e) => {
+                  if (e.target.files?.length) {
+                    handleUpload(e.target.files).then();
+                    e.target.value = "";
+                  }
+                }}
+              />
+              <input
+                ref={folderInputRef}
+                type="file"
+                className="hidden"
+                aria-hidden="true"
+                onChange={(e) => {
+                  if (e.target.files?.length) {
+                    handleUpload(e.target.files).then();
+                    e.target.value = "";
+                  }
+                }}
+                {...({ webkitdirectory: "", directory: "" } as Record<
+                  string,
+                  string
+                >)}
+              />
+              <button
+                className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <Spinner size="xs" className="text-gray-500" />
+                ) : (
+                  <ArrowUpTrayIcon className="h-4 w-4 text-gray-500" />
+                )}
+                {isUploading ? t("Uploading...") : t("Upload files")}
+              </button>
+              <button
+                className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => folderInputRef.current?.click()}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <Spinner size="xs" className="text-gray-500" />
+                ) : (
+                  <FolderPlusIcon className="h-4 w-4 text-gray-500" />
+                )}
+                {isUploading ? t("Uploading...") : t("Upload folder")}
+              </button>
+            </>
+          )}
+        </div>
       </div>
       <div className="relative">
         {isLoading && (
