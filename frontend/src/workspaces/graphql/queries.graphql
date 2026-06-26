@@ -874,6 +874,11 @@ query WorkspaceWebappPage($workspaceSlug: String!, $webappSlug: String!) {
   webapp: webapp(workspaceSlug: $workspaceSlug, slug: $webappSlug) {
     ...WebappForm_webapp
     ...WebappLayout_webapp
+    source {
+      ... on GitSource {
+        cloneUrl
+      }
+    }
   }
 }
 
