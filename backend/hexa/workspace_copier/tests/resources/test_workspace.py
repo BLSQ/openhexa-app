@@ -58,9 +58,7 @@ class WorkspaceMetadataCopierRemoteTest(SimpleTestCase):
         target = Endpoint.remote(MagicMock())
 
         with self.assertRaises(GraphQLError):
-            WorkspaceMetadataCopier().copy(
-                source, target, CopyResult(), NullReporter()
-            )
+            WorkspaceMetadataCopier().copy(source, target, CopyResult(), NullReporter())
 
     def test_local_target_not_yet_implemented(self):
         source = Endpoint.remote(MagicMock(), "src")
@@ -68,6 +66,4 @@ class WorkspaceMetadataCopierRemoteTest(SimpleTestCase):
         target = Endpoint.local()
 
         with self.assertRaises(NotImplementedError):
-            WorkspaceMetadataCopier().copy(
-                source, target, CopyResult(), NullReporter()
-            )
+            WorkspaceMetadataCopier().copy(source, target, CopyResult(), NullReporter())

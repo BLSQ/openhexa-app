@@ -62,9 +62,7 @@ class WorkspaceMetadataCopier(ResourceCopier):
             return src_ws
         return source.workspace
 
-    def _create_remote(
-        self, target: Endpoint, src_ws: Any, result: CopyResult
-    ) -> str:
+    def _create_remote(self, target: Endpoint, src_ws: Any, result: CopyResult) -> str:
         """Create the workspace on a remote target, returning the server slug.
 
         The server (see resolve_create_workspace + create_workspace_slug in
