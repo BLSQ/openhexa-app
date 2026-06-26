@@ -84,7 +84,7 @@ class AiModelBuilderTest(TestCase):
         result = builder.build()
         self.assertIsInstance(result, BuiltModel)
         self.assertEqual(result.api_name, "claude-opus-4-6")
-        self.assertEqual(result.provider_id, AiSettings.Provider.MANAGED)
+        self.assertEqual(result.provider_id, "google-vertex")
         mock_vertex_client.assert_called_once_with(
             project_id="test-project", region="europe-west1"
         )

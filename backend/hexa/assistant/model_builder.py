@@ -117,8 +117,14 @@ class AiModelBuilder:
         if not factory:
             raise ValueError(f"Unsupported AI provider: {self._ai_settings.provider!r}")
         model = factory(self._ai_settings, self._model_api_name)
+        # The managed provider runs Claude through Google Vertex AI, so genai_prices
+        # must price it as "google-vertex" rather than our internal "managed" value.
+        if self._ai_settings.provider == AiSettings.Provider.MANAGED:
+            provider_id = "google-vertex"
+        else:
+            provider_id = self._ai_settings.provider
         return BuiltModel(
             model=model,
             api_name=self._model_api_name,
-            provider_id=self._ai_settings.provider,
+            provider_id=provider_id,
         )
