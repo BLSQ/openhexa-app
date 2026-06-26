@@ -19,7 +19,7 @@ type WebappFilesEditorProps = {
   isEditable: boolean;
   versionRef?: string;
   versionPicker?: ReactNode;
-  cloneUrl?: string | null;
+  repositoryUrl?: string | null;
   onSaveSuccess?: () => void;
   onBusyChange?: (busy: boolean) => void;
 };
@@ -31,7 +31,7 @@ const WebappFilesEditor = ({
   isEditable,
   versionRef,
   versionPicker,
-  cloneUrl,
+  repositoryUrl,
   onSaveSuccess,
   onBusyChange,
 }: WebappFilesEditorProps) => {
@@ -161,7 +161,7 @@ const WebappFilesEditor = ({
       <div className="mb-3 flex items-center justify-between">
         {versionPicker ? <div className="w-96">{versionPicker}</div> : <div />}
         <div className="flex items-center gap-2">
-          {cloneUrl && <GitClonePopover cloneUrl={cloneUrl} />}
+          {repositoryUrl && <GitClonePopover repositoryUrl={repositoryUrl} />}
           {isEditable && (
             <>
               <input
