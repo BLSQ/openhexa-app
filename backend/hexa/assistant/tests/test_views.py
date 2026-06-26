@@ -92,7 +92,7 @@ class StreamAssistantMessageViewTest(TestCase):
             response = _post(self.client, self.conversation.id)
         self.assertEqual(response.status_code, 429)
 
-    def test_organization_ai_budget_exceeded_returns_429(self):
+    def test_organization_ai_budget_exceeded_returns_403(self):
         org = Organization.objects.create(name="Budget Org", short_name="BORG")
         self.workspace.organization = org
         self.workspace.save()
@@ -108,11 +108,14 @@ class StreamAssistantMessageViewTest(TestCase):
             ),
         ):
             response = _post(self.client, self.conversation.id)
-        self.assertEqual(response.status_code, 429)
+        self.assertEqual(response.status_code, 403)
 
     # --- Happy path ---
 
     def test_valid_request_returns_sse_stream(self):
+        org = Organization.objects.create(name="Budget Org", short_name="BORG")
+        self.workspace.organization = org
+        self.workspace.save()
         self.client.force_login(self.user)
 
         async def _fake_stream(self, _message):
