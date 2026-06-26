@@ -6,6 +6,7 @@ import useStreamingFetch from "core/hooks/useStreamingFetch";
 import useWordDrain from "core/hooks/useWordDrain";
 import { KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import ToolCallCard from "./ToolCallCard";
+import ThinkingIndicator from "./ThinkingIndicator";
 import {
   AssistantConversationMessagesDocument,
   AssistantConversationMessagesQuery,
@@ -187,7 +188,7 @@ export default function ChatPane({
     }
   }, [apolloClient]);
 
-  const { text: streamingText, feed, markDone, clear, flush } = useWordDrain({
+  const { text: streamingText, pending: streamingPending, feed, markDone, clear, flush } = useWordDrain({
     interval: 30,
     onDrained: handleDrained,
   });
@@ -379,6 +380,16 @@ export default function ChatPane({
 
   const isActive = isStreaming || streamingRenderSegments.length > 0;
 
+  // The stream stays open across tool calls and reasoning gaps where no text is
+  // being revealed. Pending tool cards show their own spinner, so we only render
+  // the thinking indicator when nothing else is signalling progress: the stream
+  // is live, no tool is running, and the drained text has caught up (nothing
+  // left to animate).
+  const hasPendingTool = streamingSegments.some(
+    (seg) => seg.type === "tool" && seg.status === "pending",
+  );
+  const showThinking = isStreaming && !hasPendingTool && !streamingPending;
+
   const handleSubmit = async (overrideText?: string) => {
     const text = overrideText ?? input.trim();
     if (!text || isActive || monthlyLimitExceeded) return;
@@ -488,19 +499,13 @@ export default function ChatPane({
             </div>
           )}
 
-          {isStreaming && streamingRenderSegments.length === 0 && (
-            <div className="flex justify-start">
-              <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm">
-                <Spinner size="xs" className="text-gray-400" />
-              </div>
-            </div>
-          )}
-
           {streamingRenderSegments.length > 0 && (
             <div className="space-y-2">
               <SegmentList segments={streamingRenderSegments} />
             </div>
           )}
+
+          {showThinking && <ThinkingIndicator />}
 
           {sendError && (
             <div className="flex justify-start">
