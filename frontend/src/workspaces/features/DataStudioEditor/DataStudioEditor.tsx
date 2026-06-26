@@ -6,6 +6,7 @@ import Spinner from "core/components/Spinner";
 import { useTranslation } from "next-i18next";
 import { KeyboardEvent, useState } from "react";
 import { useExecuteWorkspaceSqlLazyQuery } from "./DataStudioEditor.generated";
+import DataStudioResults from "./DataStudioResults";
 
 type DataStudioEditorProps = {
   workspaceSlug: string;
@@ -64,29 +65,7 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
       </div>
 
       {/* Results block: always present. */}
-      <div className="relative min-h-[30vh] overflow-auto rounded-md border bg-white shadow-xs">
-        {loading ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Spinner size="md" />
-          </div>
-        ) : !result ? (
-          <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-400">
-            {t("Results will appear here after you run a query.")}
-          </div>
-        ) : !result.success ? (
-          <div className="m-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {result.errorMessage || result.errors.join(", ")}
-          </div>
-        ) : (
-          <pre className="p-3 text-xs">
-            {JSON.stringify(
-              { columns: result.columns, rows: result.rows },
-              null,
-              2,
-            )}
-          </pre>
-        )}
-      </div>
+      <DataStudioResults loading={loading} result={result} />
     </div>
   );
 };
