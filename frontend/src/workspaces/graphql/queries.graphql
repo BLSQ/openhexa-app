@@ -876,7 +876,7 @@ query WorkspaceWebappPage($workspaceSlug: String!, $webappSlug: String!) {
     ...WebappLayout_webapp
     source {
       ... on GitSource {
-        cloneUrl
+        repositoryUrl
       }
     }
   }
