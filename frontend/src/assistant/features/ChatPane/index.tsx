@@ -117,7 +117,9 @@ export default function ChatPane({
   );
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const isPinnedToBottom = useRef(true);
+  const prevScrollTop = useRef(0);
   const apolloClient = useApolloClient();
 
   useEffect(() => {
@@ -278,11 +280,32 @@ export default function ChatPane({
     }
   }, [loadingMessages, localConversationId]);
 
-  useEffect(() => {
-    if (!loadingMore && isPinnedToBottom.current) {
-      bottomRef.current?.scrollIntoView({ behavior: "instant" });
+  // Follow the conversation to the bottom whenever content grows. Streaming
+  // text, tool cards and the thinking indicator all change height without
+  // touching a single piece of state, so rather than listing every trigger as a
+  // dependency we follow on two complementary signals:
+  //   1. Every render (covers all streaming-driven React updates).
+  //   2. A ResizeObserver (covers async height changes with no render, e.g.
+  //      markdown images or web fonts finishing loading).
+  // Both are cheap no-ops when already pinned to the bottom.
+  const followBottom = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (container && isPinnedToBottom.current) {
+      container.scrollTop = container.scrollHeight;
     }
-  }, [messages.length, pendingUserMessage, streamingText]);
+  }, []);
+
+  useEffect(() => {
+    followBottom();
+  });
+
+  useEffect(() => {
+    const content = contentRef.current;
+    if (!content) return;
+    const observer = new ResizeObserver(followBottom);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [followBottom]);
 
   const loadOlderMessages = useCallback(async () => {
     if (loadingMore || !hasMore || !localConversationId) return;
@@ -326,24 +349,22 @@ export default function ChatPane({
     });
   }, [loadingMore, hasMore, localConversationId, currentPage, fetchMore]);
 
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    const onWheel = (e: WheelEvent) => {
-      if (e.deltaY < 0) {
-        isPinnedToBottom.current = false;
-      }
-    };
-    container.addEventListener("wheel", onWheel, { passive: true });
-    return () => container.removeEventListener("wheel", onWheel);
-  }, []);
-
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
-    isPinnedToBottom.current =
-      container.scrollHeight - container.scrollTop - container.clientHeight < 8;
-    if (container.scrollTop === 0 && hasMore && !loadingMore) {
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const distFromBottom = scrollHeight - scrollTop - clientHeight;
+    // Re-pin once the user lands back near the bottom. Only treat an actual
+    // upward scroll as "unpin": content growth during streaming keeps scrollTop
+    // unchanged while distFromBottom rises, and must not be mistaken for the
+    // user scrolling away — otherwise auto-follow would wedge itself off.
+    if (distFromBottom < 8) {
+      isPinnedToBottom.current = true;
+    } else if (scrollTop < prevScrollTop.current - 2) {
+      isPinnedToBottom.current = false;
+    }
+    prevScrollTop.current = scrollTop;
+    if (scrollTop === 0 && hasMore && !loadingMore) {
       loadOlderMessages();
     }
   }, [hasMore, loadingMore, loadOlderMessages]);
@@ -406,6 +427,9 @@ export default function ChatPane({
     if (!convId) return;
 
     setSendError(null);
+    // Sending always jumps to and follows the bottom, even if the user had
+    // scrolled up to read earlier messages.
+    isPinnedToBottom.current = true;
     setPendingUserMessage(text);
     setInput("");
     await send(getStreamUrl(convId), { message: text });
@@ -434,8 +458,9 @@ export default function ChatPane({
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto min-h-0 space-y-4"
+          className="flex-1 overflow-y-auto min-h-0"
         >
+          <div ref={contentRef} className="space-y-4">
           {loadingMore && (
             <div className="flex justify-center py-2">
               <Spinner size="sm" className="text-gray-400" />
@@ -516,6 +541,7 @@ export default function ChatPane({
           )}
 
           <div ref={bottomRef} />
+          </div>
         </div>
 
         {monthlyLimitExceeded ? (
