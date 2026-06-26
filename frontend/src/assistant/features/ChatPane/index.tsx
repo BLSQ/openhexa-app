@@ -407,14 +407,25 @@ export default function ChatPane({
   const isActive = isStreaming || streamingRenderSegments.length > 0;
 
   // The stream stays open across tool calls and reasoning gaps where no text is
-  // being revealed. Pending tool cards show their own spinner, so we only render
-  // the thinking indicator when nothing else is signalling progress: the stream
-  // is live, no tool is running, and the drained text has caught up (nothing
-  // left to animate).
+  // being revealed. Pending tool cards show their own spinner, so the agent is
+  // only "thinking" when the stream is live, no tool is running, and the drained
+  // text has caught up (nothing left to animate).
   const hasPendingTool = streamingSegments.some(
     (seg) => seg.type === "tool" && seg.status === "pending",
   );
-  const showThinking = isStreaming && !hasPendingTool && !streamingPending;
+  const isThinking = isStreaming && !hasPendingTool && !streamingPending;
+
+  // Debounce so the brief gaps between streamed chunks don't flash the thinking
+  // state on and off mid-reply.
+  const [showThinking, setShowThinking] = useState(false);
+  useEffect(() => {
+    if (!isThinking) {
+      setShowThinking(false);
+      return;
+    }
+    const id = setTimeout(() => setShowThinking(true), 600);
+    return () => clearTimeout(id);
+  }, [isThinking]);
 
   const handleSubmit = async (overrideText?: string) => {
     const text = overrideText ?? input.trim();
