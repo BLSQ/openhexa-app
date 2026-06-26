@@ -6,7 +6,7 @@ admin view call, so neither holds any orchestration logic — they stay dumb
 wrappers around :func:`run_copy`.
 
 A blank server URL means the *local* server (ORM); a URL means a remote server
-reached over GraphQL after a superuser login.
+reached over GraphQL with a ServiceAccount Bearer token.
 
 Every run starts with a verification step that builds both endpoints up front —
 which, for a remote side, authenticates against its server. Both sides are
@@ -40,24 +40,21 @@ class CredentialError(GraphQLError):
         super().__init__("; ".join(errors))
 
 
-def _build_source(
-    url: str | None, email: str | None, password: str | None, slug: str
-) -> Endpoint:
+def _build_source(url: str | None, token: str | None, slug: str) -> Endpoint:
     if url:
-        client = build_client(url, email, password, label="source")
+        client = build_client(url, token, label="source")
         return Endpoint.remote(client, slug)
     return Endpoint.local(slug, workspace=Workspace.objects.get(slug=slug))
 
 
 def _build_target(
     url: str | None,
-    email: str | None,
-    password: str | None,
+    token: str | None,
     organization_id: str,
     workspace_name: str | None,
 ) -> Endpoint:
     if url:
-        client = build_client(url, email, password, label="target")
+        client = build_client(url, token, label="target")
         return Endpoint.remote(
             client, organization_id=organization_id, workspace_name=workspace_name
         )
@@ -78,7 +75,7 @@ def _verify_side(
     try:
         return build(), None
     except GraphQLError as exc:
-        # build_client already labels login failures with the side.
+        # build_client already labels authentication failures with the side.
         return None, str(exc)
     except httpx.HTTPError as exc:
         return None, f"{side} server is unreachable ({exc.__class__.__name__})."
@@ -89,26 +86,23 @@ def _verify_side(
 def _verify_endpoints(
     *,
     source_url: str | None,
-    source_email: str | None,
-    source_password: str | None,
+    source_token: str | None,
     source_slug: str,
     target_url: str | None,
-    target_email: str | None,
-    target_password: str | None,
+    target_token: str | None,
     target_organization_id: str,
     target_workspace_name: str | None,
 ) -> tuple[Endpoint, Endpoint]:
     """Verify and build both endpoints, raising :class:`CredentialError` on failure."""
     source, source_err = _verify_side(
         "source",
-        lambda: _build_source(source_url, source_email, source_password, source_slug),
+        lambda: _build_source(source_url, source_token, source_slug),
     )
     target, target_err = _verify_side(
         "target",
         lambda: _build_target(
             target_url,
-            target_email,
-            target_password,
+            target_token,
             target_organization_id,
             target_workspace_name,
         ),
@@ -122,12 +116,10 @@ def _verify_endpoints(
 def run_copy(
     *,
     source_url: str | None,
-    source_email: str | None,
-    source_password: str | None,
+    source_token: str | None,
     source_slug: str,
     target_url: str | None,
-    target_email: str | None,
-    target_password: str | None,
+    target_token: str | None,
     target_organization_id: str,
     target_workspace_name: str | None = None,
     resources: set[str] | None = None,
@@ -136,12 +128,10 @@ def run_copy(
     """Verify both endpoints, then copy the workspace, returning the result."""
     source, target = _verify_endpoints(
         source_url=source_url,
-        source_email=source_email,
-        source_password=source_password,
+        source_token=source_token,
         source_slug=source_slug,
         target_url=target_url,
-        target_email=target_email,
-        target_password=target_password,
+        target_token=target_token,
         target_organization_id=target_organization_id,
         target_workspace_name=target_workspace_name,
     )

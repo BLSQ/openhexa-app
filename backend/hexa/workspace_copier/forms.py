@@ -20,9 +20,9 @@ def _mandatory_resources() -> set[str]:
 class CopyWorkspaceForm(forms.Form):
     """Pick a source endpoint, a target endpoint, and the resources to copy.
 
-    A blank server URL means the local server; credentials are required only for
-    a remote (URL-bearing) side. The mandatory workspace-metadata copier is
-    always run regardless of what the operator selects.
+    A blank server URL means the local server; a token is required only for a
+    remote (URL-bearing) side. The mandatory workspace-metadata copier is always
+    run regardless of what the operator selects.
     """
 
     source_url = forms.URLField(
@@ -30,9 +30,10 @@ class CopyWorkspaceForm(forms.Form):
         label="Source server URL",
         help_text="GraphQL endpoint of the source server. Leave blank for the local server.",
     )
-    source_email = forms.EmailField(required=False, label="Source superuser email")
-    source_password = forms.CharField(
-        required=False, label="Source superuser password", widget=forms.PasswordInput
+    source_token = forms.CharField(
+        required=False,
+        label="Source ServiceAccount token",
+        widget=forms.PasswordInput(render_value=True),
     )
     source_slug = forms.CharField(label="Source workspace slug")
 
@@ -41,9 +42,10 @@ class CopyWorkspaceForm(forms.Form):
         label="Target server URL",
         help_text="GraphQL endpoint of the target server. Leave blank for the local server.",
     )
-    target_email = forms.EmailField(required=False, label="Target superuser email")
-    target_password = forms.CharField(
-        required=False, label="Target superuser password", widget=forms.PasswordInput
+    target_token = forms.CharField(
+        required=False,
+        label="Target ServiceAccount token",
+        widget=forms.PasswordInput(render_value=True),
     )
     target_organization = forms.CharField(
         label="Target organization id",
@@ -71,12 +73,11 @@ class CopyWorkspaceForm(forms.Form):
         url = self.cleaned_data.get(f"{side}_url")
         if not url:
             return
-        for field in (f"{side}_email", f"{side}_password"):
-            if not self.cleaned_data.get(field):
-                self.add_error(
-                    field,
-                    f"Required when a {side} server URL is set (remote endpoint).",
-                )
+        if not self.cleaned_data.get(f"{side}_token"):
+            self.add_error(
+                f"{side}_token",
+                f"Required when a {side} server URL is set (remote endpoint).",
+            )
 
     def clean(self):
         cleaned = super().clean()

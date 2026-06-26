@@ -32,12 +32,10 @@ def copy_workspace_view(request):
             try:
                 result = run_copy(
                     source_url=data["source_url"],
-                    source_email=data["source_email"],
-                    source_password=data["source_password"],
+                    source_token=data["source_token"],
                     source_slug=data["source_slug"],
                     target_url=data["target_url"],
-                    target_email=data["target_email"],
-                    target_password=data["target_password"],
+                    target_token=data["target_token"],
                     target_organization_id=data["target_organization"],
                     target_workspace_name=data["target_workspace_name"] or None,
                     resources=set(data["resources"]),

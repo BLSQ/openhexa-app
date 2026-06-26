@@ -27,15 +27,13 @@
     <fieldset class="module aligned">
         <h2 style="margin-bottom: 1rem;">{% trans 'Source' %}</h2>
         {% include "admin/workspace_copier/_field_row.html" with field=form.source_url %}
-        {% include "admin/workspace_copier/_field_row.html" with field=form.source_email %}
-        {% include "admin/workspace_copier/_field_row.html" with field=form.source_password %}
+        {% include "admin/workspace_copier/_field_row.html" with field=form.source_token %}
         {% include "admin/workspace_copier/_field_row.html" with field=form.source_slug %}
     </fieldset>
     <fieldset class="module aligned">
         <h2>{% trans 'Target' %}</h2>
         {% include "admin/workspace_copier/_field_row.html" with field=form.target_url %}
-        {% include "admin/workspace_copier/_field_row.html" with field=form.target_email %}
-        {% include "admin/workspace_copier/_field_row.html" with field=form.target_password %}
+        {% include "admin/workspace_copier/_field_row.html" with field=form.target_token %}
         {% include "admin/workspace_copier/_field_row.html" with field=form.target_organization %}
         {% include "admin/workspace_copier/_field_row.html" with field=form.target_workspace_name %}
     </fieldset>

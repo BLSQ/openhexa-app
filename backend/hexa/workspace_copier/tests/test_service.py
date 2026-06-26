@@ -19,12 +19,10 @@ def _kwargs(**overrides):
     """Both sides remote by default, so verification never touches the DB."""
     data = {
         "source_url": "http://src/graphql/",
-        "source_email": "admin@example.org",
-        "source_password": "secret",
+        "source_token": "src-token",
         "source_slug": "my-ws",
         "target_url": "http://tgt/graphql/",
-        "target_email": "admin@example.org",
-        "target_password": "secret",
+        "target_token": "tgt-token",
         "target_organization_id": "org-1",
         "target_workspace_name": None,
     }
@@ -41,11 +39,11 @@ class VerifySideTest(SimpleTestCase):
 
     def test_graphql_error_passes_message_through(self):
         def build():
-            raise GraphQLError("source login failed: invalid credentials")
+            raise GraphQLError("source authentication failed: invalid credentials")
 
         result, error = _verify_side("source", build)
         self.assertIsNone(result)
-        self.assertEqual(error, "source login failed: invalid credentials")
+        self.assertEqual(error, "source authentication failed: invalid credentials")
 
     def test_connection_error_maps_to_unreachable(self):
         def build():
@@ -76,22 +74,25 @@ class VerifyEndpointsTest(SimpleTestCase):
     @patch("hexa.workspace_copier.service.build_client")
     def test_both_sides_failing_reports_both_messages(self, mock_build):
         mock_build.side_effect = [
-            GraphQLError("source login failed: bad"),
-            GraphQLError("target login failed: bad"),
+            GraphQLError("source authentication failed: bad"),
+            GraphQLError("target authentication failed: bad"),
         ]
         with self.assertRaises(CredentialError) as ctx:
             _verify_endpoints(**_kwargs())
         self.assertEqual(
             ctx.exception.errors,
-            ["source login failed: bad", "target login failed: bad"],
+            ["source authentication failed: bad", "target authentication failed: bad"],
         )
 
     @patch("hexa.workspace_copier.service.build_client")
     def test_single_side_failure_reports_one_message(self, mock_build):
-        mock_build.side_effect = [GraphQLError("source login failed: bad"), MagicMock()]
+        mock_build.side_effect = [
+            GraphQLError("source authentication failed: bad"),
+            MagicMock(),
+        ]
         with self.assertRaises(CredentialError) as ctx:
             _verify_endpoints(**_kwargs())
-        self.assertEqual(ctx.exception.errors, ["source login failed: bad"])
+        self.assertEqual(ctx.exception.errors, ["source authentication failed: bad"])
 
     @patch("hexa.workspace_copier.service.build_client")
     def test_unreachable_hosts_are_reported(self, mock_build):
@@ -132,9 +133,7 @@ class RunCopyTest(SimpleTestCase):
         sentinel = object()
         mock_dup.return_value = sentinel
 
-        result = run_copy(
-            resources={"workspace"}, reporter=NullReporter(), **_kwargs()
-        )
+        result = run_copy(resources={"workspace"}, reporter=NullReporter(), **_kwargs())
 
         self.assertIs(result, sentinel)
         mock_dup.assert_called_once()
@@ -142,7 +141,7 @@ class RunCopyTest(SimpleTestCase):
     @patch("hexa.workspace_copier.service.copy_workspace")
     @patch("hexa.workspace_copier.service.build_client")
     def test_aborts_before_copy_on_bad_credentials(self, mock_build, mock_dup):
-        mock_build.side_effect = GraphQLError("source login failed: bad")
+        mock_build.side_effect = GraphQLError("source authentication failed: bad")
 
         with self.assertRaises(CredentialError):
             run_copy(reporter=NullReporter(), **_kwargs())

@@ -41,36 +41,35 @@ def gql(
         ) from exc
 
 
-def build_client(server_url: str, email: str, password: str, *, label: str) -> Client:
-    """Authenticate against an OpenHEXA server via the GraphQL Login mutation.
+def build_client(
+    server_url: str,
+    token: str,
+    *,
+    label: str,
+    http_client: httpx.Client | None = None,
+) -> Client:
+    """Build an SDK client authenticated with a Bearer token and verify it.
+
+    The token is a ServiceAccount token, which the backend authenticates per
+    request via the ``Authorization: Bearer`` header — so there is no login
+    round-trip or session cookie to manage. A cheap ``me`` query is run up front
+    so an invalid or under-permissioned token surfaces here rather than mid-copy.
 
     `label` is used only to make the error message ("source"/"target") clearer.
+    `http_client` lets tests inject a transport (e.g. WSGI) routed at the
+    in-process app; in production it is built here.
     """
     # 120s read timeout: createPipelineTemplateVersion can fan out to
     # auto-update every pipeline derived from the template, which is slow
     # on prod and exceeds httpx's 5s default.
-    http = httpx.Client(
-        headers={"User-Agent": "openhexa-copy/1.0"},
-        timeout=httpx.Timeout(120.0),
-    )
-    # Prime CSRF cookie. Defensive — GraphQLView is csrf_exempt on the
-    # current backend, but a future change would otherwise silently
-    # break every mutation.
-    http.get(server_url)
-    csrf = http.cookies.get("csrftoken")
-    if csrf:
-        http.headers["X-CSRFToken"] = csrf
-        http.headers["Referer"] = server_url
+    http = http_client or httpx.Client(timeout=httpx.Timeout(120.0))
+    http.headers["User-Agent"] = "openhexa-copy/1.0"
+    http.headers["Authorization"] = f"Bearer {token}"
 
     client = Client(url=server_url, http_client=http)
-    data = gql(
-        client,
-        "mutation Login($input: LoginInput!) { login(input: $input) { success errors } }",
-        {"input": {"email": email, "password": password}},
-        "Login",
-    )
-    if not data["login"]["success"]:
+    data = gql(client, "query Me { me { user { id } } }", operation_name="Me")
+    if not (data.get("me") or {}).get("user"):
         raise GraphQLError(
-            f"{label} login failed: " + ",".join(data["login"]["errors"] or [])
+            f"{label} authentication failed: the token is invalid or lacks access."
         )
     return client

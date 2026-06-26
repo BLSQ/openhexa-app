@@ -9,7 +9,7 @@ Right now, this is a Django app **without models**. In the future, some models w
 A single `orchestrator.copy_workspace(source, target, *, resources)` owns an ordered registry of **resource copiers** and runs the selected ones in dependency order. Both sides are `Endpoint` values:
 
 - **LOCAL**: same server, read/written via the Django ORM.
-- **REMOTE**: another server, reached over GraphQL through `transport.py` after a superuser login.
+- **REMOTE**: another server, reached over GraphQL through `transport.py` using a ServiceAccount Bearer token.
 
 The read-vs-write asymmetry lives inside each copier (it reads from `source`, writes to `target`), so the orchestration is written once and shared by every entry point. The medium (ORM vs GraphQL) is chosen per endpoint, per resource.
 
@@ -49,28 +49,24 @@ Example usage:
 ./manage.py copy_workspace \
 	--source-workspace-slug my-workspace \
 	--source-url http://app:8000/graphql/ \
-	--source-email root@openhexa.org \
-	--source-password root \
+	--source-token 'source-service-account-token' \
 	--target-url http://app:8000/graphql/ \
 	--target-organization org-uuid \
 	--target-workspace-name "My Workspace (copy)" \ # optional
-	--target-email root@openhexa.org \
-	--target-password root
+	--target-token 'target-service-account-token'
 
 # Production to demo
 ./manage.py copy_workspace \
 	--source-workspace-slug my-workspace \
 	--source-url https://api.openhexa.org/graphql/ \
-	--source-email me@bluesquarehub.com \
-	--source-password 'my-prod-pw' \
+	--source-token 'my-prod-service-account-token' \
 	--target-url https://api.demo.openhexa.org/graphql/ \
 	--target-organization 002f2f74-7cdb-452c-8ef5-28cc27c04fbe \ # BLSQ org
 	--target-workspace-name "My Workspace (copy)" \
-	--target-email me@bluesquarehub.com \
-	--target-password 'my-demo-pw''
+	--target-token 'my-demo-service-account-token'
 ```
 
-Note: `--target-workspace-name` is optional and defaults to the same name as the source workspace.
+Tokens are ServiceAccount tokens (managed under Django admin → Service accounts). A remote side needs one with permission to read the source workspace / create under the target organization. `--target-workspace-name` is optional and defaults to the same name as the source workspace.
 
 ### Django Admin:
 

@@ -3,8 +3,8 @@
 Thin wrapper around :func:`hexa.workspace_copier.service.run_copy`.
 An omitted/blank ``--source-url`` / ``--target-url`` means the local server.
 
-Auth (per remote side): a Django superuser email/password, exchanged for a
-session cookie via the GraphQL ``login`` mutation.
+Auth (per remote side): a ServiceAccount token, sent as an
+``Authorization: Bearer`` header on every GraphQL request.
 """
 
 from django.core.management.base import BaseCommand, CommandError
@@ -34,15 +34,21 @@ class Command(BaseCommand):
             default="",
             help="Source GraphQL endpoint. Blank means the local server.",
         )
-        parser.add_argument("--source-email", default="")
-        parser.add_argument("--source-password", default="")
+        parser.add_argument(
+            "--source-token",
+            default="",
+            help="ServiceAccount token for the source server (remote only).",
+        )
         parser.add_argument(
             "--target-url",
             default="",
             help="Target GraphQL endpoint. Blank means the local server.",
         )
-        parser.add_argument("--target-email", default="")
-        parser.add_argument("--target-password", default="")
+        parser.add_argument(
+            "--target-token",
+            default="",
+            help="ServiceAccount token for the target server (remote only).",
+        )
         parser.add_argument(
             "--target-organization",
             required=True,
@@ -84,12 +90,10 @@ class Command(BaseCommand):
         try:
             result = run_copy(
                 source_url=options["source_url"],
-                source_email=options["source_email"],
-                source_password=options["source_password"],
+                source_token=options["source_token"],
                 source_slug=options["source_workspace_slug"],
                 target_url=options["target_url"],
-                target_email=options["target_email"],
-                target_password=options["target_password"],
+                target_token=options["target_token"],
                 target_organization_id=options["target_organization"],
                 target_workspace_name=options["target_workspace_name"],
                 resources=resources,
