@@ -57,6 +57,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
   const source = webapp.source;
   const publishedVersionId =
     source?.__typename === "GitSource" ? source.publishedVersion : null;
+  const cloneUrl = source?.__typename === "GitSource" ? source.cloneUrl : null;
   const isViewingPublished =
     !selectedVersion || selectedVersion.id === publishedVersionId;
 
@@ -111,6 +112,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
             versionRef={selectedVersion?.id}
             onSaveSuccess={() => refetch()}
             onBusyChange={setIsEditorBusy}
+            cloneUrl={cloneUrl}
             versionPicker={
               <VersionPicker
                 workspaceSlug={workspace.slug}
