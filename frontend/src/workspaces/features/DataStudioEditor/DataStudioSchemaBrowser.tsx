@@ -30,7 +30,9 @@ const DataStudioSchemaBrowser = ({
     variables: { workspaceSlug },
   });
 
-  const tables = data?.workspace?.database?.tables.items ?? [];
+  const tablePage = data?.workspace?.database?.tables;
+  const tables = tablePage?.items ?? [];
+  const hasMoreTables = (tablePage?.totalItems ?? 0) > tables.length;
 
   const shown = useMemo(() => {
     if (!search) {
@@ -100,7 +102,7 @@ const DataStudioSchemaBrowser = ({
                   <button
                     onClick={() => onInsert(table.name)}
                     title={t("Insert into editor")}
-                    className="px-2 py-1.5 text-xs text-blue-600 opacity-0 hover:underline group-hover:opacity-100"
+                    className="px-2 py-1.5 text-xs text-blue-600 opacity-0 hover:underline group-hover:opacity-100 focus-visible:opacity-100"
                   >
                     {t("Insert")}
                   </button>
@@ -129,6 +131,13 @@ const DataStudioSchemaBrowser = ({
           })
         )}
       </div>
+      {hasMoreTables && (
+        <div className="shrink-0 border-t border-gray-100 px-3 py-1.5 text-center text-[11px] text-gray-400">
+          {t("Showing the first {{count}} tables.", {
+            count: tables.length,
+          })}
+        </div>
+      )}
     </div>
   );
 };
@@ -140,6 +149,7 @@ DataStudioSchemaBrowser.queries = {
         slug
         database {
           tables(page: 1, perPage: 100) {
+            totalItems
             items {
               name
               columns {

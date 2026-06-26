@@ -8,7 +8,7 @@ export type WorkspaceDataStudioSchemaQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceDataStudioSchemaQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, database: { __typename?: 'Database', tables: { __typename?: 'DatabaseTablePage', items: Array<{ __typename?: 'DatabaseTable', name: string, columns: Array<{ __typename?: 'TableColumn', name: string, type: string }> }> } } } | null };
+export type WorkspaceDataStudioSchemaQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, database: { __typename?: 'Database', tables: { __typename?: 'DatabaseTablePage', totalItems: number, items: Array<{ __typename?: 'DatabaseTable', name: string, columns: Array<{ __typename?: 'TableColumn', name: string, type: string }> }> } } } | null };
 
 
 export const WorkspaceDataStudioSchemaDocument = gql`
@@ -17,6 +17,7 @@ export const WorkspaceDataStudioSchemaDocument = gql`
     slug
     database {
       tables(page: 1, perPage: 100) {
+        totalItems
         items {
           name
           columns {

@@ -2,6 +2,7 @@ import Spinner from "core/components/Spinner";
 import { ExecuteSqlError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { ExecuteWorkspaceSqlQuery } from "./DataStudioEditor.generated";
+import { stringifyCellValue } from "./format";
 
 type ExecuteSqlResult = NonNullable<
   ExecuteWorkspaceSqlQuery["workspace"]
@@ -16,13 +17,7 @@ const formatCell = (value: unknown) => {
   if (value === null || value === undefined) {
     return <span className="text-gray-300">NULL</span>;
   }
-  if (typeof value === "boolean") {
-    return value ? "true" : "false";
-  }
-  if (typeof value === "object") {
-    return JSON.stringify(value);
-  }
-  return String(value);
+  return stringifyCellValue(value);
 };
 
 const Block = ({ children }: { children: React.ReactNode }) => (
@@ -66,9 +61,9 @@ const DataStudioResults = ({ loading, result }: DataStudioResultsProps) => {
   }
 
   if (!result.success) {
-    const label = result.errors
-      .map((error) => errorLabels[error] ?? error)
-      .join(" ");
+    const label =
+      result.errors.map((error) => errorLabels[error] ?? error).join(" ") ||
+      t("The query could not be executed.");
     return (
       <Block>
         <div className="m-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -85,13 +80,14 @@ const DataStudioResults = ({ loading, result }: DataStudioResultsProps) => {
 
   const columns = result.columns ?? [];
   const rows = result.rows ?? [];
+  const rowCount = result.rowCount ?? rows.length;
 
   return (
     <Block>
       {result.truncated && (
         <div className="shrink-0 border-b border-amber-200 bg-amber-50 px-3 py-1.5 text-xs text-amber-800">
           {t("Results truncated to the first {{count}} rows.", {
-            count: result.rowCount ?? rows.length,
+            count: rowCount,
           })}
         </div>
       )}
@@ -144,7 +140,7 @@ const DataStudioResults = ({ loading, result }: DataStudioResultsProps) => {
         </span>
         <span className="font-mono">
           {t("{{count}} row", {
-            count: result.rowCount ?? rows.length,
+            count: rowCount,
             plural: "{{count}} rows",
           })}
         </span>

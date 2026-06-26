@@ -80,7 +80,6 @@ query WorkspaceNotebooksPage($workspaceSlug: String!) {
 query WorkspaceDataStudioPage($workspaceSlug: String!) {
   workspace(slug: $workspaceSlug) {
     slug
-    name
     ...WorkspaceLayout_workspace
   }
 }

@@ -85,7 +85,7 @@ export type WorkspaceDataStudioPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceDataStudioPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } } | null } | null };
+export type WorkspaceDataStudioPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } } | null } | null };
 
 export type WorkspacePipelinePageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -545,7 +545,6 @@ export const WorkspaceDataStudioPageDocument = gql`
     query WorkspaceDataStudioPage($workspaceSlug: String!) {
   workspace(slug: $workspaceSlug) {
     slug
-    name
     ...WorkspaceLayout_workspace
   }
 }
