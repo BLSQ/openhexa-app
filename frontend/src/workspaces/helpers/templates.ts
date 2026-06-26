@@ -1,5 +1,6 @@
 import { gql } from "@apollo/client";
 import { getApolloClient } from "core/helpers/apollo";
+import { downloadBlob } from "core/helpers/files";
 import "cronstrue/locales/en";
 import "cronstrue/locales/fr";
 import {
@@ -102,12 +103,5 @@ export async function downloadTemplateVersion(versionId: string) {
   const blob = new Blob([bytes], {
     type: "application/zip",
   });
-  const url = window.URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `${template.code}-v${versionNumber}.zip`;
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
-  window.URL.revokeObjectURL(url);
+  downloadBlob(`${template.code}-v${versionNumber}.zip`, blob);
 }
