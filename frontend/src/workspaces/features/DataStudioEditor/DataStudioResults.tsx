@@ -13,6 +13,11 @@ type DataStudioResultsProps = {
   result?: ExecuteSqlResult;
 };
 
+// The grid is a preview: rendering tens of thousands of rows as live DOM is slow,
+// and users scan rather than scroll the full set. The complete result stays
+// available through CSV export.
+const MAX_DISPLAYED_ROWS = 500;
+
 const formatCell = (value: unknown) => {
   if (value === null || value === undefined) {
     return <span className="text-gray-300">NULL</span>;
@@ -81,6 +86,8 @@ const DataStudioResults = ({ loading, result }: DataStudioResultsProps) => {
   const columns = result.columns ?? [];
   const rows = result.rows ?? [];
   const rowCount = result.rowCount ?? rows.length;
+  const displayedRows = rows.slice(0, MAX_DISPLAYED_ROWS);
+  const hasHiddenRows = rows.length > displayedRows.length;
 
   return (
     <Block>
@@ -109,7 +116,7 @@ const DataStudioResults = ({ loading, result }: DataStudioResultsProps) => {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row, rowIndex) => (
+            {displayedRows.map((row, rowIndex) => (
               <tr key={rowIndex} className="hover:bg-gray-50">
                 <td className="border-b border-gray-100 px-3 py-1.5 text-right font-mono text-xs text-gray-400 select-none">
                   {rowIndex + 1}
@@ -144,6 +151,16 @@ const DataStudioResults = ({ loading, result }: DataStudioResultsProps) => {
             plural: "{{count}} rows",
           })}
         </span>
+        {hasHiddenRows && (
+          <span className="ml-auto text-gray-400">
+            {t(
+              "Showing the first {{count}} rows — export for the full result.",
+              {
+                count: displayedRows.length,
+              },
+            )}
+          </span>
+        )}
       </div>
     </Block>
   );
