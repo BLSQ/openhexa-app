@@ -21,9 +21,11 @@ from ariadne_django.views import GraphQLView
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path, re_path
+from oauth2_provider.views import TokenView
 
 from hexa.app import get_hexa_app_configs
 from hexa.mcp.views import mcp_endpoint
+from hexa.oauth.views import gitea_authorize
 from hexa.user_management.sso.sso_views import (
     make_compat_callback_view,
     make_compat_login_view,
@@ -53,6 +55,9 @@ urlpatterns = [
     path("mcp/", include("hexa.mcp.urls", namespace="mcp")),
     path(".well-known/", include("hexa.oauth.wellknown_urls")),
     path("webapps/", include("hexa.webapps.urls", namespace="webapps")),
+    path("api/git/", include("hexa.git.urls", namespace="git")),
+    path("login/oauth/authorize", gitea_authorize, name="gitea_oauth_authorize"),
+    path("login/oauth/access_token", TokenView.as_view(), name="gitea_oauth_token"),
     # Order matters, we override the default logout view defined later
     # We do this to logout the user from jupyterhub at the end of the openhexa
     # session. the jupyterhub will redirect to the openhexa login after it
