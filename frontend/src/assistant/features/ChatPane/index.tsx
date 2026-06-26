@@ -4,7 +4,14 @@ import Spinner from "core/components/Spinner";
 import { getPublicEnv } from "core/helpers/runtimeConfig";
 import useStreamingFetch from "core/hooks/useStreamingFetch";
 import useWordDrain from "core/hooks/useWordDrain";
-import { KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import {
+  KeyboardEvent,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import ToolCallCard from "./ToolCallCard";
 import ThinkingIndicator from "./ThinkingIndicator";
 import {
@@ -95,7 +102,8 @@ function SegmentList({ segments }: { segments: RenderableSegment[] }) {
 
 function getStreamUrl(conversationId: string): string {
   const apiBasePath =
-    process.env.NEXT_PUBLIC_API_BASE_PATH || getPublicEnv().OPENHEXA_BACKEND_URL;
+    process.env.NEXT_PUBLIC_API_BASE_PATH ||
+    getPublicEnv().OPENHEXA_BACKEND_URL;
   return `${apiBasePath}/assistant/conversations/${conversationId}/stream/`;
 }
 
@@ -126,11 +134,14 @@ export default function ChatPane({
     setLocalConversationId(conversationId);
   }, [conversationId]);
 
-  const { data, loading: loadingMessages, fetchMore } =
-    useAssistantConversationMessagesQuery({
-      variables: { id: localConversationId!, page: 1, perPage: PER_PAGE },
-      skip: !localConversationId,
-    });
+  const {
+    data,
+    loading: loadingMessages,
+    fetchMore,
+  } = useAssistantConversationMessagesQuery({
+    variables: { id: localConversationId!, page: 1, perPage: PER_PAGE },
+    skip: !localConversationId,
+  });
 
   const messagePage = data?.assistantConversation?.messages;
   const totalPages = messagePage?.totalPages ?? 1;
@@ -147,22 +158,30 @@ export default function ChatPane({
 
   useEffect(() => {
     if (messages.length > 0) onMessagesChange?.(messages);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messagePage]);
 
   useEffect(() => {
     const name = data?.assistantConversation?.name;
     if (name) {
-      const handler = onConversationNameLoadedRef.current ?? onConversationNameChangeRef.current;
+      const handler =
+        onConversationNameLoadedRef.current ??
+        onConversationNameChangeRef.current;
       handler?.(name);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.assistantConversation?.name]);
 
-  const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
-  const [frozenAssistantMessage, setFrozenAssistantMessage] = useState<string | null>(null);
+  const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(
+    null,
+  );
+  const [frozenAssistantMessage, setFrozenAssistantMessage] = useState<
+    string | null
+  >(null);
   const [sendError, setSendError] = useState<string | null>(null);
-  const [streamingSegments, setStreamingSegments] = useState<StreamingSegment[]>([]);
+  const [streamingSegments, setStreamingSegments] = useState<
+    StreamingSegment[]
+  >([]);
 
   const localConversationIdRef = useRef(localConversationId);
   useEffect(() => {
@@ -190,7 +209,14 @@ export default function ChatPane({
     }
   }, [apolloClient]);
 
-  const { text: streamingText, pending: streamingPending, feed, markDone, clear, flush } = useWordDrain({
+  const {
+    text: streamingText,
+    pending: streamingPending,
+    feed,
+    markDone,
+    clear,
+    flush,
+  } = useWordDrain({
     interval: 30,
     onDrained: handleDrained,
   });
@@ -246,7 +272,12 @@ export default function ChatPane({
       setStreamingSegments((prev) =>
         prev.map((s) =>
           s.type === "tool" && s.toolCallId === tool_call_id
-            ? { ...s, status: "done" as const, success, toolOutput: tool_output }
+            ? {
+                ...s,
+                status: "done" as const,
+                success,
+                toolOutput: tool_output,
+              }
             : s,
         ),
       );
@@ -269,7 +300,11 @@ export default function ChatPane({
     if (streamError) {
       clear();
       setStreamingSegments([]);
-      setSendError(t("Could not connect to the server. Please check your connection and try again."));
+      setSendError(
+        t(
+          "Could not connect to the server. Please check your connection and try again.",
+        ),
+      );
     }
   }, [streamError, clear, t]);
 
@@ -395,21 +430,32 @@ export default function ChatPane({
     ...(streamingText !== null
       ? [{ type: "text" as const, content: streamingText }]
       : frozenAssistantMessage !== null
-      ? [{ type: "text" as const, content: frozenAssistantMessage }]
-      : []),
+        ? [{ type: "text" as const, content: frozenAssistantMessage }]
+        : []),
   ];
 
   const isActive = isStreaming || streamingRenderSegments.length > 0;
 
   // The stream stays open across tool calls and reasoning gaps where no text is
-  // being revealed. Pending tool cards show their own spinner, so we only render
-  // the thinking indicator when nothing else is signalling progress: the stream
-  // is live, no tool is running, and the drained text has caught up (nothing
-  // left to animate).
+  // being revealed. Pending tool cards show their own spinner, so the agent is
+  // only "thinking" when the stream is live, no tool is running, and the drained
+  // text has caught up (nothing left to animate).
   const hasPendingTool = streamingSegments.some(
     (seg) => seg.type === "tool" && seg.status === "pending",
   );
-  const showThinking = isStreaming && !hasPendingTool && !streamingPending;
+  const isThinking = isStreaming && !hasPendingTool && !streamingPending;
+
+  // Debounce so the brief gaps between streamed chunks don't flash the thinking
+  // state on and off mid-reply.
+  const [showThinking, setShowThinking] = useState(false);
+  useEffect(() => {
+    if (!isThinking) {
+      setShowThinking(false);
+      return;
+    }
+    const id = setTimeout(() => setShowThinking(true), 600);
+    return () => clearTimeout(id);
+  }, [isThinking]);
 
   const handleSubmit = async (overrideText?: string) => {
     const text = overrideText ?? input.trim();
@@ -461,86 +507,96 @@ export default function ChatPane({
           className="flex-1 overflow-y-auto min-h-0"
         >
           <div ref={contentRef} className="space-y-4">
-          {loadingMore && (
-            <div className="flex justify-center py-2">
-              <Spinner size="sm" className="text-gray-400" />
-            </div>
-          )}
+            {loadingMore && (
+              <div className="flex justify-center py-2">
+                <Spinner size="sm" className="text-gray-400" />
+              </div>
+            )}
 
-          {loadingMessages && (
-            <div className="flex justify-center pt-8">
-              <Spinner size="md" className="text-gray-400" />
-            </div>
-          )}
+            {loadingMessages && (
+              <div className="flex justify-center pt-8">
+                <Spinner size="md" className="text-gray-400" />
+              </div>
+            )}
 
-          {messages.map((msg) => {
-            const segments = msg.content;
-            if (msg.role === "user") {
-              const text = segments.find((s): s is { __typename: "AssistantTextSegment"; content: string } => s.__typename === "AssistantTextSegment")?.content ?? "";
-              return (
-                <div key={msg.id} className="flex justify-end">
-                  <div className="max-w-2xl rounded-2xl px-4 py-3 text-sm bg-blue-600 text-white whitespace-pre-wrap">
-                    {text}
+            {messages.map((msg) => {
+              const segments = msg.content;
+              if (msg.role === "user") {
+                const text =
+                  segments.find(
+                    (
+                      s,
+                    ): s is {
+                      __typename: "AssistantTextSegment";
+                      content: string;
+                    } => s.__typename === "AssistantTextSegment",
+                  )?.content ?? "";
+                return (
+                  <div key={msg.id} className="flex justify-end">
+                    <div className="max-w-2xl rounded-2xl px-4 py-3 text-sm bg-blue-600 text-white whitespace-pre-wrap">
+                      {text}
+                    </div>
                   </div>
+                );
+              }
+              const renderableSegments: RenderableSegment[] = segments.map(
+                (seg): RenderableSegment => {
+                  if ("content" in seg) {
+                    return { type: "text", content: seg.content };
+                  }
+                  return {
+                    type: "tool",
+                    key: seg.toolCallId,
+                    toolName: seg.toolName,
+                    status: "done" as const,
+                    success: seg.success,
+                    toolInput: seg.toolInput,
+                    toolOutput: seg.toolOutput,
+                  };
+                },
+              );
+              return (
+                <div key={msg.id} className="space-y-2">
+                  <SegmentList segments={renderableSegments} />
+                  {renderMessageAfter?.(msg)}
                 </div>
               );
-            }
-            const renderableSegments: RenderableSegment[] = segments.map((seg): RenderableSegment => {
-              if ("content" in seg) {
-                return { type: "text", content: seg.content };
-              }
-              return {
-                type: "tool",
-                key: seg.toolCallId,
-                toolName: seg.toolName,
-                status: "done" as const,
-                success: seg.success,
-                toolInput: seg.toolInput,
-                toolOutput: seg.toolOutput,
-              };
-            });
-            return (
-              <div key={msg.id} className="space-y-2">
-                <SegmentList segments={renderableSegments} />
-                {renderMessageAfter?.(msg)}
+            })}
+
+            {pendingUserMessage && (
+              <div className="flex flex-col items-end gap-1">
+                <div className="max-w-2xl rounded-2xl px-4 py-3 text-sm bg-blue-600 text-white whitespace-pre-wrap">
+                  {pendingUserMessage}
+                </div>
+                {sendError && (
+                  <button
+                    onClick={() => handleSubmit(pendingUserMessage)}
+                    className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                  >
+                    <ArrowPathIcon className="h-3.5 w-3.5" />
+                    {t("Try again")}
+                  </button>
+                )}
               </div>
-            );
-          })}
+            )}
 
-          {pendingUserMessage && (
-            <div className="flex flex-col items-end gap-1">
-              <div className="max-w-2xl rounded-2xl px-4 py-3 text-sm bg-blue-600 text-white whitespace-pre-wrap">
-                {pendingUserMessage}
+            {streamingRenderSegments.length > 0 && (
+              <div className="space-y-2">
+                <SegmentList segments={streamingRenderSegments} />
               </div>
-              {sendError && (
-                <button
-                  onClick={() => handleSubmit(pendingUserMessage)}
-                  className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-                >
-                  <ArrowPathIcon className="h-3.5 w-3.5" />
-                  {t("Try again")}
-                </button>
-              )}
-            </div>
-          )}
+            )}
 
-          {streamingRenderSegments.length > 0 && (
-            <div className="space-y-2">
-              <SegmentList segments={streamingRenderSegments} />
-            </div>
-          )}
+            {showThinking && <ThinkingIndicator />}
 
-          {showThinking && <ThinkingIndicator />}
-
-          {sendError && (
-            <div className="flex justify-start">
-              <div className="max-w-2xl rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {sendError}
+            {sendError && (
+              <div className="flex justify-start">
+                <div className="max-w-2xl rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {sendError}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div ref={bottomRef} />
+            <div ref={bottomRef} />
           </div>
         </div>
 
