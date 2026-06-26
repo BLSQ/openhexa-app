@@ -245,6 +245,13 @@ class GitWebapp(Webapp, GitRepoMixin):
             )
         return GitOrg(slug="no-org", display_name="No Organization")
 
+    @property
+    def repository_url(self) -> str:
+        return (
+            f"{settings.GIT_PUBLIC_URL.rstrip('/')}"
+            f"/{self.git_org.slug}/{self.repository}.git"
+        )
+
     def get_versions(self, page=1, per_page=20):
         items = self.client.get_commits(
             self.git_org.slug, self.repository, page=page, limit=per_page
