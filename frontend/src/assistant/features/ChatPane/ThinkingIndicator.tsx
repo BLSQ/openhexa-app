@@ -2,7 +2,7 @@ import Spinner from "core/components/Spinner";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "next-i18next";
 
-const ROTATE_INTERVAL_MS = 3500;
+const ROTATE_INTERVAL_MS = 5500;
 const DOT_INTERVAL_MS = 400;
 
 // Pick a random index, optionally avoiding the current one so the verb always
@@ -20,11 +20,13 @@ export default function ThinkingIndicator() {
   const verbs = useMemo(
     () => [
       t("Thinking"),
-      t("Working on it"),
-      t("Pondering"),
       t("Analyzing"),
-      t("Reasoning"),
-      t("Processing"),
+      t("Reviewing"),
+      t("Calculating"),
+      t("Computing"),
+      t("Triangulating"),
+      t("Investigating"),
+      t("Synthesizing"),
     ],
     [t],
   );
