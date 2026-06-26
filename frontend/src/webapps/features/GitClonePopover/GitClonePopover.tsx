@@ -20,12 +20,12 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
 );
 
 type GitClonePopoverProps = {
-  cloneUrl: string;
+  repositoryUrl: string;
 };
 
-const GitClonePopover = ({ cloneUrl }: GitClonePopoverProps) => {
+const GitClonePopover = ({ repositoryUrl }: GitClonePopoverProps) => {
   const { t } = useTranslation();
-  const cloneCommand = `git clone ${cloneUrl}`;
+  const cloneCommand = `git clone ${repositoryUrl}`;
 
   return (
     <Popover
