@@ -18,8 +18,9 @@ server {
         error_page 401 = @gitea_challenge;
 
         proxy_pass http://${FORGEJO_UPSTREAM};
-        # Forgejo only ever sees the admin identity; authorization already happened.
-        proxy_set_header Authorization "Basic ${FORGEJO_ADMIN_AUTH}";
+        # Forwarded as the non-admin proxy service account; OpenHEXA already
+        # authorized the request, and branch protection applies to this account.
+        proxy_set_header Authorization "Basic ${FORGEJO_PROXY_AUTH}";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_buffering off;

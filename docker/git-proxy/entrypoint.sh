@@ -1,13 +1,14 @@
 #!/bin/sh
 # Renders the git-proxy nginx config, then starts nginx.
 #
-# nginx can't base64-encode, so we build the Forgejo admin Basic-auth value here
-# and substitute it (plus the upstreams) into the config template.
+# nginx can't base64-encode, so we build the Forgejo Basic-auth value for the
+# non-admin proxy service account here and substitute it (plus the upstreams)
+# into the config template.
 set -e
 
-export FORGEJO_ADMIN_AUTH="$(printf '%s:%s' "$GIT_SERVER_ADMIN_USERNAME" "$GIT_SERVER_ADMIN_PASSWORD" | base64 | tr -d '\n')"
+export FORGEJO_PROXY_AUTH="$(printf '%s:%s' "$GIT_PROXY_USERNAME" "$GIT_PROXY_PASSWORD" | base64 | tr -d '\n')"
 
-envsubst '$APP_UPSTREAM $FORGEJO_UPSTREAM $FORGEJO_ADMIN_AUTH' \
+envsubst '$APP_UPSTREAM $FORGEJO_UPSTREAM $FORGEJO_PROXY_AUTH' \
     < /etc/nginx/templates/git-proxy.conf.template \
     > /etc/nginx/conf.d/default.conf
 
