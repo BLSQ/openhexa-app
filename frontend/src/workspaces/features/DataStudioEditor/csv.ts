@@ -23,12 +23,18 @@ export const buildCsv = (
   for (const row of rows) {
     lines.push(columns.map((column) => escapeCsvField(row[column])).join(","));
   }
-  return lines.join("\n");
+  // CRLF record separator per RFC 4180; embedded newlines inside quoted fields
+  // are preserved as-is by escapeCsvField.
+  return lines.join("\r\n");
 };
+
+// Excel decodes a UTF-8 CSV as the local ANSI codepage unless it sees a BOM,
+// which mangles accented characters. Prepend one so non-ASCII data survives.
+const UTF8_BOM = "\uFEFF";
 
 export const downloadCsv = (filename: string, content: string) => {
   downloadBlob(
     filename,
-    new Blob([content], { type: "text/csv;charset=utf-8;" }),
+    new Blob([UTF8_BOM, content], { type: "text/csv;charset=utf-8;" }),
   );
 };
