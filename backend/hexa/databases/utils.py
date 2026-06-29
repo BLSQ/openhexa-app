@@ -1,5 +1,6 @@
 import enum
 import json
+import time
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
@@ -137,6 +138,7 @@ def execute_database_query(
                     timeout=sql.Literal(timeout_ms)
                 )
             )
+            started_at = time.perf_counter()
             cursor.execute(query)
             # cursor.description is None for statements that do not return rows
             columns = (
@@ -146,6 +148,7 @@ def execute_database_query(
             )
             # Fetch one extra row to detect (without returning) that more exist.
             fetched = cursor.fetchmany(max_rows + 1) if cursor.description else []
+            duration_ms = round((time.perf_counter() - started_at) * 1000)
         truncated = len(fetched) > max_rows
         rows = json.loads(json.dumps(fetched[:max_rows], cls=ResultJSONEncoder))
         return {
@@ -153,6 +156,7 @@ def execute_database_query(
             "rows": rows,
             "row_count": len(rows),
             "truncated": truncated,
+            "duration_ms": duration_ms,
         }
     finally:
         if conn:
