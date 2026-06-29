@@ -4,6 +4,7 @@ mutation UpdateWebapp($input: UpdateWebappInput!) {
     errors
     webapp {
       id
+      allowedOperations
       source {
         ... on GitSource {
           publishedVersion

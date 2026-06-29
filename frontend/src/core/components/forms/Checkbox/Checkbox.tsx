@@ -10,10 +10,21 @@ interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 const Checkbox = (props: CheckboxProps) => {
-  const { id, name, label, description, className, help, ...delegated } = props;
+  const {
+    id,
+    name,
+    label,
+    description,
+    className,
+    help,
+    disabled,
+    ...delegated
+  } = props;
 
+  const cursorClass = disabled ? "cursor-not-allowed" : "cursor-pointer";
   const inputClassName = clsx(
     "form-checkbox h-4 w-4 text-blue-500 border-gray-300 rounded-sm focus:ring-0 focus:ring-offset-0",
+    cursorClass,
   );
   return (
     <div className={clsx("relative flex items-start", className)}>
@@ -22,6 +33,7 @@ const Checkbox = (props: CheckboxProps) => {
           id={id ?? name}
           name={name}
           type="checkbox"
+          disabled={disabled}
           className={inputClassName}
           {...delegated}
         />
@@ -29,7 +41,10 @@ const Checkbox = (props: CheckboxProps) => {
       {(label || description) && (
         <div className="ml-2 text-sm">
           {label && (
-            <label htmlFor={name} className="text-gray-900">
+            <label
+              htmlFor={name}
+              className={clsx("text-gray-900", cursorClass)}
+            >
               {label}
             </label>
           )}
