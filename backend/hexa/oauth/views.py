@@ -183,5 +183,5 @@ def gitea_authorize(request: HttpRequest) -> HttpResponse:
     if not request.GET.get("scope"):
         params = request.GET.copy()
         params["scope"] = GIT_SCOPE
-        return redirect(f"/oauth/authorize/gitea/?{params.urlencode()}")
+        return redirect(f"/oauth/authorize/?{params.urlencode()}")
     return OAuthAuthorizeView.as_view()(request)

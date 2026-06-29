@@ -32,6 +32,7 @@ class GiteaAuthorizeScopeTest(TestCase):
         response = gitea_authorize(request)
         self.assertEqual(response.status_code, 302)
         self.assertIn("scope=openhexa%3Agit", response["Location"])
+        self.assertTrue(response["Location"].startswith("/oauth/authorize/?"))
 
 
 class GiteaOAuthRoutingTest(TestCase):
@@ -60,6 +61,20 @@ class GiteaOAuthRoutingTest(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         self.assertIn("scope=openhexa%3Agit", response["Location"])
+
+    def test_pinned_scope_redirect_target_resolves(self):
+        """Following the scope-pinning redirect must reach the consent view, not 404."""
+        self.client.force_login(self.user)
+        response = self.client.get(
+            "/login/oauth/authorize",
+            {
+                "client_id": GITEA_CLIENT_ID,
+                "response_type": "code",
+                "redirect_uri": "http://127.0.0.1/",
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
 
     def test_token_endpoint_is_anonymous(self):
         """The token POST carries no session; it must reach DOT, not the login wall.
