@@ -85,6 +85,15 @@ class ForgejoClient(GitClient):
         )
         return response.json()
 
+    def add_collaborator(
+        self, org_slug: str, repo_name: str, username: str, permission: str = "write"
+    ) -> None:
+        self._request(
+            "PUT",
+            f"/repos/{org_slug}/{repo_name}/collaborators/{username}",
+            json={"permission": permission},
+        )
+
     def list_org_repositories(
         self, org_slug: str, page: int = 1, limit: int = 50
     ) -> list[dict]:
