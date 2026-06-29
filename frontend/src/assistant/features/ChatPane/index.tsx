@@ -617,14 +617,14 @@ export default function ChatPane({
           >
             <textarea
               ref={textareaRef}
-              className="w-full resize-none bg-transparent px-4 pt-3 pb-2 text-sm focus:outline-none disabled:opacity-50"
+              autoFocus
+              className="w-full resize-none bg-transparent px-4 pt-3 pb-2 text-sm focus:outline-none"
               style={{ maxHeight: "200px", overflowY: "auto" }}
               rows={1}
               placeholder="Message… (Enter to send, Shift+Enter for newline)"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              disabled={isActive}
             />
             <div className="flex items-center justify-end px-2 pb-2">
               <button
