@@ -163,12 +163,7 @@ export default function ChatPane({
 
   useEffect(() => {
     const name = data?.assistantConversation?.name;
-    if (name) {
-      const handler =
-        onConversationNameLoadedRef.current ??
-        onConversationNameChangeRef.current;
-      handler?.(name);
-    }
+    if (name) notifyConversationNameLoaded(name);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.assistantConversation?.name]);
 
@@ -234,6 +229,16 @@ export default function ChatPane({
   const onConversationNameLoadedRef = useRef(onConversationNameLoaded);
   onConversationNameLoadedRef.current = onConversationNameLoaded;
 
+  // Notifies the parent of a name that is already known (loaded from cache, or
+  // echoed back on `done`) without triggering the typewriter animation, which is
+  // reserved for the `conversation_name` event of a brand-new conversation.
+  const notifyConversationNameLoaded = useCallback((name: string) => {
+    const handler =
+      onConversationNameLoadedRef.current ??
+      onConversationNameChangeRef.current;
+    handler?.(name);
+  }, []);
+
   const { send, isStreaming, streamError } = useStreamingFetch({
     text_delta: (data) => {
       const { delta } = data as { delta: string };
@@ -285,7 +290,7 @@ export default function ChatPane({
     },
     done: (data) => {
       const { name } = data as { name?: string };
-      if (name) onConversationNameChange?.(name);
+      if (name) notifyConversationNameLoaded(name);
       markDone();
     },
     error: (data) => {
