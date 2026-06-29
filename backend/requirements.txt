@@ -336,7 +336,7 @@ oauthlib==3.3.1
     #   django-oauth-toolkit
     #   kubernetes
     #   requests-oauthlib
-openhexa-sdk==2.22.0
+openhexa-sdk==2.22.2
     # via
     #   -r requirements.in
     #   openhexa-toolbox
@@ -448,7 +448,7 @@ pygments==2.20.0
     # via
     #   dhis2-py
     #   rich
-pyjwt[crypto]==2.12.0
+pyjwt[crypto]==2.13.0
     # via
     #   django-allauth
     #   msal
@@ -612,7 +612,7 @@ urllib3==2.7.0
     #   sentry-sdk
 uvicorn==0.34.0
     # via -r requirements.in
-vcrpy==8.1.1
+vcrpy==8.2.1
     # via -r requirements.in
 websocket-client==1.8.0
     # via kubernetes

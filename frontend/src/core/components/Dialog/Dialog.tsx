@@ -7,7 +7,13 @@ import {
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import useEventListener from "core/hooks/useEventListener";
-import { FormEventHandler, ReactElement, ReactNode, useRef } from "react";
+import {
+  CSSProperties,
+  FormEventHandler,
+  ReactElement,
+  ReactNode,
+  useRef,
+} from "react";
 
 type DialogProps = {
   open: boolean;
@@ -20,6 +26,15 @@ type DialogProps = {
   className?: string;
   maxWidth?: string;
   persistent?: boolean;
+  // Shrink the panel to fit its content instead of stretching to `maxWidth`.
+  // Use this for content that sizes itself (e.g. a resizable body); it keeps the
+  // backdrop flush against the visible box so clicking just outside it closes the
+  // dialog. `maxWidth` still acts as the upper bound.
+  fitContent?: boolean;
+  // Extra inline styles merged onto the panel box. Used to drive a dynamic
+  // width/height (e.g. a drag-resizable dialog) that can't be expressed with
+  // static classes. The `maxHeight` viewport cap still applies unless overridden.
+  style?: CSSProperties;
 };
 
 const DialogTitle = (props: { children: ReactNode; onClose?: () => void }) => {
@@ -80,6 +95,8 @@ function Dialog(props: DialogProps) {
     closeOnEsc = true,
     className,
     maxWidth,
+    fitContent = false,
+    style,
   } = props;
 
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -112,7 +129,8 @@ function Dialog(props: DialogProps) {
           transition
           className={clsx(
             "duration-300 transform ease-out data-[closed]:scale-95 data-[closed]:opacity-0",
-            "my-8 inline-block px-2 sm:w-full sm:px-4 tall:my-20 max-h-full",
+            "my-8 inline-block px-2 sm:px-4 tall:my-20 max-h-full",
+            !fitContent && "sm:w-full",
             maxWidth ?? "max-w-lg",
             centered && "sm:align-middle",
           )}
@@ -125,7 +143,7 @@ function Dialog(props: DialogProps) {
               "flex flex-col",
               className,
             )}
-            style={{ maxHeight: "calc(100vh - 5rem)" }}
+            style={{ maxHeight: "calc(100vh - 5rem)", ...style }}
           >
             {children}
           </ContentElement>

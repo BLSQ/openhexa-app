@@ -2,7 +2,7 @@ from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
 from hexa.assistant.instructions import InstructionSet
-from hexa.assistant.models import Conversation
+from hexa.assistant.models import Conversation, ToolInvocation
 from hexa.pipelines.models import Pipeline, PipelineVersion
 
 from ._helpers import _make_tool_call_model, _make_zipfile, make_built_model, run_agent
@@ -136,3 +136,57 @@ class EditPipelineAgentToolCallTest(AgentTestCase):
         self.assertTrue(invocation.success)
         self.assertIn("files", invocation.tool_output)
         self.assertEqual(invocation.tool_output["files"][0]["name"], "pipeline.py")
+
+    def test_propose_pipeline_version_is_marked_pending(self):
+        model = _make_tool_call_model(
+            "propose_pipeline_version",
+            {"modified_files": [{"name": "pipeline.py", "content": "print('v2')"}]},
+        )
+        conversation = Conversation(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.EDIT_PIPELINE,
+        )
+        conversation.linked_object = self.pipeline
+        conversation.save()
+        agent = EditPipelineAgent(conversation, make_built_model(model))
+        run_agent(agent, "Update the pipeline")
+        invocation = self.first_tool_invocation(conversation)
+        self.assertTrue(invocation.proposal_pending)
+
+    def test_new_proposal_supersedes_previous_pending_one(self):
+        conversation = Conversation(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.EDIT_PIPELINE,
+        )
+        conversation.linked_object = self.pipeline
+        conversation.save()
+
+        first_model = _make_tool_call_model(
+            "propose_pipeline_version",
+            {"modified_files": [{"name": "pipeline.py", "content": "print('v2')"}]},
+        )
+        run_agent(
+            EditPipelineAgent(conversation, make_built_model(first_model)),
+            "First change",
+        )
+
+        second_model = _make_tool_call_model(
+            "propose_pipeline_version",
+            {"modified_files": [{"name": "pipeline.py", "content": "print('v3')"}]},
+        )
+        run_agent(
+            EditPipelineAgent(conversation, make_built_model(second_model)),
+            "Second change",
+        )
+
+        invocations = list(
+            ToolInvocation.objects.filter(
+                message__conversation=conversation,
+                tool_name="propose_pipeline_version",
+            ).order_by("created_at")
+        )
+        self.assertEqual(len(invocations), 2)
+        self.assertFalse(invocations[0].proposal_pending)
+        self.assertTrue(invocations[1].proposal_pending)
