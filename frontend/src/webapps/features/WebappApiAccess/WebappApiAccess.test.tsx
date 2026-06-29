@@ -37,15 +37,13 @@ describe("WebappApiAccess", () => {
       screen.getByText("https://my-app.example/graphql/"),
     ).toBeInTheDocument();
 
-    const readScope = screen.getByLabelText(
-      "Read pipelines",
-    ) as HTMLInputElement;
-    expect(readScope.checked).toBe(true);
-    expect(readScope.disabled).toBe(true);
+    const readScope = screen.getByRole("switch", { name: "Read pipelines" });
+    expect(readScope).toBeChecked();
+    expect(readScope).toBeDisabled();
 
-    const runScope = screen.getByLabelText("Run pipelines") as HTMLInputElement;
-    expect(runScope.checked).toBe(false);
-    expect(runScope.disabled).toBe(true);
+    const runScope = screen.getByRole("switch", { name: "Run pipelines" });
+    expect(runScope).not.toBeChecked();
+    expect(runScope).toBeDisabled();
   });
 
   it("saves the updated scopes", async () => {
@@ -77,8 +75,8 @@ describe("WebappApiAccess", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
 
-    const runScope = screen.getByLabelText("Run pipelines") as HTMLInputElement;
-    expect(runScope.disabled).toBe(false);
+    const runScope = screen.getByRole("switch", { name: "Run pipelines" });
+    expect(runScope).not.toBeDisabled();
     fireEvent.click(runScope);
 
     fireEvent.click(screen.getByRole("button", { name: "Save" }));

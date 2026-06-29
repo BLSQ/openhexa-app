@@ -5,14 +5,12 @@ import { useTranslation } from "next-i18next";
 import { toast } from "react-toastify";
 import DataCard from "core/components/DataCard";
 import { useDataCardSection } from "core/components/DataCard/context";
-import Checkbox from "core/components/forms/Checkbox/Checkbox";
+import Switch from "core/components/Switch";
 import Clipboard from "core/components/Clipboard";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
 import { UpdateWebappError, WebappOperationScope } from "graphql/types";
 import { WebappApiAccess_WebappFragment } from "./WebappApiAccess.generated";
-
-const ALL_SCOPES = Object.values(WebappOperationScope);
 
 const EXAMPLE_SNIPPET = `const response = await fetch("/graphql/", {
   method: "POST",
@@ -55,6 +53,41 @@ function getScopeDescriptions(t: (key: string) => string) {
   };
 }
 
+type ScopeGroup = {
+  title: string;
+  scopes: WebappOperationScope[];
+};
+
+function getScopeGroups(t: (key: string) => string): ScopeGroup[] {
+  return [
+    {
+      title: t("Datasets"),
+      scopes: [
+        WebappOperationScope.DatasetsRead,
+        WebappOperationScope.DatasetsWrite,
+      ],
+    },
+    {
+      title: t("Pipelines"),
+      scopes: [
+        WebappOperationScope.PipelinesRead,
+        WebappOperationScope.PipelinesRun,
+      ],
+    },
+    {
+      title: t("Files"),
+      scopes: [
+        WebappOperationScope.FilesRead,
+        WebappOperationScope.FilesWrite,
+      ],
+    },
+    {
+      title: t("User"),
+      scopes: [WebappOperationScope.UserRead],
+    },
+  ];
+}
+
 type ApiAccessContentProps = {
   serveUrl: string;
   savedOperations: WebappOperationScope[];
@@ -73,6 +106,7 @@ const ApiAccessContent = ({
   const { t } = useTranslation();
   const section = useDataCardSection();
   const scopeDescriptions = getScopeDescriptions(t);
+  const scopeGroups = getScopeGroups(t);
 
   // Sync the draft to the persisted value on each edit-mode transition so a
   // previous cancel never leaks unsaved toggles into the next edit session.
@@ -119,20 +153,40 @@ const ApiAccessContent = ({
             : "border-gray-200 bg-gray-100",
         )}
       >
-        <p className="text-xs font-medium text-gray-500 mb-2">
+        <p className="text-xs font-medium text-gray-500 mb-3">
           {t("Allowed operations")}
         </p>
-        <div className="space-y-2">
-          {ALL_SCOPES.map((scope) => (
-            <Checkbox
-              key={scope}
-              name={scope}
-              label={scopeDescriptions[scope].label}
-              description={scopeDescriptions[scope].description}
-              checked={operations.includes(scope)}
-              disabled={!section.isEdited}
-              onChange={() => onToggleScope(scope)}
-            />
+        <div className="space-y-4">
+          {scopeGroups.map((group) => (
+            <div key={group.title}>
+              <p className="text-sm font-medium text-gray-900 mb-1">
+                {group.title}
+              </p>
+              <div className="divide-y divide-gray-200 rounded-md border border-gray-200 bg-white">
+                {group.scopes.map((scope) => (
+                  <div
+                    key={scope}
+                    className="flex items-center justify-between gap-4 px-3 py-2"
+                  >
+                    <div>
+                      <p className="text-sm text-gray-900">
+                        {scopeDescriptions[scope].label}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {scopeDescriptions[scope].description}
+                      </p>
+                    </div>
+                    <Switch
+                      name={scope}
+                      aria-label={scopeDescriptions[scope].label}
+                      checked={operations.includes(scope)}
+                      disabled={!section.isEdited}
+                      onChange={() => onToggleScope(scope)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
