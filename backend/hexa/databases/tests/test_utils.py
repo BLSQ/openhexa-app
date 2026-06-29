@@ -256,6 +256,7 @@ class DatabaseUtilsTest(TestCase):
             self.WORKSPACE, "SELECT id, label FROM demo ORDER BY id"
         )
 
+        self.assertIsInstance(result.pop("duration_ms"), int)
         self.assertEqual(
             {
                 "columns": ["id", "label"],
@@ -303,6 +304,7 @@ class DatabaseUtilsTest(TestCase):
     def test_execute_database_query_no_result_set(self):
         result = execute_database_query(self.WORKSPACE, "SET search_path TO public")
 
+        self.assertIsInstance(result.pop("duration_ms"), int)
         self.assertEqual(
             {"columns": [], "rows": [], "row_count": 0, "truncated": False}, result
         )
