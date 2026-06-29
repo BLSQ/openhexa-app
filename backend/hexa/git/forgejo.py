@@ -77,7 +77,11 @@ class ForgejoClient(GitClient):
         response = self._request(
             "POST",
             f"/repos/{org_slug}/{repo_name}/branch_protections",
-            json={"rule_name": branch, "enable_push": True},
+            json={
+                "rule_name": branch,
+                "enable_push": True,
+                "block_admin_merge_override": True,
+            },
         )
         return response.json()
 
