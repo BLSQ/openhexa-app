@@ -16,6 +16,12 @@ class ForgejoAPIError(Exception):
         self.detail = detail
         super().__init__(f"{method} {url}: {status_code} {detail}")
 
+    @property
+    def already_exists(self) -> bool:
+        return self.status_code == 409 or (
+            self.status_code == 403 and "already exist" in self.detail.lower()
+        )
+
 
 class ForgejoClient(GitClient):
     def __init__(self, *, url: str, username: str, password: str):

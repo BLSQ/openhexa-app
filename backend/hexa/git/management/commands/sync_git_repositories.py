@@ -24,7 +24,7 @@ class Command(BaseCommand):
                     webapp.client.protect_branch(org, repo)
                     protected += 1
                 except ForgejoAPIError as e:
-                    if e.status_code != 409:  # 409 = rule already exists
+                    if not e.already_exists:
                         raise
                     already_protected += 1
 
