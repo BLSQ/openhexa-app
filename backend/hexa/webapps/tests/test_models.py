@@ -745,6 +745,9 @@ class GitWebappModelTest(TestCase):
         self.mock_git_client.protect_branch.assert_called_once_with(
             "no-org", webapp.repository
         )
+        self.mock_git_client.add_collaborator.assert_called_once_with(
+            "no-org", webapp.repository, "openhexa-proxy"
+        )
 
     def test_create_if_has_perm_static_no_files(self):
         webapp = GitWebapp.create_if_has_perm(
