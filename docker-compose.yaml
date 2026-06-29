@@ -178,7 +178,7 @@ services:
     environment:
       - GIT_SERVER_ADMIN_USERNAME=${GIT_SERVER_ADMIN_USERNAME}
       - GIT_SERVER_ADMIN_PASSWORD=${GIT_SERVER_ADMIN_PASSWORD}
-      - GIT_PROXY_USERNAME=${GIT_PROXY_USERNAME:-openhexa-proxy}
+      - GIT_PROXY_USERNAME=${GIT_PROXY_USERNAME}
       - GIT_PROXY_PASSWORD=${GIT_PROXY_PASSWORD}
       - FORGEJO__database__DB_TYPE=sqlite3
       - FORGEJO__security__INSTALL_LOCK=true
@@ -205,7 +205,7 @@ services:
     environment:
       - APP_UPSTREAM=app:8000
       - FORGEJO_UPSTREAM=forgejo:3000
-      - GIT_PROXY_USERNAME=${GIT_PROXY_USERNAME:-openhexa-proxy}
+      - GIT_PROXY_USERNAME=${GIT_PROXY_USERNAME}
       - GIT_PROXY_PASSWORD=${GIT_PROXY_PASSWORD}
     volumes:
       - ./docker/git-proxy/git-proxy.conf.template:/etc/nginx/templates/git-proxy.conf.template:ro
