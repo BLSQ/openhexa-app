@@ -192,6 +192,28 @@ services:
     networks:
       - openhexa
 
+  # Local equivalent of the production git proxy
+  git_proxy:
+    image: nginx:alpine
+    profiles:
+      - git_proxy
+    depends_on:
+      - app
+      - forgejo
+    environment:
+      - APP_UPSTREAM=app:8000
+      - FORGEJO_UPSTREAM=forgejo:3000
+      - GIT_SERVER_ADMIN_USERNAME=${GIT_SERVER_ADMIN_USERNAME}
+      - GIT_SERVER_ADMIN_PASSWORD=${GIT_SERVER_ADMIN_PASSWORD}
+    volumes:
+      - ./docker/git-proxy/git-proxy.conf.template:/etc/nginx/templates/git-proxy.conf.template:ro
+      - ./docker/git-proxy/entrypoint.sh:/git-proxy-entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/git-proxy-entrypoint.sh"]
+    ports:
+      - "3200:3000"
+    networks:
+      - openhexa
+
   # Legacy services
   ################
 
