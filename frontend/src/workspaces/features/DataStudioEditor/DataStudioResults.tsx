@@ -26,7 +26,7 @@ const formatCell = (value: unknown) => {
 };
 
 const Block = ({ children }: { children: React.ReactNode }) => (
-  <div className="relative flex h-[30vh] flex-col overflow-hidden rounded-md border bg-white shadow-xs">
+  <div className="relative flex h-full flex-col overflow-hidden bg-white">
     {children}
   </div>
 );
@@ -150,6 +150,8 @@ const DataStudioResults = ({ loading, result }: DataStudioResultsProps) => {
             count: rowCount,
             plural: "{{count}} rows",
           })}
+          {typeof result.durationMs === "number" &&
+            ` · ${result.durationMs.toLocaleString()} ms`}
         </span>
         {hasHiddenRows && (
           <span className="ml-auto text-gray-400">

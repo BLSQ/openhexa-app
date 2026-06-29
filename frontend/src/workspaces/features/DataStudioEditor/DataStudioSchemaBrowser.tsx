@@ -54,11 +54,11 @@ const DataStudioSchemaBrowser = ({
   return (
     <div
       className={clsx(
-        "flex flex-col overflow-hidden rounded-md border bg-white text-sm shadow-xs",
+        "flex flex-col overflow-hidden bg-gray-50/40 text-sm",
         className,
       )}
     >
-      <div className="flex shrink-0 items-center gap-2 border-b border-gray-200 px-3 py-2">
+      <div className="flex h-11 shrink-0 items-center gap-2 border-b border-gray-200 px-3">
         <CircleStackIcon className="h-4 w-4 text-gray-400" />
         <span className="font-medium text-gray-700">{t("Tables")}</span>
       </div>

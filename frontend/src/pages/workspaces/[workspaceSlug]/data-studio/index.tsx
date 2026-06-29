@@ -29,6 +29,7 @@ const WorkspaceDataStudioPage: NextPageWithLayout = (props: Props) => {
     <Page title={t("Data Studio")}>
       <WorkspaceLayout
         workspace={workspace}
+        withMarginBottom={false}
         header={
           <Breadcrumbs withHome={false}>
             <Breadcrumbs.Part
@@ -43,9 +44,10 @@ const WorkspaceDataStudioPage: NextPageWithLayout = (props: Props) => {
           </Breadcrumbs>
         }
       >
-        <WorkspaceLayout.PageContent>
+        {/* Full-bleed IDE: fill the viewport below the fixed 4rem workspace header. */}
+        <div className="h-[calc(100vh-4rem)] p-4">
           <DataStudioEditor workspaceSlug={workspace.slug} />
-        </WorkspaceLayout.PageContent>
+        </div>
       </WorkspaceLayout>
     </Page>
   );
