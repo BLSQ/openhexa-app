@@ -3,12 +3,14 @@ import {
   ChevronDownIcon,
   ChevronRightIcon,
   CircleStackIcon,
+  MagnifyingGlassIcon,
   TableCellsIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import Spinner from "core/components/Spinner";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
-import { useMemo, useState } from "react";
+import { KeyboardEvent, useMemo, useRef, useState } from "react";
 import {
   useWorkspaceDataStudioSchemaQuery,
   useWorkspaceDataStudioTableColumnsQuery,
@@ -100,10 +102,31 @@ const DataStudioSchemaBrowser = ({
 }: DataStudioSchemaBrowserProps) => {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const { data, loading } = useWorkspaceDataStudioSchemaQuery({
     variables: { workspaceSlug },
   });
+
+  const openSearch = () => {
+    setSearchOpen(true);
+    // Focus once the input has mounted.
+    requestAnimationFrame(() => searchRef.current?.focus());
+  };
+
+  // Closing always clears the term so a hidden search never silently filters
+  // the tree.
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setSearch("");
+  };
+
+  const onSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Escape") {
+      closeSearch();
+    }
+  };
 
   const tablePage = data?.workspace?.database?.tables;
   const tables = tablePage?.items ?? [];
@@ -125,16 +148,43 @@ const DataStudioSchemaBrowser = ({
       )}
     >
       <div className="flex h-11 shrink-0 items-center gap-2 border-b border-gray-200 px-3">
-        <CircleStackIcon className="h-4 w-4 text-gray-400" />
-        <span className="font-medium text-gray-700">{t("Tables")}</span>
-      </div>
-      <div className="shrink-0 border-b border-gray-100 p-2">
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder={t("Search…")}
-          className="w-full rounded-md border border-gray-300 px-2 py-1 text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-        />
+        {searchOpen ? (
+          <>
+            <MagnifyingGlassIcon className="h-4 w-4 shrink-0 text-gray-400" />
+            <input
+              ref={searchRef}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyDown={onSearchKeyDown}
+              onBlur={() => {
+                if (!search) {
+                  setSearchOpen(false);
+                }
+              }}
+              placeholder={t("Search tables…")}
+              className="min-w-0 flex-1 bg-transparent text-xs text-gray-700 outline-none placeholder:text-gray-400"
+            />
+            <button
+              onClick={closeSearch}
+              title={t("Close search")}
+              className="shrink-0 rounded p-0.5 text-gray-400 hover:text-gray-700"
+            >
+              <XMarkIcon className="h-4 w-4" />
+            </button>
+          </>
+        ) : (
+          <>
+            <CircleStackIcon className="h-4 w-4 shrink-0 text-gray-400" />
+            <span className="font-medium text-gray-700">{t("Tables")}</span>
+            <button
+              onClick={openSearch}
+              title={t("Search tables")}
+              className="ml-auto shrink-0 rounded p-0.5 text-gray-400 hover:text-gray-700"
+            >
+              <MagnifyingGlassIcon className="h-4 w-4" />
+            </button>
+          </>
+        )}
       </div>
       <div className="flex-1 overflow-auto p-1">
         {loading ? (

@@ -85,7 +85,11 @@ describe("DataStudioSchemaBrowser", () => {
     renderBrowser([schemaMock(["patients", "visits"])]);
     await screen.findByText("patients");
 
-    await userEvent.type(screen.getByPlaceholderText("Search…"), "visit");
+    await userEvent.click(screen.getByTitle("Search tables"));
+    await userEvent.type(
+      screen.getByPlaceholderText("Search tables…"),
+      "visit",
+    );
 
     expect(screen.queryByText("patients")).not.toBeInTheDocument();
     expect(screen.getByText("visits")).toBeInTheDocument();
@@ -95,9 +99,33 @@ describe("DataStudioSchemaBrowser", () => {
     renderBrowser([schemaMock(["patients", "visits"])]);
     await screen.findByText("patients");
 
-    await userEvent.type(screen.getByPlaceholderText("Search…"), "nomatch");
+    await userEvent.click(screen.getByTitle("Search tables"));
+    await userEvent.type(
+      screen.getByPlaceholderText("Search tables…"),
+      "nomatch",
+    );
 
     expect(screen.getByText("No tables")).toBeInTheDocument();
+  });
+
+  it("collapses the search and clears the filter when closed", async () => {
+    renderBrowser([schemaMock(["patients", "visits"])]);
+    await screen.findByText("patients");
+
+    await userEvent.click(screen.getByTitle("Search tables"));
+    await userEvent.type(
+      screen.getByPlaceholderText("Search tables…"),
+      "visit",
+    );
+    expect(screen.queryByText("patients")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByTitle("Close search"));
+
+    expect(
+      screen.queryByPlaceholderText("Search tables…"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText("patients")).toBeInTheDocument();
+    expect(screen.getByText("visits")).toBeInTheDocument();
   });
 
   it("loads and reveals columns only when a table is expanded", async () => {
