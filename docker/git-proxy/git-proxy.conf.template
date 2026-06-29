@@ -2,10 +2,13 @@ server {
     listen 3000;
     server_name _;
 
+    resolver 127.0.0.11 ipv6=off valid=10s;
+
     # OpenHEXA's web + auth surface (sign-in, OAuth, static assets) -> the app.
     # A regex location, so it takes precedence over the catch-all git location.
     location ~ ^/(login|oauth|accounts|static)(/|$) {
-        proxy_pass http://${APP_UPSTREAM};
+        set $app_upstream ${APP_UPSTREAM};
+        proxy_pass http://$app_upstream$request_uri;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Forwarded-Host $host;
@@ -17,7 +20,8 @@ server {
         auth_request /_git_authorize;
         error_page 401 = @gitea_challenge;
 
-        proxy_pass http://${FORGEJO_UPSTREAM};
+        set $forgejo_upstream ${FORGEJO_UPSTREAM};
+        proxy_pass http://$forgejo_upstream$request_uri;
         # Forwarded as the non-admin proxy service account; OpenHEXA already
         # authorized the request, and branch protection applies to this account.
         proxy_set_header Authorization "Basic ${FORGEJO_PROXY_AUTH}";
@@ -35,7 +39,8 @@ server {
 
     location = /_git_authorize {
         internal;
-        proxy_pass http://${APP_UPSTREAM}/api/git/authorize;
+        set $app_upstream ${APP_UPSTREAM};
+        proxy_pass http://$app_upstream/api/git/authorize;
         proxy_pass_request_body off;
         proxy_set_header Content-Length "";
         proxy_set_header X-Original-URI $request_uri;
