@@ -1,7 +1,8 @@
-from datetime import timedelta, timezone
+from datetime import timedelta
 
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, TestCase
+from django.utils import timezone
 from oauth2_provider.models import AccessToken, Application, RefreshToken
 
 from hexa.oauth.views import OAuthAuthorizeView, gitea_authorize
