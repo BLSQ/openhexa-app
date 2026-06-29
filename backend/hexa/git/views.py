@@ -18,6 +18,7 @@ SERVICE_RECEIVE_PACK = "git-receive-pack"
 class Operation(Enum):
     READ = "read"
     WRITE = "write"
+    UNSUPPORTED = "unsupported"
 
 
 def _extract_token(request: HttpRequest) -> str | None:
@@ -50,9 +51,9 @@ def _extract_token(request: HttpRequest) -> str | None:
 def _operation(path: str, query: str) -> Operation:
     """Classify a git smart-HTTP request as a read or a write.
 
-    Pushes use git-receive-pack; recognised reads use git-upload-pack. Anything
-    unrecognised (LFS, archives, …) defaults to WRITE so an unexpected path can
-    never be authorised with only read access.
+    Pushes use git-receive-pack; reads use git-upload-pack. Everything else
+    (Forgejo web UI/API, LFS, archives, dumb-HTTP) is UNSUPPORTED, so the proxy
+    only ever forwards clone/fetch/push — those other paths are blocked.
     """
     if path.endswith(SERVICE_RECEIVE_PACK):
         return Operation.WRITE
@@ -64,7 +65,7 @@ def _operation(path: str, query: str) -> Operation:
             return Operation.WRITE
         if service == SERVICE_UPLOAD_PACK:
             return Operation.READ
-    return Operation.WRITE
+    return Operation.UNSUPPORTED
 
 
 def _parse_target(uri: str) -> tuple[str, str] | None:
@@ -119,6 +120,8 @@ def authorize(request: HttpRequest) -> HttpResponse:
 
     parsed = urlparse(uri)
     operation = _operation(unquote(parsed.path), parsed.query)
+    if operation is Operation.UNSUPPORTED:
+        return HttpResponse(status=403)
 
     try:
         webapp = (
