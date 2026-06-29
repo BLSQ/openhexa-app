@@ -31,6 +31,7 @@ class GitRepoMixin(models.Model):
             self.client.create_org_repository(
                 self.git_org.slug, self.repository, auto_init=not files
             )
+            self.client.protect_branch(self.git_org.slug, self.repository)
         except ForgejoAPIError as e:
             if e.status_code == 409:
                 logger.warning(
