@@ -1,15 +1,12 @@
 import { gql } from "@apollo/client";
-import {
-  ArrowDownTrayIcon,
-  ChevronDownIcon,
-  TableCellsIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowDownTrayIcon, TableCellsIcon } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import CodeEditor, {
   CodeEditorHandle,
 } from "core/components/CodeEditor/CodeEditor";
+import SplitButton from "core/components/SplitButton";
 import { useTranslation } from "next-i18next";
-import { KeyboardEvent, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, useRef, useState } from "react";
 import { buildCsv, downloadCsv } from "./csv";
 import { useExecuteWorkspaceSqlLazyQuery } from "./DataStudioEditor.generated";
 import DataStudioResults from "./DataStudioResults";
@@ -25,30 +22,17 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [maxRows, setMaxRows] = useState(MAX_ROWS_OPTIONS[0]);
-  const [runMenuOpen, setRunMenuOpen] = useState(false);
   const editorRef = useRef<CodeEditorHandle>(null);
-  const runMenuRef = useRef<HTMLDivElement>(null);
 
+  // Results are large, ad-hoc, and never read from the cache elsewhere; skip
+  // normalisation so big result sets are not retained for the page lifetime.
   const [execute, { data, loading }] = useExecuteWorkspaceSqlLazyQuery({
-    fetchPolicy: "network-only",
+    fetchPolicy: "no-cache",
   });
 
   const result = data?.workspace?.database?.executeSQL;
   const canExport = Boolean(result?.success && (result.rows?.length ?? 0) > 0);
   const canRun = !loading && Boolean(query.trim());
-
-  useEffect(() => {
-    if (!runMenuOpen) {
-      return;
-    }
-    const onDocClick = (event: MouseEvent) => {
-      if (!runMenuRef.current?.contains(event.target as Node)) {
-        setRunMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
-  }, [runMenuOpen]);
 
   const runSql = (sql: string) => {
     const trimmed = sql.trim();
@@ -115,62 +99,29 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
               <ArrowDownTrayIcon className="h-4 w-4" />
               {t("Export CSV")}
             </button>
-            {/* Split Run button: main = run all, chevron = run selection. */}
-            <div ref={runMenuRef} className="relative">
-              <div className="inline-flex h-8 items-stretch overflow-hidden rounded-md bg-blue-600 shadow-xs">
-                <button
-                  onClick={run}
-                  disabled={!canRun}
-                  className="inline-flex items-center gap-1.5 px-3 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-                >
-                  {loading ? (
-                    <>
-                      <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                      {t("Running…")}
-                    </>
-                  ) : (
-                    <>
-                      <PlayIcon className="h-3 w-3" />
-                      {t("Run")}
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => setRunMenuOpen((open) => !open)}
-                  disabled={loading}
-                  aria-label={t("More run options")}
-                  className="inline-flex w-7 items-center justify-center border-l border-white/20 text-white hover:bg-blue-700 disabled:opacity-60"
-                >
-                  <ChevronDownIcon className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              {runMenuOpen && !loading && (
-                <div className="absolute right-0 top-9 z-20 w-52 rounded-md bg-white py-1 text-xs shadow-xl ring-1 ring-black/5">
-                  <button
-                    onClick={() => {
-                      setRunMenuOpen(false);
-                      run();
-                    }}
-                    disabled={!canRun}
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-gray-800 hover:bg-gray-100 disabled:text-gray-300"
-                  >
-                    <PlayIcon className="h-3.5 w-3.5 text-blue-600" />
-                    {t("Run all")}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setRunMenuOpen(false);
-                      runSelection();
-                    }}
-                    disabled={loading}
-                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-gray-800 hover:bg-gray-100"
-                  >
-                    <PlayIcon className="h-3.5 w-3.5 text-gray-400" />
-                    {t("Run selection")}
-                  </button>
-                </div>
-              )}
-            </div>
+            <SplitButton
+              label={t("Run")}
+              loadingLabel={t("Running…")}
+              loading={loading}
+              icon={PlayIcon}
+              onClick={run}
+              disabled={!canRun}
+              menuLabel={t("More run options")}
+              actions={[
+                {
+                  label: t("Run all"),
+                  icon: PlayIcon,
+                  iconClassName: "text-blue-600",
+                  onClick: run,
+                  disabled: !canRun,
+                },
+                {
+                  label: t("Run selection"),
+                  icon: PlayIcon,
+                  onClick: runSelection,
+                },
+              ]}
+            />
           </div>
         </div>
 
