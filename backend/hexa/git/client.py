@@ -23,6 +23,13 @@ class GitClient(ABC):
         ...
 
     @abstractmethod
+    def protect_branch(
+        self, org_slug: str, repo_name: str, branch: str = "main"
+    ) -> dict:
+        """Protect a branch: block force-push and deletion, allow normal pushes."""
+        ...
+
+    @abstractmethod
     def archive_repository(self, org_slug: str, repo_name: str) -> dict:
         ...
 

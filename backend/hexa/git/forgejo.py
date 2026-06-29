@@ -71,6 +71,16 @@ class ForgejoClient(GitClient):
         )
         return response.json()
 
+    def protect_branch(
+        self, org_slug: str, repo_name: str, branch: str = "main"
+    ) -> dict:
+        response = self._request(
+            "POST",
+            f"/repos/{org_slug}/{repo_name}/branch_protections",
+            json={"rule_name": branch, "enable_push": True},
+        )
+        return response.json()
+
     def list_org_repositories(
         self, org_slug: str, page: int = 1, limit: int = 50
     ) -> list[dict]:
