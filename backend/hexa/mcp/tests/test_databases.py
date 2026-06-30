@@ -74,9 +74,7 @@ class GetDbTableSchemaTest(MCPTestCase):
         self.assertEqual(columns[0], {"name": "id", "type": "integer"})
 
     def test_get_db_table_schema_table_not_found(self):
-        with patch(
-            "hexa.mcp.tools.databases.get_table_definition", return_value=None
-        ):
+        with patch("hexa.mcp.tools.databases.get_table_definition", return_value=None):
             result = get_db_table_schema(
                 user=self.USER_ADMIN,
                 workspace_slug=self.WORKSPACE.slug,
