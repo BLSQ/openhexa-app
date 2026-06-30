@@ -15,8 +15,8 @@ class FilesResult:
     copied: list[tuple[str, int]] = field(default_factory=list)
     """(object_key, byte_size) for each file copied to target."""
 
-    failed: list[str] = field(default_factory=list)
-    """Object keys whose download or upload failed; user must handle manually."""
+    failed: list[tuple[str, str]] = field(default_factory=list)
+    """(object_key, reason) whose download or upload failed; user must handle manually."""
 
 
 @dataclass
@@ -87,7 +87,9 @@ def format_summary(result: CopyResult) -> str:
                 f"Files that could NOT be copied "
                 f"({len(result.files.failed)} — handle manually):"
             )
-            lines.extend(f"  * {path}" for path in result.files.failed)
+            lines.extend(
+                f"  * {path}: {reason}" for path, reason in result.files.failed
+            )
 
     if result.connections is not None:
         conns = result.connections

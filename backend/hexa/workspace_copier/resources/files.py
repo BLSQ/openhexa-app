@@ -192,7 +192,7 @@ class FilesCopier(ResourceCopier):
                 except StopIteration:
                     break
                 except (GraphQLError, httpx.HTTPError) as exc:
-                    files_result.failed.append("<listing>")
+                    files_result.failed.append(("<listing>", str(exc)))
                     reporter.warning(f"   FAILED to list remaining files: {exc}")
                     break
                 path = obj["key"]
@@ -201,13 +201,14 @@ class FilesCopier(ResourceCopier):
                     upload(target.client, target.slug, path, content, http_client)
                     files_result.copied.append((path, len(content)))
                     reporter.info(f"   copied {path} ({len(content)} bytes)")
-                except (GraphQLError, httpx.HTTPError):
+                except (GraphQLError, httpx.HTTPError) as exc:
                     # Both presigned download/upload (httpx) and the prepare
-                    # mutations (GraphQL) can fail per-file. The full path goes
-                    # into failed for the final summary so the user can
-                    # re-attempt it manually.
-                    files_result.failed.append(path)
-                    reporter.warning(f"   FAILED to copy {path}")
+                    # mutations (GraphQL) can fail per-file. The path and reason
+                    # go into failed for the final summary so the user can see
+                    # why and re-attempt it manually.
+                    reason = f"{exc.__class__.__name__}: {exc}"
+                    files_result.failed.append((path, reason))
+                    reporter.warning(f"   FAILED to copy {path}: {reason}")
 
         reporter.info(
             f"   {len(files_result.copied)} file(s) copied, "

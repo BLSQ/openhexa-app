@@ -43,7 +43,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
 
         FilesCopier().copy(self.source, self.target, self.result, NullReporter())
 
-        self.assertEqual(self.result.files.failed, ["bad.txt"])
+        self.assertEqual(self.result.files.failed, [("bad.txt", "GraphQLError: boom")])
         self.assertEqual(self.result.files.copied, [("ok.txt", 2)])
 
     @patch("hexa.workspace_copier.resources.files.upload")
@@ -59,7 +59,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
 
         FilesCopier().copy(self.source, self.target, self.result, NullReporter())
 
-        self.assertEqual(self.result.files.failed, ["bad.txt"])
+        self.assertEqual(self.result.files.failed, [("bad.txt", "ReadTimeout: blip")])
         self.assertEqual(self.result.files.copied, [("ok.txt", 2)])
 
     @patch("hexa.workspace_copier.resources.files.upload")
@@ -78,4 +78,6 @@ class FilesCopierRemoteTest(SimpleTestCase):
         FilesCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertEqual(self.result.files.copied, [("a.txt", 3)])
-        self.assertEqual(self.result.files.failed, ["<listing>"])
+        self.assertEqual(
+            self.result.files.failed, [("<listing>", "listing page 2 failed")]
+        )
