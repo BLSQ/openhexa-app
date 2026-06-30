@@ -11,6 +11,7 @@ from hexa.workspace_copier.service import (
     _verify_endpoints,
     _verify_side,
     run_copy,
+    run_template_copy,
 )
 from hexa.workspace_copier.transport import GraphQLError
 
@@ -147,3 +148,54 @@ class RunCopyTest(SimpleTestCase):
             run_copy(reporter=NullReporter(), **_kwargs())
 
         mock_dup.assert_not_called()
+
+
+def _template_kwargs(**overrides):
+    data = {
+        "source_url": "http://src/graphql/",
+        "source_token": "src-token",
+        "target_url": "http://tgt/graphql/",
+        "target_token": "tgt-token",
+        "target_organization_id": "org-1",
+    }
+    data.update(overrides)
+    return data
+
+
+class RunTemplateCopyTest(SimpleTestCase):
+    @patch("hexa.workspace_copier.service.copy_templates")
+    @patch("hexa.workspace_copier.service.build_client")
+    def test_proceeds_to_copy_after_successful_verification(
+        self, mock_build, mock_copy
+    ):
+        mock_build.side_effect = [MagicMock(), MagicMock()]
+        sentinel = object()
+        mock_copy.return_value = sentinel
+
+        result = run_template_copy(reporter=NullReporter(), **_template_kwargs())
+
+        self.assertIs(result, sentinel)
+        mock_copy.assert_called_once()
+
+    @patch("hexa.workspace_copier.service.copy_templates")
+    @patch("hexa.workspace_copier.service.build_client")
+    def test_blank_url_is_a_credential_error_remote_only(self, mock_build, mock_copy):
+        # Templates copy is remote→remote; a blank URL is rejected up front
+        # rather than falling back to the local server.
+        with self.assertRaises(CredentialError) as ctx:
+            run_template_copy(
+                reporter=NullReporter(), **_template_kwargs(source_url="")
+            )
+
+        self.assertIn("source server URL is required.", ctx.exception.errors)
+        mock_copy.assert_not_called()
+
+    @patch("hexa.workspace_copier.service.copy_templates")
+    @patch("hexa.workspace_copier.service.build_client")
+    def test_bad_credentials_abort_before_copy(self, mock_build, mock_copy):
+        mock_build.side_effect = GraphQLError("source authentication failed: bad")
+
+        with self.assertRaises(CredentialError):
+            run_template_copy(reporter=NullReporter(), **_template_kwargs())
+
+        mock_copy.assert_not_called()
