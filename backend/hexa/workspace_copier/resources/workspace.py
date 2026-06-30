@@ -47,12 +47,6 @@ class WorkspaceMetadataCopier(ResourceCopier):
         reporter.info(
             f"   created workspace {result.workspace_name!r} (slug '{target_slug}')"
         )
-        if source.slug and target_slug != source.slug:
-            result.warn(
-                f"target workspace got slug '{target_slug}' instead of source "
-                f"slug '{source.slug}' — createWorkspace always derives the slug "
-                "from the workspace name."
-            )
 
     def _read_source(self, source: Endpoint) -> Any:
         if source.is_remote:

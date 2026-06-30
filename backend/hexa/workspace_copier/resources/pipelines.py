@@ -14,6 +14,7 @@ from typing import Any
 
 from openhexa.graphql.graphql_client.client import Client
 from openhexa.graphql.graphql_client.input_types import CreatePipelineInput
+from slugify import slugify
 
 from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.progress import ProgressReporter
@@ -99,20 +100,25 @@ class PipelinesCopier(ResourceCopier):
         pipes_result = PipelinesResult()
         result.pipelines = pipes_result
 
-        pairs = _list_source_ids(source.client, source.slug)
+        pipelines = _list_source_pipelines(source.client, source.slug)
+        assignments = _assign_target_codes(pipelines)
+        existing_codes = _list_target_codes(target.client, target.slug)
 
-        for pipeline_id, src_code in pairs:
-            existing = target.client.pipeline(
-                workspace_slug=target.slug, pipeline_code=src_code
-            )
-            if existing is not None:
+        for pipeline_id, src_code, target_name, target_code in assignments:
+            if target_code in existing_codes:
                 pipes_result.skipped.append(src_code)
                 reporter.info(f"   skipped pipeline '{src_code}' (already exists)")
                 continue
             try:
                 reporter.info(f"   copying pipeline '{src_code}' ...")
                 self._copy_pipeline(
-                    source, target, pipeline_id, src_code, pipes_result, reporter
+                    source,
+                    target,
+                    pipeline_id,
+                    src_code,
+                    target_name,
+                    pipes_result,
+                    reporter,
                 )
             except GraphQLError as exc:
                 # Collect and continue (like the datasets copier) so one bad
@@ -132,6 +138,7 @@ class PipelinesCopier(ResourceCopier):
         target: Endpoint,
         pipeline_id: str,
         src_code: str,
+        target_name: str,
         pipes_result: PipelinesResult,
         reporter: ProgressReporter,
     ) -> None:
@@ -148,7 +155,9 @@ class PipelinesCopier(ResourceCopier):
             )
             return
 
-        target_pid, target_code = _create_on_target(target.client, target.slug, detail)
+        target_pid, target_code = _create_on_target(
+            target.client, target.slug, detail, target_name
+        )
 
         uploaded_names, scheduled_version_id = _upload_versions(
             target.client,
@@ -171,19 +180,68 @@ class PipelinesCopier(ResourceCopier):
 # ---------------------------------------------------------------------------
 
 
-def _list_source_ids(source: Client, slug: str) -> list[tuple[str, str]]:
-    """Return [(pipeline_id, pipeline_code), ...] across all pages."""
-    pairs: list[tuple[str, str]] = []
+def _list_source_pipelines(source: Client, slug: str) -> list[tuple[str, str, str]]:
+    """Return [(pipeline_id, code, name), ...] across all pages."""
+    pipelines = []
     page = 1
     while True:
         result = source.pipelines(
             workspace_slug=slug, page=page, per_page=PIPELINES_PAGE_SIZE
         )
-        pairs.extend((str(item.id), item.code) for item in result.items)
+        pipelines.extend(
+            (str(item.id), item.code, item.name or item.code) for item in result.items
+        )
         if page >= result.total_pages or result.total_pages == 0:
             break
         page += 1
-    return pairs
+    return pipelines
+
+
+def _assign_target_codes(
+    pipelines: list[tuple[str, str, str]],
+) -> list[tuple[str, str, str, str]]:
+    """Assign each source pipeline a deterministic, clash-free target code.
+
+    The target server derives a pipeline's code from ``slugify(name)`` and, on a
+    clash, appends a *random* hex suffix (see ``PipelineManager`` in
+    pipelines/models.py). That randomness makes target codes unpredictable and
+    breaks re-run idempotency. So we disambiguate clashing names ourselves —
+    appending " (2)", " (3)", ... — so the server never hits a clash and produces
+    exactly ``slugify(name)``, a code we can predict and match on later runs.
+
+    Pipelines are processed in a stable order (by source code) so a given
+    pipeline always receives the same number, hence the same code, across runs.
+
+    Returns [(pipeline_id, src_code, target_name, target_code), ...].
+    """
+    assignments = []
+    used_codes = set()
+    for pipeline_id, src_code, name in sorted(pipelines, key=lambda p: p[1]):
+        target_name = name
+        target_code = slugify(name)
+        n = 2
+        while target_code in used_codes:
+            target_name = f"{name} ({n})"
+            target_code = slugify(target_name)
+            n += 1
+        used_codes.add(target_code)
+        assignments.append((pipeline_id, src_code, target_name, target_code))
+    return assignments
+
+
+def _list_target_codes(target: Client, slug: str) -> set[str]:
+    """Return the set of pipeline codes already present on the target."""
+    codes = set()
+    page = 1
+    while True:
+        result = target.pipelines(
+            workspace_slug=slug, page=page, per_page=PIPELINES_PAGE_SIZE
+        )
+        codes.update(item.code for item in result.items)
+        if page >= result.total_pages or result.total_pages == 0:
+            break
+        page += 1
+    return codes
 
 
 def _fetch_source_detail(source: Client, pipeline_id: str) -> dict[str, Any]:
@@ -217,20 +275,21 @@ def _fetch_source_detail(source: Client, pipeline_id: str) -> dict[str, Any]:
 
 
 def _create_on_target(
-    target: Client, target_slug: str, src_pipeline: dict[str, Any]
+    target: Client, target_slug: str, src_pipeline: dict[str, Any], name: str
 ) -> tuple[str, str]:
     """Create an empty pipeline on the target and return (id, code).
 
     The server (see ``Pipeline.objects.create_if_has_perm`` in
     openhexa-app/.../pipelines/models.py) auto-generates the pipeline
-    code from ``slugify(name)`` with a collision suffix and rejects any
-    code the caller tries to pass. So we never pass a code; we always
-    read the actual one back from the response.
+    code from ``slugify(name)`` with a random collision suffix and rejects any
+    code the caller tries to pass. ``name`` is the disambiguated name chosen by
+    ``_assign_target_codes`` so the server produces a predictable code; we still
+    read the actual code back from the response as the source of truth.
     """
     is_notebook = src_pipeline.get("type") == "notebook"
     tags = [t["name"] for t in (src_pipeline.get("tags") or [])]
     create_input = CreatePipelineInput(
-        name=src_pipeline["name"] or src_pipeline["code"],
+        name=name,
         description=src_pipeline.get("description") or None,
         workspace_slug=target_slug,
         notebook_path=src_pipeline.get("notebookPath") if is_notebook else None,

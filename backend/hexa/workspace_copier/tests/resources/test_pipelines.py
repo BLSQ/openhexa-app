@@ -1,11 +1,13 @@
 from unittest.mock import MagicMock, patch
 
 from django.test import SimpleTestCase
+from slugify import slugify
 
 from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.progress import NullReporter
 from hexa.workspace_copier.resources.pipelines import (
     PipelinesCopier,
+    _assign_target_codes,
     _upload_versions,
 )
 from hexa.workspace_copier.results import CopyResult, PipelinesResult
@@ -22,12 +24,19 @@ class PipelinesCopierRemoteTest(SimpleTestCase):
     @patch("hexa.workspace_copier.resources.pipelines._upload_versions")
     @patch("hexa.workspace_copier.resources.pipelines._create_on_target")
     @patch("hexa.workspace_copier.resources.pipelines._fetch_source_detail")
-    @patch("hexa.workspace_copier.resources.pipelines._list_source_ids")
+    @patch("hexa.workspace_copier.resources.pipelines._list_target_codes")
+    @patch("hexa.workspace_copier.resources.pipelines._list_source_pipelines")
     def test_creates_new_pipeline(
-        self, mock_ids, mock_detail, mock_create, mock_upload, mock_update
+        self,
+        mock_list,
+        mock_target_codes,
+        mock_detail,
+        mock_create,
+        mock_upload,
+        mock_update,
     ):
-        mock_ids.return_value = [("pid-1", "my-pipeline")]
-        self.target.client.pipeline.return_value = None  # not on target yet
+        mock_list.return_value = [("pid-1", "my-pipeline", "My Pipeline")]
+        mock_target_codes.return_value = set()  # nothing on target yet
         mock_detail.return_value = {"type": "zipFile", "name": "My Pipeline"}
         mock_create.return_value = ("tgt-pid", "my-pipeline")
         mock_upload.return_value = (["v1"], None)
@@ -37,21 +46,73 @@ class PipelinesCopierRemoteTest(SimpleTestCase):
         self.assertEqual(self.result.pipelines.created, [("my-pipeline", ["v1"])])
         mock_update.assert_called_once()
 
-    @patch("hexa.workspace_copier.resources.pipelines._list_source_ids")
-    def test_skips_existing_pipeline(self, mock_ids):
-        mock_ids.return_value = [("pid-1", "my-pipeline")]
-        self.target.client.pipeline.return_value = MagicMock()  # already exists
+    @patch("hexa.workspace_copier.resources.pipelines._list_target_codes")
+    @patch("hexa.workspace_copier.resources.pipelines._list_source_pipelines")
+    def test_skips_existing_pipeline(self, mock_list, mock_target_codes):
+        mock_list.return_value = [("pid-1", "my-pipeline", "My Pipeline")]
+        # slugify("My Pipeline") == "my-pipeline" is already on the target.
+        mock_target_codes.return_value = {"my-pipeline"}
 
         PipelinesCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertEqual(self.result.pipelines.skipped, ["my-pipeline"])
         self.assertEqual(self.result.pipelines.created, [])
 
+    @patch("hexa.workspace_copier.resources.pipelines._list_target_codes")
+    @patch("hexa.workspace_copier.resources.pipelines._list_source_pipelines")
+    def test_same_named_source_pipelines_are_both_copied(
+        self, mock_list, mock_target_codes
+    ):
+        # Two source pipelines share the name "DHIS2 Tracker Programs". The
+        # second must not be dropped as "already existing": we disambiguate the
+        # name so each gets a distinct, predictable target code.
+        mock_list.return_value = [
+            ("pid-1", "dhis2-tracker-programs-64e0a8", "DHIS2 Tracker Programs"),
+            ("pid-2", "dhis2-tracker-programs", "DHIS2 Tracker Programs"),
+        ]
+        mock_target_codes.return_value = set()  # fresh workspace
+
+        with (
+            patch(
+                "hexa.workspace_copier.resources.pipelines._fetch_source_detail",
+                return_value={"type": "zipFile", "name": "DHIS2 Tracker Programs"},
+            ),
+            patch(
+                "hexa.workspace_copier.resources.pipelines._create_on_target",
+                side_effect=lambda _client, _slug, _detail, name: (
+                    f"tgt-{name}",
+                    slugify(name),
+                ),
+            ) as mock_create,
+            patch(
+                "hexa.workspace_copier.resources.pipelines._upload_versions",
+                return_value=([], None),
+            ),
+            patch("hexa.workspace_copier.resources.pipelines._update_settings"),
+        ):
+            PipelinesCopier().copy(
+                self.source, self.target, self.result, NullReporter()
+            )
+
+        self.assertEqual(self.result.pipelines.skipped, [])
+        self.assertEqual(
+            self.result.pipelines.created,
+            [("dhis2-tracker-programs", []), ("dhis2-tracker-programs-2", [])],
+        )
+        # The disambiguated name is what gets sent to the target.
+        sent_names = [call.args[3] for call in mock_create.call_args_list]
+        self.assertEqual(
+            sent_names, ["DHIS2 Tracker Programs", "DHIS2 Tracker Programs (2)"]
+        )
+
+    @patch("hexa.workspace_copier.resources.pipelines._list_target_codes")
     @patch("hexa.workspace_copier.resources.pipelines._fetch_source_detail")
-    @patch("hexa.workspace_copier.resources.pipelines._list_source_ids")
-    def test_notebook_without_path_is_skipped_with_warning(self, mock_ids, mock_detail):
-        mock_ids.return_value = [("pid-1", "nb")]
-        self.target.client.pipeline.return_value = None
+    @patch("hexa.workspace_copier.resources.pipelines._list_source_pipelines")
+    def test_notebook_without_path_is_skipped_with_warning(
+        self, mock_list, mock_detail, mock_target_codes
+    ):
+        mock_list.return_value = [("pid-1", "nb", "nb")]
+        mock_target_codes.return_value = set()
         mock_detail.return_value = {"type": "notebook", "notebookPath": None}
 
         PipelinesCopier().copy(self.source, self.target, self.result, NullReporter())
@@ -61,14 +122,18 @@ class PipelinesCopierRemoteTest(SimpleTestCase):
             any("notebookPath" in w for w in self.result.pipelines.warnings)
         )
 
+    @patch("hexa.workspace_copier.resources.pipelines._list_target_codes")
     @patch("hexa.workspace_copier.resources.pipelines._create_on_target")
     @patch("hexa.workspace_copier.resources.pipelines._fetch_source_detail")
-    @patch("hexa.workspace_copier.resources.pipelines._list_source_ids")
+    @patch("hexa.workspace_copier.resources.pipelines._list_source_pipelines")
     def test_failed_pipeline_is_recorded_and_does_not_abort(
-        self, mock_ids, mock_detail, mock_create
+        self, mock_list, mock_detail, mock_create, mock_target_codes
     ):
-        mock_ids.return_value = [("pid-1", "bad-one"), ("pid-2", "good-one")]
-        self.target.client.pipeline.return_value = None
+        mock_list.return_value = [
+            ("pid-1", "bad-one", "bad-one"),
+            ("pid-2", "good-one", "good-one"),
+        ]
+        mock_target_codes.return_value = set()
         mock_detail.side_effect = [
             {"type": "notebook", "notebookPath": "nb.ipynb"},
             {"type": "notebook", "notebookPath": "nb.ipynb"},
