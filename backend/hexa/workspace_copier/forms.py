@@ -3,6 +3,7 @@
 from django import forms
 
 from hexa.workspace_copier.orchestrator import WORKSPACE_COPIERS
+from hexa.workspace_copier.templates import DEFAULT_SOURCE_URL
 
 
 def _resource_choices() -> list[tuple[str, str]]:
@@ -88,3 +89,37 @@ class CopyWorkspaceForm(forms.Form):
         selected |= _mandatory_resources()
         cleaned["resources"] = selected
         return cleaned
+
+
+class CopyTemplatesForm(forms.Form):
+    """Pick a source and target server to copy all pipeline templates between.
+
+    Templates are server-wide, so there is no workspace slug or resource
+    selection — both sides are remote and each needs a ServiceAccount token. The
+    target organization is where the host "Template pipelines" workspace is
+    created when it doesn't already exist.
+    """
+
+    source_url = forms.URLField(
+        label="Source server URL",
+        initial=DEFAULT_SOURCE_URL,
+        help_text="GraphQL endpoint of the source server. Defaults to production.",
+    )
+    source_token = forms.CharField(
+        label="Source ServiceAccount token",
+        widget=forms.PasswordInput(render_value=True),
+    )
+
+    target_url = forms.URLField(
+        label="Target server URL",
+        help_text="GraphQL endpoint of the target server.",
+    )
+    target_token = forms.CharField(
+        label="Target ServiceAccount token",
+        widget=forms.PasswordInput(render_value=True),
+    )
+    target_organization = forms.CharField(
+        label="Target organization id",
+        help_text="UUID of the organization the host 'Template pipelines' "
+        "workspace is created under when needed.",
+    )
