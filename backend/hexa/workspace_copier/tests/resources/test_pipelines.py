@@ -7,7 +7,6 @@ from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.progress import NullReporter
 from hexa.workspace_copier.resources.pipelines import (
     PipelinesCopier,
-    _assign_target_codes,
     _upload_versions,
 )
 from hexa.workspace_copier.results import CopyResult, PipelinesResult
