@@ -6,6 +6,13 @@ import { AssistantToolName } from "graphql/types";
 // truth — every tool any agent can call). So tool identities live in exactly one
 // place (the Python agents) and flow here automatically; this module just gives
 // them a stable, conventional name for the rest of the assistant UI to key off.
+//
+// Note the `AssistantToolName` enum is deliberately not referenced by any GraphQL
+// operation — it rides along only because `@graphql-codegen/typescript` emits every
+// declared enum. That's the load-bearing trick that lets us type the frontend off a
+// backend list without a live API field; if codegen is ever switched to emit only
+// operation-used types, this import breaks (loudly, at build time) and would need a
+// dummy query selecting the enum, or a different generation path.
 export const TOOL = AssistantToolName;
 
 export type ToolName = AssistantToolName;
