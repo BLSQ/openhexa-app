@@ -53,9 +53,12 @@ def _build_source(url: str | None, token: str | None, slug: str) -> Endpoint:
 def _build_target(
     url: str | None,
     token: str | None,
-    organization_id: str,
+    organization_id: str | None,
     workspace_name: str | None,
+    workspace_slug: str | None,
 ) -> Endpoint:
+    if workspace_slug:
+        return _build_existing_target(url, token, workspace_slug)
     if url:
         client = build_client(url, token, label="target")
         return Endpoint.remote(
@@ -63,6 +66,32 @@ def _build_target(
         )
     return Endpoint.local(
         organization_id=organization_id, workspace_name=workspace_name
+    )
+
+
+def _build_existing_target(
+    url: str | None, token: str | None, workspace_slug: str
+) -> Endpoint:
+    """Build a target endpoint pointing at a pre-existing workspace.
+
+    Used by the idempotent re-run flow (``--target-workspace-slug``): the target
+    workspace is looked up instead of created, so a missing slug surfaces here as
+    a verification failure — the run aborts before any copying rather than
+    mid-way. With the slug already set on the endpoint, the workspace-metadata
+    copier skips creation and the downstream copiers make the rest of the run
+    idempotent by skipping resources that already exist.
+    """
+    if url:
+        client = build_client(url, token, label="target")
+        if client.workspace(slug=workspace_slug) is None:
+            raise GraphQLError(
+                f"target workspace '{workspace_slug}' not found — create it first "
+                "or omit --target-workspace-slug to create a new workspace."
+            )
+        return Endpoint.remote(client, slug=workspace_slug)
+    return Endpoint.local(
+        slug=workspace_slug,
+        workspace=Workspace.objects.get(slug=workspace_slug),
     )
 
 
@@ -104,8 +133,9 @@ def _verify_endpoints(
     source_slug: str,
     target_url: str | None,
     target_token: str | None,
-    target_organization_id: str,
+    target_organization_id: str | None,
     target_workspace_name: str | None,
+    target_workspace_slug: str | None = None,
 ) -> tuple[Endpoint, Endpoint]:
     """Verify and build both endpoints, raising :class:`CredentialError` on failure."""
     source, source_err = _verify_side(
@@ -119,6 +149,7 @@ def _verify_endpoints(
             target_token,
             target_organization_id,
             target_workspace_name,
+            target_workspace_slug,
         ),
     )
     errors = [e for e in (source_err, target_err) if e]
@@ -134,8 +165,9 @@ def run_copy(
     source_slug: str,
     target_url: str | None,
     target_token: str | None,
-    target_organization_id: str,
+    target_organization_id: str | None,
     target_workspace_name: str | None = None,
+    target_workspace_slug: str | None = None,
     resources: set[str] | None = None,
     reporter: ProgressReporter,
 ) -> CopyResult:
@@ -148,6 +180,7 @@ def run_copy(
         target_token=target_token,
         target_organization_id=target_organization_id,
         target_workspace_name=target_workspace_name,
+        target_workspace_slug=target_workspace_slug,
     )
     return copy_workspace(source, target, reporter, resources=resources)
 

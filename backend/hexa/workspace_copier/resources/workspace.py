@@ -35,6 +35,11 @@ class WorkspaceMetadataCopier(ResourceCopier):
         reporter: ProgressReporter,
     ) -> None:
         src_ws = self._read_source(source)
+
+        if target.slug:
+            self._use_existing_target(target, result, reporter)
+            return
+
         result.workspace_name = target.workspace_name or src_ws.name
 
         if target.is_remote:
@@ -47,6 +52,31 @@ class WorkspaceMetadataCopier(ResourceCopier):
         reporter.info(
             f"   created workspace {result.workspace_name!r} (slug '{target_slug}')"
         )
+
+    def _use_existing_target(
+        self, target: Endpoint, result: CopyResult, reporter: ProgressReporter
+    ) -> None:
+        """Re-run into an existing target workspace (``--target-workspace-slug``).
+
+        The workspace was already verified to exist during pre-flight, so here we
+        only read its name for the summary and leave its metadata untouched —
+        downstream copiers make the rest of the run idempotent by skipping
+        resources that already exist on the target.
+        """
+        ws = self._read_target(target)
+        result.workspace_slug = target.slug
+        result.workspace_name = ws.name
+        reporter.info(
+            f"   using existing workspace {ws.name!r} (slug '{target.slug}')"
+        )
+
+    def _read_target(self, target: Endpoint) -> Any:
+        if target.is_remote:
+            tgt_ws = target.client.workspace(slug=target.slug)
+            if tgt_ws is None:
+                raise GraphQLError(f"target workspace '{target.slug}' not found")
+            return tgt_ws
+        return target.workspace
 
     def _read_source(self, source: Endpoint) -> Any:
         if source.is_remote:
