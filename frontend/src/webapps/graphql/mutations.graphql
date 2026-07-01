@@ -5,7 +5,11 @@ mutation UpdateWebapp($input: UpdateWebappInput!) {
     webapp {
       id
       allowedOperations
+      url
       source {
+        ... on IframeSource {
+          url
+        }
         ... on GitSource {
           publishedVersion
         }

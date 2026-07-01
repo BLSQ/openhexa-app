@@ -98,7 +98,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             name: values.name,
             icon: values.icon,
             isPublic: values.isPublic,
-            subdomain: values.subdomain || null,
+            ...(values.subdomain && { subdomain: values.subdomain }),
             ...(webapp!.type !== WebappType.Static && {
               source: buildSource[webapp!.type](values),
             }),
@@ -119,6 +119,8 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           toast.error(t("Cannot change the type of an existing web app"));
         } else if (error === UpdateWebappError.InvalidUrl) {
           toast.error(t("Invalid URL. Only http and https URLs are allowed"));
+        } else if (error === UpdateWebappError.SubdomainRequired) {
+          toast.error(t("Subdomain is required"));
         } else if (error === UpdateWebappError.SubdomainNotLowercase) {
           toast.error(t("Subdomain must be lowercase"));
         } else if (error === UpdateWebappError.SubdomainTooShort) {
