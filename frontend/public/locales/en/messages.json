@@ -814,6 +814,7 @@
   "Stopped": "Stopped",
   "Stopped by": "Stopped by",
   "Stopped on": "Stopped on",
+  "Subdomain is required": "Subdomain is required",
   "Subdomain must be a single label (no dots)": "Subdomain must be a single label (no dots)",
   "Subdomain must be alphanumeric with hyphens, no leading/trailing hyphens, and 63 characters or fewer": "Subdomain must be alphanumeric with hyphens, no leading/trailing hyphens, and 63 characters or fewer",
   "Subdomain must be at least 3 characters": "Subdomain must be at least 3 characters",
