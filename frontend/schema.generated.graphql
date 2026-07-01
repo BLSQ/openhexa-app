@@ -5604,7 +5604,7 @@ type Webapp {
   commitDiff(ref: String!): WebappCommitDiff
   createdBy: User!
   description: String
-  files(ref: String): [FileNode!]
+  files(includeBinaryContent: Boolean = true, ref: String): [FileNode!]
   icon: String
   id: UUID!
   isFavorite: Boolean!
