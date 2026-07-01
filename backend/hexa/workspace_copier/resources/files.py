@@ -20,6 +20,16 @@ from hexa.workspace_copier.transport import GraphQLError, gql
 
 OBJECTS_PAGE_SIZE = 100
 
+# Directory names whose contents are never worth copying (editor/runtime
+# scratch dirs). Matched against any segment of an object key, so a nested
+# ``notebooks/.ipynb_checkpoints/foo.ipynb`` is skipped too.
+SKIPPED_DIRECTORIES = frozenset({".ipynb_checkpoints"})
+
+
+def is_skipped(key: str) -> bool:
+    """Whether an object key lives under a skipped directory."""
+    return any(segment in SKIPPED_DIRECTORIES for segment in key.split("/"))
+
 
 PREPARE_DOWNLOAD_MUTATION = """
 mutation PrepareDownload($input: PrepareObjectDownloadInput!) {
@@ -150,6 +160,8 @@ def walk(client: Client, ws_slug: str, prefix: str = "") -> Iterator[dict[str, A
             return
         page_data = ws["bucket"]["objects"]
         for obj in page_data["items"]:
+            if is_skipped(obj["key"]):
+                continue
             if obj["type"] == "FILE":
                 yield obj
             elif obj["type"] == "DIRECTORY":
