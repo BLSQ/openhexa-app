@@ -5,7 +5,7 @@ from django.test import SimpleTestCase
 
 from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.progress import NullReporter
-from hexa.workspace_copier.resources.files import FilesCopier
+from hexa.workspace_copier.resources.files import FilesCopier, is_skipped, walk
 from hexa.workspace_copier.results import CopyResult
 from hexa.workspace_copier.transport import GraphQLError
 
@@ -81,3 +81,47 @@ class FilesCopierRemoteTest(SimpleTestCase):
         self.assertEqual(
             self.result.files.failed, [("<listing>", "listing page 2 failed")]
         )
+
+
+class IsSkippedTest(SimpleTestCase):
+    def test_skips_ipynb_checkpoints_at_any_depth(self):
+        self.assertTrue(is_skipped(".ipynb_checkpoints/foo.ipynb"))
+        self.assertTrue(is_skipped("notebooks/.ipynb_checkpoints/foo.ipynb"))
+
+    def test_keeps_regular_files(self):
+        self.assertFalse(is_skipped("notebooks/foo.ipynb"))
+        self.assertFalse(is_skipped("data/a.txt"))
+
+
+class WalkTest(SimpleTestCase):
+    def _page(self, items, has_next=False):
+        return {
+            "workspace": {
+                "bucket": {"objects": {"hasNextPage": has_next, "items": items}}
+            }
+        }
+
+    @patch("hexa.workspace_copier.resources.files.gql")
+    def test_walk_skips_checkpoint_dirs_and_files(self, mock_gql):
+        # Top level lists a regular file, a skipped dir, and a normal dir; the
+        # skipped dir is never listed (no second gql call for it).
+        mock_gql.side_effect = [
+            self._page(
+                [
+                    {"key": "a.txt", "type": "FILE"},
+                    {"key": ".ipynb_checkpoints", "type": "DIRECTORY"},
+                    {"key": "sub", "type": "DIRECTORY"},
+                ]
+            ),
+            self._page(
+                [
+                    {"key": "sub/b.txt", "type": "FILE"},
+                    {"key": "sub/.ipynb_checkpoints/b.ipynb", "type": "FILE"},
+                ]
+            ),
+        ]
+
+        keys = [obj["key"] for obj in walk(MagicMock(), "src")]
+
+        self.assertEqual(keys, ["a.txt", "sub/b.txt"])
+        self.assertEqual(mock_gql.call_count, 2)
