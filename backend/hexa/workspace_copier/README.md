@@ -70,6 +70,28 @@ Example usage:
 
 Tokens are ServiceAccount tokens (managed under Django admin → Service accounts). A remote side needs one with permission to read the source workspace / create under the target organization. `--target-workspace-name` is optional and defaults to the same name as the source workspace.
 
+#### Re-running into an existing workspace (idempotency)
+
+By default each run creates a **new** target workspace (the server appends a random suffix to the slug), so if a run is interrupted mid-way, you can't simply repeat.
+Pass `--target-workspace-slug` to copy **into an existing workspace** instead:
+
+```
+./manage.py copy_workspace \
+	--source-workspace-slug my-workspace \
+	--source-url https://api.openhexa.org/graphql/ \
+	--source-token 'my-prod-service-account-token' \
+	--target-url https://api.demo.openhexa.org/graphql/ \
+	--target-token 'my-demo-service-account-token' \
+	--target-workspace-slug my-workspace-ab12   # slug created by the first run
+```
+
+When `--target-workspace-slug` is set:
+
+- the workspace-metadata copier **skips creation** and leaves the existing workspace's metadata untouched;
+- every resource copier skips what already exists (pipelines by code, connections by slug, files re-uploaded), so only the missing pieces are filled in;
+- if the slug does **not** exist on the target, the run exists early with a clear message;
+- `--target-organization` and `--target-workspace-name` are no longer required or taken into account.
+
 ### Django Admin:
 
 On the workspaces list page, there's a new button "Copy workspace". This provides a view to easily run the CLI script.

@@ -51,14 +51,24 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--target-organization",
-            required=True,
-            help="UUID of the organization on the target server.",
+            default=None,
+            help="UUID of the organization on the target server. Required unless "
+            "--target-workspace-slug is given.",
         )
         parser.add_argument(
             "--target-workspace-name",
             default=None,
             help="Optional name for the target workspace. "
-            "Defaults to the source workspace name.",
+            "Defaults to the source workspace name. "
+            "Ignored when --target-workspace-slug is given.",
+        )
+        parser.add_argument(
+            "--target-workspace-slug",
+            default=None,
+            help="Slug of an existing target workspace to copy into, instead of "
+            "creating a new one. Makes the copy idempotent: resources that "
+            "already exist are skipped, so an interrupted run can be re-run "
+            "safely. Exits early if the slug does not exist on the target.",
         )
         parser.add_argument(
             "--resources",
@@ -85,6 +95,19 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         resources = self._resolve_resources(options["resources"])
+        target_workspace_slug = options["target_workspace_slug"]
+
+        if not target_workspace_slug and not options["target_organization"]:
+            raise CommandError(
+                "--target-organization is required unless --target-workspace-slug "
+                "is given (re-run into an existing workspace)."
+            )
+        if target_workspace_slug and options["target_workspace_name"]:
+            self.stdout.write(
+                "Note: --target-workspace-name is ignored when "
+                "--target-workspace-slug is set (the workspace already exists)."
+            )
+
         reporter = StreamReporter(self.stdout)
 
         try:
@@ -96,6 +119,7 @@ class Command(BaseCommand):
                 target_token=options["target_token"],
                 target_organization_id=options["target_organization"],
                 target_workspace_name=options["target_workspace_name"],
+                target_workspace_slug=target_workspace_slug,
                 resources=resources,
                 reporter=reporter,
             )
