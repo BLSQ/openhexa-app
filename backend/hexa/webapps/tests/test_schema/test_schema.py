@@ -236,6 +236,98 @@ class WebappsTest(GraphQLTestCase):
         self.WEBAPP.refresh_from_db()
         self.assertEqual(self.WEBAPP.subdomain, original_subdomain)
 
+    def test_update_webapp_subdomain_and_url_together(self):
+        """A single mutation updating both the subdomain and the source URL must
+        persist both changes."""
+        self.client.force_login(self.USER_ROOT)
+        response = self.run_query(
+            """
+            mutation updateWebapp($input: UpdateWebappInput!) {
+                updateWebapp(input: $input) {
+                    success
+                    errors
+                    webapp {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.WEBAPP.id),
+                    "subdomain": "combined-webapp",
+                    "source": {"iframe": {"url": "http://combined.com"}},
+                }
+            },
+        )
+        self.assertEqual([], response["data"]["updateWebapp"]["errors"])
+        self.assertTrue(response["data"]["updateWebapp"]["success"])
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual("combined-webapp", self.WEBAPP.subdomain)
+        self.assertEqual("http://combined.com", self.WEBAPP.url)
+
+    def test_update_webapp_url_not_persisted_when_subdomain_invalid(self):
+        """The resolver assigns the new URL before validating the subdomain. If
+        the subdomain is rejected, the whole update must fail atomically and the
+        URL must stay unchanged."""
+        self.client.force_login(self.USER_ROOT)
+        original_url = self.WEBAPP.url
+
+        response = self.run_query(
+            """
+            mutation updateWebapp($input: UpdateWebappInput!) {
+                updateWebapp(input: $input) {
+                    success
+                    errors
+                    webapp {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.WEBAPP.id),
+                    "subdomain": "",
+                    "source": {"iframe": {"url": "http://should-not-persist.com"}},
+                }
+            },
+        )
+        self.assertFalse(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(
+            response["data"]["updateWebapp"]["errors"], ["SUBDOMAIN_REQUIRED"]
+        )
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(original_url, self.WEBAPP.url)
+
+    def test_update_iframe_webapp_invalid_url_rejected(self):
+        self.client.force_login(self.USER_ROOT)
+        original_url = self.WEBAPP.url
+
+        response = self.run_query(
+            """
+            mutation updateWebapp($input: UpdateWebappInput!) {
+                updateWebapp(input: $input) {
+                    success
+                    errors
+                    webapp {
+                        id
+                    }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "id": str(self.WEBAPP.id),
+                    "source": {"iframe": {"url": "not-a-valid-url"}},
+                }
+            },
+        )
+        self.assertFalse(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(response["data"]["updateWebapp"]["errors"], ["INVALID_URL"])
+        self.WEBAPP.refresh_from_db()
+        self.assertEqual(original_url, self.WEBAPP.url)
+
     def test_update_webapp_subdomain_not_lowercase(self):
         self.client.force_login(self.USER_ROOT)
         original_subdomain = self.WEBAPP.subdomain

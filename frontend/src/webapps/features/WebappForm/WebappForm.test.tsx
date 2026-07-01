@@ -122,4 +122,60 @@ describe("WebappForm", () => {
     });
     expect(sentInput).not.toHaveProperty("subdomain", null);
   });
+
+  it("sends the subdomain when the field is present (non-iframe webapp)", async () => {
+    const staticWebapp = {
+      ...webapp,
+      type: WebappType.Static,
+      previewUrl: null,
+    } as any;
+
+    const updateVariables = jest.fn();
+    const updateMock: MockedResponse = {
+      request: { query: UpdateWebappDocument },
+      variableMatcher: (variables) => {
+        updateVariables(variables);
+        return true;
+      },
+      result: {
+        data: {
+          updateWebapp: {
+            __typename: "UpdateWebappResult",
+            success: true,
+            errors: [],
+            webapp: {
+              __typename: "Webapp",
+              id: "webapp-1",
+              allowedOperations: [],
+              url: "https://old.example.com",
+              source: { __typename: "GitSource", publishedVersion: null },
+            },
+          },
+        },
+      },
+    };
+
+    render(
+      <TestApp mocks={[supersetInstancesMock, updateMock]}>
+        <WebappForm workspace={workspace} webapp={staticWebapp} />
+      </TestApp>,
+    );
+
+    fireEvent.click(screen.getByText("Edit"));
+
+    await waitFor(() => {
+      expect(screen.getByText("Save")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith(
+        "Web app updated successfully",
+      );
+    });
+
+    const sentInput = updateVariables.mock.calls[0][0].input;
+    expect(sentInput.subdomain).toBe("test-webapp");
+    expect(sentInput).not.toHaveProperty("source");
+  });
 });
