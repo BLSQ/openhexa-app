@@ -164,7 +164,8 @@ class WebappsTest(GraphQLTestCase):
 
     def test_update_iframe_webapp_url_with_null_subdomain(self):
         """The web app form does not expose the subdomain for iframe webapps and
-        sends ``subdomain: null``; this must not block the URL update."""
+        sends ``subdomain: null``; this must not block the URL update.
+        """
         self.client.force_login(self.USER_ROOT)
         response = self.run_query(
             """
@@ -208,7 +209,8 @@ class WebappsTest(GraphQLTestCase):
     def test_update_webapp_subdomain_null_is_noop(self):
         """An explicit ``subdomain: null`` means "leave it untouched" and must
         not error. The web app form sends it for iframe webapps that do not
-        expose a subdomain field."""
+        expose a subdomain field.
+        """
         self.client.force_login(self.USER_ROOT)
         original_subdomain = self.WEBAPP.subdomain
 
@@ -238,7 +240,8 @@ class WebappsTest(GraphQLTestCase):
 
     def test_update_webapp_subdomain_and_url_together(self):
         """A single mutation updating both the subdomain and the source URL must
-        persist both changes."""
+        persist both changes.
+        """
         self.client.force_login(self.USER_ROOT)
         response = self.run_query(
             """
@@ -269,7 +272,8 @@ class WebappsTest(GraphQLTestCase):
     def test_update_webapp_url_not_persisted_when_subdomain_invalid(self):
         """The resolver assigns the new URL before validating the subdomain. If
         the subdomain is rejected, the whole update must fail atomically and the
-        URL must stay unchanged."""
+        URL must stay unchanged.
+        """
         self.client.force_login(self.USER_ROOT)
         original_url = self.WEBAPP.url
 
