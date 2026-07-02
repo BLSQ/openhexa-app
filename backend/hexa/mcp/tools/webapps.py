@@ -1,8 +1,6 @@
 import json
 
-from hexa.git.exceptions import GitFileNotFound
 from hexa.mcp.protocol import tool
-from hexa.webapps.models import GitWebapp, WebappFileBinaryError
 
 from ._graphql import execute_graphql
 
@@ -217,31 +215,16 @@ def get_static_webapp_file(
     For large files, pass start_line and end_line (1-indexed, inclusive) to read only
     the relevant section and avoid loading the full file into context.
     """
-    try:
-        webapp = GitWebapp.objects.filter_for_user(user).get(
-            workspace__slug=workspace_slug, slug=webapp_slug
-        )
-    except GitWebapp.DoesNotExist:
-        return {"error": "Webapp not found"}
-
-    try:
-        content = webapp.get_file_content(path)
-    except GitFileNotFound:
-        return {"error": f"File not found: {path}"}
-    except WebappFileBinaryError:
-        return {"error": f"Binary files cannot be read as text: {path}"}
-
-    if start_line is not None or end_line is not None:
-        all_lines = content.splitlines()
-        total = len(all_lines)
-        s = max(1, start_line or 1) - 1
-        e = min(total, end_line or total)
-        content = "\n".join(all_lines[s:e])
-        return {
-            "path": path,
-            "content": content,
-            "lines": f"{s + 1}-{e}",
-            "total_lines": total,
-        }
-
-    return {"path": path, "content": content}
+    variables = {
+        "workspaceSlug": workspace_slug,
+        "webappSlug": webapp_slug,
+        "path": path,
+    }
+    if start_line is not None:
+        variables["startLine"] = start_line
+    if end_line is not None:
+        variables["endLine"] = end_line
+    data = execute_graphql(user, "ReadWebappFile", variables)
+    if "errors" in data:
+        return data
+    return data["readWebappFile"]

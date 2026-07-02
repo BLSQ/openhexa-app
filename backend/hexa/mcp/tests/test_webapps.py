@@ -478,6 +478,7 @@ class GetStaticWebappFileTest(MCPTestCase):
             webapp_slug=webapp_slug,
             path="index.html",
         )
+        self.assertTrue(result["success"], result)
         self.assertEqual(result["path"], "index.html")
         self.assertEqual(result["content"], "<h1>Hello</h1>")
 
@@ -503,8 +504,8 @@ class GetStaticWebappFileTest(MCPTestCase):
             webapp_slug=webapp_slug,
             path="missing.html",
         )
-        self.assertIn("error", result)
-        self.assertIn("missing.html", result["error"])
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["PATH_NOT_FOUND"])
 
     @_mock_forgejo()
     def test_get_static_webapp_file_binary_rejected(self, mock_forgejo):
@@ -526,8 +527,8 @@ class GetStaticWebappFileTest(MCPTestCase):
             webapp_slug=webapp_slug,
             path="logo.png",
         )
-        self.assertIn("error", result)
-        self.assertIn("Binary", result["error"])
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["BINARY_FILE"])
 
     def test_get_static_webapp_file_webapp_not_found(self):
         result = get_static_webapp_file(
@@ -536,7 +537,8 @@ class GetStaticWebappFileTest(MCPTestCase):
             webapp_slug="does-not-exist",
             path="index.html",
         )
-        self.assertEqual(result, {"error": "Webapp not found"})
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["WEBAPP_NOT_FOUND"])
 
     @_mock_forgejo()
     def test_get_static_webapp_file_no_access(self, mock_forgejo):
@@ -555,7 +557,8 @@ class GetStaticWebappFileTest(MCPTestCase):
             webapp_slug=webapp_slug,
             path="index.html",
         )
-        self.assertEqual(result, {"error": "Webapp not found"})
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["WEBAPP_NOT_FOUND"])
 
 
 class EditStaticWebappFileTest(MCPTestCase):
