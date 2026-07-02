@@ -6,7 +6,7 @@ import { DocumentIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import CodeMirrorClient from "core/components/CodeMirrorClient/CodeMirrorClient";
 import { useTranslation } from "next-i18next";
-import { useMemo } from "react";
+import { ReactNode, useMemo } from "react";
 import { r } from "codemirror-lang-r";
 import { FileNode } from "./types";
 
@@ -19,6 +19,7 @@ type FileEditorPaneProps = {
   saveError: string | null;
   proposedByKey: Map<string, string>;
   deletedFilePaths: Set<string>;
+  headerActions?: ReactNode;
   onContentChange: (content: string) => void;
   onSave: () => void;
   hasSaveHandler: boolean;
@@ -33,6 +34,7 @@ const FileEditorPane = ({
   saveError,
   proposedByKey,
   deletedFilePaths,
+  headerActions,
   onContentChange,
   onSave,
   hasSaveHandler,
@@ -41,7 +43,8 @@ const FileEditorPane = ({
 
   const isEffectivelyDeleted =
     selectedFile !== null && deletedFilePaths.has(selectedFile.path);
-  const isDiffMode = selectedFile !== null && proposedByKey.has(selectedFile.path);
+  const isDiffMode =
+    selectedFile !== null && proposedByKey.has(selectedFile.path);
 
   const extensions = useMemo(
     () => [
@@ -72,7 +75,12 @@ const FileEditorPane = ({
 
   if (!selectedFile) {
     return (
-      <div className="flex items-center justify-center flex-1 min-h-[300px]">
+      <div className="relative flex items-center justify-center flex-1 min-h-[300px]">
+        {headerActions && (
+          <div className="absolute top-3 right-3 flex items-center gap-2">
+            {headerActions}
+          </div>
+        )}
         <div className="text-center">
           <DocumentIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <div className="text-gray-500 text-lg mb-2">
@@ -88,8 +96,8 @@ const FileEditorPane = ({
 
   return (
     <>
-      <div className="p-3 border-b border-gray-200 bg-white flex items-center justify-between">
-        <div>
+      <div className="p-3 border-b border-gray-200 bg-white flex items-center justify-between gap-2">
+        <div className="min-w-0">
           <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
             {selectedFile.name}
             {currentFileIsModified && (
@@ -115,20 +123,23 @@ const FileEditorPane = ({
             )}
           </div>
         </div>
-        {isEditable && currentFileIsModified && hasSaveHandler && (
-          <button
-            onClick={onSave}
-            disabled={isSaving}
-            className={clsx(
-              "px-3 py-1 text-xs font-medium rounded-md transition-colors",
-              isSaving
-                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700",
-            )}
-          >
-            {isSaving ? t("Saving...") : t("Save")}
-          </button>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          {headerActions}
+          {isEditable && currentFileIsModified && hasSaveHandler && (
+            <button
+              onClick={onSave}
+              disabled={isSaving}
+              className={clsx(
+                "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                isSaving
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-blue-600 text-white hover:bg-blue-700",
+              )}
+            >
+              {isSaving ? t("Saving...") : t("Save")}
+            </button>
+          )}
+        </div>
       </div>
       {isEffectivelyDeleted && (
         <div className="shrink-0 flex items-center border-b border-red-200 bg-red-50 px-3 py-2 text-sm">

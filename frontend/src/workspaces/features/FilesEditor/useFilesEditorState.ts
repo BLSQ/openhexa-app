@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FileType } from "graphql/types";
+import { FileEncoding, FileType } from "graphql/types";
 import useNavigationWarning from "core/hooks/useNavigationWarning";
 import useFilesEditorPanelOpen from "workspaces/hooks/useFilesEditorPanelOpen";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
@@ -119,7 +119,12 @@ export const useFilesEditorState = ({
     const proposedNames = new Set(proposedFiles.map((f) => f.name));
     return new Set(
       flatFiles
-        .filter((f) => f.type === FileType.File && !proposedNames.has(f.path))
+        .filter(
+          (f) =>
+            f.type === FileType.File &&
+            !proposedNames.has(f.path) &&
+            f.encoding !== FileEncoding.Base64,
+        )
         .map((f) => f.path),
     );
   }, [proposedFiles, flatFiles]);

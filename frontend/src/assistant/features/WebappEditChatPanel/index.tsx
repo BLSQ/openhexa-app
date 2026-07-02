@@ -3,31 +3,31 @@ import EditObjectChatPanel, {
   AssistantConversation,
 } from "assistant/features/EditObjectChatPanel";
 import { LinkedObjectType } from "graphql/types";
-import { ProposedFile } from "workspaces/features/FilesEditor/FilesEditor";
 
-export type PipelineConversation = AssistantConversation;
+export type WebappConversation = AssistantConversation;
+export type WebappProposedFile = { path: string; content: string };
 
 type Props = {
-  pipelineId: string;
+  webappId: string;
   workspaceSlug: string;
   monthlyLimitExceeded: boolean;
-  onProposedFiles: (files: ProposedFile[] | null, toolInvocationId?: string) => void;
-  conversations: PipelineConversation[];
+  onProposedFiles: (files: WebappProposedFile[] | null, toolInvocationId?: string) => void;
+  conversations: WebappConversation[];
   activeConversationId: string | null;
   onConversationChange: (id: string) => void;
   onNewConversation: () => void;
-  onConversationCreated: (conversation: PipelineConversation) => void;
+  onConversationCreated: (conversation: WebappConversation) => void;
   onConversationNameChange: (id: string, name: string) => void;
 };
 
-export default function PipelineEditChatPanel({
-  pipelineId,
+export default function WebappEditChatPanel({
+  webappId,
   onProposedFiles,
   ...rest
 }: Props) {
   const handleProposedFiles = useCallback(
     (files: unknown[] | null, toolInvocationId?: string) => {
-      onProposedFiles(files as ProposedFile[] | null, toolInvocationId);
+      onProposedFiles(files as WebappProposedFile[] | null, toolInvocationId);
     },
     [onProposedFiles],
   );
@@ -35,9 +35,9 @@ export default function PipelineEditChatPanel({
   return (
     <EditObjectChatPanel
       {...rest}
-      linkedObjectId={pipelineId}
-      linkedObjectType={LinkedObjectType.Pipeline}
-      proposalToolName="propose_pipeline_version"
+      linkedObjectId={webappId}
+      linkedObjectType={LinkedObjectType.StaticWebapp}
+      proposalToolName="propose_webapp_version"
       onProposedFiles={handleProposedFiles}
     />
   );

@@ -875,6 +875,16 @@ query WorkspaceWebappPage($workspaceSlug: String!, $webappSlug: String!) {
     ...WebappForm_webapp
     ...WebappLayout_webapp
     ...WebappApiAccess_webapp
+    id
+    assistantConversations {
+      id
+      name
+      createdAt
+      updatedAt
+    }
+  }
+  me {
+    assistantMonthlyLimitExceeded
   }
 }
 

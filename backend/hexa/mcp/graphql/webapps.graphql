@@ -46,6 +46,18 @@ query GetStaticWebapp($workspaceSlug: String!, $slug: String!) {
   }
 }
 
+query ReadWebappFile($workspaceSlug: String!, $webappSlug: String!, $path: String!, $startLine: Int, $endLine: Int) {
+  readWebappFile(workspaceSlug: $workspaceSlug, webappSlug: $webappSlug, path: $path, startLine: $startLine, endLine: $endLine) {
+    success
+    errors
+    path
+    content
+    startLine
+    endLine
+    totalLines
+  }
+}
+
 mutation CreateStaticWebapp($input: CreateWebappInput!) {
   createWebapp(input: $input) {
     success

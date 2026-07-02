@@ -268,6 +268,31 @@ enum EditWebappFileError {
 }
 
 """
+Represents the result of reading a single text file from a static web app.
+When startLine/endLine are provided, content is limited to that line window
+and the window bounds and total line count are returned.
+"""
+type ReadWebappFileResult {
+  success: Boolean!
+  errors: [ReadWebappFileError!]!
+  path: String
+  content: String
+  startLine: Int
+  endLine: Int
+  totalLines: Int
+}
+
+"""
+Represents the error message for reading a web app file.
+"""
+enum ReadWebappFileError {
+  WEBAPPS_NOT_CONFIGURED
+  WEBAPP_NOT_FOUND
+  PATH_NOT_FOUND
+  BINARY_FILE
+}
+
+"""
 Represents the input for deleting a web app.
 """
 input DeleteWebappInput {
@@ -347,6 +372,7 @@ extend type Query {
   webapp(workspaceSlug: String!, slug: String!): Webapp
   webapps(workspaceSlug: String, favorite: Boolean, page: Int, perPage: Int): WebappsPage! @loginRequired
   supersetInstances(workspaceSlug: String!): [SupersetInstance!]! @loginRequired
+  readWebappFile(workspaceSlug: String!, webappSlug: String!, path: String!, startLine: Int, endLine: Int): ReadWebappFileResult! @loginRequired
 }
 
 extend type Mutation {

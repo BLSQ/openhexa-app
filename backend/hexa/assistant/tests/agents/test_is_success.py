@@ -12,6 +12,12 @@ class IsSuccessTest(TestCase):
     def test_dict_with_nested_errors_is_failure(self):
         self.assertFalse(_is_success({"createPipeline": {"errors": ["Invalid name"]}}))
 
+    def test_dict_with_singular_error_key_is_failure(self):
+        self.assertFalse(_is_success({"error": "old_string not found in the file"}))
+
+    def test_dict_with_nested_singular_error_is_failure(self):
+        self.assertFalse(_is_success({"result": {"error": "No changes provided"}}))
+
     def test_non_json_string_is_failure(self):
         self.assertFalse(_is_success("this is not json"))
 

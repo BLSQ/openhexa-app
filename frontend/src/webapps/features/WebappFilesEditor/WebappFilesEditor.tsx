@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { toast } from "react-toastify";
 import { isRequestTooLargeError } from "core/helpers/errors";
@@ -17,7 +17,7 @@ type WebappFilesEditorProps = {
   webappSlug: string;
   isEditable: boolean;
   versionRef?: string;
-  versionPicker?: ReactNode;
+  proposedFiles?: { path: string; content: string }[];
   onSaveSuccess?: () => void;
   onBusyChange?: (busy: boolean) => void;
 };
@@ -28,7 +28,7 @@ const WebappFilesEditor = ({
   webappSlug,
   isEditable,
   versionRef,
-  versionPicker,
+  proposedFiles,
   onSaveSuccess,
   onBusyChange,
 }: WebappFilesEditorProps) => {
@@ -153,81 +153,79 @@ const WebappFilesEditor = ({
     }
   };
 
+  const uploadActions = isEditable ? (
+    <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        aria-hidden="true"
+        onChange={(e) => {
+          if (e.target.files?.length) {
+            handleUpload(e.target.files).then();
+            e.target.value = "";
+          }
+        }}
+      />
+      <input
+        ref={folderInputRef}
+        type="file"
+        className="hidden"
+        aria-hidden="true"
+        onChange={(e) => {
+          if (e.target.files?.length) {
+            handleUpload(e.target.files).then();
+            e.target.value = "";
+          }
+        }}
+        {...({ webkitdirectory: "", directory: "" } as Record<string, string>)}
+      />
+      <button
+        className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={isUploading}
+      >
+        {isUploading ? (
+          <Spinner size="xs" className="text-gray-500" />
+        ) : (
+          <ArrowUpTrayIcon className="h-3.5 w-3.5 text-gray-500" />
+        )}
+        {isUploading ? t("Uploading...") : t("Upload files")}
+      </button>
+      <button
+        className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        onClick={() => folderInputRef.current?.click()}
+        disabled={isUploading}
+      >
+        {isUploading ? (
+          <Spinner size="xs" className="text-gray-500" />
+        ) : (
+          <FolderPlusIcon className="h-3.5 w-3.5 text-gray-500" />
+        )}
+        {isUploading ? t("Uploading...") : t("Upload folder")}
+      </button>
+    </>
+  ) : undefined;
+
   return (
-    <div>
-      <div className="mb-3 flex items-center justify-between">
-        {versionPicker && <div className="w-96">{versionPicker}</div>}
-        {isEditable && (
-          <div className="flex items-center gap-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              className="hidden"
-              aria-hidden="true"
-              onChange={(e) => {
-                if (e.target.files?.length) {
-                  handleUpload(e.target.files).then();
-                  e.target.value = "";
-                }
-              }}
-            />
-            <input
-              ref={folderInputRef}
-              type="file"
-              className="hidden"
-              aria-hidden="true"
-              onChange={(e) => {
-                if (e.target.files?.length) {
-                  handleUpload(e.target.files).then();
-                  e.target.value = "";
-                }
-              }}
-              {...({ webkitdirectory: "", directory: "" } as Record<
-                string,
-                string
-              >)}
-            />
-            <button
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <Spinner size="xs" className="text-gray-500" />
-              ) : (
-                <ArrowUpTrayIcon className="h-4 w-4 text-gray-500" />
-              )}
-              {isUploading ? t("Uploading...") : t("Upload files")}
-            </button>
-            <button
-              className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={() => folderInputRef.current?.click()}
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <Spinner size="xs" className="text-gray-500" />
-              ) : (
-                <FolderPlusIcon className="h-4 w-4 text-gray-500" />
-              )}
-              {isUploading ? t("Uploading...") : t("Upload folder")}
-            </button>
-          </div>
-        )}
-      </div>
-      <div className="relative">
-        {isLoading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center backdrop-blur-xs">
-            <Spinner size="md" />
-          </div>
-        )}
-        <FilesEditor
-          name={t("Web app")}
-          files={files}
-          isEditable={isEditable}
-          onSave={handleSave}
-        />
-      </div>
+    <div className="relative flex-1 min-h-0 h-full">
+      {isLoading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center backdrop-blur-xs">
+          <Spinner size="md" />
+        </div>
+      )}
+      <FilesEditor
+        name={t("Web app")}
+        files={files}
+        isEditable={isEditable}
+        proposedFiles={proposedFiles?.map((f) => ({
+          name: f.path,
+          content: f.content,
+        }))}
+        headerActions={uploadActions}
+        onSave={handleSave}
+      />
     </div>
   );
 };

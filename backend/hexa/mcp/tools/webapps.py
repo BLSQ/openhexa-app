@@ -195,3 +195,36 @@ def edit_static_webapp_file(
     if "errors" in data:
         return data
     return data["editWebappFile"]
+
+
+@tool
+def get_static_webapp_file(
+    user,
+    workspace_slug: str,
+    webapp_slug: str,
+    path: str,
+    start_line: int | None = None,
+    end_line: int | None = None,
+) -> dict:
+    """Read the content of a single text file from a static web app.
+
+    Use get_static_webapp to discover available file paths first, then call this tool
+    to read the content of a specific file. Binary files (images, fonts, etc.) cannot
+    be read with this tool.
+
+    For large files, pass start_line and end_line (1-indexed, inclusive) to read only
+    the relevant section and avoid loading the full file into context.
+    """
+    variables = {
+        "workspaceSlug": workspace_slug,
+        "webappSlug": webapp_slug,
+        "path": path,
+    }
+    if start_line is not None:
+        variables["startLine"] = start_line
+    if end_line is not None:
+        variables["endLine"] = end_line
+    data = execute_graphql(user, "ReadWebappFile", variables)
+    if "errors" in data:
+        return data
+    return data["readWebappFile"]

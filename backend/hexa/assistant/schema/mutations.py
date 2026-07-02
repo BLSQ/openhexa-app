@@ -6,6 +6,7 @@ from django.core.exceptions import PermissionDenied
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, ToolInvocation
 from hexa.pipelines.models import Pipeline
+from hexa.webapps.models import GitWebapp
 from hexa.workspaces.models import Workspace
 
 logger = getLogger(__name__)
@@ -22,6 +23,10 @@ def _resolve_linked_object(user, linked_object_type, linked_object_id):
         "Pipeline": (
             Pipeline.objects.filter_for_user(user),
             InstructionSet.EDIT_PIPELINE,
+        ),
+        "StaticWebapp": (
+            GitWebapp.objects.filter_for_user(user),
+            InstructionSet.EDIT_WEBAPP,
         ),
     }
     if linked_object_type not in resolvers:
