@@ -743,18 +743,43 @@ ACCESSMOD_SET_PASSWORD_URL = os.environ.get("ACCESSMOD_SET_PASSWORD_URL")
 GIT_SERVER_URL = os.environ.get("GIT_SERVER_URL", "http://forgejo:3000")
 GIT_SERVER_ADMIN_USERNAME = os.environ.get("GIT_SERVER_ADMIN_USERNAME")
 GIT_SERVER_ADMIN_PASSWORD = os.environ.get("GIT_SERVER_ADMIN_PASSWORD")
+GIT_PROXY_USERNAME = os.environ.get("GIT_PROXY_USERNAME")
+GIT_PROXY_PASSWORD = os.environ.get("GIT_PROXY_PASSWORD")
+GIT_PUBLIC_URL = os.environ.get("GIT_PUBLIC_URL", "http://localhost:3200")
+if GIT_PUBLIC_URL and GIT_PUBLIC_URL not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(GIT_PUBLIC_URL)
 
 # OAuth2 Provider (django-oauth-toolkit)
 OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": True,
-    "SCOPES": {"openhexa:mcp": "Access the OpenHEXA MCP server"},
+    "SCOPES": {
+        "openhexa:mcp": "Access the OpenHEXA MCP server",
+        "openhexa:git": "Access OpenHEXA git repositories",
+    },
     "DEFAULT_SCOPES": ["openhexa:mcp"],
     "ACCESS_TOKEN_EXPIRE_SECONDS": int(
         os.environ.get("OAUTH2_ACCESS_TOKEN_EXPIRE_SECONDS", 3600)
     ),
-    "REFRESH_TOKEN_EXPIRE_SECONDS": 86400,
+    "REFRESH_TOKEN_EXPIRE_SECONDS": int(
+        os.environ.get("OAUTH2_REFRESH_TOKEN_EXPIRE_SECONDS", 30 * 24 * 60 * 60)
+    ),
     "ALLOWED_REDIRECT_URI_SCHEMES": ["https", "http"],
+    "OAUTH2_VALIDATOR_CLASS": "hexa.oauth.validators.OpenHEXAOAuth2Validator",
 }
+
+GIT_ACCESS_TOKEN_EXPIRE_SECONDS = int(
+    os.environ.get("GIT_ACCESS_TOKEN_EXPIRE_SECONDS", 365 * 24 * 60 * 60)
+)
+
+# Public OAuth2 clients used by git credential helpers. The Gitea client id is
+# the universal one baked into Git Credential Manager's Gitea provider: when the
+# proxy advertises `WWW-Authenticate: Basic realm="Gitea"`, GCM auto-discovers
+# OpenHEXA and signs in with no client configuration. The generic client serves
+# manual setups (git-credential-oauth). Both Applications are created in a
+# hexa.git data migration.
+GITEA_OAUTH_CLIENT_ID = "e90ee53c-94e2-48ac-9358-a874fb9e0662"
+GIT_OAUTH_CLIENT_ID = os.environ.get("GIT_OAUTH_CLIENT_ID", "openhexa-git")
+GIT_OAUTH_CLIENT_IDS = {GITEA_OAUTH_CLIENT_ID, GIT_OAUTH_CLIENT_ID}
 
 OAUTH2_ALLOWED_REDIRECT_URI_HOSTS = {
     "localhost",

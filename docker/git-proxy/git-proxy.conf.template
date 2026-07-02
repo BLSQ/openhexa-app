@@ -1,0 +1,50 @@
+server {
+    listen 3000;
+    server_name _;
+
+    resolver 127.0.0.11 ipv6=off valid=10s;
+
+    # OpenHEXA's web + auth surface (sign-in, OAuth, static assets) -> the app.
+    # A regex location, so it takes precedence over the catch-all git location.
+    location ~ ^/(login|oauth|accounts|static)(/|$) {
+        set $app_upstream ${APP_UPSTREAM};
+        proxy_pass http://$app_upstream$request_uri;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # Everything else is git: authorize against OpenHEXA, then forward to Forgejo.
+    location / {
+        auth_request /_git_authorize;
+        error_page 401 = @gitea_challenge;
+
+        set $forgejo_upstream ${FORGEJO_UPSTREAM};
+        proxy_pass http://$forgejo_upstream$request_uri;
+        # Forwarded as the non-admin proxy service account; OpenHEXA already
+        # authorized the request, and branch protection applies to this account.
+        proxy_set_header Authorization "Basic ${FORGEJO_PROXY_AUTH}";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_buffering off;
+        proxy_request_buffering off;
+    }
+
+    # Tell GCM "this is Gitea" so it starts the OAuth browser flow unprompted.
+    location @gitea_challenge {
+        add_header WWW-Authenticate 'Basic realm="Gitea"' always;
+        return 401;
+    }
+
+    location = /_git_authorize {
+        internal;
+        set $app_upstream ${APP_UPSTREAM};
+        proxy_pass http://$app_upstream/api/git/authorize;
+        proxy_pass_request_body off;
+        proxy_set_header Content-Length "";
+        proxy_set_header X-Original-URI $request_uri;
+        proxy_set_header X-Original-Method $request_method;
+        proxy_set_header Authorization $http_authorization;
+    }
+}

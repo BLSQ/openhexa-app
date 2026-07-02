@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -11,6 +12,17 @@ from oauth2_provider.models import Application
 from oauth2_provider.views import AuthorizationView
 
 from hexa.mcp.server import get_tools_list
+
+GIT_SCOPE = "openhexa:git"
+MCP_SCOPE = "openhexa:mcp"
+
+
+def mcp_tools() -> list[dict]:
+    """The MCP tool list shown on the consent and success pages."""
+    return [
+        {"name": t["name"], "description": t.get("description", "")}
+        for t in get_tools_list()
+    ]
 
 
 def get_base_url(request: HttpRequest) -> str:
@@ -148,21 +160,28 @@ class OAuthAuthorizeView(AuthorizationView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        scopes = self.request.GET.get("scope", "")
-        if "openhexa:mcp" in scopes.split():
-            context["tools"] = [
-                {"name": t["name"], "description": t.get("description", "")}
-                for t in get_tools_list()
-            ]
+        scopes = self.request.GET.get("scope", "").split()
+        if MCP_SCOPE in scopes:
+            context["tools"] = mcp_tools()
+        context["is_git"] = GIT_SCOPE in scopes
         return context
 
     def redirect(self, redirect_to, application):
-        tools = [
-            {"name": t["name"], "description": t.get("description", "")}
-            for t in get_tools_list()
-        ]
+        request = getattr(self, "request", None)
+        scope = ""
+        if request is not None:
+            scope = request.POST.get("scope") or request.GET.get("scope") or ""
+        tools = mcp_tools() if MCP_SCOPE in scope.split() else []
         html = render_to_string(
             "oauth2_provider/authorized.html",
             {"redirect_uri": redirect_to, "tools": tools},
         )
         return HttpResponse(html)
+
+
+def gitea_authorize(request: HttpRequest) -> HttpResponse:
+    if not request.GET.get("scope"):
+        params = request.GET.copy()
+        params["scope"] = GIT_SCOPE
+        return redirect(f"/oauth/authorize/?{params.urlencode()}")
+    return OAuthAuthorizeView.as_view()(request)

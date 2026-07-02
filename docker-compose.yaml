@@ -178,6 +178,8 @@ services:
     environment:
       - GIT_SERVER_ADMIN_USERNAME=${GIT_SERVER_ADMIN_USERNAME}
       - GIT_SERVER_ADMIN_PASSWORD=${GIT_SERVER_ADMIN_PASSWORD}
+      - GIT_PROXY_USERNAME=${GIT_PROXY_USERNAME}
+      - GIT_PROXY_PASSWORD=${GIT_PROXY_PASSWORD}
       - FORGEJO__database__DB_TYPE=sqlite3
       - FORGEJO__security__INSTALL_LOCK=true
       - FORGEJO__server__ROOT_URL=http://localhost:3100/
@@ -189,6 +191,26 @@ services:
       - ./forgejo/entrypoint.sh:/custom-entrypoint.sh:ro
     ports:
       - "3100:3000"
+    networks:
+      - openhexa
+
+  # Local equivalent of the production git proxy
+  git_proxy:
+    image: nginx:alpine
+    depends_on:
+      - app
+      - forgejo
+    environment:
+      - APP_UPSTREAM=app:8000
+      - FORGEJO_UPSTREAM=forgejo:3000
+      - GIT_PROXY_USERNAME=${GIT_PROXY_USERNAME}
+      - GIT_PROXY_PASSWORD=${GIT_PROXY_PASSWORD}
+    volumes:
+      - ./docker/git-proxy/git-proxy.conf.template:/etc/nginx/templates/git-proxy.conf.template:ro
+      - ./docker/git-proxy/entrypoint.sh:/git-proxy-entrypoint.sh:ro
+    entrypoint: ["/bin/sh", "/git-proxy-entrypoint.sh"]
+    ports:
+      - "3200:3000"
     networks:
       - openhexa
 

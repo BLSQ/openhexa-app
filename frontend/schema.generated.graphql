@@ -2530,6 +2530,7 @@ type GenericOutput {
 type GitSource {
   publishedVersion: String
   repository: String!
+  repositoryUrl: String!
 }
 
 """IASO connection object"""

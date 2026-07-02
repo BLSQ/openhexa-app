@@ -875,6 +875,11 @@ query WorkspaceWebappPage($workspaceSlug: String!, $webappSlug: String!) {
     ...WebappForm_webapp
     ...WebappLayout_webapp
     ...WebappApiAccess_webapp
+    source {
+      ... on GitSource {
+        repositoryUrl
+      }
+    }
   }
 }
 

@@ -8,8 +8,13 @@
         <div>
             <img src="{% static 'img/logo/logo.svg' %}" alt="OpenHEXA" class="logo">
             {% if not error %}
-                <h2>Authorize {{ application.name }}</h2>
-                <p class="subtitle">This application is requesting access to your OpenHEXA account.</p>
+                {% if is_git %}
+                    <h2>Authorize Git access</h2>
+                    <p class="subtitle">Allow your local Git client to access your OpenHEXA repositories.</p>
+                {% else %}
+                    <h2>Authorize {{ application.name }}</h2>
+                    <p class="subtitle">This application is requesting access to your OpenHEXA account.</p>
+                {% endif %}
             {% endif %}
         </div>
 
@@ -36,7 +41,7 @@
                     {% endfor %}
                 </ul>
             </div>
-            {% else %}
+            {% elif not is_git %}
             <div class="scopes">
                 <h3>This application is requesting the following permissions:</h3>
                 <ul>

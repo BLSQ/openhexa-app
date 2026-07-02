@@ -2538,6 +2538,7 @@ export type GitSource = {
   __typename?: 'GitSource';
   publishedVersion?: Maybe<Scalars['String']['output']>;
   repository: Scalars['String']['output'];
+  repositoryUrl: Scalars['String']['output'];
 };
 
 /** IASO connection object */

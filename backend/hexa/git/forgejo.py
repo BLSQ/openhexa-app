@@ -16,6 +16,12 @@ class ForgejoAPIError(Exception):
         self.detail = detail
         super().__init__(f"{method} {url}: {status_code} {detail}")
 
+    @property
+    def already_exists(self) -> bool:
+        return self.status_code == 409 or (
+            self.status_code == 403 and "already exist" in self.detail.lower()
+        )
+
 
 class ForgejoClient(GitClient):
     def __init__(self, *, url: str, username: str, password: str):
@@ -70,6 +76,29 @@ class ForgejoClient(GitClient):
             },
         )
         return response.json()
+
+    def protect_branch(
+        self, org_slug: str, repo_name: str, branch: str = "main"
+    ) -> dict:
+        response = self._request(
+            "POST",
+            f"/repos/{org_slug}/{repo_name}/branch_protections",
+            json={
+                "rule_name": branch,
+                "enable_push": True,
+                "block_admin_merge_override": True,
+            },
+        )
+        return response.json()
+
+    def add_collaborator(
+        self, org_slug: str, repo_name: str, username: str, permission: str = "write"
+    ) -> None:
+        self._request(
+            "PUT",
+            f"/repos/{org_slug}/{repo_name}/collaborators/{username}",
+            json={"permission": permission},
+        )
 
     def list_org_repositories(
         self, org_slug: str, page: int = 1, limit: int = 50
