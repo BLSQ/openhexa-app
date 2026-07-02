@@ -51,6 +51,22 @@ enum LinkedObjectType {
   Pipeline
 }
 
+# The set of tool names any agent can call, and thus any name that can appear in
+# `AssistantToolSegment.toolName`. Declared here so GraphQL codegen emits a typed
+# enum the assistant frontend keys off for rendering. Keep in sync with the agent
+# registry (`hexa.assistant.agents.all_agent_tool_names`) — a unit test enforces this.
+enum AssistantToolName {
+  create_pipeline
+  get_dataset
+  get_help_or_doc
+  list_connections
+  list_datasets
+  list_files
+  preview_dataset_file
+  propose_pipeline_version
+  read_file
+}
+
 input CreateAssistantConversationInput {
   workspaceSlug: String!
   instructionSet: String
