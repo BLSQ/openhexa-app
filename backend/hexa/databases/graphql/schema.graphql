@@ -82,6 +82,11 @@ type ExecuteSQLResult {
   Whether the result was truncated because it exceeded the maximum number of rows.
   """
   truncated: Boolean
+
+  """
+  The server-side execution time of the query, in milliseconds.
+  """
+  durationMs: Int
 }
 
 # The 'DatabaseCredentials' type represents the credentials used to connect to a database.

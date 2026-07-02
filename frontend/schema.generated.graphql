@@ -2305,6 +2305,9 @@ type ExecuteSQLResult {
   """The names of the columns returned by the query."""
   columns: [String!]
 
+  """The server-side execution time of the query, in milliseconds."""
+  durationMs: Int
+
   """The underlying database error message, when the query failed."""
   errorMessage: String
 

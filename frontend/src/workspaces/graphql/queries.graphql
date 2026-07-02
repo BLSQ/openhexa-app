@@ -77,6 +77,13 @@ query WorkspaceNotebooksPage($workspaceSlug: String!) {
   }
 }
 
+query WorkspaceDataStudioPage($workspaceSlug: String!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    ...WorkspaceLayout_workspace
+  }
+}
+
 query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
   workspace(slug: $workspaceSlug) {
     slug

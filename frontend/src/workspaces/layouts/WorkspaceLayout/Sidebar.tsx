@@ -8,6 +8,7 @@ import {
   ChevronRightIcon,
   ChevronUpIcon,
   CircleStackIcon,
+  CommandLineIcon,
   Cog6ToothIcon,
   FolderOpenIcon,
   GlobeAltIcon,
@@ -37,15 +38,23 @@ type SidebarProps = {
   setForceSidebarOpen?: (open: boolean) => void;
 };
 
+type NavLink = {
+  href: string;
+  label: string;
+  Icon: any;
+  badge?: string;
+};
+
 const NavItem = (props: {
   Icon: any;
   label?: string;
   href: string;
   isCurrent: boolean;
   compact?: boolean;
+  badge?: string;
   className?: string;
 }) => {
-  const { Icon, compact, label, href, isCurrent, className } = props;
+  const { Icon, compact, label, href, isCurrent, badge, className } = props;
 
   return (
     <Link
@@ -54,9 +63,7 @@ const NavItem = (props: {
       className={clsx(
         className,
         "text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white",
-        isCurrent
-          ? "text-white"
-          : " text-gray-300",
+        isCurrent ? "text-white" : " text-gray-300",
         compact && "justify-center ",
       )}
     >
@@ -72,8 +79,13 @@ const NavItem = (props: {
           <Badge className="bg-gray-800 ring-gray-500/20">{label}</Badge>
         </div>
       ) : (
-        <span className="whitespace-nowrap overflow-hidden transition-opacity duration-200">
-          {label}
+        <span className="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200">
+          <span className="truncate">{label}</span>
+          {badge && (
+            <span className="ml-auto shrink-0 rounded bg-pink-500/20 px-1.5 py-0.5 text-[9.5px] font-semibold tracking-wide text-pink-300 uppercase">
+              {badge}
+            </span>
+          )}
         </span>
       )}
     </Link>
@@ -93,7 +105,7 @@ const Sidebar = (props: SidebarProps) => {
 
   const { slug, shortcuts } = workspace;
 
-  const homeLink = {
+  const homeLink: NavLink = {
     href: `/workspaces/${encodeURIComponent(slug)}`,
     label: t("Home"),
     Icon: HomeIcon,
@@ -104,7 +116,7 @@ const Sidebar = (props: SidebarProps) => {
     Icon: BoltIcon,
   };
 
-  const links = [
+  const links: NavLink[] = [
     {
       href: `/workspaces/${encodeURIComponent(slug)}/files`,
       label: t("Files"),
@@ -114,6 +126,12 @@ const Sidebar = (props: SidebarProps) => {
       href: `/workspaces/${encodeURIComponent(slug)}/databases`,
       label: t("Database"),
       Icon: CircleStackIcon,
+    },
+    {
+      href: `/workspaces/${encodeURIComponent(slug)}/data-studio`,
+      label: t("Data Studio"),
+      Icon: CommandLineIcon,
+      badge: t("New"),
     },
     {
       href: `/workspaces/${encodeURIComponent(slug)}/datasets`,
@@ -193,12 +211,13 @@ const Sidebar = (props: SidebarProps) => {
 
         <div className="mt-5 flex grow flex-col overflow-y-auto scrollbar-visible">
           <nav className="flex-1 space-y-1 px-0 pb-4">
-            {[homeLink].concat(links).map(({ href, Icon, label }) => (
+            {[homeLink, ...links].map(({ href, Icon, label, badge }) => (
               <NavItem
                 key={href}
                 href={href}
                 Icon={Icon}
                 label={label}
+                badge={badge}
                 isCurrent={currentLink === href}
                 compact={!isSidebarOpen}
               />

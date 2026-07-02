@@ -217,6 +217,17 @@ export const uploader = new UploadManager(
   parseInt(process.env.MAX_CONCURRENT_UPLOADS ?? "10", 10),
 );
 
+export const downloadBlob = (filename: string, blob: Blob) => {
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  window.URL.revokeObjectURL(url);
+};
+
 export const constructFolderKey = (
   folderName: string,
   prefix: string | null,
