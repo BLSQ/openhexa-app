@@ -1,5 +1,8 @@
+import json
 from unittest.mock import patch
 
+from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, ToolReturnPart
+from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.edit_webapp_agent import _MAX_INLINE_LINES, EditWebappAgent
@@ -9,6 +12,33 @@ from hexa.webapps.models import GitWebapp, Webapp
 
 from ._helpers import _make_tool_call_model, make_built_model, run_agent
 from ._testcase import AgentTestCase
+
+
+def _make_capturing_tool_call_model(
+    tool_name: str, tool_args: dict, captured_requests: list
+) -> FunctionModel:
+    """Like _make_tool_call_model, but records the messages each request receives."""
+
+    def func(messages: list, agent_info: AgentInfo) -> ModelResponse:
+        return ModelResponse(parts=[TextPart(content="Chat title")])
+
+    stream_calls = []
+
+    async def stream_func(messages, agent_info):
+        stream_calls.append(1)
+        captured_requests.append(list(messages))
+        if len(stream_calls) == 1:
+            yield {
+                0: DeltaToolCall(
+                    name=tool_name,
+                    json_args=json.dumps(tool_args),
+                    tool_call_id="call-test-001",
+                )
+            }
+        else:
+            yield "Done."
+
+    return FunctionModel(func, stream_function=stream_func)
 
 
 class EditWebappAgentExtraInstructionsTest(AgentTestCase):
@@ -210,3 +240,103 @@ class EditWebappAgentToolCallTest(AgentTestCase):
         self.assertTrue(invocation.success)
         self.assertIn("files", invocation.tool_output)
         self.assertEqual(invocation.tool_output["files"][0]["path"], "index.html")
+
+
+class EditWebappAgentProposalPendingTest(AgentTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.webapp = GitWebapp.objects.create(
+            workspace=cls.workspace,
+            name="Pending Test App",
+            slug="pending-test-app",
+            subdomain="pending-test-app",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.user,
+            repository="ws-webapp-pending-test-app",
+        )
+
+    def setUp(self):
+        patcher = patch("hexa.git.mixins.get_forgejo_client")
+        self.mock_forgejo = patcher.start()
+        self.mock_forgejo.return_value.get_repository_files.return_value = []
+        self.addCleanup(patcher.stop)
+        self.conversation = Conversation(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.EDIT_WEBAPP,
+        )
+        self.conversation.linked_object = self.webapp
+        self.conversation.save()
+
+    def _run_proposal(self, tool_args, captured_requests=None):
+        if captured_requests is None:
+            model = _make_tool_call_model("propose_webapp_version", tool_args)
+        else:
+            model = _make_capturing_tool_call_model(
+                "propose_webapp_version", tool_args, captured_requests
+            )
+        agent = EditWebappAgent(self.conversation, make_built_model(model))
+        run_agent(agent, "Update the web app")
+
+    def test_successful_proposal_is_marked_pending(self):
+        self._run_proposal(
+            {"modified_files": [{"path": "index.html", "content": "<h1>New</h1>"}]}
+        )
+        invocation = self.first_tool_invocation(self.conversation)
+        self.assertTrue(invocation.success)
+        self.assertTrue(invocation.proposal_pending)
+
+    def test_new_proposal_supersedes_earlier_pending_one(self):
+        earlier_message = Message.objects.create(
+            conversation=self.conversation, role=Message.Role.ASSISTANT, content=[]
+        )
+        earlier = ToolInvocation.objects.create(
+            message=earlier_message,
+            tool_name="propose_webapp_version",
+            tool_call_id="call-earlier-001",
+            tool_input={},
+            success=True,
+            proposal_pending=True,
+            tool_output={"files": [{"path": "index.html", "content": "<h1>Old</h1>"}]},
+        )
+        self._run_proposal(
+            {"modified_files": [{"path": "index.html", "content": "<h1>New</h1>"}]}
+        )
+        earlier.refresh_from_db()
+        self.assertFalse(earlier.proposal_pending)
+        latest = ToolInvocation.objects.get(tool_call_id="call-test-001")
+        self.assertTrue(latest.proposal_pending)
+
+    def test_failed_proposal_is_not_marked_pending(self):
+        self._run_proposal({})
+        invocation = self.first_tool_invocation(self.conversation)
+        self.assertIn("error", invocation.tool_output)
+        self.assertFalse(invocation.success)
+        self.assertFalse(invocation.proposal_pending)
+
+    def test_model_requests_receive_stripped_proposal_output(self):
+        captured_requests = []
+        self._run_proposal(
+            {"modified_files": [{"path": "index.html", "content": "<h1>New</h1>"}]},
+            captured_requests=captured_requests,
+        )
+        # The request following the tool call must carry the summary, not the echo.
+        returns = [
+            part
+            for messages in captured_requests
+            for msg in messages
+            if isinstance(msg, ModelRequest)
+            for part in msg.parts
+            if isinstance(part, ToolReturnPart)
+            and part.tool_name == "propose_webapp_version"
+        ]
+        self.assertEqual(len(returns), 1)
+        self.assertEqual(returns[0].content, {"status": "ok", "files": ["index.html"]})
+
+    def test_persisted_history_keeps_full_proposal_output(self):
+        self._run_proposal(
+            {"modified_files": [{"path": "index.html", "content": "<h1>New</h1>"}]}
+        )
+        self.conversation.refresh_from_db()
+        self.assertIn("<h1>New</h1>", json.dumps(self.conversation.messages_history))

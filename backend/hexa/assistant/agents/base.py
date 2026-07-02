@@ -2,10 +2,12 @@ import asyncio
 import json
 import logging
 from collections.abc import AsyncGenerator
+from dataclasses import replace
 from decimal import Decimal
 
 import genai_prices
 from pydantic_ai import Agent, ModelRetry, ModelSettings, RunUsage, UsageLimits
+from pydantic_ai.capabilities import ProcessHistory
 from pydantic_ai.exceptions import (
     IncompleteToolCall,
     UnexpectedModelBehavior,
@@ -14,7 +16,9 @@ from pydantic_ai.exceptions import (
 from pydantic_ai.messages import (
     FunctionToolCallEvent,
     FunctionToolResultEvent,
+    ModelMessage,
     ModelMessagesTypeAdapter,
+    ModelRequest,
     ModelResponse,
     PartDeltaEvent,
     PartStartEvent,
@@ -81,10 +85,10 @@ def _is_success(content) -> bool:
         data = content
     if not isinstance(data, dict):
         return True
-    if data.get("errors"):
+    if data.get("errors") or data.get("error"):
         return False
     for value in data.values():
-        if isinstance(value, dict) and value.get("errors"):
+        if isinstance(value, dict) and (value.get("errors") or value.get("error")):
             return False
     return True
 
@@ -105,28 +109,51 @@ def _parse_conversation_title(text: str) -> str:
     return title
 
 
-def _strip_tool_outputs(messages_json: list, tool_names: set[str]) -> list:
-    """Replace matching tool-return contents with a minimal ack.
+def _summarize_proposal_output(content) -> dict | None:
+    """Return a compact replacement for a successful proposal output, or None to keep it as is.
 
-    Tool results for proposal-style tools (e.g. propose_webapp_version) can
-    contain the full content of every file in the webapp. Keeping those in
-    messages_history causes the context sent to the LLM to grow with every
-    turn. The full output is already stored in ToolInvocation.tool_output for
-    chaining purposes, so the conversation history only needs to know the call
-    succeeded.
+    Error payloads are small and must stay visible to the model, so only
+    outputs carrying the full file set are summarized down to the file paths.
+    """
+    data = content
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except ValueError:
+            return None
+    if not isinstance(data, dict) or "files" not in data:
+        return None
+    paths = [f.get("path") for f in data["files"] if isinstance(f, dict)]
+    return {"status": "ok", "files": paths}
+
+
+def _strip_proposal_outputs(
+    messages: list[ModelMessage], tool_names: set[str]
+) -> list[ModelMessage]:
+    """Replace matching tool-return contents with a compact summary.
+
+    Results of proposal-style tools (e.g. propose_webapp_version) contain the
+    full content of every file in the app. Replaying those on each model
+    request makes the context grow with every proposal in the conversation.
+    The model does not need the echo: the pending proposal is inlined in the
+    instructions each turn, and chaining reads ToolInvocation.tool_output.
+    Applied via ProcessHistory before each model request, so the persisted
+    messages_history keeps full fidelity.
     """
     result = []
-    for msg in messages_json:
-        if msg.get("kind") == "request":
+    for msg in messages:
+        if isinstance(msg, ModelRequest):
             new_parts = []
-            for part in msg.get("parts", []):
-                if (
-                    part.get("part_kind") == "tool-return"
-                    and part.get("tool_name") in tool_names
-                ):
-                    part = {**part, "content": '{"status": "ok"}'}
+            changed = False
+            for part in msg.parts:
+                if isinstance(part, ToolReturnPart) and part.tool_name in tool_names:
+                    summary = _summarize_proposal_output(part.content)
+                    if summary is not None:
+                        part = replace(part, content=summary)
+                        changed = True
                 new_parts.append(part)
-            msg = {**msg, "parts": new_parts}
+            if changed:
+                msg = replace(msg, parts=new_parts)
         result.append(msg)
     return result
 
@@ -161,7 +188,18 @@ class BaseAgent:
             tools=self._tools_with_context,
             end_strategy="exhaustive",
             model_settings=ModelSettings(max_tokens=self.max_tokens),
+            capabilities=self._capabilities(),
         )
+
+    def _capabilities(self) -> list:
+        if not self.history_strip_tools:
+            return []
+        tool_names = self.history_strip_tools
+
+        def strip_proposals(messages: list[ModelMessage]) -> list[ModelMessage]:
+            return _strip_proposal_outputs(messages, tool_names)
+
+        return [ProcessHistory(processor=strip_proposals)]
 
     def _extra_instructions(self) -> str:
         return ""
@@ -431,10 +469,9 @@ class BaseAgent:
         self.conversation.total_output_tokens += output_tok
         if cost is not None:
             self.conversation.cost += cost
-        messages_json = ModelMessagesTypeAdapter.dump_python(all_messages, mode="json")
-        if self.history_strip_tools:
-            messages_json = _strip_tool_outputs(messages_json, self.history_strip_tools)
-        self.conversation.messages_history = messages_json
+        self.conversation.messages_history = ModelMessagesTypeAdapter.dump_python(
+            all_messages, mode="json"
+        )
 
         update_fields = [
             "total_input_tokens",

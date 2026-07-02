@@ -140,6 +140,20 @@ class EditWebappAgent(BaseAgent):
             "conversation": self.conversation,
         }
 
+    async def _on_tool_result(self, invocation: ToolInvocation) -> None:
+        if invocation.tool_name != "propose_webapp_version" or not invocation.success:
+            return
+        # Supersede any earlier pending proposal so only the latest one awaits user
+        # action. The flag is load-bearing: proposal outputs are stripped from the
+        # history sent to the model, so the pending invocation is the only source
+        # for re-inlining the proposed files in instructions and for chaining.
+        await ToolInvocation.objects.filter(
+            message__conversation=self.conversation,
+            tool_name="propose_webapp_version",
+            proposal_pending=True,
+        ).aupdate(proposal_pending=False)
+        invocation.proposal_pending = True
+
     def _extra_instructions(self) -> str:
         linked_object = self.conversation.linked_object
         if linked_object is None:
