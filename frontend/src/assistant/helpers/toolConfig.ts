@@ -1,4 +1,5 @@
 import type { TFunction } from "i18next";
+import { AssistantToolName } from "graphql/types";
 import { TOOL } from "assistant/helpers/tools";
 
 // Per-tool UI behavior. This intentionally holds only knowledge that is keyed to
@@ -17,13 +18,13 @@ type ToolUiConfig = {
   inputLabel?: (t: TFunction) => string;
 };
 
-const TOOL_CONFIG: Record<string, ToolUiConfig> = {
-  [TOOL.PROPOSE_PIPELINE_VERSION]: {
+const TOOL_CONFIG: Partial<Record<AssistantToolName, ToolUiConfig>> = {
+  [TOOL.ProposePipelineVersion]: {
     hideOutput: true,
     inputLabel: (t) => t("Proposed changes"),
   },
 };
 
-export function getToolConfig(name: string): ToolUiConfig {
-  return TOOL_CONFIG[name] ?? {};
+export function getToolConfig(tool: AssistantToolName | null): ToolUiConfig {
+  return (tool && TOOL_CONFIG[tool]) || {};
 }

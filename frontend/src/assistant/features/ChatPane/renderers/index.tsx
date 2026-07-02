@@ -47,24 +47,27 @@ const RENDERERS: SemanticRenderer[] = [
     id: "files-changeset",
     label: (t) => t("Files"),
     match: (value, ctx) =>
-      ctx.toolName === TOOL.PROPOSE_PIPELINE_VERSION &&
+      ctx.tool === TOOL.ProposePipelineVersion &&
       (fileSet(value) !== null || deletedFiles(value).length > 0),
     render: (value) => (
-      <FileSetValue files={fileSet(value) ?? []} deleted={deletedFiles(value)} />
+      <FileSetValue
+        files={fileSet(value) ?? []}
+        deleted={deletedFiles(value)}
+      />
     ),
   },
   {
     id: "files",
     label: (t) => t("Files"),
     match: (value, ctx) =>
-      ctx.toolName === TOOL.LIST_FILES && findTabularArray(value) !== null,
+      ctx.tool === TOOL.ListFiles && findTabularArray(value) !== null,
     render: (value) => <FileSystemValue files={findTabularArray(value)!} />,
   },
   {
     id: "code",
     label: (t) => t("Code"),
     match: (value, ctx) =>
-      ctx.toolName === TOOL.READ_FILE &&
+      ctx.tool === TOOL.ReadFile &&
       ctx.kind === "output" &&
       isPlainObject(value) &&
       asString(value.content) !== null,
@@ -83,7 +86,7 @@ const RENDERERS: SemanticRenderer[] = [
     id: "markdown",
     label: (t) => t("Document"),
     match: (value, ctx) =>
-      ctx.toolName === TOOL.GET_HELP_OR_DOC &&
+      ctx.tool === TOOL.GetHelpOrDoc &&
       ctx.kind === "output" &&
       isPlainObject(value) &&
       asString(value.content) !== null,

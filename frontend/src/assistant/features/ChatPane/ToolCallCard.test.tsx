@@ -1,15 +1,17 @@
 import { render, screen, fireEvent, within } from "@testing-library/react";
+import { TOOL } from "assistant/helpers/tools";
 import ToolCallCard from "./ToolCallCard";
 
 describe("ToolCallCard", () => {
   it("renders the humanized tool label", () => {
-    render(<ToolCallCard toolName="get_workspace" status="done" success />);
+    render(<ToolCallCard tool={null} toolName="get_workspace" status="done" success />);
     expect(screen.getByText("Reading workspace")).toBeInTheDocument();
   });
 
   it("hides input/output until expanded", () => {
     render(
       <ToolCallCard
+        tool={null}
         toolName="get_workspace"
         status="done"
         success
@@ -24,6 +26,7 @@ describe("ToolCallCard", () => {
   it("toggles details on click and shows input and output", () => {
     const { container } = render(
       <ToolCallCard
+        tool={null}
         toolName="get_workspace"
         status="done"
         success
@@ -46,6 +49,7 @@ describe("ToolCallCard", () => {
   it("omits the input section when input is empty", () => {
     render(
       <ToolCallCard
+        tool={null}
         toolName="list_workspaces"
         status="done"
         success
@@ -61,6 +65,7 @@ describe("ToolCallCard", () => {
   it("shows a running placeholder for the output while pending", () => {
     render(
       <ToolCallCard
+        tool={null}
         toolName="get_workspace"
         status="pending"
         toolInput={{ workspace_slug: "covid-19" }}
@@ -74,6 +79,7 @@ describe("ToolCallCard", () => {
   it("shows the changeset and hides the redundant output for propose_pipeline_version", () => {
     render(
       <ToolCallCard
+        tool={TOOL.ProposePipelineVersion}
         toolName="propose_pipeline_version"
         status="done"
         success
@@ -92,6 +98,7 @@ describe("ToolCallCard", () => {
   it("renders an error state when the tool failed", () => {
     render(
       <ToolCallCard
+        tool={null}
         toolName="get_workspace"
         status="done"
         success={false}

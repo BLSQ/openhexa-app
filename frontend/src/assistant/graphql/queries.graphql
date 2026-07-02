@@ -14,6 +14,7 @@ query AssistantConversationMessages($id: UUID!, $page: Int = 1, $perPage: Int = 
             id
             toolCallId
             toolName
+            tool
             toolInput
             toolOutput
             success

@@ -5,6 +5,7 @@ import { RenderContext } from "./renderers";
 function ctx(overrides: Partial<RenderContext> = {}): RenderContext {
   return {
     kind: "output",
+    tool: null,
     toolName: "",
     success: true,
     input: {},
