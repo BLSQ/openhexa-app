@@ -10,6 +10,7 @@ from hexa.mcp.tools.connections import list_connections
 from hexa.mcp.tools.datasets import get_dataset, list_datasets, preview_dataset_file
 from hexa.mcp.tools.files import list_files, read_file
 from hexa.mcp.tools.help import get_help_or_doc
+from hexa.mcp.tools.pipelines import get_pipeline, list_pipelines
 from hexa.mcp.tools.webapps import get_static_webapp_file
 from hexa.webapps.models import GitWebapp
 
@@ -128,6 +129,8 @@ class EditWebappAgent(BaseAgent):
         list_connections,
         list_files,
         read_file,
+        list_pipelines,
+        get_pipeline,
         propose_webapp_version,
     ]
 
