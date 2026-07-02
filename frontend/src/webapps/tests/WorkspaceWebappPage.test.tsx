@@ -152,7 +152,6 @@ describe("WorkspaceWebappPage", () => {
                   name: "Updated Webapp",
                   icon: "",
                   isPublic: false,
-                  subdomain: null,
                   source: {
                     iframe: {
                       url: "https://updated-url.com",

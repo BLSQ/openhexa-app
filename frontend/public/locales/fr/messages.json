@@ -824,6 +824,7 @@
   "Stopped": "Arrêtée",
   "Stopped by": "Arrêtée par",
   "Stopped on": "Arrêtée le",
+  "Subdomain is required": "Un sous-domaine est obligatoire",
   "Subdomain must be a single label (no dots)": "Le sous-domaine ne doit pas contenir de points",
   "Subdomain must be alphanumeric with hyphens, no leading/trailing hyphens, and 63 characters or fewer": "Le sous-domaine doit être alphanumérique avec des tirets, sans tirets en début/fin, et de 63 caractères maximum",
   "Subdomain must be at least 3 characters": "Le sous-domaine doit contenir au moins 3 caractères",
