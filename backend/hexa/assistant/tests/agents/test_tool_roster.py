@@ -1,7 +1,10 @@
+from types import SimpleNamespace
+
 from graphql import EnumTypeDefinitionNode, parse
 
 from hexa.assistant.agents import all_agent_tool_names
 from hexa.assistant.schema import assistant_type_defs
+from hexa.assistant.schema.types import resolve_tool_segment_tool
 from hexa.core.test import TestCase
 
 
@@ -33,3 +36,22 @@ class AgentToolsSchemaTest(TestCase):
                 "frontend and commit the updated types.ts."
             ),
         )
+
+
+class ResolveToolSegmentToolTest(TestCase):
+    """`tool` is the typed view of the persisted `tool_name` string."""
+
+    def test_known_tool_resolves_to_its_name(self):
+        known = next(iter(all_agent_tool_names()))
+        self.assertEqual(resolve_tool_segment_tool({"tool_name": known}, None), known)
+        self.assertEqual(
+            resolve_tool_segment_tool(SimpleNamespace(tool_name=known), None), known
+        )
+
+    def test_unknown_or_missing_tool_resolves_to_none(self):
+        # A tool removed/renamed since a conversation was stored must degrade to
+        # null rather than break enum serialization for that message.
+        self.assertIsNone(
+            resolve_tool_segment_tool({"tool_name": "since_removed_tool"}, None)
+        )
+        self.assertIsNone(resolve_tool_segment_tool({"tool_name": None}, None))

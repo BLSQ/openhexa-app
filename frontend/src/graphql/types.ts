@@ -530,6 +530,7 @@ export type AssistantToolSegment = {
   id?: Maybe<Scalars['UUID']['output']>;
   proposalPending: Scalars['Boolean']['output'];
   success: Scalars['Boolean']['output'];
+  tool?: Maybe<AssistantToolName>;
   toolCallId: Scalars['String']['output'];
   toolInput: Scalars['JSON']['output'];
   toolName: Scalars['String']['output'];

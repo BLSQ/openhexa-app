@@ -14,6 +14,8 @@ import {
 import { useApolloClient } from "@apollo/client";
 import { useTranslation } from "next-i18next";
 import { getErrorCodeMessage } from "assistant/helpers";
+import { coerceTool } from "assistant/helpers/tools";
+import { AssistantToolName } from "graphql/types";
 
 const PER_PAGE = 20;
 
@@ -38,6 +40,7 @@ type RenderableSegment =
   | {
       type: "tool";
       key: string;
+      tool: AssistantToolName | null;
       toolName: string;
       status: "pending" | "done";
       success?: boolean;
@@ -80,6 +83,7 @@ function SegmentList({ segments }: { segments: RenderableSegment[] }) {
         ) : (
           <ToolCallCard
             key={seg.key}
+            tool={seg.tool}
             toolName={seg.toolName}
             status={seg.status}
             success={seg.success}
@@ -363,6 +367,7 @@ export default function ChatPane({
         : {
             type: "tool" as const,
             key: seg.toolCallId,
+            tool: coerceTool(seg.toolName),
             toolName: seg.toolName,
             status: seg.status,
             success: seg.success,
@@ -456,6 +461,7 @@ export default function ChatPane({
               return {
                 type: "tool",
                 key: seg.toolCallId,
+                tool: seg.tool ?? null,
                 toolName: seg.toolName,
                 status: "done" as const,
                 success: seg.success,

@@ -6,7 +6,20 @@ from hexa.core.graphql import result_page
 
 assistant_conversation_object = ObjectType("AssistantConversation")
 assistant_message_object = ObjectType("AssistantMessage")
+assistant_tool_segment_object = ObjectType("AssistantToolSegment")
 assistant_message_segment_union = UnionType("AssistantMessageSegment")
+
+
+@assistant_tool_segment_object.field("tool")
+def resolve_tool_segment_tool(obj, info):
+    # Deferred import: `agents` pulls in `hexa.mcp.tools`, which imports the
+    # assembled GraphQL schema — importing it at module load would create a cycle.
+    from hexa.assistant.agents import all_agent_tool_names
+
+    tool_name = (
+        obj.get("tool_name") if isinstance(obj, dict) else getattr(obj, "tool_name", None)
+    )
+    return tool_name if tool_name in all_agent_tool_names() else None
 
 
 @assistant_conversation_object.field("messages")
@@ -51,5 +64,6 @@ def resolve_message_segment_type(obj, *_):
 bindables = [
     assistant_conversation_object,
     assistant_message_object,
+    assistant_tool_segment_object,
     assistant_message_segment_union,
 ]

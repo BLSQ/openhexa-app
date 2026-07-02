@@ -47,7 +47,7 @@ const RENDERERS: SemanticRenderer[] = [
     id: "files-changeset",
     label: (t) => t("Files"),
     match: (value, ctx) =>
-      ctx.toolName === TOOL.ProposePipelineVersion &&
+      ctx.tool === TOOL.ProposePipelineVersion &&
       (fileSet(value) !== null || deletedFiles(value).length > 0),
     render: (value) => (
       <FileSetValue
@@ -60,14 +60,14 @@ const RENDERERS: SemanticRenderer[] = [
     id: "files",
     label: (t) => t("Files"),
     match: (value, ctx) =>
-      ctx.toolName === TOOL.ListFiles && findTabularArray(value) !== null,
+      ctx.tool === TOOL.ListFiles && findTabularArray(value) !== null,
     render: (value) => <FileSystemValue files={findTabularArray(value)!} />,
   },
   {
     id: "code",
     label: (t) => t("Code"),
     match: (value, ctx) =>
-      ctx.toolName === TOOL.ReadFile &&
+      ctx.tool === TOOL.ReadFile &&
       ctx.kind === "output" &&
       isPlainObject(value) &&
       asString(value.content) !== null,
@@ -86,7 +86,7 @@ const RENDERERS: SemanticRenderer[] = [
     id: "markdown",
     label: (t) => t("Document"),
     match: (value, ctx) =>
-      ctx.toolName === TOOL.GetHelpOrDoc &&
+      ctx.tool === TOOL.GetHelpOrDoc &&
       ctx.kind === "output" &&
       isPlainObject(value) &&
       asString(value.content) !== null,

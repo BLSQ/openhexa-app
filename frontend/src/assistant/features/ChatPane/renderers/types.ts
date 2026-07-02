@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
 import { ReactNode } from "react";
+import { AssistantToolName } from "graphql/types";
 
 export type ToolValueKind = "input" | "output";
 
@@ -8,6 +9,9 @@ export type ToolValueKind = "input" | "output";
 // rendering the output content).
 export type RenderContext = {
   kind: ToolValueKind;
+  // Typed tool identity — what renderers match on. Null for an unknown/removed
+  // tool; `toolName` still carries the raw name for display in that case.
+  tool: AssistantToolName | null;
   toolName: string;
   success: boolean;
   input: unknown;

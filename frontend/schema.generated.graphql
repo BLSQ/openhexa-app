@@ -483,6 +483,7 @@ type AssistantToolSegment {
   id: UUID
   proposalPending: Boolean!
   success: Boolean!
+  tool: AssistantToolName
   toolCallId: String!
   toolInput: JSON!
   toolName: String!
