@@ -152,8 +152,6 @@ describe("WorkspaceWebappPage", () => {
                   name: "Updated Webapp",
                   icon: "",
                   isPublic: false,
-                  allowedOperations: [],
-                  subdomain: null,
                   source: {
                     iframe: {
                       url: "https://updated-url.com",
@@ -354,7 +352,9 @@ describe("WorkspaceWebappPage", () => {
     const nameInput = within(nameParent).getByRole("textbox");
     fireEvent.change(nameInput, { target: { value: "Updated Webapp" } });
 
-    const urlParent = screen.getByText("Source URL").closest("div") as HTMLDivElement;
+    const urlParent = screen
+      .getByText("Source URL")
+      .closest("div") as HTMLDivElement;
     const urlInput = within(urlParent).getByRole("textbox");
     fireEvent.change(urlInput, {
       target: { value: "https://updated-url.com" },
@@ -363,7 +363,9 @@ describe("WorkspaceWebappPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith("Web app updated successfully");
+      expect(toast.success).toHaveBeenCalledWith(
+        "Web app updated successfully",
+      );
     });
   });
 

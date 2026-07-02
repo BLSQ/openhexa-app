@@ -191,7 +191,7 @@ def resolve_update_webapp(_, info, **kwargs):
         webapp.is_public = input["is_public"]
     if "allowed_operations" in input:
         webapp.allowed_operations = input["allowed_operations"]
-    if "subdomain" in input:
+    if "subdomain" in input and input["subdomain"] is not None:
         subdomain = input["subdomain"]
         if not subdomain:
             return {"success": False, "errors": ["SUBDOMAIN_REQUIRED"], "webapp": None}
