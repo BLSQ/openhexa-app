@@ -99,6 +99,10 @@ class AiModelBuilder:
     @classmethod
     def from_conversation(cls, conversation: Conversation) -> "AiModelBuilder":
         organization = conversation.workspace.organization
+        if organization is None:
+            raise AssistantException(
+                "Workspace does not belong to an organization; the assistant is unavailable"
+            )
         ai_settings: AiSettings = organization.ai_settings_safe
         if not ai_settings.enabled:
             raise AssistantException("AI settings are not enabled")
