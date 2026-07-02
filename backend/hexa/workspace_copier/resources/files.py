@@ -23,7 +23,7 @@ OBJECTS_PAGE_SIZE = 100
 # Directory names whose contents are never worth copying (editor/runtime
 # scratch dirs). Matched against any segment of an object key, so a nested
 # ``notebooks/.ipynb_checkpoints/foo.ipynb`` is skipped too.
-SKIPPED_DIRECTORIES = frozenset({".ipynb_checkpoints"})
+SKIPPED_DIRECTORIES = frozenset({".ipynb_checkpoints", "cache", ".cache"})
 
 
 def is_skipped(key: str) -> bool:
@@ -198,6 +198,7 @@ class FilesCopier(ResourceCopier):
             # next() lets us record a listing failure and keep the files copied
             # so far instead of letting the error escape copy() and lose them.
             walker = walk(source.client, source.slug)
+            count = 0
             while True:
                 try:
                     obj = next(walker)
@@ -208,11 +209,12 @@ class FilesCopier(ResourceCopier):
                     reporter.warning(f"   FAILED to list remaining files: {exc}")
                     break
                 path = obj["key"]
+                count += 1
                 try:
                     content = download(source.client, source.slug, path, http_client)
                     upload(target.client, target.slug, path, content, http_client)
                     files_result.copied.append((path, len(content)))
-                    reporter.info(f"   copied {path} ({len(content)} bytes)")
+                    reporter.info(f"   [{count}] copied {path} ({len(content)} bytes)")
                 except (GraphQLError, httpx.HTTPError) as exc:
                     # Both presigned download/upload (httpx) and the prepare
                     # mutations (GraphQL) can fail per-file. The path and reason
@@ -220,7 +222,7 @@ class FilesCopier(ResourceCopier):
                     # why and re-attempt it manually.
                     reason = f"{exc.__class__.__name__}: {exc}"
                     files_result.failed.append((path, reason))
-                    reporter.warning(f"   FAILED to copy {path}: {reason}")
+                    reporter.warning(f"   [{count}] FAILED to copy {path}: {reason}")
 
         reporter.info(
             f"   {len(files_result.copied)} file(s) copied, "
