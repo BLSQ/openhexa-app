@@ -1956,13 +1956,13 @@ class SignupTest(GraphQLTestCase):
         self.assertIsNotNone(signup_request)
 
 
-class UpdateUserAiSettingsTest(GraphQLTestCase):
+class UpdateOrganizationAiSettingsTest(GraphQLTestCase):
     UPDATE_AI_SETTINGS_MUTATION = """
-        mutation updateUserAiSettings($input: UpdateUserAiSettingsInput!) {
-            updateUserAiSettings(input: $input) {
+        mutation updateOrganizationAiSettings($input: UpdateOrganizationAiSettingsInput!) {
+            updateOrganizationAiSettings(input: $input) {
                 success
                 errors
-                user {
+                organization {
                     aiSettings {
                         enabled
                         provider
@@ -1975,15 +1975,23 @@ class UpdateUserAiSettingsTest(GraphQLTestCase):
 
     @classmethod
     def setUp(cls):
-        cls.USER = User.objects.create_user("user@example.com", "password")
+        cls.ORGANIZATION = Organization.objects.create(name="AI Settings Org")
+        cls.OWNER = User.objects.create_user("owner@example.com", "password")
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.OWNER,
+            role=OrganizationMembershipRole.OWNER,
+        )
+        cls.OUTSIDER = User.objects.create_user("outsider@example.com", "password")
 
     def test_update_ai_settings(self):
-        self.client.force_login(self.USER)
+        self.client.force_login(self.OWNER)
 
         r = self.run_query(
             self.UPDATE_AI_SETTINGS_MUTATION,
             {
                 "input": {
+                    "organizationId": str(self.ORGANIZATION.id),
                     "enabled": True,
                     "provider": AiSettings.Provider.ANTHROPIC,
                     "model": AiSettings.Model.SONNET,
@@ -1993,11 +2001,11 @@ class UpdateUserAiSettingsTest(GraphQLTestCase):
         )
 
         self.assertEqual(
-            r["data"]["updateUserAiSettings"],
+            r["data"]["updateOrganizationAiSettings"],
             {
                 "success": True,
                 "errors": [],
-                "user": {
+                "organization": {
                     "aiSettings": {
                         "enabled": True,
                         "provider": AiSettings.Provider.ANTHROPIC,
@@ -2006,43 +2014,101 @@ class UpdateUserAiSettingsTest(GraphQLTestCase):
                 },
             },
         )
-        self.USER.refresh_from_db()
-        ai_settings = self.USER.ai_settings
+        ai_settings = self.ORGANIZATION.ai_settings
         self.assertTrue(ai_settings.enabled)
         self.assertEqual(ai_settings.provider, AiSettings.Provider.ANTHROPIC)
         self.assertEqual(ai_settings.model, AiSettings.Model.SONNET)
         self.assertEqual(ai_settings.api_key, "sk-test-key")
 
-    def test_update_ai_settings_enabled_requires_full_config(self):
-        self.client.force_login(self.USER)
+    def test_update_ai_settings_managed_provider_needs_no_model_or_key(self):
+        self.client.force_login(self.OWNER)
 
         r = self.run_query(
             self.UPDATE_AI_SETTINGS_MUTATION,
-            {"input": {"enabled": True, "provider": AiSettings.Provider.ANTHROPIC}},
+            {
+                "input": {
+                    "organizationId": str(self.ORGANIZATION.id),
+                    "enabled": True,
+                    "provider": AiSettings.Provider.MANAGED,
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["updateOrganizationAiSettings"]["success"])
+        ai_settings = self.ORGANIZATION.ai_settings
+        self.assertTrue(ai_settings.enabled)
+        self.assertEqual(ai_settings.provider, AiSettings.Provider.MANAGED)
+
+    def test_update_ai_settings_enabled_requires_full_config(self):
+        self.client.force_login(self.OWNER)
+
+        r = self.run_query(
+            self.UPDATE_AI_SETTINGS_MUTATION,
+            {
+                "input": {
+                    "organizationId": str(self.ORGANIZATION.id),
+                    "enabled": True,
+                    "provider": AiSettings.Provider.ANTHROPIC,
+                }
+            },
         )
 
         self.assertEqual(
-            r["data"]["updateUserAiSettings"],
-            {"success": False, "errors": ["INCOMPLETE_CONFIG"], "user": None},
+            r["data"]["updateOrganizationAiSettings"],
+            {
+                "success": False,
+                "errors": ["INCOMPLETE_CONFIG"],
+                "organization": None,
+            },
         )
 
     def test_update_ai_settings_api_key_not_exposed(self):
-        self.client.force_login(self.USER)
+        self.client.force_login(self.OWNER)
 
         r = self.run_query(
             self.UPDATE_AI_SETTINGS_MUTATION,
-            {"input": {"apiKey": "sk-secret"}},
+            {
+                "input": {
+                    "organizationId": str(self.ORGANIZATION.id),
+                    "apiKey": "sk-secret",
+                }
+            },
         )
 
-        self.assertTrue(r["data"]["updateUserAiSettings"]["success"])
+        self.assertTrue(r["data"]["updateOrganizationAiSettings"]["success"])
         self.assertTrue(
-            r["data"]["updateUserAiSettings"]["user"]["aiSettings"]["hasApiKey"]
+            r["data"]["updateOrganizationAiSettings"]["organization"]["aiSettings"][
+                "hasApiKey"
+            ]
+        )
+
+    def test_update_ai_settings_permission_denied(self):
+        self.client.force_login(self.OUTSIDER)
+
+        r = self.run_query(
+            self.UPDATE_AI_SETTINGS_MUTATION,
+            {
+                "input": {
+                    "organizationId": str(self.ORGANIZATION.id),
+                    "enabled": False,
+                }
+            },
+        )
+
+        self.assertEqual(
+            r["data"]["updateOrganizationAiSettings"],
+            {"success": False, "errors": ["NOT_FOUND"], "organization": None},
         )
 
     def test_update_ai_settings_unauthenticated(self):
         r = self.run_query(
             self.UPDATE_AI_SETTINGS_MUTATION,
-            {"input": {"enabled": True}},
+            {
+                "input": {
+                    "organizationId": str(self.ORGANIZATION.id),
+                    "enabled": True,
+                }
+            },
         )
         self.assertIsNotNone(r.get("errors"))
         self.assertIsNone(r["data"])

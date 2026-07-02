@@ -3,6 +3,12 @@ fragment Organization_organization on Organization {
   name
   shortName
   logo
+  aiSettings {
+    enabled
+    provider
+    model
+    hasApiKey
+  }
   workspaces {
     totalItems
   }
@@ -27,6 +33,7 @@ fragment Organization_organization on Organization {
     users
     workspaces
     pipelineRuns
+    aiBudget
   }
   subscription {
     subscriptionId
@@ -39,6 +46,7 @@ fragment Organization_organization on Organization {
       users
       workspaces
       pipelineRuns
+      aiBudget
     }
   }
 }
@@ -46,6 +54,22 @@ fragment Organization_organization on Organization {
 query Organization($id: UUID!) {
   organization(id: $id) {
     ...Organization_organization
+  }
+}
+
+query AiLabels {
+  aiLabels {
+    providers {
+      value
+      label
+    }
+    models {
+      value
+      label
+    }
+  }
+  config {
+    assistantManaged
   }
 }
 

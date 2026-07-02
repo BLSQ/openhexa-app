@@ -1,10 +1,11 @@
-import uuid
 from datetime import timedelta
+from decimal import Decimal
 
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.test import override_settings
 from django.utils import timezone
 
+from hexa.assistant.models import Conversation, Message
 from hexa.core.test import TestCase
 from hexa.user_management.models import (
     Feature,
@@ -13,10 +14,10 @@ from hexa.user_management.models import (
     MembershipRole,
     Organization,
     OrganizationMembershipRole,
-    OrganizationSubscription,
     Team,
     User,
 )
+from hexa.user_management.tests.testutils import create_subscription
 from hexa.workspaces.models import Workspace
 
 
@@ -181,13 +182,8 @@ class OrganizationSubscriptionTest(TestCase):
         cls.organization.organizationmembership_set.create(
             user=cls.owner, role=OrganizationMembershipRole.OWNER
         )
-        today = timezone.now().date()
-        cls.subscription = OrganizationSubscription.objects.create(
-            organization=cls.organization,
-            subscription_id=uuid.UUID("11111111-1111-1111-1111-111111111111"),
-            plan_code="openhexa_starter",
-            start_date=today - timedelta(days=30),
-            end_date=today + timedelta(days=335),
+        cls.subscription = create_subscription(
+            cls.organization,
             users_limit=2,
             workspaces_limit=1,
             pipeline_runs_limit=5,
@@ -202,15 +198,11 @@ class OrganizationSubscriptionTest(TestCase):
 
     def test_active_vs_upcoming_subscription(self):
         today = timezone.now().date()
-        future_subscription = OrganizationSubscription.objects.create(
-            organization=self.organization,
-            subscription_id=uuid.UUID("77777777-7777-7777-7777-777777777777"),
+        future_subscription = create_subscription(
+            self.organization,
             plan_code="openhexa_pro",
             start_date=today + timedelta(days=365),
             end_date=today + timedelta(days=730),
-            users_limit=100,
-            workspaces_limit=50,
-            pipeline_runs_limit=10000,
         )
 
         self.assertEqual(
@@ -241,18 +233,62 @@ class OrganizationSubscriptionTest(TestCase):
         )
         self.assertTrue(self.organization.is_workspaces_limit_reached())
 
+    def test_get_monthly_ai_cost(self):
+        self.assertEqual(self.organization.get_monthly_ai_cost(), 0)
+
+        workspace = Workspace.objects.create(
+            name="AI Workspace",
+            slug="ai-workspace",
+            organization=self.organization,
+        )
+        conversation = Conversation.objects.create(user=self.owner, workspace=workspace)
+        Message.objects.create(
+            conversation=conversation,
+            role=Message.Role.ASSISTANT,
+            content=[],
+            cost=Decimal("12.40"),
+        )
+        Message.objects.create(
+            conversation=conversation,
+            role=Message.Role.ASSISTANT,
+            content=[],
+            cost=Decimal("0.30"),
+        )
+        # User messages should be ignored.
+        Message.objects.create(
+            conversation=conversation,
+            role=Message.Role.USER,
+            content=[],
+            cost=Decimal("99"),
+        )
+
+        self.assertEqual(self.organization.get_monthly_ai_cost(), 12.70)
+
+    def test_is_ai_budget_limit_reached(self):
+        self.assertFalse(self.organization.is_ai_budget_limit_reached())
+
+        workspace = Workspace.objects.create(
+            name="AI Budget Workspace",
+            slug="ai-budget-workspace",
+            organization=self.organization,
+        )
+        conversation = Conversation.objects.create(user=self.owner, workspace=workspace)
+        # The subscription's monthly AI budget is 50 (default).
+        Message.objects.create(
+            conversation=conversation,
+            role=Message.Role.ASSISTANT,
+            content=[],
+            cost=Decimal("50"),
+        )
+        self.assertTrue(self.organization.is_ai_budget_limit_reached())
+
     def test_current_subscription_returns_expired(self):
         self.subscription.delete()
         today = timezone.now().date()
-        expired_subscription = OrganizationSubscription.objects.create(
-            organization=self.organization,
-            subscription_id=uuid.UUID("22222222-2222-2222-2222-222222222222"),
-            plan_code="openhexa_starter",
+        expired_subscription = create_subscription(
+            self.organization,
             start_date=today - timedelta(days=60),
             end_date=today - timedelta(days=1),
-            users_limit=2,
-            workspaces_limit=1,
-            pipeline_runs_limit=5,
         )
         self.assertIsNone(self.organization.active_subscription)
         self.assertEqual(
@@ -264,25 +300,17 @@ class OrganizationSubscriptionTest(TestCase):
     def test_current_subscription_picks_most_recent_expired(self):
         self.subscription.delete()
         today = timezone.now().date()
-        OrganizationSubscription.objects.create(
-            organization=self.organization,
-            subscription_id=uuid.UUID("44444444-4444-4444-4444-444444444444"),
+        create_subscription(
+            self.organization,
             plan_code="openhexa_old",
             start_date=today - timedelta(days=120),
             end_date=today - timedelta(days=60),
-            users_limit=10,
-            workspaces_limit=10,
-            pipeline_runs_limit=100,
         )
-        recent_expired = OrganizationSubscription.objects.create(
-            organization=self.organization,
-            subscription_id=uuid.UUID("55555555-5555-5555-5555-555555555555"),
+        recent_expired = create_subscription(
+            self.organization,
             plan_code="openhexa_recent",
             start_date=today - timedelta(days=30),
             end_date=today - timedelta(days=1),
-            users_limit=2,
-            workspaces_limit=1,
-            pipeline_runs_limit=5,
         )
         self.assertEqual(
             self.organization.current_subscription.subscription_id,
@@ -292,15 +320,11 @@ class OrganizationSubscriptionTest(TestCase):
     def test_grace_period_limits_enforced_normally(self):
         self.subscription.delete()
         today = timezone.now().date()
-        expired_subscription = OrganizationSubscription.objects.create(
-            organization=self.organization,
-            subscription_id=uuid.UUID("33333333-3333-3333-3333-333333333333"),
-            plan_code="openhexa_starter",
+        expired_subscription = create_subscription(
+            self.organization,
             start_date=today - timedelta(days=60),
             end_date=today - timedelta(days=1),
             users_limit=2,
-            workspaces_limit=1,
-            pipeline_runs_limit=5,
         )
 
         self.assertTrue(expired_subscription.is_expired)
@@ -318,15 +342,10 @@ class OrganizationSubscriptionTest(TestCase):
     def test_expired_past_grace_period_is_frozen(self):
         self.subscription.delete()
         today = timezone.now().date()
-        expired_subscription = OrganizationSubscription.objects.create(
-            organization=self.organization,
-            subscription_id=uuid.UUID("66666666-6666-6666-6666-666666666666"),
-            plan_code="openhexa_starter",
+        expired_subscription = create_subscription(
+            self.organization,
             start_date=today - timedelta(days=60),
             end_date=today - timedelta(days=10),
-            users_limit=100,
-            workspaces_limit=100,
-            pipeline_runs_limit=1000,
         )
 
         self.assertTrue(expired_subscription.is_expired)

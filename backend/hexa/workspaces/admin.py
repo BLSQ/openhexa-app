@@ -16,11 +16,19 @@ class WorkspaceMembershipInline(admin.TabularInline):
     fields = ("user", "role")
     model = WorkspaceMembership
     extra = 0
+    autocomplete_fields = ("user",)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("user")
 
 
 class WorkspaceInvitationInline(admin.TabularInline):
     model = WorkspaceInvitation
     extra = 0
+    autocomplete_fields = ("invited_by",)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("invited_by")
 
 
 @admin.register(Workspace)
@@ -41,6 +49,7 @@ class WorkspaceAdmin(admin.ModelAdmin):
         ("docker_image", admin.EmptyFieldListFilter),
     )
     readonly_fields = ("created_at", "updated_at", "archived_at")
+    list_select_related = ("organization",)
 
     search_fields = (
         "slug",

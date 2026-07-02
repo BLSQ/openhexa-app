@@ -9,7 +9,7 @@ export type UpdateOrganizationMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateOrganizationMutation = { __typename?: 'Mutation', updateOrganization: { __typename?: 'UpdateOrganizationResult', success: boolean, errors: Array<Types.UpdateOrganizationError>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean, createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean, reasons: Array<Types.CreateWorkspacePermissionReason> } }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number }, usage: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number }, subscription?: { __typename?: 'Subscription', subscriptionId: string, planCode: string, startDate: any, endDate: any, isExpired: boolean, isInGracePeriod: boolean, limits: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number } } | null } | null } };
+export type UpdateOrganizationMutation = { __typename?: 'Mutation', updateOrganization: { __typename?: 'UpdateOrganizationResult', success: boolean, errors: Array<Types.UpdateOrganizationError>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null, provider?: Types.AiProvider | null, model?: Types.AiModel | null, hasApiKey?: boolean | null } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number }, permissions: { __typename?: 'OrganizationPermissions', archiveWorkspace: boolean, manageMembers: boolean, manageOwners: boolean, update: boolean, delete: boolean, createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean, reasons: Array<Types.CreateWorkspacePermissionReason> } }, members: { __typename?: 'OrganizationMembershipPage', totalItems: number }, externalCollaborators: { __typename?: 'ExternalCollaboratorPage', totalItems: number }, usage: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number, aiBudget: number }, subscription?: { __typename?: 'Subscription', subscriptionId: string, planCode: string, startDate: any, endDate: any, isExpired: boolean, isInGracePeriod: boolean, limits: { __typename?: 'ResourceCounts', users: number, workspaces: number, pipelineRuns: number, aiBudget: number } } | null } | null } };
 
 export type DeleteOrganizationMutationVariables = Types.Exact<{
   input: Types.DeleteOrganizationInput;
@@ -17,6 +17,13 @@ export type DeleteOrganizationMutationVariables = Types.Exact<{
 
 
 export type DeleteOrganizationMutation = { __typename?: 'Mutation', deleteOrganization: { __typename?: 'DeleteOrganizationResult', success: boolean, errors: Array<Types.DeleteOrganizationError> } };
+
+export type UpdateOrganizationAiSettingsMutationVariables = Types.Exact<{
+  input: Types.UpdateOrganizationAiSettingsInput;
+}>;
+
+
+export type UpdateOrganizationAiSettingsMutation = { __typename?: 'Mutation', updateOrganizationAiSettings: { __typename?: 'UpdateOrganizationAiSettingsResult', success: boolean, errors: Array<Types.UpdateOrganizationAiSettingsError>, organization?: { __typename?: 'Organization', id: string, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null, provider?: Types.AiProvider | null, model?: Types.AiModel | null, hasApiKey?: boolean | null } | null } | null } };
 
 
 export const UpdateOrganizationDocument = gql`
@@ -90,3 +97,46 @@ export function useDeleteOrganizationMutation(baseOptions?: Apollo.MutationHookO
 export type DeleteOrganizationMutationHookResult = ReturnType<typeof useDeleteOrganizationMutation>;
 export type DeleteOrganizationMutationResult = Apollo.MutationResult<DeleteOrganizationMutation>;
 export type DeleteOrganizationMutationOptions = Apollo.BaseMutationOptions<DeleteOrganizationMutation, DeleteOrganizationMutationVariables>;
+export const UpdateOrganizationAiSettingsDocument = gql`
+    mutation UpdateOrganizationAiSettings($input: UpdateOrganizationAiSettingsInput!) {
+  updateOrganizationAiSettings(input: $input) {
+    success
+    errors
+    organization {
+      id
+      aiSettings {
+        enabled
+        provider
+        model
+        hasApiKey
+      }
+    }
+  }
+}
+    `;
+export type UpdateOrganizationAiSettingsMutationFn = Apollo.MutationFunction<UpdateOrganizationAiSettingsMutation, UpdateOrganizationAiSettingsMutationVariables>;
+
+/**
+ * __useUpdateOrganizationAiSettingsMutation__
+ *
+ * To run a mutation, you first call `useUpdateOrganizationAiSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateOrganizationAiSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateOrganizationAiSettingsMutation, { data, loading, error }] = useUpdateOrganizationAiSettingsMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateOrganizationAiSettingsMutation(baseOptions?: Apollo.MutationHookOptions<UpdateOrganizationAiSettingsMutation, UpdateOrganizationAiSettingsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateOrganizationAiSettingsMutation, UpdateOrganizationAiSettingsMutationVariables>(UpdateOrganizationAiSettingsDocument, options);
+      }
+export type UpdateOrganizationAiSettingsMutationHookResult = ReturnType<typeof useUpdateOrganizationAiSettingsMutation>;
+export type UpdateOrganizationAiSettingsMutationResult = Apollo.MutationResult<UpdateOrganizationAiSettingsMutation>;
+export type UpdateOrganizationAiSettingsMutationOptions = Apollo.BaseMutationOptions<UpdateOrganizationAiSettingsMutation, UpdateOrganizationAiSettingsMutationVariables>;

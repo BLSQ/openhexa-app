@@ -1,14 +1,12 @@
-import uuid
-
 import responses
 from django.conf import settings
 
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import (
     Organization,
-    OrganizationSubscription,
     User,
 )
+from hexa.user_management.tests.testutils import create_subscription
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -43,17 +41,7 @@ class NotebooksTest(GraphQLTestCase):
             short_name="test-org",
             organization_type="CORPORATE",
         )
-        OrganizationSubscription.objects.create(
-            organization=cls.ORGANIZATION,
-            subscription_id=uuid.uuid4(),
-            plan_code="trial",
-            start_date="2024-01-01",
-            end_date="2080-01-01",
-            users_limit=10,
-            workspaces_limit=5,
-            pipeline_runs_limit=100,
-            notebook_profile="trial",
-        )
+        create_subscription(cls.ORGANIZATION, notebook_profile="trial")
 
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
             cls.USER_JULIA,

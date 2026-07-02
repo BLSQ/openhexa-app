@@ -17,6 +17,7 @@ from hexa.user_management.models import (
     OrganizationSubscription,
     User,
 )
+from hexa.user_management.tests.testutils import create_subscription
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -1166,6 +1167,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1190,6 +1192,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(subscription.users_limit, 10)
         self.assertEqual(subscription.workspaces_limit, 5)
         self.assertEqual(subscription.pipeline_runs_limit, 1000)
+        self.assertEqual(subscription.monthly_ai_budget, 50)
         self.assertEqual(subscription.start_date, date(2026, 1, 1))
         self.assertEqual(subscription.end_date, date(2026, 12, 31))
 
@@ -1199,6 +1202,40 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         )
         self.assertEqual(invitation.role, OrganizationMembershipRole.OWNER)
         mock_send_invite.assert_called_once_with(invitation)
+
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_create_organization_without_monthly_ai_budget(self, mock_send_invite):
+        """Omitting monthlyAiBudget defaults it to 0 (older console versions don't send it)."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "ownerEmail": "newowner@example.org",
+                    "name": "Org Without AI Budget",
+                    "subscriptionId": "12345678-1234-1234-1234-123456789013",
+                    "planCode": "openhexa_starter",
+                    "subscriptionStartDate": "2026-01-01",
+                    "subscriptionEndDate": "2026-12-31",
+                    "limits": {
+                        "users": 10,
+                        "workspaces": 5,
+                        "pipelineRuns": 1000,
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["createOrganization"]["success"])
+        org = Organization.objects.get(name="Org Without AI Budget")
+        self.assertEqual(org.active_subscription.monthly_ai_budget, 0)
 
     @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
     def test_create_organization_with_existing_user(self, mock_send_email):
@@ -1228,6 +1265,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1271,6 +1309,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1317,6 +1356,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1366,6 +1406,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1400,6 +1441,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1434,6 +1476,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1467,15 +1510,11 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
             user=self.owner,
             role=OrganizationMembershipRole.OWNER,
         )
-        self.subscription = OrganizationSubscription.objects.create(
-            organization=self.organization,
+        self.subscription = create_subscription(
+            self.organization,
             subscription_id=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-            plan_code="openhexa_starter",
             start_date=date(2025, 1, 1),
             end_date=date(2025, 12, 31),
-            users_limit=10,
-            workspaces_limit=5,
-            pipeline_runs_limit=1000,
         )
 
         # Create organization without subscription
@@ -1512,6 +1551,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
                         "users": 50,
                         "workspaces": 20,
                         "pipelineRuns": 10000,
+                        "monthlyAiBudget": 200,
                     },
                 }
             },
@@ -1525,7 +1565,40 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
         self.assertEqual(self.subscription.users_limit, 50)
         self.assertEqual(self.subscription.workspaces_limit, 20)
         self.assertEqual(self.subscription.pipeline_runs_limit, 10000)
+        self.assertEqual(self.subscription.monthly_ai_budget, 200)
         self.assertEqual(self.subscription.end_date, date(2026, 12, 31))
+
+    def test_update_subscription_without_monthly_ai_budget(self):
+        """Omitting monthlyAiBudget defaults it to 0 (older console versions don't send it)."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation UpdateOrganizationSubscription($input: UpdateOrganizationSubscriptionInput!) {
+                updateOrganizationSubscription(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "organizationId": str(self.organization.id),
+                    "subscriptionId": str(self.subscription.subscription_id),
+                    "planCode": "openhexa_pro",
+                    "subscriptionStartDate": "2025-01-01",
+                    "subscriptionEndDate": "2026-12-31",
+                    "limits": {
+                        "users": 50,
+                        "workspaces": 20,
+                        "pipelineRuns": 10000,
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["updateOrganizationSubscription"]["success"])
+        self.subscription.refresh_from_db()
+        self.assertEqual(self.subscription.monthly_ai_budget, 0)
 
     def test_update_subscription_creates_new_for_new_subscription_id(self):
         """Test that using a new subscriptionId creates a new subscription (for downgrades/renewals)."""
@@ -1551,6 +1624,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
                         "users": 100,
                         "workspaces": 50,
                         "pipelineRuns": 50000,
+                        "monthlyAiBudget": 100,
                     },
                 }
             },
@@ -1599,6 +1673,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1639,6 +1714,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1680,6 +1756,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
                         "users": 10,
                         "workspaces": 5,
                         "pipelineRuns": 1000,
+                        "monthlyAiBudget": 50,
                     },
                 }
             },
@@ -1724,6 +1801,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
                         "users": 100,
                         "workspaces": 50,
                         "pipelineRuns": 50000,
+                        "monthlyAiBudget": 100,
                     },
                 }
             },
@@ -1790,15 +1868,11 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
         today = timezone.now().date()
         start_date = today - timedelta(days=30)
         end_date = today + timedelta(days=335)
-        OrganizationSubscription.objects.create(
-            organization=self.organization,
+        create_subscription(
+            self.organization,
             subscription_id=uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-            plan_code="openhexa_starter",
             start_date=start_date,
             end_date=end_date,
-            users_limit=10,
-            workspaces_limit=5,
-            pipeline_runs_limit=1000,
         )
 
         self.client.force_login(self.owner)
@@ -1810,6 +1884,7 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
                         users
                         workspaces
                         pipelineRuns
+                        aiBudget
                     }
                     subscription {
                         subscriptionId
@@ -1820,6 +1895,7 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
                             users
                             workspaces
                             pipelineRuns
+                            aiBudget
                         }
                     }
                 }
@@ -1833,6 +1909,7 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(usage["users"], 2)
         self.assertEqual(usage["workspaces"], 0)
         self.assertEqual(usage["pipelineRuns"], 0)
+        self.assertEqual(usage["aiBudget"], 0)
         self.assertEqual(
             subscription["subscriptionId"],
             "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
@@ -1843,6 +1920,7 @@ class OrganizationUsageLimitsTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(subscription["limits"]["users"], 10)
         self.assertEqual(subscription["limits"]["workspaces"], 5)
         self.assertEqual(subscription["limits"]["pipelineRuns"], 1000)
+        self.assertEqual(subscription["limits"]["aiBudget"], 50)
 
 
 class CreateWorkspacePermissionTest(GraphQLTestCase, OrganizationTestMixin):
@@ -1888,16 +1966,9 @@ class CreateWorkspacePermissionTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(perm["reasons"], [])
 
     def test_denied_when_workspaces_limit_reached(self):
-        today = timezone.now().date()
-        OrganizationSubscription.objects.create(
-            organization=self.organization,
-            subscription_id=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
-            plan_code="openhexa_starter",
-            start_date=today - timedelta(days=30),
-            end_date=today + timedelta(days=335),
-            users_limit=10,
+        create_subscription(
+            self.organization,
             workspaces_limit=0,
-            pipeline_runs_limit=1000,
         )
         perm = self._get_permission(self.owner)
         self.assertFalse(perm["isAllowed"])
@@ -1905,17 +1976,7 @@ class CreateWorkspacePermissionTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertNotIn("PERMISSION_DENIED", perm["reasons"])
 
     def test_allowed_when_below_workspaces_limit(self):
-        today = timezone.now().date()
-        OrganizationSubscription.objects.create(
-            organization=self.organization,
-            subscription_id=uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
-            plan_code="openhexa_starter",
-            start_date=today - timedelta(days=30),
-            end_date=today + timedelta(days=335),
-            users_limit=10,
-            workspaces_limit=5,
-            pipeline_runs_limit=1000,
-        )
+        create_subscription(self.organization)
         perm = self._get_permission(self.owner)
         self.assertTrue(perm["isAllowed"])
         self.assertEqual(perm["reasons"], [])
@@ -1931,13 +1992,8 @@ class SubscriptionLimitEnforcementTest(GraphQLTestCase, OrganizationTestMixin):
             self.owner, "Test Organization", "Description", short_name="SLIM"
         )
 
-        today = timezone.now().date()
-        self.subscription = OrganizationSubscription.objects.create(
-            organization=self.organization,
-            subscription_id=uuid.UUID("11111111-1111-1111-1111-111111111111"),
-            plan_code="openhexa_starter",
-            start_date=today - timedelta(days=30),
-            end_date=today + timedelta(days=335),
+        self.subscription = create_subscription(
+            self.organization,
             users_limit=2,
             workspaces_limit=1,
             pipeline_runs_limit=5,

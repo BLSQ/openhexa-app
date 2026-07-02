@@ -22,9 +22,9 @@ from hexa.user_management.models import (
     Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
-    OrganizationSubscription,
     User,
 )
+from hexa.user_management.tests.testutils import create_subscription
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -964,17 +964,7 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
         )
 
     def test_run_uses_subscription_timeout_when_lower(self):
-        OrganizationSubscription.objects.create(
-            organization=self.ORGANIZATION,
-            subscription_id=uuid.uuid4(),
-            plan_code="trial",
-            start_date="2024-01-01",
-            end_date="2080-01-01",
-            users_limit=10,
-            workspaces_limit=5,
-            pipeline_runs_limit=100,
-            max_pipeline_timeout=3600,
-        )
+        create_subscription(self.ORGANIZATION, max_pipeline_timeout=3600)
         run = self.PIPELINE.run(
             user=self.USER,
             pipeline_version=self.PIPELINE.last_version,
@@ -983,17 +973,7 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
         self.assertEqual(run.timeout, 3600)
 
     def test_run_uses_requested_timeout_when_lower(self):
-        OrganizationSubscription.objects.create(
-            organization=self.ORGANIZATION,
-            subscription_id=uuid.uuid4(),
-            plan_code="trial",
-            start_date="2024-01-01",
-            end_date="2080-01-01",
-            users_limit=10,
-            workspaces_limit=5,
-            pipeline_runs_limit=100,
-            max_pipeline_timeout=10000,
-        )
+        create_subscription(self.ORGANIZATION, max_pipeline_timeout=10000)
         run = self.PIPELINE.run(
             user=self.USER,
             pipeline_version=self.PIPELINE.last_version,
@@ -1002,15 +982,8 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
         self.assertEqual(run.timeout, 7200)
 
     def test_run_uses_subscription_resource_limits(self):
-        OrganizationSubscription.objects.create(
-            organization=self.ORGANIZATION,
-            subscription_id=uuid.uuid4(),
-            plan_code="trial",
-            start_date="2024-01-01",
-            end_date="2080-01-01",
-            users_limit=10,
-            workspaces_limit=5,
-            pipeline_runs_limit=100,
+        create_subscription(
+            self.ORGANIZATION,
             pipeline_cpu_limit="1",
             pipeline_memory_limit="1G",
         )

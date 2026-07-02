@@ -10,7 +10,7 @@ from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 from hexa.core.test import TestCase
 from hexa.core.test.utils import collect_async_stream, parse_sse_stream
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import Workspace
 
 
@@ -92,9 +92,30 @@ class StreamAssistantMessageViewTest(TestCase):
             response = _post(self.client, self.conversation.id)
         self.assertEqual(response.status_code, 429)
 
+    def test_organization_ai_budget_exceeded_returns_403(self):
+        org = Organization.objects.create(name="Budget Org", short_name="BORG")
+        self.workspace.organization = org
+        self.workspace.save()
+        self.client.force_login(self.user)
+        with (
+            patch(
+                "hexa.assistant.views.Conversation.get_monthly_cost_for_user",
+                return_value=Decimal("0"),
+            ),
+            patch(
+                "hexa.user_management.models.Organization.is_ai_budget_limit_reached",
+                return_value=True,
+            ),
+        ):
+            response = _post(self.client, self.conversation.id)
+        self.assertEqual(response.status_code, 403)
+
     # --- Happy path ---
 
     def test_valid_request_returns_sse_stream(self):
+        org = Organization.objects.create(name="Budget Org", short_name="BORG")
+        self.workspace.organization = org
+        self.workspace.save()
         self.client.force_login(self.user)
 
         async def _fake_stream(self, _message):

@@ -81,6 +81,30 @@ class AiSettingsAdminForm(forms.ModelForm):
             "api_key": forms.PasswordInput(render_value=True),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["model"].required = False
+        self.fields["api_key"].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # Normalize empty strings to None so the ai_settings_enabled_requires_full_config
+        # check constraint (which uses isnull) behaves as expected.
+        for field in ("model", "api_key"):
+            cleaned_data[field] = cleaned_data.get(field) or None
+
+        if (
+            cleaned_data.get("enabled")
+            and cleaned_data.get("provider") != AiSettings.Provider.MANAGED
+        ):
+            for field in ("model", "api_key"):
+                if not cleaned_data.get(field):
+                    self.add_error(
+                        field,
+                        "This field is required when AI is enabled with a non-managed provider.",
+                    )
+        return cleaned_data
+
 
 class AiSettingsInline(admin.StackedInline):
     model = AiSettings
@@ -107,7 +131,7 @@ class CustomUserAdmin(UserAdmin):
 
     list_filter = ("last_login", "is_staff", "is_superuser", "is_active")
     filter_horizontal = ("user_permissions",)
-    inlines = [MembershipInline, FeatureFlagInline, AiSettingsInline]
+    inlines = [MembershipInline, FeatureFlagInline]
     fieldsets = (
         (
             None,
@@ -240,7 +264,7 @@ class CustomUserAdmin(UserAdmin):
 class AiSettingsAdmin(admin.ModelAdmin):
     form = AiSettingsAdminForm
     list_display = (
-        "user",
+        "organization",
         "enabled",
         "provider",
         "model",
@@ -248,7 +272,7 @@ class AiSettingsAdmin(admin.ModelAdmin):
     )
 
     list_filter = ("provider", "enabled", "model")
-    search_fields = ("user__username", "user__email")
+    search_fields = ("organization__name", "organization__slug")
 
     def has_api_key(self, obj: AiSettings):
         return obj.has_api_key
@@ -275,6 +299,7 @@ class OrganizationSubscriptionInline(admin.TabularInline):
         "users_limit",
         "workspaces_limit",
         "pipeline_runs_limit",
+        "monthly_ai_budget",
     )
 
 
@@ -299,7 +324,11 @@ class OrganizationAdmin(GlobalObjectsModelAdmin):
     search_fields = ("name", "short_name")
     readonly_fields = ("created_at", "updated_at", "deleted_at")
     ordering = ("-created_at",)
-    inlines = [OrganizationMembershipInline, OrganizationSubscriptionInline]
+    inlines = [
+        OrganizationMembershipInline,
+        OrganizationSubscriptionInline,
+        AiSettingsInline,
+    ]
     actions = [restore_organizations]
 
     def is_active(self, obj):
@@ -388,6 +417,7 @@ class OrganizationSubscriptionAdmin(admin.ModelAdmin):
         "users_limit",
         "workspaces_limit",
         "pipeline_runs_limit",
+        "monthly_ai_budget",
         "max_pipeline_timeout",
         "pipeline_cpu_limit",
         "pipeline_memory_limit",
@@ -426,6 +456,7 @@ class OrganizationSubscriptionAdmin(admin.ModelAdmin):
                     "users_limit",
                     "workspaces_limit",
                     "pipeline_runs_limit",
+                    "monthly_ai_budget",
                 )
             },
         ),
