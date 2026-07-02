@@ -1203,6 +1203,40 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
         self.assertEqual(invitation.role, OrganizationMembershipRole.OWNER)
         mock_send_invite.assert_called_once_with(invitation)
 
+    @patch("hexa.user_management.schema.mutations.send_organization_invite")
+    def test_create_organization_without_monthly_ai_budget(self, mock_send_invite):
+        """Omitting monthlyAiBudget defaults it to 0 (older console versions don't send it)."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation CreateOrganization($input: CreateOrganizationInput!) {
+                createOrganization(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "ownerEmail": "newowner@example.org",
+                    "name": "Org Without AI Budget",
+                    "subscriptionId": "12345678-1234-1234-1234-123456789013",
+                    "planCode": "openhexa_starter",
+                    "subscriptionStartDate": "2026-01-01",
+                    "subscriptionEndDate": "2026-12-31",
+                    "limits": {
+                        "users": 10,
+                        "workspaces": 5,
+                        "pipelineRuns": 1000,
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["createOrganization"]["success"])
+        org = Organization.objects.get(name="Org Without AI Budget")
+        self.assertEqual(org.active_subscription.monthly_ai_budget, 0)
+
     @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
     def test_create_organization_with_existing_user(self, mock_send_email):
         """Test creating organization with an existing user as owner."""
@@ -1533,6 +1567,38 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
         self.assertEqual(self.subscription.pipeline_runs_limit, 10000)
         self.assertEqual(self.subscription.monthly_ai_budget, 200)
         self.assertEqual(self.subscription.end_date, date(2026, 12, 31))
+
+    def test_update_subscription_without_monthly_ai_budget(self):
+        """Omitting monthlyAiBudget defaults it to 0 (older console versions don't send it)."""
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            """
+            mutation UpdateOrganizationSubscription($input: UpdateOrganizationSubscriptionInput!) {
+                updateOrganizationSubscription(input: $input) {
+                    success
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "organizationId": str(self.organization.id),
+                    "subscriptionId": str(self.subscription.subscription_id),
+                    "planCode": "openhexa_pro",
+                    "subscriptionStartDate": "2025-01-01",
+                    "subscriptionEndDate": "2026-12-31",
+                    "limits": {
+                        "users": 50,
+                        "workspaces": 20,
+                        "pipelineRuns": 10000,
+                    },
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["updateOrganizationSubscription"]["success"])
+        self.subscription.refresh_from_db()
+        self.assertEqual(self.subscription.monthly_ai_budget, 0)
 
     def test_update_subscription_creates_new_for_new_subscription_id(self):
         """Test that using a new subscriptionId creates a new subscription (for downgrades/renewals)."""

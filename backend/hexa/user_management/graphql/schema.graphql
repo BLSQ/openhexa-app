@@ -2209,9 +2209,9 @@ input ResourceCountsInput {
     notebookProfile: String
 
     """
-    Monthly AI budget in USD.
+    Monthly AI budget in USD. Defaults to 0 (AI disabled) if not provided.
     """
-    monthlyAiBudget: Int!
+    monthlyAiBudget: Int
 }
 
 """

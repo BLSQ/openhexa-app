@@ -5233,8 +5233,8 @@ export type ResourceCounts = {
 export type ResourceCountsInput = {
   /** Maximum pipeline timeout in seconds. */
   maxPipelineTimeout?: InputMaybe<Scalars['Int']['input']>;
-  /** Monthly AI budget in USD. */
-  monthlyAiBudget: Scalars['Int']['input'];
+  /** Monthly AI budget in USD. Defaults to 0 (AI disabled) if not provided. */
+  monthlyAiBudget?: InputMaybe<Scalars['Int']['input']>;
   /** JupyterHub profile to use (e.g., "trial"). */
   notebookProfile?: InputMaybe<Scalars['String']['input']>;
   /** CPU limit for pipeline pods (e.g., "1"). */
