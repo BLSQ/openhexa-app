@@ -467,6 +467,12 @@ type AssistantTextSegment {
   content: String!
 }
 
+"""
+The set of tool names any agent can call, and thus any name that can appear in
+`AssistantToolSegment.toolName`. Declared here so GraphQL codegen emits a typed
+enum the assistant frontend keys off for rendering. Keep in sync with the agent
+registry (`hexa.assistant.agents.all_agent_tool_names`) — a unit test enforces this.
+"""
 enum AssistantToolName {
   create_pipeline
   get_dataset
@@ -483,9 +489,21 @@ type AssistantToolSegment {
   id: UUID
   proposalPending: Boolean!
   success: Boolean!
+
+  """
+  Typed view of `toolName`, resolved against the current tool roster. The primary
+  handle for tool-identity logic in the UI. Null when the stored name is not a
+  known tool (an old conversation that used a since-removed tool, or no name),
+  so historical data degrades gracefully instead of breaking enum serialization.
+  """
   tool: AssistantToolName
   toolCallId: String!
   toolInput: JSON!
+
+  """
+  Raw persisted tool name, always present — used for display and shared with the
+  live SSE stream, which carries the name as a plain string.
+  """
   toolName: String!
   toolOutput: JSON
 }

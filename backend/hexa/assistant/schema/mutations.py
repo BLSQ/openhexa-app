@@ -5,6 +5,7 @@ from django.core.exceptions import PermissionDenied
 
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, ToolInvocation
+from hexa.assistant.schema.types import tool_segment
 from hexa.pipelines.models import Pipeline
 from hexa.workspaces.models import Workspace
 
@@ -111,7 +112,11 @@ def resolve_assistant_proposal(_, info, tool_invocation_id, **kwargs):
         proposal_pending=True,
     ).update(proposal_pending=False)
 
-    return {"success": True, "errors": [], "toolInvocation": invocation}
+    return {
+        "success": True,
+        "errors": [],
+        "toolInvocation": tool_segment(invocation, invocation.tool_call_id),
+    }
 
 
 bindables = [assistant_mutations]

@@ -4,7 +4,7 @@ from graphql import EnumTypeDefinitionNode, parse
 
 from hexa.assistant.agents import all_agent_tool_names
 from hexa.assistant.schema import assistant_type_defs
-from hexa.assistant.schema.types import resolve_tool_segment_tool
+from hexa.assistant.schema.types import tool_segment
 from hexa.core.test import TestCase
 
 
@@ -38,20 +38,37 @@ class AgentToolsSchemaTest(TestCase):
         )
 
 
-class ResolveToolSegmentToolTest(TestCase):
+def _invocation(tool_name: str) -> SimpleNamespace:
+    return SimpleNamespace(
+        id="8b9c6f0e-0000-0000-0000-000000000000",
+        tool_name=tool_name,
+        tool_input={},
+        tool_output=None,
+        success=True,
+        proposal_pending=False,
+    )
+
+
+class ToolSegmentTest(TestCase):
     """`tool` is the typed view of the persisted `tool_name` string."""
 
     def test_known_tool_resolves_to_its_name(self):
         known = next(iter(all_agent_tool_names()))
-        self.assertEqual(resolve_tool_segment_tool({"tool_name": known}, None), known)
-        self.assertEqual(
-            resolve_tool_segment_tool(SimpleNamespace(tool_name=known), None), known
-        )
+        segment = tool_segment(_invocation(known), "call-1")
+        self.assertEqual(segment["tool"], known)
+        self.assertEqual(segment["tool_name"], known)
 
-    def test_unknown_or_missing_tool_resolves_to_none(self):
+    def test_unknown_tool_resolves_to_none(self):
         # A tool removed/renamed since a conversation was stored must degrade to
         # null rather than break enum serialization for that message.
-        self.assertIsNone(
-            resolve_tool_segment_tool({"tool_name": "since_removed_tool"}, None)
-        )
-        self.assertIsNone(resolve_tool_segment_tool({"tool_name": None}, None))
+        segment = tool_segment(_invocation("since_removed_tool"), "call-1")
+        self.assertIsNone(segment["tool"])
+        self.assertEqual(segment["tool_name"], "since_removed_tool")
+
+    def test_missing_invocation_resolves_to_none(self):
+        # Without an invocation record the segment falls back to the call id as
+        # its display name, which is never a roster member.
+        segment = tool_segment(None, "toolu_01abc")
+        self.assertIsNone(segment["tool"])
+        self.assertEqual(segment["tool_name"], "toolu_01abc")
+        self.assertIsNone(segment["id"])

@@ -513,6 +513,12 @@ export type AssistantTextSegment = {
   content: Scalars['String']['output'];
 };
 
+/**
+ * The set of tool names any agent can call, and thus any name that can appear in
+ * `AssistantToolSegment.toolName`. Declared here so GraphQL codegen emits a typed
+ * enum the assistant frontend keys off for rendering. Keep in sync with the agent
+ * registry (`hexa.assistant.agents.all_agent_tool_names`) — a unit test enforces this.
+ */
 export enum AssistantToolName {
   CreatePipeline = 'create_pipeline',
   GetDataset = 'get_dataset',
@@ -530,9 +536,19 @@ export type AssistantToolSegment = {
   id?: Maybe<Scalars['UUID']['output']>;
   proposalPending: Scalars['Boolean']['output'];
   success: Scalars['Boolean']['output'];
+  /**
+   * Typed view of `toolName`, resolved against the current tool roster. The primary
+   * handle for tool-identity logic in the UI. Null when the stored name is not a
+   * known tool (an old conversation that used a since-removed tool, or no name),
+   * so historical data degrades gracefully instead of breaking enum serialization.
+   */
   tool?: Maybe<AssistantToolName>;
   toolCallId: Scalars['String']['output'];
   toolInput: Scalars['JSON']['output'];
+  /**
+   * Raw persisted tool name, always present — used for display and shared with the
+   * live SSE stream, which carries the name as a plain string.
+   */
   toolName: Scalars['String']['output'];
   toolOutput?: Maybe<Scalars['JSON']['output']>;
 };
