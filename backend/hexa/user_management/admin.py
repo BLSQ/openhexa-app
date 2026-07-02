@@ -81,6 +81,30 @@ class AiSettingsAdminForm(forms.ModelForm):
             "api_key": forms.PasswordInput(render_value=True),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["model"].required = False
+        self.fields["api_key"].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # Normalize empty strings to None so the ai_settings_enabled_requires_full_config
+        # check constraint (which uses isnull) behaves as expected.
+        for field in ("model", "api_key"):
+            cleaned_data[field] = cleaned_data.get(field) or None
+
+        if (
+            cleaned_data.get("enabled")
+            and cleaned_data.get("provider") != AiSettings.Provider.MANAGED
+        ):
+            for field in ("model", "api_key"):
+                if not cleaned_data.get(field):
+                    self.add_error(
+                        field,
+                        "This field is required when AI is enabled with a non-managed provider.",
+                    )
+        return cleaned_data
+
 
 class AiSettingsInline(admin.StackedInline):
     model = AiSettings
