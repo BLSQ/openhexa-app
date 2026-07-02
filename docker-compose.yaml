@@ -197,8 +197,6 @@ services:
   # Local equivalent of the production git proxy
   git_proxy:
     image: nginx:alpine
-    profiles:
-      - git_proxy
     depends_on:
       - app
       - forgejo
