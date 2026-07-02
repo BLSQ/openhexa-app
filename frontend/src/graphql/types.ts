@@ -4693,6 +4693,7 @@ export type Query = {
   pipelines: PipelinesPage;
   /** Read the text content of a file from a workspace's bucket. */
   readFileContent: ReadFileContentResult;
+  readWebappFile: ReadWebappFileResult;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
   searchFiles: FileResultPage;
@@ -4939,6 +4940,15 @@ export type QueryReadFileContentArgs = {
 };
 
 
+export type QueryReadWebappFileArgs = {
+  endLine?: InputMaybe<Scalars['Int']['input']>;
+  path: Scalars['String']['input'];
+  startLine?: InputMaybe<Scalars['Int']['input']>;
+  webappSlug: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
+};
+
+
 export type QuerySearchDatabaseTablesArgs = {
   organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
@@ -5056,6 +5066,30 @@ export type ReadFileContentResult = {
   errors: Array<ReadFileContentError>;
   size?: Maybe<Scalars['Int']['output']>;
   success: Scalars['Boolean']['output'];
+};
+
+/** Represents the error message for reading a web app file. */
+export enum ReadWebappFileError {
+  BinaryFile = 'BINARY_FILE',
+  PathNotFound = 'PATH_NOT_FOUND',
+  WebappsNotConfigured = 'WEBAPPS_NOT_CONFIGURED',
+  WebappNotFound = 'WEBAPP_NOT_FOUND'
+}
+
+/**
+ * Represents the result of reading a single text file from a static web app.
+ * When startLine/endLine are provided, content is limited to that line window
+ * and the window bounds and total line count are returned.
+ */
+export type ReadWebappFileResult = {
+  __typename?: 'ReadWebappFileResult';
+  content?: Maybe<Scalars['String']['output']>;
+  endLine?: Maybe<Scalars['Int']['output']>;
+  errors: Array<ReadWebappFileError>;
+  path?: Maybe<Scalars['String']['output']>;
+  startLine?: Maybe<Scalars['Int']['output']>;
+  success: Scalars['Boolean']['output'];
+  totalLines?: Maybe<Scalars['Int']['output']>;
 };
 
 /** The RegisterError enum represents the possible errors that can occur during the register mutation. */

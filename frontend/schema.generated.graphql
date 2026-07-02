@@ -4079,6 +4079,7 @@ type Query {
 
   """Read the text content of a file from a workspace's bucket."""
   readFileContent(endLine: Int, filePath: String!, startLine: Int, workspaceSlug: String!): ReadFileContentResult!
+  readWebappFile(endLine: Int, path: String!, startLine: Int, webappSlug: String!, workspaceSlug: String!): ReadWebappFileResult!
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
@@ -4113,6 +4114,29 @@ type ReadFileContentResult {
   errors: [ReadFileContentError!]!
   size: Int
   success: Boolean!
+}
+
+"""Represents the error message for reading a web app file."""
+enum ReadWebappFileError {
+  BINARY_FILE
+  PATH_NOT_FOUND
+  WEBAPPS_NOT_CONFIGURED
+  WEBAPP_NOT_FOUND
+}
+
+"""
+Represents the result of reading a single text file from a static web app.
+When startLine/endLine are provided, content is limited to that line window
+and the window bounds and total line count are returned.
+"""
+type ReadWebappFileResult {
+  content: String
+  endLine: Int
+  errors: [ReadWebappFileError!]!
+  path: String
+  startLine: Int
+  success: Boolean!
+  totalLines: Int
 }
 
 """
