@@ -20,7 +20,7 @@ export default function AssistantProposalBanner({
 
   return (
     <div
-      className={`shrink-0 mb-2 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm${className ? ` ${className}` : ""}`}
+      className={`shrink-0 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm${className ? ` ${className}` : ""}`}
     >
       <span className="font-medium text-blue-700">{label}</span>
       <div className="flex items-center gap-3">

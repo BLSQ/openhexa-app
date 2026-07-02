@@ -221,6 +221,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
             <AssistantProposalBanner
               label={t("Proposed changes from AI assistant")}
               onDismiss={handleDismiss}
+              className="-my-2"
             />
           )}
           <div className="flex gap-4 min-h-[60vh] max-h-[65vh] overflow-hidden">

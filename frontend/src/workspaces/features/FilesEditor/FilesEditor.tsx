@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { gql } from "@apollo/client";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
@@ -13,6 +14,7 @@ interface FilesEditorProps {
   files: FilesEditor_FileFragment[];
   isEditable?: boolean;
   proposedFiles?: ProposedFile[];
+  headerActions?: ReactNode;
   onSave?: (
     modifiedFiles: Map<string, string>,
     allFiles: FilesEditor_FileFragment[],
@@ -24,6 +26,7 @@ export const FilesEditor = ({
   files: flatFiles,
   isEditable = false,
   proposedFiles,
+  headerActions,
   onSave,
 }: FilesEditorProps) => {
   const {
@@ -85,6 +88,7 @@ export const FilesEditor = ({
           saveError={saveError}
           proposedByKey={proposedByKey}
           deletedFilePaths={effectivelyDeletedPaths}
+          headerActions={headerActions}
           onContentChange={handleContentChange}
           onSave={handleSave}
           hasSaveHandler={!!onSave}

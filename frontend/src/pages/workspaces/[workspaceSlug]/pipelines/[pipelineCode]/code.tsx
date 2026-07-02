@@ -192,6 +192,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                 <AssistantProposalBanner
                   label={t("Proposed version from AI assistant")}
                   onDismiss={handleDismiss}
+                  className="mb-2"
                 />
               )}
               <div className="relative flex-1 min-h-0">
