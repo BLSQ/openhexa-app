@@ -256,6 +256,16 @@ LOGGING = {
             "level": "INFO",
             "propagate": True,
         },
+        # httpx/httpcore log every request/connection at INFO/DEBUG, which generates
+        # a lot of noise (e.g. when running the workspace copier).
+        "httpx": {
+            "level": "WARNING",
+            "propagate": True,
+        },
+        "httpcore": {
+            "level": "WARNING",
+            "propagate": True,
+        },
         "": {
             "handlers": ["default"],
             "level": "DEBUG" if DEBUG_LOGGING else "INFO",
@@ -327,6 +337,7 @@ INSTALLED_APPS = [
     "oauth2_provider",
     "hexa.assistant",
     "hexa.mcp",
+    "hexa.workspace_copier",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
