@@ -157,6 +157,9 @@ query WorkspacePipelineCodePage(
     code
     name
     type
+    permissions {
+      createVersion
+    }
     currentVersion {
       id
       versionName

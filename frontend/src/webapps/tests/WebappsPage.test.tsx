@@ -146,6 +146,60 @@ describe("WebappsPage", () => {
     await waitFor(() => {
       expect(screen.getByText("Webapp 1")).toBeInTheDocument();
     });
+    expect(screen.getByRole("button", { name: "Create" })).toBeInTheDocument();
+    expect(screen.getAllByText("Edit").length).toBeGreaterThan(0);
+    expect(screen.queryByText("View")).not.toBeInTheDocument();
+  });
+
+  it("hides the create and edit actions for viewers", async () => {
+    const viewerWorkspace = {
+      ...mockWorkspace,
+      permissions: { ...mockWorkspace.permissions, update: false },
+    };
+    render(
+      <TestApp
+        mocks={[
+          sidebarMenuMock,
+          {
+            request: {
+              query: WorkspaceWebappsPageDocument,
+              variables: {
+                workspaceSlug: "test-workspace",
+                page: 1,
+                perPage: 15,
+              },
+            },
+            result: {
+              data: {
+                workspace: viewerWorkspace,
+                webapps: {
+                  pageNumber: 1,
+                  totalPages: 1,
+                  totalItems: 1,
+                  items: [webapp("1")],
+                },
+                favoriteWebapps: {
+                  items: [],
+                  totalPages: 0,
+                  totalItems: 0,
+                },
+              },
+            },
+          },
+        ]}
+      >
+        <WebappsPage workspaceSlug="test-workspace" page={1} perPage={15} />
+      </TestApp>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Webapp 1")).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByRole("button", { name: "Create" }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Edit")).not.toBeInTheDocument();
+    expect(screen.getAllByText("View").length).toBeGreaterThan(0);
   });
 
   it("adds a webapp to favorites", async () => {

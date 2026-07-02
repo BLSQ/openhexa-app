@@ -211,7 +211,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                   key={versionToShow.id}
                   name={versionToShow.versionName}
                   files={versionToShow.files}
-                  isEditable={true}
+                  isEditable={pipeline.permissions.createVersion}
                   proposedFiles={proposedFiles ?? undefined}
                   workspaceSlug={workspaceSlug}
                   pipelineCode={pipelineCode}

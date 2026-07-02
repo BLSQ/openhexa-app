@@ -53,6 +53,19 @@ export const getServerSideProps = createGetServerSideProps({
         slug: ctx.params?.workspaceSlug as string,
       },
     });
+    if (!data.workspace) {
+      return { notFound: true };
+    }
+    if (!data.workspace.permissions.update) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: `/workspaces/${encodeURIComponent(
+            data.workspace.slug,
+          )}/webapps`,
+        },
+      };
+    }
     return {
       props: {
         workspace: data.workspace,
