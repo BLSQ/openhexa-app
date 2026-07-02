@@ -1,5 +1,28 @@
 # Changelog
 
+## [5.11.0](https://github.com/BLSQ/openhexa-app/compare/5.10.1...5.11.0) (2026-07-02)
+
+
+### Features
+
+* `edit_static_webapp_file` MCP tool (HEXA-1703) ([#1878](https://github.com/BLSQ/openhexa-app/issues/1878)) ([a6a9064](https://github.com/BLSQ/openhexa-app/commit/a6a90648b39853791b321a0dbe619c8ed35bb44d))
+* Add a script + admin page to duplicate a workspace (v1) (HEXA-1663) ([#1882](https://github.com/BLSQ/openhexa-app/issues/1882)) ([447cb7a](https://github.com/BLSQ/openhexa-app/commit/447cb7aa44686c0526f2cddc49cc39a2ae133d59))
+* agent tools details (HEXA-1682) ([#1872](https://github.com/BLSQ/openhexa-app/issues/1872)) ([fe5d6a8](https://github.com/BLSQ/openhexa-app/commit/fe5d6a8a020d1804115866b9cf2f1617660d6de4))
+* api endpoint to allow executing a sql query against the workspace database (HEXA-1665) ([#1873](https://github.com/BLSQ/openhexa-app/issues/1873)) ([c7f5557](https://github.com/BLSQ/openhexa-app/commit/c7f555762b3ec6fdbc82e4dbfdd4814bfa39dcb4))
+* Conditional parameters (HEXA-1687) ([#1860](https://github.com/BLSQ/openhexa-app/issues/1860)) ([a64a1ea](https://github.com/BLSQ/openhexa-app/commit/a64a1ea64d5cc451c9b7e6bd0e116175ccbd99d7))
+* implement WebappUser class for querying GraphQL (HEXA-1619) ([#1836](https://github.com/BLSQ/openhexa-app/issues/1836)) ([a565c0e](https://github.com/BLSQ/openhexa-app/commit/a565c0e54e97134978f97d54673753c4ec2703f4))
+
+
+### Bug Fixes
+
+* iframe webapp source url change (HEXA-1723) ([#1896](https://github.com/BLSQ/openhexa-app/issues/1896)) ([242286f](https://github.com/BLSQ/openhexa-app/commit/242286f1a713799f28e9dba0aec6e55272a2873a))
+* improve `udpate_static_webapp` MCP tool docstring and allow deleting files (HEXA-1703) ([#1877](https://github.com/BLSQ/openhexa-app/issues/1877)) ([53c06ea](https://github.com/BLSQ/openhexa-app/commit/53c06eae0879b805fe4c68246630a06db62e068e))
+* mcp should not read binary webapps files (HEXA-1707) ([#1897](https://github.com/BLSQ/openhexa-app/issues/1897)) ([f746fd9](https://github.com/BLSQ/openhexa-app/commit/f746fd932219aa68e14318c0a4b98e8fb116a92c))
+* Pipeline AI new proposal was not pending ([#1890](https://github.com/BLSQ/openhexa-app/issues/1890)) ([3bbbe11](https://github.com/BLSQ/openhexa-app/commit/3bbbe11a2a072e4f2263eef25968df79c1449d9f))
+* scrollable organization sidebar (HEXA-1706) ([#1883](https://github.com/BLSQ/openhexa-app/issues/1883)) ([012d20d](https://github.com/BLSQ/openhexa-app/commit/012d20dc52c0835318476a172d37b3663db33e96))
+* sentry issue smtp authentication failed (HEXA-1673) ([#1871](https://github.com/BLSQ/openhexa-app/issues/1871)) ([120f169](https://github.com/BLSQ/openhexa-app/commit/120f169d4f86d4341e9ede238d26d0c4b82a2af9))
+* sub tab for web app api access permissions (HEXA-1722) ([#1887](https://github.com/BLSQ/openhexa-app/issues/1887)) ([4ff8f58](https://github.com/BLSQ/openhexa-app/commit/4ff8f58326501f08ca6930a75f2d752d6e75c2f2))
+
 ## [5.10.1](https://github.com/BLSQ/openhexa-app/compare/5.10.0...5.10.1) (2026-06-16)
 
 
