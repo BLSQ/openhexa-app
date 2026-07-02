@@ -6410,6 +6410,7 @@ export type WebappCommitDiffArgs = {
 
 /** Represents a web app. */
 export type WebappFilesArgs = {
+  includeBinaryContent?: InputMaybe<Scalars['Boolean']['input']>;
   ref?: InputMaybe<Scalars['String']['input']>;
 };
 

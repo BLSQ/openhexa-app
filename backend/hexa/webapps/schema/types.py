@@ -130,12 +130,16 @@ def resolve_commit_diff(webapp: Webapp, info, ref: str, **kwargs):
 
 
 @webapp_object.field("files")
-def resolve_files(webapp: Webapp, info, ref=None, **kwargs):
+def resolve_files(
+    webapp: Webapp, info, ref=None, include_binary_content=True, **kwargs
+):
     if webapp.type != Webapp.WebappType.STATIC:
         return None
     git_webapp = GitWebapp.objects.get(pk=webapp.pk)
     try:
-        return git_webapp.get_files(ref=ref)
+        return git_webapp.get_files(
+            ref=ref, include_binary_content=include_binary_content
+        )
     except ForgejoAPIError:
         return []
 

@@ -134,6 +134,44 @@ class GetStaticWebappTest(MCPTestCase):
         self.assertEqual(len(result["files"]), 1)
         self.assertEqual(result["files"][0]["path"], "index.html")
 
+    @_mock_forgejo()
+    def test_get_static_webapp_omits_binary_content(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("Binary"),
+            files_json=json.dumps([{"path": "index.html", "content": "<html></html>"}]),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_slug = create_result["webapp"]["slug"]
+
+        client.get_repository_files.return_value = [
+            {
+                "path": "index.html",
+                "type": "file",
+                "content": "<html>hi</html>",
+                "encoding": "TEXT",
+            },
+            {
+                "path": "logo.png",
+                "type": "file",
+                "content": "iVBORw0KGgoAAAANSUhEUg==",
+                "encoding": "BASE64",
+            },
+        ]
+
+        result = get_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            webapp_slug=webapp_slug,
+        )
+        files_by_path = {f["path"]: f for f in result["files"]}
+        self.assertEqual(files_by_path["index.html"]["content"], "<html>hi</html>")
+        self.assertEqual(files_by_path["index.html"]["encoding"], "TEXT")
+        self.assertIsNone(files_by_path["logo.png"]["content"])
+        self.assertEqual(files_by_path["logo.png"]["encoding"], "BASE64")
+
     def test_get_static_webapp_not_found(self):
         result = get_static_webapp(
             user=self.USER_ADMIN,
