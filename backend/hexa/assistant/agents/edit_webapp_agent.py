@@ -118,6 +118,7 @@ def propose_webapp_version(
 
 class EditWebappAgent(BaseAgent):
     instruction_set = InstructionSet.EDIT_WEBAPP
+    history_strip_tools = {"propose_webapp_version"}
     tools = [
         get_help_or_doc,
         get_static_webapp_file,

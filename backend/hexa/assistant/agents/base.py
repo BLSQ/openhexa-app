@@ -105,11 +105,38 @@ def _parse_conversation_title(text: str) -> str:
     return title
 
 
+def _strip_tool_outputs(messages_json: list, tool_names: set[str]) -> list:
+    """Replace matching tool-return contents with a minimal ack.
+
+    Tool results for proposal-style tools (e.g. propose_webapp_version) can
+    contain the full content of every file in the webapp. Keeping those in
+    messages_history causes the context sent to the LLM to grow with every
+    turn. The full output is already stored in ToolInvocation.tool_output for
+    chaining purposes, so the conversation history only needs to know the call
+    succeeded.
+    """
+    result = []
+    for msg in messages_json:
+        if msg.get("kind") == "request":
+            new_parts = []
+            for part in msg.get("parts", []):
+                if (
+                    part.get("part_kind") == "tool-return"
+                    and part.get("tool_name") in tool_names
+                ):
+                    part = {**part, "content": '{"status": "ok"}'}
+                new_parts.append(part)
+            msg = {**msg, "parts": new_parts}
+        result.append(msg)
+    return result
+
+
 class BaseAgent:
     instruction_set = InstructionSet.GENERAL
     tools: list = []
     max_tokens: int = 32768
     max_requests: int = 10
+    history_strip_tools: set[str] = set()
 
     def __init__(
         self, conversation: Conversation, built_model: BuiltModel | None = None
@@ -404,9 +431,10 @@ class BaseAgent:
         self.conversation.total_output_tokens += output_tok
         if cost is not None:
             self.conversation.cost += cost
-        self.conversation.messages_history = ModelMessagesTypeAdapter.dump_python(
-            all_messages, mode="json"
-        )
+        messages_json = ModelMessagesTypeAdapter.dump_python(all_messages, mode="json")
+        if self.history_strip_tools:
+            messages_json = _strip_tool_outputs(messages_json, self.history_strip_tools)
+        self.conversation.messages_history = messages_json
 
         update_fields = [
             "total_input_tokens",
