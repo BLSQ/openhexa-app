@@ -65,6 +65,60 @@ class FilesCopierRemoteTest(SimpleTestCase):
     @patch("hexa.workspace_copier.resources.files.upload")
     @patch("hexa.workspace_copier.resources.files.download")
     @patch("hexa.workspace_copier.resources.files.walk")
+    def test_skip_existing_skips_matching_key_and_size(
+        self, mock_walk, mock_download, mock_upload
+    ):
+        # First walk() call lists the target, second walks the source.
+        # 'same.txt' matches key+size and is skipped; 'grew.txt' exists but
+        # with a different size so it is re-copied; 'new.txt' is absent.
+        mock_walk.side_effect = [
+            iter([{"key": "same.txt", "size": 3}, {"key": "grew.txt", "size": 1}]),
+            iter(
+                [
+                    {"key": "same.txt", "size": 3},
+                    {"key": "grew.txt", "size": 5},
+                    {"key": "new.txt", "size": 2},
+                ]
+            ),
+        ]
+        contents = {"grew.txt": b"12345", "new.txt": b"12"}
+        mock_download.side_effect = lambda client, slug, path, http_client: contents[
+            path
+        ]
+
+        FilesCopier(skip_existing=True).copy(
+            self.source, self.target, self.result, NullReporter()
+        )
+
+        self.assertEqual(
+            set(self.result.files.copied), {("grew.txt", 5), ("new.txt", 2)}
+        )
+        self.assertEqual(self.result.files.skipped, 1)
+        self.assertEqual(self.result.files.failed, [])
+
+    @patch("hexa.workspace_copier.resources.files.upload")
+    @patch("hexa.workspace_copier.resources.files.download")
+    @patch("hexa.workspace_copier.resources.files.walk")
+    def test_skip_existing_target_listing_failure_copies_everything(
+        self, mock_walk, mock_download, mock_upload
+    ):
+        mock_walk.side_effect = [
+            GraphQLError("target listing boom"),
+            iter([{"key": "a.txt", "size": 3}]),
+        ]
+        mock_download.side_effect = [b"abc"]
+
+        FilesCopier(skip_existing=True).copy(
+            self.source, self.target, self.result, NullReporter()
+        )
+
+        self.assertEqual(self.result.files.copied, [("a.txt", 3)])
+        self.assertEqual(self.result.files.skipped, 0)
+        self.assertEqual(self.result.files.failed, [])
+
+    @patch("hexa.workspace_copier.resources.files.upload")
+    @patch("hexa.workspace_copier.resources.files.download")
+    @patch("hexa.workspace_copier.resources.files.walk")
     def test_walk_failure_keeps_earlier_successes(
         self, mock_walk, mock_download, mock_upload
     ):
@@ -125,3 +179,35 @@ class WalkTest(SimpleTestCase):
 
         self.assertEqual(keys, ["a.txt", "sub/b.txt"])
         self.assertEqual(mock_gql.call_count, 2)
+
+    @patch("hexa.workspace_copier.resources.files.gql")
+    def test_walk_only_dirs_keeps_root_folders_and_prunes_the_rest(self, mock_gql):
+        # Only the root 'data' folder is walked: root-level files are pruned —
+        # even one named exactly like an only-folder ('readme') — and so is
+        # the 'other' dir (no listing call for it), so a nested 'other/data'
+        # would never be reached.
+        mock_gql.side_effect = [
+            self._page(
+                [
+                    {"key": "a.txt", "type": "FILE"},
+                    {"key": "readme", "type": "FILE"},
+                    {"key": "data", "type": "DIRECTORY"},
+                    {"key": "other", "type": "DIRECTORY"},
+                ]
+            ),
+            self._page(
+                [
+                    {"key": "data/b.txt", "type": "FILE"},
+                    {"key": "data/nested", "type": "DIRECTORY"},
+                ]
+            ),
+            self._page([{"key": "data/nested/c.txt", "type": "FILE"}]),
+        ]
+
+        keys = [
+            obj["key"]
+            for obj in walk(MagicMock(), "src", only_dirs=frozenset({"data", "readme"}))
+        ]
+
+        self.assertEqual(keys, ["data/b.txt", "data/nested/c.txt"])
+        self.assertEqual(mock_gql.call_count, 3)

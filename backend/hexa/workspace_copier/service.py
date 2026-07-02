@@ -169,9 +169,16 @@ def run_copy(
     target_workspace_name: str | None = None,
     target_workspace_slug: str | None = None,
     resources: set[str] | None = None,
+    skip_dirs: set[str] | None = None,
+    only_dirs: set[str] | None = None,
     reporter: ProgressReporter,
 ) -> CopyResult:
-    """Verify both endpoints, then copy the workspace, returning the result."""
+    """Verify both endpoints, then copy the workspace, returning the result.
+
+    Copying into an existing workspace (``target_workspace_slug``) is the
+    idempotent re-run flow, so it also skips files already present on the
+    target with the same key and size.
+    """
     source, target = _verify_endpoints(
         source_url=source_url,
         source_token=source_token,
@@ -182,7 +189,15 @@ def run_copy(
         target_workspace_name=target_workspace_name,
         target_workspace_slug=target_workspace_slug,
     )
-    return copy_workspace(source, target, reporter, resources=resources)
+    return copy_workspace(
+        source,
+        target,
+        reporter,
+        resources=resources,
+        skip_dirs=skip_dirs,
+        only_dirs=only_dirs,
+        skip_existing=bool(target_workspace_slug),
+    )
 
 
 def run_template_copy(

@@ -28,6 +28,18 @@ class ResolveResourcesTest(SimpleTestCase):
             self.command._resolve_resources("connections,bogus")
 
 
+class ParseFoldersTest(SimpleTestCase):
+    def test_empty_means_none(self):
+        self.assertEqual(Command._parse_folders(None), set())
+        self.assertEqual(Command._parse_folders(""), set())
+
+    def test_parses_and_strips_slashes(self):
+        self.assertEqual(
+            Command._parse_folders("tmp, /cache/ ,output,"),
+            {"tmp", "cache", "output"},
+        )
+
+
 class HandleValidationTest(SimpleTestCase):
     def _options(self, **overrides):
         opts = {
@@ -40,6 +52,8 @@ class HandleValidationTest(SimpleTestCase):
             "target_workspace_name": None,
             "target_workspace_slug": None,
             "resources": None,
+            "skip_folders": None,
+            "only_folders": None,
         }
         opts.update(overrides)
         return opts
@@ -58,3 +72,34 @@ class HandleValidationTest(SimpleTestCase):
 
         _, kwargs = mock_run.call_args
         self.assertEqual(kwargs["target_workspace_slug"], "existing-ws")
+
+    @patch("hexa.workspace_copier.management.commands.copy_workspace.run_copy")
+    def test_skip_folders_are_threaded(self, mock_run):
+        mock_run.return_value = CopyResult(
+            workspace_name="x", workspace_slug="existing-ws"
+        )
+
+        Command().handle(
+            **self._options(
+                target_workspace_slug="existing-ws", skip_folders="tmp,output"
+            )
+        )
+
+        _, kwargs = mock_run.call_args
+        self.assertEqual(kwargs["skip_dirs"], {"tmp", "output"})
+        self.assertIsNone(kwargs["only_dirs"])
+
+    @patch("hexa.workspace_copier.management.commands.copy_workspace.run_copy")
+    def test_only_folders_are_threaded(self, mock_run):
+        mock_run.return_value = CopyResult(
+            workspace_name="x", workspace_slug="existing-ws"
+        )
+
+        Command().handle(
+            **self._options(
+                target_workspace_slug="existing-ws", only_folders="notebooks,data"
+            )
+        )
+
+        _, kwargs = mock_run.call_args
+        self.assertEqual(kwargs["only_dirs"], {"notebooks", "data"})

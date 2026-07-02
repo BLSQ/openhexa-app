@@ -67,14 +67,30 @@ class Command(BaseCommand):
             default=None,
             help="Slug of an existing target workspace to copy into, instead of "
             "creating a new one. Makes the copy idempotent: resources that "
-            "already exist are skipped, so an interrupted run can be re-run "
-            "safely. Exits early if the slug does not exist on the target.",
+            "already exist are skipped (files match by key + size), so an "
+            "interrupted run can be re-run safely. Exits early if the slug "
+            "does not exist on the target.",
         )
         parser.add_argument(
             "--resources",
             default=None,
             help="Comma-separated resources to copy (default: all). "
             f"Known: {','.join(sorted(_known_resource_names()))}.",
+        )
+        parser.add_argument(
+            "--skip-folders",
+            default=None,
+            help="Comma-separated folder names to ignore during the file copy "
+            "(e.g. 'tmp,output'). Matched against any path segment, and added "
+            "to the built-in defaults (.ipynb_checkpoints, cache, .cache).",
+        )
+        parser.add_argument(
+            "--only-folders",
+            default=None,
+            help="Comma-separated root folder names: only files under these "
+            "top-level folders are copied (e.g. 'notebooks,data' copies "
+            "data/x.csv but not projects/data/x.csv). Files at the bucket "
+            "root are not copied. --skip-folders still applies within them.",
         )
 
     def _resolve_resources(self, resources: str | None):
@@ -92,6 +108,16 @@ class Command(BaseCommand):
                 f"Known: {', '.join(sorted(known))}."
             )
         return selected
+
+    @staticmethod
+    def _parse_folders(folders: str | None) -> set[str]:
+        # Tolerate slash-wrapped input like '/cache/' — matching is done on
+        # bare path segments.
+        return {
+            stripped
+            for part in (folders or "").split(",")
+            if (stripped := part.strip().strip("/"))
+        }
 
     def handle(self, *args, **options):
         resources = self._resolve_resources(options["resources"])
@@ -121,6 +147,8 @@ class Command(BaseCommand):
                 target_workspace_name=options["target_workspace_name"],
                 target_workspace_slug=target_workspace_slug,
                 resources=resources,
+                skip_dirs=self._parse_folders(options["skip_folders"]),
+                only_dirs=self._parse_folders(options["only_folders"]) or None,
                 reporter=reporter,
             )
         except CredentialError as exc:

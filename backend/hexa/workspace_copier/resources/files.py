@@ -6,14 +6,14 @@ Native same-server file copy is a deferred follow-up (see the implementation
 plan); until then both LOCAL and REMOTE endpoints use the client here.
 """
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from typing import Any
 
 import httpx
 from openhexa.graphql.graphql_client.client import Client
 
 from hexa.workspace_copier.endpoints import Endpoint
-from hexa.workspace_copier.progress import ProgressReporter
+from hexa.workspace_copier.progress import NullReporter, ProgressReporter
 from hexa.workspace_copier.resources.base import ResourceCopier
 from hexa.workspace_copier.results import CopyResult, FilesResult
 from hexa.workspace_copier.transport import GraphQLError, gql
@@ -26,9 +26,25 @@ OBJECTS_PAGE_SIZE = 100
 SKIPPED_DIRECTORIES = frozenset({".ipynb_checkpoints", "cache", ".cache"})
 
 
-def is_skipped(key: str) -> bool:
+def is_skipped(key: str, skip_dirs: frozenset[str] = SKIPPED_DIRECTORIES) -> bool:
     """Whether an object key lives under a skipped directory."""
-    return any(segment in SKIPPED_DIRECTORIES for segment in key.split("/"))
+    return any(segment in skip_dirs for segment in key.split("/"))
+
+
+def is_included(obj: dict[str, Any], only_dirs: frozenset[str] | None) -> bool:
+    """Whether a bucket object lives under one of the ``only_dirs`` *root* folders.
+
+    Only the first path segment of the key is considered (``None`` means
+    everything), so ``data`` includes ``data/x.csv`` but not
+    ``projects/data/x.csv``. The filter selects folders, so root-level files
+    never match — not even one named exactly like an only-folder.
+    """
+    if only_dirs is None:
+        return True
+    root, sep, _ = obj["key"].partition("/")
+    if not sep and obj["type"] != "DIRECTORY":
+        return False
+    return root in only_dirs
 
 
 PREPARE_DOWNLOAD_MUTATION = """
@@ -133,11 +149,21 @@ def upload(
         )
 
 
-def walk(client: Client, ws_slug: str, prefix: str = "") -> Iterator[dict[str, Any]]:
+def walk(
+    client: Client,
+    ws_slug: str,
+    prefix: str = "",
+    skip_dirs: frozenset[str] = SKIPPED_DIRECTORIES,
+    only_dirs: frozenset[str] | None = None,
+    reporter: ProgressReporter = NullReporter(),
+) -> Iterator[dict[str, Any]]:
     """Recursively yield FILE BucketObject dicts under `prefix`.
 
     The bucket.objects field is delimited (returns DIRECTORY entries rather
-    than recursing), so we walk each directory ourselves.
+    than recursing), so we walk each directory ourselves. Anything under a
+    directory named in ``skip_dirs`` is skipped without listing its contents.
+    When ``only_dirs`` is set, only *root* folders named in it are walked —
+    everything else (including root-level files) is pruned without listing.
     """
     # Buffer all directory entries at this level so we don't interleave
     # recursive listings with this level's pagination.
@@ -160,22 +186,70 @@ def walk(client: Client, ws_slug: str, prefix: str = "") -> Iterator[dict[str, A
             return
         page_data = ws["bucket"]["objects"]
         for obj in page_data["items"]:
-            if is_skipped(obj["key"]):
+            key = obj["key"]
+            if is_skipped(key, skip_dirs):
+                continue
+            if not is_included(obj, only_dirs):
+                reporter.info(f"   only-folders: excluding {obj['type']} '{key}'")
                 continue
             if obj["type"] == "FILE":
                 yield obj
             elif obj["type"] == "DIRECTORY":
-                subdirs.append(obj["key"])
+                if only_dirs is not None and "/" not in key:
+                    reporter.info(f"   only-folders: walking root folder '{key}'")
+                subdirs.append(key)
         if not page_data["hasNextPage"]:
             break
         page += 1
     for sub in subdirs:
-        yield from walk(client, ws_slug, sub)
+        yield from walk(client, ws_slug, sub, skip_dirs, only_dirs, reporter)
 
 
 class FilesCopier(ResourceCopier):
     name = "files"
     label = "Files (bucket)"
+
+    def __init__(
+        self,
+        extra_skip_dirs: Iterable[str] = (),
+        only_dirs: Iterable[str] | None = None,
+        skip_existing: bool = False,
+    ):
+        self.skip_dirs = SKIPPED_DIRECTORIES | frozenset(extra_skip_dirs)
+        self.only_dirs = frozenset(only_dirs) if only_dirs else None
+        self.skip_existing = skip_existing
+
+    def _existing_on_target(
+        self, target: Endpoint, reporter: ProgressReporter
+    ) -> dict[str, int]:
+        """List the target bucket up front so re-runs can skip matching files.
+
+        One listing pass is far cheaper than the four round trips a copy costs
+        per file. The same skip/only filters are applied: files they exclude
+        are never copied, so their presence on the target is irrelevant. On
+        failure we fall back to copying everything — copies are plain
+        overwrites, so that is always safe, just slower.
+        """
+        try:
+            existing = {
+                obj["key"]: obj["size"]
+                for obj in walk(
+                    target.client,
+                    target.slug,
+                    skip_dirs=self.skip_dirs,
+                    only_dirs=self.only_dirs,
+                )
+            }
+        except (GraphQLError, httpx.HTTPError) as exc:
+            reporter.warning(
+                f"   could not list target files ({exc}) — copying everything"
+            )
+            return {}
+        reporter.info(
+            f"   target already has {len(existing)} file(s); "
+            "files matching by key and size will be skipped"
+        )
+        return existing
 
     def copy(
         self,
@@ -187,6 +261,16 @@ class FilesCopier(ResourceCopier):
         files_result = FilesResult()
         result.files = files_result
 
+        if self.only_dirs is not None:
+            reporter.info(
+                f"   only-folders filter active: {sorted(self.only_dirs)} "
+                f"(skip: {sorted(self.skip_dirs)})"
+            )
+
+        existing = (
+            self._existing_on_target(target, reporter) if self.skip_existing else {}
+        )
+
         # One shared client for all presigned download/upload requests so the
         # connection pool reuses TLS handshakes across files instead of paying
         # one per file. It carries no auth headers: presigned URLs are
@@ -197,7 +281,13 @@ class FilesCopier(ResourceCopier):
             # themselves raise (page 2+, a subdir listing). Driving it via
             # next() lets us record a listing failure and keep the files copied
             # so far instead of letting the error escape copy() and lose them.
-            walker = walk(source.client, source.slug)
+            walker = walk(
+                source.client,
+                source.slug,
+                skip_dirs=self.skip_dirs,
+                only_dirs=self.only_dirs,
+                reporter=reporter,
+            )
             count = 0
             while True:
                 try:
@@ -208,8 +298,17 @@ class FilesCopier(ResourceCopier):
                     files_result.failed.append(("<listing>", str(exc)))
                     reporter.warning(f"   FAILED to list remaining files: {exc}")
                     break
-                path = obj["key"]
                 count += 1
+                path = obj["key"]
+                if path in existing and existing[path] == obj["size"]:
+                    files_result.skipped += 1
+                    reporter.info(
+                        f"   [{count}] skipped {path} (already exists, same size)"
+                    )
+                    continue
+                # Announce the start so a slow transfer is visible as
+                # in-progress instead of looking like a hang.
+                reporter.info(f"   [{count}] copying {path} ({obj['size']} bytes) ...")
                 try:
                     content = download(source.client, source.slug, path, http_client)
                     upload(target.client, target.slug, path, content, http_client)
@@ -226,5 +325,6 @@ class FilesCopier(ResourceCopier):
 
         reporter.info(
             f"   {len(files_result.copied)} file(s) copied, "
+            f"{files_result.skipped} skipped, "
             f"{len(files_result.failed)} failed"
         )
