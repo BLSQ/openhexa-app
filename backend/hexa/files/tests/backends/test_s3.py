@@ -101,6 +101,47 @@ class S3StorageTest(StorageTestMixin, TestCase):
         with self.assertRaises(ClientError):
             self.storage.client.get_bucket_tagging(Bucket=BUCKET)
 
+    def test_create_bucket_lifecycle_falls_back_without_transitions(self):
+        # MinIO-like stores reject transition rules with InvalidStorageClass;
+        # the cleanup rules must still be applied.
+        invalid_storage_class = ClientError(
+            {
+                "Error": {
+                    "Code": "InvalidStorageClass",
+                    "Message": "Invalid storage class.",
+                }
+            },
+            "PutBucketLifecycleConfiguration",
+        )
+        original = self.storage.client.put_bucket_lifecycle_configuration
+        calls = []
+
+        def fail_on_transitions(**kwargs):
+            calls.append(kwargs)
+            if any(
+                "Transitions" in rule
+                for rule in kwargs["LifecycleConfiguration"]["Rules"]
+            ):
+                raise invalid_storage_class
+            return original(**kwargs)
+
+        with patch.object(
+            self.storage.client,
+            "put_bucket_lifecycle_configuration",
+            side_effect=fail_on_transitions,
+        ), patch("sentry_sdk.capture_exception") as mock_capture:
+            self.storage.create_bucket(BUCKET)
+
+        mock_capture.assert_called_once()
+        self.assertEqual(len(calls), 2)
+        lifecycle = self.storage.client.get_bucket_lifecycle_configuration(
+            Bucket=BUCKET
+        )
+        rule_ids = {rule["ID"] for rule in lifecycle["Rules"]}
+        self.assertEqual(
+            rule_ids, {"cleanup-noncurrent-versions", "cleanup-incomplete-uploads"}
+        )
+
     def test_create_bucket_tolerates_not_implemented(self):
         # S3-compatible stores like MinIO do not implement every bucket
         # configuration API; creation must still succeed.

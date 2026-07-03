@@ -148,13 +148,15 @@ class S3Storage(Storage):
         """Apply a post-creation bucket configuration step.
 
         S3-compatible stores (e.g. MinIO) do not implement all bucket
-        configuration APIs; skip those instead of failing bucket creation.
-        Any other error propagates, like a failed bucket.patch() on GCP.
+        configuration APIs; skip those (NotImplemented/MethodNotAllowed)
+        instead of failing bucket creation. Any other error propagates,
+        like a failed bucket.patch() on GCP.
         """
         try:
             step()
         except ClientError as e:
             if e.response["Error"]["Code"] in ("NotImplemented", "MethodNotAllowed"):
+                # Swallowed on purpose (methods not supported on S3-compatible stores)
                 sentry_sdk.capture_exception(e)
             else:
                 raise
@@ -191,39 +193,51 @@ class S3Storage(Storage):
         # classes that keep objects instantly readable up to 365 days. Past
         # 365 days objects land in DEEP_ARCHIVE and need a restore before
         # they can be read again.
-        self.client.put_bucket_lifecycle_configuration(
-            Bucket=bucket_name,
-            LifecycleConfiguration={
-                "Rules": [
-                    {
-                        "ID": "transition-storage-classes",
-                        "Status": "Enabled",
-                        "Filter": {},
-                        "Transitions": [
-                            {"Days": 30, "StorageClass": "STANDARD_IA"},
-                            {"Days": 90, "StorageClass": "GLACIER_IR"},
-                            {"Days": 365, "StorageClass": "DEEP_ARCHIVE"},
-                        ],
-                    },
-                    {
-                        "ID": "cleanup-noncurrent-versions",
-                        "Status": "Enabled",
-                        "Filter": {},
-                        "NoncurrentVersionExpiration": {
-                            "NoncurrentDays": 1,
-                            "NewerNoncurrentVersions": 3,
-                        },
-                    },
-                    {
-                        "ID": "cleanup-incomplete-uploads",
-                        "Status": "Enabled",
-                        "Filter": {},
-                        "AbortIncompleteMultipartUpload": {"DaysAfterInitiation": 7},
-                        "Expiration": {"ExpiredObjectDeleteMarker": True},
-                    },
-                ]
+        rules = [
+            {
+                "ID": "transition-storage-classes",
+                "Status": "Enabled",
+                "Filter": {},
+                "Transitions": [
+                    {"Days": 30, "StorageClass": "STANDARD_IA"},
+                    {"Days": 90, "StorageClass": "GLACIER_IR"},
+                    {"Days": 365, "StorageClass": "DEEP_ARCHIVE"},
+                ],
             },
-        )
+            {
+                "ID": "cleanup-noncurrent-versions",
+                "Status": "Enabled",
+                "Filter": {},
+                "NoncurrentVersionExpiration": {
+                    "NoncurrentDays": 1,
+                    "NewerNoncurrentVersions": 3,
+                },
+            },
+            {
+                "ID": "cleanup-incomplete-uploads",
+                "Status": "Enabled",
+                "Filter": {},
+                "AbortIncompleteMultipartUpload": {"DaysAfterInitiation": 7},
+                "Expiration": {"ExpiredObjectDeleteMarker": True},
+            },
+        ]
+        try:
+            self.client.put_bucket_lifecycle_configuration(
+                Bucket=bucket_name,
+                LifecycleConfiguration={"Rules": rules},
+            )
+        except ClientError as e:
+            if e.response["Error"]["Code"] != "InvalidStorageClass":
+                raise
+            # Stores without storage tiers (e.g. MinIO) reject the transition
+            # rule but do support the cleanup rules — retry with those only.
+            sentry_sdk.capture_exception(e)
+            self.client.put_bucket_lifecycle_configuration(
+                Bucket=bucket_name,
+                LifecycleConfiguration={
+                    "Rules": [rule for rule in rules if "Transitions" not in rule]
+                },
+            )
 
     def _set_bucket_tags(self, bucket_name: str, labels: dict | None) -> None:
         if not labels:
