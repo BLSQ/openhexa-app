@@ -15,6 +15,7 @@ from hexa.databases.utils import (
     ensure_single_statement,
     execute_database_query,
     get_database_definition,
+    get_database_definition_page,
     get_row_count,
     get_table_definition,
     get_table_rows,
@@ -186,6 +187,28 @@ class DatabaseUtilsTest(TestCase):
 
         self.assertEqual(1, len(result))
         self.assertEqual(table_name, result[0]["name"])
+
+    def test_get_database_definition_page(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")], table_name="demo_2")
+
+        result = get_database_definition_page(self.WORKSPACE, page=2, per_page=1)
+
+        self.assertEqual(2, result["page_number"])
+        self.assertEqual(2, result["total_pages"])
+        self.assertEqual(2, result["total_items"])
+        self.assertEqual(
+            [{"workspace": self.WORKSPACE, "name": "demo_2", "count": 2}],
+            result["items"],
+        )
+
+    def test_get_database_definition_page_out_of_range(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+
+        result = get_database_definition_page(self.WORKSPACE, page=10, per_page=15)
+
+        self.assertEqual([], result["items"])
+        self.assertGreaterEqual(result["total_items"], 1)
 
     @mock.patch("psycopg2.connect")
     def test_get_table_definition(self, mock_connect):
