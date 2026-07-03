@@ -17,7 +17,7 @@
         <div>
             <img src="{% static 'img/logo/logo.svg' %}" alt="OpenHEXA" class="logo">
             <h2>Authorization successful</h2>
-            <p class="subtitle">Enabling tools for your session&hellip;</p>
+            <p class="subtitle">{% if tools %}Enabling tools for your session&hellip;{% else %}You can close this tab.{% endif %}</p>
         </div>
 
         {% if tools %}
@@ -59,9 +59,11 @@
             items.forEach(function(item, i) {
                 setTimeout(function() { item.classList.add("enabled"); }, (i + 1) * delay);
             });
-            setTimeout(function() {
-                document.querySelector(".subtitle").textContent = "All tools enabled. You can close this tab.";
-            }, (items.length + 1) * delay);
+            if (items.length) {
+                setTimeout(function() {
+                    document.querySelector(".subtitle").textContent = "All tools enabled. You can close this tab.";
+                }, (items.length + 1) * delay);
+            }
         }).catch(function() {
             window.location.href = redirectUri;
         });

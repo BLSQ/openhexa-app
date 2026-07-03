@@ -42,6 +42,7 @@ type SupersetSource {
 type GitSource {
   repository: String!
   publishedVersion: String
+  repositoryUrl: String!
 }
 
 type WebappVersion {
