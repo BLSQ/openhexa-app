@@ -390,6 +390,7 @@ def resolve_organization_usage(organization: Organization, info, **kwargs):
         "users": organization.get_users_count(),
         "workspaces": organization.get_workspaces_count(),
         "pipeline_runs": organization.get_monthly_pipeline_runs_count(),
+        "ai_budget": organization.get_monthly_ai_cost(),
     }
 
 
@@ -397,6 +398,18 @@ def resolve_organization_usage(organization: Organization, info, **kwargs):
 def resolve_organization_subscription(organization: Organization, info, **kwargs):
     """Resolve subscription details. Returns null for self-hosted deployments."""
     return organization.current_subscription
+
+
+@organization_object.field("aiSettings")
+def resolve_organization_ai_settings(organization: Organization, info, **kwargs):
+    return organization.ai_settings_safe
+
+
+@organization_object.field("aiBudgetLimitReached")
+def resolve_organization_ai_budget_limit_reached(
+    organization: Organization, info, **kwargs
+):
+    return organization.is_ai_budget_limit_reached()
 
 
 subscription_object = ObjectType("Subscription")
@@ -408,6 +421,7 @@ def resolve_subscription_limits(subscription: OrganizationSubscription, info):
         "users": subscription.users_limit,
         "workspaces": subscription.workspaces_limit,
         "pipeline_runs": subscription.pipeline_runs_limit,
+        "ai_budget": subscription.monthly_ai_budget,
     }
 
 

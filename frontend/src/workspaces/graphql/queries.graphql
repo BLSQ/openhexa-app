@@ -149,6 +149,13 @@ query WorkspacePipelineCodePage(
   workspace(slug: $workspaceSlug) {
     slug
     name
+    organization {
+      id
+      aiSettings {
+        enabled
+      }
+      aiBudgetLimitReached
+    }
     ...PipelineLayout_workspace
   }
   pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {

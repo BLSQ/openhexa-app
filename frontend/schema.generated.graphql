@@ -395,6 +395,7 @@ enum AiModel {
 """Represents the available AI providers."""
 enum AiProvider {
   anthropic
+  managed
 }
 
 type AiSettings {
@@ -524,6 +525,11 @@ enum BucketObjectType {
 type Config {
   """Whether self-registration is enabled."""
   allowSelfRegistration: Boolean!
+
+  """
+  Whether this instance's AI assistant is managed (hosted) by us. When true, organizations can only enable/disable the assistant; when false they configure their own provider, model and API key.
+  """
+  assistantManaged: Boolean!
 
   """Configured external OIDC login providers. Empty when none are enabled."""
   oidcProviders: [OidcProvider!]!
@@ -3149,6 +3155,9 @@ type Mutation {
   updateExternalCollaborator(input: UpdateExternalCollaboratorInput!): UpdateExternalCollaboratorResult!
   updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
   updateOrganization(input: UpdateOrganizationInput!): UpdateOrganizationResult!
+
+  """Updates the AI settings of the currently authenticated user."""
+  updateOrganizationAiSettings(input: UpdateOrganizationAiSettingsInput!): UpdateOrganizationAiSettingsResult!
   updateOrganizationMember(input: UpdateOrganizationMemberInput!): UpdateOrganizationMemberResult!
   updateOrganizationSubscription(input: UpdateOrganizationSubscriptionInput!): UpdateOrganizationSubscriptionResult!
 
@@ -3179,9 +3188,6 @@ type Mutation {
 
   """Updates the profile of the currently authenticated user."""
   updateUser(input: UpdateUserInput!): UpdateUserResult!
-
-  """Updates the AI settings of the currently authenticated user."""
-  updateUserAiSettings(input: UpdateUserAiSettingsInput!): UpdateUserAiSettingsResult!
   updateWebapp(input: UpdateWebappInput!): UpdateWebappResult!
   updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult!
   updateWorkspaceMember(input: UpdateWorkspaceMemberInput!): UpdateWorkspaceMemberResult!
@@ -3225,6 +3231,12 @@ enum OrderByDirection {
 
 """The Organization type represents an organization in the system."""
 type Organization {
+  """Whether the organization has reached its monthly AI budget."""
+  aiBudgetLimitReached: Boolean!
+
+  """The AI settings of the organization."""
+  aiSettings: AiSettings
+
   """The contact information of the organization."""
   contactInfo: String!
 
@@ -4283,6 +4295,11 @@ type ResolveAssistantProposalResult {
 
 """Resource counts"""
 type ResourceCounts {
+  """
+  AI budget / usage in USD. As usage: AI spend for the current month. As a limit: the monthly AI budget.
+  """
+  aiBudget: Float!
+
   """Number of pipeline runs."""
   pipelineRuns: Int!
 
@@ -4297,6 +4314,9 @@ type ResourceCounts {
 input ResourceCountsInput {
   """Maximum pipeline timeout in seconds."""
   maxPipelineTimeout: Int
+
+  """Monthly AI budget in USD. Defaults to 0 (AI disabled) if not provided."""
+  monthlyAiBudget: Int
 
   """JupyterHub profile to use (e.g., "trial")."""
   notebookProfile: String
@@ -4952,6 +4972,58 @@ type UpdateMembershipResult {
 }
 
 """
+The UpdateOrganizationAiSettingsError enum represents the possible errors that can occur during the updateOrganizationAiSettings mutation.
+"""
+enum UpdateOrganizationAiSettingsError {
+  """
+  Indicates that enabling AI requires provider, model, and api_key to all be set.
+  """
+  INCOMPLETE_CONFIG
+
+  """Indicates that the organization does not exist."""
+  NOT_FOUND
+
+  """
+  Indicates that the user does not have permission to update the organization AI settings.
+  """
+  PERMISSION_DENIED
+}
+
+"""
+The UpdateOrganizationAiSettingsInput type represents the input for the updateOrganizationAiSettings mutation.
+"""
+input UpdateOrganizationAiSettingsInput {
+  """Indicates the AI API KEY"""
+  apiKey: String
+
+  """Indicates if AI is enabled"""
+  enabled: Boolean
+
+  """Indicates the AI model from the provider used"""
+  model: String
+
+  """The organization whose AI settings are updated."""
+  organizationId: UUID!
+
+  """Indicates the AI provider used"""
+  provider: String
+}
+
+"""
+The UpdateOrganizationAiSettingsResult type represents the result of the updateOrganizationAiSettings mutation.
+"""
+type UpdateOrganizationAiSettingsResult {
+  """The list of errors that occurred during the mutation."""
+  errors: [UpdateOrganizationAiSettingsError!]!
+
+  """The updated organization object."""
+  organization: Organization
+
+  """Indicates whether the update was successful."""
+  success: Boolean!
+}
+
+"""
 The UpdateOrganizationError enum represents the possible errors that can occur during the updateOrganization mutation.
 """
 enum UpdateOrganizationError {
@@ -5292,52 +5364,6 @@ type UpdateTemplateVersionResult {
 }
 
 """
-The UpdateUserAiSettingsError enum represents the possible errors that can occur during the updateUser mutation.
-"""
-enum UpdateUserAiSettingsError {
-  """
-  Indicates that enabling AI requires provider, model, and api_key to all be set.
-  """
-  INCOMPLETE_CONFIG
-
-  """
-  Indicates that the user does not have permission to update their profile.
-  """
-  PERMISSION_DENIED
-}
-
-"""
-The UpdateUserAiSettingsInput type represents the input for the updateAiSettings mutation.
-"""
-input UpdateUserAiSettingsInput {
-  """Indicates the AI API KEY"""
-  apiKey: String
-
-  """Indicates if AI is enabled"""
-  enabled: Boolean
-
-  """Indicates the AI model from the provider used"""
-  model: String
-
-  """Indicates the AI provider used"""
-  provider: String
-}
-
-"""
-The UpdateUserAiSettingsResult type represents the result of the updateUser mutation.
-"""
-type UpdateUserAiSettingsResult {
-  """The list of errors that occurred during the updateUser mutation."""
-  errors: [UpdateUserAiSettingsError!]!
-
-  """Indicates whether the user update was successful."""
-  success: Boolean!
-
-  """The updated user object."""
-  user: User
-}
-
-"""
 The UpdateUserError enum represents the possible errors that can occur during the updateUser mutation.
 """
 enum UpdateUserError {
@@ -5524,9 +5550,6 @@ type UploadPipelineResult {
 
 """The User type represents a user in the system."""
 type User {
-  """User AI settings."""
-  aiSettings: AiSettings
-
   """The avatar of the user."""
   avatar: Avatar!
 

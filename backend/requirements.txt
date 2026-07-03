@@ -8,8 +8,10 @@ affine==2.4.0
     # via rasterio
 annotated-types==0.7.0
     # via pydantic
-anthropic==0.109.1
-    # via pydantic-ai-slim
+anthropic[vertex]==0.109.1
+    # via
+    #   -r requirements.in
+    #   pydantic-ai-slim
 anyio==4.9.0
     # via
     #   anthropic
@@ -182,9 +184,10 @@ google-api-core[grpc]==2.25.1
     #   google-cloud-iam
     #   google-cloud-logging
     #   google-cloud-storage
-google-auth==2.40.3
+google-auth[requests]==2.40.3
     # via
     #   -r requirements.in
+    #   anthropic
     #   google-api-core
     #   google-cloud-appengine-logging
     #   google-cloud-core
@@ -506,6 +509,7 @@ requests==2.33.0
     #   django-oauth-toolkit
     #   docker
     #   google-api-core
+    #   google-auth
     #   google-cloud-storage
     #   kubernetes
     #   mixpanel

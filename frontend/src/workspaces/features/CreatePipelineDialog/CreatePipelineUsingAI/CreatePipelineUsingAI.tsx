@@ -1,9 +1,11 @@
-import { ArrowPathIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/solid";
+import {
+  ArrowPathIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+} from "@heroicons/react/24/solid";
 import { SparklesIcon } from "@heroicons/react/24/outline";
-import AiDisabledBanner from "assistant/components/AiDisabledBanner";
 import Spinner from "core/components/Spinner";
 import Textarea from "core/components/forms/Textarea/Textarea";
-import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -36,7 +38,9 @@ function Step({ label, status, detail }: StepProps) {
         {status === StepStatus.Error && (
           <XCircleIcon className="h-5 w-5 text-red-500" />
         )}
-        {status === StepStatus.Active && <Spinner size="xs" className="text-blue-500" />}
+        {status === StepStatus.Active && (
+          <Spinner size="xs" className="text-blue-500" />
+        )}
         {status === StepStatus.Pending && (
           <span className="h-2 w-2 rounded-full bg-gray-300" />
         )}
@@ -51,9 +55,7 @@ function Step({ label, status, detail }: StepProps) {
         }
       >
         {label}
-        {detail && (
-          <span className="ml-1.5 text-gray-400">·</span>
-        )}
+        {detail && <span className="ml-1.5 text-gray-400">·</span>}
         {detail && (
           <span className="ml-1.5 font-medium text-gray-700">{detail}</span>
         )}
@@ -68,7 +70,6 @@ type CreatePipelineUsingAIProps = {
 
 const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
   const { t } = useTranslation();
-  const aiEnabled = useMe()?.user?.aiSettings?.enabled ?? false;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -100,13 +101,12 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
     phase === AIPhase.Generating || phase === AIPhase.CreatingPipeline;
 
   const generatingStatus = (): StepStatus => {
-    if (
-      phase === AIPhase.CreatingPipeline ||
-      phase === AIPhase.Done
-    )
+    if (phase === AIPhase.CreatingPipeline || phase === AIPhase.Done)
       return StepStatus.Done;
     if (phase === AIPhase.Error) {
-      return errorAtPhase === AIPhase.CreatingPipeline ? StepStatus.Done : StepStatus.Error;
+      return errorAtPhase === AIPhase.CreatingPipeline
+        ? StepStatus.Done
+        : StepStatus.Error;
     }
     if (phase === AIPhase.Generating) return StepStatus.Active;
     return StepStatus.Pending;
@@ -125,7 +125,7 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
     return StepStatus.Pending;
   };
 
-  return aiEnabled ? (
+  return (
     <div className="space-y-5">
       <div className="flex flex-col items-center gap-4 py-4 text-center">
         <div className="rounded-xl bg-blue-50 p-4">
@@ -232,8 +232,6 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
         {t("AI can make mistakes. Always verify important information.")}
       </p>
     </div>
-  ) : (
-    <AiDisabledBanner />
   );
 };
 

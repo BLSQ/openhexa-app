@@ -11,7 +11,7 @@ from django.contrib.auth.models import UserManager as BaseUserManager
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import models
-from django.db.models import EmailField, Q
+from django.db.models import EmailField, Q, Sum
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
@@ -137,11 +137,6 @@ class User(AbstractUser, UserInterface):
 
         return self.email[:2].upper()
 
-    @property
-    def ai_settings_safe(self) -> AiSettings:
-        obj, _ = AiSettings.objects.get_or_create(user=self)
-        return obj
-
     def has_feature_flag(self, code: str) -> bool:
         return (
             Feature.objects.are_enabled_for_user(user=self).filter(code=code).exists()
@@ -199,16 +194,14 @@ class AiSettings(models.Model):
                 name="ai_settings_enabled_requires_full_config",
                 check=(
                     Q(enabled=False)
-                    | (
-                        Q(provider__isnull=False)
-                        & Q(model__isnull=False)
-                        & Q(api_key__isnull=False)
-                    )
+                    | Q(provider="managed")
+                    | (Q(model__isnull=False) & Q(api_key__isnull=False))
                 ),
             )
         ]
 
     class Provider(models.TextChoices):
+        MANAGED = "managed", "Managed"
         ANTHROPIC = "anthropic", "Anthropic"
 
     class Model(models.TextChoices):
@@ -216,16 +209,22 @@ class AiSettings(models.Model):
         OPUS = "opus", "Claude Opus 4.6"
         SONNET = "sonnet", "Claude Sonnet 4.6"
 
-    user = models.OneToOneField(
-        User,
+    organization = models.OneToOneField(
+        "Organization",
         primary_key=True,
         null=False,
         blank=False,
         on_delete=models.CASCADE,
         related_name="ai_settings",
     )
+    # Conservative defaults: nothing is auto-enabled and no managed provider is
+    # assumed. The instance-type-aware defaults (managed -> on/managed) are applied
+    # by Organization.ai_settings_safe and the data migration, so a self-hosted
+    # instance never silently ends up on the managed provider it cannot use.
     enabled = models.BooleanField(default=False)
-    provider = models.CharField(max_length=20, choices=Provider.choices, null=True)
+    provider = models.CharField(
+        max_length=20, choices=Provider.choices, default=Provider.ANTHROPIC
+    )
     model = models.CharField(max_length=30, choices=Model.choices, null=True)
     api_key = EncryptedTextField(max_length=255, null=True)
 
@@ -248,7 +247,11 @@ class AiSettings(models.Model):
         ]
 
     def validate(self):
-        if self.enabled and not (self.provider and self.model and self.api_key):
+        if (
+            self.enabled
+            and self.provider != AiSettings.Provider.MANAGED
+            and not (self.model and self.api_key)
+        ):
             raise ValidationError("Incomplete config")
 
 
@@ -363,6 +366,18 @@ class Organization(Base, SoftDeletedModel):
             if repo.get("archived"):
                 client.unarchive_repository(self.slug, repo["name"])
 
+    @property
+    def ai_settings_safe(self) -> AiSettings:
+        # Managed (hosted) instances default to the assistant being on with our
+        # hosted provider; self-hosted instances start disabled until an admin
+        # configures their own provider and API key.
+        if settings.ASSISTANT_MANAGED:
+            defaults = {"enabled": True, "provider": AiSettings.Provider.MANAGED}
+        else:
+            defaults = {"enabled": False, "provider": AiSettings.Provider.ANTHROPIC}
+        obj, _ = AiSettings.objects.get_or_create(organization=self, defaults=defaults)
+        return obj
+
     def filter_workspaces_for_user(self, user):
         workspaces = self.workspaces.exclude(archived=True)
         if user.has_perm("user_management.has_admin_privileges", self):
@@ -440,6 +455,19 @@ class Organization(Base, SoftDeletedModel):
             .count()
         )
 
+    def get_monthly_ai_cost(self) -> float:
+        """Sum AI assistant cost (USD) for the current calendar month across the organization's workspaces."""
+        from hexa.assistant.models import Message
+
+        today = timezone.now().date()
+        month_start = today.replace(day=1)
+        total = Message.objects.filter(
+            conversation__workspace__organization=self,
+            role=Message.Role.ASSISTANT,
+            created_at__date__gte=month_start,
+        ).aggregate(total=Sum("cost"))["total"]
+        return float(round(total or 0, ndigits=2))
+
     @property
     def is_frozen(self) -> bool:
         subscription = self.current_subscription
@@ -466,6 +494,12 @@ class Organization(Base, SoftDeletedModel):
         if not subscription:
             return False
         return self.is_frozen or subscription.is_pipeline_runs_limit_reached()
+
+    def is_ai_budget_limit_reached(self) -> bool:
+        subscription = self.current_subscription
+        if not subscription:
+            return False
+        return self.is_frozen or subscription.is_ai_budget_limit_reached()
 
 
 class OrganizationSubscription(Base):
@@ -498,6 +532,7 @@ class OrganizationSubscription(Base):
     users_limit = models.PositiveIntegerField()
     workspaces_limit = models.PositiveIntegerField()
     pipeline_runs_limit = models.PositiveIntegerField()
+    monthly_ai_budget = models.PositiveIntegerField()
 
     max_pipeline_timeout = models.PositiveIntegerField(null=True, blank=True)
     pipeline_cpu_limit = models.CharField(max_length=32, blank=True, null=True)
@@ -534,6 +569,10 @@ class OrganizationSubscription(Base):
             self.organization.get_monthly_pipeline_runs_count()
             >= self.pipeline_runs_limit
         )
+
+    def is_ai_budget_limit_reached(self) -> bool:
+        """Check if the organization has reached its monthly AI budget."""
+        return self.organization.get_monthly_ai_cost() >= self.monthly_ai_budget
 
 
 class OrganizationMembershipRole(models.TextChoices):

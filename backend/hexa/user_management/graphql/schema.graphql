@@ -46,11 +46,6 @@ type User {
     The date of the user's last login.
     """
     lastLogin: DateTime
-
-    """
-    User AI settings.
-    """
-    aiSettings: AiSettings
 }
 
 """
@@ -400,9 +395,14 @@ enum UpdateUserError {
 }
 
 """
-The UpdateUserAiSettingsInput type represents the input for the updateAiSettings mutation.
+The UpdateOrganizationAiSettingsInput type represents the input for the updateOrganizationAiSettings mutation.
 """
-input UpdateUserAiSettingsInput {
+input UpdateOrganizationAiSettingsInput {
+    """
+    The organization whose AI settings are updated.
+    """
+    organizationId: UUID!
+
     """
     Indicates if AI is enabled
     """
@@ -425,33 +425,38 @@ input UpdateUserAiSettingsInput {
 }
 
 """
-The UpdateUserAiSettingsResult type represents the result of the updateUser mutation.
+The UpdateOrganizationAiSettingsResult type represents the result of the updateOrganizationAiSettings mutation.
 """
-type UpdateUserAiSettingsResult {
+type UpdateOrganizationAiSettingsResult {
     """
-    Indicates whether the user update was successful.
+    Indicates whether the update was successful.
     """
     success: Boolean!
 
     """
-    The updated user object.
+    The updated organization object.
     """
-    user: User
+    organization: Organization
 
     """
-    The list of errors that occurred during the updateUser mutation.
+    The list of errors that occurred during the mutation.
     """
-    errors: [UpdateUserAiSettingsError!]!
+    errors: [UpdateOrganizationAiSettingsError!]!
 }
 
 """
-The UpdateUserAiSettingsError enum represents the possible errors that can occur during the updateUser mutation.
+The UpdateOrganizationAiSettingsError enum represents the possible errors that can occur during the updateOrganizationAiSettings mutation.
 """
-enum UpdateUserAiSettingsError {
+enum UpdateOrganizationAiSettingsError {
     """
-    Indicates that the user does not have permission to update their profile.
+    Indicates that the user does not have permission to update the organization AI settings.
     """
     PERMISSION_DENIED
+
+    """
+    Indicates that the organization does not exist.
+    """
+    NOT_FOUND
 
     """
     Indicates that enabling AI requires provider, model, and api_key to all be set.
@@ -470,6 +475,7 @@ type AiSettings {
 Represents the available AI providers.
 """
 enum AiProvider {
+    managed
     anthropic
 }
 
@@ -530,7 +536,7 @@ extend type Mutation {
     """
     Updates the AI settings of the currently authenticated user.
     """
-    updateUserAiSettings(input: UpdateUserAiSettingsInput!): UpdateUserAiSettingsResult! @loginRequired
+    updateOrganizationAiSettings(input: UpdateOrganizationAiSettingsInput!): UpdateOrganizationAiSettingsResult! @loginRequired
 
     """
     Verifies a device for two-factor authentication.
@@ -1150,6 +1156,16 @@ type Organization {
     Subscription details with limits. Null for self-hosted deployments.
     """
     subscription: Subscription
+
+    """
+    The AI settings of the organization.
+    """
+    aiSettings: AiSettings
+
+    """
+    Whether the organization has reached its monthly AI budget.
+    """
+    aiBudgetLimitReached: Boolean!
 }
 
 """
@@ -1170,6 +1186,11 @@ type ResourceCounts {
     Number of pipeline runs.
     """
     pipelineRuns: Int!
+
+    """
+    AI budget / usage in USD. As usage: AI spend for the current month. As a limit: the monthly AI budget.
+    """
+    aiBudget: Float!
 }
 
 """
@@ -2186,6 +2207,11 @@ input ResourceCountsInput {
     JupyterHub profile to use (e.g., "trial").
     """
     notebookProfile: String
+
+    """
+    Monthly AI budget in USD. Defaults to 0 (AI disabled) if not provided.
+    """
+    monthlyAiBudget: Int
 }
 
 """

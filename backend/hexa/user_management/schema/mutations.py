@@ -491,12 +491,23 @@ def resolve_update_user(_, info, **kwargs):
     return {"success": True, "errors": [], "user": user}
 
 
-@identity_mutations.field("updateUserAiSettings")
-def resolve_update_user_ai_settings(_, info, **kwargs):
+@identity_mutations.field("updateOrganizationAiSettings")
+def resolve_update_organization_ai_settings(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     mutation_input = kwargs["input"]
-    user: User = request.user
-    ai_settings: AiSettings = user.ai_settings_safe
+    principal: User = request.user
+
+    try:
+        organization = Organization.objects.filter_for_user(principal).get(
+            id=mutation_input["organization_id"]
+        )
+    except Organization.DoesNotExist:
+        return {"success": False, "errors": ["NOT_FOUND"], "organization": None}
+
+    if not principal.has_perm("user_management.has_admin_privileges", organization):
+        return {"success": False, "errors": ["PERMISSION_DENIED"], "organization": None}
+
+    ai_settings: AiSettings = organization.ai_settings_safe
     for field_name in ["enabled", "provider", "model", "api_key"]:
         if field_name in mutation_input:
             setattr(ai_settings, field_name, mutation_input[field_name])
@@ -505,9 +516,13 @@ def resolve_update_user_ai_settings(_, info, **kwargs):
         ai_settings.validate()
         ai_settings.save()
     except (IntegrityError, ValidationError):
-        return {"success": False, "errors": ["INCOMPLETE_CONFIG"]}
+        return {
+            "success": False,
+            "errors": ["INCOMPLETE_CONFIG"],
+            "organization": None,
+        }
 
-    return {"success": True, "errors": [], "user": user}
+    return {"success": True, "errors": [], "organization": organization}
 
 
 @identity_mutations.field("updateOrganizationMember")
@@ -995,6 +1010,7 @@ def resolve_create_organization(_, info, **kwargs):
         users_limit=limits["users"],
         workspaces_limit=limits["workspaces"],
         pipeline_runs_limit=limits["pipeline_runs"],
+        monthly_ai_budget=limits.get("monthly_ai_budget") or 0,
         max_pipeline_timeout=limits.get("max_pipeline_timeout"),
         pipeline_cpu_limit=limits.get("pipeline_cpu_limit"),
         pipeline_memory_limit=limits.get("pipeline_memory_limit"),
@@ -1081,6 +1097,7 @@ def resolve_update_organization_subscription(_, info, **kwargs):
             "users_limit": limits["users"],
             "workspaces_limit": limits["workspaces"],
             "pipeline_runs_limit": limits["pipeline_runs"],
+            "monthly_ai_budget": limits.get("monthly_ai_budget") or 0,
             "max_pipeline_timeout": limits.get("max_pipeline_timeout"),
             "pipeline_cpu_limit": limits.get("pipeline_cpu_limit"),
             "pipeline_memory_limit": limits.get("pipeline_memory_limit"),

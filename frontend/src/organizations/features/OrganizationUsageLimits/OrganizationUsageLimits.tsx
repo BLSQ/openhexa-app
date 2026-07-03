@@ -27,7 +27,12 @@ const OrganizationUsageLimits = ({
   const isExpiredPastGracePeriod =
     subscription?.isExpired && !subscription?.isInGracePeriod;
 
-  const usageItems = [
+  const usageItems: {
+    label: string;
+    current: number;
+    limit: number | undefined;
+    formatValue?: (value: number) => string;
+  }[] = [
     {
       label: t("Users"),
       current: usage.users,
@@ -42,6 +47,12 @@ const OrganizationUsageLimits = ({
       label: t("Pipeline Runs (this month)"),
       current: usage.pipelineRuns,
       limit: limits?.pipelineRuns,
+    },
+    {
+      label: t("AI Usage in USD (this month)"),
+      current: usage.aiBudget,
+      limit: limits?.aiBudget,
+      formatValue: (value) => value.toFixed(2),
     },
   ];
 
@@ -104,10 +115,13 @@ const OrganizationUsageLimits = ({
                 value={item.current}
                 max={item.limit}
                 disabled={isExpiredPastGracePeriod}
+                formatValue={item.formatValue}
               />
             ) : (
               <p className="text-lg font-semibold text-gray-900">
-                {item.current}
+                {item.formatValue
+                  ? item.formatValue(item.current)
+                  : item.current}
               </p>
             )}
           </div>
