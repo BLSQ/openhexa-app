@@ -212,8 +212,10 @@ _TABLES_FROM_CLAUSE = """
 def get_database_definition_page(
     workspace: Workspace, page: int = 1, per_page: int = 15
 ):
-    if per_page > settings.GRAPHQL_MAX_PAGE_SIZE:
-        per_page = settings.GRAPHQL_MAX_PAGE_SIZE
+    # Clamp caller-provided values: a GraphQL client can send any Int (or an
+    # explicit null), and negative/zero values would end up in LIMIT/OFFSET.
+    page = max(page or 1, 1)
+    per_page = min(max(per_page or 1, 1), settings.GRAPHQL_MAX_PAGE_SIZE)
     conn = None
     try:
         conn = get_workspace_database_connection(workspace)

@@ -210,6 +210,17 @@ class DatabaseUtilsTest(TestCase):
         self.assertEqual([], result["items"])
         self.assertGreaterEqual(result["total_items"], 1)
 
+    def test_get_database_definition_page_clamps_arguments(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+
+        # Zero, negative or null page/per_page must not reach LIMIT/OFFSET
+        for page, per_page in [(0, 0), (-1, -5), (None, None)]:
+            result = get_database_definition_page(
+                self.WORKSPACE, page=page, per_page=per_page
+            )
+            self.assertEqual(1, result["page_number"])
+            self.assertEqual(1, len(result["items"]))
+
     @mock.patch("psycopg2.connect")
     def test_get_table_definition(self, mock_connect):
         table_name = "database_tutorial"
