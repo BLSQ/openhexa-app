@@ -66,6 +66,16 @@ class CoreDashboardTest(GraphQLTestCase):
             password_validators_help_texts(),
         )
 
+    @override_settings(ASSISTANT_MANAGED=True)
+    def test_assistant_managed_true(self):
+        response = self.run_query("query { config { assistantManaged } }")
+        self.assertTrue(response["data"]["config"]["assistantManaged"])
+
+    @override_settings(ASSISTANT_MANAGED=False)
+    def test_assistant_managed_false(self):
+        response = self.run_query("query { config { assistantManaged } }")
+        self.assertFalse(response["data"]["config"]["assistantManaged"])
+
 
 _WHO_PROVIDER = {
     "id": "who",

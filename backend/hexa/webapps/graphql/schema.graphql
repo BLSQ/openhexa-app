@@ -90,7 +90,7 @@ type Webapp {
   source: WebappSource!
   versions(page: Int, perPage: Int): WebappVersionsPage
   commitDiff(ref: String!): WebappCommitDiff
-  files(ref: String): [FileNode!]
+  files(ref: String, includeBinaryContent: Boolean = true): [FileNode!]  # When includeBinaryContent is false, the `content` of binary (non-TEXT) files is null.
   permissions: WebappPermissions!
 }
 """

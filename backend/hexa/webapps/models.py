@@ -270,7 +270,7 @@ class GitWebapp(Webapp, GitRepoMixin):
         ".sql": "sql",
     }
 
-    def get_files(self, ref=None):
+    def get_files(self, ref=None, include_binary_content=True):
         ref = ref or "main"
         raw_files = self.client.get_repository_files(
             self.repository, ref, org_slug=self.git_org.slug
@@ -283,6 +283,9 @@ class GitWebapp(Webapp, GitRepoMixin):
             parent = "/".join(path.split("/")[:-1]) or None
             extension = os.path.splitext(path)[1].lower()
             is_text = encoding == FileEncoding.TEXT and content is not None
+
+            if not include_binary_content and not is_text:
+                content = None
 
             nodes.append(
                 {

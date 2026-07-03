@@ -11,16 +11,13 @@ import {
 } from "identity/graphql/queries.generated";
 import { logout } from "identity/helpers/auth";
 import { useTranslation } from "next-i18next";
-import AccountAiSettings from "identity/features/AccountAiSettings";
 import AccountProfileSettings from "identity/features/AccountProfileSettings";
 import AccountSecuritySettings from "identity/features/AccountSecuritySettings";
 import PendingWorkspaceInvitations from "identity/features/PendingWorkspaceInvitations";
-import useFeature from "identity/hooks/useFeature";
 
 function AccountPage() {
   const { t } = useTranslation();
-  const { data, refetch } = useAccountPageQuery();
-  const [isAssistantEnabled] = useFeature("assistant");
+  const { data } = useAccountPageQuery();
 
   if (!data?.me.user) {
     return null;
@@ -46,19 +43,14 @@ function AccountPage() {
       >
         <DataCard item={user} className="divide-y divide-gray-100">
           <AccountProfileSettings user={user} />
-          <AccountSecuritySettings hasTwoFactorEnabled={data.me.hasTwoFactorEnabled} />
-          {isAssistantEnabled && (
-            <AccountAiSettings
-              settings={user.aiSettings}
-              labels={data.aiLabels}
-              monthlyCost={data.me.assistantMonthlyCost / 1_000_000}
-              totalCost={data.me.assistantTotalCost / 1_000_000}
-              refetch={refetch}
-            />
-          )}
+          <AccountSecuritySettings
+            hasTwoFactorEnabled={data.me.hasTwoFactorEnabled}
+          />
         </DataCard>
 
-        <PendingWorkspaceInvitations invitations={data.pendingWorkspaceInvitations} />
+        <PendingWorkspaceInvitations
+          invitations={data.pendingWorkspaceInvitations}
+        />
       </BackLayout>
     </Page>
   );

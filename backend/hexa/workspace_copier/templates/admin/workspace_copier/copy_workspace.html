@@ -1,0 +1,58 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:workspaces_workspace_changelist' %}">{% trans 'Workspaces' %}</a>
+    &rsaquo; {% trans 'Copy workspace' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<p>
+    Copy a workspace between servers. Leave a server URL blank to use the local
+    server. Source/target superuser credentials are used only for this request
+    and are never stored.
+</p>
+<p>{% trans 'Example server URLs:' %}</p>
+<ul>
+    <li>{% trans 'Production (SaaS)' %}: <code>https://api.openhexa.org/graphql/</code></li>
+    <li>{% trans 'Demo' %}: <code>https://api.demo.openhexa.org/graphql/</code></li>
+    <li>{% trans 'Localhost' %}: <code>http://localhost:8000/graphql/</code></li>
+</ul>
+
+<form method="post">
+    {% csrf_token %}
+    <fieldset class="module aligned">
+        <h2 style="margin-bottom: 1rem;">{% trans 'Source' %}</h2>
+        {% include "admin/workspace_copier/_field_row.html" with field=form.source_url %}
+        {% include "admin/workspace_copier/_field_row.html" with field=form.source_token %}
+        {% include "admin/workspace_copier/_field_row.html" with field=form.source_slug %}
+    </fieldset>
+    <fieldset class="module aligned">
+        <h2>{% trans 'Target' %}</h2>
+        {% include "admin/workspace_copier/_field_row.html" with field=form.target_url %}
+        {% include "admin/workspace_copier/_field_row.html" with field=form.target_token %}
+        {% include "admin/workspace_copier/_field_row.html" with field=form.target_organization %}
+        {% include "admin/workspace_copier/_field_row.html" with field=form.target_workspace_name %}
+    </fieldset>
+    <fieldset class="module aligned">
+        <h2>{% trans 'Resources' %}</h2>
+        {% include "admin/workspace_copier/_field_row.html" with field=form.resources %}
+    </fieldset>
+    <div class="submit-row">
+        <input type="submit" value="{% trans 'Run copy' %}" class="default">
+    </div>
+</form>
+
+{% if log %}
+<h2>{% trans 'Log' %}</h2>
+<pre>{{ log }}</pre>
+{% endif %}
+
+{% if summary %}
+<h2>{% trans 'Summary' %}</h2>
+<pre>{{ summary }}</pre>
+{% endif %}
+{% endblock %}

@@ -37,6 +37,11 @@ def resolve_config_password_login_enabled(_, info):
     return settings.PASSWORD_LOGIN_ENABLED
 
 
+@config_object.field("assistantManaged")
+def resolve_config_assistant_managed(_, info):
+    return settings.ASSISTANT_MANAGED
+
+
 @config_object.field("oidcProviders")
 def resolve_config_oidc_providers(_, info):
     base = settings.BASE_URL.rstrip("/")

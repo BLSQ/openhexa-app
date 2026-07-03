@@ -1,9 +1,11 @@
 import { render, screen } from "@testing-library/react";
+import { TOOL } from "assistant/helpers/tools";
 import { resolveSemanticRenderer, RenderContext } from "./index";
 
 function ctx(overrides: Partial<RenderContext>): RenderContext {
   return {
     kind: "output",
+    tool: null,
     toolName: "",
     success: true,
     input: {},
@@ -17,7 +19,7 @@ describe("resolveSemanticRenderer", () => {
     const value = { files: [{ name: "pipeline.py", content: "print(1)" }] };
     const r = resolveSemanticRenderer(
       value,
-      ctx({ toolName: "propose_pipeline_version" }),
+      ctx({ tool: TOOL.ProposePipelineVersion }),
     );
     expect(r?.id).toBe("files-changeset");
   });
@@ -26,7 +28,7 @@ describe("resolveSemanticRenderer", () => {
     const content = "def run():\n    return 42";
     const r = resolveSemanticRenderer(
       { files: [{ name: "pipeline.py", content }] },
-      ctx({ toolName: "propose_pipeline_version" }),
+      ctx({ tool: TOOL.ProposePipelineVersion }),
     );
     const { container } = render(
       <>{r!.render({ files: [{ name: "pipeline.py", content }] }, ctx({}))}</>,
@@ -40,7 +42,7 @@ describe("resolveSemanticRenderer", () => {
   it("picks the file-set renderer for a deletion-only changeset", () => {
     const r = resolveSemanticRenderer(
       { deleted_files: ["old.py"] },
-      ctx({ toolName: "propose_pipeline_version", kind: "input" }),
+      ctx({ tool: TOOL.ProposePipelineVersion, kind: "input" }),
     );
     expect(r?.id).toBe("files-changeset");
   });
@@ -52,7 +54,7 @@ describe("resolveSemanticRenderer", () => {
     };
     const r = resolveSemanticRenderer(
       value,
-      ctx({ toolName: "propose_pipeline_version", kind: "input" }),
+      ctx({ tool: TOOL.ProposePipelineVersion, kind: "input" }),
     );
     render(<>{r!.render(value, ctx({ kind: "input" }))}</>);
     expect(screen.getByText("pipeline.py")).toBeInTheDocument();
@@ -61,7 +63,7 @@ describe("resolveSemanticRenderer", () => {
 
   it("picks the file-system renderer for list_files", () => {
     const value = { items: [{ name: "a.csv", type: "file", size: 12 }] };
-    const r = resolveSemanticRenderer(value, ctx({ toolName: "list_files" }));
+    const r = resolveSemanticRenderer(value, ctx({ tool: TOOL.ListFiles }));
     expect(r?.id).toBe("files");
   });
 
@@ -69,7 +71,7 @@ describe("resolveSemanticRenderer", () => {
     const value = { content: "print('hi')", size: 11 };
     const r = resolveSemanticRenderer(
       value,
-      ctx({ toolName: "read_file", input: { file_path: "main.py" } }),
+      ctx({ tool: TOOL.ReadFile, input: { file_path: "main.py" } }),
     );
     expect(r?.id).toBe("code");
   });
@@ -78,7 +80,7 @@ describe("resolveSemanticRenderer", () => {
     const overview = { about: "x", tips: ["a"], docs: [{ name: "cli" }] };
     const r = resolveSemanticRenderer(
       overview,
-      ctx({ toolName: "get_help_or_doc" }),
+      ctx({ tool: TOOL.GetHelpOrDoc }),
     );
     // No `content` string → falls through (overview has a docs array → table).
     expect(r?.id).not.toBe("markdown");
@@ -86,7 +88,7 @@ describe("resolveSemanticRenderer", () => {
 
   it("uses markdown for a help doc page", () => {
     const doc = { name: "cli", title: "CLI", content: "# CLI\nUse it." };
-    const r = resolveSemanticRenderer(doc, ctx({ toolName: "get_help_or_doc" }));
+    const r = resolveSemanticRenderer(doc, ctx({ tool: TOOL.GetHelpOrDoc }));
     expect(r?.id).toBe("markdown");
   });
 

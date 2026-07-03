@@ -19,6 +19,7 @@ x-app: &common
       - SECURE_SSL_REDIRECT=False
       - PIPELINE_SCHEDULER_SPAWNER=docker
       - WEBAPPS_DOMAIN=${WEBAPPS_DOMAIN:-webapps.localhost:8000}
+      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:+/gcp/adc.json}
 
     networks:
       - openhexa
@@ -26,6 +27,7 @@ x-app: &common
       - "${LOCAL_WORKSPACE_FOLDER:-./backend}:/code"
       - "./docs:/code/docs:ro"
       - "${WORKSPACE_STORAGE_LOCATION:-/data/openhexa}:/data"
+      - "${GOOGLE_APPLICATION_CREDENTIALS:-/dev/null}:/gcp/adc.json:ro"
 
 services:
   db:

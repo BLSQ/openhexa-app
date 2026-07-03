@@ -8,8 +8,10 @@ affine==2.4.0
     # via rasterio
 annotated-types==0.7.0
     # via pydantic
-anthropic==0.109.1
-    # via pydantic-ai-slim
+anthropic[vertex]==0.109.1
+    # via
+    #   -r requirements.in
+    #   pydantic-ai-slim
 anyio==4.9.0
     # via
     #   anthropic
@@ -182,9 +184,10 @@ google-api-core[grpc]==2.25.1
     #   google-cloud-iam
     #   google-cloud-logging
     #   google-cloud-storage
-google-auth==2.40.3
+google-auth[requests]==2.40.3
     # via
     #   -r requirements.in
+    #   anthropic
     #   google-api-core
     #   google-cloud-appengine-logging
     #   google-cloud-core
@@ -448,7 +451,7 @@ pygments==2.20.0
     # via
     #   dhis2-py
     #   rich
-pyjwt[crypto]==2.12.0
+pyjwt[crypto]==2.13.0
     # via
     #   django-allauth
     #   msal
@@ -506,6 +509,7 @@ requests==2.33.0
     #   django-oauth-toolkit
     #   docker
     #   google-api-core
+    #   google-auth
     #   google-cloud-storage
     #   kubernetes
     #   mixpanel
@@ -612,7 +616,7 @@ urllib3==2.7.0
     #   sentry-sdk
 uvicorn==0.34.0
     # via -r requirements.in
-vcrpy==8.1.1
+vcrpy==8.2.1
     # via -r requirements.in
 websocket-client==1.8.0
     # via kubernetes

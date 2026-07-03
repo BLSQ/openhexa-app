@@ -19,14 +19,18 @@ def list_static_webapps(
 
 @tool
 def get_static_webapp(user, workspace_slug: str, webapp_slug: str) -> dict:
-    """Get full details of a static web app: metadata, allowed API operations, and the current files with their contents.
+    """Get full details of a static web app: metadata, allowed API operations, and the current files.
 
-    Use the slug from list_static_webapps (not the UUID). File contents are returned with an `encoding` field — TEXT for UTF-8 strings, BASE64 for binary files. Returns the webapp's `id` which can be passed to update_static_webapp.
+    Use the slug from list_static_webapps (not the UUID). Each file has an `encoding` field — TEXT for UTF-8 strings, BASE64 for binary files. Content is returned inline for text/code files (encoding TEXT); for binary files (encoding BASE64, e.g. images or fonts) `content` is null to avoid returning large base64 blobs. Returns the webapp's `id` which can be passed to update_static_webapp.
     """
     data = execute_graphql(
         user,
         "GetStaticWebapp",
-        {"workspaceSlug": workspace_slug, "slug": webapp_slug},
+        {
+            "workspaceSlug": workspace_slug,
+            "slug": webapp_slug,
+            "includeBinaryContent": False,
+        },
     )
     if "errors" in data:
         return data

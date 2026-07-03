@@ -14,35 +14,20 @@ const PREFIX_VERBS: [string, string][] = [
   ["execute_", "Executing"],
 ];
 
+// Curated labels for the tools an agent can actually call. Keyed off the
+// generated `TOOL` enum, so a renamed or removed tool fails compilation here.
+// Tools without an entry fall back to `formatToolName`.
 export function getToolLabels(t: TFunction): Record<string, string> {
   return {
-    [TOOL.LIST_WORKSPACES]:               t("Listing workspaces"),
-    [TOOL.GET_WORKSPACE]:                 t("Reading workspace"),
-    [TOOL.LIST_FILES]:                    t("Listing files"),
-    [TOOL.READ_FILE]:                     t("Reading file"),
-    [TOOL.WRITE_FILE]:                    t("Writing file"),
-    [TOOL.LIST_DATASETS]:                 t("Listing datasets"),
-    [TOOL.GET_DATASET]:                   t("Reading dataset"),
-    [TOOL.PREVIEW_DATASET_FILE]:          t("Previewing dataset file"),
-    [TOOL.CREATE_DATASET]:                t("Creating dataset"),
-    [TOOL.CREATE_DATASET_VERSION]:        t("Creating dataset version"),
-    [TOOL.LIST_PIPELINES]:                t("Listing pipelines"),
-    [TOOL.GET_PIPELINE]:                  t("Reading pipeline"),
-    [TOOL.GET_PIPELINE_RUN]:              t("Reading pipeline run"),
-    [TOOL.RUN_PIPELINE]:                  t("Running pipeline"),
-    [TOOL.UPDATE_PIPELINE]:               t("Updating pipeline"),
-    [TOOL.CREATE_PIPELINE]:               t("Creating pipeline"),
-    [TOOL.CREATE_PIPELINE_VERSION]:       t("Creating pipeline version"),
-    [TOOL.LIST_CONNECTIONS]:              t("Listing connections"),
-    [TOOL.LIST_PIPELINE_TEMPLATES]:       t("Listing pipeline templates"),
-    [TOOL.GET_PIPELINE_TEMPLATE]:         t("Reading pipeline template"),
-    [TOOL.CREATE_PIPELINE_FROM_TEMPLATE]: t("Creating pipeline from template"),
-    [TOOL.LIST_STATIC_WEBAPPS]:           t("Listing web apps"),
-    [TOOL.CREATE_STATIC_WEBAPP]:          t("Creating web app"),
-    [TOOL.UPDATE_STATIC_WEBAPP]:          t("Updating web app"),
-    [TOOL.GET_HELP_OR_DOC]:               t("Reading documentation"),
-    [TOOL.PROPOSE_PIPELINE_VERSION]:      t("Proposing pipeline version"),
-    [TOOL.EXECUTE_GRAPHQL]:               t("Executing GraphQL query"),
+    [TOOL.ListFiles]: t("Listing files"),
+    [TOOL.ReadFile]: t("Reading file"),
+    [TOOL.ListDatasets]: t("Listing datasets"),
+    [TOOL.GetDataset]: t("Reading dataset"),
+    [TOOL.PreviewDatasetFile]: t("Previewing dataset file"),
+    [TOOL.ListConnections]: t("Listing connections"),
+    [TOOL.CreatePipeline]: t("Creating pipeline"),
+    [TOOL.GetHelpOrDoc]: t("Reading documentation"),
+    [TOOL.ProposePipelineVersion]: t("Proposing pipeline version"),
   };
 }
 

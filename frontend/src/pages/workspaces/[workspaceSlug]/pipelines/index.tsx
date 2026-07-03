@@ -17,10 +17,9 @@ import Tabs from "core/components/Tabs";
 import PipelineTemplates from "pipelines/features/PipelineTemplates";
 import Pipelines from "pipelines/features/Pipelines/Pipelines";
 import CreatePipelineDialog from "workspaces/features/CreatePipelineDialog";
-import { WorkspaceLayout_WorkspaceFragment } from "workspaces/layouts/WorkspaceLayout/WorkspaceLayout.generated";
 
 type Props = {
-  workspace: WorkspaceLayout_WorkspaceFragment;
+  workspace: NonNullable<WorkspacePipelinesPageQuery["workspace"]>;
   page: number;
   perPage: number;
   search: string;

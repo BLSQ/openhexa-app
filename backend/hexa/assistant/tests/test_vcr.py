@@ -22,7 +22,7 @@ from vcr.record_mode import RecordMode
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message
-from hexa.user_management.models import AiSettings, User
+from hexa.user_management.models import AiSettings, Organization, User
 from hexa.workspaces.models import Workspace
 
 
@@ -80,12 +80,15 @@ class AssistantVCRTest(TestCase):
         cls.user = User.objects.create_user(
             "vcr-test@example.com", "password", is_superuser=True
         )
+        cls.organization = Organization.objects.create(name="VCR Test Org")
         with patch("hexa.workspaces.models.create_database"):
             cls.workspace = Workspace.objects.create_if_has_perm(
                 cls.user, name="VCR Test WS", description="For VCR tests"
             )
+        cls.workspace.organization = cls.organization
+        cls.workspace.save()
         AiSettings.objects.update_or_create(
-            user=cls.user,
+            organization=cls.organization,
             defaults={
                 "enabled": True,
                 "provider": AiSettings.Provider.ANTHROPIC,

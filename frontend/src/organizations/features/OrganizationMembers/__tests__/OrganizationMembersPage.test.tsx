@@ -47,6 +47,7 @@ const MOCK_ORGANIZATION = {
     users: 5,
     workspaces: 1,
     pipelineRuns: 0,
+    aiBudget: 0,
   },
   subscription: null,
 };
@@ -196,6 +197,7 @@ describe("OrganizationMembersPage", () => {
         users: 0,
         workspaces: 0,
         pipelineRuns: 0,
+        aiBudget: 0,
       },
       subscription: null,
     };

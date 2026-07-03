@@ -98,6 +98,20 @@ class EditPipelineAgent(BaseAgent):
             "conversation": self.conversation,
         }
 
+    async def _on_tool_result(self, invocation: ToolInvocation) -> None:
+        if invocation.tool_name != "propose_pipeline_version" or not invocation.success:
+            return
+        # Supersede any earlier pending proposal in this conversation so only the
+        # latest one awaits user action, then mark this invocation as pending so it
+        # re-surfaces in the UI on page reload (the agent itself sees the proposed
+        # files via the replayed message history regardless of this flag).
+        await ToolInvocation.objects.filter(
+            message__conversation=self.conversation,
+            tool_name="propose_pipeline_version",
+            proposal_pending=True,
+        ).aupdate(proposal_pending=False)
+        invocation.proposal_pending = True
+
     def _extra_instructions(self) -> str:
         linked_object = self.conversation.linked_object
         if linked_object is None:

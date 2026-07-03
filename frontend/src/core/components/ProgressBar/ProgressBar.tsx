@@ -7,6 +7,7 @@ export type ProgressBarProps = {
   className?: string;
   showLabel?: boolean;
   disabled?: boolean;
+  formatValue?: (value: number) => string;
 };
 
 type UsageLevel = "normal" | "warning" | "critical";
@@ -24,7 +25,14 @@ const colorClasses: Record<UsageLevel, { bar: string; text: string }> = {
 };
 
 const ProgressBar = (props: ProgressBarProps) => {
-  const { value, max, className, showLabel = true, disabled = false } = props;
+  const {
+    value,
+    max,
+    className,
+    showLabel = true,
+    disabled = false,
+    formatValue = (v: number) => `${v}`,
+  } = props;
 
   const percentage = useMemo(() => {
     if (max <= 0) return 0;
@@ -58,7 +66,7 @@ const ProgressBar = (props: ProgressBarProps) => {
               disabled ? "text-gray-400" : colors.text,
             )}
           >
-            {value} / {max}
+            {formatValue(value)} / {formatValue(max)}
           </span>
         )}
       </div>

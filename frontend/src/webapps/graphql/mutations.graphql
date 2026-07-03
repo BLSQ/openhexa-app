@@ -4,7 +4,12 @@ mutation UpdateWebapp($input: UpdateWebappInput!) {
     errors
     webapp {
       id
+      allowedOperations
+      url
       source {
+        ... on IframeSource {
+          url
+        }
         ... on GitSource {
           publishedVersion
         }

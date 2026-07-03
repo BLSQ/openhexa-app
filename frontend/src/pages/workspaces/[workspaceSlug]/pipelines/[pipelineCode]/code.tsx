@@ -7,10 +7,9 @@ import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import Page from "core/components/Page";
 import Spinner from "core/components/Spinner";
+import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
-import useFeature from "identity/hooks/useFeature";
-import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PipelineFilesEditor } from "workspaces/features/FilesEditor/PipelineFilesEditor";
@@ -36,20 +35,27 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const [selectedVersion, setSelectedVersion] =
     useState<PipelineVersionPicker_VersionFragment | null>(null);
-  const [proposedFiles, setProposedFiles] = useState<ProposedFile[] | null>(null);
-  const [proposedToolInvocationId, setProposedToolInvocationId] = useState<string | null>(null);
+  const [proposedFiles, setProposedFiles] = useState<ProposedFile[] | null>(
+    null,
+  );
+  const [proposedToolInvocationId, setProposedToolInvocationId] = useState<
+    string | null
+  >(null);
 
   const [resolveProposal] = useResolveAssistantProposalMutation();
 
-  const handleProposedFiles = useCallback((files: ProposedFile[] | null, toolInvocationId?: string) => {
-    setProposedFiles(files);
-    if (toolInvocationId !== undefined) {
-      setProposedToolInvocationId(toolInvocationId);
-    } else if (files !== null) {
-      // New SSE proposal: clear the stored ID until Apollo refetch provides it.
-      setProposedToolInvocationId(null);
-    }
-  }, []);
+  const handleProposedFiles = useCallback(
+    (files: ProposedFile[] | null, toolInvocationId?: string) => {
+      setProposedFiles(files);
+      if (toolInvocationId !== undefined) {
+        setProposedToolInvocationId(toolInvocationId);
+      } else if (files !== null) {
+        // New SSE proposal: clear the stored ID until Apollo refetch provides it.
+        setProposedToolInvocationId(null);
+      }
+    },
+    [],
+  );
 
   const handleDismiss = useCallback(async () => {
     setProposedFiles(null);
@@ -62,23 +68,26 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     }
   }, [proposedToolInvocationId, resolveProposal]);
 
-  const [isAssistantEnabled] = useFeature("assistant");
-  const me = useMe();
-  const aiEnabled = me?.user?.aiSettings?.enabled ?? false;
-  const showAssistant = isAssistantEnabled && aiEnabled;
-
   const { data, loading } = useWorkspacePipelineCodePageQuery({
     variables: {
       workspaceSlug,
       pipelineCode,
     },
   });
+
+  const aiEnabled = data?.workspace?.organization?.aiSettings?.enabled ?? false;
+  const aiBudgetLimitReached =
+    data?.workspace?.organization?.aiBudgetLimitReached ?? false;
   const [fetchPipelineVersion, { data: versionData, loading: versionLoading }] =
     useGetPipelineVersionFilesLazyQuery();
 
   const [chatOpen, setChatOpen] = useState(false);
-  const [conversations, setConversations] = useState<PipelineConversation[]>([]);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<PipelineConversation[]>(
+    [],
+  );
+  const [activeConversationId, setActiveConversationId] = useState<
+    string | null
+  >(null);
 
   const seededRef = useRef(false);
   useEffect(() => {
@@ -87,7 +96,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     const convs = data.pipeline.assistantConversations;
     setConversations(convs);
     setActiveConversationId(convs[0]?.id ?? null);
-    setChatOpen(convs.length > 0);
+    setChatOpen(convs.length > 0 && !aiBudgetLimitReached);
   }, [data?.pipeline?.id]);
 
   const handleNewConversation = useCallback(() => {
@@ -173,16 +182,22 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                 onChange={onVersionChange}
               />
             </div>
-            {showAssistant && (
-              <Button
-                onClick={() => setChatOpen((o) => !o)}
-                variant="secondary"
-                size="md"
-                leadingIcon={<SparklesIcon className="h-4 w-4" />}
-                className="ml-auto"
-              >
-                {t("AI Assistant")}
-              </Button>
+            {aiEnabled && (
+              <div className="ml-auto">
+                <SubscriptionLimitTooltip
+                  isLimitReached={aiBudgetLimitReached}
+                  title={t("Monthly AI budget reached")}
+                >
+                  <Button
+                    onClick={() => setChatOpen((o) => !o)}
+                    variant="secondary"
+                    size="md"
+                    leadingIcon={<SparklesIcon className="h-4 w-4" />}
+                  >
+                    {t("AI Assistant")}
+                  </Button>
+                </SubscriptionLimitTooltip>
+              </div>
             )}
           </div>
           <div className="flex gap-4 min-h-[60vh] max-h-[65vh] overflow-hidden">
@@ -220,7 +235,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                 />
               </div>
             </div>
-            {chatOpen && showAssistant && (
+            {chatOpen && aiEnabled && (
               <div className="w-[440px] shrink-0">
                 <PipelineEditChatPanel
                   pipelineId={pipeline.id}

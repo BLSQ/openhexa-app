@@ -8,9 +8,11 @@ import Spinner from "core/components/Spinner";
 import { formatToolName, getToolLabels } from "assistant/helpers/toolNames";
 import { useTranslation } from "next-i18next";
 import { useState } from "react";
+import { AssistantToolName } from "graphql/types";
 import ToolCallDetails from "./ToolCallDetails";
 
 type Props = {
+  tool: AssistantToolName | null;
   toolName: string;
   status: "pending" | "done";
   success?: boolean;
@@ -19,6 +21,7 @@ type Props = {
 };
 
 export default function ToolCallCard({
+  tool,
   toolName,
   status,
   success,
@@ -67,6 +70,7 @@ export default function ToolCallCard({
 
       {open && (
         <ToolCallDetails
+          tool={tool}
           toolName={toolName}
           toolInput={toolInput}
           toolOutput={toolOutput}

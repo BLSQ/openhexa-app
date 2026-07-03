@@ -1,0 +1,17 @@
+{% comment %}
+Renders a plain form field with the same markup the Django admin uses for
+aligned fieldsets (admin/includes/fieldset.html), so labels and inputs line up
+like on the rest of the admin.
+{% endcomment %}
+<div class="form-row{% if field.errors %} errors{% endif %} field-{{ field.name }}">
+    {{ field.errors }}
+    <div class="flex-container">
+        {{ field.label_tag }}
+        {{ field }}
+    </div>
+    {% if field.help_text %}
+        <div class="help"{% if field.id_for_label %} id="{{ field.id_for_label }}_helptext"{% endif %}>
+            <div>{{ field.help_text|safe }}</div>
+        </div>
+    {% endif %}
+</div>

@@ -55,6 +55,15 @@ const WebappLayout = (props: WebappLayoutProps) => {
           },
         ]
       : []),
+    ...(webapp.type === WebappType.Static && !webapp.isPublic
+      ? [
+          {
+            label: t("API access"),
+            href: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${encodeURIComponent(webapp.slug)}/api-access`,
+            id: "api-access",
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -83,10 +92,7 @@ const WebappLayout = (props: WebappLayoutProps) => {
       headerActions={
         <div className="flex items-center gap-2">
           {extraActions}
-          <Link
-            href={webapp.serveUrl ?? webapp.url ?? "#"}
-            target="_blank"
-          >
+          <Link href={webapp.serveUrl ?? webapp.url ?? "#"} target="_blank">
             <Button
               variant="primary"
               leadingIcon={<EyeIcon className="h-4 w-4" />}
@@ -140,6 +146,7 @@ WebappLayout.fragments = {
       url
       serveUrl
       type
+      isPublic
       permissions {
         update
         delete

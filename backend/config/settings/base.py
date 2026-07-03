@@ -256,6 +256,16 @@ LOGGING = {
             "level": "INFO",
             "propagate": True,
         },
+        # httpx/httpcore log every request/connection at INFO/DEBUG, which generates
+        # a lot of noise (e.g. when running the workspace copier).
+        "httpx": {
+            "level": "WARNING",
+            "propagate": True,
+        },
+        "httpcore": {
+            "level": "WARNING",
+            "propagate": True,
+        },
         "": {
             "handlers": ["default"],
             "level": "DEBUG" if DEBUG_LOGGING else "INFO",
@@ -327,6 +337,7 @@ INSTALLED_APPS = [
     "oauth2_provider",
     "hexa.assistant",
     "hexa.mcp",
+    "hexa.workspace_copier",
     "django_otp",
     "django_otp.plugins.otp_static",
     "django_otp.plugins.otp_email",
@@ -584,8 +595,16 @@ PIPELINE_DEFAULT_CONTAINER_MEMORY_REQUEST = os.environ.get(
 PIPELINE_RUN_DEFAULT_TIMEOUT = os.environ.get("PIPELINE_RUN_DEFAULT_TIMEOUT", 14400)
 PIPELINE_RUN_MAX_TIMEOUT = os.environ.get("PIPELINE_RUN_MAX_TIMEOUT", 43200)
 
-# AI Assistant monthly limit in USD
+# AI Assistant config
 ASSISTANT_MONTHLY_LIMIT = int(os.environ.get("ASSISTANT_MONTHLY_LIMIT", 200))
+# Whether this OpenHEXA instance's AI is managed/hosted by us.
+# True on our SaaS instance, False on local hostings.
+ASSISTANT_MANAGED = os.environ.get("ASSISTANT_MANAGED", "false") == "true"
+# Vertex AI (managed Claude provider). Set GOOGLE_APPLICATION_CREDENTIALS in the
+# runtime environment, do not pass keys through Django.
+# europe-west1 keeps data in the EU for GDPR.
+VERTEX_PROJECT_ID = os.environ.get("VERTEX_PROJECT_ID")
+VERTEX_REGION = os.environ.get("VERTEX_REGION", "europe-west1")
 
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"

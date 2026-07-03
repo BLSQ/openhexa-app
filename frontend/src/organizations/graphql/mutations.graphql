@@ -14,3 +14,21 @@ mutation DeleteOrganization($input: DeleteOrganizationInput!) {
     errors
   }
 }
+
+mutation UpdateOrganizationAiSettings(
+  $input: UpdateOrganizationAiSettingsInput!
+) {
+  updateOrganizationAiSettings(input: $input) {
+    success
+    errors
+    organization {
+      id
+      aiSettings {
+        enabled
+        provider
+        model
+        hasApiKey
+      }
+    }
+  }
+}

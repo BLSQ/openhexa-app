@@ -18,7 +18,7 @@ query ListStaticWebapps($workspaceSlug: String, $page: Int, $perPage: Int) {
   }
 }
 
-query GetStaticWebapp($workspaceSlug: String!, $slug: String!) {
+query GetStaticWebapp($workspaceSlug: String!, $slug: String!, $includeBinaryContent: Boolean) {
   webapp(workspaceSlug: $workspaceSlug, slug: $slug) {
     id
     slug
@@ -31,7 +31,7 @@ query GetStaticWebapp($workspaceSlug: String!, $slug: String!) {
     workspace {
       slug
     }
-    files {
+    files(includeBinaryContent: $includeBinaryContent) {
       path
       type
       content

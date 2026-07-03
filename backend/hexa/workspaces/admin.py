@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.urls import path
+
+from hexa.workspace_copier.admin import copy_workspace_view
 
 from .models import (
     Connection,
@@ -13,11 +16,19 @@ class WorkspaceMembershipInline(admin.TabularInline):
     fields = ("user", "role")
     model = WorkspaceMembership
     extra = 0
+    autocomplete_fields = ("user",)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("user")
 
 
 class WorkspaceInvitationInline(admin.TabularInline):
     model = WorkspaceInvitation
     extra = 0
+    autocomplete_fields = ("invited_by",)
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related("invited_by")
 
 
 @admin.register(Workspace)
@@ -38,6 +49,7 @@ class WorkspaceAdmin(admin.ModelAdmin):
         ("docker_image", admin.EmptyFieldListFilter),
     )
     readonly_fields = ("created_at", "updated_at", "archived_at")
+    list_select_related = ("organization",)
 
     search_fields = (
         "slug",
@@ -46,6 +58,17 @@ class WorkspaceAdmin(admin.ModelAdmin):
     )
 
     inlines = [WorkspaceMembershipInline, WorkspaceInvitationInline]
+    change_list_template = "admin/workspaces/workspace/change_list.html"
+
+    def get_urls(self):
+        custom = [
+            path(
+                "copy/",
+                self.admin_site.admin_view(copy_workspace_view),
+                name="workspaces_workspace_copy",
+            ),
+        ]
+        return custom + super().get_urls()
 
 
 @admin.register(WorkspaceMembership)
