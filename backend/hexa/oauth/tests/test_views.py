@@ -5,37 +5,37 @@ from django.test import RequestFactory, TestCase
 from django.utils import timezone
 from oauth2_provider.models import AccessToken, Application, RefreshToken
 
-from hexa.oauth.views import OAuthAuthorizeView, gitea_authorize
+from hexa.oauth.views import OAuthAuthorizeView, forgejo_authorize
 from hexa.user_management.models import User
 
-GITEA_CLIENT_ID = "e90ee53c-94e2-48ac-9358-a874fb9e0662"
+FORGEJO_CLIENT_ID = "e90ee53c-94e2-48ac-9358-a874fb9e0662"
 
 
 class GitOAuthClientTest(TestCase):
-    def test_gitea_and_generic_clients_exist(self):
+    def test_forgejo_and_generic_clients_exist(self):
         """The hexa.git migration registers both git OAuth clients as public apps."""
-        for client_id in (GITEA_CLIENT_ID, "openhexa-git"):
+        for client_id in (FORGEJO_CLIENT_ID, "openhexa-git"):
             app = Application.objects.get(client_id=client_id)
             self.assertEqual(app.client_type, "public")
             self.assertEqual(app.authorization_grant_type, "authorization-code")
             self.assertIn("http://127.0.0.1/", app.redirect_uris)
 
 
-class GiteaAuthorizeScopeTest(TestCase):
+class ForgejoAuthorizeScopeTest(TestCase):
     def test_pins_git_scope_when_none_requested(self):
         """GCM's Gitea flow sends no scope; we must redirect with openhexa:git pinned."""
         request = RequestFactory().get(
             "/login/oauth/authorize",
-            {"client_id": GITEA_CLIENT_ID, "response_type": "code"},
+            {"client_id": FORGEJO_CLIENT_ID, "response_type": "code"},
         )
         request.user = AnonymousUser()
-        response = gitea_authorize(request)
+        response = forgejo_authorize(request)
         self.assertEqual(response.status_code, 302)
         self.assertIn("scope=openhexa%3Agit", response["Location"])
         self.assertTrue(response["Location"].startswith("/oauth/authorize/?"))
 
 
-class GiteaOAuthRoutingTest(TestCase):
+class ForgejoOAuthRoutingTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user("dev@bluesquarehub.com", "password")
@@ -44,7 +44,7 @@ class GiteaOAuthRoutingTest(TestCase):
         """Unauthenticated authorize must bounce to the OpenHEXA sign-in."""
         response = self.client.get(
             "/login/oauth/authorize",
-            {"client_id": GITEA_CLIENT_ID, "response_type": "code"},
+            {"client_id": FORGEJO_CLIENT_ID, "response_type": "code"},
         )
         self.assertEqual(response.status_code, 302)
         self.assertIn("/login", response["Location"])
@@ -54,7 +54,7 @@ class GiteaOAuthRoutingTest(TestCase):
         response = self.client.get(
             "/login/oauth/authorize",
             {
-                "client_id": GITEA_CLIENT_ID,
+                "client_id": FORGEJO_CLIENT_ID,
                 "response_type": "code",
                 "redirect_uri": "http://127.0.0.1/",
             },
@@ -68,7 +68,7 @@ class GiteaOAuthRoutingTest(TestCase):
         response = self.client.get(
             "/login/oauth/authorize",
             {
-                "client_id": GITEA_CLIENT_ID,
+                "client_id": FORGEJO_CLIENT_ID,
                 "response_type": "code",
                 "redirect_uri": "http://127.0.0.1/",
             },
@@ -92,7 +92,7 @@ class GitTokenRefreshTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user("refresh@bluesquarehub.com", "pw")
-        cls.app = Application.objects.get(client_id=GITEA_CLIENT_ID)
+        cls.app = Application.objects.get(client_id=FORGEJO_CLIENT_ID)
 
     def _seed_refresh_token(self):
         access = AccessToken.objects.create(
@@ -121,7 +121,7 @@ class GitTokenRefreshTest(TestCase):
             {
                 "grant_type": "refresh_token",
                 "refresh_token": "seed-refresh-token",
-                "client_id": GITEA_CLIENT_ID,
+                "client_id": FORGEJO_CLIENT_ID,
                 "scope": "openhexa:git",
             },
         )

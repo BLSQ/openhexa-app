@@ -4,11 +4,11 @@ LOOPBACK_REDIRECTS = (
     "http://127.0.0.1/ http://127.0.0.1 http://localhost/ http://localhost"
 )
 
-GITEA_OAUTH_CLIENT_ID = "e90ee53c-94e2-48ac-9358-a874fb9e0662"
+FORGEJO_OAUTH_CLIENT_ID = "e90ee53c-94e2-48ac-9358-a874fb9e0662"
 OPENHEXA_GIT_CLIENT_ID = "openhexa-git"
 
 CLIENTS = [
-    {"client_id": GITEA_OAUTH_CLIENT_ID, "name": "OpenHEXA Git (Gitea-compatible)"},
+    {"client_id": FORGEJO_OAUTH_CLIENT_ID, "name": "OpenHEXA Git (Gitea-compatible)"},
     {"client_id": OPENHEXA_GIT_CLIENT_ID, "name": "OpenHEXA Git"},
 ]
 

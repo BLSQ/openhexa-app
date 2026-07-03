@@ -179,7 +179,7 @@ class OAuthAuthorizeView(AuthorizationView):
         return HttpResponse(html)
 
 
-def gitea_authorize(request: HttpRequest) -> HttpResponse:
+def forgejo_authorize(request: HttpRequest) -> HttpResponse:
     if not request.GET.get("scope"):
         params = request.GET.copy()
         params["scope"] = GIT_SCOPE

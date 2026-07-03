@@ -771,15 +771,15 @@ GIT_ACCESS_TOKEN_EXPIRE_SECONDS = int(
     os.environ.get("GIT_ACCESS_TOKEN_EXPIRE_SECONDS", 365 * 24 * 60 * 60)
 )
 
-# Public OAuth2 clients used by git credential helpers. The Gitea client id is
-# the universal one baked into Git Credential Manager's Gitea provider: when the
-# proxy advertises `WWW-Authenticate: Basic realm="Gitea"`, GCM auto-discovers
-# OpenHEXA and signs in with no client configuration. The generic client serves
-# manual setups (git-credential-oauth). Both Applications are created in a
-# hexa.git data migration.
-GITEA_OAUTH_CLIENT_ID = "e90ee53c-94e2-48ac-9358-a874fb9e0662"
+# Public OAuth2 clients used by git credential helpers. FORGEJO_OAUTH_CLIENT_ID
+# is the universal client id baked into Git Credential Manager's Gitea provider
+# (which Forgejo is compatible with): when the proxy advertises
+# `WWW-Authenticate: Basic realm="Gitea"`, GCM auto-discovers OpenHEXA and signs
+# in with no client configuration. The generic client serves manual setups
+# (git-credential-oauth). Both Applications are created in a hexa.git data migration.
+FORGEJO_OAUTH_CLIENT_ID = "e90ee53c-94e2-48ac-9358-a874fb9e0662"
 GIT_OAUTH_CLIENT_ID = os.environ.get("GIT_OAUTH_CLIENT_ID", "openhexa-git")
-GIT_OAUTH_CLIENT_IDS = {GITEA_OAUTH_CLIENT_ID, GIT_OAUTH_CLIENT_ID}
+GIT_OAUTH_CLIENT_IDS = {FORGEJO_OAUTH_CLIENT_ID, GIT_OAUTH_CLIENT_ID}
 
 OAUTH2_ALLOWED_REDIRECT_URI_HOSTS = {
     "localhost",

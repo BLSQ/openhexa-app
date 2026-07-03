@@ -18,7 +18,7 @@ server {
     # Everything else is git: authorize against OpenHEXA, then forward to Forgejo.
     location / {
         auth_request /_git_authorize;
-        error_page 401 = @gitea_challenge;
+        error_page 401 = @forgejo_challenge;
 
         set $forgejo_upstream ${FORGEJO_UPSTREAM};
         proxy_pass http://$forgejo_upstream$request_uri;
@@ -32,7 +32,9 @@ server {
     }
 
     # Tell GCM "this is Gitea" so it starts the OAuth browser flow unprompted.
-    location @gitea_challenge {
+    # Forgejo speaks the Gitea protocol, and GCM only ships a Gitea provider, so
+    # the realm below must stay the literal "Gitea" for auto-discovery to work.
+    location @forgejo_challenge {
         add_header WWW-Authenticate 'Basic realm="Gitea"' always;
         return 401;
     }
