@@ -11,14 +11,13 @@ from django.http import HttpRequest
 from psycopg2 import Error as Psycopg2Error
 from psycopg2.errors import QueryCanceled
 
-from hexa.core.graphql import result_page
 from hexa.workspaces.models import Workspace
 
 from .utils import (
     MultipleStatementsError,
     OrderByDirectionEnum,
     execute_database_query,
-    get_database_definition,
+    get_database_definition_page,
     get_table_definition,
     get_table_rows,
     get_table_sample_data,
@@ -38,10 +37,9 @@ order_by_direction_enum = EnumType("OrderByDirection", OrderByDirectionEnum)
 
 @database_object.field("tables")
 def resolve_database_tables(workspace, info, page=1, per_page=15, **kwargs):
-    tables = get_database_definition(
-        workspace=workspace,
+    return get_database_definition_page(
+        workspace=workspace, page=page, per_page=per_page
     )
-    return result_page(tables, page=page, per_page=per_page)
 
 
 @database_object.field("table")
