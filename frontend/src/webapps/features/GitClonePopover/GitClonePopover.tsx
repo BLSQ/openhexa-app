@@ -86,7 +86,13 @@ const GitClonePopover = ({ repositoryUrl }: GitClonePopoverProps) => {
                   </a>
                   {t(", then run:")}
                 </p>
-                <CommandBox command="sudo dpkg -i gcm-linux_amd64.*.deb && git-credential-manager configure" />
+                <CommandBox command="sudo dpkg -i gcm-linux-*.deb && git-credential-manager configure" />
+                <p className="text-xs leading-relaxed text-gray-600">
+                  {t(
+                    "Note: Linux has no default credential store, so pick one or GCM will fall back to a plain username/password prompt:",
+                  )}
+                </p>
+                <CommandBox command="git config --global credential.credentialStore secretservice" />
               </div>
             </Tabs.Tab>
           </Tabs>

@@ -568,6 +568,7 @@
   "Not specified": "Non spécifié",
   "Not used": "Non utilisé",
   "Not yet run": "Pas encore exécuté",
+  "Note: Linux has no default credential store, so pick one or GCM will fall back to a plain username/password prompt:": "Remarque : Linux n'a pas de stockage d'identifiants par défaut. Choisissez-en un, sinon GCM se rabattra sur une simple invite nom d'utilisateur/mot de passe :",
   "Notebook": "Notebook",
   "Notebook path": "Chemin du notebook",
   "Notebook pipelines cannot be published as templates.": "Les pipelines de notebook ne peuvent pas être publiés en tant que modèles.",
