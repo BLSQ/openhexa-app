@@ -155,7 +155,7 @@ describe("DataStudioEditor", () => {
     });
   });
 
-  it("runs the query on Ctrl/Cmd+Enter and suppresses the newline", async () => {
+  it("runs the full query on Ctrl/Cmd+Enter with no selection, and suppresses the newline", async () => {
     renderEditor();
     await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
     // fireEvent returns false when a handler called preventDefault — i.e. the
@@ -165,8 +165,23 @@ describe("DataStudioEditor", () => {
       ctrlKey: true,
     });
 
-    expect(mockExecute).toHaveBeenCalledTimes(1);
+    expect(mockExecute).toHaveBeenCalledWith({
+      variables: { workspaceSlug: "ws-1", query: "SELECT 1", maxRows: 50 },
+    });
     expect(notPrevented).toBe(false);
+  });
+
+  it("runs only the selected text on Ctrl/Cmd+Enter when there is a selection", async () => {
+    renderEditor();
+    const editor = screen.getByTestId("editor") as HTMLTextAreaElement;
+    await userEvent.type(editor, "SELECT 1 SELECT 2");
+    editor.setSelectionRange(9, 17);
+
+    fireEvent.keyDown(editor, { key: "Enter", ctrlKey: true });
+
+    expect(mockExecute).toHaveBeenCalledWith({
+      variables: { workspaceSlug: "ws-1", query: "SELECT 2", maxRows: 50 },
+    });
   });
 
   it("does not run when the query is empty", async () => {

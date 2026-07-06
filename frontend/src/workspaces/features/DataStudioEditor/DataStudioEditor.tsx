@@ -58,11 +58,12 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
   };
 
   // Bound inside CodeMirror (see CodeEditor `shortcuts`) so the keystroke is
-  // consumed and does not also insert a newline. "Mod" is Cmd on macOS / Ctrl
-  // elsewhere; "Ctrl" is added so Ctrl+Enter works on macOS too.
+  // consumed and does not also insert a newline. Runs the selection when there
+  // is one, otherwise the whole query. "Mod" is Cmd on macOS / Ctrl elsewhere;
+  // "Ctrl" is added so Ctrl+Enter works on macOS too.
   const editorShortcuts = [
-    { key: "Mod-Enter", run },
-    { key: "Ctrl-Enter", run },
+    { key: "Mod-Enter", run: runSelection },
+    { key: "Ctrl-Enter", run: runSelection },
   ];
 
   return (
