@@ -524,11 +524,15 @@ export enum AssistantToolName {
   CreatePipeline = 'create_pipeline',
   GetDataset = 'get_dataset',
   GetHelpOrDoc = 'get_help_or_doc',
+  GetPipeline = 'get_pipeline',
+  GetStaticWebappFile = 'get_static_webapp_file',
   ListConnections = 'list_connections',
   ListDatasets = 'list_datasets',
   ListFiles = 'list_files',
+  ListPipelines = 'list_pipelines',
   PreviewDatasetFile = 'preview_dataset_file',
   ProposePipelineVersion = 'propose_pipeline_version',
+  ProposeWebappVersion = 'propose_webapp_version',
   ReadFile = 'read_file'
 }
 
