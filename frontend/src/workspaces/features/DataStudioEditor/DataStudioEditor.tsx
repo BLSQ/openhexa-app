@@ -6,7 +6,7 @@ import CodeEditor, {
 } from "core/components/CodeEditor/CodeEditor";
 import SplitButton from "core/components/SplitButton";
 import { useTranslation } from "next-i18next";
-import { KeyboardEvent, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { buildCsv, downloadCsv } from "./csv";
 import { useExecuteWorkspaceSqlLazyQuery } from "./DataStudioEditor.generated";
 import DataStudioResults from "./DataStudioResults";
@@ -57,12 +57,13 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
     downloadCsv("query-results.csv", csv);
   };
 
-  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-      event.preventDefault();
-      run();
-    }
-  };
+  // Bound inside CodeMirror (see CodeEditor `shortcuts`) so the keystroke is
+  // consumed and does not also insert a newline. "Mod" is Cmd on macOS / Ctrl
+  // elsewhere; "Ctrl" is added so Ctrl+Enter works on macOS too.
+  const editorShortcuts = [
+    { key: "Mod-Enter", run },
+    { key: "Ctrl-Enter", run },
+  ];
 
   return (
     <div className="flex h-full overflow-hidden rounded-md border bg-white shadow-xs">
@@ -127,10 +128,7 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
 
         {/* Editor + results split: editor on top, results fill the rest. */}
         <div className="flex min-h-0 flex-1 flex-col">
-          <div
-            onKeyDown={onKeyDown}
-            className="h-[38%] min-h-[140px] shrink-0 border-b border-gray-200"
-          >
+          <div className="h-[38%] min-h-[140px] shrink-0 border-b border-gray-200">
             <CodeEditor
               ref={editorRef}
               lang="sql"
@@ -141,6 +139,7 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
               height="100%"
               minHeight="100%"
               placeholder={t("Write a SQL query…")}
+              shortcuts={editorShortcuts}
               className="h-full !rounded-none"
             />
           </div>

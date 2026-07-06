@@ -62,12 +62,27 @@ jest.mock("core/components/CodeEditor/CodeEditor", () => {
           return el.value.slice(el.selectionStart ?? 0, el.selectionEnd ?? 0);
         },
       }));
+      // Mirror CodeMirror's keymap: a matching shortcut runs its handler and
+      // consumes the event (preventDefault), so no newline is inserted.
+      const onKeyDown = (event: any) => {
+        if (event.key !== "Enter" || !(event.metaKey || event.ctrlKey)) {
+          return;
+        }
+        const shortcut = (props.shortcuts ?? []).find((s: { key: string }) =>
+          ["Mod-Enter", "Ctrl-Enter", "Cmd-Enter"].includes(s.key),
+        );
+        if (shortcut) {
+          event.preventDefault();
+          shortcut.run();
+        }
+      };
       return React.createElement("textarea", {
         ref: innerRef,
         "data-testid": "editor",
         value: props.value ?? "",
         placeholder: props.placeholder,
         onChange: (event: any) => props.onChange?.(event.target.value),
+        onKeyDown,
       });
     }),
   };
@@ -140,15 +155,18 @@ describe("DataStudioEditor", () => {
     });
   });
 
-  it("runs the query on Ctrl/Cmd+Enter", async () => {
+  it("runs the query on Ctrl/Cmd+Enter and suppresses the newline", async () => {
     renderEditor();
     await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
-    fireEvent.keyDown(screen.getByTestId("editor"), {
+    // fireEvent returns false when a handler called preventDefault — i.e. the
+    // keystroke was consumed and will not insert a line break.
+    const notPrevented = fireEvent.keyDown(screen.getByTestId("editor"), {
       key: "Enter",
       ctrlKey: true,
     });
 
     expect(mockExecute).toHaveBeenCalledTimes(1);
+    expect(notPrevented).toBe(false);
   });
 
   it("does not run when the query is empty", async () => {

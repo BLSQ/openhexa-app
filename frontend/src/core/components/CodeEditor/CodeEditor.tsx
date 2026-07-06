@@ -4,11 +4,25 @@ import { python } from "@codemirror/lang-python";
 import { PostgreSQL, sql } from "@codemirror/lang-sql";
 import { xml } from "@codemirror/lang-xml";
 import { yaml } from "@codemirror/lang-yaml";
-import CodeMirror, { ReactCodeMirrorRef } from "@uiw/react-codemirror";
+import CodeMirror, {
+  Prec,
+  ReactCodeMirrorRef,
+  keymap,
+} from "@uiw/react-codemirror";
 import clsx from "clsx";
 import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
 
 import { embeddedEditorTheme, embeddedHighlightStyle } from "./theme";
+
+/** A keyboard shortcut handled inside the editor. */
+export type CodeEditorShortcut = {
+  /**
+   * A CodeMirror key spec, e.g. "Mod-Enter" ("Mod" is Cmd on macOS, Ctrl
+   * elsewhere). See https://codemirror.net/docs/ref/#view.KeyBinding.key
+   */
+  key: string;
+  run(): void;
+};
 
 type CodeEditorProps = {
   value?: string;
@@ -23,6 +37,12 @@ type CodeEditorProps = {
   embedded?: boolean;
   /** Focus the editor on mount. */
   autoFocus?: boolean;
+  /**
+   * Keyboard shortcuts bound inside the editor. Handled at CodeMirror's keymap
+   * level (not a bubbling DOM listener), so the keystroke is consumed and its
+   * default action — e.g. inserting a newline on Enter — is suppressed.
+   */
+  shortcuts?: CodeEditorShortcut[];
   className?: string;
 };
 
@@ -46,10 +66,16 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
       placeholder,
       embedded = false,
       autoFocus = false,
+      shortcuts,
       className,
     } = props;
 
     const cmRef = useRef<ReactCodeMirrorRef>(null);
+
+    // Hold the latest handlers in a ref so the memoised keymap always calls the
+    // current callback without being reconfigured on every render.
+    const shortcutsRef = useRef(shortcuts);
+    shortcutsRef.current = shortcuts;
 
     useImperativeHandle(ref, () => ({
       insertText(text: string) {
@@ -74,6 +100,25 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
       },
     }));
 
+    // Rebuild only when the set of keys changes; the callbacks come from the
+    // ref, so a shortcut whose handler closes over fresh state stays current.
+    const shortcutKeys = (shortcuts ?? []).map((s) => s.key).join("\n");
+    const shortcutExtension = useMemo(() => {
+      const keys = shortcutKeys ? shortcutKeys.split("\n") : [];
+      return Prec.highest(
+        keymap.of(
+          keys.map((key, index) => ({
+            key,
+            preventDefault: true,
+            run: () => {
+              shortcutsRef.current?.[index]?.run();
+              return true;
+            },
+          })),
+        ),
+      );
+    }, [shortcutKeys]);
+
     const extensions = useMemo(() => {
       const langExtension = (() => {
         switch (lang) {
@@ -94,14 +139,15 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
             return [];
         }
       })();
-      return embedded
+      const base = embedded
         ? [
             ...langExtension,
             syntaxHighlighting(embeddedHighlightStyle),
             embeddedEditorTheme,
           ]
         : langExtension;
-    }, [lang, embedded]);
+      return [...base, shortcutExtension];
+    }, [lang, embedded, shortcutExtension]);
 
     return (
       <div
