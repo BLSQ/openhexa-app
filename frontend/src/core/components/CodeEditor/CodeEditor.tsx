@@ -50,6 +50,8 @@ type CodeEditorProps = {
   placeholder?: string;
   /** Render as a flush, full-height editing surface (no border, focus ring, themed syntax). */
   embedded?: boolean;
+  /** Focus the editor on mount. */
+  autoFocus?: boolean;
   className?: string;
 };
 
@@ -72,6 +74,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
       onChange,
       placeholder,
       embedded = false,
+      autoFocus = false,
       className,
     } = props;
 
@@ -140,6 +143,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
           ref={cmRef}
           readOnly={readonly}
           editable={editable}
+          autoFocus={autoFocus}
           height={height}
           minHeight={minHeight}
           placeholder={placeholder}

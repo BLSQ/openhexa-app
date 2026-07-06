@@ -135,6 +135,7 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
               ref={editorRef}
               lang="sql"
               embedded
+              autoFocus
               value={query}
               onChange={setQuery}
               height="100%"
