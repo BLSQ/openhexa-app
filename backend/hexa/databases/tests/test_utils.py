@@ -221,6 +221,34 @@ class DatabaseUtilsTest(TestCase):
             self.assertEqual(1, result["page_number"])
             self.assertEqual(1, len(result["items"]))
 
+    def test_get_database_definition_page_with_columns(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+
+        result = get_database_definition_page(
+            self.WORKSPACE, with_columns=True, with_counts=False
+        )
+
+        demo = next(item for item in result["items"] if item["name"] == "demo")
+        self.assertEqual(
+            [{"name": "id", "type": "integer"}, {"name": "label", "type": "text"}],
+            demo["columns"],
+        )
+        # Row counts are skipped when not requested.
+        self.assertIsNone(demo["count"])
+
+    def test_get_database_definition_page_with_columns_and_counts(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
+
+        result = get_database_definition_page(
+            self.WORKSPACE, with_columns=True, with_counts=True
+        )
+
+        demo = next(item for item in result["items"] if item["name"] == "demo")
+        self.assertEqual(2, demo["count"])
+        self.assertEqual(
+            ["id", "label"], [column["name"] for column in demo["columns"]]
+        )
+
     @mock.patch("psycopg2.connect")
     def test_get_table_definition(self, mock_connect):
         table_name = "database_tutorial"

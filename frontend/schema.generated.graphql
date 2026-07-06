@@ -1447,7 +1447,7 @@ type Database {
   executeSQL(maxRows: Int, query: String!): ExecuteSQLResult!
   readOnlyCredentials: DatabaseCredentials
   table(name: String!): DatabaseTable
-  tables(page: Int, perPage: Int): DatabaseTablePage!
+  tables(page: Int, perPage: Int, withColumns: Boolean = false, withCounts: Boolean = true): DatabaseTablePage!
 }
 
 type DatabaseCredentials {

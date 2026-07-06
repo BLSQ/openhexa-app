@@ -36,9 +36,15 @@ order_by_direction_enum = EnumType("OrderByDirection", OrderByDirectionEnum)
 
 
 @database_object.field("tables")
-def resolve_database_tables(workspace, info, page=1, per_page=15, **kwargs):
+def resolve_database_tables(
+    workspace, info, page=1, per_page=15, with_columns=False, with_counts=True, **kwargs
+):
     return get_database_definition_page(
-        workspace=workspace, page=page, per_page=per_page
+        workspace=workspace,
+        page=page,
+        per_page=per_page,
+        with_columns=with_columns,
+        with_counts=with_counts,
     )
 
 

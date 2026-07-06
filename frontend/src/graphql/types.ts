@@ -1488,6 +1488,8 @@ export type DatabaseTableArgs = {
 export type DatabaseTablesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
+  withColumns?: InputMaybe<Scalars['Boolean']['input']>;
+  withCounts?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type DatabaseCredentials = {

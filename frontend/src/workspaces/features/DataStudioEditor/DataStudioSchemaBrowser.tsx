@@ -11,10 +11,9 @@ import Spinner from "core/components/Spinner";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
 import { KeyboardEvent, useMemo, useRef, useState } from "react";
-import {
-  useWorkspaceDataStudioSchemaQuery,
-  useWorkspaceDataStudioTableColumnsQuery,
-} from "./DataStudioSchemaBrowser.generated";
+import { useWorkspaceDataStudioSchemaQuery } from "./DataStudioSchemaBrowser.generated";
+
+type SchemaColumn = { name: string; type: string };
 
 type DataStudioSchemaBrowserProps = {
   workspaceSlug: string;
@@ -23,26 +22,25 @@ type DataStudioSchemaBrowserProps = {
 };
 
 type SchemaTableRowProps = {
-  workspaceSlug: string;
   name: string;
+  columns: SchemaColumn[];
+  // Forces the row open regardless of the local toggle: used while searching so
+  // tables that only match on a column name reveal that column.
+  forceOpen: boolean;
   onInsert(text: string): void;
 };
 
-// Columns are fetched per table only once a row is expanded: introspecting every
-// table up front is an expensive per-table round trip on the workspace database.
+// The whole schema (tables + columns) is fetched in a single query, so columns
+// are available up front and expanding a row is purely local — no round trip.
 const SchemaTableRow = ({
-  workspaceSlug,
   name,
+  columns,
+  forceOpen,
   onInsert,
 }: SchemaTableRowProps) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-
-  const { data, loading } = useWorkspaceDataStudioTableColumnsQuery({
-    variables: { workspaceSlug, table: name },
-    skip: !open,
-  });
-  const columns = data?.workspace?.database?.table?.columns ?? [];
+  const isOpen = open || forceOpen;
 
   return (
     <div>
@@ -51,7 +49,7 @@ const SchemaTableRow = ({
           onClick={() => setOpen((value) => !value)}
           className="flex flex-1 items-center gap-1.5 px-2 py-1.5 text-left"
         >
-          {open ? (
+          {isOpen ? (
             <ChevronDownIcon className="h-3 w-3 text-gray-400" />
           ) : (
             <ChevronRightIcon className="h-3 w-3 text-gray-400" />
@@ -67,30 +65,25 @@ const SchemaTableRow = ({
           {t("Insert")}
         </button>
       </div>
-      {open &&
-        (loading ? (
-          <div className="flex justify-center py-2">
-            <Spinner size="xs" />
-          </div>
-        ) : (
-          <div className="pb-1 pl-7">
-            {columns.map((column) => (
-              <button
-                key={column.name}
-                onClick={() => onInsert(column.name)}
-                title={t("Insert into editor")}
-                className="flex w-full items-center gap-2 rounded px-2 py-0.5 text-left hover:bg-gray-100"
-              >
-                <span className="truncate font-mono text-xs text-gray-600">
-                  {column.name}
-                </span>
-                <span className="ml-auto shrink-0 rounded bg-gray-100 px-1 font-mono text-[10px] text-gray-500">
-                  {column.type}
-                </span>
-              </button>
-            ))}
-          </div>
-        ))}
+      {isOpen && (
+        <div className="pb-1 pl-7">
+          {columns.map((column) => (
+            <button
+              key={column.name}
+              onClick={() => onInsert(column.name)}
+              title={t("Insert into editor")}
+              className="flex w-full items-center gap-2 rounded px-2 py-0.5 text-left hover:bg-gray-100"
+            >
+              <span className="truncate font-mono text-xs text-gray-600">
+                {column.name}
+              </span>
+              <span className="ml-auto shrink-0 rounded bg-gray-100 px-1 font-mono text-[10px] text-gray-500">
+                {column.type}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -132,13 +125,39 @@ const DataStudioSchemaBrowser = ({
   const tables = tablePage?.items ?? [];
   const hasMoreTables = (tablePage?.totalItems ?? 0) > tables.length;
 
+  const term = search.trim().toLowerCase();
+
   const shown = useMemo(() => {
-    if (!search) {
+    if (!term) {
       return tables;
     }
-    const term = search.toLowerCase();
-    return tables.filter((table) => table.name.toLowerCase().includes(term));
-  }, [tables, search]);
+    return tables.filter(
+      (table) =>
+        table.name.toLowerCase().includes(term) ||
+        table.columns.some((column) =>
+          column.name.toLowerCase().includes(term),
+        ),
+    );
+  }, [tables, term]);
+
+  // Tables that match only through a column are force-expanded so the matching
+  // column is visible without the user having to open every result manually.
+  const forceOpen = useMemo(() => {
+    if (!term) {
+      return new Set<string>();
+    }
+    return new Set(
+      tables
+        .filter(
+          (table) =>
+            !table.name.toLowerCase().includes(term) &&
+            table.columns.some((column) =>
+              column.name.toLowerCase().includes(term),
+            ),
+        )
+        .map((table) => table.name),
+    );
+  }, [tables, term]);
 
   return (
     <div
@@ -161,7 +180,7 @@ const DataStudioSchemaBrowser = ({
                   setSearchOpen(false);
                 }
               }}
-              placeholder={t("Search tables…")}
+              placeholder={t("Search tables & columns…")}
               className="min-w-0 flex-1 bg-transparent text-xs text-gray-700 outline-none placeholder:text-gray-400"
             />
             <button
@@ -178,7 +197,7 @@ const DataStudioSchemaBrowser = ({
             <span className="font-medium text-gray-700">{t("Tables")}</span>
             <button
               onClick={openSearch}
-              title={t("Search tables")}
+              title={t("Search tables & columns")}
               className="ml-auto shrink-0 rounded p-0.5 text-gray-400 hover:text-gray-700"
             >
               <MagnifyingGlassIcon className="h-4 w-4" />
@@ -199,8 +218,9 @@ const DataStudioSchemaBrowser = ({
           shown.map((table) => (
             <SchemaTableRow
               key={table.name}
-              workspaceSlug={workspaceSlug}
               name={table.name}
+              columns={table.columns}
+              forceOpen={forceOpen.has(table.name)}
               onInsert={onInsert}
             />
           ))
@@ -218,34 +238,27 @@ const DataStudioSchemaBrowser = ({
 };
 
 DataStudioSchemaBrowser.queries = {
+  // The full schema is fetched in one query: withColumns folds every table's
+  // columns into the same round trip, and withCounts is disabled since the
+  // browser never displays row counts (skipping the per-table COUNT(*)).
   schema: gql`
     query WorkspaceDataStudioSchema($workspaceSlug: String!) {
       workspace(slug: $workspaceSlug) {
         slug
         database {
-          tables(page: 1, perPage: 100) {
+          tables(
+            page: 1
+            perPage: 10000
+            withColumns: true
+            withCounts: false
+          ) {
             totalItems
             items {
               name
-            }
-          }
-        }
-      }
-    }
-  `,
-  tableColumns: gql`
-    query WorkspaceDataStudioTableColumns(
-      $workspaceSlug: String!
-      $table: String!
-    ) {
-      workspace(slug: $workspaceSlug) {
-        slug
-        database {
-          table(name: $table) {
-            name
-            columns {
-              name
-              type
+              columns {
+                name
+                type
+              }
             }
           }
         }
