@@ -285,7 +285,7 @@ export type WorkspaceWebappPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceWebappPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, permissions: { __typename?: 'WorkspacePermissions', launchNotebookServer: boolean, manageMembers: boolean, update: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } } | null } | null, webapp?: { __typename?: 'Webapp', id: string, slug: string, name: string, description?: string | null, url: string, previewUrl: string, type: Types.WebappType, icon?: string | null, isPublic: boolean, subdomain: string, serveUrl: string, allowedOperations: Array<Types.WebappOperationScope>, source: { __typename?: 'GitSource', repositoryUrl: string, publishedVersion?: string | null } | { __typename?: 'IframeSource' } | { __typename?: 'SupersetSource', dashboardId: string, instance: { __typename?: 'SupersetInstance', id: string, name: string, url: string } }, permissions: { __typename?: 'WebappPermissions', update: boolean, delete: boolean } } | null };
+export type WorkspaceWebappPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, organization?: { __typename?: 'Organization', id: string, aiBudgetLimitReached: boolean, name: string, shortName?: string | null, logo?: string | null, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null } | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } } | null, permissions: { __typename?: 'WorkspacePermissions', launchNotebookServer: boolean, manageMembers: boolean, update: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, webapp?: { __typename?: 'Webapp', id: string, slug: string, name: string, description?: string | null, url: string, previewUrl: string, type: Types.WebappType, icon?: string | null, isPublic: boolean, subdomain: string, serveUrl: string, allowedOperations: Array<Types.WebappOperationScope>, source: { __typename?: 'GitSource', repositoryUrl: string, publishedVersion?: string | null } | { __typename?: 'IframeSource' } | { __typename?: 'SupersetSource', dashboardId: string, instance: { __typename?: 'SupersetInstance', id: string, name: string, url: string } }, assistantConversations: Array<{ __typename?: 'AssistantConversation', id: string, name?: string | null, createdAt: any, updatedAt: any }>, permissions: { __typename?: 'WebappPermissions', update: boolean, delete: boolean } } | null, me: { __typename?: 'Me', assistantMonthlyLimitExceeded: boolean } };
 
 export type PipelineVersionPickerQueryVariables = Types.Exact<{
   pipelineId: Types.Scalars['UUID']['input'];
@@ -2101,6 +2101,13 @@ export type WorkspaceWebappsPageQueryResult = Apollo.QueryResult<WorkspaceWebapp
 export const WorkspaceWebappPageDocument = gql`
     query WorkspaceWebappPage($workspaceSlug: String!, $webappSlug: String!) {
   workspace(slug: $workspaceSlug) {
+    organization {
+      id
+      aiSettings {
+        enabled
+      }
+      aiBudgetLimitReached
+    }
     ...WebappForm_workspace
     ...WebappLayout_workspace
   }
@@ -2108,11 +2115,21 @@ export const WorkspaceWebappPageDocument = gql`
     ...WebappForm_webapp
     ...WebappLayout_webapp
     ...WebappApiAccess_webapp
+    id
     source {
       ... on GitSource {
         repositoryUrl
       }
     }
+    assistantConversations {
+      id
+      name
+      createdAt
+      updatedAt
+    }
+  }
+  me {
+    assistantMonthlyLimitExceeded
   }
 }
     ${WebappForm_WorkspaceFragmentDoc}

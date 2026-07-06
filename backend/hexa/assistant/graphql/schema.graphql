@@ -58,8 +58,13 @@ extend type Pipeline {
   assistantConversations: [AssistantConversation!]!
 }
 
+extend type Webapp {
+  assistantConversations: [AssistantConversation!]!
+}
+
 enum LinkedObjectType {
   Pipeline
+  StaticWebapp
 }
 
 """
@@ -72,11 +77,15 @@ enum AssistantToolName {
   create_pipeline
   get_dataset
   get_help_or_doc
+  get_pipeline
+  get_static_webapp_file
   list_connections
   list_datasets
   list_files
+  list_pipelines
   preview_dataset_file
   propose_pipeline_version
+  propose_webapp_version
   read_file
 }
 

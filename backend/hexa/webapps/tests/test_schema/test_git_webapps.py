@@ -1307,3 +1307,164 @@ class GitWebappCommitDiffTest(GraphQLTestCase):
         )
 
         self.assertIsNone(response["data"]["webapp"]["commitDiff"])
+
+
+READ_WEBAPP_FILE_QUERY = """
+    query readWebappFile($workspaceSlug: String!, $webappSlug: String!, $path: String!, $startLine: Int, $endLine: Int) {
+        readWebappFile(workspaceSlug: $workspaceSlug, webappSlug: $webappSlug, path: $path, startLine: $startLine, endLine: $endLine) {
+            success
+            errors
+            path
+            content
+            startLine
+            endLine
+            totalLines
+        }
+    }
+"""
+
+
+class ReadWebappFileTest(GraphQLTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user("readfile@test.com", "password")
+        cls.OUTSIDER = User.objects.create_user(
+            "readfile-outsider@test.com", "password"
+        )
+        cls.WS = Workspace.objects.create(name="Read File WS", slug="read-file-ws")
+        WorkspaceMembership.objects.create(
+            user=cls.USER,
+            workspace=cls.WS,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+        cls.GIT_WEBAPP = GitWebapp.objects.create(
+            workspace=cls.WS,
+            name="Read File App",
+            slug="read-file-app",
+            subdomain="read-file-app",
+            type=Webapp.WebappType.STATIC,
+            created_by=cls.USER,
+            repository="webapp-readfilerepo",
+        )
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_read_webapp_file(self, mock_get_client):
+        mock_get_client.return_value.get_file.return_value = b"<h1>Hello</h1>"
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            READ_WEBAPP_FILE_QUERY,
+            {
+                "workspaceSlug": self.WS.slug,
+                "webappSlug": "read-file-app",
+                "path": "index.html",
+            },
+        )
+
+        result = response["data"]["readWebappFile"]
+        self.assertTrue(result["success"], result)
+        self.assertEqual(result["path"], "index.html")
+        self.assertEqual(result["content"], "<h1>Hello</h1>")
+        self.assertIsNone(result["startLine"])
+        self.assertIsNone(result["totalLines"])
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_read_webapp_file_line_range(self, mock_get_client):
+        content = "\n".join(f"line {i}" for i in range(1, 11))
+        mock_get_client.return_value.get_file.return_value = content.encode("utf-8")
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            READ_WEBAPP_FILE_QUERY,
+            {
+                "workspaceSlug": self.WS.slug,
+                "webappSlug": "read-file-app",
+                "path": "big.js",
+                "startLine": 3,
+                "endLine": 5,
+            },
+        )
+
+        result = response["data"]["readWebappFile"]
+        self.assertTrue(result["success"], result)
+        self.assertEqual(result["content"], "line 3\nline 4\nline 5")
+        self.assertEqual(result["startLine"], 3)
+        self.assertEqual(result["endLine"], 5)
+        self.assertEqual(result["totalLines"], 10)
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_read_webapp_file_line_range_clamped(self, mock_get_client):
+        content = "one\ntwo\nthree"
+        mock_get_client.return_value.get_file.return_value = content.encode("utf-8")
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            READ_WEBAPP_FILE_QUERY,
+            {
+                "workspaceSlug": self.WS.slug,
+                "webappSlug": "read-file-app",
+                "path": "small.txt",
+                "startLine": 2,
+                "endLine": 99,
+            },
+        )
+
+        result = response["data"]["readWebappFile"]
+        self.assertTrue(result["success"], result)
+        self.assertEqual(result["content"], "two\nthree")
+        self.assertEqual(result["startLine"], 2)
+        self.assertEqual(result["endLine"], 3)
+        self.assertEqual(result["totalLines"], 3)
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_read_webapp_file_not_found(self, mock_get_client):
+        mock_get_client.return_value.get_file.side_effect = GitFileNotFound(
+            "missing.html"
+        )
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            READ_WEBAPP_FILE_QUERY,
+            {
+                "workspaceSlug": self.WS.slug,
+                "webappSlug": "read-file-app",
+                "path": "missing.html",
+            },
+        )
+
+        result = response["data"]["readWebappFile"]
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["PATH_NOT_FOUND"])
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_read_webapp_file_binary(self, mock_get_client):
+        mock_get_client.return_value.get_file.return_value = bytes(range(256))
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            READ_WEBAPP_FILE_QUERY,
+            {
+                "workspaceSlug": self.WS.slug,
+                "webappSlug": "read-file-app",
+                "path": "logo.png",
+            },
+        )
+
+        result = response["data"]["readWebappFile"]
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["BINARY_FILE"])
+
+    def test_read_webapp_file_no_access(self):
+        self.client.force_login(self.OUTSIDER)
+        response = self.run_query(
+            READ_WEBAPP_FILE_QUERY,
+            {
+                "workspaceSlug": self.WS.slug,
+                "webappSlug": "read-file-app",
+                "path": "index.html",
+            },
+        )
+
+        result = response["data"]["readWebappFile"]
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["WEBAPP_NOT_FOUND"])

@@ -26,8 +26,12 @@ export function getToolLabels(t: TFunction): Record<string, string> {
     [TOOL.PreviewDatasetFile]: t("Previewing dataset file"),
     [TOOL.ListConnections]: t("Listing connections"),
     [TOOL.CreatePipeline]: t("Creating pipeline"),
+    [TOOL.GetPipeline]: t("Reading pipeline"),
+    [TOOL.ListPipelines]: t("Listing pipelines"),
     [TOOL.GetHelpOrDoc]: t("Reading documentation"),
     [TOOL.ProposePipelineVersion]: t("Proposing pipeline version"),
+    [TOOL.GetStaticWebappFile]: t("Reading web app file"),
+    [TOOL.ProposeWebappVersion]: t("Proposing web app changes"),
   };
 }
 
