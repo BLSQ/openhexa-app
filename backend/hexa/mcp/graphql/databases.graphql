@@ -1,0 +1,30 @@
+query GetDatabaseTables($workspaceSlug: String!, $page: Int, $perPage: Int) {
+  workspace(slug: $workspaceSlug) {
+    database {
+      tables(page: $page, perPage: $perPage) {
+        pageNumber
+        totalPages
+        totalItems
+        items {
+          name
+          count
+        }
+      }
+    }
+  }
+}
+
+query GetDatabaseTable($workspaceSlug: String!, $tableName: String!) {
+  workspace(slug: $workspaceSlug) {
+    database {
+      table(name: $tableName) {
+        name
+        count
+        columns {
+          name
+          type
+        }
+      }
+    }
+  }
+}

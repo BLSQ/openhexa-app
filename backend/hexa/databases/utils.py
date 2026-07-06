@@ -1,5 +1,6 @@
 import enum
 import json
+import math
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
@@ -187,6 +188,68 @@ def get_database_definition(workspace: Workspace):
                 data["count"] = get_row_count(cursor, name, data["count"])
                 result.append({"workspace": workspace, **data})
             return result
+    finally:
+        if conn:
+            conn.close()
+
+
+# Filtering, ordering and slicing happen in SQL, and row counts are only
+# computed for the tables of the requested page, so that listing tables stays
+# cheap on workspaces with many (potentially large) tables.
+_TABLES_FROM_CLAUSE = """
+    FROM information_schema.tables
+    JOIN pg_class ON information_schema.tables.table_name = pg_class.relname
+    JOIN pg_namespace ON pg_class.relnamespace = pg_namespace.oid
+        AND pg_namespace.nspname = information_schema.tables.table_schema
+    WHERE
+        table_schema = 'public'
+        -- Exclude child tables from inheritance hierarchies (e.g., partition children)
+        AND pg_class.oid NOT IN (SELECT inhrelid FROM pg_inherits)
+        AND table_name <> ALL(%(ignore_tables)s)
+"""
+
+
+def get_database_definition_page(
+    workspace: Workspace, page: int = 1, per_page: int = 15
+):
+    # Clamp caller-provided values: a GraphQL client can send any Int (or an
+    # explicit null), and negative/zero values would end up in LIMIT/OFFSET.
+    page = max(page or 1, 1)
+    per_page = min(max(per_page or 1, 1), settings.GRAPHQL_MAX_PAGE_SIZE)
+    conn = None
+    try:
+        conn = get_workspace_database_connection(workspace)
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(
+                "SELECT COUNT(*) AS total" + _TABLES_FROM_CLAUSE,
+                {"ignore_tables": IGNORE_TABLES},
+            )
+            total_items = cursor.fetchone()["total"]
+
+            cursor.execute(
+                "SELECT table_name AS name, pg_class.reltuples AS count"
+                + _TABLES_FROM_CLAUSE
+                + "ORDER BY table_name LIMIT %(limit)s OFFSET %(offset)s",
+                {
+                    "ignore_tables": IGNORE_TABLES,
+                    "limit": per_page,
+                    "offset": (page - 1) * per_page,
+                },
+            )
+            items = [
+                {
+                    "workspace": workspace,
+                    "name": row["name"],
+                    "count": get_row_count(cursor, row["name"], row["count"]),
+                }
+                for row in cursor.fetchall()
+            ]
+        return {
+            "page_number": page,
+            "total_pages": max(math.ceil(total_items / per_page), 1),
+            "total_items": total_items,
+            "items": items,
+        }
     finally:
         if conn:
             conn.close()
