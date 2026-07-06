@@ -25,6 +25,7 @@ import {
 import WebappLayout from "workspaces/layouts/WebappLayout";
 import WebappFilesEditor from "webapps/features/WebappFilesEditor/WebappFilesEditor";
 import VersionPicker from "webapps/features/VersionPicker/VersionPicker";
+import GitClonePopover from "webapps/features/GitClonePopover/GitClonePopover";
 import useCacheKey from "core/hooks/useCacheKey";
 import { WebappVersion_VersionFragment } from "webapps/graphql/queries.generated";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
@@ -195,19 +196,31 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
         }
       >
         <DataCard.FormSection>
-          {showAssistant && (
-            <div className="flex items-center">
-              <Button
-                onClick={() => setChatOpen((o) => !o)}
-                variant="secondary"
-                size="md"
-                leadingIcon={<SparklesIcon className="h-4 w-4" />}
-                className="ml-auto"
-              >
-                {t("AI Assistant")}
-              </Button>
+          <div className="flex items-center gap-3">
+            <div className="w-96">
+              <VersionPicker
+                workspaceSlug={workspaceSlug}
+                webappSlug={webappSlug}
+                initialVersionId={initialRef}
+                onChange={setSelectedVersion}
+              />
             </div>
-          )}
+            <div className="ml-auto flex items-center gap-2">
+              {repositoryUrl && (
+                <GitClonePopover repositoryUrl={repositoryUrl} />
+              )}
+              {showAssistant && (
+                <Button
+                  onClick={() => setChatOpen((o) => !o)}
+                  variant="secondary"
+                  size="md"
+                  leadingIcon={<SparklesIcon className="h-4 w-4" />}
+                >
+                  {t("AI Assistant")}
+                </Button>
+              )}
+            </div>
+          </div>
           {proposedFiles && (
             <AssistantProposalBanner
               label={t("Proposed changes from AI assistant")}
@@ -226,15 +239,6 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
                 proposedFiles={proposedFiles ?? undefined}
                 onSaveSuccess={handleSaveSuccess}
                 onBusyChange={setIsEditorBusy}
-                repositoryUrl={repositoryUrl}
-                versionPicker={
-                  <VersionPicker
-                    workspaceSlug={workspaceSlug}
-                    webappSlug={webappSlug}
-                    initialVersionId={initialRef}
-                    onChange={setSelectedVersion}
-                  />
-                }
               />
             </div>
             {chatOpen && showAssistant && (
