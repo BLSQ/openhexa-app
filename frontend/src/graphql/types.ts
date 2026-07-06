@@ -524,11 +524,15 @@ export enum AssistantToolName {
   CreatePipeline = 'create_pipeline',
   GetDataset = 'get_dataset',
   GetHelpOrDoc = 'get_help_or_doc',
+  GetPipeline = 'get_pipeline',
+  GetStaticWebappFile = 'get_static_webapp_file',
   ListConnections = 'list_connections',
   ListDatasets = 'list_datasets',
   ListFiles = 'list_files',
+  ListPipelines = 'list_pipelines',
   PreviewDatasetFile = 'preview_dataset_file',
   ProposePipelineVersion = 'propose_pipeline_version',
+  ProposeWebappVersion = 'propose_webapp_version',
   ReadFile = 'read_file'
 }
 
@@ -2572,6 +2576,7 @@ export type GitSource = {
   __typename?: 'GitSource';
   publishedVersion?: Maybe<Scalars['String']['output']>;
   repository: Scalars['String']['output'];
+  repositoryUrl: Scalars['String']['output'];
 };
 
 /** IASO connection object */
@@ -2808,7 +2813,8 @@ export type LinkDatasetResult = {
 };
 
 export enum LinkedObjectType {
-  Pipeline = 'Pipeline'
+  Pipeline = 'Pipeline',
+  StaticWebapp = 'StaticWebapp'
 }
 
 /** Represents the input for logging a pipeline message. */
@@ -4730,6 +4736,7 @@ export type Query = {
   pipelines: PipelinesPage;
   /** Read the text content of a file from a workspace's bucket. */
   readFileContent: ReadFileContentResult;
+  readWebappFile: ReadWebappFileResult;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
   searchFiles: FileResultPage;
@@ -4976,6 +4983,15 @@ export type QueryReadFileContentArgs = {
 };
 
 
+export type QueryReadWebappFileArgs = {
+  endLine?: InputMaybe<Scalars['Int']['input']>;
+  path: Scalars['String']['input'];
+  startLine?: InputMaybe<Scalars['Int']['input']>;
+  webappSlug: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
+};
+
+
 export type QuerySearchDatabaseTablesArgs = {
   organizationId?: InputMaybe<Scalars['UUID']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
@@ -5093,6 +5109,30 @@ export type ReadFileContentResult = {
   errors: Array<ReadFileContentError>;
   size?: Maybe<Scalars['Int']['output']>;
   success: Scalars['Boolean']['output'];
+};
+
+/** Represents the error message for reading a web app file. */
+export enum ReadWebappFileError {
+  BinaryFile = 'BINARY_FILE',
+  PathNotFound = 'PATH_NOT_FOUND',
+  WebappsNotConfigured = 'WEBAPPS_NOT_CONFIGURED',
+  WebappNotFound = 'WEBAPP_NOT_FOUND'
+}
+
+/**
+ * Represents the result of reading a single text file from a static web app.
+ * When startLine/endLine are provided, content is limited to that line window
+ * and the window bounds and total line count are returned.
+ */
+export type ReadWebappFileResult = {
+  __typename?: 'ReadWebappFileResult';
+  content?: Maybe<Scalars['String']['output']>;
+  endLine?: Maybe<Scalars['Int']['output']>;
+  errors: Array<ReadWebappFileError>;
+  path?: Maybe<Scalars['String']['output']>;
+  startLine?: Maybe<Scalars['Int']['output']>;
+  success: Scalars['Boolean']['output'];
+  totalLines?: Maybe<Scalars['Int']['output']>;
 };
 
 /** The RegisterError enum represents the possible errors that can occur during the register mutation. */
@@ -6422,6 +6462,7 @@ export type WhoRegion = {
 export type Webapp = {
   __typename?: 'Webapp';
   allowedOperations: Array<WebappOperationScope>;
+  assistantConversations: Array<AssistantConversation>;
   commitDiff?: Maybe<WebappCommitDiff>;
   createdBy: User;
   description?: Maybe<Scalars['String']['output']>;

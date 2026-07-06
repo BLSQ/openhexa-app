@@ -6,6 +6,7 @@ import useStreamingFetch from "core/hooks/useStreamingFetch";
 import useWordDrain from "core/hooks/useWordDrain";
 import { KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import ToolCallCard from "./ToolCallCard";
+import ThinkingIndicator from "./ThinkingIndicator";
 import {
   AssistantConversationMessagesDocument,
   AssistantConversationMessagesQuery,
@@ -120,7 +121,9 @@ export default function ChatPane({
   );
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const isPinnedToBottom = useRef(true);
+  const prevScrollTop = useRef(0);
   const apolloClient = useApolloClient();
 
   useEffect(() => {
@@ -153,11 +156,8 @@ export default function ChatPane({
 
   useEffect(() => {
     const name = data?.assistantConversation?.name;
-    if (name) {
-      const handler = onConversationNameLoadedRef.current ?? onConversationNameChangeRef.current;
-      handler?.(name);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (name) notifyConversationNameLoaded(name);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.assistantConversation?.name]);
 
   const [pendingUserMessage, setPendingUserMessage] = useState<string | null>(null);
@@ -191,7 +191,7 @@ export default function ChatPane({
     }
   }, [apolloClient]);
 
-  const { text: streamingText, feed, markDone, clear, flush } = useWordDrain({
+  const { text: streamingText, pending: streamingPending, feed, markDone, clear, flush } = useWordDrain({
     interval: 30,
     onDrained: handleDrained,
   });
@@ -208,6 +208,16 @@ export default function ChatPane({
 
   const onConversationNameLoadedRef = useRef(onConversationNameLoaded);
   onConversationNameLoadedRef.current = onConversationNameLoaded;
+
+  // Notifies the parent of a name that is already known (loaded from cache, or
+  // echoed back on `done`) without triggering the typewriter animation, which is
+  // reserved for the `conversation_name` event of a brand-new conversation.
+  const notifyConversationNameLoaded = useCallback((name: string) => {
+    const handler =
+      onConversationNameLoadedRef.current ??
+      onConversationNameChangeRef.current;
+    handler?.(name);
+  }, []);
 
   const { send, isStreaming, streamError } = useStreamingFetch({
     text_delta: (data) => {
@@ -255,7 +265,7 @@ export default function ChatPane({
     },
     done: (data) => {
       const { name } = data as { name?: string };
-      if (name) onConversationNameChange?.(name);
+      if (name) notifyConversationNameLoaded(name);
       markDone();
     },
     error: (data) => {
@@ -281,11 +291,32 @@ export default function ChatPane({
     }
   }, [loadingMessages, localConversationId]);
 
-  useEffect(() => {
-    if (!loadingMore && isPinnedToBottom.current) {
-      bottomRef.current?.scrollIntoView({ behavior: "instant" });
+  // Follow the conversation to the bottom whenever content grows. Streaming
+  // text, tool cards and the thinking indicator all change height without
+  // touching a single piece of state, so rather than listing every trigger as a
+  // dependency we follow on two complementary signals:
+  //   1. Every render (covers all streaming-driven React updates).
+  //   2. A ResizeObserver (covers async height changes with no render, e.g.
+  //      markdown images or web fonts finishing loading).
+  // Both are cheap no-ops when already pinned to the bottom.
+  const followBottom = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (container && isPinnedToBottom.current) {
+      container.scrollTop = container.scrollHeight;
     }
-  }, [messages.length, pendingUserMessage, streamingText]);
+  }, []);
+
+  useEffect(() => {
+    followBottom();
+  });
+
+  useEffect(() => {
+    const content = contentRef.current;
+    if (!content) return;
+    const observer = new ResizeObserver(followBottom);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [followBottom]);
 
   const loadOlderMessages = useCallback(async () => {
     if (loadingMore || !hasMore || !localConversationId) return;
@@ -329,24 +360,22 @@ export default function ChatPane({
     });
   }, [loadingMore, hasMore, localConversationId, currentPage, fetchMore]);
 
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    const onWheel = (e: WheelEvent) => {
-      if (e.deltaY < 0) {
-        isPinnedToBottom.current = false;
-      }
-    };
-    container.addEventListener("wheel", onWheel, { passive: true });
-    return () => container.removeEventListener("wheel", onWheel);
-  }, []);
-
   const handleScroll = useCallback(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
-    isPinnedToBottom.current =
-      container.scrollHeight - container.scrollTop - container.clientHeight < 8;
-    if (container.scrollTop === 0 && hasMore && !loadingMore) {
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const distFromBottom = scrollHeight - scrollTop - clientHeight;
+    // Re-pin once the user lands back near the bottom. Only treat an actual
+    // upward scroll as "unpin": content growth during streaming keeps scrollTop
+    // unchanged while distFromBottom rises, and must not be mistaken for the
+    // user scrolling away — otherwise auto-follow would wedge itself off.
+    if (distFromBottom < 8) {
+      isPinnedToBottom.current = true;
+    } else if (scrollTop < prevScrollTop.current - 2) {
+      isPinnedToBottom.current = false;
+    }
+    prevScrollTop.current = scrollTop;
+    if (scrollTop === 0 && hasMore && !loadingMore) {
       loadOlderMessages();
     }
   }, [hasMore, loadingMore, loadOlderMessages]);
@@ -384,6 +413,27 @@ export default function ChatPane({
 
   const isActive = isStreaming || streamingRenderSegments.length > 0;
 
+  // The stream stays open across tool calls and reasoning gaps where no text is
+  // being revealed. Pending tool cards show their own spinner, so the agent is
+  // only "thinking" when the stream is live, no tool is running, and the drained
+  // text has caught up (nothing left to animate).
+  const hasPendingTool = streamingSegments.some(
+    (seg) => seg.type === "tool" && seg.status === "pending",
+  );
+  const isThinking = isStreaming && !hasPendingTool && !streamingPending;
+
+  // Debounce so the brief gaps between streamed chunks don't flash the thinking
+  // state on and off mid-reply.
+  const [showThinking, setShowThinking] = useState(false);
+  useEffect(() => {
+    if (!isThinking) {
+      setShowThinking(false);
+      return;
+    }
+    const id = setTimeout(() => setShowThinking(true), 600);
+    return () => clearTimeout(id);
+  }, [isThinking]);
+
   const handleSubmit = async (overrideText?: string) => {
     const text = overrideText ?? input.trim();
     if (!text || isActive || monthlyLimitExceeded) return;
@@ -400,6 +450,9 @@ export default function ChatPane({
     if (!convId) return;
 
     setSendError(null);
+    // Sending always jumps to and follows the bottom, even if the user had
+    // scrolled up to read earlier messages.
+    isPinnedToBottom.current = true;
     setPendingUserMessage(text);
     setInput("");
     await send(getStreamUrl(convId), { message: text });
@@ -428,8 +481,9 @@ export default function ChatPane({
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto min-h-0 space-y-4"
+          className="flex-1 overflow-y-auto min-h-0"
         >
+          <div ref={contentRef} className="space-y-4">
           {loadingMore && (
             <div className="flex justify-center py-2">
               <Spinner size="sm" className="text-gray-400" />
@@ -494,19 +548,13 @@ export default function ChatPane({
             </div>
           )}
 
-          {isStreaming && streamingRenderSegments.length === 0 && (
-            <div className="flex justify-start">
-              <div className="max-w-2xl rounded-2xl bg-gray-100 px-4 py-3 text-sm">
-                <Spinner size="xs" className="text-gray-400" />
-              </div>
-            </div>
-          )}
-
           {streamingRenderSegments.length > 0 && (
             <div className="space-y-2">
               <SegmentList segments={streamingRenderSegments} />
             </div>
           )}
+
+          {showThinking && <ThinkingIndicator />}
 
           {sendError && (
             <div className="flex justify-start">
@@ -517,6 +565,7 @@ export default function ChatPane({
           )}
 
           <div ref={bottomRef} />
+          </div>
         </div>
 
         {monthlyLimitExceeded ? (
@@ -531,14 +580,14 @@ export default function ChatPane({
           >
             <textarea
               ref={textareaRef}
-              className="w-full resize-none bg-transparent px-4 pt-3 pb-2 text-sm focus:outline-none disabled:opacity-50"
+              autoFocus
+              className="w-full resize-none bg-transparent px-4 pt-3 pb-2 text-sm focus:outline-none"
               style={{ maxHeight: "200px", overflowY: "auto" }}
               rows={1}
               placeholder="Message… (Enter to send, Shift+Enter for newline)"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              disabled={isActive}
             />
             <div className="flex items-center justify-end px-2 pb-2">
               <button

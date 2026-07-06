@@ -478,11 +478,15 @@ enum AssistantToolName {
   create_pipeline
   get_dataset
   get_help_or_doc
+  get_pipeline
+  get_static_webapp_file
   list_connections
   list_datasets
   list_files
+  list_pipelines
   preview_dataset_file
   propose_pipeline_version
+  propose_webapp_version
   read_file
 }
 
@@ -2570,6 +2574,7 @@ type GenericOutput {
 type GitSource {
   publishedVersion: String
   repository: String!
+  repositoryUrl: String!
 }
 
 """IASO connection object"""
@@ -2812,6 +2817,7 @@ type LinkDatasetResult {
 
 enum LinkedObjectType {
   Pipeline
+  StaticWebapp
 }
 
 """Represents the input for logging a pipeline message."""
@@ -4124,6 +4130,7 @@ type Query {
 
   """Read the text content of a file from a workspace's bucket."""
   readFileContent(endLine: Int, filePath: String!, startLine: Int, workspaceSlug: String!): ReadFileContentResult!
+  readWebappFile(endLine: Int, path: String!, startLine: Int, webappSlug: String!, workspaceSlug: String!): ReadWebappFileResult!
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
@@ -4158,6 +4165,29 @@ type ReadFileContentResult {
   errors: [ReadFileContentError!]!
   size: Int
   success: Boolean!
+}
+
+"""Represents the error message for reading a web app file."""
+enum ReadWebappFileError {
+  BINARY_FILE
+  PATH_NOT_FOUND
+  WEBAPPS_NOT_CONFIGURED
+  WEBAPP_NOT_FOUND
+}
+
+"""
+Represents the result of reading a single text file from a static web app.
+When startLine/endLine are provided, content is limited to that line window
+and the window bounds and total line count are returned.
+"""
+type ReadWebappFileResult {
+  content: String
+  endLine: Int
+  errors: [ReadWebappFileError!]!
+  path: String
+  startLine: Int
+  success: Boolean!
+  totalLines: Int
 }
 
 """
@@ -5658,6 +5688,7 @@ type WHORegion {
 """Represents a web app."""
 type Webapp {
   allowedOperations: [WebappOperationScope!]!
+  assistantConversations: [AssistantConversation!]!
   commitDiff(ref: String!): WebappCommitDiff
   createdBy: User!
   description: String

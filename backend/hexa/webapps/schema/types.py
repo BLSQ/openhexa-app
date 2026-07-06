@@ -103,6 +103,7 @@ def resolve_source(webapp: Webapp, info, **kwargs):
         return {
             "repository": git_webapp.repository,
             "published_version": git_webapp.published_commit,
+            "repository_url": git_webapp.repository_url,
         }
     return {"url": webapp.url}
 

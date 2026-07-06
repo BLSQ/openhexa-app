@@ -23,6 +23,20 @@ class GitClient(ABC):
         ...
 
     @abstractmethod
+    def protect_branch(
+        self, org_slug: str, repo_name: str, branch: str = "main"
+    ) -> dict:
+        """Protect a branch: block force-push and deletion, allow normal pushes."""
+        ...
+
+    @abstractmethod
+    def add_collaborator(
+        self, org_slug: str, repo_name: str, username: str, permission: str = "write"
+    ) -> None:
+        """Grant a user access to a repository (used for the proxy service account)."""
+        ...
+
+    @abstractmethod
     def archive_repository(self, org_slug: str, repo_name: str) -> dict:
         ...
 

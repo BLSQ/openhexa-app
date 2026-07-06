@@ -1,6 +1,7 @@
 import logging
 from collections import namedtuple
 
+from django.conf import settings
 from django.db import models
 
 from hexa.git.client import GitClient
@@ -31,6 +32,11 @@ class GitRepoMixin(models.Model):
             self.client.create_org_repository(
                 self.git_org.slug, self.repository, auto_init=not files
             )
+            self.client.protect_branch(self.git_org.slug, self.repository)
+            if settings.GIT_PROXY_USERNAME:
+                self.client.add_collaborator(
+                    self.git_org.slug, self.repository, settings.GIT_PROXY_USERNAME
+                )
         except ForgejoAPIError as e:
             if e.status_code == 409:
                 logger.warning(

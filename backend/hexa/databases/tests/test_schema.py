@@ -127,9 +127,14 @@ class DatabaseTest(GraphQLTestCase):
     def test_get_database_tables_empty(self):
         self.client.force_login(self.USER_SABRINA)
         with mock.patch(
-            "hexa.databases.schema.get_database_definition"
+            "hexa.databases.schema.get_database_definition_page"
         ) as mocked_get_database_definition:
-            mocked_get_database_definition.return_value = []
+            mocked_get_database_definition.return_value = {
+                "page_number": 1,
+                "total_pages": 1,
+                "total_items": 0,
+                "items": [],
+            }
             r = self.run_query(
                 """
                 query workspaceById($slug: String!) {
@@ -156,11 +161,16 @@ class DatabaseTest(GraphQLTestCase):
         table_name = "test_table"
         count = 2
         with mock.patch(
-            "hexa.databases.schema.get_database_definition"
+            "hexa.databases.schema.get_database_definition_page"
         ) as mocked_get_database_definition:
-            mocked_get_database_definition.return_value = [
-                {"workspace": self.WORKSPACE, "name": table_name, "count": count}
-            ]
+            mocked_get_database_definition.return_value = {
+                "page_number": 1,
+                "total_pages": 1,
+                "total_items": 1,
+                "items": [
+                    {"workspace": self.WORKSPACE, "name": table_name, "count": count}
+                ],
+            }
 
             r = self.run_query(
                 """

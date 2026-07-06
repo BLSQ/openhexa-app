@@ -882,6 +882,13 @@ query WorkspaceWebappsPage(
 
 query WorkspaceWebappPage($workspaceSlug: String!, $webappSlug: String!) {
   workspace(slug: $workspaceSlug) {
+    organization {
+      id
+      aiSettings {
+        enabled
+      }
+      aiBudgetLimitReached
+    }
     ...WebappForm_workspace
     ...WebappLayout_workspace
   }
@@ -889,6 +896,21 @@ query WorkspaceWebappPage($workspaceSlug: String!, $webappSlug: String!) {
     ...WebappForm_webapp
     ...WebappLayout_webapp
     ...WebappApiAccess_webapp
+    id
+    source {
+      ... on GitSource {
+        repositoryUrl
+      }
+    }
+    assistantConversations {
+      id
+      name
+      createdAt
+      updatedAt
+    }
+  }
+  me {
+    assistantMonthlyLimitExceeded
   }
 }
 

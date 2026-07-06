@@ -245,6 +245,13 @@ class GitWebapp(Webapp, GitRepoMixin):
             )
         return GitOrg(slug="no-org", display_name="No Organization")
 
+    @property
+    def repository_url(self) -> str:
+        return (
+            f"{settings.GIT_PUBLIC_URL.rstrip('/')}"
+            f"/{self.git_org.slug}/{self.repository}.git"
+        )
+
     def get_versions(self, page=1, per_page=20):
         items = self.client.get_commits(
             self.git_org.slug, self.repository, page=page, limit=per_page
@@ -338,6 +345,19 @@ class GitWebapp(Webapp, GitRepoMixin):
         self.published_commit = sha
         self.save()
         return sha
+
+    def get_file_content(self, path: str, ref: str = "main") -> str:
+        """Return the UTF-8 text content of a single file from the repository."""
+        try:
+            raw = self.client.get_file(
+                self.repository, path, ref=ref, org_slug=self.git_org.slug
+            )
+        except GitFileNotFound:
+            raise
+        try:
+            return raw.decode("utf-8")
+        except UnicodeDecodeError:
+            raise WebappFileBinaryError(path)
 
     def edit_file(self, path, old_string, new_string, user, replace_all=False):
         """Apply a string find/replace to a single file and commit the result.
