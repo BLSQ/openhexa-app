@@ -108,7 +108,14 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
         className={clsx(
           embedded
             ? // Let the @uiw root + editor fill the pane so any click is writable.
-              "[&>div]:h-full focus-within:border-blue-500/40 focus-within:ring-1 focus-within:ring-blue-500/20"
+              // Focus indicator: a border-box border on this wrapper (transparent
+              // until focus). Unlike an outset `ring` or CodeMirror's own
+              // `outline`, a border stays inside the element's box, so it is not
+              // clipped on the right by the pane's `overflow-hidden`, and it sits
+              // outside the editor's scrollbars. CodeMirror's default outline is
+              // suppressed in `embeddedEditorTheme` so it does not add a
+              // right-clipped line of its own.
+              "[&>div]:h-full border border-transparent focus-within:border-blue-300/80"
             : "overflow-y-auto rounded-md border",
           className,
         )}

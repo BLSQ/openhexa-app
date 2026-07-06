@@ -37,4 +37,8 @@ export const embeddedEditorTheme = EditorView.theme({
   },
   "&.cm-focused .cm-activeLine": { backgroundColor: "rgba(21, 93, 251, 0.03)" },
   ".cm-activeLine": { backgroundColor: "transparent" },
+  // Suppress CodeMirror's default focus outline (1px dotted #212121). The focus
+  // indicator is the wrapper border in CodeEditor.tsx; an outline here would be
+  // clipped on the right by the pane's `overflow-hidden`.
+  "&.cm-editor.cm-focused": { outline: "none" },
 });

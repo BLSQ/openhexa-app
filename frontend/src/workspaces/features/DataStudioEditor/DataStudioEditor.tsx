@@ -141,7 +141,7 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
               height="100%"
               minHeight="100%"
               placeholder={t("Write a SQL query…")}
-              className="h-full !rounded-none !border-0"
+              className="h-full !rounded-none"
             />
           </div>
           <div className="min-h-0 flex-1">
