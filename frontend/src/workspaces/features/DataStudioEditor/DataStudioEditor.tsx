@@ -4,7 +4,6 @@ import { PlayIcon } from "@heroicons/react/24/solid";
 import CodeEditor, {
   CodeEditorHandle,
 } from "core/components/CodeEditor/CodeEditor";
-import SplitButton from "core/components/SplitButton";
 import { useTranslation } from "next-i18next";
 import { useRef, useState } from "react";
 import { buildCsv, downloadCsv } from "./csv";
@@ -41,8 +40,6 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
     }
     execute({ variables: { workspaceSlug, query: trimmed, maxRows } });
   };
-
-  const run = () => runSql(query);
 
   const runSelection = () => {
     const selected = editorRef.current?.getSelectedText() ?? "";
@@ -101,29 +98,23 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
               <ArrowDownTrayIcon className="h-4 w-4" />
               {t("Export CSV")}
             </button>
-            <SplitButton
-              label={t("Run")}
-              loadingLabel={t("Running…")}
-              loading={loading}
-              icon={PlayIcon}
-              onClick={run}
+            <button
+              onClick={runSelection}
               disabled={!canRun}
-              menuLabel={t("More run options")}
-              actions={[
-                {
-                  label: t("Run all"),
-                  icon: PlayIcon,
-                  iconClassName: "text-blue-600",
-                  onClick: run,
-                  disabled: !canRun,
-                },
-                {
-                  label: t("Run selection"),
-                  icon: PlayIcon,
-                  onClick: runSelection,
-                },
-              ]}
-            />
+              className="inline-flex h-8 items-center gap-1.5 rounded-md bg-blue-600 px-3 text-xs font-medium text-white shadow-xs hover:bg-blue-700 disabled:opacity-60"
+            >
+              {loading ? (
+                <>
+                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  {t("Running…")}
+                </>
+              ) : (
+                <>
+                  <PlayIcon className="h-3 w-3" />
+                  {t("Run")}
+                </>
+              )}
+            </button>
           </div>
         </div>
 

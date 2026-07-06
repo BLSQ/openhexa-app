@@ -6,16 +6,6 @@ import DataStudioEditor from "./DataStudioEditor";
 // `useTranslation` is globally mocked to echo the key, so button/label
 // assertions below use the raw key strings.
 
-// Headless UI's MenuButton toggles on pointer events, which jsdom does not
-// implement; polyfill the minimum surface so the Run-options menu can open.
-beforeAll(() => {
-  (window as unknown as { PointerEvent: typeof MouseEvent }).PointerEvent =
-    MouseEvent as unknown as typeof MouseEvent;
-  Element.prototype.hasPointerCapture = jest.fn();
-  Element.prototype.releasePointerCapture = jest.fn();
-  Element.prototype.scrollIntoView = jest.fn();
-});
-
 const mockExecute = jest.fn();
 let mockQueryState: { data?: unknown; loading: boolean };
 
@@ -117,15 +107,6 @@ const successState = (overrides: Record<string, unknown> = {}) => ({
 const renderEditor = () =>
   render(<DataStudioEditor workspaceSlug="ws-1" />);
 
-// The chevron trigger is an aria-labelled element wrapped in the Headless UI
-// menu button; click the button itself to open the menu.
-const openRunMenu = async () => {
-  const trigger = screen
-    .getByLabelText("More run options")
-    .closest("button") as HTMLButtonElement;
-  await userEvent.click(trigger);
-};
-
 beforeEach(() => {
   mockExecute.mockClear();
   mockInsertText.mockClear();
@@ -193,29 +174,16 @@ describe("DataStudioEditor", () => {
     expect(mockExecute).not.toHaveBeenCalled();
   });
 
-  it("runs only the selected text via the Run selection menu item", async () => {
+  it("runs only the selected text when Run is clicked with a selection", async () => {
     renderEditor();
     const editor = screen.getByTestId("editor") as HTMLTextAreaElement;
     await userEvent.type(editor, "SELECT 1 SELECT 2");
     editor.setSelectionRange(9, 17);
 
-    await openRunMenu();
-    await userEvent.click(await screen.findByText("Run selection"));
+    await userEvent.click(screen.getByRole("button", { name: "Run" }));
 
     expect(mockExecute).toHaveBeenCalledWith({
       variables: { workspaceSlug: "ws-1", query: "SELECT 2", maxRows: 50 },
-    });
-  });
-
-  it("falls back to the full query when Run selection has no selection", async () => {
-    renderEditor();
-    await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
-
-    await openRunMenu();
-    await userEvent.click(await screen.findByText("Run selection"));
-
-    expect(mockExecute).toHaveBeenCalledWith({
-      variables: { workspaceSlug: "ws-1", query: "SELECT 1", maxRows: 50 },
     });
   });
 
