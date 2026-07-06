@@ -44,6 +44,20 @@ def ensure_single_statement(query: str) -> None:
         raise MultipleStatementsError("Only a single SQL statement can be executed.")
 
 
+def is_explain_query(query: str) -> bool:
+    """Whether the statement is an EXPLAIN.
+
+    An EXPLAIN returns a query plan whose length depends on the query's
+    complexity, not on the amount of data, so the row cap (meant to bound large
+    result sets) would truncate the plan mid-tree and must not apply.
+    """
+    parsed = sqlparse.parse(query)
+    if not parsed:
+        return False
+    first_token = parsed[0].token_first(skip_cm=True)
+    return first_token is not None and first_token.normalized.upper() == "EXPLAIN"
+
+
 def get_row_count_estimate(cursor, table_name: str) -> int:
     """Get a fast row count estimate using EXPLAIN."""
     cursor.execute(
@@ -129,7 +143,10 @@ def execute_database_query(
     ``truncated`` indicates whether the result was capped.
     """
     ensure_single_statement(query)
-    max_rows = min(max_rows, settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS)
+    hard_limit = settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS
+    # A plan is bounded by query complexity, so let it through the hard limit
+    # in full rather than clipping it to the (small) requested row cap.
+    max_rows = hard_limit if is_explain_query(query) else min(max_rows, hard_limit)
     conn = None
     try:
         conn = get_workspace_database_ro_connection(workspace)

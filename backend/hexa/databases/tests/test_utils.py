@@ -417,6 +417,21 @@ class DatabaseUtilsTest(TestCase):
         self.assertEqual(2, result["row_count"])
         self.assertTrue(result["truncated"])
 
+    def test_execute_database_query_does_not_truncate_explain_plan(self):
+        # A tight row cap must not clip an EXPLAIN plan: its multi-line tree
+        # comes back whole even though max_rows is smaller than the line count.
+        result = execute_database_query(
+            self.WORKSPACE,
+            "EXPLAIN SELECT generate_series(1, 100) AS id ORDER BY id DESC",
+            max_rows=1,
+        )
+
+        self.assertEqual(["QUERY PLAN"], result["columns"])
+        self.assertFalse(result["truncated"])
+        self.assertGreater(result["row_count"], 1)
+        plan = "\n".join(row["QUERY PLAN"] for row in result["rows"])
+        self.assertIn("Sort", plan)
+
     def test_execute_database_query_no_result_set(self):
         result = execute_database_query(self.WORKSPACE, "SET search_path TO public")
 

@@ -109,6 +109,35 @@ describe("DataStudioResults", () => {
     ).toBeInTheDocument();
   });
 
+  it("renders EXPLAIN output through the table with a monospace, whitespace-preserving plan column", () => {
+    render(
+      <DataStudioResults
+        loading={false}
+        result={successResult({
+          columns: ["QUERY PLAN"],
+          rows: [
+            { "QUERY PLAN": "Sort  (cost=1.00..2.00 rows=1 width=8)" },
+            { "QUERY PLAN": "  Sort Key: a.n DESC" },
+            {
+              "QUERY PLAN": "  ->  Hash Join  (cost=0.50..1.50 rows=1 width=8)",
+            },
+          ],
+          rowCount: 3,
+        })}
+      />,
+    );
+    // The plan reuses the results table (row-number gutter + "QUERY PLAN" header).
+    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(screen.getByText("QUERY PLAN")).toBeInTheDocument();
+    // The plan cell keeps its leading-whitespace indentation and is monospace.
+    const cell = screen.getByText(/Hash Join/);
+    expect(cell.tagName).toBe("TD");
+    expect(cell.textContent).toBe(
+      "  ->  Hash Join  (cost=0.50..1.50 rows=1 width=8)",
+    );
+    expect(cell).toHaveClass("whitespace-pre", "font-mono");
+  });
+
   it("caps the displayed rows at 500 even when more are returned", () => {
     const rows = Array.from({ length: 600 }, (_, i) => ({
       id: i,

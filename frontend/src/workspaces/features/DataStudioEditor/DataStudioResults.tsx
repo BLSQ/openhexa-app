@@ -2,7 +2,7 @@ import Spinner from "core/components/Spinner";
 import { ExecuteSqlError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { ExecuteWorkspaceSqlQuery } from "./DataStudioEditor.generated";
-import { stringifyCellValue } from "./format";
+import ResultsTable from "./ResultsTable";
 
 type ExecuteSqlResult = NonNullable<
   ExecuteWorkspaceSqlQuery["workspace"]
@@ -18,12 +18,8 @@ type DataStudioResultsProps = {
 // available through CSV export.
 const MAX_DISPLAYED_ROWS = 500;
 
-const formatCell = (value: unknown) => {
-  if (value === null || value === undefined) {
-    return <span className="text-gray-300">NULL</span>;
-  }
-  return stringifyCellValue(value);
-};
+// EXPLAIN returns a single column with this exact name, one plan line per row.
+const QUERY_PLAN_COLUMN = "QUERY PLAN";
 
 const Block = ({ children }: { children: React.ReactNode }) => (
   <div className="relative flex h-full flex-col overflow-hidden bg-white">
@@ -86,7 +82,13 @@ const DataStudioResults = ({ loading, result }: DataStudioResultsProps) => {
   const columns = result.columns ?? [];
   const rows = result.rows ?? [];
   const rowCount = result.rowCount ?? rows.length;
-  const displayedRows = rows.slice(0, MAX_DISPLAYED_ROWS);
+
+  // An EXPLAIN plan conveys its tree structure through leading whitespace, so
+  // its single column is rendered monospace and whitespace-preserving to keep
+  // the tree aligned (like DBeaver). Unlike a data set, a plan is bounded and
+  // read as a whole, so it is never row-capped.
+  const isQueryPlan = columns.length === 1 && columns[0] === QUERY_PLAN_COLUMN;
+  const displayedRows = isQueryPlan ? rows : rows.slice(0, MAX_DISPLAYED_ROWS);
   const hasHiddenRows = rows.length > displayedRows.length;
 
   return (
@@ -98,48 +100,15 @@ const DataStudioResults = ({ loading, result }: DataStudioResultsProps) => {
           })}
         </div>
       )}
-      <div className="flex-1 overflow-auto">
-        <table className="w-full border-separate border-spacing-0 text-sm">
-          <thead className="sticky top-0 z-10 bg-gray-50">
-            <tr>
-              <th className="w-10 border-b border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-400">
-                #
-              </th>
-              {columns.map((column) => (
-                <th
-                  key={column}
-                  className="border-b border-gray-200 px-3 py-2 text-left font-mono text-xs font-semibold text-gray-600"
-                >
-                  {column}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {displayedRows.map((row, rowIndex) => (
-              <tr key={rowIndex} className="hover:bg-gray-50">
-                <td className="border-b border-gray-100 px-3 py-1.5 text-right font-mono text-xs text-gray-400 select-none">
-                  {rowIndex + 1}
-                </td>
-                {columns.map((column) => {
-                  const value = row[column];
-                  const isNumber = typeof value === "number";
-                  return (
-                    <td
-                      key={column}
-                      className={`border-b border-gray-100 px-3 py-1.5 text-gray-700 ${
-                        isNumber ? "text-right font-mono" : ""
-                      }`}
-                    >
-                      {formatCell(value)}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <ResultsTable
+        columns={columns}
+        rows={displayedRows}
+        columnClassName={
+          isQueryPlan
+            ? { [QUERY_PLAN_COLUMN]: "whitespace-pre font-mono" }
+            : undefined
+        }
+      />
       <div className="flex shrink-0 items-center gap-2 border-t border-gray-200 bg-gray-50/60 px-3 py-1.5 text-xs text-gray-500">
         <span className="inline-flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />

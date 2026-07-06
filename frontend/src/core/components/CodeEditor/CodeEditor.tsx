@@ -1,7 +1,7 @@
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { json } from "@codemirror/lang-json";
 import { python } from "@codemirror/lang-python";
-import { sql } from "@codemirror/lang-sql";
+import { PostgreSQL, sql } from "@codemirror/lang-sql";
 import { xml } from "@codemirror/lang-xml";
 import { yaml } from "@codemirror/lang-yaml";
 import { EditorView } from "@codemirror/view";
@@ -115,7 +115,10 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
           case "yaml":
             return [yaml()];
           case "sql":
-            return [sql()];
+            // Workspace databases are PostgreSQL, so use its dialect to
+            // highlight Postgres-only keywords (EXPLAIN, ANALYZE, VACUUM, …)
+            // that the default ANSI dialect does not recognise.
+            return [sql({ dialect: PostgreSQL })];
           default:
             return [];
         }
