@@ -3,6 +3,21 @@
 @config '../../tailwind.config.js';
 
 /*
+  Single source of truth for the OpenHEXA brand accent. Rebranding is a one-line
+  change here: it feeds both the Tailwind utilities (`bg-brand`, `text-brand`,
+  `border-brand-strong`, ...) and non-Tailwind contexts (CodeMirror, canvas,
+  charts) that read the values via `var(--color-brand-*)`.
+
+  `static` forces Tailwind to always emit these variables to `:root`, even before
+  any `brand` utility class is used, so JS consumers can rely on them.
+*/
+@theme static {
+  --color-brand: #ec4899;
+  --color-brand-strong: #db2777;
+  --color-brand-subtle: #f9a8d4;
+}
+
+/*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
   looks the same as it did with Tailwind CSS v3.

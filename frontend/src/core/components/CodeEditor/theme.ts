@@ -2,13 +2,19 @@ import { HighlightStyle } from "@codemirror/language";
 import { EditorView } from "@codemirror/view";
 import { tags } from "@lezer/highlight";
 
-import { colors } from "core/helpers/colors";
+// Editor-only syntax colors, mirrored from Tailwind's palette (CodeMirror can't
+// use utility classes). These are the editor's own design decisions, not shared
+// app tokens. Keywords reuse the shared brand accent (see `--color-brand-*` in
+// globals.css) so the editor tracks any rebrand automatically.
+const colors = {
+  emerald: { 700: "#047857" },
+  amber: { 700: "#b45309" },
+  violet: { 600: "#7c3aed" },
+  gray: { 300: "#d1d5db", 400: "#9ca3af", 500: "#6b7280" },
+} as const;
 
-// Design-system syntax palette: pink keywords, emerald strings, amber numbers.
-// Colors come from the shared brand palette so the editor stays in sync with the
-// Tailwind utility classes used elsewhere (e.g. the `pink-500` brand accent).
 export const embeddedHighlightStyle = HighlightStyle.define([
-  { tag: tags.keyword, color: colors.pink[600], fontWeight: "500" },
+  { tag: tags.keyword, color: "var(--color-brand-strong)", fontWeight: "500" },
   { tag: [tags.string, tags.special(tags.string)], color: colors.emerald[700] },
   { tag: [tags.number, tags.bool, tags.null], color: colors.amber[700] },
   { tag: tags.comment, color: colors.gray[400], fontStyle: "italic" },
