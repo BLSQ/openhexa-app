@@ -32,9 +32,17 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
 
   // Results are large, ad-hoc, and never read from the cache elsewhere; skip
   // normalisation so big result sets are not retained for the page lifetime.
-  const [execute, { data, loading }] = useExecuteWorkspaceSqlLazyQuery({
+  const [execute, { data, loading, error }] = useExecuteWorkspaceSqlLazyQuery({
     fetchPolicy: "no-cache",
   });
+
+  // The last executed variables, so Retry re-runs exactly what failed — which
+  // may be a selection, and may differ from the current editor contents.
+  const lastRunRef = useRef<{
+    workspaceSlug: string;
+    query: string;
+    maxRows: number;
+  } | null>(null);
 
   const result = data?.workspace?.database?.executeSQL;
   const canExport = Boolean(result?.success && (result.rows?.length ?? 0) > 0);
@@ -45,7 +53,16 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
     if (loading || !trimmed) {
       return;
     }
-    execute({ variables: { workspaceSlug, query: trimmed, maxRows } });
+    const variables = { workspaceSlug, query: trimmed, maxRows };
+    lastRunRef.current = variables;
+    execute({ variables });
+  };
+
+  const retry = () => {
+    if (loading || !lastRunRef.current) {
+      return;
+    }
+    execute({ variables: lastRunRef.current });
   };
 
   const runSelection = () => {
@@ -152,7 +169,12 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
             />
           </div>
           <div className="min-h-0 flex-1">
-            <DataStudioResults loading={loading} result={result} />
+            <DataStudioResults
+              loading={loading}
+              result={result}
+              error={error}
+              onRetry={retry}
+            />
           </div>
         </div>
       </div>

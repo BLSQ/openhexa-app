@@ -1,4 +1,7 @@
+import { ApolloError } from "@apollo/client";
+import Button from "core/components/Button";
 import Spinner from "core/components/Spinner";
+import { isRequestTooLargeError } from "core/helpers/errors";
 import { ExecuteSqlError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { ExecuteWorkspaceSqlQuery } from "./DataStudioEditor.generated";
@@ -11,6 +14,31 @@ type ExecuteSqlResult = NonNullable<
 type DataStudioResultsProps = {
   loading: boolean;
   result?: ExecuteSqlResult;
+  // Transport-level failure (network down, 5xx, request too large, GraphQL
+  // error) as opposed to a query that ran but reported success: false.
+  error?: ApolloError;
+  onRetry?: () => void;
+};
+
+// A transport failure leaves us without an ExecuteSQLResult, so its cause has to
+// be read off the ApolloError rather than the typed `errors` enum.
+const describeTransportError = (
+  error: ApolloError,
+  t: (key: string) => string,
+): string => {
+  if (isRequestTooLargeError(error)) {
+    return t(
+      "The query or its result is too large. Try lowering the maximum number of rows or narrowing your query.",
+    );
+  }
+  // A network error with no HTTP status never reached the server (offline,
+  // DNS/TLS failure, request aborted); one with a status is a server-side fault.
+  const statusCode = (error.networkError as { statusCode?: number } | null)
+    ?.statusCode;
+  if (error.networkError && statusCode === undefined) {
+    return t("Couldn't reach the server. Check your connection and try again.");
+  }
+  return t("Something went wrong while running your query. Please try again.");
 };
 
 // The grid is a preview: rendering tens of thousands of rows as live DOM is slow,
@@ -27,7 +55,12 @@ const Block = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-const DataStudioResults = ({ loading, result }: DataStudioResultsProps) => {
+const DataStudioResults = ({
+  loading,
+  result,
+  error,
+  onRetry,
+}: DataStudioResultsProps) => {
   const { t } = useTranslation();
 
   const errorLabels: Record<ExecuteSqlError, string> = {
@@ -46,6 +79,34 @@ const DataStudioResults = ({ loading, result }: DataStudioResultsProps) => {
       <Block>
         <div className="absolute inset-0 flex items-center justify-center">
           <Spinner size="md" />
+        </div>
+      </Block>
+    );
+  }
+
+  if (error) {
+    return (
+      <Block>
+        <div className="m-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="font-medium">{describeTransportError(error, t)}</div>
+          <details className="mt-2">
+            <summary className="cursor-pointer text-xs text-red-600 select-none">
+              {t("Technical details")}
+            </summary>
+            <pre className="mt-1 whitespace-pre-wrap font-mono text-xs text-red-600">
+              {error.message}
+            </pre>
+          </details>
+          {onRetry && (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={onRetry}
+              className="mt-3"
+            >
+              {t("Retry")}
+            </Button>
+          )}
         </div>
       </Block>
     );

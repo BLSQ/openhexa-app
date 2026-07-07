@@ -1,4 +1,6 @@
+import { ApolloError } from "@apollo/client";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { ExecuteSqlError } from "graphql/types";
 import DataStudioResults from "./DataStudioResults";
 
@@ -95,6 +97,84 @@ describe("DataStudioResults", () => {
     );
     expect(screen.getByText("SOMETHING_ELSE")).toBeInTheDocument();
     expect(screen.getByText("boom")).toBeInTheDocument();
+  });
+
+  const serverNetworkError = (statusCode: number) => {
+    const e = new Error("Server responded with an error") as Error & {
+      statusCode: number;
+    };
+    e.name = "ServerError";
+    e.statusCode = statusCode;
+    return e;
+  };
+
+  it("shows a size hint for a request-too-large (413) transport error", () => {
+    render(
+      <DataStudioResults
+        loading={false}
+        error={new ApolloError({ networkError: serverNetworkError(413) })}
+      />,
+    );
+    expect(
+      screen.getByText(
+        "The query or its result is too large. Try lowering the maximum number of rows or narrowing your query.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  });
+
+  it("shows a connection message when the request never reached the server", () => {
+    render(
+      <DataStudioResults
+        loading={false}
+        error={new ApolloError({ networkError: new Error("Failed to fetch") })}
+      />,
+    );
+    expect(
+      screen.getByText(
+        "Couldn't reach the server. Check your connection and try again.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a generic message for a server-side (GraphQL) error and exposes the raw message", () => {
+    render(
+      <DataStudioResults
+        loading={false}
+        error={new ApolloError({ graphQLErrors: [{ message: "boom" } as any] })}
+      />,
+    );
+    expect(
+      screen.getByText(
+        "Something went wrong while running your query. Please try again.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("boom")).toBeInTheDocument();
+  });
+
+  it("fires onRetry when the Retry button is clicked", async () => {
+    const onRetry = jest.fn();
+    render(
+      <DataStudioResults
+        loading={false}
+        error={new ApolloError({ networkError: new Error("Failed to fetch") })}
+        onRetry={onRetry}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it("prefers the transport error over the empty placeholder", () => {
+    render(
+      <DataStudioResults
+        loading={false}
+        error={new ApolloError({ networkError: new Error("Failed to fetch") })}
+      />,
+    );
+    expect(
+      screen.queryByText("Results will appear here after you run a query."),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the truncation banner when the result is truncated", () => {

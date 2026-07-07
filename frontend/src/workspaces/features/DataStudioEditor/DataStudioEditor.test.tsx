@@ -7,7 +7,7 @@ import DataStudioEditor from "./DataStudioEditor";
 // assertions below use the raw key strings.
 
 const mockExecute = jest.fn();
-let mockQueryState: { data?: unknown; loading: boolean };
+let mockQueryState: { data?: unknown; loading: boolean; error?: unknown };
 
 jest.mock("./DataStudioEditor.generated", () => ({
   useExecuteWorkspaceSqlLazyQuery: () => [mockExecute, mockQueryState],
@@ -24,12 +24,25 @@ jest.mock("./DataStudioSchemaBrowser", () => ({
 
 jest.mock("./DataStudioResults", () => ({
   __esModule: true,
-  default: ({ loading, result }: { loading: boolean; result?: any }) => (
+  default: ({
+    loading,
+    result,
+    error,
+    onRetry,
+  }: {
+    loading: boolean;
+    result?: any;
+    error?: any;
+    onRetry?: () => void;
+  }) => (
     <div
       data-testid="results"
       data-loading={String(loading)}
       data-success={String(Boolean(result?.success))}
-    />
+      data-error={String(Boolean(error))}
+    >
+      {onRetry && <button onClick={onRetry}>retry-results</button>}
+    </div>
   ),
 }));
 
@@ -220,6 +233,33 @@ describe("DataStudioEditor", () => {
     renderEditor();
     await userEvent.click(screen.getByText("insert-from-schema"));
     expect(mockInsertText).toHaveBeenCalledWith("patients");
+  });
+
+  it("forwards a transport error to the results panel", () => {
+    mockQueryState = { loading: false, error: new Error("network down") };
+    renderEditor();
+    expect(screen.getByTestId("results")).toHaveAttribute("data-error", "true");
+  });
+
+  it("retries the exact variables that were last run", async () => {
+    renderEditor();
+    const editor = screen.getByTestId("editor") as HTMLTextAreaElement;
+    await userEvent.type(editor, "SELECT 1 SELECT 2");
+    editor.setSelectionRange(9, 17);
+    await userEvent.click(screen.getByRole("button", { name: "Run" }));
+    mockExecute.mockClear();
+
+    await userEvent.click(screen.getByText("retry-results"));
+
+    expect(mockExecute).toHaveBeenCalledWith({
+      variables: { workspaceSlug: "ws-1", query: "SELECT 2", maxRows: 50 },
+    });
+  });
+
+  it("does not retry before any query has been run", async () => {
+    renderEditor();
+    await userEvent.click(screen.getByText("retry-results"));
+    expect(mockExecute).not.toHaveBeenCalled();
   });
 
   it("shows a running state and blocks re-runs while loading", () => {
