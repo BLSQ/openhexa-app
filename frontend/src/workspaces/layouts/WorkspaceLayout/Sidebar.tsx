@@ -8,13 +8,13 @@ import {
   ChevronRightIcon,
   ChevronUpIcon,
   CircleStackIcon,
-  CommandLineIcon,
   Cog6ToothIcon,
   FolderOpenIcon,
   GlobeAltIcon,
   HomeIcon,
   Square2StackIcon,
   SwatchIcon,
+  TableCellsIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Badge from "core/components/Badge";
@@ -130,7 +130,7 @@ const Sidebar = (props: SidebarProps) => {
     {
       href: `/workspaces/${encodeURIComponent(slug)}/data-studio`,
       label: t("Data Studio"),
-      Icon: CommandLineIcon,
+      Icon: TableCellsIcon,
       badge: t("New"),
     },
     {
