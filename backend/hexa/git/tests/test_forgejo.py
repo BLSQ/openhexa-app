@@ -51,6 +51,68 @@ class ForgejoClientCreateRepositoryTest(TestCase):
         self.assertEqual(ctx.exception.status_code, 409)
 
 
+class ForgejoClientEnsureUserTest(TestCase):
+    @responses.activate
+    def test_ensure_user_creates_when_absent(self):
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/admin/users",
+            json={"id": 2, "login": "proxy"},
+            status=201,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client.ensure_user("proxy", "secret", "proxy@openhexa.org")
+
+        self.assertEqual(len(responses.calls), 1)
+        body = json.loads(responses.calls[0].request.body)
+        self.assertEqual(body["username"], "proxy")
+        self.assertEqual(body["password"], "secret")
+        self.assertFalse(body["must_change_password"])
+
+    @responses.activate
+    def test_ensure_user_resyncs_password_when_exists(self):
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/admin/users",
+            json={"message": "user already exists [name: proxy]"},
+            status=422,
+        )
+        responses.patch(
+            f"{FORGEJO_URL}/api/v1/admin/users/proxy",
+            json={"id": 2, "login": "proxy"},
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        client.ensure_user("proxy", "rotated", "proxy@openhexa.org")
+
+        self.assertEqual(len(responses.calls), 2)
+        patch_body = json.loads(responses.calls[1].request.body)
+        self.assertEqual(patch_body["password"], "rotated")
+        self.assertNotIn("login_name", patch_body)
+
+    @responses.activate
+    def test_ensure_user_refuses_to_modify_the_admin_account(self):
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        with self.assertRaises(ValueError):
+            client.ensure_user(USERNAME, "secret", "admin@openhexa.org")
+
+        self.assertEqual(len(responses.calls), 0)
+
+    @responses.activate
+    def test_ensure_user_raises_on_other_errors(self):
+        responses.post(
+            f"{FORGEJO_URL}/api/v1/admin/users",
+            json={"message": "password too short"},
+            status=422,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        with self.assertRaises(ForgejoAPIError):
+            client.ensure_user("proxy", "x", "proxy@openhexa.org")
+
+        self.assertEqual(len(responses.calls), 1)
+
+
 class ForgejoClientGetFileTest(TestCase):
     @responses.activate
     def test_get_file(self):

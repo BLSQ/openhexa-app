@@ -1,18 +1,39 @@
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from hexa.git.forgejo import ForgejoAPIError
+from hexa.git.forgejo import ForgejoAPIError, get_forgejo_client
 from hexa.webapps.models import GitWebapp
+
+PROXY_USER_EMAIL = "proxy@openhexa.org"
 
 
 class Command(BaseCommand):
     help = (
-        "Backfill repository configuration on every git webapp repo: default-branch "
-        "protection (block force-push and deletion) and write access for the proxy "
-        "service account. Idempotent — safe to re-run."
+        "Ensure the proxy service account exists (password synced to "
+        "GIT_PROXY_PASSWORD), then backfill repository configuration on every git "
+        "webapp repo: default-branch protection (block force-push and deletion) and "
+        "write access for that account. Idempotent — safe to re-run."
     )
 
     def handle(self, *args, **options):
+        if settings.GIT_PROXY_USERNAME:
+            if not settings.GIT_PROXY_PASSWORD:
+                self.stderr.write(
+                    self.style.ERROR(
+                        "GIT_PROXY_USERNAME is set but GIT_PROXY_PASSWORD is empty; "
+                        "cannot provision the proxy service account."
+                    )
+                )
+                return
+            get_forgejo_client().ensure_user(
+                settings.GIT_PROXY_USERNAME,
+                settings.GIT_PROXY_PASSWORD,
+                PROXY_USER_EMAIL,
+            )
+            self.stdout.write(
+                f"Proxy service account '{settings.GIT_PROXY_USERNAME}' is in sync."
+            )
+
         protected = 0
         already_protected = 0
         granted = 0

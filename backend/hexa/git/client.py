@@ -37,6 +37,11 @@ class GitClient(ABC):
         ...
 
     @abstractmethod
+    def ensure_user(self, username: str, password: str, email: str) -> None:
+        """Create a user, or resync its password if it already exists (idempotent)."""
+        ...
+
+    @abstractmethod
     def archive_repository(self, org_slug: str, repo_name: str) -> dict:
         ...
 
