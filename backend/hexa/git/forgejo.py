@@ -100,6 +100,39 @@ class ForgejoClient(GitClient):
             json={"permission": permission},
         )
 
+    def ensure_user(self, username: str, password: str, email: str) -> None:
+        """Create the user via the admin API, resyncing the password if it exists.
+
+        Requires the client to be authenticated as a Forgejo admin. On a rotated
+        password the PATCH keeps the account in sync so the proxy can keep
+        authenticating as it.
+        """
+        try:
+            self._request(
+                "POST",
+                "/admin/users",
+                json={
+                    "username": username,
+                    "email": email,
+                    "password": password,
+                    "must_change_password": False,
+                },
+            )
+            return
+        except ForgejoAPIError as e:
+            if not (e.status_code == 409 or "exist" in e.detail.lower()):
+                raise
+
+        self._request(
+            "PATCH",
+            f"/admin/users/{username}",
+            json={
+                "login_name": username,
+                "password": password,
+                "must_change_password": False,
+            },
+        )
+
     def list_org_repositories(
         self, org_slug: str, page: int = 1, limit: int = 50
     ) -> list[dict]:
