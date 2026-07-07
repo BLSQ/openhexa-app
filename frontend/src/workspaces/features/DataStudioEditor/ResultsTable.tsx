@@ -41,6 +41,12 @@ const ResultsTable = ({
               {column}
             </th>
           ))}
+          {/* Filler column absorbs the leftover width so the real columns stay
+              sized to their content instead of stretching across the panel —
+              this keeps right-aligned numbers next to their header when only a
+              few columns are selected, while the header/row rules still span
+              the full width. */}
+          <th className="w-full border-b border-gray-200" aria-hidden />
         </tr>
       </thead>
       <tbody>
@@ -64,6 +70,7 @@ const ResultsTable = ({
                 </td>
               );
             })}
+            <td className="border-b border-gray-100" aria-hidden />
           </tr>
         ))}
       </tbody>
