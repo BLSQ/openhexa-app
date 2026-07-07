@@ -1,4 +1,6 @@
+import logging
 import pathlib
+import time
 
 from ariadne import (
     EnumType,
@@ -11,8 +13,10 @@ from django.http import HttpRequest
 from psycopg2 import Error as Psycopg2Error
 from psycopg2.errors import QueryCanceled
 
+from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
+from .models import DatabaseQueryLog
 from .utils import (
     MultipleStatementsError,
     OrderByDirectionEnum,
@@ -22,6 +26,8 @@ from .utils import (
     get_table_rows,
     get_table_sample_data,
 )
+
+logger = logging.getLogger(__name__)
 
 databases_types_def = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -68,34 +74,108 @@ def resolve_database_credentials(workspace: Workspace, info, **kwargs):
     return None
 
 
+def _log_executed_query(
+    request: HttpRequest,
+    workspace: Workspace,
+    query: str,
+    origin: str,
+    status: str,
+    **fields,
+):
+    # Auditing must never break query execution, hence the broad except.
+    try:
+        DatabaseQueryLog.objects.create(
+            workspace=workspace,
+            user=request.user if isinstance(request.user, User) else None,
+            query=query,
+            origin=origin,
+            status=status,
+            **fields,
+        )
+    except Exception:
+        logger.exception(
+            "Failed to log database query for workspace %s", workspace.slug
+        )
+
+
 @database_object.field("executeSQL")
 def resolve_database_execute_sql(
-    workspace: Workspace, info, query: str, max_rows: int | None = None, **kwargs
+    workspace: Workspace,
+    info,
+    query: str,
+    max_rows: int | None = None,
+    origin: str | None = None,
+    **kwargs,
 ):
     request: HttpRequest = info.context["request"]
+    # Clients may send an explicit null, which bypasses the Python default
+    origin = origin or DatabaseQueryLog.Origin.API
     if not request.user.has_perm("databases.run_query", workspace):
+        _log_executed_query(
+            request, workspace, query, origin, DatabaseQueryLog.Status.DENIED
+        )
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
     max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
+    started_at = time.monotonic()
     try:
         result = execute_database_query(workspace, query, **max_rows_kwarg)
     except MultipleStatementsError as e:
+        _log_executed_query(
+            request,
+            workspace,
+            query,
+            origin,
+            DatabaseQueryLog.Status.REJECTED,
+            error_message=str(e),
+        )
         return {
             "success": False,
             "errors": ["MULTIPLE_STATEMENTS"],
             "error_message": str(e),
         }
     except QueryCanceled as e:
+        _log_executed_query(
+            request,
+            workspace,
+            query,
+            origin,
+            DatabaseQueryLog.Status.ERROR,
+            result_code=e.pgcode,
+            error_message=str(e).strip(),
+            duration_ms=int((time.monotonic() - started_at) * 1000),
+        )
         return {
             "success": False,
             "errors": ["QUERY_TIMEOUT"],
             "error_message": str(e).strip(),
         }
     except Psycopg2Error as e:
+        _log_executed_query(
+            request,
+            workspace,
+            query,
+            origin,
+            DatabaseQueryLog.Status.ERROR,
+            result_code=e.pgcode,
+            error_message=str(e).strip(),
+            duration_ms=int((time.monotonic() - started_at) * 1000),
+        )
         return {
             "success": False,
             "errors": ["QUERY_ERROR"],
             "error_message": str(e).strip(),
         }
+    _log_executed_query(
+        request,
+        workspace,
+        query,
+        origin,
+        DatabaseQueryLog.Status.SUCCESS,
+        result_code="00000",
+        duration_ms=int((time.monotonic() - started_at) * 1000),
+        row_count=result["row_count"],
+        truncated=result["truncated"],
+    )
     return {"success": True, "errors": [], **result}
 
 
