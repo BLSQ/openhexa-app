@@ -88,7 +88,7 @@ class ForgejoClientEnsureUserTest(TestCase):
         self.assertEqual(len(responses.calls), 2)
         patch_body = json.loads(responses.calls[1].request.body)
         self.assertEqual(patch_body["password"], "rotated")
-        self.assertEqual(patch_body["login_name"], "proxy")
+        self.assertNotIn("login_name", patch_body)
 
     @responses.activate
     def test_ensure_user_raises_on_other_errors(self):

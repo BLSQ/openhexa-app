@@ -127,7 +127,6 @@ class ForgejoClient(GitClient):
             "PATCH",
             f"/admin/users/{username}",
             json={
-                "login_name": username,
                 "password": password,
                 "must_change_password": False,
             },
