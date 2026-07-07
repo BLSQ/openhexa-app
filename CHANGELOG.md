@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.11.1](https://github.com/BLSQ/openhexa-app/compare/5.11.0...5.11.1) (2026-07-07)
+
+
+### Bug Fixes
+
+* git proxy user should auto provision (HEXA-1736) ([#1901](https://github.com/BLSQ/openhexa-app/issues/1901)) ([17c4546](https://github.com/BLSQ/openhexa-app/commit/17c45469d46ac9ede97f2ff92960d093b1f9bc85))
+
 ## [5.11.0](https://github.com/BLSQ/openhexa-app/compare/5.10.1...5.11.0) (2026-07-06)
 
 
