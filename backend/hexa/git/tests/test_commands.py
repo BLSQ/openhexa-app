@@ -2,6 +2,7 @@ from io import StringIO
 from unittest.mock import MagicMock, patch
 
 from django.core.management import call_command
+from django.test import override_settings
 
 from hexa.core.test import TestCase
 from hexa.git.forgejo import ForgejoAPIError
@@ -28,14 +29,18 @@ class SyncGitRepositoriesCommandTest(TestCase):
                 repository=f"cmd-ws-webapp-{slug}",
             )
 
+    @patch("hexa.git.management.commands.sync_git_repositories.get_forgejo_client")
     @patch("hexa.git.mixins.get_forgejo_client")
-    def test_protects_and_grants_every_repo(self, mock_get_client):
+    def test_protects_and_grants_every_repo(self, mock_get_client, mock_cmd_client):
         client = MagicMock()
-        mock_get_client.return_value = client
+        mock_get_client.return_value = mock_cmd_client.return_value = client
         out = StringIO()
 
         call_command("sync_git_repositories", stdout=out)
 
+        client.ensure_user.assert_called_once_with(
+            PROXY_USER, "openhexa-proxy", "proxy@openhexa.org"
+        )
         self.assertEqual(client.protect_branch.call_count, 2)
         self.assertEqual(client.add_collaborator.call_count, 2)
         client.protect_branch.assert_any_call("no-org", "cmd-ws-webapp-a")
@@ -44,14 +49,17 @@ class SyncGitRepositoriesCommandTest(TestCase):
             "protected=2 already_protected=0 granted=2 failed=0", out.getvalue()
         )
 
+    @patch("hexa.git.management.commands.sync_git_repositories.get_forgejo_client")
     @patch("hexa.git.mixins.get_forgejo_client")
-    def test_counts_already_protected_separately(self, mock_get_client):
+    def test_counts_already_protected_separately(
+        self, mock_get_client, mock_cmd_client
+    ):
         client = MagicMock()
         client.protect_branch.side_effect = [
             ForgejoAPIError("POST", "url", 409, "rule exists"),
             None,
         ]
-        mock_get_client.return_value = client
+        mock_get_client.return_value = mock_cmd_client.return_value = client
         out = StringIO()
 
         call_command("sync_git_repositories", stdout=out)
@@ -61,15 +69,18 @@ class SyncGitRepositoriesCommandTest(TestCase):
             "protected=1 already_protected=1 granted=2 failed=0", out.getvalue()
         )
 
+    @patch("hexa.git.management.commands.sync_git_repositories.get_forgejo_client")
     @patch("hexa.git.mixins.get_forgejo_client")
-    def test_treats_forgejo_403_already_exists_as_protected(self, mock_get_client):
+    def test_treats_forgejo_403_already_exists_as_protected(
+        self, mock_get_client, mock_cmd_client
+    ):
         """Forgejo returns 403 (not 409) when a branch-protection rule exists."""
         client = MagicMock()
         client.protect_branch.side_effect = [
             ForgejoAPIError("POST", "url", 403, "Branch protection already exist"),
             None,
         ]
-        mock_get_client.return_value = client
+        mock_get_client.return_value = mock_cmd_client.return_value = client
         out = StringIO()
 
         call_command("sync_git_repositories", stdout=out)
@@ -79,17 +90,34 @@ class SyncGitRepositoriesCommandTest(TestCase):
             "protected=1 already_protected=1 granted=2 failed=0", out.getvalue()
         )
 
+    @patch("hexa.git.management.commands.sync_git_repositories.get_forgejo_client")
     @patch("hexa.git.mixins.get_forgejo_client")
-    def test_reports_failures_and_continues(self, mock_get_client):
+    def test_reports_failures_and_continues(self, mock_get_client, mock_cmd_client):
         client = MagicMock()
         client.protect_branch.side_effect = [
             ForgejoAPIError("POST", "url", 500, "boom"),
             None,
         ]
-        mock_get_client.return_value = client
+        mock_get_client.return_value = mock_cmd_client.return_value = client
         out, err = StringIO(), StringIO()
 
         call_command("sync_git_repositories", stdout=out, stderr=err)
 
         self.assertEqual(client.protect_branch.call_count, 2)
         self.assertIn("failed=1", out.getvalue())
+
+    @override_settings(GIT_PROXY_USERNAME="")
+    @patch("hexa.git.management.commands.sync_git_repositories.get_forgejo_client")
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_skips_proxy_provisioning_when_username_unset(
+        self, mock_get_client, mock_cmd_client
+    ):
+        client = MagicMock()
+        mock_get_client.return_value = mock_cmd_client.return_value = client
+        out = StringIO()
+
+        call_command("sync_git_repositories", stdout=out)
+
+        client.ensure_user.assert_not_called()
+        client.add_collaborator.assert_not_called()
+        self.assertEqual(client.protect_branch.call_count, 2)
