@@ -180,7 +180,7 @@ const DataStudioSchemaBrowser = ({
                   setSearchOpen(false);
                 }
               }}
-              placeholder={t("Search tables & columns…")}
+              placeholder={`${t("Search tables & columns")}…`}
               className="min-w-0 flex-1 bg-transparent text-xs text-gray-700 outline-none placeholder:text-gray-400"
             />
             <button

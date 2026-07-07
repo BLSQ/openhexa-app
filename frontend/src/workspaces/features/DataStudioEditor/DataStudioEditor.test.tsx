@@ -165,6 +165,12 @@ describe("DataStudioEditor", () => {
     });
   });
 
+  it("surfaces the run shortcut hint on the Run button (Ctrl+Enter on non-mac)", () => {
+    renderEditor();
+    // jsdom's userAgent is not a Mac, so the in-button pill uses the Ctrl variant.
+    expect(screen.getByText("Ctrl+Enter")).toBeInTheDocument();
+  });
+
   it("does not run when the query is empty", async () => {
     renderEditor();
     const runButton = screen.getByRole("button", { name: "Run" });

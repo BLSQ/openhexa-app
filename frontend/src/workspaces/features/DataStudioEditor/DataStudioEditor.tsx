@@ -4,6 +4,7 @@ import { PlayIcon } from "@heroicons/react/24/solid";
 import CodeEditor, {
   CodeEditorHandle,
 } from "core/components/CodeEditor/CodeEditor";
+import useIsMac from "core/hooks/useIsMac";
 import { useTranslation } from "next-i18next";
 import { useRef, useState } from "react";
 import { buildCsv, downloadCsv } from "./csv";
@@ -19,9 +20,15 @@ const MAX_ROWS_OPTIONS = [50, 100, 500, 1000, 10_000];
 
 const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
   const { t } = useTranslation();
+  const isMac = useIsMac();
   const [query, setQuery] = useState("");
   const [maxRows, setMaxRows] = useState(MAX_ROWS_OPTIONS[0]);
   const editorRef = useRef<CodeEditorHandle>(null);
+
+  const runShortcutLabel = isMac ? "⌘+Enter" : "Ctrl+Enter";
+  // Compact form for the in-button pill: the return glyph reads cleanly next to
+  // ⌘ on macOS; other platforms keep the spelled-out modifier.
+  const runShortcutBadge = isMac ? "⌘↵" : "Ctrl+Enter";
 
   // Results are large, ad-hoc, and never read from the cache elsewhere; skip
   // normalisation so big result sets are not retained for the page lifetime.
@@ -101,7 +108,8 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
             <button
               onClick={runSelection}
               disabled={!canRun}
-              className="inline-flex h-8 items-center gap-1.5 rounded-md bg-blue-600 px-3 text-xs font-medium text-white shadow-xs hover:bg-blue-700 disabled:opacity-60"
+              title={t("Run ({{shortcut}})", { shortcut: runShortcutLabel })}
+              className="inline-flex h-8 min-w-[104px] items-center justify-center gap-1.5 rounded-md bg-blue-600 px-3 text-xs font-medium text-white shadow-xs transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:outline-none active:bg-blue-800 disabled:opacity-60 disabled:hover:bg-blue-600"
             >
               {loading ? (
                 <>
@@ -112,6 +120,12 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
                 <>
                   <PlayIcon className="h-3 w-3" />
                   {t("Run")}
+                  <span
+                    aria-hidden
+                    className="ml-0.5 hidden rounded bg-white/20 px-1 py-0.5 text-[10px] leading-none font-medium text-white/80 sm:inline-block"
+                  >
+                    {runShortcutBadge}
+                  </span>
                 </>
               )}
             </button>
@@ -130,7 +144,9 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
               onChange={setQuery}
               height="100%"
               minHeight="100%"
-              placeholder={t("Write a SQL query…")}
+              placeholder={t("Write a SQL query… ({{shortcut}} to run)", {
+                shortcut: runShortcutLabel,
+              })}
               shortcuts={editorShortcuts}
               className="h-full !rounded-none"
             />
