@@ -634,6 +634,9 @@ WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE = int(
 )
 # Dynamically configure the storage backend based on the STORAGE_BACKEND environment variable
 STORAGE_BACKEND = os.environ.get("STORAGE_BACKEND", "fs")
+WORKSPACE_BUCKET_VERSIONING_ENABLED = (
+    os.environ.get("WORKSPACE_BUCKET_VERSIONING_ENABLED", "true").lower() == "true"
+)
 
 if STORAGE_BACKEND == "gcp":
     # GCP Settings if using GCS as a storage backend ###
@@ -653,7 +656,7 @@ if STORAGE_BACKEND == "gcp":
                 "WORKSPACE_STORAGE_BACKEND_GCS_SERVICE_ACCOUNT_KEY"
             ),
             "region": os.environ.get("WORKSPACE_BUCKET_REGION", "europe-west1"),
-            "enable_versioning": True,
+            "enable_versioning": WORKSPACE_BUCKET_VERSIONING_ENABLED,
         },
     }
 elif STORAGE_BACKEND == "azure":
@@ -696,6 +699,7 @@ elif STORAGE_BACKEND == "s3":
             or None,
             "role_arn": os.environ.get("WORKSPACE_STORAGE_BACKEND_AWS_ROLE_ARN")
             or None,
+            "enable_versioning": WORKSPACE_BUCKET_VERSIONING_ENABLED,
         },
     }
 else:  # Default to filesystem storage
@@ -711,7 +715,6 @@ else:  # Default to filesystem storage
     }
 
 WORKSPACE_BUCKET_PREFIX = os.environ.get("WORKSPACE_BUCKET_PREFIX", "")
-WORKSPACE_BUCKET_VERSIONING_ENABLED = False
 
 # MIXPANEL
 MIXPANEL_TOKEN = os.environ.get("MIXPANEL_TOKEN")

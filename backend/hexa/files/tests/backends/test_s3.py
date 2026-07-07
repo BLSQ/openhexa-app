@@ -2,6 +2,7 @@ import io
 from unittest.mock import patch
 from urllib.parse import parse_qs, unquote, urlparse
 
+from botocore.exceptions import ClientError
 from moto import mock_aws
 
 from hexa.core.test import TestCase
@@ -32,6 +33,140 @@ class S3StorageTest(StorageTestMixin, TestCase):
     def tearDown(self):
         self.mock.stop()
         super().tearDown()
+
+    def test_create_bucket_sets_cors(self):
+        self.storage.create_bucket(BUCKET)
+        cors = self.storage.client.get_bucket_cors(Bucket=BUCKET)
+        self.assertEqual(len(cors["CORSRules"]), 1)
+        rule = cors["CORSRules"][0]
+        self.assertEqual(rule["AllowedOrigins"], ["*"])
+        self.assertEqual(
+            sorted(rule["AllowedMethods"]), ["DELETE", "GET", "HEAD", "POST", "PUT"]
+        )
+        self.assertEqual(rule["AllowedHeaders"], ["*"])
+        self.assertIn("ETag", rule["ExposeHeaders"])
+        self.assertEqual(rule["MaxAgeSeconds"], 3600)
+
+    def test_create_bucket_enables_versioning(self):
+        storage = S3Storage(
+            access_key_id="fake-access-key",
+            secret_access_key="fake-secret-key",
+            region=REGION,
+            enable_versioning=True,
+        )
+        storage.create_bucket(BUCKET)
+        versioning = storage.client.get_bucket_versioning(Bucket=BUCKET)
+        self.assertEqual(versioning.get("Status"), "Enabled")
+
+    def test_create_bucket_versioning_disabled(self):
+        self.storage.create_bucket(BUCKET)
+        versioning = self.storage.client.get_bucket_versioning(Bucket=BUCKET)
+        self.assertNotIn("Status", versioning)
+
+    def test_create_bucket_sets_lifecycle(self):
+        self.storage.create_bucket(BUCKET)
+        lifecycle = self.storage.client.get_bucket_lifecycle_configuration(
+            Bucket=BUCKET
+        )
+        rules = {rule["ID"]: rule for rule in lifecycle["Rules"]}
+        self.assertEqual(
+            rules["transition-storage-classes"]["Transitions"],
+            [
+                {"Days": 30, "StorageClass": "STANDARD_IA"},
+                {"Days": 90, "StorageClass": "GLACIER_IR"},
+                {"Days": 365, "StorageClass": "DEEP_ARCHIVE"},
+            ],
+        )
+        # moto accepts NewerNoncurrentVersions on put but does not return it on get
+        self.assertEqual(
+            rules["cleanup-noncurrent-versions"]["NoncurrentVersionExpiration"][
+                "NoncurrentDays"
+            ],
+            1,
+        )
+        self.assertEqual(
+            rules["cleanup-incomplete-uploads"]["AbortIncompleteMultipartUpload"],
+            {"DaysAfterInitiation": 7},
+        )
+
+    def test_create_bucket_sets_labels(self):
+        self.storage.create_bucket(BUCKET, labels={"hexa_workspace": "test"})
+        tagging = self.storage.client.get_bucket_tagging(Bucket=BUCKET)
+        self.assertEqual(
+            tagging["TagSet"], [{"Key": "hexa_workspace", "Value": "test"}]
+        )
+
+    def test_create_bucket_without_labels_sets_no_tags(self):
+        self.storage.create_bucket(BUCKET)
+        with self.assertRaises(ClientError):
+            self.storage.client.get_bucket_tagging(Bucket=BUCKET)
+
+    def test_create_bucket_lifecycle_falls_back_without_transitions(self):
+        # MinIO-like stores reject transition rules with InvalidStorageClass;
+        # the cleanup rules must still be applied.
+        invalid_storage_class = ClientError(
+            {
+                "Error": {
+                    "Code": "InvalidStorageClass",
+                    "Message": "Invalid storage class.",
+                }
+            },
+            "PutBucketLifecycleConfiguration",
+        )
+        original = self.storage.client.put_bucket_lifecycle_configuration
+        calls = []
+
+        def fail_on_transitions(**kwargs):
+            calls.append(kwargs)
+            if any(
+                "Transitions" in rule
+                for rule in kwargs["LifecycleConfiguration"]["Rules"]
+            ):
+                raise invalid_storage_class
+            return original(**kwargs)
+
+        with patch.object(
+            self.storage.client,
+            "put_bucket_lifecycle_configuration",
+            side_effect=fail_on_transitions,
+        ), patch("sentry_sdk.capture_exception") as mock_capture:
+            self.storage.create_bucket(BUCKET)
+
+        mock_capture.assert_called_once()
+        self.assertEqual(len(calls), 2)
+        lifecycle = self.storage.client.get_bucket_lifecycle_configuration(
+            Bucket=BUCKET
+        )
+        rule_ids = {rule["ID"] for rule in lifecycle["Rules"]}
+        self.assertEqual(
+            rule_ids, {"cleanup-noncurrent-versions", "cleanup-incomplete-uploads"}
+        )
+
+    def test_create_bucket_tolerates_not_implemented(self):
+        # S3-compatible stores like MinIO do not implement every bucket
+        # configuration API; creation must still succeed.
+        not_implemented = ClientError(
+            {"Error": {"Code": "NotImplemented", "Message": "not supported"}},
+            "PutBucketCors",
+        )
+        with patch.object(
+            self.storage.client, "put_bucket_cors", side_effect=not_implemented
+        ), patch("sentry_sdk.capture_exception") as mock_capture:
+            self.storage.create_bucket(BUCKET)
+
+        mock_capture.assert_called_once()
+        self.assertTrue(self.storage.bucket_exists(BUCKET))
+
+    def test_create_bucket_config_error_raises(self):
+        access_denied = ClientError(
+            {"Error": {"Code": "AccessDenied", "Message": "denied"}},
+            "PutBucketCors",
+        )
+        with patch.object(
+            self.storage.client, "put_bucket_cors", side_effect=access_denied
+        ):
+            with self.assertRaises(ClientError):
+                self.storage.create_bucket(BUCKET)
 
     def test_delete_bucket(self):
         self.storage.create_bucket(BUCKET)

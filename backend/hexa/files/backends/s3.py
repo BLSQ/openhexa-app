@@ -1,6 +1,7 @@
 import fnmatch
 import io
 import json
+from collections.abc import Callable
 from mimetypes import guess_type
 
 import boto3
@@ -65,6 +66,7 @@ class S3Storage(Storage):
         endpoint_url: str | None = None,
         public_endpoint_url: str | None = None,
         role_arn: str | None = None,
+        enable_versioning: bool = False,
     ):
         super().__init__()
         self._access_key_id = access_key_id
@@ -73,6 +75,7 @@ class S3Storage(Storage):
         self._endpoint_url = endpoint_url or None
         self._public_endpoint_url = public_endpoint_url or endpoint_url or None
         self._role_arn = role_arn or None
+        self.enable_versioning = enable_versioning
         self._client = None
         self._public_client = None
 
@@ -113,7 +116,9 @@ class S3Storage(Storage):
                 return False
             raise
 
-    def create_bucket(self, bucket_name: str, *args, **kwargs) -> str:
+    def create_bucket(
+        self, bucket_name: str, labels: dict | None = None, *args, **kwargs
+    ) -> str:
         try:
             # us-east-1 is the default region and rejects an explicit LocationConstraint
             if self.region == "us-east-1":
@@ -123,7 +128,6 @@ class S3Storage(Storage):
                     Bucket=bucket_name,
                     CreateBucketConfiguration={"LocationConstraint": self.region},
                 )
-            return bucket_name
         except ClientError as e:
             if e.response["Error"]["Code"] in (
                 "BucketAlreadyExists",
@@ -133,6 +137,119 @@ class S3Storage(Storage):
                     f"S3: Bucket {bucket_name} already exists!"
                 )
             raise
+
+        self._apply_bucket_config(lambda: self._set_bucket_cors(bucket_name))
+        self._apply_bucket_config(lambda: self._set_bucket_versioning(bucket_name))
+        self._apply_bucket_config(lambda: self._set_bucket_lifecycle(bucket_name))
+        self._apply_bucket_config(lambda: self._set_bucket_tags(bucket_name, labels))
+        return bucket_name
+
+    def _apply_bucket_config(self, step: Callable[[], None]) -> None:
+        """Apply a post-creation bucket configuration step.
+
+        S3-compatible stores (e.g. MinIO) do not implement all bucket
+        configuration APIs; skip those (NotImplemented/MethodNotAllowed)
+        instead of failing bucket creation. Any other error propagates,
+        like a failed bucket.patch() on GCP.
+        """
+        try:
+            step()
+        except ClientError as e:
+            if e.response["Error"]["Code"] in ("NotImplemented", "MethodNotAllowed"):
+                # Swallowed on purpose (methods not supported on S3-compatible stores)
+                sentry_sdk.capture_exception(e)
+            else:
+                raise
+
+    def _set_bucket_cors(self, bucket_name: str) -> None:
+        # Uploads/downloads are made by the browser straight to the bucket via
+        # presigned URLs, so cross-origin requests must be allowed. The wildcard
+        # origin is safe: access control comes from the presigned signature.
+        self.client.put_bucket_cors(
+            Bucket=bucket_name,
+            CORSConfiguration={
+                "CORSRules": [
+                    {
+                        "AllowedOrigins": ["*"],
+                        "AllowedMethods": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+                        "AllowedHeaders": ["*"],
+                        "ExposeHeaders": ["ETag", "Content-Type", "Content-Length"],
+                        "MaxAgeSeconds": 3600,
+                    }
+                ]
+            },
+        )
+
+    def _set_bucket_versioning(self, bucket_name: str) -> None:
+        if not self.enable_versioning:
+            return
+        self.client.put_bucket_versioning(
+            Bucket=bucket_name,
+            VersioningConfiguration={"Status": "Enabled"},
+        )
+
+    def _set_bucket_lifecycle(self, bucket_name: str) -> None:
+        # S3 translation of the GCP backend lifecycle rules, using storage
+        # classes that keep objects instantly readable up to 365 days. Past
+        # 365 days objects land in DEEP_ARCHIVE and need a restore before
+        # they can be read again.
+        rules = [
+            {
+                "ID": "transition-storage-classes",
+                "Status": "Enabled",
+                "Filter": {},
+                "Transitions": [
+                    {"Days": 30, "StorageClass": "STANDARD_IA"},
+                    {"Days": 90, "StorageClass": "GLACIER_IR"},
+                    {"Days": 365, "StorageClass": "DEEP_ARCHIVE"},
+                ],
+            },
+            {
+                "ID": "cleanup-noncurrent-versions",
+                "Status": "Enabled",
+                "Filter": {},
+                "NoncurrentVersionExpiration": {
+                    "NoncurrentDays": 1,
+                    "NewerNoncurrentVersions": 3,
+                },
+            },
+            {
+                "ID": "cleanup-incomplete-uploads",
+                "Status": "Enabled",
+                "Filter": {},
+                "AbortIncompleteMultipartUpload": {"DaysAfterInitiation": 7},
+                "Expiration": {"ExpiredObjectDeleteMarker": True},
+            },
+        ]
+        try:
+            self.client.put_bucket_lifecycle_configuration(
+                Bucket=bucket_name,
+                LifecycleConfiguration={"Rules": rules},
+            )
+        except ClientError as e:
+            if e.response["Error"]["Code"] != "InvalidStorageClass":
+                raise
+            # Stores without storage tiers (e.g. MinIO) reject the transition
+            # rule but do support the cleanup rules — retry with those only.
+            sentry_sdk.capture_exception(e)
+            self.client.put_bucket_lifecycle_configuration(
+                Bucket=bucket_name,
+                LifecycleConfiguration={
+                    "Rules": [rule for rule in rules if "Transitions" not in rule]
+                },
+            )
+
+    def _set_bucket_tags(self, bucket_name: str, labels: dict | None) -> None:
+        if not labels:
+            return
+        self.client.put_bucket_tagging(
+            Bucket=bucket_name,
+            Tagging={
+                "TagSet": [
+                    {"Key": key, "Value": value} for key, value in labels.items()
+                ]
+            },
+        )
 
     def delete_bucket(self, bucket_name: str, force: bool = False) -> None:
         if force:
