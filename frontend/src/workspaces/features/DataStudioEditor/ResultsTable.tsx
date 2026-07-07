@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { stringifyCellValue } from "./format";
+import { isNumericValue, stringifyCellValue } from "./format";
 
 type Row = Record<string, unknown>;
 
@@ -51,13 +51,12 @@ const ResultsTable = ({
             </td>
             {columns.map((column) => {
               const value = row[column];
-              const isNumber = typeof value === "number";
               return (
                 <td
                   key={column}
                   className={clsx(
                     "border-b border-gray-100 px-3 py-1.5 text-gray-700",
-                    isNumber && "text-right font-mono",
+                    isNumericValue(value) && "text-right font-mono",
                     columnClassName?.[column],
                   )}
                 >

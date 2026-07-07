@@ -29,6 +29,18 @@ describe("ResultsTable", () => {
     expect(cell).toHaveClass("text-right", "font-mono");
   });
 
+  it("right-aligns numeric strings, since NUMERIC/DECIMAL columns arrive as strings", () => {
+    render(<ResultsTable columns={["n"]} rows={[{ n: "-5.5" }]} />);
+    const cell = screen.getByText("-5.5");
+    expect(cell).toHaveClass("text-right", "font-mono");
+  });
+
+  it("left-aligns non-numeric text", () => {
+    render(<ResultsTable columns={["n"]} rows={[{ n: "-cmd" }]} />);
+    const cell = screen.getByText("-cmd");
+    expect(cell).not.toHaveClass("text-right");
+  });
+
   it("appends per-column classes from columnClassName", () => {
     render(
       <ResultsTable

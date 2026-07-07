@@ -1,5 +1,5 @@
 import { downloadBlob } from "core/helpers/files";
-import { stringifyCellValue } from "./format";
+import { isNumericValue, stringifyCellValue } from "./format";
 
 // Leading characters that spreadsheet apps interpret as the start of a formula.
 // Prefixing these values with a single quote neutralises CSV injection.
@@ -8,8 +8,10 @@ const FORMULA_PREFIX = /^[=+\-@\t\r]/;
 const escapeCsvField = (raw: unknown): string => {
   const text = stringifyCellValue(raw);
   // Numbers are safe and must stay intact (e.g. "-5" should not become "'-5").
+  // NUMERIC/DECIMAL columns arrive as strings (encoded that way to preserve
+  // precision), so guard by the value's textual shape, not just its JS type.
   const guarded =
-    typeof raw !== "number" && FORMULA_PREFIX.test(text) ? `'${text}` : text;
+    !isNumericValue(raw) && FORMULA_PREFIX.test(text) ? `'${text}` : text;
   return /[",\n\r]/.test(guarded)
     ? `"${guarded.replace(/"/g, '""')}"`
     : guarded;
