@@ -8,9 +8,9 @@ import useIsMac from "core/hooks/useIsMac";
 import { useTranslation } from "next-i18next";
 import { useRef, useState } from "react";
 import { buildCsv, downloadCsv } from "./csv";
-import { useExecuteWorkspaceSqlLazyQuery } from "./DataStudioEditor.generated";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
+import { useDataStudioQuery } from "./useDataStudioQuery";
 
 type DataStudioEditorProps = {
   workspaceSlug: string;
@@ -30,44 +30,14 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
   // ⌘ on macOS; other platforms keep the spelled-out modifier.
   const runShortcutBadge = isMac ? "⌘↵" : "Ctrl+Enter";
 
-  // Results are large, ad-hoc, and never read from the cache elsewhere; skip
-  // normalisation so big result sets are not retained for the page lifetime.
-  const [execute, { data, loading, error }] = useExecuteWorkspaceSqlLazyQuery({
-    fetchPolicy: "no-cache",
-  });
+  const { run, retry, result, loading, error, canExport } =
+    useDataStudioQuery(workspaceSlug);
 
-  // The last executed variables, so Retry re-runs exactly what failed — which
-  // may be a selection, and may differ from the current editor contents.
-  const lastRunRef = useRef<{
-    workspaceSlug: string;
-    query: string;
-    maxRows: number;
-  } | null>(null);
-
-  const result = data?.workspace?.database?.executeSQL;
-  const canExport = Boolean(result?.success && (result.rows?.length ?? 0) > 0);
   const canRun = !loading && Boolean(query.trim());
-
-  const runSql = (sql: string) => {
-    const trimmed = sql.trim();
-    if (loading || !trimmed) {
-      return;
-    }
-    const variables = { workspaceSlug, query: trimmed, maxRows };
-    lastRunRef.current = variables;
-    execute({ variables });
-  };
-
-  const retry = () => {
-    if (loading || !lastRunRef.current) {
-      return;
-    }
-    execute({ variables: lastRunRef.current });
-  };
 
   const runSelection = () => {
     const selected = editorRef.current?.getSelectedText() ?? "";
-    runSql(selected.trim() || query);
+    run(selected.trim() || query, maxRows);
   };
 
   const exportCsv = () => {
@@ -98,7 +68,9 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
         {/* Toolbar: controls right-aligned, Run at the far right. */}
         <div className="flex h-11 shrink-0 items-center gap-2 border-b border-gray-200 px-3">
           <TableCellsIcon className="h-4 w-4 shrink-0 text-gray-400" />
-          <span className="text-sm font-medium text-gray-800">{t("Query")}</span>
+          <span className="text-sm font-medium text-gray-800">
+            {t("Query")}
+          </span>
           <div className="ml-auto flex items-center gap-2">
             <label className="flex items-center gap-1.5 text-xs text-gray-500">
               {t("Max rows")}
