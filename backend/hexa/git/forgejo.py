@@ -107,6 +107,9 @@ class ForgejoClient(GitClient):
         password the PATCH keeps the account in sync so the proxy can keep
         authenticating as it.
         """
+        if username == self._username:
+            raise ValueError("Impossible to modify the current user.")
+
         try:
             self._request(
                 "POST",

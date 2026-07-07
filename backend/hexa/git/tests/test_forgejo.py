@@ -91,6 +91,14 @@ class ForgejoClientEnsureUserTest(TestCase):
         self.assertNotIn("login_name", patch_body)
 
     @responses.activate
+    def test_ensure_user_refuses_to_modify_the_admin_account(self):
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        with self.assertRaises(ValueError):
+            client.ensure_user(USERNAME, "secret", "admin@openhexa.org")
+
+        self.assertEqual(len(responses.calls), 0)
+
+    @responses.activate
     def test_ensure_user_raises_on_other_errors(self):
         responses.post(
             f"{FORGEJO_URL}/api/v1/admin/users",
