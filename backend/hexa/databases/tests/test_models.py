@@ -107,6 +107,4 @@ class DatabaseQueryLogTest(TestCase):
 
     def test_workspace_deletion_removes_logs(self):
         self.WORKSPACE_2.delete()
-        self.assertFalse(
-            DatabaseQueryLog.objects.filter(id=self.LOG_WS2.id).exists()
-        )
+        self.assertFalse(DatabaseQueryLog.objects.filter(id=self.LOG_WS2.id).exists())
