@@ -1,0 +1,84 @@
+from django.core.exceptions import PermissionDenied
+
+from hexa.core.test import TestCase
+from hexa.data_studio.models import SavedQuery
+
+from .testutils import SavedQueryTestMixin
+
+
+class SavedQueryModelTest(SavedQueryTestMixin, TestCase):
+    def _create(self, user=None, workspace=None, name="My query"):
+        return SavedQuery.objects.create_if_has_perm(
+            user or self.USER_EDITOR,
+            workspace or self.WORKSPACE,
+            name=name,
+            content="SELECT 1",
+            description="a query",
+        )
+
+    def test_create_if_has_perm(self):
+        saved_query = self._create(user=self.USER_EDITOR)
+        self.assertEqual(saved_query.name, "My query")
+        self.assertEqual(saved_query.content, "SELECT 1")
+        self.assertEqual(saved_query.created_by, self.USER_EDITOR)
+        self.assertEqual(saved_query.workspace, self.WORKSPACE)
+
+    def test_create_any_member_allowed(self):
+        # Even a viewer can save a query (consistent with running queries)
+        saved_query = self._create(user=self.USER_VIEWER)
+        self.assertEqual(saved_query.created_by, self.USER_VIEWER)
+
+    def test_create_non_member_denied(self):
+        with self.assertRaises(PermissionDenied):
+            self._create(user=self.USER_OUTSIDER)
+
+    def test_filter_for_user_scoped_to_membership(self):
+        query_ws1 = self._create(user=self.USER_EDITOR, workspace=self.WORKSPACE)
+        query_ws2 = self._create(user=self.USER_ADMIN, workspace=self.WORKSPACE_2)
+
+        # Editor only belongs to WORKSPACE
+        self.assertEqual(
+            list(SavedQuery.objects.filter_for_user(self.USER_EDITOR)),
+            [query_ws1],
+        )
+        # Admin belongs to both workspaces -> sees both (shared with all members)
+        self.assertCountEqual(
+            list(SavedQuery.objects.filter_for_user(self.USER_ADMIN)),
+            [query_ws1, query_ws2],
+        )
+        # Outsider sees nothing
+        self.assertEqual(
+            list(SavedQuery.objects.filter_for_user(self.USER_OUTSIDER)),
+            [],
+        )
+
+    def test_viewer_sees_shared_queries(self):
+        query = self._create(user=self.USER_EDITOR)
+        self.assertIn(query, SavedQuery.objects.filter_for_user(self.USER_VIEWER))
+
+    def test_update_by_author(self):
+        query = self._create(user=self.USER_VIEWER)
+        query.update_if_has_perm(principal=self.USER_VIEWER, name="Renamed")
+        query.refresh_from_db()
+        self.assertEqual(query.name, "Renamed")
+
+    def test_update_by_editor(self):
+        query = self._create(user=self.USER_ADMIN)
+        query.update_if_has_perm(principal=self.USER_EDITOR, content="SELECT 2")
+        query.refresh_from_db()
+        self.assertEqual(query.content, "SELECT 2")
+
+    def test_update_by_viewer_non_author_denied(self):
+        query = self._create(user=self.USER_EDITOR)
+        with self.assertRaises(PermissionDenied):
+            query.update_if_has_perm(principal=self.USER_VIEWER, name="Nope")
+
+    def test_delete_by_author(self):
+        query = self._create(user=self.USER_VIEWER)
+        query.delete_if_has_perm(principal=self.USER_VIEWER)
+        self.assertFalse(SavedQuery.objects.filter(id=query.id).exists())
+
+    def test_delete_by_viewer_non_author_denied(self):
+        query = self._create(user=self.USER_EDITOR)
+        with self.assertRaises(PermissionDenied):
+            query.delete_if_has_perm(principal=self.USER_VIEWER)

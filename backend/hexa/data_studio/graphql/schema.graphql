@@ -1,0 +1,136 @@
+"""
+A SQL query saved by a user in the Data Studio. Saved queries belong to a
+workspace and are visible to all of its members.
+"""
+type SavedQuery {
+  id: ID!
+  name: String!
+  description: String
+  content: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User
+  workspace: Workspace!
+  permissions: SavedQueryPermissions!
+}
+
+"""
+Permissions of a saved query.
+"""
+type SavedQueryPermissions {
+  "Permission to edit the saved query."
+  update: Boolean!
+  "Permission to delete the saved query."
+  delete: Boolean!
+}
+
+"""
+A page of saved queries.
+"""
+type SavedQueryPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [SavedQuery!]!
+}
+
+extend type Workspace {
+  "The saved queries of the workspace."
+  savedQueries(query: String, page: Int = 1, perPage: Int = 15): SavedQueryPage!
+}
+
+extend type WorkspacePermissions {
+  "Permission to create a saved query in the workspace."
+  createSavedQuery: Boolean!
+}
+
+extend type Query {
+  "Retrieves a saved query by its id."
+  savedQuery(id: ID!): SavedQuery
+}
+
+"""
+Input for creating a saved query.
+"""
+input CreateSavedQueryInput {
+  workspaceSlug: String!
+  name: String!
+  content: String!
+  description: String
+}
+
+"""
+Errors that can occur when creating a saved query.
+"""
+enum CreateSavedQueryError {
+  WORKSPACE_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""
+Result of creating a saved query.
+"""
+type CreateSavedQueryResult {
+  savedQuery: SavedQuery
+  success: Boolean!
+  errors: [CreateSavedQueryError!]!
+}
+
+"""
+Input for updating a saved query.
+"""
+input UpdateSavedQueryInput {
+  id: ID!
+  name: String
+  content: String
+  description: String
+}
+
+"""
+Errors that can occur when updating a saved query.
+"""
+enum UpdateSavedQueryError {
+  SAVED_QUERY_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""
+Result of updating a saved query.
+"""
+type UpdateSavedQueryResult {
+  savedQuery: SavedQuery
+  success: Boolean!
+  errors: [UpdateSavedQueryError!]!
+}
+
+"""
+Input for deleting a saved query.
+"""
+input DeleteSavedQueryInput {
+  id: ID!
+}
+
+"""
+Errors that can occur when deleting a saved query.
+"""
+enum DeleteSavedQueryError {
+  SAVED_QUERY_NOT_FOUND
+  PERMISSION_DENIED
+}
+
+"""
+Result of deleting a saved query.
+"""
+type DeleteSavedQueryResult {
+  success: Boolean!
+  errors: [DeleteSavedQueryError!]!
+}
+
+extend type Mutation {
+  "Creates a new saved query in a workspace."
+  createSavedQuery(input: CreateSavedQueryInput!): CreateSavedQueryResult! @loginRequired
+  "Updates an existing saved query."
+  updateSavedQuery(input: UpdateSavedQueryInput!): UpdateSavedQueryResult! @loginRequired
+  "Deletes a saved query."
+  deleteSavedQuery(input: DeleteSavedQueryInput!): DeleteSavedQueryResult! @loginRequired
+}
