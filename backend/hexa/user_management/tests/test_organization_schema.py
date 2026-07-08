@@ -1205,7 +1205,7 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
 
     @patch("hexa.user_management.schema.mutations.send_organization_invite")
     def test_create_organization_without_monthly_ai_budget(self, mock_send_invite):
-        """Omitting monthlyAiBudget defaults it to 0 (older console versions don't send it)."""
+        """Omitting monthlyAiBudget defaults it to OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET (fallback in case the Console doesn't send it)."""
         self.client.force_login(self.superuser)
         r = self.run_query(
             """
@@ -1235,7 +1235,10 @@ class CreateOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
 
         self.assertTrue(r["data"]["createOrganization"]["success"])
         org = Organization.objects.get(name="Org Without AI Budget")
-        self.assertEqual(org.active_subscription.monthly_ai_budget, 0)
+        self.assertEqual(
+            org.active_subscription.monthly_ai_budget,
+            OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET,
+        )
 
     @patch("hexa.user_management.schema.mutations.send_organization_add_user_email")
     def test_create_organization_with_existing_user(self, mock_send_email):
@@ -1569,7 +1572,7 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
         self.assertEqual(self.subscription.end_date, date(2026, 12, 31))
 
     def test_update_subscription_without_monthly_ai_budget(self):
-        """Omitting monthlyAiBudget defaults it to 0 (older console versions don't send it)."""
+        """Omitting monthlyAiBudget defaults it to OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET (fallback in case the Console doesn't send it)."""
         self.client.force_login(self.superuser)
         r = self.run_query(
             """
@@ -1598,7 +1601,10 @@ class UpdateOrganizationSubscriptionTest(GraphQLTestCase, OrganizationTestMixin)
 
         self.assertTrue(r["data"]["updateOrganizationSubscription"]["success"])
         self.subscription.refresh_from_db()
-        self.assertEqual(self.subscription.monthly_ai_budget, 0)
+        self.assertEqual(
+            self.subscription.monthly_ai_budget,
+            OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET,
+        )
 
     def test_update_subscription_creates_new_for_new_subscription_id(self):
         """Test that using a new subscriptionId creates a new subscription (for downgrades/renewals)."""
