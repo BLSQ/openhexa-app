@@ -19,12 +19,15 @@ class PermissionsBackend(BaseBackend):
     ) -> typing.Optional[ModuleType]:
         try:
             app_config = apps.get_app_config(app_label)
-            import_path = f"{app_config.name}.permissions"
-            permissions_module = import_module(import_path)
         except LookupError:
             return None
 
-        return permissions_module
+        # Third-party apps (e.g. django_sql_dashboard) don't follow the OpenHEXA
+        # permissions module convention, so this backend can't handle their permissions
+        if not app_config.name.startswith("hexa."):
+            return None
+
+        return import_module(f"{app_config.name}.permissions")
 
     def has_perm(
         self,
@@ -39,9 +42,7 @@ class PermissionsBackend(BaseBackend):
 
         permission_module = self._get_permission_module(app_label)
         if permission_module is None:
-            raise ValueError(
-                f'Could not find a permission module for the "{app_label}" app'
-            )
+            return False  # Not an OpenHEXA app, let other backends handle it
 
         try:
             permission_function = getattr(permission_module, app_perm)
