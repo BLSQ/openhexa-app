@@ -513,6 +513,10 @@ class OrganizationSubscription(Base):
     Self-hosted deployments have no subscription (active_subscription returns None).
     """
 
+    # Default monthly AI budget, matching the "OH free trial" (oh_trial) plan.
+    # Used as a fallback when no budget is provided by the Bluesquare Console.
+    DEFAULT_MONTHLY_AI_BUDGET = 10
+
     class Meta:
         db_table = "identity_organization_subscription"
         ordering = ["-start_date"]

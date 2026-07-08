@@ -1010,7 +1010,8 @@ def resolve_create_organization(_, info, **kwargs):
         users_limit=limits["users"],
         workspaces_limit=limits["workspaces"],
         pipeline_runs_limit=limits["pipeline_runs"],
-        monthly_ai_budget=limits.get("monthly_ai_budget") or 0,
+        monthly_ai_budget=limits.get("monthly_ai_budget")
+        or OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET,
         max_pipeline_timeout=limits.get("max_pipeline_timeout"),
         pipeline_cpu_limit=limits.get("pipeline_cpu_limit"),
         pipeline_memory_limit=limits.get("pipeline_memory_limit"),
@@ -1097,7 +1098,8 @@ def resolve_update_organization_subscription(_, info, **kwargs):
             "users_limit": limits["users"],
             "workspaces_limit": limits["workspaces"],
             "pipeline_runs_limit": limits["pipeline_runs"],
-            "monthly_ai_budget": limits.get("monthly_ai_budget") or 0,
+            "monthly_ai_budget": limits.get("monthly_ai_budget")
+            or OrganizationSubscription.DEFAULT_MONTHLY_AI_BUDGET,
             "max_pipeline_timeout": limits.get("max_pipeline_timeout"),
             "pipeline_cpu_limit": limits.get("pipeline_cpu_limit"),
             "pipeline_memory_limit": limits.get("pipeline_memory_limit"),
