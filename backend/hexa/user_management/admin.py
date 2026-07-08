@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django import forms
 from django.contrib import admin, messages
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
@@ -32,8 +33,45 @@ from .models import (
     User,
 )
 
-# We won't be using the Django group feature
+# Django groups are not part of OpenHEXA's access model (organizations, workspaces,
+# teams): they are only exposed here because django-sql-dashboard relies on them for
+# its group-based view/edit policies. We replace the default GroupAdmin with one that
+# carries a disclaimer and allows managing members directly (the default group admin
+# has no user picker, and our user admin does not expose the groups field).
 admin.site.unregister(Group)
+
+
+class GroupForm(forms.ModelForm):
+    users = forms.ModelMultipleChoiceField(
+        queryset=User.objects.order_by("email"),
+        required=False,
+        widget=FilteredSelectMultiple("users", is_stacked=False),
+    )
+
+    class Meta:
+        model = Group
+        fields = ("name", "users")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields["users"].initial = self.instance.user_set.all()
+
+    def _save_m2m(self):
+        super()._save_m2m()
+        self.instance.user_set.set(self.cleaned_data["users"])
+
+
+@admin.register(Group)
+class GroupAdmin(admin.ModelAdmin):
+    form = GroupForm
+    list_display = ("name", "members_count")
+    search_fields = ("name",)
+
+    def members_count(self, obj):
+        return obj.user_set.count()
+
+    members_count.short_description = "Members Count"
 
 
 class UserCreationForm(BaseUserCreationForm):
