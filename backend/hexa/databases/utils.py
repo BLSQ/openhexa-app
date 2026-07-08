@@ -1,6 +1,7 @@
 import enum
 import json
 import math
+import time
 from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
@@ -41,6 +42,20 @@ def ensure_single_statement(query: str) -> None:
     statements = [s for s in sqlparse.split(query) if s.strip().rstrip(";").strip()]
     if len(statements) > 1:
         raise MultipleStatementsError("Only a single SQL statement can be executed.")
+
+
+def is_explain_query(query: str) -> bool:
+    """Whether the statement is an EXPLAIN.
+
+    An EXPLAIN returns a query plan whose length depends on the query's
+    complexity, not on the amount of data, so the row cap (meant to bound large
+    result sets) would truncate the plan mid-tree and must not apply.
+    """
+    parsed = sqlparse.parse(query)
+    if not parsed:
+        return False
+    first_token = parsed[0].token_first(skip_cm=True)
+    return first_token is not None and first_token.normalized.upper() == "EXPLAIN"
 
 
 def get_row_count_estimate(cursor, table_name: str) -> int:
@@ -128,7 +143,10 @@ def execute_database_query(
     ``truncated`` indicates whether the result was capped.
     """
     ensure_single_statement(query)
-    max_rows = min(max_rows, settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS)
+    hard_limit = settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS
+    # A plan is bounded by query complexity, so let it through the hard limit
+    # in full rather than clipping it to the (small) requested row cap.
+    max_rows = hard_limit if is_explain_query(query) else min(max_rows, hard_limit)
     conn = None
     try:
         conn = get_workspace_database_ro_connection(workspace)
@@ -138,6 +156,7 @@ def execute_database_query(
                     timeout=sql.Literal(timeout_ms)
                 )
             )
+            started_at = time.perf_counter()
             cursor.execute(query)
             # cursor.description is None for statements that do not return rows
             columns = (
@@ -147,6 +166,7 @@ def execute_database_query(
             )
             # Fetch one extra row to detect (without returning) that more exist.
             fetched = cursor.fetchmany(max_rows + 1) if cursor.description else []
+            duration_ms = round((time.perf_counter() - started_at) * 1000)
         truncated = len(fetched) > max_rows
         rows = json.loads(json.dumps(fetched[:max_rows], cls=ResultJSONEncoder))
         return {
@@ -154,6 +174,7 @@ def execute_database_query(
             "rows": rows,
             "row_count": len(rows),
             "truncated": truncated,
+            "duration_ms": duration_ms,
         }
     finally:
         if conn:
@@ -209,8 +230,66 @@ _TABLES_FROM_CLAUSE = """
 """
 
 
+def _fetch_tables(cursor, workspace: Workspace, params: dict) -> List[Dict]:
+    """Return the page of tables (name + raw ``reltuples`` estimate), without columns."""
+    cursor.execute(
+        "SELECT table_name AS name, pg_class.reltuples AS count"
+        + _TABLES_FROM_CLAUSE
+        + "ORDER BY table_name LIMIT %(limit)s OFFSET %(offset)s",
+        params,
+    )
+    return [
+        {"workspace": workspace, "name": row["name"], "count": row["count"]}
+        for row in cursor.fetchall()
+    ]
+
+
+def _fetch_tables_with_columns(
+    cursor, workspace: Workspace, params: dict
+) -> List[Dict]:
+    """Return the page of tables together with their columns in a single query.
+
+    A LEFT JOIN on ``information_schema.columns`` fetches every column of every
+    table on the page in one round trip (no per-table N+1) while still keeping
+    columnless tables. Rows arrive grouped by table thanks to the ORDER BY.
+    """
+    cursor.execute(
+        "WITH paged AS ("
+        "SELECT table_name AS name, pg_class.reltuples AS count"
+        + _TABLES_FROM_CLAUSE
+        + "ORDER BY table_name LIMIT %(limit)s OFFSET %(offset)s"
+        ") "
+        "SELECT paged.name, paged.count, c.column_name, c.data_type "
+        "FROM paged "
+        "LEFT JOIN information_schema.columns AS c "
+        "ON c.table_name = paged.name AND c.table_schema = 'public' "
+        "ORDER BY paged.name, c.ordinal_position",
+        params,
+    )
+    tables: Dict[str, Dict] = {}
+    for row in cursor.fetchall():
+        table = tables.get(row["name"])
+        if table is None:
+            table = {
+                "workspace": workspace,
+                "name": row["name"],
+                "count": row["count"],
+                "columns": [],
+            }
+            tables[row["name"]] = table
+        if row["column_name"] is not None:
+            table["columns"].append(
+                {"name": row["column_name"], "type": row["data_type"]}
+            )
+    return list(tables.values())
+
+
 def get_database_definition_page(
-    workspace: Workspace, page: int = 1, per_page: int = 15
+    workspace: Workspace,
+    page: int = 1,
+    per_page: int = 15,
+    with_columns: bool = False,
+    with_counts: bool = True,
 ):
     # Clamp caller-provided values: a GraphQL client can send any Int (or an
     # explicit null), and negative/zero values would end up in LIMIT/OFFSET.
@@ -226,24 +305,25 @@ def get_database_definition_page(
             )
             total_items = cursor.fetchone()["total"]
 
-            cursor.execute(
-                "SELECT table_name AS name, pg_class.reltuples AS count"
-                + _TABLES_FROM_CLAUSE
-                + "ORDER BY table_name LIMIT %(limit)s OFFSET %(offset)s",
-                {
-                    "ignore_tables": IGNORE_TABLES,
-                    "limit": per_page,
-                    "offset": (page - 1) * per_page,
-                },
+            params = {
+                "ignore_tables": IGNORE_TABLES,
+                "limit": per_page,
+                "offset": (page - 1) * per_page,
+            }
+            items = (
+                _fetch_tables_with_columns(cursor, workspace, params)
+                if with_columns
+                else _fetch_tables(cursor, workspace, params)
             )
-            items = [
-                {
-                    "workspace": workspace,
-                    "name": row["name"],
-                    "count": get_row_count(cursor, row["name"], row["count"]),
-                }
-                for row in cursor.fetchall()
-            ]
+
+            # Row counts are computed separately (and skipped when not requested)
+            # because they can trigger an expensive COUNT(*) per table.
+            for item in items:
+                item["count"] = (
+                    get_row_count(cursor, item["name"], item["count"])
+                    if with_counts
+                    else None
+                )
         return {
             "page_number": page,
             "total_pages": max(math.ceil(total_items / per_page), 1),

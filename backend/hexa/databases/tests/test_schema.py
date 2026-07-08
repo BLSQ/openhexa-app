@@ -356,6 +356,7 @@ class DatabaseTest(GraphQLTestCase):
                             rows
                             rowCount
                             truncated
+                            durationMs
                         }
                     }
                 }
@@ -375,6 +376,9 @@ class DatabaseTest(GraphQLTestCase):
 
         result = self._execute_sql("SELECT id, label FROM demo ORDER BY id")
 
+        duration_ms = result.pop("durationMs")
+        self.assertIsInstance(duration_ms, int)
+        self.assertGreaterEqual(duration_ms, 0)
         self.assertEqual(
             {
                 "success": True,

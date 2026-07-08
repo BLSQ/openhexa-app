@@ -74,9 +74,13 @@ exports[`Workspaces renders the workspace page 1`] = `
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                Home
+                <span
+                  class="truncate"
+                >
+                  Home
+                </span>
               </span>
             </a>
             <a
@@ -104,9 +108,13 @@ exports[`Workspaces renders the workspace page 1`] = `
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                Files
+                <span
+                  class="truncate"
+                >
+                  Files
+                </span>
               </span>
             </a>
             <a
@@ -134,9 +142,52 @@ exports[`Workspaces renders the workspace page 1`] = `
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                Database
+                <span
+                  class="truncate"
+                >
+                  Database
+                </span>
+              </span>
+            </a>
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
+              href="/workspaces/test/data-studio"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
+              >
+                <span
+                  class="truncate"
+                >
+                  Data Studio
+                </span>
+                <span
+                  class="ml-auto shrink-0 rounded bg-pink-500/20 px-1.5 py-0.5 text-[9.5px] font-semibold tracking-wide text-pink-300 uppercase"
+                >
+                  New
+                </span>
               </span>
             </a>
             <a
@@ -164,9 +215,13 @@ exports[`Workspaces renders the workspace page 1`] = `
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                Datasets
+                <span
+                  class="truncate"
+                >
+                  Datasets
+                </span>
               </span>
             </a>
             <a
@@ -194,9 +249,13 @@ exports[`Workspaces renders the workspace page 1`] = `
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                Connections
+                <span
+                  class="truncate"
+                >
+                  Connections
+                </span>
               </span>
             </a>
             <a
@@ -224,9 +283,13 @@ exports[`Workspaces renders the workspace page 1`] = `
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                Pipelines
+                <span
+                  class="truncate"
+                >
+                  Pipelines
+                </span>
               </span>
             </a>
             <a
@@ -254,9 +317,13 @@ exports[`Workspaces renders the workspace page 1`] = `
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                Apps
+                <span
+                  class="truncate"
+                >
+                  Apps
+                </span>
               </span>
             </a>
           </nav>
@@ -504,9 +571,13 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                Home
+                <span
+                  class="truncate"
+                >
+                  Home
+                </span>
               </span>
             </a>
             <a
@@ -534,9 +605,13 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                Files
+                <span
+                  class="truncate"
+                >
+                  Files
+                </span>
               </span>
             </a>
             <a
@@ -564,9 +639,52 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                Database
+                <span
+                  class="truncate"
+                >
+                  Database
+                </span>
+              </span>
+            </a>
+            <a
+              class="text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white  text-gray-300"
+              href="/workspaces/a303ff37-644b-4080-83d9-a42bd2712f63/data-studio"
+              rel="noopener noreferrer"
+            >
+              <div
+                class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+              />
+              <svg
+                aria-hidden="true"
+                class="ml-1 h-5 w-5"
+                data-slot="icon"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
+              >
+                <span
+                  class="truncate"
+                >
+                  Data Studio
+                </span>
+                <span
+                  class="ml-auto shrink-0 rounded bg-pink-500/20 px-1.5 py-0.5 text-[9.5px] font-semibold tracking-wide text-pink-300 uppercase"
+                >
+                  New
+                </span>
               </span>
             </a>
             <a
@@ -594,9 +712,13 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                Datasets
+                <span
+                  class="truncate"
+                >
+                  Datasets
+                </span>
               </span>
             </a>
             <a
@@ -624,9 +746,13 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                Connections
+                <span
+                  class="truncate"
+                >
+                  Connections
+                </span>
               </span>
             </a>
             <a
@@ -654,9 +780,13 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                Pipelines
+                <span
+                  class="truncate"
+                >
+                  Pipelines
+                </span>
               </span>
             </a>
             <a
@@ -684,9 +814,13 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                JupyterHub
+                <span
+                  class="truncate"
+                >
+                  JupyterHub
+                </span>
               </span>
             </a>
             <a
@@ -714,9 +848,13 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
                 />
               </svg>
               <span
-                class="whitespace-nowrap overflow-hidden transition-opacity duration-200"
+                class="flex min-w-0 flex-1 items-center overflow-hidden transition-opacity duration-200"
               >
-                Apps
+                <span
+                  class="truncate"
+                >
+                  Apps
+                </span>
               </span>
             </a>
           </nav>

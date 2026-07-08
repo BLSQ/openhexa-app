@@ -1,7 +1,10 @@
 # The 'Database' type represents a database in your system.
 type Database {
   # 'tables' field returns a paginated list of tables in the database.
-  tables(page:Int, perPage:Int): DatabaseTablePage!
+  # 'withColumns' fetches each table's columns in the same query (avoiding a
+  # per-table round trip); 'withCounts' toggles the (potentially expensive) row
+  # count computation, which can be skipped when only names/columns are needed.
+  tables(page:Int, perPage:Int, withColumns:Boolean = false, withCounts:Boolean = true): DatabaseTablePage!
 
   # 'table' field returns a specific table from the database.
   # The table is identified by its 'name'.
@@ -82,6 +85,11 @@ type ExecuteSQLResult {
   Whether the result was truncated because it exceeded the maximum number of rows.
   """
   truncated: Boolean
+
+  """
+  The server-side execution time of the query, in milliseconds.
+  """
+  durationMs: Int
 }
 
 # The 'DatabaseCredentials' type represents the credentials used to connect to a database.

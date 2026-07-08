@@ -221,6 +221,34 @@ class DatabaseUtilsTest(TestCase):
             self.assertEqual(1, result["page_number"])
             self.assertEqual(1, len(result["items"]))
 
+    def test_get_database_definition_page_with_columns(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+
+        result = get_database_definition_page(
+            self.WORKSPACE, with_columns=True, with_counts=False
+        )
+
+        demo = next(item for item in result["items"] if item["name"] == "demo")
+        self.assertEqual(
+            [{"name": "id", "type": "integer"}, {"name": "label", "type": "text"}],
+            demo["columns"],
+        )
+        # Row counts are skipped when not requested.
+        self.assertIsNone(demo["count"])
+
+    def test_get_database_definition_page_with_columns_and_counts(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
+
+        result = get_database_definition_page(
+            self.WORKSPACE, with_columns=True, with_counts=True
+        )
+
+        demo = next(item for item in result["items"] if item["name"] == "demo")
+        self.assertEqual(2, demo["count"])
+        self.assertEqual(
+            ["id", "label"], [column["name"] for column in demo["columns"]]
+        )
+
     @mock.patch("psycopg2.connect")
     def test_get_table_definition(self, mock_connect):
         table_name = "database_tutorial"
@@ -344,6 +372,7 @@ class DatabaseUtilsTest(TestCase):
             self.WORKSPACE, "SELECT id, label FROM demo ORDER BY id"
         )
 
+        self.assertIsInstance(result.pop("duration_ms"), int)
         self.assertEqual(
             {
                 "columns": ["id", "label"],
@@ -388,9 +417,25 @@ class DatabaseUtilsTest(TestCase):
         self.assertEqual(2, result["row_count"])
         self.assertTrue(result["truncated"])
 
+    def test_execute_database_query_does_not_truncate_explain_plan(self):
+        # A tight row cap must not clip an EXPLAIN plan: its multi-line tree
+        # comes back whole even though max_rows is smaller than the line count.
+        result = execute_database_query(
+            self.WORKSPACE,
+            "EXPLAIN SELECT generate_series(1, 100) AS id ORDER BY id DESC",
+            max_rows=1,
+        )
+
+        self.assertEqual(["QUERY PLAN"], result["columns"])
+        self.assertFalse(result["truncated"])
+        self.assertGreater(result["row_count"], 1)
+        plan = "\n".join(row["QUERY PLAN"] for row in result["rows"])
+        self.assertIn("Sort", plan)
+
     def test_execute_database_query_no_result_set(self):
         result = execute_database_query(self.WORKSPACE, "SET search_path TO public")
 
+        self.assertIsInstance(result.pop("duration_ms"), int)
         self.assertEqual(
             {"columns": [], "rows": [], "row_count": 0, "truncated": False}, result
         )

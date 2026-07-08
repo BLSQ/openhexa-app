@@ -1488,6 +1488,8 @@ export type DatabaseTableArgs = {
 export type DatabaseTablesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
+  withColumns?: InputMaybe<Scalars['Boolean']['input']>;
+  withCounts?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type DatabaseCredentials = {
@@ -2353,6 +2355,8 @@ export type ExecuteSqlResult = {
   __typename?: 'ExecuteSQLResult';
   /** The names of the columns returned by the query. */
   columns?: Maybe<Array<Scalars['String']['output']>>;
+  /** The server-side execution time of the query, in milliseconds. */
+  durationMs?: Maybe<Scalars['Int']['output']>;
   /** The underlying database error message, when the query failed. */
   errorMessage?: Maybe<Scalars['String']['output']>;
   /** The errors that occurred while executing the query. */

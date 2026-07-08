@@ -1,5 +1,6 @@
 import { gql } from "@apollo/client";
 import { getApolloClient } from "core/helpers/apollo";
+import { downloadBlob } from "core/helpers/files";
 import { RunDagError } from "graphql/types";
 import {
   GetPipelineVersionQuery,
@@ -70,14 +71,10 @@ export async function downloadPipelineVersion(versionId: string) {
   const blob = new Blob([bytes], {
     type: "application/zip",
   });
-  const url = window.URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `${pipeline.code}-${encodeURIComponent(
-    data.pipelineVersion.versionName,
-  )}.zip`;
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
-  window.URL.revokeObjectURL(url);
+  downloadBlob(
+    `${pipeline.code}-${encodeURIComponent(
+      data.pipelineVersion.versionName,
+    )}.zip`,
+    blob,
+  );
 }
