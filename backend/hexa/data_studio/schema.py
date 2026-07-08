@@ -48,7 +48,11 @@ def resolve_saved_query_permissions_delete(saved_query: SavedQuery, info, **kwar
 @workspace_object.field("savedQueries")
 def resolve_workspace_saved_queries(workspace: Workspace, info, query=None, **kwargs):
     request: HttpRequest = info.context["request"]
-    qs = SavedQuery.objects.filter_for_user(request.user).filter(workspace=workspace)
+    qs = (
+        SavedQuery.objects.filter_for_user(request.user)
+        .filter(workspace=workspace)
+        .select_related("created_by", "workspace", "workspace__organization")
+    )
 
     if query is not None:
         qs = qs.filter(name__icontains=query)
@@ -76,7 +80,11 @@ def resolve_workspace_permissions_create_saved_query(
 def resolve_saved_query(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     try:
-        return SavedQuery.objects.filter_for_user(request.user).get(id=kwargs["id"])
+        return (
+            SavedQuery.objects.filter_for_user(request.user)
+            .select_related("created_by", "workspace", "workspace__organization")
+            .get(id=kwargs["id"])
+        )
     except SavedQuery.DoesNotExist:
         return None
 

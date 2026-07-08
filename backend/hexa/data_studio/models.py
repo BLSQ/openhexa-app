@@ -51,6 +51,12 @@ class SavedQuery(Base):
 
     class Meta:
         ordering = ["-updated_at"]
+        indexes = [
+            models.Index(
+                fields=["workspace", "-updated_at"],
+                name="data_studio_ws_updated_idx",
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.name

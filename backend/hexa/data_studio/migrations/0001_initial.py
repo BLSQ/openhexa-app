@@ -54,4 +54,10 @@ class Migration(migrations.Migration):
                 "ordering": ["-updated_at"],
             },
         ),
+        migrations.AddIndex(
+            model_name="savedquery",
+            index=models.Index(
+                fields=["workspace", "-updated_at"], name="data_studio_ws_updated_idx"
+            ),
+        ),
     ]
