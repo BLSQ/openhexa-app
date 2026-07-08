@@ -5,7 +5,14 @@ from .testutils import SavedQueryTestMixin
 
 
 class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
-    def _create_query(self, user, name="My query", content="SELECT 1", workspace=None):
+    def _create_query(
+        self,
+        user,
+        name="My query",
+        content="SELECT 1",
+        workspace=None,
+        description="d",
+    ):
         self.client.force_login(user)
         return self.run_query(
             """
@@ -22,7 +29,7 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
                     "workspaceSlug": str((workspace or self.WORKSPACE).slug),
                     "name": name,
                     "content": content,
-                    "description": "d",
+                    "description": description,
                 }
             },
         )
@@ -105,19 +112,47 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         self._create_query(self.USER_EDITOR, name="revenue report")
         self._create_query(self.USER_EDITOR, name="patients count")
 
-        self.client.force_login(self.USER_EDITOR)
-        r = self.run_query(
-            """
-            query ($slug: String!, $query: String) {
-                workspace(slug: $slug) {
-                    savedQueries(query: $query) { items { name } }
+        def search(term):
+            self.client.force_login(self.USER_EDITOR)
+            r = self.run_query(
+                """
+                query ($slug: String!, $query: String) {
+                    workspace(slug: $slug) {
+                        savedQueries(query: $query) { items { name } }
+                    }
                 }
-            }
-            """,
-            {"slug": str(self.WORKSPACE.slug), "query": "revenue"},
+                """,
+                {"slug": str(self.WORKSPACE.slug), "query": term},
+            )
+            return [i["name"] for i in r["data"]["workspace"]["savedQueries"]["items"]]
+
+        self.assertEqual(search("revenue"), ["revenue report"])
+
+    def test_saved_queries_search_matches_content_and_description(self):
+        self._create_query(
+            self.USER_EDITOR, name="alpha", content="SELECT * FROM patients"
         )
-        items = r["data"]["workspace"]["savedQueries"]["items"]
-        self.assertEqual([i["name"] for i in items], ["revenue report"])
+        self._create_query(
+            self.USER_EDITOR, name="beta", description="quarterly revenue figures"
+        )
+        self._create_query(self.USER_EDITOR, name="gamma", content="SELECT 1")
+
+        def search(term):
+            self.client.force_login(self.USER_EDITOR)
+            r = self.run_query(
+                """
+                query ($slug: String!, $query: String) {
+                    workspace(slug: $slug) {
+                        savedQueries(query: $query) { items { name } }
+                    }
+                }
+                """,
+                {"slug": str(self.WORKSPACE.slug), "query": term},
+            )
+            return [i["name"] for i in r["data"]["workspace"]["savedQueries"]["items"]]
+
+        self.assertEqual(search("patients"), ["alpha"])  # matched via content
+        self.assertEqual(search("quarterly"), ["beta"])  # matched via description
 
     def test_get_saved_query(self):
         created = self._create_query(self.USER_EDITOR)
@@ -160,6 +195,31 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertTrue(payload["success"])
         self.assertEqual(
             payload["savedQuery"], {"name": "Renamed", "content": "SELECT 2"}
+        )
+
+    def test_update_saved_query_partial_and_explicit_null(self):
+        created = self._create_query(
+            self.USER_EDITOR, name="Original", content="SELECT 1"
+        )
+        query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
+
+        self.client.force_login(self.USER_EDITOR)
+        r = self.run_query(
+            """
+            mutation ($input: UpdateSavedQueryInput!) {
+                updateSavedQuery(input: $input) {
+                    success errors savedQuery { name content description }
+                }
+            }
+            """,
+            # name set; content omitted (must stay); description explicit null (clears to "").
+            {"input": {"id": query_id, "name": "Renamed", "description": None}},
+        )
+        payload = r["data"]["updateSavedQuery"]
+        self.assertTrue(payload["success"])
+        self.assertEqual(
+            payload["savedQuery"],
+            {"name": "Renamed", "content": "SELECT 1", "description": ""},
         )
 
     def test_update_saved_query_not_found(self):

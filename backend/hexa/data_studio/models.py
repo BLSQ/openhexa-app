@@ -65,9 +65,13 @@ class SavedQuery(Base):
         if not principal.has_perm("data_studio.update_saved_query", self):
             raise PermissionDenied
 
-        for key in ["name", "description", "content"]:
-            if key in kwargs:
+        for key in ["name", "content"]:
+            if kwargs.get(key) is not None:
                 setattr(self, key, kwargs[key])
+
+        # description is optional/blankable: an explicit null clears it, mirroring create.
+        if "description" in kwargs:
+            self.description = kwargs["description"] or ""
 
         return self.save()
 

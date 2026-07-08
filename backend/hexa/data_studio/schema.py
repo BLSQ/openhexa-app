@@ -2,6 +2,7 @@ import pathlib
 
 from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
 from django.core.exceptions import PermissionDenied
+from django.db.models import Q
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
@@ -55,7 +56,13 @@ def resolve_workspace_saved_queries(workspace: Workspace, info, query=None, **kw
     )
 
     if query is not None:
-        qs = qs.filter(name__icontains=query)
+        # Also searches the SQL body, so a result may match on text the list view
+        # (name only) does not surface — the frontend should hint at body matches.
+        qs = qs.filter(
+            Q(name__icontains=query)
+            | Q(description__icontains=query)
+            | Q(content__icontains=query)
+        )
 
     return result_page(
         queryset=qs,
@@ -121,12 +128,7 @@ def resolve_update_saved_query(_, info, **kwargs):
         saved_query = SavedQuery.objects.filter_for_user(request.user).get(
             id=mutation_input["id"]
         )
-        update_kwargs = {
-            key: mutation_input[key]
-            for key in ["name", "description", "content"]
-            if key in mutation_input
-        }
-        saved_query.update_if_has_perm(principal=request.user, **update_kwargs)
+        saved_query.update_if_has_perm(principal=request.user, **mutation_input)
         return {"success": True, "errors": [], "saved_query": saved_query}
     except SavedQuery.DoesNotExist:
         return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
