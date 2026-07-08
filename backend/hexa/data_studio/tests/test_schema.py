@@ -1,3 +1,6 @@
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
+
 from hexa.core.test import GraphQLTestCase
 from hexa.data_studio.models import SavedQuery
 
@@ -93,6 +96,42 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         items = r["data"]["workspace"]["savedQueries"]["items"]
         self.assertEqual([i["name"] for i in items], ["in-ws1"])
 
+    def test_listing_related_fields_do_not_scale_with_page_size(self):
+        """`select_related` must keep related-field loading (createdBy, workspace)
+        constant regardless of how many rows the page holds. Guards against a
+        regression of the N+1 fix on the data-loading side.
+        """
+        list_query = """
+            query ($slug: String!) {
+                workspace(slug: $slug) {
+                    savedQueries {
+                        items { name createdBy { email } workspace { slug } }
+                    }
+                }
+            }
+        """
+        variables = {"slug": str(self.WORKSPACE.slug)}
+
+        self._create_query(self.USER_EDITOR, name="q0")
+        self.client.force_login(self.USER_VIEWER)
+        self.run_query(list_query, variables)  # warm up one-time caches (session, content types)
+
+        with CaptureQueriesContext(connection) as few:
+            self.run_query(list_query, variables)
+
+        for i in range(1, 5):
+            self._create_query(self.USER_EDITOR, name=f"q{i}")
+        self.client.force_login(self.USER_VIEWER)
+
+        with CaptureQueriesContext(connection) as many:
+            self.run_query(list_query, variables)
+
+        self.assertEqual(
+            len(many.captured_queries),
+            len(few.captured_queries),
+            msg="Related-field loading scales with page size — N+1 regression.",
+        )
+
     def test_permissions_true_for_author_and_editor(self):
         created = self._create_query(self.USER_EDITOR)
         query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
@@ -128,7 +167,7 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
 
         self.assertEqual(search("revenue"), ["revenue report"])
 
-    def test_saved_queries_search_matches_content_and_description(self):
+    def test_saved_queries_search_matches_description_not_content(self):
         self._create_query(
             self.USER_EDITOR, name="alpha", content="SELECT * FROM patients"
         )
@@ -151,8 +190,9 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
             )
             return [i["name"] for i in r["data"]["workspace"]["savedQueries"]["items"]]
 
-        self.assertEqual(search("patients"), ["alpha"])  # matched via content
         self.assertEqual(search("quarterly"), ["beta"])  # matched via description
+        # The SQL body is intentionally not searched.
+        self.assertEqual(search("patients"), [])
 
     def test_get_saved_query(self):
         created = self._create_query(self.USER_EDITOR)

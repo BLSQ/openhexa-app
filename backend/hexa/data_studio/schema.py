@@ -56,13 +56,10 @@ def resolve_workspace_saved_queries(workspace: Workspace, info, query=None, **kw
     )
 
     if query is not None:
-        # Also searches the SQL body, so a result may match on text the list view
-        # (name only) does not surface — the frontend should hint at body matches.
-        qs = qs.filter(
-            Q(name__icontains=query)
-            | Q(description__icontains=query)
-            | Q(content__icontains=query)
-        )
+        # Deliberately not searching `content` (the SQL body): it is costly to scan on
+        # large bodies and noisy (would match SQL keywords/identifiers). Revisit once the
+        # frontend defines whether and how body matches should surface to users.
+        qs = qs.filter(Q(name__icontains=query) | Q(description__icontains=query))
 
     return result_page(
         queryset=qs,
