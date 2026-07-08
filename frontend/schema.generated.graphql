@@ -1465,7 +1465,7 @@ type DHIS2QueryResultPage {
 
 type Database {
   credentials: DatabaseCredentials
-  executeSQL(maxRows: Int, query: String!): ExecuteSQLResult!
+  executeSQL(maxRows: Int, origin: ExecuteSQLOrigin, query: String!): ExecuteSQLResult!
   readOnlyCredentials: DatabaseCredentials
   table(name: String!): DatabaseTable
   tables(page: Int, perPage: Int, withColumns: Boolean = false, withCounts: Boolean = true): DatabaseTablePage!
@@ -2375,6 +2375,17 @@ enum ExecuteSQLError {
 
   """The query was cancelled because it exceeded the statement timeout."""
   QUERY_TIMEOUT
+}
+
+"""
+The origin of a SQL query, recorded for auditing and to build a per-user query history.
+"""
+enum ExecuteSQLOrigin {
+  """The query was submitted directly through the API."""
+  API
+
+  """The query originates from the Data Studio frontend."""
+  DATA_STUDIO
 }
 
 """
