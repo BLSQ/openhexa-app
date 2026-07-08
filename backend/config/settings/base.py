@@ -350,6 +350,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Enable gzip compression on everything served from Django. This impacts
+    # /graphql/, /mcp, all web apps and the Django admin.
+    "django.middleware.gzip.GZipMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "hexa.core.middlewares.RequestTooBigMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
