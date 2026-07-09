@@ -1,5 +1,4 @@
 import json
-import re
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -21,7 +20,7 @@ from hexa.superset.views import view_superset_dashboard
 from hexa.user_management.models import User
 from hexa.webapps.graphql_proxy import handle_graphql_proxy
 from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp, WebappUser
-from hexa.webapps.utils import extract_webapp_subdomain
+from hexa.webapps.utils import PREVIEW_KEY_RE, extract_webapp_subdomain
 from hexa.webapps.views import serve_webapp
 
 WEBAPP_SESSION_COOKIE = "hexa_webapp_session"
@@ -240,7 +239,7 @@ def _webapp_from_session_key(session_key):
     given DNS label, or None. The session key travels in the hostname so the
     iframe can authenticate without a third-party cookie.
     """
-    if not re.compile(r"^[a-z0-9]{32}$").match(session_key):
+    if not PREVIEW_KEY_RE.match(session_key):
         return None
     webapp_id = SessionStore(session_key=session_key).get(SESSION_WEBAPP_ID)
     if not webapp_id:
@@ -337,7 +336,6 @@ def webapp_subdomain_middleware(get_response):
         webapp = _webapp_from_session_key(subdomain)
         if webapp is not None:
             request.COOKIES[WEBAPP_SESSION_COOKIE] = subdomain
-            request.is_webapp_preview = True
         else:
             try:
                 webapp = Webapp.objects.get(subdomain=subdomain)
