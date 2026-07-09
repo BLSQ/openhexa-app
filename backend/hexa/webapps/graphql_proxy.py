@@ -10,6 +10,7 @@ from graphql import parse as gql_parse
 from config.schema import schema
 from hexa.analytics.api import track
 from hexa.webapps.models import Webapp
+from hexa.webapps.utils import is_local_dev_origin, is_preview_host
 
 INTROSPECTION_FIELDS = {"__typename", "__schema", "__type"}
 
@@ -66,6 +67,8 @@ _graphql_view = GraphQLView.as_view(schema=schema)
 def _check_origin(request: HttpRequest) -> bool:
     origin = request.META.get("HTTP_ORIGIN", "")
     if not origin:
+        return True
+    if is_preview_host(request.get_host()) and is_local_dev_origin(origin):
         return True
     request_origin = f"{settings.SCHEME}://{request.get_host()}"
     return origin.rstrip("/") == request_origin.rstrip("/")
