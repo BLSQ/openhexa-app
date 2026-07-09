@@ -114,7 +114,9 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
 
         self._create_query(self.USER_EDITOR, name="q0")
         self.client.force_login(self.USER_VIEWER)
-        self.run_query(list_query, variables)  # warm up one-time caches (session, content types)
+        self.run_query(
+            list_query, variables
+        )  # warm up one-time caches (session, content types)
 
         with CaptureQueriesContext(connection) as few:
             self.run_query(list_query, variables)

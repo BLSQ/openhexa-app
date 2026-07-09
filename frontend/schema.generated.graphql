@@ -1169,6 +1169,27 @@ input CreatePipelineVersionInput {
   zipfile: String
 }
 
+"""Errors that can occur when creating a saved query."""
+enum CreateSavedQueryError {
+  PERMISSION_DENIED
+  WORKSPACE_NOT_FOUND
+}
+
+"""Input for creating a saved query."""
+input CreateSavedQueryInput {
+  content: String!
+  description: String
+  name: String!
+  workspaceSlug: String!
+}
+
+"""Result of creating a saved query."""
+type CreateSavedQueryResult {
+  errors: [CreateSavedQueryError!]!
+  savedQuery: SavedQuery
+  success: Boolean!
+}
+
 """
 The CreateTeamError enum represents the possible errors that can occur during the createTeam mutation.
 """
@@ -2081,6 +2102,23 @@ input DeletePipelineVersionInput {
 """Represents the result of deleting a pipeline version."""
 type DeletePipelineVersionResult {
   errors: [DeletePipelineVersionError!]!
+  success: Boolean!
+}
+
+"""Errors that can occur when deleting a saved query."""
+enum DeleteSavedQueryError {
+  PERMISSION_DENIED
+  SAVED_QUERY_NOT_FOUND
+}
+
+"""Input for deleting a saved query."""
+input DeleteSavedQueryInput {
+  id: ID!
+}
+
+"""Result of deleting a saved query."""
+type DeleteSavedQueryResult {
+  errors: [DeleteSavedQueryError!]!
   success: Boolean!
 }
 
@@ -3036,6 +3074,9 @@ type Mutation {
 
   """Creates a new pipeline template version."""
   createPipelineTemplateVersion(input: CreatePipelineTemplateVersionInput!): CreatePipelineTemplateVersionResult!
+
+  """Creates a new saved query in a workspace."""
+  createSavedQuery(input: CreateSavedQueryInput!): CreateSavedQueryResult!
   createTeam(input: CreateTeamInput!): CreateTeamResult!
   createWebapp(input: CreateWebappInput!): CreateWebappResult!
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
@@ -3077,6 +3118,9 @@ type Mutation {
 
   """Deletes a pipeline version."""
   deletePipelineVersion(input: DeletePipelineVersionInput!): DeletePipelineVersionResult!
+
+  """Deletes a saved query."""
+  deleteSavedQuery(input: DeleteSavedQueryInput!): DeleteSavedQueryResult!
   deleteTeam(input: DeleteTeamInput!): DeleteTeamResult!
 
   """Deletes a template version."""
@@ -3221,6 +3265,9 @@ type Mutation {
 
   """Updates a pipeline version."""
   updatePipelineVersion(input: UpdatePipelineVersionInput!): UpdatePipelineVersionResult!
+
+  """Updates an existing saved query."""
+  updateSavedQuery(input: UpdateSavedQueryInput!): UpdateSavedQueryResult!
   updateTeam(input: UpdateTeamInput!): UpdateTeamResult!
 
   """Updates a template version."""
@@ -4131,6 +4178,9 @@ type Query {
   """Read the text content of a file from a workspace's bucket."""
   readFileContent(endLine: Int, filePath: String!, startLine: Int, workspaceSlug: String!): ReadFileContentResult!
   readWebappFile(endLine: Int, path: String!, startLine: Int, webappSlug: String!, workspaceSlug: String!): ReadWebappFileResult!
+
+  """Retrieves a saved query by its id."""
+  savedQuery(id: ID!): SavedQuery
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
@@ -4475,6 +4525,39 @@ type S3ObjectPage {
   pageNumber: Int!
   totalItems: Int!
   totalPages: Int!
+}
+
+"""
+A SQL query saved by a user in the Data Studio. Saved queries belong to a
+workspace and are visible to all of its members.
+"""
+type SavedQuery {
+  content: String!
+  createdAt: DateTime!
+  createdBy: User
+  description: String
+  id: ID!
+  name: String!
+  permissions: SavedQueryPermissions!
+  updatedAt: DateTime!
+  workspace: Workspace!
+}
+
+"""A page of saved queries."""
+type SavedQueryPage {
+  items: [SavedQuery!]!
+  pageNumber: Int!
+  totalItems: Int!
+  totalPages: Int!
+}
+
+"""Permissions of a saved query."""
+type SavedQueryPermissions {
+  """Permission to delete the saved query."""
+  delete: Boolean!
+
+  """Permission to edit the saved query."""
+  update: Boolean!
 }
 
 interface SearchResult {
@@ -5339,6 +5422,27 @@ type UpdatePipelineVersionResult {
   success: Boolean!
 }
 
+"""Errors that can occur when updating a saved query."""
+enum UpdateSavedQueryError {
+  PERMISSION_DENIED
+  SAVED_QUERY_NOT_FOUND
+}
+
+"""Input for updating a saved query."""
+input UpdateSavedQueryInput {
+  content: String
+  description: String
+  id: ID!
+  name: String
+}
+
+"""Result of updating a saved query."""
+type UpdateSavedQueryResult {
+  errors: [UpdateSavedQueryError!]!
+  savedQuery: SavedQuery
+  success: Boolean!
+}
+
 """
 The UpdateTeamError enum represents the possible errors that can occur during the updateTeam mutation.
 """
@@ -5816,6 +5920,9 @@ type Workspace {
   pipelineLastRunStatuses: [PipelineRunStatus!]!
   pipelineTags: [String!]!
   pipelineTemplateTags: [String!]!
+
+  """The saved queries of the workspace."""
+  savedQueries(page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
   shortcuts: [ShortcutItem!]!
   slug: String!
   updatedAt: DateTime
@@ -5921,6 +6028,9 @@ type WorkspacePermissions {
   createObject: Boolean!
   createPipeline: Boolean!
   createPipelineTemplateVersion: Boolean!
+
+  """Permission to create a saved query in the workspace."""
+  createSavedQuery: Boolean!
   delete: Boolean!
   deleteDatabaseTable: Boolean!
 
