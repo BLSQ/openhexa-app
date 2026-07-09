@@ -186,4 +186,37 @@ describe("webapps dev.js — local development shim", () => {
     expect(document.body.textContent).toContain("app-a");
     expect(document.body.textContent).not.toContain("app-b");
   });
+
+  it("prompts to reconnect and retries when the credential has expired", async () => {
+    loadDevScript();
+    connect();
+    // The connection cached a credential.
+    expect(sessionStorage.getItem("openhexa_dev:my-ws/my-app")).not.toBeNull();
+    fetchMock.mockClear();
+
+    // The first rerouted call hits an expired credential (404); the retry
+    // (after reconnecting) succeeds with the default 200.
+    fetchMock.mockResolvedValueOnce({ status: 404, json: async () => ({}) });
+
+    const call = (window as any).fetch("/graphql/", {
+      method: "POST",
+      body: "{}",
+    });
+
+    // Let the 404 response be handled.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // The stale credential is dropped and the Connect button is shown again...
+    expect(sessionStorage.getItem("openhexa_dev:my-ws/my-app")).toBeNull();
+    expect(findButton("Connect to OpenHEXA")).toBeTruthy();
+
+    // ...and the original call stays pending until the user reconnects.
+    findButton("Connect to OpenHEXA")!.click();
+    completeHandshake();
+
+    const res = await call;
+    expect(res.status).toBe(200);
+    // Expired attempt + successful retry, nothing more.
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });
