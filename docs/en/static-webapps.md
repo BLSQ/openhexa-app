@@ -89,6 +89,35 @@ window.OPENHEXA = Object.freeze({
 
 The examples below read `workspaceSlug` from this global, so they're copy-pasteable into any webapp without having to edit a constant. The injection only touches `text/html` responses; CSS, JS, and JSON files are untouched.
 
+## Developing locally
+
+You can iterate on a webapp on your own machine and still hit **real, scope-gated** data — no hand-rolled proxy and no manual token. Add one script to your page:
+
+```html
+<script src="https://app.openhexa.org/webapps/dev.js"></script>
+```
+
+Then open the page in a browser where you're logged into OpenHEXA — either by opening the `.html` file directly (`file://`) or by serving it locally (`http://localhost`). The first time, a small popup lets you **pick which web app** to develop against, then completes an authenticated handshake that hands your page a short-lived preview credential. To skip the picker, name the workspace and web app up front:
+
+```html
+<script src="https://app.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
+```
+
+After that, `dev.js`:
+
+- sets `window.OPENHEXA` (so the examples above run unchanged), and
+- transparently reroutes your `fetch("/graphql/")` calls to the authenticated endpoint.
+
+Your local calls respect the webapp's `allowed_operations` exactly as they will in production, so an operation that works locally will not surprise you with a `403` once deployed. Point `dev.js` at whichever OpenHEXA install you use (e.g. `http://localhost:8000/webapps/dev.js` for a local backend).
+
+If your browser blocks the popup, a **Connect to OpenHEXA** button appears — click it to start the handshake.
+
+**`file://` vs `http://localhost`.** Both work. When you serve over `http://localhost`, the browser guarantees the credential is delivered only to your page, so the handshake completes with no prompt. A `file://` page has an opaque origin the browser cannot target, so OpenHEXA shows an **Approve** screen in the popup before releasing the credential — approve it only when you just opened your own local file. For a completely prompt-free loop, serve over `http://localhost` (any static server works, e.g. `python -m http.server 5173`).
+
+The credential is cached for the browser tab, so you approve **once per tab session** — refreshing the page reuses it, no popup. The credential is short-lived and rotates; when it expires `dev.js` automatically reconnects on the next request (showing the **Connect** button again if the popup is blocked), so a long-running session recovers on its own. Closing the tab clears the cache.
+
+A small chip in the corner shows the connected web app. Use its **Switch** action to pick a different web app, or **Reconnect** to force a fresh credential.
+
 ---
 
 ## Example webapps
