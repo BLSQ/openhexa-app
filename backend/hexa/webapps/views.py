@@ -135,6 +135,20 @@ def _set_dev_auth_headers(response):
     return response
 
 
+def _render_authorize(request, webapps, origin):
+    """Render the authorization screen: each candidate web app with its scopes and
+    an Approve button. A picker (many apps) and a preselected app (one) are the
+    same UI — the preselected case is just a single-item list.
+    """
+    return _set_dev_auth_headers(
+        render(
+            request,
+            "webapps/dev_auth_authorize.html",
+            {"webapps": webapps, "origin": origin},
+        )
+    )
+
+
 @require_http_methods(["GET", "POST"])
 def dev_auth(request):
     """Authenticated handshake that hands a rotating preview URL to a local page."""
@@ -150,21 +164,10 @@ def dev_auth(request):
     workspace_slug = params.get("workspaceSlug", "")
     webapp_slug = params.get("webappSlug", "")
 
-    # No webapp specified: let the (authenticated) user pick one from a list.
-    # The chosen option POSTs back with the workspace + webapp, and that
-    # selection is itself the explicit user action, so opaque origins need no
-    # extra consent step.
+    # No webapp specified: let the (authenticated) user pick and approve one from
+    # the list. Selecting an app POSTs back with the workspace + webapp.
     if not (workspace_slug and webapp_slug):
-        return _set_dev_auth_headers(
-            render(
-                request,
-                "webapps/dev_auth_picker.html",
-                {
-                    "webapps": _selectable_dev_webapps(request.user),
-                    "origin": origin,
-                },
-            )
-        )
+        return _render_authorize(request, _selectable_dev_webapps(request.user), origin)
 
     webapp = _resolve_dev_webapp(workspace_slug, webapp_slug)
     if webapp is None:
@@ -174,19 +177,10 @@ def dev_auth(request):
 
     # Opaque origins can only receive the credential via a wildcard target, so
     # the user must explicitly approve before it is minted. No key is created on
-    # this GET — approval submits the POST below.
+    # this GET — approval submits the POST below. The preselected app is shown on
+    # the same authorization screen as the picker, as a single-item list.
     if is_opaque and request.method == "GET":
-        return _set_dev_auth_headers(
-            render(
-                request,
-                "webapps/dev_auth_consent.html",
-                {
-                    "webapp": webapp,
-                    "scopes": webapp.allowed_operations,
-                    "origin": origin,
-                },
-            )
-        )
+        return _render_authorize(request, [webapp], origin)
 
     # Deferred import: middlewares imports serve_webapp from this module.
     from hexa.webapps.middlewares import get_or_create_preview_url

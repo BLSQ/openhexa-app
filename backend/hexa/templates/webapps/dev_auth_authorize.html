@@ -8,7 +8,7 @@
         <div>
             <img src="{% static 'img/logo/logo.svg' %}" alt="OpenHEXA" class="logo">
             <h2>Connect a local web app</h2>
-            <p class="subtitle">Choose which web app this local page should develop against.</p>
+            <p class="subtitle">Approve which web app this local page should develop against.</p>
         </div>
 
         {% if webapps %}
@@ -19,17 +19,20 @@
                         <input type="hidden" name="origin" value="{{ origin }}">
                         <input type="hidden" name="workspaceSlug" value="{{ w.workspace.slug }}">
                         <input type="hidden" name="webappSlug" value="{{ w.slug }}">
-                        <button type="submit" class="pick-item">
-                            <span class="pick-name">{{ w.name }}</span>
-                            <span class="pick-path">
-                                <span class="pick-ws">{{ w.workspace.slug }}</span><span class="pick-sep">/</span><span class="pick-app">{{ w.slug }}</span>
+                        <div class="pick-item">
+                            <span class="pick-head">
+                                <span class="pick-name">{{ w.name }}</span>
+                                <span class="pick-path">
+                                    <span class="pick-ws">{{ w.workspace.slug }}</span><span class="pick-sep">/</span><span class="pick-app">{{ w.slug }}</span>
+                                </span>
                             </span>
-                        </button>
+                            <button type="submit" class="btn btn-primary">Approve</button>
+                        </div>
                     </form>
                 {% endfor %}
             </div>
             <p class="hint">
-                Selecting a web app grants a temporary, scoped credential to whichever window
+                Approving grants a temporary, scoped credential to whichever window
                 opened this one. Only continue if you just opened your own local file.
             </p>
         {% else %}
@@ -43,13 +46,11 @@
 {% block extra_css %}
         .pick-list { display: flex; flex-direction: column; gap: 0.5rem; }
         .pick-item {
-            display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;
-            width: 100%; text-align: left; padding: 0.75rem 1rem; font: inherit;
+            display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+            width: 100%; padding: 0.75rem 1rem;
             background: #fff; border: 1px solid #e5e7eb; border-radius: 0.5rem;
-            cursor: pointer; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
         }
-        .pick-item:hover { border-color: #2563eb; background: #f5f8ff; }
-        .pick-item:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6; }
+        .pick-head { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
         .pick-name { font-weight: 600; color: #111827; font-size: 0.9375rem; }
         .pick-path { font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace; font-size: 0.8125rem; }
         .pick-ws { color: #6b7280; }
