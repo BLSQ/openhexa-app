@@ -103,7 +103,6 @@
   resetPreview();
 
   var connectedKey = null; // "<workspace>/<webapp>" currently connected to
-  var reconnecting = false;
 
   function setContext(data) {
     window.OPENHEXA = Object.freeze({
@@ -125,16 +124,20 @@
     }
 
     writeCache(data);
-    setContext(data);
 
     var key = data.workspaceSlug + "/" + data.webappSlug;
-    if (reconnecting && connectedKey && key !== connectedKey) {
-      // Switched web app → reload so the page re-runs against the new one.
+    if (key !== connectedKey) {
+      // First connection or a switch to a different web app: reload so the page
+      // reboots in its connected steady state. The cached credential lets the
+      // next load resolve window.OPENHEXA and the /graphql/ reroute synchronously,
+      // before the app's own scripts run.
       window.location.reload();
       return;
     }
-    reconnecting = false;
-    connectedKey = key;
+
+    // Reconnecting the SAME web app (e.g. after an expired credential): resolve
+    // the pending call in place — reloading would abandon it and lose page state.
+    setContext(data);
     showPill(data.workspaceSlug, data.webappSlug);
     console.info("[openhexa] Local dev connected:", key);
     resolvePreview(data.previewUrl);
@@ -151,7 +154,6 @@
   // Clear the credential and connect again (the picker reappears when the web
   // app isn't pinned). Bound to the pill, so it runs from a user gesture.
   function reconnect() {
-    reconnecting = true;
     clearCache();
     resetPreview();
     connect();
@@ -226,23 +228,28 @@
   }
 
   // --- Bootstrap -------------------------------------------------------------
-  // Reuse a cached credential silently; otherwise show the Connect button and
-  // wait for a click — never auto-open the popup.
-  function start() {
-    var cached = readCache();
-    if (cached && cached.previewUrl) {
-      setContext(cached);
-      connectedKey = cached.workspaceSlug + "/" + cached.webappSlug;
+  // Resolve a cached credential synchronously, here at script eval, so
+  // window.OPENHEXA and the /graphql/ reroute are ready before the page's own
+  // scripts run. Without a cache we wait for a click — never auto-open a popup.
+  // The corner overlay needs <body>, so it alone waits for DOMContentLoaded.
+  var cached = readCache();
+  if (cached && cached.previewUrl) {
+    setContext(cached);
+    connectedKey = cached.workspaceSlug + "/" + cached.webappSlug;
+    resolvePreview(cached.previewUrl);
+  }
+
+  function showOverlay() {
+    if (connectedKey) {
       showPill(cached.workspaceSlug, cached.webappSlug);
-      resolvePreview(cached.previewUrl);
     } else {
       showConnectButton();
     }
   }
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", start);
+    document.addEventListener("DOMContentLoaded", showOverlay);
   } else {
-    start();
+    showOverlay();
   }
 
   // --- Route /graphql/ through the preview host ------------------------------
@@ -273,7 +280,6 @@
         // 404s (or 401s): drop it and prompt to reconnect (no auto-popup). The
         // retry waits until the user clicks Connect.
         if (!retried && (res.status === 404 || res.status === 401)) {
-          reconnecting = false;
           clearCache();
           resetPreview();
           showConnectButton();
