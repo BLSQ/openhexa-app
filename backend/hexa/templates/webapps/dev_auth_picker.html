@@ -1,0 +1,59 @@
+{% extends "oauth2_provider/base.html" %}
+{% load static %}
+
+{% block title %}Connect local web app{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div>
+            <img src="{% static 'img/logo/logo.svg' %}" alt="OpenHEXA" class="logo">
+            <h2>Connect a local web app</h2>
+            <p class="subtitle">Choose which web app this local page should develop against.</p>
+        </div>
+
+        {% if webapps %}
+            <div class="pick-list">
+                {% for w in webapps %}
+                    <form method="post" action="{% url 'webapps:dev_auth' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="origin" value="{{ origin }}">
+                        <input type="hidden" name="workspaceSlug" value="{{ w.workspace.slug }}">
+                        <input type="hidden" name="webappSlug" value="{{ w.slug }}">
+                        <button type="submit" class="pick-item">
+                            <span class="pick-name">{{ w.name }}</span>
+                            <span class="pick-path">
+                                <span class="pick-ws">{{ w.workspace.slug }}</span><span class="pick-sep">/</span><span class="pick-app">{{ w.slug }}</span>
+                            </span>
+                        </button>
+                    </form>
+                {% endfor %}
+            </div>
+            <p class="hint">
+                Selecting a web app grants a temporary, scoped credential to whichever window
+                opened this one. Only continue if you just opened your own local file.
+            </p>
+        {% else %}
+            <div class="scopes">
+                <h3>You don't have any private static web apps to connect to.</h3>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+        .pick-list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .pick-item {
+            display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;
+            width: 100%; text-align: left; padding: 0.75rem 1rem; font: inherit;
+            background: #fff; border: 1px solid #e5e7eb; border-radius: 0.5rem;
+            cursor: pointer; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+        }
+        .pick-item:hover { border-color: #2563eb; background: #f5f8ff; }
+        .pick-item:focus-visible { outline: none; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6; }
+        .pick-name { font-weight: 600; color: #111827; font-size: 0.9375rem; }
+        .pick-path { font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace; font-size: 0.8125rem; }
+        .pick-ws { color: #6b7280; }
+        .pick-sep { color: #9ca3af; margin: 0 0.15rem; }
+        .pick-app { color: #2563eb; font-weight: 600; }
+        .hint { font-size: 0.8125rem; color: #6b7280; line-height: 1.4; }
+{% endblock %}
