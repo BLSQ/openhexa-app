@@ -40,15 +40,29 @@ function completeHandshake(overrides: Record<string, unknown> = {}) {
   );
 }
 
-function connect(overrides: Record<string, unknown> = {}) {
-  findButton("Connect to OpenHEXA")!.click();
-  completeHandshake(overrides);
-}
-
 describe("webapps dev.js — local development shim", () => {
   let openMock: jest.Mock;
   let fetchMock: jest.Mock;
   let messageListeners: EventListener[] = [];
+
+  // A first connection (and a switch) reloads the page; jsdom's reload is a
+  // no-op, so simulate the reboot: drop the prior eval's listeners and globals,
+  // restore native fetch, and re-run dev.js against the now-cached credential.
+  function reloadDevScript() {
+    messageListeners.forEach((l) => window.removeEventListener("message", l));
+    messageListeners = [];
+    (window as any).__OPENHEXA_DEV_ACTIVE__ = undefined;
+    (window as any).OPENHEXA = undefined;
+    (window as any).fetch = fetchMock;
+    document.body.innerHTML = "";
+    loadDevScript();
+  }
+
+  function connect(overrides: Record<string, unknown> = {}) {
+    findButton("Connect to OpenHEXA")!.click();
+    completeHandshake(overrides);
+    reloadDevScript();
+  }
 
   beforeEach(() => {
     // dev.js attaches a persistent window "message" listener on each eval;
@@ -67,6 +81,7 @@ describe("webapps dev.js — local development shim", () => {
       });
 
     jest.spyOn(console, "info").mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
     document.body.innerHTML = "";
     (window as any).__OPENHEXA_DEV_ACTIVE__ = undefined;
     (window as any).OPENHEXA = undefined;
@@ -115,7 +130,7 @@ describe("webapps dev.js — local development shim", () => {
     expect(url).not.toContain("webappSlug=");
   });
 
-  it("sets window.OPENHEXA and shows a pill with both slugs after the handshake", () => {
+  it("sets window.OPENHEXA and shows a pill with both slugs once connected", () => {
     loadDevScript();
     connect();
     expect((window as any).OPENHEXA).toEqual({
@@ -126,6 +141,25 @@ describe("webapps dev.js — local development shim", () => {
     const pill = document.body.textContent ?? "";
     expect(pill).toContain("my-ws");
     expect(pill).toContain("my-app");
+  });
+
+  it("resolves window.OPENHEXA from cache synchronously on load", () => {
+    sessionStorage.setItem(
+      "openhexa_dev:my-ws/my-app",
+      JSON.stringify({
+        previewUrl: "https://key123.webapps.test/",
+        workspaceSlug: "my-ws",
+        webappSlug: "my-app",
+      }),
+    );
+
+    loadDevScript();
+
+    expect((window as any).OPENHEXA).toEqual({
+      workspaceSlug: "my-ws",
+      webappSlug: "my-app",
+      isPublic: false,
+    });
   });
 
   it("reroutes /graphql/ to the preview endpoint with credentials omitted", async () => {
@@ -170,10 +204,6 @@ describe("webapps dev.js — local development shim", () => {
   });
 
   it("reloads the page (rather than re-rendering the pill) when switching web app", () => {
-    // jsdom's reload() is an unimplemented no-op that logs to console.error;
-    // assert the observable effect: on a switch the pill is NOT re-rendered in
-    // place (a broken reload would swap it to the new app instead).
-    jest.spyOn(console, "error").mockImplementation(() => {});
     (window as any).OPENHEXA_DEV = {}; // picker mode → pill shows "Switch"
 
     loadDevScript();
