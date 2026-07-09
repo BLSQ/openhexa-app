@@ -20,7 +20,11 @@ from hexa.superset.views import view_superset_dashboard
 from hexa.user_management.models import User
 from hexa.webapps.graphql_proxy import handle_graphql_proxy
 from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp, WebappUser
-from hexa.webapps.utils import PREVIEW_KEY_RE, extract_webapp_subdomain
+from hexa.webapps.utils import (
+    PREVIEW_KEY_RE,
+    extract_webapp_subdomain,
+    webapp_host_url,
+)
 from hexa.webapps.views import serve_webapp
 
 WEBAPP_SESSION_COOKIE = "hexa_webapp_session"
@@ -212,6 +216,13 @@ def get_or_create_preview_session_key(request, webapp, user):
         str(webapp.pk): session.session_key,
     }
     return session.session_key
+
+
+def get_or_create_preview_url(request, webapp, user):
+    """Preview URL for (user, webapp): the (rotating) session key as the first
+    DNS label of the webapp host, so it authenticates without a cookie.
+    """
+    return webapp_host_url(get_or_create_preview_session_key(request, webapp, user))
 
 
 def _check_webapp_session(request, webapp):

@@ -26,6 +26,13 @@ def is_preview_host(host):
     return bool(label and PREVIEW_KEY_RE.match(label))
 
 
+def webapp_host_url(label):
+    """Base URL for a webapp host, built from its first DNS label — either the
+    webapp's subdomain (serve URL) or a preview session key (preview URL).
+    """
+    return f"{settings.SCHEME}://{label}.{settings.WEBAPPS_DOMAIN}/"
+
+
 def extract_webapp_subdomain(hostname):
     """Extract the webapp subdomain from a hostname, or return None if it doesn't match."""
     # Check if subdomain for webapps is enabled
