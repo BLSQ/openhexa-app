@@ -59,7 +59,7 @@ def resolve_preview_url(webapp: Webapp, info, **kwargs):
     # can authenticate without any cookie — sidestepping the third-party
     # cookie block in Safari, incognito, and Firefox strict. An existing
     # valid session is reused when available instead of minting a new one.
-    session_key = get_or_create_preview_session_key(webapp, request.user)
+    session_key = get_or_create_preview_session_key(request, webapp, request.user)
     return f"{settings.SCHEME}://{session_key}.{settings.WEBAPPS_DOMAIN}/"
 
 
