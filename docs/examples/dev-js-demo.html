@@ -7,7 +7,7 @@
 </head>
 <body>
   <h1>Who am I?</h1>
-  <pre id="out">Loading…</pre>
+  <pre id="out">Not connected yet</pre>
 
   <h1>window.OPENHEXA</h1>
   <pre id="ctx"></pre>
@@ -17,7 +17,7 @@
       window.OPENHEXA,
       null,
       2,
-    );
+    ) ?? "Not connected yet";
 
     fetch("/graphql/", {
       method: "POST",
