@@ -135,16 +135,21 @@ def _set_dev_auth_headers(response):
     return response
 
 
-def _render_authorize(request, webapps, origin):
-    """Render the authorization screen: each candidate web app with its scopes and
-    an Approve button. A picker (many apps) and a preselected app (one) are the
-    same UI — the preselected case is just a single-item list.
+def _render_authorize(request, webapps, origin, selected=None):
+    """Render the authorization screen: a selectable list of web apps and a single
+    Approve button. Picker and preselected modes are the same UI — when a web app
+    is provided it is preselected; otherwise the user selects one before approving.
     """
     return _set_dev_auth_headers(
         render(
             request,
             "webapps/dev_auth_authorize.html",
-            {"webapps": webapps, "origin": origin},
+            {
+                "webapps": webapps,
+                "origin": origin,
+                "selected_ws": selected.workspace.slug if selected else "",
+                "selected_app": selected.slug if selected else "",
+            },
         )
     )
 
@@ -180,7 +185,7 @@ def dev_auth(request):
     # this GET — approval submits the POST below. The preselected app is shown on
     # the same authorization screen as the picker, as a single-item list.
     if is_opaque and request.method == "GET":
-        return _render_authorize(request, [webapp], origin)
+        return _render_authorize(request, [webapp], origin, selected=webapp)
 
     # Deferred import: middlewares imports serve_webapp from this module.
     from hexa.webapps.middlewares import get_or_create_preview_url
