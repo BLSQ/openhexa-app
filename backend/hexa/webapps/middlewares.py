@@ -1,7 +1,5 @@
-import hashlib
 import json
 import re
-from datetime import timedelta
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -27,13 +25,15 @@ from hexa.webapps.utils import extract_webapp_subdomain
 from hexa.webapps.views import serve_webapp
 
 WEBAPP_SESSION_COOKIE = "hexa_webapp_session"
-WEBAPP_SESSION_MAX_AGE = 60 * 60  # 1 hour
+WEBAPP_SESSION_MAX_AGE = 4 * 60 * 60  # 4 hours
 AUTH_TOKEN_MAX_AGE = 30
 
+SESSION_USER_ID = "user_id"
+SESSION_WEBAPP_ID = "webapp_id"
+PREVIEW_KEYS_FIELD = "webapp_preview_keys"
+
 POWERED_BY_BANNER_HEIGHT = "2.25rem"
-
 POWERED_BY_BANNER_SPACER_HTML = f'<div style="height:{POWERED_BY_BANNER_HEIGHT}"></div>'
-
 POWERED_BY_BANNER_HTML = f"""<div style="position:fixed;bottom:0;left:0;right:0;height:{POWERED_BY_BANNER_HEIGHT};box-sizing:border-box;z-index:2147483647;display:flex;align-items:center;justify-content:center;border-top:1px solid #e5e7eb;background-color:#f9fafb;font-family:Inter,system-ui,-apple-system,sans-serif;font-size:0.75rem;color:#6b7280">Powered by <a href="https://www.openhexa.com" target="_blank" rel="noopener noreferrer" style="margin-left:0.25rem;display:flex;align-items:center;gap:0.25rem;font-weight:500;color:#2563eb;text-decoration:none"><img alt="OpenHEXA" style="height:1rem;width:1rem" src="data:image/svg+xml,%3Csvg width='165' height='188' viewBox='0 0 165 188' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg clip-path='url(%23clip0)'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M165.21 56.7599C165.21 50.5199 160.81 42.8299 155.44 39.6699L92.6901 2.7699C87.3101 -0.390097 78.5201 -0.390097 73.1401 2.7699L10.4001 39.6699C5.03013 42.8399 0.630127 50.5199 0.630127 56.7599V130.88C0.630127 137.12 5.03013 144.81 10.4001 147.97L73.1401 184.87C78.5201 188.03 87.3101 188.03 92.6901 184.87L155.43 147.97C160.81 144.81 165.2 137.12 165.2 130.88V56.7599H165.21Z' fill='%23FF3E96'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M165.21 56.7599C165.21 50.5199 160.81 42.8299 155.44 39.6699L92.6901 2.7699C87.3101 -0.390097 78.5201 -0.390097 73.1401 2.7699L10.4001 39.6699C5.03013 42.8399 0.630127 50.5199 0.630127 56.7599V130.88C0.630127 137.12 5.03013 144.81 10.4001 147.97L73.1401 184.87C78.5201 188.03 87.3101 188.03 92.6901 184.87L155.43 147.97C160.81 144.81 165.2 137.12 165.2 130.88V56.7599H165.21Z' fill='url(%23paint0_linear)'/%3E%3Cpath d='M77.4002 156.51C75.8302 156.51 74.2302 156.1 72.7902 155.23L29.7902 129.5C27.0702 127.88 25.4102 124.94 25.4102 121.78V64.87C25.4102 61.62 27.1602 58.63 29.9902 57.03L59.5802 40.34C62.3702 38.77 65.7802 38.79 68.5402 40.41C71.3002 42.02 73.0002 44.98 73.0002 48.18V76.97L106.36 96.48C109.12 98.09 110.82 101.05 110.82 104.25V124.07L122.41 117.53V70.97L83.8102 47.86C79.5502 45.31 78.1602 39.78 80.7102 35.52C83.2602 31.26 88.7902 29.87 93.0502 32.42L136.04 58.15C138.76 59.77 140.42 62.71 140.42 65.87V122.78C140.42 126.03 138.67 129.02 135.84 130.62L106.25 147.31C103.46 148.88 100.05 148.86 97.2902 147.24C94.5302 145.63 92.8302 142.67 92.8302 139.47V109.4L59.4702 89.9C56.7102 88.29 55.0102 85.33 55.0102 82.13V63.58L43.4202 70.12V116.67L82.0402 139.78C86.3002 142.33 87.6902 147.86 85.1402 152.12C83.4502 154.95 80.4602 156.51 77.4002 156.51Z' fill='white'/%3E%3C/g%3E%3Cdefs%3E%3ClinearGradient id='paint0_linear' x1='124.789' y1='21.3012' x2='41.05' y2='166.341' gradientUnits='userSpaceOnUse'%3E%3Cstop offset='1.86995e-07' stop-color='white' stop-opacity='0.4'/%3E%3Cstop offset='1' stop-color='white' stop-opacity='0'/%3E%3C/linearGradient%3E%3CclipPath id='clip0'%3E%3Crect width='165' height='188' fill='white'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E">OpenHEXA</a></div>"""
 
 
@@ -181,28 +181,38 @@ def _validate_auth_token(request, webapp):
 def _create_webapp_session(webapp, user):
     session = SessionStore()
     session.set_expiry(WEBAPP_SESSION_MAX_AGE)
-    session["user_id"] = str(user.pk)
-    session["webapp_id"] = str(webapp.pk)
+    session[SESSION_USER_ID] = str(user.pk)
+    session[SESSION_WEBAPP_ID] = str(webapp.pk)
     session.create()
     return session
 
 
-def get_or_create_preview_session_key(webapp, user):
-    """Return a webapp session key for (user, webapp)."""
-    key = hashlib.sha256(
-        f"{user.pk}:{webapp.pk}:{settings.SECRET_KEY}".encode()
-    ).hexdigest()[:32]
-    encoded = SessionStore().encode(
-        {"user_id": str(user.pk), "webapp_id": str(webapp.pk)}
-    )
-    Session.objects.update_or_create(
-        session_key=key,
-        defaults={
-            "session_data": encoded,
-            "expire_date": timezone.now() + timedelta(seconds=WEBAPP_SESSION_MAX_AGE),
-        },
-    )
-    return key
+def _preview_session_is_valid(session_key, webapp, user):
+    if not Session.objects.filter(
+        session_key=session_key, expire_date__gt=timezone.now()
+    ).exists():
+        return False
+    store = SessionStore(session_key=session_key)
+    return store.get(SESSION_WEBAPP_ID) == str(webapp.pk) and store.get(
+        SESSION_USER_ID
+    ) == str(user.pk)
+
+
+def get_or_create_preview_session_key(request, webapp, user):
+    """Return a webapp preview session key for (user, webapp), reusing the
+    current one until it expires.
+    """
+    keys = request.session.get(PREVIEW_KEYS_FIELD, {})
+    existing = keys.get(str(webapp.pk))
+    if existing and _preview_session_is_valid(existing, webapp, user):
+        return existing
+
+    session = _create_webapp_session(webapp, user)
+    request.session[PREVIEW_KEYS_FIELD] = {
+        **keys,
+        str(webapp.pk): session.session_key,
+    }
+    return session.session_key
 
 
 def _check_webapp_session(request, webapp):
@@ -211,8 +221,8 @@ def _check_webapp_session(request, webapp):
         return None
 
     session = SessionStore(session_key=session_key)
-    stored_user_id = session.get("user_id")
-    stored_webapp_id = session.get("webapp_id")
+    stored_user_id = session.get(SESSION_USER_ID)
+    stored_webapp_id = session.get(SESSION_WEBAPP_ID)
     if stored_webapp_id != str(webapp.pk) or not stored_user_id:
         return None
 
@@ -232,7 +242,7 @@ def _webapp_from_session_key(session_key):
     """
     if not re.compile(r"^[a-z0-9]{32}$").match(session_key):
         return None
-    webapp_id = SessionStore(session_key=session_key).get("webapp_id")
+    webapp_id = SessionStore(session_key=session_key).get(SESSION_WEBAPP_ID)
     if not webapp_id:
         return None
     try:
@@ -326,8 +336,8 @@ def webapp_subdomain_middleware(get_response):
 
         webapp = _webapp_from_session_key(subdomain)
         if webapp is not None:
-            # Subdomain IS a session key; feed it to the cookie-auth path.
             request.COOKIES[WEBAPP_SESSION_COOKIE] = subdomain
+            request.is_webapp_preview = True
         else:
             try:
                 webapp = Webapp.objects.get(subdomain=subdomain)
