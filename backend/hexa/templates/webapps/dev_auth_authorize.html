@@ -34,15 +34,15 @@
                     {% endfor %}
                 </div>
 
-                <p class="hint">
-                    Approving grants a temporary, scoped credential to whichever window
-                    opened this one. Only continue if you just opened your own local file.
-                </p>
-
                 <div class="actions">
                     <button type="button" class="btn btn-secondary" onclick="window.close()">Cancel</button>
                     <button type="submit" class="btn btn-primary" id="approve-btn">Approve</button>
                 </div>
+
+                <p class="hint">
+                    Approving grants a temporary, scoped credential to whichever window
+                    opened this one. Only continue if you just opened your own local file.
+                </p>
             </form>
         {% else %}
             <div class="scopes">
@@ -61,15 +61,15 @@
             transition: border-color 0.15s, background 0.15s;
         }
         .pick-item:hover { border-color: #2563eb; background: #f5f8ff; }
-        .pick-item:has(.pick-radio:checked) { border-color: #2563eb; background: #f5f8ff; }
-        .pick-radio { flex: none; }
+        .pick-item:has(.pick-radio:checked) { border-color: #2563eb; background: #f5f8ff; box-shadow: 0 0 0 1px #2563eb; }
+        .pick-radio { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
         .pick-head { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
         .pick-name { font-weight: 600; color: #111827; font-size: 0.9375rem; }
         .pick-path { font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace; font-size: 0.8125rem; }
         .pick-ws { color: #6b7280; }
         .pick-sep { color: #9ca3af; margin: 0 0.15rem; }
         .pick-app { color: #2563eb; font-weight: 600; }
-        .hint { font-size: 0.8125rem; color: #6b7280; line-height: 1.4; }
+        .hint { font-size: 0.8125rem; color: #6b7280; line-height: 1.4; margin-top: 1rem; }
         .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
         .btn-secondary { background: #fff; color: #374151; border: 1px solid #d1d5db; }
         .btn-secondary:hover { background: #f9fafb; }
