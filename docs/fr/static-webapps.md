@@ -108,7 +108,7 @@ Si votre navigateur bloque la popup, un bouton **Connect to OpenHEXA** apparaît
 
 **`file://` ou `http://localhost`.** Les deux fonctionnent. En servant via `http://localhost`, le navigateur garantit que l'identifiant n'est remis qu'à votre page : le handshake se termine sans confirmation. Une page `file://` a une origine opaque que le navigateur ne peut pas cibler, donc OpenHEXA affiche un écran d'**approbation** dans la popup avant de remettre l'identifiant — ne l'approuvez que si vous venez d'ouvrir votre propre fichier local. Pour une boucle sans aucune confirmation, servez via `http://localhost` (n'importe quel serveur statique convient, par ex. `python -m http.server 5173`).
 
-L'identifiant est mis en cache pour l'onglet du navigateur : vous n'approuvez donc **qu'une fois par session d'onglet** — recharger la page le réutilise, sans popup. L'identifiant a une courte durée de vie et se renouvelle ; à son expiration, `dev.js` se reconnecte automatiquement à la requête suivante (en réaffichant le bouton **Connect** si la popup est bloquée), donc une session de longue durée se rétablit d'elle-même. Fermer l'onglet vide le cache.
+L'identifiant est mis en cache pour l'onglet du navigateur : vous ne vous connectez donc **qu'une fois par session d'onglet** — recharger la page le réutilise, sans popup. Il a une courte durée de vie (environ une heure) et ne se renouvelle pas avec l'activité ; à son expiration, le prochain appel `/graphql/` réaffiche le bouton **Connect** — cliquez dessus pour vous reconnecter. Fermer l'onglet vide le cache.
 
 Une petite pastille dans le coin indique la webapp connectée. Utilisez son action **Switch** pour choisir une autre webapp, ou **Reconnect** pour forcer un nouvel identifiant.
 

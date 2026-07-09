@@ -114,7 +114,7 @@ If your browser blocks the popup, a **Connect to OpenHEXA** button appears — c
 
 **`file://` vs `http://localhost`.** Both work. When you serve over `http://localhost`, the browser guarantees the credential is delivered only to your page, so the handshake completes with no prompt. A `file://` page has an opaque origin the browser cannot target, so OpenHEXA shows an **Approve** screen in the popup before releasing the credential — approve it only when you just opened your own local file. For a completely prompt-free loop, serve over `http://localhost` (any static server works, e.g. `python -m http.server 5173`).
 
-The credential is cached for the browser tab, so you approve **once per tab session** — refreshing the page reuses it, no popup. The credential is short-lived and rotates; when it expires `dev.js` automatically reconnects on the next request (showing the **Connect** button again if the popup is blocked), so a long-running session recovers on its own. Closing the tab clears the cache.
+The credential is cached for the browser tab, so you connect **once per tab session** — refreshing the page reuses it, no popup. It is short-lived (about an hour) and does not renew on activity; when it expires the next `/graphql/` call shows the **Connect** button again — click it to reconnect. Closing the tab clears the cache.
 
 A small chip in the corner shows the connected web app. Use its **Switch** action to pick a different web app, or **Reconnect** to force a fresh credential.
 
