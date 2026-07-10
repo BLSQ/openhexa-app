@@ -80,16 +80,18 @@ const WebappsPage = (props: Props) => {
           </Breadcrumbs>
         }
         headerActions={
-          <Button
-            leadingIcon={<PlusIcon className="h-4 w-4" />}
-            onClick={() =>
-              router.push(
-                `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/create`,
-              )
-            }
-          >
-            {t("Create")}
-          </Button>
+          workspace.permissions.update && (
+            <Button
+              leadingIcon={<PlusIcon className="h-4 w-4" />}
+              onClick={() =>
+                router.push(
+                  `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/create`,
+                )
+              }
+            >
+              {t("Create")}
+            </Button>
+          )
         }
       >
         <WorkspaceLayout.PageContent>
@@ -218,7 +220,9 @@ const WebappsPage = (props: Props) => {
               </BaseColumn>
               <ChevronLinkColumn
                 accessor="slug"
-                customLabel={t("Edit")}
+                customLabel={
+                  workspace.permissions.update ? t("Edit") : t("View")
+                }
                 className="flex items-center"
                 maxWidth={80}
                 url={(slug) => ({

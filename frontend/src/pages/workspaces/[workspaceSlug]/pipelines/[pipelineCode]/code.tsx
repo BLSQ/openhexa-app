@@ -90,6 +90,8 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     string | null
   >(null);
 
+  const canEditCode = data?.pipeline?.permissions.createVersion ?? false;
+
   const seededRef = useRef(false);
   useEffect(() => {
     if (seededRef.current || !data?.pipeline) return;
@@ -97,7 +99,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
     const convs = data.pipeline.assistantConversations;
     setConversations(convs);
     setActiveConversationId(convs[0]?.id ?? null);
-    setChatOpen(convs.length > 0 && !aiBudgetLimitReached);
+    setChatOpen(convs.length > 0 && !aiBudgetLimitReached && canEditCode);
   }, [data?.pipeline?.id]);
 
   const handleNewConversation = useCallback(() => {
@@ -183,7 +185,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                 onChange={onVersionChange}
               />
             </div>
-            {aiEnabled && (
+            {aiEnabled && canEditCode && (
               <div className="ml-auto">
                 <SubscriptionLimitTooltip
                   isLimitReached={aiBudgetLimitReached}
@@ -220,7 +222,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                   key={versionToShow.id}
                   name={versionToShow.versionName}
                   files={versionToShow.files}
-                  isEditable={true}
+                  isEditable={pipeline.permissions.createVersion}
                   proposedFiles={proposedFiles ?? undefined}
                   workspaceSlug={workspaceSlug}
                   pipelineCode={pipelineCode}
@@ -229,7 +231,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                 />
               </div>
             </div>
-            {chatOpen && aiEnabled && (
+            {chatOpen && aiEnabled && canEditCode && (
               <div className="w-[440px] shrink-0">
                 <PipelineEditChatPanel
                   pipelineId={pipeline.id}
