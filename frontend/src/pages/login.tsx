@@ -35,6 +35,7 @@ const LoginPage: NextPageWithLayout = () => {
   const oidcProviders = configData?.config?.oidcProviders ?? [];
   const [showOTPForm, setOTPForm] = useState(false);
   const { t } = useTranslation();
+  const ssoError = router.query.sso_error as string | undefined;
 
   const form = useForm<LoginForm>({
     onSubmit: async (values) => {
@@ -128,6 +129,16 @@ const LoginPage: NextPageWithLayout = () => {
             {t("Sign in")}
           </h2>
         </div>
+        {ssoError && (
+          <div
+            data-testid="sso-error"
+            className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          >
+            {t(
+              "You are not allowed to sign in with this account. Please contact your administrator.",
+            )}
+          </div>
+        )}
         {configLoading ? (
           <div className="flex justify-center py-4">
             <Spinner size="sm" />

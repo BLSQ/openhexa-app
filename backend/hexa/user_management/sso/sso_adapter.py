@@ -50,8 +50,9 @@ class OpenHexaSocialAccountAdapter(DefaultSocialAccountAdapter):
         if not email or not email_verified:
             # Abort the flow immediately rather than falling through to the allauth
             # signup form, which save_user does not support without an email claim.
-            # Redirect to the frontend login page rather than allauth's raw error page.
-            login_url = reverse("core:login")
+            # Redirect to the frontend login page rather than allauth's raw error page;
+            # the sso_error param makes the login page display a rejection message.
+            login_url = f"{reverse('core:login')}?sso_error=not_allowed"
             raise ImmediateHttpResponse(HttpResponseRedirect(login_url))
 
         try:
