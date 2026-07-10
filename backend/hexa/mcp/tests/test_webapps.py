@@ -521,6 +521,35 @@ class GetStaticWebappFileTest(MCPTestCase):
         self.assertEqual(result["content"], "<h1>Hello</h1>")
 
     @_mock_forgejo()
+    def test_get_static_webapp_file_int_line_numbers(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("GetFileIntLines"),
+            files_json=json.dumps(
+                [{"path": "index.html", "content": "line1\nline2\nline3"}]
+            ),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_slug = create_result["webapp"]["slug"]
+
+        client.get_file.return_value = b"line1\nline2\nline3"
+
+        result = get_static_webapp_file(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            webapp_slug=webapp_slug,
+            path="index.html",
+            start_line=1,
+            end_line=2,
+        )
+        self.assertTrue(result["success"], result)
+        self.assertEqual(result["startLine"], 1)
+        self.assertEqual(result["endLine"], 2)
+        self.assertEqual(result["content"], "line1\nline2")
+
+    @_mock_forgejo()
     def test_get_static_webapp_file_not_found(self, mock_forgejo):
         from hexa.git.exceptions import GitFileNotFound
 
