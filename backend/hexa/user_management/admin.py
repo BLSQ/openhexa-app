@@ -8,7 +8,7 @@ from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
-from django.db.models import OuterRef, Q, Subquery, Sum
+from django.db.models import Count, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Collate
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -68,10 +68,16 @@ class GroupAdmin(admin.ModelAdmin):
     list_display = ("name", "members_count")
     search_fields = ("name",)
 
-    def members_count(self, obj):
-        return obj.user_set.count()
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(_members_count=Count("user", distinct=True))
+        )
 
-    members_count.short_description = "Members Count"
+    @admin.display(description="Members Count", ordering="_members_count")
+    def members_count(self, obj):
+        return obj._members_count
 
 
 class UserCreationForm(BaseUserCreationForm):
