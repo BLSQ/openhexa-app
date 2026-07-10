@@ -3,11 +3,27 @@ import logging
 from django.core.exceptions import RequestDataTooBig
 from django.db import connection
 from django.http import HttpRequest, JsonResponse
+from django.middleware.gzip import GZipMiddleware
 from django.utils import timezone
 from oauth2_provider.models import AccessToken
 
 logger = logging.getLogger(__name__)
 security_logger = logging.getLogger("django.security.RequestDataTooBig")
+
+
+class SSEAwareGZipMiddleware(GZipMiddleware):
+    """GZipMiddleware that leaves Server-Sent Events responses uncompressed.
+
+    GZipMiddleware compresses each chunk of an async streaming response as a
+    separate gzip member, which browsers can't reliably stream-decode, and it
+    reintroduces the buffering that SSE responses explicitly disable
+    (X-Accel-Buffering: no) — events would arrive late or not at all.
+    """
+
+    def process_response(self, request, response):
+        if response.get("Content-Type", "").startswith("text/event-stream"):
+            return response
+        return super().process_response(request, response)
 
 
 class RequestTooBigMiddleware:
