@@ -1,6 +1,7 @@
 import inspect
 import json
 import logging
+import typing
 
 from hexa.mcp.models import ToolCall
 
@@ -18,6 +19,14 @@ def tool(func):
     return func
 
 
+def _base_type(annotation):
+    """Unwrap Optional/Union annotations (e.g. `int | None`) to the underlying type."""
+    args = [a for a in typing.get_args(annotation) if a is not type(None)]
+    if len(args) == 1:
+        return args[0]
+    return annotation
+
+
 def _get_tool_schema(func):
     sig = inspect.signature(func)
     properties = {}
@@ -27,7 +36,9 @@ def _get_tool_schema(func):
     for name, param in sig.parameters.items():
         if name == "user":
             continue
-        properties[name] = {"type": type_map.get(param.annotation, "string")}
+        properties[name] = {
+            "type": type_map.get(_base_type(param.annotation), "string")
+        }
         if param.default is inspect.Parameter.empty:
             required.append(name)
 
