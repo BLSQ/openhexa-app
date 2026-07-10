@@ -350,6 +350,11 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Enable gzip compression on everything served from Django except SSE
+    # streams. This impacts /graphql/, /mcp, all web apps and the Django admin.
+    # Note: SSE issues appears resolved in Django 6.0, to check when we upgrade:
+    # https://github.com/django/django/commit/bb4fcf5f67e6a39440bb1271450319604a755f2e
+    "hexa.core.middlewares.SSEAwareGZipMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "hexa.core.middlewares.RequestTooBigMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",

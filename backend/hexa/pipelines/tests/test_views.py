@@ -561,6 +561,21 @@ class SSEStreamTest(TestCase):
         self.assertEqual(events[0]["data"]["message"], "Second")
         self.assertEqual(events[1]["event"], "done")
 
+    def test_stream_is_not_gzipped(self):
+        # SSEAwareGZipMiddleware must skip SSE responses: compressing each
+        # streamed chunk as a separate gzip member breaks browser-side decoding
+        # and buffers events instead of delivering them in real time.
+        messages = [{"message": "Starting", "timestamp": None, "priority": "INFO"}]
+        run = self._make_run(PipelineRunState.SUCCESS, messages=messages)
+        self.client.force_login(self.USER)
+        response = self.client.get(self._url(run.id), HTTP_ACCEPT_ENCODING="gzip")
+        self.assertEqual(response.status_code, 200)
+        # GZip middleware sets `Content-Encoding: gzip`, verify that it didn't do that
+        self.assertNotIn("Content-Encoding", response)
+        events = self._consume(response)
+        self.assertEqual(events[0]["data"]["message"], "Starting")
+        self.assertEqual(events[-1]["event"], "done")
+
     def test_terminal_run_invalid_cursor_defaults_to_zero(self):
         run = self._make_run(PipelineRunState.SUCCESS, messages=[])
         self.client.force_login(self.USER)
