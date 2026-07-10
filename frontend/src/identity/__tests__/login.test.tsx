@@ -331,6 +331,21 @@ describe("LoginPage: SSO error banner", () => {
     );
   });
 
+  it("strips sso_error from the URL but keeps the banner and other params", async () => {
+    mockRouter.setCurrentUrl("/login?next=%2Fdashboard&sso_error=not_allowed");
+    render(
+      <TestApp>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    await waitFor(() => {
+      expect(mockRouter.query).not.toHaveProperty("sso_error");
+    });
+    expect(mockRouter.query).toHaveProperty("next", "/dashboard");
+    expect(screen.getByTestId("sso-error")).toBeInTheDocument();
+  });
+
   it("does not show the banner without the sso_error param", () => {
     mockRouter.setCurrentUrl("/login");
     render(

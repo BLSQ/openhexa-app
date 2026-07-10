@@ -13,7 +13,7 @@ import logo from "public/images/logo.svg";
 import Link from "core/components/Link";
 import CenteredLayout from "core/layouts/centered";
 import { useRouter } from "next/router";
-import { ReactElement, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import Page from "core/components/Page";
 import { useTranslation } from "next-i18next";
 import { LoginError } from "graphql/types";
@@ -35,7 +35,24 @@ const LoginPage: NextPageWithLayout = () => {
   const oidcProviders = configData?.config?.oidcProviders ?? [];
   const [showOTPForm, setOTPForm] = useState(false);
   const { t } = useTranslation();
-  const ssoError = router.query.sso_error as string | undefined;
+  // Lazy-initialised from the query so the banner is part of the first
+  // (server-side) render instead of popping in after hydration.
+  const [ssoError, setSsoError] = useState<string | undefined>(
+    () => router.query.sso_error as string | undefined,
+  );
+
+  // Keep the banner in state and strip sso_error from the URL, so a reload or a
+  // shared link doesn't re-show a stale error. Other params (e.g. next) are kept.
+  useEffect(() => {
+    if (router.query.sso_error) {
+      setSsoError(router.query.sso_error as string);
+      const query = { ...router.query };
+      delete query.sso_error;
+      router.replace({ pathname: router.pathname, query }, undefined, {
+        shallow: true,
+      });
+    }
+  }, [router]);
 
   const form = useForm<LoginForm>({
     onSubmit: async (values) => {
