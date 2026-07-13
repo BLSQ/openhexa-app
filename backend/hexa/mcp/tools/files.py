@@ -31,8 +31,8 @@ def read_file(
     user,
     workspace_slug: str,
     file_path: str,
-    start_line: int = None,
-    end_line: int = None,
+    start_line: int | None = None,
+    end_line: int | None = None,
 ) -> dict:
     """Read the content of a text file from a workspace bucket. Only works for UTF-8 text files up to 1 MB (includes .py, .csv, .json, .ipynb, .sql, .txt, etc.). Use list_files first to check file size and path. For Jupyter notebooks (.ipynb), the content is JSON that you can parse to read/modify cells. Use start_line and end_line (1-indexed, inclusive) to read a specific range of lines instead of the entire file."""
     variables = {"workspaceSlug": workspace_slug, "filePath": file_path}

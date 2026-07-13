@@ -70,7 +70,7 @@ class GetStaticWebappTest(MCPTestCase):
             workspace_slug=self.WORKSPACE.slug,
             name=_unique_name("Get"),
             files_json=json.dumps(files),
-            allowed_operations="PIPELINES_READ",
+            allowed_operations=[Webapp.OperationScope.PIPELINES_READ],
         )
         self.assertTrue(create_result["success"], create_result.get("errors"))
         webapp_slug = create_result["webapp"]["slug"]
@@ -264,7 +264,10 @@ class CreateStaticWebappTest(MCPTestCase):
             workspace_slug=self.WORKSPACE.slug,
             name=_unique_name("Scoped"),
             files_json=json.dumps(files),
-            allowed_operations="PIPELINES_READ,FILES_READ",
+            allowed_operations=[
+                Webapp.OperationScope.PIPELINES_READ,
+                Webapp.OperationScope.FILES_READ,
+            ],
         )
         self.assertTrue(result["success"], result.get("errors"))
         self.assertCountEqual(
@@ -459,7 +462,10 @@ class UpdateStaticWebappTest(MCPTestCase):
         result = update_static_webapp(
             user=self.USER_ADMIN,
             webapp_id=webapp_id,
-            allowed_operations="PIPELINES_READ,DATASETS_READ",
+            allowed_operations=[
+                Webapp.OperationScope.PIPELINES_READ,
+                Webapp.OperationScope.DATASETS_READ,
+            ],
         )
         self.assertTrue(result["success"], result)
         self.assertCountEqual(
@@ -468,14 +474,17 @@ class UpdateStaticWebappTest(MCPTestCase):
         )
 
     @_mock_forgejo()
-    def test_update_static_webapp_allowed_operations_none_resets(self, _mock):
+    def test_update_static_webapp_empty_list_revokes_operations(self, _mock):
         files = [{"path": "index.html", "content": "<html></html>"}]
         create_result = create_static_webapp(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
             name=_unique_name("ScopeReset"),
             files_json=json.dumps(files),
-            allowed_operations="PIPELINES_READ,FILES_READ",
+            allowed_operations=[
+                Webapp.OperationScope.PIPELINES_READ,
+                Webapp.OperationScope.FILES_READ,
+            ],
         )
         self.assertTrue(create_result["success"], create_result.get("errors"))
         webapp_id = str(create_result["webapp"]["id"])
@@ -487,10 +496,33 @@ class UpdateStaticWebappTest(MCPTestCase):
         result = update_static_webapp(
             user=self.USER_ADMIN,
             webapp_id=webapp_id,
-            allowed_operations="NONE",
+            allowed_operations=[],
         )
         self.assertTrue(result["success"], result)
         self.assertEqual(Webapp.objects.get(pk=webapp_id).allowed_operations, [])
+
+    @_mock_forgejo()
+    def test_update_static_webapp_omitting_operations_leaves_untouched(self, _mock):
+        files = [{"path": "index.html", "content": "<html></html>"}]
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("ScopeKeep"),
+            files_json=json.dumps(files),
+            allowed_operations=[Webapp.OperationScope.PIPELINES_READ],
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_id = str(create_result["webapp"]["id"])
+
+        result = update_static_webapp(
+            user=self.USER_ADMIN,
+            webapp_id=webapp_id,
+            description="just a description change",
+        )
+        self.assertTrue(result["success"], result)
+        self.assertEqual(
+            Webapp.objects.get(pk=webapp_id).allowed_operations, ["PIPELINES_READ"]
+        )
 
 
 class GetStaticWebappFileTest(MCPTestCase):
@@ -519,6 +551,35 @@ class GetStaticWebappFileTest(MCPTestCase):
         self.assertTrue(result["success"], result)
         self.assertEqual(result["path"], "index.html")
         self.assertEqual(result["content"], "<h1>Hello</h1>")
+
+    @_mock_forgejo()
+    def test_get_static_webapp_file_int_line_numbers(self, mock_forgejo):
+        client = mock_forgejo.return_value
+        create_result = create_static_webapp(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name=_unique_name("GetFileIntLines"),
+            files_json=json.dumps(
+                [{"path": "index.html", "content": "line1\nline2\nline3"}]
+            ),
+        )
+        self.assertTrue(create_result["success"], create_result.get("errors"))
+        webapp_slug = create_result["webapp"]["slug"]
+
+        client.get_file.return_value = b"line1\nline2\nline3"
+
+        result = get_static_webapp_file(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            webapp_slug=webapp_slug,
+            path="index.html",
+            start_line=1,
+            end_line=2,
+        )
+        self.assertTrue(result["success"], result)
+        self.assertEqual(result["startLine"], 1)
+        self.assertEqual(result["endLine"], 2)
+        self.assertEqual(result["content"], "line1\nline2")
 
     @_mock_forgejo()
     def test_get_static_webapp_file_not_found(self, mock_forgejo):

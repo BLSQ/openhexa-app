@@ -1,14 +1,19 @@
+import enum
 import inspect
 import json
 import logging
+import types
+import typing
 
 from hexa.mcp.models import ToolCall
 
 logger = logging.getLogger(__name__)
 
 MCP_SERVER_NAME = "OpenHEXA"
-MCP_SERVER_VERSION = "0.0.1"
+MCP_SERVER_VERSION = "1.0.0"
 PROTOCOL_VERSION = "2025-03-26"
+
+TYPE_MAP = {str: "string", int: "integer", float: "number", bool: "boolean"}
 
 _TOOLS = {}
 
@@ -18,16 +23,47 @@ def tool(func):
     return func
 
 
+def _base_type(annotation):
+    """Unwrap Optional/Union annotations (e.g. `int | None`) to the underlying type."""
+    if typing.get_origin(annotation) not in (typing.Union, types.UnionType):
+        return annotation
+    args = [a for a in typing.get_args(annotation) if a is not type(None)]
+    if len(args) == 1:
+        return args[0]
+    return annotation
+
+
+def _enum_schema(enum_cls):
+    values = [member.value for member in enum_cls]
+    value_type = type(values[0]) if values else str
+    return {"type": TYPE_MAP.get(value_type, "string"), "enum": values}
+
+
+def _property_schema(annotation):
+    """Build the JSON Schema for a single tool argument from its annotation."""
+    base = _base_type(annotation)
+    if isinstance(base, type) and issubclass(base, enum.Enum):
+        return _enum_schema(base)
+    if typing.get_origin(base) is list:
+        (item,) = typing.get_args(base) or (str,)
+        item_base = _base_type(item)
+        # Carry the enum constraint onto the array items too (e.g. a list of scopes).
+        if isinstance(item_base, type) and issubclass(item_base, enum.Enum):
+            return {"type": "array", "items": _enum_schema(item_base)}
+        return {"type": "array", "items": {"type": TYPE_MAP.get(item_base, "string")}}
+    # Scalars map directly; anything unrecognized (e.g. dict) degrades to string.
+    return {"type": TYPE_MAP.get(base, "string")}
+
+
 def _get_tool_schema(func):
     sig = inspect.signature(func)
     properties = {}
     required = []
-    type_map = {str: "string", int: "integer", float: "number", bool: "boolean"}
 
     for name, param in sig.parameters.items():
         if name == "user":
             continue
-        properties[name] = {"type": type_map.get(param.annotation, "string")}
+        properties[name] = _property_schema(param.annotation)
         if param.default is inspect.Parameter.empty:
             required.append(name)
 
