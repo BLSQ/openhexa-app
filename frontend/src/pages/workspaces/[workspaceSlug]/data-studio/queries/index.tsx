@@ -1,55 +1,62 @@
-import { PlusIcon } from "@heroicons/react/24/outline";
-import Button from "core/components/Button";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
+import useCacheKey from "core/hooks/useCacheKey";
+import useDebounce from "core/hooks/useDebounce";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
+import { useState } from "react";
+import SavedQueriesList from "workspaces/features/SavedQueries/SavedQueriesList";
 import {
-  useWorkspaceDataStudioPageQuery,
-  WorkspaceDataStudioPageDocument,
+  useWorkspaceSavedQueriesPageQuery,
+  WorkspaceSavedQueriesPageDocument,
+  WorkspaceSavedQueriesPageQuery,
+  WorkspaceSavedQueriesPageQueryVariables,
 } from "workspaces/graphql/queries.generated";
 import DataStudioLayout from "workspaces/layouts/DataStudioLayout";
 
+const DEFAULT_PER_PAGE = 15;
+
 type Props = {
   workspaceSlug: string;
+  page: number;
+  perPage: number;
 };
 
 const WorkspaceSavedQueriesPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
-  const router = useRouter();
-  const { data } = useWorkspaceDataStudioPageQuery({
-    variables: { workspaceSlug: props.workspaceSlug },
+  const [page, setPage] = useState(props.page);
+  const [perPage, setPerPage] = useState(props.perPage);
+  const [searchInput, setSearchInput] = useState("");
+  // Reset to the first page whenever the (debounced) search changes.
+  const debouncedSearch = useDebounce(searchInput, 300, () => setPage(1));
+  const query = debouncedSearch.trim() || undefined;
+
+  const { data, loading, refetch } = useWorkspaceSavedQueriesPageQuery({
+    variables: { workspaceSlug: props.workspaceSlug, page, perPage, query },
+    notifyOnNetworkStatusChange: true,
   });
+
+  useCacheKey(["savedQueries"], () => refetch());
 
   if (!data?.workspace) {
     return null;
   }
   const { workspace } = data;
-  const basePath = `/workspaces/${encodeURIComponent(workspace.slug)}/data-studio`;
 
   return (
     <Page title={t("Saved queries")}>
       <DataStudioLayout workspace={workspace} currentTab="saved">
-        <div className="h-full overflow-auto bg-gray-50">
-          <div className="mx-auto max-w-[1180px] px-8 pt-7 pb-5">
-            <div className="mb-5 flex items-center justify-between">
-              <h1 className="text-[22px] font-semibold tracking-tight text-gray-900">
-                {t("Saved queries")}
-              </h1>
-              <Button
-                leadingIcon={<PlusIcon className="h-4 w-4" />}
-                onClick={() => router.push(basePath)}
-              >
-                {t("New query")}
-              </Button>
-            </div>
-            {/* Populated in a later step: search + DataGrid of saved queries. */}
-            <div className="rounded-md border border-gray-200 bg-white p-10 text-center text-sm text-gray-500 shadow-xs">
-              {t("The saved queries list will appear here.")}
-            </div>
-          </div>
-        </div>
+        <SavedQueriesList
+          workspace={workspace}
+          perPage={perPage}
+          loading={loading}
+          searchValue={searchInput}
+          onSearchChange={setSearchInput}
+          onChangePage={({ page, pageSize }) => {
+            setPage(page);
+            setPerPage(pageSize);
+          }}
+        />
       </DataStudioLayout>
     </Page>
   );
@@ -61,10 +68,17 @@ export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
     await DataStudioLayout.prefetch(ctx, client);
-    const { data } = await client.query({
-      query: WorkspaceDataStudioPageDocument,
+    const page = ctx.query.page ? parseInt(ctx.query.page as string, 10) : 1;
+    const perPage = DEFAULT_PER_PAGE;
+    const { data } = await client.query<
+      WorkspaceSavedQueriesPageQuery,
+      WorkspaceSavedQueriesPageQueryVariables
+    >({
+      query: WorkspaceSavedQueriesPageDocument,
       variables: {
-        workspaceSlug: ctx.params?.workspaceSlug,
+        workspaceSlug: ctx.params?.workspaceSlug as string,
+        page,
+        perPage,
       },
     });
 
@@ -74,7 +88,7 @@ export const getServerSideProps = createGetServerSideProps({
       };
     }
     return {
-      props: { workspaceSlug: data.workspace.slug },
+      props: { workspaceSlug: data.workspace.slug, page, perPage },
     };
   },
 });

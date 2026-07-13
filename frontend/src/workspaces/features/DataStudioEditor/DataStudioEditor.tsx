@@ -7,6 +7,7 @@ import CodeEditor, {
 import useIsMac from "core/hooks/useIsMac";
 import { useTranslation } from "next-i18next";
 import { useRef, useState } from "react";
+import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { buildCsv, downloadCsv } from "./csv";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
@@ -14,14 +15,18 @@ import { useDataStudioQuery } from "./useDataStudioQuery";
 
 type DataStudioEditorProps = {
   workspaceSlug: string;
+  savedQuery?: SavedQuery_SavedQueryFragment | null;
 };
 
 const MAX_ROWS_OPTIONS = [50, 100, 500, 1000, 10_000];
 
-const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
+const DataStudioEditor = ({
+  workspaceSlug,
+  savedQuery,
+}: DataStudioEditorProps) => {
   const { t } = useTranslation();
   const isMac = useIsMac();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(savedQuery?.content ?? "");
   const [maxRows, setMaxRows] = useState(MAX_ROWS_OPTIONS[0]);
   const editorRef = useRef<CodeEditorHandle>(null);
 
@@ -68,8 +73,8 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
         {/* Toolbar: controls right-aligned, Run at the far right. */}
         <div className="flex h-11 shrink-0 items-center gap-2 border-b border-gray-200 px-3">
           <TableCellsIcon className="h-4 w-4 shrink-0 text-gray-400" />
-          <span className="text-sm font-medium text-gray-800">
-            {t("Query")}
+          <span className="truncate text-sm font-medium text-gray-800">
+            {savedQuery?.name ?? t("Query")}
           </span>
           <div className="ml-auto flex items-center gap-2">
             <label className="flex items-center gap-1.5 text-xs text-gray-500">
