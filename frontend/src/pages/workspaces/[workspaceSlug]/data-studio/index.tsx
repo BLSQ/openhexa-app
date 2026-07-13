@@ -29,7 +29,10 @@ const WorkspaceDataStudioPage: NextPageWithLayout = (props: Props) => {
       <DataStudioLayout workspace={workspace} currentTab="editor">
         {/* Full-bleed IDE: fill the area below the header and sub-nav. */}
         <div className="h-full p-4">
-          <DataStudioEditor workspaceSlug={workspace.slug} />
+          <DataStudioEditor
+            workspaceSlug={workspace.slug}
+            canCreate={workspace.permissions.createSavedQuery}
+          />
         </div>
       </DataStudioLayout>
     </Page>

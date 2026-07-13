@@ -37,6 +37,7 @@ const WorkspaceSavedQueryPage: NextPageWithLayout = (props: Props) => {
             key={savedQuery.id}
             workspaceSlug={workspace.slug}
             savedQuery={savedQuery}
+            canCreate={workspace.permissions.createSavedQuery}
           />
         </div>
       </DataStudioLayout>

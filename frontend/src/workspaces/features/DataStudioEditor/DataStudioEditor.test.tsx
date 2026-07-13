@@ -13,6 +13,24 @@ jest.mock("./DataStudioEditor.generated", () => ({
   useExecuteWorkspaceSqlLazyQuery: () => [mockExecute, mockQueryState],
 }));
 
+// The save/write path (Apollo mutations + router navigation) is exercised in
+// its own suite; stub it here so these tests stay focused on run/export/schema
+// orchestration and need no ApolloProvider or router.
+jest.mock("./useSavedQueryEditor", () => ({
+  useSavedQueryEditor: () => ({
+    savedQuery: null,
+    isDirty: false,
+    saving: false,
+    canUpdate: false,
+    dialog: null,
+    save: jest.fn(),
+    saveAsNew: jest.fn(),
+    editDetails: jest.fn(),
+    closeDialog: jest.fn(),
+    onDialogSaved: jest.fn(),
+  }),
+}));
+
 // The schema browser and results grid are covered by their own tests; stub them
 // so this file exercises only the editor's orchestration logic.
 jest.mock("./DataStudioSchemaBrowser", () => ({
