@@ -1,6 +1,7 @@
 import json
 
 from hexa.mcp.protocol import tool
+from hexa.webapps.models import Webapp
 
 from ._graphql import execute_graphql
 
@@ -40,10 +41,6 @@ def get_static_webapp(user, workspace_slug: str, webapp_slug: str) -> dict:
     return webapp
 
 
-def _split_scopes(value: str) -> list[str]:
-    return [s.strip().upper() for s in value.split(",") if s.strip()]
-
-
 @tool
 def create_static_webapp(
     user,
@@ -51,7 +48,7 @@ def create_static_webapp(
     name: str,
     files_json: str,
     description: str = "",
-    allowed_operations: str = "",
+    allowed_operations: list[Webapp.OperationScope] | None = None,
 ) -> dict:
     """Create a static web app in a workspace.
 
@@ -59,9 +56,8 @@ def create_static_webapp(
 
     Private static webapps can also call OpenHEXA's GraphQL API directly from their JS via a same-origin
     proxy at POST /graphql/ (auth handled by the webapp session, no token needed). Pass
-    allowed_operations as a comma-separated list of scopes to grant API access at creation time —
-    valid values: PIPELINES_READ, PIPELINES_RUN, FILES_READ, FILES_WRITE, DATASETS_READ, DATASETS_WRITE,
-    USER_READ. Leave empty to create with no API access (you can grant it later via
+    allowed_operations as a list of scopes to grant API access at creation time (see the parameter's
+    allowed values). Omit it to create with no API access (you can grant it later via
     update_static_webapp). When generating the webapp's HTML/JS, you can include
     fetch('/graphql/', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({query, variables})})
     calls. For the full reference (auth model, all top-level fields per scope, sample queries and
@@ -85,7 +81,7 @@ def create_static_webapp(
     if description:
         create_input["description"] = description
     if allowed_operations:
-        create_input["allowedOperations"] = _split_scopes(allowed_operations)
+        create_input["allowedOperations"] = allowed_operations
 
     data = execute_graphql(
         user,
@@ -105,7 +101,7 @@ def update_static_webapp(
     files_to_delete_json: str = "",
     name: str = "",
     description: str = "",
-    allowed_operations: str = "",
+    allowed_operations: list[Webapp.OperationScope] | None = None,
 ) -> dict:
     """Update an existing static web app.
 
@@ -115,7 +111,7 @@ def update_static_webapp(
 
     Files are updated incrementally — you do NOT need to resend the whole bundle. Pass files_json as a JSON array of {path, content} objects containing only the files you want to add or change (e.g. '[{"path": "app.js", "content": "..."}]'); any file you omit is left exactly as it is. Matching is by path: an existing path is overwritten, a new path is created. To remove files, pass files_to_delete_json as a JSON array of paths (e.g. '["old.js", "legacy/style.css"]'); paths that don't exist are ignored. You can combine files_json and files_to_delete_json in a single call — they are applied as one commit.
 
-    Pass allowed_operations as a comma-separated list of API scopes the webapp's JS may call via the same-origin /graphql/ proxy — valid values: PIPELINES_READ, PIPELINES_RUN, FILES_READ, FILES_WRITE, DATASETS_READ, DATASETS_WRITE, USER_READ. Leave empty to leave the current scopes untouched, or pass "NONE" to revoke all access. For the full reference (auth model, all top-level fields per scope, sample queries and mutations), call get_help_or_doc(topic="static-webapps").
+    Pass allowed_operations as a list of API scopes the webapp's JS may call via the same-origin /graphql/ proxy (see the parameter's allowed values). Omit it to leave the current scopes untouched, or pass an empty list to revoke all access. For the full reference (auth model, all top-level fields per scope, sample queries and mutations), call get_help_or_doc(topic="static-webapps").
     """
     update_input: dict = {"id": webapp_id}
     if name:
@@ -144,11 +140,8 @@ def update_static_webapp(
                 "error": "files_to_delete_json must be a JSON array of path strings"
             }
         update_input["filesToDelete"] = files_to_delete
-    if allowed_operations:
-        if allowed_operations.strip().upper() == "NONE":
-            update_input["allowedOperations"] = []
-        else:
-            update_input["allowedOperations"] = _split_scopes(allowed_operations)
+    if allowed_operations is not None:
+        update_input["allowedOperations"] = allowed_operations
 
     data = execute_graphql(
         user,
