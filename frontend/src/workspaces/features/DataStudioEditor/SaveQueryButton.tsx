@@ -1,8 +1,27 @@
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { BookmarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
+
+// Heroicons has no floppy-disk/save glyph, so we inline the one from the Data
+// Studio design (stroke style matches the Heroicons 24-outline set used around
+// it in the toolbar).
+const FloppyDiskIcon = ({ className }: { className?: string }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.5}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+  >
+    <path d="M5 4h11l3 3v13H5z" />
+    <path d="M8 4v6h7V4" />
+    <path d="M8 20v-6h8v6" />
+  </svg>
+);
 
 type SaveQueryButtonProps = {
   isSaved: boolean;
@@ -50,7 +69,7 @@ const SaveQueryButton = ({
         className={GHOST}
         title={t("Save query")}
       >
-        <BookmarkIcon className="h-4 w-4" />
+        <FloppyDiskIcon className="h-4 w-4" />
         {t("Save")}
       </button>
     );
@@ -67,7 +86,7 @@ const SaveQueryButton = ({
         className={GHOST}
         title={t("Save as a new query")}
       >
-        <BookmarkIcon className="h-4 w-4" />
+        <FloppyDiskIcon className="h-4 w-4" />
         {t("Save as new query")}
       </button>
     );
@@ -81,7 +100,7 @@ const SaveQueryButton = ({
         className={clsx(GHOST, "rounded-r-none pr-2")}
         title={isDirty ? t("Save changes") : t("No changes to save")}
       >
-        <BookmarkIcon className="h-4 w-4" />
+        <FloppyDiskIcon className="h-4 w-4" />
         {t("Save")}
       </button>
       <Menu as="div" className="relative">
