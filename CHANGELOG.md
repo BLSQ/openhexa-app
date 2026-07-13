@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.12.0](https://github.com/BLSQ/openhexa-app/compare/5.11.1...5.12.0) (2026-07-13)
+
+
+### Features
+
+* Data Studio frontend - 1st iteration (HEXA-1669) ([#1889](https://github.com/BLSQ/openhexa-app/issues/1889)) ([8a9ae56](https://github.com/BLSQ/openhexa-app/commit/8a9ae565e6e1609180e01747e2f6171251e40d3e))
+* data studio saved queries backend (HEXA-1709) ([#1906](https://github.com/BLSQ/openhexa-app/issues/1906)) ([ae290d4](https://github.com/BLSQ/openhexa-app/commit/ae290d4f2ff6ccda7c14edfd6f01c18a54bdad2e))
+* s3 storage bucket configuration ([#1899](https://github.com/BLSQ/openhexa-app/issues/1899)) ([46fd7df](https://github.com/BLSQ/openhexa-app/commit/46fd7df79fd832c6215553bcd91f1e78249732c9))
+
+
+### Bug Fixes
+
+* get static webapp file int cannot represent non integer value (HEXA-1739) ([#1909](https://github.com/BLSQ/openhexa-app/issues/1909)) ([77420a7](https://github.com/BLSQ/openhexa-app/commit/77420a7e963248baa7212b622c467bc59ad9b57e))
+* If console doesn't provide AI budget, default to OH trial value ([#1904](https://github.com/BLSQ/openhexa-app/issues/1904)) ([85768d2](https://github.com/BLSQ/openhexa-app/commit/85768d2cf38829e94512a36c1e53c38316e5dbb6))
+* workspace viewer permissions frontend issues (HEXA-1732) ([#1898](https://github.com/BLSQ/openhexa-app/issues/1898)) ([a27072c](https://github.com/BLSQ/openhexa-app/commit/a27072c3c3619a5ddf9ec0aebb991d942c12916a))
+
 ## [5.11.1](https://github.com/BLSQ/openhexa-app/compare/5.11.0...5.11.1) (2026-07-07)
 
 
