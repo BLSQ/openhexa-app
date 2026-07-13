@@ -1172,6 +1172,28 @@ export type CreatePipelineVersionInput = {
   zipfile?: InputMaybe<Scalars['String']['input']>;
 };
 
+/** Errors that can occur when creating a saved query. */
+export enum CreateSavedQueryError {
+  PermissionDenied = 'PERMISSION_DENIED',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+/** Input for creating a saved query. */
+export type CreateSavedQueryInput = {
+  content: Scalars['String']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
+};
+
+/** Result of creating a saved query. */
+export type CreateSavedQueryResult = {
+  __typename?: 'CreateSavedQueryResult';
+  errors: Array<CreateSavedQueryError>;
+  savedQuery?: Maybe<SavedQuery>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** The CreateTeamError enum represents the possible errors that can occur during the createTeam mutation. */
 export enum CreateTeamError {
   /** Indicates that a team with the same name already exists. */
@@ -2119,6 +2141,24 @@ export type DeletePipelineVersionResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Errors that can occur when deleting a saved query. */
+export enum DeleteSavedQueryError {
+  PermissionDenied = 'PERMISSION_DENIED',
+  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND'
+}
+
+/** Input for deleting a saved query. */
+export type DeleteSavedQueryInput = {
+  id: Scalars['ID']['input'];
+};
+
+/** Result of deleting a saved query. */
+export type DeleteSavedQueryResult = {
+  __typename?: 'DeleteSavedQueryResult';
+  errors: Array<DeleteSavedQueryError>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** The DeleteTeamError enum represents the possible errors that can occur during the deleteTeam mutation. */
 export enum DeleteTeamError {
   /** Indicates that the team was not found. */
@@ -3009,6 +3049,8 @@ export type Mutation = {
   createPipelineFromTemplateVersion: CreatePipelineFromTemplateVersionResult;
   /** Creates a new pipeline template version. */
   createPipelineTemplateVersion: CreatePipelineTemplateVersionResult;
+  /** Creates a new saved query in a workspace. */
+  createSavedQuery: CreateSavedQueryResult;
   createTeam: CreateTeamResult;
   createWebapp: CreateWebappResult;
   createWorkspace: CreateWorkspaceResult;
@@ -3041,6 +3083,8 @@ export type Mutation = {
   deletePipelineTemplate: DeletePipelineTemplateResult;
   /** Deletes a pipeline version. */
   deletePipelineVersion: DeletePipelineVersionResult;
+  /** Deletes a saved query. */
+  deleteSavedQuery: DeleteSavedQueryResult;
   deleteTeam: DeleteTeamResult;
   /** Deletes a template version. */
   deleteTemplateVersion: DeleteTemplateVersionResult;
@@ -3149,6 +3193,8 @@ export type Mutation = {
   updatePipelineTemplate: UpdateTemplateResult;
   /** Updates a pipeline version. */
   updatePipelineVersion: UpdatePipelineVersionResult;
+  /** Updates an existing saved query. */
+  updateSavedQuery: UpdateSavedQueryResult;
   updateTeam: UpdateTeamResult;
   /** Updates a template version. */
   updateTemplateVersion: UpdateTemplateVersionResult;
@@ -3288,6 +3334,11 @@ export type MutationCreatePipelineTemplateVersionArgs = {
 };
 
 
+export type MutationCreateSavedQueryArgs = {
+  input: CreateSavedQueryInput;
+};
+
+
 export type MutationCreateTeamArgs = {
   input: CreateTeamInput;
 };
@@ -3400,6 +3451,11 @@ export type MutationDeletePipelineTemplateArgs = {
 
 export type MutationDeletePipelineVersionArgs = {
   input: DeletePipelineVersionInput;
+};
+
+
+export type MutationDeleteSavedQueryArgs = {
+  input: DeleteSavedQueryInput;
 };
 
 
@@ -3750,6 +3806,11 @@ export type MutationUpdatePipelineTemplateArgs = {
 
 export type MutationUpdatePipelineVersionArgs = {
   input: UpdatePipelineVersionInput;
+};
+
+
+export type MutationUpdateSavedQueryArgs = {
+  input: UpdateSavedQueryInput;
 };
 
 
@@ -4739,6 +4800,8 @@ export type Query = {
   /** Read the text content of a file from a workspace's bucket. */
   readFileContent: ReadFileContentResult;
   readWebappFile: ReadWebappFileResult;
+  /** Retrieves a saved query by its id. */
+  savedQuery?: Maybe<SavedQuery>;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
   searchFiles: FileResultPage;
@@ -4991,6 +5054,11 @@ export type QueryReadWebappFileArgs = {
   startLine?: InputMaybe<Scalars['Int']['input']>;
   webappSlug: Scalars['String']['input'];
   workspaceSlug: Scalars['String']['input'];
+};
+
+
+export type QuerySavedQueryArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -5402,6 +5470,41 @@ export type S3ObjectPage = {
   pageNumber: Scalars['Int']['output'];
   totalItems: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
+};
+
+/**
+ * A SQL query saved by a user in the Data Studio. Saved queries belong to a
+ * workspace and are visible to all of its members.
+ */
+export type SavedQuery = {
+  __typename?: 'SavedQuery';
+  content: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  createdBy?: Maybe<User>;
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  permissions: SavedQueryPermissions;
+  updatedAt: Scalars['DateTime']['output'];
+  workspace: Workspace;
+};
+
+/** A page of saved queries. */
+export type SavedQueryPage = {
+  __typename?: 'SavedQueryPage';
+  items: Array<SavedQuery>;
+  pageNumber: Scalars['Int']['output'];
+  totalItems: Scalars['Int']['output'];
+  totalPages: Scalars['Int']['output'];
+};
+
+/** Permissions of a saved query. */
+export type SavedQueryPermissions = {
+  __typename?: 'SavedQueryPermissions';
+  /** Permission to delete the saved query. */
+  delete: Scalars['Boolean']['output'];
+  /** Permission to edit the saved query. */
+  update: Scalars['Boolean']['output'];
 };
 
 export type SearchResult = {
@@ -6152,6 +6255,28 @@ export type UpdatePipelineVersionResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** Errors that can occur when updating a saved query. */
+export enum UpdateSavedQueryError {
+  PermissionDenied = 'PERMISSION_DENIED',
+  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND'
+}
+
+/** Input for updating a saved query. */
+export type UpdateSavedQueryInput = {
+  content?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+};
+
+/** Result of updating a saved query. */
+export type UpdateSavedQueryResult = {
+  __typename?: 'UpdateSavedQueryResult';
+  errors: Array<UpdateSavedQueryError>;
+  savedQuery?: Maybe<SavedQuery>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** The UpdateTeamError enum represents the possible errors that can occur during the updateTeam mutation. */
 export enum UpdateTeamError {
   /** Indicates that a team with the same name already exists. */
@@ -6611,6 +6736,8 @@ export type Workspace = {
   pipelineLastRunStatuses: Array<PipelineRunStatus>;
   pipelineTags: Array<Scalars['String']['output']>;
   pipelineTemplateTags: Array<Scalars['String']['output']>;
+  /** The saved queries of the workspace. */
+  savedQueries: SavedQueryPage;
   shortcuts: Array<ShortcutItem>;
   slug: Scalars['String']['output'];
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
@@ -6639,6 +6766,14 @@ export type WorkspaceInvitationsArgs = {
 export type WorkspaceMembersArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+/** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
+export type WorkspaceSavedQueriesArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
+  query?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** Represents an invitation to join a workspace. */
@@ -6735,6 +6870,8 @@ export type WorkspacePermissions = {
   createObject: Scalars['Boolean']['output'];
   createPipeline: Scalars['Boolean']['output'];
   createPipelineTemplateVersion: Scalars['Boolean']['output'];
+  /** Permission to create a saved query in the workspace. */
+  createSavedQuery: Scalars['Boolean']['output'];
   delete: Scalars['Boolean']['output'];
   deleteDatabaseTable: Scalars['Boolean']['output'];
   /** User can delete objects in the workspace's bucket. */

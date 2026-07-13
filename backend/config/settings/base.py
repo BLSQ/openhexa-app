@@ -327,6 +327,7 @@ INSTALLED_APPS = [
     "hexa.plugins.connector_accessmod",
     "hexa.workspaces",
     "hexa.databases",
+    "hexa.data_studio",
     "hexa.metadata",
     "hexa.files",
     "hexa.datasets",

@@ -13,6 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 from hexa.assistant.schema import assistant_bindables, assistant_type_defs
 from hexa.core.schema import config_bindables, config_type_defs
 from hexa.countries.schema import countries_bindables, countries_type_defs
+from hexa.data_studio.schema import data_studio_bindables, data_studio_type_defs
 from hexa.databases.schema import databases_bindables, databases_types_def
 from hexa.datasets.schema import datasets_bindables, datasets_type_defs
 from hexa.files.schema import files_bindables, files_type_def
@@ -103,6 +104,7 @@ schema = make_executable_schema(
         workspaces_type_def,
         metadata_type_def,
         databases_types_def,
+        data_studio_type_defs,
         files_type_def,
         config_type_defs,
         datasets_type_defs,
@@ -126,6 +128,7 @@ schema = make_executable_schema(
         *workspaces_bindables,
         *metadata_bindables,
         *databases_bindables,
+        *data_studio_bindables,
         *files_bindables,
         *datasets_bindables,
         *config_bindables,
