@@ -6,11 +6,14 @@ from django.conf import settings
 
 from hexa.core.test import GraphQLTestCase
 from hexa.databases.models import DatabaseQueryLog
+from hexa.databases.schema import _log_executed_query
 from hexa.databases.tests.helpers import seed_demo_table
 from hexa.databases.utils import (
     TableRowsPage,
     execute_database_query,
 )
+from hexa.pipelines.authentication import PipelineRunUser
+from hexa.pipelines.models import PipelineRun
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
@@ -416,6 +419,41 @@ class DatabaseTest(GraphQLTestCase):
         self.assertTrue(result["success"])
         log = self._get_single_query_log()
         self.assertEqual(DatabaseQueryLog.Origin.DATA_STUDIO, log.origin)
+
+    def test_log_executed_query_resolves_pipeline_run_user(self):
+        # Service principals are not User instances; the audit entry must fall
+        # back to the human who triggered the run.
+        pipeline_run = mock.MagicMock(PipelineRun)
+        pipeline_run.user = self.USER_SABRINA
+        request = self.mock_request(PipelineRunUser(pipeline_run))
+
+        _log_executed_query(
+            request,
+            self.WORKSPACE,
+            "SELECT 1",
+            DatabaseQueryLog.Origin.OTHER,
+            DatabaseQueryLog.Status.SUCCESS,
+        )
+
+        log = self._get_single_query_log()
+        self.assertEqual(self.USER_SABRINA, log.user)
+
+    def test_log_executed_query_scheduled_run_has_no_user(self):
+        # Scheduled runs have no triggering user; the entry is kept without one.
+        pipeline_run = mock.MagicMock(PipelineRun)
+        pipeline_run.user = None
+        request = self.mock_request(PipelineRunUser(pipeline_run))
+
+        _log_executed_query(
+            request,
+            self.WORKSPACE,
+            "SELECT 1",
+            DatabaseQueryLog.Origin.OTHER,
+            DatabaseQueryLog.Status.SUCCESS,
+        )
+
+        log = self._get_single_query_log()
+        self.assertIsNone(log.user)
 
     def test_execute_sql_log_failure_fails_the_request(self):
         # A failed audit insert means a bug on our side; it must surface as an
