@@ -1,6 +1,6 @@
 from hexa.core.test import GraphQLTestCase
 from hexa.shortcuts.models import Shortcut
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.webapps.models import Webapp
 from hexa.workspaces.models import (
     Workspace,
@@ -12,6 +12,9 @@ from hexa.workspaces.models import (
 class ShortcutsSchemaTest(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Shortcuts Schema Test Organization"
+        )
         cls.USER_ROOT = User.objects.create_user(
             "root@bluesquarehub.com",
             "standardpassword",
@@ -24,6 +27,7 @@ class ShortcutsSchemaTest(GraphQLTestCase):
         cls.WS1 = Workspace.objects.create(
             name="WS1",
             description="Workspace 1",
+            organization=cls.ORGANIZATION,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER_ROOT,
