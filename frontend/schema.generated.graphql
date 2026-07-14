@@ -1285,7 +1285,7 @@ input CreateWorkspaceInput {
   description: String
   loadSampleData: Boolean
   name: String!
-  organizationId: UUID
+  organizationId: UUID!
   slug: String
 }
 
@@ -5915,7 +5915,7 @@ type Workspace {
   invitations(includeAccepted: Boolean, page: Int, perPage: Int): WorkspaceInvitationPage!
   members(page: Int, perPage: Int): WorkspaceMembershipPage!
   name: String!
-  organization: Organization
+  organization: Organization!
   permissions: WorkspacePermissions!
   pipelineLastRunStatuses: [PipelineRunStatus!]!
   pipelineTags: [String!]!
