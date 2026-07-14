@@ -60,6 +60,17 @@ describe("PipelineLayout", () => {
         code: "BE",
       },
     ],
+    organization: {
+      id: "11111111-1111-1111-1111-111111111111",
+      name: "Test Organization",
+      shortName: null,
+      logo: null,
+      permissions: {
+        createWorkspace: {
+          isAllowed: true,
+        },
+      },
+    },
   };
 
   it("should show 'Publish as Template' button when createTemplateVersion is true", () => {
