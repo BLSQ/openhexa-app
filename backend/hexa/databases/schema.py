@@ -1,4 +1,3 @@
-import logging
 import pathlib
 import time
 
@@ -27,8 +26,6 @@ from .utils import (
     get_table_rows,
     get_table_sample_data,
 )
-
-logger = logging.getLogger(__name__)
 
 databases_types_def = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -85,28 +82,18 @@ def _log_executed_query(
     status: str,
     **fields,
 ):
-    # Auditing must never break query execution, hence the broad except.
-    try:
-        user = request.user
-        if not isinstance(user, User):
-            # Service principals (PipelineRunUser, ...) expose the triggering human
-            user = getattr(user, "real_user", None)
-        DatabaseQueryLog.objects.create(
-            workspace=workspace,
-            user=user,
-            query=query,
-            origin=origin,
-            status=status,
-            **fields,
-        )
-    except Exception as e:
-        logger.exception(
-            "Failed to log database query (workspace=%s, origin=%s, status=%s): %s",
-            workspace.slug,
-            origin,
-            status,
-            e,
-        )
+    user = request.user
+    if not isinstance(user, User):
+        # Service principals (PipelineRunUser, ...) expose the triggering human
+        user = getattr(user, "real_user", None)
+    DatabaseQueryLog.objects.create(
+        workspace=workspace,
+        user=user,
+        query=query,
+        origin=origin,
+        status=status,
+        **fields,
+    )
 
 
 @database_object.field("executeSQL")

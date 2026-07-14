@@ -417,16 +417,31 @@ class DatabaseTest(GraphQLTestCase):
         log = self._get_single_query_log()
         self.assertEqual(DatabaseQueryLog.Origin.DATA_STUDIO, log.origin)
 
-    def test_execute_sql_log_failure_does_not_break_execution(self):
+    def test_execute_sql_log_failure_fails_the_request(self):
+        # A failed audit insert means a bug on our side; it must surface as an
+        # error instead of being silently swallowed.
         self.client.force_login(self.USER_SABRINA)
 
         with mock.patch(
             "hexa.databases.schema.DatabaseQueryLog.objects.create",
             side_effect=Exception("boom"),
         ):
-            result = self._execute_sql("SELECT 1")
+            r = self.run_query(
+                """
+                query workspaceById($slug: String!, $query: String!) {
+                    workspace(slug: $slug) {
+                        database {
+                            executeSQL(query: $query) {
+                                success
+                            }
+                        }
+                    }
+                }
+                """,
+                {"slug": str(self.WORKSPACE.slug), "query": "SELECT 1"},
+            )
 
-        self.assertTrue(result["success"])
+        self.assertIn("errors", r)
         self.assertEqual(0, DatabaseQueryLog.objects.count())
 
     def test_execute_sql_serializes_binary_values(self):
