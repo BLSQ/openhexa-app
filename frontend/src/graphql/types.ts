@@ -1279,7 +1279,7 @@ export type CreateWorkspaceInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   loadSampleData?: InputMaybe<Scalars['Boolean']['input']>;
   name: Scalars['String']['input'];
-  organizationId?: InputMaybe<Scalars['UUID']['input']>;
+  organizationId: Scalars['UUID']['input'];
   slug?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -6731,7 +6731,7 @@ export type Workspace = {
   invitations: WorkspaceInvitationPage;
   members: WorkspaceMembershipPage;
   name: Scalars['String']['output'];
-  organization?: Maybe<Organization>;
+  organization: Organization;
   permissions: WorkspacePermissions;
   pipelineLastRunStatuses: Array<PipelineRunStatus>;
   pipelineTags: Array<Scalars['String']['output']>;
