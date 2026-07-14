@@ -26,7 +26,7 @@ from hexa.datasets.tests.fixtures.wkb_geometry_encoded import wkb_geometry
 from hexa.datasets.tests.testutils import DatasetTestMixin
 from hexa.files import storage
 from hexa.metadata.models import MetadataAttribute
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
 
 
@@ -43,8 +43,14 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
         cls.USER_SERENA = User.objects.create_user(
             "serena@bluesquarehub.com", "serena's password", is_superuser=True
         )
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Dataset Sample Organization"
+        )
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_SERENA, name="My Workspace", description="Test workspace"
+            cls.USER_SERENA,
+            name="My Workspace",
+            organization=cls.ORGANIZATION,
+            description="Test workspace",
         )
 
         cls.DATASET = Dataset.objects.create_if_has_perm(

@@ -26,11 +26,12 @@ class TestWebappUserFiltering(TestCase):
             "root@bluesquarehub.com", "password", is_superuser=True
         )
         cls.REAL_USER = User.objects.create_user("embed@bluesquarehub.com", "password")
+        cls.ORGANIZATION = Organization.objects.create(name="Webapp Auth Org")
         cls.WORKSPACE_A = Workspace.objects.create_if_has_perm(
-            cls.SUPERUSER, name="Workspace A"
+            cls.SUPERUSER, name="Workspace A", organization=cls.ORGANIZATION
         )
         cls.WORKSPACE_B = Workspace.objects.create_if_has_perm(
-            cls.SUPERUSER, name="Workspace B"
+            cls.SUPERUSER, name="Workspace B", organization=cls.ORGANIZATION
         )
         WorkspaceMembership.objects.create(
             user=cls.REAL_USER,
