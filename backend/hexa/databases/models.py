@@ -17,6 +17,10 @@ class DatabaseQueryLogQuerySet(BaseQuerySet):
 class DatabaseQueryLog(Base):
     """Audit log entry for a SQL query executed against a workspace database via the API."""
 
+    # SQLSTATE code reported for a successfully completed statement
+    # (https://www.postgresql.org/docs/current/errcodes-appendix.html)
+    SQLSTATE_SUCCESS = "00000"
+
     class Status(models.TextChoices):
         SUCCESS = "SUCCESS"
         # The query reached the database but failed (invalid SQL, timeout, ...)
@@ -42,7 +46,7 @@ class DatabaseQueryLog(Base):
     query = models.TextField()
     status = models.CharField(max_length=10, choices=Status.choices)
     # SQLSTATE error code (https://www.postgresql.org/docs/current/errcodes-appendix.html);
-    # "00000" on success, null when the query never reached the database
+    # SQLSTATE_SUCCESS on success, null when the query never reached the database
     result_code = models.CharField(max_length=5, null=True, blank=True)
     error_message = models.TextField(null=True, blank=True)
     duration_ms = models.PositiveIntegerField(null=True)
