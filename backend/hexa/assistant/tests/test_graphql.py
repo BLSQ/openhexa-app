@@ -3,7 +3,7 @@ from unittest.mock import patch
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import GraphQLTestCase
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.webapps.models import GitWebapp
 from hexa.workspaces.models import (
     Workspace,
@@ -44,9 +44,13 @@ class AssistantConversationMessagesQueryTest(GraphQLTestCase):
         cls.user = User.objects.create_user(
             "graphql-test@example.com", "password", is_superuser=True
         )
+        cls.ORGANIZATION = Organization.objects.create(name="GraphQL Test Org")
         with patch("hexa.workspaces.models.create_database"):
             cls.workspace = Workspace.objects.create_if_has_perm(
-                cls.user, name="GraphQL Test WS", description=""
+                cls.user,
+                name="GraphQL Test WS",
+                description="",
+                organization=cls.ORGANIZATION,
             )
 
     def setUp(self):

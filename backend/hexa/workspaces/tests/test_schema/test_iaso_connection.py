@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from openhexa.toolbox.iaso.api_client import IASOError
 
 from hexa.core.test import GraphQLTestCase
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import (
     Connection,
     ConnectionType,
@@ -28,12 +28,15 @@ class ConnectiontTest(GraphQLTestCase):
         cls.USER_ADMIN = User.objects.create_user(
             "admin@bluesquarehub.com", "admin", is_superuser=True
         )
+        cls.ORGANIZATION = Organization.objects.create(name="IASO Connection Org")
         with (
             patch("hexa.workspaces.models.create_database"),
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-                cls.USER_ADMIN, name="Workspace's title"
+                cls.USER_ADMIN,
+                name="Workspace's title",
+                organization=cls.ORGANIZATION,
             )
 
         WorkspaceMembership.objects.create(
