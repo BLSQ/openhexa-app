@@ -206,9 +206,6 @@ class OrganizationFilterForUserDispatchTest(TestCase):
                 name="Org Workspace",
                 organization=cls.org,
             )
-            cls.standalone_workspace = Workspace.objects.create_if_has_perm(
-                principal=cls.superuser, name="Standalone WS"
-            )
             cls.other_org_workspace = Workspace.objects.create_if_has_perm(
                 principal=cls.superuser,
                 name="Other Org WS",
@@ -280,14 +277,6 @@ class OrganizationFilterForUserDispatchTest(TestCase):
         result = list(Organization.objects.filter_for_user(principal))
         self.assertEqual(result, [self.org])
 
-    def test_pipeline_run_user_in_standalone_workspace_sees_no_orgs(self):
-        pipeline_run = MagicMock(PipelineRun)
-        pipeline_run.pipeline = MagicMock(Pipeline)
-        pipeline_run.pipeline.workspace_id = self.standalone_workspace.id
-        principal = PipelineRunUser(pipeline_run)
-
-        self.assertEqual(Organization.objects.filter_for_user(principal).count(), 0)
-
     def test_pipeline_run_user_ignores_direct_membership_only_flag(self):
         pipeline_run = MagicMock(PipelineRun)
         pipeline_run.pipeline = MagicMock(Pipeline)
@@ -306,58 +295,42 @@ class OrganizationFilterForUserDispatchTest(TestCase):
 
 class CreateWorkspacePermissionTests(TestCase):
     def setUp(self):
-        self.workspace = Workspace.objects.create(name="Test Workspace")
-        self.admin = User.objects.create_user(
+        self.user = User.objects.create_user(
             email="user@example.com", password="password"
         )
-        self.membership = WorkspaceMembership.objects.create(
-            workspace=self.workspace,
-            user=self.admin,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
+        self.organization = Organization.objects.create(name="Test Org")
 
     def test_feature_flag_prevent_create_blocks_creation(self):
+        OrganizationMembership.objects.create(
+            organization=self.organization,
+            user=self.user,
+            role=OrganizationMembershipRole.MEMBER,
+        )
         feature = Feature.objects.create(code="workspaces.prevent_create")
-        FeatureFlag.objects.create(feature=feature, user=self.admin)
-        self.assertFalse(create_workspace(self.admin))
+        FeatureFlag.objects.create(feature=feature, user=self.user)
+        self.assertFalse(create_workspace(self.user, self.organization))
 
     def test_feature_flag_create_allows_creation(self):
-        Organization.objects.create(name="Test Org")
         feature = Feature.objects.create(code="workspaces.create")
-        FeatureFlag.objects.create(feature=feature, user=self.admin)
-        self.membership.delete()
+        FeatureFlag.objects.create(feature=feature, user=self.user)
 
-        self.assertTrue(create_workspace(self.admin))
-
-    def test_legacy_mode_workspace_admin_can_create(self):
-        self.assertTrue(create_workspace(self.admin))
-
-    def test_legacy_mode_non_workspace_admin_cannot_create(self):
-        self.membership.role = WorkspaceMembershipRole.EDITOR
-        self.membership.save()
-        self.assertFalse(create_workspace(self.admin))
-
-    def test_with_organizations_no_org_param_denied(self):
-        Organization.objects.create(name="Test Org")
-        self.assertFalse(create_workspace(self.admin))
+        self.assertTrue(create_workspace(self.user, self.organization))
 
     def test_org_member_can_create_workspace(self):
-        organization = Organization.objects.create(name="Test Org")
         for role in [
             OrganizationMembershipRole.MEMBER,
             OrganizationMembershipRole.ADMIN,
             OrganizationMembershipRole.OWNER,
         ]:
             with self.subTest(role=role):
-                OrganizationMembership.objects.filter(user=self.admin).delete()
+                OrganizationMembership.objects.filter(user=self.user).delete()
                 OrganizationMembership.objects.create(
-                    organization=organization, user=self.admin, role=role
+                    organization=self.organization, user=self.user, role=role
                 )
-                self.assertTrue(create_workspace(self.admin, organization))
+                self.assertTrue(create_workspace(self.user, self.organization))
 
     def test_non_org_member_cannot_create(self):
-        organization = Organization.objects.create(name="Test Org")
-        self.assertFalse(create_workspace(self.admin, organization))
+        self.assertFalse(create_workspace(self.user, self.organization))
 
 
 class OrganizationGitLifecycleTest(TestCase):
