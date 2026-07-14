@@ -1,4 +1,4 @@
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -14,9 +14,18 @@ class DatasetTestMixin:
         user = User.objects.create_user(email, *args, password=password, **kwargs)
         return user
 
-    def create_workspace(self, principal: User, name, description, *args, **kwargs):
+    def create_workspace(
+        self, principal: User, name, description, *args, organization=None, **kwargs
+    ):
+        if organization is None:
+            organization = Organization.objects.create(name=f"{name} organization")
         workspace = Workspace.objects.create_if_has_perm(
-            principal=principal, name=name, description=description, *args, **kwargs
+            principal=principal,
+            name=name,
+            organization=organization,
+            description=description,
+            *args,
+            **kwargs,
         )
         return workspace
 
