@@ -3,7 +3,7 @@ from unittest.mock import patch
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import GraphQLTestCase
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import Workspace
 
 RESOLVE_PROPOSAL_MUTATION = """
@@ -22,9 +22,13 @@ class ResolveAssistantProposalMutationTest(GraphQLTestCase):
         cls.user = User.objects.create_user(
             "mutation-test@example.com", "password", is_superuser=True
         )
+        cls.ORGANIZATION = Organization.objects.create(name="Mutation Test Org")
         with patch("hexa.workspaces.models.create_database"):
             cls.workspace = Workspace.objects.create_if_has_perm(
-                cls.user, name="Test Workspace", description=""
+                cls.user,
+                name="Test Workspace",
+                description="",
+                organization=cls.ORGANIZATION,
             )
 
     def _make_invocation(self, conversation, tool_name="propose_pipeline_version"):
