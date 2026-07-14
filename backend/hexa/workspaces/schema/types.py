@@ -243,17 +243,10 @@ def resolve_workspace_pipeline_last_run_statuses(workspace: Workspace, info, **k
 
 @workspace_object.field("pipelineTemplateTags")
 def resolve_workspace_pipeline_template_tags(workspace: Workspace, info, **kwargs):
-    if workspace.organization:
-        return (
-            Tag.objects.filter(
-                pipeline_templates__workspace__organization=workspace.organization
-            )
-            .distinct()
-            .values_list("name", flat=True)
-            .order_by("name")
-        )
     return (
-        Tag.objects.filter(pipeline_templates__workspace=workspace)
+        Tag.objects.filter(
+            pipeline_templates__workspace__organization=workspace.organization
+        )
         .distinct()
         .values_list("name", flat=True)
         .order_by("name")
@@ -264,10 +257,6 @@ def resolve_workspace_pipeline_template_tags(workspace: Workspace, info, **kwarg
 def resolve_workspace_membership_organization_membership(
     membership: WorkspaceMembership, info, **kwargs
 ):
-    """Return the user's organization membership if the workspace belongs to an organization."""
-    if not membership.workspace.organization:
-        return None
-
     try:
         return OrganizationMembership.objects.get(
             user=membership.user, organization=membership.workspace.organization
