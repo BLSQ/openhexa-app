@@ -37,6 +37,11 @@ class MultipleStatementsError(Exception):
     """Raised when more than one SQL statement is submitted for execution."""
 
 
+def elapsed_ms(started_at: float) -> int:
+    """Milliseconds elapsed since ``started_at``, a ``time.perf_counter()`` value."""
+    return round((time.perf_counter() - started_at) * 1000)
+
+
 def ensure_single_statement(query: str) -> None:
     """Reject input that contains more than one SQL statement."""
     statements = [s for s in sqlparse.split(query) if s.strip().rstrip(";").strip()]
@@ -166,7 +171,7 @@ def execute_database_query(
             )
             # Fetch one extra row to detect (without returning) that more exist.
             fetched = cursor.fetchmany(max_rows + 1) if cursor.description else []
-            duration_ms = round((time.perf_counter() - started_at) * 1000)
+            duration_ms = elapsed_ms(started_at)
         truncated = len(fetched) > max_rows
         rows = json.loads(json.dumps(fetched[:max_rows], cls=ResultJSONEncoder))
         return {
