@@ -146,6 +146,9 @@ def execute_database_query(
     resources for an extended period of time. At most ``max_rows`` rows are
     returned, capped to ``settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS``;
     ``truncated`` indicates whether the result was capped.
+
+    Callers are responsible for audit logging (``DatabaseQueryLog``): this
+    function has no access to the request/user/origin an audit entry needs.
     """
     ensure_single_statement(query)
     hard_limit = settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS
