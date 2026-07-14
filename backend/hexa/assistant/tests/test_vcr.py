@@ -80,15 +80,18 @@ class AssistantVCRTest(TestCase):
         cls.user = User.objects.create_user(
             "vcr-test@example.com", "password", is_superuser=True
         )
-        cls.organization = Organization.objects.create(name="VCR Test Org")
+        cls.ORGANIZATION = Organization.objects.create(name="VCR Test Org")
         with patch("hexa.workspaces.models.create_database"):
             cls.workspace = Workspace.objects.create_if_has_perm(
-                cls.user, name="VCR Test WS", description="For VCR tests"
+                cls.user,
+                name="VCR Test WS",
+                description="For VCR tests",
+                organization=cls.ORGANIZATION,
             )
-        cls.workspace.organization = cls.organization
+        cls.workspace.organization = cls.ORGANIZATION
         cls.workspace.save()
         AiSettings.objects.update_or_create(
-            organization=cls.organization,
+            organization=cls.ORGANIZATION,
             defaults={
                 "enabled": True,
                 "provider": AiSettings.Provider.ANTHROPIC,

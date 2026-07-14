@@ -30,9 +30,13 @@ class StreamAssistantMessageViewTest(TestCase):
             "view-test@example.com", "password", is_superuser=True
         )
         cls.other_user = User.objects.create_user("view-other@example.com", "password")
+        cls.ORGANIZATION = Organization.objects.create(name="View Test Org")
         with patch("hexa.workspaces.models.create_database"):
             cls.workspace = Workspace.objects.create_if_has_perm(
-                cls.user, name="View Test WS", description=""
+                cls.user,
+                name="View Test WS",
+                description="",
+                organization=cls.ORGANIZATION,
             )
 
     def setUp(self):

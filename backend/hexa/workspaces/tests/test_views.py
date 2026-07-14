@@ -36,11 +36,14 @@ class ViewsTest(TestCase):
             "standardpassword",
         )
 
+        cls.ORGANIZATION = Organization.objects.create(name="ViewsTest Org")
+
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
             cls.USER_JULIA,
             name="Senegal Workspace",
             description="This is a workspace for Senegal",
             countries=[{"code": "AL"}],
+            organization=cls.ORGANIZATION,
         )
 
         cls.WORKSPACE_MEMBERSHIP_JULIA = WorkspaceMembership.objects.get(
