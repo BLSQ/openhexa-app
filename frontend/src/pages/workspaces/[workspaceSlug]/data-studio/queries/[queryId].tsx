@@ -22,24 +22,37 @@ const WorkspaceSavedQueryPage: NextPageWithLayout = (props: Props) => {
     variables: { workspaceSlug: props.workspaceSlug, id: props.queryId },
   });
 
-  if (!data?.workspace || !data.savedQuery) {
+  if (!data?.workspace) {
     return null;
   }
   const { workspace, savedQuery } = data;
 
   return (
-    <Page title={savedQuery.name || t("Data Studio")}>
+    <Page title={savedQuery?.name || t("Data Studio")}>
       <DataStudioLayout workspace={workspace} currentTab="editor">
-        {/* key: remount the editor when switching between saved queries so it
-            re-initialises from the newly loaded content. */}
-        <div className="h-full p-4">
-          <DataStudioEditor
-            key={savedQuery.id}
-            workspaceSlug={workspace.slug}
-            savedQuery={savedQuery}
-            canCreate={workspace.permissions.createSavedQuery}
-          />
-        </div>
+        {savedQuery ? (
+          // key: remount the editor when switching between saved queries so it
+          // re-initialises from the newly loaded content.
+          <div className="h-full p-4">
+            <DataStudioEditor
+              key={savedQuery.id}
+              workspaceSlug={workspace.slug}
+              savedQuery={savedQuery}
+              canCreate={workspace.permissions.createSavedQuery}
+            />
+          </div>
+        ) : (
+          // Reachable when the query is deleted (e.g. in another tab) and the
+          // client refetches; SSR would otherwise 404 on a first load.
+          <div className="flex h-full flex-col items-center justify-center gap-1 p-8 text-center">
+            <p className="text-sm font-medium text-gray-800">
+              {t("Saved query not found")}
+            </p>
+            <p className="text-sm text-gray-500">
+              {t("It may have been deleted.")}
+            </p>
+          </div>
+        )}
       </DataStudioLayout>
     </Page>
   );

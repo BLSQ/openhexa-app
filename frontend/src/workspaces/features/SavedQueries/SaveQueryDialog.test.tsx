@@ -65,7 +65,7 @@ describe("SaveQueryDialog", () => {
       }),
     );
     expect(onSaved).toHaveBeenCalledWith({ id: "new-1", name: "My query" });
-    expect(toast.success).toHaveBeenCalledWith("Saved query");
+    expect(toast.success).toHaveBeenCalledWith("Query created");
     expect(onClose).toHaveBeenCalled();
   });
 

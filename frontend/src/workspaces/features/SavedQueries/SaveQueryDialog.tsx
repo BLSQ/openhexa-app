@@ -4,7 +4,6 @@ import Field from "core/components/forms/Field";
 import Textarea from "core/components/forms/Textarea";
 import useCacheKey from "core/hooks/useCacheKey";
 import useForm from "core/hooks/useForm";
-import { CreateSavedQueryError, UpdateSavedQueryError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
@@ -13,6 +12,10 @@ import {
   useCreateSavedQueryMutation,
   useUpdateSavedQueryMutation,
 } from "workspaces/features/SavedQueries/SavedQueries.generated";
+import {
+  createSavedQueryErrorMessage,
+  updateSavedQueryErrorMessage,
+} from "workspaces/features/SavedQueries/savedQueryErrors";
 
 export type SaveQueryDialogMode = "create" | "edit-details";
 
@@ -84,19 +87,11 @@ const SaveQueryDialog = ({
         const result = data?.createSavedQuery;
         if (result?.success && result.savedQuery) {
           clearCache();
-          toast.success(t("Saved query"));
+          toast.success(t("Query created"));
           onSaved?.(result.savedQuery);
           onClose();
-        } else if (
-          result?.errors.includes(CreateSavedQueryError.PermissionDenied)
-        ) {
-          throw new Error(t("You are not authorized to perform this action"));
-        } else if (
-          result?.errors.includes(CreateSavedQueryError.WorkspaceNotFound)
-        ) {
-          throw new Error(t("Workspace not found"));
         } else {
-          throw new Error(t("Unknown error"));
+          throw new Error(createSavedQueryErrorMessage(result?.errors, t));
         }
       } else {
         if (!savedQuery) {
@@ -111,16 +106,8 @@ const SaveQueryDialog = ({
           toast.success(t("Query updated"));
           onSaved?.(result.savedQuery);
           onClose();
-        } else if (
-          result?.errors.includes(UpdateSavedQueryError.PermissionDenied)
-        ) {
-          throw new Error(t("You are not authorized to perform this action"));
-        } else if (
-          result?.errors.includes(UpdateSavedQueryError.SavedQueryNotFound)
-        ) {
-          throw new Error(t("Saved query not found"));
         } else {
-          throw new Error(t("Unknown error"));
+          throw new Error(updateSavedQueryErrorMessage(result?.errors, t));
         }
       }
     },

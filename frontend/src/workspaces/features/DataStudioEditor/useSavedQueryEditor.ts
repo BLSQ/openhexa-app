@@ -1,5 +1,4 @@
 import useCacheKey from "core/hooks/useCacheKey";
-import { UpdateSavedQueryError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useCallback, useState } from "react";
@@ -8,6 +7,7 @@ import {
   SavedQuery_SavedQueryFragment,
   useUpdateSavedQueryMutation,
 } from "workspaces/features/SavedQueries/SavedQueries.generated";
+import { updateSavedQueryErrorMessage } from "workspaces/features/SavedQueries/savedQueryErrors";
 
 type DialogState = { mode: "create" | "edit-details" } | null;
 
@@ -39,13 +39,6 @@ export const useSavedQueryEditor = ({
   const canUpdate = savedQuery?.permissions.update ?? false;
   const isDirty = content !== baseline;
 
-  const openSavedQuery = (id: string) =>
-    router.push(
-      `/workspaces/${encodeURIComponent(
-        workspaceSlug,
-      )}/data-studio/queries/${encodeURIComponent(id)}`,
-    );
-
   // Primary Save: create a brand-new query (via the dialog), or update the
   // content of the loaded query in place.
   const save = useCallback(async () => {
@@ -66,16 +59,8 @@ export const useSavedQueryEditor = ({
         setBaseline(content);
         clearCache();
         toast.success(t("Query saved"));
-      } else if (
-        result?.errors.includes(UpdateSavedQueryError.PermissionDenied)
-      ) {
-        toast.error(t("You are not authorized to perform this action"));
-      } else if (
-        result?.errors.includes(UpdateSavedQueryError.SavedQueryNotFound)
-      ) {
-        toast.error(t("Saved query not found"));
       } else {
-        toast.error(t("Unknown error"));
+        toast.error(updateSavedQueryErrorMessage(result?.errors, t));
       }
     } catch (err: any) {
       toast.error(err.message);
@@ -97,7 +82,11 @@ export const useSavedQueryEditor = ({
       } else {
         // A new query was created (first save or save-as-new): open its page,
         // which remounts the editor against the freshly saved query.
-        openSavedQuery(sq.id);
+        router.push(
+          `/workspaces/${encodeURIComponent(
+            workspaceSlug,
+          )}/data-studio/queries/${encodeURIComponent(sq.id)}`,
+        );
       }
     },
     [dialog, router, workspaceSlug],
