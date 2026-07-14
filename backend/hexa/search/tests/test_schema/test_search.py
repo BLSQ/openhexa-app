@@ -46,6 +46,9 @@ class SearchResolversTest(GraphQLTestCase):
         cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
         )
+        cls.ORGANIZATION2 = Organization.objects.create(
+            name="Test Organization 2",
+        )
         OrganizationMembership.objects.create(
             organization=cls.ORGANIZATION,
             user=cls.USER,
@@ -65,6 +68,7 @@ class SearchResolversTest(GraphQLTestCase):
             description="Second workspace",
             db_name="db_workspace2",
             bucket_name="bucket_workspace2",
+            organization=cls.ORGANIZATION2,
         )
         cls.WORKSPACE3 = Workspace.objects.create(
             name="Workspace 3",
@@ -72,6 +76,7 @@ class SearchResolversTest(GraphQLTestCase):
             description="Third workspace (user not part of)",
             db_name="db_workspace3",
             bucket_name="bucket_workspace3",
+            organization=cls.ORGANIZATION2,
         )
 
         WorkspaceMembership.objects.create(
