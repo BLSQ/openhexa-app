@@ -20,6 +20,7 @@ from .models import DatabaseQueryLog
 from .utils import (
     MultipleStatementsError,
     OrderByDirectionEnum,
+    elapsed_ms,
     execute_database_query,
     get_database_definition_page,
     get_table_definition,
@@ -39,6 +40,8 @@ workspace_object = ObjectType("Workspace")
 workspace_mutations = MutationType()
 
 order_by_direction_enum = EnumType("OrderByDirection", OrderByDirectionEnum)
+# Bound to the model enum so the GraphQL contract and the stored values stay in sync
+execute_sql_origin_enum = EnumType("ExecuteSQLOrigin", DatabaseQueryLog.Origin)
 
 
 @database_object.field("tables")
@@ -84,17 +87,25 @@ def _log_executed_query(
 ):
     # Auditing must never break query execution, hence the broad except.
     try:
+        user = request.user
+        if not isinstance(user, User):
+            # Service principals (PipelineRunUser, ...) expose the triggering human
+            user = getattr(user, "real_user", None)
         DatabaseQueryLog.objects.create(
             workspace=workspace,
-            user=request.user if isinstance(request.user, User) else None,
+            user=user,
             query=query,
             origin=origin,
             status=status,
             **fields,
         )
-    except Exception:
+    except Exception as e:
         logger.exception(
-            "Failed to log database query for workspace %s", workspace.slug
+            "Failed to log database query (workspace=%s, origin=%s, status=%s): %s",
+            workspace.slug,
+            origin,
+            status,
+            e,
         )
 
 
@@ -116,67 +127,54 @@ def resolve_database_execute_sql(
         )
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
     max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
-    started_at = time.monotonic()
+    status, log_fields = None, {}
+    started_at = time.perf_counter()
     try:
         result = execute_database_query(workspace, query, **max_rows_kwarg)
+        status = DatabaseQueryLog.Status.SUCCESS
+        log_fields = {
+            "result_code": DatabaseQueryLog.SQLSTATE_SUCCESS,
+            "duration_ms": result["duration_ms"],
+            "row_count": result["row_count"],
+            "truncated": result["truncated"],
+        }
+        return {"success": True, "errors": [], **result}
     except MultipleStatementsError as e:
-        _log_executed_query(
-            request,
-            workspace,
-            query,
-            origin,
-            DatabaseQueryLog.Status.REJECTED,
-            error_message=str(e),
-        )
+        status = DatabaseQueryLog.Status.REJECTED
+        log_fields = {"error_message": str(e)}
         return {
             "success": False,
             "errors": ["MULTIPLE_STATEMENTS"],
             "error_message": str(e),
         }
     except QueryCanceled as e:
-        _log_executed_query(
-            request,
-            workspace,
-            query,
-            origin,
-            DatabaseQueryLog.Status.ERROR,
-            result_code=e.pgcode,
-            error_message=str(e).strip(),
-            duration_ms=int((time.monotonic() - started_at) * 1000),
-        )
+        status = DatabaseQueryLog.Status.ERROR
+        log_fields = {
+            "result_code": e.pgcode,
+            "error_message": str(e).strip(),
+            "duration_ms": elapsed_ms(started_at),
+        }
         return {
             "success": False,
             "errors": ["QUERY_TIMEOUT"],
             "error_message": str(e).strip(),
         }
     except Psycopg2Error as e:
-        _log_executed_query(
-            request,
-            workspace,
-            query,
-            origin,
-            DatabaseQueryLog.Status.ERROR,
-            result_code=e.pgcode,
-            error_message=str(e).strip(),
-            duration_ms=int((time.monotonic() - started_at) * 1000),
-        )
+        status = DatabaseQueryLog.Status.ERROR
+        log_fields = {
+            "result_code": e.pgcode,
+            "error_message": str(e).strip(),
+            "duration_ms": elapsed_ms(started_at),
+        }
         return {
             "success": False,
             "errors": ["QUERY_ERROR"],
             "error_message": str(e).strip(),
         }
-    _log_executed_query(
-        request,
-        workspace,
-        query,
-        origin,
-        DatabaseQueryLog.Status.SUCCESS,
-        result_code="00000",
-        duration_ms=int((time.monotonic() - started_at) * 1000),
-        row_count=result["row_count"],
-        truncated=result["truncated"],
-    )
-    return {"success": True, "errors": [], **result}
+    finally:
+        # An unexpected exception leaves status unset; let it propagate unlogged.
+        if status:
+            _log_executed_query(request, workspace, query, origin, status, **log_fields)
 
 
 @database_object.field("readOnlyCredentials")
@@ -277,4 +275,5 @@ databases_bindables = [
     workspace_object,
     workspace_mutations,
     order_by_direction_enum,
+    execute_sql_origin_enum,
 ]
