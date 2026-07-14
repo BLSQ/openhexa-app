@@ -232,7 +232,9 @@ class OrganizationFilterForUserDispatchTest(TestCase):
 
     def test_superuser_sees_all(self):
         result = set(Organization.objects.filter_for_user(self.superuser))
-        self.assertEqual(result, {self.org, self.other_org})
+        self.assertEqual(result, set(Organization.objects.all()))
+        self.assertIn(self.org, result)
+        self.assertIn(self.other_org, result)
 
     def test_org_owner_sees_their_org(self):
         self.assertIn(self.org, Organization.objects.filter_for_user(self.org_owner))
