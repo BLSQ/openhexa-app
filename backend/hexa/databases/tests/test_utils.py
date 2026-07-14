@@ -21,7 +21,7 @@ from hexa.databases.utils import (
     get_table_rows,
 )
 from hexa.plugins.connector_postgresql.models import Database
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import (
     Workspace,
 )
@@ -146,6 +146,9 @@ class DatabaseUtilsTest(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Database Utils Test Organization"
+        )
         cls.USER_SUPERUSER = User.objects.create_user(
             "superuser@bluesquarehub.com", "superuserpassword", is_superuser=True
         )
@@ -162,6 +165,7 @@ class DatabaseUtilsTest(TestCase):
             name="Test Workspace",
             description="Test workspace",
             countries=[],
+            organization=cls.ORGANIZATION,
         )
 
     @mock.patch("psycopg2.connect")
