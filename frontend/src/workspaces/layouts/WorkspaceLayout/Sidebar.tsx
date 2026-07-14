@@ -194,19 +194,17 @@ const Sidebar = (props: SidebarProps) => {
   return (
     <div className={clsx("relative z-20 flex h-full flex-col", className)}>
       <div className="flex h-full grow flex-col border-r border-gray-200 bg-gray-800">
-        {workspace.organization && (
-          <OrgNavItem
-            className="h-16"
-            key="organization"
-            href={"/organizations/" + workspace.organization.id}
-            Icon={ChevronLeftIcon}
-            logo={workspace.organization.logo}
-            label={
-              workspace.organization.shortName ?? workspace.organization.name
-            }
-            compact={!isSidebarOpen}
-          />
-        )}
+        <OrgNavItem
+          className="h-16"
+          key="organization"
+          href={"/organizations/" + workspace.organization.id}
+          Icon={ChevronLeftIcon}
+          logo={workspace.organization.logo}
+          label={
+            workspace.organization.shortName ?? workspace.organization.name
+          }
+          compact={!isSidebarOpen}
+        />
         <SidebarMenu compact={!isSidebarOpen} workspace={workspace} />
 
         <div className="mt-5 flex grow flex-col overflow-y-auto scrollbar-visible">
