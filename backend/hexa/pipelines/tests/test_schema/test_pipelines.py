@@ -34,7 +34,7 @@ from hexa.pipelines.tests.test_schema.fixtures_for_pipelines import (
 )
 from hexa.pipelines.utils import mail_run_recipients
 from hexa.tags.models import Tag
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -68,6 +68,9 @@ class PipelinesV2Test(GraphQLTestCase):
             "standardpassword",
         )
 
+        cls.ORGANIZATION = Organization.objects.create(name="Pipelines V2 Org 1")
+        cls.ORGANIZATION_2 = Organization.objects.create(name="Pipelines V2 Org 2")
+
         with (
             patch("hexa.workspaces.models.create_database"),
             patch("hexa.workspaces.models.load_database_sample_data"),
@@ -76,11 +79,13 @@ class PipelinesV2Test(GraphQLTestCase):
                 cls.USER_ROOT,
                 name="WS1",
                 description="Workspace 1",
+                organization=cls.ORGANIZATION,
             )
             cls.WS2 = Workspace.objects.create_if_has_perm(
                 cls.USER_ROOT,
                 name="WS2",
                 description="Workspace 2",
+                organization=cls.ORGANIZATION_2,
             )
         cls.WORKSPACE2_MEMBERSHIP_1 = WorkspaceMembership.objects.create(
             workspace=cls.WS2,

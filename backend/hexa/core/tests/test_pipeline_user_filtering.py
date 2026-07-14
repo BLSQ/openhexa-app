@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import Workspace
 
 
@@ -15,15 +15,18 @@ class TestPipelineRunUserFiltering(TestCase):
             "standardpassword",
             is_superuser=True,
         )
+        self.ORGANIZATION = Organization.objects.create(name="Filtering Test Org")
         self.WORKSPACE1 = Workspace.objects.create_if_has_perm(
             self.USER_ROOT,
             name="WS1",
             description="Workspace 1",
+            organization=self.ORGANIZATION,
         )
         self.WORKSPACE2 = Workspace.objects.create_if_has_perm(
             self.USER_ROOT,
             name="WS2",
             description="Workspace 2",
+            organization=self.ORGANIZATION,
         )
         self.pipeline_run = MagicMock(PipelineRun)
         self.pipeline_run.pipeline = MagicMock(Pipeline)

@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 from hexa.core.test import GraphQLTestCase
 from hexa.files.backends.exceptions import NotFound
 from hexa.pipelines.models import Pipeline, PipelineVersion
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -49,6 +49,10 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         )
         cls.OUTSIDER = User.objects.create_user("outsider@example.com", "password")
 
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Pipeline Parameter Choices Org"
+        )
+
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
         ):
@@ -56,6 +60,7 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
                 cls.USER,
                 name="Test Workspace",
                 description="",
+                organization=cls.ORGANIZATION,
             )
 
         WorkspaceMembership.objects.get_or_create(
