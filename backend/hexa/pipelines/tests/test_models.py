@@ -87,11 +87,14 @@ class PipelineTest(TestCase):
 
         cls.USER_BAR = User.objects.create_user("bar@bluesquarehub.com", "barpassword")
 
+        cls.ORGANIZATION = Organization.objects.create(name="Pipeline Test Org")
+
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
             cls.USER_ADMIN,
             name="Sandbox",
             description="This is a sandbox workspace ",
             countries=[{"code": "AL"}],
+            organization=cls.ORGANIZATION,
         )
 
         cls.WORKSPACE2 = Workspace.objects.create_if_has_perm(
@@ -99,6 +102,7 @@ class PipelineTest(TestCase):
             name="Sandbox2",
             description="This is a sandbox workspace ",
             countries=[{"code": "AL"}],
+            organization=cls.ORGANIZATION,
         )
 
         cls.WORKSPACE2 = Workspace.objects.create_if_has_perm(
@@ -106,6 +110,7 @@ class PipelineTest(TestCase):
             name="Sandbox2",
             description="This is a sandbox workspace ",
             countries=[{"code": "AL"}],
+            organization=cls.ORGANIZATION,
         )
 
         cls.PIPELINE = Pipeline.objects.create(
@@ -700,6 +705,7 @@ class PipelineTest(TestCase):
         workspace = Workspace.objects.create(
             name="Test Workspace",
             description="A workspace for testing",
+            organization=self.ORGANIZATION,
         )
 
         with patch("secrets.token_hex", return_value="abc123"):
@@ -859,10 +865,12 @@ class PipelineFunctionalTypeTest(TestCase):
             "admin",
             is_superuser=True,
         )
+        cls.ORGANIZATION = Organization.objects.create(name="Functional Type Org")
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
             cls.USER_ADMIN,
             name="Test Workspace",
             description="Test workspace for functional type tests",
+            organization=cls.ORGANIZATION,
         )
 
     def test_pipeline_functional_type_creation(self):
@@ -1006,11 +1014,15 @@ class ScheduledPipelineVersionModelTest(TestCase):
             "password",
             is_superuser=True,
         )
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Scheduled Version Model Org"
+        )
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
             cls.USER,
             name="ScheduledVersionModelWS",
             description="",
             countries=[{"code": "AL"}],
+            organization=cls.ORGANIZATION,
         )
         cls.PIPELINE = Pipeline.objects.create(
             workspace=cls.WORKSPACE,

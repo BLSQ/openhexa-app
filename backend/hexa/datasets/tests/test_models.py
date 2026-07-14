@@ -53,11 +53,19 @@ class BaseTestMixin:
             "viewer@bluesquarehub.com", "goodbyequentin"
         )
 
+        cls.ORGANIZATION = Organization.objects.create(name="Dataset Models Org")
+        cls.ORGANIZATION_2 = Organization.objects.create(name="Dataset Models Org 2")
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_ADMIN, name="My Workspace", description="Test workspace"
+            cls.USER_ADMIN,
+            name="My Workspace",
+            description="Test workspace",
+            organization=cls.ORGANIZATION,
         )
         cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
-            cls.USER_ADMIN, name="My Workspace 2", description="Test workspace 2"
+            cls.USER_ADMIN,
+            name="My Workspace 2",
+            description="Test workspace 2",
+            organization=cls.ORGANIZATION_2,
         )
 
         cls.USER_ADMIN.is_superuser = False

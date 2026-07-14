@@ -22,10 +22,18 @@ from hexa.workspaces.models import (
 
 class WebappModelTest(TestCase):
     def setUp(self):
-        self.workspace = Workspace.objects.create(name="Test Workspace")
+        self.organization = Organization.objects.create(name="Webapp Model Org")
+        self.workspace = Workspace.objects.create(
+            name="Test Workspace", organization=self.organization
+        )
         self.user_admin = User.objects.create_user(
             "admin@bluesquarehub.com",
             "admin",
+        )
+        OrganizationMembership.objects.create(
+            organization=self.organization,
+            user=self.user_admin,
+            role=OrganizationMembershipRole.MEMBER,
         )
         WorkspaceMembership.objects.create(
             user=self.user_admin,
@@ -187,6 +195,7 @@ class WebappModelTest(TestCase):
         workspace2 = Workspace.objects.create_if_has_perm(
             self.user_admin,
             name="Test Workspace 2",
+            organization=self.organization,
             description="Second test workspace",
             countries=[{"code": "FR"}],
         )
@@ -299,6 +308,7 @@ class WebappModelTest(TestCase):
         workspace2 = Workspace.objects.create_if_has_perm(
             self.user_admin,
             name="Other Workspace",
+            organization=self.organization,
             description="",
             countries=[{"code": "FR"}],
         )
@@ -315,6 +325,7 @@ class WebappModelTest(TestCase):
         workspace = Workspace.objects.create_if_has_perm(
             self.user_admin,
             name="Reserved Slug Workspace",
+            organization=self.organization,
             description="",
             countries=[{"code": "FR"}],
         )
@@ -696,8 +707,11 @@ class GitWebappModelTest(TestCase):
         self.mock_git_client.get_commits.return_value = [{"id": self.INITIAL_SHA}]
         self.mock_get_client.return_value = self.mock_git_client
 
+        self.organization = Organization.objects.create(name="Git Webapp Org")
         self.workspace = Workspace.objects.create(
-            name="Git Workspace", slug="git-workspace"
+            name="Git Workspace",
+            slug="git-workspace",
+            organization=self.organization,
         )
         self.user_admin = User.objects.create_user(
             "gitadmin@test.com",
@@ -740,7 +754,7 @@ class GitWebappModelTest(TestCase):
         self.assertEqual(webapp.url, "")
 
         self.mock_git_client.create_org_repository.assert_called_with(
-            "no-org", webapp.repository, auto_init=True
+            self.organization.slug, webapp.repository, auto_init=True
         )
         self.mock_git_client.protect_branch.assert_called_once_with(
             "no-org", webapp.repository
@@ -783,7 +797,7 @@ class GitWebappModelTest(TestCase):
             message="Initial content",
             author_name=self.user_admin.display_name,
             author_email=self.user_admin.email,
-            org_slug="no-org",
+            org_slug=self.organization.slug,
         )
 
     def test_create_if_has_perm_denied(self):
@@ -839,7 +853,7 @@ class GitWebappModelTest(TestCase):
         base_webapp.delete_if_has_perm(principal=self.user_admin)
 
         self.mock_git_client.archive_repository.assert_called_once_with(
-            "no-org", git_webapp.repository
+            self.organization.slug, git_webapp.repository
         )
         self.assertFalse(Webapp.objects.filter(pk=webapp_id).exists())
 
@@ -875,17 +889,6 @@ class GitWebappModelTest(TestCase):
             base_webapp.delete_if_has_perm(principal=self.user_admin)
 
         self.assertTrue(Webapp.objects.filter(pk=webapp_id).exists())
-
-    def test_git_org_falls_back_to_no_org_when_workspace_has_no_organization(self):
-        webapp = GitWebapp.create_if_has_perm(
-            principal=self.user_admin,
-            workspace=self.workspace,
-            name="Org Name Test",
-            created_by=self.user_admin,
-            webapp_type=Webapp.WebappType.STATIC,
-        )
-
-        self.assertEqual(webapp.git_org.slug, "no-org")
 
     def test_org_name_with_organization(self):
         org = Organization.objects.create(
@@ -964,7 +967,7 @@ class GitWebappModelTest(TestCase):
         self.assertEqual(webapp.published_commit, "existing-sha")
         mock_logger.warning.assert_called_once_with(
             "Repository %s/%s already exists, reusing it",
-            "no-org",
+            self.organization.slug,
             f"{self.workspace.slug}-webapp-idempotent-app",
         )
 

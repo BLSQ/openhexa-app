@@ -2,7 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
 from hexa.shortcuts.models import Shortcut
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.webapps.models import Webapp
 from hexa.workspaces.models import Workspace, WorkspaceMembership
 
@@ -10,11 +10,16 @@ from hexa.workspaces.models import Workspace, WorkspaceMembership
 class ShortcutModelTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Shortcut Model Test Organization"
+        )
         cls.user = User.objects.create_user(
             email="user@openhexa.org",
             password="password",
         )
-        cls.workspace = Workspace.objects.create(name="Test Workspace")
+        cls.workspace = Workspace.objects.create(
+            name="Test Workspace", organization=cls.ORGANIZATION
+        )
         WorkspaceMembership.objects.create(
             workspace=cls.workspace,
             user=cls.user,

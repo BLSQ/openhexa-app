@@ -19,11 +19,20 @@ from hexa.workspaces.models import (
 
 class PipelineTemplateModelTest(TestCase):
     def setUp(self):
+        self.ORGANIZATION = Organization.objects.create(
+            name="Pipeline Template Model Org"
+        )
         self.workspace = Workspace.objects.create(
-            name="Test Workspace", slug="test-workspace", db_name="test_workspace"
+            name="Test Workspace",
+            slug="test-workspace",
+            db_name="test_workspace",
+            organization=self.ORGANIZATION,
         )
         self.other_workspace = Workspace.objects.create(
-            name="Test Workspace2", slug="test-workspace2", db_name="test_workspace2"
+            name="Test Workspace2",
+            slug="test-workspace2",
+            db_name="test_workspace2",
+            organization=self.ORGANIZATION,
         )
         self.pipeline = Pipeline.objects.create(
             name="Test Pipeline", workspace=self.workspace
@@ -105,7 +114,12 @@ class PipelineTemplateModelTest(TestCase):
 
 class PipelineTemplateVersionModelTest(TestCase):
     def setUp(self):
-        self.workspace = Workspace.objects.create(name="Test Workspace")
+        self.organization = Organization.objects.create(
+            name="Pipeline Template Version Org"
+        )
+        self.workspace = Workspace.objects.create(
+            name="Test Workspace", organization=self.organization
+        )
         self.pipeline = Pipeline.objects.create(
             name="Test Pipeline", workspace=self.workspace
         )
@@ -279,9 +293,13 @@ class PipelineTemplateFunctionalTypeAndTagsTest(TestCase):
         cls.user = User.objects.create_user(
             "user_template@bluesquarehub.com", "password", is_superuser=True
         )
+        cls.organization = Organization.objects.create(
+            name="Pipeline Template Tags Org"
+        )
         cls.workspace = Workspace.objects.create_if_has_perm(
             cls.user,
             name="Test Template Workspace",
+            organization=cls.organization,
         )
         cls.user.is_superuser = False
         cls.user.save()
@@ -404,7 +422,9 @@ class PipelineTemplateFunctionalTypeAndTagsTest(TestCase):
 
     def test_extract_config_preserves_user_values_with_new_template_defaults(self):
         """Test that _extract_config correctly merges user config with new template defaults."""
-        target_workspace = Workspace.objects.create(name="Target Workspace")
+        target_workspace = Workspace.objects.create(
+            name="Target Workspace", organization=self.organization
+        )
 
         source_version = PipelineVersion.objects.create(
             pipeline=self.pipeline,
@@ -474,7 +494,9 @@ class PipelineTemplateFunctionalTypeAndTagsTest(TestCase):
 
     def test_extract_config_with_parameter_structure_changes(self):
         """Test config preservation when parameter structure changes (e.g., new field added by SDK)."""
-        target_workspace = Workspace.objects.create(name="Target Workspace 2")
+        target_workspace = Workspace.objects.create(
+            name="Target Workspace 2", organization=self.organization
+        )
 
         v1_parameters = [{"code": "sheet_id", "type": "str", "required": True}]
         source_version = PipelineVersion.objects.create(
