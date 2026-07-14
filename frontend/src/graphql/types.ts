@@ -2393,10 +2393,10 @@ export enum ExecuteSqlError {
 
 /** The origin of a SQL query, recorded for auditing and to build a per-user query history. */
 export enum ExecuteSqlOrigin {
-  /** The query was submitted directly through the API. */
-  Api = 'API',
   /** The query originates from the Data Studio frontend. */
-  DataStudio = 'DATA_STUDIO'
+  DataStudio = 'DATA_STUDIO',
+  /** The client did not identify where the query comes from. */
+  Other = 'OTHER'
 }
 
 /** Represents the result of executing a SQL query against the workspace database. */

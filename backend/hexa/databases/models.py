@@ -31,7 +31,8 @@ class DatabaseQueryLog(Base):
         REJECTED = "REJECTED"
 
     class Origin(models.TextChoices):
-        API = "API"
+        # The client did not identify itself; every query arrives through the API anyway
+        OTHER = "OTHER"
         DATA_STUDIO = "DATA_STUDIO"
 
     workspace = models.ForeignKey(
@@ -52,7 +53,9 @@ class DatabaseQueryLog(Base):
     duration_ms = models.PositiveIntegerField(null=True)
     row_count = models.PositiveIntegerField(null=True)
     truncated = models.BooleanField(default=False)
-    origin = models.CharField(max_length=20, choices=Origin.choices, default=Origin.API)
+    origin = models.CharField(
+        max_length=20, choices=Origin.choices, default=Origin.OTHER
+    )
 
     objects = DatabaseQueryLogQuerySet.as_manager()
 

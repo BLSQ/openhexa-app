@@ -19,7 +19,7 @@ type Database {
   # 'executeSQL' runs a read-only SQL query against the workspace database and returns the result.
   # 'maxRows' caps the number of returned rows; it defaults to 50 when omitted and is itself
   # capped to a server-side hard limit.
-  # 'origin' identifies where the query comes from for auditing purposes; it defaults to API.
+  # 'origin' identifies where the query comes from for auditing purposes; it defaults to OTHER.
   executeSQL(query: String!, maxRows: Int, origin: ExecuteSQLOrigin): ExecuteSQLResult!
 }
 
@@ -28,9 +28,9 @@ The origin of a SQL query, recorded for auditing and to build a per-user query h
 """
 enum ExecuteSQLOrigin {
   """
-  The query was submitted directly through the API.
+  The client did not identify where the query comes from.
   """
-  API
+  OTHER
 
   """
   The query originates from the Data Studio frontend.

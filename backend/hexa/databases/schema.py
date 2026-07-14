@@ -120,7 +120,7 @@ def resolve_database_execute_sql(
 ):
     request: HttpRequest = info.context["request"]
     # Clients may send an explicit null, which bypasses the Python default
-    origin = origin or DatabaseQueryLog.Origin.API
+    origin = origin or DatabaseQueryLog.Origin.OTHER
     if not request.user.has_perm("databases.run_query", workspace):
         _log_executed_query(
             request, workspace, query, origin, DatabaseQueryLog.Status.DENIED

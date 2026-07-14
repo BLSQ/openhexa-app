@@ -51,8 +51,8 @@ class Migration(migrations.Migration):
                 (
                     "origin",
                     models.CharField(
-                        choices=[("API", "Api"), ("DATA_STUDIO", "Data Studio")],
-                        default="API",
+                        choices=[("OTHER", "Other"), ("DATA_STUDIO", "Data Studio")],
+                        default="OTHER",
                         max_length=20,
                     ),
                 ),
