@@ -27,8 +27,7 @@ const WorkspaceSavedQueriesPage: NextPageWithLayout = (props: Props) => {
   const [page, setPage] = useState(props.page);
   const [perPage, setPerPage] = useState(props.perPage);
   const [searchInput, setSearchInput] = useState("");
-  // Reset to the first page whenever the (debounced) search changes.
-  const debouncedSearch = useDebounce(searchInput, 300, () => setPage(1));
+  const debouncedSearch = useDebounce(searchInput, 300);
   const query = debouncedSearch.trim() || undefined;
 
   const { data, loading, refetch } = useWorkspaceSavedQueriesPageQuery({
@@ -48,10 +47,15 @@ const WorkspaceSavedQueriesPage: NextPageWithLayout = (props: Props) => {
       <DataStudioLayout workspace={workspace} currentTab="saved">
         <SavedQueriesList
           workspace={workspace}
+          page={page}
           perPage={perPage}
           loading={loading}
           searchValue={searchInput}
-          onSearchChange={setSearchInput}
+          onSearchChange={(value) => {
+            setSearchInput(value);
+            // A new search always narrows to the first page of results.
+            setPage(1);
+          }}
           onChangePage={({ page, pageSize }) => {
             setPage(page);
             setPerPage(pageSize);

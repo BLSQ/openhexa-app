@@ -16,6 +16,7 @@ type Workspace = NonNullable<WorkspaceSavedQueriesPageQuery["workspace"]>;
 
 type SavedQueriesListProps = {
   workspace: Workspace;
+  page: number;
   perPage: number;
   loading?: boolean;
   searchValue: string;
@@ -25,6 +26,7 @@ type SavedQueriesListProps = {
 
 const SavedQueriesList = ({
   workspace,
+  page,
   perPage,
   loading,
   searchValue,
@@ -67,10 +69,15 @@ const SavedQueriesList = ({
         </div>
 
         <Block>
+          {/* Server-side pagination via the grid's built-in pager: `fetchData`
+              reports page/size changes to the parent, and `defaultPageIndex`
+              feeds the parent's current page back so the pager stays in sync
+              with the fetched data (e.g. when a search resets to page 1). */}
           <DataGrid
             data={items}
             totalItems={totalItems}
             defaultPageSize={perPage}
+            defaultPageIndex={page - 1}
             fetchData={onChangePage}
             fixedLayout={false}
             loading={loading}
