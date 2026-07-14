@@ -27,6 +27,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
             "standardpassword",
             is_superuser=True,
         )
+        cls.ORGANIZATION = Organization.objects.create(name="Templates Schema Org")
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
         ):
@@ -34,11 +35,13 @@ class PipelineTemplatesTest(GraphQLTestCase):
                 cls.USER_ROOT,
                 name="WS1",
                 description="Workspace 1",
+                organization=cls.ORGANIZATION,
             )
             cls.WS2 = Workspace.objects.create_if_has_perm(
                 cls.USER_ROOT,
                 name="WS2",
                 description="Workspace 2",
+                organization=cls.ORGANIZATION,
             )
         cls.PIPELINE1 = Pipeline.objects.create(
             name="Test Pipeline", code="Test Pipeline", workspace=cls.WS1

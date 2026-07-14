@@ -41,9 +41,8 @@ class PipelineTagMutationTest(GraphQLTestCase):
             cls.USER_SUPERUSER,
             name="Test workspace",
             description="Test workspace",
+            organization=cls.ORGANIZATION,
         )
-        cls.WORKSPACE.organization = cls.ORGANIZATION
-        cls.WORKSPACE.save()
 
         OrganizationMembership.objects.create(
             organization=cls.ORGANIZATION,

@@ -24,6 +24,7 @@ class WorkspaceTagsTest(GraphQLTestCase):
 
         cls.ORG1 = Organization.objects.create(name="Organization 1", short_name="org1")
         cls.ORG2 = Organization.objects.create(name="Organization 2", short_name="org2")
+        cls.ORG3 = Organization.objects.create(name="Organization 3", short_name="org3")
 
         OrganizationMembership.objects.create(
             organization=cls.ORG1,
@@ -32,6 +33,11 @@ class WorkspaceTagsTest(GraphQLTestCase):
         )
         OrganizationMembership.objects.create(
             organization=cls.ORG2,
+            user=cls.USER_ADMIN,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.ORG3,
             user=cls.USER_ADMIN,
             role=OrganizationMembershipRole.ADMIN,
         )
@@ -61,8 +67,8 @@ class WorkspaceTagsTest(GraphQLTestCase):
             cls.WS_STANDALONE = Workspace.objects.create_if_has_perm(
                 cls.USER_ADMIN,
                 name="Standalone Workspace",
-                description="Workspace without organization",
-                organization=None,
+                description="Only workspace in org 3",
+                organization=cls.ORG3,
             )
 
     def test_workspace_pipeline_tags_scoped_to_workspace(self):
@@ -387,8 +393,8 @@ class WorkspaceTagsTest(GraphQLTestCase):
             template["workspace"]["organization"]["name"], "Organization 1"
         )
 
-    def test_workspace_pipeline_template_tags_without_organization(self):
-        """Verify pipelineTemplateTags is workspace-scoped when workspace has no organization"""
+    def test_workspace_pipeline_template_tags_scoped_to_own_organization(self):
+        """Verify pipelineTemplateTags only includes tags from the workspace's own organization"""
         tag_standalone = Tag.objects.create(name="standalone-template")
         tag_org1 = Tag.objects.create(name="org1-only-template")
 
@@ -435,6 +441,8 @@ class WorkspaceTagsTest(GraphQLTestCase):
         )
 
         standalone_tags = r["data"]["workspace"]["pipelineTemplateTags"]
-        self.assertIsNone(r["data"]["workspace"]["organization"])
+        self.assertEqual(
+            r["data"]["workspace"]["organization"]["name"], "Organization 3"
+        )
         self.assertIn("standalone-template", standalone_tags)
         self.assertNotIn("org1-only-template", standalone_tags)
