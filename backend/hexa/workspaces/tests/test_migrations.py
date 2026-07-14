@@ -4,6 +4,9 @@ from django.test import TransactionTestCase
 
 from hexa.core.test.migrator import Migrator
 from hexa.user_management.models import Organization as RealOrganization
+from hexa.user_management.models import (
+    OrganizationMembership as RealOrganizationMembership,
+)
 from hexa.user_management.models import OrganizationType
 
 
@@ -168,4 +171,70 @@ class WorkspaceOrganizationRequiredMigrationTest(TransactionTestCase):
         Organization = self.migrator.apps.get_model("user_management", "Organization")
         self.assertTrue(
             Organization.objects.filter(name="Default Organization").exists()
+        )
+
+    def test_reverse_removes_empty_default_organization(self):
+        """Rolling back removes the auto-created default org (and its memberships)
+        when it owns no workspaces.
+        """
+        _, _, User, _, _ = self._models()
+        User.objects.create(email="super@example.com", is_superuser=True)
+
+        self.migrator.migrate(*self.migrate_to)
+        Organization = self.migrator.apps.get_model("user_management", "Organization")
+        OrganizationMembership = self.migrator.apps.get_model(
+            "user_management", "OrganizationMembership"
+        )
+        org = Organization.objects.get(name="Default Organization")
+        self.assertTrue(
+            OrganizationMembership.objects.filter(organization=org).exists()
+        )
+
+        self.migrator.migrate(*self.migrate_from)
+        Organization = self.migrator.apps.get_model("user_management", "Organization")
+        OrganizationMembership = self.migrator.apps.get_model(
+            "user_management", "OrganizationMembership"
+        )
+        self.assertFalse(
+            Organization.objects.filter(name="Default Organization").exists()
+        )
+        self.assertFalse(
+            OrganizationMembership.objects.filter(organization_id=org.id).exists()
+        )
+
+    @patch("hexa.user_management.models.get_forgejo_client")
+    def test_orphans_reuse_existing_default_organization(self, mock_get_client):
+        """When a default organization already exists, orphans are attached to it
+        instead of creating a duplicate, and existing memberships don't clash.
+        """
+        Workspace, _, User, _, _ = self._models()
+        superuser = User.objects.create(email="super@example.com", is_superuser=True)
+        existing = RealOrganization.objects.create(
+            name="Default Organization",
+            organization_type=OrganizationType.CORPORATE,
+        )
+        RealOrganizationMembership.objects.create(
+            organization=existing, user_id=superuser.id, role="owner"
+        )
+        self._create_workspace(Workspace, "Orphan WS", "orphan-ws")
+
+        self.migrator.migrate(*self.migrate_to)
+
+        Workspace = self.migrator.apps.get_model("workspaces", "Workspace")
+        Organization = self.migrator.apps.get_model("user_management", "Organization")
+        OrganizationMembership = self.migrator.apps.get_model(
+            "user_management", "OrganizationMembership"
+        )
+
+        self.assertEqual(
+            Organization.objects.filter(name="Default Organization").count(), 1
+        )
+        self.assertEqual(
+            Workspace.objects.get(slug="orphan-ws").organization_id, existing.id
+        )
+        self.assertEqual(
+            OrganizationMembership.objects.filter(
+                organization_id=existing.id, user_id=superuser.id
+            ).count(),
+            1,
         )
