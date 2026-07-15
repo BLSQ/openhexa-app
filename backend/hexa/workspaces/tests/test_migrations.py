@@ -159,3 +159,23 @@ class WorkspaceOrganizationRequiredMigrationTest(TransactionTestCase):
             Organization.objects.filter(name="Default Organization").exists()
         )
         self.assertEqual(Organization.objects.count(), 1)
+
+    @patch("hexa.user_management.models.get_forgejo_client")
+    def test_raises_when_no_free_default_name_after_max_attempts(self, mock_get_client):
+        """When every candidate default name is taken, the migration fails loudly
+        instead of looping forever.
+        """
+        Workspace, _, _, _, _ = self._models()
+        # Occupy the base name plus every suffix the loop would try (2..10),
+        # matching MAX_NAME_ATTEMPTS in the migration.
+        taken = ["Default Organization"] + [
+            f"Default Organization {i}" for i in range(2, 11)
+        ]
+        for name in taken:
+            RealOrganization.objects.create(
+                name=name, organization_type=OrganizationType.CORPORATE
+            )
+        self._create_workspace(Workspace, "Orphan WS", "orphan-ws")
+
+        with self.assertRaisesRegex(RuntimeError, "Could not find a free name"):
+            self.migrator.migrate(*self.migrate_to)
