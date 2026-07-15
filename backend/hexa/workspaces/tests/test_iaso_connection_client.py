@@ -4,11 +4,10 @@ import responses
 from openhexa.toolbox.iaso import IASO
 
 from hexa.core.test import TestCase
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Connection,
     ConnectionType,
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
@@ -18,6 +17,7 @@ from hexa.workspaces.tests.fixtures.iaso.iaso_fixtures import (
     iaso_mocked_orgunits,
     iaso_mocked_projects,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 from hexa.workspaces.utils import (
     IASOMetadataQueryType,
     query_iaso_metadata,
@@ -40,14 +40,12 @@ class TestIASOClientMethods(TestCase):
         cls.USER_ADMIN = User.objects.create_user(
             "admin@bluesquarehub.com", "admin", is_superuser=True
         )
-        cls.ORGANIZATION = Organization.objects.create(name="TestIASOClientMethods Org")
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
         ):
-            cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.WORKSPACE = create_workspace(
                 cls.USER_ADMIN,
                 name="Workspace's title",
-                organization=cls.ORGANIZATION,
             )
 
         WorkspaceMembership.objects.create(

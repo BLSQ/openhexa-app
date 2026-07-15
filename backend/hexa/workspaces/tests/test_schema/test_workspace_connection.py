@@ -1,14 +1,14 @@
 from unittest.mock import MagicMock, patch
 
 from hexa.core.test import GraphQLTestCase
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Connection,
     ConnectionType,
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class ConnectionTest(GraphQLTestCase):
@@ -32,14 +32,12 @@ class ConnectionTest(GraphQLTestCase):
         cls.USER_ADMIN = User.objects.create_user(
             "admin@bluesquarehub.com", "standardpassword", is_superuser=True
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Workspace Connection Org")
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="Senegal Workspace",
             description="This is a workspace for Senegal",
             countries=[{"code": "AL"}],
-            organization=cls.ORGANIZATION,
         )
 
         cls.WORKSPACE_MEMBERSHIP_SABRINA = WorkspaceMembership.objects.create(
@@ -65,12 +63,11 @@ class ConnectionTest(GraphQLTestCase):
             connection_type=ConnectionType.POSTGRESQL,
         )
 
-        cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_2 = create_workspace(
             cls.USER_ADMIN,
             name="Burundi Workspace",
             description="This is a workspace for Burundi",
             countries=[{"code": "AD"}],
-            organization=cls.ORGANIZATION,
         )
 
         cls.WORKSPACE_CONNECTION_2 = Connection.objects.create_if_has_perm(
@@ -733,13 +730,11 @@ class TestConnectionTest(GraphQLTestCase):
             "outsider@bluesquarehub.com",
             "standardpassword",
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Test Connection Org")
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="Test Workspace",
             description="Workspace for testing connections",
             countries=[{"code": "AL"}],
-            organization=cls.ORGANIZATION,
         )
         WorkspaceMembership.objects.create(
             workspace=cls.WORKSPACE,

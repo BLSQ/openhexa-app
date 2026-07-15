@@ -3,14 +3,14 @@ from unittest.mock import MagicMock, patch
 from openhexa.toolbox.dhis2.api import DHIS2ToolboxError
 
 from hexa.core.test import GraphQLTestCase
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Connection,
     ConnectionType,
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class ConnectiontTest(GraphQLTestCase):
@@ -28,14 +28,12 @@ class ConnectiontTest(GraphQLTestCase):
         cls.USER_ADMIN = User.objects.create_user(
             "admin@bluesquarehub.com", "admin", is_superuser=True
         )
-        cls.ORGANIZATION = Organization.objects.create(name="DHIS2 Connection Org")
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
         ):
-            cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.WORKSPACE = create_workspace(
                 cls.USER_ADMIN,
                 name="Workspace's title",
-                organization=cls.ORGANIZATION,
             )
 
         WorkspaceMembership.objects.create(

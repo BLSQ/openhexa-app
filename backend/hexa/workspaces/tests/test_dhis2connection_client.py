@@ -4,11 +4,10 @@ from unittest.mock import patch
 import responses
 
 from hexa.core.test import TestCase
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Connection,
     ConnectionType,
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
@@ -23,6 +22,7 @@ from hexa.workspaces.tests.fixtures.dhis2.org_units import (
     org_units_groups,
     org_units_levels,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 from hexa.workspaces.utils import (
     DHIS2MetadataQueryType,
     query_dhis2_metadata,
@@ -45,14 +45,12 @@ class TestDHIS2Methods(TestCase):
         cls.USER_ADMIN = User.objects.create_user(
             "admin@bluesquarehub.com", "admin", is_superuser=True
         )
-        cls.ORGANIZATION = Organization.objects.create(name="TestDHIS2Methods Org")
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
         ):
-            cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.WORKSPACE = create_workspace(
                 cls.USER_ADMIN,
                 name="Workspace's title",
-                organization=cls.ORGANIZATION,
             )
 
         WorkspaceMembership.objects.create(

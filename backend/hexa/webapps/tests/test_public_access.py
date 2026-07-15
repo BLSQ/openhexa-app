@@ -13,12 +13,10 @@ from hexa.core.test import GraphQLTestCase, TestCase
 from hexa.git.exceptions import GitFileNotFound
 from hexa.superset.models import SupersetInstance
 from hexa.user_management.models import (
-    Organization,
     User,
 )
 from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
@@ -28,17 +26,15 @@ from hexa.workspaces.tests.testutils import create_workspace
 class SupersetDashboardViewAccessTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.ORG = Organization.objects.create(
-            name="Test Organization",
-            short_name="test-org-public",
-            organization_type="CORPORATE",
+        cls.WORKSPACE = create_workspace(
+            name="Test Workspace",
         )
         cls.SUPERSET_INSTANCE = SupersetInstance.objects.create(
             name="Superset",
             url="https://superset.example.com",
             api_username="test",
             api_password="password",
-            organization=cls.ORG,
+            organization=cls.WORKSPACE.organization,
         )
         cls.USER_MEMBER = User.objects.create_user(
             "member@test.com",
@@ -47,10 +43,6 @@ class SupersetDashboardViewAccessTest(TestCase):
         cls.USER_NON_MEMBER = User.objects.create_user(
             "nonmember@test.com",
             "password",
-        )
-        cls.WORKSPACE = Workspace.objects.create(
-            name="Test Workspace",
-            organization=cls.ORG,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER_MEMBER,
@@ -479,7 +471,7 @@ class GitWebappServeViewTest(TestCase):
             "webapp-private",
             "assets/icons/style.css",
             "sha-published",
-            org_slug=self.ORGANIZATION.slug,
+            org_slug=self.WORKSPACE.organization.slug,
         )
 
     def test_invalid_session_cookie_redirects_to_auth(self):
@@ -875,7 +867,6 @@ class PoweredByBannerTest(TestCase):
         cls.WORKSPACE = create_workspace(
             name="Banner Workspace",
             slug="banner-workspace",
-            organization=cls.ORGANIZATION,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER,
@@ -1059,11 +1050,9 @@ class WebappCacheHeadersTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("cache@test.com", "password")
-        cls.ORGANIZATION = Organization.objects.create(name="Cache Org")
-        cls.WORKSPACE = Workspace.objects.create(
+        cls.WORKSPACE = create_workspace(
             name="Cache Workspace",
             slug="cache-workspace",
-            organization=cls.ORGANIZATION,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER,
@@ -1189,10 +1178,7 @@ class CustomDomainMiddlewareTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("cdm@test.com", "password")
-        cls.ORGANIZATION = Organization.objects.create(name="CDM Org")
-        cls.WORKSPACE = Workspace.objects.create(
-            name="CDM Workspace", organization=cls.ORGANIZATION
-        )
+        cls.WORKSPACE = create_workspace(name="CDM Workspace")
         WorkspaceMembership.objects.create(
             user=cls.USER,
             workspace=cls.WORKSPACE,
