@@ -5,11 +5,11 @@ from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVer
 from hexa.pipelines.models import Pipeline, PipelineFunctionalType, PipelineVersion
 from hexa.tags.models import Tag
 from hexa.user_management.models import (
+    Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
 )
-from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
@@ -19,7 +19,9 @@ from hexa.workspaces.tests.testutils import create_workspace
 
 class PipelineTemplateModelTest(TestCase):
     def setUp(self):
-        self.ORGANIZATION = create_organization(name="Pipeline Template Model Org")
+        self.ORGANIZATION = Organization.objects.create(
+            name="Pipeline Template Model Org"
+        )
         self.workspace = create_workspace(
             name="Test Workspace",
             slug="test-workspace",
@@ -156,7 +158,7 @@ class PipelineTemplateVersionModelTest(TestCase):
 class PipelineTemplateOrganizationAdminOwnerPermissionsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.ORGANIZATION = create_organization(
+        cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
             short_name="test-org-template",
         )
@@ -285,7 +287,9 @@ class PipelineTemplateFunctionalTypeAndTagsTest(TestCase):
         cls.user = User.objects.create_user(
             "user_template@bluesquarehub.com", "password", is_superuser=True
         )
-        cls.organization = create_organization(name="Pipeline Template Tags Org")
+        cls.organization = Organization.objects.create(
+            name="Pipeline Template Tags Org"
+        )
         cls.workspace = create_workspace(
             cls.user,
             name="Test Template Workspace",

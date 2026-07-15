@@ -1,5 +1,4 @@
 from hexa.user_management.models import Organization, User
-from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import Workspace
 
 
@@ -18,7 +17,7 @@ def create_workspace(
     callers usually patch those); omit it for a plain ``create``.
     """
     if organization is None:
-        organization = create_organization(name=f"{name} Organization")
+        organization = Organization.objects.create(name=f"{name} Organization")
     if principal is not None:
         return Workspace.objects.create_if_has_perm(
             principal, name=name, organization=organization, **kwargs

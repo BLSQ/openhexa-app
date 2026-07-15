@@ -6,8 +6,7 @@ from hexa.pipelines.models import (
     Pipeline,
     PipelineVersion,
 )
-from hexa.user_management.models import User
-from hexa.user_management.tests.testutils import create_organization
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.tests.testutils import create_workspace
 
 
@@ -26,7 +25,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
             "standardpassword",
             is_superuser=True,
         )
-        cls.ORGANIZATION = create_organization(name="Templates Schema Org")
+        cls.ORGANIZATION = Organization.objects.create(name="Templates Schema Org")
         with (
             patch("hexa.workspaces.models.create_database"),
             patch("hexa.workspaces.models.load_database_sample_data"),
@@ -510,7 +509,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
         """Test that pipeline templates are visible across all workspaces in an organization."""
         self.client.force_login(self.USER_ROOT)
 
-        org = create_organization(name="Test Org")
+        org = Organization.objects.create(name="Test Org")
 
         with (
             patch("hexa.workspaces.models.create_database"),
@@ -972,7 +971,7 @@ class PipelineTemplatesTest(GraphQLTestCase):
     def test_template_filter_by_validation_status(self):
         self.client.force_login(self.USER_ROOT)
 
-        org = create_organization(
+        org = Organization.objects.create(
             name="Test Organization",
             short_name="TEST",
         )

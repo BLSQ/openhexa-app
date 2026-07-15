@@ -1,11 +1,11 @@
 from hexa.core.test import TestCase
 from hexa.databases.permissions import run_query, view_database_credentials
 from hexa.user_management.models import (
+    Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
 )
-from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
@@ -16,7 +16,7 @@ from hexa.workspaces.tests.testutils import create_workspace
 class DatabasesOrganizationPermissionsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.ORGANIZATION = create_organization(
+        cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
             short_name="test-org-databases",
         )

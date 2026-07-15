@@ -7,11 +7,11 @@ from hexa.pipeline_templates.models import PipelineTemplate
 from hexa.pipelines.models import Pipeline
 from hexa.tags.models import Tag
 from hexa.user_management.models import (
+    Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
 )
-from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -44,7 +44,7 @@ class SearchResolversTest(GraphQLTestCase):
             "standardpassword",
             is_superuser=True,
         )
-        cls.ORGANIZATION = create_organization(
+        cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
         )
         OrganizationMembership.objects.create(

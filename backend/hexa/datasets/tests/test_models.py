@@ -21,7 +21,6 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
     User,
 )
-from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -55,8 +54,8 @@ class BaseTestMixin:
             "viewer@bluesquarehub.com", "goodbyequentin"
         )
 
-        cls.ORGANIZATION = create_organization(name="Dataset Models Org")
-        cls.ORGANIZATION_2 = create_organization(name="Dataset Models Org 2")
+        cls.ORGANIZATION = Organization.objects.create(name="Dataset Models Org")
+        cls.ORGANIZATION_2 = Organization.objects.create(name="Dataset Models Org 2")
         cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="My Workspace",
@@ -375,12 +374,12 @@ class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
     def setUpTestData(cls):
         BaseTestMixin.setUpTestData()
 
-        cls.ORGANIZATION = create_organization(
+        cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
             short_name="test-org",
         )
 
-        cls.ORGANIZATION_2 = create_organization(
+        cls.ORGANIZATION_2 = Organization.objects.create(
             name="Another Organization",
             short_name="another-org",
             organization_type="ACADEMIC",

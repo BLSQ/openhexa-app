@@ -1,18 +1,18 @@
 from hexa.core.test import TestCase
 from hexa.files.permissions import create_object, delete_object
 from hexa.user_management.models import (
+    Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
 )
-from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.tests.testutils import create_workspace
 
 
 class FilesOrganizationPermissionsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.ORGANIZATION = create_organization(
+        cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
             short_name="test-org-files",
         )

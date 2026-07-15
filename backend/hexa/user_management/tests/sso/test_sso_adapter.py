@@ -4,6 +4,7 @@ from allauth.core.exceptions import ImmediateHttpResponse
 from django.test import TestCase, override_settings
 
 from hexa.user_management.models import (
+    Organization,
     OrganizationInvitation,
     OrganizationInvitationStatus,
     OrganizationMembership,
@@ -13,7 +14,6 @@ from hexa.user_management.models import (
     User,
 )
 from hexa.user_management.sso.sso_adapter import OpenHexaSocialAccountAdapter
-from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import (
     OrganizationWorkspaceInvitation,
     WorkspaceInvitation,
@@ -281,7 +281,7 @@ class IsAutoSignupAllowedTest(TestCase):
 class SaveUserAcceptsPendingInvitationsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.ORGANIZATION = create_organization(name="WHO")
+        cls.ORGANIZATION = Organization.objects.create(name="WHO")
         cls.WORKSPACE = create_workspace(
             name="Workspace", slug="workspace", organization=cls.ORGANIZATION
         )

@@ -8,8 +8,7 @@ from hexa.core.test import GraphQLTestCase
 from hexa.datasets.models import Dataset, DatasetLink
 from hexa.files.backends.base import StorageObject
 from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
-from hexa.user_management.models import User
-from hexa.user_management.tests.testutils import create_organization
+from hexa.user_management.models import Organization, User
 from hexa.webapps.graphql_proxy import extract_top_level_fields
 from hexa.webapps.middlewares import WEBAPP_SESSION_COOKIE, WEBAPP_SESSION_MAX_AGE
 from hexa.webapps.models import Webapp
@@ -606,7 +605,7 @@ class GraphQLProxyWorkspaceScopingTest(TestCase):
         cls.USER = User.objects.create_user(
             "multi@test.com", "password", is_superuser=True
         )
-        cls.ORGANIZATION = create_organization(name="Proxy Scoping Org")
+        cls.ORGANIZATION = Organization.objects.create(name="Proxy Scoping Org")
         with (
             patch("hexa.workspaces.models.create_database"),
             patch("hexa.workspaces.models.load_database_sample_data"),

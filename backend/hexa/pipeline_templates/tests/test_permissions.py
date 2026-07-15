@@ -9,11 +9,11 @@ from hexa.pipeline_templates.permissions import (
 )
 from hexa.pipelines.models import Pipeline, PipelineVersion
 from hexa.user_management.models import (
+    Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
 )
-from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
@@ -24,7 +24,7 @@ from hexa.workspaces.tests.testutils import create_workspace
 class PipelineTemplatesOrganizationPermissionsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.ORGANIZATION = create_organization(
+        cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
             short_name="test-org-pipeline-templates",
         )

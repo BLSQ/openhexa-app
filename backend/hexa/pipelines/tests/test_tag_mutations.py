@@ -4,10 +4,10 @@ from hexa.core.test import GraphQLTestCase
 from hexa.pipelines.models import Pipeline
 from hexa.tags.models import Tag
 from hexa.user_management.models import (
+    Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
 )
-from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
@@ -31,7 +31,7 @@ class PipelineTagMutationTest(GraphQLTestCase):
         cls.USER_MEMBER = User.objects.create_user("member@openhexa.org", "password")
         cls.USER_VIEWER = User.objects.create_user("viewer@openhexa.org", "password")
 
-        cls.ORGANIZATION = create_organization(
+        cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
             short_name="test-org",
         )

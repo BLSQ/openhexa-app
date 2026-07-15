@@ -5,7 +5,6 @@ from django.test import TestCase
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.user_management.models import Organization, User
-from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.tests.testutils import create_workspace
 
@@ -17,7 +16,7 @@ class TestPipelineRunUserFiltering(TestCase):
             "standardpassword",
             is_superuser=True,
         )
-        self.ORGANIZATION = create_organization(name="Filtering Test Org")
+        self.ORGANIZATION = Organization.objects.create(name="Filtering Test Org")
         self.WORKSPACE1 = create_workspace(
             self.USER_ROOT,
             name="WS1",
@@ -66,8 +65,8 @@ class TestPipelineRunUserFiltering(TestCase):
         self.assertEqual(filtered_workspaces.first(), self.WORKSPACE1)
 
     def test_organization_filtering(self):
-        org1 = create_organization(name="Org 1", short_name="org1")
-        create_organization(
+        org1 = Organization.objects.create(name="Org 1", short_name="org1")
+        Organization.objects.create(
             name="Org 2", short_name="org2", organization_type="ACADEMIC"
         )
         self.WORKSPACE1.organization = org1
