@@ -1,5 +1,4 @@
 from hexa.user_management.models import User
-from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
@@ -32,18 +31,11 @@ class SavedQueryTestMixin:
             "outsider@bluesquarehub.com", "outsiderpassword"
         )
 
-        cls.ORGANIZATION = create_organization(name="Data Studio Organization")
         cls.WORKSPACE = create_workspace(
-            cls.USER_ADMIN,
-            name="My Workspace",
-            description="Test workspace",
-            organization=cls.ORGANIZATION,
+            cls.USER_ADMIN, name="My Workspace", description="Test workspace"
         )
         cls.WORKSPACE_2 = create_workspace(
-            cls.USER_ADMIN,
-            name="My Workspace 2",
-            description="Test workspace 2",
-            organization=cls.ORGANIZATION,
+            cls.USER_ADMIN, name="My Workspace 2", description="Test workspace 2"
         )
 
         cls.USER_ADMIN.is_superuser = False
