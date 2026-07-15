@@ -90,8 +90,10 @@ const DataStudioEditor = ({
             </span>
             {editor.isDirty && (
               <span
-                className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400"
+                role="status"
+                aria-label={t("Unsaved changes")}
                 title={t("Unsaved changes")}
+                className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400"
               />
             )}
             <div className="ml-auto flex items-center gap-2">

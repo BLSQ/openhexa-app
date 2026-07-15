@@ -38,18 +38,16 @@ describe("DeleteSavedQueryTrigger", () => {
     expect(screen.queryByText("delete")).not.toBeInTheDocument();
   });
 
-  it("does not delete when the confirm is dismissed", () => {
-    (window.confirm as jest.Mock).mockReturnValue(false);
+  it("does not delete when the dialog is cancelled", async () => {
     renderTrigger();
 
     fireEvent.click(screen.getByText("delete"));
+    fireEvent.click(await screen.findByRole("button", { name: "Cancel" }));
 
-    expect(window.confirm).toHaveBeenCalled();
     expect(deleteMock).not.toHaveBeenCalled();
   });
 
   it("deletes on confirm and reports success", async () => {
-    (window.confirm as jest.Mock).mockReturnValue(true);
     deleteMock.mockResolvedValue({
       data: { deleteSavedQuery: { success: true, errors: [] } },
     });
@@ -57,6 +55,7 @@ describe("DeleteSavedQueryTrigger", () => {
     renderTrigger(savedQuery, onDelete);
 
     fireEvent.click(screen.getByText("delete"));
+    fireEvent.click(await screen.findByRole("button", { name: "Delete" }));
 
     await waitFor(() =>
       expect(deleteMock).toHaveBeenCalledWith({
@@ -68,7 +67,6 @@ describe("DeleteSavedQueryTrigger", () => {
   });
 
   it("reports an error when the backend rejects the delete", async () => {
-    (window.confirm as jest.Mock).mockReturnValue(true);
     deleteMock.mockResolvedValue({
       data: {
         deleteSavedQuery: { success: false, errors: ["PERMISSION_DENIED"] },
@@ -77,6 +75,7 @@ describe("DeleteSavedQueryTrigger", () => {
     renderTrigger();
 
     fireEvent.click(screen.getByText("delete"));
+    fireEvent.click(await screen.findByRole("button", { name: "Delete" }));
 
     await waitFor(() => expect(toast.error).toHaveBeenCalled());
   });

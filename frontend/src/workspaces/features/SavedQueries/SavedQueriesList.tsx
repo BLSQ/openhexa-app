@@ -11,6 +11,7 @@ import { useRouter } from "next/router";
 import DeleteSavedQueryTrigger from "workspaces/features/SavedQueries/DeleteSavedQueryTrigger";
 import { SavedQueryListItem_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { WorkspaceSavedQueriesPageQuery } from "workspaces/graphql/queries.generated";
+import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
 
 type Workspace = NonNullable<WorkspaceSavedQueriesPageQuery["workspace"]>;
 
@@ -35,11 +36,10 @@ const SavedQueriesList = ({
 }: SavedQueriesListProps) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const basePath = `/workspaces/${encodeURIComponent(workspace.slug)}/data-studio`;
+  const routes = dataStudioRoutes(workspace.slug);
   const { items, totalItems } = workspace.savedQueries;
 
-  const openQuery = (id: string) =>
-    router.push(`${basePath}/queries/${encodeURIComponent(id)}`);
+  const openQuery = (id: string) => router.push(routes.query(id));
 
   return (
     <div className="h-full overflow-auto bg-gray-50">
@@ -51,7 +51,7 @@ const SavedQueriesList = ({
           {workspace.permissions.createSavedQuery && (
             <Button
               leadingIcon={<PlusIcon className="h-4 w-4" />}
-              onClick={() => router.push(basePath)}
+              onClick={() => router.push(routes.base)}
             >
               {t("New query")}
             </Button>
@@ -99,11 +99,15 @@ const SavedQueriesList = ({
               id="description"
               label={t("Description")}
             >
-              {(item) => (
-                <span className="line-clamp-2 text-gray-600">
-                  {item.description}
-                </span>
-              )}
+              {(item) =>
+                item.description ? (
+                  <span className="line-clamp-2 text-gray-600">
+                    {item.description}
+                  </span>
+                ) : (
+                  <span className="text-gray-400">—</span>
+                )
+              }
             </BaseColumn>
             <UserColumn accessor="createdBy" header={t("Created by")} />
             <DateColumn

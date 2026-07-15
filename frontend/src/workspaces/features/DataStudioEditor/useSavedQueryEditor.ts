@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { useSavedQueryMutations } from "workspaces/features/SavedQueries/useSavedQueryMutations";
+import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
 
 type DialogState = { mode: "create" | "edit-details" } | null;
 
@@ -73,11 +74,7 @@ export const useSavedQueryEditor = ({
       } else {
         // A new query was created (first save or save-as-new): open its page,
         // which remounts the editor against the freshly saved query.
-        router.push(
-          `/workspaces/${encodeURIComponent(
-            workspaceSlug,
-          )}/data-studio/queries/${encodeURIComponent(sq.id)}`,
-        );
+        router.push(dataStudioRoutes(workspaceSlug).query(sq.id));
       }
     },
     [dialog, router, workspaceSlug],

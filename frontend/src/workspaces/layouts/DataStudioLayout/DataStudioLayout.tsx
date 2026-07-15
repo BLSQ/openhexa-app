@@ -4,6 +4,7 @@ import { CustomApolloClient } from "core/helpers/apollo";
 import { GetServerSidePropsContext } from "next";
 import { useTranslation } from "next-i18next";
 import { ReactElement, ReactNode } from "react";
+import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import { WorkspaceLayout_WorkspaceFragment } from "workspaces/layouts/WorkspaceLayout/WorkspaceLayout.generated";
 
@@ -28,11 +29,11 @@ const DataStudioLayout = ({
   headerActions,
 }: DataStudioLayoutProps) => {
   const { t } = useTranslation();
-  const basePath = `/workspaces/${encodeURIComponent(workspace.slug)}/data-studio`;
+  const routes = dataStudioRoutes(workspace.slug);
 
   const tabs = [
-    { id: "editor", label: t("Editor"), href: basePath },
-    { id: "saved", label: t("Saved queries"), href: `${basePath}/queries` },
+    { id: "editor", label: t("Editor"), href: routes.base },
+    { id: "saved", label: t("Saved queries"), href: routes.queries },
   ];
 
   return (
@@ -42,7 +43,7 @@ const DataStudioLayout = ({
       headerActions={headerActions}
       header={
         <Breadcrumbs withHome={false}>
-          <Breadcrumbs.Part isFirst isLast href={basePath}>
+          <Breadcrumbs.Part isFirst isLast href={routes.base}>
             {t("Data Studio")}
           </Breadcrumbs.Part>
         </Breadcrumbs>

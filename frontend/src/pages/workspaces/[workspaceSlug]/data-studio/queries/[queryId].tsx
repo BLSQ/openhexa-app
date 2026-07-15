@@ -42,8 +42,9 @@ const WorkspaceSavedQueryPage: NextPageWithLayout = (props: Props) => {
             />
           </div>
         ) : (
-          // Reachable when the query is deleted (e.g. in another tab) and the
-          // client refetches; SSR would otherwise 404 on a first load.
+          // Defensive fallback: normally SSR returns notFound (404) when the
+          // query is missing, so this only renders if the workspace resolves
+          // but the saved query is absent from the client cache.
           <div className="flex h-full flex-col items-center justify-center gap-1 p-8 text-center">
             <p className="text-sm font-medium text-gray-800">
               {t("Saved query not found")}
