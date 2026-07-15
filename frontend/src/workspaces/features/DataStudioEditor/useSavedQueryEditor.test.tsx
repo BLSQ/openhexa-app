@@ -6,6 +6,7 @@ import { useSavedQueryEditor } from "./useSavedQueryEditor";
 const updateMock = jest.fn();
 
 jest.mock("workspaces/features/SavedQueries/SavedQueries.generated", () => ({
+  useCreateSavedQueryMutation: () => [jest.fn(), { loading: false }],
   useUpdateSavedQueryMutation: () => [updateMock, { loading: false }],
 }));
 

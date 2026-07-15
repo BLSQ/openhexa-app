@@ -1,13 +1,9 @@
-import useCacheKey from "core/hooks/useCacheKey";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
-import {
-  SavedQuery_SavedQueryFragment,
-  useUpdateSavedQueryMutation,
-} from "workspaces/features/SavedQueries/SavedQueries.generated";
-import { updateSavedQueryErrorMessage } from "workspaces/features/SavedQueries/savedQueryErrors";
+import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
+import { useSavedQueryMutations } from "workspaces/features/SavedQueries/useSavedQueryMutations";
 
 type DialogState = { mode: "create" | "edit-details" } | null;
 
@@ -33,8 +29,7 @@ export const useSavedQueryEditor = ({
   // Baseline the dirty check compares against; advances on each in-place save.
   const [baseline, setBaseline] = useState(initialSavedQuery?.content ?? "");
   const [dialog, setDialog] = useState<DialogState>(null);
-  const [updateSavedQuery, { loading: saving }] = useUpdateSavedQueryMutation();
-  const clearCache = useCacheKey("savedQueries");
+  const { update, updating: saving } = useSavedQueryMutations();
 
   const canUpdate = savedQuery?.permissions.update ?? false;
   const isDirty = content !== baseline;
@@ -50,22 +45,18 @@ export const useSavedQueryEditor = ({
       return;
     }
     try {
-      const { data } = await updateSavedQuery({
-        variables: { input: { id: savedQuery.id, content } },
-      });
-      const result = data?.updateSavedQuery;
-      if (result?.success && result.savedQuery) {
-        setSavedQuery(result.savedQuery);
+      const res = await update({ id: savedQuery.id, content });
+      if (res.ok) {
+        setSavedQuery(res.savedQuery);
         setBaseline(content);
-        clearCache();
         toast.success(t("Query saved"));
       } else {
-        toast.error(updateSavedQueryErrorMessage(result?.errors, t));
+        toast.error(res.message);
       }
     } catch (err: any) {
       toast.error(err.message);
     }
-  }, [savedQuery, canUpdate, saving, content, updateSavedQuery, clearCache, t]);
+  }, [savedQuery, canUpdate, saving, content, update, t]);
 
   const saveAsNew = useCallback(() => setDialog({ mode: "create" }), []);
   const editDetails = useCallback(

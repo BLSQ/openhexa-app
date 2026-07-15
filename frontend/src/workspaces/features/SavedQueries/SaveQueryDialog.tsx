@@ -2,20 +2,12 @@ import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
 import Textarea from "core/components/forms/Textarea";
-import useCacheKey from "core/hooks/useCacheKey";
 import useForm from "core/hooks/useForm";
 import { useTranslation } from "next-i18next";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
-import {
-  SavedQuery_SavedQueryFragment,
-  useCreateSavedQueryMutation,
-  useUpdateSavedQueryMutation,
-} from "workspaces/features/SavedQueries/SavedQueries.generated";
-import {
-  createSavedQueryErrorMessage,
-  updateSavedQueryErrorMessage,
-} from "workspaces/features/SavedQueries/savedQueryErrors";
+import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
+import { useSavedQueryMutations } from "workspaces/features/SavedQueries/useSavedQueryMutations";
 
 export type SaveQueryDialogMode = "create" | "edit-details";
 
@@ -53,9 +45,7 @@ const SaveQueryDialog = ({
   onSaved,
 }: SaveQueryDialogProps) => {
   const { t } = useTranslation();
-  const clearCache = useCacheKey("savedQueries");
-  const [createSavedQuery] = useCreateSavedQueryMutation();
-  const [updateSavedQuery] = useUpdateSavedQueryMutation();
+  const { create, update } = useSavedQueryMutations();
 
   const form = useForm<Values>({
     getInitialState: () => ({
@@ -78,37 +68,29 @@ const SaveQueryDialog = ({
       const name = values.name.trim();
       const description = values.description?.trim() ?? "";
 
-      if (mode === "create") {
-        const { data } = await createSavedQuery({
-          variables: {
-            input: { workspaceSlug, name, content: content ?? "", description },
-          },
-        });
-        const result = data?.createSavedQuery;
-        if (result?.success && result.savedQuery) {
-          clearCache();
-          toast.success(t("Query created"));
-          onSaved?.(result.savedQuery);
-          onClose();
-        } else {
-          throw new Error(createSavedQueryErrorMessage(result?.errors, t));
-        }
+      if (mode === "edit-details" && !savedQuery) {
+        return;
+      }
+
+      const res =
+        mode === "create"
+          ? await create({
+              workspaceSlug,
+              name,
+              content: content ?? "",
+              description,
+            })
+          : await update({ id: savedQuery!.id, name, description });
+
+      if (res.ok) {
+        toast.success(
+          mode === "create" ? t("Query created") : t("Query updated"),
+        );
+        onSaved?.(res.savedQuery);
+        onClose();
       } else {
-        if (!savedQuery) {
-          return;
-        }
-        const { data } = await updateSavedQuery({
-          variables: { input: { id: savedQuery.id, name, description } },
-        });
-        const result = data?.updateSavedQuery;
-        if (result?.success && result.savedQuery) {
-          clearCache();
-          toast.success(t("Query updated"));
-          onSaved?.(result.savedQuery);
-          onClose();
-        } else {
-          throw new Error(updateSavedQueryErrorMessage(result?.errors, t));
-        }
+        // Thrown so useForm surfaces it as a form-level submit error.
+        throw new Error(res.message);
       }
     },
   });

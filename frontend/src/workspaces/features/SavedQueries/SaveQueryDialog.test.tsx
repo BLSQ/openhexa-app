@@ -6,8 +6,8 @@ const createMock = jest.fn();
 const updateMock = jest.fn();
 
 jest.mock("workspaces/features/SavedQueries/SavedQueries.generated", () => ({
-  useCreateSavedQueryMutation: () => [createMock],
-  useUpdateSavedQueryMutation: () => [updateMock],
+  useCreateSavedQueryMutation: () => [createMock, { loading: false }],
+  useUpdateSavedQueryMutation: () => [updateMock, { loading: false }],
 }));
 
 jest.mock("react-toastify", () => ({
