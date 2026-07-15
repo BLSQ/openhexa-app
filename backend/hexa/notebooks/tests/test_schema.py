@@ -3,10 +3,10 @@ from django.conf import settings
 
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import (
+    Organization,
     User,
 )
 from hexa.user_management.tests.testutils import (
-    create_organization,
     create_subscription,
 )
 from hexa.workspaces.models import (
@@ -38,7 +38,7 @@ class NotebooksTest(GraphQLTestCase):
             "workspace",
         )
 
-        cls.ORGANIZATION = create_organization(
+        cls.ORGANIZATION = Organization.objects.create(
             name="Test Org",
             short_name="test-org",
         )
