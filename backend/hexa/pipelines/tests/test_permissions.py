@@ -12,25 +12,24 @@ from hexa.pipelines.permissions import (
     view_pipeline_version,
 )
 from hexa.user_management.models import (
-    Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
 )
+from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class PipelinesOrganizationPermissionsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.ORGANIZATION = Organization.objects.create(
+        cls.ORGANIZATION = create_organization(
             name="Test Organization",
             short_name="test-org-pipelines",
-            organization_type="CORPORATE",
         )
 
         cls.USER_ORG_OWNER = User.objects.create_user(
@@ -71,7 +70,7 @@ class PipelinesOrganizationPermissionsTest(TestCase):
             role=OrganizationMembershipRole.MEMBER,
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_WORKSPACE_ADMIN,
             name="Test Workspace",
             description="Test workspace for pipeline permissions",
@@ -379,15 +378,9 @@ class PipelinesOrganizationPermissionsTest(TestCase):
 
     def test_permissions_with_other_organization(self):
         """Test permissions when workspace belongs to another organization"""
-        other_organization = Organization.objects.create(
-            name="Other Organization",
-            short_name="other-org-pipelines",
-            organization_type="CORPORATE",
-        )
-        workspace_other_org = Workspace.objects.create(
+        workspace_other_org = create_workspace(
             name="Other Org Workspace",
             description="Workspace in another organization",
-            organization=other_organization,
         )
         WorkspaceMembership.objects.create(
             workspace=workspace_other_org,

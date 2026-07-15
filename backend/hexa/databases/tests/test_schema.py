@@ -11,12 +11,12 @@ from hexa.databases.utils import (
     execute_database_query,
 )
 from hexa.plugins.connector_postgresql.models import Database
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class DatabaseTest(GraphQLTestCase):
@@ -24,9 +24,6 @@ class DatabaseTest(GraphQLTestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.ORGANIZATION = Organization.objects.create(
-            name="Database Test Organization"
-        )
         cls.USER_SUPERUSER = User.objects.create_user(
             "superuser@bluesquarehub.com", "superuserpassword", is_superuser=True
         )
@@ -44,12 +41,11 @@ class DatabaseTest(GraphQLTestCase):
             database="hexa-explore-demo",
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_SUPERUSER,
             name="Test Workspace",
             description="Test workspace",
             countries=[],
-            organization=cls.ORGANIZATION,
         )
         setattr(cls.WORKSPACE, "database", cls.DB1)
         WorkspaceMembership.objects.create(

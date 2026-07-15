@@ -8,15 +8,16 @@ from hexa.core.test import GraphQLTestCase
 from hexa.datasets.models import Dataset, DatasetLink
 from hexa.files.backends.base import StorageObject
 from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
+from hexa.user_management.tests.testutils import create_organization
 from hexa.webapps.graphql_proxy import extract_top_level_fields
 from hexa.webapps.middlewares import WEBAPP_SESSION_COOKIE, WEBAPP_SESSION_MAX_AGE
 from hexa.webapps.models import Webapp
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 WEBAPPS_DOMAIN = "webapps.test.local"
 
@@ -75,10 +76,7 @@ class GraphQLProxyMiddlewareTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("proxy@test.com", "password")
-        cls.ORGANIZATION = Organization.objects.create(name="Proxy Org")
-        cls.WORKSPACE = Workspace.objects.create(
-            name="Proxy WS", organization=cls.ORGANIZATION
-        )
+        cls.WORKSPACE = create_workspace(name="Proxy WS")
         WorkspaceMembership.objects.create(
             user=cls.USER,
             workspace=cls.WORKSPACE,
@@ -510,11 +508,9 @@ class UpdateWebappAllowedOperationsTest(GraphQLTestCase):
             "password",
             is_superuser=True,
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Ops Org")
-        cls.WORKSPACE = Workspace.objects.create(
+        cls.WORKSPACE = create_workspace(
             name="Ops WS",
             description="Ops workspace",
-            organization=cls.ORGANIZATION,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER,
@@ -610,16 +606,16 @@ class GraphQLProxyWorkspaceScopingTest(TestCase):
         cls.USER = User.objects.create_user(
             "multi@test.com", "password", is_superuser=True
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Proxy Scoping Org")
+        cls.ORGANIZATION = create_organization(name="Proxy Scoping Org")
         with (
             patch("hexa.workspaces.models.create_database"),
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            cls.WORKSPACE_A = Workspace.objects.create_if_has_perm(
-                principal=cls.USER, name="WS A", organization=cls.ORGANIZATION
+            cls.WORKSPACE_A = create_workspace(
+                cls.USER, name="WS A", organization=cls.ORGANIZATION
             )
-            cls.WORKSPACE_B = Workspace.objects.create_if_has_perm(
-                principal=cls.USER, name="WS B", organization=cls.ORGANIZATION
+            cls.WORKSPACE_B = create_workspace(
+                cls.USER, name="WS B", organization=cls.ORGANIZATION
             )
         cls.USER.is_superuser = False
         cls.USER.save()

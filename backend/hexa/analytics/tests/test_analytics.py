@@ -8,8 +8,9 @@ from mixpanel_async import AsyncBufferedConsumer
 from hexa.analytics.api import set_user_properties, track
 from hexa.core.test import TestCase
 from hexa.pipelines.models import Pipeline, PipelineRunTrigger
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class AnalyticsTest(TestCase):
@@ -18,14 +19,11 @@ class AnalyticsTest(TestCase):
         cls.USER: User = User.objects.create_user(
             "user@bluesquarehub.com", "user", analytics_enabled=True, is_superuser=True
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Analytics Test Org")
-
-        cls.WORKSPACE: Workspace = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE: Workspace = create_workspace(
             cls.USER,
             name="Sandbox",
             description="This is a sandbox workspace ",
             countries=[{"code": "AL"}],
-            organization=cls.ORGANIZATION,
         )
         cls.PIPELINE: Pipeline = Pipeline.objects.create(
             workspace=cls.WORKSPACE,

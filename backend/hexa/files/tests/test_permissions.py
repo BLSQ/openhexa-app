@@ -1,23 +1,20 @@
 from hexa.core.test import TestCase
 from hexa.files.permissions import create_object, delete_object
 from hexa.user_management.models import (
-    Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
 )
-from hexa.workspaces.models import (
-    Workspace,
-)
+from hexa.user_management.tests.testutils import create_organization
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class FilesOrganizationPermissionsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.ORGANIZATION = Organization.objects.create(
+        cls.ORGANIZATION = create_organization(
             name="Test Organization",
             short_name="test-org-files",
-            organization_type="CORPORATE",
         )
 
         cls.USER_ORG_OWNER = User.objects.create_user(
@@ -52,7 +49,7 @@ class FilesOrganizationPermissionsTest(TestCase):
             role=OrganizationMembershipRole.MEMBER,
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_WORKSPACE_ADMIN,
             name="Test Workspace",
             description="Test workspace for files permissions",

@@ -6,10 +6,9 @@ from hexa.pipelines.models import (
     Pipeline,
     PipelineVersion,
 )
-from hexa.user_management.models import Organization, User
-from hexa.workspaces.models import (
-    Workspace,
-)
+from hexa.user_management.models import User
+from hexa.user_management.tests.testutils import create_organization
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class PipelineTemplatesTest(GraphQLTestCase):
@@ -27,17 +26,18 @@ class PipelineTemplatesTest(GraphQLTestCase):
             "standardpassword",
             is_superuser=True,
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Templates Schema Org")
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        cls.ORGANIZATION = create_organization(name="Templates Schema Org")
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            cls.WS1 = Workspace.objects.create_if_has_perm(
+            cls.WS1 = create_workspace(
                 cls.USER_ROOT,
                 name="WS1",
                 description="Workspace 1",
                 organization=cls.ORGANIZATION,
             )
-            cls.WS2 = Workspace.objects.create_if_has_perm(
+            cls.WS2 = create_workspace(
                 cls.USER_ROOT,
                 name="WS2",
                 description="Workspace 2",
@@ -510,18 +510,19 @@ class PipelineTemplatesTest(GraphQLTestCase):
         """Test that pipeline templates are visible across all workspaces in an organization."""
         self.client.force_login(self.USER_ROOT)
 
-        org = Organization.objects.create(name="Test Org")
+        org = create_organization(name="Test Org")
 
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            ws_org_1 = Workspace.objects.create_if_has_perm(
+            ws_org_1 = create_workspace(
                 self.USER_ROOT,
                 name="Org WS 1",
                 description="First workspace in org",
                 organization=org,
             )
-            ws_org_2 = Workspace.objects.create_if_has_perm(
+            ws_org_2 = create_workspace(
                 self.USER_ROOT,
                 name="Org WS 2",
                 description="Second workspace in org",
@@ -971,16 +972,16 @@ class PipelineTemplatesTest(GraphQLTestCase):
     def test_template_filter_by_validation_status(self):
         self.client.force_login(self.USER_ROOT)
 
-        org = Organization.objects.create(
+        org = create_organization(
             name="Test Organization",
             short_name="TEST",
-            organization_type="CORPORATE",
         )
 
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            ws = Workspace.objects.create_if_has_perm(
+            ws = create_workspace(
                 self.USER_ROOT,
                 name="Test Workspace",
                 description="Test workspace",

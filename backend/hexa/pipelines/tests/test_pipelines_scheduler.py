@@ -13,8 +13,8 @@ from hexa.pipelines.models import (
     PipelineType,
     PipelineVersion,
 )
-from hexa.user_management.models import Organization, User
-from hexa.workspaces.models import Workspace
+from hexa.user_management.models import User
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class PipelineSchedulerTest(TestCase):
@@ -25,13 +25,11 @@ class PipelineSchedulerTest(TestCase):
             "admin",
             is_superuser=True,
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Scheduler Test Org")
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="Sandbox",
             description="Test workspace",
             countries=[{"code": "AL"}],
-            organization=cls.ORGANIZATION,
         )
         cls.PIPELINE = Pipeline.objects.create(
             workspace=cls.WORKSPACE,
@@ -201,15 +199,11 @@ class ScheduledPipelineVersionTest(TestCase):
             "admin",
             is_superuser=True,
         )
-        cls.ORGANIZATION = Organization.objects.create(
-            name="Scheduler Version Test Org"
-        )
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="SchedulerVersionTestWS",
             description="",
             countries=[{"code": "AL"}],
-            organization=cls.ORGANIZATION,
         )
         cls.PIPELINE = Pipeline.objects.create(
             workspace=cls.WORKSPACE,

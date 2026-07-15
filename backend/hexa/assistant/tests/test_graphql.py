@@ -3,13 +3,13 @@ from unittest.mock import patch
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import GraphQLTestCase
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
 from hexa.webapps.models import GitWebapp
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 CONVERSATION_MESSAGES_QUERY = """
   query AssistantConversationMessages($id: UUID!) {
@@ -44,13 +44,11 @@ class AssistantConversationMessagesQueryTest(GraphQLTestCase):
         cls.user = User.objects.create_user(
             "graphql-test@example.com", "password", is_superuser=True
         )
-        cls.ORGANIZATION = Organization.objects.create(name="GraphQL Test Org")
         with patch("hexa.workspaces.models.create_database"):
-            cls.workspace = Workspace.objects.create_if_has_perm(
+            cls.workspace = create_workspace(
                 cls.user,
                 name="GraphQL Test WS",
                 description="",
-                organization=cls.ORGANIZATION,
             )
 
     def setUp(self):
@@ -187,15 +185,11 @@ class WebappAssistantConversationsQueryTest(GraphQLTestCase):
         cls.user = User.objects.create_user(
             "webapp-conv-test@example.com", "password", is_superuser=True
         )
-        cls.organization = Organization.objects.create(
-            name="Webapp Conv Organization", organization_type="CORPORATE"
-        )
         with patch("hexa.workspaces.models.create_database"):
-            cls.workspace = Workspace.objects.create_if_has_perm(
+            cls.workspace = create_workspace(
                 cls.user,
                 name="Webapp Conv WS",
                 description="",
-                organization=cls.organization,
             )
         WorkspaceMembership.objects.get_or_create(
             user=cls.user,

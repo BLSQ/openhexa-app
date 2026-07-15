@@ -18,12 +18,12 @@ from hexa.pipelines.models import (
     PipelineRunTrigger,
     PipelineType,
 )
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class ViewsTest(TestCase):
@@ -43,13 +43,10 @@ class ViewsTest(TestCase):
             "rebecca@bluesquarehub.com", "standardpassword", is_superuser=True
         )
 
-        cls.ORGANIZATION = Organization.objects.create(name="Views Test Org")
-
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_SUPERUSER,
             name="Senegal Workspace",
             description="This is a workspace for Senegal",
-            organization=cls.ORGANIZATION,
         )
 
         cls.WORKSPACE_MEMBERSHIP_SUPERUSER = WorkspaceMembership.objects.get(
@@ -474,13 +471,10 @@ class SSEStreamTest(TestCase):
         )
         cls.OTHER_USER = User.objects.create_user("sse_other@example.com", "password")
 
-        cls.ORGANIZATION = Organization.objects.create(name="SSE Test Org")
-
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER,
             name="SSE Test Workspace",
             description="",
-            organization=cls.ORGANIZATION,
         )
         cls.PIPELINE = Pipeline.objects.create(
             workspace=cls.WORKSPACE,

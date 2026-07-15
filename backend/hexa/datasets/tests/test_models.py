@@ -21,11 +21,13 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
     User,
 )
+from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class BaseTestMixin:
@@ -53,15 +55,15 @@ class BaseTestMixin:
             "viewer@bluesquarehub.com", "goodbyequentin"
         )
 
-        cls.ORGANIZATION = Organization.objects.create(name="Dataset Models Org")
-        cls.ORGANIZATION_2 = Organization.objects.create(name="Dataset Models Org 2")
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.ORGANIZATION = create_organization(name="Dataset Models Org")
+        cls.ORGANIZATION_2 = create_organization(name="Dataset Models Org 2")
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="My Workspace",
             description="Test workspace",
             organization=cls.ORGANIZATION,
         )
-        cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_2 = create_workspace(
             cls.USER_ADMIN,
             name="My Workspace 2",
             description="Test workspace 2",
@@ -373,13 +375,12 @@ class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
     def setUpTestData(cls):
         BaseTestMixin.setUpTestData()
 
-        cls.ORGANIZATION = Organization.objects.create(
+        cls.ORGANIZATION = create_organization(
             name="Test Organization",
             short_name="test-org",
-            organization_type="CORPORATE",
         )
 
-        cls.ORGANIZATION_2 = Organization.objects.create(
+        cls.ORGANIZATION_2 = create_organization(
             name="Another Organization",
             short_name="another-org",
             organization_type="ACADEMIC",
@@ -462,7 +463,7 @@ class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
         organization but not a member of the organization itself — must not see
         organization-shared datasets belonging to other workspaces in that org.
         """
-        shared_workspace = Workspace.objects.create_if_has_perm(
+        shared_workspace = create_workspace(
             self.USER_ADMIN,
             name="Shared Dataset Workspace",
             description="Holds the organization-shared dataset",
@@ -478,7 +479,7 @@ class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
         org_dataset.save()
 
         collaborator = User.objects.create_user("collaborator@example.com", "password")
-        collaborator_workspace = Workspace.objects.create_if_has_perm(
+        collaborator_workspace = create_workspace(
             self.USER_ADMIN,
             name="Collaborator Workspace",
             description="The only workspace the collaborator belongs to",
@@ -497,7 +498,7 @@ class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
         )
 
     def test_dataset_filter_for_user_excludes_non_shared_datasets(self):
-        other_workspace = Workspace.objects.create_if_has_perm(
+        other_workspace = create_workspace(
             self.USER_ADMIN,
             name="Other Workspace",
             description="Workspace USER_EDITOR is not a member of",
@@ -515,7 +516,7 @@ class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
         self.assertNotIn(private_dataset, datasets)
 
     def test_dataset_filter_for_user_different_organization(self):
-        different_org_workspace = Workspace.objects.create_if_has_perm(
+        different_org_workspace = create_workspace(
             self.USER_ADMIN,
             name="Different Org Workspace",
             description="Workspace in different org",

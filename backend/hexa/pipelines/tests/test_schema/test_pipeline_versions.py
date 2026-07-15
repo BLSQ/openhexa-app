@@ -5,12 +5,12 @@ from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
 from hexa.pipelines.models import Pipeline, PipelineVersion
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class PipelineVersionsTest(GraphQLTestCase):
@@ -39,16 +39,14 @@ class PipelineVersionsTest(GraphQLTestCase):
             "standardpassword",
         )
 
-        cls.ORGANIZATION = Organization.objects.create(name="Pipeline Versions Org")
-
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.WORKSPACE = create_workspace(
                 cls.USER_ROOT,
                 name="WS1",
                 description="Workspace 1",
-                organization=cls.ORGANIZATION,
             )
         cls.WORKSPACE_MEMBERSHIP_1 = WorkspaceMembership.objects.create(
             workspace=cls.WORKSPACE,
@@ -659,18 +657,14 @@ class UploadPipelineFilesInputTest(GraphQLTestCase):
             "admin-files@bluesquarehub.com",
             "standardpassword",
         )
-        cls.ORGANIZATION = Organization.objects.create(
-            name="Pipeline Versions Files Org"
-        )
-
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.WORKSPACE = create_workspace(
                 cls.USER_ROOT,
                 name="WS Files",
                 description="Files-input workspace",
-                organization=cls.ORGANIZATION,
             )
         WorkspaceMembership.objects.create(
             workspace=cls.WORKSPACE,

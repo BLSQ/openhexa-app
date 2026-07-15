@@ -19,17 +19,19 @@ from hexa.pipelines.models import (
 )
 from hexa.pipelines.utils import mail_run_recipients
 from hexa.user_management.models import (
-    Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
 )
-from hexa.user_management.tests.testutils import create_subscription
+from hexa.user_management.tests.testutils import (
+    create_organization,
+    create_subscription,
+)
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class TestPipelineRunLogLevel(TestCase):
@@ -87,9 +89,9 @@ class PipelineTest(TestCase):
 
         cls.USER_BAR = User.objects.create_user("bar@bluesquarehub.com", "barpassword")
 
-        cls.ORGANIZATION = Organization.objects.create(name="Pipeline Test Org")
+        cls.ORGANIZATION = create_organization(name="Pipeline Test Org")
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="Sandbox",
             description="This is a sandbox workspace ",
@@ -97,7 +99,7 @@ class PipelineTest(TestCase):
             organization=cls.ORGANIZATION,
         )
 
-        cls.WORKSPACE2 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE2 = create_workspace(
             cls.USER_ADMIN,
             name="Sandbox2",
             description="This is a sandbox workspace ",
@@ -105,7 +107,7 @@ class PipelineTest(TestCase):
             organization=cls.ORGANIZATION,
         )
 
-        cls.WORKSPACE2 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE2 = create_workspace(
             cls.USER_ADMIN,
             name="Sandbox2",
             description="This is a sandbox workspace ",
@@ -702,7 +704,7 @@ class PipelineTest(TestCase):
         )
 
     def test_create_if_has_perm(self):
-        workspace = Workspace.objects.create(
+        workspace = create_workspace(
             name="Test Workspace",
             description="A workspace for testing",
             organization=self.ORGANIZATION,
@@ -728,10 +730,9 @@ class PipelineTest(TestCase):
 class PipelineOrganizationAdminOwnerPermissionsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.ORGANIZATION = Organization.objects.create(
+        cls.ORGANIZATION = create_organization(
             name="Test Organization",
             short_name="test-org-pipeline",
-            organization_type="CORPORATE",
         )
 
         cls.ORG_OWNER_USER = User.objects.create_user(
@@ -767,14 +768,14 @@ class PipelineOrganizationAdminOwnerPermissionsTest(TestCase):
             role=OrganizationMembershipRole.MEMBER,
         )
 
-        cls.WORKSPACE_1 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_1 = create_workspace(
             cls.WORKSPACE_ADMIN,
             name="Workspace 1",
             description="First workspace in organization",
             organization=cls.ORGANIZATION,
         )
 
-        cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_2 = create_workspace(
             cls.WORKSPACE_ADMIN,
             name="Workspace 2",
             description="Second workspace in organization",
@@ -865,12 +866,10 @@ class PipelineFunctionalTypeTest(TestCase):
             "admin",
             is_superuser=True,
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Functional Type Org")
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="Test Workspace",
             description="Test workspace for functional type tests",
-            organization=cls.ORGANIZATION,
         )
 
     def test_pipeline_functional_type_creation(self):
@@ -948,12 +947,11 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
         cls.USER = User.objects.create_user(
             "user@bluesquarehub.com", "password", is_superuser=True
         )
-        cls.ORGANIZATION = Organization.objects.create(
+        cls.ORGANIZATION = create_organization(
             name="Test Org",
             short_name="test-org",
-            organization_type="CORPORATE",
         )
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER,
             name="Test Workspace",
             organization=cls.ORGANIZATION,
@@ -1014,15 +1012,11 @@ class ScheduledPipelineVersionModelTest(TestCase):
             "password",
             is_superuser=True,
         )
-        cls.ORGANIZATION = Organization.objects.create(
-            name="Scheduled Version Model Org"
-        )
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER,
             name="ScheduledVersionModelWS",
             description="",
             countries=[{"code": "AL"}],
-            organization=cls.ORGANIZATION,
         )
         cls.PIPELINE = Pipeline.objects.create(
             workspace=cls.WORKSPACE,

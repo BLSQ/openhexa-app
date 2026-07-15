@@ -9,8 +9,8 @@ from hexa.pipelines.models import (
     PipelineRunTrigger,
     PipelineType,
 )
-from hexa.user_management.models import Organization, User
-from hexa.workspaces.models import Workspace
+from hexa.user_management.models import User
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class UpdatePipelineHeartbeatTest(GraphQLTestCase):
@@ -23,16 +23,14 @@ class UpdatePipelineHeartbeatTest(GraphQLTestCase):
             "standardpassword",
             is_superuser=True,
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Heartbeat Test Org")
-
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            cls.WS1 = Workspace.objects.create_if_has_perm(
+            cls.WS1 = create_workspace(
                 cls.USER_ROOT,
                 name="WS1",
                 description="Workspace 1",
-                organization=cls.ORGANIZATION,
             )
 
         cls.PIPELINE = Pipeline.objects.create(

@@ -10,6 +10,7 @@ from hexa.user_management.models import (
     Team,
     User,
 )
+from hexa.user_management.tests.testutils import create_organization
 from hexa.webapps.models import Webapp, WebappUser
 from hexa.workspaces.models import (
     Workspace,
@@ -17,6 +18,7 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class TestWebappUserFiltering(TestCase):
@@ -26,11 +28,11 @@ class TestWebappUserFiltering(TestCase):
             "root@bluesquarehub.com", "password", is_superuser=True
         )
         cls.REAL_USER = User.objects.create_user("embed@bluesquarehub.com", "password")
-        cls.ORGANIZATION = Organization.objects.create(name="Webapp Auth Org")
-        cls.WORKSPACE_A = Workspace.objects.create_if_has_perm(
+        cls.ORGANIZATION = create_organization(name="Webapp Auth Org")
+        cls.WORKSPACE_A = create_workspace(
             cls.SUPERUSER, name="Workspace A", organization=cls.ORGANIZATION
         )
-        cls.WORKSPACE_B = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_B = create_workspace(
             cls.SUPERUSER, name="Workspace B", organization=cls.ORGANIZATION
         )
         WorkspaceMembership.objects.create(
@@ -123,9 +125,7 @@ class TestWebappUserFiltering(TestCase):
         self.assertEqual(seen_workspaces, {self.WORKSPACE_A.id})
 
     def test_organizations_scoped_to_webapp_workspace_org(self):
-        org = Organization.objects.create(
-            name="Org", short_name="org", organization_type="CORPORATE"
-        )
+        org = create_organization(name="Org", short_name="org")
         self.WORKSPACE_A.organization = org
         self.WORKSPACE_A.save()
         self.assertEqual(

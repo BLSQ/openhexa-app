@@ -10,8 +10,9 @@ from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 from hexa.core.test import TestCase
 from hexa.core.test.utils import collect_async_stream, parse_sse_stream
-from hexa.user_management.models import Organization, User
-from hexa.workspaces.models import Workspace
+from hexa.user_management.models import User
+from hexa.user_management.tests.testutils import create_organization
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 def _url(conversation_id):
@@ -30,13 +31,11 @@ class StreamAssistantMessageViewTest(TestCase):
             "view-test@example.com", "password", is_superuser=True
         )
         cls.other_user = User.objects.create_user("view-other@example.com", "password")
-        cls.ORGANIZATION = Organization.objects.create(name="View Test Org")
         with patch("hexa.workspaces.models.create_database"):
-            cls.workspace = Workspace.objects.create_if_has_perm(
+            cls.workspace = create_workspace(
                 cls.user,
                 name="View Test WS",
                 description="",
-                organization=cls.ORGANIZATION,
             )
 
     def setUp(self):
@@ -97,7 +96,7 @@ class StreamAssistantMessageViewTest(TestCase):
         self.assertEqual(response.status_code, 429)
 
     def test_organization_ai_budget_exceeded_returns_403(self):
-        org = Organization.objects.create(name="Budget Org", short_name="BORG")
+        org = create_organization(name="Budget Org", short_name="BORG")
         self.workspace.organization = org
         self.workspace.save()
         self.client.force_login(self.user)
@@ -117,7 +116,7 @@ class StreamAssistantMessageViewTest(TestCase):
     # --- Happy path ---
 
     def test_valid_request_returns_sse_stream(self):
-        org = Organization.objects.create(name="Budget Org", short_name="BORG")
+        org = create_organization(name="Budget Org", short_name="BORG")
         self.workspace.organization = org
         self.workspace.save()
         self.client.force_login(self.user)

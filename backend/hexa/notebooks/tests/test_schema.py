@@ -3,15 +3,17 @@ from django.conf import settings
 
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import (
-    Organization,
     User,
 )
-from hexa.user_management.tests.testutils import create_subscription
+from hexa.user_management.tests.testutils import (
+    create_organization,
+    create_subscription,
+)
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class NotebooksTest(GraphQLTestCase):
@@ -36,14 +38,13 @@ class NotebooksTest(GraphQLTestCase):
             "workspace",
         )
 
-        cls.ORGANIZATION = Organization.objects.create(
+        cls.ORGANIZATION = create_organization(
             name="Test Org",
             short_name="test-org",
-            organization_type="CORPORATE",
         )
         create_subscription(cls.ORGANIZATION, notebook_profile="trial")
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_JULIA,
             name="Senegal Workspace",
             description="This is a workspace for Senegal",
