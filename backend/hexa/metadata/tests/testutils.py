@@ -20,8 +20,9 @@ class MetadataTestMixin:
         feature, _ = Feature.objects.get_or_create(code=code)
         FeatureFlag.objects.create(feature=feature, user=user)
 
+    @staticmethod
     def create_workspace(
-        self, principal: User, name, description, *args, organization=None, **kwargs
+        principal: User, name, description, *args, organization=None, **kwargs
     ):
         if organization is None:
             organization = Organization.objects.create(name=f"{name} organization")
