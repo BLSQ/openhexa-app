@@ -7,9 +7,9 @@ DEFAULT_ORGANIZATION_NAME = "Default Organization"
 MAX_NAME_ATTEMPTS = 10
 
 
-def ensure_default_organization(apps, schema_editor):
-    """Guarantee that at least one organization exists before making the
-    workspace organization FK non-nullable.
+def attach_orphan_workspaces_to_default_organization(apps, schema_editor):
+    """Attach workspaces that have no organization to a newly created default
+    organization, so the organization FK can be made non-nullable.
     """
     Workspace = apps.get_model("workspaces", "Workspace")
     WorkspaceMembership = apps.get_model("workspaces", "WorkspaceMembership")
@@ -19,7 +19,7 @@ def ensure_default_organization(apps, schema_editor):
 
     orphans = Workspace.objects.filter(organization__isnull=True)
     orphan_ids = list(orphans.values_list("id", flat=True))
-    if not orphan_ids and Organization.objects.exists():
+    if not orphan_ids:
         return
 
     name = DEFAULT_ORGANIZATION_NAME
@@ -71,7 +71,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(ensure_default_organization, migrations.RunPython.noop),
+        migrations.RunPython(
+            attach_orphan_workspaces_to_default_organization,
+            migrations.RunPython.noop,
+        ),
         migrations.AlterField(
             model_name="workspace",
             name="organization",
