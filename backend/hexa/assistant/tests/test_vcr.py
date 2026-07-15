@@ -88,8 +88,6 @@ class AssistantVCRTest(TestCase):
                 description="For VCR tests",
                 organization=cls.ORGANIZATION,
             )
-        cls.workspace.organization = cls.ORGANIZATION
-        cls.workspace.save()
         AiSettings.objects.update_or_create(
             organization=cls.ORGANIZATION,
             defaults={
