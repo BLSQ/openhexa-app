@@ -14,13 +14,6 @@ class WorkspaceOrganizationRequiredMigrationTest(TransactionTestCase):
     def setUp(self):
         self.migrator = Migrator()
         self.migrator.migrate(*self.migrate_from)
-        # Django builds the test DB by migrating to HEAD, so the migration under
-        # test already ran once and seeded a default organization. Its reverse is
-        # a no-op (deleting by name on rollback would be unsafe), so that org
-        # lingers after rewinding. Remove it here so each test starts org-free and
-        # genuinely exercises creation when it migrates forward again.
-        Organization = self.migrator.apps.get_model("user_management", "Organization")
-        Organization.objects.all().delete()
 
     def _models(self):
         return (
@@ -117,48 +110,17 @@ class WorkspaceOrganizationRequiredMigrationTest(TransactionTestCase):
             ).exists()
         )
 
-    def test_default_organization_created_when_none_exists(self):
-        """Fresh installs (no orphan workspaces and no organization) still get a
-        default organization so workspaces can be created, owned by superusers.
+    def test_no_organization_created_without_orphans(self):
+        """Fresh installs have no orphan workspaces, so the migration creates no
+        organization — the first one is created later by an admin.
         """
-        _, _, User, Organization, _ = self._models()
-        superuser = User.objects.create(email="super@example.com", is_superuser=True)
+        _, _, User, _, _ = self._models()
+        User.objects.create(email="super@example.com", is_superuser=True)
 
         self.migrator.migrate(*self.migrate_to)
 
         Organization = self.migrator.apps.get_model("user_management", "Organization")
-        OrganizationMembership = self.migrator.apps.get_model(
-            "user_management", "OrganizationMembership"
-        )
-
-        org = Organization.objects.get(name="Default Organization")
-        self.assertEqual(org.organization_type, "CORPORATE")
-        self.assertEqual(
-            OrganizationMembership.objects.get(
-                organization=org, user_id=superuser.id
-            ).role,
-            "owner",
-        )
-
-    @patch("hexa.user_management.models.get_forgejo_client")
-    def test_no_default_organization_created_when_one_already_exists(
-        self, mock_get_client
-    ):
-        # The Migrator only rewinds the workspaces app, so the user_management
-        # table keeps its HEAD schema (slug is NOT NULL). Insert through the real
-        # model, which populates the slug, rather than the historical one.
-        RealOrganization.objects.create(
-            name="Existing Organization",
-            organization_type=OrganizationType.CORPORATE,
-        )
-
-        self.migrator.migrate(*self.migrate_to)
-
-        Organization = self.migrator.apps.get_model("user_management", "Organization")
-        self.assertFalse(
-            Organization.objects.filter(name="Default Organization").exists()
-        )
-        self.assertEqual(Organization.objects.count(), 1)
+        self.assertFalse(Organization.objects.exists())
 
     @patch("hexa.user_management.models.get_forgejo_client")
     def test_raises_when_no_free_default_name_after_max_attempts(self, mock_get_client):

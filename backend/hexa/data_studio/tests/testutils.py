@@ -1,9 +1,10 @@
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
+from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class SavedQueryTestMixin:
@@ -31,16 +32,14 @@ class SavedQueryTestMixin:
             "outsider@bluesquarehub.com", "outsiderpassword"
         )
 
-        cls.ORGANIZATION = Organization.objects.create(
-            name="Data Studio Organization", organization_type="CORPORATE"
-        )
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.ORGANIZATION = create_organization(name="Data Studio Organization")
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="My Workspace",
             description="Test workspace",
             organization=cls.ORGANIZATION,
         )
-        cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_2 = create_workspace(
             cls.USER_ADMIN,
             name="My Workspace 2",
             description="Test workspace 2",

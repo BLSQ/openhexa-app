@@ -14,6 +14,7 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 CREATE_WEBAPP_MUTATION = """
     mutation createWebapp($input: CreateWebappInput!) {
@@ -1347,12 +1348,7 @@ class ReadWebappFileTest(GraphQLTestCase):
         cls.OUTSIDER = User.objects.create_user(
             "readfile-outsider@test.com", "password"
         )
-        cls.ORGANIZATION = Organization.objects.create(
-            name="Read File Organization", organization_type="CORPORATE"
-        )
-        cls.WS = Workspace.objects.create(
-            name="Read File WS", slug="read-file-ws", organization=cls.ORGANIZATION
-        )
+        cls.WS = create_workspace(name="Read File WS", slug="read-file-ws")
         WorkspaceMembership.objects.create(
             user=cls.USER,
             workspace=cls.WS,

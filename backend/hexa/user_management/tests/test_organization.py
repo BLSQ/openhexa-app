@@ -165,6 +165,26 @@ class OrganizationModelTests(TestCase):
             self.membership2.delete_if_has_perm(principal=self.user1)
 
 
+class OrganizationSlugTest(TestCase):
+    def test_save_populates_slug(self):
+        """The Django admin creates organizations via Model.save() rather than
+        the manager, so save() must populate the (editable=False) slug itself.
+        """
+        org = Organization(name="Fresh Org", organization_type="CORPORATE")
+        org.save()
+        self.assertEqual(org.slug, "fresh-org")
+
+    def test_save_generates_distinct_slug_on_collision(self):
+        first = Organization(name="Collide", organization_type="CORPORATE")
+        first.save()
+        second = Organization(name="Collide!", organization_type="CORPORATE")
+        second.save()
+
+        self.assertEqual(first.slug, "collide")
+        self.assertNotEqual(second.slug, first.slug)
+        self.assertTrue(second.slug.startswith("collide"))
+
+
 class OrganizationFilterForUserDispatchTest(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -232,9 +252,7 @@ class OrganizationFilterForUserDispatchTest(TestCase):
 
     def test_superuser_sees_all(self):
         result = set(Organization.objects.filter_for_user(self.superuser))
-        self.assertEqual(result, set(Organization.objects.all()))
-        self.assertIn(self.org, result)
-        self.assertIn(self.other_org, result)
+        self.assertEqual(result, {self.org, self.other_org})
 
     def test_org_owner_sees_their_org(self):
         self.assertIn(self.org, Organization.objects.filter_for_user(self.org_owner))

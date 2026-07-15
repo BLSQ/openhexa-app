@@ -6,9 +6,9 @@ from django.test import override_settings
 
 from hexa.core.test import TestCase
 from hexa.git.forgejo import ForgejoAPIError
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
 from hexa.webapps.models import GitWebapp, Webapp
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 PROXY_USER = "openhexa-proxy"
 
@@ -16,12 +16,7 @@ PROXY_USER = "openhexa-proxy"
 class SyncGitRepositoriesCommandTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.organization = Organization.objects.create(
-            name="Git Commands Organization", organization_type="CORPORATE"
-        )
-        cls.workspace = Workspace.objects.create(
-            name="Cmd Workspace", organization=cls.organization
-        )
+        cls.workspace = create_workspace(name="Cmd Workspace")
         cls.user = User.objects.create_user("cmd@bluesquarehub.com", "password")
         for slug in ("a", "b"):
             GitWebapp.objects.create(
@@ -48,9 +43,11 @@ class SyncGitRepositoriesCommandTest(TestCase):
         )
         self.assertEqual(client.protect_branch.call_count, 2)
         self.assertEqual(client.add_collaborator.call_count, 2)
-        client.protect_branch.assert_any_call(self.organization.slug, "cmd-ws-webapp-a")
+        client.protect_branch.assert_any_call(
+            self.workspace.organization.slug, "cmd-ws-webapp-a"
+        )
         client.add_collaborator.assert_any_call(
-            self.organization.slug, "cmd-ws-webapp-a", PROXY_USER
+            self.workspace.organization.slug, "cmd-ws-webapp-a", PROXY_USER
         )
         self.assertIn(
             "protected=2 already_protected=0 granted=2 failed=0", out.getvalue()

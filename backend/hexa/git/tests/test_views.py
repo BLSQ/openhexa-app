@@ -6,17 +6,17 @@ from oauth2_provider.models import AccessToken, Application
 
 from hexa.core.test import TestCase
 from hexa.user_management.models import (
-    Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
 )
+from hexa.user_management.tests.testutils import create_organization
 from hexa.webapps.models import GitWebapp, Webapp
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 AUTHORIZE_URL = "/api/git/authorize"
 REPO = "test-workspace-webapp-app"
@@ -50,12 +50,10 @@ class GitAuthMixin:
 class GitAuthorizeViewTest(GitAuthMixin, TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.organization = Organization.objects.create(
-            name="Git Authorize Organization",
-            slug=ORG,
-            organization_type="CORPORATE",
+        cls.organization = create_organization(
+            name="Git Authorize Organization", slug=ORG
         )
-        cls.workspace = Workspace.objects.create(
+        cls.workspace = create_workspace(
             name="Test Workspace", organization=cls.organization
         )
 
@@ -220,12 +218,8 @@ class GitAuthorizeOrgPermissionsTest(GitAuthMixin, TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.organization = Organization.objects.create(
-            name="Test Org",
-            short_name="test-org",
-            organization_type="CORPORATE",
-        )
-        cls.workspace = Workspace.objects.create(
+        cls.organization = create_organization(name="Test Org", short_name="test-org")
+        cls.workspace = create_workspace(
             name="Org Workspace", organization=cls.organization
         )
 
