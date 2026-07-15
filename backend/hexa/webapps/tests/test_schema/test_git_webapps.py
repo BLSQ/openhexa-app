@@ -7,10 +7,9 @@ from django.test import override_settings
 from hexa.core.test import GraphQLTestCase
 from hexa.git.exceptions import GitFileNotFound
 from hexa.git.forgejo import ForgejoAPIError
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
 from hexa.webapps.models import GitWebapp, Webapp
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
@@ -129,11 +128,9 @@ class GitWebappCreateTest(GraphQLTestCase):
             "password",
             is_superuser=True,
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Git Webapp Schema Org")
-        cls.WS = Workspace.objects.create(
+        cls.WS = create_workspace(
             name="Git WS",
             slug="git-ws",
-            organization=cls.ORGANIZATION,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER,
@@ -266,11 +263,9 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
             "commituser@test.com",
             "password",
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Commit Webapp Org")
-        cls.WS = Workspace.objects.create(
+        cls.WS = create_workspace(
             name="Commit WS",
             slug="commit-ws",
-            organization=cls.ORGANIZATION,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER,
@@ -330,7 +325,7 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
             "Update webapp content",
             self.USER.display_name or self.USER.email,
             self.USER.email,
-            org_slug=self.ORGANIZATION.slug,
+            org_slug=self.WS.organization.slug,
             delete_paths=None,
         )
 
@@ -360,7 +355,7 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
             "Update webapp content",
             self.USER.display_name or self.USER.email,
             self.USER.email,
-            org_slug=self.ORGANIZATION.slug,
+            org_slug=self.WS.organization.slug,
             delete_paths=["old.js", "legacy/style.css"],
         )
 
@@ -402,7 +397,7 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
             "Update webapp content",
             self.USER.display_name or self.USER.email,
             self.USER.email,
-            org_slug=self.ORGANIZATION.slug,
+            org_slug=self.WS.organization.slug,
             delete_paths=None,
         )
 
@@ -475,10 +470,7 @@ class GitWebappEditFileTest(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("edituser@test.com", "password")
-        cls.ORGANIZATION = Organization.objects.create(name="Edit Webapp Org")
-        cls.WS = Workspace.objects.create(
-            name="Edit WS", slug="edit-ws", organization=cls.ORGANIZATION
-        )
+        cls.WS = create_workspace(name="Edit WS", slug="edit-ws")
         WorkspaceMembership.objects.create(
             user=cls.USER,
             workspace=cls.WS,
@@ -518,7 +510,10 @@ class GitWebappEditFileTest(GraphQLTestCase):
 
         self.assertTrue(result["success"], result)
         mock_client.get_file.assert_called_once_with(
-            "webapp-editrepo", "index.html", ref="main", org_slug=self.ORGANIZATION.slug
+            "webapp-editrepo",
+            "index.html",
+            ref="main",
+            org_slug=self.WS.organization.slug,
         )
         mock_client.commit_files.assert_called_once_with(
             "webapp-editrepo",
@@ -532,7 +527,7 @@ class GitWebappEditFileTest(GraphQLTestCase):
             "Edit index.html",
             self.USER.display_name or self.USER.email,
             self.USER.email,
-            org_slug=self.ORGANIZATION.slug,
+            org_slug=self.WS.organization.slug,
             delete_paths=None,
         )
 
@@ -653,11 +648,9 @@ class GitWebappPublishVersionTest(GraphQLTestCase):
             "publishuser@test.com",
             "password",
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Publish Webapp Org")
-        cls.WS = Workspace.objects.create(
+        cls.WS = create_workspace(
             name="Publish WS",
             slug="publish-ws",
-            organization=cls.ORGANIZATION,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER,
@@ -795,11 +788,9 @@ class GitWebappQueryTest(GraphQLTestCase):
             "queryuser@test.com",
             "password",
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Query Webapp Org")
-        cls.WS = Workspace.objects.create(
+        cls.WS = create_workspace(
             name="Query WS",
             slug="query-ws",
-            organization=cls.ORGANIZATION,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER,
@@ -1142,11 +1133,9 @@ class GitWebappDeleteTest(GraphQLTestCase):
             "deleteuser@test.com",
             "password",
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Delete Webapp Org")
-        cls.WS = Workspace.objects.create(
+        cls.WS = create_workspace(
             name="Delete WS",
             slug="delete-ws",
-            organization=cls.ORGANIZATION,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER,
@@ -1180,7 +1169,7 @@ class GitWebappDeleteTest(GraphQLTestCase):
         self.assertTrue(result["success"])
         self.assertFalse(Webapp.objects.filter(id=webapp_id).exists())
         mock_client.archive_repository.assert_called_once_with(
-            self.ORGANIZATION.slug, "webapp-todelete"
+            self.WS.organization.slug, "webapp-todelete"
         )
 
 
@@ -1188,10 +1177,7 @@ class GitWebappCommitDiffTest(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("difftestuser@test.com", "password")
-        cls.ORGANIZATION = Organization.objects.create(name="Diff Webapp Org")
-        cls.WS = Workspace.objects.create(
-            name="Diff WS", slug="diff-ws", organization=cls.ORGANIZATION
-        )
+        cls.WS = create_workspace(name="Diff WS", slug="diff-ws")
         WorkspaceMembership.objects.create(
             user=cls.USER,
             workspace=cls.WS,

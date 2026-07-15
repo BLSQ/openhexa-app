@@ -22,6 +22,7 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class SupersetDashboardViewAccessTest(TestCase):
@@ -149,10 +150,7 @@ class IframeWebappAccessTest(GraphQLTestCase):
             "nonmember@iframe-test.com",
             "password",
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Iframe Org")
-        cls.WORKSPACE = Workspace.objects.create(
-            name="Iframe Workspace", organization=cls.ORGANIZATION
-        )
+        cls.WORKSPACE = create_workspace(name="Iframe Workspace")
         WorkspaceMembership.objects.create(
             user=cls.USER_ADMIN,
             workspace=cls.WORKSPACE,
@@ -221,10 +219,7 @@ class WebappURLValidationTest(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("xss@test.com", "password")
-        cls.ORGANIZATION = Organization.objects.create(name="XSS Org")
-        cls.WORKSPACE = Workspace.objects.create(
-            name="XSS Workspace", organization=cls.ORGANIZATION
-        )
+        cls.WORKSPACE = create_workspace(name="XSS Workspace")
         WorkspaceMembership.objects.create(
             user=cls.USER,
             workspace=cls.WORKSPACE,
@@ -309,11 +304,9 @@ class GitWebappServeViewTest(TestCase):
             "servenonmember@test.com",
             "password",
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Serve Org")
-        cls.WORKSPACE = Workspace.objects.create(
+        cls.WORKSPACE = create_workspace(
             name="Serve Workspace",
             slug="serve-workspace",
-            organization=cls.ORGANIZATION,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER_MEMBER,
@@ -387,7 +380,7 @@ class GitWebappServeViewTest(TestCase):
             "webapp-private",
             "index.html",
             "sha-published",
-            org_slug=self.ORGANIZATION.slug,
+            org_slug=self.WORKSPACE.organization.slug,
         )
 
     @patch("hexa.webapps.views.get_forgejo_client")
@@ -532,11 +525,9 @@ class AuthTokenViewTest(TestCase):
             "authnonmember@test.com",
             "password",
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Auth Org")
-        cls.WORKSPACE = Workspace.objects.create(
+        cls.WORKSPACE = create_workspace(
             name="Auth Workspace",
             slug="auth-workspace",
-            organization=cls.ORGANIZATION,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER_MEMBER,
@@ -631,11 +622,9 @@ class MiddlewareAuthTokenExchangeTest(TestCase):
             "mwnonmember@test.com",
             "password",
         )
-        cls.ORGANIZATION = Organization.objects.create(name="MW Org")
-        cls.WORKSPACE = Workspace.objects.create(
+        cls.WORKSPACE = create_workspace(
             name="MW Workspace",
             slug="mw-workspace",
-            organization=cls.ORGANIZATION,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER_MEMBER,
@@ -771,10 +760,7 @@ class PreviewSessionSubdomainTest(TestCase):
     def setUpTestData(cls):
         cls.USER_MEMBER = User.objects.create_user("psm@test.com", "password")
         cls.USER_NON_MEMBER = User.objects.create_user("psnm@test.com", "password")
-        cls.ORGANIZATION = Organization.objects.create(name="PS Org")
-        cls.WORKSPACE = Workspace.objects.create(
-            name="PS Workspace", slug="ps-workspace", organization=cls.ORGANIZATION
-        )
+        cls.WORKSPACE = create_workspace(name="PS Workspace", slug="ps-workspace")
         WorkspaceMembership.objects.create(
             user=cls.USER_MEMBER,
             workspace=cls.WORKSPACE,
@@ -886,8 +872,7 @@ class PoweredByBannerTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("banner@test.com", "password")
-        cls.ORGANIZATION = Organization.objects.create(name="Banner Org")
-        cls.WORKSPACE = Workspace.objects.create(
+        cls.WORKSPACE = create_workspace(
             name="Banner Workspace",
             slug="banner-workspace",
             organization=cls.ORGANIZATION,

@@ -7,16 +7,17 @@ from hexa.pipeline_templates.models import PipelineTemplate
 from hexa.pipelines.models import Pipeline
 from hexa.tags.models import Tag
 from hexa.user_management.models import (
-    Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
 )
+from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class SearchResolversTest(GraphQLTestCase):
@@ -43,18 +44,15 @@ class SearchResolversTest(GraphQLTestCase):
             "standardpassword",
             is_superuser=True,
         )
-        cls.ORGANIZATION = Organization.objects.create(
+        cls.ORGANIZATION = create_organization(
             name="Test Organization",
-        )
-        cls.ORGANIZATION2 = Organization.objects.create(
-            name="Test Organization 2",
         )
         OrganizationMembership.objects.create(
             organization=cls.ORGANIZATION,
             user=cls.USER,
             role=OrganizationMembershipRole.MEMBER,
         )
-        cls.WORKSPACE1 = Workspace.objects.create(
+        cls.WORKSPACE1 = create_workspace(
             name="Workspace 1",
             slug="workspace1",
             description="First workspace",
@@ -62,21 +60,19 @@ class SearchResolversTest(GraphQLTestCase):
             bucket_name="bucket_workspace1",
             organization=cls.ORGANIZATION,
         )
-        cls.WORKSPACE2 = Workspace.objects.create(
+        cls.WORKSPACE2 = create_workspace(
             name="Workspace 2",
             slug="workspace2",
             description="Second workspace",
             db_name="db_workspace2",
             bucket_name="bucket_workspace2",
-            organization=cls.ORGANIZATION2,
         )
-        cls.WORKSPACE3 = Workspace.objects.create(
+        cls.WORKSPACE3 = create_workspace(
             name="Workspace 3",
             slug="workspace3",
             description="Third workspace (user not part of)",
             db_name="db_workspace3",
             bucket_name="bucket_workspace3",
-            organization=cls.ORGANIZATION2,
         )
 
         WorkspaceMembership.objects.create(

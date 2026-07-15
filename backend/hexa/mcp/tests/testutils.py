@@ -17,15 +17,15 @@ from hexa.pipelines.models import (
     PipelineRunTrigger,
     PipelineVersion,
 )
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Connection,
     ConnectionField,
     ConnectionType,
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 # MCP tools execute GraphQL queries internally rather than through HTTP,
@@ -45,16 +45,13 @@ class MCPTestCase(TestCase):
             "outsider@openhexa.org", "password"
         )
 
-        cls.ORGANIZATION = Organization.objects.create(name="MCP Test Org")
-
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
         ):
-            cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.WORKSPACE = create_workspace(
                 cls.USER_ADMIN,
                 name="Test Workspace",
                 description="A test workspace",
-                organization=cls.ORGANIZATION,
             )
 
         WorkspaceMembership.objects.create(

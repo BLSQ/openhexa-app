@@ -16,6 +16,7 @@ from hexa.user_management.models import (
     User,
 )
 from hexa.user_management.permissions import create_workspace
+from hexa.user_management.tests.testutils import create_organization
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -318,7 +319,7 @@ class CreateWorkspacePermissionTests(TestCase):
         self.user = User.objects.create_user(
             email="user@example.com", password="password"
         )
-        self.organization = Organization.objects.create(name="Test Org")
+        self.organization = create_organization(name="Test Org")
 
     def test_feature_flag_prevent_create_blocks_creation(self):
         OrganizationMembership.objects.create(

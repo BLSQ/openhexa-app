@@ -33,6 +33,7 @@ from hexa.workspaces.models import (
     WorkspaceMembershipRole,
 )
 
+from ...workspaces.tests.testutils import create_workspace
 from ..utils import default_device, devices_for_user
 
 
@@ -86,7 +87,6 @@ class SchemaTest(GraphQLTestCase):
         cls.TAYLOR_FEATURE_FLAG = FeatureFlag.objects.create(
             feature=cls.FEATURE, user=cls.USER_TAYLOR
         )
-        cls.ORGANIZATION = Organization.objects.create(name="Schema Test Organization")
 
         cls.USER_JANE.emaildevice_set.create(name="default", user=cls.USER_JANE)
 
@@ -1058,9 +1058,7 @@ class SchemaTest(GraphQLTestCase):
         )
 
     def test_search_users_success_all(self):
-        workspace = Workspace.objects.create(
-            name="Workspace", slug="workspace", organization=self.ORGANIZATION
-        )
+        workspace = create_workspace(name="Workspace", slug="workspace")
         WorkspaceMembership.objects.create(
             workspace=workspace,
             user=self.USER_JANE,

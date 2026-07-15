@@ -1,11 +1,11 @@
 from hexa.core.test import GraphQLTestCase
-from hexa.user_management.models import Organization, User
+from hexa.user_management.models import User
 from hexa.webapps.models import Webapp
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class WebappsTest(GraphQLTestCase):
@@ -29,11 +29,9 @@ class WebappsTest(GraphQLTestCase):
             "standardpassword",
             is_superuser=True,
         )
-        cls.ORGANIZATION = Organization.objects.create(name="WS1 Org")
-        cls.WS1 = Workspace.objects.create(
+        cls.WS1 = create_workspace(
             name="WS1",
             description="Workspace 1",
-            organization=cls.ORGANIZATION,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER_ROOT,
