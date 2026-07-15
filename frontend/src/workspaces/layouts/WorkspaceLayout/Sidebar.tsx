@@ -287,6 +287,12 @@ Sidebar.fragments = {
     fragment Sidebar_workspace on Workspace {
       slug
       webappsEnabled
+      organization {
+        id
+        name
+        shortName
+        logo
+      }
       ...SidebarMenu_workspace
       permissions {
         manageMembers
