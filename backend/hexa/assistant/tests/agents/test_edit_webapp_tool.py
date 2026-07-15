@@ -9,7 +9,7 @@ from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import TestCase
 from hexa.git.enums import FileEncoding
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.webapps.models import GitWebapp
 from hexa.workspaces.models import Workspace
 
@@ -185,9 +185,15 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
         cls.user = User.objects.create_user(
             "webapp-tool-test@example.com", "password", is_superuser=True
         )
+        cls.organization = Organization.objects.create(
+            name="Webapp Tool Organization", organization_type="CORPORATE"
+        )
         with patch("hexa.workspaces.models.create_database"):
             cls.workspace = Workspace.objects.create_if_has_perm(
-                cls.user, name="Tool Test Workspace", description=""
+                cls.user,
+                name="Tool Test Workspace",
+                description="",
+                organization=cls.organization,
             )
 
     def _make_conversation(self):

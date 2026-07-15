@@ -1,4 +1,4 @@
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -31,11 +31,20 @@ class SavedQueryTestMixin:
             "outsider@bluesquarehub.com", "outsiderpassword"
         )
 
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Data Studio Organization", organization_type="CORPORATE"
+        )
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_ADMIN, name="My Workspace", description="Test workspace"
+            cls.USER_ADMIN,
+            name="My Workspace",
+            description="Test workspace",
+            organization=cls.ORGANIZATION,
         )
         cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
-            cls.USER_ADMIN, name="My Workspace 2", description="Test workspace 2"
+            cls.USER_ADMIN,
+            name="My Workspace 2",
+            description="Test workspace 2",
+            organization=cls.ORGANIZATION,
         )
 
         cls.USER_ADMIN.is_superuser = False

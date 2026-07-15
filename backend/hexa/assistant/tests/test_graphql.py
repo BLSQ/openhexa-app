@@ -187,9 +187,15 @@ class WebappAssistantConversationsQueryTest(GraphQLTestCase):
         cls.user = User.objects.create_user(
             "webapp-conv-test@example.com", "password", is_superuser=True
         )
+        cls.organization = Organization.objects.create(
+            name="Webapp Conv Organization", organization_type="CORPORATE"
+        )
         with patch("hexa.workspaces.models.create_database"):
             cls.workspace = Workspace.objects.create_if_has_perm(
-                cls.user, name="Webapp Conv WS", description=""
+                cls.user,
+                name="Webapp Conv WS",
+                description="",
+                organization=cls.organization,
             )
         WorkspaceMembership.objects.get_or_create(
             user=cls.user,

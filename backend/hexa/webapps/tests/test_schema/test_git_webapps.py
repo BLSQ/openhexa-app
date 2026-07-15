@@ -1347,7 +1347,12 @@ class ReadWebappFileTest(GraphQLTestCase):
         cls.OUTSIDER = User.objects.create_user(
             "readfile-outsider@test.com", "password"
         )
-        cls.WS = Workspace.objects.create(name="Read File WS", slug="read-file-ws")
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Read File Organization", organization_type="CORPORATE"
+        )
+        cls.WS = Workspace.objects.create(
+            name="Read File WS", slug="read-file-ws", organization=cls.ORGANIZATION
+        )
         WorkspaceMembership.objects.create(
             user=cls.USER,
             workspace=cls.WS,

@@ -4,7 +4,7 @@ from unittest.mock import patch
 from django.test import override_settings
 
 from hexa.core.test import TestCase
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.webapps.models import GitWebapp, Webapp
 from hexa.workspaces.models import Workspace
 
@@ -27,8 +27,13 @@ class WebappCompressionTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("gzip@test.com", "password")
+        cls.ORGANIZATION = Organization.objects.create(
+            name="Gzip Organization", organization_type="CORPORATE"
+        )
         cls.WORKSPACE = Workspace.objects.create(
-            name="Gzip Workspace", slug="gzip-workspace"
+            name="Gzip Workspace",
+            slug="gzip-workspace",
+            organization=cls.ORGANIZATION,
         )
         cls.WEBAPP = GitWebapp.objects.create(
             workspace=cls.WORKSPACE,

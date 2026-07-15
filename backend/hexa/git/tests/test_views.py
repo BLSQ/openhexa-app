@@ -20,7 +20,7 @@ from hexa.workspaces.models import (
 
 AUTHORIZE_URL = "/api/git/authorize"
 REPO = "test-workspace-webapp-app"
-ORG = "no-org"
+ORG = "git-authorize-org"
 
 
 class GitAuthMixin:
@@ -50,7 +50,14 @@ class GitAuthMixin:
 class GitAuthorizeViewTest(GitAuthMixin, TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.workspace = Workspace.objects.create(name="Test Workspace")
+        cls.organization = Organization.objects.create(
+            name="Git Authorize Organization",
+            slug=ORG,
+            organization_type="CORPORATE",
+        )
+        cls.workspace = Workspace.objects.create(
+            name="Test Workspace", organization=cls.organization
+        )
 
         cls.viewer = User.objects.create_user("viewer@bluesquarehub.com", "password")
         cls.editor = User.objects.create_user("editor@bluesquarehub.com", "password")

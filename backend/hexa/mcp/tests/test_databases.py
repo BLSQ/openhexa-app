@@ -1,7 +1,7 @@
 from hexa.core.test import TestCase
 from hexa.databases.tests.helpers import seed_demo_table
 from hexa.mcp.tools.databases import get_db_schema, get_db_table_schema
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
@@ -23,10 +23,14 @@ class DatabaseToolsTestCase(TestCase):
             "outsider@openhexa.org", "password"
         )
 
+        cls.ORGANIZATION = Organization.objects.create(
+            name="MCP Databases Organization", organization_type="CORPORATE"
+        )
         cls.WORKSPACE = Workspace.objects.create_if_has_perm(
             cls.USER_ADMIN,
             name="Test Workspace",
             description="A test workspace",
+            organization=cls.ORGANIZATION,
         )
 
         WorkspaceMembership.objects.create(
