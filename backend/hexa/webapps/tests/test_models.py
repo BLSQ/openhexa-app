@@ -195,6 +195,7 @@ class WebappModelTest(TestCase):
             name="Test Workspace 2",
             description="Second test workspace",
             countries=[{"code": "FR"}],
+            organization=self.workspace.organization,
         )
 
         webapp1 = Webapp.objects.create_if_has_perm(
@@ -307,6 +308,7 @@ class WebappModelTest(TestCase):
             name="Other Workspace",
             description="",
             countries=[{"code": "FR"}],
+            organization=self.workspace.organization,
         )
         webapp2 = Webapp.objects.create_if_has_perm(
             self.user_admin,
@@ -323,6 +325,7 @@ class WebappModelTest(TestCase):
             name="Reserved Slug Workspace",
             description="",
             countries=[{"code": "FR"}],
+            organization=self.workspace.organization,
         )
         webapp = Webapp.objects.create_if_has_perm(
             self.user_admin,
