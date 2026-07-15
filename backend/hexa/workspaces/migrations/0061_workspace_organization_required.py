@@ -1,8 +1,10 @@
 import django.db.models.deletion
 from django.db import migrations, models
+from django.db.models import Q
 from django.utils.text import slugify
 
 DEFAULT_ORGANIZATION_NAME = "Default Organization"
+MAX_NAME_ATTEMPTS = 10
 
 
 def ensure_default_organization(apps, schema_editor):
@@ -20,12 +22,21 @@ def ensure_default_organization(apps, schema_editor):
     if not orphan_ids and Organization.objects.exists():
         return
 
-    organization, _ = Organization.objects.get_or_create(
-        name=DEFAULT_ORGANIZATION_NAME,
-        defaults={
-            "slug": slugify(DEFAULT_ORGANIZATION_NAME),
-            "organization_type": "CORPORATE",
-        },
+    name = DEFAULT_ORGANIZATION_NAME
+    slug = slugify(name)
+    attempt = 1
+    while Organization.objects.filter(Q(name=name) | Q(slug=slug)).exists():
+        if attempt >= MAX_NAME_ATTEMPTS:
+            raise RuntimeError(
+                f"Could not find a free name for the default organization after "
+                f"{MAX_NAME_ATTEMPTS} attempts"
+            )
+        attempt += 1
+        name = f"{DEFAULT_ORGANIZATION_NAME} {attempt}"
+        slug = slugify(name)
+
+    organization = Organization.objects.create(
+        name=name, slug=slug, organization_type="CORPORATE"
     )
     orphans.update(organization=organization)
 
@@ -49,23 +60,8 @@ def ensure_default_organization(apps, schema_editor):
                 organization=organization, user_id=user_id, role="member"
             )
             for user_id in workspace_admin_ids - superuser_ids
-        ],
-        ignore_conflicts=True,
+        ]
     )
-
-
-def remove_default_organization(apps, schema_editor):
-    Organization = apps.get_model("user_management", "Organization")
-    OrganizationMembership = apps.get_model("user_management", "OrganizationMembership")
-
-    default_organization = Organization.objects.filter(
-        name=DEFAULT_ORGANIZATION_NAME, workspaces__isnull=True
-    )
-    assert default_organization.count() <= 1, "More than one default organization found"
-    OrganizationMembership.objects.filter(
-        organization__in=default_organization
-    ).delete()
-    default_organization.delete()
 
 
 class Migration(migrations.Migration):
@@ -75,7 +71,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(ensure_default_organization, remove_default_organization),
+        migrations.RunPython(ensure_default_organization, migrations.RunPython.noop),
         migrations.AlterField(
             model_name="workspace",
             name="organization",
