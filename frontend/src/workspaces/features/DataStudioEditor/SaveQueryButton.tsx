@@ -117,7 +117,7 @@ const SaveQueryButton = ({
           anchor="bottom end"
           className="z-30 mt-1 w-52 rounded-md bg-white p-1 shadow-lg ring-1 ring-black/5 focus:outline-none"
         >
-          <MenuItem disabled={!canCreate}>
+          <MenuItem disabled={!canCreate || !hasContent || saving}>
             <button onClick={onSaveAsNew} className={MENU_ITEM}>
               {t("Save as new query")}
             </button>
