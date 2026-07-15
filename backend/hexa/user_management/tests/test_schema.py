@@ -1089,9 +1089,8 @@ class SchemaTest(GraphQLTestCase):
         )
 
     def test_search_users_success_with_query(self):
-        workspace = Workspace.objects.create(
-            name="Workspace", slug="workspace", organization=self.ORGANIZATION
-        )
+        workspace = create_workspace(name="Workspace", slug="workspace")
+
         WorkspaceMembership.objects.create(
             workspace=workspace,
             user=self.USER_JANE,
@@ -1133,9 +1132,7 @@ class SchemaTest(GraphQLTestCase):
         self.assertEqual([], r["data"]["users"])
 
     def test_search_users_not_admin(self):
-        workspace = Workspace.objects.create(
-            name="Workspace", slug="workspace", organization=self.ORGANIZATION
-        )
+        workspace = create_workspace(name="Workspace", slug="workspace")
         WorkspaceMembership.objects.create(
             workspace=workspace,
             user=self.USER_JANE,
