@@ -19,12 +19,12 @@ from hexa.pipelines.models import (
 )
 from hexa.pipelines.utils import mail_run_recipients
 from hexa.user_management.models import (
+    Organization,
     OrganizationMembership,
     OrganizationMembershipRole,
     User,
 )
 from hexa.user_management.tests.testutils import (
-    create_organization,
     create_subscription,
 )
 from hexa.workspaces.models import (
@@ -89,7 +89,7 @@ class PipelineTest(TestCase):
 
         cls.USER_BAR = User.objects.create_user("bar@bluesquarehub.com", "barpassword")
 
-        cls.ORGANIZATION = create_organization(name="Pipeline Test Org")
+        cls.ORGANIZATION = Organization.objects.create(name="Pipeline Test Org")
 
         cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
@@ -730,7 +730,7 @@ class PipelineTest(TestCase):
 class PipelineOrganizationAdminOwnerPermissionsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.ORGANIZATION = create_organization(
+        cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
             short_name="test-org-pipeline",
         )
@@ -947,7 +947,7 @@ class PipelineRunSubscriptionLimitsTest(TestCase):
         cls.USER = User.objects.create_user(
             "user@bluesquarehub.com", "password", is_superuser=True
         )
-        cls.ORGANIZATION = create_organization(
+        cls.ORGANIZATION = Organization.objects.create(
             name="Test Org",
             short_name="test-org",
         )
