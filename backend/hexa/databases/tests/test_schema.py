@@ -3,14 +3,16 @@ import uuid
 from unittest import mock
 
 from django.conf import settings
+from psycopg2 import Error as Psycopg2Error
 
 from hexa.core.test import GraphQLTestCase
 from hexa.databases.models import DatabaseQueryLog
-from hexa.databases.schema import _log_executed_query
 from hexa.databases.tests.helpers import seed_demo_table
 from hexa.databases.utils import (
     TableRowsPage,
+    _log_executed_query,
     execute_database_query,
+    run_and_log_database_query,
 )
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import PipelineRun
@@ -455,13 +457,27 @@ class DatabaseTest(GraphQLTestCase):
         log = self._get_single_query_log()
         self.assertIsNone(log.user)
 
+    def test_run_and_log_database_query_logs_before_reraising(self):
+        # The resolver relies on this contract: every execution error is
+        # logged first, then re-raised to be translated into an API response.
+        request = self.mock_request(self.USER_SABRINA)
+
+        with self.assertRaises(Psycopg2Error):
+            run_and_log_database_query(
+                request, self.WORKSPACE, "SELCT 1", DatabaseQueryLog.Origin.OTHER
+            )
+
+        log = self._get_single_query_log()
+        self.assertEqual(DatabaseQueryLog.Status.ERROR, log.status)
+        self.assertEqual("42601", log.result_code)
+
     def test_execute_sql_log_failure_fails_the_request(self):
         # A failed audit insert means a bug on our side; it must surface as an
         # error instead of being silently swallowed.
         self.client.force_login(self.USER_SABRINA)
 
         with mock.patch(
-            "hexa.databases.schema.DatabaseQueryLog.objects.create",
+            "hexa.databases.utils.DatabaseQueryLog.objects.create",
             side_effect=Exception("boom"),
         ):
             r = self.run_query(
@@ -538,7 +554,7 @@ class DatabaseTest(GraphQLTestCase):
         # Run the real query against the real database, but with a low timeout so
         # the statement is canceled quickly instead of waiting the full sleep.
         fast_execute = functools.partial(execute_database_query, timeout_ms=100)
-        with mock.patch("hexa.databases.schema.execute_database_query", fast_execute):
+        with mock.patch("hexa.databases.utils.execute_database_query", fast_execute):
             result = self._execute_sql("SELECT pg_sleep(3);")
 
         self.assertFalse(result["success"])

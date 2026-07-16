@@ -1,5 +1,4 @@
 import pathlib
-import time
 
 from ariadne import (
     EnumType,
@@ -12,19 +11,17 @@ from django.http import HttpRequest
 from psycopg2 import Error as Psycopg2Error
 from psycopg2.errors import QueryCanceled
 
-from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 from .models import DatabaseQueryLog
 from .utils import (
     MultipleStatementsError,
     OrderByDirectionEnum,
-    elapsed_ms,
-    execute_database_query,
     get_database_definition_page,
     get_table_definition,
     get_table_rows,
     get_table_sample_data,
+    run_and_log_database_query,
 )
 
 databases_types_def = load_schema_from_path(
@@ -74,28 +71,6 @@ def resolve_database_credentials(workspace: Workspace, info, **kwargs):
     return None
 
 
-def _log_executed_query(
-    request: HttpRequest,
-    workspace: Workspace,
-    query: str,
-    origin: str,
-    status: str,
-    **fields,
-):
-    user = request.user
-    if not isinstance(user, User):
-        # Service principals (PipelineRunUser, ...) expose the triggering human
-        user = getattr(user, "real_user", None)
-    DatabaseQueryLog.objects.create(
-        workspace=workspace,
-        user=user,
-        query=query,
-        origin=origin,
-        status=status,
-        **fields,
-    )
-
-
 @database_object.field("executeSQL")
 def resolve_database_execute_sql(
     workspace: Workspace,
@@ -108,60 +83,31 @@ def resolve_database_execute_sql(
     request: HttpRequest = info.context["request"]
     # Clients may send an explicit null, which bypasses the Python default
     origin = origin or DatabaseQueryLog.Origin.OTHER
-    if not request.user.has_perm("databases.run_query", workspace):
-        _log_executed_query(
-            request, workspace, query, origin, DatabaseQueryLog.Status.DENIED
-        )
-        return {"success": False, "errors": ["PERMISSION_DENIED"]}
-    max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
-    status, log_fields = None, {}
-    started_at = time.perf_counter()
     try:
-        result = execute_database_query(workspace, query, **max_rows_kwarg)
-        status = DatabaseQueryLog.Status.SUCCESS
-        log_fields = {
-            "result_code": DatabaseQueryLog.SQLSTATE_SUCCESS,
-            "duration_ms": result["duration_ms"],
-            "row_count": result["row_count"],
-            "truncated": result["truncated"],
-        }
+        result = run_and_log_database_query(
+            request, workspace, query, origin, max_rows=max_rows
+        )
         return {"success": True, "errors": [], **result}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
     except MultipleStatementsError as e:
-        status = DatabaseQueryLog.Status.REJECTED
-        log_fields = {"error_message": str(e)}
         return {
             "success": False,
             "errors": ["MULTIPLE_STATEMENTS"],
             "error_message": str(e),
         }
     except QueryCanceled as e:
-        status = DatabaseQueryLog.Status.ERROR
-        log_fields = {
-            "result_code": e.pgcode,
-            "error_message": str(e).strip(),
-            "duration_ms": elapsed_ms(started_at),
-        }
         return {
             "success": False,
             "errors": ["QUERY_TIMEOUT"],
             "error_message": str(e).strip(),
         }
     except Psycopg2Error as e:
-        status = DatabaseQueryLog.Status.ERROR
-        log_fields = {
-            "result_code": e.pgcode,
-            "error_message": str(e).strip(),
-            "duration_ms": elapsed_ms(started_at),
-        }
         return {
             "success": False,
             "errors": ["QUERY_ERROR"],
             "error_message": str(e).strip(),
         }
-    finally:
-        # An unexpected exception leaves status unset; let it propagate unlogged.
-        if status:
-            _log_executed_query(request, workspace, query, origin, status, **log_fields)
 
 
 @database_object.field("readOnlyCredentials")

@@ -8,15 +8,19 @@ from typing import Dict, List, Tuple
 import psycopg2
 import sqlparse
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpRequest
 from psycopg2 import sql
 from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from psycopg2.extras import RealDictCursor
 
+from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 from .api import get_db_server_credentials
+from .models import DatabaseQueryLog
 
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
@@ -147,8 +151,8 @@ def execute_database_query(
     returned, capped to ``settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS``;
     ``truncated`` indicates whether the result was capped.
 
-    Callers are responsible for audit logging (``DatabaseQueryLog``): this
-    function has no access to the request/user/origin an audit entry needs.
+    This function does no permission check and no audit logging: SQL executed
+    on behalf of an API request must go through ``run_and_log_database_query``.
     """
     ensure_single_statement(query)
     hard_limit = settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS
@@ -187,6 +191,88 @@ def execute_database_query(
     finally:
         if conn:
             conn.close()
+
+
+def _log_executed_query(
+    request: HttpRequest,
+    workspace: Workspace,
+    query: str,
+    origin: str,
+    status: str,
+    **fields,
+):
+    user = request.user
+    if not isinstance(user, User):
+        # Service principals (PipelineRunUser, ...) expose the triggering human
+        user = getattr(user, "real_user", None)
+    DatabaseQueryLog.objects.create(
+        workspace=workspace,
+        user=user,
+        query=query,
+        origin=origin,
+        status=status,
+        **fields,
+    )
+
+
+def run_and_log_database_query(
+    request: HttpRequest,
+    workspace: Workspace,
+    query: str,
+    origin: str,
+    max_rows: int | None = None,
+):
+    """Single point of entry for executing SQL on behalf of an API request.
+
+    Checks the permission, delegates to ``execute_database_query`` and records
+    a ``DatabaseQueryLog`` entry for every outcome, re-raising errors so that
+    callers only have to translate them into API responses.
+    """
+    if not request.user.has_perm("databases.run_query", workspace):
+        _log_executed_query(
+            request, workspace, query, origin, DatabaseQueryLog.Status.DENIED
+        )
+        raise PermissionDenied
+    max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
+    started_at = time.perf_counter()
+    try:
+        result = execute_database_query(workspace, query, **max_rows_kwarg)
+    except MultipleStatementsError as e:
+        _log_executed_query(
+            request,
+            workspace,
+            query,
+            origin,
+            DatabaseQueryLog.Status.REJECTED,
+            error_message=str(e),
+        )
+        raise
+    except psycopg2.Error as e:
+        # QueryCanceled (statement timeout) is a psycopg2.Error subclass and
+        # needs no dedicated handling here: both outcomes log the same fields.
+        _log_executed_query(
+            request,
+            workspace,
+            query,
+            origin,
+            DatabaseQueryLog.Status.ERROR,
+            result_code=e.pgcode,
+            error_message=str(e).strip(),
+            duration_ms=elapsed_ms(started_at),
+        )
+        raise
+    _log_executed_query(
+        request,
+        workspace,
+        query,
+        origin,
+        DatabaseQueryLog.Status.SUCCESS,
+        result_code=DatabaseQueryLog.SQLSTATE_SUCCESS,
+        duration_ms=result["duration_ms"],
+        row_count=result["row_count"],
+        truncated=result["truncated"],
+    )
+    return result
 
 
 def get_database_definition(workspace: Workspace):
