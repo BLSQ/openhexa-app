@@ -463,17 +463,26 @@ def resolve_generate_workspace_token(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     mutation_input = kwargs["input"]
 
-    try:
-        membership = WorkspaceMembership.objects.get(
-            workspace__slug=mutation_input["slug"], user=request.user
-        )
-    except WorkspaceMembership.DoesNotExist:
+    workspace = (
+        Workspace.objects.filter_for_user(request.user)
+        .filter(slug=mutation_input["slug"])
+        .first()
+    )
+    if workspace is None:
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
 
-    if membership.role == WorkspaceMembershipRole.VIEWER:
-        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    membership = WorkspaceMembership.objects.filter(
+        workspace=workspace, user=request.user
+    ).first()
 
-    token = Signer().sign_object(str(membership.access_token))
+    if membership is not None:
+        if membership.role == WorkspaceMembershipRole.VIEWER:
+            return {"success": False, "errors": ["PERMISSION_DENIED"]}
+        token = Signer().sign_object(str(membership.access_token))
+    else:
+        token = Signer().sign_object(
+            {"workspace_id": str(workspace.id), "user_id": str(request.user.id)}
+        )
     return {"success": True, "errors": [], "token": token}
 
 
