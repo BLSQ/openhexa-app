@@ -4,7 +4,8 @@ from logging import getLogger
 from django.core.signing import BadSignature, Signer
 from django.http import HttpRequest
 
-from hexa.workspaces.models import WorkspaceMembership
+from hexa.user_management.models import User
+from hexa.workspaces.models import Workspace, WorkspaceMembership
 
 logger = getLogger(__name__)
 
@@ -18,11 +19,25 @@ def workspace_token_authentication_middleware(get_response):
         try:
             auth_type, token = request.headers["Authorization"].split(" ")
             if auth_type.lower() == "bearer":
-                token = Signer().unsign_object(token)
-                membership = WorkspaceMembership.objects.get(access_token=token)
-                request.user = membership.user
-                request.workspace = membership.workspace
-                request.bypass_two_factor = True
+                payload = Signer().unsign_object(token)
+                if isinstance(payload, dict):
+                    # Identity-scoped token for users with implicit workspace
+                    # access (org admins/owners, superusers).
+                    user = User.objects.get(id=payload["user_id"])
+                    workspace = (
+                        Workspace.objects.filter_for_user(user)
+                        .filter(id=payload["workspace_id"])
+                        .first()
+                    )
+                    if workspace is not None:
+                        request.user = user
+                        request.workspace = workspace
+                        request.bypass_two_factor = True
+                else:
+                    membership = WorkspaceMembership.objects.get(access_token=payload)
+                    request.user = membership.user
+                    request.workspace = membership.workspace
+                    request.bypass_two_factor = True
         except KeyError:
             pass  # No Authorization header
         except ValueError:
@@ -31,7 +46,7 @@ def workspace_token_authentication_middleware(get_response):
             )
         except (UnicodeDecodeError, binascii.Error, BadSignature):
             pass
-        except WorkspaceMembership.DoesNotExist:
+        except (WorkspaceMembership.DoesNotExist, User.DoesNotExist):
             pass
         return get_response(request)
 
