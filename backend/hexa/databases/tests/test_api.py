@@ -161,7 +161,7 @@ class DatabaseAPITest(TestCase):
         credentials = get_db_server_credentials()
         host = credentials["host"]
         port = credentials["port"]
-        load_database_sample_data(self.DB1_NAME)
+        load_database_sample_data(self.DB1_NAME, self.PWD_1)
 
         with psycopg2.connect(
             host=host,
