@@ -7,7 +7,6 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from hexa.core.test.migrator import Migrator
 from hexa.databases.api import delete_database
-from hexa.databases.tests.helpers import seed_demo_table
 from hexa.databases.utils import (
     get_workspace_database_connection,
     get_workspace_database_ro_connection,
@@ -30,9 +29,10 @@ class Migration0061Test(TransactionTestCase):
             "migration-test@example.com", "password", is_superuser=True
         )
         self.workspace = Workspace.objects.create_if_has_perm(
-            self.user, name="Covid WS", description=""
+            self.user, name="Covid WS", description="", load_sample_data=True
         )
-        seed_demo_table(self.workspace, [(1, "Kinshasa")], table_name="covid_data")
+        # Revoke the auto-granted SELECT to reproduce a pre-fix workspace where
+        # the read-only role cannot read the tutorial covid_data table.
         conn = get_workspace_database_connection(self.workspace)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with conn.cursor() as cur:
@@ -61,4 +61,4 @@ class Migration0061Test(TransactionTestCase):
 
         self.migrator.migrate(*self.migrate_to)
 
-        self.assertEqual(self._count_covid_data_as_ro(), 1)
+        self.assertGreater(self._count_covid_data_as_ro(), 0)
