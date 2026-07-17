@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.signing import Signer
 from django.db import transaction
 from django.http import HttpRequest
 
@@ -10,6 +9,7 @@ from hexa.countries.models import Country
 from hexa.databases.utils import TableNotFound, delete_table
 from hexa.user_management.models import Organization, User
 
+from ..authentication import WorkspaceToken
 from ..connection_utils import test_connection
 from ..jwt_utils import (
     JWTConfigurationError,
@@ -474,15 +474,12 @@ def resolve_generate_workspace_token(_, info, **kwargs):
     membership = WorkspaceMembership.objects.filter(
         workspace=workspace, user=request.user
     ).first()
+    if membership is not None and membership.role == WorkspaceMembershipRole.VIEWER:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
-    if membership is not None:
-        if membership.role == WorkspaceMembershipRole.VIEWER:
-            return {"success": False, "errors": ["PERMISSION_DENIED"]}
-        token = Signer().sign_object(str(membership.access_token))
-    else:
-        token = Signer().sign_object(
-            {"workspace_id": str(workspace.id), "user_id": str(request.user.id)}
-        )
+    token = WorkspaceToken.issue(
+        user=request.user, workspace=workspace, membership=membership
+    ).sign()
     return {"success": True, "errors": [], "token": token}
 
 

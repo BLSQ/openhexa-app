@@ -1,11 +1,8 @@
-import binascii
 from logging import getLogger
 
-from django.core.signing import BadSignature, Signer
 from django.http import HttpRequest
 
-from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace, WorkspaceMembership
+from hexa.workspaces.authentication import WorkspaceToken
 
 logger = getLogger(__name__)
 
@@ -17,37 +14,20 @@ def workspace_token_authentication_middleware(get_response):
 
     def middleware(request: HttpRequest):
         try:
-            auth_type, token = request.headers["Authorization"].split(" ")
-            if auth_type.lower() == "bearer":
-                payload = Signer().unsign_object(token)
-                if isinstance(payload, dict):
-                    # Identity-scoped token for users with implicit workspace
-                    # access (org admins/owners, superusers).
-                    user = User.objects.get(id=payload["user_id"])
-                    workspace = (
-                        Workspace.objects.filter_for_user(user)
-                        .filter(id=payload["workspace_id"])
-                        .first()
-                    )
-                    if workspace is not None:
-                        request.user = user
-                        request.workspace = workspace
-                        request.bypass_two_factor = True
-                else:
-                    membership = WorkspaceMembership.objects.get(access_token=payload)
-                    request.user = membership.user
-                    request.workspace = membership.workspace
-                    request.bypass_two_factor = True
+            auth_type, raw_token = request.headers["Authorization"].split(" ")
         except KeyError:
-            pass  # No Authorization header
+            return get_response(request)  # No Authorization header
         except ValueError:
-            logger.exception(
-                "workspace authentication error",
-            )
-        except (UnicodeDecodeError, binascii.Error, BadSignature):
-            pass
-        except (WorkspaceMembership.DoesNotExist, User.DoesNotExist):
-            pass
+            logger.exception("workspace authentication error")
+            return get_response(request)
+
+        if auth_type.lower() == "bearer":
+            token = WorkspaceToken.authenticate(raw_token)
+            if token is not None:
+                request.user = token.user
+                request.workspace = token.workspace
+                request.bypass_two_factor = True
+
         return get_response(request)
 
     return middleware
