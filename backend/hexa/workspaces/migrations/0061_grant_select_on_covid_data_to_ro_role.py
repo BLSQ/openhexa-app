@@ -5,19 +5,14 @@ from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 
-def get_admin_connection(db_name):
-    """Get a connection to a specific database using the admin role."""
-    host = settings.WORKSPACES_DATABASE_HOST
-    port = settings.WORKSPACES_DATABASE_PORT
-    admin_role = settings.WORKSPACES_DATABASE_ROLE
-    admin_password = settings.WORKSPACES_DATABASE_PASSWORD
-
+def get_rw_connection(workspace):
+    """Connect to a workspace database as its read-write role."""
     conn = psycopg2.connect(
-        host=host,
-        port=port,
-        dbname=db_name,
-        user=admin_role,
-        password=admin_password,
+        host=settings.WORKSPACES_DATABASE_HOST,
+        port=settings.WORKSPACES_DATABASE_PORT,
+        dbname=workspace.db_name,
+        user=workspace.db_name,
+        password=workspace.db_password,
     )
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     return conn
@@ -36,7 +31,7 @@ def grant_select_on_covid_data(apps, schema_editor):
         ro_role = f"{db_name}_ro"
 
         try:
-            conn = get_admin_connection(db_name)
+            conn = get_rw_connection(workspace)
             try:
                 with conn.cursor() as cur:
                     cur.execute("SELECT to_regclass('public.covid_data');")
