@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.test import TransactionTestCase
 from psycopg2 import sql
 from psycopg2.errors import (
@@ -28,9 +30,12 @@ class Migration0061Test(TransactionTestCase):
         self.user = User.objects.create_user(
             "migration-test@example.com", "password", is_superuser=True
         )
-        self.workspace = Workspace.objects.create_if_has_perm(
-            self.user, name="Covid WS", description="", load_sample_data=True
-        )
+        # The dummy test storage doesn't support bucket sample data; the database
+        # part of the tutorial load is what matters here.
+        with patch("hexa.workspaces.models.load_bucket_sample_data"):
+            self.workspace = Workspace.objects.create_if_has_perm(
+                self.user, name="Covid WS", description="", load_sample_data=True
+            )
         # Revoke the auto-granted SELECT to reproduce a pre-fix workspace where
         # the read-only role cannot read the tutorial covid_data table.
         conn = get_workspace_database_connection(self.workspace)
