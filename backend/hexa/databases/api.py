@@ -266,6 +266,11 @@ def load_database_sample_data(db_name: str):
                         role_name=sql.Identifier(db_name)
                     )
                 )
+                cursor.execute(
+                    sql.SQL("GRANT SELECT ON covid_data TO {ro_role};").format(
+                        ro_role=sql.Identifier(f"{db_name}_ro")
+                    )
+                )
 
     finally:
         if conn:
