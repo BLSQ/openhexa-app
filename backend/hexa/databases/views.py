@@ -1,3 +1,5 @@
+import re
+
 from django.http import (
     Http404,
     HttpRequest,
@@ -12,6 +14,12 @@ from hexa.core.csv import stream_csv
 from hexa.workspaces.models import Workspace
 
 from .utils import MultipleStatementsError, stream_database_query
+
+# The download-correlation token is echoed back as part of a Set-Cookie *name*,
+# so it is constrained to characters that are safe there and cannot break the
+# header. A token failing this is simply ignored (the frontend then times out
+# rather than misreading another download's signal).
+_DOWNLOAD_TOKEN_RE = re.compile(r"[A-Za-z0-9-]{1,64}")
 
 
 @require_POST
@@ -50,13 +58,16 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
 
     # The browser hands a successful attachment to its download manager without
     # navigating the hidden iframe the frontend posts into, so the page has no
-    # way to observe that the download started. Echo the caller's token back in a
-    # short-lived, JS-readable cookie the moment the response headers go out; the
-    # frontend polls for it to tell "download began" apart from an error page
-    # (which does navigate the iframe). See frontend downloadQueryCsv.ts.
+    # way to observe that the download started. Signal it with a short-lived,
+    # JS-readable cookie whose *name* carries the caller's token, set the moment
+    # the response headers go out; the frontend polls for that exact name to tell
+    # "download began" apart from an error page (which does navigate the iframe).
+    # A per-token name — rather than one shared cookie holding the token as its
+    # value — keeps concurrent downloads from clobbering each other's signal.
+    # See frontend downloadQueryCsv.ts.
     download_token = request.POST.get("download_token")
-    if download_token:
+    if download_token and _DOWNLOAD_TOKEN_RE.fullmatch(download_token):
         response.set_cookie(
-            "csvDownloadToken", download_token, max_age=120, samesite="Lax"
+            f"csvDownloadToken-{download_token}", "1", max_age=120, samesite="Lax"
         )
     return response

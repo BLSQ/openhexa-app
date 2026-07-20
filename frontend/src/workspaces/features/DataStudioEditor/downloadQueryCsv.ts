@@ -6,10 +6,14 @@ import { getCookie } from "cookies-next";
 // of navigating the whole app away.
 const DOWNLOAD_FRAME_NAME = "data-studio-csv-download-frame";
 
-// The backend echoes our per-download token into this cookie the instant it
-// starts streaming the attachment — our only positive "download began" signal,
-// since a successful download never fires the iframe's load event.
-const SUCCESS_COOKIE = "csvDownloadToken";
+// The backend signals "download began" the instant it starts streaming the
+// attachment by setting a short-lived cookie whose NAME carries this prefix plus
+// our per-download token — our only positive signal, since a successful download
+// never fires the iframe's load event. A per-token name (rather than one shared
+// cookie holding the token as its value) lets concurrent downloads each wait on
+// their own signal without clobbering one another. Must match the backend's
+// f"csvDownloadToken-{token}" in databases/views.py.
+const SUCCESS_COOKIE_PREFIX = "csvDownloadToken-";
 const POLL_INTERVAL_MS = 250;
 // Generous ceiling — longer than the backend download statement timeout — so a
 // legitimately slow export is not reported as failed while it is still running.
@@ -42,8 +46,8 @@ const appendHiddenField = (
   form.appendChild(input);
 };
 
-const clearSuccessCookie = () => {
-  document.cookie = `${SUCCESS_COOKIE}=; Max-Age=0; path=/`;
+const clearCookie = (name: string) => {
+  document.cookie = `${name}=; Max-Age=0; path=/`;
 };
 
 // Downloads the full result of a SQL query by POSTing it to the backend, which
@@ -54,7 +58,7 @@ const clearSuccessCookie = () => {
 //
 // The returned promise resolves once the download has demonstrably started and
 // rejects (with the server's message when readable) if the backend returns an
-// error instead — see SUCCESS_COOKIE and the iframe load handler below.
+// error instead — see SUCCESS_COOKIE_PREFIX and the iframe load handler below.
 export const downloadQueryCsv = (
   workspaceSlug: string,
   query: string,
@@ -64,7 +68,7 @@ export const downloadQueryCsv = (
   const iframe = ensureDownloadFrame();
 
   const token = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  clearSuccessCookie();
+  const successCookie = `${SUCCESS_COOKIE_PREFIX}${token}`;
 
   const form = document.createElement("form");
   form.method = "POST";
@@ -111,8 +115,8 @@ export const downloadQueryCsv = (
     iframe.addEventListener("load", onLoad);
 
     const poll = setInterval(() => {
-      if (getCookie(SUCCESS_COOKIE) === token) {
-        clearSuccessCookie();
+      if (getCookie(successCookie)) {
+        clearCookie(successCookie);
         settle(resolve);
       }
     }, POLL_INTERVAL_MS);

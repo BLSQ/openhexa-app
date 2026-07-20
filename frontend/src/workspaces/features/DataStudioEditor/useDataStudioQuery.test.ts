@@ -21,7 +21,7 @@ jest.mock("./csv", () => ({
 }));
 
 jest.mock("react-toastify", () => ({
-  toast: { error: jest.fn() },
+  toast: { error: jest.fn(), info: jest.fn() },
 }));
 
 const withResult = (executeSQL: unknown) => ({
@@ -36,6 +36,7 @@ beforeEach(() => {
   (buildCsv as jest.Mock).mockClear();
   (downloadCsvBlob as jest.Mock).mockClear();
   (toast.error as jest.Mock).mockClear();
+  (toast.info as jest.Mock).mockClear();
   mockState = { loading: false };
 });
 
@@ -99,6 +100,8 @@ describe("useDataStudioQuery", () => {
       "CSV_CONTENT",
     );
     expect(downloadQueryCsv).not.toHaveBeenCalled();
+    // The fast client path is instant, so it must not warn about a wait.
+    expect(toast.info).not.toHaveBeenCalled();
   });
 
   it("streams from the server the last run query when the result was truncated", async () => {
@@ -119,6 +122,8 @@ describe("useDataStudioQuery", () => {
     expect(downloadQueryCsv).toHaveBeenCalledWith("ws-1", "SELECT 2");
     expect(downloadCsvBlob).not.toHaveBeenCalled();
     expect(result.current.exporting).toBe(false);
+    // The heavy path re-runs server-side and can be slow, so it warns up front.
+    expect(toast.info).toHaveBeenCalledTimes(1);
   });
 
   it("toasts and clears the exporting state when a server export fails", async () => {

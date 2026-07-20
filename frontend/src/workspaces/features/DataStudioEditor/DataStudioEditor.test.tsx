@@ -102,7 +102,7 @@ jest.mock("./csv", () => ({
 }));
 
 jest.mock("react-toastify", () => ({
-  toast: { error: jest.fn() },
+  toast: { error: jest.fn(), info: jest.fn() },
 }));
 
 const successState = (overrides: Record<string, unknown> = {}) => ({

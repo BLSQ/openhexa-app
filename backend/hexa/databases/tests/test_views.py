@@ -75,7 +75,7 @@ class DownloadQueryCsvViewTest(TestCase):
             content,
         )
 
-    def test_download_echoes_the_token_cookie_on_success(self):
+    def test_download_sets_the_per_token_cookie_on_success(self):
         self.client.force_login(self.USER_SABRINA)
         seed_demo_table(self.WORKSPACE, [(1, "a")])
 
@@ -85,7 +85,24 @@ class DownloadQueryCsvViewTest(TestCase):
         )
         b"".join(response.streaming_content)
 
-        self.assertEqual("tok-123", response.cookies["csvDownloadToken"].value)
+        # The token is carried by the cookie name so concurrent downloads each
+        # get their own signal; the value is just a presence flag.
+        self.assertEqual("1", response.cookies["csvDownloadToken-tok-123"].value)
+
+    def test_download_ignores_a_malformed_token(self):
+        self.client.force_login(self.USER_SABRINA)
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+
+        response = self.client.post(
+            self._url(),
+            {"query": "SELECT id FROM demo", "download_token": "bad token;drop"},
+        )
+        b"".join(response.streaming_content)
+
+        self.assertEqual(200, response.status_code)
+        self.assertFalse(
+            any(name.startswith("csvDownloadToken") for name in response.cookies)
+        )
 
     def test_download_error_does_not_set_the_token_cookie(self):
         self.client.force_login(self.USER_SABRINA)
@@ -96,7 +113,7 @@ class DownloadQueryCsvViewTest(TestCase):
         )
 
         self.assertEqual(400, response.status_code)
-        self.assertNotIn("csvDownloadToken", response.cookies)
+        self.assertNotIn("csvDownloadToken-tok-123", response.cookies)
 
     def test_download_ignores_the_interactive_row_cap(self):
         self.client.force_login(self.USER_SABRINA)

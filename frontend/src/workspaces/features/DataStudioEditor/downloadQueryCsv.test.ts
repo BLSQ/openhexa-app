@@ -77,18 +77,43 @@ describe("downloadQueryCsv", () => {
     expect(document.querySelectorAll("form")).toHaveLength(0);
   });
 
-  it("resolves once the server echoes the token cookie (download started)", async () => {
-    // The backend sets csvDownloadToken to our token when streaming begins.
-    let serverToken: string | undefined;
+  it("resolves once the server sets the per-token cookie (download started)", async () => {
+    // The backend sets a cookie named csvDownloadToken-<token> when streaming
+    // begins; presence of that exact name is the "download began" signal.
+    const cookies: Record<string, string> = {};
     (getCookie as jest.Mock).mockImplementation((name: string) =>
-      name === "csvDownloadToken" ? serverToken : "csrf-token-123",
+      name === "csrftoken" ? "csrf-token-123" : cookies[name],
     );
 
     const promise = downloadQueryCsv("ws-1", "SELECT 1");
-    serverToken = fieldValue(submittedForms[0], "download_token");
+    const token = fieldValue(submittedForms[0], "download_token");
+    cookies[`csvDownloadToken-${token}`] = "1";
 
     jest.advanceTimersByTime(300);
     await expect(promise).resolves.toBeUndefined();
+  });
+
+  it("waits on a per-call cookie so concurrent downloads do not clobber each other", async () => {
+    const cookies: Record<string, string> = {};
+    (getCookie as jest.Mock).mockImplementation((name: string) =>
+      name === "csrftoken" ? "csrf-token-123" : cookies[name],
+    );
+
+    const first = downloadQueryCsv("ws-1", "SELECT 1");
+    const second = downloadQueryCsv("ws-1", "SELECT 2");
+    const tokenA = fieldValue(submittedForms[0], "download_token")!;
+    const tokenB = fieldValue(submittedForms[1], "download_token")!;
+    expect(tokenA).not.toBe(tokenB);
+
+    // Only the second download's signal arrives; the first must keep waiting.
+    cookies[`csvDownloadToken-${tokenB}`] = "1";
+    jest.advanceTimersByTime(300);
+    await expect(second).resolves.toBeUndefined();
+
+    // The first download settles on its own signal, unaffected by the second.
+    cookies[`csvDownloadToken-${tokenA}`] = "1";
+    jest.advanceTimersByTime(300);
+    await expect(first).resolves.toBeUndefined();
   });
 
   it("rejects with the server's message when an error page loads in the iframe", async () => {
