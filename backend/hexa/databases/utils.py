@@ -185,6 +185,13 @@ def execute_database_query(
 # far too short. A generous ceiling still guards against a runaway scan pinning a
 # read-only connection indefinitely.
 DOWNLOAD_QUERY_TIMEOUT_MS = 5 * 60 * 1000
+# statement_timeout only bounds a single FETCH; between batches the transaction
+# sits idle while the client consumes the previous one. A stalled or vanished
+# client (one that never comes back for the next batch) would otherwise keep that
+# transaction open indefinitely, pinning the read-only connection and blocking
+# VACUUM on the workspace database. This caps how long the session may sit idle
+# mid-stream before Postgres aborts the transaction and frees the connection.
+DOWNLOAD_QUERY_IDLE_TIMEOUT_MS = 5 * 60 * 1000
 # Rows are fetched from the server-side cursor in batches of this size, bounding
 # peak memory regardless of how large the result set is.
 DOWNLOAD_QUERY_BATCH_SIZE = 2_000
@@ -195,6 +202,7 @@ def stream_database_query(
     query: str,
     *,
     timeout_ms: int = DOWNLOAD_QUERY_TIMEOUT_MS,
+    idle_timeout_ms: int = DOWNLOAD_QUERY_IDLE_TIMEOUT_MS,
     batch_size: int = DOWNLOAD_QUERY_BATCH_SIZE,
 ) -> Tuple[List[str], Iterator[dict]]:
     """Execute a read-only query and stream its full result set, row by row.
@@ -208,16 +216,26 @@ def stream_database_query(
     statement raises here (and can surface as an HTTP 400) rather than failing
     mid-stream once bytes are already on the wire. The returned generator owns
     the connection and closes it when exhausted or closed early (e.g. if the
-    client disconnects).
+    client disconnects). A statement timeout and an idle-in-transaction timeout
+    bound, respectively, a runaway scan and a stalled client, so neither can pin
+    the read-only connection (and its open transaction) indefinitely.
     """
     ensure_single_statement(query)
     conn = get_workspace_database_ro_connection(workspace)
     try:
+        # SET LOCAL scopes both timeouts to this transaction, which stays open for
+        # the whole stream: the connection is not in autocommit, so the named
+        # cursor below shares the same transaction these settings apply to.
         with conn.cursor() as setup_cursor:
             setup_cursor.execute(
                 sql.SQL("SET LOCAL statement_timeout = {timeout};").format(
                     timeout=sql.Literal(timeout_ms)
                 )
+            )
+            setup_cursor.execute(
+                sql.SQL(
+                    "SET LOCAL idle_in_transaction_session_timeout = {timeout};"
+                ).format(timeout=sql.Literal(idle_timeout_ms))
             )
         cursor = conn.cursor(
             name="data_studio_csv_download", cursor_factory=RealDictCursor
