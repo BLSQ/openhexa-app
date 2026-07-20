@@ -78,13 +78,12 @@ export const useDataStudioQuery = (workspaceSlug: string) => {
       );
       return;
     }
-    // The heavy path streams via a hidden iframe, whose errors are otherwise
-    // silent; downloadQueryCsv resolves only once the download starts and
-    // rejects on failure, so surface that to the user. It also re-runs the whole
-    // (uncapped) query server-side, so time-to-first-byte can be long — warn up
-    // front rather than leaving the user staring at a spinner.
+    // The heavy path re-runs the whole (uncapped) query server-side, so it can
+    // be slow; `exporting` drives the inline "Exporting…/this may take a while"
+    // affordance in the toolbar. It also streams via a hidden iframe, whose
+    // errors are otherwise silent — downloadQueryCsv resolves only once the
+    // download starts and rejects on failure, so surface that to the user.
     setExporting(true);
-    toast.info(t("Preparing your export — this may take a while…"));
     try {
       await downloadQueryCsv(lastRun.workspaceSlug, lastRun.query);
     } catch {

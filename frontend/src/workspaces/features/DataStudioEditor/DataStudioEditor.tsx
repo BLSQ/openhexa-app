@@ -86,17 +86,29 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
                 ))}
               </select>
             </label>
+            {/* Only the heavy (server re-run) path sets `exporting`, and it can
+                take a while; reassure the user right where they clicked. */}
+            {exporting && (
+              <span className="text-xs text-gray-400">
+                {t("This may take a while")}
+              </span>
+            )}
             <button
               onClick={downloadCsv}
               disabled={!canExport || exporting}
               className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
             >
               {exporting ? (
-                <Spinner size="xs" />
+                <>
+                  <Spinner size="xs" />
+                  {t("Exporting…")}
+                </>
               ) : (
-                <ArrowDownTrayIcon className="h-4 w-4" />
+                <>
+                  <ArrowDownTrayIcon className="h-4 w-4" />
+                  {t("Export CSV")}
+                </>
               )}
-              {t("Export CSV")}
             </button>
             <button
               onClick={runSelection}

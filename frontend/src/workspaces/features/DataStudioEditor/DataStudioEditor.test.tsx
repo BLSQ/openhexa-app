@@ -102,7 +102,7 @@ jest.mock("./csv", () => ({
 }));
 
 jest.mock("react-toastify", () => ({
-  toast: { error: jest.fn(), info: jest.fn() },
+  toast: { error: jest.fn() },
 }));
 
 const successState = (overrides: Record<string, unknown> = {}) => ({
@@ -245,6 +245,32 @@ describe("DataStudioEditor", () => {
     );
     expect(downloadQueryCsv).toHaveBeenCalledTimes(1);
     expect(downloadCsvBlob).not.toHaveBeenCalled();
+  });
+
+  it("shows an inline in-progress affordance while a server export runs", async () => {
+    let resolveDownload!: () => void;
+    (downloadQueryCsv as jest.Mock).mockReturnValue(
+      new Promise<void>((res) => {
+        resolveDownload = res;
+      }),
+    );
+    mockQueryState = successState({ truncated: true });
+    renderEditor();
+    await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
+    await userEvent.click(screen.getByRole("button", { name: "Run" }));
+
+    await userEvent.click(screen.getByRole("button", { name: "Export CSV" }));
+
+    const exportingButton = screen.getByRole("button", { name: "Exporting…" });
+    expect(exportingButton).toBeDisabled();
+    expect(screen.getByText("This may take a while")).toBeInTheDocument();
+
+    resolveDownload();
+    await waitFor(() =>
+      expect(
+        screen.queryByText("This may take a while"),
+      ).not.toBeInTheDocument(),
+    );
   });
 
   it("disables export until there is a successful result with rows", () => {
