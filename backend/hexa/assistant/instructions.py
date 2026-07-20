@@ -9,6 +9,7 @@ class InstructionSet(TextChoices):
     EDIT_PIPELINE = "edit_pipeline", "Edit Pipeline"
     CREATE_WEBAPPS = "create_webapps", "Create Web Apps"
     EDIT_WEBAPP = "edit_webapp", "Edit Web App"
+    GENERATE_SQL = "generate_sql", "Generate SQL"
 
 
 PIPELINE_DOC_TOPICS = ("writing-pipelines", "sdk")
@@ -98,12 +99,25 @@ The web app may also call OpenHEXA's GraphQL API via a same-origin proxy at POST
 If you need the full API reference (available scopes, GraphQL schema, example queries), call `get_help_or_doc(topic="static-webapps")`.
 """
 
+_GENERATE_SQL = """
+# Your task
+You translate the user's natural-language request into a single PostgreSQL query against their workspace database.
+- The database schema is provided in your context below. When it only lists table names (large database) or when you need more detail, use the `execute_sql` tool to inspect `information_schema` or peek at sample rows.
+- Use the `execute_sql` tool to test your query and make sure it returns the expected result before answering. The workspace slug is injected automatically — do not pass it.
+- Your final answer MUST be the SQL statement and nothing else:
+  - A single read-only statement (`SELECT`, or `WITH ... SELECT`).
+  - No markdown fences, no commentary, no explanations before or after.
+- Write readable SQL: meaningful aliases, one clause per line for complex queries.
+- If the request is ambiguous, make a reasonable assumption rather than asking a question, and prefer the interpretation that uses the tables available in the schema.
+"""
+
 _INSTRUCTION_SETS: dict[InstructionSet | tuple[str, str], str] = {
     InstructionSet.GENERAL: _BASE,
     InstructionSet.CREATE_PIPELINE: _BASE + _CREATE_PIPELINE + _PIPELINE_DOCS,
     InstructionSet.EDIT_PIPELINE: _BASE + _EDIT_PIPELINE + _PIPELINE_DOCS,
     InstructionSet.CREATE_WEBAPPS: _BASE + _WEBAPPS,
     InstructionSet.EDIT_WEBAPP: _BASE + _EDIT_WEBAPP,
+    InstructionSet.GENERATE_SQL: _BASE + _GENERATE_SQL,
 }
 
 

@@ -31,6 +31,12 @@ class ToolResultPayload(TypedDict):
 class DonePayload(TypedDict):
     message_id: str
     name: str | None
+    # Validated final output for agents that produce a structured deliverable
+    # (e.g. the SQL statement of the generate-SQL agent). None for agents whose
+    # deliverable is the streamed conversation text itself. Streamed text deltas
+    # include failed attempts that the model retried after output validation, so
+    # consumers of the deliverable must read it from here, not from the deltas.
+    output: str | None
 
 
 class ErrorCode(str, Enum):

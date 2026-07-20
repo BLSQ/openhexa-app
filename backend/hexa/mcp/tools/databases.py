@@ -26,6 +26,22 @@ def get_db_schema(user, workspace_slug: str, page: int = 1, per_page: int = 15) 
 
 
 @tool
+def execute_sql(user, workspace_slug: str, query: str, max_rows: int = 50) -> dict:
+    """Execute a single read-only SQL statement (PostgreSQL) against the workspace database and return the resulting rows. Use this to inspect data, query information_schema for table structures, or verify that a query works and returns the expected result. Returned rows are capped at max_rows (itself capped server-side); 'truncated' tells whether more rows exist. Write statements are rejected: the query runs with a read-only role."""
+    data = execute_graphql(
+        user,
+        "ExecuteSQL",
+        {"workspaceSlug": workspace_slug, "query": query, "maxRows": max_rows},
+    )
+    if "errors" in data:
+        return data
+    workspace = data.get("workspace")
+    if workspace is None:
+        return {"error": "Workspace not found"}
+    return workspace["database"]["executeSQL"]
+
+
+@tool
 def get_db_table_schema(user, workspace_slug: str, table_name: str) -> dict:
     """Get column definitions for a specific table in the workspace database. Returns column names and PostgreSQL data types. Use this to understand the table structure before writing SQL queries."""
     data = execute_graphql(

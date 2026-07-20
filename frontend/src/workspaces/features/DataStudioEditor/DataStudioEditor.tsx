@@ -2,20 +2,23 @@ import { gql } from "@apollo/client";
 import {
   ArrowDownTrayIcon,
   PencilIcon,
+  SparklesIcon,
   TableCellsIcon,
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import CodeEditor, {
   CodeEditorHandle,
 } from "core/components/CodeEditor/CodeEditor";
+import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import useIsMac from "core/hooks/useIsMac";
 import { useTranslation } from "next-i18next";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import SaveQueryDialog from "workspaces/features/SavedQueries/SaveQueryDialog";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { buildCsv, downloadCsv } from "./csv";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
+import GenerateSqlDialog, { useGenerateSqlForm } from "./GenerateSqlDialog";
 import SaveQueryButton from "./SaveQueryButton";
 import { useDataStudioQuery } from "./useDataStudioQuery";
 import { useSavedQueryEditor } from "./useSavedQueryEditor";
@@ -24,6 +27,9 @@ type DataStudioEditorProps = {
   workspaceSlug: string;
   savedQuery?: SavedQuery_SavedQueryFragment | null;
   canCreate?: boolean;
+  aiEnabled?: boolean;
+  aiBudgetLimitReached?: boolean;
+  monthlyLimitExceeded?: boolean;
 };
 
 const MAX_ROWS_OPTIONS = [50, 100, 500, 1000, 10_000];
@@ -32,12 +38,23 @@ const DataStudioEditor = ({
   workspaceSlug,
   savedQuery,
   canCreate = false,
+  aiEnabled = false,
+  aiBudgetLimitReached = false,
+  monthlyLimitExceeded = false,
 }: DataStudioEditorProps) => {
   const { t } = useTranslation();
   const isMac = useIsMac();
   const [query, setQuery] = useState(savedQuery?.content ?? "");
   const [maxRows, setMaxRows] = useState(MAX_ROWS_OPTIONS[0]);
   const editorRef = useRef<CodeEditorHandle>(null);
+  const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
+
+  const handleGenerated = useCallback((sql: string) => {
+    setQuery(sql);
+    setGenerateDialogOpen(false);
+  }, []);
+
+  const generateForm = useGenerateSqlForm(workspaceSlug, handleGenerated);
 
   const editor = useSavedQueryEditor({
     workspaceSlug,
@@ -128,6 +145,21 @@ const DataStudioEditor = ({
                   ))}
                 </select>
               </label>
+              {aiEnabled && (
+                <SubscriptionLimitTooltip
+                  isLimitReached={aiBudgetLimitReached}
+                  title={t("Monthly AI budget reached")}
+                >
+                  <button
+                    onClick={() => setGenerateDialogOpen(true)}
+                    disabled={aiBudgetLimitReached}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-md bg-indigo-100 px-2.5 text-xs font-medium text-indigo-700 hover:bg-indigo-200 disabled:cursor-not-allowed disabled:bg-transparent disabled:text-gray-300"
+                  >
+                    <SparklesIcon className="h-4 w-4" />
+                    {t("Generate")}
+                  </button>
+                </SubscriptionLimitTooltip>
+              )}
               <button
                 onClick={exportCsv}
                 disabled={!canExport}
@@ -202,6 +234,14 @@ const DataStudioEditor = ({
           savedQuery={editor.savedQuery}
           onClose={editor.closeDialog}
           onSaved={editor.onDialogSaved}
+        />
+      )}
+      {aiEnabled && (
+        <GenerateSqlDialog
+          open={generateDialogOpen}
+          onClose={() => setGenerateDialogOpen(false)}
+          form={generateForm}
+          monthlyLimitExceeded={monthlyLimitExceeded}
         />
       )}
     </>

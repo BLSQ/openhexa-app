@@ -274,6 +274,30 @@ def run_and_log_database_query(
     return result
 
 
+def validate_query(workspace: Workspace, query: str, timeout_ms: int = 5_000) -> None:
+    """Check a query against the database without executing it.
+
+    Runs ``EXPLAIN`` with the read-only role, which parses and plans the query,
+    catching syntax errors and references to unknown tables or columns at
+    near-zero cost. Raises ``MultipleStatementsError`` when more than one
+    statement is submitted and ``psycopg2.Error`` when the query is invalid.
+    """
+    ensure_single_statement(query)
+    conn = None
+    try:
+        conn = get_workspace_database_ro_connection(workspace)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("SET LOCAL statement_timeout = {timeout};").format(
+                    timeout=sql.Literal(timeout_ms)
+                )
+            )
+            cursor.execute("EXPLAIN " + query)
+    finally:
+        if conn:
+            conn.close()
+
+
 def get_database_definition(workspace: Workspace):
     conn = None
     try:
@@ -423,6 +447,30 @@ def get_database_definition_page(
             "total_items": total_items,
             "items": items,
         }
+    finally:
+        if conn:
+            conn.close()
+
+
+def get_full_database_definition(workspace: Workspace) -> List[Dict]:
+    """Return every table with its columns, without row counts.
+
+    Used to inline the whole database schema into LLM agent instructions:
+    row counts would trigger a potentially expensive COUNT(*) per table on
+    every conversation turn, and the consumer needs all tables at once, so
+    pagination does not apply.
+    """
+    conn = None
+    try:
+        conn = get_workspace_database_connection(workspace)
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            # LIMIT NULL means "no limit" in PostgreSQL, which lets us reuse
+            # the paginated query to fetch the full listing.
+            params = {"ignore_tables": IGNORE_TABLES, "limit": None, "offset": 0}
+            tables = _fetch_tables_with_columns(cursor, workspace, params)
+        for table in tables:
+            del table["count"]
+        return tables
     finally:
         if conn:
             conn.close()

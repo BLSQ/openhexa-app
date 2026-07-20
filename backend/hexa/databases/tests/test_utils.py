@@ -1,7 +1,14 @@
 import unittest
 from unittest import mock
 
-from psycopg2.errors import InsufficientPrivilege, QueryCanceled, UndefinedTable
+from psycopg2.errors import (
+    InsufficientPrivilege,
+    QueryCanceled,
+    UndefinedTable,
+)
+from psycopg2.errors import (
+    SyntaxError as PgSyntaxError,
+)
 from psycopg2.extras import DictRow
 
 from hexa.core.test import TestCase
@@ -16,9 +23,11 @@ from hexa.databases.utils import (
     execute_database_query,
     get_database_definition,
     get_database_definition_page,
+    get_full_database_definition,
     get_row_count,
     get_table_definition,
     get_table_rows,
+    validate_query,
 )
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
@@ -525,3 +534,44 @@ class DatabaseUtilsTest(TestCase):
             with self.subTest(statement=statement):
                 with self.assertRaises(InsufficientPrivilege):
                     execute_database_query(self.WORKSPACE, statement)
+
+    def test_get_full_database_definition(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")], table_name="demo_2")
+
+        result = get_full_database_definition(self.WORKSPACE)
+
+        names = [table["name"] for table in result]
+        self.assertIn("demo", names)
+        self.assertIn("demo_2", names)
+        demo = next(table for table in result if table["name"] == "demo")
+        self.assertEqual(
+            [{"name": "id", "type": "integer"}, {"name": "label", "type": "text"}],
+            demo["columns"],
+        )
+        # No row counts: computing them would be too expensive for the
+        # "inline the whole schema in LLM instructions" use case.
+        self.assertNotIn("count", demo)
+
+    def test_validate_query_accepts_valid_query(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+
+        # Does not raise.
+        validate_query(self.WORKSPACE, "SELECT id, label FROM demo ORDER BY id")
+
+    def test_validate_query_rejects_unknown_table(self):
+        with self.assertRaises(UndefinedTable):
+            validate_query(self.WORKSPACE, "SELECT * FROM does_not_exist")
+
+    def test_validate_query_rejects_syntax_error(self):
+        with self.assertRaises(PgSyntaxError):
+            validate_query(self.WORKSPACE, "SELEC 1")
+
+    def test_validate_query_rejects_multiple_statements(self):
+        with self.assertRaises(MultipleStatementsError):
+            validate_query(self.WORKSPACE, "SELECT 1; SELECT 2")
+
+    def test_validate_query_plans_without_executing(self):
+        # EXPLAIN only plans the query: a statement that would sleep far beyond
+        # the timeout validates instantly instead of raising QueryCanceled.
+        validate_query(self.WORKSPACE, "SELECT pg_sleep(3)", timeout_ms=100)

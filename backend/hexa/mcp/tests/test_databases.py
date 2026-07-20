@@ -1,6 +1,6 @@
 from hexa.core.test import TestCase
 from hexa.databases.tests.helpers import seed_demo_table
-from hexa.mcp.tools.databases import get_db_schema, get_db_table_schema
+from hexa.mcp.tools.databases import execute_sql, get_db_schema, get_db_table_schema
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Workspace,
@@ -142,3 +142,96 @@ class GetDbTableSchemaTest(DatabaseToolsTestCase):
 
         self.assertEqual("demo", result["name"])
         self.assertEqual(2, len(result["columns"]))
+
+
+class ExecuteSqlTest(DatabaseToolsTestCase):
+    def test_execute_sql_returns_rows(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
+
+        result = execute_sql(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            query="SELECT id, label FROM demo ORDER BY id",
+        )
+
+        self.assertTrue(result["success"])
+        self.assertEqual([], result["errors"])
+        self.assertEqual(["id", "label"], result["columns"])
+        self.assertEqual(
+            [{"id": 1, "label": "a"}, {"id": 2, "label": "b"}], result["rows"]
+        )
+        self.assertEqual(2, result["rowCount"])
+        self.assertFalse(result["truncated"])
+
+    def test_execute_sql_truncates_to_max_rows(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
+
+        result = execute_sql(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            query="SELECT id FROM demo ORDER BY id",
+            max_rows=2,
+        )
+
+        self.assertTrue(result["success"])
+        self.assertEqual(2, result["rowCount"])
+        self.assertTrue(result["truncated"])
+
+    def test_execute_sql_invalid_query_returns_error(self):
+        result = execute_sql(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            query="SELECT * FROM does_not_exist",
+        )
+
+        self.assertFalse(result["success"])
+        self.assertEqual(["QUERY_ERROR"], result["errors"])
+        self.assertIn("does_not_exist", result["errorMessage"])
+
+    def test_execute_sql_rejects_writes(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+
+        result = execute_sql(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            query="DELETE FROM demo",
+        )
+
+        self.assertFalse(result["success"])
+        self.assertEqual(["QUERY_ERROR"], result["errors"])
+
+    def test_execute_sql_rejects_multiple_statements(self):
+        result = execute_sql(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            query="SELECT 1; SELECT 2",
+        )
+
+        self.assertFalse(result["success"])
+        self.assertEqual(["MULTIPLE_STATEMENTS"], result["errors"])
+
+    def test_execute_sql_workspace_not_found(self):
+        result = execute_sql(
+            user=self.USER_ADMIN, workspace_slug="nonexistent", query="SELECT 1"
+        )
+        self.assertEqual(result, {"error": "Workspace not found"})
+
+    def test_execute_sql_no_access(self):
+        result = execute_sql(
+            user=self.USER_OUTSIDER,
+            workspace_slug=self.WORKSPACE.slug,
+            query="SELECT 1",
+        )
+        self.assertEqual(result, {"error": "Workspace not found"})
+
+    def test_execute_sql_viewer_can_run(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+
+        result = execute_sql(
+            user=self.USER_VIEWER,
+            workspace_slug=self.WORKSPACE.slug,
+            query="SELECT COUNT(*) AS n FROM demo",
+        )
+
+        self.assertTrue(result["success"])
+        self.assertEqual([{"n": 1}], result["rows"])
