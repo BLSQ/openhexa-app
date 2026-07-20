@@ -40,10 +40,10 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
 
     try:
         columns, row_dicts = stream_database_query(workspace, query)
-    except MultipleStatementsError as e:
-        return HttpResponseBadRequest(str(e))
-    except Psycopg2Error as e:
-        return HttpResponseBadRequest(str(e).strip())
+    except MultipleStatementsError:
+        return HttpResponseBadRequest("Only a single SQL statement is allowed.")
+    except Psycopg2Error:
+        return HttpResponseBadRequest("The query could not be executed.")
 
     rows = ([row[column] for column in columns] for row in row_dicts)
     response = stream_csv(header=columns, rows=rows, filename="query-results.csv")
