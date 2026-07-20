@@ -48,7 +48,10 @@ def stringify_cell(value: typing.Any) -> str:
     if isinstance(value, (bytes, bytearray, memoryview)):
         return "\\x" + bytes(value).hex()
     if isinstance(value, (dict, list)):
-        return json.dumps(value, default=str)
+        # Compact separators (no spaces) so this matches the frontend's
+        # JSON.stringify byte-for-byte — see the frontend buildCsv and its
+        # cross-path parity test.
+        return json.dumps(value, default=str, separators=(",", ":"))
     if isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
         return value.isoformat()
 

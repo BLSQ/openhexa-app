@@ -1,4 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
+import { buildCsv, downloadCsvBlob } from "./csv";
 import { downloadQueryCsv } from "./downloadQueryCsv";
 import { useDataStudioQuery } from "./useDataStudioQuery";
 
@@ -13,6 +14,11 @@ jest.mock("./downloadQueryCsv", () => ({
   downloadQueryCsv: jest.fn(),
 }));
 
+jest.mock("./csv", () => ({
+  buildCsv: jest.fn(() => "CSV_CONTENT"),
+  downloadCsvBlob: jest.fn(),
+}));
+
 const withResult = (executeSQL: unknown) => ({
   loading: false,
   data: { workspace: { database: { executeSQL } } },
@@ -21,6 +27,8 @@ const withResult = (executeSQL: unknown) => ({
 beforeEach(() => {
   mockExecute.mockClear();
   (downloadQueryCsv as jest.Mock).mockClear();
+  (buildCsv as jest.Mock).mockClear();
+  (downloadCsvBlob as jest.Mock).mockClear();
   mockState = { loading: false };
 });
 
@@ -64,19 +72,48 @@ describe("useDataStudioQuery", () => {
     expect(mockExecute).not.toHaveBeenCalled();
   });
 
-  it("downloads the last run query as CSV (a selection, not the editor)", () => {
+  it("builds the CSV client-side when the result is complete (not truncated)", () => {
+    mockState = withResult({
+      success: true,
+      truncated: false,
+      columns: ["id"],
+      rows: [{ id: 1 }],
+    });
     const { result } = renderHook(() => useDataStudioQuery("ws-1"));
     act(() => result.current.run("SELECT 2", 50));
 
     act(() => result.current.downloadCsv());
 
+    expect(buildCsv).toHaveBeenCalledWith(["id"], [{ id: 1 }]);
+    expect(downloadCsvBlob).toHaveBeenCalledWith(
+      "query-results.csv",
+      "CSV_CONTENT",
+    );
+    expect(downloadQueryCsv).not.toHaveBeenCalled();
+  });
+
+  it("streams from the server the last run query when the result was truncated", () => {
+    mockState = withResult({
+      success: true,
+      truncated: true,
+      rows: [{ id: 1 }],
+    });
+    const { result } = renderHook(() => useDataStudioQuery("ws-1"));
+    // Runs a query (which may be a selection), then exports: the server export
+    // must use what was run, not the editor contents.
+    act(() => result.current.run("SELECT 2", 50));
+
+    act(() => result.current.downloadCsv());
+
     expect(downloadQueryCsv).toHaveBeenCalledWith("ws-1", "SELECT 2");
+    expect(downloadCsvBlob).not.toHaveBeenCalled();
   });
 
   it("does not download before any query has run", () => {
     const { result } = renderHook(() => useDataStudioQuery("ws-1"));
     act(() => result.current.downloadCsv());
     expect(downloadQueryCsv).not.toHaveBeenCalled();
+    expect(downloadCsvBlob).not.toHaveBeenCalled();
   });
 
   it("allows export for a successful result with rows", () => {
