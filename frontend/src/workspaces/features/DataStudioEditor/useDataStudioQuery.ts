@@ -1,4 +1,5 @@
 import { useCallback, useRef } from "react";
+import { buildCsv, downloadCsvBlob } from "./csv";
 import { useExecuteWorkspaceSqlLazyQuery } from "./DataStudioEditor.generated";
 import { downloadQueryCsv } from "./downloadQueryCsv";
 
@@ -49,16 +50,30 @@ export const useDataStudioQuery = (workspaceSlug: string) => {
   }, [execute, loading]);
 
   // Export the query that produced the current result (which may be a selection,
-  // and may differ from the editor contents). The backend streams the *entire*
-  // result set, so maxRows — a display-only cap — is not forwarded. Reading the
-  // ref at call time avoids depending on a re-render to see the latest query.
+  // and may differ from the editor contents). Two paths:
+  //  - Fast: the interactive run returned the *whole* result (not truncated), so
+  //    every row is already in memory. Build the CSV client-side — instant, no
+  //    second DB round-trip, exports the exact on-screen snapshot, and cannot
+  //    fail. Memory is bounded by the interactive row cap that produced it.
+  //  - Heavy: the result was capped, so the full set is larger than we hold.
+  //    Re-run server-side and stream the entire set to disk. maxRows (a
+  //    display-only cap) is not forwarded.
+  // Reading the ref at call time avoids depending on a re-render to see the
+  // latest query.
   const downloadCsv = useCallback(() => {
     const lastRun = lastRunRef.current;
     if (loading || !lastRun) {
       return;
     }
+    if (result?.success && result.truncated === false) {
+      downloadCsvBlob(
+        "query-results.csv",
+        buildCsv(result.columns ?? [], result.rows ?? []),
+      );
+      return;
+    }
     downloadQueryCsv(lastRun.workspaceSlug, lastRun.query);
-  }, [loading]);
+  }, [loading, result]);
 
   return { run, retry, downloadCsv, result, loading, error, canExport };
 };
