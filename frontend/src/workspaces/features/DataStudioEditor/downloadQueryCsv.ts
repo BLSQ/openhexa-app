@@ -15,9 +15,12 @@ const DOWNLOAD_FRAME_NAME = "data-studio-csv-download-frame";
 // f"csvDownloadToken-{token}" in databases/views.py.
 const SUCCESS_COOKIE_PREFIX = "csvDownloadToken-";
 const POLL_INTERVAL_MS = 250;
-// Generous ceiling — longer than the backend download statement timeout — so a
-// legitimately slow export is not reported as failed while it is still running.
-const DOWNLOAD_TIMEOUT_MS = 6 * 60 * 1000;
+// Backstop for a hung backend, plus headroom for a successful export whose
+// serialisation tail runs past the query itself. Set to 2× the backend's 5-min
+// statement timeout (hexa/databases/utils.py DOWNLOAD_QUERY_TIMEOUT_MS): a query
+// that overruns that limit already fails fast via the iframe error path, so
+// 10 minutes covers the slow-but-succeeding case without undershooting.
+const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 
 const ensureDownloadFrame = (): HTMLIFrameElement => {
   const existing = document.querySelector<HTMLIFrameElement>(

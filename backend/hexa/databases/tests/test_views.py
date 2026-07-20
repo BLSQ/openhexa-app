@@ -1,6 +1,7 @@
 from unittest import mock
 
 from django.urls import reverse
+from psycopg2.errors import QueryCanceled
 
 from hexa.core.csv import UTF8_BOM
 from hexa.core.test import TestCase
@@ -113,6 +114,30 @@ class DownloadQueryCsvViewTest(TestCase):
         )
 
         self.assertEqual(400, response.status_code)
+        self.assertNotIn("csvDownloadToken-tok-123", response.cookies)
+
+    def test_download_failing_mid_scan_returns_a_clean_error_not_a_partial_file(self):
+        self.client.force_login(self.USER_SABRINA)
+
+        # A query that starts returning rows and then fails (e.g. statement
+        # timeout on a large scan). Because the CSV is buffered before the
+        # response is sent, this must surface as a 400 with no bytes and no
+        # success cookie — never a truncated 200 attachment.
+        def failing_rows():
+            yield {"id": 1}
+            raise QueryCanceled("canceling statement due to statement timeout")
+
+        with mock.patch(
+            "hexa.databases.views.stream_database_query",
+            return_value=(["id"], failing_rows()),
+        ):
+            response = self.client.post(
+                self._url(),
+                {"query": "SELECT id FROM demo", "download_token": "tok-123"},
+            )
+
+        self.assertEqual(400, response.status_code)
+        self.assertFalse(response.streaming)
         self.assertNotIn("csvDownloadToken-tok-123", response.cookies)
 
     def test_download_ignores_the_interactive_row_cap(self):

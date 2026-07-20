@@ -8,7 +8,13 @@ from django.http import StreamingHttpResponse
 from hexa.core.test import TestCase
 from hexa.user_management.models import Membership, Team, User
 
-from ..csv import UTF8_BOM, render_queryset_to_csv, stream_csv, stringify_cell
+from ..csv import (
+    UTF8_BOM,
+    buffered_csv_response,
+    render_queryset_to_csv,
+    stream_csv,
+    stringify_cell,
+)
 
 # Shared with the frontend (DataStudioEditor/csv.parity.test.ts): the single
 # source of truth for how a cell must serialise. Both export paths are checked
@@ -98,3 +104,33 @@ class CsvCellSerialisationTest(TestCase):
             stringify_cell(datetime.datetime(2024, 1, 2, 3, 4, 5)),
         )
         self.assertEqual("2024-01-02", stringify_cell(datetime.date(2024, 1, 2)))
+
+
+class BufferedCsvResponseTest(TestCase):
+    def test_writes_the_whole_file_as_an_attachment(self):
+        response = buffered_csv_response(
+            header=["a", "b"],
+            rows=[["1", "2"], ["3", "4"]],
+            filename="query-results.csv",
+        )
+        body = b"".join(response.streaming_content).decode("utf-8")
+        self.assertEqual(UTF8_BOM + "a,b\r\n1,2\r\n3,4\r\n", body)
+        self.assertEqual(
+            'attachment; filename="query-results.csv"',
+            response.headers["Content-Disposition"],
+        )
+        # A definite size (vs chunked streaming) lets the browser itself detect a
+        # truncated transfer.
+        self.assertIn("Content-Length", response.headers)
+
+    def test_row_error_propagates_before_any_response(self):
+        # The whole point of buffering: a failure mid-iteration must raise here,
+        # not silently truncate an already-started download.
+        def rows():
+            yield ["ok", "x"]
+            raise RuntimeError("mid-iteration failure")
+
+        with self.assertRaises(RuntimeError):
+            buffered_csv_response(
+                header=["a", "b"], rows=rows(), filename="query-results.csv"
+            )

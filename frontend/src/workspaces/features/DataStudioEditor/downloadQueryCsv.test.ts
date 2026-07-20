@@ -136,7 +136,7 @@ describe("downloadQueryCsv", () => {
     const promise = downloadQueryCsv("ws-1", "SELECT 1");
     const assertion = expect(promise).rejects.toThrow("timed out");
 
-    jest.advanceTimersByTime(6 * 60 * 1000 + 1000);
+    jest.advanceTimersByTime(10 * 60 * 1000 + 1000);
     await assertion;
   });
 });
