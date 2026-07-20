@@ -4,11 +4,9 @@ import json
 import re
 import typing
 from decimal import Decimal
-from operator import attrgetter
 from tempfile import SpooledTemporaryFile
 
-from django.db.models import QuerySet
-from django.http import FileResponse, StreamingHttpResponse
+from django.http import FileResponse
 
 # Buffer the CSV in memory up to this size before spilling to a temp file on
 # disk. Bounds RAM per concurrent export while keeping small exports off disk.
@@ -31,7 +29,8 @@ class Echo:
     """A file-like object whose ``write`` returns the value written.
 
     Passed to ``csv.writer`` so each ``writerow`` yields its formatted line
-    instead of buffering it, which is what lets ``stream_csv`` emit rows lazily.
+    instead of buffering it, which is what lets ``iter_csv`` emit lines one by
+    one.
     """
 
     def write(self, value: str) -> str:
@@ -82,8 +81,8 @@ def iter_csv(
     """Yield the CSV text of ``header`` + ``rows``, one formatted line at a time.
 
     ``rows`` is consumed lazily, so the caller may pass a generator backed by a
-    server-side database cursor. This is the single serialisation point shared by
-    both :func:`stream_csv` and :func:`buffered_csv_response`.
+    server-side database cursor. This is the single serialisation point used by
+    :func:`buffered_csv_response`.
     """
     writer = csv.writer(Echo())
     if with_bom:
@@ -91,30 +90,6 @@ def iter_csv(
     yield writer.writerow([stringify_cell(cell) for cell in header])
     for row in rows:
         yield writer.writerow([stringify_cell(cell) for cell in row])
-
-
-def stream_csv(
-    *,
-    header: typing.Sequence[typing.Any],
-    rows: typing.Iterable[typing.Sequence[typing.Any]],
-    filename: str,
-    with_bom: bool = True,
-) -> StreamingHttpResponse:
-    """Stream ``rows`` as a CSV attachment without buffering them in memory.
-
-    ``rows`` is consumed lazily as the response is written. A failure while
-    producing rows therefore surfaces *after* the ``200`` and some bytes are
-    already on the wire, truncating the download silently — acceptable only when
-    ``rows`` cannot realistically fail mid-iteration (e.g. a bounded ORM
-    queryset). For an arbitrary user query, prefer :func:`buffered_csv_response`.
-    """
-    _require_csv_filename(filename)
-    response = StreamingHttpResponse(
-        iter_csv(header=header, rows=rows, with_bom=with_bom),
-        content_type="text/csv; charset=utf-8",
-    )
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
-    return response
 
 
 def buffered_csv_response(
@@ -126,12 +101,12 @@ def buffered_csv_response(
 ) -> FileResponse:
     """Materialise the whole CSV, then return it as a downloadable attachment.
 
-    Unlike :func:`stream_csv`, every row is written to a spooled temp file
-    *before* the response is returned, so a failure while producing rows (an
-    invalid query, a statement timeout mid-scan, a dropped DB connection) raises
-    from here — before any byte has reached the client — letting the caller
-    return a clean error status instead of a silently truncated download. Peak
-    memory stays bounded: the buffer spills to disk past ``_CSV_SPOOL_MAX_MEMORY``.
+    Every row is written to a spooled temp file *before* the response is
+    returned, so a failure while producing rows (an invalid query, a statement
+    timeout mid-scan, a dropped DB connection) raises from here — before any byte
+    has reached the client — letting the caller return a clean error status
+    instead of a silently truncated download. Peak memory stays bounded: the
+    buffer spills to disk past ``_CSV_SPOOL_MAX_MEMORY``.
 
     The trade-off is latency: the client sees nothing until the query has fully
     run and serialised. See ``hexa.databases.views.download_query_csv`` for the
@@ -155,19 +130,3 @@ def buffered_csv_response(
         filename=filename,
         content_type="text/csv; charset=utf-8",
     )
-
-
-def _get_or_none(obj: typing.Any, field: str) -> typing.Any:
-    try:
-        return attrgetter(field)(obj)
-    except (AttributeError, KeyError):
-        return None
-
-
-def render_queryset_to_csv(
-    queryset: QuerySet, *, filename: str, field_names: typing.Sequence[str]
-) -> StreamingHttpResponse:
-    """Stream a queryset as CSV. Field names may use dots for nested access."""
-    header = [name.replace(".", "_") for name in field_names]
-    rows = ([_get_or_none(obj, field) for field in field_names] for obj in queryset)
-    return stream_csv(header=header, rows=rows, filename=filename)
