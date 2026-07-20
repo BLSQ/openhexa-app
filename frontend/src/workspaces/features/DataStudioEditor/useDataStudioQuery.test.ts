@@ -1,4 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
+import { downloadQueryCsv } from "./downloadQueryCsv";
 import { useDataStudioQuery } from "./useDataStudioQuery";
 
 const mockExecute = jest.fn();
@@ -8,6 +9,10 @@ jest.mock("./DataStudioEditor.generated", () => ({
   useExecuteWorkspaceSqlLazyQuery: () => [mockExecute, mockState],
 }));
 
+jest.mock("./downloadQueryCsv", () => ({
+  downloadQueryCsv: jest.fn(),
+}));
+
 const withResult = (executeSQL: unknown) => ({
   loading: false,
   data: { workspace: { database: { executeSQL } } },
@@ -15,6 +20,7 @@ const withResult = (executeSQL: unknown) => ({
 
 beforeEach(() => {
   mockExecute.mockClear();
+  (downloadQueryCsv as jest.Mock).mockClear();
   mockState = { loading: false };
 });
 
@@ -56,6 +62,21 @@ describe("useDataStudioQuery", () => {
     const { result } = renderHook(() => useDataStudioQuery("ws-1"));
     act(() => result.current.retry());
     expect(mockExecute).not.toHaveBeenCalled();
+  });
+
+  it("downloads the last run query as CSV (a selection, not the editor)", () => {
+    const { result } = renderHook(() => useDataStudioQuery("ws-1"));
+    act(() => result.current.run("SELECT 2", 50));
+
+    act(() => result.current.downloadCsv());
+
+    expect(downloadQueryCsv).toHaveBeenCalledWith("ws-1", "SELECT 2");
+  });
+
+  it("does not download before any query has run", () => {
+    const { result } = renderHook(() => useDataStudioQuery("ws-1"));
+    act(() => result.current.downloadCsv());
+    expect(downloadQueryCsv).not.toHaveBeenCalled();
   });
 
   it("allows export for a successful result with rows", () => {

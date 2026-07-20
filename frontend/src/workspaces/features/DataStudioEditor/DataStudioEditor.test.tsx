@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { downloadBlob } from "core/helpers/files";
 import DataStudioEditor from "./DataStudioEditor";
+import { downloadQueryCsv } from "./downloadQueryCsv";
 
 // `useTranslation` is globally mocked to echo the key, so button/label
 // assertions below use the raw key strings.
@@ -91,8 +91,8 @@ jest.mock("core/components/CodeEditor/CodeEditor", () => {
   };
 });
 
-jest.mock("core/helpers/files", () => ({
-  downloadBlob: jest.fn(),
+jest.mock("./downloadQueryCsv", () => ({
+  downloadQueryCsv: jest.fn(),
 }));
 
 const successState = (overrides: Record<string, unknown> = {}) => ({
@@ -117,13 +117,12 @@ const successState = (overrides: Record<string, unknown> = {}) => ({
   },
 });
 
-const renderEditor = () =>
-  render(<DataStudioEditor workspaceSlug="ws-1" />);
+const renderEditor = () => render(<DataStudioEditor workspaceSlug="ws-1" />);
 
 beforeEach(() => {
   mockExecute.mockClear();
   mockInsertText.mockClear();
-  (downloadBlob as jest.Mock).mockClear();
+  (downloadQueryCsv as jest.Mock).mockClear();
   mockQueryState = { loading: false };
 });
 
@@ -206,16 +205,18 @@ describe("DataStudioEditor", () => {
     });
   });
 
-  it("exports the current result to CSV", async () => {
+  it("exports the last run query, not the current editor contents", async () => {
     mockQueryState = successState();
     renderEditor();
+    // Run one query, then change the editor: the export must use what was run.
+    await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
+    await userEvent.click(screen.getByRole("button", { name: "Run" }));
+    await userEvent.type(screen.getByTestId("editor"), " -- edited");
 
     await userEvent.click(screen.getByRole("button", { name: "Export CSV" }));
-    expect(downloadBlob).toHaveBeenCalledTimes(1);
-    expect(downloadBlob).toHaveBeenCalledWith(
-      "query-results.csv",
-      expect.any(Blob),
-    );
+
+    expect(downloadQueryCsv).toHaveBeenCalledTimes(1);
+    expect(downloadQueryCsv).toHaveBeenCalledWith("ws-1", "SELECT 1");
   });
 
   it("disables export until there is a successful result with rows", () => {

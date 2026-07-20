@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "react";
 import { useExecuteWorkspaceSqlLazyQuery } from "./DataStudioEditor.generated";
+import { downloadQueryCsv } from "./downloadQueryCsv";
 
 type DataStudioQueryVariables = {
   workspaceSlug: string;
@@ -47,5 +48,17 @@ export const useDataStudioQuery = (workspaceSlug: string) => {
     execute({ variables: lastRunRef.current });
   }, [execute, loading]);
 
-  return { run, retry, result, loading, error, canExport };
+  // Export the query that produced the current result (which may be a selection,
+  // and may differ from the editor contents). The backend streams the *entire*
+  // result set, so maxRows — a display-only cap — is not forwarded. Reading the
+  // ref at call time avoids depending on a re-render to see the latest query.
+  const downloadCsv = useCallback(() => {
+    const lastRun = lastRunRef.current;
+    if (loading || !lastRun) {
+      return;
+    }
+    downloadQueryCsv(lastRun.workspaceSlug, lastRun.query);
+  }, [loading]);
+
+  return { run, retry, downloadCsv, result, loading, error, canExport };
 };

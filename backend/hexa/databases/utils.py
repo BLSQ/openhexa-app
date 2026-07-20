@@ -3,7 +3,7 @@ import json
 import math
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import Dict, Iterator, List, Tuple
 
 import psycopg2
 import sqlparse
@@ -179,6 +179,70 @@ def execute_database_query(
     finally:
         if conn:
             conn.close()
+
+
+# Downloads export the full result set, so the interactive per-request timeout is
+# far too short. A generous ceiling still guards against a runaway scan pinning a
+# read-only connection indefinitely.
+DOWNLOAD_QUERY_TIMEOUT_MS = 5 * 60 * 1000
+# Rows are fetched from the server-side cursor in batches of this size, bounding
+# peak memory regardless of how large the result set is.
+DOWNLOAD_QUERY_BATCH_SIZE = 2_000
+
+
+def stream_database_query(
+    workspace: Workspace,
+    query: str,
+    *,
+    timeout_ms: int = DOWNLOAD_QUERY_TIMEOUT_MS,
+    batch_size: int = DOWNLOAD_QUERY_BATCH_SIZE,
+) -> Tuple[List[str], Iterator[dict]]:
+    """Execute a read-only query and stream its full result set, row by row.
+
+    Unlike :func:`execute_database_query`, no row cap is applied: the whole
+    result is meant to be written straight to a download. A named (server-side)
+    cursor keeps peak memory bounded to ``batch_size`` rows whatever the result
+    size, instead of buffering everything client-side.
+
+    The query is executed and its first batch fetched eagerly, so an invalid
+    statement raises here (and can surface as an HTTP 400) rather than failing
+    mid-stream once bytes are already on the wire. The returned generator owns
+    the connection and closes it when exhausted or closed early (e.g. if the
+    client disconnects).
+    """
+    ensure_single_statement(query)
+    conn = get_workspace_database_ro_connection(workspace)
+    try:
+        with conn.cursor() as setup_cursor:
+            setup_cursor.execute(
+                sql.SQL("SET LOCAL statement_timeout = {timeout};").format(
+                    timeout=sql.Literal(timeout_ms)
+                )
+            )
+        cursor = conn.cursor(
+            name="data_studio_csv_download", cursor_factory=RealDictCursor
+        )
+        cursor.itersize = batch_size
+        cursor.execute(query)
+        first_batch = cursor.fetchmany(batch_size)
+        columns = (
+            [column.name for column in cursor.description] if cursor.description else []
+        )
+    except Exception:
+        conn.close()
+        raise
+
+    def rows() -> Iterator[dict]:
+        try:
+            batch = first_batch
+            while batch:
+                yield from batch
+                batch = cursor.fetchmany(batch_size)
+        finally:
+            cursor.close()
+            conn.close()
+
+    return columns, rows()
 
 
 def get_database_definition(workspace: Workspace):

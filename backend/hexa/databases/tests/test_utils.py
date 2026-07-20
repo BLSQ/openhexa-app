@@ -19,6 +19,8 @@ from hexa.databases.utils import (
     get_row_count,
     get_table_definition,
     get_table_rows,
+    get_workspace_database_ro_connection,
+    stream_database_query,
 )
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
@@ -525,3 +527,57 @@ class DatabaseUtilsTest(TestCase):
             with self.subTest(statement=statement):
                 with self.assertRaises(InsufficientPrivilege):
                     execute_database_query(self.WORKSPACE, statement)
+
+    def test_stream_database_query_returns_every_row(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
+
+        columns, rows = stream_database_query(
+            self.WORKSPACE, "SELECT id, label FROM demo ORDER BY id"
+        )
+
+        self.assertEqual(["id", "label"], columns)
+        self.assertEqual(
+            [
+                {"id": 1, "label": "a"},
+                {"id": 2, "label": "b"},
+                {"id": 3, "label": "c"},
+            ],
+            list(rows),
+        )
+
+    def test_stream_database_query_is_not_capped(self):
+        # generate_series returns far more rows than the interactive default cap;
+        # the stream must yield all of them.
+        columns, rows = stream_database_query(
+            self.WORKSPACE, "SELECT generate_series(1, 5000) AS id"
+        )
+
+        self.assertEqual(["id"], columns)
+        self.assertEqual(5000, sum(1 for _ in rows))
+
+    def test_stream_database_query_batches_across_multiple_fetches(self):
+        # A batch_size smaller than the result forces several server-side fetches;
+        # all rows must still come through in order.
+        columns, rows = stream_database_query(
+            self.WORKSPACE,
+            "SELECT generate_series(1, 5) AS id",
+            batch_size=2,
+        )
+
+        self.assertEqual([1, 2, 3, 4, 5], [row["id"] for row in rows])
+
+    def test_stream_database_query_rejects_multiple_statements(self):
+        with self.assertRaises(MultipleStatementsError):
+            stream_database_query(self.WORKSPACE, "SELECT 1; SELECT 2")
+
+    def test_stream_database_query_closes_connection_when_exhausted(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+        real_connection = get_workspace_database_ro_connection(self.WORKSPACE)
+        with mock.patch(
+            "hexa.databases.utils.get_workspace_database_ro_connection",
+            return_value=real_connection,
+        ):
+            _, rows = stream_database_query(self.WORKSPACE, "SELECT id FROM demo")
+            list(rows)
+
+        self.assertTrue(real_connection.closed)

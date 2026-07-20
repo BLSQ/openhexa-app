@@ -47,6 +47,7 @@ urlpatterns = [
     path("pipelines/", include("hexa.pipelines.urls", namespace="pipelines")),
     path("workspaces/", include("hexa.workspaces.urls", namespace="workspaces")),
     path("files/", include("hexa.files.urls", namespace="files")),
+    path("databases/", include("hexa.databases.urls", namespace="databases")),
     path("analytics/", include("hexa.analytics.urls", namespace="analytics")),
     path("superset/", include("hexa.superset.urls", namespace="superset")),
     path("oauth/", include("hexa.oauth.urls")),

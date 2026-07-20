@@ -1,9 +1,9 @@
-from django.http import HttpResponse
+from django.http import StreamingHttpResponse
 
 from hexa.core.test import TestCase
 from hexa.user_management.models import Membership, Team, User
 
-from ..csv import render_queryset_to_csv
+from ..csv import UTF8_BOM, render_queryset_to_csv
 
 
 class CsvTest(TestCase):
@@ -33,17 +33,18 @@ class CsvTest(TestCase):
                 "user.foo.bar",
             ],
         )
-        self.assertIsInstance(response, HttpResponse)
+        self.assertIsInstance(response, StreamingHttpResponse)
         self.assertEqual(200, response.status_code)
         self.assertEqual(
-            "attachment;filename=memberships.csv",
-            response.headers["content-Disposition"],
+            'attachment; filename="memberships.csv"',
+            response.headers["Content-Disposition"],
         )
+        content = b"".join(response.streaming_content)
         self.assertEqual(
             (
-                "id,team_name,user_email,user_first_name,user_foo_bar\r\n"
+                UTF8_BOM + "id,team_name,user_email,user_first_name,user_foo_bar\r\n"
                 f"{self.MEMBERSHIP_1.id},Tèst Teâm,jim@bluesquarehub.com,,\r\n"
                 f"{self.MEMBERSHIP_2.id},Tèst Teâm,mary@bluesquarehub.com,,\r\n"
             ).encode(),
-            response.content,
+            content,
         )

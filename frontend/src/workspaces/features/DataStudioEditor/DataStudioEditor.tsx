@@ -7,7 +7,6 @@ import CodeEditor, {
 import useIsMac from "core/hooks/useIsMac";
 import { useTranslation } from "next-i18next";
 import { useRef, useState } from "react";
-import { buildCsv, downloadCsv } from "./csv";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
 import { useDataStudioQuery } from "./useDataStudioQuery";
@@ -30,7 +29,7 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
   // ⌘ on macOS; other platforms keep the spelled-out modifier.
   const runShortcutBadge = isMac ? "⌘↵" : "Ctrl+Enter";
 
-  const { run, retry, result, loading, error, canExport } =
+  const { run, retry, downloadCsv, result, loading, error, canExport } =
     useDataStudioQuery(workspaceSlug);
 
   const canRun = !loading && Boolean(query.trim());
@@ -38,14 +37,6 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
   const runSelection = () => {
     const selected = editorRef.current?.getSelectedText() ?? "";
     run(selected.trim() || query, maxRows);
-  };
-
-  const exportCsv = () => {
-    if (!result?.success) {
-      return;
-    }
-    const csv = buildCsv(result.columns ?? [], result.rows ?? []);
-    downloadCsv("query-results.csv", csv);
   };
 
   // Bound inside CodeMirror (see CodeEditor `shortcuts`) so the keystroke is
@@ -87,7 +78,7 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
               </select>
             </label>
             <button
-              onClick={exportCsv}
+              onClick={downloadCsv}
               disabled={!canExport}
               className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
             >
