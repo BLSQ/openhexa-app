@@ -64,6 +64,7 @@ requests-mock
 mixpanel
 mixpanel-py-async
 ua-parser
+django-sql-dashboard
 
 # dataset explorer
 pyarrow
