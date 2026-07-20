@@ -15,6 +15,7 @@ describe("downloadQueryCsv", () => {
   let submitSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     submittedForms = [];
     // jsdom does not implement form submission/navigation, so capture the form
     // at submit time instead of letting it navigate.
@@ -29,10 +30,12 @@ describe("downloadQueryCsv", () => {
 
   afterEach(() => {
     submitSpy.mockRestore();
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 
-  it("posts the query and CSRF token to the download endpoint", () => {
-    downloadQueryCsv("ws-1", "SELECT 1");
+  it("posts the query, token and CSRF token to the download endpoint", () => {
+    void downloadQueryCsv("ws-1", "SELECT 1");
 
     expect(submittedForms).toHaveLength(1);
     const form = submittedForms[0];
@@ -42,19 +45,20 @@ describe("downloadQueryCsv", () => {
     );
     expect(form.target).toBe("data-studio-csv-download-frame");
     expect(fieldValue(form, "query")).toBe("SELECT 1");
+    expect(fieldValue(form, "download_token")).toBeTruthy();
     expect(fieldValue(form, "csrfmiddlewaretoken")).toBe("csrf-token-123");
   });
 
   it("encodes the workspace slug into the URL", () => {
-    downloadQueryCsv("ws/odd slug", "SELECT 1");
+    void downloadQueryCsv("ws/odd slug", "SELECT 1");
     expect(submittedForms[0].getAttribute("action")).toContain(
       "/databases/ws%2Fodd%20slug/query/download/",
     );
   });
 
   it("reuses a single hidden download iframe across calls", () => {
-    downloadQueryCsv("ws-1", "SELECT 1");
-    downloadQueryCsv("ws-1", "SELECT 2");
+    void downloadQueryCsv("ws-1", "SELECT 1");
+    void downloadQueryCsv("ws-1", "SELECT 2");
 
     expect(document.querySelectorAll(DOWNLOAD_FRAME)).toHaveLength(1);
     expect(submittedForms).toHaveLength(2);
@@ -62,14 +66,52 @@ describe("downloadQueryCsv", () => {
 
   it("omits the CSRF field when there is no token cookie", () => {
     (getCookie as jest.Mock).mockReturnValue(undefined);
-    downloadQueryCsv("ws-1", "SELECT 1");
+    void downloadQueryCsv("ws-1", "SELECT 1");
     expect(
       fieldValue(submittedForms[0], "csrfmiddlewaretoken"),
     ).toBeUndefined();
   });
 
   it("removes the transient form from the document after submitting", () => {
-    downloadQueryCsv("ws-1", "SELECT 1");
+    void downloadQueryCsv("ws-1", "SELECT 1");
     expect(document.querySelectorAll("form")).toHaveLength(0);
+  });
+
+  it("resolves once the server echoes the token cookie (download started)", async () => {
+    // The backend sets csvDownloadToken to our token when streaming begins.
+    let serverToken: string | undefined;
+    (getCookie as jest.Mock).mockImplementation((name: string) =>
+      name === "csvDownloadToken" ? serverToken : "csrf-token-123",
+    );
+
+    const promise = downloadQueryCsv("ws-1", "SELECT 1");
+    serverToken = fieldValue(submittedForms[0], "download_token");
+
+    jest.advanceTimersByTime(300);
+    await expect(promise).resolves.toBeUndefined();
+  });
+
+  it("rejects with the server's message when an error page loads in the iframe", async () => {
+    const promise = downloadQueryCsv("ws-1", "SELECT bad");
+    const assertion = expect(promise).rejects.toThrow(
+      "Only a single SQL statement",
+    );
+
+    const iframe = document.querySelector<HTMLIFrameElement>(DOWNLOAD_FRAME)!;
+    // A failed response navigates the iframe to an error body (unlike a download).
+    iframe.contentDocument!.body.textContent =
+      "Only a single SQL statement can be executed.";
+    iframe.dispatchEvent(new Event("load"));
+
+    await assertion;
+  });
+
+  it("rejects when the download never starts (timeout)", async () => {
+    (getCookie as jest.Mock).mockReturnValue(undefined);
+    const promise = downloadQueryCsv("ws-1", "SELECT 1");
+    const assertion = expect(promise).rejects.toThrow("timed out");
+
+    jest.advanceTimersByTime(6 * 60 * 1000 + 1000);
+    await assertion;
   });
 });

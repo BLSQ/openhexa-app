@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { buildCsv, downloadCsvBlob } from "./csv";
 import DataStudioEditor from "./DataStudioEditor";
@@ -101,6 +101,10 @@ jest.mock("./csv", () => ({
   downloadCsvBlob: jest.fn(),
 }));
 
+jest.mock("react-toastify", () => ({
+  toast: { error: jest.fn() },
+}));
+
 const successState = (overrides: Record<string, unknown> = {}) => ({
   loading: false,
   data: {
@@ -129,6 +133,7 @@ beforeEach(() => {
   mockExecute.mockClear();
   mockInsertText.mockClear();
   (downloadQueryCsv as jest.Mock).mockClear();
+  (downloadQueryCsv as jest.Mock).mockResolvedValue(undefined);
   (buildCsv as jest.Mock).mockClear();
   (downloadCsvBlob as jest.Mock).mockClear();
   mockQueryState = { loading: false };
@@ -235,8 +240,10 @@ describe("DataStudioEditor", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Export CSV" }));
 
+    await waitFor(() =>
+      expect(downloadQueryCsv).toHaveBeenCalledWith("ws-1", "SELECT 1"),
+    );
     expect(downloadQueryCsv).toHaveBeenCalledTimes(1);
-    expect(downloadQueryCsv).toHaveBeenCalledWith("ws-1", "SELECT 1");
     expect(downloadCsvBlob).not.toHaveBeenCalled();
   });
 

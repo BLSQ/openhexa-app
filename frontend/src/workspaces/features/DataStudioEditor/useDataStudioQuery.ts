@@ -1,4 +1,6 @@
-import { useCallback, useRef } from "react";
+import { useTranslation } from "next-i18next";
+import { useCallback, useRef, useState } from "react";
+import { toast } from "react-toastify";
 import { buildCsv, downloadCsvBlob } from "./csv";
 import { useExecuteWorkspaceSqlLazyQuery } from "./DataStudioEditor.generated";
 import { downloadQueryCsv } from "./downloadQueryCsv";
@@ -14,11 +16,15 @@ type DataStudioQueryVariables = {
 // Keeping this out of the component lets the run/retry semantics be tested on
 // their own and keeps DataStudioEditor focused on presentation.
 export const useDataStudioQuery = (workspaceSlug: string) => {
+  const { t } = useTranslation();
   // Results are large, ad-hoc, and never read from the cache elsewhere; skip
   // normalisation so big result sets are not retained for the page lifetime.
   const [execute, { data, loading, error }] = useExecuteWorkspaceSqlLazyQuery({
     fetchPolicy: "no-cache",
   });
+  // True while a server-side (heavy) export is in flight; the client-side fast
+  // path is synchronous and never sets it.
+  const [exporting, setExporting] = useState(false);
 
   // The last executed variables, so Retry re-runs exactly what failed — which
   // may be a selection, and may differ from the current editor contents.
@@ -60,9 +66,9 @@ export const useDataStudioQuery = (workspaceSlug: string) => {
   //    display-only cap) is not forwarded.
   // Reading the ref at call time avoids depending on a re-render to see the
   // latest query.
-  const downloadCsv = useCallback(() => {
+  const downloadCsv = useCallback(async () => {
     const lastRun = lastRunRef.current;
-    if (loading || !lastRun) {
+    if (loading || exporting || !lastRun) {
       return;
     }
     if (result?.success && result.truncated === false) {
@@ -72,8 +78,27 @@ export const useDataStudioQuery = (workspaceSlug: string) => {
       );
       return;
     }
-    downloadQueryCsv(lastRun.workspaceSlug, lastRun.query);
-  }, [loading, result]);
+    // The heavy path streams via a hidden iframe, whose errors are otherwise
+    // silent; downloadQueryCsv resolves only once the download starts and
+    // rejects on failure, so surface that to the user.
+    setExporting(true);
+    try {
+      await downloadQueryCsv(lastRun.workspaceSlug, lastRun.query);
+    } catch {
+      toast.error(t("Could not export the query results. Please try again."));
+    } finally {
+      setExporting(false);
+    }
+  }, [loading, exporting, result, t]);
 
-  return { run, retry, downloadCsv, result, loading, error, canExport };
+  return {
+    run,
+    retry,
+    downloadCsv,
+    exporting,
+    result,
+    loading,
+    error,
+    canExport,
+  };
 };

@@ -1,4 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
+import { toast } from "react-toastify";
 import { buildCsv, downloadCsvBlob } from "./csv";
 import { downloadQueryCsv } from "./downloadQueryCsv";
 import { useDataStudioQuery } from "./useDataStudioQuery";
@@ -19,6 +20,10 @@ jest.mock("./csv", () => ({
   downloadCsvBlob: jest.fn(),
 }));
 
+jest.mock("react-toastify", () => ({
+  toast: { error: jest.fn() },
+}));
+
 const withResult = (executeSQL: unknown) => ({
   loading: false,
   data: { workspace: { database: { executeSQL } } },
@@ -27,8 +32,10 @@ const withResult = (executeSQL: unknown) => ({
 beforeEach(() => {
   mockExecute.mockClear();
   (downloadQueryCsv as jest.Mock).mockClear();
+  (downloadQueryCsv as jest.Mock).mockResolvedValue(undefined);
   (buildCsv as jest.Mock).mockClear();
   (downloadCsvBlob as jest.Mock).mockClear();
+  (toast.error as jest.Mock).mockClear();
   mockState = { loading: false };
 });
 
@@ -72,7 +79,7 @@ describe("useDataStudioQuery", () => {
     expect(mockExecute).not.toHaveBeenCalled();
   });
 
-  it("builds the CSV client-side when the result is complete (not truncated)", () => {
+  it("builds the CSV client-side when the result is complete (not truncated)", async () => {
     mockState = withResult({
       success: true,
       truncated: false,
@@ -82,7 +89,9 @@ describe("useDataStudioQuery", () => {
     const { result } = renderHook(() => useDataStudioQuery("ws-1"));
     act(() => result.current.run("SELECT 2", 50));
 
-    act(() => result.current.downloadCsv());
+    await act(async () => {
+      await result.current.downloadCsv();
+    });
 
     expect(buildCsv).toHaveBeenCalledWith(["id"], [{ id: 1 }]);
     expect(downloadCsvBlob).toHaveBeenCalledWith(
@@ -92,7 +101,7 @@ describe("useDataStudioQuery", () => {
     expect(downloadQueryCsv).not.toHaveBeenCalled();
   });
 
-  it("streams from the server the last run query when the result was truncated", () => {
+  it("streams from the server the last run query when the result was truncated", async () => {
     mockState = withResult({
       success: true,
       truncated: true,
@@ -103,15 +112,66 @@ describe("useDataStudioQuery", () => {
     // must use what was run, not the editor contents.
     act(() => result.current.run("SELECT 2", 50));
 
-    act(() => result.current.downloadCsv());
+    await act(async () => {
+      await result.current.downloadCsv();
+    });
 
     expect(downloadQueryCsv).toHaveBeenCalledWith("ws-1", "SELECT 2");
     expect(downloadCsvBlob).not.toHaveBeenCalled();
+    expect(result.current.exporting).toBe(false);
   });
 
-  it("does not download before any query has run", () => {
+  it("toasts and clears the exporting state when a server export fails", async () => {
+    (downloadQueryCsv as jest.Mock).mockRejectedValue(new Error("boom"));
+    mockState = withResult({
+      success: true,
+      truncated: true,
+      rows: [{ id: 1 }],
+    });
     const { result } = renderHook(() => useDataStudioQuery("ws-1"));
-    act(() => result.current.downloadCsv());
+    act(() => result.current.run("SELECT 2", 50));
+
+    await act(async () => {
+      await result.current.downloadCsv();
+    });
+
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    expect(result.current.exporting).toBe(false);
+  });
+
+  it("marks exporting while a server export is in flight", async () => {
+    let resolveDownload!: () => void;
+    (downloadQueryCsv as jest.Mock).mockReturnValue(
+      new Promise<void>((res) => {
+        resolveDownload = res;
+      }),
+    );
+    mockState = withResult({
+      success: true,
+      truncated: true,
+      rows: [{ id: 1 }],
+    });
+    const { result } = renderHook(() => useDataStudioQuery("ws-1"));
+    act(() => result.current.run("SELECT 2", 50));
+
+    let call!: Promise<void>;
+    act(() => {
+      call = result.current.downloadCsv();
+    });
+    expect(result.current.exporting).toBe(true);
+
+    await act(async () => {
+      resolveDownload();
+      await call;
+    });
+    expect(result.current.exporting).toBe(false);
+  });
+
+  it("does not download before any query has run", async () => {
+    const { result } = renderHook(() => useDataStudioQuery("ws-1"));
+    await act(async () => {
+      await result.current.downloadCsv();
+    });
     expect(downloadQueryCsv).not.toHaveBeenCalled();
     expect(downloadCsvBlob).not.toHaveBeenCalled();
   });

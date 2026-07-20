@@ -213,6 +213,7 @@
   "Copied!": "Copié !",
   "Copy": "Copier",
   "Could not connect to the server. Please check your connection and try again.": "Impossible de se connecter au serveur. Veuillez vérifier votre connexion et réessayer.",
+  "Could not export the query results. Please try again.": "Impossible d'exporter les résultats de la requête. Veuillez réessayer.",
   "Could not load choices: {{message}}": "Impossible de charger les options: {{message}}",
   "Couldn't reach the server. Check your connection and try again.": "Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.",
   "Count": "Compte",

@@ -75,6 +75,29 @@ class DownloadQueryCsvViewTest(TestCase):
             content,
         )
 
+    def test_download_echoes_the_token_cookie_on_success(self):
+        self.client.force_login(self.USER_SABRINA)
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+
+        response = self.client.post(
+            self._url(),
+            {"query": "SELECT id FROM demo", "download_token": "tok-123"},
+        )
+        b"".join(response.streaming_content)
+
+        self.assertEqual("tok-123", response.cookies["csvDownloadToken"].value)
+
+    def test_download_error_does_not_set_the_token_cookie(self):
+        self.client.force_login(self.USER_SABRINA)
+
+        response = self.client.post(
+            self._url(),
+            {"query": "SELECT 1; SELECT 2", "download_token": "tok-123"},
+        )
+
+        self.assertEqual(400, response.status_code)
+        self.assertNotIn("csvDownloadToken", response.cookies)
+
     def test_download_ignores_the_interactive_row_cap(self):
         self.client.force_login(self.USER_SABRINA)
         # More rows than the interactive editor's default cap (50), to prove the

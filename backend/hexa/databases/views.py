@@ -46,4 +46,17 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
         return HttpResponseBadRequest(str(e).strip())
 
     rows = ([row[column] for column in columns] for row in row_dicts)
-    return stream_csv(header=columns, rows=rows, filename="query-results.csv")
+    response = stream_csv(header=columns, rows=rows, filename="query-results.csv")
+
+    # The browser hands a successful attachment to its download manager without
+    # navigating the hidden iframe the frontend posts into, so the page has no
+    # way to observe that the download started. Echo the caller's token back in a
+    # short-lived, JS-readable cookie the moment the response headers go out; the
+    # frontend polls for it to tell "download began" apart from an error page
+    # (which does navigate the iframe). See frontend downloadQueryCsv.ts.
+    download_token = request.POST.get("download_token")
+    if download_token:
+        response.set_cookie(
+            "csvDownloadToken", download_token, max_age=120, samesite="Lax"
+        )
+    return response

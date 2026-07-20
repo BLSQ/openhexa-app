@@ -4,6 +4,7 @@ import { PlayIcon } from "@heroicons/react/24/solid";
 import CodeEditor, {
   CodeEditorHandle,
 } from "core/components/CodeEditor/CodeEditor";
+import Spinner from "core/components/Spinner";
 import useIsMac from "core/hooks/useIsMac";
 import { useTranslation } from "next-i18next";
 import { useRef, useState } from "react";
@@ -29,8 +30,16 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
   // ⌘ on macOS; other platforms keep the spelled-out modifier.
   const runShortcutBadge = isMac ? "⌘↵" : "Ctrl+Enter";
 
-  const { run, retry, downloadCsv, result, loading, error, canExport } =
-    useDataStudioQuery(workspaceSlug);
+  const {
+    run,
+    retry,
+    downloadCsv,
+    exporting,
+    result,
+    loading,
+    error,
+    canExport,
+  } = useDataStudioQuery(workspaceSlug);
 
   const canRun = !loading && Boolean(query.trim());
 
@@ -79,10 +88,14 @@ const DataStudioEditor = ({ workspaceSlug }: DataStudioEditorProps) => {
             </label>
             <button
               onClick={downloadCsv}
-              disabled={!canExport}
+              disabled={!canExport || exporting}
               className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
             >
-              <ArrowDownTrayIcon className="h-4 w-4" />
+              {exporting ? (
+                <Spinner size="xs" />
+              ) : (
+                <ArrowDownTrayIcon className="h-4 w-4" />
+              )}
               {t("Export CSV")}
             </button>
             <button
