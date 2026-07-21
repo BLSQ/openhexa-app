@@ -1,4 +1,6 @@
+import json
 import threading
+from pathlib import Path
 from unittest import mock
 
 from asgiref.sync import async_to_sync
@@ -15,6 +17,17 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+
+# Shared with the frontend (DataStudioEditor/downloadQueryCsv.test.ts): the one
+# source of truth for the download-handshake constants the two tiers must agree
+# on. Asserting the view against it here (and the frontend against it there)
+# turns a silent handshake break into a failing test. See the fixture's comment.
+DOWNLOAD_CONTRACT = json.loads(
+    (Path(__file__).parent / "fixtures" / "download_contract.json").read_text()
+)
+COOKIE_PREFIX = DOWNLOAD_CONTRACT["cookiePrefix"]
+FIELD_QUERY = DOWNLOAD_CONTRACT["fields"]["query"]
+FIELD_TOKEN = DOWNLOAD_CONTRACT["fields"]["token"]
 
 
 class DownloadQueryCsvViewTest(TestCase):
@@ -111,18 +124,23 @@ class DownloadQueryCsvViewTest(TestCase):
         )
 
     def test_download_sets_the_per_token_cookie_on_success(self):
+        # This is the backend half of the cross-tier handshake binding: it posts
+        # under the contract's field names and asserts the "download began" cookie
+        # the frontend polls for. Sourcing every literal from DOWNLOAD_CONTRACT is
+        # what makes a rename on either tier fail a test instead of the handshake
+        # breaking silently (the frontend is bound to the same file).
         self.client.force_login(self.USER_SABRINA)
         seed_demo_table(self.WORKSPACE, [(1, "a")])
 
         response = self.client.post(
             self._url(),
-            {"query": "SELECT id FROM demo", "download_token": "tok-123"},
+            {FIELD_QUERY: "SELECT id FROM demo", FIELD_TOKEN: "tok-123"},
         )
         self._collect(response)
 
         # The token is carried by the cookie name so concurrent downloads each
         # get their own signal; the value is just a presence flag.
-        self.assertEqual("1", response.cookies["csvDownloadToken-tok-123"].value)
+        self.assertEqual("1", response.cookies[f"{COOKIE_PREFIX}tok-123"].value)
 
     def test_download_ignores_a_malformed_token(self):
         self.client.force_login(self.USER_SABRINA)
@@ -130,13 +148,13 @@ class DownloadQueryCsvViewTest(TestCase):
 
         response = self.client.post(
             self._url(),
-            {"query": "SELECT id FROM demo", "download_token": "bad token;drop"},
+            {FIELD_QUERY: "SELECT id FROM demo", FIELD_TOKEN: "bad token;drop"},
         )
         self._collect(response)
 
         self.assertEqual(200, response.status_code)
         self.assertFalse(
-            any(name.startswith("csvDownloadToken") for name in response.cookies)
+            any(name.startswith(COOKIE_PREFIX) for name in response.cookies)
         )
 
     def test_download_error_does_not_set_the_token_cookie(self):
@@ -144,11 +162,11 @@ class DownloadQueryCsvViewTest(TestCase):
 
         response = self.client.post(
             self._url(),
-            {"query": "SELECT 1; SELECT 2", "download_token": "tok-123"},
+            {FIELD_QUERY: "SELECT 1; SELECT 2", FIELD_TOKEN: "tok-123"},
         )
 
         self.assertEqual(400, response.status_code)
-        self.assertNotIn("csvDownloadToken-tok-123", response.cookies)
+        self.assertNotIn(f"{COOKIE_PREFIX}tok-123", response.cookies)
 
     def test_download_failing_mid_stream_aborts_the_stream_and_is_logged(self):
         self.client.force_login(self.USER_SABRINA)
@@ -168,13 +186,13 @@ class DownloadQueryCsvViewTest(TestCase):
         ):
             response = self.client.post(
                 self._url(),
-                {"query": "SELECT id FROM demo", "download_token": "tok-123"},
+                {FIELD_QUERY: "SELECT id FROM demo", FIELD_TOKEN: "tok-123"},
             )
 
             # Streaming began: the status is 200 and the "download began" signal
             # is already set and can no longer be retracted.
             self.assertEqual(200, response.status_code)
-            self.assertEqual("1", response.cookies["csvDownloadToken-tok-123"].value)
+            self.assertEqual("1", response.cookies[f"{COOKIE_PREFIX}tok-123"].value)
 
             with self.assertLogs("hexa.databases.views", level="WARNING") as logs:
                 with self.assertRaises(QueryCanceled):

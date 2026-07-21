@@ -13,7 +13,7 @@ const DOWNLOAD_FRAME_NAME = "data-studio-csv-download-frame";
 // cookie holding the token as its value) lets concurrent downloads each wait on
 // their own signal without clobbering one another. Must match the backend's
 // f"csvDownloadToken-{token}" in databases/views.py.
-const SUCCESS_COOKIE_PREFIX = "csvDownloadToken-";
+export const SUCCESS_COOKIE_PREFIX = "csvDownloadToken-";
 const POLL_INTERVAL_MS = 250;
 // Backstop for a hung backend, plus headroom for a successful export whose
 // serialisation tail runs past the query itself. Set to 2× the backend's 5-min

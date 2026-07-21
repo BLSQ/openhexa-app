@@ -1,11 +1,26 @@
 import { getCookie } from "cookies-next";
-import { downloadQueryCsv } from "./downloadQueryCsv";
+import { readFileSync } from "fs";
+import { resolve } from "path";
+import { downloadQueryCsv, SUCCESS_COOKIE_PREFIX } from "./downloadQueryCsv";
 
 jest.mock("cookies-next", () => ({
   getCookie: jest.fn(),
 }));
 
 const DOWNLOAD_FRAME = 'iframe[name="data-studio-csv-download-frame"]';
+
+// The download handshake spans two tiers with no shared code path; this single
+// file (also read by the backend's test_views.py) is the one source of truth for
+// the constants they must agree on. Reading it here binds the frontend to it.
+const CONTRACT = JSON.parse(
+  readFileSync(
+    resolve(
+      __dirname,
+      "../../../../../backend/hexa/databases/tests/fixtures/download_contract.json",
+    ),
+    "utf-8",
+  ),
+);
 
 const fieldValue = (form: HTMLFormElement, name: string) =>
   form.querySelector<HTMLInputElement>(`input[name="${name}"]`)?.value;
@@ -87,7 +102,7 @@ describe("downloadQueryCsv", () => {
 
     const promise = downloadQueryCsv("ws-1", "SELECT 1");
     const token = fieldValue(submittedForms[0], "download_token");
-    cookies[`csvDownloadToken-${token}`] = "1";
+    cookies[`${SUCCESS_COOKIE_PREFIX}${token}`] = "1";
 
     jest.advanceTimersByTime(300);
     await expect(promise).resolves.toBeUndefined();
@@ -106,12 +121,12 @@ describe("downloadQueryCsv", () => {
     expect(tokenA).not.toBe(tokenB);
 
     // Only the second download's signal arrives; the first must keep waiting.
-    cookies[`csvDownloadToken-${tokenB}`] = "1";
+    cookies[`${SUCCESS_COOKIE_PREFIX}${tokenB}`] = "1";
     jest.advanceTimersByTime(300);
     await expect(second).resolves.toBeUndefined();
 
     // The first download settles on its own signal, unaffected by the second.
-    cookies[`csvDownloadToken-${tokenA}`] = "1";
+    cookies[`${SUCCESS_COOKIE_PREFIX}${tokenA}`] = "1";
     jest.advanceTimersByTime(300);
     await expect(first).resolves.toBeUndefined();
   });
@@ -138,5 +153,23 @@ describe("downloadQueryCsv", () => {
 
     jest.advanceTimersByTime(10 * 60 * 1000 + 1000);
     await assertion;
+  });
+
+  describe("stays in sync with the shared cross-tier contract", () => {
+    // These bind the frontend implementation to download_contract.json, which the
+    // backend view is asserted against too. If either tier renames one of these
+    // constants without the other, the offending side's test fails here rather
+    // than the handshake breaking silently in production (a download that appears
+    // to hang until the client timeout).
+    it("polls for the cookie name prefix the backend sets", () => {
+      expect(SUCCESS_COOKIE_PREFIX).toBe(CONTRACT.cookiePrefix);
+    });
+
+    it("posts under the field names the backend reads", () => {
+      void downloadQueryCsv("ws-1", "SELECT 1");
+      const form = submittedForms[0];
+      expect(fieldValue(form, CONTRACT.fields.query)).toBe("SELECT 1");
+      expect(fieldValue(form, CONTRACT.fields.token)).toBeTruthy();
+    });
   });
 });

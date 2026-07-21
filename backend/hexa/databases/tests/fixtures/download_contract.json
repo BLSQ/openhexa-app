@@ -1,0 +1,8 @@
+{
+  "_comment": "Cross-tier contract for the Data Studio CSV download handshake, shared by the backend view (hexa/databases/views.py) and the frontend (DataStudioEditor/downloadQueryCsv.ts). Both sides assert their real implementation against this single file (backend: test_views.py; frontend: downloadQueryCsv.test.ts) so a rename on one tier fails a test instead of silently breaking the handshake. `cookiePrefix` is the critical one: a successful attachment is handed straight to the browser's download manager without firing the iframe's load event, so the ONLY 'download began' signal is the backend setting a cookie named `${cookiePrefix}${token}` and the frontend polling for that exact name. A silent mismatch there would not error — the download would appear to hang until the frontend's timeout. `fields` are the POST field names of the same request; a mismatch there fails loudly (HTTP 400) but is bound here too since it is part of the same contract.",
+  "cookiePrefix": "csvDownloadToken-",
+  "fields": {
+    "query": "query",
+    "token": "download_token"
+  }
+}
