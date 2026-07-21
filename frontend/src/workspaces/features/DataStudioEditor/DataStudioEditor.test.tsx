@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { buildCsv, downloadCsvBlob } from "./csv";
+import { downloadCsvBlob } from "./csv";
 import DataStudioEditor from "./DataStudioEditor";
 import { downloadQueryCsv } from "./downloadQueryCsv";
 
@@ -97,7 +97,6 @@ jest.mock("./downloadQueryCsv", () => ({
 }));
 
 jest.mock("./csv", () => ({
-  buildCsv: jest.fn(() => "CSV_CONTENT"),
   downloadCsvBlob: jest.fn(),
 }));
 
@@ -134,7 +133,6 @@ beforeEach(() => {
   mockInsertText.mockClear();
   (downloadQueryCsv as jest.Mock).mockClear();
   (downloadQueryCsv as jest.Mock).mockResolvedValue(undefined);
-  (buildCsv as jest.Mock).mockClear();
   (downloadCsvBlob as jest.Mock).mockClear();
   mockQueryState = { loading: false };
 });

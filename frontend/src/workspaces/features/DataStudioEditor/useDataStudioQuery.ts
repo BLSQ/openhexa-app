@@ -1,7 +1,7 @@
 import { useTranslation } from "next-i18next";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { buildCsv, downloadCsvBlob } from "./csv";
+import { downloadCsvBlob } from "./csv";
 import { useExecuteWorkspaceSqlLazyQuery } from "./DataStudioEditor.generated";
 import { downloadQueryCsv } from "./downloadQueryCsv";
 
@@ -74,7 +74,8 @@ export const useDataStudioQuery = (workspaceSlug: string) => {
     if (result?.success && result.truncated === false) {
       downloadCsvBlob(
         "query-results.csv",
-        buildCsv(result.columns ?? [], result.rows ?? []),
+        result.columns ?? [],
+        result.rows ?? [],
       );
       return;
     }

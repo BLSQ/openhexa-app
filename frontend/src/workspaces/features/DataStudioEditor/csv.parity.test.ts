@@ -12,21 +12,36 @@ const FIXTURE_PATH = resolve(
 );
 
 type Vector = { description: string; value: unknown; expected: string };
+type RowVector = {
+  description: string;
+  columns: string[];
+  rows: Record<string, unknown>[];
+  expected: string;
+};
 
-const vectors: Vector[] = JSON.parse(
-  readFileSync(FIXTURE_PATH, "utf-8"),
-).vectors;
+const contract = JSON.parse(readFileSync(FIXTURE_PATH, "utf-8"));
+const vectors: Vector[] = contract.vectors;
+const rowVectors: RowVector[] = contract.rowVectors;
 
 describe("CSV cell serialisation parity with the backend", () => {
   it.each(vectors)(
     "serialises $description identically to the server",
     ({ value, expected }) => {
-      // The value sits in a two-column row (with a constant sentinel) rather
-      // than alone — the realistic shape, and it sidesteps a lone-empty-field
-      // quirk in Python's csv.writer. The backend asserts this same shape.
+      // Each value sits in a two-column row (with a constant sentinel) so the
+      // vector stays focused on cell content; whole-record shape is pinned by
+      // the rowVectors suite below. The backend asserts this same shape.
       expect(buildCsv(["a", "b"], [{ a: value, b: "x" }])).toBe(
         `a,b\r\n${expected},x\r\n`,
       );
+    },
+  );
+});
+
+describe("CSV record-shape parity with the backend", () => {
+  it.each(rowVectors)(
+    "builds $description identically to the server",
+    ({ columns, rows, expected }) => {
+      expect(buildCsv(columns, rows)).toBe(expected);
     },
   );
 });

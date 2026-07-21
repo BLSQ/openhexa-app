@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { toast } from "react-toastify";
-import { buildCsv, downloadCsvBlob } from "./csv";
+import { downloadCsvBlob } from "./csv";
 import { downloadQueryCsv } from "./downloadQueryCsv";
 import { useDataStudioQuery } from "./useDataStudioQuery";
 
@@ -16,7 +16,6 @@ jest.mock("./downloadQueryCsv", () => ({
 }));
 
 jest.mock("./csv", () => ({
-  buildCsv: jest.fn(() => "CSV_CONTENT"),
   downloadCsvBlob: jest.fn(),
 }));
 
@@ -33,7 +32,6 @@ beforeEach(() => {
   mockExecute.mockClear();
   (downloadQueryCsv as jest.Mock).mockClear();
   (downloadQueryCsv as jest.Mock).mockResolvedValue(undefined);
-  (buildCsv as jest.Mock).mockClear();
   (downloadCsvBlob as jest.Mock).mockClear();
   (toast.error as jest.Mock).mockClear();
   mockState = { loading: false };
@@ -93,10 +91,10 @@ describe("useDataStudioQuery", () => {
       await result.current.downloadCsv();
     });
 
-    expect(buildCsv).toHaveBeenCalledWith(["id"], [{ id: 1 }]);
     expect(downloadCsvBlob).toHaveBeenCalledWith(
       "query-results.csv",
-      "CSV_CONTENT",
+      ["id"],
+      [{ id: 1 }],
     );
     expect(downloadQueryCsv).not.toHaveBeenCalled();
   });

@@ -20,9 +20,11 @@ from ..csv import (
 # source of truth for how a cell must serialise. Both export paths are checked
 # against it so the client-side (small results) and server-side (large results)
 # CSV builders cannot drift.
-CSV_CELL_VECTORS = json.loads(
+_CSV_CONTRACT = json.loads(
     (Path(__file__).parent / "fixtures" / "csv_cell_vectors.json").read_text()
-)["vectors"]
+)
+CSV_CELL_VECTORS = _CSV_CONTRACT["vectors"]
+CSV_ROW_VECTORS = _CSV_CONTRACT["rowVectors"]
 
 
 class CsvCellSerialisationTest(TestCase):
@@ -34,11 +36,10 @@ class CsvCellSerialisationTest(TestCase):
     """
 
     def test_matches_shared_cell_vectors(self):
-        # The value sits in a two-column row (with a constant sentinel) rather
-        # than alone: csv.writer quotes a *lone* empty field as "" to keep a
-        # blank line unambiguous, which the frontend does not — a benign edge
-        # (both parse back to empty) that only a single-column result could hit.
-        # Testing the realistic multi-column shape keeps the contract meaningful.
+        # Each value sits in a two-column row (with a constant sentinel) so the
+        # vector stays focused on cell content; whole-record shape — including
+        # the lone-empty-field case where csv.writer emits "" — is pinned
+        # separately in test_matches_shared_row_vectors.
         writer = csv.writer(Echo())
         header_line = _csv_line(writer, ["a", "b"])
         for vector in CSV_CELL_VECTORS:
@@ -47,6 +48,20 @@ class CsvCellSerialisationTest(TestCase):
                 self.assertEqual(
                     f"a,b\r\n{vector['expected']},x\r\n", header_line + row_line
                 )
+
+    def test_matches_shared_row_vectors(self):
+        # Whole-record shape, which the cell vectors cannot cover. Most important
+        # is the single-column empty row: csv.writer renders a lone empty field
+        # as "" (not a bare line), and the frontend buildCsv now matches that, so
+        # a single-column result is byte-identical across both export paths.
+        for vector in CSV_ROW_VECTORS:
+            with self.subTest(vector=vector["description"]):
+                writer = csv.writer(Echo())
+                columns = vector["columns"]
+                output = _csv_line(writer, columns)
+                for row in vector["rows"]:
+                    output += _csv_line(writer, [row[column] for column in columns])
+                self.assertEqual(vector["expected"], output)
 
     def test_backend_only_types(self):
         # Types that never cross the GraphQL wire as-is (the interactive result

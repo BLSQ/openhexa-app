@@ -1,5 +1,5 @@
 {
-  "_comment": "Canonical CSV-cell serialisation contract shared by the backend (hexa.core.csv.stringify_cell) and the frontend (DataStudioEditor/csv.ts buildCsv). Each vector is a single value and the exact CSV field it must serialise to (post-guard, post-quote). Both export paths are asserted against this same file so they cannot drift. Only JSON-representable values live here: type-specific branches that never cross the GraphQL wire (Python bytes/Decimal/datetime) are covered by backend-only tests. Numbers beyond the JS safe range are represented as strings, mirroring how NUMERIC/DECIMAL/bigint actually reach the frontend.",
+  "_comment": "Canonical CSV serialisation contract shared by the backend (hexa.core.csv) and the frontend (DataStudioEditor/csv.ts). `vectors` pins how a single cell serialises (post-guard, post-quote); `rowVectors` pins whole-record shape (columns + rows -> full CSV, no BOM), which cell vectors cannot cover because each is wrapped in a fixed two-column row. Both export paths are asserted against this same file so the client path (small results) and server path (large results) cannot drift. Only JSON-representable values live here: type-specific branches that never cross the GraphQL wire (Python bytes/Decimal/datetime) are covered by backend-only tests. Numbers beyond the JS safe range are represented as strings, mirroring how NUMERIC/DECIMAL/bigint actually reach the frontend.",
   "vectors": [
     { "description": "null becomes an empty cell", "value": null, "expected": "" },
     { "description": "boolean true is lowercased", "value": true, "expected": "true" },
@@ -24,5 +24,12 @@
     { "description": "guarded and quoted together (leading - plus comma)", "value": "-5,5", "expected": "\"'-5,5\"" },
     { "description": "object serialises to compact JSON, then quoted", "value": { "x": 1 }, "expected": "\"{\"\"x\"\":1}\"" },
     { "description": "array serialises to compact JSON, then quoted", "value": [1, 2], "expected": "\"[1,2]\"" }
+  ],
+  "rowVectors": [
+    { "description": "header then one CRLF-terminated line per row", "columns": ["id", "name"], "rows": [{ "id": 1, "name": "Alice" }, { "id": 2, "name": "Bob" }], "expected": "id,name\r\n1,Alice\r\n2,Bob\r\n" },
+    { "description": "a lone empty field is written as \"\" (not a bare line) so single-column results stay byte-identical across paths", "columns": ["a"], "rows": [{ "a": null }], "expected": "a\r\n\"\"\r\n" },
+    { "description": "a lone non-empty field is not quoted", "columns": ["a"], "rows": [{ "a": "x" }], "expected": "a\r\nx\r\n" },
+    { "description": "single column mixes quoted-empty and plain rows", "columns": ["a"], "rows": [{ "a": "x" }, { "a": null }, { "a": "y" }], "expected": "a\r\nx\r\n\"\"\r\ny\r\n" },
+    { "description": "an all-empty multi-column row is a bare separator, never quoted", "columns": ["a", "b"], "rows": [{ "a": null, "b": null }], "expected": "a,b\r\n,\r\n" }
   ]
 }
