@@ -1,6 +1,7 @@
 import logging
 import re
 import threading
+from contextlib import ExitStack
 
 from asgiref.sync import sync_to_async
 from django.conf import settings
@@ -123,9 +124,15 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
             "Too many exports are running right now. Please try again in a moment.",
             status=429,
         )
-    # The slot and connection outlive this view call — the stream keeps consuming rows
-    # after it returns — so they are freed when the *stream* ends (on_finish, below),
-    # and here only on the paths that never start streaming.
+    # The slot and connection outlive this view call — the stream keeps consuming
+    # rows after it returns — so a single teardown (close the DB connection, then
+    # hand the slot back; LIFO) owns both. It runs from the stream's on_finish once
+    # streaming has started, and from this view's finally otherwise, so nothing
+    # leaks even if building the response raises before the stream takes over.
+    # ExitStack.close() is a no-op after its first call, and only one of the two
+    # sites ever runs it (gated by handed_off_to_stream), so it fires exactly once.
+    cleanup = ExitStack()
+    cleanup.callback(_EXPORT_SLOTS.release)
     handed_off_to_stream = False
     try:
         try:
@@ -134,14 +141,7 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
             return HttpResponseBadRequest("Only a single SQL statement is allowed.")
         except Psycopg2Error:
             return HttpResponseBadRequest("The query could not be executed.")
-
-        def release_export() -> None:
-            # Close the cursor/connection first (frees it even mid-scan on a
-            # disconnect), then always hand the slot back. on_finish runs this once.
-            try:
-                db_batches.close()
-            finally:
-                _EXPORT_SLOTS.release()
+        cleanup.callback(db_batches.close)
 
         response = async_streaming_csv_response(
             header=columns,
@@ -149,7 +149,7 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
                 db_batches, columns, workspace=workspace, user=request.user
             ),
             filename="query-results.csv",
-            on_finish=release_export,
+            on_finish=cleanup.close,
         )
 
         # A successful attachment never navigates the iframe the frontend posts into,
@@ -166,4 +166,4 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
         return response
     finally:
         if not handed_off_to_stream:
-            _EXPORT_SLOTS.release()
+            cleanup.close()
