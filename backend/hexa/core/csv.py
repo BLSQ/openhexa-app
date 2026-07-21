@@ -103,9 +103,7 @@ def stringify_cell(value: typing.Any) -> str:
         # non-ASCII literally, whereas json.dumps escapes it (\uXXXX) by default,
         # which would diverge for e.g. accented text in a JSONB column. See the
         # frontend buildCsv and its cross-path parity test.
-        return json.dumps(
-            value, default=str, separators=(",", ":"), ensure_ascii=False
-        )
+        return json.dumps(value, default=str, separators=(",", ":"), ensure_ascii=False)
     if isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
         return value.isoformat()
 
@@ -136,12 +134,10 @@ def _csv_line(writer: typing.Any, cells: typing.Sequence[typing.Any]) -> str:
 class _CleanupStreamingHttpResponse(StreamingHttpResponse):
     """A streaming response that runs a callback when Django closes it.
 
-    Django calls ``close()`` on both normal completion and a client disconnect
-    (its ASGI handler suppresses the disconnect ``CancelledError`` and still
-    closes the response), which is the only deterministic hook for freeing
-    resources when the client goes away mid-stream — an async generator's own
-    ``finally`` waits on garbage collection in that case. See
-    :func:`async_streaming_csv_response`.
+    Django calls ``close()`` on a client disconnect — where an async generator's own
+    ``finally`` would wait on GC — so it is the deterministic hook for freeing
+    resources when the client goes away mid-stream. See
+    :func:`async_streaming_csv_response` and the app README.
     """
 
     def __init__(self, *args, on_close: typing.Callable[[], None], **kwargs) -> None:
@@ -165,42 +161,20 @@ def async_streaming_csv_response(
 ) -> StreamingHttpResponse:
     """Stream ``header`` + ``row_batches`` as a downloadable CSV, batch by batch.
 
-    Returns an *async* streaming response, which is what actually streams under an
-    ASGI worker: a sync generator would instead be drained into memory in one go
-    (``StreamingHttpResponse.__aiter__`` falls back to ``sync_to_async(list)``),
-    defeating the point. ``row_batches`` is therefore an async iterator whose items
-    are batches of rows (e.g. one server-side cursor batch), so peak memory stays
-    bounded to a single batch however large the result set is. The caller is
-    responsible for doing any blocking work (a DB fetch) off the event loop before
-    yielding a batch — see ``hexa.databases.views``.
+    ``row_batches`` must be an *async* iterator of row batches: under an ASGI worker a
+    sync generator would be drained into memory in one go, defeating the streaming. The
+    caller does its blocking work (a DB fetch) off the event loop before yielding each
+    batch, so peak memory stays bounded to one batch — see ``hexa.databases.views``.
 
-    The trade-off: the status line and headers are committed with the first
-    chunk, so a failure raised by ``row_batches`` *after* that point cannot become
-    an error status — the download simply ends truncated. A caller that must react
-    to (or record) such a mid-stream failure has to observe ``row_batches`` itself,
-    which is where the exception surfaces (see
-    ``hexa.databases.views.download_query_csv`` for how likely that is in practice
-    and how it is handled).
+    ``on_finish``, if given, fires exactly once when the stream ends: on normal
+    completion and a mid-stream error (via the byte generator's ``finally``) and on a
+    client disconnect (via :class:`_CleanupStreamingHttpResponse`, since the generator's
+    ``finally`` waits on GC then); a once-guard makes the overlap safe. Because it may run
+    from ``response.close()``, ``on_finish`` must do everything a disconnect needs — close
+    the DB cursor/connection, not only release a slot.
 
-    ``on_finish``, if given, is run exactly once when the stream ends, tying
-    resource release (a DB connection, an admission-control slot) to the stream's
-    lifetime rather than to the view returning. It has to fire on three different
-    endings, which reach us by two different routes:
-
-    * normal completion and a mid-stream error both unwind the byte generator, so
-      its ``finally`` runs ``on_finish``;
-    * a client disconnect does *not* promptly run that ``finally`` — Django closes
-      only its own outer wrapper, leaving our async generator (and its ``finally``)
-      to garbage collection — but Django *does* call ``response.close()`` on
-      disconnect, so :class:`_CleanupStreamingHttpResponse` runs ``on_finish`` from
-      there.
-
-    A once-guard makes the overlap (normal completion takes both routes) safe, so
-    ``on_finish`` still fires exactly once. Because it may run from
-    ``response.close()``, the caller must make ``on_finish`` do everything a
-    disconnect needs — e.g. close the DB cursor/connection, not only release a slot
-    — since the ``row_batches`` generator's own ``finally`` is subject to the same
-    GC delay.
+    The app README covers the streaming rationale and the mid-stream-truncation trade-off
+    (headers commit with the first chunk, so a later failure can't change the 200 status).
     """
     _require_csv_filename(filename)
     writer = csv.writer(Echo())

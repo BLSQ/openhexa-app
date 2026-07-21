@@ -55,17 +55,12 @@ export const useDataStudioQuery = (workspaceSlug: string) => {
     execute({ variables: lastRunRef.current });
   }, [execute, loading]);
 
-  // Export the query that produced the current result (which may be a selection,
-  // and may differ from the editor contents). Two paths:
-  //  - Fast: the interactive run returned the *whole* result (not truncated), so
-  //    every row is already in memory. Build the CSV client-side — instant, no
-  //    second DB round-trip, exports the exact on-screen snapshot, and cannot
-  //    fail. Memory is bounded by the interactive row cap that produced it.
-  //  - Heavy: the result was capped, so the full set is larger than we hold.
-  //    Re-run server-side and stream the entire set to disk. maxRows (a
-  //    display-only cap) is not forwarded.
-  // Reading the ref at call time avoids depending on a re-render to see the
-  // latest query.
+  // Export the query that produced the current result (a selection may differ from
+  // the editor contents; read the ref at call time to avoid needing a re-render).
+  // Two paths, chosen by whether the interactive result was truncated:
+  //  - Fast: full result already in memory — build the CSV client-side. Instant, no
+  //    second round-trip, exports the on-screen snapshot, and cannot fail.
+  //  - Heavy: result was capped — re-run server-side (uncapped) and stream to disk.
   const downloadCsv = useCallback(async () => {
     const lastRun = lastRunRef.current;
     if (loading || exporting || !lastRun) {
@@ -79,11 +74,9 @@ export const useDataStudioQuery = (workspaceSlug: string) => {
       );
       return;
     }
-    // The heavy path re-runs the whole (uncapped) query server-side, so it can
-    // be slow; `exporting` drives the inline "Exporting…/this may take a while"
-    // affordance in the toolbar. It also streams via a hidden iframe, whose
-    // errors are otherwise silent — downloadQueryCsv resolves only once the
-    // download starts and rejects on failure, so surface that to the user.
+    // The heavy path can be slow (`exporting` drives the toolbar affordance) and
+    // streams via a hidden iframe whose errors are otherwise silent: downloadQueryCsv
+    // resolves only once the download starts and rejects on failure, so surface that.
     setExporting(true);
     try {
       await downloadQueryCsv(lastRun.workspaceSlug, lastRun.query);

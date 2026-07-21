@@ -50,14 +50,11 @@ def _next_projected_batch(batch_iter, columns):
 async def _tracked_row_batches(batch_iter, columns, *, workspace, user):
     """Yield projected row batches, logging a mid-stream failure HTTP can no longer report.
 
-    Each fetch runs off the event loop via ``sync_to_async(thread_sensitive=False)``
-    since the cursor is blocking psycopg2. Once headers are sent the status is fixed at
-    200, so a failure partway through the scan can only truncate the download; it is
-    logged here, where it surfaces, so a short file stays visible server-side. A client
-    that goes away raises ``GeneratorExit`` (a ``BaseException``, not caught here), so an
-    expected disconnect is left unlogged. Closing ``batch_iter`` is left to the response's
-    ``on_finish`` (see :func:`download_query_csv`), which fires deterministically on
-    disconnect where this generator's ``finally`` would wait on GC.
+    Each fetch runs off the event loop (``sync_to_async(thread_sensitive=False)``) as the
+    psycopg2 cursor is blocking. Once headers are sent the status is fixed at 200, so a
+    failure mid-scan can only truncate the download; it is logged here, where it surfaces.
+    A client disconnect raises ``GeneratorExit`` (not caught), so it stays unlogged.
+    Closing ``batch_iter`` is the response's ``on_finish`` job (see :func:`download_query_csv`).
     """
     fetched = 0
     try:
@@ -85,21 +82,15 @@ async def _tracked_row_batches(batch_iter, columns, *, workspace, user):
 def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpResponse:
     """Export the full result of a Data Studio SQL query as a streaming CSV download.
 
-    No row cap is applied — the point is the whole result set. The result is streamed
-    batch by batch (:func:`hexa.core.csv.async_streaming_csv_response`), async and off
-    the event loop, rather than buffered; the app README covers why streaming, why
-    async, and the memory/timeout bounds.
+    No row cap is applied. ``stream_database_query`` runs the query and fetches its first
+    batch eagerly, so the common failures (invalid SQL, permission error, empty statement)
+    surface here as a clean HTTP 400 before any byte is sent; a failure after that can only
+    truncate the already-200 download (logged in :func:`_tracked_row_batches`). A read-only
+    connection is held for the whole download, bounded by ``statement_timeout``,
+    ``idle_in_transaction_session_timeout`` and ``_EXPORT_SLOTS`` (excess callers get a 429).
 
-    ``stream_database_query`` runs the query and fetches its first batch eagerly, so the
-    common failures (invalid SQL, permission error, empty statement) surface here as a
-    clean HTTP 400 before any byte is sent. The trade-off: a failure *after* the first
-    batch cannot change the already-sent 200 status — the download ends truncated
-    (logged in :func:`_tracked_row_batches`). The README covers how likely that is and
-    why it is accepted rather than buffered around.
-
-    A read-only connection is held open for the whole download; ``statement_timeout``,
-    ``idle_in_transaction_session_timeout`` and ``_EXPORT_SLOTS`` bound a runaway scan, a
-    stalled client and per-worker concurrency respectively (excess callers get a 429).
+    The app README is the design home: why stream rather than buffer, why async, the
+    memory/timeout bounds and the resource lifecycle.
     """
     try:
         workspace = Workspace.objects.filter_for_user(request.user).get(

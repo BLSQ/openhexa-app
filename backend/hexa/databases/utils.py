@@ -210,7 +210,7 @@ def stream_database_query(
     The first batch is fetched eagerly, so an invalid statement raises here (surfacing
     as an HTTP 400) rather than mid-stream once bytes are on the wire. The returned
     generator owns the connection and closes it when exhausted or closed early. The two
-    timeouts set below bound a runaway scan and a stalled client. See the app README.
+    timeouts set below bound a runaway scan and a stalled client.
     """
     ensure_single_statement(query)
     conn = get_workspace_database_ro_connection(workspace)
