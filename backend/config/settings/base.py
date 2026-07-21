@@ -632,6 +632,16 @@ OVERRIDE_WORKSPACES_DATABASE_HOST = os.environ.get(
 WORKSPACE_DATABASE_QUERY_MAX_ROWS = int(
     os.environ.get("WORKSPACE_DATABASE_QUERY_MAX_ROWS", "100000")
 )
+# Admission control for the Data Studio CSV export: the max number of full-result
+# downloads a single web-worker process may run concurrently. Each in-flight
+# export holds a thread, a read-only DB connection and a spooled buffer for the
+# duration of the query, so this bounds their peak resource use. It is per
+# process (gunicorn --workers), so the per-pod ceiling is this value times the
+# worker count; it is not a global cap (see the per-role Postgres CONNECTION
+# LIMIT for that). Excess requests are rejected with HTTP 429 rather than queued.
+DATA_STUDIO_EXPORT_MAX_CONCURRENCY = int(
+    os.environ.get("DATA_STUDIO_EXPORT_MAX_CONCURRENCY", "2")
+)
 
 # Datasets config
 WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET", "hexa-datasets")

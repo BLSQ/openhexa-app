@@ -1,3 +1,4 @@
+import threading
 from unittest import mock
 
 from django.urls import reverse
@@ -161,6 +162,35 @@ class DownloadQueryCsvViewTest(TestCase):
         content = self._download("SELECT '=1+1' AS v").decode("utf-8")
 
         self.assertEqual(UTF8_BOM + "v\r\n'=1+1\r\n", content)
+
+    def test_download_rejects_when_export_slots_are_exhausted(self):
+        self.client.force_login(self.USER_SABRINA)
+        # A pool with no free slot stands in for "too many exports already running".
+        exhausted = threading.BoundedSemaphore(1)
+        exhausted.acquire()
+        with mock.patch("hexa.databases.views._EXPORT_SLOTS", exhausted):
+            response = self.client.post(self._url(), {"query": "SELECT 1"})
+        self.assertEqual(429, response.status_code)
+
+    def test_download_releases_the_slot_after_a_successful_export(self):
+        self.client.force_login(self.USER_SABRINA)
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+        slots = threading.BoundedSemaphore(1)
+        with mock.patch("hexa.databases.views._EXPORT_SLOTS", slots):
+            response = self.client.post(self._url(), {"query": "SELECT id FROM demo"})
+            b"".join(response.streaming_content)
+            self.assertEqual(200, response.status_code)
+            # The single slot must be free again, or exports would wedge after one run.
+            self.assertTrue(slots.acquire(blocking=False))
+
+    def test_download_releases_the_slot_after_an_error(self):
+        self.client.force_login(self.USER_SABRINA)
+        slots = threading.BoundedSemaphore(1)
+        with mock.patch("hexa.databases.views._EXPORT_SLOTS", slots):
+            response = self.client.post(self._url(), {"query": "SELECT 1; SELECT 2"})
+            self.assertEqual(400, response.status_code)
+            # A failed export must not permanently consume a slot.
+            self.assertTrue(slots.acquire(blocking=False))
 
     def test_download_denied_without_permission(self):
         self.client.force_login(self.USER_SABRINA)
