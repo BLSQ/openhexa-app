@@ -36,8 +36,7 @@ function getStreamUrl(conversationId: string): string {
 // tracks a tool_call/tool_result to know when the pipeline was created), this
 // hook only needs to wait for `done` and read `output` off it. It still mirrors
 // useAIForm's brief Done pause (via closeTimerRef) before calling onGenerated,
-// so the success checkmark is visible for a moment instead of the dialog
-// vanishing the instant streaming ends.
+// so the bar doesn't vanish the instant streaming ends.
 export function useGenerateSqlForm(
   workspaceSlug: string,
   onGenerated: (sql: string) => void,

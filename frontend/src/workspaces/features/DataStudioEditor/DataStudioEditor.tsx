@@ -18,7 +18,7 @@ import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/
 import { buildCsv, downloadCsv } from "./csv";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
-import GenerateSqlDialog, { useGenerateSqlForm } from "./GenerateSqlDialog";
+import GenerateSqlBar, { useGenerateSqlForm } from "./GenerateSqlBar";
 import SaveQueryButton from "./SaveQueryButton";
 import { useDataStudioQuery } from "./useDataStudioQuery";
 import { useSavedQueryEditor } from "./useSavedQueryEditor";
@@ -47,11 +47,11 @@ const DataStudioEditor = ({
   const [query, setQuery] = useState(savedQuery?.content ?? "");
   const [maxRows, setMaxRows] = useState(MAX_ROWS_OPTIONS[0]);
   const editorRef = useRef<CodeEditorHandle>(null);
-  const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
+  const [generateBarOpen, setGenerateBarOpen] = useState(false);
 
   const handleGenerated = useCallback((sql: string) => {
     setQuery(sql);
-    setGenerateDialogOpen(false);
+    setGenerateBarOpen(false);
   }, []);
 
   const generateForm = useGenerateSqlForm(workspaceSlug, handleGenerated);
@@ -151,8 +151,9 @@ const DataStudioEditor = ({
                   title={t("Monthly AI budget reached")}
                 >
                   <button
-                    onClick={() => setGenerateDialogOpen(true)}
+                    onClick={() => setGenerateBarOpen((open) => !open)}
                     disabled={aiBudgetLimitReached}
+                    aria-pressed={generateBarOpen}
                     className="inline-flex h-8 items-center gap-1.5 rounded-md bg-indigo-100 px-2.5 text-xs font-medium text-indigo-700 hover:bg-indigo-200 disabled:cursor-not-allowed disabled:bg-transparent disabled:text-gray-300"
                   >
                     <SparklesIcon className="h-4 w-4" />
@@ -195,6 +196,15 @@ const DataStudioEditor = ({
             </div>
           </div>
 
+          {aiEnabled && (
+            <GenerateSqlBar
+              open={generateBarOpen}
+              onClose={() => setGenerateBarOpen(false)}
+              form={generateForm}
+              monthlyLimitExceeded={monthlyLimitExceeded}
+            />
+          )}
+
           {/* Editor + results split: editor on top, results fill the rest. */}
           <div className="flex min-h-0 flex-1 flex-col">
             <div className="h-[38%] min-h-[140px] shrink-0 border-b border-gray-200">
@@ -234,14 +244,6 @@ const DataStudioEditor = ({
           savedQuery={editor.savedQuery}
           onClose={editor.closeDialog}
           onSaved={editor.onDialogSaved}
-        />
-      )}
-      {aiEnabled && (
-        <GenerateSqlDialog
-          open={generateDialogOpen}
-          onClose={() => setGenerateDialogOpen(false)}
-          form={generateForm}
-          monthlyLimitExceeded={monthlyLimitExceeded}
         />
       )}
     </>

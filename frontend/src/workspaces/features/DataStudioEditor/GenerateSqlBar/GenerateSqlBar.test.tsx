@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import GenerateSqlDialog from "./GenerateSqlDialog";
+import GenerateSqlBar from "./GenerateSqlBar";
 import {
   GenerateSqlFormInstance,
   GenerateSqlPhase,
@@ -19,11 +19,26 @@ const makeForm = (
   ...overrides,
 });
 
-describe("GenerateSqlDialog", () => {
+describe("GenerateSqlBar", () => {
+  it("renders nothing when closed", () => {
+    const form = makeForm();
+    render(
+      <GenerateSqlBar
+        open={false}
+        onClose={jest.fn()}
+        form={form}
+        monthlyLimitExceeded={false}
+      />,
+    );
+    expect(
+      screen.queryByPlaceholderText(/describe what you'd like to query/i),
+    ).not.toBeInTheDocument();
+  });
+
   it("resets the form when it opens", () => {
     const form = makeForm();
     render(
-      <GenerateSqlDialog
+      <GenerateSqlBar
         open
         onClose={jest.fn()}
         form={form}
@@ -36,7 +51,7 @@ describe("GenerateSqlDialog", () => {
   it("disables Generate until a prompt is entered", () => {
     const form = makeForm();
     render(
-      <GenerateSqlDialog
+      <GenerateSqlBar
         open
         onClose={jest.fn()}
         form={form}
@@ -49,7 +64,7 @@ describe("GenerateSqlDialog", () => {
   it("submits the prompt when Generate is clicked", async () => {
     const form = makeForm({ prompt: "top 10 patients" });
     render(
-      <GenerateSqlDialog
+      <GenerateSqlBar
         open
         onClose={jest.fn()}
         form={form}
@@ -60,41 +75,25 @@ describe("GenerateSqlDialog", () => {
     expect(form.handleSubmit).toHaveBeenCalled();
   });
 
-  it("shows a generating state and disables the textarea while streaming", () => {
+  it("shows a generating state and disables the input while streaming", () => {
     const form = makeForm({
       prompt: "top 10 patients",
       phase: GenerateSqlPhase.Generating,
     });
     render(
-      <GenerateSqlDialog
+      <GenerateSqlBar
         open
         onClose={jest.fn()}
         form={form}
         monthlyLimitExceeded={false}
       />,
     );
-    expect(screen.getByText("Generating SQL query")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/most recent records/i)).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Generate" })).toBeDisabled();
-  });
-
-  it("shows a success checkmark once the query is generated", () => {
-    const form = makeForm({
-      prompt: "top 10 patients",
-      phase: GenerateSqlPhase.Done,
-    });
-    render(
-      <GenerateSqlDialog
-        open
-        onClose={jest.fn()}
-        form={form}
-        monthlyLimitExceeded={false}
-      />,
-    );
-    expect(screen.getByText("Generating SQL query")).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: "Cancel" }),
-    ).not.toBeInTheDocument();
+      screen.getByPlaceholderText(/describe what you'd like to query/i),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Generating…" }),
+    ).toBeDisabled();
   });
 
   it("shows the error message with a retry action", async () => {
@@ -104,7 +103,7 @@ describe("GenerateSqlDialog", () => {
       error: "Something went wrong.",
     });
     render(
-      <GenerateSqlDialog
+      <GenerateSqlBar
         open
         onClose={jest.fn()}
         form={form}
@@ -117,12 +116,13 @@ describe("GenerateSqlDialog", () => {
     expect(form.handleSubmit).toHaveBeenCalled();
   });
 
-  it("cancels an in-flight generation via the inline Cancel link", async () => {
+  it("cancels an in-flight generation and closes when Cancel is clicked", async () => {
     const form = makeForm({ phase: GenerateSqlPhase.Generating });
+    const onClose = jest.fn();
     render(
-      <GenerateSqlDialog
+      <GenerateSqlBar
         open
-        onClose={jest.fn()}
+        onClose={onClose}
         form={form}
         monthlyLimitExceeded={false}
       />,
@@ -131,13 +131,14 @@ describe("GenerateSqlDialog", () => {
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
     expect(form.cancel).toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalled();
   });
 
-  it("cancels an in-flight generation when closed via the footer Close button", async () => {
-    const form = makeForm({ phase: GenerateSqlPhase.Generating });
+  it("closes without cancelling when idle", async () => {
+    const form = makeForm();
     const onClose = jest.fn();
     render(
-      <GenerateSqlDialog
+      <GenerateSqlBar
         open
         onClose={onClose}
         form={form}
@@ -145,16 +146,36 @@ describe("GenerateSqlDialog", () => {
       />,
     );
 
-    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
-    expect(form.cancel).toHaveBeenCalled();
+    expect(form.cancel).not.toHaveBeenCalled();
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("replaces the form with a limit-reached banner and hides Generate", () => {
+  it("closes on Escape", async () => {
+    const form = makeForm();
+    const onClose = jest.fn();
+    render(
+      <GenerateSqlBar
+        open
+        onClose={onClose}
+        form={form}
+        monthlyLimitExceeded={false}
+      />,
+    );
+
+    await userEvent.type(
+      screen.getByPlaceholderText(/describe what you'd like to query/i),
+      "{Escape}",
+    );
+
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("replaces the bar with a limit-reached banner and hides Generate", () => {
     const form = makeForm();
     render(
-      <GenerateSqlDialog
+      <GenerateSqlBar
         open
         onClose={jest.fn()}
         form={form}
