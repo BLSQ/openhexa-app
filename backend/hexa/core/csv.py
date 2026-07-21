@@ -49,10 +49,14 @@ def stringify_cell(value: typing.Any) -> str:
     if isinstance(value, (bytes, bytearray, memoryview)):
         return "\\x" + bytes(value).hex()
     if isinstance(value, (dict, list)):
-        # Compact separators (no spaces) so this matches the frontend's
-        # JSON.stringify byte-for-byte — see the frontend buildCsv and its
-        # cross-path parity test.
-        return json.dumps(value, default=str, separators=(",", ":"))
+        # Compact separators (no spaces) and ensure_ascii=False so this matches
+        # the frontend's JSON.stringify byte-for-byte: JSON.stringify emits
+        # non-ASCII literally, whereas json.dumps escapes it (\uXXXX) by default,
+        # which would diverge for e.g. accented text in a JSONB column. See the
+        # frontend buildCsv and its cross-path parity test.
+        return json.dumps(
+            value, default=str, separators=(",", ":"), ensure_ascii=False
+        )
     if isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
         return value.isoformat()
 

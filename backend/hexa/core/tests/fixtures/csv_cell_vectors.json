@@ -23,7 +23,9 @@
     { "description": "embedded newline is quoted", "value": "line1\nline2", "expected": "\"line1\nline2\"" },
     { "description": "guarded and quoted together (leading - plus comma)", "value": "-5,5", "expected": "\"'-5,5\"" },
     { "description": "object serialises to compact JSON, then quoted", "value": { "x": 1 }, "expected": "\"{\"\"x\"\":1}\"" },
-    { "description": "array serialises to compact JSON, then quoted", "value": [1, 2], "expected": "\"[1,2]\"" }
+    { "description": "array serialises to compact JSON, then quoted", "value": [1, 2], "expected": "\"[1,2]\"" },
+    { "description": "non-ASCII text passes through literally (no \\uXXXX escaping)", "value": "café", "expected": "café" },
+    { "description": "object with non-ASCII text stays literal in JSON (ensure_ascii=False), then quoted", "value": { "name": "José" }, "expected": "\"{\"\"name\"\":\"\"José\"\"}\"" }
   ],
   "rowVectors": [
     { "description": "header then one CRLF-terminated line per row", "columns": ["id", "name"], "rows": [{ "id": 1, "name": "Alice" }, { "id": 2, "name": "Bob" }], "expected": "id,name\r\n1,Alice\r\n2,Bob\r\n" },
