@@ -266,6 +266,7 @@ def stream_database_query(
 
     return columns, row_batches()
 
+
 def _log_executed_query(
     request: HttpRequest,
     workspace: Workspace,
