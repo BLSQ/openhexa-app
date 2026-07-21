@@ -181,19 +181,14 @@ def execute_database_query(
             conn.close()
 
 
-# Downloads export the full result set, so the interactive per-request timeout is
-# far too short. A generous ceiling still guards against a runaway scan pinning a
-# read-only connection indefinitely.
+# The full result set makes the interactive per-request timeout far too short; this
+# generous ceiling still guards a runaway scan from pinning a connection.
 DOWNLOAD_QUERY_TIMEOUT_MS = 5 * 60 * 1000
-# statement_timeout only bounds a single FETCH; between batches the transaction
-# sits idle while the client consumes the previous one. A stalled or vanished
-# client (one that never comes back for the next batch) would otherwise keep that
-# transaction open indefinitely, pinning the read-only connection and blocking
-# VACUUM on the workspace database. This caps how long the session may sit idle
-# mid-stream before Postgres aborts the transaction and frees the connection.
+# statement_timeout bounds a single FETCH; between batches the transaction sits idle
+# while the client consumes the previous one. This caps that idle time so a stalled or
+# vanished client can't pin the connection (and block VACUUM) indefinitely.
 DOWNLOAD_QUERY_IDLE_TIMEOUT_MS = 5 * 60 * 1000
-# Rows are fetched from the server-side cursor in batches of this size, bounding
-# peak memory regardless of how large the result set is.
+# Server-side cursor batch size, bounding peak memory regardless of result size.
 DOWNLOAD_QUERY_BATCH_SIZE = 2_000
 
 
@@ -207,20 +202,15 @@ def stream_database_query(
 ) -> Tuple[List[str], Iterator[List[dict]]]:
     """Execute a read-only query and stream its full result set, batch by batch.
 
-    Unlike :func:`execute_database_query`, no row cap is applied: the whole
-    result is meant to be written straight to a download. A named (server-side)
-    cursor keeps peak memory bounded to ``batch_size`` rows whatever the result
-    size, instead of buffering everything client-side. Rows are yielded a batch at
-    a time (each item is a list of up to ``batch_size`` rows) so the caller can
-    fetch off the event loop once per batch rather than once per row.
+    Unlike :func:`execute_database_query`, no row cap is applied — the whole result is
+    meant to go straight to a download. A named (server-side) cursor bounds peak memory
+    to ``batch_size`` rows whatever the result size, and rows are yielded a batch at a
+    time so the caller can fetch off the event loop once per batch.
 
-    The query is executed and its first batch fetched eagerly, so an invalid
-    statement raises here (and can surface as an HTTP 400) rather than failing
-    mid-stream once bytes are already on the wire. The returned generator owns
-    the connection and closes it when exhausted or closed early (e.g. if the
-    client disconnects). A statement timeout and an idle-in-transaction timeout
-    bound, respectively, a runaway scan and a stalled client, so neither can pin
-    the read-only connection (and its open transaction) indefinitely.
+    The first batch is fetched eagerly, so an invalid statement raises here (surfacing
+    as an HTTP 400) rather than mid-stream once bytes are on the wire. The returned
+    generator owns the connection and closes it when exhausted or closed early. The two
+    timeouts set below bound a runaway scan and a stalled client. See the app README.
     """
     ensure_single_statement(query)
     conn = get_workspace_database_ro_connection(workspace)

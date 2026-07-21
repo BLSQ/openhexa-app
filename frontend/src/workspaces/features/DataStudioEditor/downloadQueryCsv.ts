@@ -6,20 +6,17 @@ import { getCookie } from "cookies-next";
 // of navigating the whole app away.
 const DOWNLOAD_FRAME_NAME = "data-studio-csv-download-frame";
 
-// The backend signals "download began" the instant it starts streaming the
-// attachment by setting a short-lived cookie whose NAME carries this prefix plus
-// our per-download token — our only positive signal, since a successful download
-// never fires the iframe's load event. A per-token name (rather than one shared
-// cookie holding the token as its value) lets concurrent downloads each wait on
-// their own signal without clobbering one another. Must match the backend's
-// f"csvDownloadToken-{token}" in databases/views.py.
+// The backend signals "download began" by setting a short-lived cookie whose NAME is
+// this prefix plus our per-download token — our only positive signal, since a
+// successful download never fires the iframe's load event. A per-token name lets
+// concurrent downloads each wait on their own signal without clobbering one another.
+// Part of the cross-tier download contract (backend tests/fixtures/download_contract.json),
+// asserted on both sides so a rename can't silently break the handshake.
 export const SUCCESS_COOKIE_PREFIX = "csvDownloadToken-";
 const POLL_INTERVAL_MS = 250;
-// Backstop for a hung backend, plus headroom for a successful export whose
-// serialisation tail runs past the query itself. Set to 2× the backend's 5-min
-// statement timeout (hexa/databases/utils.py DOWNLOAD_QUERY_TIMEOUT_MS): a query
-// that overruns that limit already fails fast via the iframe error path, so
-// 10 minutes covers the slow-but-succeeding case without undershooting.
+// Backstop for a hung backend, set generously above the backend's per-batch statement
+// timeout so a slow-but-succeeding export isn't cut off; an overrun already fails fast
+// via the iframe error path.
 const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 
 const ensureDownloadFrame = (): HTMLIFrameElement => {
