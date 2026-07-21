@@ -1,7 +1,7 @@
-import gzip
 import threading
 from unittest import mock
 
+from asgiref.sync import async_to_sync
 from django.urls import reverse
 from psycopg2.errors import QueryCanceled
 
@@ -54,9 +54,18 @@ class DownloadQueryCsvViewTest(TestCase):
             args=[slug or str(self.WORKSPACE.slug)],
         )
 
+    @staticmethod
+    def _collect(response):
+        # The download is an async stream (what actually streams under ASGI), so
+        # consume it through an event loop rather than a plain join.
+        async def collect():
+            return b"".join([chunk async for chunk in response.streaming_content])
+
+        return async_to_sync(collect)()
+
     def _download(self, query):
         response = self.client.post(self._url(), {"query": query})
-        return b"".join(response.streaming_content) if response.streaming else None
+        return self._collect(response) if response.streaming else None
 
     def test_download_streams_full_result_as_csv(self):
         self.client.force_login(self.USER_SABRINA)
@@ -72,13 +81,13 @@ class DownloadQueryCsvViewTest(TestCase):
             'attachment; filename="query-results.csv"',
             response.headers["Content-Disposition"],
         )
-        content = b"".join(response.streaming_content).decode("utf-8")
+        content = self._collect(response).decode("utf-8")
         self.assertEqual(
             UTF8_BOM + "id,label\r\n1,a\r\n2,b\r\n",
             content,
         )
 
-    def test_download_is_transparently_gzipped_but_stays_a_csv(self):
+    def test_download_is_not_gzipped_because_it_is_an_async_stream(self):
         self.client.force_login(self.USER_SABRINA)
         seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
 
@@ -88,18 +97,17 @@ class DownloadQueryCsvViewTest(TestCase):
             HTTP_ACCEPT_ENCODING="gzip",
         )
 
-        # Transfer compression only: the bytes on the wire are gzipped (the
-        # browser strips that transparently), but the attachment is still a plain
-        # .csv — there is no .gz file for the user to extract.
-        self.assertEqual("gzip", response.get("Content-Encoding"))
+        # SSEAwareGZipMiddleware leaves async streams uncompressed: Django 5.2
+        # would gzip them one member per chunk, which browsers can't reliably
+        # decode. So even though the client accepts gzip, the body is plain CSV.
+        self.assertIsNone(response.get("Content-Encoding"))
         self.assertEqual(
             'attachment; filename="query-results.csv"',
             response.headers["Content-Disposition"],
         )
-        body = b"".join(response.streaming_content)
         self.assertEqual(
             UTF8_BOM + "id,label\r\n1,a\r\n2,b\r\n",
-            gzip.decompress(body).decode("utf-8"),
+            self._collect(response).decode("utf-8"),
         )
 
     def test_download_sets_the_per_token_cookie_on_success(self):
@@ -110,7 +118,7 @@ class DownloadQueryCsvViewTest(TestCase):
             self._url(),
             {"query": "SELECT id FROM demo", "download_token": "tok-123"},
         )
-        b"".join(response.streaming_content)
+        self._collect(response)
 
         # The token is carried by the cookie name so concurrent downloads each
         # get their own signal; the value is just a presence flag.
@@ -124,7 +132,7 @@ class DownloadQueryCsvViewTest(TestCase):
             self._url(),
             {"query": "SELECT id FROM demo", "download_token": "bad token;drop"},
         )
-        b"".join(response.streaming_content)
+        self._collect(response)
 
         self.assertEqual(200, response.status_code)
         self.assertFalse(
@@ -151,7 +159,7 @@ class DownloadQueryCsvViewTest(TestCase):
         # become a clean 400: the download ends truncated. What we guarantee
         # instead is that the failure is recorded server-side.
         def failing_rows():
-            yield {"id": 1}
+            yield [{"id": 1}]
             raise QueryCanceled("canceling statement due to statement timeout")
 
         with mock.patch(
@@ -170,7 +178,7 @@ class DownloadQueryCsvViewTest(TestCase):
 
             with self.assertLogs("hexa.databases.views", level="WARNING") as logs:
                 with self.assertRaises(QueryCanceled):
-                    b"".join(response.streaming_content)
+                    self._collect(response)
         self.assertTrue(any("aborted" in line for line in logs.output))
 
     def test_download_ignores_the_interactive_row_cap(self):
@@ -187,6 +195,20 @@ class DownloadQueryCsvViewTest(TestCase):
         self.assertEqual(121, len(data_lines))
         self.assertEqual("id", data_lines[0].lstrip(UTF8_BOM))
         self.assertEqual("120", data_lines[-1])
+
+    def test_download_streams_across_multiple_server_side_batches(self):
+        self.client.force_login(self.USER_SABRINA)
+        # generate_series returns more rows than one server-side batch
+        # (DOWNLOAD_QUERY_BATCH_SIZE = 2000), so the stream must fetch several
+        # times mid-download — each fetch run off the event loop via sync_to_async
+        # on the (blocking) psycopg2 cursor. This exercises that cross-thread path,
+        # which the small-result tests above do not.
+        content = self._download("SELECT generate_series(1, 5000) AS id")
+
+        lines = content.decode("utf-8").lstrip(UTF8_BOM).strip().split("\r\n")
+        self.assertEqual("id", lines[0])
+        self.assertEqual(5000, len(lines) - 1)
+        self.assertEqual("5000", lines[-1])
 
     def test_download_neutralises_formula_injection(self):
         self.client.force_login(self.USER_SABRINA)
@@ -210,7 +232,7 @@ class DownloadQueryCsvViewTest(TestCase):
         slots = threading.BoundedSemaphore(1)
         with mock.patch("hexa.databases.views._EXPORT_SLOTS", slots):
             response = self.client.post(self._url(), {"query": "SELECT id FROM demo"})
-            b"".join(response.streaming_content)
+            self._collect(response)
             self.assertEqual(200, response.status_code)
             # The single slot must be free again, or exports would wedge after one run.
             self.assertTrue(slots.acquire(blocking=False))
@@ -229,7 +251,7 @@ class DownloadQueryCsvViewTest(TestCase):
         slots = threading.BoundedSemaphore(1)
 
         def failing_rows():
-            yield {"id": 1}
+            yield [{"id": 1}]
             raise QueryCanceled("canceling statement due to statement timeout")
 
         with (
@@ -241,10 +263,18 @@ class DownloadQueryCsvViewTest(TestCase):
         ):
             response = self.client.post(self._url(), {"query": "SELECT id FROM demo"})
             with self.assertRaises(QueryCanceled):
-                b"".join(response.streaming_content)
+                self._collect(response)
             # The slot is tied to the stream's lifetime (released in on_finish), so
             # a mid-stream failure must still hand it back rather than leak it.
             self.assertTrue(slots.acquire(blocking=False))
+
+    # The disconnect path — Django calling response.close() without the stream
+    # being consumed — is covered at the unit level in core/tests/test_csv.py
+    # (test_close_runs_cleanup_when_the_stream_was_never_consumed). It is not
+    # re-tested here because response.close() fires the request_finished signal,
+    # which closes the test's own DB connection mid-transaction and breaks the
+    # rest of the class; release_export itself is already exercised by the
+    # success and error slot-release tests above.
 
     def test_download_denied_without_permission(self):
         self.client.force_login(self.USER_SABRINA)

@@ -204,13 +204,15 @@ def stream_database_query(
     timeout_ms: int = DOWNLOAD_QUERY_TIMEOUT_MS,
     idle_timeout_ms: int = DOWNLOAD_QUERY_IDLE_TIMEOUT_MS,
     batch_size: int = DOWNLOAD_QUERY_BATCH_SIZE,
-) -> Tuple[List[str], Iterator[dict]]:
-    """Execute a read-only query and stream its full result set, row by row.
+) -> Tuple[List[str], Iterator[List[dict]]]:
+    """Execute a read-only query and stream its full result set, batch by batch.
 
     Unlike :func:`execute_database_query`, no row cap is applied: the whole
     result is meant to be written straight to a download. A named (server-side)
     cursor keeps peak memory bounded to ``batch_size`` rows whatever the result
-    size, instead of buffering everything client-side.
+    size, instead of buffering everything client-side. Rows are yielded a batch at
+    a time (each item is a list of up to ``batch_size`` rows) so the caller can
+    fetch off the event loop once per batch rather than once per row.
 
     The query is executed and its first batch fetched eagerly, so an invalid
     statement raises here (and can surface as an HTTP 400) rather than failing
@@ -250,17 +252,17 @@ def stream_database_query(
         conn.close()
         raise
 
-    def rows() -> Iterator[dict]:
+    def row_batches() -> Iterator[List[dict]]:
         try:
             batch = first_batch
             while batch:
-                yield from batch
+                yield batch
                 batch = cursor.fetchmany(batch_size)
         finally:
             cursor.close()
             conn.close()
 
-    return columns, rows()
+    return columns, row_batches()
 
 
 def get_database_definition(workspace: Workspace):

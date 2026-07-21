@@ -2,6 +2,7 @@ import logging
 import re
 import threading
 
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.http import (
     Http404,
@@ -13,7 +14,7 @@ from django.http import (
 from django.views.decorators.http import require_POST
 from psycopg2 import Error as Psycopg2Error
 
-from hexa.core.csv import streaming_csv_response
+from hexa.core.csv import async_streaming_csv_response
 from hexa.workspaces.models import Workspace
 
 from .utils import MultipleStatementsError, stream_database_query
@@ -36,24 +37,51 @@ _DOWNLOAD_TOKEN_RE = re.compile(r"[A-Za-z0-9-]{1,64}")
 _EXPORT_SLOTS = threading.BoundedSemaphore(settings.DATA_STUDIO_EXPORT_MAX_CONCURRENCY)
 
 
-def _tracked_rows(row_dicts, columns, *, workspace, user):
-    """Project rows to ``columns``, recording a failure HTTP can no longer report.
+def _next_projected_batch(batch_iter, columns):
+    """Pull the next batch off a blocking cursor and project it to ``columns``.
+
+    Returns ``None`` once the cursor is exhausted. Called through
+    ``sync_to_async`` (see :func:`_tracked_row_batches`) so the blocking
+    ``fetchmany`` and the projection both run in a worker thread rather than on
+    the event loop.
+    """
+    batch = next(batch_iter, None)
+    if batch is None:
+        return None
+    return [[row[column] for column in columns] for row in batch]
+
+
+async def _tracked_row_batches(batch_iter, columns, *, workspace, user):
+    """Yield projected row batches, recording a failure HTTP can no longer report.
+
+    The underlying cursor is blocking psycopg2, so each fetch is run off the event
+    loop via ``sync_to_async(thread_sensitive=False)``; the async CSV response can
+    then stream batch by batch without stalling the worker's event loop.
 
     Once the streaming response has sent its headers the status is fixed at 200,
     so a query that fails partway through the scan (a statement timeout on a big
     table, a dropped connection) can only end the download truncated — it cannot
-    become an error status the client would notice. Log it here, where the
-    failure actually surfaces, so a silently short file is at least visible on the
-    server. A client that simply goes away (GeneratorExit) is expected, not a
-    failure, and is left unlogged.
+    become an error status the client would notice. Log it here, where the failure
+    actually surfaces, so a silently short file is at least visible on the server.
+    A client that simply goes away raises ``GeneratorExit`` (a ``BaseException``,
+    not caught below), so an expected disconnect is left unlogged.
+
+    Closing ``batch_iter`` (which runs the cursor/connection teardown) is *not*
+    done here: on a client disconnect this generator's ``finally`` would only run
+    at garbage-collection time, so the connection is instead closed by the
+    response's ``on_finish`` callback, which fires deterministically on completion,
+    error and disconnect alike (see :func:`download_query_csv`).
     """
     fetched = 0
     try:
-        for row in row_dicts:
-            fetched += 1
-            yield [row[column] for column in columns]
-    except GeneratorExit:
-        raise
+        while True:
+            batch = await sync_to_async(_next_projected_batch, thread_sensitive=False)(
+                batch_iter, columns
+            )
+            if batch is None:
+                break
+            fetched += len(batch)
+            yield batch
     except Exception:
         logger.warning(
             "Data Studio CSV export stream aborted after %d rows "
@@ -74,10 +102,15 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
     the point of the download is to get the entire result set. See
     :func:`hexa.databases.utils.stream_database_query`.
 
-    The result is streamed row by row (:func:`hexa.core.csv.streaming_csv_response`)
-    rather than buffered, so bytes reach the browser as soon as the query starts
-    producing them: a large export is neither delayed by full serialisation nor
-    exposed to a proxy idle-timeout while nothing is sent.
+    The result is streamed batch by batch
+    (:func:`hexa.core.csv.async_streaming_csv_response`) rather than buffered, so
+    bytes reach the browser as soon as the query starts producing them: a large
+    export is neither delayed by full serialisation nor exposed to a proxy
+    idle-timeout while nothing is sent. The response is an *async* stream on
+    purpose — under the ASGI worker a sync stream would be silently drained into
+    memory in one go (``StreamingHttpResponse.__aiter__`` falls back to
+    ``sync_to_async(list)``), so the blocking cursor fetches are pushed off the
+    event loop instead (see :func:`_tracked_row_batches`).
 
     The query is executed and its first batch fetched *before* the response is
     built (``stream_database_query`` is eager), so the common failures — invalid
@@ -85,8 +118,8 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
     HTTP 400 before a single byte is sent. The trade-off of streaming is that a
     failure *after* the first batch (a statement timeout mid-scan, a dropped
     connection) can no longer change the already-sent 200 status: the download
-    just ends truncated. Such failures are logged (see :func:`_tracked_rows`) so
-    they stay observable server-side.
+    just ends truncated. Such failures are logged (see
+    :func:`_tracked_row_batches`) so they stay observable server-side.
 
     How likely is a silently-truncated download?
     --------------------------------------------
@@ -121,15 +154,16 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
     CSV.
 
     When it does happen the impact is a CSV that opens cleanly but is missing its
-    trailing rows, with no client-side error. Two things mitigate that: the
-    server-side WARNING log above (row count, workspace, user), and the gzip
-    transport-encoding this response inherits — a truncated gzip body *may* also
-    surface as a failed download in some browsers, though that is not guaranteed.
-    If silent truncation ever proves to matter in practice, the fallback is to
-    buffer the whole CSV to a temp spool before responding (a definite
-    Content-Length and a real error status, at the cost of latency and disk); it
-    is deliberately not used here because the probability above does not justify
-    that cost.
+    trailing rows, with no client-side error. What mitigates it is the server-side
+    WARNING log above (row count, workspace, user). (This stream is served
+    uncompressed — ``SSEAwareGZipMiddleware`` skips async streams because Django
+    5.2 would gzip them one member per chunk, which browsers can't reliably decode;
+    revisit once on Django 6.0. So there is no gzip layer to also flag a truncated
+    body, and no Content-Length either.) If silent truncation ever proves to matter
+    in practice, the fallback is to buffer the whole CSV to a temp spool before
+    responding (a definite Content-Length and a real error status, at the cost of
+    latency and disk); it is deliberately not used here because the probability
+    above does not justify that cost.
 
     A read-only DB connection is held open for the whole download; a statement
     timeout and an idle-in-transaction timeout bound a runaway scan and a stalled
@@ -159,31 +193,41 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
             "Too many exports are running right now. Please try again in a moment.",
             status=429,
         )
-    # The slot (and the DB connection) are held for the whole client download, not
+    # The slot and the DB connection are held for the whole client download, not
     # just this view call: the streaming response keeps consuming rows after the
-    # view returns. So release the slot when the *stream* ends — via
-    # streaming_csv_response's on_finish, which fires on completion, mid-stream
-    # error and client disconnect alike — and only release here on the paths that
-    # never start streaming.
+    # view returns. So free them when the *stream* ends — via
+    # async_streaming_csv_response's on_finish, which fires exactly once on
+    # completion, mid-stream error and client disconnect alike — and only free them
+    # here on the paths that never start streaming.
     handed_off_to_stream = False
     try:
         # stream_database_query runs the query and fetches its first batch eagerly,
         # so an invalid statement raises here and becomes a 400 before any byte is
         # sent. A failure later, mid-scan, cannot: see the docstring.
         try:
-            columns, row_dicts = stream_database_query(workspace, query)
+            columns, db_batches = stream_database_query(workspace, query)
         except MultipleStatementsError:
             return HttpResponseBadRequest("Only a single SQL statement is allowed.")
         except Psycopg2Error:
             return HttpResponseBadRequest("The query could not be executed.")
 
-        response = streaming_csv_response(
+        def release_export() -> None:
+            # Closing db_batches runs the cursor/connection teardown; do it first
+            # so the connection is freed even if the query is still mid-scan (a
+            # disconnect), then always hand the slot back. on_finish guarantees
+            # this runs once, so a double close/release cannot happen.
+            try:
+                db_batches.close()
+            finally:
+                _EXPORT_SLOTS.release()
+
+        response = async_streaming_csv_response(
             header=columns,
-            rows=_tracked_rows(
-                row_dicts, columns, workspace=workspace, user=request.user
+            row_batches=_tracked_row_batches(
+                db_batches, columns, workspace=workspace, user=request.user
             ),
             filename="query-results.csv",
-            on_finish=_EXPORT_SLOTS.release,
+            on_finish=release_export,
         )
 
         # The browser hands a successful attachment to its download manager without

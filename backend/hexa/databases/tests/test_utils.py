@@ -531,40 +531,46 @@ class DatabaseUtilsTest(TestCase):
     def test_stream_database_query_returns_every_row(self):
         seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
 
-        columns, rows = stream_database_query(
+        columns, batches = stream_database_query(
             self.WORKSPACE, "SELECT id, label FROM demo ORDER BY id"
         )
 
         self.assertEqual(["id", "label"], columns)
+        rows = [row for batch in batches for row in batch]
         self.assertEqual(
             [
                 {"id": 1, "label": "a"},
                 {"id": 2, "label": "b"},
                 {"id": 3, "label": "c"},
             ],
-            list(rows),
+            rows,
         )
 
     def test_stream_database_query_is_not_capped(self):
         # generate_series returns far more rows than the interactive default cap;
         # the stream must yield all of them.
-        columns, rows = stream_database_query(
+        columns, batches = stream_database_query(
             self.WORKSPACE, "SELECT generate_series(1, 5000) AS id"
         )
 
         self.assertEqual(["id"], columns)
-        self.assertEqual(5000, sum(1 for _ in rows))
+        self.assertEqual(5000, sum(len(batch) for batch in batches))
 
     def test_stream_database_query_batches_across_multiple_fetches(self):
         # A batch_size smaller than the result forces several server-side fetches;
-        # all rows must still come through in order.
-        columns, rows = stream_database_query(
+        # the rows must come through in order, grouped into batches of that size.
+        columns, batches = stream_database_query(
             self.WORKSPACE,
             "SELECT generate_series(1, 5) AS id",
             batch_size=2,
         )
 
-        self.assertEqual([1, 2, 3, 4, 5], [row["id"] for row in rows])
+        materialised = list(batches)
+        self.assertEqual([2, 2, 1], [len(batch) for batch in materialised])
+        self.assertEqual(
+            [1, 2, 3, 4, 5],
+            [row["id"] for batch in materialised for row in batch],
+        )
 
     def test_stream_database_query_rejects_multiple_statements(self):
         with self.assertRaises(MultipleStatementsError):
