@@ -74,6 +74,23 @@ class CsvCellSerialisationTest(TestCase):
         )
         self.assertEqual("2024-01-02", stringify_cell(datetime.date(2024, 1, 2)))
 
+    def test_float_formatting_matches_javascript(self):
+        # Floats cross the interactive path as JSON numbers and are rendered with
+        # String(x) client-side, so the server export must match ECMA-262's
+        # Number.toString. Non-finite and signed-zero cases cannot live in the
+        # JSON fixture (not representable / not distinguishable), so pin them here.
+        self.assertEqual("NaN", stringify_cell(float("nan")))
+        self.assertEqual("Infinity", stringify_cell(float("inf")))
+        self.assertEqual("-Infinity", stringify_cell(float("-inf")))
+        self.assertEqual("0", stringify_cell(-0.0))
+        self.assertEqual("-1.5", stringify_cell(-1.5))
+        self.assertEqual("10000000000000000", stringify_cell(1e16))
+        self.assertEqual("1e-7", stringify_cell(1e-7))
+        self.assertEqual("0.000001", stringify_cell(1e-6))
+        self.assertEqual("1e+21", stringify_cell(1e21))
+        self.assertEqual("5e-324", stringify_cell(5e-324))
+        self.assertEqual("100", stringify_cell(100.0))
+
 
 class AsyncStreamingCsvResponseTest(TestCase):
     @staticmethod
