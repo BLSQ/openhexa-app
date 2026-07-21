@@ -1,3 +1,4 @@
+import gzip
 import threading
 from unittest import mock
 
@@ -77,6 +78,30 @@ class DownloadQueryCsvViewTest(TestCase):
             content,
         )
 
+    def test_download_is_transparently_gzipped_but_stays_a_csv(self):
+        self.client.force_login(self.USER_SABRINA)
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
+
+        response = self.client.post(
+            self._url(),
+            {"query": "SELECT id, label FROM demo ORDER BY id"},
+            HTTP_ACCEPT_ENCODING="gzip",
+        )
+
+        # Transfer compression only: the bytes on the wire are gzipped (the
+        # browser strips that transparently), but the attachment is still a plain
+        # .csv — there is no .gz file for the user to extract.
+        self.assertEqual("gzip", response.get("Content-Encoding"))
+        self.assertEqual(
+            'attachment; filename="query-results.csv"',
+            response.headers["Content-Disposition"],
+        )
+        body = b"".join(response.streaming_content)
+        self.assertEqual(
+            UTF8_BOM + "id,label\r\n1,a\r\n2,b\r\n",
+            gzip.decompress(body).decode("utf-8"),
+        )
+
     def test_download_sets_the_per_token_cookie_on_success(self):
         self.client.force_login(self.USER_SABRINA)
         seed_demo_table(self.WORKSPACE, [(1, "a")])
@@ -117,13 +142,14 @@ class DownloadQueryCsvViewTest(TestCase):
         self.assertEqual(400, response.status_code)
         self.assertNotIn("csvDownloadToken-tok-123", response.cookies)
 
-    def test_download_failing_mid_scan_returns_a_clean_error_not_a_partial_file(self):
+    def test_download_failing_mid_stream_aborts_the_stream_and_is_logged(self):
         self.client.force_login(self.USER_SABRINA)
 
-        # A query that starts returning rows and then fails (e.g. statement
-        # timeout on a large scan). Because the CSV is buffered before the
-        # response is sent, this must surface as a 400 with no bytes and no
-        # success cookie — never a truncated 200 attachment.
+        # A query that starts returning rows and then fails (e.g. a statement
+        # timeout on a large scan). With a streamed response the 200 and headers
+        # are already on the wire, so — unlike the buffered design — this cannot
+        # become a clean 400: the download ends truncated. What we guarantee
+        # instead is that the failure is recorded server-side.
         def failing_rows():
             yield {"id": 1}
             raise QueryCanceled("canceling statement due to statement timeout")
@@ -137,9 +163,15 @@ class DownloadQueryCsvViewTest(TestCase):
                 {"query": "SELECT id FROM demo", "download_token": "tok-123"},
             )
 
-        self.assertEqual(400, response.status_code)
-        self.assertFalse(response.streaming)
-        self.assertNotIn("csvDownloadToken-tok-123", response.cookies)
+            # Streaming began: the status is 200 and the "download began" signal
+            # is already set and can no longer be retracted.
+            self.assertEqual(200, response.status_code)
+            self.assertEqual("1", response.cookies["csvDownloadToken-tok-123"].value)
+
+            with self.assertLogs("hexa.databases.views", level="WARNING") as logs:
+                with self.assertRaises(QueryCanceled):
+                    b"".join(response.streaming_content)
+        self.assertTrue(any("aborted" in line for line in logs.output))
 
     def test_download_ignores_the_interactive_row_cap(self):
         self.client.force_login(self.USER_SABRINA)
@@ -190,6 +222,28 @@ class DownloadQueryCsvViewTest(TestCase):
             response = self.client.post(self._url(), {"query": "SELECT 1; SELECT 2"})
             self.assertEqual(400, response.status_code)
             # A failed export must not permanently consume a slot.
+            self.assertTrue(slots.acquire(blocking=False))
+
+    def test_download_releases_the_slot_when_the_stream_fails_midway(self):
+        self.client.force_login(self.USER_SABRINA)
+        slots = threading.BoundedSemaphore(1)
+
+        def failing_rows():
+            yield {"id": 1}
+            raise QueryCanceled("canceling statement due to statement timeout")
+
+        with (
+            mock.patch("hexa.databases.views._EXPORT_SLOTS", slots),
+            mock.patch(
+                "hexa.databases.views.stream_database_query",
+                return_value=(["id"], failing_rows()),
+            ),
+        ):
+            response = self.client.post(self._url(), {"query": "SELECT id FROM demo"})
+            with self.assertRaises(QueryCanceled):
+                b"".join(response.streaming_content)
+            # The slot is tied to the stream's lifetime (released in on_finish), so
+            # a mid-stream failure must still hand it back rather than leak it.
             self.assertTrue(slots.acquire(blocking=False))
 
     def test_download_denied_without_permission(self):

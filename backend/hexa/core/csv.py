@@ -6,7 +6,7 @@ import typing
 from decimal import Decimal
 from tempfile import SpooledTemporaryFile
 
-from django.http import FileResponse
+from django.http import FileResponse, StreamingHttpResponse
 
 # Buffer the CSV in memory up to this size before spilling to a temp file on
 # disk. Bounds RAM per concurrent export while keeping small exports off disk.
@@ -130,3 +130,49 @@ def buffered_csv_response(
         filename=filename,
         content_type="text/csv; charset=utf-8",
     )
+
+
+def streaming_csv_response(
+    *,
+    header: typing.Sequence[typing.Any],
+    rows: typing.Iterable[typing.Sequence[typing.Any]],
+    filename: str,
+    with_bom: bool = True,
+    on_finish: typing.Optional[typing.Callable[[], None]] = None,
+) -> StreamingHttpResponse:
+    """Stream ``header`` + ``rows`` as a downloadable CSV, one line at a time.
+
+    Unlike :func:`buffered_csv_response`, bytes flow to the client as soon as they
+    are produced instead of after the whole result is materialised, so a large
+    export starts downloading immediately and is not exposed to a proxy
+    idle-timeout while nothing is sent. Peak memory stays bounded to whatever the
+    ``rows`` iterable holds at a time (e.g. one server-side cursor batch).
+
+    The trade-off: the status line and headers are committed with the first
+    chunk, so a failure raised by ``rows`` *after* that point cannot become an
+    error status — the download simply ends truncated. A caller that must react
+    to (or record) such a mid-stream failure has to observe ``rows`` itself, which
+    is where the exception surfaces.
+
+    ``on_finish``, if given, is called exactly once when the stream ends — normal
+    completion, an error raised mid-stream, or the client disconnecting — tying
+    resource release (a DB connection, an admission-control slot) to the stream's
+    lifetime rather than to the view returning. It runs inside the generator that
+    Django closes together with the response, so it fires even on an early client
+    disconnect.
+    """
+    _require_csv_filename(filename)
+
+    def byte_chunks() -> typing.Iterator[bytes]:
+        try:
+            for chunk in iter_csv(header=header, rows=rows, with_bom=with_bom):
+                yield chunk.encode("utf-8")
+        finally:
+            if on_finish is not None:
+                on_finish()
+
+    response = StreamingHttpResponse(
+        byte_chunks(), content_type="text/csv; charset=utf-8"
+    )
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
