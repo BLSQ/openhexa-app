@@ -7,7 +7,7 @@ from hexa.core.test import TestCase
 
 from ..csv import (
     UTF8_BOM,
-    buffered_csv_response,
+    streaming_csv_response,
     stringify_cell,
 )
 
@@ -36,7 +36,7 @@ class CsvCellSerialisationTest(TestCase):
         # Testing the realistic multi-column shape keeps the contract meaningful.
         for vector in CSV_CELL_VECTORS:
             with self.subTest(vector=vector["description"]):
-                response = buffered_csv_response(
+                response = streaming_csv_response(
                     header=["a", "b"],
                     rows=[[vector["value"], "x"]],
                     filename="x.csv",
@@ -57,9 +57,9 @@ class CsvCellSerialisationTest(TestCase):
         self.assertEqual("2024-01-02", stringify_cell(datetime.date(2024, 1, 2)))
 
 
-class BufferedCsvResponseTest(TestCase):
-    def test_writes_the_whole_file_as_an_attachment(self):
-        response = buffered_csv_response(
+class StreamingCsvResponseTest(TestCase):
+    def test_streams_the_file_as_a_csv_attachment(self):
+        response = streaming_csv_response(
             header=["a", "b"],
             rows=[["1", "2"], ["3", "4"]],
             filename="query-results.csv",
@@ -70,18 +70,32 @@ class BufferedCsvResponseTest(TestCase):
             'attachment; filename="query-results.csv"',
             response.headers["Content-Disposition"],
         )
-        # A definite size (vs chunked streaming) lets the browser itself detect a
-        # truncated transfer.
-        self.assertIn("Content-Length", response.headers)
 
-    def test_row_error_propagates_before_any_response(self):
-        # The whole point of buffering: a failure mid-iteration must raise here,
-        # not silently truncate an already-started download.
+    def test_on_finish_runs_once_when_the_stream_is_consumed(self):
+        # on_finish ties resource release to the stream's lifetime, so it must not
+        # fire until the response is actually consumed, and then exactly once.
+        calls = []
+        response = streaming_csv_response(
+            header=["a"],
+            rows=[["1"]],
+            filename="query-results.csv",
+            on_finish=lambda: calls.append(1),
+        )
+        self.assertEqual([], calls)
+        b"".join(response.streaming_content)
+        self.assertEqual([1], calls)
+
+    def test_row_error_surfaces_from_the_stream(self):
+        # With streaming (unlike a buffered response) a mid-iteration failure
+        # cannot be caught before the response is built: it surfaces while the
+        # stream is consumed. The view observes this via _tracked_rows; here we
+        # only assert the exception is not swallowed.
         def rows():
-            yield ["ok", "x"]
+            yield ["ok"]
             raise RuntimeError("mid-iteration failure")
 
+        response = streaming_csv_response(
+            header=["a"], rows=rows(), filename="query-results.csv"
+        )
         with self.assertRaises(RuntimeError):
-            buffered_csv_response(
-                header=["a", "b"], rows=rows(), filename="query-results.csv"
-            )
+            b"".join(response.streaming_content)

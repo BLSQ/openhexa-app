@@ -4,13 +4,8 @@ import json
 import re
 import typing
 from decimal import Decimal
-from tempfile import SpooledTemporaryFile
 
-from django.http import FileResponse, StreamingHttpResponse
-
-# Buffer the CSV in memory up to this size before spilling to a temp file on
-# disk. Bounds RAM per concurrent export while keeping small exports off disk.
-_CSV_SPOOL_MAX_MEMORY = 8 * 1024 * 1024
+from django.http import StreamingHttpResponse
 
 # Excel decodes a UTF-8 CSV as the local ANSI codepage unless it sees a BOM,
 # which mangles accented characters. Prepend one so non-ASCII data survives.
@@ -81,8 +76,8 @@ def iter_csv(
     """Yield the CSV text of ``header`` + ``rows``, one formatted line at a time.
 
     ``rows`` is consumed lazily, so the caller may pass a generator backed by a
-    server-side database cursor. This is the single serialisation point used by
-    :func:`buffered_csv_response`.
+    server-side database cursor. This is the single serialisation point behind
+    :func:`streaming_csv_response`.
     """
     writer = csv.writer(Echo())
     if with_bom:
@@ -90,46 +85,6 @@ def iter_csv(
     yield writer.writerow([stringify_cell(cell) for cell in header])
     for row in rows:
         yield writer.writerow([stringify_cell(cell) for cell in row])
-
-
-def buffered_csv_response(
-    *,
-    header: typing.Sequence[typing.Any],
-    rows: typing.Iterable[typing.Sequence[typing.Any]],
-    filename: str,
-    with_bom: bool = True,
-) -> FileResponse:
-    """Materialise the whole CSV, then return it as a downloadable attachment.
-
-    Every row is written to a spooled temp file *before* the response is
-    returned, so a failure while producing rows (an invalid query, a statement
-    timeout mid-scan, a dropped DB connection) raises from here — before any byte
-    has reached the client — letting the caller return a clean error status
-    instead of a silently truncated download. Peak memory stays bounded: the
-    buffer spills to disk past ``_CSV_SPOOL_MAX_MEMORY``.
-
-    The trade-off is latency: the client sees nothing until the query has fully
-    run and serialised. See ``hexa.databases.views.download_query_csv`` for the
-    expected wait by result size.
-    """
-    _require_csv_filename(filename)
-    spool = SpooledTemporaryFile(max_size=_CSV_SPOOL_MAX_MEMORY, mode="w+b")
-    try:
-        for chunk in iter_csv(header=header, rows=rows, with_bom=with_bom):
-            spool.write(chunk.encode("utf-8"))
-    except Exception:
-        spool.close()
-        raise
-    spool.seek(0)
-    # FileResponse sets Content-Length from the (seekable) spool, so the browser
-    # gets a definite size and can itself detect a truncated transfer. It also
-    # closes the spool — and thus removes the temp file — when the response ends.
-    return FileResponse(
-        spool,
-        as_attachment=True,
-        filename=filename,
-        content_type="text/csv; charset=utf-8",
-    )
 
 
 def streaming_csv_response(
@@ -142,17 +97,19 @@ def streaming_csv_response(
 ) -> StreamingHttpResponse:
     """Stream ``header`` + ``rows`` as a downloadable CSV, one line at a time.
 
-    Unlike :func:`buffered_csv_response`, bytes flow to the client as soon as they
-    are produced instead of after the whole result is materialised, so a large
-    export starts downloading immediately and is not exposed to a proxy
-    idle-timeout while nothing is sent. Peak memory stays bounded to whatever the
-    ``rows`` iterable holds at a time (e.g. one server-side cursor batch).
+    Bytes flow to the client as soon as they are produced rather than after the
+    whole result is materialised, so a large export starts downloading
+    immediately and is not exposed to a proxy idle-timeout while nothing is sent.
+    Peak memory stays bounded to whatever the ``rows`` iterable holds at a time
+    (e.g. one server-side cursor batch).
 
     The trade-off: the status line and headers are committed with the first
     chunk, so a failure raised by ``rows`` *after* that point cannot become an
     error status — the download simply ends truncated. A caller that must react
     to (or record) such a mid-stream failure has to observe ``rows`` itself, which
-    is where the exception surfaces.
+    is where the exception surfaces (see
+    ``hexa.databases.views.download_query_csv`` for how likely that is in practice
+    and how it is handled).
 
     ``on_finish``, if given, is called exactly once when the stream ends — normal
     completion, an error raised mid-stream, or the client disconnecting — tying

@@ -88,6 +88,49 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
     just ends truncated. Such failures are logged (see :func:`_tracked_rows`) so
     they stay observable server-side.
 
+    How likely is a silently-truncated download?
+    --------------------------------------------
+    Low, by design, and the residual causes are infrastructural rather than
+    query-shaped:
+
+    * **Front-loaded query cost is caught, not truncated.** The first batch is
+      fetched eagerly, so any query whose cost is paid up front — a sort, a hash
+      aggregate, a large join that must materialise before the first row — fails
+      during that eager fetch and becomes a clean HTTP 400. Only a query that is
+      *cheap to start and expensive to sustain* (a plain streaming scan) can get
+      past the first byte and then fail.
+
+    * **statement_timeout bounds a single batch, not the whole scan.** With the
+      server-side named cursor each ``FETCH`` is its own statement, so the
+      5-minute ``DOWNLOAD_QUERY_TIMEOUT_MS`` limits one ``DOWNLOAD_QUERY_BATCH_SIZE``
+      batch — not the total download. A legitimately long export (many minutes of
+      steady streaming) never trips it as long as each individual batch returns
+      within 5 minutes; only a pathologically slow *per-batch* scan would.
+
+    * **idle_in_transaction fires only on a stalled client.** The 5-minute
+      ``DOWNLOAD_QUERY_IDLE_TIMEOUT_MS`` aborts the transaction only if the client
+      stops consuming for that long mid-stream — by which point the user's own
+      download has visibly stalled anyway, so a truncated file is not a silent
+      surprise.
+
+    That leaves genuine infra events as the realistic causes: the workspace DB
+    connection dropping (a restart, failover, or network blip) or this web worker
+    being killed mid-stream (a deploy, an OOM, or a scale-down that outlasts
+    gunicorn's graceful-shutdown window). These are infrequent and usually visible
+    through other signals (deploy notices, error rates), not only through a short
+    CSV.
+
+    When it does happen the impact is a CSV that opens cleanly but is missing its
+    trailing rows, with no client-side error. Two things mitigate that: the
+    server-side WARNING log above (row count, workspace, user), and the gzip
+    transport-encoding this response inherits — a truncated gzip body *may* also
+    surface as a failed download in some browsers, though that is not guaranteed.
+    If silent truncation ever proves to matter in practice, the fallback is to
+    buffer the whole CSV to a temp spool before responding (a definite
+    Content-Length and a real error status, at the cost of latency and disk); it
+    is deliberately not used here because the probability above does not justify
+    that cost.
+
     A read-only DB connection is held open for the whole download; a statement
     timeout and an idle-in-transaction timeout bound a runaway scan and a stalled
     client respectively, and ``_EXPORT_SLOTS`` bounds how many such downloads a
