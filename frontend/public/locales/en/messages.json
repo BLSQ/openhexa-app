@@ -1069,6 +1069,7 @@
   "You are not allowed to create a pipeline.": "You are not allowed to create a pipeline.",
   "You are not allowed to create a Template.": "You are not allowed to create a Template.",
   "You are not allowed to delete the template {{ name }}": "You are not allowed to delete the template {{ name }}",
+  "You are not allowed to sign in with this account. Please contact your administrator.": "You are not allowed to sign in with this account. Please contact your administrator.",
   "You are not authorized to perform this action": "You are not authorized to perform this action",
   "You can create a connection based on our supported integrations": "You can create a connection based on our supported integrations",
   "You can set a custom docker image that will be used to run pipelines and jupyterlab. That image can be created, for example, by extending blsq/openhexa-blsq-environment.": "You can set a custom docker image that will be used to run pipelines and jupyterlab. That image can be created, for example, by extending blsq/openhexa-blsq-environment.",

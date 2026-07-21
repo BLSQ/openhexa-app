@@ -180,7 +180,7 @@ DataStudioEditor.queries = {
       workspace(slug: $workspaceSlug) {
         slug
         database {
-          executeSQL(query: $query, maxRows: $maxRows) {
+          executeSQL(query: $query, maxRows: $maxRows, origin: DATA_STUDIO) {
             success
             errors
             errorMessage

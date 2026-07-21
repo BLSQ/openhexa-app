@@ -17,6 +17,7 @@ Including another URLconf
 """
 
 import allauth.urls
+import django_sql_dashboard
 from ariadne_django.views import GraphQLView
 from django.conf import settings
 from django.contrib import admin
@@ -41,6 +42,7 @@ admin.site.index_title = "Welcome to OpenHEXA"
 # Core URLs
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("dashboard/", include(django_sql_dashboard.urls)),
     path("", include("hexa.core.urls", namespace="core")),
     path("notebooks/", include("hexa.notebooks.urls", namespace="notebooks")),
     path("assistant/", include("hexa.assistant.urls", namespace="assistant")),
