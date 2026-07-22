@@ -17,6 +17,8 @@ query GetUser {
       lastName
       displayName
       language
+      dateJoined
+      analyticsEnabled
       avatar {
         initials
         color
