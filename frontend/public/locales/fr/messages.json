@@ -924,6 +924,7 @@
   "The pipeline version is not available.": "Cette version de pipeline n'est pas disponible.",
   "The provided URL is invalid or not allowed.": "L'URL fournie est invalide ou non autorisée.",
   "The query could not be executed.": "La requête n'a pas pu être exécutée.",
+  "The query is empty": "La requête est vide",
   "The query or its result is too large. Try lowering the maximum number of rows or narrowing your query.": "La requête ou son résultat est trop volumineux. Essayez de réduire le nombre maximal de lignes ou d'affiner votre requête.",
   "The query timed out.": "Le délai d'exécution de la requête a expiré.",
   "The schedule value should follow the CRON syntax.": "La valeur du calendrier doit respecter la syntaxe CRON.",

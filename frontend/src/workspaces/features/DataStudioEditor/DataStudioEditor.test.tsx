@@ -316,4 +316,17 @@ describe("DataStudioEditor", () => {
       screen.queryByRole("button", { name: "Edit details" }),
     ).not.toBeInTheDocument();
   });
+
+  it("blocks in-place Save while an existing query's content is empty", async () => {
+    mockEditorState.savedQuery = { id: "q1", name: "Cohort query" };
+    mockEditorState.canUpdate = true;
+    mockEditorState.isDirty = true;
+    renderEditor();
+
+    // Content starts empty (wiped), so Save stays disabled even though dirty.
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+
+    await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  });
 });

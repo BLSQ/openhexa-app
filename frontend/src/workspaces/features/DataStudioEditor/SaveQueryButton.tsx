@@ -116,9 +116,15 @@ const SaveQueryButton = ({
     <div className="flex items-center gap-1">
       <button
         onClick={onSave}
-        disabled={!isDirty || saving}
+        disabled={!isDirty || !hasContent || saving}
         className={GHOST}
-        title={isDirty ? t("Save changes") : t("No changes to save")}
+        title={
+          !hasContent
+            ? t("The query is empty")
+            : isDirty
+              ? t("Save changes")
+              : t("No changes to save")
+        }
       >
         <FloppyDiskIcon className="h-4 w-4" />
         {t("Save")}
