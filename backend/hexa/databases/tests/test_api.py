@@ -161,7 +161,7 @@ class DatabaseAPITest(TestCase):
         credentials = get_db_server_credentials()
         host = credentials["host"]
         port = credentials["port"]
-        load_database_sample_data(self.DB1_NAME)
+        load_database_sample_data(self.DB1_NAME, self.PWD_1)
 
         with psycopg2.connect(
             host=host,
@@ -183,6 +183,11 @@ class DatabaseAPITest(TestCase):
                 """
             )
             self.assertEqual(len(cursor.fetchall()), 1)
+
+        with self._connect_as_ro_role() as ro_conn:
+            ro_cursor = ro_conn.cursor()
+            ro_cursor.execute("SELECT count(*) FROM covid_data;")
+            self.assertGreater(ro_cursor.fetchone()[0], 0)
 
     def test_database_limitation_settings(self):
         """Test that database-level limits are properly configured when creating a database."""
