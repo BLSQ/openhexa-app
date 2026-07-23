@@ -58,13 +58,18 @@ const SavedQueriesList = ({
             {/* Server-side pagination via the grid's built-in pager: `fetchData`
               reports page/size changes to the parent, and `defaultPageIndex`
               feeds the parent's current page back so the pager stays in sync
-              with the fetched data (e.g. when a search resets to page 1). */}
+              with the fetched data (e.g. when a search resets to page 1).
+              `skipPageReset` turns off react-table's autoResetPage: since the
+              parent owns the page, resetting the internal index to 0 when new
+              data arrives would bounce the pager (page 2 → 1 → 2) and fire a
+              spurious refetch on every navigation. */}
             <DataGrid
               data={items}
               totalItems={totalItems}
               defaultPageSize={perPage}
               defaultPageIndex={page - 1}
               fetchData={onChangePage}
+              skipPageReset
               fixedLayout={false}
               loading={loading}
               emptyLabel={t("No saved queries yet.")}
