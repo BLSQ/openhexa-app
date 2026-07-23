@@ -106,7 +106,7 @@ const SaveQueryDialog = ({
   const submitLabel = mode === "create" ? t("Save query") : t("Save");
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} maxWidth="max-w-xl">
       <form onSubmit={form.handleSubmit}>
         <Dialog.Title onClose={onClose}>{title}</Dialog.Title>
         <Dialog.Content className="space-y-4">
@@ -125,7 +125,7 @@ const SaveQueryDialog = ({
               name="description"
               value={form.formData.description ?? ""}
               onChange={form.handleInputChange}
-              rows={3}
+              rows={7}
               placeholder={t("What does this query return? Any caveats?")}
             />
           </Field>
