@@ -103,14 +103,6 @@ const DataStudioEditor = ({
                 <PencilIcon className="h-4 w-4" />
               </button>
             )}
-            {editor.isDirty && (
-              <span
-                role="status"
-                aria-label={t("Unsaved changes")}
-                title={t("Unsaved changes")}
-                className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-400"
-              />
-            )}
             <div className="ml-auto flex items-center gap-2">
               <SaveQueryButton
                 isSaved={Boolean(editor.savedQuery)}

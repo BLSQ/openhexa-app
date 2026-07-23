@@ -978,7 +978,6 @@
   "Unknown error.": "Unknown error.",
   "Unknown ID: {{id}}": "Unknown ID: {{id}}",
   "Unknown workspace": "Unknown workspace",
-  "Unsaved changes": "Unsaved changes",
   "Update": "Update",
   "Update connection fields for {{name}}": "Update connection fields for {{name}}",
   "Update connection parameters in 3rd-party tools (visualization & BI tools, other data systems...)": "Update connection parameters in 3rd-party tools (visualization & BI tools, other data systems...)",

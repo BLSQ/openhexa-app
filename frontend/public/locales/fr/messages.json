@@ -991,7 +991,6 @@
   "Unknown error.": "Erreur inconnue.",
   "Unknown ID: {{id}}": "ID {{id}} inconnu",
   "Unknown workspace": "Workspace inconnu",
-  "Unsaved changes": "Modifications non sauvegardées",
   "Update": "Mise à jour",
   "Update connection fields for {{name}}": "Mise à jour des champs de connexion pour {{name}}",
   "Update connection parameters in 3rd-party tools (visualization & BI tools, other data systems...)": "Mettre à jour les paramètres de connexion dans les outils tiers (outils de visualisation et de BI, autres systèmes de données...)",
