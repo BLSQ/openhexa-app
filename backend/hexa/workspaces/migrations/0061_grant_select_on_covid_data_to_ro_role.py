@@ -61,9 +61,13 @@ def grant_select_on_covid_data(apps, schema_editor):
             failed.append(db_name)
             print(f"[0061] Failed on workspace {workspace.id} ({db_name}): {exc}")
 
-    print(f"[0061] Done. Granted SELECT on covid_data for {granted}/{total} workspace(s).")
+    print(
+        f"[0061] Done. Granted SELECT on covid_data for {granted}/{total} workspace(s)."
+    )
     if no_table:
-        print(f"[0061] {len(no_table)} without the tutorial table: {', '.join(no_table)}")
+        print(
+            f"[0061] {len(no_table)} without the tutorial table: {', '.join(no_table)}"
+        )
     if failed:
         print(f"[0061] {len(failed)} failed: {', '.join(failed)}")
 
