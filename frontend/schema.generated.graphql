@@ -4179,8 +4179,10 @@ type Query {
   readFileContent(endLine: Int, filePath: String!, startLine: Int, workspaceSlug: String!): ReadFileContentResult!
   readWebappFile(endLine: Int, path: String!, startLine: Int, webappSlug: String!, workspaceSlug: String!): ReadWebappFileResult!
 
-  """Retrieves a saved query by its id within a workspace."""
-  savedQuery(id: ID!, workspaceSlug: String!): SavedQuery
+  """
+  Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace.
+  """
+  savedQuery(id: ID!, workspaceSlug: String): SavedQuery
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!

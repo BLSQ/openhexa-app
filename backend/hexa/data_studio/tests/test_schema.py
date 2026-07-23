@@ -231,6 +231,19 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         )
         self.assertIsNone(r["data"]["savedQuery"])
 
+    def test_get_saved_query_without_workspace(self):
+        # workspaceSlug is optional: omitting it keeps the original id-only
+        # lookup (still gated by filter_for_user), so existing callers work.
+        created = self._create_query(self.USER_EDITOR)
+        query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
+
+        self.client.force_login(self.USER_VIEWER)
+        r = self.run_query(
+            "query ($id: ID!) { savedQuery(id: $id) { name } }",
+            {"id": query_id},
+        )
+        self.assertEqual(r["data"]["savedQuery"]["name"], "My query")
+
     def test_update_saved_query(self):
         created = self._create_query(self.USER_EDITOR)
         query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]

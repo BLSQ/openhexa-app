@@ -83,12 +83,17 @@ def resolve_workspace_permissions_create_saved_query(
 @data_studio_queries.field("savedQuery")
 def resolve_saved_query(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    queryset = SavedQuery.objects.filter_for_user(request.user).select_related(
+        "created_by", "workspace", "workspace__organization"
+    )
+    # workspaceSlug is optional to keep the field's existing id-only contract;
+    # when supplied it scopes the lookup to that workspace, matching where
+    # saved queries live (mirrors pipelineByCode).
+    workspace_slug = kwargs.get("workspace_slug")
+    if workspace_slug is not None:
+        queryset = queryset.filter(workspace__slug=workspace_slug)
     try:
-        return (
-            SavedQuery.objects.filter_for_user(request.user)
-            .select_related("created_by", "workspace", "workspace__organization")
-            .get(id=kwargs["id"], workspace__slug=kwargs["workspace_slug"])
-        )
+        return queryset.get(id=kwargs["id"])
     except SavedQuery.DoesNotExist:
         return None
 
