@@ -52,6 +52,20 @@ class WorkspaceMetadataCopierRemoteTest(SimpleTestCase):
 
         target.client.update_workspace.assert_called_once()
 
+    def test_existing_target_slug_skips_creation(self):
+        source = Endpoint.remote(MagicMock(), "src")
+        source.client.workspace.return_value = _src_ws()
+        target = Endpoint.remote(MagicMock(), "existing-ws")
+        target.client.workspace.return_value = SimpleNamespace(name="Existing WS")
+        result = CopyResult()
+
+        WorkspaceMetadataCopier().copy(source, target, result, NullReporter())
+
+        target.client.create_workspace.assert_not_called()
+        self.assertEqual(target.slug, "existing-ws")
+        self.assertEqual(result.workspace_slug, "existing-ws")
+        self.assertEqual(result.workspace_name, "Existing WS")
+
     def test_missing_source_workspace_raises(self):
         source = Endpoint.remote(MagicMock(), "missing")
         source.client.workspace.return_value = None

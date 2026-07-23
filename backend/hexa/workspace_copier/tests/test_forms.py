@@ -10,6 +10,7 @@ def _base_data(**overrides):
         "source_slug": "my-workspace",
         "target_url": "",
         "target_token": "",
+        "target_mode": "new",
         "target_organization": "org-1",
         "resources": ["connections"],
     }
@@ -26,6 +27,38 @@ class CopyWorkspaceFormTest(SimpleTestCase):
         form = CopyWorkspaceForm(data=_base_data(target_organization=""))
         self.assertFalse(form.is_valid())
         self.assertIn("target_organization", form.errors)
+
+    def test_existing_mode_needs_no_organization(self):
+        form = CopyWorkspaceForm(
+            data=_base_data(
+                target_mode="existing",
+                target_organization="",
+                target_workspace_slug="existing-ws",
+            )
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_existing_mode_requires_slug(self):
+        form = CopyWorkspaceForm(data=_base_data(target_mode="existing"))
+        self.assertFalse(form.is_valid())
+        self.assertIn("target_workspace_slug", form.errors)
+
+    def test_existing_mode_drops_new_workspace_fields(self):
+        form = CopyWorkspaceForm(
+            data=_base_data(
+                target_mode="existing",
+                target_workspace_name="Ignored",
+                target_workspace_slug="existing-ws",
+            )
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["target_organization"], "")
+        self.assertEqual(form.cleaned_data["target_workspace_name"], "")
+
+    def test_new_mode_drops_slug(self):
+        form = CopyWorkspaceForm(data=_base_data(target_workspace_slug="leftover"))
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["target_workspace_slug"], "")
 
     def test_remote_source_requires_token(self):
         form = CopyWorkspaceForm(

@@ -20,6 +20,16 @@ from hexa.workspace_copier.transport import GraphQLError, gql
 
 OBJECTS_PAGE_SIZE = 100
 
+# Directory names whose contents are never worth copying (editor/runtime
+# scratch dirs). Matched against any segment of an object key, so a nested
+# ``notebooks/.ipynb_checkpoints/foo.ipynb`` is skipped too.
+SKIPPED_DIRECTORIES = frozenset({".ipynb_checkpoints", "cache", ".cache"})
+
+
+def is_skipped(key: str) -> bool:
+    """Whether an object key lives under a skipped directory."""
+    return any(segment in SKIPPED_DIRECTORIES for segment in key.split("/"))
+
 
 PREPARE_DOWNLOAD_MUTATION = """
 mutation PrepareDownload($input: PrepareObjectDownloadInput!) {
@@ -150,6 +160,8 @@ def walk(client: Client, ws_slug: str, prefix: str = "") -> Iterator[dict[str, A
             return
         page_data = ws["bucket"]["objects"]
         for obj in page_data["items"]:
+            if is_skipped(obj["key"]):
+                continue
             if obj["type"] == "FILE":
                 yield obj
             elif obj["type"] == "DIRECTORY":
@@ -165,6 +177,33 @@ class FilesCopier(ResourceCopier):
     name = "files"
     label = "Files (bucket)"
 
+    def __init__(self, skip_existing: bool = False):
+        self.skip_existing = skip_existing
+
+    def _existing_on_target(
+        self, target: Endpoint, reporter: ProgressReporter
+    ) -> dict[str, int]:
+        """List the target bucket up front so re-runs can skip matching files.
+
+        One listing pass is far cheaper than the four round trips a copy costs
+        per file. On failure we fall back to copying everything — copies are
+        plain overwrites, so that is always safe, just slower.
+        """
+        try:
+            existing = {
+                obj["key"]: obj["size"] for obj in walk(target.client, target.slug)
+            }
+        except (GraphQLError, httpx.HTTPError) as exc:
+            reporter.warning(
+                f"   could not list target files ({exc}) — copying everything"
+            )
+            return {}
+        reporter.info(
+            f"   target already has {len(existing)} file(s); "
+            "files matching by key and size will be skipped"
+        )
+        return existing
+
     def copy(
         self,
         source: Endpoint,
@@ -174,6 +213,10 @@ class FilesCopier(ResourceCopier):
     ) -> None:
         files_result = FilesResult()
         result.files = files_result
+
+        existing = (
+            self._existing_on_target(target, reporter) if self.skip_existing else {}
+        )
 
         # One shared client for all presigned download/upload requests so the
         # connection pool reuses TLS handshakes across files instead of paying
@@ -186,6 +229,7 @@ class FilesCopier(ResourceCopier):
             # next() lets us record a listing failure and keep the files copied
             # so far instead of letting the error escape copy() and lose them.
             walker = walk(source.client, source.slug)
+            count = 0
             while True:
                 try:
                     obj = next(walker)
@@ -195,12 +239,22 @@ class FilesCopier(ResourceCopier):
                     files_result.failed.append(("<listing>", str(exc)))
                     reporter.warning(f"   FAILED to list remaining files: {exc}")
                     break
+                count += 1
                 path = obj["key"]
+                if path in existing and existing[path] == obj["size"]:
+                    files_result.skipped += 1
+                    reporter.info(
+                        f"   [{count}] skipped {path} (already exists, same size)"
+                    )
+                    continue
+                # Announce the start so a slow transfer is visible as
+                # in-progress instead of looking like a hang.
+                reporter.info(f"   [{count}] copying {path} ({obj['size']} bytes) ...")
                 try:
                     content = download(source.client, source.slug, path, http_client)
                     upload(target.client, target.slug, path, content, http_client)
                     files_result.copied.append((path, len(content)))
-                    reporter.info(f"   copied {path} ({len(content)} bytes)")
+                    reporter.info(f"   [{count}] copied {path} ({len(content)} bytes)")
                 except (GraphQLError, httpx.HTTPError) as exc:
                     # Both presigned download/upload (httpx) and the prepare
                     # mutations (GraphQL) can fail per-file. The path and reason
@@ -208,9 +262,10 @@ class FilesCopier(ResourceCopier):
                     # why and re-attempt it manually.
                     reason = f"{exc.__class__.__name__}: {exc}"
                     files_result.failed.append((path, reason))
-                    reporter.warning(f"   FAILED to copy {path}: {reason}")
+                    reporter.warning(f"   [{count}] FAILED to copy {path}: {reason}")
 
         reporter.info(
             f"   {len(files_result.copied)} file(s) copied, "
+            f"{files_result.skipped} skipped, "
             f"{len(files_result.failed)} failed"
         )

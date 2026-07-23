@@ -49,15 +49,24 @@ def copy_workspace(
     reporter: ProgressReporter,
     *,
     resources: set[str] | None = None,
+    skip_existing: bool = False,
 ) -> CopyResult:
     """Copy a workspace from ``source`` to ``target``.
 
     Runs the selected copiers in registry (dependency) order, recording the
     outcome on a single :class:`CopyResult`. Live progress is emitted
     through ``reporter``; pass a :class:`~hexa.workspace_copier.progress.NullReporter`
-    to discard it.
+    to discard it. ``skip_existing`` skips files already on the target with
+    the same key and size (the idempotent re-run flow).
     """
     selected = _resolve_selection(WORKSPACE_COPIERS, resources)
+    if skip_existing:
+        # Only the files copier has per-run configuration; swap in a configured
+        # instance rather than mutating the shared registry singleton.
+        selected = [
+            FilesCopier(skip_existing=True) if isinstance(c, FilesCopier) else c
+            for c in selected
+        ]
     selected_names = {c.name for c in selected}
     result = CopyResult()
     for copier in selected:

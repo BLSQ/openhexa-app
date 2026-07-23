@@ -10,6 +10,13 @@
 {% endblock %}
 
 {% block content %}
+<style>
+    .target-mode-fields {
+        margin: 0.5rem 0 1rem 1.5rem;
+        padding-left: 1rem;
+        border-left: 3px solid var(--border-color, #ccc);
+    }
+</style>
 <p>
     Copy a workspace between servers. Leave a server URL blank to use the local
     server. Source/target superuser credentials are used only for this request
@@ -34,8 +41,14 @@
         <h2>{% trans 'Target' %}</h2>
         {% include "admin/workspace_copier/_field_row.html" with field=form.target_url %}
         {% include "admin/workspace_copier/_field_row.html" with field=form.target_token %}
-        {% include "admin/workspace_copier/_field_row.html" with field=form.target_organization %}
-        {% include "admin/workspace_copier/_field_row.html" with field=form.target_workspace_name %}
+        {% include "admin/workspace_copier/_field_row.html" with field=form.target_mode %}
+        <div id="target-mode-new-fields" class="target-mode-fields">
+            {% include "admin/workspace_copier/_field_row.html" with field=form.target_organization %}
+            {% include "admin/workspace_copier/_field_row.html" with field=form.target_workspace_name %}
+        </div>
+        <div id="target-mode-existing-fields" class="target-mode-fields">
+            {% include "admin/workspace_copier/_field_row.html" with field=form.target_workspace_slug %}
+        </div>
     </fieldset>
     <fieldset class="module aligned">
         <h2>{% trans 'Resources' %}</h2>
@@ -55,4 +68,22 @@
 <h2>{% trans 'Summary' %}</h2>
 <pre>{{ summary }}</pre>
 {% endif %}
+
+<script>
+(function () {
+    const radios = document.querySelectorAll('input[name="target_mode"]');
+    const newFields = document.getElementById('target-mode-new-fields');
+    const existingFields = document.getElementById('target-mode-existing-fields');
+
+    function toggle() {
+        const checked = document.querySelector('input[name="target_mode"]:checked');
+        const existing = checked && checked.value === 'existing';
+        newFields.hidden = existing;
+        existingFields.hidden = !existing;
+    }
+
+    radios.forEach((radio) => radio.addEventListener('change', toggle));
+    toggle();
+})();
+</script>
 {% endblock %}
