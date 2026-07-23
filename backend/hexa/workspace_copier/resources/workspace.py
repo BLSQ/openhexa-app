@@ -66,9 +66,7 @@ class WorkspaceMetadataCopier(ResourceCopier):
         ws = self._read_target(target)
         result.workspace_slug = target.slug
         result.workspace_name = ws.name
-        reporter.info(
-            f"   using existing workspace {ws.name!r} (slug '{target.slug}')"
-        )
+        reporter.info(f"   using existing workspace {ws.name!r} (slug '{target.slug}')")
 
     def _read_target(self, target: Endpoint) -> Any:
         if target.is_remote:
