@@ -1,6 +1,3 @@
-import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import clsx from "clsx";
 import { useTranslation } from "next-i18next";
 
 // Heroicons has no floppy-disk/save glyph, so we inline the one from the Data
@@ -23,6 +20,28 @@ const FloppyDiskIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// "Save as new" variant: the same floppy shrunk into the lower-left with a plus
+// badge in the top-right corner, so the two save actions read as a family while
+// signalling that this one forks a brand-new query.
+const FloppyDiskPlusIcon = ({ className }: { className?: string }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.5}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    aria-hidden="true"
+  >
+    <path d="M4 5h8l3 3v11H4z" />
+    <path d="M7 5v4h5V5" />
+    <path d="M7 19v-5h6v5" />
+    <path d="M19 3.5v5" />
+    <path d="M16.5 6h5" />
+  </svg>
+);
+
 type SaveQueryButtonProps = {
   isSaved: boolean;
   isDirty: boolean;
@@ -32,18 +51,20 @@ type SaveQueryButtonProps = {
   saving: boolean;
   onSave: () => void;
   onSaveAsNew: () => void;
-  onEditDetails: () => void;
 };
 
 const GHOST =
   "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent";
 
-const MENU_ITEM =
-  "flex w-full items-center rounded-sm px-2 py-1.5 text-left text-xs text-gray-700 data-[focus]:bg-gray-100 data-[disabled]:cursor-not-allowed data-[disabled]:text-gray-300";
+// Muted sibling of GHOST for the secondary "Save as new" action, so it reads as
+// clearly subordinate to the primary Save without hiding it in a menu.
+const GHOST_SECONDARY =
+  "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent";
 
 // The Save control adapts to permissions and state:
 // - new query           → single "Save" (opens the create dialog)
-// - saved + can update   → split "Save" + menu (save as new / edit details)
+// - saved + can update   → primary "Save" + a muted "Save as new" sibling;
+//   metadata edits happen via the pencil next to the query name
 // - saved, cannot update → single "Save as new query" (the only way to persist)
 const SaveQueryButton = ({
   isSaved,
@@ -54,7 +75,6 @@ const SaveQueryButton = ({
   saving,
   onSave,
   onSaveAsNew,
-  onEditDetails,
 }: SaveQueryButtonProps) => {
   const { t } = useTranslation();
 
@@ -86,49 +106,32 @@ const SaveQueryButton = ({
         className={GHOST}
         title={t("Save as a new query")}
       >
-        <FloppyDiskIcon className="h-4 w-4" />
+        <FloppyDiskPlusIcon className="h-4 w-4" />
         {t("Save as new query")}
       </button>
     );
   }
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center gap-1">
       <button
         onClick={onSave}
         disabled={!isDirty || saving}
-        className={clsx(GHOST, "rounded-r-none pr-2")}
+        className={GHOST}
         title={isDirty ? t("Save changes") : t("No changes to save")}
       >
         <FloppyDiskIcon className="h-4 w-4" />
         {t("Save")}
       </button>
-      <Menu as="div" className="relative">
-        <MenuButton
-          className={clsx(
-            GHOST,
-            "rounded-l-none border-l border-gray-200 px-1",
-          )}
-          aria-label={t("More save options")}
-        >
-          <ChevronDownIcon className="h-4 w-4" />
-        </MenuButton>
-        <MenuItems
-          anchor="bottom end"
-          className="z-30 mt-1 w-52 rounded-md bg-white p-1 shadow-lg ring-1 ring-black/5 focus:outline-none"
-        >
-          <MenuItem disabled={!canCreate || !hasContent || saving}>
-            <button onClick={onSaveAsNew} className={MENU_ITEM}>
-              {t("Save as new query")}
-            </button>
-          </MenuItem>
-          <MenuItem>
-            <button onClick={onEditDetails} className={MENU_ITEM}>
-              {t("Edit details…")}
-            </button>
-          </MenuItem>
-        </MenuItems>
-      </Menu>
+      <button
+        onClick={onSaveAsNew}
+        disabled={!canCreate || !hasContent || saving}
+        className={GHOST_SECONDARY}
+        title={t("Save as a new query")}
+      >
+        <FloppyDiskPlusIcon className="h-4 w-4" />
+        {t("Save as new")}
+      </button>
     </div>
   );
 };

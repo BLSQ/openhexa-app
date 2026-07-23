@@ -1,5 +1,9 @@
 import { gql } from "@apollo/client";
-import { ArrowDownTrayIcon, TableCellsIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowDownTrayIcon,
+  PencilIcon,
+  TableCellsIcon,
+} from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import CodeEditor, {
   CodeEditorHandle,
@@ -88,6 +92,17 @@ const DataStudioEditor = ({
             <span className="truncate text-sm font-medium text-gray-800">
               {editor.savedQuery?.name ?? t("Query")}
             </span>
+            {editor.savedQuery && editor.canUpdate && (
+              <button
+                type="button"
+                onClick={editor.editDetails}
+                title={t("Edit details")}
+                aria-label={t("Edit details")}
+                className="inline-flex shrink-0 items-center justify-center rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+              >
+                <PencilIcon className="h-4 w-4" />
+              </button>
+            )}
             {editor.isDirty && (
               <span
                 role="status"
@@ -106,7 +121,6 @@ const DataStudioEditor = ({
                 saving={editor.saving}
                 onSave={editor.save}
                 onSaveAsNew={editor.saveAsNew}
-                onEditDetails={editor.editDetails}
               />
               <label className="flex items-center gap-1.5 text-xs text-gray-500">
                 {t("Max rows")}
