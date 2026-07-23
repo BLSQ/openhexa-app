@@ -21,12 +21,23 @@ def get_rw_connection(workspace):
 def grant_select_on_covid_data(apps, schema_editor):
     """
     Back-fill the read-only role's SELECT grant on the tutorial covid_data table.
+
+    Connect as the workspace's read-write role, which owns covid_data (created by
+    it on the current path, and reassigned to it via `ALTER TABLE OWNER` on the
+    legacy path). An object's owner can always GRANT, so this does not rely on the
+    admin role being a superuser or a member of the RW role — both of which are
+    false for workspaces created before those grants were introduced.
+
+    Idempotent: re-granting SELECT the RO role already holds is a no-op.
     """
     Workspace = apps.get_model("workspaces", "Workspace")
 
+    total = 0
     granted = 0
-    skipped = 0
-    for workspace in Workspace.objects.filter(db_ro_password__isnull=False):
+    no_table = []
+    failed = []
+    for workspace in Workspace.objects.all():
+        total += 1
         db_name = workspace.db_name
         ro_role = f"{db_name}_ro"
 
@@ -36,11 +47,7 @@ def grant_select_on_covid_data(apps, schema_editor):
                 with conn.cursor() as cur:
                     cur.execute("SELECT to_regclass('public.covid_data');")
                     if cur.fetchone()[0] is None:
-                        skipped += 1
-                        print(
-                            f"[0061] Skipping workspace {workspace.id} ({db_name}): "
-                            "no covid_data table"
-                        )
+                        no_table.append(db_name)
                         continue
                     cur.execute(
                         sql.SQL("GRANT SELECT ON covid_data TO {role}").format(
@@ -48,14 +55,17 @@ def grant_select_on_covid_data(apps, schema_editor):
                         )
                     )
                     granted += 1
-                    print(f"[0061] Granted SELECT on covid_data to {ro_role}")
             finally:
                 conn.close()
         except Exception as exc:
-            skipped += 1
-            print(f"[0061] Skipping workspace {workspace.id} ({db_name}): {exc}")
+            failed.append(db_name)
+            print(f"[0061] Failed on workspace {workspace.id} ({db_name}): {exc}")
 
-    print(f"[0061] Done. Granted on {granted} workspace(s), skipped {skipped}.")
+    print(f"[0061] Done. Granted SELECT on covid_data for {granted}/{total} workspace(s).")
+    if no_table:
+        print(f"[0061] {len(no_table)} without the tutorial table: {', '.join(no_table)}")
+    if failed:
+        print(f"[0061] {len(failed)} failed: {', '.join(failed)}")
 
 
 class Migration(migrations.Migration):
