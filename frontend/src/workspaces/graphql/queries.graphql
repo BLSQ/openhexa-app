@@ -118,7 +118,7 @@ query WorkspaceSavedQueryPage($workspaceSlug: String!, $id: ID!) {
     }
     ...WorkspaceLayout_workspace
   }
-  savedQuery(id: $id) {
+  savedQuery(workspaceSlug: $workspaceSlug, id: $id) {
     ...SavedQuery_savedQuery
   }
 }
