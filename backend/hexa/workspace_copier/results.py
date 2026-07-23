@@ -15,6 +15,13 @@ class FilesResult:
     copied: list[tuple[str, int]] = field(default_factory=list)
     """(object_key, byte_size) for each file copied to target."""
 
+    skipped: int = 0
+    """Files already on target with the same key and size (re-run flow).
+
+    A count rather than a list: on a re-run this is most of the bucket, and
+    thousands of paths would drown the summary.
+    """
+
     failed: list[tuple[str, str]] = field(default_factory=list)
     """(object_key, reason) whose download or upload failed; user must handle manually."""
 
@@ -125,6 +132,11 @@ def format_summary(result: CopyResult) -> str:
     if result.files is not None:
         total_bytes = sum(b for _, b in result.files.copied)
         lines.append(f"Files copied: {len(result.files.copied)} ({total_bytes} bytes)")
+        if result.files.skipped:
+            lines.append(
+                f"Files skipped (already on target, same size): "
+                f"{result.files.skipped}"
+            )
         if result.files.failed:
             lines.append(
                 f"Files that could NOT be copied "

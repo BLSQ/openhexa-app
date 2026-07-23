@@ -178,6 +178,33 @@ class FilesCopier(ResourceCopier):
     name = "files"
     label = "Files (bucket)"
 
+    def __init__(self, skip_existing: bool = False):
+        self.skip_existing = skip_existing
+
+    def _existing_on_target(
+        self, target: Endpoint, reporter: ProgressReporter
+    ) -> dict[str, int]:
+        """List the target bucket up front so re-runs can skip matching files.
+
+        One listing pass is far cheaper than the four round trips a copy costs
+        per file. On failure we fall back to copying everything — copies are
+        plain overwrites, so that is always safe, just slower.
+        """
+        try:
+            existing = {
+                obj["key"]: obj["size"] for obj in walk(target.client, target.slug)
+            }
+        except (GraphQLError, httpx.HTTPError) as exc:
+            reporter.warning(
+                f"   could not list target files ({exc}) — copying everything"
+            )
+            return {}
+        reporter.info(
+            f"   target already has {len(existing)} file(s); "
+            "files matching by key and size will be skipped"
+        )
+        return existing
+
     def copy(
         self,
         source: Endpoint,
@@ -189,6 +216,10 @@ class FilesCopier(ResourceCopier):
     ) -> None:
         files_result = FilesResult()
         result.files = files_result
+
+        existing = (
+            self._existing_on_target(target, reporter) if self.skip_existing else {}
+        )
 
         # One shared client for all presigned download/upload requests so the
         # connection pool reuses TLS handshakes across files instead of paying
@@ -211,8 +242,17 @@ class FilesCopier(ResourceCopier):
                     files_result.failed.append(("<listing>", str(exc)))
                     reporter.warning(f"   FAILED to list remaining files: {exc}")
                     break
-                path = obj["key"]
                 count += 1
+                path = obj["key"]
+                if path in existing and existing[path] == obj["size"]:
+                    files_result.skipped += 1
+                    reporter.info(
+                        f"   [{count}] skipped {path} (already exists, same size)"
+                    )
+                    continue
+                # Announce the start so a slow transfer is visible as
+                # in-progress instead of looking like a hang.
+                reporter.info(f"   [{count}] copying {path} ({obj['size']} bytes) ...")
                 try:
                     content = download(source.client, source.slug, path, http_client)
                     upload(target.client, target.slug, path, content, http_client)
@@ -229,5 +269,6 @@ class FilesCopier(ResourceCopier):
 
         reporter.info(
             f"   {len(files_result.copied)} file(s) copied, "
+            f"{files_result.skipped} skipped, "
             f"{len(files_result.failed)} failed"
         )

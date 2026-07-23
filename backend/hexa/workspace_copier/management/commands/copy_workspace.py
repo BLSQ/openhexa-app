@@ -68,8 +68,9 @@ class Command(BaseCommand):
             default=None,
             help="Slug of an existing target workspace to copy into, instead of "
             "creating a new one. Makes the copy idempotent: resources that "
-            "already exist are skipped, so an interrupted run can be re-run "
-            "safely. Exits early if the slug does not exist on the target.",
+            "already exist are skipped (files match by key + size), so an "
+            "interrupted run can be re-run safely. Exits early if the slug "
+            "does not exist on the target.",
         )
         parser.add_argument(
             "--resources",
