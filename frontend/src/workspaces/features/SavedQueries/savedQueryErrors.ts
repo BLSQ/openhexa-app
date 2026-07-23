@@ -1,4 +1,8 @@
-import { CreateSavedQueryError, UpdateSavedQueryError } from "graphql/types";
+import {
+  CreateSavedQueryError,
+  DeleteSavedQueryError,
+  UpdateSavedQueryError,
+} from "graphql/types";
 import type { TFunction } from "i18next";
 
 // Maps backend saved-query mutation error codes to user-facing messages. Shared
@@ -29,5 +33,19 @@ export const updateSavedQueryErrorMessage = (
     return t("Saved query not found");
   }
   console.error("Unhandled updateSavedQuery error", errors);
+  return t("Unknown error");
+};
+
+export const deleteSavedQueryErrorMessage = (
+  errors: DeleteSavedQueryError[] | undefined | null,
+  t: TFunction,
+): string => {
+  if (errors?.includes(DeleteSavedQueryError.PermissionDenied)) {
+    return t("You are not authorized to perform this action");
+  }
+  if (errors?.includes(DeleteSavedQueryError.SavedQueryNotFound)) {
+    return t("Saved query not found");
+  }
+  console.error("Unhandled deleteSavedQuery error", errors);
   return t("Unknown error");
 };

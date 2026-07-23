@@ -4,8 +4,13 @@ import DeleteSavedQueryTrigger from "./DeleteSavedQueryTrigger";
 
 const deleteMock = jest.fn();
 
+// The trigger deletes through useSavedQueryMutations, which instantiates all
+// three mutation hooks; stub create/update too (unused here) and expose the
+// delete mutation via `deleteMock` so its envelope/error mapping is exercised.
 jest.mock("workspaces/features/SavedQueries/SavedQueries.generated", () => ({
-  useDeleteSavedQueryMutation: () => [deleteMock],
+  useCreateSavedQueryMutation: () => [jest.fn(), { loading: false }],
+  useUpdateSavedQueryMutation: () => [jest.fn(), { loading: false }],
+  useDeleteSavedQueryMutation: () => [deleteMock, { loading: false }],
 }));
 
 jest.mock("react-toastify", () => ({

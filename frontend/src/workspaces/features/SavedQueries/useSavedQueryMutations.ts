@@ -5,10 +5,12 @@ import { useCallback } from "react";
 import {
   SavedQuery_SavedQueryFragment,
   useCreateSavedQueryMutation,
+  useDeleteSavedQueryMutation,
   useUpdateSavedQueryMutation,
 } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import {
   createSavedQueryErrorMessage,
+  deleteSavedQueryErrorMessage,
   updateSavedQueryErrorMessage,
 } from "workspaces/features/SavedQueries/savedQueryErrors";
 
@@ -19,15 +21,21 @@ export type SavedQueryMutationResult =
   | { ok: true; savedQuery: SavedQuery_SavedQueryFragment }
   | { ok: false; message: string };
 
-// Single owner of the create/update write path: runs the mutation, unwraps the
-// success/errors envelope, invalidates the saved-queries cache, and maps error
-// codes to copy. The editor hook and the save dialog both go through here so
-// this envelope handling lives in one place.
+// Delete has no returned object, so its result is just success or a message.
+export type SavedQueryDeleteResult =
+  | { ok: true }
+  | { ok: false; message: string };
+
+// Single owner of the create/update/delete write path: runs the mutation,
+// unwraps the success/errors envelope, invalidates the saved-queries cache, and
+// maps error codes to copy. The editor hook, the save dialog and the delete
+// trigger all go through here so this envelope handling lives in one place.
 export const useSavedQueryMutations = () => {
   const { t } = useTranslation();
   const clearCache = useCacheKey("savedQueries");
   const [createMutation, { loading: creating }] = useCreateSavedQueryMutation();
   const [updateMutation, { loading: updating }] = useUpdateSavedQueryMutation();
+  const [deleteMutation, { loading: removing }] = useDeleteSavedQueryMutation();
 
   const create = useCallback(
     async (input: CreateSavedQueryInput): Promise<SavedQueryMutationResult> => {
@@ -61,5 +69,21 @@ export const useSavedQueryMutations = () => {
     [updateMutation, clearCache, t],
   );
 
-  return { create, update, creating, updating };
+  const remove = useCallback(
+    async (id: string): Promise<SavedQueryDeleteResult> => {
+      const { data } = await deleteMutation({ variables: { input: { id } } });
+      const result = data?.deleteSavedQuery;
+      if (result?.success) {
+        clearCache();
+        return { ok: true };
+      }
+      return {
+        ok: false,
+        message: deleteSavedQueryErrorMessage(result?.errors, t),
+      };
+    },
+    [deleteMutation, clearCache, t],
+  );
+
+  return { create, update, remove, creating, updating, removing };
 };

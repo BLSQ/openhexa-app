@@ -10,7 +10,9 @@ import { useEffect, useState } from "react";
 import SavedQueriesList from "./SavedQueriesList";
 
 jest.mock("workspaces/features/SavedQueries/SavedQueries.generated", () => ({
-  useDeleteSavedQueryMutation: () => [jest.fn()],
+  useCreateSavedQueryMutation: () => [jest.fn(), { loading: false }],
+  useUpdateSavedQueryMutation: () => [jest.fn(), { loading: false }],
+  useDeleteSavedQueryMutation: () => [jest.fn(), { loading: false }],
 }));
 
 jest.mock("react-toastify", () => ({

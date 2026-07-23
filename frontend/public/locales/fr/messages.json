@@ -365,7 +365,6 @@
   "Failed to convert external collaborator to member": "Échec de la conversion du collaborateur externe en membre",
   "Failed to create pipeline": "Échec de la création de la pipeline",
   "Failed to decline invitation": "L'invitation n'a pas pu être déclinée",
-  "Failed to delete the saved query.": "Échec de la suppression de la requête sauvegardée.",
   "Failed to delete the web app.": "Échec de la suppression de l'application web.",
   "Failed to publish version": "Échec de la publication de la version",
   "Failed to remove external collaborator": "Échec de la suppression du collaborateur externe",

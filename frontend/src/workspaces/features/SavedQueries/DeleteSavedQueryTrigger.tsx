@@ -1,13 +1,10 @@
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
-import useCacheKey from "core/hooks/useCacheKey";
 import { useTranslation } from "next-i18next";
 import { ReactElement, useState } from "react";
 import { toast } from "react-toastify";
-import {
-  SavedQueryListItem_SavedQueryFragment,
-  useDeleteSavedQueryMutation,
-} from "workspaces/features/SavedQueries/SavedQueries.generated";
+import { SavedQueryListItem_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
+import { useSavedQueryMutations } from "workspaces/features/SavedQueries/useSavedQueryMutations";
 
 type DeleteSavedQueryTriggerProps = {
   savedQuery: Pick<
@@ -35,27 +32,20 @@ const DeleteSavedQueryTrigger = (props: DeleteSavedQueryTriggerProps) => {
   } = props;
 
   const [open, setOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [deleteSavedQuery] = useDeleteSavedQueryMutation();
-  const clearCache = useCacheKey("savedQueries");
+  const { remove, removing } = useSavedQueryMutations();
 
   const onConfirm = async () => {
-    setDeleting(true);
     try {
-      const { data } = await deleteSavedQuery({
-        variables: { input: { id: savedQuery.id } },
-      });
-      if (!data?.deleteSavedQuery.success) {
-        throw new Error(t("Failed to delete the saved query."));
+      const res = await remove(savedQuery.id);
+      if (res.ok) {
+        onDelete?.();
+        toast.success(t("Saved query deleted"));
+        setOpen(false);
+      } else {
+        toast.error(res.message);
       }
-      onDelete?.();
-      clearCache();
-      toast.success(t("Saved query deleted"));
-      setOpen(false);
     } catch (err: any) {
       toast.error(err.message);
-    } finally {
-      setDeleting(false);
     }
   };
 
@@ -68,7 +58,7 @@ const DeleteSavedQueryTrigger = (props: DeleteSavedQueryTriggerProps) => {
       {children({ onClick: () => setOpen(true) })}
       <Dialog
         open={open}
-        onClose={() => !deleting && setOpen(false)}
+        onClose={() => !removing && setOpen(false)}
         maxWidth="max-w-md"
       >
         <Dialog.Title onClose={() => setOpen(false)}>
@@ -81,11 +71,11 @@ const DeleteSavedQueryTrigger = (props: DeleteSavedQueryTriggerProps) => {
           <Button
             variant="outlined"
             onClick={() => setOpen(false)}
-            disabled={deleting}
+            disabled={removing}
           >
             {t("Cancel")}
           </Button>
-          <Button variant="danger" onClick={onConfirm} disabled={deleting}>
+          <Button variant="danger" onClick={onConfirm} disabled={removing}>
             {t("Delete")}
           </Button>
         </Dialog.Actions>
