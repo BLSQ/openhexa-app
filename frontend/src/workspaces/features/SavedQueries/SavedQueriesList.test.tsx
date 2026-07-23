@@ -87,28 +87,6 @@ describe("SavedQueriesList", () => {
     expect(screen.getByText("No saved queries yet.")).toBeInTheDocument();
   });
 
-  it("gates the New query button on the create permission", () => {
-    const { rerender } = renderList();
-    expect(
-      screen.getByRole("button", { name: "New query" }),
-    ).toBeInTheDocument();
-
-    rerender(
-      <SavedQueriesList
-        workspace={makeWorkspace({ permissions: { createSavedQuery: false } })}
-        page={1}
-        perPage={15}
-        loading={false}
-        searchValue=""
-        onSearchChange={jest.fn()}
-        onChangePage={jest.fn()}
-      />,
-    );
-    expect(
-      screen.queryByRole("button", { name: "New query" }),
-    ).not.toBeInTheDocument();
-  });
-
   it("forwards search input changes", () => {
     const onSearchChange = jest.fn();
     renderList({ onSearchChange });

@@ -1,11 +1,15 @@
+import { PlusIcon } from "@heroicons/react/24/outline";
+import Button from "core/components/Button";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useCacheKey from "core/hooks/useCacheKey";
 import useDebounce from "core/hooks/useDebounce";
 import { useTranslation } from "next-i18next";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import SavedQueriesList from "workspaces/features/SavedQueries/SavedQueriesList";
+import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
 import {
   useWorkspaceSavedQueriesPageQuery,
   WorkspaceSavedQueriesPageDocument,
@@ -24,6 +28,7 @@ type Props = {
 
 const WorkspaceSavedQueriesPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
+  const router = useRouter();
   const [page, setPage] = useState(props.page);
   const [perPage, setPerPage] = useState(props.perPage);
   const [searchInput, setSearchInput] = useState("");
@@ -41,10 +46,24 @@ const WorkspaceSavedQueriesPage: NextPageWithLayout = (props: Props) => {
     return null;
   }
   const { workspace } = data;
+  const routes = dataStudioRoutes(workspace.slug);
 
   return (
     <Page title={t("Saved queries")}>
-      <DataStudioLayout workspace={workspace} currentTab="saved">
+      <DataStudioLayout
+        workspace={workspace}
+        currentTab="saved"
+        headerActions={
+          workspace.permissions.createSavedQuery && (
+            <Button
+              leadingIcon={<PlusIcon className="h-4 w-4" />}
+              onClick={() => router.push(routes.base)}
+            >
+              {t("New query")}
+            </Button>
+          )
+        }
+      >
         <SavedQueriesList
           workspace={workspace}
           page={page}
