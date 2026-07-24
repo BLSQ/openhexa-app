@@ -14,7 +14,6 @@ import { useTranslation } from "next-i18next";
 import { useRef, useState } from "react";
 import SaveQueryDialog from "workspaces/features/SavedQueries/SaveQueryDialog";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
-import { buildCsv, downloadCsv } from "./csv";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
 import SaveQueryButton from "./SaveQueryButton";
@@ -129,13 +128,29 @@ const DataStudioEditor = ({
                   ))}
                 </select>
               </label>
+              {/* Only the heavy (server re-run) path sets `exporting`, and it can
+                  take a while; reassure the user right where they clicked. */}
+              {exporting && (
+                <span className="text-xs text-gray-400">
+                  {t("This may take a while")}
+                </span>
+              )}
               <button
-                onClick={exportCsv}
-                disabled={!canExport}
+                onClick={downloadCsv}
+                disabled={!canExport || exporting}
                 className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
               >
-                <ArrowDownTrayIcon className="h-4 w-4" />
-                {t("Export CSV")}
+                {exporting ? (
+                  <>
+                    <Spinner size="xs" />
+                    {t("Exporting…")}
+                  </>
+                ) : (
+                  <>
+                    <ArrowDownTrayIcon className="h-4 w-4" />
+                    {t("Export CSV")}
+                  </>
+                )}
               </button>
               <button
                 onClick={runSelection}
@@ -143,61 +158,25 @@ const DataStudioEditor = ({
                 title={t("Run ({{shortcut}})", { shortcut: runShortcutLabel })}
                 className="inline-flex h-8 min-w-[104px] items-center justify-center gap-1.5 rounded-md bg-blue-600 px-3 text-xs font-medium text-white shadow-xs transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:outline-none active:bg-blue-800 disabled:opacity-60 disabled:hover:bg-blue-600"
               >
-                {MAX_ROWS_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option.toLocaleString()}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {/* Only the heavy (server re-run) path sets `exporting`, and it can
-                take a while; reassure the user right where they clicked. */}
-            {exporting && (
-              <span className="text-xs text-gray-400">
-                {t("This may take a while")}
-              </span>
-            )}
-            <button
-              onClick={downloadCsv}
-              disabled={!canExport || exporting}
-              className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
-            >
-              {exporting ? (
-                <>
-                  <Spinner size="xs" />
-                  {t("Exporting…")}
-                </>
-              ) : (
-                <>
-                  <ArrowDownTrayIcon className="h-4 w-4" />
-                  {t("Export CSV")}
-                </>
-              )}
-            </button>
-            <button
-              onClick={runSelection}
-              disabled={!canRun}
-              title={t("Run ({{shortcut}})", { shortcut: runShortcutLabel })}
-              className="inline-flex h-8 min-w-[104px] items-center justify-center gap-1.5 rounded-md bg-blue-600 px-3 text-xs font-medium text-white shadow-xs transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:outline-none active:bg-blue-800 disabled:opacity-60 disabled:hover:bg-blue-600"
-            >
-              {loading ? (
-                <>
-                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                  {t("Running…")}
-                </>
-              ) : (
-                <>
-                  <PlayIcon className="h-3 w-3" />
-                  {t("Run")}
-                  <span
-                    aria-hidden
-                    className="ml-0.5 hidden rounded bg-white/20 px-1 py-0.5 text-[10px] leading-none font-medium text-white/80 sm:inline-block"
-                  >
-                    {runShortcutBadge}
-                  </span>
-                </>
-              )}
-            </button>
+                {loading ? (
+                  <>
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                    {t("Running…")}
+                  </>
+                ) : (
+                  <>
+                    <PlayIcon className="h-3 w-3" />
+                    {t("Run")}
+                    <span
+                      aria-hidden
+                      className="ml-0.5 hidden rounded bg-white/20 px-1 py-0.5 text-[10px] leading-none font-medium text-white/80 sm:inline-block"
+                    >
+                      {runShortcutBadge}
+                    </span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Editor + results split: editor on top, results fill the rest. */}
