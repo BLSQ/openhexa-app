@@ -24,3 +24,15 @@ def update_saved_query(principal: User, saved_query: SavedQuery):
 
 def delete_saved_query(principal: User, saved_query: SavedQuery):
     return update_saved_query(principal, saved_query)
+
+
+def publish_saved_query(principal: User, workspace: Workspace):
+    """Only workspace admins (or org admins/owners) can make a saved query public.
+
+    Publishing exposes the query to anonymous callers, so it is a stricter gate
+    than editing (which editors and the author can also do).
+    """
+    return workspace.workspacemembership_set.filter(
+        user=principal,
+        role=WorkspaceMembershipRole.ADMIN,
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)

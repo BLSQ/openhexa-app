@@ -3,6 +3,7 @@ from hexa.data_studio.models import SavedQuery
 from hexa.data_studio.permissions import (
     create_saved_query,
     delete_saved_query,
+    publish_saved_query,
     update_saved_query,
 )
 from hexa.user_management.models import (
@@ -47,6 +48,13 @@ class SavedQueryPermissionsTest(SavedQueryTestMixin, TestCase):
         self.assertTrue(delete_saved_query(self.USER_ADMIN, query))
         self.assertFalse(delete_saved_query(self.USER_VIEWER, query))
         self.assertFalse(delete_saved_query(self.USER_OUTSIDER, query))
+
+    def test_publish_saved_query(self):
+        # Only workspace admins may publish; editors and viewers may not.
+        self.assertTrue(publish_saved_query(self.USER_ADMIN, self.WORKSPACE))
+        self.assertFalse(publish_saved_query(self.USER_EDITOR, self.WORKSPACE))
+        self.assertFalse(publish_saved_query(self.USER_VIEWER, self.WORKSPACE))
+        self.assertFalse(publish_saved_query(self.USER_OUTSIDER, self.WORKSPACE))
 
 
 class SavedQueryOrganizationPermissionsTest(TestCase):
@@ -122,3 +130,9 @@ class SavedQueryOrganizationPermissionsTest(TestCase):
         self.assertTrue(delete_saved_query(self.USER_ORG_ADMIN, self.SAVED_QUERY))
         self.assertFalse(delete_saved_query(self.USER_ORG_MEMBER, self.SAVED_QUERY))
         self.assertFalse(delete_saved_query(self.USER_NON_MEMBER, self.SAVED_QUERY))
+
+    def test_publish_via_organization_role(self):
+        self.assertTrue(publish_saved_query(self.USER_ORG_OWNER, self.WORKSPACE))
+        self.assertTrue(publish_saved_query(self.USER_ORG_ADMIN, self.WORKSPACE))
+        self.assertFalse(publish_saved_query(self.USER_ORG_MEMBER, self.WORKSPACE))
+        self.assertFalse(publish_saved_query(self.USER_NON_MEMBER, self.WORKSPACE))

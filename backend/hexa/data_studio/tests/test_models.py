@@ -1,6 +1,7 @@
 from django.core.exceptions import PermissionDenied
 
 from hexa.core.test import TestCase
+from hexa.data_studio.execution import ParameterError
 from hexa.data_studio.models import SavedQuery
 
 from .testutils import SavedQueryTestMixin
@@ -82,3 +83,71 @@ class SavedQueryModelTest(SavedQueryTestMixin, TestCase):
         query = self._create(user=self.USER_EDITOR)
         with self.assertRaises(PermissionDenied):
             query.delete_if_has_perm(principal=self.USER_VIEWER)
+
+    def test_create_generates_unique_slug(self):
+        first = self._create(name="My report")
+        second = self._create(name="My report")
+        self.assertEqual(first.slug, "my-report")
+        self.assertNotEqual(second.slug, first.slug)
+        self.assertTrue(second.slug.startswith("my-report-"))
+
+    def test_create_with_parameters(self):
+        query = SavedQuery.objects.create_if_has_perm(
+            self.USER_EDITOR,
+            self.WORKSPACE,
+            name="p",
+            content="SELECT * FROM demo LIMIT {{ limit }}",
+            parameters=[{"name": "limit", "type": "integer", "kind": "value"}],
+        )
+        self.assertEqual(query.parameters[0]["name"], "limit")
+
+    def test_create_with_invalid_parameters_rejected(self):
+        with self.assertRaises(ParameterError):
+            SavedQuery.objects.create_if_has_perm(
+                self.USER_EDITOR,
+                self.WORKSPACE,
+                name="p",
+                content="SELECT 1",
+                parameters=[{"name": "1bad", "type": "string"}],
+            )
+
+    def test_create_public_requires_publish_permission(self):
+        # Editor cannot publish (admin-only)
+        with self.assertRaises(PermissionDenied):
+            SavedQuery.objects.create_if_has_perm(
+                self.USER_EDITOR,
+                self.WORKSPACE,
+                name="pub",
+                content="SELECT 1",
+                is_public=True,
+            )
+        # Admin can
+        query = SavedQuery.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            self.WORKSPACE,
+            name="pub",
+            content="SELECT 1",
+            is_public=True,
+        )
+        self.assertTrue(query.is_public)
+
+    def test_update_publish_requires_publish_permission(self):
+        query = self._create(user=self.USER_EDITOR)
+        # Author (editor) can edit content but not flip is_public
+        with self.assertRaises(PermissionDenied):
+            query.update_if_has_perm(principal=self.USER_EDITOR, is_public=True)
+        query.refresh_from_db()
+        self.assertFalse(query.is_public)
+        # Admin can publish
+        query.update_if_has_perm(principal=self.USER_ADMIN, is_public=True)
+        query.refresh_from_db()
+        self.assertTrue(query.is_public)
+
+    def test_update_parameters(self):
+        query = self._create(user=self.USER_EDITOR)
+        query.update_if_has_perm(
+            principal=self.USER_EDITOR,
+            parameters=[{"name": "limit", "type": "integer", "kind": "value"}],
+        )
+        query.refresh_from_db()
+        self.assertEqual(query.parameters[0]["name"], "limit")

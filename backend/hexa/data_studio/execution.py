@@ -18,6 +18,10 @@ import re
 
 from jinja2 import StrictUndefined, TemplateError
 from jinja2.sandbox import SandboxedEnvironment
+from psycopg2 import Error as Psycopg2Error
+from psycopg2.errors import QueryCanceled
+
+from hexa.databases.utils import MultipleStatementsError, execute_database_query
 
 PARAM_NAME_RE = re.compile(r"^[a-z_][a-z0-9_]*$")
 ALLOWED_TYPES = {"string", "integer", "number", "boolean", "date"}
@@ -239,3 +243,52 @@ def render_saved_query(saved_query, params: dict | None = None) -> tuple[str, di
         raise TemplateRenderError(str(e))
 
     return sql_text, binder.bind_params
+
+
+def execute_saved_query(
+    saved_query, params: dict | None = None, max_rows: int | None = None
+) -> dict:
+    """Render and execute a saved query, returning a GraphQL-ready result dict.
+
+    Shared by both the authenticated and the public (anonymous) execution paths;
+    permission checks and query lookup are the caller's responsibility.
+    """
+    try:
+        sql_text, bind_params = render_saved_query(saved_query, params)
+    except ParameterError as e:
+        return {
+            "success": False,
+            "errors": ["INVALID_PARAMETERS"],
+            "error_message": str(e),
+        }
+    except TemplateRenderError as e:
+        return {
+            "success": False,
+            "errors": ["TEMPLATE_ERROR"],
+            "error_message": str(e),
+        }
+
+    max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
+    try:
+        result = execute_database_query(
+            saved_query.workspace, sql_text, bind_params=bind_params, **max_rows_kwarg
+        )
+    except MultipleStatementsError as e:
+        return {
+            "success": False,
+            "errors": ["MULTIPLE_STATEMENTS"],
+            "error_message": str(e),
+        }
+    except QueryCanceled as e:
+        return {
+            "success": False,
+            "errors": ["QUERY_TIMEOUT"],
+            "error_message": str(e).strip(),
+        }
+    except Psycopg2Error as e:
+        return {
+            "success": False,
+            "errors": ["QUERY_ERROR"],
+            "error_message": str(e).strip(),
+        }
+    return {"success": True, "errors": [], **result}

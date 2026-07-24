@@ -9,6 +9,7 @@ from hexa.core.graphql import result_page
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
+from .execution import ParameterError, execute_saved_query
 from .models import SavedQuery
 
 data_studio_type_defs = load_schema_from_path(
@@ -41,6 +42,26 @@ def resolve_saved_query_permissions_delete(saved_query: SavedQuery, info, **kwar
     request: HttpRequest = info.context["request"]
     return (
         request.user.has_perm("data_studio.delete_saved_query", saved_query)
+        if request.user.is_authenticated
+        else False
+    )
+
+
+@saved_query_permissions.field("run")
+def resolve_saved_query_permissions_run(saved_query: SavedQuery, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("databases.run_query", saved_query.workspace)
+        if request.user.is_authenticated
+        else False
+    )
+
+
+@saved_query_permissions.field("publish")
+def resolve_saved_query_permissions_publish(saved_query: SavedQuery, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("data_studio.publish_saved_query", saved_query.workspace)
         if request.user.is_authenticated
         else False
     )
@@ -113,10 +134,14 @@ def resolve_create_saved_query(_, info, **kwargs):
             name=mutation_input["name"],
             content=mutation_input["content"],
             description=mutation_input.get("description") or "",
+            parameters=mutation_input.get("parameters"),
+            is_public=mutation_input.get("is_public") or False,
         )
         return {"success": True, "errors": [], "saved_query": saved_query}
     except Workspace.DoesNotExist:
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
+    except ParameterError:
+        return {"success": False, "errors": ["INVALID_PARAMETERS"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
@@ -134,6 +159,8 @@ def resolve_update_saved_query(_, info, **kwargs):
         return {"success": True, "errors": [], "saved_query": saved_query}
     except SavedQuery.DoesNotExist:
         return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
+    except ParameterError:
+        return {"success": False, "errors": ["INVALID_PARAMETERS"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
@@ -153,6 +180,29 @@ def resolve_delete_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+
+@data_studio_mutations.field("executeSavedQuery")
+def resolve_execute_saved_query(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    mutation_input = kwargs["input"]
+
+    try:
+        saved_query = SavedQuery.objects.filter_for_user(request.user).get(
+            workspace__slug=mutation_input["workspace_slug"],
+            slug=mutation_input["slug"],
+        )
+    except SavedQuery.DoesNotExist:
+        return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
+
+    if not request.user.has_perm("databases.run_query", saved_query.workspace):
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+
+    return execute_saved_query(
+        saved_query,
+        mutation_input.get("parameters") or {},
+        mutation_input.get("max_rows"),
+    )
 
 
 data_studio_bindables = [

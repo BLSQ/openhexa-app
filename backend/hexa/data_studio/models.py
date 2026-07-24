@@ -6,6 +6,7 @@ from django.db import models
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
+from hexa.data_studio.execution import validate_parameters_spec
 from hexa.user_management.models import User, UserInterface
 from hexa.workspaces.models import Workspace
 
@@ -34,9 +35,19 @@ class SavedQueryManager(models.Manager):
         name: str,
         content: str,
         description: str = "",
+        parameters: list | None = None,
+        is_public: bool = False,
     ):
         if not principal.has_perm("data_studio.create_saved_query", workspace):
             raise PermissionDenied
+
+        if is_public and not principal.has_perm(
+            "data_studio.publish_saved_query", workspace
+        ):
+            raise PermissionDenied
+
+        parameters = parameters or []
+        validate_parameters_spec(parameters)
 
         return self.create(
             workspace=workspace,
@@ -45,6 +56,8 @@ class SavedQueryManager(models.Manager):
             content=content,
             description=description,
             slug=create_saved_query_slug(name, workspace),
+            parameters=parameters,
+            is_public=is_public,
         )
 
 
@@ -92,6 +105,16 @@ class SavedQuery(Base):
         if not principal.has_perm("data_studio.update_saved_query", self):
             raise PermissionDenied
 
+        if (
+            kwargs.get("is_public") is not None
+            and kwargs["is_public"] != self.is_public
+        ):
+            if not principal.has_perm(
+                "data_studio.publish_saved_query", self.workspace
+            ):
+                raise PermissionDenied
+            self.is_public = kwargs["is_public"]
+
         for key in ["name", "content"]:
             if kwargs.get(key) is not None:
                 setattr(self, key, kwargs[key])
@@ -99,6 +122,10 @@ class SavedQuery(Base):
         # description is optional/blankable: an explicit null clears it, mirroring create.
         if "description" in kwargs:
             self.description = kwargs["description"] or ""
+
+        if kwargs.get("parameters") is not None:
+            validate_parameters_spec(kwargs["parameters"])
+            self.parameters = kwargs["parameters"]
 
         return self.save()
 

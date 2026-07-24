@@ -3,6 +3,7 @@ from django.test.utils import CaptureQueriesContext
 
 from hexa.core.test import GraphQLTestCase
 from hexa.data_studio.models import SavedQuery
+from hexa.databases.tests.helpers import seed_demo_table
 
 from .testutils import SavedQueryTestMixin
 
@@ -385,3 +386,176 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         # @loginRequired raises before the resolver runs -> null data + top-level error
         self.assertIsNone(r["data"])
         self.assertTrue(r["errors"])
+
+
+class SavedQueryPublishSchemaTest(SavedQueryTestMixin, GraphQLTestCase):
+    def _create(self, user, **overrides):
+        self.client.force_login(user)
+        variables = {
+            "workspaceSlug": str(self.WORKSPACE.slug),
+            "name": "My query",
+            "content": "SELECT 1",
+            **overrides,
+        }
+        return self.run_query(
+            """
+            mutation ($input: CreateSavedQueryInput!) {
+                createSavedQuery(input: $input) {
+                    success
+                    errors
+                    savedQuery { slug isPublic parameters permissions { run publish } }
+                }
+            }
+            """,
+            {"input": variables},
+        )
+
+    def test_create_exposes_slug_and_defaults(self):
+        payload = self._create(self.USER_EDITOR)["data"]["createSavedQuery"]
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["savedQuery"]["slug"], "my-query")
+        self.assertFalse(payload["savedQuery"]["isPublic"])
+        self.assertEqual(payload["savedQuery"]["parameters"], [])
+
+    def test_create_with_parameters(self):
+        payload = self._create(
+            self.USER_EDITOR,
+            content="SELECT * FROM demo LIMIT {{ limit }}",
+            parameters=[{"name": "limit", "type": "integer", "kind": "value"}],
+        )["data"]["createSavedQuery"]
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["savedQuery"]["parameters"][0]["name"], "limit")
+
+    def test_create_with_invalid_parameters(self):
+        payload = self._create(
+            self.USER_EDITOR,
+            parameters=[{"name": "1bad", "type": "string"}],
+        )["data"]["createSavedQuery"]
+        self.assertFalse(payload["success"])
+        self.assertEqual(payload["errors"], ["INVALID_PARAMETERS"])
+
+    def test_create_public_denied_for_editor(self):
+        payload = self._create(self.USER_EDITOR, isPublic=True)["data"][
+            "createSavedQuery"
+        ]
+        self.assertFalse(payload["success"])
+        self.assertEqual(payload["errors"], ["PERMISSION_DENIED"])
+
+    def test_create_public_allowed_for_admin(self):
+        payload = self._create(self.USER_ADMIN, isPublic=True)["data"][
+            "createSavedQuery"
+        ]
+        self.assertTrue(payload["success"])
+        self.assertTrue(payload["savedQuery"]["isPublic"])
+
+    def test_permissions_run_and_publish(self):
+        payload = self._create(self.USER_EDITOR)["data"]["createSavedQuery"]
+        # Editor: can run (any member), cannot publish (admin-only).
+        self.assertEqual(
+            payload["savedQuery"]["permissions"], {"run": True, "publish": False}
+        )
+
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            "query ($slug: String!) { workspace(slug: $slug) { savedQueries { items { permissions { run publish } } } } }",
+            {"slug": str(self.WORKSPACE.slug)},
+        )
+        admin_view = r["data"]["workspace"]["savedQueries"]["items"][0]["permissions"]
+        self.assertEqual(admin_view, {"run": True, "publish": True})
+
+
+class ExecuteSavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
+    EXECUTE = """
+        mutation ($input: ExecuteSavedQueryInput!) {
+            executeSavedQuery(input: $input) {
+                success errors errorMessage columns rows rowCount truncated
+            }
+        }
+    """
+
+    def _make(self, content, parameters=None, is_public=False, user=None):
+        return SavedQuery.objects.create_if_has_perm(
+            user or self.USER_ADMIN,
+            self.WORKSPACE,
+            name="q",
+            content=content,
+            parameters=parameters or [],
+            is_public=is_public,
+        )
+
+    def _execute(self, user, slug, parameters=None):
+        self.client.force_login(user)
+        return self.run_query(
+            self.EXECUTE,
+            {
+                "input": {
+                    "workspaceSlug": str(self.WORKSPACE.slug),
+                    "slug": slug,
+                    "parameters": parameters,
+                }
+            },
+        )["data"]["executeSavedQuery"]
+
+    def test_execute_returns_rows(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
+        query = self._make("SELECT id, label FROM demo ORDER BY id")
+
+        payload = self._execute(self.USER_VIEWER, query.slug)
+
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["columns"], ["id", "label"])
+        self.assertEqual(
+            payload["rows"], [{"id": 1, "label": "a"}, {"id": 2, "label": "b"}]
+        )
+
+    def test_execute_binds_parameters(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "a")])
+        query = self._make(
+            "SELECT id FROM demo WHERE label = {{ label }} ORDER BY id",
+            parameters=[{"name": "label", "type": "string", "kind": "value"}],
+        )
+
+        payload = self._execute(self.USER_EDITOR, query.slug, {"label": "a"})
+
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["rows"], [{"id": 1}, {"id": 3}])
+
+    def test_execute_injection_payload_is_inert(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
+        query = self._make(
+            "SELECT id FROM demo WHERE label = {{ label }}",
+            parameters=[{"name": "label", "type": "string", "kind": "value"}],
+        )
+
+        payload = self._execute(
+            self.USER_EDITOR, query.slug, {"label": "a'; DROP TABLE demo; --"}
+        )
+
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["rows"], [])
+        # Table survived: the payload was bound, not executed.
+        still = self._execute(
+            self.USER_EDITOR,
+            self._make("SELECT count(*) AS n FROM demo").slug,
+        )
+        self.assertEqual(still["rows"], [{"n": 2}])
+
+    def test_execute_invalid_parameters(self):
+        query = self._make(
+            "SELECT * FROM demo LIMIT {{ limit }}",
+            parameters=[{"name": "limit", "type": "integer", "kind": "value"}],
+        )
+        payload = self._execute(self.USER_EDITOR, query.slug, {"limit": "not-a-number"})
+        self.assertFalse(payload["success"])
+        self.assertEqual(payload["errors"], ["INVALID_PARAMETERS"])
+
+    def test_execute_unknown_slug(self):
+        payload = self._execute(self.USER_EDITOR, "does-not-exist")
+        self.assertFalse(payload["success"])
+        self.assertEqual(payload["errors"], ["SAVED_QUERY_NOT_FOUND"])
+
+    def test_execute_outsider_cannot_see_query(self):
+        query = self._make("SELECT 1 AS id")
+        payload = self._execute(self.USER_OUTSIDER, query.slug)
+        self.assertFalse(payload["success"])
+        self.assertEqual(payload["errors"], ["SAVED_QUERY_NOT_FOUND"])
