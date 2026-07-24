@@ -633,6 +633,21 @@ WORKSPACE_DATABASE_QUERY_MAX_ROWS = int(
     os.environ.get("WORKSPACE_DATABASE_QUERY_MAX_ROWS", "100000")
 )
 
+# Public (anonymous) saved-query execution limits.
+# Row ceiling applied to anonymous executions, independent of what the caller
+# requests (kept well below WORKSPACE_DATABASE_QUERY_MAX_ROWS).
+PUBLIC_SAVED_QUERY_MAX_ROWS = int(os.environ.get("PUBLIC_SAVED_QUERY_MAX_ROWS", "1000"))
+# Fixed-window rate limit for anonymous executions, keyed by (IP, workspace,
+# slug). Set the limit to 0 to disable. Note: this relies on Django's cache; with
+# the default per-process LocMemCache the limit is enforced per worker/process,
+# so point CACHES at a shared backend (e.g. Redis) for a strict global limit.
+PUBLIC_SAVED_QUERY_RATE_LIMIT = int(
+    os.environ.get("PUBLIC_SAVED_QUERY_RATE_LIMIT", "60")
+)
+PUBLIC_SAVED_QUERY_RATE_WINDOW_SECONDS = int(
+    os.environ.get("PUBLIC_SAVED_QUERY_RATE_WINDOW_SECONDS", "60")
+)
+
 # Datasets config
 WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET", "hexa-datasets")
 WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE = int(

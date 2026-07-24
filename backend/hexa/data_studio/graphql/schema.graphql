@@ -160,6 +160,8 @@ enum ExecuteSavedQueryError {
   QUERY_ERROR
   "The rendered query contained more than one SQL statement."
   MULTIPLE_STATEMENTS
+  "Too many anonymous executions from this caller; retry later."
+  RATE_LIMITED
 }
 
 """
@@ -203,4 +205,10 @@ extend type Mutation {
   deleteSavedQuery(input: DeleteSavedQueryInput!): DeleteSavedQueryResult! @loginRequired
   "Executes a saved query by slug, with optional templated parameters."
   executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSavedQueryResult! @loginRequired
+  """
+  Executes a *public* saved query by slug, without authentication. Only queries
+  flagged isPublic can be run this way; anything else resolves to
+  SAVED_QUERY_NOT_FOUND. Subject to a stricter row cap and rate limiting.
+  """
+  executePublicSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSavedQueryResult!
 }

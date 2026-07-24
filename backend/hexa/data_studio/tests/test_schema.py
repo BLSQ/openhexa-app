@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
@@ -559,3 +560,109 @@ class ExecuteSavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         payload = self._execute(self.USER_OUTSIDER, query.slug)
         self.assertFalse(payload["success"])
         self.assertEqual(payload["errors"], ["SAVED_QUERY_NOT_FOUND"])
+
+
+class ExecutePublicSavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
+    EXECUTE = """
+        mutation ($input: ExecuteSavedQueryInput!) {
+            executePublicSavedQuery(input: $input) {
+                success errors columns rows rowCount truncated
+            }
+        }
+    """
+
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+
+    def _make(self, content, parameters=None, is_public=True):
+        return SavedQuery.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            self.WORKSPACE,
+            name="q",
+            content=content,
+            parameters=parameters or [],
+            is_public=is_public,
+        )
+
+    def _execute(self, slug, parameters=None, max_rows=None):
+        # Anonymous: no force_login.
+        self.client.logout()
+        return self.run_query(
+            self.EXECUTE,
+            {
+                "input": {
+                    "workspaceSlug": str(self.WORKSPACE.slug),
+                    "slug": slug,
+                    "parameters": parameters,
+                    "maxRows": max_rows,
+                }
+            },
+        )["data"]["executePublicSavedQuery"]
+
+    def test_anonymous_can_run_public_query(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
+        query = self._make("SELECT id, label FROM demo ORDER BY id")
+
+        payload = self._execute(query.slug)
+
+        self.assertTrue(payload["success"])
+        self.assertEqual(
+            payload["rows"], [{"id": 1, "label": "a"}, {"id": 2, "label": "b"}]
+        )
+
+    def test_anonymous_binds_parameters(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "a")])
+        query = self._make(
+            "SELECT id FROM demo WHERE label = {{ label }} ORDER BY id",
+            parameters=[{"name": "label", "type": "string", "kind": "value"}],
+        )
+
+        payload = self._execute(query.slug, {"label": "a"})
+
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["rows"], [{"id": 1}, {"id": 3}])
+
+    def test_non_public_query_is_not_found(self):
+        query = self._make("SELECT 1 AS id", is_public=False)
+        payload = self._execute(query.slug)
+        self.assertFalse(payload["success"])
+        # Indistinguishable from a missing query: no existence leak.
+        self.assertEqual(payload["errors"], ["SAVED_QUERY_NOT_FOUND"])
+
+    def test_unknown_slug_is_not_found(self):
+        payload = self._execute("does-not-exist")
+        self.assertFalse(payload["success"])
+        self.assertEqual(payload["errors"], ["SAVED_QUERY_NOT_FOUND"])
+
+    def test_public_row_cap_is_enforced(self):
+        seed_demo_table(self.WORKSPACE, [(i, "x") for i in range(5)])
+        query = self._make("SELECT id FROM demo ORDER BY id")
+
+        with self.settings(PUBLIC_SAVED_QUERY_MAX_ROWS=2):
+            payload = self._execute(query.slug)
+
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["rowCount"], 2)
+        self.assertTrue(payload["truncated"])
+
+    def test_requested_max_rows_cannot_exceed_public_cap(self):
+        seed_demo_table(self.WORKSPACE, [(i, "x") for i in range(5)])
+        query = self._make("SELECT id FROM demo ORDER BY id")
+
+        with self.settings(PUBLIC_SAVED_QUERY_MAX_ROWS=2):
+            payload = self._execute(query.slug, max_rows=1000)
+
+        self.assertEqual(payload["rowCount"], 2)
+        self.assertTrue(payload["truncated"])
+
+    def test_rate_limit(self):
+        query = self._make("SELECT 1 AS id")
+
+        with self.settings(PUBLIC_SAVED_QUERY_RATE_LIMIT=1):
+            first = self._execute(query.slug)
+            second = self._execute(query.slug)
+
+        self.assertTrue(first["success"])
+        self.assertFalse(second["success"])
+        self.assertEqual(second["errors"], ["RATE_LIMITED"])
