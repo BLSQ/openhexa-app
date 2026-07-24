@@ -1174,6 +1174,7 @@ export type CreatePipelineVersionInput = {
 
 /** Errors that can occur when creating a saved query. */
 export enum CreateSavedQueryError {
+  InvalidParameters = 'INVALID_PARAMETERS',
   PermissionDenied = 'PERMISSION_DENIED',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
@@ -1182,7 +1183,9 @@ export enum CreateSavedQueryError {
 export type CreateSavedQueryInput = {
   content: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
+  isPublic?: InputMaybe<Scalars['Boolean']['input']>;
   name: Scalars['String']['input'];
+  parameters?: InputMaybe<Scalars['JSON']['input']>;
   workspaceSlug: Scalars['String']['input'];
 };
 
@@ -2411,6 +2414,57 @@ export type ExecuteSqlResult = {
   truncated?: Maybe<Scalars['Boolean']['output']>;
 };
 
+/** Errors that can occur when executing a saved query. */
+export enum ExecuteSavedQueryError {
+  /** The supplied parameters do not satisfy the query's declared spec. */
+  InvalidParameters = 'INVALID_PARAMETERS',
+  /** The rendered query contained more than one SQL statement. */
+  MultipleStatements = 'MULTIPLE_STATEMENTS',
+  /** The caller is not allowed to run this saved query. */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** The query could not be executed (e.g. invalid SQL or a disallowed operation). */
+  QueryError = 'QUERY_ERROR',
+  /** The query was cancelled because it exceeded the statement timeout. */
+  QueryTimeout = 'QUERY_TIMEOUT',
+  /** Too many anonymous executions from this caller; retry later. */
+  RateLimited = 'RATE_LIMITED',
+  /** The saved query does not exist or is not accessible to the caller. */
+  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND',
+  /** The query template could not be rendered. */
+  TemplateError = 'TEMPLATE_ERROR'
+}
+
+/** Input for executing a saved query by slug. */
+export type ExecuteSavedQueryInput = {
+  maxRows?: InputMaybe<Scalars['Int']['input']>;
+  /** Values for the query's declared parameters, keyed by parameter name. */
+  parameters?: InputMaybe<Scalars['JSON']['input']>;
+  slug: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
+};
+
+/**
+ * Result of executing a saved query. Mirrors ExecuteSQLResult, with a broader
+ * error set covering parameter and template failures.
+ */
+export type ExecuteSavedQueryResult = {
+  __typename?: 'ExecuteSavedQueryResult';
+  /** The names of the columns returned by the query. */
+  columns?: Maybe<Array<Scalars['String']['output']>>;
+  /** The server-side execution time of the query, in milliseconds. */
+  durationMs?: Maybe<Scalars['Int']['output']>;
+  /** The underlying error message, when the query failed. */
+  errorMessage?: Maybe<Scalars['String']['output']>;
+  errors: Array<ExecuteSavedQueryError>;
+  /** The number of rows returned (after any truncation). */
+  rowCount?: Maybe<Scalars['Int']['output']>;
+  /** The rows returned by the query, each a JSON object keyed by column name. */
+  rows?: Maybe<Array<Scalars['JSON']['output']>>;
+  success: Scalars['Boolean']['output'];
+  /** Whether the result was truncated because it exceeded the maximum number of rows. */
+  truncated?: Maybe<Scalars['Boolean']['output']>;
+};
+
 /** Represents an external collaborator who has workspace access but no organization membership. */
 export type ExternalCollaborator = OrganizationMember & {
   __typename?: 'ExternalCollaborator';
@@ -3099,6 +3153,14 @@ export type Mutation = {
   editWebappFile: EditWebappFileResult;
   /** Enables two-factor authentication for the currently authenticated user. */
   enableTwoFactor: EnableTwoFactorResult;
+  /**
+   * Executes a *public* saved query by slug, without authentication. Only queries
+   * flagged isPublic can be run this way; anything else resolves to
+   * SAVED_QUERY_NOT_FOUND. Subject to a stricter row cap and rate limiting.
+   */
+  executePublicSavedQuery: ExecuteSavedQueryResult;
+  /** Executes a saved query by slug, with optional templated parameters. */
+  executeSavedQuery: ExecuteSavedQueryResult;
   /** Generates a challenge for two-factor authentication. */
   generateChallenge: GenerateChallengeResult;
   /** Create dataset version file upload url. */
@@ -3511,6 +3573,16 @@ export type MutationEditWebappFileArgs = {
 
 export type MutationEnableTwoFactorArgs = {
   input?: InputMaybe<EnableTwoFactorInput>;
+};
+
+
+export type MutationExecutePublicSavedQueryArgs = {
+  input: ExecuteSavedQueryInput;
+};
+
+
+export type MutationExecuteSavedQueryArgs = {
+  input: ExecuteSavedQueryInput;
 };
 
 
@@ -5484,8 +5556,14 @@ export type SavedQuery = {
   createdBy?: Maybe<User>;
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
+  /** Whether the query can be executed anonymously (via executePublicSavedQuery). */
+  isPublic: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
+  /** Declared parameter spec driving the query's Jinja template. */
+  parameters: Scalars['JSON']['output'];
   permissions: SavedQueryPermissions;
+  /** Workspace-unique, URL-friendly identifier used to execute the query by slug. */
+  slug: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
   workspace: Workspace;
 };
@@ -5504,6 +5582,10 @@ export type SavedQueryPermissions = {
   __typename?: 'SavedQueryPermissions';
   /** Permission to delete the saved query. */
   delete: Scalars['Boolean']['output'];
+  /** Permission to publish (make public) the saved query. */
+  publish: Scalars['Boolean']['output'];
+  /** Permission to execute the saved query against the workspace database. */
+  run: Scalars['Boolean']['output'];
   /** Permission to edit the saved query. */
   update: Scalars['Boolean']['output'];
 };
@@ -6258,6 +6340,7 @@ export type UpdatePipelineVersionResult = {
 
 /** Errors that can occur when updating a saved query. */
 export enum UpdateSavedQueryError {
+  InvalidParameters = 'INVALID_PARAMETERS',
   PermissionDenied = 'PERMISSION_DENIED',
   SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND'
 }
@@ -6267,7 +6350,9 @@ export type UpdateSavedQueryInput = {
   content?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
+  isPublic?: InputMaybe<Scalars['Boolean']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  parameters?: InputMaybe<Scalars['JSON']['input']>;
 };
 
 /** Result of updating a saved query. */

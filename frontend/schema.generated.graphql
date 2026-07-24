@@ -1171,6 +1171,7 @@ input CreatePipelineVersionInput {
 
 """Errors that can occur when creating a saved query."""
 enum CreateSavedQueryError {
+  INVALID_PARAMETERS
   PERMISSION_DENIED
   WORKSPACE_NOT_FOUND
 }
@@ -1179,7 +1180,9 @@ enum CreateSavedQueryError {
 input CreateSavedQueryInput {
   content: String!
   description: String
+  isPublic: Boolean
   name: String!
+  parameters: JSON
   workspaceSlug: String!
 }
 
@@ -2410,6 +2413,75 @@ type ExecuteSQLResult {
   truncated: Boolean
 }
 
+"""Errors that can occur when executing a saved query."""
+enum ExecuteSavedQueryError {
+  """The supplied parameters do not satisfy the query's declared spec."""
+  INVALID_PARAMETERS
+
+  """The rendered query contained more than one SQL statement."""
+  MULTIPLE_STATEMENTS
+
+  """The caller is not allowed to run this saved query."""
+  PERMISSION_DENIED
+
+  """
+  The query could not be executed (e.g. invalid SQL or a disallowed operation).
+  """
+  QUERY_ERROR
+
+  """The query was cancelled because it exceeded the statement timeout."""
+  QUERY_TIMEOUT
+
+  """Too many anonymous executions from this caller; retry later."""
+  RATE_LIMITED
+
+  """The saved query does not exist or is not accessible to the caller."""
+  SAVED_QUERY_NOT_FOUND
+
+  """The query template could not be rendered."""
+  TEMPLATE_ERROR
+}
+
+"""Input for executing a saved query by slug."""
+input ExecuteSavedQueryInput {
+  maxRows: Int
+
+  """Values for the query's declared parameters, keyed by parameter name."""
+  parameters: JSON
+  slug: String!
+  workspaceSlug: String!
+}
+
+"""
+Result of executing a saved query. Mirrors ExecuteSQLResult, with a broader
+error set covering parameter and template failures.
+"""
+type ExecuteSavedQueryResult {
+  """The names of the columns returned by the query."""
+  columns: [String!]
+
+  """The server-side execution time of the query, in milliseconds."""
+  durationMs: Int
+
+  """The underlying error message, when the query failed."""
+  errorMessage: String
+  errors: [ExecuteSavedQueryError!]!
+
+  """The number of rows returned (after any truncation)."""
+  rowCount: Int
+
+  """
+  The rows returned by the query, each a JSON object keyed by column name.
+  """
+  rows: [JSON!]
+  success: Boolean!
+
+  """
+  Whether the result was truncated because it exceeded the maximum number of rows.
+  """
+  truncated: Boolean
+}
+
 """
 Represents an external collaborator who has workspace access but no organization membership.
 """
@@ -3142,6 +3214,16 @@ type Mutation {
   Enables two-factor authentication for the currently authenticated user.
   """
   enableTwoFactor(input: EnableTwoFactorInput): EnableTwoFactorResult!
+
+  """
+  Executes a *public* saved query by slug, without authentication. Only queries
+  flagged isPublic can be run this way; anything else resolves to
+  SAVED_QUERY_NOT_FOUND. Subject to a stricter row cap and rate limiting.
+  """
+  executePublicSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSavedQueryResult!
+
+  """Executes a saved query by slug, with optional templated parameters."""
+  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSavedQueryResult!
 
   """Generates a challenge for two-factor authentication."""
   generateChallenge: GenerateChallengeResult!
@@ -4539,8 +4621,21 @@ type SavedQuery {
   createdBy: User
   description: String
   id: ID!
+
+  """
+  Whether the query can be executed anonymously (via executePublicSavedQuery).
+  """
+  isPublic: Boolean!
   name: String!
+
+  """Declared parameter spec driving the query's Jinja template."""
+  parameters: JSON!
   permissions: SavedQueryPermissions!
+
+  """
+  Workspace-unique, URL-friendly identifier used to execute the query by slug.
+  """
+  slug: String!
   updatedAt: DateTime!
   workspace: Workspace!
 }
@@ -4557,6 +4652,12 @@ type SavedQueryPage {
 type SavedQueryPermissions {
   """Permission to delete the saved query."""
   delete: Boolean!
+
+  """Permission to publish (make public) the saved query."""
+  publish: Boolean!
+
+  """Permission to execute the saved query against the workspace database."""
+  run: Boolean!
 
   """Permission to edit the saved query."""
   update: Boolean!
@@ -5426,6 +5527,7 @@ type UpdatePipelineVersionResult {
 
 """Errors that can occur when updating a saved query."""
 enum UpdateSavedQueryError {
+  INVALID_PARAMETERS
   PERMISSION_DENIED
   SAVED_QUERY_NOT_FOUND
 }
@@ -5435,7 +5537,9 @@ input UpdateSavedQueryInput {
   content: String
   description: String
   id: ID!
+  isPublic: Boolean
   name: String
+  parameters: JSON
 }
 
 """Result of updating a saved query."""

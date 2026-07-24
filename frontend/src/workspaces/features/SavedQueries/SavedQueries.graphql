@@ -6,6 +6,7 @@ fragment SavedQueryListItem_savedQuery on SavedQuery {
   name
   description
   updatedAt
+  isPublic
   createdBy {
     ...UserColumn_user
   }
@@ -18,15 +19,20 @@ fragment SavedQueryListItem_savedQuery on SavedQuery {
 fragment SavedQuery_savedQuery on SavedQuery {
   id
   name
+  slug
   description
   content
   updatedAt
+  isPublic
+  parameters
   createdBy {
     ...User_user
   }
   permissions {
     update
     delete
+    run
+    publish
   }
 }
 

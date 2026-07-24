@@ -18,6 +18,9 @@ export const createSavedQueryErrorMessage = (
   if (errors?.includes(CreateSavedQueryError.WorkspaceNotFound)) {
     return t("Workspace not found");
   }
+  if (errors?.includes(CreateSavedQueryError.InvalidParameters)) {
+    return t("One or more query parameters are invalid");
+  }
   console.error("Unhandled createSavedQuery error", errors);
   return t("Unknown error");
 };
@@ -31,6 +34,9 @@ export const updateSavedQueryErrorMessage = (
   }
   if (errors?.includes(UpdateSavedQueryError.SavedQueryNotFound)) {
     return t("Saved query not found");
+  }
+  if (errors?.includes(UpdateSavedQueryError.InvalidParameters)) {
+    return t("One or more query parameters are invalid");
   }
   console.error("Unhandled updateSavedQuery error", errors);
   return t("Unknown error");

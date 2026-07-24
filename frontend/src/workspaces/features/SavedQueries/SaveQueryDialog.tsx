@@ -1,13 +1,21 @@
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
+import Switch from "core/components/Switch";
 import Textarea from "core/components/forms/Textarea";
 import useForm from "core/hooks/useForm";
 import { useTranslation } from "next-i18next";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { useSavedQueryMutations } from "workspaces/features/SavedQueries/useSavedQueryMutations";
+import SavedQueryParametersEditor from "./SavedQueryParametersEditor";
+import SavedQueryPublicShare from "./SavedQueryPublicShare";
+import {
+  SavedQueryParameter,
+  cleanParameters,
+  parseParameters,
+} from "./savedQueryParameters";
 
 export type SaveQueryDialogMode = "create" | "edit-details";
 
@@ -22,7 +30,13 @@ type SaveQueryDialogProps = {
   // copied ("create" / save-as-new). Null for a brand-new query.
   savedQuery?: Pick<
     SavedQuery_SavedQueryFragment,
-    "id" | "name" | "description"
+    | "id"
+    | "name"
+    | "slug"
+    | "description"
+    | "isPublic"
+    | "parameters"
+    | "permissions"
   > | null;
   onSaved?: (savedQuery: SavedQuery_SavedQueryFragment) => void;
 };
@@ -32,9 +46,8 @@ const NAME_MAX_LENGTH = 255;
 
 type Values = { name: string; description: string };
 
-// Create / edit-details modal for a saved query. Visibility and slug are
-// intentionally absent: the backend has no such concepts (all saved queries are
-// workspace-visible, identified by id).
+// Create / edit-details modal for a saved query. Also edits the parameter spec
+// (both modes) and, for admins editing an existing query, the public flag.
 const SaveQueryDialog = ({
   open,
   onClose,
@@ -46,6 +59,14 @@ const SaveQueryDialog = ({
 }: SaveQueryDialogProps) => {
   const { t } = useTranslation();
   const { create, update } = useSavedQueryMutations();
+
+  const [parameters, setParameters] = useState<SavedQueryParameter[]>([]);
+  const [isPublic, setIsPublic] = useState(false);
+
+  // Only offer the public toggle when editing an existing query the user is
+  // allowed to publish (an admin-only permission). New queries start private.
+  const canTogglePublic =
+    mode === "edit-details" && Boolean(savedQuery?.permissions.publish);
 
   const form = useForm<Values>({
     getInitialState: () => ({
@@ -67,6 +88,7 @@ const SaveQueryDialog = ({
     onSubmit: async (values) => {
       const name = values.name.trim();
       const description = values.description?.trim() ?? "";
+      const cleanedParameters = cleanParameters(parameters);
 
       if (mode === "edit-details" && !savedQuery) {
         return;
@@ -79,8 +101,15 @@ const SaveQueryDialog = ({
               name,
               content: content ?? "",
               description,
+              parameters: cleanedParameters,
             })
-          : await update({ id: savedQuery!.id, name, description });
+          : await update({
+              id: savedQuery!.id,
+              name,
+              description,
+              parameters: cleanedParameters,
+              ...(canTogglePublic ? { isPublic } : {}),
+            });
 
       if (res.ok) {
         toast.success(
@@ -95,10 +124,13 @@ const SaveQueryDialog = ({
     },
   });
 
-  // Re-seed the form from the current props each time the dialog opens.
+  // Re-seed the form (and the non-useForm state) from the current props each
+  // time the dialog opens.
   useEffect(() => {
     if (open) {
       form.resetForm();
+      setParameters(parseParameters(savedQuery?.parameters));
+      setIsPublic(Boolean(savedQuery?.isPublic));
     }
   }, [open]);
 
@@ -106,10 +138,10 @@ const SaveQueryDialog = ({
   const submitLabel = mode === "create" ? t("Save query") : t("Save");
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="max-w-xl">
+    <Dialog open={open} onClose={onClose} maxWidth="max-w-2xl">
       <form onSubmit={form.handleSubmit}>
         <Dialog.Title onClose={onClose}>{title}</Dialog.Title>
-        <Dialog.Content className="space-y-4">
+        <Dialog.Content className="max-h-[70vh] space-y-4 overflow-y-auto">
           <Field
             name="name"
             label={t("Name")}
@@ -125,10 +157,40 @@ const SaveQueryDialog = ({
               name="description"
               value={form.formData.description ?? ""}
               onChange={form.handleInputChange}
-              rows={7}
+              rows={4}
               placeholder={t("What does this query return? Any caveats?")}
             />
           </Field>
+
+          <Field name="parameters" label={t("Parameters")}>
+            <SavedQueryParametersEditor
+              value={parameters}
+              onChange={setParameters}
+            />
+          </Field>
+
+          {canTogglePublic && (
+            <div className="flex items-center justify-between rounded-md border border-gray-200 p-3">
+              <div>
+                <p className="text-sm font-medium text-gray-800">
+                  {t("Public")}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {t("Allow anyone to run this query anonymously via the API.")}
+                </p>
+              </div>
+              <Switch checked={isPublic} onChange={setIsPublic} />
+            </div>
+          )}
+
+          {savedQuery?.isPublic && savedQuery.slug && (
+            <SavedQueryPublicShare
+              workspaceSlug={workspaceSlug}
+              slug={savedQuery.slug}
+              parameters={parseParameters(savedQuery.parameters)}
+            />
+          )}
+
           {form.submitError && (
             <p className="text-sm text-red-600">{form.submitError}</p>
           )}

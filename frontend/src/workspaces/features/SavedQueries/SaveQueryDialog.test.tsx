@@ -61,6 +61,7 @@ describe("SaveQueryDialog", () => {
             name: "My query",
             content: "SELECT 1",
             description: "",
+            parameters: [],
           },
         },
       }),
@@ -130,7 +131,20 @@ describe("SaveQueryDialog", () => {
         mode="edit-details"
         workspaceSlug="ws-1"
         content="SELECT 1"
-        savedQuery={{ id: "q1", name: "Old name", description: "desc" }}
+        savedQuery={{
+          id: "q1",
+          name: "Old name",
+          slug: "old-name",
+          description: "desc",
+          isPublic: false,
+          parameters: [],
+          permissions: {
+            update: true,
+            delete: true,
+            run: true,
+            publish: false,
+          },
+        }}
         onClose={jest.fn()}
         onSaved={jest.fn()}
       />,
@@ -144,7 +158,12 @@ describe("SaveQueryDialog", () => {
     await waitFor(() =>
       expect(updateMock).toHaveBeenCalledWith({
         variables: {
-          input: { id: "q1", name: "Renamed", description: "desc" },
+          input: {
+            id: "q1",
+            name: "Renamed",
+            description: "desc",
+            parameters: [],
+          },
         },
       }),
     );

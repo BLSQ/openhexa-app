@@ -1,5 +1,6 @@
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import { TrashIcon } from "@heroicons/react/24/outline";
+import Badge from "core/components/Badge";
 import Block from "core/components/Block";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
@@ -83,7 +84,16 @@ const SavedQueriesList = ({
                 label={t("Name")}
               >
                 {(item) => (
-                  <span className="font-medium text-gray-800">{item.name}</span>
+                  <span className="flex items-center gap-2">
+                    <span className="font-medium text-gray-800">
+                      {item.name}
+                    </span>
+                    {item.isPublic && (
+                      <Badge className="bg-green-100 text-green-800">
+                        {t("Public")}
+                      </Badge>
+                    )}
+                  </span>
                 )}
               </BaseColumn>
               <BaseColumn<SavedQueryListItem_SavedQueryFragment>
