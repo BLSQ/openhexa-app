@@ -16,11 +16,11 @@ from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from psycopg2.extras import RealDictCursor
 
+from hexa.data_studio.models import QueryLog
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 from .api import get_db_server_credentials
-from .models import DatabaseQueryLog
 
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
@@ -279,12 +279,13 @@ def _log_executed_query(
     if not isinstance(user, User):
         # Service principals (PipelineRunUser, ...) expose the triggering human
         user = getattr(user, "real_user", None)
-    DatabaseQueryLog.objects.create(
+    QueryLog.objects.create(
         workspace=workspace,
         user=user,
         query=query,
         origin=origin,
         status=status,
+        target="workspace_database",
         **fields,
     )
 
@@ -299,13 +300,11 @@ def run_and_log_database_query(
     """Single point of entry for executing SQL on behalf of an API request.
 
     Checks the permission, delegates to ``execute_database_query`` and records
-    a ``DatabaseQueryLog`` entry for every outcome, re-raising errors so that
+    a ``QueryLog`` entry for every outcome, re-raising errors so that
     callers only have to translate them into API responses.
     """
     if not request.user.has_perm("databases.run_query", workspace):
-        _log_executed_query(
-            request, workspace, query, origin, DatabaseQueryLog.Status.DENIED
-        )
+        _log_executed_query(request, workspace, query, origin, QueryLog.Status.DENIED)
         raise PermissionDenied
     max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
     started_at = time.perf_counter()
@@ -317,7 +316,7 @@ def run_and_log_database_query(
             workspace,
             query,
             origin,
-            DatabaseQueryLog.Status.REJECTED,
+            QueryLog.Status.REJECTED,
             error_message=str(e),
         )
         raise
@@ -329,7 +328,7 @@ def run_and_log_database_query(
             workspace,
             query,
             origin,
-            DatabaseQueryLog.Status.ERROR,
+            QueryLog.Status.ERROR,
             result_code=e.pgcode,
             error_message=str(e).strip(),
             duration_ms=elapsed_ms(started_at),
@@ -340,8 +339,8 @@ def run_and_log_database_query(
         workspace,
         query,
         origin,
-        DatabaseQueryLog.Status.SUCCESS,
-        result_code=DatabaseQueryLog.SQLSTATE_SUCCESS,
+        QueryLog.Status.SUCCESS,
+        result_code=QueryLog.SQLSTATE_SUCCESS,
         duration_ms=result["duration_ms"],
         row_count=result["row_count"],
         truncated=result["truncated"],

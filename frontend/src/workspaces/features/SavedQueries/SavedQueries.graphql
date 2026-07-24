@@ -1,0 +1,58 @@
+# Shared GraphQL for the Data Studio saved-queries feature: fragments consumed
+# by the list, editor and dialogs, plus the create/update/delete mutations.
+
+fragment SavedQueryListItem_savedQuery on SavedQuery {
+  id
+  name
+  description
+  updatedAt
+  createdBy {
+    ...UserColumn_user
+  }
+  permissions {
+    update
+    delete
+  }
+}
+
+fragment SavedQuery_savedQuery on SavedQuery {
+  id
+  name
+  description
+  content
+  updatedAt
+  createdBy {
+    ...User_user
+  }
+  permissions {
+    update
+    delete
+  }
+}
+
+mutation createSavedQuery($input: CreateSavedQueryInput!) {
+  createSavedQuery(input: $input) {
+    success
+    errors
+    savedQuery {
+      ...SavedQuery_savedQuery
+    }
+  }
+}
+
+mutation updateSavedQuery($input: UpdateSavedQueryInput!) {
+  updateSavedQuery(input: $input) {
+    success
+    errors
+    savedQuery {
+      ...SavedQuery_savedQuery
+    }
+  }
+}
+
+mutation deleteSavedQuery($input: DeleteSavedQueryInput!) {
+  deleteSavedQuery(input: $input) {
+    success
+    errors
+  }
+}

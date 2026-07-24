@@ -11,9 +11,9 @@ from django.http import HttpRequest
 from psycopg2 import Error as Psycopg2Error
 from psycopg2.errors import QueryCanceled
 
+from hexa.data_studio.models import QueryLog
 from hexa.workspaces.models import Workspace
 
-from .models import DatabaseQueryLog
 from .utils import (
     MultipleStatementsError,
     OrderByDirectionEnum,
@@ -35,7 +35,7 @@ workspace_mutations = MutationType()
 
 order_by_direction_enum = EnumType("OrderByDirection", OrderByDirectionEnum)
 # Bound to the model enum so the GraphQL contract and the stored values stay in sync
-execute_sql_origin_enum = EnumType("ExecuteSQLOrigin", DatabaseQueryLog.Origin)
+execute_sql_origin_enum = EnumType("ExecuteSQLOrigin", QueryLog.Origin)
 
 
 @database_object.field("tables")
@@ -82,7 +82,7 @@ def resolve_database_execute_sql(
 ):
     request: HttpRequest = info.context["request"]
     # Clients may send an explicit null, which bypasses the Python default
-    origin = origin or DatabaseQueryLog.Origin.OTHER
+    origin = origin or QueryLog.Origin.OTHER
     try:
         result = run_and_log_database_query(
             request, workspace, query, origin, max_rows=max_rows

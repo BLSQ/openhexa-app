@@ -6,7 +6,7 @@ from django.conf import settings
 from psycopg2 import Error as Psycopg2Error
 
 from hexa.core.test import GraphQLTestCase
-from hexa.databases.models import DatabaseQueryLog
+from hexa.data_studio.models import QueryLog
 from hexa.databases.tests.helpers import seed_demo_table
 from hexa.databases.utils import (
     TableRowsPage,
@@ -378,7 +378,7 @@ class DatabaseTest(GraphQLTestCase):
         return r["data"]["workspace"]["database"]["executeSQL"]
 
     def _get_single_query_log(self):
-        log = DatabaseQueryLog.objects.get()
+        log = QueryLog.objects.get()
         self.assertEqual(self.WORKSPACE, log.workspace)
         return log
 
@@ -406,9 +406,9 @@ class DatabaseTest(GraphQLTestCase):
         log = self._get_single_query_log()
         self.assertEqual(self.USER_SABRINA, log.user)
         self.assertEqual("SELECT id, label FROM demo ORDER BY id", log.query)
-        self.assertEqual(DatabaseQueryLog.Status.SUCCESS, log.status)
-        self.assertEqual(DatabaseQueryLog.SQLSTATE_SUCCESS, log.result_code)
-        self.assertEqual(DatabaseQueryLog.Origin.OTHER, log.origin)
+        self.assertEqual(QueryLog.Status.SUCCESS, log.status)
+        self.assertEqual(QueryLog.SQLSTATE_SUCCESS, log.result_code)
+        self.assertEqual(QueryLog.Origin.OTHER, log.origin)
         self.assertEqual(2, log.row_count)
         self.assertFalse(log.truncated)
         self.assertIsNotNone(log.duration_ms)
@@ -420,7 +420,7 @@ class DatabaseTest(GraphQLTestCase):
 
         self.assertTrue(result["success"])
         log = self._get_single_query_log()
-        self.assertEqual(DatabaseQueryLog.Origin.DATA_STUDIO, log.origin)
+        self.assertEqual(QueryLog.Origin.DATA_STUDIO, log.origin)
 
     def test_log_executed_query_resolves_pipeline_run_user(self):
         # Service principals are not User instances; the audit entry must fall
@@ -433,8 +433,8 @@ class DatabaseTest(GraphQLTestCase):
             request,
             self.WORKSPACE,
             "SELECT 1",
-            DatabaseQueryLog.Origin.OTHER,
-            DatabaseQueryLog.Status.SUCCESS,
+            QueryLog.Origin.OTHER,
+            QueryLog.Status.SUCCESS,
         )
 
         log = self._get_single_query_log()
@@ -450,8 +450,8 @@ class DatabaseTest(GraphQLTestCase):
             request,
             self.WORKSPACE,
             "SELECT 1",
-            DatabaseQueryLog.Origin.OTHER,
-            DatabaseQueryLog.Status.SUCCESS,
+            QueryLog.Origin.OTHER,
+            QueryLog.Status.SUCCESS,
         )
 
         log = self._get_single_query_log()
@@ -464,11 +464,11 @@ class DatabaseTest(GraphQLTestCase):
 
         with self.assertRaises(Psycopg2Error):
             run_and_log_database_query(
-                request, self.WORKSPACE, "SELCT 1", DatabaseQueryLog.Origin.OTHER
+                request, self.WORKSPACE, "SELCT 1", QueryLog.Origin.OTHER
             )
 
         log = self._get_single_query_log()
-        self.assertEqual(DatabaseQueryLog.Status.ERROR, log.status)
+        self.assertEqual(QueryLog.Status.ERROR, log.status)
         self.assertEqual("42601", log.result_code)
 
     def test_execute_sql_log_failure_fails_the_request(self):
@@ -477,7 +477,7 @@ class DatabaseTest(GraphQLTestCase):
         self.client.force_login(self.USER_SABRINA)
 
         with mock.patch(
-            "hexa.databases.utils.DatabaseQueryLog.objects.create",
+            "hexa.databases.utils.QueryLog.objects.create",
             side_effect=Exception("boom"),
         ):
             r = self.run_query(
@@ -496,7 +496,7 @@ class DatabaseTest(GraphQLTestCase):
             )
 
         self.assertIn("errors", r)
-        self.assertEqual(0, DatabaseQueryLog.objects.count())
+        self.assertEqual(0, QueryLog.objects.count())
 
     def test_execute_sql_serializes_binary_values(self):
         self.client.force_login(self.USER_SABRINA)
@@ -530,7 +530,7 @@ class DatabaseTest(GraphQLTestCase):
         self.assertIn("syntax error", result["errorMessage"])
         self.assertIsNone(result["rows"])
         log = self._get_single_query_log()
-        self.assertEqual(DatabaseQueryLog.Status.ERROR, log.status)
+        self.assertEqual(QueryLog.Status.ERROR, log.status)
         self.assertEqual("42601", log.result_code)
         self.assertIn("syntax error", log.error_message)
         self.assertIsNotNone(log.duration_ms)
@@ -544,7 +544,7 @@ class DatabaseTest(GraphQLTestCase):
         self.assertEqual(["PERMISSION_DENIED"], result["errors"])
         self.assertIsNone(result["rows"])
         log = self._get_single_query_log()
-        self.assertEqual(DatabaseQueryLog.Status.DENIED, log.status)
+        self.assertEqual(QueryLog.Status.DENIED, log.status)
         self.assertEqual(self.USER_SABRINA, log.user)
         self.assertIsNone(log.result_code)
         self.assertIsNone(log.duration_ms)
@@ -561,7 +561,7 @@ class DatabaseTest(GraphQLTestCase):
         self.assertEqual(["QUERY_TIMEOUT"], result["errors"])
         self.assertIn("statement timeout", result["errorMessage"])
         log = self._get_single_query_log()
-        self.assertEqual(DatabaseQueryLog.Status.ERROR, log.status)
+        self.assertEqual(QueryLog.Status.ERROR, log.status)
         # SQLSTATE 57014: query_canceled
         self.assertEqual("57014", log.result_code)
 
@@ -574,7 +574,7 @@ class DatabaseTest(GraphQLTestCase):
         self.assertEqual(["MULTIPLE_STATEMENTS"], result["errors"])
         self.assertIsNone(result["rows"])
         log = self._get_single_query_log()
-        self.assertEqual(DatabaseQueryLog.Status.REJECTED, log.status)
+        self.assertEqual(QueryLog.Status.REJECTED, log.status)
         self.assertIsNone(log.result_code)
 
     def test_generate_workspace_database_new_password_not_found(self):
