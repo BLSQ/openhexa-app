@@ -35,17 +35,21 @@ const WorkspaceSavedQueriesPage: NextPageWithLayout = (props: Props) => {
   const debouncedSearch = useDebounce(searchInput, 300);
   const query = debouncedSearch.trim() || undefined;
 
-  const { data, loading, refetch } = useWorkspaceSavedQueriesPageQuery({
-    variables: { workspaceSlug: props.workspaceSlug, page, perPage, query },
-    notifyOnNetworkStatusChange: true,
-  });
+  const { data, previousData, loading, refetch } =
+    useWorkspaceSavedQueriesPageQuery({
+      variables: { workspaceSlug: props.workspaceSlug, page, perPage, query },
+      notifyOnNetworkStatusChange: true,
+    });
 
   useCacheKey(["savedQueries"], () => refetch());
 
-  if (!data?.workspace) {
+  // Fall back to previousData so the page doesn't unmount while a new search
+  // (or page) is in flight: Apollo blanks `data` on cache-miss variable changes.
+  const displayData = data ?? previousData;
+  if (!displayData?.workspace) {
     return null;
   }
-  const { workspace } = data;
+  const { workspace } = displayData;
   const routes = dataStudioRoutes(workspace.slug);
 
   return (
