@@ -7,7 +7,9 @@ first). The medium (ORM vs GraphQL) is decided per endpoint inside each copier,
 so this orchestration is written once and shared by every flow (CLI + admin).
 """
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
+
+import httpx
 
 from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.progress import ProgressReporter
@@ -50,6 +52,7 @@ def copy_workspace(
     *,
     resources: set[str] | None = None,
     skip_existing: bool = False,
+    http_client_factory: Callable[[], httpx.Client] | None = None,
 ) -> CopyResult:
     """Copy a workspace from ``source`` to ``target``.
 
@@ -57,14 +60,20 @@ def copy_workspace(
     outcome on a single :class:`CopyResult`. Live progress is emitted
     through ``reporter``; pass a :class:`~hexa.workspace_copier.progress.NullReporter`
     to discard it. ``skip_existing`` skips files already on the target with
-    the same key and size (the idempotent re-run flow).
+    the same key and size (the idempotent re-run flow). ``http_client_factory``
+    is a test seam forwarded to the files copier for its presigned traffic.
     """
     selected = _resolve_selection(WORKSPACE_COPIERS, resources)
-    if skip_existing:
+    if skip_existing or http_client_factory is not None:
         # Only the files copier has per-run configuration; swap in a configured
         # instance rather than mutating the shared registry singleton.
         selected = [
-            FilesCopier(skip_existing=True) if isinstance(c, FilesCopier) else c
+            FilesCopier(
+                skip_existing=skip_existing,
+                http_client_factory=http_client_factory,
+            )
+            if isinstance(c, FilesCopier)
+            else c
             for c in selected
         ]
     selected_names = {c.name for c in selected}

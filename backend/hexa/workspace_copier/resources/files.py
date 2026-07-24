@@ -6,7 +6,7 @@ Native same-server file copy is a deferred follow-up (see the implementation
 plan); until then both LOCAL and REMOTE endpoints use the client here.
 """
 
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from typing import Any
 
 import httpx
@@ -177,8 +177,19 @@ class FilesCopier(ResourceCopier):
     name = "files"
     label = "Files (bucket)"
 
-    def __init__(self, skip_existing: bool = False):
+    def __init__(
+        self,
+        skip_existing: bool = False,
+        http_client_factory: Callable[[], httpx.Client] | None = None,
+    ):
         self.skip_existing = skip_existing
+        # The presigned download/upload traffic gets its own bare client (no auth
+        # headers — see the comment in copy()). Tests inject a factory returning a
+        # WSGI-transport client so those presigned URLs, served by the same
+        # in-process app, are reachable without sockets.
+        self.http_client_factory = http_client_factory or (
+            lambda: httpx.Client(timeout=300)
+        )
 
     def _existing_on_target(
         self, target: Endpoint, reporter: ProgressReporter
@@ -223,7 +234,7 @@ class FilesCopier(ResourceCopier):
         # one per file. It carries no auth headers: presigned URLs are
         # self-authenticating and some storage backends reject requests that
         # also send an Authorization header.
-        with httpx.Client(timeout=300) as http_client:
+        with self.http_client_factory() as http_client:
             # walk() is a generator whose paginated/recursive gql() calls can
             # themselves raise (page 2+, a subdir listing). Driving it via
             # next() lets us record a listing failure and keep the files copied

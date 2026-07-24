@@ -43,9 +43,29 @@ class CredentialError(GraphQLError):
         super().__init__("; ".join(errors))
 
 
-def _build_source(url: str | None, token: str | None, slug: str) -> Endpoint:
+HttpClientFactory = Callable[[], httpx.Client]
+
+
+def _http_client(factory: HttpClientFactory | None) -> httpx.Client | None:
+    """A fresh client from the factory, or ``None`` to let ``build_client`` build one.
+
+    A *factory* (not a shared client) because source and target must each get
+    their own client: ``build_client`` sets the ``Authorization`` header on the
+    client it receives, and the two sides use different tokens.
+    """
+    return factory() if factory else None
+
+
+def _build_source(
+    url: str | None,
+    token: str | None,
+    slug: str,
+    http_client_factory: HttpClientFactory | None = None,
+) -> Endpoint:
     if url:
-        client = build_client(url, token, label="source")
+        client = build_client(
+            url, token, label="source", http_client=_http_client(http_client_factory)
+        )
         return Endpoint.remote(client, slug)
     return Endpoint.local(slug, workspace=Workspace.objects.get(slug=slug))
 
@@ -56,11 +76,16 @@ def _build_target(
     organization_id: str | None,
     workspace_name: str | None,
     workspace_slug: str | None,
+    http_client_factory: HttpClientFactory | None = None,
 ) -> Endpoint:
     if workspace_slug:
-        return _build_existing_target(url, token, workspace_slug)
+        return _build_existing_target(
+            url, token, workspace_slug, http_client_factory=http_client_factory
+        )
     if url:
-        client = build_client(url, token, label="target")
+        client = build_client(
+            url, token, label="target", http_client=_http_client(http_client_factory)
+        )
         return Endpoint.remote(
             client, organization_id=organization_id, workspace_name=workspace_name
         )
@@ -70,7 +95,10 @@ def _build_target(
 
 
 def _build_existing_target(
-    url: str | None, token: str | None, workspace_slug: str
+    url: str | None,
+    token: str | None,
+    workspace_slug: str,
+    http_client_factory: HttpClientFactory | None = None,
 ) -> Endpoint:
     """Build a target endpoint pointing at a pre-existing workspace.
 
@@ -82,7 +110,9 @@ def _build_existing_target(
     idempotent by skipping resources that already exist.
     """
     if url:
-        client = build_client(url, token, label="target")
+        client = build_client(
+            url, token, label="target", http_client=_http_client(http_client_factory)
+        )
         if client.workspace(slug=workspace_slug) is None:
             raise GraphQLError(
                 f"target workspace '{workspace_slug}' not found — create it first "
@@ -95,7 +125,12 @@ def _build_existing_target(
     )
 
 
-def _build_remote_client(side: str, url: str, token: str) -> Client:
+def _build_remote_client(
+    side: str,
+    url: str,
+    token: str,
+    http_client_factory: HttpClientFactory | None = None,
+) -> Client:
     """Build and authenticate a remote SDK client (used by the template flow).
 
     The template copy flow is remote→remote only (templates are server-wide and
@@ -105,7 +140,9 @@ def _build_remote_client(side: str, url: str, token: str) -> Client:
     """
     if not url:
         raise GraphQLError(f"{side} server URL is required.")
-    return build_client(url, token, label=side)
+    return build_client(
+        url, token, label=side, http_client=_http_client(http_client_factory)
+    )
 
 
 def _verify_side(side: str, build: Callable[[], Any]) -> tuple[Any | None, str | None]:
@@ -136,11 +173,14 @@ def _verify_endpoints(
     target_organization_id: str | None,
     target_workspace_name: str | None,
     target_workspace_slug: str | None = None,
+    http_client_factory: HttpClientFactory | None = None,
 ) -> tuple[Endpoint, Endpoint]:
     """Verify and build both endpoints, raising :class:`CredentialError` on failure."""
     source, source_err = _verify_side(
         "source",
-        lambda: _build_source(source_url, source_token, source_slug),
+        lambda: _build_source(
+            source_url, source_token, source_slug, http_client_factory
+        ),
     )
     target, target_err = _verify_side(
         "target",
@@ -150,6 +190,7 @@ def _verify_endpoints(
             target_organization_id,
             target_workspace_name,
             target_workspace_slug,
+            http_client_factory,
         ),
     )
     errors = [e for e in (source_err, target_err) if e]
@@ -170,12 +211,18 @@ def run_copy(
     target_workspace_slug: str | None = None,
     resources: set[str] | None = None,
     reporter: ProgressReporter,
+    http_client_factory: HttpClientFactory | None = None,
 ) -> CopyResult:
     """Verify both endpoints, then copy the workspace, returning the result.
 
     Copying into an existing workspace (``target_workspace_slug``) is the
     idempotent re-run flow, so it also skips files already present on the
     target with the same key and size.
+
+    ``http_client_factory`` is a test seam: production callers pass nothing and
+    each ``build_client`` builds its own client. Tests pass a factory that
+    returns WSGI-transport clients routed at the in-process app so the whole
+    copy runs against real server code without sockets.
     """
     source, target = _verify_endpoints(
         source_url=source_url,
@@ -186,6 +233,7 @@ def run_copy(
         target_organization_id=target_organization_id,
         target_workspace_name=target_workspace_name,
         target_workspace_slug=target_workspace_slug,
+        http_client_factory=http_client_factory,
     )
     return copy_workspace(
         source,
@@ -193,6 +241,7 @@ def run_copy(
         reporter,
         resources=resources,
         skip_existing=bool(target_workspace_slug),
+        http_client_factory=http_client_factory,
     )
 
 
@@ -204,18 +253,27 @@ def run_template_copy(
     target_token: str,
     target_organization_id: str,
     reporter: ProgressReporter,
+    http_client_factory: HttpClientFactory | None = None,
 ) -> TemplatesResult:
     """Verify both remote endpoints, then copy every template, returning the result.
 
     Both sides are checked even if the first fails, so the user sees every
     problem at once. ``target_organization_id`` is the organization the host
     "Template pipelines" workspace is created under on the target.
+
+    ``http_client_factory`` is the same test seam as :func:`run_copy`.
     """
     source, source_err = _verify_side(
-        "source", lambda: _build_remote_client("source", source_url, source_token)
+        "source",
+        lambda: _build_remote_client(
+            "source", source_url, source_token, http_client_factory
+        ),
     )
     target, target_err = _verify_side(
-        "target", lambda: _build_remote_client("target", target_url, target_token)
+        "target",
+        lambda: _build_remote_client(
+            "target", target_url, target_token, http_client_factory
+        ),
     )
     errors = [e for e in (source_err, target_err) if e]
     if errors:
