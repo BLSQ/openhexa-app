@@ -43,14 +43,12 @@ const AI_LABELS = {
   ],
 };
 
-const buildOrganization = (
-  aiSettings: {
-    enabled: boolean;
-    provider: AiProvider | null;
-    model?: string | null;
-    hasApiKey?: boolean;
-  },
-) =>
+const buildOrganization = (aiSettings: {
+  enabled: boolean;
+  provider: AiProvider | null;
+  model?: string | null;
+  hasApiKey?: boolean;
+}) =>
   ({
     id: v4(),
     permissions: { update: true },
@@ -145,6 +143,34 @@ describe("OrganizationAiSettings", () => {
       expect(screen.getByText("Model")).toBeInTheDocument();
       expect(screen.getByText("API Key")).toBeInTheDocument();
     });
+  });
+
+  it("does not resend the masked API key when it is left untouched", async () => {
+    mockAiLabels(false);
+    const mutate = jest.fn().mockResolvedValue({});
+    useUpdateOrganizationAiSettingsMutationMock.mockReturnValue([mutate, {}]);
+    const user = userEvent.setup();
+
+    render(
+      <TestApp>
+        <OrganizationAiSettings
+          organization={buildOrganization({
+            enabled: true,
+            provider: AiProvider.Anthropic,
+            model: "opus",
+            hasApiKey: true,
+          })}
+        />
+      </TestApp>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Edit" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(mutate).toHaveBeenCalled());
+
+    const { apiKey } = mutate.mock.calls[0][0].variables.input;
+    expect(apiKey).not.toBe("••••••");
   });
 
   it("only offers the Anthropic provider on a self-hosted instance", async () => {

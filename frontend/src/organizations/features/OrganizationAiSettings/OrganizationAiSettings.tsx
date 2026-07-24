@@ -17,6 +17,11 @@ const MODELS: Record<string, string[]> = {
   [AiProvider.Anthropic]: ["", AiModel.Opus, AiModel.Sonnet, AiModel.Haiku],
 };
 
+const usesManagedProvider = (value: unknown) => value === AiProvider.Managed;
+
+const showByok = (values: { enableAI?: unknown; provider?: unknown }) =>
+  Boolean(values.enableAI) && !usesManagedProvider(values.provider);
+
 type OrganizationAiSettingsProps = {
   organization: Organization_OrganizationFragment;
 };
@@ -51,8 +56,6 @@ const OrganizationAiSettings = ({
     providersMap[type] || String(type);
   const getModelLabel = (type: string): string =>
     modelsMap[type] || String(type);
-
-  const usesManagedProvider = (value: unknown) => value === AiProvider.Managed;
 
   const providerOptions = isManagedInstance
     ? [AiProvider.Managed, AiProvider.Anthropic]
@@ -105,12 +108,8 @@ const OrganizationAiSettings = ({
           label={t("Model")}
           options={modelOptions}
           getOptionLabel={getModelLabel}
-          visible={(_, __, values) =>
-            Boolean(values.enableAI) && !usesManagedProvider(values.provider)
-          }
-          required={(_, __, values) =>
-            Boolean(values.enableAI) && !usesManagedProvider(values.provider)
-          }
+          visible={(_, __, values) => showByok(values)}
+          required={(_, __, values) => showByok(values)}
         />
         <TextProperty
           id="apiKey"
@@ -120,14 +119,8 @@ const OrganizationAiSettings = ({
             settings?.hasApiKey ? t("Leave blank to keep current API key") : ""
           }
           label={t("API Key")}
-          visible={(_, __, values) =>
-            Boolean(values.enableAI) && !usesManagedProvider(values.provider)
-          }
-          required={(_, __, values) =>
-            Boolean(values.enableAI) &&
-            !usesManagedProvider(values.provider) &&
-            !settings?.hasApiKey
-          }
+          visible={(_, __, values) => showByok(values)}
+          required={(_, __, values) => showByok(values) && !settings?.hasApiKey}
         />
       </DataCard.FormSection>
     </DataCard>
