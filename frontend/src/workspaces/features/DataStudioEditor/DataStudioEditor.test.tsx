@@ -13,6 +13,18 @@ jest.mock("./DataStudioEditor.generated", () => ({
   useExecuteWorkspaceSqlLazyQuery: () => [mockExecute, mockQueryState],
 }));
 
+const mockEditDetails = jest.fn();
+let mockEditorState: any;
+
+// The save/write path (Apollo mutations + router navigation) is exercised in
+// its own suite; stub it here so these tests stay focused on run/export/schema
+// orchestration and need no ApolloProvider or router. `mockEditorState` is
+// (re)initialised in beforeEach so a test can flip it to a saved/updatable
+// query and exercise the edit-details pencil.
+jest.mock("./useSavedQueryEditor", () => ({
+  useSavedQueryEditor: () => mockEditorState,
+}));
+
 // The schema browser and results grid are covered by their own tests; stub them
 // so this file exercises only the editor's orchestration logic.
 jest.mock("./DataStudioSchemaBrowser", () => ({
@@ -117,14 +129,26 @@ const successState = (overrides: Record<string, unknown> = {}) => ({
   },
 });
 
-const renderEditor = () =>
-  render(<DataStudioEditor workspaceSlug="ws-1" />);
+const renderEditor = () => render(<DataStudioEditor workspaceSlug="ws-1" />);
 
 beforeEach(() => {
   mockExecute.mockClear();
   mockInsertText.mockClear();
   (downloadBlob as jest.Mock).mockClear();
+  mockEditDetails.mockClear();
   mockQueryState = { loading: false };
+  mockEditorState = {
+    savedQuery: null,
+    isDirty: false,
+    saving: false,
+    canUpdate: false,
+    dialog: null,
+    save: jest.fn(),
+    saveAsNew: jest.fn(),
+    editDetails: mockEditDetails,
+    closeDialog: jest.fn(),
+    onDialogSaved: jest.fn(),
+  };
 });
 
 describe("DataStudioEditor", () => {
@@ -271,5 +295,38 @@ describe("DataStudioEditor", () => {
       "data-loading",
       "true",
     );
+  });
+
+  it("opens the edit-details dialog from the pencil next to a saved query name", async () => {
+    mockEditorState.savedQuery = { id: "q1", name: "Cohort query" };
+    mockEditorState.canUpdate = true;
+    renderEditor();
+
+    expect(screen.getByText("Cohort query")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Edit details" }));
+    expect(mockEditDetails).toHaveBeenCalledTimes(1);
+  });
+
+  it("hides the edit-details pencil when the query cannot be updated", () => {
+    mockEditorState.savedQuery = { id: "q1", name: "Cohort query" };
+    mockEditorState.canUpdate = false;
+    renderEditor();
+
+    expect(
+      screen.queryByRole("button", { name: "Edit details" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("blocks in-place Save while an existing query's content is empty", async () => {
+    mockEditorState.savedQuery = { id: "q1", name: "Cohort query" };
+    mockEditorState.canUpdate = true;
+    mockEditorState.isDirty = true;
+    renderEditor();
+
+    // Content starts empty (wiped), so Save stays disabled even though dirty.
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+
+    await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
   });
 });
