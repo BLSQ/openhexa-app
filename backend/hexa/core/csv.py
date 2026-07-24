@@ -1,7 +1,6 @@
 import csv
 import datetime
 import json
-import math
 import re
 import threading
 import typing
@@ -35,52 +34,6 @@ class Echo:
         return value
 
 
-def _format_float_like_js(value: float) -> str:
-    """Format a float exactly as JavaScript's ``Number.prototype.toString`` does.
-
-    A ``float8``/``float4`` column crosses the interactive path as a JSON number and
-    is rendered client-side with ``String(x)``; Python's ``repr`` diverges from that at
-    the exponent thresholds (``1e16`` -> ``"1e+16"`` vs ``"10000000000000000"``, ``1e-7``
-    -> ``"1e-07"`` vs ``"1e-7"``) and for non-finite values. Following ECMA-262's
-    algorithm keeps float columns byte-identical across both export paths.
-    """
-    if math.isnan(value):
-        return "NaN"
-    if math.isinf(value):
-        return "Infinity" if value > 0 else "-Infinity"
-    if value == 0:
-        return "0"  # JS renders both +0 and -0 as "0"
-    sign = "-" if value < 0 else ""
-    magnitude = -value if value < 0 else value
-
-    # Decompose repr's shortest round-tripping digits into ECMA's bare digit string
-    # ``s`` and decimal-point position ``n`` (value == int(s) * 10 ** (n - len(s))).
-    rep = repr(magnitude)
-    if "e" in rep:
-        mantissa, _, exp_text = rep.partition("e")
-        exponent = int(exp_text)
-    else:
-        mantissa, exponent = rep, 0
-    int_part, _, frac_part = mantissa.partition(".")
-    combined = int_part + frac_part
-    point = exponent - len(frac_part)
-    stripped = combined.lstrip("0")
-    s = stripped.rstrip("0")
-    point += len(stripped) - len(s)  # trailing zeros fold back into the exponent
-    k = len(s)
-    n = point + k
-
-    if k <= n <= 21:
-        return sign + s + "0" * (n - k)
-    if 0 < n <= 21:
-        return sign + s[:n] + "." + s[n:]
-    if -6 < n <= 0:
-        return sign + "0." + "0" * -n + s
-    exp = n - 1
-    mant = s if k == 1 else s[0] + "." + s[1:]
-    return sign + mant + "e" + ("+" if exp >= 0 else "-") + str(abs(exp))
-
-
 def stringify_cell(value: typing.Any) -> str:
     """Render a single value as a CSV-safe string.
 
@@ -91,25 +44,24 @@ def stringify_cell(value: typing.Any) -> str:
         return ""
     if isinstance(value, bool):
         return "true" if value else "false"
-    if isinstance(value, float):
-        return _format_float_like_js(value)
-    if isinstance(value, (int, Decimal)):
+    if isinstance(value, (int, float, Decimal)):
+        # str() gives the shortest round-tripping form; for a float that is the
+        # same text Postgres itself prints for the value (e.g. 1e+16, 1e-07),
+        # so the export stays faithful to the source and needs no custom logic.
         return str(value)
     if isinstance(value, (bytes, bytearray, memoryview)):
         return "\\x" + bytes(value).hex()
     if isinstance(value, (dict, list)):
-        # Compact separators (no spaces) and ensure_ascii=False so this matches
-        # the frontend's JSON.stringify byte-for-byte: JSON.stringify emits
-        # non-ASCII literally, whereas json.dumps escapes it (\uXXXX) by default,
-        # which would diverge for e.g. accented text in a JSONB column. See the
-        # frontend buildCsv and its cross-path parity test.
+        # json/jsonb columns arrive already parsed. Compact separators drop the
+        # cosmetic whitespace; ensure_ascii=False keeps non-ASCII text literal
+        # (é stays é) instead of \uXXXX-escaping it, so accented text survives.
         return json.dumps(value, default=str, separators=(",", ":"), ensure_ascii=False)
     if isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
         return value.isoformat()
 
     text = str(value)
-    # NUMERIC/DECIMAL/bigint columns arrive as strings to preserve precision; a
-    # pure numeric literal is inert in a spreadsheet, so leave it intact.
+    # A text column may hold a value a spreadsheet would read as a formula; guard
+    # it. A pure numeric literal is inert, so leave it intact rather than quoting.
     if not _NUMERIC_LITERAL.match(text) and _FORMULA_PREFIX.match(text):
         return "'" + text
     return text
@@ -124,9 +76,8 @@ def _csv_line(writer: typing.Any, cells: typing.Sequence[typing.Any]) -> str:
     """Serialise one record to a CSV line.
 
     The single place a cell becomes CSV text: used by
-    :func:`async_streaming_csv_response` and pinned directly by the shared
-    cell-serialisation contract test, so the client and server export paths
-    cannot diverge.
+    :func:`async_streaming_csv_response` and pinned by the cell-serialisation
+    tests (see ``hexa.core.tests.test_csv``).
     """
     return writer.writerow([stringify_cell(cell) for cell in cells])
 

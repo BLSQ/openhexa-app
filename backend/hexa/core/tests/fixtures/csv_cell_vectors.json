@@ -1,5 +1,5 @@
 {
-  "_comment": "Canonical CSV serialisation contract shared by the backend (hexa.core.csv) and the frontend (DataStudioEditor/csv.ts). `vectors` pins how a single cell serialises (post-guard, post-quote); `rowVectors` pins whole-record shape (columns + rows -> full CSV, no BOM), which cell vectors cannot cover because each is wrapped in a fixed two-column row. Both export paths are asserted against this same file so the client path (small results) and server path (large results) cannot drift. Only JSON-representable values live here: type-specific branches that never cross the GraphQL wire (Python bytes/Decimal/datetime) are covered by backend-only tests. Numbers beyond the JS safe range are represented as strings, mirroring how NUMERIC/DECIMAL/bigint actually reach the frontend.",
+  "_comment": "CSV cell-serialisation test vectors for hexa.core.csv.stringify_cell (asserted by hexa.core.tests.test_csv). `vectors` pins how a single cell serialises (post-guard, post-quote); `rowVectors` pins whole-record shape (columns + rows -> full CSV, no BOM), which cell vectors cannot cover because each is wrapped in a fixed two-column row. JSON-representable inputs only; type-specific branches (bytes/Decimal/datetime, plus non-finite and signed-zero floats) are covered directly in test_csv.py. Float expectations follow Python's str(), which is the shortest round-tripping form and matches the text Postgres itself prints for a float8 (e.g. 1e+16, 1e-07). Large integers are given as JSON strings to keep the fixture safe; they exercise the text/formula-guard branch, not number formatting.",
   "vectors": [
     { "description": "null becomes an empty cell", "value": null, "expected": "" },
     { "description": "boolean true is lowercased", "value": true, "expected": "true" },
@@ -9,15 +9,15 @@
     { "description": "integer number", "value": 42, "expected": "42" },
     { "description": "negative integer number is not an injection risk", "value": -5, "expected": "-5" },
     { "description": "decimal number", "value": 1.5, "expected": "1.5" },
-    { "description": "float at JS exponent threshold expands to digits (not 1e+16)", "value": 1e16, "expected": "10000000000000000" },
-    { "description": "fractional float at the threshold keeps its significant digits", "value": 1.1e16, "expected": "11000000000000000" },
-    { "description": "small float uses JS exponent notation (e-7, not e-07)", "value": 1e-7, "expected": "1e-7" },
-    { "description": "small float just above the threshold expands (not 1e-06)", "value": 1e-6, "expected": "0.000001" },
-    { "description": "large float above 1e21 uses JS exponent notation", "value": 1e21, "expected": "1e+21" },
+    { "description": "large float uses exponent notation, matching Postgres float8 text", "value": 1e16, "expected": "1e+16" },
+    { "description": "fractional large float keeps its significant digits in exponent form", "value": 1.1e16, "expected": "1.1e+16" },
+    { "description": "small float uses exponent notation with a zero-padded exponent", "value": 1e-7, "expected": "1e-07" },
+    { "description": "small float below the expand threshold stays in exponent form", "value": 1e-6, "expected": "1e-06" },
+    { "description": "large float above 1e21 uses exponent notation", "value": 1e21, "expected": "1e+21" },
     { "description": "numeric string preserved (negative decimal)", "value": "-5.5", "expected": "-5.5" },
     { "description": "numeric string preserved (exponent)", "value": "1e10", "expected": "1e10" },
     { "description": "numeric string preserved (leading dot)", "value": ".5", "expected": ".5" },
-    { "description": "big numeric string preserved beyond JS safe int", "value": "123456789012345678901234567890", "expected": "123456789012345678901234567890" },
+    { "description": "big numeric string left intact (numeric literal, not formula-guarded)", "value": "123456789012345678901234567890", "expected": "123456789012345678901234567890" },
     { "description": "formula = is guarded", "value": "=1+1", "expected": "'=1+1" },
     { "description": "formula + is guarded", "value": "+1", "expected": "'+1" },
     { "description": "formula @ is guarded", "value": "@SUM(A1)", "expected": "'@SUM(A1)" },
@@ -34,7 +34,7 @@
   ],
   "rowVectors": [
     { "description": "header then one CRLF-terminated line per row", "columns": ["id", "name"], "rows": [{ "id": 1, "name": "Alice" }, { "id": 2, "name": "Bob" }], "expected": "id,name\r\n1,Alice\r\n2,Bob\r\n" },
-    { "description": "a lone empty field is written as \"\" (not a bare line) so single-column results stay byte-identical across paths", "columns": ["a"], "rows": [{ "a": null }], "expected": "a\r\n\"\"\r\n" },
+    { "description": "a lone empty field is written as \"\" (not a bare line), as Python's csv.writer does", "columns": ["a"], "rows": [{ "a": null }], "expected": "a\r\n\"\"\r\n" },
     { "description": "a lone non-empty field is not quoted", "columns": ["a"], "rows": [{ "a": "x" }], "expected": "a\r\nx\r\n" },
     { "description": "single column mixes quoted-empty and plain rows", "columns": ["a"], "rows": [{ "a": "x" }, { "a": null }, { "a": "y" }], "expected": "a\r\nx\r\n\"\"\r\ny\r\n" },
     { "description": "an all-empty multi-column row is a bare separator, never quoted", "columns": ["a", "b"], "rows": [{ "a": null, "b": null }], "expected": "a,b\r\n,\r\n" }

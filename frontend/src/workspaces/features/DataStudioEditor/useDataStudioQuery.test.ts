@@ -1,6 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
 import { toast } from "react-toastify";
-import { downloadCsvBlob } from "./csv";
 import { downloadQueryCsv } from "./downloadQueryCsv";
 import { useDataStudioQuery } from "./useDataStudioQuery";
 
@@ -13,10 +12,6 @@ jest.mock("./DataStudioEditor.generated", () => ({
 
 jest.mock("./downloadQueryCsv", () => ({
   downloadQueryCsv: jest.fn(),
-}));
-
-jest.mock("./csv", () => ({
-  downloadCsvBlob: jest.fn(),
 }));
 
 jest.mock("react-toastify", () => ({
@@ -32,7 +27,6 @@ beforeEach(() => {
   mockExecute.mockClear();
   (downloadQueryCsv as jest.Mock).mockClear();
   (downloadQueryCsv as jest.Mock).mockResolvedValue(undefined);
-  (downloadCsvBlob as jest.Mock).mockClear();
   (toast.error as jest.Mock).mockClear();
   mockState = { loading: false };
 });
@@ -77,7 +71,7 @@ describe("useDataStudioQuery", () => {
     expect(mockExecute).not.toHaveBeenCalled();
   });
 
-  it("builds the CSV client-side when the result is complete (not truncated)", async () => {
+  it("streams even a complete (not truncated) result from the server", async () => {
     mockState = withResult({
       success: true,
       truncated: false,
@@ -91,15 +85,10 @@ describe("useDataStudioQuery", () => {
       await result.current.downloadCsv();
     });
 
-    expect(downloadCsvBlob).toHaveBeenCalledWith(
-      "query-results.csv",
-      ["id"],
-      [{ id: 1 }],
-    );
-    expect(downloadQueryCsv).not.toHaveBeenCalled();
+    expect(downloadQueryCsv).toHaveBeenCalledWith("ws-1", "SELECT 2");
   });
 
-  it("streams from the server the last run query when the result was truncated", async () => {
+  it("streams the last run query from the server (not the editor contents)", async () => {
     mockState = withResult({
       success: true,
       truncated: true,
@@ -115,7 +104,6 @@ describe("useDataStudioQuery", () => {
     });
 
     expect(downloadQueryCsv).toHaveBeenCalledWith("ws-1", "SELECT 2");
-    expect(downloadCsvBlob).not.toHaveBeenCalled();
     expect(result.current.exporting).toBe(false);
   });
 
@@ -171,7 +159,6 @@ describe("useDataStudioQuery", () => {
       await result.current.downloadCsv();
     });
     expect(downloadQueryCsv).not.toHaveBeenCalled();
-    expect(downloadCsvBlob).not.toHaveBeenCalled();
   });
 
   it("allows export for a successful result with rows", () => {

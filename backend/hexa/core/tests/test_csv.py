@@ -16,10 +16,8 @@ from ..csv import (
     stringify_cell,
 )
 
-# Shared with the frontend (DataStudioEditor/csv.parity.test.ts): the single
-# source of truth for how a cell must serialise. Both export paths are checked
-# against it so the client-side (small results) and server-side (large results)
-# CSV builders cannot drift.
+# Test vectors for how a cell must serialise, kept in a fixture so the cases are
+# easy to read and extend (see the fixture's _comment for the format).
 _CSV_CONTRACT = json.loads(
     (Path(__file__).parent / "fixtures" / "csv_cell_vectors.json").read_text()
 )
@@ -28,18 +26,13 @@ CSV_ROW_VECTORS = _CSV_CONTRACT["rowVectors"]
 
 
 class CsvCellSerialisationTest(TestCase):
-    """The server side of the shared CSV-cell contract (see CSV_CELL_VECTORS).
+    """Cover ``stringify_cell`` / ``_csv_line`` against the fixture vectors."""
 
-    The frontend runs the same vectors against ``buildCsv`` in
-    ``csv.parity.test.ts``; keeping both green is what guarantees the two
-    download paths emit byte-identical files.
-    """
-
-    def test_matches_shared_cell_vectors(self):
+    def test_matches_cell_vectors(self):
         # Each value sits in a two-column row (with a constant sentinel) so the
         # vector stays focused on cell content; whole-record shape — including
         # the lone-empty-field case where csv.writer emits "" — is pinned
-        # separately in test_matches_shared_row_vectors.
+        # separately in test_matches_row_vectors.
         writer = csv.writer(Echo())
         header_line = _csv_line(writer, ["a", "b"])
         for vector in CSV_CELL_VECTORS:
@@ -49,11 +42,10 @@ class CsvCellSerialisationTest(TestCase):
                     f"a,b\r\n{vector['expected']},x\r\n", header_line + row_line
                 )
 
-    def test_matches_shared_row_vectors(self):
+    def test_matches_row_vectors(self):
         # Whole-record shape, which the cell vectors cannot cover. Most important
         # is the single-column empty row: csv.writer renders a lone empty field
-        # as "" (not a bare line), and the frontend buildCsv now matches that, so
-        # a single-column result is byte-identical across both export paths.
+        # as "" (not a bare line), which a naive "".join of cells would get wrong.
         for vector in CSV_ROW_VECTORS:
             with self.subTest(vector=vector["description"]):
                 writer = csv.writer(Echo())
@@ -64,8 +56,8 @@ class CsvCellSerialisationTest(TestCase):
                 self.assertEqual(vector["expected"], output)
 
     def test_backend_only_types(self):
-        # Types that never cross the GraphQL wire as-is (the interactive result
-        # already encodes them), so they cannot appear in the shared fixture.
+        # Types JSON can't represent, so they can't live in the fixture: raw
+        # bytes, Decimal (distinct from float), and datetimes.
         self.assertEqual("\\x0102", stringify_cell(b"\x01\x02"))
         self.assertEqual("1.50", stringify_cell(Decimal("1.50")))
         self.assertEqual(
@@ -74,22 +66,22 @@ class CsvCellSerialisationTest(TestCase):
         )
         self.assertEqual("2024-01-02", stringify_cell(datetime.date(2024, 1, 2)))
 
-    def test_float_formatting_matches_javascript(self):
-        # Floats cross the interactive path as JSON numbers and are rendered with
-        # String(x) client-side, so the server export must match ECMA-262's
-        # Number.toString. Non-finite and signed-zero cases cannot live in the
-        # JSON fixture (not representable / not distinguishable), so pin them here.
-        self.assertEqual("NaN", stringify_cell(float("nan")))
-        self.assertEqual("Infinity", stringify_cell(float("inf")))
-        self.assertEqual("-Infinity", stringify_cell(float("-inf")))
-        self.assertEqual("0", stringify_cell(-0.0))
+    def test_float_formatting(self):
+        # Floats render via str(): the shortest round-tripping form, which is the
+        # same text Postgres prints for a float8. Non-finite and signed-zero cases
+        # can't live in the JSON fixture, so pin them here with a few exponent
+        # cases as a regression guard on the formatting.
+        self.assertEqual("nan", stringify_cell(float("nan")))
+        self.assertEqual("inf", stringify_cell(float("inf")))
+        self.assertEqual("-inf", stringify_cell(float("-inf")))
+        self.assertEqual("-0.0", stringify_cell(-0.0))
         self.assertEqual("-1.5", stringify_cell(-1.5))
-        self.assertEqual("10000000000000000", stringify_cell(1e16))
-        self.assertEqual("1e-7", stringify_cell(1e-7))
-        self.assertEqual("0.000001", stringify_cell(1e-6))
+        self.assertEqual("1e+16", stringify_cell(1e16))
+        self.assertEqual("1e-07", stringify_cell(1e-7))
+        self.assertEqual("1e-06", stringify_cell(1e-6))
         self.assertEqual("1e+21", stringify_cell(1e21))
         self.assertEqual("5e-324", stringify_cell(5e-324))
-        self.assertEqual("100", stringify_cell(100.0))
+        self.assertEqual("100.0", stringify_cell(100.0))
 
 
 class AsyncStreamingCsvResponseTest(TestCase):

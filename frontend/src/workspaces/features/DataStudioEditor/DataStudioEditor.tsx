@@ -128,8 +128,8 @@ const DataStudioEditor = ({
                   ))}
                 </select>
               </label>
-              {/* Only the heavy (server re-run) path sets `exporting`, and it can
-                  take a while; reassure the user right where they clicked. */}
+              {/* The server re-run can take a while; reassure the user right
+                  where they clicked. */}
               {exporting && (
                 <span className="text-xs text-gray-400">
                   {t("This may take a while")}

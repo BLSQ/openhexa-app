@@ -1,7 +1,6 @@
 import { useTranslation } from "next-i18next";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { downloadCsvBlob } from "./csv";
 import { useExecuteWorkspaceSqlLazyQuery } from "./DataStudioEditor.generated";
 import { downloadQueryCsv } from "./downloadQueryCsv";
 
@@ -22,8 +21,7 @@ export const useDataStudioQuery = (workspaceSlug: string) => {
   const [execute, { data, loading, error }] = useExecuteWorkspaceSqlLazyQuery({
     fetchPolicy: "no-cache",
   });
-  // True while a server-side (heavy) export is in flight; the client-side fast
-  // path is synchronous and never sets it.
+  // True while an export is in flight, driving the toolbar's in-progress affordance.
   const [exporting, setExporting] = useState(false);
 
   // The last executed variables, so Retry re-runs exactly what failed — which
@@ -57,26 +55,14 @@ export const useDataStudioQuery = (workspaceSlug: string) => {
 
   // Export the query that produced the current result (a selection may differ from
   // the editor contents; read the ref at call time to avoid needing a re-render).
-  // Two paths, chosen by whether the interactive result was truncated:
-  //  - Fast: full result already in memory — build the CSV client-side. Instant, no
-  //    second round-trip, exports the on-screen snapshot, and cannot fail.
-  //  - Heavy: result was capped — re-run server-side (uncapped) and stream to disk.
+  // The full result is re-run server-side (uncapped) and streamed straight to disk.
+  // downloadQueryCsv resolves once the download starts and rejects on failure — the
+  // hidden iframe it streams through is otherwise silent — so surface any error.
   const downloadCsv = useCallback(async () => {
     const lastRun = lastRunRef.current;
     if (loading || exporting || !lastRun) {
       return;
     }
-    if (result?.success && result.truncated === false) {
-      downloadCsvBlob(
-        "query-results.csv",
-        result.columns ?? [],
-        result.rows ?? [],
-      );
-      return;
-    }
-    // The heavy path can be slow (`exporting` drives the toolbar affordance) and
-    // streams via a hidden iframe whose errors are otherwise silent: downloadQueryCsv
-    // resolves only once the download starts and rejects on failure, so surface that.
     setExporting(true);
     try {
       await downloadQueryCsv(lastRun.workspaceSlug, lastRun.query);
@@ -85,7 +71,7 @@ export const useDataStudioQuery = (workspaceSlug: string) => {
     } finally {
       setExporting(false);
     }
-  }, [loading, exporting, result, t]);
+  }, [loading, exporting, t]);
 
   return {
     run,
