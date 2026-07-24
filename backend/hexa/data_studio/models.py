@@ -1,10 +1,23 @@
+import secrets
+
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.db import models
+from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.user_management.models import User, UserInterface
 from hexa.workspaces.models import Workspace
+
+
+def create_saved_query_slug(name: str, workspace: Workspace) -> str:
+    """Generate a unique slug for a saved query within a workspace."""
+    suffix = ""
+    while True:
+        slug = slugify(name[: 255 - len(suffix)] + suffix)
+        if not SavedQuery.objects.filter(workspace=workspace, slug=slug).exists():
+            return slug
+        suffix = "-" + secrets.token_hex(3)
 
 
 class SavedQueryQuerySet(BaseQuerySet):
@@ -31,6 +44,7 @@ class SavedQueryManager(models.Manager):
             name=name,
             content=content,
             description=description,
+            slug=create_saved_query_slug(name, workspace),
         )
 
 
@@ -44,17 +58,30 @@ class SavedQuery(Base):
     )
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     name = models.CharField(max_length=255, null=False, blank=False)
+    slug = models.SlugField(max_length=255)
     description = models.TextField(blank=True, default="")
     content = models.TextField()
+    is_public = models.BooleanField(default=False)
+    parameters = models.JSONField(default=list, blank=True)
 
     objects = SavedQueryManager.from_queryset(SavedQueryQuerySet)()
 
     class Meta:
         ordering = ["-updated_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["workspace", "slug"],
+                name="data_studio_ws_slug_unique",
+            ),
+        ]
         indexes = [
             models.Index(
                 fields=["workspace", "-updated_at"],
                 name="data_studio_ws_updated_idx",
+            ),
+            models.Index(
+                fields=["workspace", "slug"],
+                name="data_studio_ws_slug_idx",
             ),
         ]
 
