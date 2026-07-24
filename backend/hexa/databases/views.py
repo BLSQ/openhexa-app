@@ -150,8 +150,16 @@ def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpRespons
         # "completed". See the app README and frontend downloadQueryCsv.ts.
         download_token = request.POST.get("download_token")
         if download_token and _DOWNLOAD_TOKEN_RE.fullmatch(download_token):
+            # secure follows the session cookie (TLS-gated): set over HTTPS in production,
+            # left off in plain-HTTP dev, where a Secure cookie is dropped by the browser
+            # and would silently break the poll. Not httponly — the frontend reads it
+            # (see downloadQueryCsv.ts).
             response.set_cookie(
-                f"csvDownloadToken-{download_token}", "1", max_age=120, samesite="Lax"
+                f"csvDownloadToken-{download_token}",
+                "1",
+                max_age=120,
+                samesite="Lax",
+                secure=settings.SESSION_COOKIE_SECURE,
             )
         handed_off_to_stream = True
         return response

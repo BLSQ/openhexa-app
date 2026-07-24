@@ -244,7 +244,6 @@ def stream_database_query(
         cursor = conn.cursor(
             name="data_studio_csv_download", cursor_factory=RealDictCursor
         )
-        cursor.itersize = batch_size
         cursor.execute(query)
         first_batch = cursor.fetchmany(batch_size)
         columns = (

@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest import mock
 
 from asgiref.sync import async_to_sync
+from django.test import override_settings
 from django.urls import reverse
 from psycopg2.errors import QueryCanceled
 
@@ -141,6 +142,26 @@ class DownloadQueryCsvViewTest(TestCase):
         # The token is carried by the cookie name so concurrent downloads each
         # get their own signal; the value is just a presence flag.
         self.assertEqual("1", response.cookies[f"{COOKIE_PREFIX}tok-123"].value)
+
+    def test_download_cookie_secure_follows_the_session_setting(self):
+        # The Secure flag tracks SESSION_COOKIE_SECURE: on under TLS (prod), off over
+        # plain HTTP (dev), where the browser would drop a Secure cookie and silently
+        # break the poll. Guards against re-hardcoding the flag either way.
+        self.client.force_login(self.USER_SABRINA)
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+
+        def cookie_secure():
+            response = self.client.post(
+                self._url(),
+                {FIELD_QUERY: "SELECT id FROM demo", FIELD_TOKEN: "tok-123"},
+            )
+            self._collect(response)
+            return response.cookies[f"{COOKIE_PREFIX}tok-123"]["secure"]
+
+        with override_settings(SESSION_COOKIE_SECURE=False):
+            self.assertFalse(cookie_secure())
+        with override_settings(SESSION_COOKIE_SECURE=True):
+            self.assertTrue(cookie_secure())
 
     def test_download_ignores_a_malformed_token(self):
         self.client.force_login(self.USER_SABRINA)
