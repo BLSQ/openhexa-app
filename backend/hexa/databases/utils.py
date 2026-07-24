@@ -8,6 +8,7 @@ from typing import Dict, List, Tuple
 import psycopg2
 import sqlparse
 from django.conf import settings
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpRequest
@@ -307,6 +308,38 @@ def get_database_definition(workspace: Workspace):
             conn.close()
 
 
+_SCHEMA_CACHE_VERSION_KEY = "workspace-db-schema-version:{}"
+
+
+def _get_schema_cache_version(workspace: Workspace) -> int:
+    return cache.get(_SCHEMA_CACHE_VERSION_KEY.format(workspace.id), 0)
+
+
+def _bump_schema_cache_version(workspace: Workspace) -> None:
+    """Invalidate every cached schema page for this workspace at once.
+
+    Cheaper than tracking/deleting each (page, per_page, with_columns,
+    with_counts) cache key individually, and works on any cache backend
+    (LocMemCache has no key-pattern deletion).
+    """
+    key = _SCHEMA_CACHE_VERSION_KEY.format(workspace.id)
+    cache.set(key, _get_schema_cache_version(workspace) + 1)
+
+
+def _schema_cache_key(
+    workspace: Workspace,
+    page: int,
+    per_page: int,
+    with_columns: bool,
+    with_counts: bool,
+) -> str:
+    version = _get_schema_cache_version(workspace)
+    return (
+        f"workspace-db-schema:{workspace.id}:v{version}:"
+        f"{page}:{per_page}:{with_columns}:{with_counts}"
+    )
+
+
 # Filtering, ordering and slicing happen in SQL, and row counts are only
 # computed for the tables of the requested page, so that listing tables stays
 # cheap on workspaces with many (potentially large) tables.
@@ -388,6 +421,12 @@ def get_database_definition_page(
     # explicit null), and negative/zero values would end up in LIMIT/OFFSET.
     page = max(page or 1, 1)
     per_page = min(max(per_page or 1, 1), settings.GRAPHQL_MAX_PAGE_SIZE)
+
+    cache_key = _schema_cache_key(workspace, page, per_page, with_columns, with_counts)
+    cached_result = cache.get(cache_key)
+    if cached_result is not None:
+        return cached_result
+
     conn = None
     try:
         conn = get_workspace_database_connection(workspace)
@@ -417,7 +456,7 @@ def get_database_definition_page(
                     if with_counts
                     else None
                 )
-        return {
+        result = {
             "page_number": page,
             "total_pages": max(math.ceil(total_items / per_page), 1),
             "total_items": total_items,
@@ -426,6 +465,9 @@ def get_database_definition_page(
     finally:
         if conn:
             conn.close()
+
+    cache.set(cache_key, result, settings.WORKSPACE_DATABASE_SCHEMA_CACHE_TTL)
+    return result
 
 
 def get_table_definition(workspace: Workspace, table_name: str):
@@ -502,6 +544,11 @@ def delete_table(workspace: Workspace, table_name: str):
     finally:
         if conn:
             conn.close()
+    # Pipelines can also create/drop tables outside Django entirely (direct
+    # writes to WORKSPACE_DATABASE_URL), so this bump only guarantees prompt
+    # invalidation for this one Django-initiated schema change; other schema
+    # changes are picked up once WORKSPACE_DATABASE_SCHEMA_CACHE_TTL elapses.
+    _bump_schema_cache_version(workspace)
 
 
 @dataclass

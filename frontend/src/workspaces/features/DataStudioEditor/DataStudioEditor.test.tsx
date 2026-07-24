@@ -13,6 +13,15 @@ jest.mock("./DataStudioEditor.generated", () => ({
   useExecuteWorkspaceSqlLazyQuery: () => [mockExecute, mockQueryState],
 }));
 
+// The schema powers CodeMirror's `sqlSchema` prop, which the CodeEditor mock
+// below doesn't inspect; stubbed here purely so DataStudioEditor's own call to
+// this hook (for autocomplete) doesn't need a real Apollo provider in this file.
+let mockSchemaState: { data?: unknown; loading?: boolean } = { loading: false };
+
+jest.mock("./DataStudioSchemaBrowser.generated", () => ({
+  useWorkspaceDataStudioSchemaQuery: () => mockSchemaState,
+}));
+
 // The schema browser and results grid are covered by their own tests; stub them
 // so this file exercises only the editor's orchestration logic.
 jest.mock("./DataStudioSchemaBrowser", () => ({
@@ -47,6 +56,7 @@ jest.mock("./DataStudioResults", () => ({
 }));
 
 const mockInsertText = jest.fn();
+let lastCodeEditorProps: any;
 
 // A lightweight stand-in for the CodeMirror editor: a controlled textarea whose
 // imperative handle mirrors the real one (insertText + selection-aware
@@ -56,6 +66,7 @@ jest.mock("core/components/CodeEditor/CodeEditor", () => {
   return {
     __esModule: true,
     default: React.forwardRef(function CodeEditorMock(props: any, ref: any) {
+      lastCodeEditorProps = props;
       const innerRef = React.useRef(null);
       React.useImperativeHandle(ref, () => ({
         insertText: mockInsertText,
@@ -117,14 +128,14 @@ const successState = (overrides: Record<string, unknown> = {}) => ({
   },
 });
 
-const renderEditor = () =>
-  render(<DataStudioEditor workspaceSlug="ws-1" />);
+const renderEditor = () => render(<DataStudioEditor workspaceSlug="ws-1" />);
 
 beforeEach(() => {
   mockExecute.mockClear();
   mockInsertText.mockClear();
   (downloadBlob as jest.Mock).mockClear();
   mockQueryState = { loading: false };
+  mockSchemaState = { loading: false };
 });
 
 describe("DataStudioEditor", () => {
@@ -233,6 +244,39 @@ describe("DataStudioEditor", () => {
     renderEditor();
     await userEvent.click(screen.getByText("insert-from-schema"));
     expect(mockInsertText).toHaveBeenCalledWith("patients");
+  });
+
+  it("builds a CodeMirror sqlSchema from the fetched table/column schema", () => {
+    mockSchemaState = {
+      loading: false,
+      data: {
+        workspace: {
+          slug: "ws-1",
+          database: {
+            tables: {
+              totalItems: 1,
+              items: [
+                {
+                  name: "patients",
+                  columns: [
+                    { name: "id", type: "integer" },
+                    { name: "name", type: "text" },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+    };
+    renderEditor();
+
+    expect(lastCodeEditorProps.sqlSchema).toEqual({
+      patients: [
+        { label: "id", type: "property", detail: "integer" },
+        { label: "name", type: "property", detail: "text" },
+      ],
+    });
   });
 
   it("forwards a transport error to the results panel", () => {
