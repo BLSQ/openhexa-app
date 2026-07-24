@@ -461,6 +461,33 @@ class DatabaseUtilsTest(TestCase):
                 self.WORKSPACE, "SELECT pg_sleep(3);", timeout_ms=100
             )
 
+    def test_execute_database_query_binds_parameters(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
+
+        result = execute_database_query(
+            self.WORKSPACE,
+            "SELECT id, label FROM demo WHERE label = %(label)s",
+            bind_params={"label": "b"},
+        )
+
+        self.assertEqual([{"id": 2, "label": "b"}], result["rows"])
+
+    def test_execute_database_query_bound_value_is_not_executed_as_sql(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
+
+        result = execute_database_query(
+            self.WORKSPACE,
+            "SELECT id, label FROM demo WHERE label = %(label)s",
+            bind_params={"label": "a'; DROP TABLE demo; --"},
+        )
+
+        self.assertEqual([], result["rows"])
+        # The table still exists: the payload was bound, not executed.
+        still_there = execute_database_query(
+            self.WORKSPACE, "SELECT count(*) AS n FROM demo"
+        )
+        self.assertEqual(2, still_there["rows"][0]["n"])
+
     def test_execute_database_query_serializes_binary_values(self):
         result = execute_database_query(self.WORKSPACE, "SELECT 'abc'::bytea AS data")
         self.assertEqual([{"data": "\\x616263"}], result["rows"])

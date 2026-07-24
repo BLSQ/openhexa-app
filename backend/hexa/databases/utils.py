@@ -134,6 +134,7 @@ def execute_database_query(
     query: str,
     timeout_ms: int = 10_000,
     max_rows: int = 50,
+    bind_params: dict | None = None,
 ):
     """Execute a SQL query against the workspace database using the read-only role.
 
@@ -141,6 +142,10 @@ def execute_database_query(
     resources for an extended period of time. At most ``max_rows`` rows are
     returned, capped to ``settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS``;
     ``truncated`` indicates whether the result was capped.
+
+    ``bind_params`` are passed to the driver for server-side binding (used by
+    templated saved queries). It is only forwarded when non-empty so that raw
+    queries containing a literal ``%`` are not mistaken for placeholders.
     """
     ensure_single_statement(query)
     hard_limit = settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS
@@ -157,7 +162,10 @@ def execute_database_query(
                 )
             )
             started_at = time.perf_counter()
-            cursor.execute(query)
+            if bind_params:
+                cursor.execute(query, bind_params)
+            else:
+                cursor.execute(query)
             # cursor.description is None for statements that do not return rows
             columns = (
                 [column.name for column in cursor.description]
