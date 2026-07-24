@@ -62,3 +62,16 @@ mutation deleteSavedQuery($input: DeleteSavedQueryInput!) {
     errors
   }
 }
+
+mutation executeSavedQuery($input: ExecuteSavedQueryInput!) {
+  executeSavedQuery(input: $input) {
+    success
+    errors
+    errorMessage
+    columns
+    rows
+    rowCount
+    truncated
+    durationMs
+  }
+}

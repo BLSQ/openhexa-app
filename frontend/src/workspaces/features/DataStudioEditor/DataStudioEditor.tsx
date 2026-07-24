@@ -10,14 +10,17 @@ import CodeEditor, {
 } from "core/components/CodeEditor/CodeEditor";
 import useIsMac from "core/hooks/useIsMac";
 import { useTranslation } from "next-i18next";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import SaveQueryDialog from "workspaces/features/SavedQueries/SaveQueryDialog";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
+import { parseParameters } from "workspaces/features/SavedQueries/savedQueryParameters";
 import { buildCsv, downloadCsv } from "./csv";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
 import SaveQueryButton from "./SaveQueryButton";
+import SavedQueryRunPanel from "./SavedQueryRunPanel";
 import { useDataStudioQuery } from "./useDataStudioQuery";
+import { useExecuteSavedQuery } from "./useExecuteSavedQuery";
 import { useSavedQueryEditor } from "./useSavedQueryEditor";
 
 type DataStudioEditorProps = {
@@ -50,21 +53,41 @@ const DataStudioEditor = ({
   // ⌘ on macOS; other platforms keep the spelled-out modifier.
   const runShortcutBadge = isMac ? "⌘↵" : "Ctrl+Enter";
 
-  const { run, retry, result, loading, error, canExport } =
-    useDataStudioQuery(workspaceSlug);
+  const sqlQuery = useDataStudioQuery(workspaceSlug);
+  const savedQueryExec = useExecuteSavedQuery(workspaceSlug);
 
-  const canRun = !loading && Boolean(query.trim());
+  // The results area shows whichever source ran last: the raw SQL editor, or
+  // the parameterized run panel (executeSavedQuery by slug).
+  const [activeSource, setActiveSource] = useState<"sql" | "saved">("sql");
+  const active = activeSource === "saved" ? savedQueryExec : sqlQuery;
+
+  const parameters = useMemo(
+    () => parseParameters(savedQuery?.parameters),
+    [savedQuery?.parameters],
+  );
+  const hasParameters = parameters.length > 0;
+
+  const canRun = !sqlQuery.loading && Boolean(query.trim());
 
   const runSelection = () => {
     const selected = editorRef.current?.getSelectedText() ?? "";
-    run(selected.trim() || query, maxRows);
+    setActiveSource("sql");
+    sqlQuery.run(selected.trim() || query, maxRows);
+  };
+
+  const runWithParameters = (values: Record<string, unknown>) => {
+    if (!savedQuery) {
+      return;
+    }
+    setActiveSource("saved");
+    savedQueryExec.run(savedQuery.slug, values, maxRows);
   };
 
   const exportCsv = () => {
-    if (!result?.success) {
+    if (!active.result?.success) {
       return;
     }
-    const csv = buildCsv(result.columns ?? [], result.rows ?? []);
+    const csv = buildCsv(active.result.columns ?? [], active.result.rows ?? []);
     downloadCsv("query-results.csv", csv);
   };
 
@@ -130,7 +153,7 @@ const DataStudioEditor = ({
               </label>
               <button
                 onClick={exportCsv}
-                disabled={!canExport}
+                disabled={!active.canExport}
                 className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
               >
                 <ArrowDownTrayIcon className="h-4 w-4" />
@@ -142,7 +165,7 @@ const DataStudioEditor = ({
                 title={t("Run ({{shortcut}})", { shortcut: runShortcutLabel })}
                 className="inline-flex h-8 min-w-[104px] items-center justify-center gap-1.5 rounded-md bg-blue-600 px-3 text-xs font-medium text-white shadow-xs transition-colors hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 focus-visible:outline-none active:bg-blue-800 disabled:opacity-60 disabled:hover:bg-blue-600"
               >
-                {loading ? (
+                {sqlQuery.loading ? (
                   <>
                     <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                     {t("Running…")}
@@ -182,12 +205,19 @@ const DataStudioEditor = ({
                 className="h-full !rounded-none"
               />
             </div>
+            {hasParameters && (
+              <SavedQueryRunPanel
+                parameters={parameters}
+                loading={savedQueryExec.loading}
+                onRun={runWithParameters}
+              />
+            )}
             <div className="min-h-0 flex-1">
               <DataStudioResults
-                loading={loading}
-                result={result}
-                error={error}
-                onRetry={retry}
+                loading={active.loading}
+                result={active.result}
+                error={active.error}
+                onRetry={active.retry}
               />
             </div>
           </div>

@@ -30,6 +30,13 @@ export type DeleteSavedQueryMutationVariables = Types.Exact<{
 
 export type DeleteSavedQueryMutation = { __typename?: 'Mutation', deleteSavedQuery: { __typename?: 'DeleteSavedQueryResult', success: boolean, errors: Array<Types.DeleteSavedQueryError> } };
 
+export type ExecuteSavedQueryMutationVariables = Types.Exact<{
+  input: Types.ExecuteSavedQueryInput;
+}>;
+
+
+export type ExecuteSavedQueryMutation = { __typename?: 'Mutation', executeSavedQuery: { __typename?: 'ExecuteSavedQueryResult', success: boolean, errors: Array<Types.ExecuteSavedQueryError>, errorMessage?: string | null, columns?: Array<string> | null, rows?: Array<any> | null, rowCount?: number | null, truncated?: boolean | null, durationMs?: number | null } };
+
 export const SavedQueryListItem_SavedQueryFragmentDoc = gql`
     fragment SavedQueryListItem_savedQuery on SavedQuery {
   id
@@ -175,3 +182,43 @@ export function useDeleteSavedQueryMutation(baseOptions?: Apollo.MutationHookOpt
 export type DeleteSavedQueryMutationHookResult = ReturnType<typeof useDeleteSavedQueryMutation>;
 export type DeleteSavedQueryMutationResult = Apollo.MutationResult<DeleteSavedQueryMutation>;
 export type DeleteSavedQueryMutationOptions = Apollo.BaseMutationOptions<DeleteSavedQueryMutation, DeleteSavedQueryMutationVariables>;
+export const ExecuteSavedQueryDocument = gql`
+    mutation executeSavedQuery($input: ExecuteSavedQueryInput!) {
+  executeSavedQuery(input: $input) {
+    success
+    errors
+    errorMessage
+    columns
+    rows
+    rowCount
+    truncated
+    durationMs
+  }
+}
+    `;
+export type ExecuteSavedQueryMutationFn = Apollo.MutationFunction<ExecuteSavedQueryMutation, ExecuteSavedQueryMutationVariables>;
+
+/**
+ * __useExecuteSavedQueryMutation__
+ *
+ * To run a mutation, you first call `useExecuteSavedQueryMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useExecuteSavedQueryMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [executeSavedQueryMutation, { data, loading, error }] = useExecuteSavedQueryMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useExecuteSavedQueryMutation(baseOptions?: Apollo.MutationHookOptions<ExecuteSavedQueryMutation, ExecuteSavedQueryMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ExecuteSavedQueryMutation, ExecuteSavedQueryMutationVariables>(ExecuteSavedQueryDocument, options);
+      }
+export type ExecuteSavedQueryMutationHookResult = ReturnType<typeof useExecuteSavedQueryMutation>;
+export type ExecuteSavedQueryMutationResult = Apollo.MutationResult<ExecuteSavedQueryMutation>;
+export type ExecuteSavedQueryMutationOptions = Apollo.BaseMutationOptions<ExecuteSavedQueryMutation, ExecuteSavedQueryMutationVariables>;

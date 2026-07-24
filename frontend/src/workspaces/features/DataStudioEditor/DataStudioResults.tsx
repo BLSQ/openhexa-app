@@ -5,18 +5,27 @@ import {
   classifyTransportError,
   TransportErrorKind,
 } from "core/helpers/errors";
-import { ExecuteSqlError } from "graphql/types";
+import { ExecuteSavedQueryError, ExecuteSqlError } from "graphql/types";
 import { useTranslation } from "next-i18next";
-import { ExecuteWorkspaceSqlQuery } from "./DataStudioEditor.generated";
 import ResultsTable from "./ResultsTable";
 
-type ExecuteSqlResult = NonNullable<
-  ExecuteWorkspaceSqlQuery["workspace"]
->["database"]["executeSQL"];
+// Structural shape shared by executeSQL and executeSavedQuery results, so this
+// component renders both. `errors` carries the raw enum string values from
+// either operation (see errorLabels below).
+export type QueryResult = {
+  success: boolean;
+  errors: string[];
+  errorMessage?: string | null;
+  columns?: string[] | null;
+  rows?: any[] | null;
+  rowCount?: number | null;
+  truncated?: boolean | null;
+  durationMs?: number | null;
+};
 
 type DataStudioResultsProps = {
   loading: boolean;
-  result?: ExecuteSqlResult;
+  result?: QueryResult;
   // Transport-level failure (network down, 5xx, request too large, GraphQL
   // error) as opposed to a query that ran but reported success: false.
   error?: ApolloError;
@@ -45,7 +54,7 @@ const DataStudioResults = ({
 }: DataStudioResultsProps) => {
   const { t } = useTranslation();
 
-  const errorLabels: Record<ExecuteSqlError, string> = {
+  const errorLabels: Record<string, string> = {
     [ExecuteSqlError.PermissionDenied]: t(
       "You don't have permission to run queries on this database.",
     ),
@@ -54,6 +63,16 @@ const DataStudioResults = ({
     [ExecuteSqlError.MultipleStatements]: t(
       "Only a single SQL statement can be run at a time.",
     ),
+    [ExecuteSavedQueryError.InvalidParameters]: t(
+      "One or more parameters are invalid.",
+    ),
+    [ExecuteSavedQueryError.TemplateError]: t(
+      "The query template could not be rendered.",
+    ),
+    [ExecuteSavedQueryError.RateLimited]: t(
+      "Too many requests. Please wait and try again.",
+    ),
+    [ExecuteSavedQueryError.SavedQueryNotFound]: t("Saved query not found."),
   };
 
   const transportErrorLabels: Record<TransportErrorKind, string> = {

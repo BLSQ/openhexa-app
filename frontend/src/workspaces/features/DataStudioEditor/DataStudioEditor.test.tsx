@@ -13,6 +13,22 @@ jest.mock("./DataStudioEditor.generated", () => ({
   useExecuteWorkspaceSqlLazyQuery: () => [mockExecute, mockQueryState],
 }));
 
+// The parameterized run path (executeSavedQuery) has its own hook + panel tests;
+// stub the hook so this suite needs no ApolloProvider. `mockSavedExec.run` lets
+// a test assert the panel wiring without hitting the network.
+let mockSavedExec: {
+  run: jest.Mock;
+  retry: jest.Mock;
+  result?: unknown;
+  loading: boolean;
+  error?: unknown;
+  canExport: boolean;
+};
+
+jest.mock("./useExecuteSavedQuery", () => ({
+  useExecuteSavedQuery: () => mockSavedExec,
+}));
+
 const mockEditDetails = jest.fn();
 let mockEditorState: any;
 
@@ -137,6 +153,14 @@ beforeEach(() => {
   (downloadBlob as jest.Mock).mockClear();
   mockEditDetails.mockClear();
   mockQueryState = { loading: false };
+  mockSavedExec = {
+    run: jest.fn(),
+    retry: jest.fn(),
+    result: undefined,
+    loading: false,
+    error: undefined,
+    canExport: false,
+  };
   mockEditorState = {
     savedQuery: null,
     isDirty: false,
@@ -328,5 +352,48 @@ describe("DataStudioEditor", () => {
 
     await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  });
+
+  it("runs the saved query by slug with the entered parameters", async () => {
+    const savedQuery = {
+      id: "q1",
+      name: "Revenue",
+      slug: "revenue",
+      parameters: [{ name: "country", type: "string", kind: "value" }],
+    };
+    render(
+      <DataStudioEditor workspaceSlug="ws-1" savedQuery={savedQuery as any} />,
+    );
+
+    // The run panel renders an input per declared parameter.
+    await userEvent.type(screen.getByPlaceholderText("optional"), "BE");
+    await userEvent.click(
+      screen.getByRole("button", { name: "Run with parameters" }),
+    );
+
+    // Runs the saved version by slug; only the non-empty value is sent, with the
+    // default max-rows selection.
+    expect(mockSavedExec.run).toHaveBeenCalledWith(
+      "revenue",
+      { country: "BE" },
+      50,
+    );
+    // The raw-SQL path was not used.
+    expect(mockExecute).not.toHaveBeenCalled();
+  });
+
+  it("does not render the run panel when the query has no parameters", () => {
+    render(
+      <DataStudioEditor
+        workspaceSlug="ws-1"
+        savedQuery={
+          { id: "q1", name: "Plain", slug: "plain", parameters: [] } as any
+        }
+      />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Run with parameters" }),
+    ).not.toBeInTheDocument();
   });
 });
