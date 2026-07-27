@@ -649,7 +649,8 @@ WORKSPACE_DATABASE_QUERY_MAX_ROWS = int(
 # downloads per web-worker process. Each holds a read-only DB connection open for the
 # whole client download, so this bounds per-worker resource use; excess callers get a
 # 429. Per process, so the per-pod ceiling is this value times the gunicorn worker
-# count — not a global cap (see the per-role Postgres CONNECTION LIMIT). See the README.
+# count — not a global cap (see the per-role Postgres CONNECTION LIMIT).
+# See hexa/data_studio/README.md.
 DATA_STUDIO_EXPORT_MAX_CONCURRENCY = int(
     os.environ.get("DATA_STUDIO_EXPORT_MAX_CONCURRENCY", "2")
 )

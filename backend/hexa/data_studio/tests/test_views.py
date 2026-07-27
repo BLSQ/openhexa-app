@@ -64,7 +64,7 @@ class DownloadQueryCsvViewTest(TestCase):
 
     def _url(self, slug=None):
         return reverse(
-            "databases:download_query_csv",
+            "data_studio:download_query_csv",
             args=[slug or str(self.WORKSPACE.slug)],
         )
 
@@ -202,7 +202,7 @@ class DownloadQueryCsvViewTest(TestCase):
             raise QueryCanceled("canceling statement due to statement timeout")
 
         with mock.patch(
-            "hexa.databases.views.stream_database_query",
+            "hexa.data_studio.views.stream_database_query",
             return_value=(["id"], failing_rows()),
         ):
             response = self.client.post(
@@ -215,7 +215,7 @@ class DownloadQueryCsvViewTest(TestCase):
             self.assertEqual(200, response.status_code)
             self.assertEqual("1", response.cookies[f"{COOKIE_PREFIX}tok-123"].value)
 
-            with self.assertLogs("hexa.databases.views", level="WARNING") as logs:
+            with self.assertLogs("hexa.data_studio.views", level="WARNING") as logs:
                 with self.assertRaises(QueryCanceled):
                     self._collect(response)
         self.assertTrue(any("aborted" in line for line in logs.output))
@@ -261,7 +261,7 @@ class DownloadQueryCsvViewTest(TestCase):
         # A pool with no free slot stands in for "too many exports already running".
         exhausted = threading.BoundedSemaphore(1)
         exhausted.acquire()
-        with mock.patch("hexa.databases.views._EXPORT_SLOTS", exhausted):
+        with mock.patch("hexa.data_studio.views._EXPORT_SLOTS", exhausted):
             response = self.client.post(self._url(), {"query": "SELECT 1"})
         self.assertEqual(429, response.status_code)
 
@@ -269,7 +269,7 @@ class DownloadQueryCsvViewTest(TestCase):
         self.client.force_login(self.USER_SABRINA)
         seed_demo_table(self.WORKSPACE, [(1, "a")])
         slots = threading.BoundedSemaphore(1)
-        with mock.patch("hexa.databases.views._EXPORT_SLOTS", slots):
+        with mock.patch("hexa.data_studio.views._EXPORT_SLOTS", slots):
             response = self.client.post(self._url(), {"query": "SELECT id FROM demo"})
             self._collect(response)
             self.assertEqual(200, response.status_code)
@@ -279,7 +279,7 @@ class DownloadQueryCsvViewTest(TestCase):
     def test_download_releases_the_slot_after_an_error(self):
         self.client.force_login(self.USER_SABRINA)
         slots = threading.BoundedSemaphore(1)
-        with mock.patch("hexa.databases.views._EXPORT_SLOTS", slots):
+        with mock.patch("hexa.data_studio.views._EXPORT_SLOTS", slots):
             response = self.client.post(self._url(), {"query": "SELECT 1; SELECT 2"})
             self.assertEqual(400, response.status_code)
             # A failed export must not permanently consume a slot.
@@ -294,9 +294,9 @@ class DownloadQueryCsvViewTest(TestCase):
             raise QueryCanceled("canceling statement due to statement timeout")
 
         with (
-            mock.patch("hexa.databases.views._EXPORT_SLOTS", slots),
+            mock.patch("hexa.data_studio.views._EXPORT_SLOTS", slots),
             mock.patch(
-                "hexa.databases.views.stream_database_query",
+                "hexa.data_studio.views.stream_database_query",
                 return_value=(["id"], failing_rows()),
             ),
         ):
@@ -317,6 +317,8 @@ class DownloadQueryCsvViewTest(TestCase):
 
     def test_download_denied_without_permission(self):
         self.client.force_login(self.USER_SABRINA)
+        # "may this user run SQL against the workspace database" stays a databases
+        # question, so the export checks the databases app's permission.
         with mock.patch("hexa.databases.permissions.run_query", return_value=False):
             response = self.client.post(self._url(), {"query": "SELECT 1"})
         self.assertEqual(403, response.status_code)

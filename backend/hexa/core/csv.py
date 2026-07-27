@@ -115,7 +115,7 @@ def async_streaming_csv_response(
     ``row_batches`` must be an *async* iterator of row batches: under an ASGI worker a
     sync generator would be drained into memory in one go, defeating the streaming. The
     caller does its blocking work (a DB fetch) off the event loop before yielding each
-    batch, so peak memory stays bounded to one batch — see ``hexa.databases.views``.
+    batch, so peak memory stays bounded to one batch — see ``hexa.data_studio.views``.
 
     ``on_finish``, if given, fires exactly once when the stream ends: on normal
     completion and a mid-stream error (via the byte generator's ``finally``) and on a

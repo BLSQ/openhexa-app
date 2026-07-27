@@ -8,7 +8,7 @@ on:
       # Shared fixtures read cross-tier by the frontend suite (csv.parity.test.ts /
       # downloadQueryCsv.test.ts), so a change to them must re-run frontend CI too.
       - 'backend/hexa/core/tests/fixtures/csv_cell_vectors.json'
-      - 'backend/hexa/databases/tests/fixtures/download_contract.json'
+      - 'backend/hexa/data_studio/tests/fixtures/download_contract.json'
   push:
     branches: [main]
     paths:
@@ -17,7 +17,7 @@ on:
       # Shared fixtures read cross-tier by the frontend suite (csv.parity.test.ts /
       # downloadQueryCsv.test.ts), so a change to them must re-run frontend CI too.
       - 'backend/hexa/core/tests/fixtures/csv_cell_vectors.json'
-      - 'backend/hexa/databases/tests/fixtures/download_contract.json'
+      - 'backend/hexa/data_studio/tests/fixtures/download_contract.json'
 
 env:
   CI: true

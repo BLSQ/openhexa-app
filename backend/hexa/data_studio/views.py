@@ -16,9 +16,8 @@ from django.views.decorators.http import require_POST
 from psycopg2 import Error as Psycopg2Error
 
 from hexa.core.csv import async_streaming_csv_response
+from hexa.databases.utils import MultipleStatementsError, stream_database_query
 from hexa.workspaces.models import Workspace
-
-from .utils import MultipleStatementsError, stream_database_query
 
 logger = logging.getLogger(__name__)
 

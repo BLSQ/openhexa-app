@@ -72,7 +72,7 @@ export const downloadQueryCsv = (
 
   const form = document.createElement("form");
   form.method = "POST";
-  form.action = `${apiBasePath}/databases/${encodeURIComponent(
+  form.action = `${apiBasePath}/data-studio/${encodeURIComponent(
     workspaceSlug,
   )}/query/download/`;
   form.target = DOWNLOAD_FRAME_NAME;

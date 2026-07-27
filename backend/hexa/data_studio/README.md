@@ -1,10 +1,17 @@
-# databases — Data Studio query & CSV export
+# data_studio — SQL editor
 
-This app backs the Data Studio SQL editor: running a read-only query against a
-workspace database (`utils.execute_database_query`, over GraphQL) and exporting a
-query's **full** result set as a CSV download (`views.download_query_csv`). This is
-the design-decision home for the export; the code carries short "why" comments that
-point here.
+This app owns the Data Studio product surface: saved queries (`models.SavedQuery`),
+the query audit log (`models.QueryLog`) and the CSV export endpoint
+(`views.download_query_csv`).
+
+Talking to a workspace database is *not* this app's job — connections, introspection
+and the query primitives (`execute_database_query`, `stream_database_query`) live in
+`hexa.databases`, and the interactive editor path runs through its `Database.executeSQL`
+GraphQL field. The dependency runs one way: `data_studio` → `databases`. The permission
+gating both paths is `databases.run_query`, for the same reason.
+
+The rest of this file is the design-decision home for the CSV export; the code carries
+short "why" comments that point here.
 
 ## Why the export streams (rather than buffers)
 
@@ -42,7 +49,8 @@ Content-Length and error status, at the cost of latency and disk) — deliberate
 ## Bounding runaway work
 
 A read-only DB connection is held open for the whole download. Three bounds keep that from
-becoming a liability (`stream_database_query`, `views`):
+becoming a liability. The first two are set by `hexa.databases.utils.stream_database_query`,
+the third by `views`:
 
 - **`statement_timeout`** bounds a runaway per-batch scan.
 - **`idle_in_transaction_session_timeout`** bounds a stalled client, so a vanished browser

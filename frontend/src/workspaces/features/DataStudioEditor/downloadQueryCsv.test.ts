@@ -16,7 +16,7 @@ const CONTRACT = JSON.parse(
   readFileSync(
     resolve(
       __dirname,
-      "../../../../../backend/hexa/databases/tests/fixtures/download_contract.json",
+      "../../../../../backend/hexa/data_studio/tests/fixtures/download_contract.json",
     ),
     "utf-8",
   ),
@@ -56,7 +56,7 @@ describe("downloadQueryCsv", () => {
     const form = submittedForms[0];
     expect(form.method).toBe("post");
     expect(form.getAttribute("action")).toContain(
-      "/databases/ws-1/query/download/",
+      "/data-studio/ws-1/query/download/",
     );
     expect(form.target).toBe("data-studio-csv-download-frame");
     expect(fieldValue(form, "query")).toBe("SELECT 1");
@@ -67,7 +67,7 @@ describe("downloadQueryCsv", () => {
   it("encodes the workspace slug into the URL", () => {
     void downloadQueryCsv("ws/odd slug", "SELECT 1");
     expect(submittedForms[0].getAttribute("action")).toContain(
-      "/databases/ws%2Fodd%20slug/query/download/",
+      "/data-studio/ws%2Fodd%20slug/query/download/",
     );
   });
 
