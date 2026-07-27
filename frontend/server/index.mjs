@@ -18,6 +18,7 @@ const API_PATHS = [
   "/analytics/track/",
   "/files/up",
   "/files/dl",
+  "/databases/",
   "/superset",
   "/mcp/",
   "/oauth/",
