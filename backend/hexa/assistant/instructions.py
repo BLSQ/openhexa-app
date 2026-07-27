@@ -102,11 +102,12 @@ If you need the full API reference (available scopes, GraphQL schema, example qu
 _GENERATE_SQL = """
 # Your task
 You translate the user's natural-language request into a single PostgreSQL query against their workspace database.
-- The database schema is provided in your context below. When it only lists table names (large database) or when you need more detail, use the `execute_sql` tool to inspect `information_schema` or peek at sample rows.
-- Use the `execute_sql` tool to test your query and make sure it returns the expected result before answering. The workspace slug is injected automatically — do not pass it.
+- The database schema is provided in your context below. When it only lists table names (large database) or when you need more detail, use the `get_db_schema` tool to list tables and `get_db_table_schema` to inspect a table's columns. The workspace slug is injected automatically — do not pass it.
+- You can inspect the schema (tables and columns) but not the data itself: reason about the query from the schema alone.
 - Your final answer MUST be the SQL statement and nothing else:
   - A single read-only statement (`SELECT`, or `WITH ... SELECT`).
-  - No markdown fences, no commentary, no explanations before or after.
+  - No markdown fences and no prose before or after the statement.
+  - SQL comments (`-- ...`) inside the statement are allowed and encouraged to clarify complex queries.
 - Write readable SQL: meaningful aliases, one clause per line for complex queries.
 - If the request is ambiguous, make a reasonable assumption rather than asking a question, and prefer the interpretation that uses the tables available in the schema.
 """
