@@ -30,7 +30,7 @@ order (see `orchestrator.WORKSPACE_COPIERS`):
 | `files`       | `FilesCopier`             | bucket objects                                                                                     |
 | `database`    | `DatabaseCopier`          | native pg copy only if **both** sides LOCAL; else skipped + warned. Local copy not yet implemented |
 | `connections` | `ConnectionsCopier`       | connections + secret fields                                                                        |
-| `pipelines`   | `PipelinesCopier`         | pipelines + versions (depends on `files` for notebook pipelines)                                   |
+| `pipelines`   | `PipelinesCopier`         | pipelines + versions (a notebook pipeline's `.ipynb` is copied by this copier itself)              |
 
 Template pipelines are **not** in this registry — they are server-wide, not a
 per-workspace resource, so they are copied by a separate flow (see

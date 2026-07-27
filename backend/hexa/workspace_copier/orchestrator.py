@@ -2,9 +2,9 @@
 
 Owns the ordered registry of resource copiers and runs the selected ones in
 dependency order: workspace metadata first (it creates the target and yields its
-handle), files before pipelines (notebook pipelines need their .ipynb present
-first). The medium (ORM vs GraphQL) is decided per endpoint inside each copier,
-so this orchestration is written once and shared by every flow (CLI + admin).
+handle), then the rest. The medium (ORM vs GraphQL) is decided per endpoint
+inside each copier, so this orchestration is written once and shared by every
+flow (CLI + admin).
 """
 
 from collections.abc import Iterable
@@ -21,7 +21,7 @@ from hexa.workspace_copier.results import CopyResult
 
 WORKSPACE_COPIERS: list[ResourceCopier] = [
     WorkspaceMetadataCopier(),  # Mandatory first step
-    FilesCopier(),  # Before pipelines, needed for .ipynb files (notebook pipelines)
+    FilesCopier(),
     DatabaseCopier(),  # LOCAL→LOCAL: native pg; else skip + warning
     ConnectionsCopier(),
     PipelinesCopier(),

@@ -4,14 +4,15 @@ REMOTE branch — ported from ``migrate_lib/pipelines.py``. The LOCAL (ORM) bran
 is implemented in a later phase. ``_upload_version`` is kept module-level because
 the template copier reuses it to back template versions.
 
-Declares ``depends_on=("files",)`` advisory dependency: *notebook* pipelines need
-their ``.ipynb`` present on the target before ``createPipeline`` succeeds, so the
-files copier should run first (zip pipelines don't need it).
+A *notebook* pipeline needs its ``.ipynb`` present on the target before
+``createPipeline`` succeeds, so this copier transfers that one file itself
+rather than relying on the files copier having run.
 """
 
 import base64
 from typing import Any
 
+import httpx
 from openhexa.graphql.graphql_client.client import Client
 from openhexa.graphql.graphql_client.input_types import CreatePipelineInput
 from slugify import slugify
@@ -19,6 +20,7 @@ from slugify import slugify
 from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.progress import ProgressReporter
 from hexa.workspace_copier.resources.base import ResourceCopier
+from hexa.workspace_copier.resources.files import download, upload
 from hexa.workspace_copier.results import CopyResult, PipelinesResult
 from hexa.workspace_copier.transport import GraphQLError, gql
 
@@ -73,7 +75,6 @@ mutation UpdatePipeline($input: UpdatePipelineInput!) {
 class PipelinesCopier(ResourceCopier):
     name = "pipelines"
     label = "Pipelines (+versions)"
-    depends_on = ("files",)
 
     def copy(
         self,
@@ -104,33 +105,37 @@ class PipelinesCopier(ResourceCopier):
         assignments = _assign_target_codes(pipelines)
         existing_codes = _list_target_codes(target.client, target.slug)
 
-        for pipeline_id, src_code, target_name, target_code in assignments:
-            if target_code in existing_codes:
-                pipes_result.skipped.append(src_code)
-                reporter.info(f"   skipped pipeline '{src_code}' (already exists)")
-                continue
-            try:
-                reporter.info(f"   copying pipeline '{src_code}' ...")
-                self._copy_pipeline(
-                    source,
-                    target,
-                    pipeline_id,
-                    src_code,
-                    target_name,
-                    pipes_result,
-                    reporter,
-                )
-            except GraphQLError as exc:
-                # Collect and continue (like the datasets copier) so one bad
-                # pipeline doesn't abort the rest of the copy. The common
-                # case is a notebook pipeline whose .ipynb wasn't copied to the
-                # target (files deselected), which fails with FILE_NOT_FOUND.
-                pipes_result.failed.append(src_code)
-                pipes_result.warnings.append(
-                    f"pipeline '{src_code}' could not be copied — handle "
-                    f"manually ({exc})."
-                )
-                reporter.warning(f"   FAILED to copy pipeline '{src_code}' ({exc})")
+        # One shared client for the presigned notebook transfers, so the
+        # connection pool reuses TLS handshakes across pipelines.
+        with httpx.Client(timeout=300) as http_client:
+            for pipeline_id, src_code, target_name, target_code in assignments:
+                if target_code in existing_codes:
+                    pipes_result.skipped.append(src_code)
+                    reporter.info(f"   skipped pipeline '{src_code}' (already exists)")
+                    continue
+                try:
+                    reporter.info(f"   copying pipeline '{src_code}' ...")
+                    self._copy_pipeline(
+                        source,
+                        target,
+                        pipeline_id,
+                        src_code,
+                        target_name,
+                        pipes_result,
+                        reporter,
+                        http_client,
+                    )
+                except (GraphQLError, httpx.HTTPError) as exc:
+                    # Collect and continue (like the datasets copier) so one bad
+                    # pipeline doesn't abort the rest of the copy. The common
+                    # case is a notebook pipeline whose .ipynb is missing from
+                    # the source bucket, so it can't be put on the target.
+                    pipes_result.failed.append(src_code)
+                    pipes_result.warnings.append(
+                        f"pipeline '{src_code}' could not be copied — handle "
+                        f"manually ({exc})."
+                    )
+                    reporter.warning(f"   FAILED to copy pipeline '{src_code}' ({exc})")
 
     def _copy_pipeline(
         self,
@@ -141,6 +146,7 @@ class PipelinesCopier(ResourceCopier):
         target_name: str,
         pipes_result: PipelinesResult,
         reporter: ProgressReporter,
+        http_client: httpx.Client,
     ) -> None:
         detail = _fetch_source_detail(source.client, pipeline_id)
         is_notebook = detail.get("type") == "notebook"
@@ -154,6 +160,11 @@ class PipelinesCopier(ResourceCopier):
                 f"   skipped notebook pipeline '{src_code}' (no notebookPath)"
             )
             return
+
+        if is_notebook:  # if notebook, first copy the file
+            _copy_notebook_file(
+                source, target, detail["notebookPath"], http_client, reporter
+            )
 
         target_pid, target_code = _create_on_target(
             target.client, target.slug, detail, target_name
@@ -272,6 +283,19 @@ def _fetch_source_detail(source: Client, pipeline_id: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Target writes
 # ---------------------------------------------------------------------------
+
+
+def _copy_notebook_file(
+    source: Endpoint,
+    target: Endpoint,
+    notebook_path: str,
+    http_client: httpx.Client,
+    reporter: ProgressReporter,
+) -> None:
+    """Transfer a notebook pipeline's ``.ipynb`` to the target bucket."""
+    content = download(source.client, source.slug, notebook_path, http_client)
+    upload(target.client, target.slug, notebook_path, content, http_client)
+    reporter.info(f"   copied notebook {notebook_path} ({len(content)} bytes)")
 
 
 def _create_on_target(
