@@ -1,3 +1,7 @@
+// EU data residency: mirrors the backend default in config/settings/base.py so
+// events never fall back to the US ingestion endpoint when the var is unset.
+export const DEFAULT_MIXPANEL_API_HOST = "api-eu.mixpanel.com";
+
 export interface RuntimeEnv {
   OPENHEXA_BACKEND_URL: string;
   SENTRY_DSN: string;
@@ -27,7 +31,8 @@ export function getPublicEnv(): RuntimeEnv {
     DISABLE_ANALYTICS: process.env.DISABLE_ANALYTICS ?? "",
     CONSOLE_URL: process.env.CONSOLE_URL ?? "",
     MIXPANEL_TOKEN: process.env.MIXPANEL_TOKEN ?? "",
-    MIXPANEL_API_HOST: process.env.MIXPANEL_API_HOST ?? "",
+    MIXPANEL_API_HOST:
+      process.env.MIXPANEL_API_HOST || DEFAULT_MIXPANEL_API_HOST,
   };
 }
 

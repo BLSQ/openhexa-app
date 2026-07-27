@@ -27,6 +27,7 @@ jest.mock("mixpanel-browser", () => ({
 }));
 
 jest.mock("../runtimeConfig", () => ({
+  ...jest.requireActual("../runtimeConfig"),
   getPublicEnv: jest.fn(),
 }));
 
@@ -91,6 +92,13 @@ describe("initMixpanel", () => {
       ...baseEnv,
       MIXPANEL_API_HOST: "https://api-eu.mixpanel.com",
     });
+    initMixpanel();
+    const [, options] = (mixpanel.init as jest.Mock).mock.calls[0];
+    expect(options.api_host).toBe("https://api-eu.mixpanel.com");
+  });
+
+  it("falls back to the EU host when MIXPANEL_API_HOST is empty", () => {
+    getPublicEnvMock.mockReturnValue({ ...baseEnv, MIXPANEL_API_HOST: "" });
     initMixpanel();
     const [, options] = (mixpanel.init as jest.Mock).mock.calls[0];
     expect(options.api_host).toBe("https://api-eu.mixpanel.com");
@@ -258,10 +266,7 @@ describe("applyReplayGate", () => {
   });
 
   it("stops recording when user is not new", () => {
-    applyReplayGate(
-      newUser({ dateJoined: daysAgo(60) }),
-      "/workspaces/abc",
-    );
+    applyReplayGate(newUser({ dateJoined: daysAgo(60) }), "/workspaces/abc");
     expect(mixpanel.stop_session_recording).toHaveBeenCalledTimes(1);
     expect(mixpanel.start_session_recording).not.toHaveBeenCalled();
   });

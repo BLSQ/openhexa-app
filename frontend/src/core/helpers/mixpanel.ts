@@ -1,5 +1,5 @@
 import mixpanel from "mixpanel-browser";
-import { getPublicEnv } from "./runtimeConfig";
+import { DEFAULT_MIXPANEL_API_HOST, getPublicEnv } from "./runtimeConfig";
 
 const NEW_USER_WINDOW_DAYS = 7;
 // Replays target the onboarding experience: only a user's first few sessions
@@ -47,9 +47,8 @@ export function initMixpanel(): void {
   // requires a full URL with scheme — without it the SDK treats the value as a
   // relative path and posts to the current origin. Normalize so the same env
   // var works for both.
-  const apiHost = /^https?:\/\//.test(MIXPANEL_API_HOST)
-    ? MIXPANEL_API_HOST
-    : `https://${MIXPANEL_API_HOST}`;
+  const host = MIXPANEL_API_HOST || DEFAULT_MIXPANEL_API_HOST;
+  const apiHost = /^https?:\/\//.test(host) ? host : `https://${host}`;
 
   mixpanel.init(MIXPANEL_TOKEN, {
     api_host: apiHost,
