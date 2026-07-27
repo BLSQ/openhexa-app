@@ -573,5 +573,6 @@ class DatabaseUtilsTest(TestCase):
 
     def test_validate_query_plans_without_executing(self):
         # EXPLAIN only plans the query: a statement that would sleep far beyond
-        # the timeout validates instantly instead of raising QueryCanceled.
-        validate_query(self.WORKSPACE, "SELECT pg_sleep(3)", timeout_ms=100)
+        # the hardcoded validation timeout validates instantly instead of
+        # raising QueryCanceled (it is never actually executed).
+        validate_query(self.WORKSPACE, "SELECT pg_sleep(30)")

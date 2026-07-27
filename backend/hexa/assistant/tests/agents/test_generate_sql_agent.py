@@ -85,7 +85,7 @@ class GenerateSqlAgentExtraInstructionsTest(GenerateSqlAgentTestCase):
         with patch("hexa.assistant.agents.generate_sql_agent._SCHEMA_MAX_CHARS", 0):
             instructions = agent._extra_instructions()
         self.assertIn("- demo", instructions)
-        self.assertIn("execute_sql", instructions)
+        self.assertIn("get_db_table_schema", instructions)
         self.assertNotIn("id integer", instructions)
 
     def test_schema_load_failure_falls_back_gracefully(self):
@@ -96,7 +96,7 @@ class GenerateSqlAgentExtraInstructionsTest(GenerateSqlAgentTestCase):
         ):
             instructions = agent._extra_instructions()
         self.assertIn("could not be loaded", instructions)
-        self.assertIn("execute_sql", instructions)
+        self.assertIn("get_db_schema", instructions)
 
 
 class GenerateSqlAgentValidateSqlTest(GenerateSqlAgentTestCase):
