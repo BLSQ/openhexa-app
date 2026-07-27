@@ -522,8 +522,9 @@ export type AssistantTextSegment = {
  */
 export enum AssistantToolName {
   CreatePipeline = 'create_pipeline',
-  ExecuteSql = 'execute_sql',
   GetDataset = 'get_dataset',
+  GetDbSchema = 'get_db_schema',
+  GetDbTableSchema = 'get_db_table_schema',
   GetHelpOrDoc = 'get_help_or_doc',
   GetPipeline = 'get_pipeline',
   GetStaticWebappFile = 'get_static_webapp_file',
