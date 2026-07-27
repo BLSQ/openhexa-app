@@ -30,7 +30,7 @@ order (see `orchestrator.WORKSPACE_COPIERS`):
 | `files`       | `FilesCopier`             | bucket objects (streamed through a temp file — see [Large files](#large-files)); the target bucket is listed first and files matching by key + size are skipped, as is anything under a `SKIPPED_DIRECTORIES` scratch dir |
 | `database`    | `DatabaseCopier`          | native pg copy only if **both** sides LOCAL; else skipped + warned. Local copy not yet implemented |
 | `connections` | `ConnectionsCopier`       | connections + secret fields                                                                        |
-| `pipelines`   | `PipelinesCopier`         | pipelines + versions (depends on `files` for notebook pipelines)                                   |
+| `pipelines`   | `PipelinesCopier`         | pipelines + versions (+ the `.ipynb` file for notebook pipelines)                                  |
 | `datasets`    | `DatasetsCopier`          | datasets **owned** by the workspace                                                                |
 
 Template pipelines are **not** in this registry — they are server-wide, not a
