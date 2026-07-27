@@ -28,20 +28,3 @@ query GetDatabaseTable($workspaceSlug: String!, $tableName: String!) {
     }
   }
 }
-
-query ExecuteSQL($workspaceSlug: String!, $query: String!, $maxRows: Int) {
-  workspace(slug: $workspaceSlug) {
-    database {
-      executeSQL(query: $query, maxRows: $maxRows) {
-        success
-        errors
-        errorMessage
-        columns
-        rows
-        rowCount
-        truncated
-        durationMs
-      }
-    }
-  }
-}
