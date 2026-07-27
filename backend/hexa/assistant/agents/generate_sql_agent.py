@@ -14,13 +14,13 @@ from hexa.databases.utils import (
     get_full_database_definition,
     validate_query,
 )
-from hexa.mcp.tools.databases import execute_sql
+from hexa.mcp.tools.databases import get_db_schema, get_db_table_schema
 
 logger = logging.getLogger(__name__)
 
 # Above this size, inlining the full schema costs more tokens than the LLM
 # roundtrips it saves; fall back to table names and let the agent inspect
-# information_schema through execute_sql.
+# individual tables through get_db_table_schema.
 _SCHEMA_MAX_CHARS = 50_000
 
 _READ_ONLY_FIRST_TOKENS = {"SELECT", "WITH"}
@@ -60,7 +60,9 @@ class GenerateSqlAgent(BaseAgent):
     """
 
     instruction_set = InstructionSet.GENERATE_SQL
-    tools = [execute_sql]
+    # Schema-only tools: the agent inspects table/column metadata but is never
+    # given access to the actual row data in the workspace database.
+    tools = [get_db_schema, get_db_table_schema]
     max_requests = 6
     output_retries = 3
 
@@ -75,7 +77,8 @@ class GenerateSqlAgent(BaseAgent):
         if _first_keyword(query) not in _READ_ONLY_FIRST_TOKENS:
             raise ModelRetry(
                 "Your final answer must be a single read-only SQL statement "
-                "(SELECT, or WITH ... SELECT) with no commentary and no markdown."
+                "(SELECT, or WITH ... SELECT). SQL comments (-- ...) are allowed, "
+                "but no prose or markdown fences around the statement."
             )
         try:
             # thread_sensitive=False: plain psycopg2 connection to the workspace
@@ -96,8 +99,9 @@ class GenerateSqlAgent(BaseAgent):
             logger.exception("generate_sql_agent: failed to load database schema")
             return (
                 "## Workspace database schema\n"
-                "The schema could not be loaded. Use the `execute_sql` tool on "
-                "`information_schema` to discover the available tables and columns."
+                "The schema could not be loaded. Use the `get_db_schema` tool to "
+                "list the available tables and `get_db_table_schema` to inspect a "
+                "table's columns."
             )
         if not tables:
             return (
@@ -110,8 +114,8 @@ class GenerateSqlAgent(BaseAgent):
             return (
                 "## Workspace database schema\n"
                 "The schema is too large to show in full, so only table names are "
-                "listed. Use the `execute_sql` tool on `information_schema.columns` "
-                "to inspect the tables you need.\n" + names
+                "listed. Use the `get_db_table_schema` tool to inspect the columns "
+                "of the tables you need.\n" + names
             )
         return (
             "## Workspace database schema\n"
