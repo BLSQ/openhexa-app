@@ -446,11 +446,11 @@ pydantic==2.12.5
     #   pydantic-ai-slim
     #   pydantic-graph
     #   rio-cogeo
-pydantic-ai-slim[anthropic]==1.107.0
+pydantic-ai-slim[anthropic]==1.107.1
     # via -r requirements.in
 pydantic-core==2.41.5
     # via pydantic
-pydantic-graph==1.107.0
+pydantic-graph==1.107.1
     # via pydantic-ai-slim
 pyflakes==3.4.0
     # via autoflake
