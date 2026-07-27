@@ -137,7 +137,9 @@ function MultiCombobox<T extends { [key: string]: any }>(
 
   return (
     <UICombobox<T[]>
-      onChange={(newValue) => onChange(newValue ?? [])}
+      // Headless UI types multi-select onChange as receiving `T[] | null`;
+      // normalise the null case to an empty array for our `T[]` callback.
+      onChange={(next) => onChange(next ?? [])}
       value={value}
       disabled={disabled}
       multiple={true as any}

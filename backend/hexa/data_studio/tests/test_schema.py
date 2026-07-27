@@ -141,8 +141,8 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         for user in (self.USER_EDITOR, self.USER_ADMIN):
             self.client.force_login(user)
             r = self.run_query(
-                "query ($id: ID!) { savedQuery(id: $id) { permissions { update delete } } }",
-                {"id": query_id},
+                "query ($slug: String!, $id: ID!) { savedQuery(workspaceSlug: $slug, id: $id) { permissions { update delete } } }",
+                {"slug": str(self.WORKSPACE.slug), "id": query_id},
             )
             self.assertEqual(
                 r["data"]["savedQuery"]["permissions"],
@@ -202,8 +202,8 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
 
         self.client.force_login(self.USER_VIEWER)
         r = self.run_query(
-            "query ($id: ID!) { savedQuery(id: $id) { name } }",
-            {"id": query_id},
+            "query ($slug: String!, $id: ID!) { savedQuery(workspaceSlug: $slug, id: $id) { name } }",
+            {"slug": str(self.WORKSPACE.slug), "id": query_id},
         )
         self.assertEqual(r["data"]["savedQuery"]["name"], "My query")
 
@@ -213,10 +213,36 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
 
         self.client.force_login(self.USER_OUTSIDER)
         r = self.run_query(
+            "query ($slug: String!, $id: ID!) { savedQuery(workspaceSlug: $slug, id: $id) { name } }",
+            {"slug": str(self.WORKSPACE.slug), "id": query_id},
+        )
+        self.assertIsNone(r["data"]["savedQuery"])
+
+    def test_get_saved_query_wrong_workspace(self):
+        # A query id that exists but is addressed via a different workspace's
+        # slug resolves to nothing: saved queries are scoped to their workspace.
+        created = self._create_query(self.USER_EDITOR)
+        query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
+
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            "query ($slug: String!, $id: ID!) { savedQuery(workspaceSlug: $slug, id: $id) { name } }",
+            {"slug": str(self.WORKSPACE_2.slug), "id": query_id},
+        )
+        self.assertIsNone(r["data"]["savedQuery"])
+
+    def test_get_saved_query_without_workspace(self):
+        # workspaceSlug is optional: omitting it keeps the original id-only
+        # lookup (still gated by filter_for_user), so existing callers work.
+        created = self._create_query(self.USER_EDITOR)
+        query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
+
+        self.client.force_login(self.USER_VIEWER)
+        r = self.run_query(
             "query ($id: ID!) { savedQuery(id: $id) { name } }",
             {"id": query_id},
         )
-        self.assertIsNone(r["data"]["savedQuery"])
+        self.assertEqual(r["data"]["savedQuery"]["name"], "My query")
 
     def test_update_saved_query(self):
         created = self._create_query(self.USER_EDITOR)
@@ -335,8 +361,8 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
 
         self.client.logout()
         r = self.run_query(
-            "query ($id: ID!) { savedQuery(id: $id) { name } }",
-            {"id": query_id},
+            "query ($slug: String!, $id: ID!) { savedQuery(workspaceSlug: $slug, id: $id) { name } }",
+            {"slug": str(self.WORKSPACE.slug), "id": query_id},
         )
         self.assertIsNone(r["data"]["savedQuery"])
 
