@@ -274,7 +274,12 @@ def run_and_log_database_query(
     return result
 
 
-def validate_query(workspace: Workspace, query: str, timeout_ms: int = 5_000) -> None:
+# EXPLAIN only parses and plans the query (it never executes it), so this is a
+# generous ceiling that only guards against a pathological planning time.
+_VALIDATE_QUERY_TIMEOUT_MS = 5_000
+
+
+def validate_query(workspace: Workspace, query: str) -> None:
     """Check a query against the database without executing it.
 
     Runs ``EXPLAIN`` with the read-only role, which parses and plans the query,
@@ -289,7 +294,7 @@ def validate_query(workspace: Workspace, query: str, timeout_ms: int = 5_000) ->
         with conn.cursor() as cursor:
             cursor.execute(
                 sql.SQL("SET LOCAL statement_timeout = {timeout};").format(
-                    timeout=sql.Literal(timeout_ms)
+                    timeout=sql.Literal(_VALIDATE_QUERY_TIMEOUT_MS)
                 )
             )
             cursor.execute("EXPLAIN " + query)
@@ -468,9 +473,12 @@ def get_full_database_definition(workspace: Workspace) -> List[Dict]:
             # the paginated query to fetch the full listing.
             params = {"ignore_tables": IGNORE_TABLES, "limit": None, "offset": 0}
             tables = _fetch_tables_with_columns(cursor, workspace, params)
-        for table in tables:
-            del table["count"]
-        return tables
+        # The shared query also carries a reltuples-based ``count`` and the
+        # workspace, but only names and columns are inlined into the LLM schema,
+        # so keep just those (no COUNT(*) is ever run here).
+        return [
+            {"name": table["name"], "columns": table["columns"]} for table in tables
+        ]
     finally:
         if conn:
             conn.close()
