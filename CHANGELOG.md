@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.13.0](https://github.com/BLSQ/openhexa-app/compare/5.12.0...5.13.0) (2026-07-27)
+
+
+### Features
+
+* add DatabaseQueryLog model for auditing SQL queries (HEXA-1668) ([#1900](https://github.com/BLSQ/openhexa-app/issues/1900)) ([62429fd](https://github.com/BLSQ/openhexa-app/commit/62429fd813dc5c53c8d360ffa050834cd3d828f5))
+* Add Django admin SQL dashboards (HEXA-1738) ([#1905](https://github.com/BLSQ/openhexa-app/issues/1905)) ([e9005e5](https://github.com/BLSQ/openhexa-app/commit/e9005e577d4ea8c940e7bbfc26d97da9633a3852))
+* added banner on sso error (HEXA-1606) ([#1910](https://github.com/BLSQ/openhexa-app/issues/1910)) ([b1142f1](https://github.com/BLSQ/openhexa-app/commit/b1142f161f6f756225b13fcbd9e63e2f4abce4b4))
+* data studio saved queries frontend (HEXA-1710) ([#1911](https://github.com/BLSQ/openhexa-app/issues/1911)) ([f281647](https://github.com/BLSQ/openhexa-app/commit/f28164723bdcc77954535bdfae23d93206e02327))
+
+
+### Bug Fixes
+
+* "Powered by OpenHEXA" banner should not overlap webapp page (HEXA-1751) ([667d301](https://github.com/BLSQ/openhexa-app/commit/667d30136ebb42cd06f2fc821418994dd52b6364))
+* read only db user has no select grant on tutorial covid data table (HEXA-1734) ([#1916](https://github.com/BLSQ/openhexa-app/issues/1916)) ([51fb0de](https://github.com/BLSQ/openhexa-app/commit/51fb0dea05c89e23653d28262c996adf2ac82d41))
+
 ## [5.12.0](https://github.com/BLSQ/openhexa-app/compare/5.11.1...5.12.0) (2026-07-13)
 
 
