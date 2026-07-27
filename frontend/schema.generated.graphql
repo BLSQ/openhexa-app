@@ -1465,6 +1465,13 @@ type DHIS2QueryResultPage {
 
 type Database {
   credentials: DatabaseCredentials
+
+  """
+  Runs a read-only SQL query against the workspace database and returns the result.
+  `maxRows` caps the number of returned rows; it defaults to 50 when omitted and is
+  itself capped to a server-side hard limit. `origin` identifies where the query comes
+  from for auditing purposes; it defaults to OTHER.
+  """
   executeSQL(maxRows: Int, origin: ExecuteSQLOrigin, query: String!): ExecuteSQLResult!
   readOnlyCredentials: DatabaseCredentials
   table(name: String!): DatabaseTable

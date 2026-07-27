@@ -1,14 +1,25 @@
 # data_studio — SQL editor
 
-This app owns the Data Studio product surface: saved queries (`models.SavedQuery`),
-the query audit log (`models.QueryLog`) and the CSV export endpoint
-(`views.download_query_csv`).
+This app owns the Data Studio product surface: saved queries (`models.SavedQuery`), the
+query audit log (`models.QueryLog`), and the two ways a user runs SQL — the interactive
+`Database.executeSQL` GraphQL field (`schema`, over `query_runner`) and the full-result
+CSV download (`views.download_query_csv`).
 
-Talking to a workspace database is *not* this app's job — connections, introspection
-and the query primitives (`execute_database_query`, `stream_database_query`) live in
-`hexa.databases`, and the interactive editor path runs through its `Database.executeSQL`
-GraphQL field. The dependency runs one way: `data_studio` → `databases`. The permission
-gating both paths is `databases.run_query`, for the same reason.
+Talking to a workspace database is *not* this app's job. Connections, introspection and
+the execution primitives (`execute_database_query`, `stream_database_query`) live in
+`hexa.databases`, which knows nothing about this app: the dependency runs one way,
+`data_studio` → `databases`. What lands on which side follows from where `QueryLog` lives
+— anything that has to write an audit entry belongs here, so `query_runner` (permission
+check → execute → log) sits here while the psycopg2 plumbing it calls stays there. Two
+consequences worth knowing:
+
+- `executeSQL` is declared as `extend type Database` in this app's schema, even though
+  `Database` itself is defined by `hexa.databases`.
+- The permission both paths enforce is `databases.run_query` — whether a user may run SQL
+  against a workspace database is a property of the database, not of the Data Studio.
+
+Note the CSV export deliberately writes **no** `QueryLog` entry today, unlike the
+interactive path. If auditing exports matters, that is the gap to close.
 
 The rest of this file is the design-decision home for the CSV export; the code carries
 short "why" comments that point here.
