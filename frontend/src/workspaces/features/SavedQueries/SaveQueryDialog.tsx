@@ -95,12 +95,13 @@ const SaveQueryDialog = ({
     },
   });
 
-  // Re-seed the form from the current props each time the dialog opens.
+  // The dialog stays mounted between opens (so its transitions can run), so the
+  // form has to be re-seeded from the current props each time it opens.
   useEffect(() => {
     if (open) {
       form.resetForm();
     }
-  }, [open]);
+  }, [open, form]);
 
   const title = mode === "create" ? t("Save query") : t("Edit details");
   const submitLabel = mode === "create" ? t("Save query") : t("Save");

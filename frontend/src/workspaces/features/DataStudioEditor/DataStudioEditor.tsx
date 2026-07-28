@@ -193,17 +193,17 @@ const DataStudioEditor = ({
           </div>
         </div>
       </div>
-      {editor.dialog && (
-        <SaveQueryDialog
-          open
-          mode={editor.dialog.mode}
-          workspaceSlug={workspaceSlug}
-          content={query}
-          savedQuery={editor.savedQuery}
-          onClose={editor.closeDialog}
-          onSaved={editor.onDialogSaved}
-        />
-      )}
+      {/* Kept mounted and toggled through `open`: Headless UI skips its enter
+          transition for a dialog that mounts already open. */}
+      <SaveQueryDialog
+        open={editor.dialog.open}
+        mode={editor.dialog.mode}
+        workspaceSlug={workspaceSlug}
+        content={query}
+        savedQuery={editor.savedQuery}
+        onClose={editor.closeDialog}
+        onSaved={editor.onDialogSaved}
+      />
     </>
   );
 };
