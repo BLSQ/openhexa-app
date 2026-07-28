@@ -1,0 +1,74 @@
+// Isolated environment for running Claude Code unattended against this repo.
+// See .devcontainer/README.md for the threat model and its limits.
+{
+    "name": "OpenHEXA — Claude Code (isolated)",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "args": {
+            "TZ": "${localEnv:TZ:Europe/Brussels}"
+        }
+    },
+
+    // Docker-in-Docker: the compose stack runs on a daemon inside this container,
+    // so no host path or host daemon is ever reachable from it.
+    "features": {
+        "ghcr.io/devcontainers/features/docker-in-docker:2": {
+            "moby": true,
+            "dockerDashComposeVersion": "v2"
+        },
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
+
+    // Required by the inner daemon; NET_ADMIN/NET_RAW are for the egress firewall.
+    "privileged": true,
+    "init": true,
+    "capAdd": ["NET_ADMIN", "NET_RAW"],
+
+    "remoteUser": "node",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+    "workspaceFolder": "/workspace",
+
+    "mounts": [
+        // Keeps built images, pgdata and the openhexa network across rebuilds.
+        "source=openhexa-cc-docker-${devcontainerId},target=/var/lib/docker,type=volume",
+        // Keeps the Claude login and settings across rebuilds.
+        "source=openhexa-cc-config-${devcontainerId},target=/home/node/.claude,type=volume",
+        "source=openhexa-cc-history-${devcontainerId},target=/commandhistory,type=volume",
+        // Keeps npm out of the bind-mounted host tree.
+        "source=openhexa-cc-node-modules-${devcontainerId},target=/workspace/frontend/node_modules,type=volume"
+    ],
+
+    "remoteEnv": {
+        "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+        "NODE_OPTIONS": "--max-old-space-size=4096",
+        // A read-only GitHub token, set on the host. See .devcontainer/README.md.
+        "GH_TOKEN": "${localEnv:OPENHEXA_RO_GH_TOKEN}",
+        // Refuse the host's forwarded SSH agent, so no key is reachable here.
+        "SSH_AUTH_SOCK": "",
+        // Fail instead of hanging on a credential prompt during unattended runs.
+        "GIT_TERMINAL_PROMPT": "0"
+    },
+
+    // Runs once, before the firewall exists, so image pulls and builds are unrestricted.
+    "postCreateCommand": ".devcontainer/post-create.sh",
+    // Runs on every start: iptables rules do not survive a container restart.
+    "postStartCommand": ".devcontainer/post-start.sh",
+    "waitFor": "postStartCommand",
+
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "anthropic.claude-code",
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode",
+                "charliermarsh.ruff",
+                "ms-python.python",
+                "eamodio.gitlens"
+            ],
+            "settings": {
+                "editor.formatOnSave": true,
+                "terminal.integrated.defaultProfile.linux": "zsh"
+            }
+        }
+    }
+}
