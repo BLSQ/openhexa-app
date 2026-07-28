@@ -71,6 +71,30 @@ Layers 2 and 3 are local and could in principle be undone from inside the
 container. **Layer 1 cannot**, which is why the token matters most: do not paste
 a full-access token into the container, and do not run `gh auth login` there.
 
+## Browser automation
+
+The Playwright MCP server is installed in the image and registered for Claude at
+user scope, so it is available in every session without further setup. Check it
+with `claude mcp get playwright`.
+
+It runs `--headless` (there is no display) and `--isolated` (the browser profile
+is kept in memory). Chromium keeps its own sandbox — the privileged container
+does not need `--no-sandbox`.
+
+What it can reach is what the firewall allows: `127.0.0.0/8` and `172.16/12` are
+accepted, so `http://localhost:3000` (frontend) and `http://localhost:8000`
+(backend) work once `docker compose up -d` has published them. The wider web
+does not, beyond the allowlist. This is for driving the local stack, not for
+browsing.
+
+Chromium is downloaded during the image build, since `cdn.playwright.dev` is not
+allowlisted and nothing can be fetched at runtime. That is also why
+`PLAYWRIGHT_MCP_VERSION` is pinned in the `Dockerfile` and the server is started
+from the globally installed `playwright-mcp` binary rather than
+`npx @playwright/mcp@latest`: a floating version eventually wants a browser build
+that is not on disk, and then it cannot download it. To upgrade, bump the build
+arg and rebuild the container.
+
 ## What this does not protect against
 
 - **`privileged: true` is not a hard security boundary.** Docker-in-docker

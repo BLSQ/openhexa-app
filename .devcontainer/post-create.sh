@@ -27,6 +27,15 @@ else
     echo "    Set a read-only token on the host, see .devcontainer/README.md."
 fi
 
+echo "==> Registering the Playwright MCP server"
+# User scope, so it lands in the CLAUDE_CONFIG_DIR volume and survives rebuilds.
+# The browser is baked into the image; the firewall would block a runtime fetch.
+if ! claude mcp get playwright >/dev/null 2>&1; then
+    claude mcp add playwright --scope user \
+        -e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
+        -- playwright-mcp --headless --isolated
+fi
+
 if [ ! -f .env ]; then
     echo "==> No .env found, copying .env.dist (review it: it contains placeholders)"
     cp .env.dist .env
