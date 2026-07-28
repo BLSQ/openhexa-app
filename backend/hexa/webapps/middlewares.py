@@ -23,6 +23,7 @@ from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp, WebappUser
 from hexa.webapps.utils import (
     PREVIEW_KEY_RE,
     extract_webapp_subdomain,
+    powered_by_url,
     webapp_host_url,
 )
 from hexa.webapps.views import serve_webapp
@@ -78,27 +79,39 @@ def _serve_static_webapp(webapp, request):
     return response
 
 
-def _serve_iframe_webapp(webapp, show_powered_by=False):
+def _serve_iframe_webapp(webapp, show_powered_by=False, powered_by_url=None):
     html = render_to_string(
         "webapps/embed.html",
-        {"name": webapp.name, "url": webapp.url, "show_powered_by": show_powered_by},
+        {
+            "name": webapp.name,
+            "url": webapp.url,
+            "show_powered_by": show_powered_by,
+            "powered_by_url": powered_by_url,
+        },
     )
     return HttpResponse(html)
 
 
-def _inject_powered_by_banner(response):
+def _inject_powered_by_banner(response, powered_by_url):
     content_type = response.get("Content-Type", "")
     if "text/html" not in content_type:
         return response
 
+    # The partial renders a spacer plus the fixed banner so the webapp content is
+    # pushed up rather than covered (HEXA-1751); banner_height keeps both in sync.
+    banner_html = render_to_string(
+        "webapps/_powered_by_banner.html",
+        {
+            "powered_by_url": powered_by_url,
+            "banner_height": POWERED_BY_BANNER_HEIGHT,
+        },
+    )
     content = response.content.decode(response.charset)
-    injected = POWERED_BY_BANNER_SPACER_HTML + POWERED_BY_BANNER_HTML
-
     closing_body = content.rfind("</body>")
     if closing_body == -1:
-        content += injected
+        content += banner_html
     else:
-        content = content[:closing_body] + injected + content[closing_body:]
+        content = content[:closing_body] + banner_html + content[closing_body:]
     response.content = content.encode(response.charset)
     response["Content-Length"] = len(response.content)
     return response
@@ -133,11 +146,19 @@ def _dispatch_webapp_response(request, webapp, show_powered_by=False):
         response = _serve_static_webapp(webapp, request)
         response = _inject_openhexa_context(response, webapp)
         if show_powered_by:
-            response = _inject_powered_by_banner(response)
+            response = _inject_powered_by_banner(
+                response, powered_by_url(request, "static")
+            )
     elif webapp.type == Webapp.WebappType.SUPERSET:
         response = _serve_superset_webapp(request, webapp)
     else:
-        response = _serve_iframe_webapp(webapp, show_powered_by=show_powered_by)
+        response = _serve_iframe_webapp(
+            webapp,
+            show_powered_by=show_powered_by,
+            powered_by_url=powered_by_url(request, "iframe")
+            if show_powered_by
+            else None,
+        )
     return response
 
 
