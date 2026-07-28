@@ -30,13 +30,15 @@ const WebappIframe = ({
 
   // Mirrors the backend hexa.webapps.utils.powered_by_url so the marketing-site
   // link carries the same UTM parameters GA on openhexa.com reads. Built on the
-  // client because it needs the current host.
+  // client because it needs the current host. Uses the "iframe" surface: the
+  // in-app /play viewer is how iframe webapps are published, so it is tracked
+  // the same as the direct-subdomain iframe banner.
   useEffect(() => {
     const params = new URLSearchParams({
       utm_source: "openhexa-webapps",
       utm_medium: "referral",
       utm_campaign: "powered-by-openhexa-banner",
-      utm_content: "play",
+      utm_content: "iframe",
       utm_term: window.location.host,
     });
     setPoweredByUrl(`${POWERED_BY_TARGET_URL}?${params.toString()}`);
