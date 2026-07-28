@@ -66,7 +66,7 @@ describe("WebappIframe", () => {
     expect(href).toContain("utm_source=openhexa-webapps");
     expect(href).toContain("utm_medium=referral");
     expect(href).toContain("utm_campaign=powered-by-openhexa-banner");
-    expect(href).toContain("utm_content=play");
+    expect(href).toContain("utm_content=iframe");
     expect(href).toContain("utm_term=");
     expect(link).toHaveAttribute("rel", "nofollow noopener noreferrer");
   });
