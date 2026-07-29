@@ -76,15 +76,30 @@ jest.mock("core/components/CodeEditor/CodeEditor", () => {
           if (!el) return "";
           return el.value.slice(el.selectionStart ?? 0, el.selectionEnd ?? 0);
         },
+        // The real handle writes through CodeMirror, which fires onChange; the
+        // stand-in calls it directly so the controlled value stays in sync.
+        replaceAll: (text: string) => props.onChange?.(text),
       }));
       // Mirror CodeMirror's keymap: a matching shortcut runs its handler and
-      // consumes the event (preventDefault), so no newline is inserted.
+      // consumes the event (preventDefault), so the keystroke's default action
+      // — a newline, or the browser find bar — does not also happen.
       const onKeyDown = (event: any) => {
-        if (event.key !== "Enter" || !(event.metaKey || event.ctrlKey)) {
-          return;
-        }
+        const keys = (() => {
+          if (event.metaKey || event.ctrlKey) {
+            if (event.key === "Enter") {
+              return ["Mod-Enter", "Ctrl-Enter", "Cmd-Enter"];
+            }
+            if (event.key === "f") {
+              return ["Mod-f"];
+            }
+          }
+          if (event.altKey && event.shiftKey && event.key === "f") {
+            return ["Shift-Alt-f"];
+          }
+          return [];
+        })();
         const shortcut = (props.shortcuts ?? []).find((s: { key: string }) =>
-          ["Mod-Enter", "Ctrl-Enter", "Cmd-Enter"].includes(s.key),
+          keys.includes(s.key),
         );
         if (shortcut) {
           event.preventDefault();
@@ -328,5 +343,59 @@ describe("DataStudioEditor", () => {
 
     await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  });
+
+  const FORMATTED = "SELECT\n  id\nFROM\n  patients";
+
+  it("formats the whole query on click", async () => {
+    renderEditor();
+    const editor = screen.getByTestId("editor");
+    await userEvent.type(editor, "select id from patients");
+
+    await userEvent.click(screen.getByRole("button", { name: "Format" }));
+
+    expect(editor).toHaveValue(FORMATTED);
+  });
+
+  it("formats on Ctrl/Cmd+F and suppresses the browser find bar", async () => {
+    renderEditor();
+    const editor = screen.getByTestId("editor");
+    await userEvent.type(editor, "select id from patients");
+
+    const notPrevented = fireEvent.keyDown(editor, { key: "f", ctrlKey: true });
+
+    expect(editor).toHaveValue(FORMATTED);
+    expect(notPrevented).toBe(false);
+  });
+
+  it("formats on Shift+Alt+F", async () => {
+    renderEditor();
+    const editor = screen.getByTestId("editor");
+    await userEvent.type(editor, "select id from patients");
+
+    fireEvent.keyDown(editor, { key: "f", altKey: true, shiftKey: true });
+
+    expect(editor).toHaveValue(FORMATTED);
+  });
+
+  it("formats only the selected statement when there is a selection", async () => {
+    renderEditor();
+    const editor = screen.getByTestId("editor") as HTMLTextAreaElement;
+    await userEvent.type(editor, "SELECT 1; select id from patients");
+    editor.setSelectionRange(10, 33);
+
+    await userEvent.click(screen.getByRole("button", { name: "Format" }));
+
+    // Written back over the selection, leaving the untouched statement alone.
+    expect(mockInsertText).toHaveBeenCalledWith(FORMATTED);
+    expect(editor).toHaveValue("SELECT 1; select id from patients");
+  });
+
+  it("disables Format while the query is empty", async () => {
+    renderEditor();
+    expect(screen.getByRole("button", { name: "Format" })).toBeDisabled();
+
+    await userEvent.type(screen.getByTestId("editor"), "select 1");
+    expect(screen.getByRole("button", { name: "Format" })).toBeEnabled();
   });
 });

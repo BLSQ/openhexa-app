@@ -99,6 +99,7 @@
     "react-world-flags": "^1.6.0",
     "remark": "^15.0.1",
     "remark-gfm": "^4.0.0",
+    "sql-formatter": "^15.8.2",
     "strip-markdown": "^6.0.0",
     "typescript": "^5.6.2",
     "use-onclickoutside": "^0.4.1",

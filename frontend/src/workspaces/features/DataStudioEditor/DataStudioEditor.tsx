@@ -1,6 +1,7 @@
 import { gql } from "@apollo/client";
 import {
   ArrowDownTrayIcon,
+  Bars3BottomLeftIcon,
   PencilIcon,
   TableCellsIcon,
 } from "@heroicons/react/24/outline";
@@ -16,6 +17,7 @@ import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/
 import { buildCsv, downloadCsv } from "./csv";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
+import { formatSql } from "./formatSql";
 import SaveQueryButton from "./SaveQueryButton";
 import { useDataStudioQuery } from "./useDataStudioQuery";
 import { useSavedQueryEditor } from "./useSavedQueryEditor";
@@ -46,6 +48,7 @@ const DataStudioEditor = ({
   });
 
   const runShortcutLabel = isMac ? "⌘+Enter" : "Ctrl+Enter";
+  const formatShortcutLabel = isMac ? "⌘+F" : "Ctrl+F";
   // Compact form for the in-button pill: the return glyph reads cleanly next to
   // ⌘ on macOS; other platforms keep the spelled-out modifier.
   const runShortcutBadge = isMac ? "⌘↵" : "Ctrl+Enter";
@@ -60,6 +63,21 @@ const DataStudioEditor = ({
     run(selected.trim() || query, maxRows);
   };
 
+  // Formats the selection when there is one — same rule as Run — so a single
+  // statement can be tidied without reflowing the rest of the editor.
+  const formatQuery = () => {
+    const editorHandle = editorRef.current;
+    if (!editorHandle) {
+      return;
+    }
+    const selected = editorHandle.getSelectedText();
+    if (selected.trim()) {
+      editorHandle.insertText(formatSql(selected));
+      return;
+    }
+    editorHandle.replaceAll(formatSql(query));
+  };
+
   const exportCsv = () => {
     if (!result?.success) {
       return;
@@ -72,9 +90,15 @@ const DataStudioEditor = ({
   // consumed and does not also insert a newline. Runs the selection when there
   // is one, otherwise the whole query. "Mod" is Cmd on macOS / Ctrl elsewhere;
   // "Ctrl" is added so Ctrl+Enter works on macOS too.
+  // "Mod-f" shadows the browser's find bar while the editor has focus, which is
+  // the intent. "Ctrl-f" is deliberately not bound: on macOS it is CodeMirror's
+  // move-cursor-right. "Shift-Alt-f" is the editor-conventional alias, and the
+  // way out for anyone who wants their find bar back.
   const editorShortcuts = [
     { key: "Mod-Enter", run: runSelection },
     { key: "Ctrl-Enter", run: runSelection },
+    { key: "Mod-f", run: formatQuery },
+    { key: "Shift-Alt-f", run: formatQuery },
   ];
 
   return (
@@ -128,6 +152,17 @@ const DataStudioEditor = ({
                   ))}
                 </select>
               </label>
+              <button
+                onClick={formatQuery}
+                disabled={!query.trim()}
+                title={t("Format ({{shortcut}})", {
+                  shortcut: formatShortcutLabel,
+                })}
+                className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
+              >
+                <Bars3BottomLeftIcon className="h-4 w-4" />
+                {t("Format")}
+              </button>
               <button
                 onClick={exportCsv}
                 disabled={!canExport}

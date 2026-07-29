@@ -1,5 +1,6 @@
-import { render, waitFor } from "@testing-library/react";
-import CodeEditor from "./CodeEditor";
+import { act, render, waitFor } from "@testing-library/react";
+import { createRef } from "react";
+import CodeEditor, { CodeEditorHandle } from "./CodeEditor";
 
 // These tests exercise the real CodeMirror instance (not a textarea stub) so
 // that keyboard-shortcut wiring is verified against the editor that actually
@@ -85,5 +86,35 @@ describe("CodeEditor shortcuts", () => {
     dispatchKeyDown(content, { key: "Enter" });
 
     expect(run).not.toHaveBeenCalled();
+  });
+});
+
+describe("CodeEditor handle", () => {
+  it("replaces the document and reports the new text", async () => {
+    const onChange = jest.fn();
+    const ref = createRef<CodeEditorHandle>();
+    const { container } = render(
+      <CodeEditor ref={ref} lang="sql" value="select 1" onChange={onChange} />,
+    );
+    await getContentDOM(container);
+
+    act(() => ref.current?.replaceAll("SELECT\n  1"));
+
+    expect(onChange.mock.calls[0][0]).toEqual("SELECT\n  1");
+  });
+
+  it("keeps the replacement undoable", async () => {
+    const ref = createRef<CodeEditorHandle>();
+    const { container } = render(
+      <CodeEditor ref={ref} lang="sql" value="select 1" />,
+    );
+    const content = await getContentDOM(container);
+
+    act(() => ref.current?.replaceAll("SELECT\n  1"));
+    // Formatting must not be a one-way door: the pre-format text is still one
+    // undo away.
+    dispatchKeyDown(content, { key: "z", ctrlKey: true });
+
+    expect(content.textContent).toEqual("select 1");
   });
 });

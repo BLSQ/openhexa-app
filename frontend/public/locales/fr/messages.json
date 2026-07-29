@@ -395,6 +395,8 @@
   "Folder name": "Nom du dossier",
   "For notebooks and pipelines:": "Pour les notebooks et les pipelines :",
   "Forgot your password?": "Vous avez oublié votre mot de passe ?",
+  "Format": "Formater",
+  "Format ({{shortcut}})": "Formater ({{shortcut}})",
   "From CLI": "Depuis l'interface de ligne de commande",
   "From date": "A partir de la date",
   "From Notebook": "Du carnet de notes",
