@@ -23,7 +23,7 @@ import { useSavedQueryEditor } from "./useSavedQueryEditor";
 type DataStudioEditorProps = {
   workspaceSlug: string;
   savedQuery?: SavedQuery_SavedQueryFragment | null;
-  canCreate?: boolean;
+  canCreate: boolean;
 };
 
 const MAX_ROWS_OPTIONS = [50, 100, 500, 1000, 10_000];
@@ -31,7 +31,7 @@ const MAX_ROWS_OPTIONS = [50, 100, 500, 1000, 10_000];
 const DataStudioEditor = ({
   workspaceSlug,
   savedQuery,
-  canCreate = false,
+  canCreate,
 }: DataStudioEditorProps) => {
   const { t } = useTranslation();
   const isMac = useIsMac();

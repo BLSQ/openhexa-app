@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { useSavedQueryMutations } from "workspaces/features/SavedQueries/useSavedQueryMutations";
 import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
+import { hasSavePath } from "./savePath";
 
 type DialogState = { mode: "create" | "edit-details" } | null;
 
@@ -12,7 +13,9 @@ type UseSavedQueryEditorArgs = {
   workspaceSlug: string;
   content: string;
   initialSavedQuery?: SavedQuery_SavedQueryFragment | null;
-  canCreate?: boolean;
+  // Required rather than defaulted: a caller that forgets it would silently lose
+  // the navigation guard along with the Save control.
+  canCreate: boolean;
 };
 
 // Owns the write-path state machine for the SQL editor: whether the current
@@ -23,7 +26,7 @@ export const useSavedQueryEditor = ({
   workspaceSlug,
   content,
   initialSavedQuery,
-  canCreate = false,
+  canCreate,
 }: UseSavedQueryEditorArgs) => {
   const { t } = useTranslation();
   const [savedQuery, setSavedQuery] =
@@ -41,10 +44,14 @@ export const useSavedQueryEditor = ({
   // warning about it would mean prompting on the way out of an editor the user
   // may simply have been experimenting in.
   //
-  // Edits nobody can keep are not guarded either: a viewer who can neither update
-  // this query nor save a copy has no Save control at all (see SaveQueryButton),
-  // so warning them about losing changes only states the inevitable.
-  const canPersist = canUpdate || canCreate;
+  // Edits nobody can keep are not guarded either: warning about changes that no
+  // enabled Save control could have written only states the inevitable.
+  const canPersist = hasSavePath({
+    isSaved: Boolean(savedQuery),
+    hasContent: Boolean(content.trim()),
+    canUpdate,
+    canCreate,
+  });
   const { navigateWithoutWarning } = useNavigationWarning({
     enabled: Boolean(savedQuery) && isDirty && canPersist,
     message: savedQuery

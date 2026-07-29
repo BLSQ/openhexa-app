@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import mockRouter from "next-router-mock";
 import useNavigationWarning, {
+  NavigationAbortedError,
   NavigationWarningProps,
 } from "../useNavigationWarning";
 
@@ -17,9 +18,18 @@ const renderWarning = (props: NavigationWarningProps) =>
 // back/forward path: next-router-mock stubs the method out, so the test drives
 // the registered callback itself.
 type PopStateCallback = (state: { as: string }) => boolean;
-const spyOnPopState = () => {
-  const spy = jest.spyOn(mockRouter, "beforePopState");
-  return () => (spy.mock.calls[0] as unknown as [PopStateCallback])[0];
+const spyOnPopState = () => jest.spyOn(mockRouter, "beforePopState");
+const registeredPopState = (spy: ReturnType<typeof spyOnPopState>) => {
+  // Latest rather than first: the hook re-registers whenever the guard is
+  // rearmed, and hands back a pass-through on unmount.
+  const lastCall = spy.mock.calls.at(-1) as unknown as [PopStateCallback];
+  return lastCall[0];
+};
+
+const dispatchUnload = () => {
+  const event = new Event("beforeunload", { cancelable: true });
+  window.dispatchEvent(event);
+  return event.defaultPrevented;
 };
 
 beforeEach(() => {
@@ -40,8 +50,8 @@ describe("useNavigationWarning", () => {
     confirm.mockReturnValue(false);
     renderWarning({ enabled: true });
 
-    await expect(mockRouter.push("/other")).rejects.toBe(
-      "Route change aborted",
+    await expect(mockRouter.push("/other")).rejects.toBeInstanceOf(
+      NavigationAbortedError,
     );
 
     expect(confirm).toHaveBeenCalledWith(DEFAULT_MESSAGE);
@@ -89,44 +99,75 @@ describe("useNavigationWarning", () => {
     expect(mockRouter.asPath).toBe("/other");
   });
 
-  it("subscribes once and still sees the latest state", async () => {
+  it("does not resubscribe on renders that change nothing", async () => {
     const on = jest.spyOn(mockRouter.events, "on");
     confirm.mockReturnValue(false);
-    const { rerender } = renderWarning({ enabled: false });
+    const { rerender } = renderWarning({ enabled: true });
 
-    rerender({ enabled: false });
+    // Stands in for the editor re-rendering on every keystroke of a dirty buffer:
+    // `enabled` holds the same value, so the listeners have to stay put.
+    rerender({ enabled: true });
     rerender({ enabled: true });
 
     expect(
       on.mock.calls.filter(([event]) => event === "routeChangeStart"),
     ).toHaveLength(1);
-    await expect(mockRouter.push("/other")).rejects.toBe(
-      "Route change aborted",
+    await expect(mockRouter.push("/other")).rejects.toBeInstanceOf(
+      NavigationAbortedError,
+    );
+  });
+
+  it("registers nothing at all while disabled", () => {
+    const popState = spyOnPopState();
+    const addEventListener = jest.spyOn(window, "addEventListener");
+    const { rerender } = renderWarning({ enabled: false });
+
+    expect(popState).not.toHaveBeenCalled();
+    expect(addEventListener).not.toHaveBeenCalledWith(
+      "beforeunload",
+      expect.any(Function),
+    );
+
+    rerender({ enabled: true });
+
+    expect(popState).toHaveBeenCalled();
+    expect(addEventListener).toHaveBeenCalledWith(
+      "beforeunload",
+      expect.any(Function),
     );
   });
 
   it("warns before the page is unloaded", () => {
     const { rerender } = renderWarning({ enabled: false });
 
-    const unload = () => {
-      const event = new Event("beforeunload", { cancelable: true });
-      window.dispatchEvent(event);
-      return event.defaultPrevented;
-    };
-
-    expect(unload()).toBe(false);
+    expect(dispatchUnload()).toBe(false);
     rerender({ enabled: true });
-    expect(unload()).toBe(true);
+    expect(dispatchUnload()).toBe(true);
+  });
+
+  it("stops guarding every route once unmounted", async () => {
+    confirm.mockReturnValue(false);
+    const popState = spyOnPopState();
+    const { unmount } = renderWarning({ enabled: true });
+
+    unmount();
+
+    await act(() => mockRouter.push("/other"));
+    expect(confirm).not.toHaveBeenCalled();
+    expect(mockRouter.asPath).toBe("/other");
+
+    expect(dispatchUnload()).toBe(false);
+    expect(registeredPopState(popState)({ as: "/elsewhere" })).toBe(true);
   });
 
   it("restores the address bar when a back/forward is cancelled", () => {
     const historyState = { __N: true, as: "/current" };
     window.history.pushState(historyState, "", "/current");
     confirm.mockReturnValue(false);
-    const popStateCallback = spyOnPopState();
+    const popState = spyOnPopState();
     renderWarning({ enabled: true });
 
-    expect(popStateCallback()({ as: "/other" })).toBe(false);
+    expect(registeredPopState(popState)({ as: "/other" })).toBe(false);
 
     expect(window.location.pathname).toBe("/current");
     expect(window.history.state).toEqual(historyState);
@@ -134,17 +175,9 @@ describe("useNavigationWarning", () => {
 
   it("allows a back/forward the user confirms", () => {
     confirm.mockReturnValue(true);
-    const popStateCallback = spyOnPopState();
+    const popState = spyOnPopState();
     renderWarning({ enabled: true });
 
-    expect(popStateCallback()({ as: "/other" })).toBe(true);
-  });
-
-  it("allows a back/forward while disabled", () => {
-    const popStateCallback = spyOnPopState();
-    renderWarning({ enabled: false });
-
-    expect(popStateCallback()({ as: "/other" })).toBe(true);
-    expect(confirm).not.toHaveBeenCalled();
+    expect(registeredPopState(popState)({ as: "/other" })).toBe(true);
   });
 });

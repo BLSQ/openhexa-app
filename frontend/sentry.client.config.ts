@@ -32,6 +32,10 @@ Sentry.init({
   debug: false,
 
   ignoreErrors: [
+    // A user declining the unsaved-changes prompt (see useNavigationWarning).
+    // Next emits routeChangeStart outside its own try/catch, so the only way to
+    // abort a route change leaves the router's promise rejected and unhandled.
+    "Route change aborted by the unsaved changes guard",
     // Random plugins/extensions
     "top.GLOBALS",
     // See: http://blog.errorception.com/2012/03/tale-of-unfindable-js-error.html

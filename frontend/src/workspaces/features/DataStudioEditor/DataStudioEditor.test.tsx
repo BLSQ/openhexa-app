@@ -129,7 +129,8 @@ const successState = (overrides: Record<string, unknown> = {}) => ({
   },
 });
 
-const renderEditor = () => render(<DataStudioEditor workspaceSlug="ws-1" />);
+const renderEditor = () =>
+  render(<DataStudioEditor workspaceSlug="ws-1" canCreate={false} />);
 
 beforeEach(() => {
   mockExecute.mockClear();

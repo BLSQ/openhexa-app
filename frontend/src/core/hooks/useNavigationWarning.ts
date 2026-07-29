@@ -2,36 +2,21 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useRef } from "react";
 
+// Next emits `routeChangeStart` outside its own try/catch, so aborting from a
+// listener always surfaces as an unhandled rejection on the promise returned by
+// `router.push`. That is expected rather than a fault, and is filtered out in
+// sentry.client.config.ts by this message.
+export class NavigationAbortedError extends Error {
+  constructor() {
+    super("Route change aborted by the unsaved changes guard");
+    this.name = "NavigationAbortedError";
+  }
+}
+
 export interface NavigationWarningProps {
   enabled: boolean;
   message?: string;
 }
-
-// Everything the listeners read. They subscribe once per route, so they cannot
-// read props or state directly: `enabled` flips on every keystroke of an edited
-// buffer, and re-subscribing on each one would be wasteful. They read this
-// mutable record instead, which is refreshed in place on every render.
-type GuardState = {
-  enabled: boolean;
-  message: string;
-  path: string;
-  // Set while the app navigates on its own behalf (see navigateWithoutWarning),
-  // and while the guarded page is being left for a page that replaces it.
-  bypassed: boolean;
-  // History entry of the guarded page, replayed to restore the address bar when
-  // the user cancels a back/forward: the browser has already moved it by then.
-  historyEntry: History["state"];
-};
-
-// Deliberately outside the hook: at module scope these cannot reach a prop or a
-// state value even by accident, which is what keeps them safe to call from
-// listeners that were memoized on the first render. Inside the hook, one edit
-// reading `enabled` directly would freeze the guard on its first-render value —
-// silently, since this repo turns `react-hooks/exhaustive-deps` off.
-const isGuarded = (state: GuardState) => state.enabled && !state.bypassed;
-
-const userConfirmedLeave = (state: GuardState) =>
-  window.confirm(state.message);
 
 /**
  * Warns the user before leaving the page while `enabled` is true, covering
@@ -53,79 +38,68 @@ export default function useNavigationWarning({
   const router = useRouter();
   const { t } = useTranslation();
 
-  const defaultMessage = t("You have unsaved changes. Leave anyway?");
+  const path = router.asPath;
+  const warning = message || t("You have unsaved changes. Leave anyway?");
 
-  const state = useRef<GuardState>({
-    enabled,
-    message: message || defaultMessage,
-    path: router.asPath,
-    bypassed: false,
-    historyEntry: null,
-  }).current;
+  // Driven by events rather than by rendering, so neither can be a plain value:
+  // `bypassed` is flipped around a navigation the app performs itself, and
+  // `historyEntry` is read off the browser as it moves.
+  const bypassed = useRef(false);
+  const historyEntry = useRef<History["state"]>(null);
 
-  // Field by field: `bypassed` and `historyEntry` are driven by events rather
-  // than by rendering, so replacing the whole record here would clobber them.
   useEffect(() => {
-    state.enabled = enabled;
-    state.message = message || defaultMessage;
-    state.path = router.asPath;
-  });
+    // Nothing is registered while there is nothing to lose. A `beforeunload`
+    // listener alone makes the page ineligible for the browser's back/forward
+    // cache in some browsers, which would cost every visitor a slower Back.
+    if (!enabled) {
+      return;
+    }
 
-  const onWindowClose = useCallback(
-    (event: BeforeUnloadEvent) => {
-      if (!isGuarded(state)) {
+    const captureHistoryEntry = () => {
+      historyEntry.current = window.history.state;
+    };
+    captureHistoryEntry();
+
+    const onWindowClose = (event: BeforeUnloadEvent) => {
+      if (bypassed.current) {
         return;
       }
       event.preventDefault();
       // Ignored by current browsers, which show their own wording, but still the
       // trigger for older ones.
-      event.returnValue = state.message;
-    },
-    [state],
-  );
+      event.returnValue = warning;
+    };
 
-  const onNavigation = useCallback(
-    (url: string, { shallow }: { shallow: boolean }) => {
+    const onNavigation = (url: string, { shallow }: { shallow: boolean }) => {
       // A shallow navigation only rewrites the URL: the page stays mounted and
       // the buffer with it, so there is nothing to warn about.
-      if (shallow || !isGuarded(state) || url === state.path) {
+      if (bypassed.current || shallow || url === path) {
         return;
       }
-      if (userConfirmedLeave(state)) {
+      if (window.confirm(warning)) {
         return;
       }
-      router.events.emit("routeChangeError", state.message, url, { shallow });
+      router.events.emit("routeChangeError", warning, url, { shallow });
       // The pages router has no cancel API: throwing out of the
       // routeChangeStart handler is the only way to abort the transition.
-      throw "Route change aborted";
-    },
-    [router.events, state],
-  );
-
-  // `beforePopState` receives the popped history entry. Returning false makes
-  // Next skip the route change, which is what keeps the current page rendered;
-  // routeChangeStart never fires, so the abort above cannot cover this path.
-  const onPopState = useCallback(
-    ({ as }: { as: string }) => {
-      if (!isGuarded(state) || as === state.path) {
-        return true;
-      }
-      if (userConfirmedLeave(state)) {
-        return true;
-      }
-      if (state.historyEntry) {
-        window.history.pushState(state.historyEntry, "", state.path);
-      }
-      return false;
-    },
-    [state],
-  );
-
-  useEffect(() => {
-    const captureHistoryEntry = () => {
-      state.historyEntry = window.history.state;
+      throw new NavigationAbortedError();
     };
-    captureHistoryEntry();
+
+    // `beforePopState` receives the popped history entry. Returning false makes
+    // Next skip the route change, which is what keeps the current page rendered;
+    // routeChangeStart never fires, so the abort above cannot cover this path.
+    const onPopState = ({ as }: { as: string }) => {
+      if (bypassed.current || as === path) {
+        return true;
+      }
+      if (window.confirm(warning)) {
+        return true;
+      }
+      // The browser has already moved, so put the guarded entry back to keep the
+      // address bar in step with what is still on screen.
+      window.history.pushState(historyEntry.current, "", path);
+      return false;
+    };
 
     window.addEventListener("beforeunload", onWindowClose);
     router.events.on("routeChangeStart", onNavigation);
@@ -137,19 +111,22 @@ export default function useNavigationWarning({
       router.events.off("routeChangeStart", onNavigation);
       router.events.off("routeChangeComplete", captureHistoryEntry);
       // The router holds a single popstate callback and offers no way to
-      // unregister it, so hand it back a pass-through on unmount.
+      // unregister it, so hand it back a pass-through.
       router.beforePopState(() => true);
     };
-  }, [onNavigation, onPopState, onWindowClose, router, state]);
+    // `react-hooks/exhaustive-deps` is off in this repo, so anything the
+    // listeners read out of a render has to be listed here by hand. Miss one and
+    // the guard silently keeps acting on the values it saw when it was armed.
+  }, [enabled, warning, path, router]);
 
   const navigateWithoutWarning = useCallback(
     (url: string) => {
-      state.bypassed = true;
+      bypassed.current = true;
       return router.push(url).finally(() => {
-        state.bypassed = false;
+        bypassed.current = false;
       });
     },
-    [router, state],
+    [router],
   );
 
   return { navigateWithoutWarning };
