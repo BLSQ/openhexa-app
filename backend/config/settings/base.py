@@ -645,13 +645,6 @@ OVERRIDE_WORKSPACES_DATABASE_HOST = os.environ.get(
 WORKSPACE_DATABASE_QUERY_MAX_ROWS = int(
     os.environ.get("WORKSPACE_DATABASE_QUERY_MAX_ROWS", "100000")
 )
-# Server-side cache TTL (seconds) for workspace database schema introspection
-# (table/column listing), e.g. used by the SQL editor's autocomplete. Schema
-# can also change via direct pipeline writes that bypass Django entirely, so
-# this TTL is the primary invalidation mechanism, not just a fallback.
-WORKSPACE_DATABASE_SCHEMA_CACHE_TTL = int(
-    os.environ.get("WORKSPACE_DATABASE_SCHEMA_CACHE_TTL", "60")
-)
 
 # Datasets config
 WORKSPACE_DATASETS_BUCKET = os.environ.get("WORKSPACE_DATASETS_BUCKET", "hexa-datasets")
