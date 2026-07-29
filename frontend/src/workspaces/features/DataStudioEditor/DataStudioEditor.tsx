@@ -9,6 +9,7 @@ import CodeEditor, {
   CodeEditorHandle,
 } from "core/components/CodeEditor/CodeEditor";
 import useIsMac from "core/hooks/useIsMac";
+import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
 import { useRef, useState } from "react";
 import SaveQueryDialog from "workspaces/features/SavedQueries/SaveQueryDialog";
@@ -36,14 +37,22 @@ const DataStudioEditor = ({
 }: DataStudioEditorProps) => {
   const { t } = useTranslation();
   const isMac = useIsMac();
-  const [query, setQuery] = useQueryBuffer({ workspaceSlug, savedQuery });
+  // The scratch draft is cached client-side, so it is scoped to its author.
+  const userId = useMe().user?.id;
+  const [query, setQuery] = useQueryBuffer({
+    userId,
+    workspaceSlug,
+    savedQuery,
+  });
   const [maxRows, setMaxRows] = useState(MAX_ROWS_OPTIONS[0]);
   const editorRef = useRef<CodeEditorHandle>(null);
 
   const editor = useSavedQueryEditor({
+    userId,
     workspaceSlug,
     content: query,
     initialSavedQuery: savedQuery,
+    canCreate,
   });
 
   const runShortcutLabel = isMac ? "⌘+Enter" : "Ctrl+Enter";

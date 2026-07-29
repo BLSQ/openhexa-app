@@ -26,13 +26,19 @@ const savedQuery = {
   permissions: { update: true, delete: true },
 } as any;
 
-const renderEditor = (content: string, initialSavedQuery: any = savedQuery) =>
+const renderEditor = (
+  content: string,
+  initialSavedQuery: any = savedQuery,
+  canCreate = true,
+) =>
   renderHook(
     (props: { content: string; initialSavedQuery: any }) =>
       useSavedQueryEditor({
+        userId: "user-1",
         workspaceSlug: "ws-1",
         content: props.content,
         initialSavedQuery: props.initialSavedQuery,
+        canCreate,
       }),
     { initialProps: { content, initialSavedQuery } },
   );
@@ -163,6 +169,32 @@ describe("useSavedQueryEditor", () => {
       expect(window.confirm).not.toHaveBeenCalled();
     });
 
+    it("does not warn a viewer, who has no way to keep the changes", async () => {
+      (window.confirm as jest.Mock).mockReturnValue(false);
+      const readOnly = {
+        ...savedQuery,
+        permissions: { update: false, delete: false },
+      };
+      renderEditor("SELECT 2", readOnly, false);
+
+      await act(() => leave());
+
+      expect(window.confirm).not.toHaveBeenCalled();
+      expect(mockRouter.asPath).toBe("/elsewhere");
+    });
+
+    it("warns a viewer who can still save the changes as a new query", async () => {
+      (window.confirm as jest.Mock).mockReturnValue(false);
+      const readOnly = {
+        ...savedQuery,
+        permissions: { update: false, delete: false },
+      };
+      renderEditor("SELECT 2", readOnly, true);
+
+      await expect(leave()).rejects.toBe("Route change aborted");
+      expect(window.confirm).toHaveBeenCalled();
+    });
+
     it("does not warn about the redirect that follows a save-as-new", async () => {
       (window.confirm as jest.Mock).mockReturnValue(false);
       const { result } = renderEditor("SELECT 2");
@@ -180,7 +212,7 @@ describe("useSavedQueryEditor", () => {
   });
 
   describe("scratch draft", () => {
-    const STORAGE_KEY = "data-studio.scratch.ws-1";
+    const STORAGE_KEY = "user-data.data-studio.scratch.user-1.ws-1";
 
     it("clears the draft once it becomes a saved query", async () => {
       window.localStorage.setItem(STORAGE_KEY, "SELECT 42");

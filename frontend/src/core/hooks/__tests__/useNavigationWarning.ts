@@ -58,6 +58,18 @@ describe("useNavigationWarning", () => {
     expect(mockRouter.asPath).toBe("/other");
   });
 
+  it("ignores a shallow navigation, which keeps the page mounted", async () => {
+    confirm.mockReturnValue(false);
+    renderWarning({ enabled: true });
+
+    await act(() =>
+      mockRouter.push("/current?tab=results", undefined, { shallow: true }),
+    );
+
+    expect(confirm).not.toHaveBeenCalled();
+    expect(mockRouter.asPath).toBe("/current?tab=results");
+  });
+
   it("ignores a navigation to the page it is already on", async () => {
     confirm.mockReturnValue(false);
     renderWarning({ enabled: true });

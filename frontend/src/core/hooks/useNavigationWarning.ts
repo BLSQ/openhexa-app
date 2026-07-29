@@ -61,7 +61,9 @@ export default function useNavigationWarning({
 
   const onNavigation = useCallback(
     (url: string, { shallow }: { shallow: boolean }) => {
-      if (!isGuarded() || url === pathRef.current) {
+      // A shallow navigation only rewrites the URL: the page stays mounted and
+      // the buffer with it, so there is nothing to warn about.
+      if (shallow || !isGuarded() || url === pathRef.current) {
         return;
       }
       if (userConfirmedLeave()) {

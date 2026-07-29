@@ -10,9 +10,11 @@ import { clearScratch } from "./dataStudioScratch";
 type DialogState = { mode: "create" | "edit-details" } | null;
 
 type UseSavedQueryEditorArgs = {
+  userId?: string;
   workspaceSlug: string;
   content: string;
   initialSavedQuery?: SavedQuery_SavedQueryFragment | null;
+  canCreate?: boolean;
 };
 
 // Owns the write-path state machine for the SQL editor: whether the current
@@ -20,9 +22,11 @@ type UseSavedQueryEditorArgs = {
 // save / save-as-new / edit-details actions plus the dialog they drive. Kept
 // separate from run/export orchestration so each concern stays testable.
 export const useSavedQueryEditor = ({
+  userId,
   workspaceSlug,
   content,
   initialSavedQuery,
+  canCreate = false,
 }: UseSavedQueryEditorArgs) => {
   const { t } = useTranslation();
   const [savedQuery, setSavedQuery] =
@@ -37,8 +41,13 @@ export const useSavedQueryEditor = ({
 
   // Edits to an unsaved scratch buffer are not guarded: they survive navigation
   // on their own (see useQueryBuffer), so a prompt would be pure friction.
+  //
+  // Neither are edits nobody can keep: a viewer who can neither update this
+  // query nor save a copy has no Save control at all (see SaveQueryButton), so
+  // warning them about losing changes only states the inevitable.
+  const canPersist = canUpdate || canCreate;
   const { navigateWithoutWarning } = useNavigationWarning({
-    enabled: Boolean(savedQuery) && isDirty,
+    enabled: Boolean(savedQuery) && isDirty && canPersist,
     message: savedQuery
       ? t(
           'You have unsaved changes to "{{name}}". If you leave this page, they will be lost.',
@@ -88,15 +97,15 @@ export const useSavedQueryEditor = ({
       // The scratch draft has become a saved query, so it no longer needs to be
       // held. Save-as-new leaves it alone: the draft belongs to the unsaved
       // editor, not to the query being copied.
-      if (!savedQuery) {
-        clearScratch(workspaceSlug);
+      if (!savedQuery && userId) {
+        clearScratch({ userId, workspaceSlug });
       }
       // A new query was created (first save or save-as-new): open its page,
       // which remounts the editor against the freshly saved query. The buffer
       // still counts as dirty against the old baseline, hence the bypass.
       navigateWithoutWarning(dataStudioRoutes(workspaceSlug).query(sq.id));
     },
-    [dialog, savedQuery, navigateWithoutWarning, workspaceSlug],
+    [dialog, savedQuery, navigateWithoutWarning, userId, workspaceSlug],
   );
 
   return {

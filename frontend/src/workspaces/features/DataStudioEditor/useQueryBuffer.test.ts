@@ -1,12 +1,14 @@
 import { act, renderHook } from "@testing-library/react";
 import { useQueryBuffer } from "./useQueryBuffer";
 
-const STORAGE_KEY = "data-studio.scratch.ws-1";
+const STORAGE_KEY = "user-data.data-studio.scratch.user-1.ws-1";
 
 const storedDraft = () => window.localStorage.getItem(STORAGE_KEY);
 
 const renderBuffer = (savedQuery?: { content: string } | null) =>
-  renderHook(() => useQueryBuffer({ workspaceSlug: "ws-1", savedQuery }));
+  renderHook(() =>
+    useQueryBuffer({ userId: "user-1", workspaceSlug: "ws-1", savedQuery }),
+  );
 
 describe("useQueryBuffer", () => {
   it("starts empty when there is nothing to restore", () => {
@@ -21,6 +23,17 @@ describe("useQueryBuffer", () => {
     const { result } = renderBuffer();
 
     expect(result.current[0]).toBe("SELECT 1");
+  });
+
+  it("ignores a draft belonging to another user", () => {
+    window.localStorage.setItem(
+      "user-data.data-studio.scratch.user-2.ws-1",
+      "SELECT 1",
+    );
+
+    const { result } = renderBuffer();
+
+    expect(result.current[0]).toBe("");
   });
 
   it("leaves the draft alone until the user edits", () => {
