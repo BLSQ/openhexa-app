@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { readScratch, writeScratch } from "./dataStudioScratch";
+import { readScratch, sweepScratch, writeScratch } from "./dataStudioScratch";
 
 type UseQueryBufferArgs = {
   // Absent only if the session has no resolved user; the draft is then not
@@ -45,6 +45,9 @@ export const useQueryBuffer = ({
     if (!scope) {
       return;
     }
+    // Opening the editor is the natural moment to collect expired drafts: it is
+    // once per mount, and it is already the only time storage is read.
+    sweepScratch();
     const draft = readScratch(scope);
     if (draft) {
       setContent(draft);

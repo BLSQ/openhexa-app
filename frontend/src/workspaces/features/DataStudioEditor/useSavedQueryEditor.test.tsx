@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import mockRouter from "next-router-mock";
 import { toast } from "react-toastify";
+import { readScratch, writeScratch } from "./dataStudioScratch";
 import { useSavedQueryEditor } from "./useSavedQueryEditor";
 
 const updateMock = jest.fn();
@@ -212,10 +213,10 @@ describe("useSavedQueryEditor", () => {
   });
 
   describe("scratch draft", () => {
-    const STORAGE_KEY = "user-data.data-studio.scratch.user-1.ws-1";
+    const scope = { userId: "user-1", workspaceSlug: "ws-1" };
 
     it("clears the draft once it becomes a saved query", async () => {
-      window.localStorage.setItem(STORAGE_KEY, "SELECT 42");
+      writeScratch(scope, "SELECT 42");
       const { result } = renderEditor("SELECT 42", null);
 
       act(() => result.current.saveAsNew());
@@ -223,11 +224,11 @@ describe("useSavedQueryEditor", () => {
         result.current.onDialogSaved({ ...savedQuery, id: "new-1" });
       });
 
-      expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
+      expect(readScratch(scope)).toBe("");
     });
 
     it("keeps the draft when a copy of a saved query is created", async () => {
-      window.localStorage.setItem(STORAGE_KEY, "SELECT 42");
+      writeScratch(scope, "SELECT 42");
       const { result } = renderEditor("SELECT 2");
 
       act(() => result.current.saveAsNew());
@@ -235,7 +236,7 @@ describe("useSavedQueryEditor", () => {
         result.current.onDialogSaved({ ...savedQuery, id: "new-1" });
       });
 
-      expect(window.localStorage.getItem(STORAGE_KEY)).toBe("SELECT 42");
+      expect(readScratch(scope)).toBe("SELECT 42");
     });
   });
 });

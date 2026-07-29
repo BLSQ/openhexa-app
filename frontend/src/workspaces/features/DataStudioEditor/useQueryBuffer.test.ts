@@ -3,7 +3,18 @@ import { useQueryBuffer } from "./useQueryBuffer";
 
 const STORAGE_KEY = "user-data.data-studio.scratch.user-1.ws-1";
 
-const storedDraft = () => window.localStorage.getItem(STORAGE_KEY);
+// Drafts are stored with the timestamp their retention window is measured from,
+// so tests go through these rather than poking the raw value.
+const seedDraft = (content: string, key = STORAGE_KEY) =>
+  window.localStorage.setItem(
+    key,
+    JSON.stringify({ content, updatedAt: Date.now() }),
+  );
+
+const storedDraft = () => {
+  const raw = window.localStorage.getItem(STORAGE_KEY);
+  return raw === null ? null : JSON.parse(raw).content;
+};
 
 const renderBuffer = (savedQuery?: { content: string } | null) =>
   renderHook(() =>
@@ -29,7 +40,7 @@ describe("useQueryBuffer", () => {
   });
 
   it("restores the scratch draft of the workspace", () => {
-    window.localStorage.setItem(STORAGE_KEY, "SELECT 1");
+    seedDraft("SELECT 1");
 
     const { result } = renderBuffer();
 
@@ -37,10 +48,7 @@ describe("useQueryBuffer", () => {
   });
 
   it("ignores a draft belonging to another user", () => {
-    window.localStorage.setItem(
-      "user-data.data-studio.scratch.user-2.ws-1",
-      "SELECT 1",
-    );
+    seedDraft("SELECT 1", "user-data.data-studio.scratch.user-2.ws-1");
 
     const { result } = renderBuffer();
 
@@ -48,7 +56,7 @@ describe("useQueryBuffer", () => {
   });
 
   it("leaves the draft alone until the user edits", () => {
-    window.localStorage.setItem(STORAGE_KEY, "SELECT 1");
+    seedDraft("SELECT 1");
 
     renderBuffer();
     settle();
@@ -127,7 +135,7 @@ describe("useQueryBuffer", () => {
   });
 
   it("drops the draft when the user empties the editor", () => {
-    window.localStorage.setItem(STORAGE_KEY, "SELECT 1");
+    seedDraft("SELECT 1");
     const { result } = renderBuffer();
 
     act(() => result.current[1](""));
@@ -143,7 +151,7 @@ describe("useQueryBuffer", () => {
   });
 
   it("does not mirror the buffer of a saved query", () => {
-    window.localStorage.setItem(STORAGE_KEY, "SELECT 1");
+    seedDraft("SELECT 1");
     const { result } = renderBuffer({ content: "SELECT 3" });
 
     act(() => result.current[1]("SELECT 4"));
