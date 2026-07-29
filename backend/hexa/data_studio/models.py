@@ -56,6 +56,10 @@ class SavedQuery(Base):
                 fields=["workspace", "-updated_at"],
                 name="data_studio_ws_updated_idx",
             ),
+            models.Index(
+                fields=["workspace", "name"],
+                name="data_studio_ws_name_idx",
+            ),
         ]
 
     def __str__(self) -> str:

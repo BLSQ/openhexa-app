@@ -34,9 +34,19 @@ type SavedQueryPage {
   items: [SavedQuery!]!
 }
 
+"""
+Enum representing the possible orderings for saved queries.
+"""
+enum SavedQueryOrderBy {
+  NAME_ASC
+  NAME_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+}
+
 extend type Workspace {
   "The saved queries of the workspace."
-  savedQueries(query: String, page: Int = 1, perPage: Int = 15): SavedQueryPage!
+  savedQueries(query: String, page: Int = 1, perPage: Int = 15, orderBy: SavedQueryOrderBy): SavedQueryPage!
 }
 
 extend type WorkspacePermissions {
