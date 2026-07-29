@@ -26,7 +26,6 @@ saved_query_permissions = ObjectType("SavedQueryPermissions")
 data_studio_queries = QueryType()
 data_studio_mutations = MutationType()
 
-DEFAULT_SAVED_QUERY_ORDER_BY = "-updated_at"
 saved_query_order_by_enum = EnumType(
     "SavedQueryOrderBy",
     {
@@ -81,7 +80,7 @@ def resolve_workspace_saved_queries(workspace: Workspace, info, query=None, **kw
     # `id` breaks ties so paging stays deterministic: neither `name` nor
     # `updated_at` is unique, and rows sharing a sort key could otherwise be
     # dealt to two pages (or none) across successive requests.
-    qs = qs.order_by(kwargs.get("order_by") or DEFAULT_SAVED_QUERY_ORDER_BY, "id")
+    qs = qs.order_by(kwargs["order_by"], "id")
 
     return result_page(
         queryset=qs,

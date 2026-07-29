@@ -46,7 +46,7 @@ enum SavedQueryOrderBy {
 
 extend type Workspace {
   "The saved queries of the workspace."
-  savedQueries(query: String, page: Int = 1, perPage: Int = 15, orderBy: SavedQueryOrderBy): SavedQueryPage!
+  savedQueries(query: String, page: Int = 1, perPage: Int = 15, orderBy: SavedQueryOrderBy! = UPDATED_AT_DESC): SavedQueryPage!
 }
 
 extend type WorkspacePermissions {

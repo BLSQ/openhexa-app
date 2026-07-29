@@ -198,6 +198,15 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
 
     def _list(self, order_by=None, page=1, per_page=15):
         self.client.force_login(self.USER_EDITOR)
+        variables = {
+            "slug": str(self.WORKSPACE.slug),
+            "page": page,
+            "perPage": per_page,
+        }
+        # Left out rather than sent as null, so the schema default applies -- which is
+        # how a client that does not care about ordering actually calls this.
+        if order_by is not None:
+            variables["orderBy"] = order_by
         r = self.run_query(
             """
             query ($slug: String!, $orderBy: SavedQueryOrderBy, $page: Int, $perPage: Int) {
@@ -208,12 +217,7 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
                 }
             }
             """,
-            {
-                "slug": str(self.WORKSPACE.slug),
-                "orderBy": order_by,
-                "page": page,
-                "perPage": per_page,
-            },
+            variables,
         )
         return r["data"]["workspace"]["savedQueries"]["items"]
 

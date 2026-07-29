@@ -6789,7 +6789,7 @@ export type WorkspaceMembersArgs = {
 
 /** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type WorkspaceSavedQueriesArgs = {
-  orderBy?: InputMaybe<SavedQueryOrderBy>;
+  orderBy?: SavedQueryOrderBy;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;

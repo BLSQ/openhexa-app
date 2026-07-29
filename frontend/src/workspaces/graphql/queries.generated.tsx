@@ -94,7 +94,7 @@ export type WorkspaceSavedQueriesPageQueryVariables = Types.Exact<{
   query?: Types.InputMaybe<Types.Scalars['String']['input']>;
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  orderBy?: Types.InputMaybe<Types.SavedQueryOrderBy>;
+  orderBy: Types.SavedQueryOrderBy;
 }>;
 
 
@@ -607,7 +607,7 @@ export type WorkspaceDataStudioPageLazyQueryHookResult = ReturnType<typeof useWo
 export type WorkspaceDataStudioPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceDataStudioPageSuspenseQuery>;
 export type WorkspaceDataStudioPageQueryResult = Apollo.QueryResult<WorkspaceDataStudioPageQuery, WorkspaceDataStudioPageQueryVariables>;
 export const WorkspaceSavedQueriesPageDocument = gql`
-    query WorkspaceSavedQueriesPage($workspaceSlug: String!, $query: String, $page: Int, $perPage: Int, $orderBy: SavedQueryOrderBy) {
+    query WorkspaceSavedQueriesPage($workspaceSlug: String!, $query: String, $page: Int, $perPage: Int, $orderBy: SavedQueryOrderBy!) {
   workspace(slug: $workspaceSlug) {
     slug
     permissions {

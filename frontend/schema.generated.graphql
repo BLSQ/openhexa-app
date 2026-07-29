@@ -5943,7 +5943,7 @@ type Workspace {
   pipelineTemplateTags: [String!]!
 
   """The saved queries of the workspace."""
-  savedQueries(orderBy: SavedQueryOrderBy, page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
+  savedQueries(orderBy: SavedQueryOrderBy! = UPDATED_AT_DESC, page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
   shortcuts: [ShortcutItem!]!
   slug: String!
   updatedAt: DateTime

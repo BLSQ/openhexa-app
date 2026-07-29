@@ -92,7 +92,7 @@ query WorkspaceSavedQueriesPage(
   $query: String
   $page: Int
   $perPage: Int
-  $orderBy: SavedQueryOrderBy
+  $orderBy: SavedQueryOrderBy!
 ) {
   workspace(slug: $workspaceSlug) {
     slug
