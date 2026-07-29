@@ -10,7 +10,7 @@ import CodeEditor, {
 } from "core/components/CodeEditor/CodeEditor";
 import useIsMac from "core/hooks/useIsMac";
 import { useTranslation } from "next-i18next";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import SaveQueryDialog from "workspaces/features/SavedQueries/SaveQueryDialog";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { buildCsv, downloadCsv } from "./csv";
@@ -44,6 +44,13 @@ const DataStudioEditor = ({
     content: query,
     initialSavedQuery: savedQuery,
   });
+
+  // Stable so the memoised schema browser is not re-rendered by every keystroke
+  // in the editor. Goes through the imperative handle, so it needs no deps.
+  const insertIntoEditor = useCallback(
+    (text: string) => editorRef.current?.insertText(text),
+    [],
+  );
 
   const runShortcutLabel = isMac ? "⌘+Enter" : "Ctrl+Enter";
   // Compact form for the in-button pill: the return glyph reads cleanly next to
@@ -83,7 +90,7 @@ const DataStudioEditor = ({
         <DataStudioSchemaBrowser
           workspaceSlug={workspaceSlug}
           className="w-[240px] shrink-0 border-r border-gray-200"
-          onInsert={(text) => editorRef.current?.insertText(text)}
+          onInsert={insertIntoEditor}
         />
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Toolbar: controls right-aligned, Run at the far right. */}
