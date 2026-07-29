@@ -46,8 +46,6 @@ type CodeEditorProps = {
   className?: string;
   /** Table/column metadata for `lang="sql"` autocomplete (`sql()`'s `schema` option). */
   sqlSchema?: SQLNamespace;
-  /** Table assumed for bare column references when `lang="sql"`, e.g. in a single-table editor. */
-  sqlDefaultTable?: string;
 };
 
 export type CodeEditorHandle = {
@@ -73,7 +71,6 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
       shortcuts,
       className,
       sqlSchema,
-      sqlDefaultTable,
     } = props;
 
     const cmRef = useRef<ReactCodeMirrorRef>(null);
@@ -143,13 +140,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
             // `schema` plugs real table/column names into the same
             // `autocompletion()` popup (from @uiw/react-codemirror's default
             // basicSetup) and also resolves table aliases automatically.
-            return [
-              sql({
-                dialect: PostgreSQL,
-                schema: sqlSchema,
-                defaultTable: sqlDefaultTable,
-              }),
-            ];
+            return [sql({ dialect: PostgreSQL, schema: sqlSchema })];
           default:
             return [];
         }
@@ -162,7 +153,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
           ]
         : langExtension;
       return [...base, shortcutExtension];
-    }, [lang, embedded, shortcutExtension, sqlSchema, sqlDefaultTable]);
+    }, [lang, embedded, shortcutExtension, sqlSchema]);
 
     return (
       <div
