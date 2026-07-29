@@ -1,3 +1,4 @@
+import useNavigationWarning from "core/hooks/useNavigationWarning";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useCallback, useState } from "react";
@@ -34,6 +35,18 @@ export const useSavedQueryEditor = ({
 
   const canUpdate = savedQuery?.permissions.update ?? false;
   const isDirty = content !== baseline;
+
+  // Edits to an unsaved scratch buffer are not guarded: they survive navigation
+  // on their own (see useQueryBuffer), so a prompt would be pure friction.
+  const { navigateWithoutWarning } = useNavigationWarning({
+    enabled: Boolean(savedQuery) && isDirty,
+    message: savedQuery
+      ? t(
+          'You have unsaved changes to "{{name}}". If you leave this page, they will be lost.',
+          { name: savedQuery.name },
+        )
+      : undefined,
+  });
 
   // Primary Save: create a brand-new query (via the dialog), or update the
   // content of the loaded query in place.
