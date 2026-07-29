@@ -91,6 +91,21 @@ module.exports = withSentryConfig(module.exports, {
   // Automatically annotate React components to show their full name in breadcrumbs and session replay
   reactComponentAnnotation: {
     enabled: true,
+    // These Headless UI components render a Fragment by default. The annotation props injected here
+    // would then have nowhere to go and Headless UI throws "Passing props on Fragment!" at runtime.
+    // Aliases are listed too because the plugin matches on the JSX name as written in the source.
+    // More info: https://github.com/getsentry/sentry-javascript-bundler-plugins/issues/686
+    ignoredComponents: [
+      "Disclosure",
+      "Menu",
+      "Listbox",
+      "UIListbox",
+      "Combobox",
+      "UICombobox",
+      "Transition",
+      "TransitionChild",
+      "Portal",
+    ],
   },
 
   // Route browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers.

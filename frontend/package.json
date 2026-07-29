@@ -81,7 +81,7 @@
     "lodash": "^4.17.21",
     "luxon": "^3.5.0",
     "mixpanel-browser": "^2.79.0",
-    "next": "^15.0.1",
+    "next": "^15.5.22",
     "next-i18next": "^15.3.1",
     "nextjs-progressbar": "^0.0.16",
     "pluralize": "^8.0.0",
@@ -147,5 +147,5 @@
     "prettier-plugin-tailwindcss": "^0.6.10",
     "tailwindcss": "4.1.17"
   },
-  "version": "5.12.0"
+  "version": "5.13.2"
 }

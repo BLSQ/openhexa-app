@@ -38,6 +38,7 @@ query AccountPage {
       id
       email
       language
+      analyticsEnabled
       ...User_user
     }
   }
