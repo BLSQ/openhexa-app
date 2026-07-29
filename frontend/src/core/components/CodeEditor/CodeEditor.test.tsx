@@ -87,6 +87,82 @@ describe("CodeEditor shortcuts", () => {
 
     expect(run).not.toHaveBeenCalled();
   });
+
+  it("fires and consumes the shortcut on Ctrl/Cmd+F", async () => {
+    const run = jest.fn();
+    const { container } = render(
+      <CodeEditor
+        lang="sql"
+        value="SELECT 1"
+        shortcuts={[{ key: "Mod-f", run }]}
+      />,
+    );
+
+    const content = await getContentDOM(container);
+    const event = dispatchKeyDown(content, { key: "f", ctrlKey: true });
+
+    expect(run).toHaveBeenCalledTimes(1);
+    // Consuming the event is what keeps the browser's find bar closed.
+    expect(event.defaultPrevented).toBe(true);
+    // …and it must beat basicSetup's own Mod-f binding, not merely run beside
+    // it: the search panel stays shut.
+    expect(container.querySelector(".cm-search")).toBeNull();
+  });
+
+  it("fires the shortcut on Shift+Alt+F", async () => {
+    const run = jest.fn();
+    const { container } = render(
+      <CodeEditor
+        lang="sql"
+        value="SELECT 1"
+        shortcuts={[{ key: "Shift-Alt-f", run }]}
+      />,
+    );
+
+    const content = await getContentDOM(container);
+    dispatchKeyDown(content, {
+      key: "F",
+      altKey: true,
+      shiftKey: true,
+      keyCode: 70,
+    });
+
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("CodeEditor search panel", () => {
+  it("moves search to Mod-Shift-f when a shortcut claims Mod-f", async () => {
+    const { container } = render(
+      <CodeEditor
+        lang="sql"
+        value="SELECT 1"
+        shortcuts={[{ key: "Mod-f", run: jest.fn() }]}
+      />,
+    );
+
+    const content = await getContentDOM(container);
+    // A real Ctrl+Shift+F reports the shifted character and a keyCode; without
+    // both, CodeMirror resolves the event to "Ctrl-f" and never reaches the
+    // Shift binding.
+    dispatchKeyDown(content, {
+      key: "F",
+      ctrlKey: true,
+      shiftKey: true,
+      keyCode: 70,
+    });
+
+    expect(container.querySelector(".cm-search")).not.toBeNull();
+  });
+
+  it("leaves search on its native Mod-f when nothing claims the key", async () => {
+    const { container } = render(<CodeEditor lang="sql" value="SELECT 1" />);
+
+    const content = await getContentDOM(container);
+    dispatchKeyDown(content, { key: "f", ctrlKey: true });
+
+    expect(container.querySelector(".cm-search")).not.toBeNull();
+  });
 });
 
 describe("CodeEditor handle", () => {

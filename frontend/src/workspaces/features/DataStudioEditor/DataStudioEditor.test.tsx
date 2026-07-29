@@ -59,6 +59,8 @@ jest.mock("./DataStudioResults", () => ({
 }));
 
 const mockInsertText = jest.fn();
+const mockShortcuts: { current: { key: string }[] } = { current: [] };
+const shortcutKeys = () => mockShortcuts.current.map((s) => s.key);
 
 // A lightweight stand-in for the CodeMirror editor: a controlled textarea whose
 // imperative handle mirrors the real one (insertText + selection-aware
@@ -69,6 +71,7 @@ jest.mock("core/components/CodeEditor/CodeEditor", () => {
     __esModule: true,
     default: React.forwardRef(function CodeEditorMock(props: any, ref: any) {
       const innerRef = React.useRef(null);
+      mockShortcuts.current = props.shortcuts ?? [];
       React.useImperativeHandle(ref, () => ({
         insertText: mockInsertText,
         getSelectedText: () => {
@@ -81,25 +84,16 @@ jest.mock("core/components/CodeEditor/CodeEditor", () => {
         replaceAll: (text: string) => props.onChange?.(text),
       }));
       // Mirror CodeMirror's keymap: a matching shortcut runs its handler and
-      // consumes the event (preventDefault), so the keystroke's default action
-      // — a newline, or the browser find bar — does not also happen.
+      // consumes the event (preventDefault), so no newline is inserted. Only
+      // the Enter bindings are simulated — the format shortcuts are covered
+      // against the real editor in CodeEditor.test.tsx, where the binding has
+      // to win against CodeMirror's own keymap to pass.
       const onKeyDown = (event: any) => {
-        const keys = (() => {
-          if (event.metaKey || event.ctrlKey) {
-            if (event.key === "Enter") {
-              return ["Mod-Enter", "Ctrl-Enter", "Cmd-Enter"];
-            }
-            if (event.key === "f") {
-              return ["Mod-f"];
-            }
-          }
-          if (event.altKey && event.shiftKey && event.key === "f") {
-            return ["Shift-Alt-f"];
-          }
-          return [];
-        })();
+        if (event.key !== "Enter" || !(event.metaKey || event.ctrlKey)) {
+          return;
+        }
         const shortcut = (props.shortcuts ?? []).find((s: { key: string }) =>
-          keys.includes(s.key),
+          ["Mod-Enter", "Ctrl-Enter", "Cmd-Enter"].includes(s.key),
         );
         if (shortcut) {
           event.preventDefault();
@@ -357,38 +351,27 @@ describe("DataStudioEditor", () => {
     expect(editor).toHaveValue(FORMATTED);
   });
 
-  it("formats on Ctrl/Cmd+F and suppresses the browser find bar", async () => {
-    renderEditor();
-    const editor = screen.getByTestId("editor");
-    await userEvent.type(editor, "select id from patients");
-
-    const notPrevented = fireEvent.keyDown(editor, { key: "f", ctrlKey: true });
-
-    expect(editor).toHaveValue(FORMATTED);
-    expect(notPrevented).toBe(false);
-  });
-
-  it("formats on Shift+Alt+F", async () => {
-    renderEditor();
-    const editor = screen.getByTestId("editor");
-    await userEvent.type(editor, "select id from patients");
-
-    fireEvent.keyDown(editor, { key: "f", altKey: true, shiftKey: true });
-
-    expect(editor).toHaveValue(FORMATTED);
-  });
-
-  it("formats only the selected statement when there is a selection", async () => {
+  it("formats the whole query even when part of it is selected", async () => {
     renderEditor();
     const editor = screen.getByTestId("editor") as HTMLTextAreaElement;
-    await userEvent.type(editor, "SELECT 1; select id from patients");
-    editor.setSelectionRange(10, 33);
+    await userEvent.type(editor, "select id from patients");
+    editor.setSelectionRange(7, 9);
 
     await userEvent.click(screen.getByRole("button", { name: "Format" }));
 
-    // Written back over the selection, leaving the untouched statement alone.
-    expect(mockInsertText).toHaveBeenCalledWith(FORMATTED);
-    expect(editor).toHaveValue("SELECT 1; select id from patients");
+    // A selection must not narrow the scope: formatting a fragment produces
+    // left-aligned multi-line text that would corrupt the surrounding line.
+    expect(editor).toHaveValue(FORMATTED);
+    expect(mockInsertText).not.toHaveBeenCalled();
+  });
+
+  it("registers the format shortcuts on the editor", () => {
+    renderEditor();
+    // The bindings themselves are exercised against real CodeMirror in
+    // CodeEditor.test.tsx; this only pins the keys this editor asks for.
+    expect(shortcutKeys()).toEqual(
+      expect.arrayContaining(["Mod-f", "Shift-Alt-f"]),
+    );
   });
 
   it("disables Format while the query is empty", async () => {

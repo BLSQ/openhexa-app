@@ -63,19 +63,12 @@ const DataStudioEditor = ({
     run(selected.trim() || query, maxRows);
   };
 
-  // Formats the selection when there is one — same rule as Run — so a single
-  // statement can be tidied without reflowing the rest of the editor.
+  // Always the whole query, never the selection — unlike Run, where a bad
+  // fragment fails loudly at the database, the formatter reflows fragments
+  // happily ("id, name" becomes two left-aligned lines) and would splice that
+  // back into the middle of a line.
   const formatQuery = () => {
-    const editorHandle = editorRef.current;
-    if (!editorHandle) {
-      return;
-    }
-    const selected = editorHandle.getSelectedText();
-    if (selected.trim()) {
-      editorHandle.insertText(formatSql(selected));
-      return;
-    }
-    editorHandle.replaceAll(formatSql(query));
+    editorRef.current?.replaceAll(formatSql(query));
   };
 
   const exportCsv = () => {
@@ -91,9 +84,10 @@ const DataStudioEditor = ({
   // is one, otherwise the whole query. "Mod" is Cmd on macOS / Ctrl elsewhere;
   // "Ctrl" is added so Ctrl+Enter works on macOS too.
   // "Mod-f" shadows the browser's find bar while the editor has focus, which is
-  // the intent. "Ctrl-f" is deliberately not bound: on macOS it is CodeMirror's
-  // move-cursor-right. "Shift-Alt-f" is the editor-conventional alias, and the
-  // way out for anyone who wants their find bar back.
+  // the intent; CodeEditor moves its own search panel to Mod-Shift-f in
+  // response, so in-editor find survives. "Ctrl-f" is deliberately not bound:
+  // on macOS it is CodeMirror's move-cursor-right. "Shift-Alt-f" is the
+  // editor-conventional alias for formatting.
   const editorShortcuts = [
     { key: "Mod-Enter", run: runSelection },
     { key: "Ctrl-Enter", run: runSelection },
