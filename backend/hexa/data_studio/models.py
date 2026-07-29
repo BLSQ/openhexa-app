@@ -52,12 +52,15 @@ class SavedQuery(Base):
     class Meta:
         ordering = ["-updated_at"]
         indexes = [
+            # `id` mirrors the tiebreaker the listing resolver appends: without it
+            # Postgres can only presort on the leading column and still has to run an
+            # incremental sort on top of the index scan.
             models.Index(
-                fields=["workspace", "-updated_at"],
+                fields=["workspace", "-updated_at", "id"],
                 name="data_studio_ws_updated_idx",
             ),
             models.Index(
-                fields=["workspace", "name"],
+                fields=["workspace", "name", "id"],
                 name="data_studio_ws_name_idx",
             ),
         ]
