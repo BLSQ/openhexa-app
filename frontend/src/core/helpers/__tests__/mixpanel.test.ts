@@ -182,9 +182,10 @@ describe("isSensitiveRoute", () => {
   it.each([
     "/login",
     "/register",
-    "/forgot-password",
-    "/account",
-    "/account/security",
+    "/signup",
+    "/auth/password_reset",
+    "/auth/reset/MQ/abc123-def456",
+    "/user/account",
     "/workspaces/abc/pipelines/xyz/code",
     "/workspaces/abc/notebooks",
     "/workspaces/abc/notebooks/foo",
@@ -272,7 +273,7 @@ describe("applyReplayGate", () => {
   });
 
   it("stops recording on sensitive route even for a new user", () => {
-    applyReplayGate(newUser(), "/account");
+    applyReplayGate(newUser(), "/user/account");
     expect(mixpanel.stop_session_recording).toHaveBeenCalledTimes(1);
     expect(mixpanel.start_session_recording).not.toHaveBeenCalled();
   });
