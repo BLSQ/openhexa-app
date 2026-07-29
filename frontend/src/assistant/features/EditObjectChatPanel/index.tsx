@@ -5,7 +5,7 @@ import { useTranslation } from "next-i18next";
 import { useCreateAssistantConversationMutation } from "assistant/graphql/mutations.generated";
 import { AssistantConversationMessagesQuery } from "assistant/graphql/queries.generated";
 import { LinkedObjectType } from "graphql/types";
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Time from "core/components/Time/Time";
 
@@ -47,6 +47,8 @@ type Props = {
   onNewConversation: () => void;
   onConversationCreated: (conversation: AssistantConversation) => void;
   onConversationNameChange: (id: string, name: string) => void;
+  flush?: boolean;
+  onClose?: () => void;
 };
 
 export default function EditObjectChatPanel({
@@ -62,6 +64,8 @@ export default function EditObjectChatPanel({
   onNewConversation,
   onConversationCreated,
   onConversationNameChange,
+  flush = false,
+  onClose,
 }: Props) {
   const { t } = useTranslation();
   const [conversationName, setConversationName] = useState<string | null>(null);
@@ -163,7 +167,12 @@ export default function EditObjectChatPanel({
   );
 
   return (
-    <div className="flex flex-col h-full border rounded-lg overflow-hidden bg-white">
+    <div
+      className={clsx(
+        "flex flex-col h-full min-h-0 overflow-hidden bg-white",
+        flush ? "border-l border-gray-200" : "border rounded-lg",
+      )}
+    >
       <div className="shrink-0 border-b border-gray-200 px-4 py-3 flex items-start justify-between">
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-medium text-gray-700">AI Assistant</h3>
@@ -197,6 +206,15 @@ export default function EditObjectChatPanel({
           >
             <PlusIcon className="h-4 w-4" />
           </button>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+              title={t("Hide AI assistant")}
+            >
+              <XMarkIcon className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 

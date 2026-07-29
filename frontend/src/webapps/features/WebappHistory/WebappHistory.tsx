@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { CodeBracketIcon } from "@heroicons/react/24/outline";
 import { useTranslation } from "next-i18next";
 import { DateTime } from "luxon";
@@ -18,9 +24,16 @@ const PER_PAGE = 20;
 type WebappHistoryProps = {
   workspaceSlug: string;
   webappSlug: string;
+  onSelectCommit?: (commitId: string) => void;
+  onBrowseCommit?: (commitId: string) => void;
 };
 
-const WebappHistory = ({ workspaceSlug, webappSlug }: WebappHistoryProps) => {
+const WebappHistory = ({
+  workspaceSlug,
+  webappSlug,
+  onSelectCommit,
+  onBrowseCommit,
+}: WebappHistoryProps) => {
   const { t } = useTranslation();
   const [extraVersions, setExtraVersions] = useState<
     WebappVersion_VersionFragment[]
@@ -54,8 +67,10 @@ const WebappHistory = ({ workspaceSlug, webappSlug }: WebappHistoryProps) => {
   );
 
   const groupedByDate = useMemo(() => {
-    const groups: { date: string; versions: WebappVersion_VersionFragment[] }[] =
-      [];
+    const groups: {
+      date: string;
+      versions: WebappVersion_VersionFragment[];
+    }[] = [];
     const map = new Map<string, WebappVersion_VersionFragment[]>();
 
     for (const version of allVersions) {
@@ -77,14 +92,17 @@ const WebappHistory = ({ workspaceSlug, webappSlug }: WebappHistoryProps) => {
     setLoadingMore(true);
     const nextPage = pageRef.current + 1;
     pageRef.current = nextPage;
-    refetch({ workspaceSlug, webappSlug, page: nextPage, perPage: PER_PAGE }).then(
-      ({ data: d }) => {
-        const items = d?.webapp?.versions?.items ?? [];
-        setExtraVersions((prev) => [...prev, ...items]);
-        setHasMore(items.length >= PER_PAGE);
-        setLoadingMore(false);
-      },
-    );
+    refetch({
+      workspaceSlug,
+      webappSlug,
+      page: nextPage,
+      perPage: PER_PAGE,
+    }).then(({ data: d }) => {
+      const items = d?.webapp?.versions?.items ?? [];
+      setExtraVersions((prev) => [...prev, ...items]);
+      setHasMore(items.length >= PER_PAGE);
+      setLoadingMore(false);
+    });
   }, [hasMore, loadingMore, refetch, workspaceSlug, webappSlug]);
 
   if (loading) {
@@ -131,12 +149,21 @@ const WebappHistory = ({ workspaceSlug, webappSlug }: WebappHistoryProps) => {
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <Link
-                        href={`/workspaces/${encodeURIComponent(workspaceSlug)}/webapps/${encodeURIComponent(webappSlug)}/commits/${version.id}`}
-                        className="truncate text-sm font-medium text-gray-900 hover:underline"
-                      >
-                        {version.message}
-                      </Link>
+                      {onSelectCommit ? (
+                        <button
+                          onClick={() => onSelectCommit(version.id)}
+                          className="truncate text-left text-sm font-medium text-gray-900 hover:underline"
+                        >
+                          {version.message}
+                        </button>
+                      ) : (
+                        <Link
+                          href={`/workspaces/${encodeURIComponent(workspaceSlug)}/webapps/${encodeURIComponent(webappSlug)}/commits/${version.id}`}
+                          className="truncate text-sm font-medium text-gray-900 hover:underline"
+                        >
+                          {version.message}
+                        </Link>
+                      )}
                       {isPublished && (
                         <Badge className="shrink-0 bg-green-50 text-green-700 ring-green-600/20">
                           {t("Published")}
@@ -150,15 +177,25 @@ const WebappHistory = ({ workspaceSlug, webappSlug }: WebappHistoryProps) => {
                   <div className="flex shrink-0 items-center gap-2">
                     <Tooltip
                       label={t("Browse at this point")}
-                      renderTrigger={(ref) => (
-                        <Link
-                          ref={ref as React.Ref<HTMLAnchorElement>}
-                          href={`/workspaces/${encodeURIComponent(workspaceSlug)}/webapps/${encodeURIComponent(webappSlug)}/code?ref=${version.id}`}
-                          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                        >
-                          <CodeBracketIcon className="h-4 w-4" />
-                        </Link>
-                      )}
+                      renderTrigger={(ref) =>
+                        onBrowseCommit ? (
+                          <button
+                            ref={ref as React.Ref<HTMLButtonElement>}
+                            onClick={() => onBrowseCommit(version.id)}
+                            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                          >
+                            <CodeBracketIcon className="h-4 w-4" />
+                          </button>
+                        ) : (
+                          <Link
+                            ref={ref as React.Ref<HTMLAnchorElement>}
+                            href={`/workspaces/${encodeURIComponent(workspaceSlug)}/webapps/${encodeURIComponent(webappSlug)}/code?ref=${version.id}`}
+                            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                          >
+                            <CodeBracketIcon className="h-4 w-4" />
+                          </Link>
+                        )
+                      }
                     />
                     <Clipboard value={version.id}>
                       <code className="rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-600">

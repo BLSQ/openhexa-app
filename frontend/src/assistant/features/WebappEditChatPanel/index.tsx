@@ -22,6 +22,8 @@ type Props = {
   onNewConversation: () => void;
   onConversationCreated: (conversation: WebappConversation) => void;
   onConversationNameChange: (id: string, name: string) => void;
+  flush?: boolean;
+  onClose?: () => void;
 };
 
 export default function WebappEditChatPanel({

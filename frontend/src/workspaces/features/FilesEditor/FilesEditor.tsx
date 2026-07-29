@@ -17,6 +17,7 @@ interface FilesEditorProps {
   proposedFiles?: ProposedFile[];
   proposedDeletedPaths?: string[];
   headerActions?: ReactNode;
+  flush?: boolean;
   onSave?: (
     modifiedFiles: Map<string, string>,
     allFiles: FilesEditor_FileFragment[],
@@ -32,6 +33,7 @@ export const FilesEditor = ({
   proposedFiles,
   proposedDeletedPaths,
   headerActions,
+  flush = false,
   onSave,
 }: FilesEditorProps) => {
   const {
@@ -63,7 +65,13 @@ export const FilesEditor = ({
   });
 
   return (
-    <div className="relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[60vh] h-full max-w-full">
+    <div
+      className={
+        flush
+          ? "relative flex overflow-hidden h-full min-h-0 max-w-full"
+          : "relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[60vh] h-full max-w-full"
+      }
+    >
       {isPanelOpen && (
         <FileTree
           name={name}

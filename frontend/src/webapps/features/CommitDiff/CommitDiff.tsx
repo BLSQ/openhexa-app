@@ -11,9 +11,15 @@ type CommitDiffProps = {
   workspaceSlug: string;
   webappSlug: string;
   commitId: string;
+  onBrowse?: (commitId: string) => void;
 };
 
-const CommitDiff = ({ workspaceSlug, webappSlug, commitId }: CommitDiffProps) => {
+const CommitDiff = ({
+  workspaceSlug,
+  webappSlug,
+  commitId,
+  onBrowse,
+}: CommitDiffProps) => {
   const { t } = useTranslation();
 
   const { data, loading } = useWebappCommitDiffQuery({
@@ -36,7 +42,13 @@ const CommitDiff = ({ workspaceSlug, webappSlug, commitId }: CommitDiffProps) =>
   const isPublished = publishedVersionId === commitId;
 
   const diffHtml = diff?.rawDiff
-    ? DOMPurify.sanitize(html(diff.rawDiff, { drawFileList: true, matching: "lines", outputFormat: "line-by-line" }))
+    ? DOMPurify.sanitize(
+        html(diff.rawDiff, {
+          drawFileList: true,
+          matching: "lines",
+          outputFormat: "line-by-line",
+        }),
+      )
     : null;
 
   return (
@@ -57,18 +69,29 @@ const CommitDiff = ({ workspaceSlug, webappSlug, commitId }: CommitDiffProps) =>
               </div>
               <div className="mt-1 text-xs text-gray-500">
                 {diff.authorName} &middot;{" "}
-                {DateTime.fromISO(diff.date).toLocaleString(DateTime.DATETIME_MED)}
+                {DateTime.fromISO(diff.date).toLocaleString(
+                  DateTime.DATETIME_MED,
+                )}
               </div>
               <div className="mt-1 font-mono text-xs text-gray-400">
                 {commitId.substring(0, 7)}
               </div>
             </div>
-            <Link
-              href={`/workspaces/${encodeURIComponent(workspaceSlug)}/webapps/${encodeURIComponent(webappSlug)}/code?ref=${commitId}`}
-              className="shrink-0 rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-xs hover:bg-gray-50"
-            >
-              {t("Browse at this point")}
-            </Link>
+            {onBrowse ? (
+              <button
+                onClick={() => onBrowse(commitId)}
+                className="shrink-0 rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-xs hover:bg-gray-50"
+              >
+                {t("Browse at this point")}
+              </button>
+            ) : (
+              <Link
+                href={`/workspaces/${encodeURIComponent(workspaceSlug)}/webapps/${encodeURIComponent(webappSlug)}/code?ref=${commitId}`}
+                className="shrink-0 rounded border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-xs hover:bg-gray-50"
+              >
+                {t("Browse at this point")}
+              </Link>
+            )}
           </div>
         </div>
       )}

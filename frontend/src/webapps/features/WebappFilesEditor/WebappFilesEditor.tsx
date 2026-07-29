@@ -22,6 +22,7 @@ type WebappFilesEditorProps = {
   repositoryUrl?: string | null;
   proposedFiles?: { path: string; content: string }[];
   proposedDeletedPaths?: string[];
+  flush?: boolean;
   onSaveSuccess?: () => void;
   onBusyChange?: (busy: boolean) => void;
 };
@@ -36,6 +37,7 @@ const WebappFilesEditor = ({
   repositoryUrl,
   proposedFiles,
   proposedDeletedPaths,
+  flush = false,
   onSaveSuccess,
   onBusyChange,
 }: WebappFilesEditorProps) => {
@@ -246,6 +248,7 @@ const WebappFilesEditor = ({
           }))}
           proposedDeletedPaths={proposedDeletedPaths}
           headerActions={uploadActions}
+          flush={flush}
           onSave={handleSave}
         />
       </div>
