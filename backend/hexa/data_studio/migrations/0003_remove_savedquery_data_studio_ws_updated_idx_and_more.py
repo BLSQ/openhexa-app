@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("data_studio", "0002_querylog"),
         ("workspaces", "0061_grant_select_on_covid_data_to_ro_role"),
