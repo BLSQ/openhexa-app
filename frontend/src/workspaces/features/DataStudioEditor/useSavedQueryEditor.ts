@@ -5,12 +5,10 @@ import { toast } from "react-toastify";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { useSavedQueryMutations } from "workspaces/features/SavedQueries/useSavedQueryMutations";
 import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
-import { clearScratch } from "./dataStudioScratch";
 
 type DialogState = { mode: "create" | "edit-details" } | null;
 
 type UseSavedQueryEditorArgs = {
-  userId?: string;
   workspaceSlug: string;
   content: string;
   initialSavedQuery?: SavedQuery_SavedQueryFragment | null;
@@ -22,7 +20,6 @@ type UseSavedQueryEditorArgs = {
 // save / save-as-new / edit-details actions plus the dialog they drive. Kept
 // separate from run/export orchestration so each concern stays testable.
 export const useSavedQueryEditor = ({
-  userId,
   workspaceSlug,
   content,
   initialSavedQuery,
@@ -39,12 +36,14 @@ export const useSavedQueryEditor = ({
   const canUpdate = savedQuery?.permissions.update ?? false;
   const isDirty = content !== baseline;
 
-  // Edits to an unsaved scratch buffer are not guarded: they survive navigation
-  // on their own (see useQueryBuffer), so a prompt would be pure friction.
+  // Only a loaded saved query is guarded. A buffer that was never saved has no
+  // stored version to diverge from, so there is no "unsaved change" to describe;
+  // warning about it would mean prompting on the way out of an editor the user
+  // may simply have been experimenting in.
   //
-  // Neither are edits nobody can keep: a viewer who can neither update this
-  // query nor save a copy has no Save control at all (see SaveQueryButton), so
-  // warning them about losing changes only states the inevitable.
+  // Edits nobody can keep are not guarded either: a viewer who can neither update
+  // this query nor save a copy has no Save control at all (see SaveQueryButton),
+  // so warning them about losing changes only states the inevitable.
   const canPersist = canUpdate || canCreate;
   const { navigateWithoutWarning } = useNavigationWarning({
     enabled: Boolean(savedQuery) && isDirty && canPersist,
@@ -94,18 +93,12 @@ export const useSavedQueryEditor = ({
         setSavedQuery(sq);
         return;
       }
-      // The scratch draft has become a saved query, so it no longer needs to be
-      // held. Save-as-new leaves it alone: the draft belongs to the unsaved
-      // editor, not to the query being copied.
-      if (!savedQuery && userId) {
-        clearScratch({ userId, workspaceSlug });
-      }
       // A new query was created (first save or save-as-new): open its page,
       // which remounts the editor against the freshly saved query. The buffer
       // still counts as dirty against the old baseline, hence the bypass.
       navigateWithoutWarning(dataStudioRoutes(workspaceSlug).query(sq.id));
     },
-    [dialog, savedQuery, navigateWithoutWarning, userId, workspaceSlug],
+    [dialog, navigateWithoutWarning, workspaceSlug],
   );
 
   return {

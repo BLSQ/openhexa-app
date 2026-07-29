@@ -13,13 +13,6 @@ jest.mock("./DataStudioEditor.generated", () => ({
   useExecuteWorkspaceSqlLazyQuery: () => [mockExecute, mockQueryState],
 }));
 
-// The editor scopes its scratch draft to the signed-in user; these tests render
-// it without a MeProvider, so stand one in.
-jest.mock("identity/hooks/useMe", () => ({
-  __esModule: true,
-  default: () => ({ user: { id: "user-1" } }),
-}));
-
 const mockEditDetails = jest.fn();
 let mockEditorState: any;
 

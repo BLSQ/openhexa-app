@@ -1,5 +1,4 @@
 import { getApolloClient } from "core/helpers/apollo";
-import { clearUserData } from "core/helpers/userStorage";
 import {
   DisableTwoFactorDocument,
   DisableTwoFactorMutation,
@@ -40,9 +39,6 @@ export async function logout() {
     redirect: "follow",
     headers: { "X-CSRFToken": csrfToken },
   }).then((response) => {
-    // Only once the session is actually gone: a failed logout must not cost the
-    // user the drafts they still have open.
-    clearUserData();
     return Router.replace(response.url);
   });
 }
