@@ -20,9 +20,8 @@ const SENSITIVE_ROUTE_PATTERNS: RegExp[] = [
   /^\/user\/account/,
   /^\/workspaces\/[^/]+\/pipelines\/[^/]+\/code/,
   /^\/workspaces\/[^/]+\/notebooks/,
-  // Connection forms hold credentials and secrets. Text masking and the
-  // data-mp-no-record markers on the fields already hide the values;
-  // excluding the route entirely is a third, coarser layer on top.
+  // Connection forms hold credentials and secrets. Every text node is already
+  // masked; excluding the route entirely is a second, coarser layer on top.
   /^\/workspaces\/[^/]+\/connections/,
 ];
 
@@ -71,7 +70,13 @@ export function initMixpanel(): void {
     // Mask all text and inputs by default; defense in depth on top of the
     // sensitive-route exclusions below.
     record_mask_text_selector: "*",
-    record_block_selector: "[data-mp-no-record]",
+    // Setting this key replaces the SDK default rather than extending it, so
+    // "img, video, audio" is repeated here.
+    // data-mp-no-record is an opt-out hook that nothing carries today. It is
+    // meant for sensitive elements on routes we still record, such as the
+    // revealed password in SecretField on /databases, which currently only
+    // record_mask_text_selector hides.
+    record_block_selector: "img, video, audio, [data-mp-no-record]",
     persistence: "localStorage",
     ignore_dnt: false,
   });
