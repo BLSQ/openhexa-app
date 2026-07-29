@@ -14,8 +14,10 @@ const SESSION_MARKER_KEY_PREFIX = "hexa_replay_session_counted";
 const SENSITIVE_ROUTE_PATTERNS: RegExp[] = [
   /^\/login/,
   /^\/register/,
-  /^\/forgot-password/,
-  /^\/account/,
+  /^\/signup/,
+  // Covers /auth/password_reset and /auth/reset/<uid>/<token>.
+  /^\/auth\//,
+  /^\/user\/account/,
   /^\/workspaces\/[^/]+\/pipelines\/[^/]+\/code/,
   /^\/workspaces\/[^/]+\/notebooks/,
   // Connection forms hold credentials and secrets. Text masking and the
