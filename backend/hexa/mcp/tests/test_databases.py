@@ -1,5 +1,3 @@
-from django.core.cache import cache
-
 from hexa.core.test import TestCase
 from hexa.databases.tests.helpers import seed_demo_table
 from hexa.mcp.tools.databases import get_db_schema, get_db_table_schema
@@ -36,13 +34,6 @@ class DatabaseToolsTestCase(TestCase):
             user=cls.USER_VIEWER,
             role=WorkspaceMembershipRole.VIEWER,
         )
-
-    def setUp(self):
-        # The schema cache (LocMemCache) is a process-global store that isn't
-        # rolled back with the per-test DB transaction, so tests that hit the
-        # same (workspace, page, per_page, with_columns, with_counts) key would
-        # otherwise silently read another test's cached result.
-        cache.clear()
 
 
 class GetDbSchemaTest(DatabaseToolsTestCase):

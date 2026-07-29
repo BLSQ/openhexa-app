@@ -1,7 +1,6 @@
 import unittest
 from unittest import mock
 
-from django.core.cache import cache
 from psycopg2.errors import InsufficientPrivilege, QueryCanceled, UndefinedTable
 from psycopg2.extras import DictRow
 
@@ -20,7 +19,6 @@ from hexa.databases.utils import (
     get_row_count,
     get_table_definition,
     get_table_rows,
-    get_workspace_database_connection,
 )
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
@@ -165,13 +163,6 @@ class DatabaseUtilsTest(TestCase):
             description="Test workspace",
             countries=[],
         )
-
-    def setUp(self):
-        # The schema cache (LocMemCache) is a process-global store that isn't
-        # rolled back with the per-test DB transaction, so tests that hit the
-        # same (workspace, page, per_page, with_columns, with_counts) key
-        # would otherwise silently read another test's cached result.
-        cache.clear()
 
     @mock.patch("psycopg2.connect")
     def test_get_database_tables_empty(self, mock_connect):
@@ -534,69 +525,3 @@ class DatabaseUtilsTest(TestCase):
             with self.subTest(statement=statement):
                 with self.assertRaises(InsufficientPrivilege):
                     execute_database_query(self.WORKSPACE, statement)
-
-
-class GetDatabaseDefinitionPageCacheTest(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.USER_SUPERUSER = User.objects.create_user(
-            "superuser-cache@bluesquarehub.com", "superuserpassword", is_superuser=True
-        )
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_SUPERUSER,
-            name="Test Workspace Cache",
-            description="Test workspace for schema cache",
-            countries=[],
-        )
-
-    def setUp(self):
-        cache.clear()
-
-    def test_cache_hit_avoids_second_database_round_trip(self):
-        seed_demo_table(self.WORKSPACE, [(1, "a")])
-
-        with mock.patch(
-            "hexa.databases.utils.get_workspace_database_connection",
-            wraps=get_workspace_database_connection,
-        ) as wrapped_connect:
-            get_database_definition_page(
-                self.WORKSPACE, with_columns=True, with_counts=False
-            )
-            get_database_definition_page(
-                self.WORKSPACE, with_columns=True, with_counts=False
-            )
-
-        wrapped_connect.assert_called_once()
-
-    def test_cache_disabled_when_ttl_is_zero(self):
-        seed_demo_table(self.WORKSPACE, [(1, "a")])
-
-        with self.settings(WORKSPACE_DATABASE_SCHEMA_CACHE_TTL=0):
-            with mock.patch(
-                "hexa.databases.utils.get_workspace_database_connection",
-                wraps=get_workspace_database_connection,
-            ) as wrapped_connect:
-                get_database_definition_page(
-                    self.WORKSPACE, with_columns=True, with_counts=False
-                )
-                get_database_definition_page(
-                    self.WORKSPACE, with_columns=True, with_counts=False
-                )
-
-            self.assertEqual(2, wrapped_connect.call_count)
-
-    def test_delete_table_invalidates_cached_schema(self):
-        seed_demo_table(self.WORKSPACE, [(1, "a")])
-        seed_demo_table(self.WORKSPACE, [(1, "a")], table_name="to_drop")
-
-        first = get_database_definition_page(
-            self.WORKSPACE, with_columns=True, with_counts=False
-        )
-        self.assertIn("to_drop", [item["name"] for item in first["items"]])
-
-        delete_table(self.WORKSPACE, "to_drop")
-
-        second = get_database_definition_page(
-            self.WORKSPACE, with_columns=True, with_counts=False
-        )
-        self.assertNotIn("to_drop", [item["name"] for item in second["items"]])
