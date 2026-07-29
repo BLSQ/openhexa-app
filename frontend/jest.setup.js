@@ -36,6 +36,11 @@ mockAnimationsApi();
 beforeEach(() => {
   // Set seed for faker
   faker.seed(1);
+  // Cleared before each test as well as after: React Testing Library unmounts
+  // components in its own afterEach, which runs after the one below, and an
+  // unmount can still write to storage (an editor flushing a draft). Clearing
+  // here keeps that from leaking into the next test.
+  window.localStorage.clear();
 });
 afterEach(() => {
   window.localStorage.clear();
