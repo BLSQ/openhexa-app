@@ -18,6 +18,7 @@ import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
 import SaveQueryButton from "./SaveQueryButton";
 import { useDataStudioQuery } from "./useDataStudioQuery";
+import { useQueryBuffer } from "./useQueryBuffer";
 import { useSavedQueryEditor } from "./useSavedQueryEditor";
 
 type DataStudioEditorProps = {
@@ -35,7 +36,7 @@ const DataStudioEditor = ({
 }: DataStudioEditorProps) => {
   const { t } = useTranslation();
   const isMac = useIsMac();
-  const [query, setQuery] = useState(savedQuery?.content ?? "");
+  const [query, setQuery] = useQueryBuffer({ workspaceSlug, savedQuery });
   const [maxRows, setMaxRows] = useState(MAX_ROWS_OPTIONS[0]);
   const editorRef = useRef<CodeEditorHandle>(null);
 

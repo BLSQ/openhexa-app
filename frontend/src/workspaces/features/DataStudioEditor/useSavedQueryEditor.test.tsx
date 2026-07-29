@@ -134,4 +134,76 @@ describe("useSavedQueryEditor", () => {
     act(() => result.current.closeDialog());
     expect(result.current.dialog).toBeNull();
   });
+
+  describe("navigation guard", () => {
+    const leave = () => mockRouter.push("/elsewhere");
+
+    it("warns before leaving a saved query with unsaved changes", async () => {
+      (window.confirm as jest.Mock).mockReturnValue(false);
+      renderEditor("SELECT 2");
+
+      await expect(leave()).rejects.toBe("Route change aborted");
+      expect(window.confirm).toHaveBeenCalled();
+      expect(mockRouter.asPath).toBe("/");
+    });
+
+    it("does not warn when the saved query is unchanged", async () => {
+      renderEditor("SELECT 1");
+
+      await act(() => leave());
+
+      expect(window.confirm).not.toHaveBeenCalled();
+    });
+
+    it("does not warn about the unsaved editor", async () => {
+      renderEditor("SELECT 42", null);
+
+      await act(() => leave());
+
+      expect(window.confirm).not.toHaveBeenCalled();
+    });
+
+    it("does not warn about the redirect that follows a save-as-new", async () => {
+      (window.confirm as jest.Mock).mockReturnValue(false);
+      const { result } = renderEditor("SELECT 2");
+
+      act(() => result.current.saveAsNew());
+      await act(async () => {
+        result.current.onDialogSaved({ ...savedQuery, id: "new-1" });
+      });
+
+      expect(window.confirm).not.toHaveBeenCalled();
+      expect(mockRouter.asPath).toBe(
+        "/workspaces/ws-1/data-studio/queries/new-1",
+      );
+    });
+  });
+
+  describe("scratch draft", () => {
+    const STORAGE_KEY = "data-studio.scratch.ws-1";
+
+    it("clears the draft once it becomes a saved query", async () => {
+      window.localStorage.setItem(STORAGE_KEY, "SELECT 42");
+      const { result } = renderEditor("SELECT 42", null);
+
+      act(() => result.current.saveAsNew());
+      await act(async () => {
+        result.current.onDialogSaved({ ...savedQuery, id: "new-1" });
+      });
+
+      expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
+    });
+
+    it("keeps the draft when a copy of a saved query is created", async () => {
+      window.localStorage.setItem(STORAGE_KEY, "SELECT 42");
+      const { result } = renderEditor("SELECT 2");
+
+      act(() => result.current.saveAsNew());
+      await act(async () => {
+        result.current.onDialogSaved({ ...savedQuery, id: "new-1" });
+      });
+
+      expect(window.localStorage.getItem(STORAGE_KEY)).toBe("SELECT 42");
+    });
+  });
 });

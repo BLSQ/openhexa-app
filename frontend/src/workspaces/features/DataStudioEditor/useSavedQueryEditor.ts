@@ -1,11 +1,11 @@
 import useNavigationWarning from "core/hooks/useNavigationWarning";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { useSavedQueryMutations } from "workspaces/features/SavedQueries/useSavedQueryMutations";
 import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
+import { clearScratch } from "./dataStudioScratch";
 
 type DialogState = { mode: "create" | "edit-details" } | null;
 
@@ -25,7 +25,6 @@ export const useSavedQueryEditor = ({
   initialSavedQuery,
 }: UseSavedQueryEditorArgs) => {
   const { t } = useTranslation();
-  const router = useRouter();
   const [savedQuery, setSavedQuery] =
     useState<SavedQuery_SavedQueryFragment | null>(initialSavedQuery ?? null);
   // Baseline the dirty check compares against; advances on each in-place save.
@@ -84,13 +83,20 @@ export const useSavedQueryEditor = ({
       if (dialog?.mode === "edit-details") {
         // Only metadata changed; the content baseline is untouched.
         setSavedQuery(sq);
-      } else {
-        // A new query was created (first save or save-as-new): open its page,
-        // which remounts the editor against the freshly saved query.
-        router.push(dataStudioRoutes(workspaceSlug).query(sq.id));
+        return;
       }
+      // The scratch draft has become a saved query, so it no longer needs to be
+      // held. Save-as-new leaves it alone: the draft belongs to the unsaved
+      // editor, not to the query being copied.
+      if (!savedQuery) {
+        clearScratch(workspaceSlug);
+      }
+      // A new query was created (first save or save-as-new): open its page,
+      // which remounts the editor against the freshly saved query. The buffer
+      // still counts as dirty against the old baseline, hence the bypass.
+      navigateWithoutWarning(dataStudioRoutes(workspaceSlug).query(sq.id));
     },
-    [dialog, router, workspaceSlug],
+    [dialog, savedQuery, navigateWithoutWarning, workspaceSlug],
   );
 
   return {
