@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { ComponentProps } from "react";
 import DataStudioEditor from "./DataStudioEditor";
 import { downloadQueryCsv } from "./downloadQueryCsv";
 
@@ -111,6 +112,33 @@ jest.mock("react-toastify", () => ({
   toast: { error: jest.fn() },
 }));
 
+// GenerateSqlBar pulls in the real Apollo `useCreateAssistantConversationMutation`
+// hook, which needs an ApolloProvider this file doesn't set up. Stubbed the same way
+// as DataStudioSchemaBrowser/DataStudioResults above, exposing just enough (the
+// `open` prop and a call to trigger onGenerated) to test DataStudioEditor's own wiring.
+jest.mock("./GenerateSqlBar", () => ({
+  __esModule: true,
+  default: ({
+    open,
+    form,
+  }: {
+    open: boolean;
+    onClose: () => void;
+    form: { handleSubmit: () => void };
+  }) =>
+    open ? (
+      <div data-testid="generate-bar">
+        <button onClick={form.handleSubmit}>trigger-generate</button>
+      </div>
+    ) : null,
+  useGenerateSqlForm: (
+    _workspaceSlug: string,
+    onGenerated: (sql: string) => void,
+  ) => ({
+    handleSubmit: () => onGenerated("SELECT 1"),
+  }),
+}));
+
 const successState = (overrides: Record<string, unknown> = {}) => ({
   loading: false,
   data: {
@@ -133,7 +161,9 @@ const successState = (overrides: Record<string, unknown> = {}) => ({
   },
 });
 
-const renderEditor = () => render(<DataStudioEditor workspaceSlug="ws-1" />);
+const renderEditor = (
+  props: Partial<ComponentProps<typeof DataStudioEditor>> = {},
+) => render(<DataStudioEditor workspaceSlug="ws-1" {...props} />);
 
 beforeEach(() => {
   mockExecute.mockClear();
@@ -347,5 +377,36 @@ describe("DataStudioEditor", () => {
 
     await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  });
+
+  it("hides the Generate button when AI is not enabled for the workspace", () => {
+    renderEditor();
+    expect(
+      screen.queryByRole("button", { name: "Generate" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens the generate bar from the toolbar when AI is enabled", async () => {
+    renderEditor({ aiEnabled: true });
+    expect(screen.queryByTestId("generate-bar")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Generate" }));
+
+    expect(screen.getByTestId("generate-bar")).toBeInTheDocument();
+  });
+
+  it("disables the Generate button once the AI budget is exhausted", () => {
+    renderEditor({ aiEnabled: true, aiBudgetLimitReached: true });
+    expect(screen.getByRole("button", { name: "Generate" })).toBeDisabled();
+  });
+
+  it("fills the editor with the generated query and closes the bar", async () => {
+    renderEditor({ aiEnabled: true });
+    await userEvent.click(screen.getByRole("button", { name: "Generate" }));
+
+    await userEvent.click(screen.getByText("trigger-generate"));
+
+    expect(screen.getByTestId("editor")).toHaveValue("SELECT 1");
+    expect(screen.queryByTestId("generate-bar")).not.toBeInTheDocument();
   });
 });

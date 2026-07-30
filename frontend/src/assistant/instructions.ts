@@ -3,4 +3,5 @@ export enum InstructionSet {
   CREATE_PIPELINE = "create_pipeline",
   EDIT_PIPELINE = "edit_pipeline",
   CREATE_WEBAPPS = "create_webapps",
+  GENERATE_SQL = "generate_sql",
 }
