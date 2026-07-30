@@ -107,7 +107,6 @@ def async_streaming_csv_response(
     header: typing.Sequence[typing.Any],
     row_batches: typing.AsyncIterator[typing.Iterable[typing.Sequence[typing.Any]]],
     filename: str,
-    with_bom: bool = True,
     on_finish: typing.Optional[typing.Callable[[], None]] = None,
 ) -> StreamingHttpResponse:
     """Stream ``header`` + ``row_batches`` as a downloadable CSV, batch by batch.
@@ -145,8 +144,7 @@ def async_streaming_csv_response(
 
     async def byte_chunks() -> typing.AsyncIterator[bytes]:
         try:
-            if with_bom:
-                yield UTF8_BOM.encode("utf-8")
+            yield UTF8_BOM.encode("utf-8")
             yield _csv_line(writer, header).encode("utf-8")
             async with aclosing(row_batches) as batches:
                 async for batch in batches:

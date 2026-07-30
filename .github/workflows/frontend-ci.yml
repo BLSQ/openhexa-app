@@ -5,18 +5,16 @@ on:
     paths:
       - 'frontend/**'
       - 'backend/**/schema.graphql'
-      # Shared fixtures read cross-tier by the frontend suite (csv.parity.test.ts /
-      # downloadQueryCsv.test.ts), so a change to them must re-run frontend CI too.
-      - 'backend/hexa/core/tests/fixtures/csv_cell_vectors.json'
+      # Read cross-tier by the frontend suite (downloadQueryCsv.test.ts), so a
+      # change to it must re-run frontend CI too.
       - 'backend/hexa/data_studio/tests/fixtures/download_contract.json'
   push:
     branches: [main]
     paths:
       - 'frontend/**'
       - 'backend/**/schema.graphql'
-      # Shared fixtures read cross-tier by the frontend suite (csv.parity.test.ts /
-      # downloadQueryCsv.test.ts), so a change to them must re-run frontend CI too.
-      - 'backend/hexa/core/tests/fixtures/csv_cell_vectors.json'
+      # Read cross-tier by the frontend suite (downloadQueryCsv.test.ts), so a
+      # change to it must re-run frontend CI too.
       - 'backend/hexa/data_studio/tests/fixtures/download_contract.json'
 
 env:
