@@ -523,6 +523,8 @@ export type AssistantTextSegment = {
 export enum AssistantToolName {
   CreatePipeline = 'create_pipeline',
   GetDataset = 'get_dataset',
+  GetDbSchema = 'get_db_schema',
+  GetDbTableSchema = 'get_db_table_schema',
   GetHelpOrDoc = 'get_help_or_doc',
   GetPipeline = 'get_pipeline',
   GetStaticWebappFile = 'get_static_webapp_file',
@@ -6534,6 +6536,8 @@ export type UploadPipelineResult = {
 /** The User type represents a user in the system. */
 export type User = {
   __typename?: 'User';
+  /** Whether the user has consented to product analytics tracking. */
+  analyticsEnabled: Scalars['Boolean']['output'];
   /** The avatar of the user. */
   avatar: Avatar;
   /** The date when the user joined the system. */

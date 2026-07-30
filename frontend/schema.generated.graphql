@@ -477,6 +477,8 @@ registry (`hexa.assistant.agents.all_agent_tool_names`) — a unit test enforces
 enum AssistantToolName {
   create_pipeline
   get_dataset
+  get_db_schema
+  get_db_table_schema
   get_help_or_doc
   get_pipeline
   get_static_webapp_file
@@ -5731,6 +5733,9 @@ type UploadPipelineResult {
 
 """The User type represents a user in the system."""
 type User {
+  """Whether the user has consented to product analytics tracking."""
+  analyticsEnabled: Boolean!
+
   """The avatar of the user."""
   avatar: Avatar!
 

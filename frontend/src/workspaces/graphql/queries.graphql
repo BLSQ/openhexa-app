@@ -83,7 +83,17 @@ query WorkspaceDataStudioPage($workspaceSlug: String!) {
     permissions {
       createSavedQuery
     }
+    organization {
+      id
+      aiSettings {
+        enabled
+      }
+      aiBudgetLimitReached
+    }
     ...WorkspaceLayout_workspace
+  }
+  me {
+    assistantMonthlyLimitExceeded
   }
 }
 

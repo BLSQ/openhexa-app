@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.13.2](https://github.com/BLSQ/openhexa-app/compare/5.13.1...5.13.2) (2026-07-28)
+
+
+### Bug Fixes
+
+* reactComponentAnnotation passes props to Fragment ([#1965](https://github.com/BLSQ/openhexa-app/issues/1965)) ([2cb8ca8](https://github.com/BLSQ/openhexa-app/commit/2cb8ca8365460eea8a74730fc991a0f152173420))
+
+## [5.13.1](https://github.com/BLSQ/openhexa-app/compare/5.13.0...5.13.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* Split QueryLog migration into separate file ([#1963](https://github.com/BLSQ/openhexa-app/issues/1963)) ([f1ddd10](https://github.com/BLSQ/openhexa-app/commit/f1ddd10c4ed999885efe12b0447b1ef8b69bbf76))
+
 ## [5.13.0](https://github.com/BLSQ/openhexa-app/compare/5.12.0...5.13.0) (2026-07-27)
 
 
