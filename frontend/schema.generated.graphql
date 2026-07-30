@@ -5738,6 +5738,9 @@ type UploadPipelineResult {
 
 """The User type represents a user in the system."""
 type User {
+  """Whether the user has consented to product analytics tracking."""
+  analyticsEnabled: Boolean!
+
   """The avatar of the user."""
   avatar: Avatar!
 

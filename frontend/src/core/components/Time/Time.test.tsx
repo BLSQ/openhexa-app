@@ -12,6 +12,20 @@ describe("Time", () => {
     expect(screen.getByText("2/20/2022, 10:11 AM")).toBeInTheDocument();
   });
 
+  it("treats a datetime without offset as UTC", async () => {
+    Settings.defaultLocale = "en";
+    const expected = DateTime.fromISO("2022-02-20T10:11:34Z")
+      .toLocal()
+      .toLocaleString(DateTime.DATETIME_SHORT_WITH_SECONDS);
+    render(
+      <Time
+        datetime="2022-02-20T10:11:34.123456"
+        format={DateTime.DATETIME_SHORT_WITH_SECONDS}
+      />,
+    );
+    expect(screen.getByText(expected)).toBeInTheDocument();
+  });
+
   it("renders relative time", async () => {
     const dt = DateTime.local(2022, 2, 20, 10, 11, 34);
     nowMock.mockReturnValue(dt.plus({ hours: 0, minutes: 10 }).toMillis());

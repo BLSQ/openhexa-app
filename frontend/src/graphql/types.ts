@@ -6540,6 +6540,8 @@ export type UploadPipelineResult = {
 /** The User type represents a user in the system. */
 export type User = {
   __typename?: 'User';
+  /** Whether the user has consented to product analytics tracking. */
+  analyticsEnabled: Scalars['Boolean']['output'];
   /** The avatar of the user. */
   avatar: Avatar;
   /** The date when the user joined the system. */

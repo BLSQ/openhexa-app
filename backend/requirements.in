@@ -74,10 +74,10 @@ openpyxl
 regex
 
 #toolbox
-openhexa-toolbox==2.11.0
+openhexa-toolbox==2.11.1
 
 #sdk
-openhexa-sdk==2.22.2
+openhexa-sdk==2.22.4
 
 # email templating
 mjml-python
@@ -89,7 +89,7 @@ azure-storage-blob
 azure-identity
 
 # AI assistant
-pydantic-ai-slim[anthropic]==1.107.0
+pydantic-ai-slim[anthropic]==1.107.1
 anthropic[vertex]
 logfire==4.30.0
 vcrpy

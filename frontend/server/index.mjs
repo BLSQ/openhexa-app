@@ -23,6 +23,7 @@ const API_PATHS = [
   "/mcp/",
   "/oauth/",
   "/.well-known/",
+  "/dashboard/", // django-sql-dashboard
 ];
 
 app.prepare().then(async () => {

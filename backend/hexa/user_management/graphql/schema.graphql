@@ -46,6 +46,11 @@ type User {
     The date of the user's last login.
     """
     lastLogin: DateTime
+
+    """
+    Whether the user has consented to product analytics tracking.
+    """
+    analyticsEnabled: Boolean!
 }
 
 """

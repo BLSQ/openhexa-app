@@ -831,3 +831,8 @@ if "OAUTH2_ALLOWED_REDIRECT_URI_HOSTS" in os.environ:
     OAUTH2_ALLOWED_REDIRECT_URI_HOSTS.update(
         os.environ["OAUTH2_ALLOWED_REDIRECT_URI_HOSTS"].split(",")
     )
+
+# django-sql-dashboard additional settings
+# https://django-sql-dashboard.datasette.io/en/stable/setup.html#additional-settings
+DASHBOARD_ROW_LIMIT = 1000  # default 100
+DASHBOARD_ENABLE_FULL_EXPORT = True  # default False
