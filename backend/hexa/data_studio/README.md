@@ -18,8 +18,10 @@ consequences worth knowing:
 - The permission both paths enforce is `databases.run_query` — whether a user may run SQL
   against a workspace database is a property of the database, not of the Data Studio.
 
-Note the CSV export deliberately writes **no** `QueryLog` entry today, unlike the
-interactive path. If auditing exports matters, that is the gap to close.
+Both paths go through `query_runner`, which is the only module that writes `QueryLog`:
+`run_and_log_database_query` for the interactive path, `stream_and_log_database_query` for
+the export, and `ensure_can_run_query` for the permission check they share (the export
+calls it separately so it can refuse a request before reserving a concurrency slot).
 
 The rest of this file is the design-decision home for the CSV export; the code carries
 short "why" comments that point here.
@@ -56,6 +58,35 @@ skips async streams: Django 5.2 gzips them one member per chunk, undecodable by 
 revisit on Django 6.0), so there is no gzip layer or Content-Length to flag a short body
 either. If it ever matters, the fix is to buffer the CSV to a temp spool first (real
 Content-Length and error status, at the cost of latency and disk) — deliberately not done.
+
+## Auditing the export
+
+Every export writes a `QueryLog` entry — these are the runs with no row cap, so they are the
+ones worth having on record. Two things work differently from the interactive path.
+
+**The entry is written twice.** A streamed export only knows its outcome (row count, duration,
+mid-stream failure) long after the response was accepted, and writing the entry that late
+would lose the trail exactly when it matters most: a worker killed mid-download. So
+`stream_and_log_database_query` writes it as soon as the query has run, at status `STREAMING`,
+and `QueryExportAudit` updates it to `SUCCESS`/`ERROR` when the stream ends. An entry left at
+`STREAMING` therefore means the end was never observed — a cancelled download, a dropped
+connection, a dead worker. A failed *first* write fails the request closed (as the interactive
+path does); a failed *final* update is only logged, since the bytes are already on the wire and
+the run is already on record.
+
+**The origin is server-set.** `DATA_STUDIO_EXPORT` is applied by the view rather than taken
+from a client-supplied argument, and is deliberately absent from the `ExecuteSQLOrigin` GraphQL
+enum (`schema` binds only the client-settable subset), so the value always means a real uncapped
+export. Beware that `duration_ms` here covers the whole export — which the client paces by
+consuming the stream — so it is not comparable to the interactive path's database time.
+
+Requests refused before any SQL reaches the database are logged too: `DENIED` (no permission)
+and `REJECTED` (multiple statements, or no free export slot — so a pool running out is visible
+in the log). Requests with nothing to audit are not: an unknown workspace, an empty statement.
+
+The frontend's other download path builds its CSV from rows an `executeSQL` already returned,
+so it re-runs nothing and stays audited as that `DATA_STUDIO` query; only the uncapped re-run
+appears as `DATA_STUDIO_EXPORT`.
 
 ## Bounding runaway work
 

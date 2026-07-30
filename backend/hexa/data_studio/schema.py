@@ -31,8 +31,19 @@ saved_query_permissions = ObjectType("SavedQueryPermissions")
 data_studio_queries = QueryType()
 data_studio_mutations = MutationType()
 
-# Bound to the model enum so the GraphQL contract and the stored values stay in sync
-execute_sql_origin_enum = EnumType("ExecuteSQLOrigin", QueryLog.Origin)
+# Only the origins a client may declare are bound to the GraphQL enum: the CSV export's
+# origin is set server-side (see views.download_query_csv), so it cannot be claimed on an
+# interactive query and means what it says in the audit log. Derived from the model enum
+# rather than hand-listed, so the two stay in sync — a new client-settable value missing
+# from schema.graphql fails loudly when the schema is built.
+execute_sql_origin_enum = EnumType(
+    "ExecuteSQLOrigin",
+    {
+        origin.name: origin
+        for origin in QueryLog.Origin
+        if origin != QueryLog.Origin.DATA_STUDIO_EXPORT
+    },
+)
 
 
 # executeSQL extends the databases app's Database type: the field belongs to the

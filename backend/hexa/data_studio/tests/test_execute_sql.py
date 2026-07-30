@@ -131,6 +131,34 @@ class ExecuteSqlTest(GraphQLTestCase):
         log = self._get_single_query_log()
         self.assertEqual(QueryLog.Origin.DATA_STUDIO, log.origin)
 
+    def test_execute_sql_refuses_the_csv_export_origin(self):
+        # The CSV export's origin is set server-side (views.download_query_csv) and is
+        # deliberately left out of the GraphQL enum, so a client cannot pass an
+        # interactive, row-capped query off as a full-result export in the audit log.
+        self.client.force_login(self.USER_SABRINA)
+
+        r = self.run_query(
+            """
+            query workspaceById($slug: String!, $query: String!, $origin: ExecuteSQLOrigin) {
+                workspace(slug: $slug) {
+                    database {
+                        executeSQL(query: $query, origin: $origin) {
+                            success
+                        }
+                    }
+                }
+            }
+            """,
+            {
+                "slug": str(self.WORKSPACE.slug),
+                "query": "SELECT 1",
+                "origin": QueryLog.Origin.DATA_STUDIO_EXPORT.value,
+            },
+        )
+
+        self.assertIn("errors", r)
+        self.assertEqual(0, QueryLog.objects.count())
+
     def test_log_executed_query_resolves_pipeline_run_user(self):
         # Service principals are not User instances; the audit entry must fall
         # back to the human who triggered the run.

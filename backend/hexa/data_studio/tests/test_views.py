@@ -10,6 +10,7 @@ from psycopg2.errors import QueryCanceled
 
 from hexa.core.csv import UTF8_BOM
 from hexa.core.test import TestCase
+from hexa.data_studio.models import QueryLog
 from hexa.databases.tests.helpers import seed_demo_table
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
@@ -202,7 +203,7 @@ class DownloadQueryCsvViewTest(TestCase):
             raise QueryCanceled("canceling statement due to statement timeout")
 
         with mock.patch(
-            "hexa.data_studio.views.stream_database_query",
+            "hexa.data_studio.query_runner.stream_database_query",
             return_value=(["id"], failing_rows()),
         ):
             response = self.client.post(
@@ -219,6 +220,58 @@ class DownloadQueryCsvViewTest(TestCase):
                 with self.assertRaises(QueryCanceled):
                     self._collect(response)
         self.assertTrue(any("aborted" in line for line in logs.output))
+
+    def test_download_records_the_export_in_the_audit_log(self):
+        self.client.force_login(self.USER_SABRINA)
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
+
+        response = self.client.post(self._url(), {"query": "SELECT id FROM demo"})
+
+        # The entry is written up front, before a single row has been consumed, so a
+        # download that never finishes (cancelled by the user, worker killed mid-stream)
+        # still leaves the run on record. It carries no outcome yet — that is what
+        # STREAMING means, and what a stale entry left at that status tells you.
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.STREAMING, log.status)
+        self.assertIsNone(log.row_count)
+
+        self._collect(response)
+
+        log.refresh_from_db()
+        self.assertEqual(QueryLog.Status.SUCCESS, log.status)
+        self.assertEqual(QueryLog.Origin.DATA_STUDIO_EXPORT, log.origin)
+        self.assertEqual(self.USER_SABRINA, log.user)
+        self.assertEqual(self.WORKSPACE, log.workspace)
+        self.assertEqual("SELECT id FROM demo", log.query)
+        self.assertEqual("workspace_database", log.target)
+        self.assertEqual(QueryLog.SQLSTATE_SUCCESS, log.result_code)
+        self.assertEqual(2, log.row_count)
+        # The whole point of this path: the result is never capped.
+        self.assertFalse(log.truncated)
+        self.assertIsNotNone(log.duration_ms)
+
+    def test_download_failing_mid_stream_records_the_partial_export(self):
+        self.client.force_login(self.USER_SABRINA)
+
+        def failing_rows():
+            yield [{"id": 1}]
+            raise QueryCanceled("canceling statement due to statement timeout")
+
+        with mock.patch(
+            "hexa.data_studio.query_runner.stream_database_query",
+            return_value=(["id"], failing_rows()),
+        ):
+            response = self.client.post(self._url(), {"query": "SELECT id FROM demo"})
+            with self.assertLogs("hexa.data_studio.views", level="WARNING"):
+                with self.assertRaises(QueryCanceled):
+                    self._collect(response)
+
+        # The 200 is already on the wire and cannot be retracted, so the audit entry is
+        # where the failure — and how much of the result got out — is recorded.
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.ERROR, log.status)
+        self.assertEqual(1, log.row_count)
+        self.assertIn("canceling statement", log.error_message)
 
     def test_download_ignores_the_interactive_row_cap(self):
         self.client.force_login(self.USER_SABRINA)
@@ -264,6 +317,11 @@ class DownloadQueryCsvViewTest(TestCase):
         with mock.patch("hexa.data_studio.views._EXPORT_SLOTS", exhausted):
             response = self.client.post(self._url(), {"query": "SELECT 1"})
         self.assertEqual(429, response.status_code)
+        # Logged too, so that a pool running out shows up in the audit log rather than
+        # only in the error of whoever happened to be turned away.
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.REJECTED, log.status)
+        self.assertIn("No export slot free", log.error_message)
 
     def test_download_releases_the_slot_after_a_successful_export(self):
         self.client.force_login(self.USER_SABRINA)
@@ -296,7 +354,7 @@ class DownloadQueryCsvViewTest(TestCase):
         with (
             mock.patch("hexa.data_studio.views._EXPORT_SLOTS", slots),
             mock.patch(
-                "hexa.data_studio.views.stream_database_query",
+                "hexa.data_studio.query_runner.stream_database_query",
                 return_value=(["id"], failing_rows()),
             ),
         ):
@@ -322,21 +380,33 @@ class DownloadQueryCsvViewTest(TestCase):
         with mock.patch("hexa.databases.permissions.run_query", return_value=False):
             response = self.client.post(self._url(), {"query": "SELECT 1"})
         self.assertEqual(403, response.status_code)
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.DENIED, log.status)
+        self.assertEqual(QueryLog.Origin.DATA_STUDIO_EXPORT, log.origin)
 
     def test_download_rejects_multiple_statements(self):
         self.client.force_login(self.USER_SABRINA)
         response = self.client.post(self._url(), {"query": "SELECT 1; SELECT 2"})
         self.assertEqual(400, response.status_code)
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.REJECTED, log.status)
+        self.assertIn("single SQL statement", log.error_message)
 
     def test_download_rejects_invalid_sql(self):
         self.client.force_login(self.USER_SABRINA)
         response = self.client.post(self._url(), {"query": "SELCT 1"})
         self.assertEqual(400, response.status_code)
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.ERROR, log.status)
+        # Syntax error, the SQLSTATE the interactive path records for the same query
+        self.assertEqual("42601", log.result_code)
 
     def test_download_requires_a_query(self):
         self.client.force_login(self.USER_SABRINA)
         response = self.client.post(self._url(), {"query": "   "})
         self.assertEqual(400, response.status_code)
+        # Nothing was submitted, so there is nothing to audit
+        self.assertEqual(0, QueryLog.objects.count())
 
     def test_download_rejects_get(self):
         self.client.force_login(self.USER_SABRINA)
@@ -347,6 +417,8 @@ class DownloadQueryCsvViewTest(TestCase):
         self.client.force_login(self.USER_OUTSIDER)
         response = self.client.post(self._url(), {"query": "SELECT 1"})
         self.assertEqual(404, response.status_code)
+        # A QueryLog entry belongs to a workspace, and this request never resolved one
+        self.assertEqual(0, QueryLog.objects.count())
 
     def test_download_requires_login(self):
         response = self.client.post(self._url(), {"query": "SELECT 1"})
