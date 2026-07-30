@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef } from "react";
 // Next emits `routeChangeStart` outside its own try/catch, so aborting from a
 // listener always surfaces as an unhandled rejection on the promise returned by
 // `router.push`. That is expected rather than a fault, and is filtered out in
-// sentry.client.config.ts by this message.
+// sentry.client.config.ts by the name below.
 export class NavigationAbortedError extends Error {
   constructor() {
     super("Route change aborted by the unsaved changes guard");

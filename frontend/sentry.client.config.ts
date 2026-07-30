@@ -35,7 +35,11 @@ Sentry.init({
     // A user declining the unsaved-changes prompt (see useNavigationWarning).
     // Next emits routeChangeStart outside its own try/catch, so the only way to
     // abort a route change leaves the router's promise rejected and unhandled.
-    "Route change aborted by the unsaved changes guard",
+    // Matched on the error name, which Sentry reports as the exception type: the
+    // message is prose that can be reworded, and the class itself is no good
+    // either since production builds mangle class names. A test in
+    // useNavigationWarning.test.ts pins the name to this entry.
+    "NavigationAbortedError",
     // Random plugins/extensions
     "top.GLOBALS",
     // See: http://blog.errorception.com/2012/03/tale-of-unfindable-js-error.html

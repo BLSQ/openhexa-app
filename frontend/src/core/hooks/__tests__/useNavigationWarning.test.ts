@@ -37,6 +37,14 @@ beforeEach(() => {
 });
 
 describe("useNavigationWarning", () => {
+  // Aborting leaves an unhandled rejection that only Sentry sees, so nothing
+  // else fails if this name drifts away from the `ignoreErrors` entry in
+  // sentry.client.config.ts -- every declined prompt would just start being
+  // reported as an error.
+  it("names the abort error after the Sentry ignoreErrors entry", () => {
+    expect(new NavigationAbortedError().name).toBe("NavigationAbortedError");
+  });
+
   it("lets navigation through when disabled", async () => {
     renderWarning({ enabled: false });
 
