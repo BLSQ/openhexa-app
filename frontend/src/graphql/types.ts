@@ -523,6 +523,8 @@ export type AssistantTextSegment = {
 export enum AssistantToolName {
   CreatePipeline = 'create_pipeline',
   GetDataset = 'get_dataset',
+  GetDbSchema = 'get_db_schema',
+  GetDbTableSchema = 'get_db_table_schema',
   GetHelpOrDoc = 'get_help_or_doc',
   GetPipeline = 'get_pipeline',
   GetStaticWebappFile = 'get_static_webapp_file',
@@ -5499,6 +5501,14 @@ export type SavedQuery = {
   workspace: Workspace;
 };
 
+/** Enum representing the possible orderings for saved queries. */
+export enum SavedQueryOrderBy {
+  NameAsc = 'NAME_ASC',
+  NameDesc = 'NAME_DESC',
+  UpdatedAtAsc = 'UPDATED_AT_ASC',
+  UpdatedAtDesc = 'UPDATED_AT_DESC'
+}
+
 /** A page of saved queries. */
 export type SavedQueryPage = {
   __typename?: 'SavedQueryPage';
@@ -6534,6 +6544,8 @@ export type UploadPipelineResult = {
 /** The User type represents a user in the system. */
 export type User = {
   __typename?: 'User';
+  /** Whether the user has consented to product analytics tracking. */
+  analyticsEnabled: Scalars['Boolean']['output'];
   /** The avatar of the user. */
   avatar: Avatar;
   /** The date when the user joined the system. */
@@ -6781,6 +6793,7 @@ export type WorkspaceMembersArgs = {
 
 /** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type WorkspaceSavedQueriesArgs = {
+  orderBy?: SavedQueryOrderBy;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;

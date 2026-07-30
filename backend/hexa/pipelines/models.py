@@ -3,7 +3,6 @@ import secrets
 import time
 import typing
 import uuid
-from datetime import datetime
 
 from croniter import croniter
 from django.apps import apps
@@ -932,7 +931,7 @@ class PipelineRun(Base, WithStatus):
             {
                 "priority": priority if priority else "INFO",
                 "message": message,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": timezone.now().isoformat(),
             }
         )
         self.save()
@@ -946,7 +945,7 @@ class PipelineRun(Base, WithStatus):
                 "uri": uri,
                 "name": name,
                 "type": output_type,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": timezone.now().isoformat(),
             }
         )
         self.save()

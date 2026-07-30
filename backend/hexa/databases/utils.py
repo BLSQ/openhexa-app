@@ -274,6 +274,35 @@ def run_and_log_database_query(
     return result
 
 
+# EXPLAIN only parses and plans the query (it never executes it), so this is a
+# generous ceiling that only guards against a pathological planning time.
+_VALIDATE_QUERY_TIMEOUT_MS = 5_000
+
+
+def validate_query(workspace: Workspace, query: str) -> None:
+    """Check a query against the database without executing it.
+
+    Runs ``EXPLAIN`` with the read-only role, which parses and plans the query,
+    catching syntax errors and references to unknown tables or columns at
+    near-zero cost. Raises ``MultipleStatementsError`` when more than one
+    statement is submitted and ``psycopg2.Error`` when the query is invalid.
+    """
+    ensure_single_statement(query)
+    conn = None
+    try:
+        conn = get_workspace_database_ro_connection(workspace)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("SET LOCAL statement_timeout = {timeout};").format(
+                    timeout=sql.Literal(_VALIDATE_QUERY_TIMEOUT_MS)
+                )
+            )
+            cursor.execute("EXPLAIN " + query)
+    finally:
+        if conn:
+            conn.close()
+
+
 def get_database_definition(workspace: Workspace):
     conn = None
     try:
@@ -423,6 +452,33 @@ def get_database_definition_page(
             "total_items": total_items,
             "items": items,
         }
+    finally:
+        if conn:
+            conn.close()
+
+
+def get_full_database_definition(workspace: Workspace) -> List[Dict]:
+    """Return every table with its columns, without row counts.
+
+    Used to inline the whole database schema into LLM agent instructions:
+    row counts would trigger a potentially expensive COUNT(*) per table on
+    every conversation turn, and the consumer needs all tables at once, so
+    pagination does not apply.
+    """
+    conn = None
+    try:
+        conn = get_workspace_database_connection(workspace)
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            # LIMIT NULL means "no limit" in PostgreSQL, which lets us reuse
+            # the paginated query to fetch the full listing.
+            params = {"ignore_tables": IGNORE_TABLES, "limit": None, "offset": 0}
+            tables = _fetch_tables_with_columns(cursor, workspace, params)
+        # The shared query also carries a reltuples-based ``count`` and the
+        # workspace, but only names and columns are inlined into the LLM schema,
+        # so keep just those (no COUNT(*) is ever run here).
+        return [
+            {"name": table["name"], "columns": table["columns"]} for table in tables
+        ]
     finally:
         if conn:
             conn.close()

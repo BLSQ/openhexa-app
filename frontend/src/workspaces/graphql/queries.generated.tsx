@@ -87,13 +87,14 @@ export type WorkspaceDataStudioPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceDataStudioPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', createSavedQuery: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }>, organization?: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } } | null } | null };
+export type WorkspaceDataStudioPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', createSavedQuery: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, organization?: { __typename?: 'Organization', id: string, aiBudgetLimitReached: boolean, name: string, shortName?: string | null, logo?: string | null, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null } | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } } | null, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, me: { __typename?: 'Me', assistantMonthlyLimitExceeded: boolean } };
 
 export type WorkspaceSavedQueriesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
   query?: Types.InputMaybe<Types.Scalars['String']['input']>;
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  orderBy: Types.SavedQueryOrderBy;
 }>;
 
 
@@ -568,7 +569,17 @@ export const WorkspaceDataStudioPageDocument = gql`
     permissions {
       createSavedQuery
     }
+    organization {
+      id
+      aiSettings {
+        enabled
+      }
+      aiBudgetLimitReached
+    }
     ...WorkspaceLayout_workspace
+  }
+  me {
+    assistantMonthlyLimitExceeded
   }
 }
     ${WorkspaceLayout_WorkspaceFragmentDoc}`;
@@ -606,13 +617,13 @@ export type WorkspaceDataStudioPageLazyQueryHookResult = ReturnType<typeof useWo
 export type WorkspaceDataStudioPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceDataStudioPageSuspenseQuery>;
 export type WorkspaceDataStudioPageQueryResult = Apollo.QueryResult<WorkspaceDataStudioPageQuery, WorkspaceDataStudioPageQueryVariables>;
 export const WorkspaceSavedQueriesPageDocument = gql`
-    query WorkspaceSavedQueriesPage($workspaceSlug: String!, $query: String, $page: Int, $perPage: Int) {
+    query WorkspaceSavedQueriesPage($workspaceSlug: String!, $query: String, $page: Int, $perPage: Int, $orderBy: SavedQueryOrderBy!) {
   workspace(slug: $workspaceSlug) {
     slug
     permissions {
       createSavedQuery
     }
-    savedQueries(query: $query, page: $page, perPage: $perPage) {
+    savedQueries(query: $query, page: $page, perPage: $perPage, orderBy: $orderBy) {
       totalItems
       totalPages
       pageNumber
@@ -642,6 +653,7 @@ ${WorkspaceLayout_WorkspaceFragmentDoc}`;
  *      query: // value for 'query'
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
+ *      orderBy: // value for 'orderBy'
  *   },
  * });
  */
