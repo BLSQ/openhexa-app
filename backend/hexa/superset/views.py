@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, render
 
 from hexa.superset.models import SupersetDashboard
 from hexa.webapps.models import Webapp
+from hexa.webapps.utils import powered_by_url
 
 logger = getLogger(__name__)
 
@@ -52,6 +53,11 @@ def view_superset_dashboard(request: HttpRequest, dashboard_id: str) -> HttpResp
         and webapp.show_powered_by
         and not request.user.is_authenticated
     )
+    banner_url = (
+        powered_by_url(request, "superset")
+        if show_powered_by and webapp is not None
+        else None
+    )
 
     return render(
         request,
@@ -60,6 +66,7 @@ def view_superset_dashboard(request: HttpRequest, dashboard_id: str) -> HttpResp
             "dashboard": dashboard,
             "guest_token": guest_token,
             "show_powered_by": show_powered_by,
+            "powered_by_url": banner_url,
         },
     )
 

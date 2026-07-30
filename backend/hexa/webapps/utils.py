@@ -1,4 +1,29 @@
+from urllib.parse import urlencode
+
 from django.conf import settings
+
+POWERED_BY_TARGET_URL = "https://www.openhexa.com/"
+
+
+def powered_by_url(request, source):
+    """Build the marketing-site link for a 'Powered by OpenHEXA' banner, tagged
+    with UTM parameters so Google Analytics on openhexa.com can attribute traffic.
+
+    UTM scheme: a constant `utm_source` groups all banner traffic under a single
+    source, `utm_content` carries the surface (iFrame, Static, Superset), and
+    `utm_term` carries the serving host so per-deployment/custom-domain detail is
+    preserved separately.
+    """
+    query = urlencode(
+        {
+            "utm_source": "openhexa-webapps",
+            "utm_medium": "referral",
+            "utm_campaign": "powered-by-openhexa-banner",
+            "utm_content": source,
+            "utm_term": request.get_host(),
+        }
+    )
+    return f"{POWERED_BY_TARGET_URL}?{query}"
 
 
 def extract_webapp_subdomain(hostname):
