@@ -49,6 +49,8 @@ type SaveQueryButtonProps = {
   canUpdate: boolean;
   canCreate: boolean;
   saving: boolean;
+  /** Platform-specific label of the save shortcut, e.g. "⌘S", surfaced in the tooltips. */
+  shortcutLabel: string;
   onSave: () => void;
   onSaveAsNew: () => void;
 };
@@ -72,6 +74,9 @@ const GHOST_DIRTY =
 // - saved + can update   → primary "Save" + a muted "Save as new" sibling;
 //   metadata edits happen via the pencil next to the query name
 // - saved, cannot update → single "Save as new query" (the only way to persist)
+// `shortcutLabel` annotates only the control ⌘S actually triggers in each state,
+// so the muted "Save as new" sibling stays hint-free while the fork-only variant
+// carries it.
 const SaveQueryButton = ({
   isSaved,
   isDirty,
@@ -79,10 +84,16 @@ const SaveQueryButton = ({
   canUpdate,
   canCreate,
   saving,
+  shortcutLabel,
   onSave,
   onSaveAsNew,
 }: SaveQueryButtonProps) => {
   const { t } = useTranslation();
+
+  // Appended here rather than interpolated into the translated strings: the
+  // shortcut is not language, and this way the tooltips keep reusing their
+  // existing labels instead of needing a shortcut-bearing variant of each.
+  const withShortcut = (label: string) => `${label} (${shortcutLabel})`;
 
   if (!isSaved) {
     if (!canCreate) {
@@ -93,7 +104,7 @@ const SaveQueryButton = ({
         onClick={onSave}
         disabled={!hasContent || saving}
         className={GHOST}
-        title={t("Save query")}
+        title={withShortcut(t("Save query"))}
       >
         <FloppyDiskIcon className="h-4 w-4" />
         {t("Save")}
@@ -110,7 +121,7 @@ const SaveQueryButton = ({
         onClick={onSaveAsNew}
         disabled={!hasContent || saving}
         className={GHOST}
-        title={t("Save as a new query")}
+        title={withShortcut(t("Save as a new query"))}
       >
         <FloppyDiskPlusIcon className="h-4 w-4" />
         {t("Save as new query")}
@@ -129,7 +140,7 @@ const SaveQueryButton = ({
           !hasContent
             ? t("The query is empty")
             : isDirty
-              ? t("Save changes")
+              ? withShortcut(t("Save changes"))
               : t("No changes to save")
         }
       >

@@ -12,6 +12,7 @@ type UseSavedQueryEditorArgs = {
   workspaceSlug: string;
   content: string;
   initialSavedQuery?: SavedQuery_SavedQueryFragment | null;
+  canCreate?: boolean;
 };
 
 // Owns the write-path state machine for the SQL editor: whether the current
@@ -22,6 +23,7 @@ export const useSavedQueryEditor = ({
   workspaceSlug,
   content,
   initialSavedQuery,
+  canCreate = false,
 }: UseSavedQueryEditorArgs) => {
   const { t } = useTranslation();
   const router = useRouter();
@@ -34,6 +36,7 @@ export const useSavedQueryEditor = ({
 
   const canUpdate = savedQuery?.permissions.update ?? false;
   const isDirty = content !== baseline;
+  const hasContent = Boolean(content.trim());
 
   // Primary Save: create a brand-new query (via the dialog), or update the
   // content of the loaded query in place.
@@ -60,6 +63,42 @@ export const useSavedQueryEditor = ({
   }, [savedQuery, canUpdate, saving, content, update, t]);
 
   const saveAsNew = useCallback(() => setDialog({ mode: "create" }), []);
+
+  // The single "save now" command, for callers that have no button state to lean
+  // on (the ⌘S/Ctrl+S shortcut): resolves what saving means in the current state
+  // and dispatches to the actions above. Every state with nothing to persist
+  // falls through silently, mirroring the disabled Save button.
+  const commit = useCallback(() => {
+    if (!hasContent || saving || dialog) {
+      return;
+    }
+    if (!savedQuery) {
+      if (canCreate) {
+        save();
+      }
+      return;
+    }
+    if (!canUpdate) {
+      if (canCreate) {
+        saveAsNew();
+      }
+      return;
+    }
+    if (isDirty) {
+      save();
+    }
+  }, [
+    hasContent,
+    saving,
+    dialog,
+    savedQuery,
+    canCreate,
+    canUpdate,
+    isDirty,
+    save,
+    saveAsNew,
+  ]);
+
   const editDetails = useCallback(
     () => setDialog({ mode: "edit-details" }),
     [],
@@ -83,11 +122,13 @@ export const useSavedQueryEditor = ({
   return {
     savedQuery,
     isDirty,
+    hasContent,
     saving,
     canUpdate,
     dialog,
     save,
     saveAsNew,
+    commit,
     editDetails,
     closeDialog,
     onDialogSaved,

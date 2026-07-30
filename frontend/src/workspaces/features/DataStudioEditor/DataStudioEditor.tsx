@@ -11,6 +11,7 @@ import CodeEditor, {
 } from "core/components/CodeEditor/CodeEditor";
 import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import useIsMac from "core/hooks/useIsMac";
+import useSaveShortcut from "core/hooks/useSaveShortcut";
 import { useTranslation } from "next-i18next";
 import { useCallback, useRef, useState } from "react";
 import SaveQueryDialog from "workspaces/features/SavedQueries/SaveQueryDialog";
@@ -60,12 +61,18 @@ const DataStudioEditor = ({
     workspaceSlug,
     content: query,
     initialSavedQuery: savedQuery,
+    canCreate,
   });
+
+  // Disabled while the save dialog is open so ⌘S there reaches the dialog's own
+  // form instead of re-triggering the save that opened it.
+  useSaveShortcut(editor.commit, !editor.dialog);
 
   const runShortcutLabel = isMac ? "⌘+Enter" : "Ctrl+Enter";
   // Compact form for the in-button pill: the return glyph reads cleanly next to
   // ⌘ on macOS; other platforms keep the spelled-out modifier.
   const runShortcutBadge = isMac ? "⌘↵" : "Ctrl+Enter";
+  const saveShortcutLabel = isMac ? "⌘S" : "Ctrl+S";
 
   const { run, retry, result, loading, error, canExport } =
     useDataStudioQuery(workspaceSlug);
@@ -128,6 +135,7 @@ const DataStudioEditor = ({
                 canUpdate={editor.canUpdate}
                 canCreate={canCreate}
                 saving={editor.saving}
+                shortcutLabel={saveShortcutLabel}
                 onSave={editor.save}
                 onSaveAsNew={editor.saveAsNew}
               />

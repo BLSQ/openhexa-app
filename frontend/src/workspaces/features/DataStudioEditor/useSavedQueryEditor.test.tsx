@@ -26,13 +26,23 @@ const savedQuery = {
   permissions: { update: true, delete: true },
 } as any;
 
-const renderEditor = (content: string, initialSavedQuery: any = savedQuery) =>
+const readOnlyQuery = {
+  ...savedQuery,
+  permissions: { update: false, delete: false },
+};
+
+const renderEditor = (
+  content: string,
+  initialSavedQuery: any = savedQuery,
+  canCreate = true,
+) =>
   renderHook(
     (props: { content: string; initialSavedQuery: any }) =>
       useSavedQueryEditor({
         workspaceSlug: "ws-1",
         content: props.content,
         initialSavedQuery: props.initialSavedQuery,
+        canCreate,
       }),
     { initialProps: { content, initialSavedQuery } },
   );
@@ -87,11 +97,7 @@ describe("useSavedQueryEditor", () => {
   });
 
   it("does not update a query the user cannot edit", async () => {
-    const readOnly = {
-      ...savedQuery,
-      permissions: { update: false, delete: false },
-    };
-    const { result } = renderEditor("SELECT 2", readOnly);
+    const { result } = renderEditor("SELECT 2", readOnlyQuery);
 
     expect(result.current.canUpdate).toBe(false);
     await act(async () => {
@@ -133,5 +139,95 @@ describe("useSavedQueryEditor", () => {
     expect(result.current.dialog).not.toBeNull();
     act(() => result.current.closeDialog());
     expect(result.current.dialog).toBeNull();
+  });
+
+  // `commit` is what the ⌘S/Ctrl+S shortcut calls: it has no button state to
+  // lean on, so it must resolve the right action (or no action) on its own.
+  describe("commit", () => {
+    beforeEach(() => {
+      updateMock.mockResolvedValue({
+        data: {
+          updateSavedQuery: {
+            success: true,
+            errors: [],
+            savedQuery: { ...savedQuery, content: "SELECT 2" },
+          },
+        },
+      });
+    });
+
+    it("opens the create dialog for an unsaved query", async () => {
+      const { result } = renderEditor("SELECT 42", null);
+
+      await act(async () => result.current.commit());
+
+      expect(result.current.dialog).toEqual({ mode: "create" });
+    });
+
+    it("does nothing for an unsaved query when the user cannot create", async () => {
+      const { result } = renderEditor("SELECT 42", null, false);
+
+      await act(async () => result.current.commit());
+
+      expect(result.current.dialog).toBeNull();
+      expect(updateMock).not.toHaveBeenCalled();
+    });
+
+    it("updates a dirty query in place", async () => {
+      const { result } = renderEditor("SELECT 2");
+
+      await act(async () => result.current.commit());
+
+      expect(updateMock).toHaveBeenCalledWith({
+        variables: { input: { id: "q1", content: "SELECT 2" } },
+      });
+      expect(result.current.dialog).toBeNull();
+    });
+
+    it("does nothing when the query has no unsaved changes", async () => {
+      const { result } = renderEditor("SELECT 1");
+
+      await act(async () => result.current.commit());
+
+      expect(updateMock).not.toHaveBeenCalled();
+      expect(result.current.dialog).toBeNull();
+    });
+
+    it("does nothing when the content is blank", async () => {
+      const { result } = renderEditor("   ");
+
+      await act(async () => result.current.commit());
+
+      expect(updateMock).not.toHaveBeenCalled();
+      expect(result.current.dialog).toBeNull();
+    });
+
+    it("forks a query the user cannot update", async () => {
+      const { result } = renderEditor("SELECT 2", readOnlyQuery);
+
+      await act(async () => result.current.commit());
+
+      expect(result.current.dialog).toEqual({ mode: "create" });
+      expect(updateMock).not.toHaveBeenCalled();
+    });
+
+    it("does nothing on a read-only query when the user cannot create either", async () => {
+      const { result } = renderEditor("SELECT 2", readOnlyQuery, false);
+
+      await act(async () => result.current.commit());
+
+      expect(result.current.dialog).toBeNull();
+      expect(updateMock).not.toHaveBeenCalled();
+    });
+
+    it("does nothing while a dialog is already open", async () => {
+      const { result } = renderEditor("SELECT 2");
+
+      act(() => result.current.editDetails());
+      await act(async () => result.current.commit());
+
+      expect(result.current.dialog).toEqual({ mode: "edit-details" });
+      expect(updateMock).not.toHaveBeenCalled();
+    });
   });
 });

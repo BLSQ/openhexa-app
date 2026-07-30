@@ -15,6 +15,7 @@ jest.mock("./DataStudioEditor.generated", () => ({
 }));
 
 const mockEditDetails = jest.fn();
+const mockCommit = jest.fn();
 let mockEditorState: any;
 
 // The save/write path (Apollo mutations + router navigation) is exercised in
@@ -108,6 +109,13 @@ jest.mock("core/helpers/files", () => ({
   downloadBlob: jest.fn(),
 }));
 
+// The dialog owns its own Apollo mutations (covered in its own suite); stub it so
+// this file can assert on when the editor opens it without an ApolloProvider.
+jest.mock("workspaces/features/SavedQueries/SaveQueryDialog", () => ({
+  __esModule: true,
+  default: () => <div data-testid="save-dialog" />,
+}));
+
 // GenerateSqlBar pulls in the real Apollo `useCreateAssistantConversationMutation`
 // hook, which needs an ApolloProvider this file doesn't set up. Stubbed the same way
 // as DataStudioSchemaBrowser/DataStudioResults above, exposing just enough (the
@@ -166,15 +174,18 @@ beforeEach(() => {
   mockInsertText.mockClear();
   (downloadBlob as jest.Mock).mockClear();
   mockEditDetails.mockClear();
+  mockCommit.mockClear();
   mockQueryState = { loading: false };
   mockEditorState = {
     savedQuery: null,
     isDirty: false,
+    hasContent: false,
     saving: false,
     canUpdate: false,
     dialog: null,
     save: jest.fn(),
     saveAsNew: jest.fn(),
+    commit: mockCommit,
     editDetails: mockEditDetails,
     closeDialog: jest.fn(),
     onDialogSaved: jest.fn(),
@@ -358,6 +369,48 @@ describe("DataStudioEditor", () => {
 
     await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  });
+
+  it.each([
+    ["Cmd+S", { key: "s", metaKey: true }],
+    ["Ctrl+S", { key: "s", ctrlKey: true }],
+  ])("saves on %s and suppresses the browser save dialog", (_label, init) => {
+    renderEditor();
+
+    expect(fireEvent.keyDown(window, init)).toBe(false);
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+  });
+
+  it("saves once on Ctrl/Cmd+S from inside the SQL editor", async () => {
+    renderEditor();
+    const editor = screen.getByTestId("editor");
+    await userEvent.type(editor, "SELECT 1");
+
+    // Only bound on the window, so a keystroke in the buffer bubbles up to a
+    // single handler instead of also hitting a CodeMirror binding.
+    fireEvent.keyDown(editor, { key: "s", ctrlKey: true });
+
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves Ctrl/Cmd+S to the save dialog while it is open", () => {
+    mockEditorState.dialog = { mode: "create" };
+    renderEditor();
+    expect(screen.getByTestId("save-dialog")).toBeInTheDocument();
+
+    expect(fireEvent.keyDown(window, { key: "s", ctrlKey: true })).toBe(true);
+    expect(mockCommit).not.toHaveBeenCalled();
+  });
+
+  it("surfaces the save shortcut in the Save tooltip (Ctrl+S on non-mac)", async () => {
+    renderEditor({ canCreate: true });
+    await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
+
+    // jsdom's userAgent is not a Mac, so the tooltip uses the Ctrl variant.
+    expect(screen.getByRole("button", { name: "Save" })).toHaveAttribute(
+      "title",
+      "Save query (Ctrl+S)",
+    );
   });
 
   it("hides the Generate button when AI is not enabled for the workspace", () => {
