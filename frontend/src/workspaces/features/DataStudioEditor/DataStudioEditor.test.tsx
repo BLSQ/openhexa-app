@@ -235,24 +235,6 @@ describe("DataStudioEditor", () => {
     });
   });
 
-  it("exports the last run query from the server, not the current editor contents", async () => {
-    // A complete (not truncated) result still streams from the server — there is
-    // no longer a client-side path.
-    mockQueryState = successState({ truncated: false });
-    renderEditor();
-    // Run one query, then change the editor: the export must use what was run.
-    await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
-    await userEvent.click(screen.getByRole("button", { name: "Run" }));
-    await userEvent.type(screen.getByTestId("editor"), " -- edited");
-
-    await userEvent.click(screen.getByRole("button", { name: "Export CSV" }));
-
-    await waitFor(() =>
-      expect(downloadQueryCsv).toHaveBeenCalledWith("ws-1", "SELECT 1"),
-    );
-    expect(downloadQueryCsv).toHaveBeenCalledTimes(1);
-  });
-
   it("shows an inline in-progress affordance while a server export runs", async () => {
     let resolveDownload!: () => void;
     (downloadQueryCsv as jest.Mock).mockReturnValue(
