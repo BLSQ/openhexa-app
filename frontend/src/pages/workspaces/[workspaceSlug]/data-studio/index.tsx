@@ -23,6 +23,10 @@ const WorkspaceDataStudioPage: NextPageWithLayout = (props: Props) => {
     return null;
   }
   const { workspace } = data;
+  const aiEnabled = workspace.organization?.aiSettings?.enabled ?? false;
+  const aiBudgetLimitReached =
+    workspace.organization?.aiBudgetLimitReached ?? false;
+  const monthlyLimitExceeded = data.me?.assistantMonthlyLimitExceeded ?? false;
 
   return (
     <Page title={t("Data Studio")}>
@@ -32,6 +36,9 @@ const WorkspaceDataStudioPage: NextPageWithLayout = (props: Props) => {
           <DataStudioEditor
             workspaceSlug={workspace.slug}
             canCreate={workspace.permissions.createSavedQuery}
+            aiEnabled={aiEnabled}
+            aiBudgetLimitReached={aiBudgetLimitReached}
+            monthlyLimitExceeded={monthlyLimitExceeded}
           />
         </div>
       </DataStudioLayout>
