@@ -50,6 +50,7 @@ class SavedQuery(Base):
     objects = SavedQueryManager.from_queryset(SavedQueryQuerySet)()
 
     class Meta:
+        verbose_name_plural = "saved queries"
         ordering = ["-updated_at"]
         indexes = [
             # `id` mirrors the tiebreaker the listing resolver appends: without it
