@@ -5501,6 +5501,14 @@ export type SavedQuery = {
   workspace: Workspace;
 };
 
+/** Enum representing the possible orderings for saved queries. */
+export enum SavedQueryOrderBy {
+  NameAsc = 'NAME_ASC',
+  NameDesc = 'NAME_DESC',
+  UpdatedAtAsc = 'UPDATED_AT_ASC',
+  UpdatedAtDesc = 'UPDATED_AT_DESC'
+}
+
 /** A page of saved queries. */
 export type SavedQueryPage = {
   __typename?: 'SavedQueryPage';
@@ -6785,6 +6793,7 @@ export type WorkspaceMembersArgs = {
 
 /** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type WorkspaceSavedQueriesArgs = {
+  orderBy?: SavedQueryOrderBy;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;

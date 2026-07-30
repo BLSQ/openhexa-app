@@ -94,6 +94,7 @@ export type WorkspaceSavedQueriesPageQueryVariables = Types.Exact<{
   query?: Types.InputMaybe<Types.Scalars['String']['input']>;
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  orderBy: Types.SavedQueryOrderBy;
 }>;
 
 
@@ -616,13 +617,13 @@ export type WorkspaceDataStudioPageLazyQueryHookResult = ReturnType<typeof useWo
 export type WorkspaceDataStudioPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceDataStudioPageSuspenseQuery>;
 export type WorkspaceDataStudioPageQueryResult = Apollo.QueryResult<WorkspaceDataStudioPageQuery, WorkspaceDataStudioPageQueryVariables>;
 export const WorkspaceSavedQueriesPageDocument = gql`
-    query WorkspaceSavedQueriesPage($workspaceSlug: String!, $query: String, $page: Int, $perPage: Int) {
+    query WorkspaceSavedQueriesPage($workspaceSlug: String!, $query: String, $page: Int, $perPage: Int, $orderBy: SavedQueryOrderBy!) {
   workspace(slug: $workspaceSlug) {
     slug
     permissions {
       createSavedQuery
     }
-    savedQueries(query: $query, page: $page, perPage: $perPage) {
+    savedQueries(query: $query, page: $page, perPage: $perPage, orderBy: $orderBy) {
       totalItems
       totalPages
       pageNumber
@@ -652,6 +653,7 @@ ${WorkspaceLayout_WorkspaceFragmentDoc}`;
  *      query: // value for 'query'
  *      page: // value for 'page'
  *      perPage: // value for 'perPage'
+ *      orderBy: // value for 'orderBy'
  *   },
  * });
  */

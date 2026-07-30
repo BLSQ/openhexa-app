@@ -4558,6 +4558,14 @@ type SavedQuery {
   workspace: Workspace!
 }
 
+"""Enum representing the possible orderings for saved queries."""
+enum SavedQueryOrderBy {
+  NAME_ASC
+  NAME_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
+}
+
 """A page of saved queries."""
 type SavedQueryPage {
   items: [SavedQuery!]!
@@ -5940,7 +5948,7 @@ type Workspace {
   pipelineTemplateTags: [String!]!
 
   """The saved queries of the workspace."""
-  savedQueries(page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
+  savedQueries(orderBy: SavedQueryOrderBy! = UPDATED_AT_DESC, page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
   shortcuts: [ShortcutItem!]!
   slug: String!
   updatedAt: DateTime

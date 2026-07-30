@@ -1,6 +1,12 @@
 import pathlib
 
-from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
+from ariadne import (
+    EnumType,
+    MutationType,
+    ObjectType,
+    QueryType,
+    load_schema_from_path,
+)
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import HttpRequest
@@ -19,6 +25,16 @@ saved_query_object = ObjectType("SavedQuery")
 saved_query_permissions = ObjectType("SavedQueryPermissions")
 data_studio_queries = QueryType()
 data_studio_mutations = MutationType()
+
+saved_query_order_by_enum = EnumType(
+    "SavedQueryOrderBy",
+    {
+        "NAME_ASC": "name",
+        "NAME_DESC": "-name",
+        "UPDATED_AT_ASC": "updated_at",
+        "UPDATED_AT_DESC": "-updated_at",
+    },
+)
 
 
 @saved_query_object.field("permissions")
@@ -60,6 +76,11 @@ def resolve_workspace_saved_queries(workspace: Workspace, info, query=None, **kw
         # large bodies and noisy (would match SQL keywords/identifiers). Revisit once the
         # frontend defines whether and how body matches should surface to users.
         qs = qs.filter(Q(name__icontains=query) | Q(description__icontains=query))
+
+    # `id` breaks ties so paging stays deterministic: neither `name` nor
+    # `updated_at` is unique, and rows sharing a sort key could otherwise be
+    # dealt to two pages (or none) across successive requests.
+    qs = qs.order_by(kwargs["order_by"], "id")
 
     return result_page(
         queryset=qs,
@@ -158,6 +179,7 @@ def resolve_delete_saved_query(_, info, **kwargs):
 data_studio_bindables = [
     saved_query_object,
     saved_query_permissions,
+    saved_query_order_by_enum,
     data_studio_queries,
     data_studio_mutations,
 ]
