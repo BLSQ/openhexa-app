@@ -79,8 +79,10 @@
   function writeCache(value) {
     try {
       sessionStorage.setItem(CACHE_KEY, JSON.stringify(value));
+      return true;
     } catch (e) {
       /* storage unavailable — fall back to re-handshaking each load */
+      return false;
     }
   }
   function clearCache() {
@@ -123,10 +125,10 @@
       return;
     }
 
-    writeCache(data);
+    var persisted = writeCache(data);
 
     var key = data.workspaceSlug + "/" + data.webappSlug;
-    if (key !== connectedKey) {
+    if (key !== connectedKey && persisted) {
       // First connection or a switch to a different web app: reload so the page
       // reboots in its connected steady state. The cached credential lets the
       // next load resolve window.OPENHEXA and the /graphql/ reroute synchronously,
@@ -135,8 +137,10 @@
       return;
     }
 
-    // Reconnecting the SAME web app (e.g. after an expired credential): resolve
-    // the pending call in place — reloading would abandon it and lose page state.
+    // Reconnecting the SAME web app (e.g. after an expired credential), or a
+    // credential that couldn't be cached: resolve the pending call in place —
+    // reloading would abandon it and lose page state.
+    connectedKey = key;
     setContext(data);
     showPill(data.workspaceSlug, data.webappSlug);
     console.info("[openhexa] Local dev connected:", key);
