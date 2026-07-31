@@ -180,11 +180,12 @@ def dev_auth(request):
     if not Webapp.objects.filter_for_user(request.user).filter(pk=webapp.pk).exists():
         return HttpResponse("Forbidden", status=403)
 
-    # Opaque origins can only receive the credential via a wildcard target, so
-    # the user must explicitly approve before it is minted. No key is created on
-    # this GET — approval submits the POST below. The preselected app is shown on
-    # the same authorization screen as the picker, as a single-item list.
-    if is_opaque and request.method == "GET":
+    # The credential is only ever minted on the CSRF-protected POST from the
+    # approval screen. A GET must never hand it out: any page served on
+    # localhost could otherwise obtain a webapp-scoped credential just by
+    # opening this URL with pinned slugs. The preselected app is shown on the
+    # same authorization screen as the picker, as a single-item list.
+    if request.method == "GET":
         return _render_authorize(request, [webapp], origin, selected=webapp)
 
     # Deferred import: middlewares imports serve_webapp from this module.

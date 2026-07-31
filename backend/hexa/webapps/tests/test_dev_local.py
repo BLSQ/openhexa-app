@@ -199,12 +199,15 @@ class DevLocalViewsTest(TestCase):
             f"http://{preview_key}.{WEBAPPS_DOMAIN}/", response.content.decode()
         )
 
-    def test_dev_auth_returns_preview_url(self):
+    def test_dev_auth_localhost_origin_shows_consent_without_minting(self):
+        # A GET must never mint the credential, whatever the origin — otherwise
+        # any page on localhost could obtain it by simply opening this URL.
         self.client.force_login(self.USER)
         response = self.client.get(self._dev_auth_url("http://localhost:5173"))
         self.assertEqual(response.status_code, 200)
         content = response.content.decode()
-        self.assertIn(f".{WEBAPPS_DOMAIN}", content)
+        self.assertIn("Approve", content)
+        self.assertNotIn(f".{WEBAPPS_DOMAIN}", content)
         self.assertEqual(response["Content-Security-Policy"], "frame-ancestors 'none'")
         # The popup must keep its opener link to postMessage the result back,
         # so the default COOP (same-origin) must be overridden.
