@@ -64,9 +64,7 @@ const DataStudioEditor = ({
     canCreate,
   });
 
-  // Disabled while the save dialog is open so ⌘S there reaches the dialog's own
-  // form instead of re-triggering the save that opened it.
-  useSaveShortcut(editor.commit, !editor.dialog);
+  useSaveShortcut(editor.commit);
 
   const runShortcutLabel = isMac ? "⌘+Enter" : "Ctrl+Enter";
   // Compact form for the in-button pill: the return glyph reads cleanly next to
@@ -129,15 +127,8 @@ const DataStudioEditor = ({
             )}
             <div className="ml-auto flex items-center gap-2">
               <SaveQueryButton
-                isSaved={Boolean(editor.savedQuery)}
-                isDirty={editor.isDirty}
-                hasContent={Boolean(query.trim())}
-                canUpdate={editor.canUpdate}
-                canCreate={canCreate}
-                saving={editor.saving}
+                plan={editor.savePlan}
                 shortcutLabel={saveShortcutLabel}
-                onSave={editor.save}
-                onSaveAsNew={editor.saveAsNew}
               />
               <label className="flex items-center gap-1.5 text-xs text-gray-500">
                 {t("Max rows")}

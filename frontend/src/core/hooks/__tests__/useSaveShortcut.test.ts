@@ -35,11 +35,28 @@ describe("useSaveShortcut", () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
-  it("does not save when disabled, and leaves the keystroke to the browser", () => {
-    renderHook(() => useSaveShortcut(onSave, false));
+  it("consumes auto-repeats of a held key without saving again", () => {
+    renderHook(() => useSaveShortcut(onSave));
 
-    expect(press({ key: "s", metaKey: true })).toBe(true);
+    expect(press({ key: "s", metaKey: true })).toBe(false);
+    // Still swallowed, or holding the key would pop the browser's save dialog.
+    expect(press({ key: "s", metaKey: true, repeat: true })).toBe(false);
+    expect(press({ key: "s", metaKey: true, repeat: true })).toBe(false);
+
+    expect(onSave).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls the latest callback without resubscribing", () => {
+    const later = jest.fn();
+    const { rerender } = renderHook(({ handler }) => useSaveShortcut(handler), {
+      initialProps: { handler: onSave },
+    });
+
+    rerender({ handler: later });
+    press({ key: "s", metaKey: true });
+
     expect(onSave).not.toHaveBeenCalled();
+    expect(later).toHaveBeenCalledTimes(1);
   });
 
   it("stops listening once unmounted", () => {

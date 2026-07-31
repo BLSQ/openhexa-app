@@ -4,10 +4,13 @@ import { toast } from "react-toastify";
 import { useSavedQueryEditor } from "./useSavedQueryEditor";
 
 const updateMock = jest.fn();
+// Flipped by the tests that need an in-flight save; the hook reads it as
+// `saving`, which is what keeps a second ⌘S from firing a duplicate mutation.
+let mockUpdating = false;
 
 jest.mock("workspaces/features/SavedQueries/SavedQueries.generated", () => ({
   useCreateSavedQueryMutation: () => [jest.fn(), { loading: false }],
-  useUpdateSavedQueryMutation: () => [updateMock, { loading: false }],
+  useUpdateSavedQueryMutation: () => [updateMock, { loading: mockUpdating }],
   useDeleteSavedQueryMutation: () => [jest.fn(), { loading: false }],
 }));
 
@@ -49,6 +52,7 @@ const renderEditor = (
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockUpdating = false;
   mockRouter.setCurrentUrl("/");
 });
 
@@ -141,8 +145,99 @@ describe("useSavedQueryEditor", () => {
     expect(result.current.dialog).toBeNull();
   });
 
-  // `commit` is what the ⌘S/Ctrl+S shortcut calls: it has no button state to
-  // lean on, so it must resolve the right action (or no action) on its own.
+  // The plan is the single source of truth the Save button renders from and the
+  // ⌘S shortcut runs, so it has to name the right action and the right reason
+  // for withholding it in every permission/dirtiness combination.
+  describe("savePlan", () => {
+    it("offers creation for an unsaved query", () => {
+      const { result } = renderEditor("SELECT 42", null);
+
+      expect(result.current.savePlan).toMatchObject({
+        variant: "create",
+        blockedBy: null,
+        saveAsNew: null,
+      });
+      expect(result.current.savePlan.save).toBeInstanceOf(Function);
+    });
+
+    it("offers no save control at all when the user cannot create", () => {
+      const { result } = renderEditor("SELECT 42", null, false);
+
+      expect(result.current.savePlan).toEqual({
+        variant: null,
+        save: null,
+        blockedBy: null,
+        saveAsNew: null,
+      });
+    });
+
+    it("offers an in-place update plus a fork for a dirty updatable query", () => {
+      const { result } = renderEditor("SELECT 2");
+
+      expect(result.current.savePlan.variant).toBe("update");
+      expect(result.current.savePlan.blockedBy).toBeNull();
+      expect(result.current.savePlan.save).toBeInstanceOf(Function);
+      expect(result.current.savePlan.saveAsNew).toBeInstanceOf(Function);
+    });
+
+    it("withholds the update of a clean query, keeping the fork available", () => {
+      const { result } = renderEditor("SELECT 1");
+
+      expect(result.current.savePlan.blockedBy).toBe("clean");
+      expect(result.current.savePlan.save).toBeNull();
+      expect(result.current.savePlan.saveAsNew).toBeInstanceOf(Function);
+    });
+
+    it("withholds every action while the buffer is blank", () => {
+      const { result } = renderEditor("   ");
+
+      expect(result.current.savePlan.blockedBy).toBe("empty");
+      expect(result.current.savePlan.save).toBeNull();
+      expect(result.current.savePlan.saveAsNew).toBeNull();
+    });
+
+    it("withholds every action while a save is in flight", () => {
+      mockUpdating = true;
+      const { result } = renderEditor("SELECT 2");
+
+      expect(result.current.savePlan.blockedBy).toBe("saving");
+      expect(result.current.savePlan.save).toBeNull();
+      expect(result.current.savePlan.saveAsNew).toBeNull();
+    });
+
+    it("drops the fork sibling when the user cannot create", () => {
+      const { result } = renderEditor("SELECT 2", savedQuery, false);
+
+      expect(result.current.savePlan.variant).toBe("update");
+      expect(result.current.savePlan.save).toBeInstanceOf(Function);
+      expect(result.current.savePlan.saveAsNew).toBeNull();
+    });
+
+    it("makes forking the primary action on a read-only query", () => {
+      const { result } = renderEditor("SELECT 2", readOnlyQuery);
+
+      expect(result.current.savePlan).toMatchObject({
+        variant: "fork",
+        blockedBy: null,
+        // The fork is the primary control here, not a sibling of a Save.
+        saveAsNew: null,
+      });
+
+      act(() => result.current.savePlan.save!());
+      expect(result.current.dialog).toEqual({ mode: "create" });
+      expect(updateMock).not.toHaveBeenCalled();
+    });
+
+    it("offers nothing on a read-only query the user cannot fork either", () => {
+      const { result } = renderEditor("SELECT 2", readOnlyQuery, false);
+
+      expect(result.current.savePlan.variant).toBeNull();
+      expect(result.current.savePlan.save).toBeNull();
+    });
+  });
+
+  // `commit` is what the ⌘S/Ctrl+S shortcut calls: it runs whatever the primary
+  // Save button would, and must stay silent where that button is unavailable.
   describe("commit", () => {
     beforeEach(() => {
       updateMock.mockResolvedValue({
@@ -227,6 +322,15 @@ describe("useSavedQueryEditor", () => {
       await act(async () => result.current.commit());
 
       expect(result.current.dialog).toEqual({ mode: "edit-details" });
+      expect(updateMock).not.toHaveBeenCalled();
+    });
+
+    it("does nothing while a save is already in flight", async () => {
+      mockUpdating = true;
+      const { result } = renderEditor("SELECT 2");
+
+      await act(async () => result.current.commit());
+
       expect(updateMock).not.toHaveBeenCalled();
     });
   });
