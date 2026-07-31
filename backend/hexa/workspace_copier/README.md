@@ -27,7 +27,7 @@ order (see `orchestrator.WORKSPACE_COPIERS`):
 | name          | copier                    | notes                                                                                              |
 | ------------- | ------------------------- |----------------------------------------------------------------------------------------------------|
 | `workspace`   | `WorkspaceMetadataCopier` | **mandatory** — creates the target, yields its handle                                              |
-| `files`       | `FilesCopier`             | bucket objects                                                                                     |
+| `files`       | `FilesCopier`             | bucket objects (streamed through a temp file — see [Large files](#large-files))                     |
 | `database`    | `DatabaseCopier`          | native pg copy only if **both** sides LOCAL; else skipped + warned. Local copy not yet implemented |
 | `connections` | `ConnectionsCopier`       | connections + secret fields                                                                        |
 | `pipelines`   | `PipelinesCopier`         | pipelines + versions (depends on `files` for notebook pipelines)                                   |
@@ -38,6 +38,23 @@ per-workspace resource, so they are copied by a separate flow (see
 [Template pipelines](#template-pipelines) below).
 
 Adding a resource is a drop-in: one module under `resources/` + one registry entry.
+
+### Large files
+
+Each object is streamed through a `tempfile.TemporaryFile` rather than buffered
+in memory, so peak RSS is one chunk (`CHUNK_SIZE`) regardless of object size —
+buffering whole objects used to get the process OOM-killed on workspaces holding
+multi-GB files. Two consequences:
+
+- `TMPDIR` needs room for the largest object being copied. Point it elsewhere
+  (`TMPDIR=/mnt/big docker compose run ...`) if the default is small.
+- Objects larger than `MAX_UPLOAD_SIZE` (5 GiB, the S3 single-part `PutObject`
+  ceiling) are reported as failed without being transferred: a presigned PUT
+  cannot do a multipart upload, so they have to be moved by hand.
+
+`TRANSFER_TIMEOUT` bounds a single chunk read/write, not a whole file, so a
+stalled connection fails in a couple of minutes while a legitimately slow
+multi-GB transfer runs as long as it needs.
 
 ## Entry points
 

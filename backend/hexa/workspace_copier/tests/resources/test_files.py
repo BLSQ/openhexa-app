@@ -1,3 +1,4 @@
+import tempfile
 from unittest.mock import MagicMock, patch
 
 import httpx
@@ -5,9 +6,32 @@ from django.test import SimpleTestCase
 
 from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.progress import NullReporter
-from hexa.workspace_copier.resources.files import FilesCopier, is_skipped, walk
+from hexa.workspace_copier.resources.files import (
+    MAX_UPLOAD_SIZE,
+    FilesCopier,
+    download,
+    is_skipped,
+    upload,
+    walk,
+)
 from hexa.workspace_copier.results import CopyResult
 from hexa.workspace_copier.transport import GraphQLError
+
+
+def fake_download(contents: dict[str, bytes | Exception]):
+    """Stub for `download`, which writes into the caller's buffer.
+
+    A mapping rather than a side_effect list so tests that skip some files
+    don't depend on how many times it is called.
+    """
+
+    def _download(client, slug, path, http_client, destination):
+        payload = contents[path]
+        if isinstance(payload, Exception):
+            raise payload
+        return destination.write(payload)
+
+    return _download
 
 
 class FilesCopierRemoteTest(SimpleTestCase):
@@ -23,12 +47,54 @@ class FilesCopierRemoteTest(SimpleTestCase):
         mock_walk.return_value = iter(
             [{"key": "a.txt", "size": 3}, {"key": "dir/b.txt", "size": 5}]
         )
-        mock_download.side_effect = [b"abc", b"hello"]
+        mock_download.side_effect = fake_download(
+            {"a.txt": b"abc", "dir/b.txt": b"hello"}
+        )
 
         FilesCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertEqual(self.result.files.copied, [("a.txt", 3), ("dir/b.txt", 5)])
         self.assertEqual(mock_upload.call_count, 2)
+
+    @patch("hexa.workspace_copier.resources.files.upload")
+    @patch("hexa.workspace_copier.resources.files.download")
+    @patch("hexa.workspace_copier.resources.files.walk")
+    def test_upload_gets_the_downloaded_bytes_from_the_start_of_the_spool(
+        self, mock_walk, mock_download, mock_upload
+    ):
+        mock_walk.return_value = iter([{"key": "a.txt", "size": 5}])
+        mock_download.side_effect = fake_download({"a.txt": b"hello"})
+        uploaded = []
+        mock_upload.side_effect = lambda client, slug, path, buf, http: uploaded.append(
+            buf.read()
+        )
+
+        FilesCopier().copy(self.source, self.target, self.result, NullReporter())
+
+        self.assertEqual(uploaded, [b"hello"])
+
+    @patch("hexa.workspace_copier.resources.files.upload")
+    @patch("hexa.workspace_copier.resources.files.download")
+    @patch("hexa.workspace_copier.resources.files.walk")
+    def test_file_above_single_part_limit_is_failed_without_transferring(
+        self, mock_walk, mock_download, mock_upload
+    ):
+        mock_walk.return_value = iter(
+            [
+                {"key": "huge.json", "size": MAX_UPLOAD_SIZE + 1},
+                {"key": "ok", "size": 2},
+            ]
+        )
+        mock_download.side_effect = fake_download({"ok": b"ok"})
+
+        FilesCopier().copy(self.source, self.target, self.result, NullReporter())
+
+        self.assertEqual(len(self.result.files.failed), 1)
+        path, reason = self.result.files.failed[0]
+        self.assertEqual(path, "huge.json")
+        self.assertIn("TooLarge", reason)
+        self.assertEqual(self.result.files.copied, [("ok", 2)])
+        self.assertEqual(mock_upload.call_count, 1)
 
     @patch("hexa.workspace_copier.resources.files.upload")
     @patch("hexa.workspace_copier.resources.files.download")
@@ -39,7 +105,9 @@ class FilesCopierRemoteTest(SimpleTestCase):
         mock_walk.return_value = iter(
             [{"key": "bad.txt", "size": 1}, {"key": "ok.txt", "size": 2}]
         )
-        mock_download.side_effect = [GraphQLError("boom"), b"ok"]
+        mock_download.side_effect = fake_download(
+            {"bad.txt": GraphQLError("boom"), "ok.txt": b"ok"}
+        )
 
         FilesCopier().copy(self.source, self.target, self.result, NullReporter())
 
@@ -55,11 +123,33 @@ class FilesCopierRemoteTest(SimpleTestCase):
         mock_walk.return_value = iter(
             [{"key": "bad.txt", "size": 1}, {"key": "ok.txt", "size": 2}]
         )
-        mock_download.side_effect = [httpx.ReadTimeout("blip"), b"ok"]
+        mock_download.side_effect = fake_download(
+            {"bad.txt": httpx.ReadTimeout("blip"), "ok.txt": b"ok"}
+        )
 
         FilesCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertEqual(self.result.files.failed, [("bad.txt", "ReadTimeout: blip")])
+        self.assertEqual(self.result.files.copied, [("ok.txt", 2)])
+
+    @patch("hexa.workspace_copier.resources.files.upload")
+    @patch("hexa.workspace_copier.resources.files.download")
+    @patch("hexa.workspace_copier.resources.files.walk")
+    def test_spool_write_failure_is_recorded_and_loop_continues(
+        self, mock_walk, mock_download, mock_upload
+    ):
+        mock_walk.return_value = iter(
+            [{"key": "bad.txt", "size": 1}, {"key": "ok.txt", "size": 2}]
+        )
+        mock_download.side_effect = fake_download(
+            {"bad.txt": OSError("No space left on device"), "ok.txt": b"ok"}
+        )
+
+        FilesCopier().copy(self.source, self.target, self.result, NullReporter())
+
+        self.assertEqual(
+            self.result.files.failed, [("bad.txt", "OSError: No space left on device")]
+        )
         self.assertEqual(self.result.files.copied, [("ok.txt", 2)])
 
     @patch("hexa.workspace_copier.resources.files.upload")
@@ -81,10 +171,9 @@ class FilesCopierRemoteTest(SimpleTestCase):
                 ]
             ),
         ]
-        contents = {"grew.txt": b"12345", "new.txt": b"12"}
-        mock_download.side_effect = lambda client, slug, path, http_client: contents[
-            path
-        ]
+        mock_download.side_effect = fake_download(
+            {"grew.txt": b"12345", "new.txt": b"12"}
+        )
 
         FilesCopier(skip_existing=True).copy(
             self.source, self.target, self.result, NullReporter()
@@ -106,7 +195,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
             GraphQLError("target listing boom"),
             iter([{"key": "a.txt", "size": 3}]),
         ]
-        mock_download.side_effect = [b"abc"]
+        mock_download.side_effect = fake_download({"a.txt": b"abc"})
 
         FilesCopier(skip_existing=True).copy(
             self.source, self.target, self.result, NullReporter()
@@ -127,7 +216,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
             raise GraphQLError("listing page 2 failed")
 
         mock_walk.return_value = walk_then_fail()
-        mock_download.side_effect = [b"abc"]
+        mock_download.side_effect = fake_download({"a.txt": b"abc"})
 
         FilesCopier().copy(self.source, self.target, self.result, NullReporter())
 
@@ -135,6 +224,89 @@ class FilesCopierRemoteTest(SimpleTestCase):
         self.assertEqual(
             self.result.files.failed, [("<listing>", "listing page 2 failed")]
         )
+
+
+class TransferTest(SimpleTestCase):
+    """download/upload against a mock transport, i.e. real httpx plumbing."""
+
+    @patch("hexa.workspace_copier.resources.files.gql")
+    def test_download_streams_the_body_into_the_destination(self, mock_gql):
+        payload = b"x" * (9 * 1024 * 1024)
+        mock_gql.return_value = {
+            "prepareObjectDownload": {
+                "success": True,
+                "errors": [],
+                "downloadUrl": "https://storage.test/get",
+            }
+        }
+        transport = httpx.MockTransport(
+            lambda request: httpx.Response(200, content=payload)
+        )
+
+        with (
+            httpx.Client(transport=transport) as client,
+            tempfile.TemporaryFile() as buffer,
+        ):
+            written = download(MagicMock(), "src", "big.json", client, buffer)
+            buffer.seek(0)
+            self.assertEqual(buffer.read(), payload)
+
+        self.assertEqual(written, len(payload))
+
+    @patch("hexa.workspace_copier.resources.files.gql")
+    def test_download_error_response_body_is_surfaced(self, mock_gql):
+        mock_gql.return_value = {
+            "prepareObjectDownload": {
+                "success": True,
+                "errors": [],
+                "downloadUrl": "https://storage.test/get",
+            }
+        }
+        transport = httpx.MockTransport(
+            lambda request: httpx.Response(403, text="AccessDenied")
+        )
+
+        with (
+            httpx.Client(transport=transport) as client,
+            tempfile.TemporaryFile() as buffer,
+            self.assertRaises(GraphQLError) as ctx,
+        ):
+            download(MagicMock(), "src", "a.json", client, buffer)
+
+        self.assertIn("403", str(ctx.exception))
+        self.assertIn("AccessDenied", str(ctx.exception))
+
+    @patch("hexa.workspace_copier.resources.files.gql")
+    def test_upload_sends_content_length_not_chunked(self, mock_gql):
+        # Presigned PUT endpoints reject chunked transfer encoding, so httpx
+        # must derive a Content-Length from the spool's file descriptor.
+        payload = b"y" * (5 * 1024 * 1024)
+        mock_gql.return_value = {
+            "prepareObjectUpload": {
+                "success": True,
+                "errors": [],
+                "uploadUrl": "https://storage.test/put",
+                "headers": {},
+            }
+        }
+        seen = {}
+
+        def handler(request):
+            seen["body"] = request.read()
+            seen["headers"] = request.headers
+            return httpx.Response(200)
+
+        with (
+            httpx.Client(transport=httpx.MockTransport(handler)) as client,
+            tempfile.TemporaryFile() as buffer,
+        ):
+            buffer.write(payload)
+            buffer.seek(0)
+            upload(MagicMock(), "tgt", "a.json", buffer, client)
+
+        self.assertEqual(seen["body"], payload)
+        self.assertEqual(seen["headers"]["Content-Length"], str(len(payload)))
+        self.assertNotIn("transfer-encoding", seen["headers"])
 
 
 class IsSkippedTest(SimpleTestCase):

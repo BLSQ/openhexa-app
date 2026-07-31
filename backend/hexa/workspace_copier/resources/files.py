@@ -6,8 +6,9 @@ Native same-server file copy is a deferred follow-up (see the implementation
 plan); until then both LOCAL and REMOTE endpoints use the client here.
 """
 
+import tempfile
 from collections.abc import Iterator
-from typing import Any
+from typing import IO, Any
 
 import httpx
 from openhexa.graphql.graphql_client.client import Client
@@ -16,10 +17,23 @@ from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import ProgressReporter
 from hexa.workspace_copier.resources.base import ResourceCopier
-from hexa.workspace_copier.results import CopyResult, FilesResult
+from hexa.workspace_copier.results import CopyResult, FilesResult, format_bytes
 from hexa.workspace_copier.transport import GraphQLError, gql
 
 OBJECTS_PAGE_SIZE = 100
+
+# Bytes moved per read/write while streaming a file through the spool.
+CHUNK_SIZE = 4 * 1024 * 1024
+
+# A presigned PUT is a single-part upload, which S3 caps at 5 GiB. Anything
+# bigger needs multipart, which the presigned-URL flow cannot express — so
+# reject it up front instead of spending minutes discovering it mid-transfer.
+MAX_UPLOAD_SIZE = 5 * 1024**3
+
+# Per-operation, not per-file: with a streamed transfer, `read` and `write`
+# bound the wait for a single chunk, so a stalled connection fails in a couple
+# of minutes instead of tying up the transfer for the length of a whole file.
+TRANSFER_TIMEOUT = httpx.Timeout(connect=30.0, read=120.0, write=120.0, pool=30.0)
 
 # Directory names whose contents are never worth copying (editor/runtime
 # scratch dirs). Matched against any segment of an object key, so a nested
@@ -65,9 +79,19 @@ query ListObjects($slug: String!, $prefix: String, $page: Int!, $perPage: Int!) 
 
 
 def download(
-    source: Client, ws_slug: str, file_path: str, http_client: httpx.Client
-) -> bytes:
-    """Download a file from the source workspace via a presigned URL."""
+    source: Client,
+    ws_slug: str,
+    file_path: str,
+    http_client: httpx.Client,
+    destination: IO[bytes],
+) -> int:
+    """Stream a source file into `destination`, returning the bytes written.
+
+    Streamed into a caller-owned buffer rather than returned as bytes: buckets
+    hold multi-GB objects, and holding one whole file in memory (twice over,
+    since ``Response.content`` joins the accumulated chunks into a second
+    copy) is what got the process OOM-killed on large workspaces.
+    """
     data = gql(
         source,
         PREPARE_DOWNLOAD_MUTATION,
@@ -87,24 +111,35 @@ def download(
             + ",".join(result.get("errors") or [])
         )
     url = result["downloadUrl"]
-    resp = http_client.get(url)
-    if not resp.is_success:
-        raise GraphQLError(
-            f"download of '{file_path}' returned HTTP {resp.status_code}: "
-            f"{resp.text[:500]}"
-        )
-    return resp.content
+    written = 0
+    with http_client.stream("GET", url) as resp:
+        if not resp.is_success:
+            # The body of a streamed response is not available until read.
+            resp.read()
+            raise GraphQLError(
+                f"download of '{file_path}' returned HTTP {resp.status_code}: "
+                f"{resp.text[:500]}"
+            )
+        for chunk in resp.iter_bytes(CHUNK_SIZE):
+            written += destination.write(chunk)
+    return written
 
 
 def upload(
     target: Client,
     ws_slug: str,
     file_path: str,
-    content: bytes,
+    content: IO[bytes],
     http_client: httpx.Client,
     content_type: str = "application/octet-stream",
 ) -> None:
-    """Upload bytes to the target workspace at the given object key."""
+    """Upload an open binary stream to the target workspace at the given key.
+
+    `content` is read from its current position. httpx derives Content-Length
+    from the file descriptor, which matters: without a known length it would
+    fall back to chunked transfer encoding, and presigned PUT endpoints reject
+    that.
+    """
     data = gql(
         target,
         PREPARE_UPLOAD_MUTATION,
@@ -226,7 +261,7 @@ class FilesCopier(ResourceCopier):
         # one per file. It carries no auth headers: presigned URLs are
         # self-authenticating and some storage backends reject requests that
         # also send an Authorization header.
-        with httpx.Client(timeout=300) as http_client:
+        with httpx.Client(timeout=TRANSFER_TIMEOUT) as http_client:
             # walk() is a generator whose paginated/recursive gql() calls can
             # themselves raise (page 2+, a subdir listing). Driving it via
             # next() lets us record a listing failure and keep the files copied
@@ -250,17 +285,35 @@ class FilesCopier(ResourceCopier):
                         f"   [{count}] skipped {path} (already exists, same size)"
                     )
                     continue
+                if obj["size"] > MAX_UPLOAD_SIZE:
+                    reason = (
+                        f"TooLarge: {format_bytes(obj['size'])} exceeds the "
+                        f"{format_bytes(MAX_UPLOAD_SIZE)} single-part upload limit"
+                    )
+                    files_result.failed.append((path, reason))
+                    reporter.warning(f"   [{count}] SKIPPED {path}: {reason}")
+                    continue
                 # Announce the start so a slow transfer is visible as
                 # in-progress instead of looking like a hang.
-                reporter.info(f"   [{count}] copying {path} ({obj['size']} bytes) ...")
+                reporter.info(
+                    f"   [{count}] copying {path} ({format_bytes(obj['size'])}) ..."
+                )
                 try:
-                    content = download(source.client, source.slug, path, http_client)
-                    upload(target.client, target.slug, path, content, http_client)
-                    files_result.copied.append((path, len(content)))
-                    reporter.info(f"   [{count}] copied {path} ({len(content)} bytes)")
-                except (GraphQLError, httpx.HTTPError) as exc:
+                    # Spooled to a temp file so peak memory is one chunk rather
+                    # than the whole object. TMPDIR must have room for the
+                    # largest file being copied.
+                    with tempfile.TemporaryFile() as buffer:
+                        size = download(
+                            source.client, source.slug, path, http_client, buffer
+                        )
+                        buffer.seek(0)
+                        upload(target.client, target.slug, path, buffer, http_client)
+                    files_result.copied.append((path, size))
+                    reporter.info(f"   [{count}] copied {path} ({format_bytes(size)})")
+                except (GraphQLError, httpx.HTTPError, OSError) as exc:
                     # Both presigned download/upload (httpx) and the prepare
-                    # mutations (GraphQL) can fail per-file. The path and reason
+                    # mutations (GraphQL) can fail per-file, as can the spool
+                    # itself (OSError, e.g. a full TMPDIR). The path and reason
                     # go into failed for the final summary so the user can see
                     # why and re-attempt it manually.
                     reason = f"{exc.__class__.__name__}: {exc}"
