@@ -54,6 +54,20 @@ def _clean_statement(statement: Statement) -> str:
     )
 
 
+def sanitize_sql(text: str) -> str:
+    """Replace the blanks PostgreSQL cannot parse and drop invisible characters.
+
+    Applies to any number of statements, and leaves literals, quoted identifiers
+    and comments verbatim. Cleaning is idempotent, so it can be applied wherever
+    SQL enters the system.
+    """
+    # Nothing to clean is by far the common case, and answering it costs a scan
+    # rather than a parse.
+    if not _SUSPICIOUS_CHARACTER.search(text):
+        return text
+    return "".join(_clean_statement(statement) for statement in sqlparse.parse(text))
+
+
 def _starts_with_explain(statement: Statement) -> bool:
     first_token = statement.token_first(skip_cm=True)
     # Cleaned before comparing: sqlparse folds the blank of a multi-word keyword
@@ -87,6 +101,6 @@ class PreparedQuery:
         if not meaningful:
             return cls(sql=text, is_explain=False)
         return cls(
-            sql="".join(_clean_statement(statement) for statement in statements),
+            sql=sanitize_sql(text),
             is_explain=_starts_with_explain(meaningful[0]),
         )

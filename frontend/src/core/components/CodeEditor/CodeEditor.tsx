@@ -5,7 +5,6 @@ import { PostgreSQL, sql } from "@codemirror/lang-sql";
 import { xml } from "@codemirror/lang-xml";
 import { yaml } from "@codemirror/lang-yaml";
 import CodeMirror, {
-  EditorView,
   Prec,
   ReactCodeMirrorRef,
   keymap,
@@ -44,11 +43,6 @@ type CodeEditorProps = {
    * default action — e.g. inserting a newline on Enter — is suppressed.
    */
   shortcuts?: CodeEditorShortcut[];
-  /**
-   * Rewrites pasted text before it reaches the document. Injected rather than
-   * built in so the editor stays language-agnostic.
-   */
-  sanitizeInsertedText?(text: string): string;
   className?: string;
 };
 
@@ -73,7 +67,6 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
       embedded = false,
       autoFocus = false,
       shortcuts,
-      sanitizeInsertedText,
       className,
     } = props;
 
@@ -126,31 +119,6 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
       );
     }, [shortcutKeys]);
 
-    // Rewrites the clipboard text itself, so the document, the undo history and
-    // the cursor all behave as if the sanitised text had been pasted.
-    const sanitizeExtension = useMemo(() => {
-      if (!sanitizeInsertedText) {
-        return [];
-      }
-      return EditorView.domEventHandlers({
-        paste(event, view) {
-          const pasted = event.clipboardData?.getData("text/plain");
-          if (!pasted) {
-            return false;
-          }
-          const sanitized = sanitizeInsertedText(pasted);
-          if (sanitized === pasted) {
-            return false;
-          }
-          event.preventDefault();
-          view.dispatch(view.state.replaceSelection(sanitized), {
-            scrollIntoView: true,
-          });
-          return true;
-        },
-      });
-    }, [sanitizeInsertedText]);
-
     const extensions = useMemo(() => {
       const langExtension = (() => {
         switch (lang) {
@@ -178,8 +146,8 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
             embeddedEditorTheme,
           ]
         : langExtension;
-      return [...base, shortcutExtension, sanitizeExtension];
-    }, [lang, embedded, shortcutExtension, sanitizeExtension]);
+      return [...base, shortcutExtension];
+    }, [lang, embedded, shortcutExtension]);
 
     return (
       <div

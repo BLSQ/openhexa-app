@@ -1,6 +1,10 @@
 import unittest
 
-from hexa.databases.query_text import MultipleStatementsError, PreparedQuery
+from hexa.databases.query_text import (
+    MultipleStatementsError,
+    PreparedQuery,
+    sanitize_sql,
+)
 
 NBSP = "\u00a0"
 ZWSP = "\u200b"
@@ -67,7 +71,7 @@ class SanitizationTest(unittest.TestCase):
     """
 
     def assertSql(self, expected: str, query: str):
-        self.assertEqual(expected, PreparedQuery.from_text(query).sql)
+        self.assertEqual(expected, sanitize_sql(query))
 
     def test_replaces_unsupported_blanks(self):
         for blank in [NBSP, IDEOGRAPHIC_SPACE, "\u202f", "\u2009", "\u2028", "\v"]:
@@ -105,9 +109,12 @@ class SanitizationTest(unittest.TestCase):
                 self.assertSql(query, query)
 
     def test_is_idempotent(self):
-        query = f"SELECT{NBSP}'a{NBSP}b'{ZWSP} FROM t"
-        once = PreparedQuery.from_text(query).sql
-        self.assertEqual(once, PreparedQuery.from_text(once).sql)
+        once = sanitize_sql(f"SELECT{NBSP}'a{NBSP}b'{ZWSP} FROM t")
+        self.assertEqual(once, sanitize_sql(once))
+
+    def test_cleans_every_statement(self):
+        # Unlike execution, saving does not require a single statement.
+        self.assertSql("SELECT 1; SELECT 2", f"SELECT{NBSP}1;{ZWSP} SELECT{NBSP}2")
 
     def test_preserves_text_without_a_statement(self):
         for query in ["", "   ", "\n"]:
