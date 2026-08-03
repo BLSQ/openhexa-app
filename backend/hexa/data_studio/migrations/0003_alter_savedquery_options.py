@@ -5,7 +5,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("data_studio", "0003_remove_savedquery_data_studio_ws_updated_idx_and_more"),
+        ("data_studio", "0002_querylog"),
     ]
 
     operations = [
