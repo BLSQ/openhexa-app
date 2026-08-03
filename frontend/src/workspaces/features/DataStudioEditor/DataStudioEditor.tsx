@@ -15,6 +15,7 @@ import { useTranslation } from "next-i18next";
 import { useCallback, useRef, useState } from "react";
 import SaveQueryDialog from "workspaces/features/SavedQueries/SaveQueryDialog";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
+import { sanitizeSqlWhitespace } from "workspaces/helpers/sql";
 import { buildCsv, downloadCsv } from "./csv";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
@@ -49,8 +50,10 @@ const DataStudioEditor = ({
   const editorRef = useRef<CodeEditorHandle>(null);
   const [generateBarOpen, setGenerateBarOpen] = useState(false);
 
+  // Model output reaches the editor without passing through a paste, and does
+  // occasionally carry non-breaking spaces.
   const handleGenerated = useCallback((sql: string) => {
-    setQuery(sql);
+    setQuery(sanitizeSqlWhitespace(sql));
     setGenerateBarOpen(false);
   }, []);
 
@@ -221,6 +224,7 @@ const DataStudioEditor = ({
                   shortcut: runShortcutLabel,
                 })}
                 shortcuts={editorShortcuts}
+                sanitizeInsertedText={sanitizeSqlWhitespace}
                 className="h-full !rounded-none"
               />
             </div>
