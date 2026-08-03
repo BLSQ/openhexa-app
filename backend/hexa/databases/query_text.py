@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 import sqlparse
 from sqlparse import tokens
+from sqlparse.lexer import Lexer
 from sqlparse.sql import Statement
 
 
@@ -26,6 +27,11 @@ _SUSPICIOUS_CHARACTER = re.compile(rf"[^\S{_POSTGRES_WHITESPACE}]|[^\x00-\x7f]")
 
 # Literals, quoted identifiers and comments are left verbatim: PostgreSQL
 # accepts any character there, so an exotic space is part of the data.
+#
+# This tuple is also what keeps ``PreparedQuery`` safe: every construct that can
+# swallow a semicolon (string, dollar-quoted body, comment) is one of these, so
+# cleaning cannot break out of one and expose a statement separator that was not
+# there before. Widening it demands a second look at the statement count.
 _VERBATIM_TOKEN_TYPES = (tokens.Literal, tokens.Comment)
 
 
@@ -47,34 +53,36 @@ def _is_verbatim(token_type) -> bool:
     return any(token_type in group for group in _VERBATIM_TOKEN_TYPES)
 
 
-def _clean_statement(statement: Statement) -> str:
-    return "".join(
-        token.value if _is_verbatim(token.ttype) else _clean(token.value)
-        for token in statement.flatten()
-    )
-
-
 def sanitize_sql(text: str) -> str:
     """Replace the blanks PostgreSQL cannot parse and drop invisible characters.
 
-    Applies to any number of statements, and leaves literals, quoted identifiers
-    and comments verbatim. Cleaning is idempotent, so it can be applied wherever
-    SQL enters the system.
+    Applies to the whole text, whatever number of statements it holds, and leaves
+    literals, quoted identifiers and comments verbatim. Cleaning is idempotent,
+    so it can be applied wherever SQL enters the system.
     """
     # Nothing to clean is by far the common case, and answering it costs a scan
-    # rather than a parse.
+    # rather than a trip through sqlparse.
     if not _SUSPICIOUS_CHARACTER.search(text):
         return text
-    return "".join(_clean_statement(statement) for statement in sqlparse.parse(text))
+    # Lexing rather than parsing: token types are all the verbatim regions need,
+    # and the grouping pass -- the expensive half of a parse -- would add nothing.
+    # It also keeps every character, where parsing drops text it reads as no
+    # statement at all (a lone exotic blank came back empty).
+    lexed = list(Lexer.get_default_instance().get_tokens(text))
+    if "".join(value for _, value in lexed) != text:
+        # sqlparse is third-party and pinned: should a version ever stop
+        # round-tripping its input, clean the text as a whole rather than store
+        # or run a statement with pieces missing. Literals pay the price of being
+        # cleaned too, which beats losing them.
+        return _clean(text)
+    return "".join(
+        value if _is_verbatim(ttype) else _clean(value) for ttype, value in lexed
+    )
 
 
 def _starts_with_explain(statement: Statement) -> bool:
     first_token = statement.token_first(skip_cm=True)
-    # Cleaned before comparing: sqlparse folds the blank of a multi-word keyword
-    # into the token itself, so an exotic space survives in ``normalized``.
-    return (
-        first_token is not None and _clean(first_token.normalized).upper() == "EXPLAIN"
-    )
+    return first_token is not None and first_token.normalized.upper() == "EXPLAIN"
 
 
 @dataclass(frozen=True)
@@ -86,21 +94,25 @@ class PreparedQuery:
 
     @classmethod
     def from_text(cls, text: str) -> "PreparedQuery":
-        """Parse ``text`` once, rejecting input that holds more than one statement.
+        """Clean ``text``, then reject input that holds more than one statement.
+
+        Cleaning comes first so that the count, and the EXPLAIN detection with it,
+        are established on the exact string PostgreSQL will receive: a verdict
+        reached on the raw text would describe a string that is never executed.
 
         Rejecting stacked statements is load-bearing for the executeSQL endpoint
         (see the tests): it is what prevents a ``SET statement_timeout = 0``
         from being run before the query.
         """
-        statements = sqlparse.parse(text)
-        meaningful = [s for s in statements if str(s).strip().rstrip(";").strip()]
-        if len(meaningful) > 1:
+        sql = sanitize_sql(text)
+        statements = [
+            s for s in sqlparse.parse(sql) if str(s).strip().rstrip(";").strip()
+        ]
+        if len(statements) > 1:
             raise MultipleStatementsError(
                 "Only a single SQL statement can be executed."
             )
-        if not meaningful:
-            return cls(sql=text, is_explain=False)
         return cls(
-            sql=sanitize_sql(text),
-            is_explain=_starts_with_explain(meaningful[0]),
+            sql=sql,
+            is_explain=bool(statements) and _starts_with_explain(statements[0]),
         )

@@ -1,4 +1,8 @@
 import unittest
+from unittest import mock
+
+from sqlparse import tokens
+from sqlparse.lexer import Lexer
 
 from hexa.databases.query_text import (
     MultipleStatementsError,
@@ -10,6 +14,13 @@ NBSP = "\u00a0"
 ZWSP = "\u200b"
 BOM = "\ufeff"
 IDEOGRAPHIC_SPACE = "\u3000"
+
+
+class _LosingLexer:
+    """A lexer that drops a token, i.e. the failure the fallback exists for."""
+
+    def get_tokens(self, text: str, encoding=None):
+        yield tokens.Keyword.DML, text[:-1]
 
 
 class StatementCountTest(unittest.TestCase):
@@ -62,6 +73,24 @@ class StatementCountTest(unittest.TestCase):
             with self.subTest(query=query):
                 with self.assertRaises(MultipleStatementsError):
                     PreparedQuery.from_text(query)
+
+    def test_counts_the_statements_of_the_query_it_returns(self):
+        # The count has to be reached on the cleaned text, because that is the
+        # string PostgreSQL receives. Submitting back what is about to be executed
+        # must therefore reach the very same verdict -- were the count taken on the
+        # raw text instead, cleaning would be free to change the statement count
+        # afterwards and the check would describe a string nobody runs.
+        for query in [
+            f"SELECT{NBSP}1",
+            f"SELECT{NBSP}$tag$ a ; b $tag$",
+            f"SELECT{ZWSP} 'a;b' AS x",
+            f"EXPLAIN{NBSP}(VERBOSE) SELECT 1",
+            f"SELECT 1;{ZWSP}",
+            f"--{NBSP}note\nSELECT 1",
+        ]:
+            with self.subTest(query=query):
+                prepared = PreparedQuery.from_text(query)
+                self.assertEqual(prepared, PreparedQuery.from_text(prepared.sql))
 
 
 class SanitizationTest(unittest.TestCase):
@@ -120,6 +149,24 @@ class SanitizationTest(unittest.TestCase):
         for query in ["", "   ", "\n"]:
             with self.subTest(query=repr(query)):
                 self.assertSql(query, query)
+
+    def test_drops_nothing_but_the_invisible_characters(self):
+        # Reassembling from sqlparse's *statements* silently lost text it read as
+        # no statement at all: a lone exotic blank came back as an empty string.
+        # Nothing may disappear except the characters meant to.
+        self.assertSql(" ", NBSP)
+        self.assertSql(" ", IDEOGRAPHIC_SPACE)
+        self.assertSql(" ", f"{NBSP}{ZWSP}")
+        self.assertSql(" --x", f"{NBSP}--x")
+
+    def test_falls_back_to_cleaning_the_whole_text_if_lexing_loses_content(self):
+        # Guards the assumption the reassembly rests on. A parser that stops
+        # round-tripping its input must cost us the verbatim regions, never
+        # characters of the query itself.
+        with mock.patch.object(
+            Lexer, "get_default_instance", return_value=_LosingLexer()
+        ):
+            self.assertSql("SELECT 'a b' FROM t", f"SELECT 'a{NBSP}b'{ZWSP} FROM t")
 
 
 class ExplainDetectionTest(unittest.TestCase):
