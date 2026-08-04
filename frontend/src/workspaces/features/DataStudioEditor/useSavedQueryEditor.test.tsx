@@ -58,7 +58,7 @@ describe("useSavedQueryEditor", () => {
       await result.current.save();
     });
 
-    expect(result.current.dialog).toEqual({ mode: "create" });
+    expect(result.current.dialog).toEqual({ open: true, mode: "create" });
     expect(updateMock).not.toHaveBeenCalled();
   });
 
@@ -104,7 +104,7 @@ describe("useSavedQueryEditor", () => {
     const { result } = renderEditor("SELECT 42", null);
 
     act(() => result.current.saveAsNew());
-    expect(result.current.dialog).toEqual({ mode: "create" });
+    expect(result.current.dialog).toEqual({ open: true, mode: "create" });
 
     act(() => result.current.onDialogSaved({ ...savedQuery, id: "new-1" }));
 
@@ -119,7 +119,7 @@ describe("useSavedQueryEditor", () => {
     const { result } = renderEditor("SELECT 1");
 
     act(() => result.current.editDetails());
-    expect(result.current.dialog).toEqual({ mode: "edit-details" });
+    expect(result.current.dialog).toEqual({ open: true, mode: "edit-details" });
 
     act(() => result.current.onDialogSaved({ ...savedQuery, name: "Renamed" }));
 
@@ -127,11 +127,22 @@ describe("useSavedQueryEditor", () => {
     expect(mockRouter.asPath).toBe("/");
   });
 
-  it("closes the dialog", () => {
+  it("starts with the dialog closed", () => {
+    const { result } = renderEditor("SELECT 1");
+    expect(result.current.dialog.open).toBe(false);
+  });
+
+  // The mode has to outlive the close so the title does not change while the
+  // dialog fades out.
+  it("closes the dialog while keeping its mode", () => {
     const { result } = renderEditor("SELECT 1");
     act(() => result.current.editDetails());
-    expect(result.current.dialog).not.toBeNull();
+    expect(result.current.dialog.open).toBe(true);
+
     act(() => result.current.closeDialog());
-    expect(result.current.dialog).toBeNull();
+    expect(result.current.dialog).toEqual({
+      open: false,
+      mode: "edit-details",
+    });
   });
 });

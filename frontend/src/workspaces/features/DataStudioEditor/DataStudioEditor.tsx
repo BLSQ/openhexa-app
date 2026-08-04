@@ -62,6 +62,13 @@ const DataStudioEditor = ({
     initialSavedQuery: savedQuery,
   });
 
+  // Stable so the memoised schema browser is not re-rendered by every keystroke
+  // in the editor. Goes through the imperative handle, so it needs no deps.
+  const insertIntoEditor = useCallback(
+    (text: string) => editorRef.current?.insertText(text),
+    [],
+  );
+
   const runShortcutLabel = isMac ? "⌘+Enter" : "Ctrl+Enter";
   // Compact form for the in-button pill: the return glyph reads cleanly next to
   // ⌘ on macOS; other platforms keep the spelled-out modifier.
@@ -100,7 +107,7 @@ const DataStudioEditor = ({
         <DataStudioSchemaBrowser
           workspaceSlug={workspaceSlug}
           className="w-[240px] shrink-0 border-r border-gray-200"
-          onInsert={(text) => editorRef.current?.insertText(text)}
+          onInsert={insertIntoEditor}
         />
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Toolbar: controls right-aligned, Run at the far right. */}
@@ -235,17 +242,17 @@ const DataStudioEditor = ({
           </div>
         </div>
       </div>
-      {editor.dialog && (
-        <SaveQueryDialog
-          open
-          mode={editor.dialog.mode}
-          workspaceSlug={workspaceSlug}
-          content={query}
-          savedQuery={editor.savedQuery}
-          onClose={editor.closeDialog}
-          onSaved={editor.onDialogSaved}
-        />
-      )}
+      {/* Kept mounted and toggled through `open`: Headless UI skips its enter
+          transition for a dialog that mounts already open. */}
+      <SaveQueryDialog
+        open={editor.dialog.open}
+        mode={editor.dialog.mode}
+        workspaceSlug={workspaceSlug}
+        content={query}
+        savedQuery={editor.savedQuery}
+        onClose={editor.closeDialog}
+        onSaved={editor.onDialogSaved}
+      />
     </>
   );
 };
