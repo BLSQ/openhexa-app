@@ -347,6 +347,7 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.openid_connect",
+    "django_sql_dashboard",
 ]
 
 MIDDLEWARE = [
@@ -412,7 +413,19 @@ DATABASES = {
         "NAME": os.environ.get("DATABASE_NAME"),
         "USER": os.environ.get("DATABASE_USER"),
         "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
-    }
+    },
+    "dashboard": {
+        "ENGINE": "django.db.backends.postgresql",
+        "HOST": os.environ.get("DATABASE_HOST"),
+        "PORT": os.environ.get("DATABASE_PORT"),
+        "NAME": os.environ.get("DATABASE_NAME"),
+        "USER": os.environ.get("DATABASE_USER_READ_ONLY"),
+        "PASSWORD": os.environ.get("DATABASE_PASSWORD_READ_ONLY"),
+        "OPTIONS": {
+            # Kill queries that take longer than 3 seconds
+            "options": "-c default_transaction_read_only=on -c statement_timeout=3000"
+        },
+    },
 }
 
 # Auth settings
@@ -809,3 +822,8 @@ if "OAUTH2_ALLOWED_REDIRECT_URI_HOSTS" in os.environ:
     OAUTH2_ALLOWED_REDIRECT_URI_HOSTS.update(
         os.environ["OAUTH2_ALLOWED_REDIRECT_URI_HOSTS"].split(",")
     )
+
+# django-sql-dashboard additional settings
+# https://django-sql-dashboard.datasette.io/en/stable/setup.html#additional-settings
+DASHBOARD_ROW_LIMIT = 1000  # default 100
+DASHBOARD_ENABLE_FULL_EXPORT = True  # default False

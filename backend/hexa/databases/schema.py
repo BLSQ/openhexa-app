@@ -11,16 +11,17 @@ from django.http import HttpRequest
 from psycopg2 import Error as Psycopg2Error
 from psycopg2.errors import QueryCanceled
 
+from hexa.data_studio.models import QueryLog
 from hexa.workspaces.models import Workspace
 
 from .utils import (
     MultipleStatementsError,
     OrderByDirectionEnum,
-    execute_database_query,
     get_database_definition_page,
     get_table_definition,
     get_table_rows,
     get_table_sample_data,
+    run_and_log_database_query,
 )
 
 databases_types_def = load_schema_from_path(
@@ -33,6 +34,8 @@ workspace_object = ObjectType("Workspace")
 workspace_mutations = MutationType()
 
 order_by_direction_enum = EnumType("OrderByDirection", OrderByDirectionEnum)
+# Bound to the model enum so the GraphQL contract and the stored values stay in sync
+execute_sql_origin_enum = EnumType("ExecuteSQLOrigin", QueryLog.Origin)
 
 
 @database_object.field("tables")
@@ -70,14 +73,23 @@ def resolve_database_credentials(workspace: Workspace, info, **kwargs):
 
 @database_object.field("executeSQL")
 def resolve_database_execute_sql(
-    workspace: Workspace, info, query: str, max_rows: int | None = None, **kwargs
+    workspace: Workspace,
+    info,
+    query: str,
+    max_rows: int | None = None,
+    origin: str | None = None,
+    **kwargs,
 ):
     request: HttpRequest = info.context["request"]
-    if not request.user.has_perm("databases.run_query", workspace):
-        return {"success": False, "errors": ["PERMISSION_DENIED"]}
-    max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
+    # Clients may send an explicit null, which bypasses the Python default
+    origin = origin or QueryLog.Origin.OTHER
     try:
-        result = execute_database_query(workspace, query, **max_rows_kwarg)
+        result = run_and_log_database_query(
+            request, workspace, query, origin, max_rows=max_rows
+        )
+        return {"success": True, "errors": [], **result}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
     except MultipleStatementsError as e:
         return {
             "success": False,
@@ -96,7 +108,6 @@ def resolve_database_execute_sql(
             "errors": ["QUERY_ERROR"],
             "error_message": str(e).strip(),
         }
-    return {"success": True, "errors": [], **result}
 
 
 @database_object.field("readOnlyCredentials")
@@ -197,4 +208,5 @@ databases_bindables = [
     workspace_object,
     workspace_mutations,
     order_by_direction_enum,
+    execute_sql_origin_enum,
 ]

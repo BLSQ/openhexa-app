@@ -1,4 +1,3 @@
-import Breadcrumbs from "core/components/Breadcrumbs";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
@@ -8,7 +7,7 @@ import {
   useWorkspaceDataStudioPageQuery,
   WorkspaceDataStudioPageDocument,
 } from "workspaces/graphql/queries.generated";
-import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
+import DataStudioLayout from "workspaces/layouts/DataStudioLayout";
 
 type Props = {
   workspaceSlug: string;
@@ -24,31 +23,25 @@ const WorkspaceDataStudioPage: NextPageWithLayout = (props: Props) => {
     return null;
   }
   const { workspace } = data;
+  const aiEnabled = workspace.organization?.aiSettings?.enabled ?? false;
+  const aiBudgetLimitReached =
+    workspace.organization?.aiBudgetLimitReached ?? false;
+  const monthlyLimitExceeded = data.me?.assistantMonthlyLimitExceeded ?? false;
 
   return (
     <Page title={t("Data Studio")}>
-      <WorkspaceLayout
-        workspace={workspace}
-        withMarginBottom={false}
-        header={
-          <Breadcrumbs withHome={false}>
-            <Breadcrumbs.Part
-              isFirst
-              isLast
-              href={`/workspaces/${encodeURIComponent(
-                workspace.slug,
-              )}/data-studio`}
-            >
-              {t("Data Studio")}
-            </Breadcrumbs.Part>
-          </Breadcrumbs>
-        }
-      >
-        {/* Full-bleed IDE: fill the viewport below the fixed 4rem workspace header. */}
-        <div className="h-[calc(100vh-4rem)] p-4">
-          <DataStudioEditor workspaceSlug={workspace.slug} />
+      <DataStudioLayout workspace={workspace} currentTab="editor">
+        {/* Full-bleed IDE: fill the area below the header and sub-nav. */}
+        <div className="h-full p-4">
+          <DataStudioEditor
+            workspaceSlug={workspace.slug}
+            canCreate={workspace.permissions.createSavedQuery}
+            aiEnabled={aiEnabled}
+            aiBudgetLimitReached={aiBudgetLimitReached}
+            monthlyLimitExceeded={monthlyLimitExceeded}
+          />
         </div>
-      </WorkspaceLayout>
+      </DataStudioLayout>
     </Page>
   );
 };
@@ -58,7 +51,7 @@ WorkspaceDataStudioPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
-    await WorkspaceLayout.prefetch(ctx, client);
+    await DataStudioLayout.prefetch(ctx, client);
     const { data } = await client.query({
       query: WorkspaceDataStudioPageDocument,
       variables: {

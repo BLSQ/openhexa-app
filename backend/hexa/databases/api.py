@@ -18,15 +18,17 @@ def get_db_server_credentials():
     }
 
 
-def get_database_connection(database: str):
+def get_database_connection(database: str, user: str = None, password: str = None):
     credentials = get_db_server_credentials()
-    role = credentials["role"]
-    password = credentials["password"]
     host = credentials["host"]
     port = credentials["port"]
 
     return psycopg2.connect(
-        host=host, port=port, dbname=database, user=role, password=password
+        host=host,
+        port=port,
+        dbname=database,
+        user=user or credentials["role"],
+        password=password or credentials["password"],
     )
 
 
@@ -251,22 +253,16 @@ def update_database_password(db_role: str, new_password: str):
             conn.close()
 
 
-def load_database_sample_data(db_name: str):
+def load_database_sample_data(db_name: str, db_password: str):
     conn = None
     try:
-        conn = get_database_connection(db_name)
+        conn = get_database_connection(db_name, user=db_name, password=db_password)
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with conn.cursor() as cursor:
             with open(
                 os.path.join(os.path.dirname(__file__), "static/demo.sql")
             ) as file:
                 cursor.execute(file.read())
-                cursor.execute(
-                    sql.SQL("ALTER TABLE covid_data OWNER TO {role_name};").format(
-                        role_name=sql.Identifier(db_name)
-                    )
-                )
-
     finally:
         if conn:
             conn.close()

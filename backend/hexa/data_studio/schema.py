@@ -1,6 +1,12 @@
 import pathlib
 
-from ariadne import MutationType, ObjectType, QueryType, load_schema_from_path
+from ariadne import (
+    EnumType,
+    MutationType,
+    ObjectType,
+    QueryType,
+    load_schema_from_path,
+)
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import HttpRequest
@@ -19,6 +25,16 @@ saved_query_object = ObjectType("SavedQuery")
 saved_query_permissions = ObjectType("SavedQueryPermissions")
 data_studio_queries = QueryType()
 data_studio_mutations = MutationType()
+
+saved_query_order_by_enum = EnumType(
+    "SavedQueryOrderBy",
+    {
+        "NAME_ASC": "name",
+        "NAME_DESC": "-name",
+        "UPDATED_AT_ASC": "updated_at",
+        "UPDATED_AT_DESC": "-updated_at",
+    },
+)
 
 
 @saved_query_object.field("permissions")
@@ -61,6 +77,11 @@ def resolve_workspace_saved_queries(workspace: Workspace, info, query=None, **kw
         # frontend defines whether and how body matches should surface to users.
         qs = qs.filter(Q(name__icontains=query) | Q(description__icontains=query))
 
+    # `id` breaks ties so paging stays deterministic: neither `name` nor
+    # `updated_at` is unique, and rows sharing a sort key could otherwise be
+    # dealt to two pages (or none) across successive requests.
+    qs = qs.order_by(kwargs["order_by"], "id")
+
     return result_page(
         queryset=qs,
         page=kwargs.get("page", 1),
@@ -83,12 +104,17 @@ def resolve_workspace_permissions_create_saved_query(
 @data_studio_queries.field("savedQuery")
 def resolve_saved_query(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    queryset = SavedQuery.objects.filter_for_user(request.user).select_related(
+        "created_by", "workspace", "workspace__organization"
+    )
+    # workspaceSlug is optional to keep the field's existing id-only contract;
+    # when supplied it scopes the lookup to that workspace, matching where
+    # saved queries live (mirrors pipelineByCode).
+    workspace_slug = kwargs.get("workspace_slug")
+    if workspace_slug is not None:
+        queryset = queryset.filter(workspace__slug=workspace_slug)
     try:
-        return (
-            SavedQuery.objects.filter_for_user(request.user)
-            .select_related("created_by", "workspace", "workspace__organization")
-            .get(id=kwargs["id"])
-        )
+        return queryset.get(id=kwargs["id"])
     except SavedQuery.DoesNotExist:
         return None
 
@@ -153,6 +179,7 @@ def resolve_delete_saved_query(_, info, **kwargs):
 data_studio_bindables = [
     saved_query_object,
     saved_query_permissions,
+    saved_query_order_by_enum,
     data_studio_queries,
     data_studio_mutations,
 ]

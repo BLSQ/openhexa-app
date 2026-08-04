@@ -22,6 +22,7 @@ from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
+from hexa.webapps.utils import webapp_host_url
 from hexa.webapps.validators import validate_subdomain
 from hexa.workspaces.models import Workspace
 
@@ -189,7 +190,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     def serve_url(self):
         if self.type == self.WebappType.IFRAME:
             return f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.workspace.slug}/webapps/{self.slug}/play"
-        return f"{settings.SCHEME}://{self.subdomain}.{settings.WEBAPPS_DOMAIN}/"
+        return webapp_host_url(self.subdomain)
 
     def is_favorite(self, user: User):
         return self.favorites.filter(pk=user.pk).exists()

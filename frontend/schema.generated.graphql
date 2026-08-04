@@ -477,6 +477,8 @@ registry (`hexa.assistant.agents.all_agent_tool_names`) — a unit test enforces
 enum AssistantToolName {
   create_pipeline
   get_dataset
+  get_db_schema
+  get_db_table_schema
   get_help_or_doc
   get_pipeline
   get_static_webapp_file
@@ -1465,7 +1467,7 @@ type DHIS2QueryResultPage {
 
 type Database {
   credentials: DatabaseCredentials
-  executeSQL(maxRows: Int, query: String!): ExecuteSQLResult!
+  executeSQL(maxRows: Int, origin: ExecuteSQLOrigin, query: String!): ExecuteSQLResult!
   readOnlyCredentials: DatabaseCredentials
   table(name: String!): DatabaseTable
   tables(page: Int, perPage: Int, withColumns: Boolean = false, withCounts: Boolean = true): DatabaseTablePage!
@@ -2375,6 +2377,17 @@ enum ExecuteSQLError {
 
   """The query was cancelled because it exceeded the statement timeout."""
   QUERY_TIMEOUT
+}
+
+"""
+The origin of a SQL query, recorded for auditing and to build a per-user query history.
+"""
+enum ExecuteSQLOrigin {
+  """The query originates from the Data Studio frontend."""
+  DATA_STUDIO
+
+  """The client did not identify where the query comes from."""
+  OTHER
 }
 
 """
@@ -4179,8 +4192,10 @@ type Query {
   readFileContent(endLine: Int, filePath: String!, startLine: Int, workspaceSlug: String!): ReadFileContentResult!
   readWebappFile(endLine: Int, path: String!, startLine: Int, webappSlug: String!, workspaceSlug: String!): ReadWebappFileResult!
 
-  """Retrieves a saved query by its id."""
-  savedQuery(id: ID!): SavedQuery
+  """
+  Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace.
+  """
+  savedQuery(id: ID!, workspaceSlug: String): SavedQuery
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
@@ -4541,6 +4556,14 @@ type SavedQuery {
   permissions: SavedQueryPermissions!
   updatedAt: DateTime!
   workspace: Workspace!
+}
+
+"""Enum representing the possible orderings for saved queries."""
+enum SavedQueryOrderBy {
+  NAME_ASC
+  NAME_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
 }
 
 """A page of saved queries."""
@@ -5718,6 +5741,9 @@ type UploadPipelineResult {
 
 """The User type represents a user in the system."""
 type User {
+  """Whether the user has consented to product analytics tracking."""
+  analyticsEnabled: Boolean!
+
   """The avatar of the user."""
   avatar: Avatar!
 
@@ -5922,7 +5948,7 @@ type Workspace {
   pipelineTemplateTags: [String!]!
 
   """The saved queries of the workspace."""
-  savedQueries(page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
+  savedQueries(orderBy: SavedQueryOrderBy! = UPDATED_AT_DESC, page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
   shortcuts: [ShortcutItem!]!
   slug: String!
   updatedAt: DateTime

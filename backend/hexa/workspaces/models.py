@@ -147,7 +147,7 @@ class WorkspaceManager(models.Manager):
         create_kwargs["bucket_name"] = bucket_name
 
         if load_sample_data:
-            load_database_sample_data(db_name)
+            load_database_sample_data(db_name, db_password)
             load_bucket_sample_data(bucket_name)
 
         workspace = self.create(**create_kwargs)

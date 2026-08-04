@@ -80,7 +80,62 @@ query WorkspaceNotebooksPage($workspaceSlug: String!) {
 query WorkspaceDataStudioPage($workspaceSlug: String!) {
   workspace(slug: $workspaceSlug) {
     slug
+    permissions {
+      createSavedQuery
+    }
+    organization {
+      id
+      aiSettings {
+        enabled
+      }
+      aiBudgetLimitReached
+    }
     ...WorkspaceLayout_workspace
+  }
+  me {
+    assistantMonthlyLimitExceeded
+  }
+}
+
+query WorkspaceSavedQueriesPage(
+  $workspaceSlug: String!
+  $query: String
+  $page: Int
+  $perPage: Int
+  $orderBy: SavedQueryOrderBy!
+) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    permissions {
+      createSavedQuery
+    }
+    savedQueries(
+      query: $query
+      page: $page
+      perPage: $perPage
+      orderBy: $orderBy
+    ) {
+      totalItems
+      totalPages
+      pageNumber
+      items {
+        ...SavedQueryListItem_savedQuery
+      }
+    }
+    ...WorkspaceLayout_workspace
+  }
+}
+
+query WorkspaceSavedQueryPage($workspaceSlug: String!, $id: ID!) {
+  workspace(slug: $workspaceSlug) {
+    slug
+    permissions {
+      createSavedQuery
+    }
+    ...WorkspaceLayout_workspace
+  }
+  savedQuery(workspaceSlug: $workspaceSlug, id: $id) {
+    ...SavedQuery_savedQuery
   }
 }
 

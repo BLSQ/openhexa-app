@@ -523,6 +523,8 @@ export type AssistantTextSegment = {
 export enum AssistantToolName {
   CreatePipeline = 'create_pipeline',
   GetDataset = 'get_dataset',
+  GetDbSchema = 'get_db_schema',
+  GetDbTableSchema = 'get_db_table_schema',
   GetHelpOrDoc = 'get_help_or_doc',
   GetPipeline = 'get_pipeline',
   GetStaticWebappFile = 'get_static_webapp_file',
@@ -1498,6 +1500,7 @@ export type Database = {
 
 export type DatabaseExecuteSqlArgs = {
   maxRows?: InputMaybe<Scalars['Int']['input']>;
+  origin?: InputMaybe<ExecuteSqlOrigin>;
   query: Scalars['String']['input'];
 };
 
@@ -2388,6 +2391,14 @@ export enum ExecuteSqlError {
   QueryError = 'QUERY_ERROR',
   /** The query was cancelled because it exceeded the statement timeout. */
   QueryTimeout = 'QUERY_TIMEOUT'
+}
+
+/** The origin of a SQL query, recorded for auditing and to build a per-user query history. */
+export enum ExecuteSqlOrigin {
+  /** The query originates from the Data Studio frontend. */
+  DataStudio = 'DATA_STUDIO',
+  /** The client did not identify where the query comes from. */
+  Other = 'OTHER'
 }
 
 /** Represents the result of executing a SQL query against the workspace database. */
@@ -4800,7 +4811,7 @@ export type Query = {
   /** Read the text content of a file from a workspace's bucket. */
   readFileContent: ReadFileContentResult;
   readWebappFile: ReadWebappFileResult;
-  /** Retrieves a saved query by its id. */
+  /** Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace. */
   savedQuery?: Maybe<SavedQuery>;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
@@ -5059,6 +5070,7 @@ export type QueryReadWebappFileArgs = {
 
 export type QuerySavedQueryArgs = {
   id: Scalars['ID']['input'];
+  workspaceSlug?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -5488,6 +5500,14 @@ export type SavedQuery = {
   updatedAt: Scalars['DateTime']['output'];
   workspace: Workspace;
 };
+
+/** Enum representing the possible orderings for saved queries. */
+export enum SavedQueryOrderBy {
+  NameAsc = 'NAME_ASC',
+  NameDesc = 'NAME_DESC',
+  UpdatedAtAsc = 'UPDATED_AT_ASC',
+  UpdatedAtDesc = 'UPDATED_AT_DESC'
+}
 
 /** A page of saved queries. */
 export type SavedQueryPage = {
@@ -6524,6 +6544,8 @@ export type UploadPipelineResult = {
 /** The User type represents a user in the system. */
 export type User = {
   __typename?: 'User';
+  /** Whether the user has consented to product analytics tracking. */
+  analyticsEnabled: Scalars['Boolean']['output'];
   /** The avatar of the user. */
   avatar: Avatar;
   /** The date when the user joined the system. */
@@ -6771,6 +6793,7 @@ export type WorkspaceMembersArgs = {
 
 /** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type WorkspaceSavedQueriesArgs = {
+  orderBy?: SavedQueryOrderBy;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;

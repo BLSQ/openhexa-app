@@ -17,6 +17,11 @@ const MODELS: Record<string, string[]> = {
   [AiProvider.Anthropic]: ["", AiModel.Opus, AiModel.Sonnet, AiModel.Haiku],
 };
 
+const usesManagedProvider = (value: unknown) => value === AiProvider.Managed;
+
+const showByok = (values: { enableAI?: unknown; provider?: unknown }) =>
+  Boolean(values.enableAI) && !usesManagedProvider(values.provider);
+
 type OrganizationAiSettingsProps = {
   organization: Organization_OrganizationFragment;
 };
@@ -52,16 +57,19 @@ const OrganizationAiSettings = ({
   const getModelLabel = (type: string): string =>
     modelsMap[type] || String(type);
 
-  const usesManagedProvider = (value: unknown) => value === AiProvider.Managed;
+  const providerOptions = isManagedInstance
+    ? [AiProvider.Managed, AiProvider.Anthropic]
+    : [AiProvider.Anthropic];
 
   const onSave: OnSaveFn = async (values) => {
+    const usesManaged = usesManagedProvider(values.provider);
     await updateOrganizationAiSettings({
       variables: {
         input: {
           organizationId: organization.id,
           enabled: values.enableAI,
-          provider: isManagedInstance ? AiProvider.Managed : values.provider,
-          ...(isManagedInstance
+          provider: values.provider,
+          ...(usesManaged
             ? {}
             : { model: values.model, apiKey: values.apiKey }),
         },
@@ -86,17 +94,13 @@ const OrganizationAiSettings = ({
           id="provider"
           accessor="aiSettings.provider"
           label={t("Provider")}
-          options={[AiProvider.Anthropic]}
+          options={providerOptions}
           getOptionLabel={getProviderLabel}
           onChange={(value: string) => {
             setProvider(value);
           }}
-          visible={(_, __, values) =>
-            Boolean(values.enableAI) && !isManagedInstance
-          }
-          required={(_, __, values) =>
-            Boolean(values.enableAI) && !isManagedInstance
-          }
+          visible={(_, __, values) => Boolean(values.enableAI)}
+          required={(_, __, values) => Boolean(values.enableAI)}
         />
         <SimpleSelectProperty
           id="model"
@@ -104,16 +108,8 @@ const OrganizationAiSettings = ({
           label={t("Model")}
           options={modelOptions}
           getOptionLabel={getModelLabel}
-          visible={(_, __, values) =>
-            Boolean(values.enableAI) &&
-            !isManagedInstance &&
-            !usesManagedProvider(values.provider)
-          }
-          required={(_, __, values) =>
-            Boolean(values.enableAI) &&
-            !isManagedInstance &&
-            !usesManagedProvider(values.provider)
-          }
+          visible={(_, __, values) => showByok(values)}
+          required={(_, __, values) => showByok(values)}
         />
         <TextProperty
           id="apiKey"
@@ -123,17 +119,8 @@ const OrganizationAiSettings = ({
             settings?.hasApiKey ? t("Leave blank to keep current API key") : ""
           }
           label={t("API Key")}
-          visible={(_, __, values) =>
-            Boolean(values.enableAI) &&
-            !isManagedInstance &&
-            !usesManagedProvider(values.provider)
-          }
-          required={(_, __, values) =>
-            Boolean(values.enableAI) &&
-            !isManagedInstance &&
-            !usesManagedProvider(values.provider) &&
-            !settings?.hasApiKey
-          }
+          visible={(_, __, values) => showByok(values)}
+          required={(_, __, values) => showByok(values) && !settings?.hasApiKey}
         />
       </DataCard.FormSection>
     </DataCard>

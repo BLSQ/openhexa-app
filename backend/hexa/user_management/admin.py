@@ -2,12 +2,13 @@ from datetime import timedelta
 
 from django import forms
 from django.contrib import admin, messages
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
-from django.db.models import OuterRef, Q, Subquery, Sum
+from django.db.models import Count, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Collate
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -32,8 +33,51 @@ from .models import (
     User,
 )
 
-# We won't be using the Django group feature
+# Django groups are not part of OpenHEXA's access model (organizations, workspaces,
+# teams): they are only exposed here because django-sql-dashboard relies on them for
+# its group-based view/edit policies. We replace the default GroupAdmin with one that
+# carries a disclaimer and allows managing members directly (the default group admin
+# has no user picker, and our user admin does not expose the groups field).
 admin.site.unregister(Group)
+
+
+class GroupForm(forms.ModelForm):
+    users = forms.ModelMultipleChoiceField(
+        queryset=User.objects.order_by("email"),
+        required=False,
+        widget=FilteredSelectMultiple("users", is_stacked=False),
+    )
+
+    class Meta:
+        model = Group
+        fields = ("name", "users")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields["users"].initial = self.instance.user_set.all()
+
+    def _save_m2m(self):
+        super()._save_m2m()
+        self.instance.user_set.set(self.cleaned_data["users"])
+
+
+@admin.register(Group)
+class GroupAdmin(admin.ModelAdmin):
+    form = GroupForm
+    list_display = ("name", "members_count")
+    search_fields = ("name",)
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(_members_count=Count("user", distinct=True))
+        )
+
+    @admin.display(description="Members Count", ordering="_members_count")
+    def members_count(self, obj):
+        return obj._members_count
 
 
 class UserCreationForm(BaseUserCreationForm):
