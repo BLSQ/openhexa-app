@@ -3,6 +3,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import models
 
 from hexa.core.models.base import Base, BaseQuerySet
+from hexa.databases.query_text import sanitize_sql
 from hexa.user_management.models import User, UserInterface
 from hexa.workspaces.models import Workspace
 
@@ -68,6 +69,13 @@ class SavedQuery(Base):
 
     def __str__(self) -> str:
         return self.name
+
+    def save(self, *args, **kwargs):
+        # SQL pasted from a chat, a document or a PDF carries blanks PostgreSQL
+        # rejects; cleaning them here means a query is stored runnable whichever
+        # way it was written (editor, admin, ...).
+        self.content = sanitize_sql(self.content)
+        return super().save(*args, **kwargs)
 
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("data_studio.update_saved_query", self):
