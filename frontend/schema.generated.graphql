@@ -1193,6 +1193,21 @@ type CreateSavedQueryResult {
 }
 
 """
+The CreateSelfHostedOrganizationInput type represents the input for the createSelfHostedOrganization mutation.
+Used by superusers to provision a subscription-less organization (self-hosted mode).
+"""
+input CreateSelfHostedOrganizationInput {
+  """The name of the organization."""
+  name: String!
+
+  """
+  The short name of the organization (max 5 uppercase letters).
+  If not provided, it will be auto-generated from the name.
+  """
+  shortName: String
+}
+
+"""
 The CreateTeamError enum represents the possible errors that can occur during the createTeam mutation.
 """
 enum CreateTeamError {
@@ -3089,6 +3104,7 @@ type Mutation {
 
   """Creates a new saved query in a workspace."""
   createSavedQuery(input: CreateSavedQueryInput!): CreateSavedQueryResult!
+  createSelfHostedOrganization(input: CreateSelfHostedOrganizationInput!): CreateOrganizationResult!
   createTeam(input: CreateTeamInput!): CreateTeamResult!
   createWebapp(input: CreateWebappInput!): CreateWebappResult!
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!

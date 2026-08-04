@@ -1196,6 +1196,20 @@ export type CreateSavedQueryResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/**
+ * The CreateSelfHostedOrganizationInput type represents the input for the createSelfHostedOrganization mutation.
+ * Used by superusers to provision a subscription-less organization (self-hosted mode).
+ */
+export type CreateSelfHostedOrganizationInput = {
+  /** The name of the organization. */
+  name: Scalars['String']['input'];
+  /**
+   * The short name of the organization (max 5 uppercase letters).
+   * If not provided, it will be auto-generated from the name.
+   */
+  shortName?: InputMaybe<Scalars['String']['input']>;
+};
+
 /** The CreateTeamError enum represents the possible errors that can occur during the createTeam mutation. */
 export enum CreateTeamError {
   /** Indicates that a team with the same name already exists. */
@@ -3061,6 +3075,7 @@ export type Mutation = {
   createPipelineTemplateVersion: CreatePipelineTemplateVersionResult;
   /** Creates a new saved query in a workspace. */
   createSavedQuery: CreateSavedQueryResult;
+  createSelfHostedOrganization: CreateOrganizationResult;
   createTeam: CreateTeamResult;
   createWebapp: CreateWebappResult;
   createWorkspace: CreateWorkspaceResult;
@@ -3346,6 +3361,11 @@ export type MutationCreatePipelineTemplateVersionArgs = {
 
 export type MutationCreateSavedQueryArgs = {
   input: CreateSavedQueryInput;
+};
+
+
+export type MutationCreateSelfHostedOrganizationArgs = {
+  input: CreateSelfHostedOrganizationInput;
 };
 
 
