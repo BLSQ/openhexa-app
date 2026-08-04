@@ -2942,7 +2942,6 @@ export type MePermissions = {
   createAccessmodProject: Scalars['Boolean']['output'];
   /** Indicates whether the user has permission to create a team. */
   createTeam: Scalars['Boolean']['output'];
-  createWorkspace: Scalars['Boolean']['output'];
   manageAccessmodAccessRequests: Scalars['Boolean']['output'];
   /** Indicates whether the user has superuser privileges. */
   superUser: Scalars['Boolean']['output'];

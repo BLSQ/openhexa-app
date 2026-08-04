@@ -2951,7 +2951,6 @@ type MePermissions {
 
   """Indicates whether the user has permission to create a team."""
   createTeam: Boolean!
-  createWorkspace: Boolean!
   manageAccessmodAccessRequests: Boolean!
 
   """Indicates whether the user has superuser privileges."""
