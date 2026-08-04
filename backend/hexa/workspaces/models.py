@@ -290,7 +290,7 @@ class Workspace(Base):
         return f"postgresql://{self.db_ro_username}:{self.db_ro_password}@{self.db_host}:{self.db_port}/{self.db_name}"
 
     @property
-    def current_subscription(self) -> OrganizationSubscription:
+    def current_subscription(self) -> OrganizationSubscription | None:
         return self.organization.current_subscription
 
     def update_if_has_perm(self, *, principal: User, **kwargs):
