@@ -1,3 +1,4 @@
+import { SavedQueryVisibility } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useCallback, useState } from "react";
@@ -40,6 +41,7 @@ export const useSavedQueryEditor = ({
   const { update, updating: saving } = useSavedQueryMutations();
 
   const canUpdate = savedQuery?.permissions.update ?? false;
+  const canUpdateVisibility = savedQuery?.permissions.updateVisibility ?? false;
   const isDirty = content !== baseline;
 
   // Primary Save: create a brand-new query (via the dialog), or update the
@@ -65,6 +67,32 @@ export const useSavedQueryEditor = ({
       toast.error(err.message);
     }
   }, [savedQuery, canUpdate, saving, content, update, t]);
+
+  // Sharing is persisted on its own, without touching the SQL buffer: the content
+  // baseline is deliberately left alone so unsaved edits stay unsaved.
+  const setVisibility = useCallback(
+    async (visibility: SavedQueryVisibility) => {
+      if (!savedQuery || !canUpdateVisibility || saving) {
+        return;
+      }
+      try {
+        const res = await update({ id: savedQuery.id, visibility });
+        if (res.ok) {
+          setSavedQuery(res.savedQuery);
+          toast.success(
+            visibility === SavedQueryVisibility.Workspace
+              ? t("Query shared with the workspace")
+              : t("Query is now private"),
+          );
+        } else {
+          toast.error(res.message);
+        }
+      } catch (err: any) {
+        toast.error(err.message);
+      }
+    },
+    [savedQuery, canUpdateVisibility, saving, update, t],
+  );
 
   const saveAsNew = useCallback(
     () => setDialog({ open: true, mode: "create" }),
@@ -98,8 +126,10 @@ export const useSavedQueryEditor = ({
     isDirty,
     saving,
     canUpdate,
+    canUpdateVisibility,
     dialog,
     save,
+    setVisibility,
     saveAsNew,
     editDetails,
     closeDialog,
