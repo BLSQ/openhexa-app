@@ -964,11 +964,6 @@ extend type Mutation {
     testConnection(input: TestConnectionInput!): TestConnectionResult! @loginRequired
 }
 
-extend type MePermissions {
-    # Indicates whether the user can create a workspace.
-    createWorkspace: Boolean!
-}
-
 extend type Organization {
     # The direct invitations sent to join a specific workspace in the organization.
     pendingWorkspaceInvitations(page: Int, perPage: Int): WorkspaceInvitationPage!
