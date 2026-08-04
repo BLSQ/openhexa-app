@@ -22,10 +22,10 @@ from hexa.workspaces.models import (
     Connection,
     ConnectionField,
     ConnectionType,
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 # MCP tools execute GraphQL queries internally rather than through HTTP,
@@ -48,7 +48,7 @@ class MCPTestCase(TestCase):
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
         ):
-            cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+            cls.WORKSPACE = create_workspace(
                 cls.USER_ADMIN,
                 name="Test Workspace",
                 description="A test workspace",

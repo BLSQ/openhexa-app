@@ -13,14 +13,14 @@ from hexa.user_management.models import (
 )
 from hexa.webapps.models import GitWebapp, Webapp
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 AUTHORIZE_URL = "/api/git/authorize"
 REPO = "test-workspace-webapp-app"
-ORG = "no-org"
+ORG = "git-authorize-org"
 
 
 class GitAuthMixin:
@@ -50,7 +50,12 @@ class GitAuthMixin:
 class GitAuthorizeViewTest(GitAuthMixin, TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.workspace = Workspace.objects.create(name="Test Workspace")
+        cls.organization = Organization.objects.create(
+            name="Git Authorize Organization", slug=ORG
+        )
+        cls.workspace = create_workspace(
+            name="Test Workspace", organization=cls.organization
+        )
 
         cls.viewer = User.objects.create_user("viewer@bluesquarehub.com", "password")
         cls.editor = User.objects.create_user("editor@bluesquarehub.com", "password")
@@ -214,11 +219,9 @@ class GitAuthorizeOrgPermissionsTest(GitAuthMixin, TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.organization = Organization.objects.create(
-            name="Test Org",
-            short_name="test-org",
-            organization_type="CORPORATE",
+            name="Test Org", short_name="test-org"
         )
-        cls.workspace = Workspace.objects.create(
+        cls.workspace = create_workspace(
             name="Org Workspace", organization=cls.organization
         )
 

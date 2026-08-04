@@ -7,6 +7,7 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace as _create_workspace
 
 
 class MetadataTestMixin:
@@ -20,11 +21,17 @@ class MetadataTestMixin:
         feature, _ = Feature.objects.get_or_create(code=code)
         FeatureFlag.objects.create(feature=feature, user=user)
 
-    def create_workspace(self, principal: User, name, description, *args, **kwargs):
-        workspace = Workspace.objects.create_if_has_perm(
-            principal=principal, name=name, description=description, *args, **kwargs
+    @staticmethod
+    def create_workspace(
+        principal: User, name, description, organization=None, **kwargs
+    ):
+        return _create_workspace(
+            principal,
+            name=name,
+            organization=organization,
+            description=description,
+            **kwargs,
         )
-        return workspace
 
     def join_workspace(
         self, user: User, workspace: Workspace, role: WorkspaceMembershipRole

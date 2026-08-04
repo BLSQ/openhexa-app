@@ -23,7 +23,7 @@ from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message
 from hexa.user_management.models import AiSettings, Organization, User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 def run_agent(agent: BaseAgent, message: str) -> None:
@@ -80,15 +80,16 @@ class AssistantVCRTest(TestCase):
         cls.user = User.objects.create_user(
             "vcr-test@example.com", "password", is_superuser=True
         )
-        cls.organization = Organization.objects.create(name="VCR Test Org")
+        cls.ORGANIZATION = Organization.objects.create(name="VCR Test Org")
         with patch("hexa.workspaces.models.create_database"):
-            cls.workspace = Workspace.objects.create_if_has_perm(
-                cls.user, name="VCR Test WS", description="For VCR tests"
+            cls.workspace = create_workspace(
+                cls.user,
+                name="VCR Test WS",
+                description="For VCR tests",
+                organization=cls.ORGANIZATION,
             )
-        cls.workspace.organization = cls.organization
-        cls.workspace.save()
         AiSettings.objects.update_or_create(
-            organization=cls.organization,
+            organization=cls.ORGANIZATION,
             defaults={
                 "enabled": True,
                 "provider": AiSettings.Provider.ANTHROPIC,

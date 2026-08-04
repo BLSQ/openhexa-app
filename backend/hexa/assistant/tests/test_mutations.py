@@ -4,7 +4,7 @@ from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 RESOLVE_PROPOSAL_MUTATION = """
     mutation resolveAssistantProposal($toolInvocationId: UUID!) {
@@ -23,8 +23,10 @@ class ResolveAssistantProposalMutationTest(GraphQLTestCase):
             "mutation-test@example.com", "password", is_superuser=True
         )
         with patch("hexa.workspaces.models.create_database"):
-            cls.workspace = Workspace.objects.create_if_has_perm(
-                cls.user, name="Test Workspace", description=""
+            cls.workspace = create_workspace(
+                cls.user,
+                name="Test Workspace",
+                description="",
             )
 
     def _make_invocation(self, conversation, tool_name="propose_pipeline_version"):

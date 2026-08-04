@@ -152,36 +152,3 @@ class WebappsOrganizationPermissionsTest(TestCase):
     def test_workspace_editor_can_update_webapp(self):
         """Workspace editors should be able to update webapps through workspace membership"""
         self.assertTrue(update_webapp(self.USER_WORKSPACE_EDITOR, self.WEBAPP))
-
-    def test_permissions_with_null_organization(self):
-        """Test permissions when workspace has no organization"""
-        workspace_no_org = Workspace.objects.create(
-            name="No Org Workspace",
-            description="Workspace without organization",
-        )
-        WorkspaceMembership.objects.create(
-            workspace=workspace_no_org,
-            user=self.USER_WORKSPACE_ADMIN,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
-
-        webapp_no_org = Webapp.objects.create(
-            workspace=workspace_no_org,
-            name="Test Webapp No Org",
-            slug="test-webapp-no-org",
-            subdomain="test-webapp-no-org",
-            created_by=self.USER_WORKSPACE_ADMIN,
-        )
-
-        # Organization admin/owner should not have permissions for webapp in workspace without organization
-        self.assertFalse(create_webapp(self.USER_ORG_OWNER, workspace_no_org))
-        self.assertFalse(create_webapp(self.USER_ORG_ADMIN, workspace_no_org))
-        self.assertFalse(delete_webapp(self.USER_ORG_OWNER, webapp_no_org))
-        self.assertFalse(delete_webapp(self.USER_ORG_ADMIN, webapp_no_org))
-        self.assertFalse(update_webapp(self.USER_ORG_OWNER, webapp_no_org))
-        self.assertFalse(update_webapp(self.USER_ORG_ADMIN, webapp_no_org))
-
-        # Only workspace member should have permissions
-        self.assertTrue(create_webapp(self.USER_WORKSPACE_ADMIN, workspace_no_org))
-        self.assertTrue(delete_webapp(self.USER_WORKSPACE_ADMIN, webapp_no_org))
-        self.assertTrue(update_webapp(self.USER_WORKSPACE_ADMIN, webapp_no_org))

@@ -29,6 +29,19 @@ jest.mock("next-i18next", () => ({
   useTranslation: jest.fn().mockReturnValue({ t: (key: string) => key }),
 }));
 
+const ORGANIZATION = {
+  __typename: "Organization",
+  id: "org-1",
+  name: "Test Organization",
+  shortName: "Test Org",
+  logo: null,
+  aiSettings: { enabled: true },
+  aiBudgetLimitReached: false,
+  permissions: {
+    createWorkspace: { isAllowed: false, reasons: [] },
+  },
+};
+
 const graphqlMocks: MockedResponse[] = [
   {
     request: {
@@ -36,6 +49,7 @@ const graphqlMocks: MockedResponse[] = [
       variables: {
         page: 1,
         perPage: 2000,
+        organizationId: "org-1",
       },
     },
     maxUsageCount: Infinity,
@@ -102,7 +116,7 @@ const graphqlMocks: MockedResponse[] = [
           name: "Test Workspace",
           countries: [],
           shortcuts: [],
-          organization: null,
+          organization: ORGANIZATION,
           permissions: {
             launchNotebookServer: false,
             manageMembers: false,
@@ -126,7 +140,7 @@ const graphqlMocks: MockedResponse[] = [
           name: "Test Workspace",
           countries: [],
           shortcuts: [],
-          organization: null,
+          organization: ORGANIZATION,
           permissions: {
             launchNotebookServer: false,
             manageMembers: false,
@@ -175,6 +189,7 @@ describe("WorkspaceWebappPage", () => {
               variables: {
                 page: 1,
                 perPage: 2000,
+                organizationId: "org-1",
               },
             },
             result: {
@@ -240,7 +255,7 @@ describe("WorkspaceWebappPage", () => {
                   name: "Test Workspace",
                   countries: [],
                   shortcuts: [],
-                  organization: null,
+                  organization: ORGANIZATION,
                   permissions: {
                     launchNotebookServer: false,
                     manageMembers: false,
@@ -256,6 +271,7 @@ describe("WorkspaceWebappPage", () => {
               variables: {
                 page: 1,
                 perPage: 2000,
+                organizationId: "org-1",
               },
             },
             result: {
@@ -321,7 +337,7 @@ describe("WorkspaceWebappPage", () => {
                   name: "Test Workspace",
                   countries: [],
                   shortcuts: [],
-                  organization: null,
+                  organization: ORGANIZATION,
                   permissions: {
                     launchNotebookServer: false,
                     manageMembers: false,

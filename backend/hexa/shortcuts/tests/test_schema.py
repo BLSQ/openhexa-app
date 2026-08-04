@@ -3,10 +3,10 @@ from hexa.shortcuts.models import Shortcut
 from hexa.user_management.models import User
 from hexa.webapps.models import Webapp
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class ShortcutsSchemaTest(GraphQLTestCase):
@@ -21,7 +21,7 @@ class ShortcutsSchemaTest(GraphQLTestCase):
             "user@bluesquarehub.com",
             "standardpassword",
         )
-        cls.WS1 = Workspace.objects.create(
+        cls.WS1 = create_workspace(
             name="WS1",
             description="Workspace 1",
         )
