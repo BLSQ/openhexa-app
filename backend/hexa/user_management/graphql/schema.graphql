@@ -2317,6 +2317,23 @@ enum CreateOrganizationError {
 }
 
 """
+The CreateSelfHostedOrganizationInput type represents the input for the createSelfHostedOrganization mutation.
+Used by superusers to provision a subscription-less organization (self-hosted mode).
+"""
+input CreateSelfHostedOrganizationInput {
+    """
+    The name of the organization.
+    """
+    name: String!
+
+    """
+    The short name of the organization (max 5 uppercase letters).
+    If not provided, it will be auto-generated from the name.
+    """
+    shortName: String
+}
+
+"""
 The UpdateOrganizationSubscriptionInput type represents the input for updating organization subscription.
 Used by the Bluesquare Console to update subscription when it changes.
 
@@ -2405,6 +2422,7 @@ extend type Mutation {
     updateOrganization(input: UpdateOrganizationInput!): UpdateOrganizationResult! @loginRequired
     deleteOrganization(input: DeleteOrganizationInput!): DeleteOrganizationResult! @loginRequired
     createOrganization(input: CreateOrganizationInput!): CreateOrganizationResult! @loginRequired
+    createSelfHostedOrganization(input: CreateSelfHostedOrganizationInput!): CreateOrganizationResult! @loginRequired
     updateOrganizationSubscription(input: UpdateOrganizationSubscriptionInput!): UpdateOrganizationSubscriptionResult! @loginRequired
     signup(input: SignupInput!): SignupResult!
 }
