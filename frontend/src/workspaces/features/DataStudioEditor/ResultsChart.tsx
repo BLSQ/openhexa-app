@@ -8,23 +8,19 @@ type ResultsChartProps = {
   rows: Row[];
 };
 
-// Data colours, validated against a white chart surface: the categorical slots
-// clear the lightness band, the chroma floor, colour-blind separation (worst
-// adjacent pair ΔE 9.1) and the normal-vision floor (ΔE 19.6). Three of them sit
-// below 3:1 contrast on white, which is why the pie always prints a visible
-// label and value beside each slice instead of relying on colour alone.
+
 // Chart chrome (gridlines, axis rules, ticks) uses the app's Tailwind grays so
 // the charts sit consistently inside the rest of the editor.
-const SERIES_COLOR = "#2a78d6";
+const SERIES_COLOR = "var(--color-brand)";
 const SLICE_COLORS = [
-  "#2a78d6", // blue
-  "#eb6834", // orange
-  "#1baf7a", // aqua
-  "#eda100", // yellow
-  "#e87ba4", // magenta
-  "#008300", // green
+  "var(--color-brand)", // pink
+  "var(--color-amber-600)",
+  "var(--color-sky-600)",
+  "var(--color-red-600)",
+  "var(--color-violet-600)",
+  "var(--color-emerald-600)",
 ];
-const OTHER_COLOR = "#898781";
+const OTHER_COLOR = "var(--color-gray-500)";
 
 // Past ~30 bars the labels stop being readable in a results panel, and
 // part-to-whole stops being readable at a glance past six slices. The rest of
@@ -160,7 +156,7 @@ const Line = ({ points }: { points: Point[] }) => {
           .map((point, index) => `${xOf(index)},${yOf(point.value)}`)
           .join(" ")}
         fill="none"
-        stroke={SERIES_COLOR}
+        style={{ stroke: SERIES_COLOR }}
         strokeWidth={2}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -174,7 +170,7 @@ const Line = ({ points }: { points: Point[] }) => {
             cx={xOf(index)}
             cy={yOf(point.value)}
             r={4}
-            fill={SERIES_COLOR}
+            style={{ fill: SERIES_COLOR }}
             // The ring keeps a marker legible where it overlaps the line.
             stroke="#ffffff"
             strokeWidth={2}
