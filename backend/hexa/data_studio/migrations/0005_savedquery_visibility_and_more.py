@@ -32,9 +32,7 @@ class Migration(migrations.Migration):
                 max_length=20,
             ),
         ),
-        migrations.RunPython(
-            share_pre_existing_queries, migrations.RunPython.noop
-        ),
+        migrations.RunPython(share_pre_existing_queries, migrations.RunPython.noop),
         migrations.AddIndex(
             model_name="savedquery",
             index=models.Index(
