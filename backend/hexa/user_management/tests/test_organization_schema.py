@@ -19,10 +19,10 @@ from hexa.user_management.models import (
 )
 from hexa.user_management.tests.testutils import create_subscription
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace as _create_workspace
 
 
 class OrganizationTestMixin:
@@ -63,14 +63,13 @@ class OrganizationTestMixin:
 
     @staticmethod
     def create_workspace(principal: User, organization, name, description, **kwargs):
-        workspace = Workspace.objects.create_if_has_perm(
-            principal=principal,
-            organization=organization,
+        return _create_workspace(
+            principal,
             name=name,
+            organization=organization,
             description=description,
             **kwargs,
         )
-        return workspace
 
 
 class OrganizationMemberTest(GraphQLTestCase, OrganizationTestMixin):
