@@ -2954,3 +2954,80 @@ class ExternalCollaboratorTest(GraphQLTestCase, OrganizationTestMixin):
         result = r["data"]["convertExternalCollaboratorToMember"]
         self.assertTrue(result["success"])
         self.assertEqual(result["membership"]["role"], "ADMIN")
+
+
+class CreateSelfHostedOrganizationTest(GraphQLTestCase, OrganizationTestMixin):
+    MUTATION = """
+        mutation CreateSelfHostedOrganization($input: CreateSelfHostedOrganizationInput!) {
+            createSelfHostedOrganization(input: $input) {
+                success
+                errors
+                organization {
+                    id
+                    name
+                    shortName
+                }
+            }
+        }
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.superuser = self.create_user("super@blsq.org")
+        self.superuser.is_superuser = True
+        self.superuser.save()
+        self.regular_user = self.create_user("regular@blsq.org")
+
+    def test_create_self_hosted_organization(self):
+        self.client.force_login(self.superuser)
+        r = self.run_query(self.MUTATION, {"input": {"name": "Self Hosted Org"}})
+
+        result = r["data"]["createSelfHostedOrganization"]
+        self.assertTrue(result["success"])
+        self.assertEqual(result["errors"], [])
+        self.assertEqual(result["organization"]["name"], "Self Hosted Org")
+
+        organization = Organization.objects.get(id=result["organization"]["id"])
+        self.assertFalse(organization.subscriptions.exists())
+        self.assertIsNone(organization.current_subscription)
+        membership = OrganizationMembership.objects.get(
+            organization=organization, user=self.superuser
+        )
+        self.assertEqual(membership.role, OrganizationMembershipRole.OWNER)
+
+    def test_create_self_hosted_organization_generates_short_name(self):
+        self.client.force_login(self.superuser)
+        r = self.run_query(self.MUTATION, {"input": {"name": "Self Hosted Org"}})
+
+        result = r["data"]["createSelfHostedOrganization"]
+        self.assertTrue(result["success"])
+        self.assertTrue(result["organization"]["shortName"])
+
+    def test_create_self_hosted_organization_unauthorized(self):
+        self.client.force_login(self.regular_user)
+        r = self.run_query(self.MUTATION, {"input": {"name": "Nope"}})
+
+        result = r["data"]["createSelfHostedOrganization"]
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["PERMISSION_DENIED"])
+        self.assertFalse(Organization.objects.filter(name="Nope").exists())
+
+    def test_create_self_hosted_organization_duplicate_name(self):
+        self.create_organization(self.superuser, "Existing Org")
+        self.client.force_login(self.superuser)
+        r = self.run_query(self.MUTATION, {"input": {"name": "Existing Org"}})
+
+        result = r["data"]["createSelfHostedOrganization"]
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["NAME_DUPLICATE"])
+
+    def test_create_self_hosted_organization_invalid_short_name(self):
+        self.client.force_login(self.superuser)
+        r = self.run_query(
+            self.MUTATION,
+            {"input": {"name": "Some Org", "shortName": "toolong"}},
+        )
+
+        result = r["data"]["createSelfHostedOrganization"]
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["INVALID_SHORT_NAME"])
