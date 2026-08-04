@@ -1182,6 +1182,9 @@ input CreateSavedQueryInput {
   content: String!
   description: String
   name: String!
+
+  """Defaults to PRIVATE when omitted."""
+  visibility: SavedQueryVisibility
   workspaceSlug: String!
 }
 
@@ -4559,7 +4562,7 @@ type S3ObjectPage {
 
 """
 A SQL query saved by a user in the Data Studio. Saved queries belong to a
-workspace and are visible to all of its members.
+workspace; their visibility decides which of its members can reach them.
 """
 type SavedQuery {
   content: String!
@@ -4570,6 +4573,7 @@ type SavedQuery {
   name: String!
   permissions: SavedQueryPermissions!
   updatedAt: DateTime!
+  visibility: SavedQueryVisibility!
   workspace: Workspace!
 }
 
@@ -4596,6 +4600,18 @@ type SavedQueryPermissions {
 
   """Permission to edit the saved query."""
   update: Boolean!
+
+  """Permission to share or unshare the saved query."""
+  updateVisibility: Boolean!
+}
+
+"""Who a saved query is visible to within its workspace."""
+enum SavedQueryVisibility {
+  """Only the author can see, run and edit the query."""
+  PRIVATE
+
+  """Every member of the workspace can see and run the query."""
+  WORKSPACE
 }
 
 interface SearchResult {
@@ -5472,6 +5488,9 @@ input UpdateSavedQueryInput {
   description: String
   id: ID!
   name: String
+
+  """Only the author may change this; PERMISSION_DENIED otherwise."""
+  visibility: SavedQueryVisibility
 }
 
 """Result of updating a saved query."""

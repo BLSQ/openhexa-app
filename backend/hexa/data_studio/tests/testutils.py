@@ -1,3 +1,4 @@
+from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
     WorkspaceMembership,
@@ -50,4 +51,28 @@ class SavedQueryTestMixin:
             workspace=cls.WORKSPACE,
             user=cls.USER_VIEWER,
             role=WorkspaceMembershipRole.VIEWER,
+        )
+
+    def create_saved_query(
+        self,
+        user=None,
+        workspace=None,
+        name="My query",
+        content="SELECT 1",
+        description="a query",
+        visibility=SavedQueryVisibility.WORKSPACE,
+    ):
+        """Create a saved query, workspace-shared unless stated otherwise.
+
+        The model itself defaults to PRIVATE; tests about what one user can do to
+        another user's query say which visibility they mean rather than leaning on
+        that default, so flipping it later cannot silently reinterpret them.
+        """
+        return SavedQuery.objects.create_if_has_perm(
+            user or self.USER_EDITOR,
+            workspace or self.WORKSPACE,
+            name=name,
+            content=content,
+            description=description,
+            visibility=visibility,
         )
