@@ -5,7 +5,7 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
-import { SavedQueryOrderBy } from "graphql/types";
+import { SavedQueryOrderBy, SavedQueryVisibility } from "graphql/types";
 import mockRouter from "next-router-mock";
 import { useEffect, useState } from "react";
 import SavedQueriesList from "./SavedQueriesList";
@@ -26,14 +26,20 @@ jest.mock("core/hooks/useCacheKey", () => ({
   default: () => jest.fn(),
 }));
 
-const item = (id: string, name: string, description: string) => ({
+const item = (
+  id: string,
+  name: string,
+  description: string,
+  visibility: SavedQueryVisibility = SavedQueryVisibility.Workspace,
+) => ({
   __typename: "SavedQuery",
   id,
   name,
   description,
   updatedAt: "2024-01-01T00:00:00Z",
+  visibility,
   createdBy: null,
-  permissions: { update: true, delete: true },
+  permissions: { update: true, delete: true, updateVisibility: true },
 });
 
 const makeWorkspace = (overrides: any = {}) =>
@@ -46,7 +52,7 @@ const makeWorkspace = (overrides: any = {}) =>
       pageNumber: 1,
       items: [
         item("q1", "Query One", "first"),
-        item("q2", "Query Two", "second"),
+        item("q2", "Query Two", "second", SavedQueryVisibility.Private),
       ],
     },
     ...overrides,
@@ -76,6 +82,12 @@ describe("SavedQueriesList", () => {
     renderList();
     expect(screen.getByText("Query One")).toBeInTheDocument();
     expect(screen.getByText("Query Two")).toBeInTheDocument();
+  });
+
+  it("shows each query's visibility", () => {
+    renderList();
+    expect(screen.getByText("Workspace")).toBeInTheDocument();
+    expect(screen.getByText("Private")).toBeInTheDocument();
   });
 
   it("shows an empty state when there are no queries", () => {
