@@ -95,7 +95,10 @@ const SaveQueryDialog = ({
     },
   });
 
-  // Re-seed the form from the current props each time the dialog opens.
+  // The dialog stays mounted between opens (so its transitions can run), so the
+  // form has to be re-seeded from the current props each time it opens. Keyed on
+  // `open` alone on purpose: re-running this on a new `form` identity would wipe
+  // whatever the user has typed.
   useEffect(() => {
     if (open) {
       form.resetForm();
