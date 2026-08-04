@@ -9,10 +9,10 @@ from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 from .testutils import SavedQueryTestMixin
 
@@ -133,13 +133,13 @@ class QueryLogModelTest(TestCase):
         cls.USER_OUTSIDER = User.objects.create_user(
             "outsider@bluesquarehub.com", "outsiderpassword"
         )
-        cls.WORKSPACE_1 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_1 = create_workspace(
             cls.USER_SUPERUSER,
             name="Workspace 1",
             description="First workspace",
             countries=[],
         )
-        cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_2 = create_workspace(
             cls.USER_SUPERUSER,
             name="Workspace 2",
             description="Second workspace",

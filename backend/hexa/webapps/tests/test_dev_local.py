@@ -14,10 +14,10 @@ from hexa.webapps.middlewares import (
 )
 from hexa.webapps.models import Webapp
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 WEBAPPS_DOMAIN = "webapps.test.local"
 
@@ -26,7 +26,7 @@ class PreviewSessionKeyTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("preview@test.com", "password")
-        cls.WORKSPACE = Workspace.objects.create(name="Preview WS")
+        cls.WORKSPACE = create_workspace(name="Preview WS")
         WorkspaceMembership.objects.create(
             user=cls.USER,
             workspace=cls.WORKSPACE,
@@ -95,7 +95,7 @@ class DevLocalViewsTest(TestCase):
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("owner@test.com", "password")
         cls.OTHER_USER = User.objects.create_user("outsider@test.com", "password")
-        cls.WORKSPACE = Workspace.objects.create(name="Dev WS", slug="dev-ws")
+        cls.WORKSPACE = create_workspace(name="Dev WS", slug="dev-ws")
         WorkspaceMembership.objects.create(
             user=cls.USER,
             workspace=cls.WORKSPACE,
