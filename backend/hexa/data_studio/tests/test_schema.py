@@ -299,18 +299,18 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         )
         self.assertIsNone(r["data"]["savedQuery"])
 
-    def test_get_saved_query_without_workspace(self):
-        # workspaceSlug is optional: omitting it keeps the original id-only
-        # lookup (still gated by filter_for_user), so existing callers work.
-        created = self._create_query(self.USER_EDITOR)
-        query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
-
+    def test_get_saved_query_requires_workspace(self):
+        # The workspace is part of the field's contract, not an optional filter:
+        # an id-only lookup is rejected at validation, so a caller cannot resolve
+        # a query without saying which workspace it should belong to. Logged in as
+        # a member so the missing argument is the only possible cause of failure.
         self.client.force_login(self.USER_VIEWER)
         r = self.run_query(
             "query ($id: ID!) { savedQuery(id: $id) { name } }",
-            {"id": query_id},
+            {"id": "00000000-0000-0000-0000-000000000000"},
         )
-        self.assertEqual(r["data"]["savedQuery"]["name"], "My query")
+        self.assertIsNone(r.get("data"))
+        self.assertIn("workspaceSlug", r["errors"][0]["message"])
 
     def test_update_saved_query(self):
         created = self._create_query(self.USER_EDITOR)
