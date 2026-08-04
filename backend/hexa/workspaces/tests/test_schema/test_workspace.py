@@ -133,8 +133,6 @@ class WorkspaceTest(GraphQLTestCase):
                 countries=[{"code": "AL"}],
                 organization=cls.ORGANIZATION,
             )
-            cls.WORKSPACE.organization = cls.ORGANIZATION
-            cls.WORKSPACE.save()
             cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
                 cls.USER_JULIA,
                 name="Burundi Workspace",
@@ -370,6 +368,35 @@ class WorkspaceTest(GraphQLTestCase):
             {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
             r["data"]["createWorkspace"],
         )
+
+    def test_create_workspace_without_organization(self):
+        """OrganizationId is required by the schema, so omitting it is a
+        GraphQL validation error, not a CreateWorkspaceError.
+        """
+        self.client.force_login(self.USER_JOE)
+        r = self.run_query(
+            """
+            mutation createWorkspace($input:CreateWorkspaceInput!) {
+                createWorkspace(input: $input) {
+                    success
+                    workspace {
+                        name
+                        description
+                    }
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "name": "Cameroon workspace",
+                    "description": "Description",
+                }
+            },
+        )
+        self.assertIsNone(r.get("data"))
+        self.assertIn("errors", r)
+        self.assertIn("organizationId", str(r["errors"]))
 
     def test_create_workspace_with_demo_data(self):
         with (

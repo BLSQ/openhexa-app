@@ -6,10 +6,10 @@ from hexa.core.test import GraphQLTestCase
 from hexa.user_management.models import User
 from hexa.webapps.models import GitWebapp
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 CONVERSATION_MESSAGES_QUERY = """
   query AssistantConversationMessages($id: UUID!) {
@@ -45,8 +45,10 @@ class AssistantConversationMessagesQueryTest(GraphQLTestCase):
             "graphql-test@example.com", "password", is_superuser=True
         )
         with patch("hexa.workspaces.models.create_database"):
-            cls.workspace = Workspace.objects.create_if_has_perm(
-                cls.user, name="GraphQL Test WS", description=""
+            cls.workspace = create_workspace(
+                cls.user,
+                name="GraphQL Test WS",
+                description="",
             )
 
     def setUp(self):
@@ -184,8 +186,10 @@ class WebappAssistantConversationsQueryTest(GraphQLTestCase):
             "webapp-conv-test@example.com", "password", is_superuser=True
         )
         with patch("hexa.workspaces.models.create_database"):
-            cls.workspace = Workspace.objects.create_if_has_perm(
-                cls.user, name="Webapp Conv WS", description=""
+            cls.workspace = create_workspace(
+                cls.user,
+                name="Webapp Conv WS",
+                description="",
             )
         WorkspaceMembership.objects.get_or_create(
             user=cls.user,

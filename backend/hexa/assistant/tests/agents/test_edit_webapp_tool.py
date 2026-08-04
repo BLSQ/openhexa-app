@@ -11,7 +11,7 @@ from hexa.core.test import TestCase
 from hexa.git.enums import FileEncoding
 from hexa.user_management.models import User
 from hexa.webapps.models import GitWebapp
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 def _make_webapp_stub(files=None):
@@ -186,7 +186,7 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
             "webapp-tool-test@example.com", "password", is_superuser=True
         )
         with patch("hexa.workspaces.models.create_database"):
-            cls.workspace = Workspace.objects.create_if_has_perm(
+            cls.workspace = create_workspace(
                 cls.user, name="Tool Test Workspace", description=""
             )
 

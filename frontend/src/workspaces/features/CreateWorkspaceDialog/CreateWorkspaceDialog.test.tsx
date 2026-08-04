@@ -17,6 +17,8 @@ jest.mock("workspaces/graphql/mutations.generated", () => ({
 
 const useCreateWorkspaceMutationMock = useCreateWorkspaceMutation as jest.Mock;
 
+const ORGANIZATION_ID = "11111111-1111-1111-1111-111111111111";
+
 describe("CreateWorkspaceDialog", () => {
   const onClose = jest.fn();
   beforeEach(() => {
@@ -25,7 +27,11 @@ describe("CreateWorkspaceDialog", () => {
 
   it("is not displayed ", async () => {
     const { container } = render(
-      <CreateWorkspaceDialog open={false} onClose={() => {}} />,
+      <CreateWorkspaceDialog
+        open={false}
+        onClose={() => {}}
+        organizationId={ORGANIZATION_ID}
+      />,
     );
     const dialog = await screen.queryByRole("dialog");
     expect(dialog).not.toBeInTheDocument();
@@ -36,7 +42,11 @@ describe("CreateWorkspaceDialog", () => {
   it("is displayed when open is true", async () => {
     const { container } = render(
       <TestApp mocks={[]}>
-        <CreateWorkspaceDialog open onClose={() => {}} />
+        <CreateWorkspaceDialog
+          open
+          onClose={() => {}}
+          organizationId={ORGANIZATION_ID}
+        />
       </TestApp>,
     );
 
@@ -53,7 +63,11 @@ describe("CreateWorkspaceDialog", () => {
 
     const { container } = render(
       <TestApp>
-        <CreateWorkspaceDialog open onClose={() => {}} />
+        <CreateWorkspaceDialog
+          open
+          onClose={() => {}}
+          organizationId={ORGANIZATION_ID}
+        />
       </TestApp>,
     );
 
@@ -72,6 +86,7 @@ describe("CreateWorkspaceDialog", () => {
           name: "Test Burundi",
           countries: undefined,
           loadSampleData: false,
+          organizationId: ORGANIZATION_ID,
         },
       },
     });
@@ -101,6 +116,7 @@ describe("CreateWorkspaceDialog", () => {
             input: {
               name: "Test",
               countries: [],
+              organizationId: ORGANIZATION_ID,
             },
           },
         },
@@ -117,7 +133,11 @@ describe("CreateWorkspaceDialog", () => {
     ];
     render(
       <TestApp mocks={mocks}>
-        <CreateWorkspaceDialog open onClose={() => {}} />
+        <CreateWorkspaceDialog
+          open
+          onClose={() => {}}
+          organizationId={ORGANIZATION_ID}
+        />
       </TestApp>,
     );
     expect(useCreateWorkspaceMutationMock).toHaveBeenCalled();

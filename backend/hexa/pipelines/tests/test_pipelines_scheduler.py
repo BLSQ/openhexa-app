@@ -14,7 +14,7 @@ from hexa.pipelines.models import (
     PipelineVersion,
 )
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class PipelineSchedulerTest(TestCase):
@@ -25,7 +25,7 @@ class PipelineSchedulerTest(TestCase):
             "admin",
             is_superuser=True,
         )
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="Sandbox",
             description="Test workspace",
@@ -199,7 +199,7 @@ class ScheduledPipelineVersionTest(TestCase):
             "admin",
             is_superuser=True,
         )
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="SchedulerVersionTestWS",
             description="",

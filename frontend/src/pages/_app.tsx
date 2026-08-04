@@ -2,12 +2,19 @@ import { ApolloProvider } from "@apollo/client";
 import { setUser } from "@sentry/nextjs";
 import ErrorBoundary from "core/components/ErrorBoundary/ErrorBoundary";
 import { useApollo } from "core/helpers/apollo";
+import {
+  applyReplayGate,
+  identifyUser,
+  initMixpanel,
+  MixpanelUser,
+} from "core/helpers/mixpanel";
 import { AppPropsWithLayout } from "core/helpers/types";
 import DefaultLayout from "core/layouts/default";
 import { MeProvider } from "identity/hooks/useMe";
 import { Settings } from "luxon";
 import { appWithTranslation } from "next-i18next";
 import Head from "next/head";
+import { useRouter } from "next/router";
 import NavigationProgress from "nextjs-progressbar";
 import { useMemo, useEffect } from "react";
 import { CookiesProvider } from "react-cookie";
@@ -44,6 +51,36 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
   useEffect(() => {
     setUser(me?.user ? { email: me.user.email, id: me.user.id } : null);
   }, [me]);
+
+  const router = useRouter();
+  const mixpanelUser: MixpanelUser | null = useMemo(
+    () =>
+      me?.user
+        ? {
+            id: me.user.id,
+            email: me.user.email,
+            displayName: me.user.displayName,
+            dateJoined: me.user.dateJoined,
+            analyticsEnabled: me.user.analyticsEnabled,
+          }
+        : null,
+    [me],
+  );
+
+  useEffect(() => {
+    initMixpanel();
+    if (mixpanelUser) {
+      identifyUser(mixpanelUser);
+    }
+  }, [mixpanelUser]);
+
+  useEffect(() => {
+    const gate = (url: string) =>
+      applyReplayGate(mixpanelUser, url.split(/[?#]/)[0]);
+    gate(router.asPath);
+    router.events.on("routeChangeComplete", gate);
+    return () => router.events.off("routeChangeComplete", gate);
+  }, [mixpanelUser, router]);
   return (
     <ErrorBoundary>
       <CookiesProvider cookies={cookies}>

@@ -13,31 +13,28 @@ from hexa.core.test import GraphQLTestCase, TestCase
 from hexa.git.exceptions import GitFileNotFound
 from hexa.superset.models import SupersetInstance
 from hexa.user_management.models import (
-    Organization,
     User,
 )
 from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class SupersetDashboardViewAccessTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.ORG = Organization.objects.create(
-            name="Test Organization",
-            short_name="test-org-public",
-            organization_type="CORPORATE",
+        cls.WORKSPACE = create_workspace(
+            name="Test Workspace",
         )
         cls.SUPERSET_INSTANCE = SupersetInstance.objects.create(
             name="Superset",
             url="https://superset.example.com",
             api_username="test",
             api_password="password",
-            organization=cls.ORG,
+            organization=cls.WORKSPACE.organization,
         )
         cls.USER_MEMBER = User.objects.create_user(
             "member@test.com",
@@ -46,10 +43,6 @@ class SupersetDashboardViewAccessTest(TestCase):
         cls.USER_NON_MEMBER = User.objects.create_user(
             "nonmember@test.com",
             "password",
-        )
-        cls.WORKSPACE = Workspace.objects.create(
-            name="Test Workspace",
-            organization=cls.ORG,
         )
         WorkspaceMembership.objects.create(
             user=cls.USER_MEMBER,
@@ -149,7 +142,7 @@ class IframeWebappAccessTest(GraphQLTestCase):
             "nonmember@iframe-test.com",
             "password",
         )
-        cls.WORKSPACE = Workspace.objects.create(name="Iframe Workspace")
+        cls.WORKSPACE = create_workspace(name="Iframe Workspace")
         WorkspaceMembership.objects.create(
             user=cls.USER_ADMIN,
             workspace=cls.WORKSPACE,
@@ -218,7 +211,7 @@ class WebappURLValidationTest(GraphQLTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("xss@test.com", "password")
-        cls.WORKSPACE = Workspace.objects.create(name="XSS Workspace")
+        cls.WORKSPACE = create_workspace(name="XSS Workspace")
         WorkspaceMembership.objects.create(
             user=cls.USER,
             workspace=cls.WORKSPACE,
@@ -303,7 +296,7 @@ class GitWebappServeViewTest(TestCase):
             "servenonmember@test.com",
             "password",
         )
-        cls.WORKSPACE = Workspace.objects.create(
+        cls.WORKSPACE = create_workspace(
             name="Serve Workspace",
             slug="serve-workspace",
         )
@@ -379,7 +372,7 @@ class GitWebappServeViewTest(TestCase):
             "webapp-private",
             "index.html",
             "sha-published",
-            org_slug="no-org",
+            org_slug=self.WORKSPACE.organization.slug,
         )
 
     @patch("hexa.webapps.views.get_forgejo_client")
@@ -478,7 +471,7 @@ class GitWebappServeViewTest(TestCase):
             "webapp-private",
             "assets/icons/style.css",
             "sha-published",
-            org_slug="no-org",
+            org_slug=self.WORKSPACE.organization.slug,
         )
 
     def test_invalid_session_cookie_redirects_to_auth(self):
@@ -524,7 +517,7 @@ class AuthTokenViewTest(TestCase):
             "authnonmember@test.com",
             "password",
         )
-        cls.WORKSPACE = Workspace.objects.create(
+        cls.WORKSPACE = create_workspace(
             name="Auth Workspace",
             slug="auth-workspace",
         )
@@ -621,7 +614,7 @@ class MiddlewareAuthTokenExchangeTest(TestCase):
             "mwnonmember@test.com",
             "password",
         )
-        cls.WORKSPACE = Workspace.objects.create(
+        cls.WORKSPACE = create_workspace(
             name="MW Workspace",
             slug="mw-workspace",
         )
@@ -759,9 +752,7 @@ class PreviewSessionSubdomainTest(TestCase):
     def setUpTestData(cls):
         cls.USER_MEMBER = User.objects.create_user("psm@test.com", "password")
         cls.USER_NON_MEMBER = User.objects.create_user("psnm@test.com", "password")
-        cls.WORKSPACE = Workspace.objects.create(
-            name="PS Workspace", slug="ps-workspace"
-        )
+        cls.WORKSPACE = create_workspace(name="PS Workspace", slug="ps-workspace")
         WorkspaceMembership.objects.create(
             user=cls.USER_MEMBER,
             workspace=cls.WORKSPACE,
@@ -873,7 +864,7 @@ class PoweredByBannerTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("banner@test.com", "password")
-        cls.WORKSPACE = Workspace.objects.create(
+        cls.WORKSPACE = create_workspace(
             name="Banner Workspace",
             slug="banner-workspace",
         )
@@ -1059,8 +1050,9 @@ class WebappCacheHeadersTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("cache@test.com", "password")
-        cls.WORKSPACE = Workspace.objects.create(
-            name="Cache Workspace", slug="cache-workspace"
+        cls.WORKSPACE = create_workspace(
+            name="Cache Workspace",
+            slug="cache-workspace",
         )
         WorkspaceMembership.objects.create(
             user=cls.USER,
@@ -1186,7 +1178,7 @@ class CustomDomainMiddlewareTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("cdm@test.com", "password")
-        cls.WORKSPACE = Workspace.objects.create(name="CDM Workspace")
+        cls.WORKSPACE = create_workspace(name="CDM Workspace")
         WorkspaceMembership.objects.create(
             user=cls.USER,
             workspace=cls.WORKSPACE,

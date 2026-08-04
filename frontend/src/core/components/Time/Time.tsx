@@ -12,8 +12,10 @@ type Props = {
 
 const Time = (props: Props) => {
   const datetime = useMemo(
-    // By default, all dates from the backend are in UTC
-    () => DateTime.fromISO(props.datetime).toLocal(),
+    // All dates from the backend are in UTC, but some (e.g. pipeline run message
+    // timestamps) carry no offset. Defaulting the zone to UTC keeps those from
+    // being read as local time; strings with an explicit offset are unaffected.
+    () => DateTime.fromISO(props.datetime, { zone: "utc" }).toLocal(),
     [props.datetime],
   );
 

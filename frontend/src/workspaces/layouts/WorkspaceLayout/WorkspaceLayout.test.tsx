@@ -20,12 +20,24 @@ describe("WorkspaceLayout", () => {
       totalCount: 0,
     },
     shortcuts: [],
+    webappsEnabled: false,
     permissions: {
       manageMembers: true,
       launchNotebookServer: true,
       update: true,
     },
     countries: [],
+    organization: {
+      id: "11111111-1111-1111-1111-111111111111",
+      name: "Test Organization",
+      shortName: null,
+      logo: null,
+      permissions: {
+        createWorkspace: {
+          isAllowed: true,
+        },
+      },
+    },
   };
   it("renders", async () => {
     const setValueMock = jest.fn();

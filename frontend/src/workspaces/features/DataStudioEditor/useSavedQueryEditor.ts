@@ -2,11 +2,15 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
+import { SaveQueryDialogMode } from "workspaces/features/SavedQueries/SaveQueryDialog";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { useSavedQueryMutations } from "workspaces/features/SavedQueries/useSavedQueryMutations";
 import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
 
-type DialogState = { mode: "create" | "edit-details" } | null;
+// The dialog stays mounted and is toggled through `open` (so Headless UI can run
+// its enter/leave transitions), hence the mode is kept alongside it: it must
+// survive the leave transition or the title would change while fading out.
+type DialogState = { open: boolean; mode: SaveQueryDialogMode };
 
 type UseSavedQueryEditorArgs = {
   workspaceSlug: string;
@@ -29,7 +33,10 @@ export const useSavedQueryEditor = ({
     useState<SavedQuery_SavedQueryFragment | null>(initialSavedQuery ?? null);
   // Baseline the dirty check compares against; advances on each in-place save.
   const [baseline, setBaseline] = useState(initialSavedQuery?.content ?? "");
-  const [dialog, setDialog] = useState<DialogState>(null);
+  const [dialog, setDialog] = useState<DialogState>({
+    open: false,
+    mode: "create",
+  });
   const { update, updating: saving } = useSavedQueryMutations();
 
   const canUpdate = savedQuery?.permissions.update ?? false;
@@ -39,7 +46,7 @@ export const useSavedQueryEditor = ({
   // content of the loaded query in place.
   const save = useCallback(async () => {
     if (!savedQuery) {
-      setDialog({ mode: "create" });
+      setDialog({ open: true, mode: "create" });
       return;
     }
     if (!canUpdate || saving) {
@@ -59,16 +66,22 @@ export const useSavedQueryEditor = ({
     }
   }, [savedQuery, canUpdate, saving, content, update, t]);
 
-  const saveAsNew = useCallback(() => setDialog({ mode: "create" }), []);
-  const editDetails = useCallback(
-    () => setDialog({ mode: "edit-details" }),
+  const saveAsNew = useCallback(
+    () => setDialog({ open: true, mode: "create" }),
     [],
   );
-  const closeDialog = useCallback(() => setDialog(null), []);
+  const editDetails = useCallback(
+    () => setDialog({ open: true, mode: "edit-details" }),
+    [],
+  );
+  const closeDialog = useCallback(
+    () => setDialog((current) => ({ ...current, open: false })),
+    [],
+  );
 
   const onDialogSaved = useCallback(
     (sq: SavedQuery_SavedQueryFragment) => {
-      if (dialog?.mode === "edit-details") {
+      if (dialog.mode === "edit-details") {
         // Only metadata changed; the content baseline is untouched.
         setSavedQuery(sq);
       } else {

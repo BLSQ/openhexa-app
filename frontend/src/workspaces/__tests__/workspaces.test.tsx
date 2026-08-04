@@ -13,7 +13,8 @@ describe("Workspaces", () => {
           query: SidebarMenuDocument,
           variables: {
             page: 1,
-            perPage: 5,
+            perPage: 2000,
+            organizationId: "org-1",
           },
         },
         result: {
@@ -41,6 +42,18 @@ describe("Workspaces", () => {
             workspace: {
               slug,
               name: "Rwanda Workspace",
+              organization: {
+                __typename: "Organization",
+                id: "org-1",
+                name: "Test Organization",
+                shortName: "Test Org",
+                logo: null,
+                aiSettings: { enabled: true },
+                aiBudgetLimitReached: false,
+                permissions: {
+                  createWorkspace: { isAllowed: false, reasons: [] },
+                },
+              },
               description: "This is a description",
               countries: [],
               shortcuts: [],
@@ -80,7 +93,8 @@ describe("Workspaces", () => {
           query: SidebarMenuDocument,
           variables: {
             page: 1,
-            perPage: 5,
+            perPage: 2000,
+            organizationId: "org-1",
           },
         },
         result: {
@@ -129,7 +143,8 @@ describe("Workspaces", () => {
           query: SidebarMenuDocument,
           variables: {
             page: 1,
-            perPage: 5,
+            perPage: 2000,
+            organizationId: "org-1",
           },
         },
         result: {
@@ -157,6 +172,18 @@ describe("Workspaces", () => {
             workspace: {
               slug,
               name: "Rwanda Workspace",
+              organization: {
+                __typename: "Organization",
+                id: "org-1",
+                name: "Test Organization",
+                shortName: "Test Org",
+                logo: null,
+                aiSettings: { enabled: true },
+                aiBudgetLimitReached: false,
+                permissions: {
+                  createWorkspace: { isAllowed: false, reasons: [] },
+                },
+              },
               description: "This is a description",
               permissions: {
                 update: false,
@@ -193,7 +220,8 @@ describe("Workspaces", () => {
           query: SidebarMenuDocument,
           variables: {
             page: 1,
-            perPage: 5,
+            perPage: 2000,
+            organizationId: "org-1",
           },
         },
         result: {
@@ -221,6 +249,18 @@ describe("Workspaces", () => {
             workspace: {
               slug,
               name: "Rwanda Workspace",
+              organization: {
+                __typename: "Organization",
+                id: "org-1",
+                name: "Test Organization",
+                shortName: "Test Org",
+                logo: null,
+                aiSettings: { enabled: true },
+                aiBudgetLimitReached: false,
+                permissions: {
+                  createWorkspace: { isAllowed: false, reasons: [] },
+                },
+              },
               description: "This is a description",
               permissions: {
                 launchNotebookServer: true,

@@ -108,8 +108,6 @@ def resolve_superset_instances(_, info, **kwargs):
         workspace = Workspace.objects.filter_for_user(request.user).get(
             slug=kwargs["workspace_slug"]
         )
-        if not workspace.organization:
-            return []
         return SupersetInstance.objects.filter(organization=workspace.organization)
     except Workspace.DoesNotExist:
         return []

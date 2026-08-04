@@ -163,6 +163,7 @@ class BaseAgent:
     tools: list = []
     max_tokens: int = 32768
     max_requests: int = 10
+    output_retries: int | None = None
     history_strip_tools: set[str] = set()
 
     def __init__(
@@ -186,6 +187,8 @@ class BaseAgent:
             model=self._model,
             instructions=instructions,
             tools=self._tools_with_context,
+            output_type=self._output_type(),
+            output_retries=self.output_retries,
             end_strategy="exhaustive",
             model_settings=ModelSettings(max_tokens=self.max_tokens),
             capabilities=self._capabilities(),
@@ -203,6 +206,24 @@ class BaseAgent:
 
     def _extra_instructions(self) -> str:
         return ""
+
+    def _output_type(self):
+        """Output type passed to the underlying pydantic-ai Agent.
+
+        Subclasses can return e.g. ``TextOutput(validator)`` to validate and
+        transform the final answer, making the model retry on ``ModelRetry``.
+        """
+        return str
+
+    def _final_output(self, run_result) -> str | None:
+        """Validated final output exposed in the ``done`` SSE event.
+
+        None for agents whose deliverable is the streamed conversation text
+        itself. Agents with a structured deliverable (e.g. a SQL statement)
+        override this so consumers get the validated output rather than
+        reassembling it from text deltas, which include retried attempts.
+        """
+        return None
 
     @property
     def _tools_with_context(self) -> list:
@@ -290,6 +311,7 @@ class BaseAgent:
                 DonePayload(
                     message_id=str(assistant_message.id),
                     name=self.conversation.name,
+                    output=self._final_output(run_result),
                 ),
             )
 

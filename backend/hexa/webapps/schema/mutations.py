@@ -53,12 +53,6 @@ def resolve_create_webapp(_, info, **kwargs):
     try:
         with transaction.atomic():
             if "superset" in source:
-                if not workspace.organization:
-                    return {
-                        "success": False,
-                        "errors": ["SUPERSET_NOT_CONFIGURED"],
-                        "webapp": None,
-                    }
                 try:
                     superset_instance = SupersetInstance.objects.get(
                         id=source["superset"]["instance_id"],
@@ -152,12 +146,6 @@ def resolve_update_webapp(_, info, **kwargs):
     if source and "superset" in source:
         if webapp.type != Webapp.WebappType.SUPERSET:
             return {"success": False, "errors": ["TYPE_MISMATCH"], "webapp": None}
-        if not webapp.workspace.organization:
-            return {
-                "success": False,
-                "errors": ["SUPERSET_NOT_CONFIGURED"],
-                "webapp": None,
-            }
         try:
             superset_instance = SupersetInstance.objects.get(
                 id=source["superset"]["instance_id"],

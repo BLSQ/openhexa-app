@@ -33,6 +33,18 @@ const mockWorkspace = {
   slug: "test-workspace",
   countries: [],
   shortcuts: [],
+  organization: {
+    __typename: "Organization",
+    id: "org-1",
+    name: "Test Organization",
+    shortName: "Test Org",
+    logo: null,
+    aiSettings: { enabled: true },
+    aiBudgetLimitReached: false,
+    permissions: {
+      createWorkspace: { isAllowed: false, reasons: [] },
+    },
+  },
   permissions: {
     launchNotebookServer: false,
     manageMembers: false,
@@ -59,6 +71,7 @@ const graphqlMocks: MockedResponse[] = [
       variables: {
         page: 1,
         perPage: 2000,
+        organizationId: "org-1",
       },
     },
     maxUsageCount: Infinity,
@@ -175,6 +188,7 @@ describe("WebappCreatePage", () => {
           variables: {
             page: 1,
             perPage: 2000,
+            organizationId: "org-1",
           },
         },
         maxUsageCount: Infinity,
@@ -280,6 +294,7 @@ describe("WebappCreatePage", () => {
           variables: {
             page: 1,
             perPage: 2000,
+            organizationId: "org-1",
           },
         },
         maxUsageCount: Infinity,

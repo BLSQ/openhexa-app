@@ -1,6 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import DomainNameValidator
 
+from hexa.webapps.utils import PREVIEW_KEY_RE
+
 _BLSQ_SPECIFIC = {"snt", "dhis2", "nmdr", "iaso", "openhexa"}
 
 _DNS_AND_NETWORKING = {
@@ -148,7 +150,7 @@ def validate_subdomain(value):
             "Subdomain must be a single DNS label (no dots).",
             code="SUBDOMAIN_HAS_DOTS",
         )
-    if value in RESERVED_SUBDOMAINS:
+    if value in RESERVED_SUBDOMAINS or PREVIEW_KEY_RE.match(value):
         raise ValidationError("This subdomain is reserved.", code="SUBDOMAIN_RESERVED")
     try:
         _domain_validator(f"{value}.com")

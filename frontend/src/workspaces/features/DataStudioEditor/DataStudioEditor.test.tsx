@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { downloadBlob } from "core/helpers/files";
+import { ComponentProps } from "react";
 import DataStudioEditor from "./DataStudioEditor";
 
 // `useTranslation` is globally mocked to echo the key, so button/label
@@ -23,6 +24,19 @@ let mockEditorState: any;
 // query and exercise the edit-details pencil.
 jest.mock("./useSavedQueryEditor", () => ({
   useSavedQueryEditor: () => mockEditorState,
+}));
+
+// The dialog owns its own mutations (covered by its suite); stub it down to the
+// props this file cares about so no ApolloProvider is needed.
+jest.mock("workspaces/features/SavedQueries/SaveQueryDialog", () => ({
+  __esModule: true,
+  default: ({ open, mode }: { open: boolean; mode: string }) => (
+    <div
+      data-testid="save-query-dialog"
+      data-open={String(open)}
+      data-mode={mode}
+    />
+  ),
 }));
 
 // The schema browser and results grid are covered by their own tests; stub them
@@ -107,6 +121,33 @@ jest.mock("core/helpers/files", () => ({
   downloadBlob: jest.fn(),
 }));
 
+// GenerateSqlBar pulls in the real Apollo `useCreateAssistantConversationMutation`
+// hook, which needs an ApolloProvider this file doesn't set up. Stubbed the same way
+// as DataStudioSchemaBrowser/DataStudioResults above, exposing just enough (the
+// `open` prop and a call to trigger onGenerated) to test DataStudioEditor's own wiring.
+jest.mock("./GenerateSqlBar", () => ({
+  __esModule: true,
+  default: ({
+    open,
+    form,
+  }: {
+    open: boolean;
+    onClose: () => void;
+    form: { handleSubmit: () => void };
+  }) =>
+    open ? (
+      <div data-testid="generate-bar">
+        <button onClick={form.handleSubmit}>trigger-generate</button>
+      </div>
+    ) : null,
+  useGenerateSqlForm: (
+    _workspaceSlug: string,
+    onGenerated: (sql: string) => void,
+  ) => ({
+    handleSubmit: () => onGenerated("SELECT 1"),
+  }),
+}));
+
 const successState = (overrides: Record<string, unknown> = {}) => ({
   loading: false,
   data: {
@@ -129,7 +170,9 @@ const successState = (overrides: Record<string, unknown> = {}) => ({
   },
 });
 
-const renderEditor = () => render(<DataStudioEditor workspaceSlug="ws-1" />);
+const renderEditor = (
+  props: Partial<ComponentProps<typeof DataStudioEditor>> = {},
+) => render(<DataStudioEditor workspaceSlug="ws-1" {...props} />);
 
 beforeEach(() => {
   mockExecute.mockClear();
@@ -142,7 +185,7 @@ beforeEach(() => {
     isDirty: false,
     saving: false,
     canUpdate: false,
-    dialog: null,
+    dialog: { open: false, mode: "create" },
     save: jest.fn(),
     saveAsNew: jest.fn(),
     editDetails: mockEditDetails,
@@ -297,6 +340,24 @@ describe("DataStudioEditor", () => {
     );
   });
 
+  // Headless UI skips the enter transition of a dialog that mounts already open,
+  // so the dialog has to stay mounted and be driven by `open`.
+  it("keeps the save dialog mounted while it is closed", () => {
+    renderEditor();
+
+    const dialog = screen.getByTestId("save-query-dialog");
+    expect(dialog).toHaveAttribute("data-open", "false");
+  });
+
+  it("passes the open state and mode of the dialog through", () => {
+    mockEditorState.dialog = { open: true, mode: "edit-details" };
+    renderEditor();
+
+    const dialog = screen.getByTestId("save-query-dialog");
+    expect(dialog).toHaveAttribute("data-open", "true");
+    expect(dialog).toHaveAttribute("data-mode", "edit-details");
+  });
+
   it("opens the edit-details dialog from the pencil next to a saved query name", async () => {
     mockEditorState.savedQuery = { id: "q1", name: "Cohort query" };
     mockEditorState.canUpdate = true;
@@ -328,5 +389,36 @@ describe("DataStudioEditor", () => {
 
     await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  });
+
+  it("hides the Generate button when AI is not enabled for the workspace", () => {
+    renderEditor();
+    expect(
+      screen.queryByRole("button", { name: "Generate" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens the generate bar from the toolbar when AI is enabled", async () => {
+    renderEditor({ aiEnabled: true });
+    expect(screen.queryByTestId("generate-bar")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Generate" }));
+
+    expect(screen.getByTestId("generate-bar")).toBeInTheDocument();
+  });
+
+  it("disables the Generate button once the AI budget is exhausted", () => {
+    renderEditor({ aiEnabled: true, aiBudgetLimitReached: true });
+    expect(screen.getByRole("button", { name: "Generate" })).toBeDisabled();
+  });
+
+  it("fills the editor with the generated query and closes the bar", async () => {
+    renderEditor({ aiEnabled: true });
+    await userEvent.click(screen.getByRole("button", { name: "Generate" }));
+
+    await userEvent.click(screen.getByText("trigger-generate"));
+
+    expect(screen.getByTestId("editor")).toHaveValue("SELECT 1");
+    expect(screen.queryByTestId("generate-bar")).not.toBeInTheDocument();
   });
 });

@@ -196,6 +196,74 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         # The SQL body is intentionally not searched.
         self.assertEqual(search("patients"), [])
 
+    def _list(self, order_by=None, page=1, per_page=15):
+        self.client.force_login(self.USER_EDITOR)
+        variables = {
+            "slug": str(self.WORKSPACE.slug),
+            "page": page,
+            "perPage": per_page,
+        }
+        # Left out rather than sent as null, so the schema default applies -- which is
+        # how a client that does not care about ordering actually calls this.
+        if order_by is not None:
+            variables["orderBy"] = order_by
+        r = self.run_query(
+            """
+            query ($slug: String!, $orderBy: SavedQueryOrderBy, $page: Int, $perPage: Int) {
+                workspace(slug: $slug) {
+                    savedQueries(orderBy: $orderBy, page: $page, perPage: $perPage) {
+                        items { id name }
+                    }
+                }
+            }
+            """,
+            variables,
+        )
+        return r["data"]["workspace"]["savedQueries"]["items"]
+
+    def _list_names(self, order_by=None, page=1, per_page=15):
+        return [i["name"] for i in self._list(order_by, page, per_page)]
+
+    def test_saved_queries_default_order_is_most_recently_updated_first(self):
+        self._create_query(self.USER_EDITOR, name="alpha")
+        self._create_query(self.USER_EDITOR, name="beta")
+        SavedQuery.objects.get(name="alpha").save()  # touches updated_at
+
+        self.assertEqual(self._list_names(), ["alpha", "beta"])
+
+    def test_saved_queries_order_by(self):
+        self._create_query(self.USER_EDITOR, name="beta")
+        self._create_query(self.USER_EDITOR, name="alpha")
+        self._create_query(self.USER_EDITOR, name="gamma")
+
+        self.assertEqual(self._list_names("NAME_ASC"), ["alpha", "beta", "gamma"])
+        self.assertEqual(self._list_names("NAME_DESC"), ["gamma", "beta", "alpha"])
+        # Creation order is also update order, so ascending updated_at replays it.
+        self.assertEqual(self._list_names("UPDATED_AT_ASC"), ["beta", "alpha", "gamma"])
+        self.assertEqual(
+            self._list_names("UPDATED_AT_DESC"), ["gamma", "alpha", "beta"]
+        )
+
+    def test_saved_queries_order_by_is_stable_across_pages(self):
+        """Rows sharing a sort key must not be dealt to two pages (or none).
+
+        `name` is not unique per workspace, so without a tiebreaker the database
+        is free to return duplicates within a page window.
+        """
+        for _ in range(4):
+            self._create_query(self.USER_EDITOR, name="same")
+
+        paged = [
+            i["id"]
+            for page in (1, 2)
+            for i in self._list("NAME_ASC", page=page, per_page=2)
+        ]
+
+        self.assertEqual(len(set(paged)), 4)
+        self.assertCountEqual(
+            paged, [str(pk) for pk in SavedQuery.objects.values_list("id", flat=True)]
+        )
+
     def test_get_saved_query(self):
         created = self._create_query(self.USER_EDITOR)
         query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]

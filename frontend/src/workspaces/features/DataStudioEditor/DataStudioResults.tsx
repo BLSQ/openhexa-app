@@ -8,7 +8,7 @@ import {
 } from "core/helpers/errors";
 import { ExecuteSqlError } from "graphql/types";
 import { useTranslation } from "next-i18next";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { detectChart } from "./chart";
 import { ExecuteWorkspaceSqlQuery } from "./DataStudioEditor.generated";
 import ResultsChart from "./ResultsChart";
@@ -254,4 +254,9 @@ const DataStudioResults = ({
   );
 };
 
-export default DataStudioResults;
+// Memoised because the SQL text lives in DataStudioEditor's state: without this,
+// every keystroke re-renders the grid, reconciling up to MAX_DISPLAYED_ROWS rows
+// worth of cells for an input this component does not even read. Apollo keeps
+// `data` referentially stable between renders and `onRetry` is memoised in
+// useDataStudioQuery, so the props only change when a query actually resolves.
+export default memo(DataStudioResults);

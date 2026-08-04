@@ -1,5 +1,4 @@
 from ariadne import ObjectType, UnionType
-from django.conf import settings
 
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.utils.base64_image_encode_decode import encode_base64_image
@@ -53,14 +52,13 @@ def resolve_preview_url(webapp: Webapp, info, **kwargs):
     request = info.context["request"]
     if not request.user.is_authenticated:
         return webapp.serve_url
-    from hexa.webapps.middlewares import get_or_create_preview_session_key
+    from hexa.webapps.middlewares import get_or_create_preview_url
 
-    # The session key lives as the first DNS label of the host so the iframe
-    # can authenticate without any cookie — sidestepping the third-party
-    # cookie block in Safari, incognito, and Firefox strict. An existing
-    # valid session is reused when available instead of minting a new one.
-    session_key = get_or_create_preview_session_key(webapp, request.user)
-    return f"{settings.SCHEME}://{session_key}.{settings.WEBAPPS_DOMAIN}/"
+    # The preview URL carries the session key as its first DNS label, so the
+    # iframe authenticates without any cookie — sidestepping the third-party
+    # cookie block in Safari, incognito, and Firefox strict. An existing valid
+    # session is reused when available instead of minting a new one.
+    return get_or_create_preview_url(request, webapp, request.user)
 
 
 @webapp_object.field("icon")

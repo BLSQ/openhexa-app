@@ -32,6 +32,8 @@ export function getToolLabels(t: TFunction): Record<string, string> {
     [TOOL.ProposePipelineVersion]: t("Proposing pipeline version"),
     [TOOL.GetStaticWebappFile]: t("Reading web app file"),
     [TOOL.ProposeWebappVersion]: t("Proposing web app changes"),
+    [TOOL.GetDbSchema]: t("Reading database schema"),
+    [TOOL.GetDbTableSchema]: t("Reading table schema"),
   };
 }
 

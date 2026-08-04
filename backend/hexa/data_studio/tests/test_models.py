@@ -9,10 +9,10 @@ from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 from .testutils import SavedQueryTestMixin
 
@@ -94,6 +94,32 @@ class SavedQueryModelTest(SavedQueryTestMixin, TestCase):
         with self.assertRaises(PermissionDenied):
             query.delete_if_has_perm(principal=self.USER_VIEWER)
 
+    def test_content_is_stored_runnable(self):
+        # SQL pasted from a chat or a document carries blanks PostgreSQL rejects.
+        # Storing them would keep the query broken every time it is reopened.
+        query = SavedQuery.objects.create_if_has_perm(
+            self.USER_EDITOR,
+            self.WORKSPACE,
+            name="Pasted query",
+            content="SELECT\u00a0id\u200b FROM demo",
+        )
+        self.assertEqual("SELECT id FROM demo", query.content)
+
+        query.update_if_has_perm(
+            principal=self.USER_EDITOR, content="SELECT\u00a0label FROM demo"
+        )
+        query.refresh_from_db()
+        self.assertEqual("SELECT label FROM demo", query.content)
+
+    def test_content_keeps_literals_verbatim(self):
+        # PostgreSQL accepts any character inside a literal, so an exotic blank
+        # there is data the user meant to write.
+        content = "SELECT 'a\u00a0b' AS x"
+        query = SavedQuery.objects.create_if_has_perm(
+            self.USER_EDITOR, self.WORKSPACE, name="Literal query", content=content
+        )
+        self.assertEqual(content, query.content)
+
 
 class QueryLogModelTest(TestCase):
     @classmethod
@@ -107,13 +133,13 @@ class QueryLogModelTest(TestCase):
         cls.USER_OUTSIDER = User.objects.create_user(
             "outsider@bluesquarehub.com", "outsiderpassword"
         )
-        cls.WORKSPACE_1 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_1 = create_workspace(
             cls.USER_SUPERUSER,
             name="Workspace 1",
             description="First workspace",
             countries=[],
         )
-        cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_2 = create_workspace(
             cls.USER_SUPERUSER,
             name="Workspace 2",
             description="Second workspace",
