@@ -1,6 +1,7 @@
 import base64
 import html
 import uuid
+from unittest import mock
 from unittest.mock import patch
 from urllib.parse import urlencode
 
@@ -777,22 +778,26 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_archive_workspace(self):
+        previous_db_password = self.WORKSPACE.db_password
+        previous_db_ro_password = self.WORKSPACE.db_ro_password
+
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
-        r = self.run_query(
-            """
-            mutation archiveWorkspace($input: ArchiveWorkspaceInput!) {
-                archiveWorkspace(input: $input) {
-                    success
-                    errors
+        with patch("hexa.workspaces.models.update_database_password") as mock_update:
+            r = self.run_query(
+                """
+                mutation archiveWorkspace($input: ArchiveWorkspaceInput!) {
+                    archiveWorkspace(input: $input) {
+                        success
+                        errors
+                    }
                 }
-            }
-            """,
-            {
-                "input": {
-                    "slug": self.WORKSPACE.slug,
-                }
-            },
-        )
+                """,
+                {
+                    "input": {
+                        "slug": self.WORKSPACE.slug,
+                    }
+                },
+            )
         self.assertEqual(
             {
                 "success": True,
@@ -800,6 +805,18 @@ class WorkspaceTest(GraphQLTestCase):
             },
             r["data"]["archiveWorkspace"],
         )
+        self.assertEqual(
+            [
+                mock.call(self.WORKSPACE.db_name, mock.ANY),
+                mock.call(self.WORKSPACE.db_ro_username, mock.ANY),
+            ],
+            mock_update.call_args_list,
+        )
+
+        self.WORKSPACE.refresh_from_db()
+        self.assertTrue(self.WORKSPACE.archived)
+        self.assertNotEqual(previous_db_password, self.WORKSPACE.db_password)
+        self.assertNotEqual(previous_db_ro_password, self.WORKSPACE.db_ro_password)
 
     def test_add_workspace_member(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
