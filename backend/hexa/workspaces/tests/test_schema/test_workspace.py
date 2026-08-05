@@ -727,22 +727,26 @@ class WorkspaceTest(GraphQLTestCase):
     # @patch("hexa.workspaces.models.delete_database")
     # def test_delete_workspace(self, mock_delete_database):
     def test_delete_workspace(self):
+        previous_db_password = self.WORKSPACE.db_password
+        previous_db_ro_password = self.WORKSPACE.db_ro_password
+
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
-        r = self.run_query(
-            """
-            mutation deleteWorkspace($input: DeleteWorkspaceInput!) {
-                deleteWorkspace(input: $input) {
-                    success
-                    errors
+        with patch("hexa.workspaces.models.update_database_password") as mock_update:
+            r = self.run_query(
+                """
+                mutation deleteWorkspace($input: DeleteWorkspaceInput!) {
+                    deleteWorkspace(input: $input) {
+                        success
+                        errors
+                    }
                 }
-            }
-            """,
-            {
-                "input": {
-                    "slug": self.WORKSPACE.slug,
-                }
-            },
-        )
+                """,
+                {
+                    "input": {
+                        "slug": self.WORKSPACE.slug,
+                    }
+                },
+            )
         # self.assertTrue(mock_delete_database.called)
         self.assertEqual(
             {
@@ -751,6 +755,18 @@ class WorkspaceTest(GraphQLTestCase):
             },
             r["data"]["deleteWorkspace"],
         )
+        self.assertEqual(
+            [
+                mock.call(self.WORKSPACE.db_name, mock.ANY),
+                mock.call(self.WORKSPACE.db_ro_username, mock.ANY),
+            ],
+            mock_update.call_args_list,
+        )
+        self.assertNotEqual(previous_db_password, mock_update.call_args_list[0][0][1])
+        self.assertNotEqual(
+            previous_db_ro_password, mock_update.call_args_list[1][0][1]
+        )
+        self.assertFalse(Workspace.objects.filter(id=self.WORKSPACE.id).exists())
 
     def test_archive_workspace_not_found(self):
         self.client.force_login(self.USER_SABRINA)
