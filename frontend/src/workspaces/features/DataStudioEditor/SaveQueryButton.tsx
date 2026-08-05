@@ -129,7 +129,7 @@ const SaveQueryButton = ({
     <div className="flex items-center gap-1">
       <button
         onClick={onSave}
-        disabled={!isDirty || !canSave}
+        disabled={!hasUnsavedEdits}
         className={hasUnsavedEdits ? GHOST_DIRTY : GHOST}
         title={
           !hasContent
