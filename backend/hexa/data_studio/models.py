@@ -18,8 +18,9 @@ class SavedQueryQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
         accessible = models.Q(visibility=SavedQueryVisibility.WORKSPACE)
         # Service principals (pipeline runs, webapps) impersonate a workspace rather
-        # than a person, so they never own a private query - and `created_by=<principal>`
-        # would not even be a valid lookup for them.
+        # than a person, so they never own a private query - a deliberate call for
+        # WebappUser, whose real User row `created_by` would match and which
+        # WorkspaceQuerySet does treat as a person.
         if isinstance(user, User) and not isinstance(user, ServicePrincipal):
             accessible |= models.Q(created_by=user)
 

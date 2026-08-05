@@ -122,7 +122,7 @@
   "An unknown error occurred": "Une erreur inconnue s'est produite",
   "Analyzing": "Analyse",
   "and turn on Developer mode.": "et activez le mode Développeur.",
-  "Anyone in this workspace can view and run it.": "Tous les membres de ce workspace peuvent la voir et l'exécuter.",
+  "Anyone in this workspace can view and run it. Editors and admins can also change or delete it.": "Tous les membres de ce workspace peuvent la voir et l'exécuter. Les éditeurs et administrateurs peuvent aussi la modifier ou la supprimer.",
   "Anyone with the URL will be able to trigger this pipeline": "Quiconque ayant l'URL pourra déclencher cette pipeline",
   "API access": "Accès API",
   "API access updated successfully": "Accès API modifié avec succès",

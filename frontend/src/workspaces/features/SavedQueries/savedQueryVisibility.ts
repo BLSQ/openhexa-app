@@ -29,7 +29,12 @@ export const useSavedQueryVisibilityOptions = (): VisibilityOption[] => {
       {
         value: SavedQueryVisibility.Workspace,
         label: t("Workspace"),
-        description: t("Anyone in this workspace can view and run it."),
+        // Spells out that sharing also hands over write access: editors and admins
+        // can change or delete a shared query, which "anyone can view and run it"
+        // alone would let users read as read-only exposure.
+        description: t(
+          "Anyone in this workspace can view and run it. Editors and admins can also change or delete it.",
+        ),
         Icon: GlobeAltIcon,
         iconClassName: "text-emerald-600",
       },

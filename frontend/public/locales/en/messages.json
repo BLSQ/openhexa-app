@@ -112,7 +112,7 @@
   "An unknown error occurred": "An unknown error occurred",
   "Analyzing": "Analyzing",
   "and turn on Developer mode.": "and turn on Developer mode.",
-  "Anyone in this workspace can view and run it.": "Anyone in this workspace can view and run it.",
+  "Anyone in this workspace can view and run it. Editors and admins can also change or delete it.": "Anyone in this workspace can view and run it. Editors and admins can also change or delete it.",
   "Anyone with the URL will be able to trigger this pipeline": "Anyone with the URL will be able to trigger this pipeline",
   "API access": "API access",
   "API access updated successfully": "API access updated successfully",
