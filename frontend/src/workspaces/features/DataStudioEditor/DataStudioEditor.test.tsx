@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { downloadBlob } from "core/helpers/files";
+import { SavedQueryVisibility } from "graphql/types";
 import { ComponentProps } from "react";
 import DataStudioEditor from "./DataStudioEditor";
 
@@ -15,6 +16,7 @@ jest.mock("./DataStudioEditor.generated", () => ({
 }));
 
 const mockEditDetails = jest.fn();
+const mockSetVisibility = jest.fn();
 let mockEditorState: any;
 
 // The save/write path (Apollo mutations + router navigation) is exercised in
@@ -179,14 +181,17 @@ beforeEach(() => {
   mockInsertText.mockClear();
   (downloadBlob as jest.Mock).mockClear();
   mockEditDetails.mockClear();
+  mockSetVisibility.mockClear();
   mockQueryState = { loading: false };
   mockEditorState = {
     savedQuery: null,
     isDirty: false,
     saving: false,
     canUpdate: false,
+    canUpdateVisibility: false,
     dialog: { open: false, mode: "create" },
     save: jest.fn(),
+    setVisibility: mockSetVisibility,
     saveAsNew: jest.fn(),
     editDetails: mockEditDetails,
     closeDialog: jest.fn(),
@@ -359,7 +364,11 @@ describe("DataStudioEditor", () => {
   });
 
   it("opens the edit-details dialog from the pencil next to a saved query name", async () => {
-    mockEditorState.savedQuery = { id: "q1", name: "Cohort query" };
+    mockEditorState.savedQuery = {
+      id: "q1",
+      name: "Cohort query",
+      visibility: SavedQueryVisibility.Private,
+    };
     mockEditorState.canUpdate = true;
     renderEditor();
 
@@ -369,7 +378,11 @@ describe("DataStudioEditor", () => {
   });
 
   it("hides the edit-details pencil when the query cannot be updated", () => {
-    mockEditorState.savedQuery = { id: "q1", name: "Cohort query" };
+    mockEditorState.savedQuery = {
+      id: "q1",
+      name: "Cohort query",
+      visibility: SavedQueryVisibility.Private,
+    };
     mockEditorState.canUpdate = false;
     renderEditor();
 
@@ -378,8 +391,27 @@ describe("DataStudioEditor", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("shows the visibility control only once a query is saved", () => {
+    renderEditor();
+    expect(screen.queryByText("Private")).not.toBeInTheDocument();
+
+    mockEditorState.savedQuery = {
+      id: "q1",
+      name: "Cohort query",
+      visibility: SavedQueryVisibility.Private,
+    };
+    mockEditorState.canUpdateVisibility = true;
+    renderEditor();
+
+    expect(screen.getByRole("button", { name: /Private/ })).toBeInTheDocument();
+  });
+
   it("blocks in-place Save while an existing query's content is empty", async () => {
-    mockEditorState.savedQuery = { id: "q1", name: "Cohort query" };
+    mockEditorState.savedQuery = {
+      id: "q1",
+      name: "Cohort query",
+      visibility: SavedQueryVisibility.Private,
+    };
     mockEditorState.canUpdate = true;
     mockEditorState.isDirty = true;
     renderEditor();

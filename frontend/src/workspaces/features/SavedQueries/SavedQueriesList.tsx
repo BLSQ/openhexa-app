@@ -11,6 +11,7 @@ import { useRouter } from "next/router";
 import { SortingRule } from "react-table";
 import DeleteSavedQueryTrigger from "workspaces/features/SavedQueries/DeleteSavedQueryTrigger";
 import { SavedQueryListItem_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
+import SavedQueryVisibilityBadge from "workspaces/features/SavedQueries/SavedQueryVisibilityBadge";
 import { savedQuerySorting } from "workspaces/features/SavedQueries/sorting";
 import { WorkspaceSavedQueriesPageQuery } from "workspaces/graphql/queries.generated";
 import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
@@ -139,6 +140,18 @@ const SavedQueriesList = ({
                 header={t("Created by")}
                 disableSortBy
               />
+              <BaseColumn<SavedQueryListItem_SavedQueryFragment>
+                id="visibility"
+                label={t("Visibility")}
+                disableSortBy
+              >
+                {(item) => (
+                  <SavedQueryVisibilityBadge
+                    visibility={item.visibility}
+                    className="text-gray-700"
+                  />
+                )}
+              </BaseColumn>
               <DateColumn
                 id="updatedAt"
                 accessor="updatedAt"

@@ -1,4 +1,9 @@
 import { useTranslation } from "next-i18next";
+import {
+  GHOST,
+  GHOST_DIRTY,
+  GHOST_SECONDARY,
+} from "workspaces/features/DataStudioEditor/toolbarStyles";
 import { hasSavePath } from "./savePath";
 
 // Heroicons has no floppy-disk/save glyph, so we inline the one from the Data
@@ -53,20 +58,6 @@ type SaveQueryButtonProps = {
   onSave: () => void;
   onSaveAsNew: () => void;
 };
-
-const GHOST =
-  "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent";
-
-// Muted sibling of GHOST for the secondary "Save as new" action, so it reads as
-// clearly subordinate to the primary Save without hiding it in a menu.
-const GHOST_SECONDARY =
-  "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent";
-
-// Amber accent for the primary Save when a saved query has unsaved edits, so the
-// button itself signals "you have work to persist" (no separate dirty dot). Only
-// applied while the button is actionable, so it never tints the disabled state.
-const GHOST_DIRTY =
-  "inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-amber-600 hover:bg-amber-50 hover:text-amber-700";
 
 // The Save control adapts to permissions and state:
 // - new query           → single "Save" (opens the create dialog)

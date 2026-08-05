@@ -20,6 +20,7 @@ import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
 import GenerateSqlBar, { useGenerateSqlForm } from "./GenerateSqlBar";
 import SaveQueryButton from "./SaveQueryButton";
+import SavedQueryVisibilityButton from "./SavedQueryVisibilityButton";
 import { useDataStudioQuery } from "./useDataStudioQuery";
 import { useSavedQueryEditor } from "./useSavedQueryEditor";
 
@@ -139,6 +140,14 @@ const DataStudioEditor = ({
                 onSave={editor.save}
                 onSaveAsNew={editor.saveAsNew}
               />
+              {editor.savedQuery && (
+                <SavedQueryVisibilityButton
+                  visibility={editor.savedQuery.visibility}
+                  canUpdate={editor.canUpdateVisibility}
+                  saving={editor.saving}
+                  onChange={editor.setVisibility}
+                />
+              )}
               <label className="flex items-center gap-1.5 text-xs text-gray-500">
                 {t("Max rows")}
                 <select
