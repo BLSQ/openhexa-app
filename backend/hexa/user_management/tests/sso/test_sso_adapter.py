@@ -16,12 +16,12 @@ from hexa.user_management.models import (
 from hexa.user_management.sso.sso_adapter import OpenHexaSocialAccountAdapter
 from hexa.workspaces.models import (
     OrganizationWorkspaceInvitation,
-    Workspace,
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 _WHO_CONFIG = {
     "id": "who",
@@ -284,7 +284,7 @@ class SaveUserAcceptsPendingInvitationsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.ORGANIZATION = Organization.objects.create(name="WHO")
-        cls.WORKSPACE = Workspace.objects.create(
+        cls.WORKSPACE = create_workspace(
             name="Workspace", slug="workspace", organization=cls.ORGANIZATION
         )
 

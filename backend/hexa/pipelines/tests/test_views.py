@@ -20,10 +20,10 @@ from hexa.pipelines.models import (
 )
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class ViewsTest(TestCase):
@@ -43,7 +43,7 @@ class ViewsTest(TestCase):
             "rebecca@bluesquarehub.com", "standardpassword", is_superuser=True
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_SUPERUSER,
             name="Senegal Workspace",
             description="This is a workspace for Senegal",
@@ -471,7 +471,7 @@ class SSEStreamTest(TestCase):
         )
         cls.OTHER_USER = User.objects.create_user("sse_other@example.com", "password")
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER,
             name="SSE Test Workspace",
             description="",

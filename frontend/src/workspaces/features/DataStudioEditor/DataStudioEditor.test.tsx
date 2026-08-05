@@ -39,6 +39,19 @@ jest.mock("./useSavedQueryEditor", () => ({
   useSavedQueryEditor: () => mockEditorState,
 }));
 
+// The dialog owns its own mutations (covered by its suite); stub it down to the
+// props this file cares about so no ApolloProvider is needed.
+jest.mock("workspaces/features/SavedQueries/SaveQueryDialog", () => ({
+  __esModule: true,
+  default: ({ open, mode }: { open: boolean; mode: string }) => (
+    <div
+      data-testid="save-query-dialog"
+      data-open={String(open)}
+      data-mode={mode}
+    />
+  ),
+}));
+
 // The schema browser and results grid are covered by their own tests; stub them
 // so this file exercises only the editor's orchestration logic.
 jest.mock("./DataStudioSchemaBrowser", () => ({
@@ -121,13 +134,6 @@ jest.mock("core/helpers/files", () => ({
   downloadBlob: jest.fn(),
 }));
 
-// The dialog owns its own Apollo mutations (covered in its own suite); stub it so
-// this file can assert on when the editor opens it without an ApolloProvider.
-jest.mock("workspaces/features/SavedQueries/SaveQueryDialog", () => ({
-  __esModule: true,
-  default: () => <div data-testid="save-dialog" />,
-}));
-
 // GenerateSqlBar pulls in the real Apollo `useCreateAssistantConversationMutation`
 // hook, which needs an ApolloProvider this file doesn't set up. Stubbed the same way
 // as DataStudioSchemaBrowser/DataStudioResults above, exposing just enough (the
@@ -179,7 +185,10 @@ const successState = (overrides: Record<string, unknown> = {}) => ({
 
 const renderEditor = (
   props: Partial<ComponentProps<typeof DataStudioEditor>> = {},
-) => render(<DataStudioEditor workspaceSlug="ws-1" {...props} />);
+) =>
+  render(
+    <DataStudioEditor workspaceSlug="ws-1" canCreate={false} {...props} />,
+  );
 
 beforeEach(() => {
   mockExecute.mockClear();
@@ -194,7 +203,7 @@ beforeEach(() => {
     isDirty: false,
     saving: false,
     canUpdate: false,
-    dialog: null,
+    dialog: { open: false, mode: "create" },
     savePlan: savePlan(),
     save: jest.fn(),
     saveAsNew: jest.fn(),
@@ -351,6 +360,24 @@ describe("DataStudioEditor", () => {
     );
   });
 
+  // Headless UI skips the enter transition of a dialog that mounts already open,
+  // so the dialog has to stay mounted and be driven by `open`.
+  it("keeps the save dialog mounted while it is closed", () => {
+    renderEditor();
+
+    const dialog = screen.getByTestId("save-query-dialog");
+    expect(dialog).toHaveAttribute("data-open", "false");
+  });
+
+  it("passes the open state and mode of the dialog through", () => {
+    mockEditorState.dialog = { open: true, mode: "edit-details" };
+    renderEditor();
+
+    const dialog = screen.getByTestId("save-query-dialog");
+    expect(dialog).toHaveAttribute("data-open", "true");
+    expect(dialog).toHaveAttribute("data-mode", "edit-details");
+  });
+
   it("opens the edit-details dialog from the pencil next to a saved query name", async () => {
     mockEditorState.savedQuery = { id: "q1", name: "Cohort query" };
     mockEditorState.canUpdate = true;
@@ -419,9 +446,12 @@ describe("DataStudioEditor", () => {
   });
 
   it("never hands Ctrl/Cmd+S back to the browser while the save dialog is open", () => {
-    mockEditorState.dialog = { mode: "create" };
+    mockEditorState.dialog = { open: true, mode: "create" };
     renderEditor();
-    expect(screen.getByTestId("save-dialog")).toBeInTheDocument();
+    expect(screen.getByTestId("save-query-dialog")).toHaveAttribute(
+      "data-open",
+      "true",
+    );
 
     // The dialog has no ⌘S binding of its own, so releasing the keystroke here
     // would open the browser's "Save page as…" on top of the dialog. It stays

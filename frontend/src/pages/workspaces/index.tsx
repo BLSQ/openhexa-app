@@ -2,11 +2,9 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { usePublicEnv } from "core/helpers/runtimeConfig";
 import useLocalStorage from "core/hooks/useLocalStorage";
-import useMe from "identity/hooks/useMe";
 import { useRouter } from "next/router";
 import { ReactElement, useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
-import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import {
   WorkspacesPageDocument,
   WorkspacesPageQuery,
@@ -30,7 +28,6 @@ type WorkspacesHomeProps = {
 
 const WorkspacesHome = (props: WorkspacesHomeProps) => {
   const { t } = useTranslation();
-  const me = useMe();
   const router = useRouter();
   const [check] = useCheckWorkspaceAvailabilityLazyQuery();
 
@@ -38,7 +35,6 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
     "last-visited-workspace",
   );
   const [isChecking, setChecking] = useState(true);
-  const [isDialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!isChecking || typeof window === "undefined") return;
@@ -97,21 +93,7 @@ const WorkspacesHome = (props: WorkspacesHomeProps) => {
               <ArrowTopRightOnSquareIcon className="h-4 w-4" />
             </Link>
           )}
-          {me.permissions.createWorkspace && (
-            <button
-              onClick={() => setDialogOpen(true)}
-              className="mt-6 inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
-            >
-              {t("Create a workspace")}
-            </button>
-          )}
         </div>
-        {me.permissions.createWorkspace && (
-          <CreateWorkspaceDialog
-            open={isDialogOpen}
-            onClose={() => setDialogOpen(false)}
-          />
-        )}
       </NoWorkspaceLayout>
     </Page>
   );

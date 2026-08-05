@@ -15,14 +15,17 @@ than fixing them one round-trip at a time.
 """
 
 from collections.abc import Callable
+from typing import Any
 
 import httpx
 from django.core.exceptions import ObjectDoesNotExist
+from openhexa.graphql.graphql_client.client import Client
 
 from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.orchestrator import copy_workspace
 from hexa.workspace_copier.progress import ProgressReporter
-from hexa.workspace_copier.results import CopyResult
+from hexa.workspace_copier.results import CopyResult, TemplatesResult
+from hexa.workspace_copier.templates import copy_templates
 from hexa.workspace_copier.transport import GraphQLError, build_client
 from hexa.workspaces.models import Workspace
 
@@ -63,14 +66,25 @@ def _build_target(
     )
 
 
-def _verify_side(
-    side: str, build: Callable[[], Endpoint]
-) -> tuple[Endpoint | None, str | None]:
-    """Build one endpoint, returning ``(endpoint, error_message)``.
+def _build_remote_client(side: str, url: str, token: str) -> Client:
+    """Build and authenticate a remote SDK client (used by the template flow).
 
-    Building a remote endpoint authenticates against its server, so this is also
-    where bad credentials / unreachable hosts surface. The returned string is the
-    user-facing reason; ``None`` means the side is good.
+    The template copy flow is remote→remote only (templates are server-wide and
+    the local/ORM path is not implemented), so a blank URL is itself an error —
+    raised here so :func:`_verify_side` records it like any other verification
+    failure.
+    """
+    if not url:
+        raise GraphQLError(f"{side} server URL is required.")
+    return build_client(url, token, label=side)
+
+
+def _verify_side(side: str, build: Callable[[], Any]) -> tuple[Any | None, str | None]:
+    """Build one endpoint (or client), returning ``(value, error_message)``.
+
+    Building a remote endpoint/client authenticates against its server, so this
+    is also where bad credentials / unreachable hosts surface. The returned
+    string is the user-facing reason; ``None`` means the side is good.
     """
     try:
         return build(), None
@@ -136,3 +150,35 @@ def run_copy(
         target_workspace_name=target_workspace_name,
     )
     return copy_workspace(source, target, reporter, resources=resources)
+
+
+def run_template_copy(
+    *,
+    source_url: str,
+    source_token: str,
+    target_url: str,
+    target_token: str,
+    target_organization_id: str,
+    reporter: ProgressReporter,
+) -> TemplatesResult:
+    """Verify both remote endpoints, then copy every template, returning the result.
+
+    Both sides are checked even if the first fails, so the user sees every
+    problem at once. ``target_organization_id`` is the organization the host
+    "Template pipelines" workspace is created under on the target.
+    """
+    source, source_err = _verify_side(
+        "source", lambda: _build_remote_client("source", source_url, source_token)
+    )
+    target, target_err = _verify_side(
+        "target", lambda: _build_remote_client("target", target_url, target_token)
+    )
+    errors = [e for e in (source_err, target_err) if e]
+    if errors:
+        raise CredentialError(errors)
+    return copy_templates(
+        source,
+        target,
+        target_organization_id=target_organization_id,
+        reporter=reporter,
+    )

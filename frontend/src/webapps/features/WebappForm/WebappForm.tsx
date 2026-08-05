@@ -32,13 +32,13 @@ import {
   WebappType,
 } from "graphql/types";
 import { getWebappTypeLabel } from "webapps/helpers";
-import { DEFAULT_HTML_TEMPLATE } from "webapps/helpers/templates";
+import { getDefaultHtmlTemplate } from "webapps/helpers/templates";
 
 const DEFAULT_BLUESQUARE_SUPERSET_URL = "https://superset.bluesquare.org";
 
 const getDefaultSourceFiles = (type: WebappType): WebappFileInput[] =>
   type === WebappType.Static
-    ? [{ path: "index.html", content: DEFAULT_HTML_TEMPLATE }]
+    ? [{ path: "index.html", content: getDefaultHtmlTemplate() }]
     : [];
 
 const buildSource: Record<WebappType, (values: any) => any> = {
@@ -322,7 +322,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
       {!webapp && selectedType === WebappType.Static && (
         <DataCard.Section title={t("Source Files")} collapsible={false}>
           <WebappSourceEditor
-            initialTemplate={DEFAULT_HTML_TEMPLATE}
+            initialTemplate={getDefaultHtmlTemplate()}
             onChange={(files: WebappFileInput[]) => setSourceFiles(files)}
           />
         </DataCard.Section>

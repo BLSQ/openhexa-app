@@ -14,7 +14,7 @@ import Checkbox from "core/components/forms/Checkbox/Checkbox";
 import useCacheKey from "core/hooks/useCacheKey";
 
 type CreateWorkspaceDialogProps = {
-  organizationId?: string;
+  organizationId: string;
   onClose(): void;
   showCancel?: boolean;
   open: boolean;

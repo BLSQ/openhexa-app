@@ -1,9 +1,9 @@
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class SavedQueryTestMixin:
@@ -31,10 +31,10 @@ class SavedQueryTestMixin:
             "outsider@bluesquarehub.com", "outsiderpassword"
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN, name="My Workspace", description="Test workspace"
         )
-        cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_2 = create_workspace(
             cls.USER_ADMIN, name="My Workspace 2", description="Test workspace 2"
         )
 

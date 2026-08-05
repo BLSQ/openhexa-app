@@ -12,7 +12,7 @@ from hexa.core.test import TestCase
 from hexa.core.test.utils import parse_sse_stream
 from hexa.databases.tests.helpers import seed_demo_table
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 from ._helpers import make_built_model
 
@@ -36,7 +36,7 @@ class GenerateSqlAgentTestCase(TestCase):
         cls.user = User.objects.create_user(
             "generate-sql-test@example.com", "password", is_superuser=True
         )
-        cls.workspace = Workspace.objects.create_if_has_perm(
+        cls.workspace = create_workspace(
             cls.user, name="Generate SQL Test Workspace", description=""
         )
 

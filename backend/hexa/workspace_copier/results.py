@@ -54,6 +54,28 @@ class PipelinesResult:
 
 
 @dataclass
+class TemplatesResult:
+    """What a template copy run did, for the summary.
+
+    Template copy is a server-wide flow (not a per-workspace
+    :class:`CopyResult` resource), so it carries its own aggregate and is
+    rendered by :func:`format_templates_summary`.
+    """
+
+    created: list[str] = field(default_factory=list)
+    """Names of templates newly created on target (didn't exist before)."""
+
+    versions_added: list[tuple[str, list[int]]] = field(default_factory=list)
+    """(template_name, [versionNumber, ...]) for versions added this run."""
+
+    skipped_unchanged: list[str] = field(default_factory=list)
+    """Names of templates that were already fully present on target."""
+
+    warnings: list[str] = field(default_factory=list)
+    """Human-readable warnings to print in the summary."""
+
+
+@dataclass
 class CopyResult:
     """Aggregate of a single workspace copy run.
 
@@ -126,6 +148,33 @@ def format_summary(result: CopyResult) -> str:
         if pipes.warnings:
             lines.append("Pipeline warnings:")
             lines.extend(f"  - {w}" for w in pipes.warnings)
+
+    if result.warnings:
+        lines.append("Warnings:")
+        lines.extend(f"  - {w}" for w in result.warnings)
+
+    return "\n".join(lines)
+
+
+def format_templates_summary(result: TemplatesResult) -> str:
+    """Render a human-readable summary of a template copy run."""
+    lines: list[str] = ["=== Template copy summary ==="]
+    lines.append(f"Templates created on target: {len(result.created)}")
+    lines.extend(f"  * {name}" for name in result.created)
+
+    if result.versions_added:
+        total = sum(len(nums) for _, nums in result.versions_added)
+        lines.append(f"Template versions added: {total}")
+        for name, nums in result.versions_added:
+            nums_str = ", ".join(f"v{n}" for n in nums)
+            lines.append(f"  * {name}: {nums_str}")
+
+    if result.skipped_unchanged:
+        lines.append(
+            f"Templates already up to date (skipped): "
+            f"{len(result.skipped_unchanged)}"
+        )
+        lines.extend(f"  * {name}" for name in result.skipped_unchanged)
 
     if result.warnings:
         lines.append("Warnings:")

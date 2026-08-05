@@ -3,7 +3,7 @@ from unittest.mock import patch
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import TestCase
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class AgentTestCase(TestCase):
@@ -13,8 +13,10 @@ class AgentTestCase(TestCase):
             "agent-test@example.com", "password", is_superuser=True
         )
         with patch("hexa.workspaces.models.create_database"):
-            cls.workspace = Workspace.objects.create_if_has_perm(
-                cls.user, name="Test Workspace", description=""
+            cls.workspace = create_workspace(
+                cls.user,
+                name="Test Workspace",
+                description="",
             )
 
     @staticmethod

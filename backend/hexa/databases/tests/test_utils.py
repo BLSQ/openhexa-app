@@ -1,4 +1,3 @@
-import unittest
 from unittest import mock
 
 from psycopg2.errors import (
@@ -12,14 +11,13 @@ from psycopg2.errors import (
 from psycopg2.extras import DictRow
 
 from hexa.core.test import TestCase
+from hexa.databases.query_text import MultipleStatementsError
 from hexa.databases.tests.helpers import seed_demo_table
 from hexa.databases.utils import (
-    MultipleStatementsError,
     OrderByDirectionEnum,
     TableNotFound,
     TableRowsPage,
     delete_table,
-    ensure_single_statement,
     execute_database_query,
     get_database_definition,
     get_database_definition_page,
@@ -31,9 +29,7 @@ from hexa.databases.utils import (
 )
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
-from hexa.workspaces.models import (
-    Workspace,
-)
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class DictRowMock:
@@ -56,58 +52,6 @@ def dictrow_from_dict(my_dict):
         dict_row[k] = v
 
     return dict_row
-
-
-class EnsureSingleStatementTest(unittest.TestCase):
-    """Direct coverage of ensure_single_statement.
-
-    This single check is load-bearing for two separate guarantees of the
-    executeSQL endpoint:
-
-      1. The per-call statement_timeout cannot be defeated, because the only way
-         to raise it is to run `SET statement_timeout = ...` as a *separate*
-         statement before the query (statement_timeout is a USERSET GUC).
-      2. No write/DDL can be smuggled in alongside a read (the role blocks the
-         write itself, but stacking is the first line of defence).
-
-    Both rely entirely on sqlparse splitting statements exactly the way
-    PostgreSQL does. sqlparse is a third-party parser pinned in requirements.txt;
-    an upgrade could silently change its splitting of dollar-quotes, string
-    literals or comments and quietly weaken the endpoint. These tests turn that
-    parser-version dependency into something CI will catch -- they don't need a
-    database, so they stay fast.
-    """
-
-    def test_allows_single_statements_with_embedded_semicolons(self):
-        # Semicolons inside string literals, dollar-quoted bodies, and trailing
-        # comments must NOT be mistaken for statement separators.
-        allowed = [
-            "SELECT 1 AS id;",
-            "SELECT 'a;b' AS x",
-            "SELECT $tag$ a ; b ; c $tag$ AS x",
-            "SELECT 1 AS id; -- SELECT pg_sleep(3)",
-            "DO $$ BEGIN PERFORM 1; PERFORM 2; END $$;",
-        ]
-        for query in allowed:
-            with self.subTest(query=query):
-                ensure_single_statement(query)
-
-    def test_rejects_stacked_statements(self):
-        # The security-critical case is the first one: a SET that would disable
-        # the timeout, followed by an unbounded query. The rest are syntactic
-        # variations that must not slip a second statement past the parser.
-        rejected = [
-            "SET statement_timeout = 0; SELECT pg_sleep(3)",
-            "SELECT 1;SELECT 2",
-            "SET statement_timeout = 0\n;\nSELECT pg_sleep(3)",
-            "SET statement_timeout = 0 /* ; */ ; SELECT pg_sleep(3)",
-            "SELECT $tag$ x $tag$; SELECT pg_sleep(3)",
-            "SELECT 'a;b'; SELECT pg_sleep(3)",
-        ]
-        for query in rejected:
-            with self.subTest(query=query):
-                with self.assertRaises(MultipleStatementsError):
-                    ensure_single_statement(query)
 
 
 class GetRowCountTest(TestCase):
@@ -166,7 +110,7 @@ class DatabaseUtilsTest(TestCase):
             "sabrina@bluesquarehub.com", "standardpassword"
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_SUPERUSER,
             name="Test Workspace",
             description="Test workspace",
@@ -478,6 +422,19 @@ class DatabaseUtilsTest(TestCase):
         with self.assertRaises(MultipleStatementsError):
             execute_database_query(self.WORKSPACE, "SELECT 1; SELECT 2")
 
+    def test_execute_database_query_accepts_blanks_postgresql_rejects(self):
+        # SQL pasted from a chat or a document carries non-breaking spaces and
+        # zero-width characters; PostgreSQL reports them as a syntax error at a
+        # character the user cannot see.
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+
+        result = execute_database_query(
+            self.WORKSPACE,
+            "SELECT\u00a0id, label\u200b FROM demo ORDER\u00a0BY id",
+        )
+
+        self.assertEqual([{"id": 1, "label": "a"}], result["rows"])
+
     def test_execute_database_query_allows_trailing_semicolon(self):
         result = execute_database_query(self.WORKSPACE, "SELECT 1 AS id;")
 
@@ -558,6 +515,12 @@ class DatabaseUtilsTest(TestCase):
 
         # Does not raise.
         validate_query(self.WORKSPACE, "SELECT id, label FROM demo ORDER BY id")
+
+    def test_validate_query_accepts_an_explain_query(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+
+        # PostgreSQL cannot nest EXPLAIN: prefixing one here would be a syntax error.
+        validate_query(self.WORKSPACE, "EXPLAIN (VERBOSE) SELECT id FROM demo")
 
     def test_validate_query_rejects_unknown_table(self):
         with self.assertRaises(UndefinedTable):

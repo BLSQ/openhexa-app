@@ -7,10 +7,10 @@ from hexa.user_management.models import (
     User,
 )
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class DatabasesOrganizationPermissionsTest(TestCase):
@@ -19,7 +19,6 @@ class DatabasesOrganizationPermissionsTest(TestCase):
         cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
             short_name="test-org-databases",
-            organization_type="CORPORATE",
         )
 
         cls.USER_ORG_OWNER = User.objects.create_user(
@@ -60,7 +59,7 @@ class DatabasesOrganizationPermissionsTest(TestCase):
             role=OrganizationMembershipRole.MEMBER,
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_WORKSPACE_ADMIN,
             name="Test Workspace",
             description="Test workspace for database permissions",
@@ -133,39 +132,3 @@ class DatabasesOrganizationPermissionsTest(TestCase):
         """Users without workspace membership or org admin/owner rights cannot run queries"""
         self.assertFalse(run_query(self.USER_ORG_MEMBER, self.WORKSPACE))
         self.assertFalse(run_query(self.USER_NON_ORG_MEMBER, self.WORKSPACE))
-
-    def test_permissions_with_null_organization(self):
-        """Test permissions when workspace has no organization"""
-        workspace_no_org = Workspace.objects.create(
-            name="No Org Workspace",
-            description="Workspace without organization",
-        )
-        WorkspaceMembership.objects.create(
-            workspace=workspace_no_org,
-            user=self.USER_WORKSPACE_ADMIN,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
-        WorkspaceMembership.objects.create(
-            workspace=workspace_no_org,
-            user=self.USER_WORKSPACE_EDITOR,
-            role=WorkspaceMembershipRole.EDITOR,
-        )
-
-        # Organization admin/owner should not have permissions for workspace without organization
-        self.assertFalse(
-            view_database_credentials(self.USER_ORG_OWNER, workspace_no_org)
-        )
-        self.assertFalse(
-            view_database_credentials(self.USER_ORG_ADMIN, workspace_no_org)
-        )
-
-        # Only workspace members with appropriate roles should have permissions
-        self.assertTrue(
-            view_database_credentials(self.USER_WORKSPACE_ADMIN, workspace_no_org)
-        )
-        self.assertTrue(
-            view_database_credentials(self.USER_WORKSPACE_EDITOR, workspace_no_org)
-        )
-        self.assertFalse(
-            view_database_credentials(self.USER_WORKSPACE_VIEWER, workspace_no_org)
-        )

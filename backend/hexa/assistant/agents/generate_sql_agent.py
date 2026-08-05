@@ -9,8 +9,8 @@ from pydantic_ai.output import TextOutput
 
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.instructions import InstructionSet
+from hexa.databases.query_text import MultipleStatementsError
 from hexa.databases.utils import (
-    MultipleStatementsError,
     get_full_database_definition,
     validate_query,
 )

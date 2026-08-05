@@ -17,6 +17,7 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class ViewsTest(TestCase):
@@ -36,7 +37,7 @@ class ViewsTest(TestCase):
             "standardpassword",
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_JULIA,
             name="Senegal Workspace",
             description="This is a workspace for Senegal",

@@ -20,6 +20,20 @@ const mockWorkspace: Sidebar_WorkspaceFragment = {
     update: true,
     launchNotebookServer: true,
   },
+  organization: {
+    __typename: "Organization",
+    id: "11111111-1111-1111-1111-111111111111",
+    name: "Test Organization",
+    shortName: null,
+    logo: null,
+    permissions: {
+      __typename: "OrganizationPermissions",
+      createWorkspace: {
+        __typename: "CreateWorkspacePermission",
+        isAllowed: true,
+      },
+    },
+  },
   __typename: "Workspace",
 };
 
