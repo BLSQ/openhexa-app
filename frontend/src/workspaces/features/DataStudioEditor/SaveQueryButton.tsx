@@ -4,6 +4,7 @@ import {
   GHOST_DIRTY,
   GHOST_SECONDARY,
 } from "workspaces/features/DataStudioEditor/toolbarStyles";
+import { hasSavePath } from "./savePath";
 
 // Heroicons has no floppy-disk/save glyph, so we inline the one from the Data
 // Studio design (stroke style matches the Heroicons 24-outline set used around
@@ -75,6 +76,11 @@ const SaveQueryButton = ({
 }: SaveQueryButtonProps) => {
   const { t } = useTranslation();
 
+  // Shared with the navigation guard, which must not warn about changes that no
+  // enabled control here could have saved.
+  const canSave =
+    hasSavePath({ isSaved, hasContent, canUpdate, canCreate }) && !saving;
+
   if (!isSaved) {
     if (!canCreate) {
       return null;
@@ -82,7 +88,7 @@ const SaveQueryButton = ({
     return (
       <button
         onClick={onSave}
-        disabled={!hasContent || saving}
+        disabled={!canSave}
         className={GHOST}
         title={t("Save query")}
       >
@@ -99,7 +105,7 @@ const SaveQueryButton = ({
     return (
       <button
         onClick={onSaveAsNew}
-        disabled={!hasContent || saving}
+        disabled={!canSave}
         className={GHOST}
         title={t("Save as a new query")}
       >
@@ -109,12 +115,12 @@ const SaveQueryButton = ({
     );
   }
 
-  const hasUnsavedEdits = isDirty && hasContent && !saving;
+  const hasUnsavedEdits = isDirty && canSave;
   return (
     <div className="flex items-center gap-1">
       <button
         onClick={onSave}
-        disabled={!isDirty || !hasContent || saving}
+        disabled={!hasUnsavedEdits}
         className={hasUnsavedEdits ? GHOST_DIRTY : GHOST}
         title={
           !hasContent
@@ -135,7 +141,7 @@ const SaveQueryButton = ({
       </button>
       <button
         onClick={onSaveAsNew}
-        disabled={!canCreate || !hasContent || saving}
+        disabled={!canCreate || !canSave}
         className={GHOST_SECONDARY}
         title={t("Save as a new query")}
       >

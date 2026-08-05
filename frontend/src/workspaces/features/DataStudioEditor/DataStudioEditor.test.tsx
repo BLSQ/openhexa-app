@@ -174,7 +174,7 @@ const successState = (overrides: Record<string, unknown> = {}) => ({
 
 const renderEditor = (
   props: Partial<ComponentProps<typeof DataStudioEditor>> = {},
-) => render(<DataStudioEditor workspaceSlug="ws-1" {...props} />);
+) => render(<DataStudioEditor workspaceSlug="ws-1" canCreate={false} {...props} />);
 
 beforeEach(() => {
   mockExecute.mockClear();

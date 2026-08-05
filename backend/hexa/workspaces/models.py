@@ -313,8 +313,10 @@ class Workspace(Base):
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("workspaces.delete_workspace", self):
             raise PermissionDenied
-        # TODO: clarify workspace deletion workflow - buckets are not deleted for now
-        # delete_database(self.db_name)
+        # TODO: clarify workspace deletion workflow - buckets and the database are not deleted for now
+        #  until we decide, just rotate passwords to prevent access
+        self.generate_new_database_password(principal=principal)
+        self.generate_new_database_ro_password(principal=principal)
         self.delete()
 
     def archive_if_has_perm(self, *, principal: User):
@@ -324,6 +326,8 @@ class Workspace(Base):
             raise PermissionDenied
         if not principal.has_perm("workspaces.archive_workspace", self):
             raise PermissionDenied
+        self.generate_new_database_password(principal=principal)
+        self.generate_new_database_ro_password(principal=principal)
         self.archived = True
         self.archived_at = timezone.now()
         self.save()

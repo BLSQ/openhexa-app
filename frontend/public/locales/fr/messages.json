@@ -1145,6 +1145,7 @@
   "You have reached your monthly usage limit for the assistant. Please contact your administrator.": "Vous avez atteint votre limite d'utilisation mensuelle pour l'assistant. Veuillez contacter votre administrateur.",
   "You have to select a notebook": "Vous devez sélectionner un cahier",
   "You have to select a workspace": "Vous devez sélectionner un workspace",
+  "You have unsaved changes to \"{{name}}\". If you leave this page, they will be lost.": "Vous avez des modifications non enregistrées sur \"{{name}}\". Si vous quittez cette page, elles seront perdues.",
   "You have unsaved changes. Leave anyway?": "Vous avez des modifications non enregistrées. Quitter quand même ?",
   "You lack permissions to publish a new template version.": "Vous manquez d'autorisations pour publier une nouvelle version de modèle.",
   "You must confirm publishing": "Vous devez confirmer la publication",

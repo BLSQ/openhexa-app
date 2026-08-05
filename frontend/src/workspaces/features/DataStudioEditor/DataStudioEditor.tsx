@@ -27,7 +27,7 @@ import { useSavedQueryEditor } from "./useSavedQueryEditor";
 type DataStudioEditorProps = {
   workspaceSlug: string;
   savedQuery?: SavedQuery_SavedQueryFragment | null;
-  canCreate?: boolean;
+  canCreate: boolean;
   aiEnabled?: boolean;
   aiBudgetLimitReached?: boolean;
   monthlyLimitExceeded?: boolean;
@@ -38,7 +38,7 @@ const MAX_ROWS_OPTIONS = [50, 100, 500, 1000, 10_000];
 const DataStudioEditor = ({
   workspaceSlug,
   savedQuery,
-  canCreate = false,
+  canCreate,
   aiEnabled = false,
   aiBudgetLimitReached = false,
   monthlyLimitExceeded = false,
@@ -61,6 +61,7 @@ const DataStudioEditor = ({
     workspaceSlug,
     content: query,
     initialSavedQuery: savedQuery,
+    canCreate,
   });
 
   // Stable so the memoised schema browser is not re-rendered by every keystroke
