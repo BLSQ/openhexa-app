@@ -324,6 +324,8 @@ class Workspace(Base):
             raise PermissionDenied
         if not principal.has_perm("workspaces.archive_workspace", self):
             raise PermissionDenied
+        self.generate_new_database_password(principal=principal)
+        self.generate_new_database_ro_password(principal=principal)
         self.archived = True
         self.archived_at = timezone.now()
         self.save()
