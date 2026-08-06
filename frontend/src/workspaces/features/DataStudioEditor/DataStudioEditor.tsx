@@ -77,7 +77,6 @@ const DataStudioEditor = ({
   // Compact form for the in-button pill: the return glyph reads cleanly next to
   // ⌘ on macOS; other platforms keep the spelled-out modifier.
   const runShortcutBadge = isMac ? "⌘↵" : "Ctrl+Enter";
-  const saveShortcutLabel = isMac ? "⌘S" : "Ctrl+S";
 
   const { run, retry, result, loading, error, canExport } =
     useDataStudioQuery(workspaceSlug);
@@ -133,10 +132,7 @@ const DataStudioEditor = ({
               </button>
             )}
             <div className="ml-auto flex items-center gap-2">
-              <SaveQueryButton
-                plan={editor.savePlan}
-                shortcutLabel={saveShortcutLabel}
-              />
+              <SaveQueryButton plan={editor.savePlan} />
               <label className="flex items-center gap-1.5 text-xs text-gray-500">
                 {t("Max rows")}
                 <select

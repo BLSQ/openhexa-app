@@ -1,4 +1,5 @@
 import { useTranslation } from "next-i18next";
+import useIsMac from "core/hooks/useIsMac";
 import { SavePlan } from "./useSavedQueryEditor";
 
 // Heroicons has no floppy-disk/save glyph, so we inline the one from the Data
@@ -46,8 +47,6 @@ const FloppyDiskPlusIcon = ({ className }: { className?: string }) => (
 type SaveQueryButtonProps = {
   /** The resolved save policy from `useSavedQueryEditor`. */
   plan: SavePlan;
-  /** Platform-specific label of the save shortcut, e.g. "⌘S", surfaced in the tooltips. */
-  shortcutLabel: string;
 };
 
 const GHOST =
@@ -70,15 +69,17 @@ const GHOST_DIRTY =
 // - "update" → primary "Save" + a muted "Save as new" sibling; metadata edits
 //   happen via the pencil next to the query name
 // - "fork"   → single "Save as new query" (the only way to persist)
-// `shortcutLabel` annotates only the control ⌘S actually triggers, so the muted
-// "Save as new" sibling stays hint-free while the fork variant carries it.
-const SaveQueryButton = ({ plan, shortcutLabel }: SaveQueryButtonProps) => {
+// The shortcut hint annotates only the control ⌘S actually triggers, so the
+// muted "Save as new" sibling stays hint-free while the fork variant carries it.
+const SaveQueryButton = ({ plan }: SaveQueryButtonProps) => {
   const { t } = useTranslation();
+  const isMac = useIsMac();
 
   // Appended here rather than interpolated into the translated strings: the
   // shortcut is not language, and this way the tooltips keep reusing their
   // existing labels instead of needing a shortcut-bearing variant of each.
-  const withShortcut = (label: string) => `${label} (${shortcutLabel})`;
+  const withShortcut = (label: string) =>
+    `${label} (${isMac ? "⌘S" : "Ctrl+S"})`;
 
   if (!plan.variant) {
     return null;
