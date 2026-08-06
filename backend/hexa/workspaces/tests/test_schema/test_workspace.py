@@ -2,7 +2,7 @@ import base64
 import html
 import uuid
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -1240,6 +1240,7 @@ class WorkspaceTest(GraphQLTestCase):
                 "type": "identity",
                 "workspace_id": str(self.WORKSPACE.id),
                 "user_id": str(self.USER_JOE.id),
+                "issued_at": ANY,
             },
         )
 

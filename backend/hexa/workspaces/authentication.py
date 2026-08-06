@@ -1,7 +1,9 @@
 import abc
 import binascii
+import time
 from logging import getLogger
 
+from django.conf import settings
 from django.core.signing import BadSignature, Signer
 
 from hexa.user_management.models import User
@@ -86,10 +88,20 @@ class IdentityToken(WorkspaceToken):
             "type": self.TYPE,
             "workspace_id": str(self.workspace.id),
             "user_id": str(self.user.id),
+            "issued_at": int(time.time()),
         }
+
+    @staticmethod
+    def is_expired(issued_at) -> bool:
+        if not isinstance(issued_at, int):
+            return True
+        age = time.time() - issued_at
+        return age > settings.WORKSPACE_IDENTITY_TOKEN_EXPIRE_SECONDS
 
     @classmethod
     def from_payload(cls, payload: dict) -> "IdentityToken | None":
+        if cls.is_expired(payload.get("issued_at")):
+            return None
         try:
             user = User.objects.get(id=payload["user_id"])
         except (KeyError, User.DoesNotExist):

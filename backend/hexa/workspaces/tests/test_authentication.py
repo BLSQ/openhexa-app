@@ -1,5 +1,7 @@
+import time
 from unittest.mock import patch
 
+from django.conf import settings
 from django.core.signing import Signer
 from django.test import TestCase
 
@@ -22,6 +24,8 @@ from hexa.workspaces.models import (
 
 
 class WorkspaceTokenAuthenticationTest(TestCase):
+    NOW = 1700000000
+
     @classmethod
     def setUpTestData(cls):
         cls.ORG = Organization.objects.create(name="Auth Org")
@@ -73,18 +77,44 @@ class WorkspaceTokenAuthenticationTest(TestCase):
         token = WorkspaceToken.authenticate(signed)
         self.assertEqual((token.user, token.workspace), (self.MEMBER, self.WORKSPACE))
 
-    def test_identity_token_round_trip(self):
-        signed = WorkspaceToken.issue(
-            user=self.ORG_ADMIN, workspace=self.WORKSPACE, membership=None
-        ).sign()
+    def test_identity_token_payload(self):
+        with patch("time.time", return_value=self.NOW):
+            payload = IdentityToken(self.ORG_ADMIN, self.WORKSPACE).payload()
         self.assertEqual(
-            Signer().unsign_object(signed),
             {
                 "type": "identity",
                 "workspace_id": str(self.WORKSPACE.id),
                 "user_id": str(self.ORG_ADMIN.id),
+                "issued_at": self.NOW,
             },
+            payload,
         )
+
+    def test_identity_token_round_trip(self):
+        signed = WorkspaceToken.issue(
+            user=self.ORG_ADMIN, workspace=self.WORKSPACE, membership=None
+        ).sign()
+        token = WorkspaceToken.authenticate(signed)
+        self.assertEqual(
+            (token.user, token.workspace), (self.ORG_ADMIN, self.WORKSPACE)
+        )
+
+    def sign_identity_payload(self, user, **overrides):
+        payload = IdentityToken(user, self.WORKSPACE).payload()
+        return Signer().sign_object({**payload, **overrides})
+
+    def test_identity_token_rejected_when_expired(self):
+        expired_at = (
+            int(time.time()) - settings.WORKSPACE_IDENTITY_TOKEN_EXPIRE_SECONDS - 1
+        )
+        signed = self.sign_identity_payload(self.ORG_ADMIN, issued_at=expired_at)
+        self.assertIsNone(WorkspaceToken.authenticate(signed))
+
+    def test_identity_token_accepted_just_before_expiry(self):
+        issued_at = (
+            int(time.time()) - settings.WORKSPACE_IDENTITY_TOKEN_EXPIRE_SECONDS + 60
+        )
+        signed = self.sign_identity_payload(self.ORG_ADMIN, issued_at=issued_at)
         token = WorkspaceToken.authenticate(signed)
         self.assertEqual(
             (token.user, token.workspace), (self.ORG_ADMIN, self.WORKSPACE)
