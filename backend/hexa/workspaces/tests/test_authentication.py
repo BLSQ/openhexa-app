@@ -129,6 +129,22 @@ class WorkspaceTokenAuthenticationTest(TestCase):
         ).delete()
         self.assertIsNone(WorkspaceToken.authenticate(signed))
 
+    def test_membership_token_rejected_for_deactivated_user(self):
+        signed = WorkspaceToken.issue(
+            user=self.MEMBER, workspace=self.WORKSPACE, membership=self.MEMBERSHIP
+        ).sign()
+        self.MEMBER.is_active = False
+        self.MEMBER.save()
+        self.assertIsNone(WorkspaceToken.authenticate(signed))
+
+    def test_identity_token_rejected_for_deactivated_user(self):
+        signed = WorkspaceToken.issue(
+            user=self.ORG_ADMIN, workspace=self.WORKSPACE, membership=None
+        ).sign()
+        self.ORG_ADMIN.is_active = False
+        self.ORG_ADMIN.save()
+        self.assertIsNone(WorkspaceToken.authenticate(signed))
+
     def test_identity_token_rejected_for_deleted_user(self):
         signed = WorkspaceToken.issue(
             user=self.OUTSIDER, workspace=self.WORKSPACE, membership=None

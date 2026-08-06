@@ -57,10 +57,12 @@ class WorkspaceToken(abc.ABC):
             return None
 
         if isinstance(payload, str):
-            return MembershipToken.from_payload(payload)
-        if isinstance(payload, dict) and payload.get("type") == IdentityToken.TYPE:
-            return IdentityToken.from_payload(payload)
-        return None
+            token = MembershipToken.from_payload(payload)
+        elif isinstance(payload, dict) and payload.get("type") == IdentityToken.TYPE:
+            token = IdentityToken.from_payload(payload)
+        else:
+            return None
+        return token if token and token.user.is_active else None
 
 
 class MembershipToken(WorkspaceToken):
