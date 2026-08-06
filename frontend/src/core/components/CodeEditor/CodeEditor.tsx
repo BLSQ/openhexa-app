@@ -2,7 +2,6 @@ import { syntaxHighlighting } from "@codemirror/language";
 import { json } from "@codemirror/lang-json";
 import { python } from "@codemirror/lang-python";
 import { PostgreSQL, sql } from "@codemirror/lang-sql";
-import { openSearchPanel } from "@codemirror/search";
 import { xml } from "@codemirror/lang-xml";
 import { yaml } from "@codemirror/lang-yaml";
 import CodeMirror, {
@@ -139,26 +138,6 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
       );
     }, [shortcutKeys]);
 
-    // A caller-supplied "Mod-f" takes the key that `basicSetup` (on by default)
-    // gives to CodeMirror's own find-and-replace, which would otherwise leave
-    // the editor with no way to search at all. Keep the panel reachable on the
-    // alternate binding rather than silently dropping it.
-    const searchExtension = useMemo(
-      () =>
-        shortcutKeys.split("\n").includes("Mod-f")
-          ? Prec.highest(
-              keymap.of([
-                {
-                  key: "Mod-Shift-f",
-                  preventDefault: true,
-                  run: openSearchPanel,
-                },
-              ]),
-            )
-          : [],
-      [shortcutKeys],
-    );
-
     const extensions = useMemo(() => {
       const langExtension = (() => {
         switch (lang) {
@@ -186,8 +165,8 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
             embeddedEditorTheme,
           ]
         : langExtension;
-      return [...base, searchExtension, shortcutExtension];
-    }, [lang, embedded, searchExtension, shortcutExtension]);
+      return [...base, shortcutExtension];
+    }, [lang, embedded, shortcutExtension]);
 
     return (
       <div

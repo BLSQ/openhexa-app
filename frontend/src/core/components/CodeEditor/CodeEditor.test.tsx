@@ -88,27 +88,6 @@ describe("CodeEditor shortcuts", () => {
     expect(run).not.toHaveBeenCalled();
   });
 
-  it("fires and consumes the shortcut on Ctrl/Cmd+F", async () => {
-    const run = jest.fn();
-    const { container } = render(
-      <CodeEditor
-        lang="sql"
-        value="SELECT 1"
-        shortcuts={[{ key: "Mod-f", run }]}
-      />,
-    );
-
-    const content = await getContentDOM(container);
-    const event = dispatchKeyDown(content, { key: "f", ctrlKey: true });
-
-    expect(run).toHaveBeenCalledTimes(1);
-    // Consuming the event is what keeps the browser's find bar closed.
-    expect(event.defaultPrevented).toBe(true);
-    // …and it must beat basicSetup's own Mod-f binding, not merely run beside
-    // it: the search panel stays shut.
-    expect(container.querySelector(".cm-search")).toBeNull();
-  });
-
   it("fires the shortcut on Shift+Alt+F", async () => {
     const run = jest.fn();
     const { container } = render(
@@ -129,34 +108,50 @@ describe("CodeEditor shortcuts", () => {
 
     expect(run).toHaveBeenCalledTimes(1);
   });
-});
 
-describe("CodeEditor search panel", () => {
-  it("moves search to Mod-Shift-f when a shortcut claims Mod-f", async () => {
+  // On macOS, Alt types a character (⇧⌥F is "Ï"), so CodeMirror ignores
+  // `event.key` and skips the keyCode fallback that yields "Shift-Alt-f"
+  // elsewhere — it resolves the keystroke to "Shift-Alt-F" instead. A caller
+  // that binds only the lowercase spec silently does nothing on a Mac.
+  // Dropping keyCode reproduces that lookup: it is what disables the same
+  // fallback branch under jsdom, which reports a non-Mac platform.
+  it("fires the shortcut on Shift+Alt+F as macOS resolves it", async () => {
+    const run = jest.fn();
     const { container } = render(
       <CodeEditor
         lang="sql"
         value="SELECT 1"
-        shortcuts={[{ key: "Mod-f", run: jest.fn() }]}
+        shortcuts={[{ key: "Shift-Alt-F", run }]}
       />,
     );
 
     const content = await getContentDOM(container);
-    // A real Ctrl+Shift+F reports the shifted character and a keyCode; without
-    // both, CodeMirror resolves the event to "Ctrl-f" and never reaches the
-    // Shift binding.
-    dispatchKeyDown(content, {
-      key: "F",
-      ctrlKey: true,
-      shiftKey: true,
-      keyCode: 70,
-    });
+    dispatchKeyDown(content, { key: "F", altKey: true, shiftKey: true });
+
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("CodeEditor search panel", () => {
+  it("keeps search on its native Mod-f", async () => {
+    const { container } = render(<CodeEditor lang="sql" value="SELECT 1" />);
+
+    const content = await getContentDOM(container);
+    dispatchKeyDown(content, { key: "f", ctrlKey: true });
 
     expect(container.querySelector(".cm-search")).not.toBeNull();
   });
 
-  it("leaves search on its native Mod-f when nothing claims the key", async () => {
-    const { container } = render(<CodeEditor lang="sql" value="SELECT 1" />);
+  it("keeps search on Mod-f alongside the editor's own shortcuts", async () => {
+    // Find is the most-used binding in the editor, so no caller-supplied
+    // shortcut may sit on top of it.
+    const { container } = render(
+      <CodeEditor
+        lang="sql"
+        value="SELECT 1"
+        shortcuts={[{ key: "Shift-Alt-f", run: jest.fn() }]}
+      />,
+    );
 
     const content = await getContentDOM(container);
     dispatchKeyDown(content, { key: "f", ctrlKey: true });
@@ -187,6 +182,10 @@ describe("CodeEditor handle", () => {
     const content = await getContentDOM(container);
 
     act(() => ref.current?.replaceAll("SELECT\n  1"));
+    // Guard against a no-op replaceAll, which would make the undo assertion
+    // below pass without proving anything.
+    expect(content.textContent).not.toEqual("select 1");
+
     // Formatting must not be a one-way door: the pre-format text is still one
     // undo away.
     dispatchKeyDown(content, { key: "z", ctrlKey: true });
