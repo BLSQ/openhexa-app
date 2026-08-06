@@ -29,6 +29,7 @@ from hexa.databases.api import (
 )
 from hexa.datasets.models import Dataset
 from hexa.files import storage
+from hexa.tags.models import InvalidTag, Tag
 from hexa.user_management.models import (
     Organization,
     OrganizationInvitation,
@@ -200,6 +201,11 @@ class WorkspaceQuerySet(BaseQuerySet):
             )
         return qs if include_archived else qs.filter(archived=False)
 
+    def filter_by_tags(self, tags) -> models.QuerySet:
+        if not tags:
+            return self.none()
+        return self.filter(tags__in=tags).distinct()
+
     def filter_for_workspace_slugs(
         self,
         user: AnonymousUser | UserInterface,
@@ -261,6 +267,7 @@ class Workspace(Base):
         blank=True,
         help_text="Custom configuration properties for the workspace as key-value pairs",
     )
+    tags = models.ManyToManyField("tags.Tag", blank=True, related_name="workspaces")
 
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
@@ -309,6 +316,29 @@ class Workspace(Base):
                 setattr(self, key, kwargs[key])
 
         return self.save()
+
+    def set_tags_if_has_perm(self, *, principal: User, tag_names: typing.Sequence[str]):
+        """Replace the workspace tags with the given ones.
+
+        Free-form input is slugified here rather than in Tag.validate_and_get_or_create:
+        pipelines and templates rely on that shared helper rejecting malformed names.
+        """
+        if not principal.has_perm("workspaces.manage_tags", self):
+            raise PermissionDenied
+
+        slugs = []
+        for name in tag_names:
+            slug = slugify(name)
+            if not slug:
+                raise InvalidTag(f"'{name}' cannot be converted to a valid tag")
+            if slug not in slugs:
+                slugs.append(slug)
+
+        tags, has_error = Tag.validate_and_get_or_create(slugs)
+        if has_error:
+            raise InvalidTag(f"Invalid tags: {', '.join(slugs)}")
+
+        self.tags.set(tags)
 
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("workspaces.delete_workspace", self):
