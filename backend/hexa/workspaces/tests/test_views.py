@@ -12,10 +12,16 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
     User,
 )
+from hexa.workspaces.authentication import (
+    IdentityToken,
+    MembershipToken,
+    WorkspaceToken,
+)
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
+    build_notebooks_server_hash,
 )
 from hexa.workspaces.tests.testutils import create_workspace
 
@@ -200,8 +206,7 @@ class ViewsTest(TestCase):
             str(run.id),
         )
 
-    def test_org_admin_auto_creates_membership(self):
-        """Test that org admin without membership gets auto-created membership when launching notebooks"""
+    def create_org_admin_workspace(self):
         org = Organization.objects.create(name="Test Org")
         org_admin = User.objects.create_user("admin@org.com", "password")
         OrganizationMembership.objects.create(
@@ -209,19 +214,17 @@ class ViewsTest(TestCase):
             user=org_admin,
             role=OrganizationMembershipRole.ADMIN,
         )
-
         workspace = Workspace.objects.create_if_has_perm(
             self.USER_JULIA,
             name="Test Workspace",
             description="Test workspace for org admin",
             organization=org,
         )
+        return org_admin, workspace
 
-        self.assertFalse(
-            WorkspaceMembership.objects.filter(
-                workspace=workspace, user=org_admin
-            ).exists()
-        )
+    def test_org_admin_credentials_without_membership(self):
+        """An org admin gets an identity token instead of being made a member"""
+        org_admin, workspace = self.create_org_admin_workspace()
 
         self.client.force_login(org_admin)
         response = self.client.post(
@@ -230,15 +233,49 @@ class ViewsTest(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-
-        membership = WorkspaceMembership.objects.get(
-            workspace=workspace, user=org_admin
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                workspace=workspace, user=org_admin
+            ).exists()
         )
-        self.assertEqual(membership.role, WorkspaceMembershipRole.ADMIN)
 
         response_data = response.json()
-        self.assertIn("env", response_data)
-        self.assertIn("notebooks_server_hash", response_data)
         self.assertEqual(
-            response_data["notebooks_server_hash"], membership.notebooks_server_hash
+            response_data["notebooks_server_hash"],
+            build_notebooks_server_hash(workspace.id, org_admin.id),
+        )
+        token = WorkspaceToken.authenticate(response_data["env"]["HEXA_TOKEN"])
+        self.assertIsInstance(token, IdentityToken)
+        self.assertEqual((token.user, token.workspace), (org_admin, workspace))
+
+    def test_org_admin_server_hash_matches_membership(self):
+        """The server hash of an org admin is the one their membership would carry"""
+        org_admin, workspace = self.create_org_admin_workspace()
+
+        self.client.force_login(org_admin)
+        response = self.client.post(
+            reverse("workspaces:credentials"),
+            data={"workspace": workspace.slug},
+        )
+
+        membership = WorkspaceMembership.objects.create(
+            workspace=workspace, user=org_admin, role=WorkspaceMembershipRole.ADMIN
+        )
+        self.assertEqual(
+            response.json()["notebooks_server_hash"],
+            membership.notebooks_server_hash,
+        )
+
+    def test_member_credentials_reuse_membership_token(self):
+        self.client.force_login(self.USER_JULIA)
+        response = self.client.post(
+            reverse("workspaces:credentials"),
+            data={"workspace": self.WORKSPACE.slug},
+        )
+
+        token = WorkspaceToken.authenticate(response.json()["env"]["HEXA_TOKEN"])
+        self.assertIsInstance(token, MembershipToken)
+        self.assertEqual(
+            token.membership.access_token,
+            self.WORKSPACE_MEMBERSHIP_JULIA.access_token,
         )
