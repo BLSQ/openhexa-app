@@ -1,4 +1,5 @@
 import { ApolloError } from "@apollo/client";
+import clsx from "clsx";
 import Button from "core/components/Button";
 import Spinner from "core/components/Spinner";
 import {
@@ -7,8 +8,10 @@ import {
 } from "core/helpers/errors";
 import { ExecuteSqlError } from "graphql/types";
 import { useTranslation } from "next-i18next";
-import { memo } from "react";
+import { memo, useState } from "react";
+import { detectChart } from "./chart";
 import { ExecuteWorkspaceSqlQuery } from "./DataStudioEditor.generated";
+import ResultsChart from "./ResultsChart";
 import ResultsTable from "./ResultsTable";
 
 type ExecuteSqlResult = NonNullable<
@@ -38,6 +41,35 @@ const Block = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
+// A local tab strip rather than core/components/Tabs: the results panel fills a
+// flex column and the table has to keep its own scroll area, which the shared
+// component's panels do not size for, and its page-level chrome is heavier than
+// this dense toolbar.
+const TabButton = ({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) => (
+  <button
+    type="button"
+    role="tab"
+    aria-selected={active}
+    onClick={onClick}
+    className={clsx(
+      "border-b-2 px-1 py-1.5 text-xs font-medium transition-colors",
+      active
+        ? "border-blue-600 text-gray-900"
+        : "border-transparent text-gray-500 hover:text-gray-700",
+    )}
+  >
+    {children}
+  </button>
+);
+
 const DataStudioResults = ({
   loading,
   result,
@@ -45,6 +77,7 @@ const DataStudioResults = ({
   onRetry,
 }: DataStudioResultsProps) => {
   const { t } = useTranslation();
+  const [tab, setTab] = useState<"chart" | "table">("chart");
 
   const errorLabels: Record<ExecuteSqlError, string> = {
     [ExecuteSqlError.PermissionDenied]: t(
@@ -149,6 +182,11 @@ const DataStudioResults = ({
   const displayedRows = isQueryPlan ? rows : rows.slice(0, MAX_DISPLAYED_ROWS);
   const hasHiddenRows = rows.length > displayedRows.length;
 
+  // Column names decide the presentation: when they follow a chart convention
+  // the query is a little dashboard rather than a result set.
+  const chart = isQueryPlan ? null : detectChart(columns, rows);
+  const showChart = chart !== null && tab === "chart";
+
   return (
     <Block>
       {result.truncated && (
@@ -158,15 +196,36 @@ const DataStudioResults = ({
           })}
         </div>
       )}
-      <ResultsTable
-        columns={columns}
-        rows={displayedRows}
-        columnClassName={
-          isQueryPlan
-            ? { [QUERY_PLAN_COLUMN]: "whitespace-pre font-mono" }
-            : undefined
-        }
-      />
+      {chart && (
+        <div
+          role="tablist"
+          className="flex shrink-0 items-center gap-4 border-b border-gray-200 px-3"
+        >
+          <TabButton active={tab === "chart"} onClick={() => setTab("chart")}>
+            {t("Chart")}
+          </TabButton>
+          <TabButton active={tab === "table"} onClick={() => setTab("table")}>
+            {t("Table")}
+          </TabButton>
+        </div>
+      )}
+      {showChart ? (
+        <div className="min-h-0 flex-1">
+          {/* The chart reads every returned row: the 500-row cap below exists to
+              keep the DOM small, which an aggregated chart does not suffer from. */}
+          <ResultsChart kind={chart} rows={rows} />
+        </div>
+      ) : (
+        <ResultsTable
+          columns={columns}
+          rows={displayedRows}
+          columnClassName={
+            isQueryPlan
+              ? { [QUERY_PLAN_COLUMN]: "whitespace-pre font-mono" }
+              : undefined
+          }
+        />
+      )}
       <div className="flex shrink-0 items-center gap-2 border-t border-gray-200 bg-gray-50/60 px-3 py-1.5 text-xs text-gray-500">
         <span className="inline-flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -180,7 +239,7 @@ const DataStudioResults = ({
           {typeof result.durationMs === "number" &&
             ` · ${result.durationMs.toLocaleString()} ms`}
         </span>
-        {hasHiddenRows && (
+        {!showChart && hasHiddenRows && (
           <span className="ml-auto text-gray-400">
             {t(
               "Showing the first {{count}} rows — export for the full result.",

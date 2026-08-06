@@ -218,6 +218,82 @@ describe("DataStudioResults", () => {
     expect(cell).toHaveClass("whitespace-pre", "font-mono");
   });
 
+  describe("widgets", () => {
+    const barResult = () =>
+      successResult({
+        columns: ["bar_label", "bar_quantity"],
+        rows: [
+          { bar_label: "Gasabo", bar_quantity: 120 },
+          { bar_label: "Kicukiro", bar_quantity: 80 },
+        ],
+      });
+
+    it("shows the chart first and the table on a second tab when the columns match a widget", async () => {
+      render(<DataStudioResults loading={false} result={barResult()} />);
+
+      expect(screen.getByRole("tab", { name: "Chart" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      // The chart is showing, so the table is not rendered yet.
+      expect(screen.queryByRole("table")).not.toBeInTheDocument();
+      expect(screen.getByText("Gasabo")).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("tab", { name: "Table" }));
+      expect(screen.getByRole("table")).toBeInTheDocument();
+      expect(screen.getByText("bar_quantity")).toBeInTheDocument();
+    });
+
+    it("renders a plain table with no tabs when the columns do not match", () => {
+      render(<DataStudioResults loading={false} result={successResult()} />);
+      expect(screen.getByRole("table")).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Chart" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("falls back to the table when a widget column holds non-numeric values", () => {
+      render(
+        <DataStudioResults
+          loading={false}
+          result={successResult({
+            columns: ["bar_label", "bar_quantity"],
+            rows: [{ bar_label: "Gasabo", bar_quantity: "many" }],
+            rowCount: 1,
+          })}
+        />,
+      );
+      expect(screen.getByRole("table")).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Chart" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("charts every returned row rather than the 500-row table cap", () => {
+      const rows = Array.from({ length: 600 }, (_, i) => ({
+        line_x: `2026-${i}`,
+        line_y: i,
+      }));
+      render(
+        <DataStudioResults
+          loading={false}
+          result={successResult({
+            columns: ["line_x", "line_y"],
+            rows,
+            rowCount: 600,
+          })}
+        />,
+      );
+      // The last point's label is only reachable if all 600 rows were plotted.
+      expect(screen.getByText("2026-599")).toBeInTheDocument();
+      expect(
+        screen.queryByText(
+          "Showing the first {{count}} rows — export for the full result.",
+        ),
+      ).not.toBeInTheDocument();
+    });
+  });
+
   it("caps the displayed rows at 500 even when more are returned", () => {
     const rows = Array.from({ length: 600 }, (_, i) => ({
       id: i,

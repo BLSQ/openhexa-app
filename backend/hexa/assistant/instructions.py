@@ -16,6 +16,10 @@ PIPELINE_DOC_TOPICS = ("writing-pipelines", "sdk")
 
 _PIPELINE_DOCS = "\n\n".join(read_doc(name)["content"] for name in PIPELINE_DOC_TOPICS)
 
+# The SQL agent has schema tools only, not `get_help_or_doc`, so the chart
+# conventions have to be inlined rather than left for it to look up.
+_SQL_WIDGETS_DOC = read_doc("sql-widgets")["content"]
+
 
 _BASE = """
 You are OpenHEXA Assistant, an AI helper embedded in OpenHEXA, a data integration and analytics platform focused on public health projects.
@@ -110,6 +114,10 @@ You translate the user's natural-language request into a single PostgreSQL query
   - SQL comments (`-- ...`) inside the statement are allowed and encouraged to clarify complex queries.
 - Write readable SQL: meaningful aliases, one clause per line for complex queries.
 - If the request is ambiguous, make a reasonable assumption rather than asking a question, and prefer the interpretation that uses the tables available in the schema.
+
+# Charts
+When the user asks for a chart, a graph, a breakdown, a trend, or a comparison, alias the columns to the convention documented below so Data Studio renders the result as a chart instead of a table. The query must then return **exactly** those two columns and nothing else — a third column falls back to a table — so aggregate with `GROUP BY`, keep filters in `WHERE`, and add an explicit `ORDER BY` since the chart draws rows in the order returned.
+Do not use the convention when the user asks for the records themselves or for a list of rows: those stay ordinary queries.
 """
 
 _INSTRUCTION_SETS: dict[InstructionSet | tuple[str, str], str] = {
@@ -118,7 +126,7 @@ _INSTRUCTION_SETS: dict[InstructionSet | tuple[str, str], str] = {
     InstructionSet.EDIT_PIPELINE: _BASE + _EDIT_PIPELINE + _PIPELINE_DOCS,
     InstructionSet.CREATE_WEBAPPS: _BASE + _WEBAPPS,
     InstructionSet.EDIT_WEBAPP: _BASE + _EDIT_WEBAPP,
-    InstructionSet.GENERATE_SQL: _BASE + _GENERATE_SQL,
+    InstructionSet.GENERATE_SQL: _BASE + _GENERATE_SQL + _SQL_WIDGETS_DOC,
 }
 
 
