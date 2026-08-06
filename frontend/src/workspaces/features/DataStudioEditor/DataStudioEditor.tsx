@@ -11,6 +11,7 @@ import CodeEditor, {
 } from "core/components/CodeEditor/CodeEditor";
 import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import useIsMac from "core/hooks/useIsMac";
+import useSaveShortcut from "core/hooks/useSaveShortcut";
 import { useTranslation } from "next-i18next";
 import { useCallback, useRef, useState } from "react";
 import SaveQueryDialog from "workspaces/features/SavedQueries/SaveQueryDialog";
@@ -62,6 +63,8 @@ const DataStudioEditor = ({
     initialSavedQuery: savedQuery,
     canCreate,
   });
+
+  useSaveShortcut(editor.commit);
 
   // Stable so the memoised schema browser is not re-rendered by every keystroke
   // in the editor. Goes through the imperative handle, so it needs no deps.
@@ -129,16 +132,7 @@ const DataStudioEditor = ({
               </button>
             )}
             <div className="ml-auto flex items-center gap-2">
-              <SaveQueryButton
-                isSaved={Boolean(editor.savedQuery)}
-                isDirty={editor.isDirty}
-                hasContent={Boolean(query.trim())}
-                canUpdate={editor.canUpdate}
-                canCreate={canCreate}
-                saving={editor.saving}
-                onSave={editor.save}
-                onSaveAsNew={editor.saveAsNew}
-              />
+              <SaveQueryButton plan={editor.savePlan} />
               <label className="flex items-center gap-1.5 text-xs text-gray-500">
                 {t("Max rows")}
                 <select
