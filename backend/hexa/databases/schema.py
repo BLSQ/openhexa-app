@@ -14,8 +14,8 @@ from psycopg2.errors import QueryCanceled
 from hexa.data_studio.models import QueryLog
 from hexa.workspaces.models import Workspace
 
+from .query_text import MultipleStatementsError
 from .utils import (
-    MultipleStatementsError,
     OrderByDirectionEnum,
     get_database_definition_page,
     get_table_definition,

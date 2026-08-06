@@ -7,9 +7,7 @@ from hexa.pipelines.models import (
     PipelineVersion,
 )
 from hexa.user_management.models import Organization, User
-from hexa.workspaces.models import (
-    Workspace,
-)
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class PipelineTemplatesTest(GraphQLTestCase):
@@ -27,18 +25,22 @@ class PipelineTemplatesTest(GraphQLTestCase):
             "standardpassword",
             is_superuser=True,
         )
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        cls.ORGANIZATION = Organization.objects.create(name="Templates Schema Org")
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            cls.WS1 = Workspace.objects.create_if_has_perm(
+            cls.WS1 = create_workspace(
                 cls.USER_ROOT,
                 name="WS1",
                 description="Workspace 1",
+                organization=cls.ORGANIZATION,
             )
-            cls.WS2 = Workspace.objects.create_if_has_perm(
+            cls.WS2 = create_workspace(
                 cls.USER_ROOT,
                 name="WS2",
                 description="Workspace 2",
+                organization=cls.ORGANIZATION,
             )
         cls.PIPELINE1 = Pipeline.objects.create(
             name="Test Pipeline", code="Test Pipeline", workspace=cls.WS1
@@ -509,16 +511,17 @@ class PipelineTemplatesTest(GraphQLTestCase):
 
         org = Organization.objects.create(name="Test Org")
 
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            ws_org_1 = Workspace.objects.create_if_has_perm(
+            ws_org_1 = create_workspace(
                 self.USER_ROOT,
                 name="Org WS 1",
                 description="First workspace in org",
                 organization=org,
             )
-            ws_org_2 = Workspace.objects.create_if_has_perm(
+            ws_org_2 = create_workspace(
                 self.USER_ROOT,
                 name="Org WS 2",
                 description="Second workspace in org",
@@ -971,13 +974,13 @@ class PipelineTemplatesTest(GraphQLTestCase):
         org = Organization.objects.create(
             name="Test Organization",
             short_name="TEST",
-            organization_type="CORPORATE",
         )
 
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            ws = Workspace.objects.create_if_has_perm(
+            ws = create_workspace(
                 self.USER_ROOT,
                 name="Test Workspace",
                 description="Test workspace",

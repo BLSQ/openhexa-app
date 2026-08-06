@@ -4,7 +4,8 @@ from django.test import TestCase
 from hexa.shortcuts.models import Shortcut
 from hexa.user_management.models import User
 from hexa.webapps.models import Webapp
-from hexa.workspaces.models import Workspace, WorkspaceMembership
+from hexa.workspaces.models import WorkspaceMembership
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class ShortcutModelTest(TestCase):
@@ -14,7 +15,7 @@ class ShortcutModelTest(TestCase):
             email="user@openhexa.org",
             password="password",
         )
-        cls.workspace = Workspace.objects.create(name="Test Workspace")
+        cls.workspace = create_workspace(name="Test Workspace")
         WorkspaceMembership.objects.create(
             workspace=cls.workspace,
             user=cls.user,

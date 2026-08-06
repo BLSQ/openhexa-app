@@ -274,8 +274,6 @@ def create_organization_slug(name, max_attempts=10):
 
 class OrganizationManager(DefaultSoftDeletedManager):
     def create(self, **kwargs):
-        if "slug" not in kwargs:
-            kwargs["slug"] = create_organization_slug(kwargs["name"])
         org = super().create(**kwargs)
         client = get_forgejo_client()
         client.create_organization(org.slug, org.name)
@@ -331,6 +329,11 @@ class Organization(Base, SoftDeletedModel):
 
     objects = OrganizationManager.from_queryset(OrganizationQuerySet)()
     all_objects = IncludeSoftDeletedManager.from_queryset(OrganizationQuerySet)()
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = create_organization_slug(self.name)
+        super().save(*args, **kwargs)
 
     def delete(self):
         """

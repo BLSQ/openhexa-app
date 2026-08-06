@@ -84,6 +84,16 @@ interface IDataGridProps {
 
 type DataGridProps = IDataGridProps;
 
+function ariaSort(column: any): TableCellProps["aria-sort"] {
+  if (!column.canSort) {
+    return undefined;
+  }
+  if (!column.isSorted) {
+    return "none";
+  }
+  return column.isSortedDesc ? "descending" : "ascending";
+}
+
 function DataGrid(props: DataGridProps) {
   const { t } = useTranslation();
   const {
@@ -293,6 +303,7 @@ function DataGrid(props: DataGridProps) {
                       <TableCell
                         key={cellKey}
                         heading
+                        aria-sort={ariaSort(column)}
                         className={column.headerClassName}
                         {...otherCellProps}
                         spacing={spacing}

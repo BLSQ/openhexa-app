@@ -8,15 +8,15 @@ from hexa.core.test import GraphQLTestCase
 from hexa.datasets.models import Dataset, DatasetLink
 from hexa.files.backends.base import StorageObject
 from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.webapps.graphql_proxy import extract_top_level_fields
 from hexa.webapps.middlewares import WEBAPP_SESSION_COOKIE, WEBAPP_SESSION_MAX_AGE
 from hexa.webapps.models import Webapp
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 WEBAPPS_DOMAIN = "webapps.test.local"
 
@@ -75,7 +75,7 @@ class GraphQLProxyMiddlewareTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("proxy@test.com", "password")
-        cls.WORKSPACE = Workspace.objects.create(name="Proxy WS")
+        cls.WORKSPACE = create_workspace(name="Proxy WS")
         WorkspaceMembership.objects.create(
             user=cls.USER,
             workspace=cls.WORKSPACE,
@@ -454,6 +454,67 @@ class GraphQLProxyMiddlewareTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
 
+    def test_local_dev_origin_allowed_on_preview_host(self):
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        preview_host = f"{session.session_key}.{WEBAPPS_DOMAIN}"
+        self.client.cookies[WEBAPP_SESSION_COOKIE] = session.session_key
+        response = self.client.post(
+            "/graphql/",
+            data=json.dumps({"query": "query { me { user { email } } }"}),
+            content_type="application/json",
+            HTTP_HOST=preview_host,
+            HTTP_ORIGIN="http://localhost:5173",
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_null_origin_allowed_on_preview_host(self):
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        preview_host = f"{session.session_key}.{WEBAPPS_DOMAIN}"
+        self.client.cookies[WEBAPP_SESSION_COOKIE] = session.session_key
+        response = self.client.post(
+            "/graphql/",
+            data=json.dumps({"query": "query { me { user { email } } }"}),
+            content_type="application/json",
+            HTTP_HOST=preview_host,
+            HTTP_ORIGIN="null",
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_local_dev_origin_rejected_on_real_subdomain(self):
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        response = self._graphql_post(
+            "private-app",
+            "query { me { user { email } } }",
+            session_key=session.session_key,
+            extra_headers={"HTTP_ORIGIN": "http://localhost:5173"},
+        )
+        self.assertEqual(response.status_code, 403)
+        data = json.loads(response.content)
+        self.assertEqual(data["errors"][0]["message"], "Origin not allowed")
+
+    def test_preflight_from_local_dev_origin_on_preview_host(self):
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        preview_host = f"{session.session_key}.{WEBAPPS_DOMAIN}"
+        response = self.client.options(
+            "/graphql/",
+            HTTP_HOST=preview_host,
+            HTTP_ORIGIN="http://localhost:5173",
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Access-Control-Allow-Origin"], "http://localhost:5173"
+        )
+
+    def test_preflight_from_local_dev_origin_on_real_subdomain_has_no_cors(self):
+        response = self.client.options(
+            "/graphql/",
+            HTTP_HOST=f"private-app.{WEBAPPS_DOMAIN}",
+            HTTP_ORIGIN="http://localhost:5173",
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST",
+        )
+        self.assertNotIn("Access-Control-Allow-Origin", response)
+
     def test_empty_allowed_operations_blocks_everything(self):
         webapp = Webapp.objects.create(
             name="No Ops App",
@@ -507,7 +568,7 @@ class UpdateWebappAllowedOperationsTest(GraphQLTestCase):
             "password",
             is_superuser=True,
         )
-        cls.WORKSPACE = Workspace.objects.create(
+        cls.WORKSPACE = create_workspace(
             name="Ops WS",
             description="Ops workspace",
         )
@@ -605,15 +666,16 @@ class GraphQLProxyWorkspaceScopingTest(TestCase):
         cls.USER = User.objects.create_user(
             "multi@test.com", "password", is_superuser=True
         )
+        cls.ORGANIZATION = Organization.objects.create(name="Proxy Scoping Org")
         with (
             patch("hexa.workspaces.models.create_database"),
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            cls.WORKSPACE_A = Workspace.objects.create_if_has_perm(
-                principal=cls.USER, name="WS A"
+            cls.WORKSPACE_A = create_workspace(
+                cls.USER, name="WS A", organization=cls.ORGANIZATION
             )
-            cls.WORKSPACE_B = Workspace.objects.create_if_has_perm(
-                principal=cls.USER, name="WS B"
+            cls.WORKSPACE_B = create_workspace(
+                cls.USER, name="WS B", organization=cls.ORGANIZATION
             )
         cls.USER.is_superuser = False
         cls.USER.save()

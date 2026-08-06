@@ -1,0 +1,38 @@
+{% extends "oauth2_provider/base.html" %}
+{% load static %}
+
+{% block title %}Connecting{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div>
+            <img src="{% static 'img/logo/logo.svg' %}" alt="OpenHEXA" class="logo">
+            <h2 id="dev-auth-title">Connecting…</h2>
+            <p class="subtitle" id="dev-auth-subtitle">You can close this window.</p>
+        </div>
+    </div>
+    {{ data|json_script:"openhexa-dev-data" }}
+    {{ target_origin|json_script:"openhexa-target-origin" }}
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        (function () {
+            var payload = JSON.parse(
+                document.getElementById("openhexa-dev-data").textContent,
+            );
+            var targetOrigin = JSON.parse(
+                document.getElementById("openhexa-target-origin").textContent,
+            );
+            if (window.opener) {
+                window.opener.postMessage(payload, targetOrigin);
+                window.close();
+            } else {
+                document.getElementById("dev-auth-title").textContent =
+                    "Open this window from your local web app";
+                document.getElementById("dev-auth-subtitle").textContent =
+                    "No opener window was found.";
+            }
+        })();
+    </script>
+{% endblock %}

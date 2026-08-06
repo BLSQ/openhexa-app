@@ -28,6 +28,18 @@ describe("Connections", () => {
     slug: faker.string.uuid(),
     name: faker.company.name(),
     description: faker.company.catchPhrase(),
+    organization: {
+      __typename: "Organization",
+      id: "org-1",
+      name: "Test Organization",
+      shortName: "Test Org",
+      logo: null,
+      aiSettings: { enabled: true },
+      aiBudgetLimitReached: false,
+      permissions: {
+        createWorkspace: { isAllowed: false, reasons: [] },
+      },
+    },
     countries: [],
     shortcuts: [],
     permissions: {

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>OpenHEXA API access</title>
+  <script src="http://localhost:8000/webapps/dev.js"></script>
+</head>
+<body>
+  <h1>Who am I?</h1>
+  <pre id="out">Not connected yet</pre>
+
+  <h1>window.OPENHEXA</h1>
+  <pre id="ctx"></pre>
+
+  <script>
+    document.getElementById("ctx").textContent = JSON.stringify(
+      window.OPENHEXA,
+      null,
+      2,
+    ) ?? "Not connected yet";
+
+    fetch("/graphql/", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: "{ me { user { email } } }" }),
+    })
+      .then((res) => res.json())
+      .then(({ data }) => {
+        document.getElementById("out").textContent = data.me.user.email;
+      })
+      .catch((err) => {
+        document.getElementById("out").textContent = "Error: " + err.message;
+      });
+  </script>
+</body>
+</html>

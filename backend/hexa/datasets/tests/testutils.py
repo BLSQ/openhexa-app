@@ -4,6 +4,7 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace as _create_workspace
 
 from ..models import Dataset, DatasetVersion, DatasetVersionFile
 
@@ -14,11 +15,16 @@ class DatasetTestMixin:
         user = User.objects.create_user(email, *args, password=password, **kwargs)
         return user
 
-    def create_workspace(self, principal: User, name, description, *args, **kwargs):
-        workspace = Workspace.objects.create_if_has_perm(
-            principal=principal, name=name, description=description, *args, **kwargs
+    def create_workspace(
+        self, principal: User, name, description, organization=None, **kwargs
+    ):
+        return _create_workspace(
+            principal,
+            name=name,
+            organization=organization,
+            description=description,
+            **kwargs,
         )
-        return workspace
 
     def join_workspace(
         self, user: User, workspace: Workspace, role: WorkspaceMembershipRole

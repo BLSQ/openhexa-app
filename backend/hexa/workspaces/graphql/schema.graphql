@@ -24,7 +24,7 @@ type Workspace {
     countries: [Country!]!
 
     # The organization that owns the workspace.
-    organization: Organization
+    organization: Organization!
 
     # Whether the webapps feature is enabled on this instance.
     webappsEnabled: Boolean!
@@ -381,7 +381,7 @@ input CreateWorkspaceInput {
     loadSampleData: Boolean
 
     # The organization ID to which the workspace belongs.
-    organizationId: UUID
+    organizationId: UUID!
 
     # Initial configuration properties for the workspace.
     configuration: JSON
@@ -962,11 +962,6 @@ extend type Mutation {
     deleteConnection(input: DeleteConnectionInput!): DeleteConnectionResult! @loginRequired
     # Tests connection parameters without saving them.
     testConnection(input: TestConnectionInput!): TestConnectionResult! @loginRequired
-}
-
-extend type MePermissions {
-    # Indicates whether the user can create a workspace.
-    createWorkspace: Boolean!
 }
 
 extend type Organization {

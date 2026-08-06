@@ -14,7 +14,7 @@ from hexa.pipelines.models import (
     PipelineVersion,
 )
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class PipelineSchedulerTest(TestCase):
@@ -25,7 +25,7 @@ class PipelineSchedulerTest(TestCase):
             "admin",
             is_superuser=True,
         )
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="Sandbox",
             description="Test workspace",
@@ -199,7 +199,7 @@ class ScheduledPipelineVersionTest(TestCase):
             "admin",
             is_superuser=True,
         )
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="SchedulerVersionTestWS",
             description="",
@@ -288,6 +288,21 @@ class ScheduledPipelineVersionTest(TestCase):
         self.assertIsNotNone(new_run)
         self.assertEqual(new_run.pipeline_version, self.PIPELINE.last_version)
         self.assertEqual(new_run.pipeline_version, self.VERSION_2)
+
+    def test_scheduler_ignores_pipeline_in_archived_workspace(self):
+        self.WORKSPACE.archived = True
+        self.WORKSPACE.save()
+
+        self._run_scheduler_once()
+
+        self.assertFalse(
+            PipelineRun.objects.filter(
+                pipeline=self.PIPELINE,
+                trigger_mode=PipelineRunTrigger.SCHEDULED,
+            )
+            .exclude(run_id="seed__past")
+            .exists()
+        )
 
     def test_is_schedulable_uses_pinned_version(self):
         # v1 is schedulable (no required params without defaults)

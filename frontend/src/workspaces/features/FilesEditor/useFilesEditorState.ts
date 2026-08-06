@@ -257,7 +257,7 @@ export const useFilesEditorState = ({
   }, [selectedFile, modifiedFiles]);
 
   useNavigationWarning({
-    when: () => isEditable && modifiedFiles.size > 0,
+    enabled: isEditable && modifiedFiles.size > 0,
   });
 
   const handleContentChange = (content: string) => {
@@ -316,7 +316,9 @@ export const useFilesEditorState = ({
     proposedByKey,
     effectivelyDeletedPaths,
     effectivelyDeletedFolderPaths,
-    currentFileIsModified: selectedFile ? modifiedFiles.has(selectedFile.id) : false,
+    currentFileIsModified: selectedFile
+      ? modifiedFiles.has(selectedFile.id)
+      : false,
     numberOfFiles: files.filter((f) => f.type === FileType.File).length,
     handleContentChange,
     handleSave,

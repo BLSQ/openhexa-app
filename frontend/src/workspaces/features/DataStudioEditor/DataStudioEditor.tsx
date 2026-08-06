@@ -3,21 +3,25 @@ import {
   ArrowDownTrayIcon,
   Bars3BottomLeftIcon,
   PencilIcon,
+  SparklesIcon,
   TableCellsIcon,
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import CodeEditor, {
   CodeEditorHandle,
 } from "core/components/CodeEditor/CodeEditor";
+import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import useIsMac from "core/hooks/useIsMac";
+import useSaveShortcut from "core/hooks/useSaveShortcut";
 import { useTranslation } from "next-i18next";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import SaveQueryDialog from "workspaces/features/SavedQueries/SaveQueryDialog";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { buildCsv, downloadCsv } from "./csv";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
 import { formatSql } from "./formatSql";
+import GenerateSqlBar, { useGenerateSqlForm } from "./GenerateSqlBar";
 import SaveQueryButton from "./SaveQueryButton";
 import { useDataStudioQuery } from "./useDataStudioQuery";
 import { useSavedQueryEditor } from "./useSavedQueryEditor";
@@ -25,7 +29,10 @@ import { useSavedQueryEditor } from "./useSavedQueryEditor";
 type DataStudioEditorProps = {
   workspaceSlug: string;
   savedQuery?: SavedQuery_SavedQueryFragment | null;
-  canCreate?: boolean;
+  canCreate: boolean;
+  aiEnabled?: boolean;
+  aiBudgetLimitReached?: boolean;
+  monthlyLimitExceeded?: boolean;
 };
 
 const MAX_ROWS_OPTIONS = [50, 100, 500, 1000, 10_000];
@@ -33,19 +40,40 @@ const MAX_ROWS_OPTIONS = [50, 100, 500, 1000, 10_000];
 const DataStudioEditor = ({
   workspaceSlug,
   savedQuery,
-  canCreate = false,
+  canCreate,
+  aiEnabled = false,
+  aiBudgetLimitReached = false,
+  monthlyLimitExceeded = false,
 }: DataStudioEditorProps) => {
   const { t } = useTranslation();
   const isMac = useIsMac();
   const [query, setQuery] = useState(savedQuery?.content ?? "");
   const [maxRows, setMaxRows] = useState(MAX_ROWS_OPTIONS[0]);
   const editorRef = useRef<CodeEditorHandle>(null);
+  const [generateBarOpen, setGenerateBarOpen] = useState(false);
+
+  const handleGenerated = useCallback((sql: string) => {
+    setQuery(sql);
+    setGenerateBarOpen(false);
+  }, []);
+
+  const generateForm = useGenerateSqlForm(workspaceSlug, handleGenerated);
 
   const editor = useSavedQueryEditor({
     workspaceSlug,
     content: query,
     initialSavedQuery: savedQuery,
+    canCreate,
   });
+
+  useSaveShortcut(editor.commit);
+
+  // Stable so the memoised schema browser is not re-rendered by every keystroke
+  // in the editor. Goes through the imperative handle, so it needs no deps.
+  const insertIntoEditor = useCallback(
+    (text: string) => editorRef.current?.insertText(text),
+    [],
+  );
 
   const runShortcutLabel = isMac ? "⌘+Enter" : "Ctrl+Enter";
   const formatShortcutLabel = isMac ? "⇧+⌥+F" : "Shift+Alt+F";
@@ -103,7 +131,7 @@ const DataStudioEditor = ({
         <DataStudioSchemaBrowser
           workspaceSlug={workspaceSlug}
           className="w-[240px] shrink-0 border-r border-gray-200"
-          onInsert={(text) => editorRef.current?.insertText(text)}
+          onInsert={insertIntoEditor}
         />
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Toolbar: controls right-aligned, Run at the far right. */}
@@ -124,16 +152,7 @@ const DataStudioEditor = ({
               </button>
             )}
             <div className="ml-auto flex items-center gap-2">
-              <SaveQueryButton
-                isSaved={Boolean(editor.savedQuery)}
-                isDirty={editor.isDirty}
-                hasContent={Boolean(query.trim())}
-                canUpdate={editor.canUpdate}
-                canCreate={canCreate}
-                saving={editor.saving}
-                onSave={editor.save}
-                onSaveAsNew={editor.saveAsNew}
-              />
+              <SaveQueryButton plan={editor.savePlan} />
               <label className="flex items-center gap-1.5 text-xs text-gray-500">
                 {t("Max rows")}
                 <select
@@ -148,6 +167,22 @@ const DataStudioEditor = ({
                   ))}
                 </select>
               </label>
+              {aiEnabled && (
+                <SubscriptionLimitTooltip
+                  isLimitReached={aiBudgetLimitReached}
+                  title={t("Monthly AI budget reached")}
+                >
+                  <button
+                    onClick={() => setGenerateBarOpen((open) => !open)}
+                    disabled={aiBudgetLimitReached}
+                    aria-pressed={generateBarOpen}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-md bg-indigo-100 px-2.5 text-xs font-medium text-indigo-700 hover:bg-indigo-200 disabled:cursor-not-allowed disabled:bg-transparent disabled:text-gray-300"
+                  >
+                    <SparklesIcon className="h-4 w-4" />
+                    {t("Generate")}
+                  </button>
+                </SubscriptionLimitTooltip>
+              )}
               <button
                 onClick={formatQuery}
                 disabled={!query.trim()}
@@ -200,6 +235,15 @@ const DataStudioEditor = ({
             </div>
           </div>
 
+          {aiEnabled && (
+            <GenerateSqlBar
+              open={generateBarOpen}
+              onClose={() => setGenerateBarOpen(false)}
+              form={generateForm}
+              monthlyLimitExceeded={monthlyLimitExceeded}
+            />
+          )}
+
           {/* Editor + results split: editor on top, results fill the rest. */}
           <div className="flex min-h-0 flex-1 flex-col">
             <div className="h-[38%] min-h-[140px] shrink-0 border-b border-gray-200">
@@ -230,17 +274,17 @@ const DataStudioEditor = ({
           </div>
         </div>
       </div>
-      {editor.dialog && (
-        <SaveQueryDialog
-          open
-          mode={editor.dialog.mode}
-          workspaceSlug={workspaceSlug}
-          content={query}
-          savedQuery={editor.savedQuery}
-          onClose={editor.closeDialog}
-          onSaved={editor.onDialogSaved}
-        />
-      )}
+      {/* Kept mounted and toggled through `open`: Headless UI skips its enter
+          transition for a dialog that mounts already open. */}
+      <SaveQueryDialog
+        open={editor.dialog.open}
+        mode={editor.dialog.mode}
+        workspaceSlug={workspaceSlug}
+        content={query}
+        savedQuery={editor.savedQuery}
+        onClose={editor.closeDialog}
+        onSaved={editor.onDialogSaved}
+      />
     </>
   );
 };

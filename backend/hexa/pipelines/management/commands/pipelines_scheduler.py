@@ -26,7 +26,9 @@ class Command(BaseCommand):
 
         while True:
             sequence, start_time = [], timezone.now()
-            for pipeline in Pipeline.objects.exclude(schedule=None):
+            for pipeline in Pipeline.objects.exclude(schedule=None).filter(
+                workspace__archived=False
+            ):
                 if not croniter.is_valid(pipeline.schedule):
                     logger.error("pipeline %s invalid schedule", pipeline.id)
                     continue

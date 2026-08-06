@@ -1,0 +1,105 @@
+{% extends "oauth2_provider/base.html" %}
+{% load static %}
+
+{% block title %}Connect local web app{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div>
+            <img src="{% static 'img/logo/logo.svg' %}" alt="OpenHEXA" class="logo">
+            <h2>Connect a local web app</h2>
+            <p class="subtitle">Choose which web app this local page should develop against.</p>
+        </div>
+
+        {% if webapps %}
+            <form method="post" action="{% url 'webapps:dev_auth' %}" id="authorize-form">
+                {% csrf_token %}
+                <input type="hidden" name="origin" value="{{ origin }}">
+                <input type="hidden" name="workspaceSlug" id="field-ws" value="{{ selected_ws }}">
+                <input type="hidden" name="webappSlug" id="field-app" value="{{ selected_app }}">
+
+                <div class="pick-list">
+                    {% for w in webapps %}
+                        <label class="pick-item">
+                            <input type="radio" name="choice" class="pick-radio"
+                                   data-ws="{{ w.workspace.slug }}" data-app="{{ w.slug }}"
+                                   {% if w.workspace.slug == selected_ws and w.slug == selected_app %}checked{% endif %}>
+                            <span class="pick-head">
+                                <span class="pick-name">{{ w.name }}</span>
+                                <span class="pick-path">
+                                    <span class="pick-ws">{{ w.workspace.slug }}</span><span class="pick-sep">/</span><span class="pick-app">{{ w.slug }}</span>
+                                </span>
+                            </span>
+                        </label>
+                    {% endfor %}
+                </div>
+
+                <div class="actions">
+                    <button type="button" class="btn btn-secondary" onclick="window.close()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="approve-btn">Approve</button>
+                </div>
+
+                <p class="hint">
+                    Approving grants a temporary, scoped credential to whichever window
+                    opened this one. Only continue if you just opened your own local file.
+                </p>
+            </form>
+        {% else %}
+            <div class="scopes">
+                <h3>You don't have any private static web apps to connect to.</h3>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+        .pick-list { display: flex; flex-direction: column; gap: 0.5rem; }
+        .pick-item {
+            display: flex; align-items: center; gap: 0.75rem;
+            width: 100%; padding: 0.75rem 1rem; cursor: pointer;
+            background: #fff; border: 1px solid #e5e7eb; border-radius: 0.5rem;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .pick-item:hover { border-color: #2563eb; background: #f5f8ff; }
+        .pick-item:has(.pick-radio:checked) { border-color: #2563eb; background: #f5f8ff; box-shadow: 0 0 0 1px #2563eb; }
+        .pick-radio { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+        .pick-head { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+        .pick-name { font-weight: 600; color: #111827; font-size: 0.9375rem; }
+        .pick-path { font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace; font-size: 0.8125rem; }
+        .pick-ws { color: #6b7280; }
+        .pick-sep { color: #9ca3af; margin: 0 0.15rem; }
+        .pick-app { color: #2563eb; font-weight: 600; }
+        .hint { font-size: 0.8125rem; color: #6b7280; line-height: 1.4; margin-top: 1rem; }
+        .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+        .btn-secondary { background: #fff; color: #374151; border: 1px solid #d1d5db; }
+        .btn-secondary:hover { background: #f9fafb; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        (function () {
+            var form = document.getElementById("authorize-form");
+            if (!form) return;
+            var ws = document.getElementById("field-ws");
+            var app = document.getElementById("field-app");
+            var approve = document.getElementById("approve-btn");
+            var radios = form.querySelectorAll('input[name="choice"]');
+
+            // The selected radio drives the submitted workspace/webapp, and the
+            // Approve button stays disabled until something is selected.
+            function sync() {
+                var selected = form.querySelector('input[name="choice"]:checked');
+                approve.disabled = !selected;
+                if (selected) {
+                    ws.value = selected.dataset.ws;
+                    app.value = selected.dataset.app;
+                }
+            }
+            radios.forEach(function (radio) {
+                radio.addEventListener("change", sync);
+            });
+            sync();
+        })();
+    </script>
+{% endblock %}
