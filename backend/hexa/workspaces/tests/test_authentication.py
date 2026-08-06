@@ -80,6 +80,7 @@ class WorkspaceTokenAuthenticationTest(TestCase):
         self.assertEqual(
             Signer().unsign_object(signed),
             {
+                "type": "identity",
                 "workspace_id": str(self.WORKSPACE.id),
                 "user_id": str(self.ORG_ADMIN.id),
             },
@@ -116,3 +117,11 @@ class WorkspaceTokenAuthenticationTest(TestCase):
         self.assertIsNone(
             WorkspaceToken.authenticate(Signer().sign_object("does-not-exist"))
         )
+
+    def test_unknown_payload_format_rejected(self):
+        self.assertIsNone(
+            WorkspaceToken.authenticate(
+                Signer().sign_object({"type": "not-a-token-type"})
+            )
+        )
+        self.assertIsNone(WorkspaceToken.authenticate(Signer().sign_object([1, 2])))

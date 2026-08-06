@@ -1237,6 +1237,7 @@ class WorkspaceTest(GraphQLTestCase):
         self.assertEqual(
             Signer().unsign_object(result["token"]),
             {
+                "type": "identity",
                 "workspace_id": str(self.WORKSPACE.id),
                 "user_id": str(self.USER_JOE.id),
             },

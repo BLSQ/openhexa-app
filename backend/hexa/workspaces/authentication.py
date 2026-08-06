@@ -23,8 +23,8 @@ class WorkspaceToken(abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def from_payload(cls, payload: str | dict) -> "WorkspaceToken | None":
-        """Rebuild a token from a signed payload, or ``None`` if it is not ours."""
+    def from_payload(cls, payload) -> "WorkspaceToken | None":
+        """Rebuild a token from its payload, or ``None`` if it no longer grants access."""
 
     def sign(self) -> str:
         return Signer().sign_object(self.payload())
@@ -54,9 +54,11 @@ class WorkspaceToken(abc.ABC):
         except (UnicodeDecodeError, binascii.Error, BadSignature):
             return None
 
-        # The payload type identifies the token: dict -> identity, str -> membership.
-        token_type = _TOKEN_TYPES_BY_PAYLOAD.get(type(payload))
-        return token_type.from_payload(payload) if token_type else None
+        if isinstance(payload, str):
+            return MembershipToken.from_payload(payload)
+        if isinstance(payload, dict) and payload.get("type") == IdentityToken.TYPE:
+            return IdentityToken.from_payload(payload)
+        return None
 
 
 class MembershipToken(WorkspaceToken):
@@ -77,8 +79,11 @@ class MembershipToken(WorkspaceToken):
 
 
 class IdentityToken(WorkspaceToken):
+    TYPE = "identity"
+
     def payload(self) -> dict:
         return {
+            "type": self.TYPE,
             "workspace_id": str(self.workspace.id),
             "user_id": str(self.user.id),
         }
@@ -95,9 +100,3 @@ class IdentityToken(WorkspaceToken):
             .first()
         )
         return cls(user, workspace) if workspace else None
-
-
-_TOKEN_TYPES_BY_PAYLOAD = {
-    dict: IdentityToken,
-    str: MembershipToken,
-}
