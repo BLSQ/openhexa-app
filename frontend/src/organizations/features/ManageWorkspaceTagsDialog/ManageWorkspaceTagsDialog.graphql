@@ -1,0 +1,12 @@
+mutation SetWorkspaceTags($input: SetWorkspaceTagsInput!) {
+  setWorkspaceTags(input: $input) {
+    success
+    errors
+    workspace {
+      slug
+      tags {
+        ...Tag_tag
+      }
+    }
+  }
+}
