@@ -4811,7 +4811,7 @@ export type Query = {
   /** Read the text content of a file from a workspace's bucket. */
   readFileContent: ReadFileContentResult;
   readWebappFile: ReadWebappFileResult;
-  /** Retrieves a saved query by workspace slug and id. */
+  /** Retrieves a saved query by its id. */
   savedQuery?: Maybe<SavedQuery>;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
@@ -5070,7 +5070,6 @@ export type QueryReadWebappFileArgs = {
 
 export type QuerySavedQueryArgs = {
   id: Scalars['ID']['input'];
-  workspaceSlug: Scalars['String']['input'];
 };
 
 

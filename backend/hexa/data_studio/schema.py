@@ -108,7 +108,7 @@ def resolve_saved_query(_, info, **kwargs):
         return (
             SavedQuery.objects.filter_for_user(request.user)
             .select_related("created_by", "workspace", "workspace__organization")
-            .get(workspace__slug=kwargs["workspace_slug"], id=kwargs["id"])
+            .get(id=kwargs["id"])
         )
     except SavedQuery.DoesNotExist:
         return None
