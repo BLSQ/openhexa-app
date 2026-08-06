@@ -10,7 +10,7 @@ import {
 import Spinner from "core/components/Spinner";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
-import { KeyboardEvent, useMemo, useRef, useState } from "react";
+import { KeyboardEvent, memo, useMemo, useRef, useState } from "react";
 import { useWorkspaceDataStudioSchemaQuery } from "./DataStudioSchemaBrowser.generated";
 
 type SchemaColumn = { name: string; type: string };
@@ -267,4 +267,7 @@ DataStudioSchemaBrowser.queries = {
   `,
 };
 
-export default DataStudioSchemaBrowser;
+// Memoised for the same reason as DataStudioResults: the SQL text lives in
+// DataStudioEditor's state, so without this the whole table/column tree
+// re-renders on every keystroke. Requires callers to pass a stable `onInsert`.
+export default memo(DataStudioSchemaBrowser);

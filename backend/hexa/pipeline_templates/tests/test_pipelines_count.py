@@ -1,21 +1,19 @@
 """Tests for pipelines_count annotation with tag filtering."""
+
 from django.test import TestCase
 
 from hexa.pipeline_templates.models import PipelineTemplate
 from hexa.pipelines.models import Pipeline
 from hexa.tags.models import Tag
-from hexa.user_management.models import Organization, User
-from hexa.workspaces.models import Workspace
+from hexa.user_management.models import User
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class PipelinesCountTest(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.org = Organization.objects.create(name="Test Org")
         cls.user = User.objects.create(email="test@example.com")
-        cls.workspace = Workspace.objects.create(
-            name="Test Workspace", organization=cls.org
-        )
+        cls.workspace = create_workspace(name="Test Workspace")
 
         cls.source_pipeline = Pipeline.objects.create(
             workspace=cls.workspace,

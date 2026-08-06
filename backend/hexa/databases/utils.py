@@ -6,17 +6,21 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 import psycopg2
-import sqlparse
 from django.conf import settings
+from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpRequest
 from psycopg2 import sql
 from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from psycopg2.extras import RealDictCursor
 
+from hexa.data_studio.models import QueryLog
+from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 from .api import get_db_server_credentials
+from .query_text import MultipleStatementsError, PreparedQuery
 
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
@@ -33,29 +37,9 @@ class ResultJSONEncoder(DjangoJSONEncoder):
             return str(o)
 
 
-class MultipleStatementsError(Exception):
-    """Raised when more than one SQL statement is submitted for execution."""
-
-
-def ensure_single_statement(query: str) -> None:
-    """Reject input that contains more than one SQL statement."""
-    statements = [s for s in sqlparse.split(query) if s.strip().rstrip(";").strip()]
-    if len(statements) > 1:
-        raise MultipleStatementsError("Only a single SQL statement can be executed.")
-
-
-def is_explain_query(query: str) -> bool:
-    """Whether the statement is an EXPLAIN.
-
-    An EXPLAIN returns a query plan whose length depends on the query's
-    complexity, not on the amount of data, so the row cap (meant to bound large
-    result sets) would truncate the plan mid-tree and must not apply.
-    """
-    parsed = sqlparse.parse(query)
-    if not parsed:
-        return False
-    first_token = parsed[0].token_first(skip_cm=True)
-    return first_token is not None and first_token.normalized.upper() == "EXPLAIN"
+def elapsed_ms(started_at: float) -> int:
+    """Milliseconds elapsed since ``started_at``, a ``time.perf_counter()`` value."""
+    return round((time.perf_counter() - started_at) * 1000)
 
 
 def get_row_count_estimate(cursor, table_name: str) -> int:
@@ -141,12 +125,15 @@ def execute_database_query(
     resources for an extended period of time. At most ``max_rows`` rows are
     returned, capped to ``settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS``;
     ``truncated`` indicates whether the result was capped.
+
+    This function does no permission check and no audit logging: SQL executed
+    on behalf of an API request must go through ``run_and_log_database_query``.
     """
-    ensure_single_statement(query)
+    prepared = PreparedQuery.from_text(query)
     hard_limit = settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS
     # A plan is bounded by query complexity, so let it through the hard limit
     # in full rather than clipping it to the (small) requested row cap.
-    max_rows = hard_limit if is_explain_query(query) else min(max_rows, hard_limit)
+    max_rows = hard_limit if prepared.is_explain else min(max_rows, hard_limit)
     conn = None
     try:
         conn = get_workspace_database_ro_connection(workspace)
@@ -157,7 +144,7 @@ def execute_database_query(
                 )
             )
             started_at = time.perf_counter()
-            cursor.execute(query)
+            cursor.execute(prepared.sql)
             # cursor.description is None for statements that do not return rows
             columns = (
                 [column.name for column in cursor.description]
@@ -166,7 +153,7 @@ def execute_database_query(
             )
             # Fetch one extra row to detect (without returning) that more exist.
             fetched = cursor.fetchmany(max_rows + 1) if cursor.description else []
-            duration_ms = round((time.perf_counter() - started_at) * 1000)
+            duration_ms = elapsed_ms(started_at)
         truncated = len(fetched) > max_rows
         rows = json.loads(json.dumps(fetched[:max_rows], cls=ResultJSONEncoder))
         return {
@@ -176,6 +163,122 @@ def execute_database_query(
             "truncated": truncated,
             "duration_ms": duration_ms,
         }
+    finally:
+        if conn:
+            conn.close()
+
+
+def _log_executed_query(
+    request: HttpRequest,
+    workspace: Workspace,
+    query: str,
+    origin: str,
+    status: str,
+    **fields,
+):
+    user = request.user
+    if not isinstance(user, User):
+        # Service principals (PipelineRunUser, ...) expose the triggering human
+        user = getattr(user, "real_user", None)
+    QueryLog.objects.create(
+        workspace=workspace,
+        user=user,
+        query=query,
+        origin=origin,
+        status=status,
+        target="workspace_database",
+        **fields,
+    )
+
+
+def run_and_log_database_query(
+    request: HttpRequest,
+    workspace: Workspace,
+    query: str,
+    origin: str,
+    max_rows: int | None = None,
+):
+    """Single point of entry for executing SQL on behalf of an API request.
+
+    Checks the permission, delegates to ``execute_database_query`` and records
+    a ``QueryLog`` entry for every outcome, re-raising errors so that
+    callers only have to translate them into API responses.
+    """
+    if not request.user.has_perm("databases.run_query", workspace):
+        _log_executed_query(request, workspace, query, origin, QueryLog.Status.DENIED)
+        raise PermissionDenied
+    max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
+    started_at = time.perf_counter()
+    try:
+        result = execute_database_query(workspace, query, **max_rows_kwarg)
+    except MultipleStatementsError as e:
+        _log_executed_query(
+            request,
+            workspace,
+            query,
+            origin,
+            QueryLog.Status.REJECTED,
+            error_message=str(e),
+        )
+        raise
+    except psycopg2.Error as e:
+        # QueryCanceled (statement timeout) is a psycopg2.Error subclass and
+        # needs no dedicated handling here: both outcomes log the same fields.
+        _log_executed_query(
+            request,
+            workspace,
+            query,
+            origin,
+            QueryLog.Status.ERROR,
+            result_code=e.pgcode,
+            error_message=str(e).strip(),
+            duration_ms=elapsed_ms(started_at),
+        )
+        raise
+    _log_executed_query(
+        request,
+        workspace,
+        query,
+        origin,
+        QueryLog.Status.SUCCESS,
+        result_code=QueryLog.SQLSTATE_SUCCESS,
+        duration_ms=result["duration_ms"],
+        row_count=result["row_count"],
+        truncated=result["truncated"],
+    )
+    return result
+
+
+# EXPLAIN only parses and plans the query (it never executes it), so this is a
+# generous ceiling that only guards against a pathological planning time.
+_VALIDATE_QUERY_TIMEOUT_MS = 5_000
+
+
+def validate_query(workspace: Workspace, query: str) -> None:
+    """Check a query against the database without executing it.
+
+    Runs ``EXPLAIN`` with the read-only role, which parses and plans the query,
+    catching syntax errors and references to unknown tables or columns at
+    near-zero cost. Raises ``MultipleStatementsError`` when more than one
+    statement is submitted and ``psycopg2.Error`` when the query is invalid.
+
+    A statement that is already an ``EXPLAIN`` is run as it stands, since
+    PostgreSQL cannot nest them -- which means an ``EXPLAIN ANALYZE`` submitted
+    here does run its inner query, bounded by the read-only role and the timeout.
+    """
+    prepared = PreparedQuery.from_text(query)
+    conn = None
+    try:
+        conn = get_workspace_database_ro_connection(workspace)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("SET LOCAL statement_timeout = {timeout};").format(
+                    timeout=sql.Literal(_VALIDATE_QUERY_TIMEOUT_MS)
+                )
+            )
+            cursor.execute(
+                prepared.sql if prepared.is_explain else "EXPLAIN " + prepared.sql
+            )
     finally:
         if conn:
             conn.close()
@@ -330,6 +433,33 @@ def get_database_definition_page(
             "total_items": total_items,
             "items": items,
         }
+    finally:
+        if conn:
+            conn.close()
+
+
+def get_full_database_definition(workspace: Workspace) -> List[Dict]:
+    """Return every table with its columns, without row counts.
+
+    Used to inline the whole database schema into LLM agent instructions:
+    row counts would trigger a potentially expensive COUNT(*) per table on
+    every conversation turn, and the consumer needs all tables at once, so
+    pagination does not apply.
+    """
+    conn = None
+    try:
+        conn = get_workspace_database_connection(workspace)
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            # LIMIT NULL means "no limit" in PostgreSQL, which lets us reuse
+            # the paginated query to fetch the full listing.
+            params = {"ignore_tables": IGNORE_TABLES, "limit": None, "offset": 0}
+            tables = _fetch_tables_with_columns(cursor, workspace, params)
+        # The shared query also carries a reltuples-based ``count`` and the
+        # workspace, but only names and columns are inlined into the LLM schema,
+        # so keep just those (no COUNT(*) is ever run here).
+        return [
+            {"name": table["name"], "columns": table["columns"]} for table in tables
+        ]
     finally:
         if conn:
             conn.close()

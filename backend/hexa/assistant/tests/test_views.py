@@ -11,7 +11,7 @@ from hexa.assistant.models import Conversation
 from hexa.core.test import TestCase
 from hexa.core.test.utils import collect_async_stream, parse_sse_stream
 from hexa.user_management.models import Organization, User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 def _url(conversation_id):
@@ -31,8 +31,10 @@ class StreamAssistantMessageViewTest(TestCase):
         )
         cls.other_user = User.objects.create_user("view-other@example.com", "password")
         with patch("hexa.workspaces.models.create_database"):
-            cls.workspace = Workspace.objects.create_if_has_perm(
-                cls.user, name="View Test WS", description=""
+            cls.workspace = create_workspace(
+                cls.user,
+                name="View Test WS",
+                description="",
             )
 
     def setUp(self):

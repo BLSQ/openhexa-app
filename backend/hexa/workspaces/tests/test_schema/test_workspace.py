@@ -1,6 +1,7 @@
 import base64
 import html
 import uuid
+from unittest import mock
 from unittest.mock import patch
 from urllib.parse import urlencode
 
@@ -133,8 +134,6 @@ class WorkspaceTest(GraphQLTestCase):
                 countries=[{"code": "AL"}],
                 organization=cls.ORGANIZATION,
             )
-            cls.WORKSPACE.organization = cls.ORGANIZATION
-            cls.WORKSPACE.save()
             cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
                 cls.USER_JULIA,
                 name="Burundi Workspace",
@@ -370,6 +369,35 @@ class WorkspaceTest(GraphQLTestCase):
             {"success": False, "errors": ["PERMISSION_DENIED"], "workspace": None},
             r["data"]["createWorkspace"],
         )
+
+    def test_create_workspace_without_organization(self):
+        """OrganizationId is required by the schema, so omitting it is a
+        GraphQL validation error, not a CreateWorkspaceError.
+        """
+        self.client.force_login(self.USER_JOE)
+        r = self.run_query(
+            """
+            mutation createWorkspace($input:CreateWorkspaceInput!) {
+                createWorkspace(input: $input) {
+                    success
+                    workspace {
+                        name
+                        description
+                    }
+                    errors
+                }
+            }
+            """,
+            {
+                "input": {
+                    "name": "Cameroon workspace",
+                    "description": "Description",
+                }
+            },
+        )
+        self.assertIsNone(r.get("data"))
+        self.assertIn("errors", r)
+        self.assertIn("organizationId", str(r["errors"]))
 
     def test_create_workspace_with_demo_data(self):
         with (
@@ -699,22 +727,26 @@ class WorkspaceTest(GraphQLTestCase):
     # @patch("hexa.workspaces.models.delete_database")
     # def test_delete_workspace(self, mock_delete_database):
     def test_delete_workspace(self):
+        previous_db_password = self.WORKSPACE.db_password
+        previous_db_ro_password = self.WORKSPACE.db_ro_password
+
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
-        r = self.run_query(
-            """
-            mutation deleteWorkspace($input: DeleteWorkspaceInput!) {
-                deleteWorkspace(input: $input) {
-                    success
-                    errors
+        with patch("hexa.workspaces.models.update_database_password") as mock_update:
+            r = self.run_query(
+                """
+                mutation deleteWorkspace($input: DeleteWorkspaceInput!) {
+                    deleteWorkspace(input: $input) {
+                        success
+                        errors
+                    }
                 }
-            }
-            """,
-            {
-                "input": {
-                    "slug": self.WORKSPACE.slug,
-                }
-            },
-        )
+                """,
+                {
+                    "input": {
+                        "slug": self.WORKSPACE.slug,
+                    }
+                },
+            )
         # self.assertTrue(mock_delete_database.called)
         self.assertEqual(
             {
@@ -723,6 +755,18 @@ class WorkspaceTest(GraphQLTestCase):
             },
             r["data"]["deleteWorkspace"],
         )
+        self.assertEqual(
+            [
+                mock.call(self.WORKSPACE.db_name, mock.ANY),
+                mock.call(self.WORKSPACE.db_ro_username, mock.ANY),
+            ],
+            mock_update.call_args_list,
+        )
+        self.assertNotEqual(previous_db_password, mock_update.call_args_list[0][0][1])
+        self.assertNotEqual(
+            previous_db_ro_password, mock_update.call_args_list[1][0][1]
+        )
+        self.assertFalse(Workspace.objects.filter(id=self.WORKSPACE.id).exists())
 
     def test_archive_workspace_not_found(self):
         self.client.force_login(self.USER_SABRINA)
@@ -750,22 +794,26 @@ class WorkspaceTest(GraphQLTestCase):
         )
 
     def test_archive_workspace(self):
+        previous_db_password = self.WORKSPACE.db_password
+        previous_db_ro_password = self.WORKSPACE.db_ro_password
+
         self.client.force_login(self.USER_WORKSPACE_ADMIN)
-        r = self.run_query(
-            """
-            mutation archiveWorkspace($input: ArchiveWorkspaceInput!) {
-                archiveWorkspace(input: $input) {
-                    success
-                    errors
+        with patch("hexa.workspaces.models.update_database_password") as mock_update:
+            r = self.run_query(
+                """
+                mutation archiveWorkspace($input: ArchiveWorkspaceInput!) {
+                    archiveWorkspace(input: $input) {
+                        success
+                        errors
+                    }
                 }
-            }
-            """,
-            {
-                "input": {
-                    "slug": self.WORKSPACE.slug,
-                }
-            },
-        )
+                """,
+                {
+                    "input": {
+                        "slug": self.WORKSPACE.slug,
+                    }
+                },
+            )
         self.assertEqual(
             {
                 "success": True,
@@ -773,6 +821,18 @@ class WorkspaceTest(GraphQLTestCase):
             },
             r["data"]["archiveWorkspace"],
         )
+        self.assertEqual(
+            [
+                mock.call(self.WORKSPACE.db_name, mock.ANY),
+                mock.call(self.WORKSPACE.db_ro_username, mock.ANY),
+            ],
+            mock_update.call_args_list,
+        )
+
+        self.WORKSPACE.refresh_from_db()
+        self.assertTrue(self.WORKSPACE.archived)
+        self.assertNotEqual(previous_db_password, self.WORKSPACE.db_password)
+        self.assertNotEqual(previous_db_ro_password, self.WORKSPACE.db_ro_password)
 
     def test_add_workspace_member(self):
         self.client.force_login(self.USER_WORKSPACE_ADMIN)

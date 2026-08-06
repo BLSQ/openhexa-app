@@ -151,24 +151,6 @@ class SupersetWebappGraphQLTest(GraphQLTestCase):
         self.assertIn(str(self.SUPERSET_INSTANCE.id), ids)
         self.assertIn(str(self.SUPERSET_INSTANCE_2.id), ids)
 
-    def test_superset_instances_query_no_org(self):
-        workspace_no_org = Workspace.objects.create(
-            name="No Org WS Instances",
-            slug="no-org-ws-instances",
-            db_name="noorgwsinst",
-        )
-        WorkspaceMembership.objects.create(
-            user=self.USER_ADMIN,
-            workspace=workspace_no_org,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
-        self.client.force_login(self.USER_ADMIN)
-        response = self.run_query(
-            SUPERSET_INSTANCES_QUERY,
-            {"workspaceSlug": workspace_no_org.slug},
-        )
-        self.assertEqual(response["data"]["supersetInstances"], [])
-
     def test_superset_instances_query_non_member(self):
         self.client.force_login(self.USER_OUTSIDE)
         response = self.run_query(
@@ -249,37 +231,6 @@ class SupersetWebappGraphQLTest(GraphQLTestCase):
         result = response["data"]["createWebapp"]
         self.assertFalse(result["success"])
         self.assertIn("SUPERSET_INSTANCE_NOT_FOUND", result["errors"])
-
-    def test_create_superset_webapp_no_org(self):
-        workspace_no_org = Workspace.objects.create(
-            name="No Org WS Create",
-            slug="no-org-ws-create",
-            db_name="noorgwscreate",
-        )
-        WorkspaceMembership.objects.create(
-            user=self.USER_ADMIN,
-            workspace=workspace_no_org,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
-        self.client.force_login(self.USER_ADMIN)
-        response = self.run_query(
-            CREATE_WEBAPP_MUTATION,
-            {
-                "input": {
-                    "name": "No Org Dashboard",
-                    "workspaceSlug": workspace_no_org.slug,
-                    "source": {
-                        "superset": {
-                            "instanceId": str(self.SUPERSET_INSTANCE.id),
-                            "dashboardId": "ext-no-org",
-                        }
-                    },
-                }
-            },
-        )
-        result = response["data"]["createWebapp"]
-        self.assertFalse(result["success"])
-        self.assertIn("SUPERSET_NOT_CONFIGURED", result["errors"])
 
     def test_create_two_webapps_same_external_dashboard(self):
         self.client.force_login(self.USER_ADMIN)

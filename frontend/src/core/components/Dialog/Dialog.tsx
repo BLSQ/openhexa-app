@@ -16,6 +16,13 @@ import {
 } from "react";
 
 type DialogProps = {
+  // Always render this component and drive visibility from here — never guard it
+  // with `{condition && <Dialog …>}`. Headless UI wraps the dialog in a
+  // `Transition` whose `appear` defaults to false, so a dialog that mounts
+  // already open skips its enter transition and the panel flashes in at full
+  // opacity; unmounting on close kills the leave transition the same way.
+  // Anything the dialog needs conditionally (a selected row, an id) belongs in
+  // its props, not in a mount guard.
   open: boolean;
   onClose: (value: any) => void;
   centered?: boolean;

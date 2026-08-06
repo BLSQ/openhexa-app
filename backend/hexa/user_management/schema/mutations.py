@@ -29,6 +29,7 @@ from hexa.user_management.models import (
     OrganizationMembership,
     OrganizationMembershipRole,
     OrganizationSubscription,
+    OrganizationType,
     SignupRequest,
     SignupRequestStatus,
     Team,
@@ -947,6 +948,10 @@ def resolve_delete_organization(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
 
+def is_valid_short_name(short_name: str) -> bool:
+    return short_name.isupper() and short_name.isalpha() and len(short_name) <= 5
+
+
 @identity_mutations.field("createOrganization")
 @transaction.atomic
 def resolve_create_organization(_, info, **kwargs):
@@ -983,11 +988,7 @@ def resolve_create_organization(_, info, **kwargs):
             "errors": ["NAME_DUPLICATE"],
         }
 
-    if short_name_input and (
-        not short_name_input.isupper()
-        or not short_name_input.isalpha()
-        or len(short_name_input) > 5
-    ):
+    if short_name_input and not is_valid_short_name(short_name_input):
         return {
             "success": False,
             "organization": None,
@@ -1045,6 +1046,67 @@ def resolve_create_organization(_, info, **kwargs):
         "success": True,
         "organization": organization,
         "user": user,
+        "errors": [],
+    }
+
+
+@identity_mutations.field("createSelfHostedOrganization")
+@transaction.atomic
+def resolve_create_self_hosted_organization(_, info, **kwargs):
+    """
+    Create an organization without a subscription (self-hosted mode).
+
+    Restricted to superusers; the calling user becomes the organization owner.
+    Unlike createOrganization (used by the Bluesquare Console), no subscription
+    is provisioned — the organization runs with unlimited resources.
+    """
+    request: HttpRequest = info.context["request"]
+    principal = request.user
+
+    if not principal.is_superuser:
+        return {
+            "success": False,
+            "organization": None,
+            "user": None,
+            "errors": ["PERMISSION_DENIED"],
+        }
+
+    create_input = kwargs["input"]
+    name = create_input["name"].strip()
+    short_name_input = (create_input.get("short_name") or "").strip()
+
+    if Organization.objects.filter(name=name).exists():
+        return {
+            "success": False,
+            "organization": None,
+            "user": None,
+            "errors": ["NAME_DUPLICATE"],
+        }
+
+    if short_name_input and not is_valid_short_name(short_name_input):
+        return {
+            "success": False,
+            "organization": None,
+            "user": None,
+            "errors": ["INVALID_SHORT_NAME"],
+        }
+
+    organization = Organization.objects.create(
+        name=name,
+        short_name=short_name_input or generate_short_name(name),
+        organization_type=OrganizationType.CORPORATE,
+    )
+
+    OrganizationMembership.objects.create(
+        organization=organization,
+        user=principal,
+        role=OrganizationMembershipRole.OWNER,
+    )
+
+    return {
+        "success": True,
+        "organization": organization,
+        "user": principal,
         "errors": [],
     }
 

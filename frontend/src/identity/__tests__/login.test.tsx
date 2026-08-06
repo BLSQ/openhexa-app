@@ -300,6 +300,64 @@ describe("LoginPage: Mixed mode (password + SSO)", () => {
   });
 });
 
+describe("LoginPage: SSO error banner", () => {
+  beforeEach(() => {
+    useSignupPageQueryMock.mockReturnValue({
+      data: {
+        config: {
+          allowSelfRegistration: false,
+          passwordLoginEnabled: false,
+          oidcProviders: [WHO_PROVIDER],
+        },
+      },
+      loading: false,
+    });
+  });
+
+  afterEach(() => {
+    useSignupPageQueryMock.mockReturnValue(DEFAULT_CONFIG);
+  });
+
+  it("shows the banner when sso_error is in the URL", () => {
+    mockRouter.setCurrentUrl("/login?sso_error=not_allowed");
+    render(
+      <TestApp>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    expect(screen.getByTestId("sso-error")).toHaveTextContent(
+      "You are not allowed to sign in with this account. Please contact your administrator.",
+    );
+  });
+
+  it("strips sso_error from the URL but keeps the banner and other params", async () => {
+    mockRouter.setCurrentUrl("/login?next=%2Fdashboard&sso_error=not_allowed");
+    render(
+      <TestApp>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    await waitFor(() => {
+      expect(mockRouter.query).not.toHaveProperty("sso_error");
+    });
+    expect(mockRouter.query).toHaveProperty("next", "/dashboard");
+    expect(screen.getByTestId("sso-error")).toBeInTheDocument();
+  });
+
+  it("does not show the banner without the sso_error param", () => {
+    mockRouter.setCurrentUrl("/login");
+    render(
+      <TestApp>
+        <LoginPage />
+      </TestApp>,
+    );
+
+    expect(screen.queryByTestId("sso-error")).not.toBeInTheDocument();
+  });
+});
+
 describe("LoginPage: With Two Factor Authentication", () => {
   beforeEach(() => {
     mockRouter.setCurrentUrl("/");

@@ -16,12 +16,12 @@ from hexa.user_management.models import (
 from hexa.user_management.sso.sso_adapter import OpenHexaSocialAccountAdapter
 from hexa.workspaces.models import (
     OrganizationWorkspaceInvitation,
-    Workspace,
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 _WHO_CONFIG = {
     "id": "who",
@@ -91,6 +91,7 @@ class PreSocialLoginTest(TestCase):
             self.adapter.pre_social_login(self.request, sociallogin)
 
         self.assertEqual(ctx.exception.response.status_code, 302)
+        self.assertIn("sso_error=not_allowed", ctx.exception.response.url)
         sociallogin.connect.assert_not_called()
 
     def test_redirects_to_login_when_no_email_in_claims(self):
@@ -100,6 +101,7 @@ class PreSocialLoginTest(TestCase):
             self.adapter.pre_social_login(self.request, sociallogin)
 
         self.assertEqual(ctx.exception.response.status_code, 302)
+        self.assertIn("sso_error=not_allowed", ctx.exception.response.url)
 
     def test_links_when_email_verified_claim_absent(self):
         """Providers like Entra ID often omit email_verified; should default to allowed."""
@@ -282,7 +284,7 @@ class SaveUserAcceptsPendingInvitationsTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.ORGANIZATION = Organization.objects.create(name="WHO")
-        cls.WORKSPACE = Workspace.objects.create(
+        cls.WORKSPACE = create_workspace(
             name="Workspace", slug="workspace", organization=cls.ORGANIZATION
         )
 

@@ -4,8 +4,9 @@ from django.test import TestCase
 
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class TestPipelineRunUserFiltering(TestCase):
@@ -15,15 +16,18 @@ class TestPipelineRunUserFiltering(TestCase):
             "standardpassword",
             is_superuser=True,
         )
-        self.WORKSPACE1 = Workspace.objects.create_if_has_perm(
+        self.ORGANIZATION = Organization.objects.create(name="Filtering Test Org")
+        self.WORKSPACE1 = create_workspace(
             self.USER_ROOT,
             name="WS1",
             description="Workspace 1",
+            organization=self.ORGANIZATION,
         )
-        self.WORKSPACE2 = Workspace.objects.create_if_has_perm(
+        self.WORKSPACE2 = create_workspace(
             self.USER_ROOT,
             name="WS2",
             description="Workspace 2",
+            organization=self.ORGANIZATION,
         )
         self.pipeline_run = MagicMock(PipelineRun)
         self.pipeline_run.pipeline = MagicMock(Pipeline)
@@ -61,11 +65,7 @@ class TestPipelineRunUserFiltering(TestCase):
         self.assertEqual(filtered_workspaces.first(), self.WORKSPACE1)
 
     def test_organization_filtering(self):
-        from hexa.user_management.models import Organization
-
-        org1 = Organization.objects.create(
-            name="Org 1", short_name="org1", organization_type="CORPORATE"
-        )
+        org1 = Organization.objects.create(name="Org 1", short_name="org1")
         Organization.objects.create(
             name="Org 2", short_name="org2", organization_type="ACADEMIC"
         )

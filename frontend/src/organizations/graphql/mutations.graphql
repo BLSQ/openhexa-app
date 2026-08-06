@@ -1,3 +1,14 @@
+mutation CreateSelfHostedOrganization($input: CreateSelfHostedOrganizationInput!) {
+  createSelfHostedOrganization(input: $input) {
+    success
+    errors
+    organization {
+      id
+      name
+    }
+  }
+}
+
 mutation UpdateOrganization($input: UpdateOrganizationInput!) {
   updateOrganization(input: $input) {
     success

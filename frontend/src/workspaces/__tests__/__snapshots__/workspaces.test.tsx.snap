@@ -15,6 +15,36 @@ exports[`Workspaces renders the workspace page 1`] = `
       <div
         class="flex h-full grow flex-col border-r border-gray-200 bg-gray-800"
       >
+        <a
+          class="h-16 text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white text-gray-300"
+          href="/organizations/org-1"
+          rel="noopener noreferrer"
+        >
+          <div
+            class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+          />
+          <svg
+            aria-hidden="true"
+            class="ml-1 h-5 w-5"
+            data-slot="icon"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15.75 19.5 8.25 12l7.5-7.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span
+            class="transition-opacity duration-200"
+          >
+            Test Org
+          </span>
+        </a>
         <div
           class="w-full"
         >
@@ -512,6 +542,36 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
       <div
         class="flex h-full grow flex-col border-r border-gray-200 bg-gray-800"
       >
+        <a
+          class="h-16 text-md group relative flex items-center gap-3 px-2 py-2 font-medium hover:bg-gray-700 hover:text-white text-gray-300"
+          href="/organizations/org-1"
+          rel="noopener noreferrer"
+        >
+          <div
+            class="absolute inset-y-0 left-0 w-1 bg-pink-500 transition-opacity opacity-0"
+          />
+          <svg
+            aria-hidden="true"
+            class="ml-1 h-5 w-5"
+            data-slot="icon"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M15.75 19.5 8.25 12l7.5-7.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span
+            class="transition-opacity duration-200"
+          >
+            Test Org
+          </span>
+        </a>
         <div
           class="w-full"
         >

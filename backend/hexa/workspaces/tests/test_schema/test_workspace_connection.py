@@ -5,10 +5,10 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Connection,
     ConnectionType,
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class ConnectionTest(GraphQLTestCase):
@@ -33,7 +33,7 @@ class ConnectionTest(GraphQLTestCase):
             "admin@bluesquarehub.com", "standardpassword", is_superuser=True
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="Senegal Workspace",
             description="This is a workspace for Senegal",
@@ -63,7 +63,7 @@ class ConnectionTest(GraphQLTestCase):
             connection_type=ConnectionType.POSTGRESQL,
         )
 
-        cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_2 = create_workspace(
             cls.USER_ADMIN,
             name="Burundi Workspace",
             description="This is a workspace for Burundi",
@@ -730,7 +730,7 @@ class TestConnectionTest(GraphQLTestCase):
             "outsider@bluesquarehub.com",
             "standardpassword",
         )
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="Test Workspace",
             description="Workspace for testing connections",

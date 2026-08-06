@@ -49,6 +49,8 @@ class WorkspaceTest(TestCase):
             "superuser@bluesquarehub.com", "superuserpassword", is_superuser=True
         )
 
+        cls.ORGANIZATION = Organization.objects.create(name="WorkspaceTest Org")
+
         FeatureFlag.objects.create(
             feature=Feature.objects.create(code="workspaces.prevent_create"),
             user=cls.USER_SERENA,
@@ -64,6 +66,7 @@ class WorkspaceTest(TestCase):
                 self.USER_SERENA,
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
+                organization=self.ORGANIZATION,
             )
 
     def test_create_workspace_no_slug(self):
@@ -76,6 +79,7 @@ class WorkspaceTest(TestCase):
                 self.USER_SUPERUSER,
                 name="this is a very long workspace name",
                 description="Description",
+                organization=self.ORGANIZATION,
             )
         self.assertEqual(workspace.slug, "this-is-a-very-long-workspace-name")
         self.assertTrue(len(workspace.slug) <= 63)
@@ -90,6 +94,7 @@ class WorkspaceTest(TestCase):
                 self.USER_SUPERUSER,
                 name="Worksp?ace_wi😱th_und~ersc!/ore",
                 description="Description",
+                organization=self.ORGANIZATION,
             )
 
         self.assertEqual(workspace.slug, "worksp-ace-with-und-ersc-ore")
@@ -105,6 +110,7 @@ class WorkspaceTest(TestCase):
                 self.USER_SUPERUSER,
                 name="1workspace_with#_random$_char*",
                 description="Description",
+                organization=self.ORGANIZATION,
             )
         self.assertEqual(workspace.slug, "1workspace-with-random-char")
         self.assertEqual(16, len(workspace.db_name))
@@ -118,6 +124,7 @@ class WorkspaceTest(TestCase):
                 self.USER_SUPERUSER,
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
+                organization=self.ORGANIZATION,
             )
         self.assertEqual(1, Workspace.objects.all().count())
 
@@ -130,6 +137,7 @@ class WorkspaceTest(TestCase):
                 self.USER_SUPERUSER,
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
+                organization=self.ORGANIZATION,
             )
             self.assertEqual(workspace, Workspace.objects.get(id=workspace.id))
 
@@ -147,6 +155,7 @@ class WorkspaceTest(TestCase):
                 self.USER_SUPERUSER,
                 name="My workspace",
                 description="This is my workspace",
+                organization=self.ORGANIZATION,
             )
             self.assertEqual(workspace.slug, "my-workspace")
 
@@ -154,6 +163,7 @@ class WorkspaceTest(TestCase):
                 self.USER_SUPERUSER,
                 name="My workspace",
                 description="This is my workspace",
+                organization=self.ORGANIZATION,
             )
 
             self.assertEqual(workspace_2.slug, "my-workspace-mock")
@@ -167,6 +177,7 @@ class WorkspaceTest(TestCase):
                 self.USER_SUPERUSER,
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
+                organization=self.ORGANIZATION,
             )
             self.assertTrue(
                 WorkspaceMembership.objects.filter(
@@ -194,6 +205,7 @@ class WorkspaceTest(TestCase):
                 self.USER_SUPERUSER,
                 name="Senegal Workspace",
                 description="This is test for creating workspace",
+                organization=self.ORGANIZATION,
             )
 
             invitation = WorkspaceInvitation.objects.create_if_has_perm(
@@ -216,6 +228,7 @@ class WorkspaceTest(TestCase):
                 self.USER_SUPERUSER,
                 name="Test Workspace",
                 description="Test workspace for configuration",
+                organization=self.ORGANIZATION,
             )
         self.assertEqual(workspace.configuration, {})
 
@@ -229,6 +242,7 @@ class WorkspaceTest(TestCase):
                 self.USER_SUPERUSER,
                 name="Test Workspace",
                 description="Test workspace for configuration",
+                organization=self.ORGANIZATION,
             )
 
         initial_config = {"api_key": "test123", "timeout": 30}
@@ -255,6 +269,7 @@ class WorkspaceTest(TestCase):
                 self.USER_SUPERUSER,
                 name="Test Workspace",
                 description="Test workspace for configuration",
+                organization=self.ORGANIZATION,
             )
 
         WorkspaceMembership.objects.create(
@@ -278,6 +293,7 @@ class WorkspaceTest(TestCase):
                 self.USER_SUPERUSER,
                 name="Test Workspace",
                 description="Test workspace for configuration",
+                organization=self.ORGANIZATION,
             )
 
         WorkspaceMembership.objects.create(
@@ -303,7 +319,7 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
-                self.USER_SUPERUSER, name="WP"
+                self.USER_SUPERUSER, name="WP", organization=self.ORGANIZATION
             )
 
         self.assertEqual(workspace.db_host, f"{workspace.slug}.db.proxy")
@@ -319,7 +335,7 @@ class WorkspaceTest(TestCase):
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             workspace = Workspace.objects.create_if_has_perm(
-                self.USER_SUPERUSER, name="WP"
+                self.USER_SUPERUSER, name="WP", organization=self.ORGANIZATION
             )
 
         self.assertEqual(workspace.db_host, "192.168.1.100")
@@ -336,6 +352,9 @@ class WorkspaceOrganizationRoleTest(TestCase):
         )
 
         cls.organization = Organization.objects.create(name="Test Organization")
+        cls.other_organization = Organization.objects.create(
+            name="Other Test Organization"
+        )
 
         cls.org_owner = User.objects.create_user("owner@example.com", "password")
         cls.org_admin = User.objects.create_user("admin@example.com", "password")
@@ -370,6 +389,7 @@ class WorkspaceOrganizationRoleTest(TestCase):
             cls.standalone_workspace = Workspace.objects.create_if_has_perm(
                 principal=cls.USER_ADMIN,
                 name="Standalone Workspace",
+                organization=cls.other_organization,
             )
 
         WorkspaceMembership.objects.create(
@@ -442,6 +462,7 @@ class WorkspaceFilterForUserDispatchTest(TestCase):
         cls.external = User.objects.create_user("external@example.com", "password")
 
         cls.organization = Organization.objects.create(name="Org")
+        cls.other_organization = Organization.objects.create(name="Other Org")
         OrganizationMembership.objects.create(
             organization=cls.organization,
             user=cls.org_owner,
@@ -470,6 +491,7 @@ class WorkspaceFilterForUserDispatchTest(TestCase):
             cls.standalone_workspace = Workspace.objects.create_if_has_perm(
                 principal=cls.superuser,
                 name="Standalone WS",
+                organization=cls.other_organization,
             )
             cls.archived_workspace = Workspace.objects.create_if_has_perm(
                 principal=cls.superuser,
@@ -605,12 +627,15 @@ class ConnectionTest(TestCase):
         cls.USER_ADMIN = User.objects.create_user(
             "admin@bluesquarehub.com", "admin", is_superuser=True
         )
+        cls.ORGANIZATION = Organization.objects.create(name="ConnectionTest Org")
         with (
             patch("hexa.workspaces.models.create_database"),
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
             cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-                cls.USER_ADMIN, name="Workspace's title"
+                cls.USER_ADMIN,
+                name="Workspace's title",
+                organization=cls.ORGANIZATION,
             )
 
         WorkspaceMembership.objects.create(
@@ -771,6 +796,7 @@ class ConnectionFilterForUserTest(TestCase):
         cls.external = User.objects.create_user("external@example.com", "password")
 
         cls.organization = Organization.objects.create(name="Org")
+        cls.other_organization = Organization.objects.create(name="Other Org")
         OrganizationMembership.objects.create(
             organization=cls.organization,
             user=cls.org_owner,
@@ -799,6 +825,7 @@ class ConnectionFilterForUserTest(TestCase):
             cls.other_workspace = Workspace.objects.create_if_has_perm(
                 principal=cls.superuser,
                 name="Other WS",
+                organization=cls.other_organization,
             )
 
         WorkspaceMembership.objects.create(

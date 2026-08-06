@@ -39,14 +39,9 @@ def resolve_create_workspace(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     principal = request.user
     create_input = kwargs["input"]
-    organization_id = create_input.get("organization_id", None)
 
     try:
-        organization = (
-            Organization.objects.get(id=organization_id)
-            if organization_id
-            else Organization.objects.get(name="Bluesquare")
-        )
+        organization = Organization.objects.get(id=create_input["organization_id"])
 
         workspace = Workspace.objects.create_if_has_perm(
             principal,

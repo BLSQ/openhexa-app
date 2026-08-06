@@ -16,7 +16,6 @@ import SearchInput from "core/features/SearchInput";
 import useCacheKey from "core/hooks/useCacheKey";
 import useLocalStorage from "core/hooks/useLocalStorage";
 import useToggle from "core/hooks/useToggle";
-import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
@@ -27,7 +26,6 @@ import useOnClickOutside from "use-onclickoutside";
 import CreateWorkspaceDialog from "../CreateWorkspaceDialog";
 import {
   SidebarMenu_WorkspaceFragment,
-  SidebarMenuDocument,
   SidebarMenuQuery,
   SidebarMenuQueryVariables,
 } from "./SidebarMenu.generated";
@@ -42,7 +40,6 @@ const POPPER_MODIFIERS = [{ name: "offset", options: { offset: [8, 4] } }];
 const SidebarMenu = (props: SidebarMenuProps) => {
   const { workspace, compact = false } = props;
   const { t } = useTranslation();
-  const me = useMe();
   const [isDialogOpen, setDialogOpen] = useState(false);
   const router = useRouter();
   const [isOpen, { toggle, setFalse }] = useToggle();
@@ -99,7 +96,11 @@ const SidebarMenu = (props: SidebarMenuProps) => {
   >(
     gql`
       query SidebarMenu($page: Int, $perPage: Int, $organizationId: UUID) {
-        workspaces(page: $page, perPage: $perPage, organizationId: $organizationId) {
+        workspaces(
+          page: $page
+          perPage: $perPage
+          organizationId: $organizationId
+        ) {
           totalItems
           items {
             slug
@@ -113,7 +114,11 @@ const SidebarMenu = (props: SidebarMenuProps) => {
       }
     `,
     {
-      variables: { page: 1, perPage: 2000, organizationId: workspace.organization?.id },
+      variables: {
+        page: 1,
+        perPage: 2000,
+        organizationId: workspace.organization.id,
+      },
       fetchPolicy: "cache-and-network",
     },
   );
@@ -225,9 +230,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                 className="flex-1"
                 fullWidth
               />
-              {(workspace.organization
-                ? workspace.organization.permissions.createWorkspace.isAllowed
-                : me.permissions.createWorkspace) && (
+              {workspace.organization.permissions.createWorkspace.isAllowed && (
                 <>
                   <button
                     type="button"
@@ -240,7 +243,7 @@ const SidebarMenu = (props: SidebarMenuProps) => {
                   <CreateWorkspaceDialog
                     open={isDialogOpen}
                     onClose={() => setDialogOpen(false)}
-                    organizationId={workspace.organization?.id}
+                    organizationId={workspace.organization.id}
                   />
                 </>
               )}

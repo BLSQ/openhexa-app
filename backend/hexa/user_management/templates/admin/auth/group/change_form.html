@@ -1,0 +1,15 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block content_subtitle %}
+{{ block.super }}
+<ul class="messagelist">
+    <li class="warning">
+        {% blocktranslate trimmed %}
+        Django groups are not part of OpenHEXA's access model (organizations,
+        workspaces and teams). They are only used by SQL dashboards, for the
+        "users in group" view and edit policies.
+        {% endblocktranslate %}
+    </li>
+</ul>
+{% endblock %}

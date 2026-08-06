@@ -10,7 +10,7 @@ from hexa.pipelines.models import (
     PipelineType,
 )
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class UpdatePipelineHeartbeatTest(GraphQLTestCase):
@@ -23,11 +23,11 @@ class UpdatePipelineHeartbeatTest(GraphQLTestCase):
             "standardpassword",
             is_superuser=True,
         )
-
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            cls.WS1 = Workspace.objects.create_if_has_perm(
+            cls.WS1 = create_workspace(
                 cls.USER_ROOT,
                 name="WS1",
                 description="Workspace 1",

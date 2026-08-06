@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { downloadBlob } from "core/helpers/files";
+import { ComponentProps } from "react";
 import DataStudioEditor from "./DataStudioEditor";
 
 // `useTranslation` is globally mocked to echo the key, so button/label
@@ -11,6 +12,44 @@ let mockQueryState: { data?: unknown; loading: boolean; error?: unknown };
 
 jest.mock("./DataStudioEditor.generated", () => ({
   useExecuteWorkspaceSqlLazyQuery: () => [mockExecute, mockQueryState],
+}));
+
+const mockEditDetails = jest.fn();
+const mockCommit = jest.fn();
+const mockPlanSave = jest.fn();
+let mockEditorState: any;
+
+// Stand-in for `useSavedQueryEditor`'s resolved save policy. The hook decides
+// what saving means (covered in its own suite); these tests only check that the
+// toolbar and the ⌘S binding render/run whatever it hands them.
+const savePlan = (overrides: Record<string, unknown> = {}) => ({
+  variant: "create",
+  save: mockPlanSave,
+  blockedBy: null,
+  saveAsNew: null,
+  ...overrides,
+});
+
+// The save/write path (Apollo mutations + router navigation) is exercised in
+// its own suite; stub it here so these tests stay focused on run/export/schema
+// orchestration and need no ApolloProvider or router. `mockEditorState` is
+// (re)initialised in beforeEach so a test can flip it to a saved/updatable
+// query and exercise the edit-details pencil.
+jest.mock("./useSavedQueryEditor", () => ({
+  useSavedQueryEditor: () => mockEditorState,
+}));
+
+// The dialog owns its own mutations (covered by its suite); stub it down to the
+// props this file cares about so no ApolloProvider is needed.
+jest.mock("workspaces/features/SavedQueries/SaveQueryDialog", () => ({
+  __esModule: true,
+  default: ({ open, mode }: { open: boolean; mode: string }) => (
+    <div
+      data-testid="save-query-dialog"
+      data-open={String(open)}
+      data-mode={mode}
+    />
+  ),
 }));
 
 // The schema browser and results grid are covered by their own tests; stub them
@@ -95,6 +134,33 @@ jest.mock("core/helpers/files", () => ({
   downloadBlob: jest.fn(),
 }));
 
+// GenerateSqlBar pulls in the real Apollo `useCreateAssistantConversationMutation`
+// hook, which needs an ApolloProvider this file doesn't set up. Stubbed the same way
+// as DataStudioSchemaBrowser/DataStudioResults above, exposing just enough (the
+// `open` prop and a call to trigger onGenerated) to test DataStudioEditor's own wiring.
+jest.mock("./GenerateSqlBar", () => ({
+  __esModule: true,
+  default: ({
+    open,
+    form,
+  }: {
+    open: boolean;
+    onClose: () => void;
+    form: { handleSubmit: () => void };
+  }) =>
+    open ? (
+      <div data-testid="generate-bar">
+        <button onClick={form.handleSubmit}>trigger-generate</button>
+      </div>
+    ) : null,
+  useGenerateSqlForm: (
+    _workspaceSlug: string,
+    onGenerated: (sql: string) => void,
+  ) => ({
+    handleSubmit: () => onGenerated("SELECT 1"),
+  }),
+}));
+
 const successState = (overrides: Record<string, unknown> = {}) => ({
   loading: false,
   data: {
@@ -117,14 +183,35 @@ const successState = (overrides: Record<string, unknown> = {}) => ({
   },
 });
 
-const renderEditor = () =>
-  render(<DataStudioEditor workspaceSlug="ws-1" />);
+const renderEditor = (
+  props: Partial<ComponentProps<typeof DataStudioEditor>> = {},
+) =>
+  render(
+    <DataStudioEditor workspaceSlug="ws-1" canCreate={false} {...props} />,
+  );
 
 beforeEach(() => {
   mockExecute.mockClear();
   mockInsertText.mockClear();
   (downloadBlob as jest.Mock).mockClear();
+  mockEditDetails.mockClear();
+  mockCommit.mockClear();
+  mockPlanSave.mockClear();
   mockQueryState = { loading: false };
+  mockEditorState = {
+    savedQuery: null,
+    isDirty: false,
+    saving: false,
+    canUpdate: false,
+    dialog: { open: false, mode: "create" },
+    savePlan: savePlan(),
+    save: jest.fn(),
+    saveAsNew: jest.fn(),
+    commit: mockCommit,
+    editDetails: mockEditDetails,
+    closeDialog: jest.fn(),
+    onDialogSaved: jest.fn(),
+  };
 });
 
 describe("DataStudioEditor", () => {
@@ -271,5 +358,145 @@ describe("DataStudioEditor", () => {
       "data-loading",
       "true",
     );
+  });
+
+  // Headless UI skips the enter transition of a dialog that mounts already open,
+  // so the dialog has to stay mounted and be driven by `open`.
+  it("keeps the save dialog mounted while it is closed", () => {
+    renderEditor();
+
+    const dialog = screen.getByTestId("save-query-dialog");
+    expect(dialog).toHaveAttribute("data-open", "false");
+  });
+
+  it("passes the open state and mode of the dialog through", () => {
+    mockEditorState.dialog = { open: true, mode: "edit-details" };
+    renderEditor();
+
+    const dialog = screen.getByTestId("save-query-dialog");
+    expect(dialog).toHaveAttribute("data-open", "true");
+    expect(dialog).toHaveAttribute("data-mode", "edit-details");
+  });
+
+  it("opens the edit-details dialog from the pencil next to a saved query name", async () => {
+    mockEditorState.savedQuery = { id: "q1", name: "Cohort query" };
+    mockEditorState.canUpdate = true;
+    renderEditor();
+
+    expect(screen.getByText("Cohort query")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Edit details" }));
+    expect(mockEditDetails).toHaveBeenCalledTimes(1);
+  });
+
+  it("hides the edit-details pencil when the query cannot be updated", () => {
+    mockEditorState.savedQuery = { id: "q1", name: "Cohort query" };
+    mockEditorState.canUpdate = false;
+    renderEditor();
+
+    expect(
+      screen.queryByRole("button", { name: "Edit details" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("disables Save when the plan withholds it, and runs it when offered", async () => {
+    mockEditorState.savePlan = savePlan({ save: null, blockedBy: "empty" });
+    const { unmount } = renderEditor();
+
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    unmount();
+
+    mockEditorState.savePlan = savePlan();
+    renderEditor();
+
+    const save = screen.getByRole("button", { name: "Save" });
+    expect(save).toBeEnabled();
+    await userEvent.click(save);
+    expect(mockPlanSave).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows no save control when the plan offers no variant", () => {
+    mockEditorState.savePlan = savePlan({ variant: null, save: null });
+    renderEditor();
+
+    expect(
+      screen.queryByRole("button", { name: "Save" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["Cmd+S", { key: "s", metaKey: true }],
+    ["Ctrl+S", { key: "s", ctrlKey: true }],
+  ])("saves on %s and suppresses the browser save dialog", (_label, init) => {
+    renderEditor();
+
+    expect(fireEvent.keyDown(window, init)).toBe(false);
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+  });
+
+  it("saves once on Ctrl/Cmd+S from inside the SQL editor", async () => {
+    renderEditor();
+    const editor = screen.getByTestId("editor");
+    await userEvent.type(editor, "SELECT 1");
+
+    // Only bound on the window, so a keystroke in the buffer bubbles up to a
+    // single handler instead of also hitting a CodeMirror binding.
+    fireEvent.keyDown(editor, { key: "s", ctrlKey: true });
+
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+  });
+
+  it("never hands Ctrl/Cmd+S back to the browser while the save dialog is open", () => {
+    mockEditorState.dialog = { open: true, mode: "create" };
+    renderEditor();
+    expect(screen.getByTestId("save-query-dialog")).toHaveAttribute(
+      "data-open",
+      "true",
+    );
+
+    // The dialog has no ⌘S binding of its own, so releasing the keystroke here
+    // would open the browser's "Save page as…" on top of the dialog. It stays
+    // consumed; `commit` is the one that decides the dialog owns the keyboard.
+    expect(fireEvent.keyDown(window, { key: "s", ctrlKey: true })).toBe(false);
+  });
+
+  it("surfaces the save shortcut in the Save tooltip (Ctrl+S on non-mac)", () => {
+    renderEditor();
+
+    // jsdom's userAgent is not a Mac, so the tooltip uses the Ctrl variant.
+    expect(screen.getByRole("button", { name: "Save" })).toHaveAttribute(
+      "title",
+      "Save query (Ctrl+S)",
+    );
+  });
+
+  it("hides the Generate button when AI is not enabled for the workspace", () => {
+    renderEditor();
+    expect(
+      screen.queryByRole("button", { name: "Generate" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens the generate bar from the toolbar when AI is enabled", async () => {
+    renderEditor({ aiEnabled: true });
+    expect(screen.queryByTestId("generate-bar")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Generate" }));
+
+    expect(screen.getByTestId("generate-bar")).toBeInTheDocument();
+  });
+
+  it("disables the Generate button once the AI budget is exhausted", () => {
+    renderEditor({ aiEnabled: true, aiBudgetLimitReached: true });
+    expect(screen.getByRole("button", { name: "Generate" })).toBeDisabled();
+  });
+
+  it("fills the editor with the generated query and closes the bar", async () => {
+    renderEditor({ aiEnabled: true });
+    await userEvent.click(screen.getByRole("button", { name: "Generate" }));
+
+    await userEvent.click(screen.getByText("trigger-generate"));
+
+    expect(screen.getByTestId("editor")).toHaveValue("SELECT 1");
+    expect(screen.queryByTestId("generate-bar")).not.toBeInTheDocument();
   });
 });
