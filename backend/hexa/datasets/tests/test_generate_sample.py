@@ -27,7 +27,8 @@ from hexa.datasets.tests.testutils import DatasetTestMixin
 from hexa.files import storage
 from hexa.metadata.models import MetadataAttribute
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace, WorkspaceMembershipRole
+from hexa.workspaces.models import WorkspaceMembershipRole
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class TestDataframeJsonEncoder(TestCase):
@@ -43,8 +44,10 @@ class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
         cls.USER_SERENA = User.objects.create_user(
             "serena@bluesquarehub.com", "serena's password", is_superuser=True
         )
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-            cls.USER_SERENA, name="My Workspace", description="Test workspace"
+        cls.WORKSPACE = create_workspace(
+            cls.USER_SERENA,
+            name="My Workspace",
+            description="Test workspace",
         )
 
         cls.DATASET = Dataset.objects.create_if_has_perm(

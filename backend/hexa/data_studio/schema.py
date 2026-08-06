@@ -14,8 +14,8 @@ from psycopg2 import Error as Psycopg2Error
 from psycopg2.errors import QueryCanceled
 
 from hexa.core.graphql import result_page
+from hexa.databases.query_text import MultipleStatementsError
 from hexa.databases.schema import database_object
-from hexa.databases.utils import MultipleStatementsError
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
@@ -30,6 +30,16 @@ saved_query_object = ObjectType("SavedQuery")
 saved_query_permissions = ObjectType("SavedQueryPermissions")
 data_studio_queries = QueryType()
 data_studio_mutations = MutationType()
+
+saved_query_order_by_enum = EnumType(
+    "SavedQueryOrderBy",
+    {
+        "NAME_ASC": "name",
+        "NAME_DESC": "-name",
+        "UPDATED_AT_ASC": "updated_at",
+        "UPDATED_AT_DESC": "-updated_at",
+    },
+)
 
 # Only the origins a client may declare are bound to the GraphQL enum: the CSV export's
 # origin is set server-side (see views.download_query_csv), so it cannot be claimed on an
@@ -129,6 +139,11 @@ def resolve_workspace_saved_queries(workspace: Workspace, info, query=None, **kw
         # frontend defines whether and how body matches should surface to users.
         qs = qs.filter(Q(name__icontains=query) | Q(description__icontains=query))
 
+    # `id` breaks ties so paging stays deterministic: neither `name` nor
+    # `updated_at` is unique, and rows sharing a sort key could otherwise be
+    # dealt to two pages (or none) across successive requests.
+    qs = qs.order_by(kwargs["order_by"], "id")
+
     return result_page(
         queryset=qs,
         page=kwargs.get("page", 1),
@@ -226,6 +241,7 @@ def resolve_delete_saved_query(_, info, **kwargs):
 data_studio_bindables = [
     saved_query_object,
     saved_query_permissions,
+    saved_query_order_by_enum,
     data_studio_queries,
     data_studio_mutations,
     execute_sql_origin_enum,

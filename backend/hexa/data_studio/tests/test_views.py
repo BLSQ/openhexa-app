@@ -15,10 +15,10 @@ from hexa.databases.tests.helpers import seed_demo_table
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 # Shared with the frontend (DataStudioEditor/downloadQueryCsv.test.ts): the one
 # source of truth for the download-handshake constants the two tiers must agree
@@ -50,7 +50,7 @@ class DownloadQueryCsvViewTest(TestCase):
             password="pwd",
             database="hexa-explore-demo",
         )
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_SUPERUSER,
             name="Test Workspace",
             description="Test workspace",

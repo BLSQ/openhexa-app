@@ -1,7 +1,14 @@
-import { fireEvent, render, screen, waitFor, cleanup } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  cleanup,
+} from "@testing-library/react";
 import { FilesEditor } from "./FilesEditor";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 import { FileType } from "graphql/types";
+import { NavigationAbortedError } from "core/hooks/useNavigationWarning";
 import mockRouter from "next-router-mock";
 import { TestApp } from "core/helpers/testutils";
 import { Cookies } from "react-cookie";
@@ -278,8 +285,8 @@ describe("FilesEditor", () => {
     const originalConfirm = window.confirm;
     window.confirm = mockConfirm;
 
-    await expect(mockRouter.push("/new-route")).rejects.toBe(
-      "Route change aborted",
+    await expect(mockRouter.push("/new-route")).rejects.toBeInstanceOf(
+      NavigationAbortedError,
     );
 
     expect(mockConfirm).toHaveBeenCalledWith(
@@ -317,7 +324,9 @@ describe("FilesEditor", () => {
     fireEvent.click(screen.getByText("file1.py"));
 
     await waitFor(() => {
-      expect(screen.getByTestId("code-editor")).toHaveValue("# proposed version");
+      expect(screen.getByTestId("code-editor")).toHaveValue(
+        "# proposed version",
+      );
     });
   });
 
@@ -393,9 +402,7 @@ describe("FilesEditor", () => {
     fireEvent.click(screen.getByText(/Save/i));
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/Parse error in pipeline/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/Parse error in pipeline/i)).toBeInTheDocument();
     });
   });
 

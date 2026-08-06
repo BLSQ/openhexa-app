@@ -5,7 +5,7 @@ from django.test import TestCase
 from hexa.pipelines.models import Pipeline
 from hexa.tags.models import InvalidTag, Tag
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class PipelineTagsTest(TestCase):
@@ -14,10 +14,11 @@ class PipelineTagsTest(TestCase):
         cls.user = User.objects.create_user(
             email="test@example.com", password="password", is_superuser=True
         )
-        with patch("hexa.workspaces.models.create_database"), patch(
-            "hexa.workspaces.models.load_database_sample_data"
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            cls.workspace = Workspace.objects.create_if_has_perm(
+            cls.workspace = create_workspace(
                 cls.user,
                 name="Test Workspace",
                 description="A test workspace",

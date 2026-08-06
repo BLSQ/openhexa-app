@@ -9,6 +9,7 @@ import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import SavedQueriesList from "workspaces/features/SavedQueries/SavedQueriesList";
+import { DEFAULT_SAVED_QUERY_ORDER_BY } from "workspaces/features/SavedQueries/sorting";
 import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
 import {
   useWorkspaceSavedQueriesPageQuery,
@@ -31,13 +32,20 @@ const WorkspaceSavedQueriesPage: NextPageWithLayout = (props: Props) => {
   const router = useRouter();
   const [page, setPage] = useState(props.page);
   const [perPage, setPerPage] = useState(props.perPage);
+  const [orderBy, setOrderBy] = useState(DEFAULT_SAVED_QUERY_ORDER_BY);
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 300);
   const query = debouncedSearch.trim() || undefined;
 
   const { data, previousData, loading, refetch } =
     useWorkspaceSavedQueriesPageQuery({
-      variables: { workspaceSlug: props.workspaceSlug, page, perPage, query },
+      variables: {
+        workspaceSlug: props.workspaceSlug,
+        page,
+        perPage,
+        query,
+        orderBy,
+      },
       notifyOnNetworkStatusChange: true,
     });
 
@@ -72,6 +80,7 @@ const WorkspaceSavedQueriesPage: NextPageWithLayout = (props: Props) => {
           workspace={workspace}
           page={page}
           perPage={perPage}
+          orderBy={orderBy}
           loading={loading}
           searchValue={searchInput}
           onSearchChange={(value) => {
@@ -79,9 +88,10 @@ const WorkspaceSavedQueriesPage: NextPageWithLayout = (props: Props) => {
             // A new search always narrows to the first page of results.
             setPage(1);
           }}
-          onChangePage={({ page, pageSize }) => {
+          onChange={({ page, perPage, orderBy }) => {
             setPage(page);
-            setPerPage(pageSize);
+            setPerPage(perPage);
+            setOrderBy(orderBy);
           }}
         />
       </DataStudioLayout>
@@ -106,6 +116,9 @@ export const getServerSideProps = createGetServerSideProps({
         workspaceSlug: ctx.params?.workspaceSlug as string,
         page,
         perPage,
+        // Must match the client's initial variables, otherwise its first render
+        // misses the SSR-primed cache and refetches the same page.
+        orderBy: DEFAULT_SAVED_QUERY_ORDER_BY,
       },
     });
 

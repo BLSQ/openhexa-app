@@ -152,6 +152,32 @@ describe("SaveQueryDialog", () => {
     expect(toast.success).toHaveBeenCalledWith("Query updated");
   });
 
+  // The dialog is not remounted between opens (it stays mounted so it can
+  // animate), so each open has to re-seed the form from the current props.
+  it("re-seeds the form on every open", async () => {
+    const props = {
+      mode: "create" as const,
+      workspaceSlug: "ws-1",
+      content: "SELECT 1",
+      savedQuery: null,
+      onClose: jest.fn(),
+      onSaved: jest.fn(),
+    };
+    const { rerender } = render(<SaveQueryDialog open {...props} />);
+
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "Abandoned draft" },
+    });
+    rerender(<SaveQueryDialog open={false} {...props} />);
+    rerender(<SaveQueryDialog open {...props} />);
+
+    await waitFor(() =>
+      expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe(
+        "",
+      ),
+    );
+  });
+
   it("surfaces a permission error without navigating", async () => {
     createMock.mockResolvedValue({
       data: {

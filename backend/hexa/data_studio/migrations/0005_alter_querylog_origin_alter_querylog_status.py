@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("data_studio", "0002_querylog"),
+        ("data_studio", "0004_merge_20260731_2053"),
     ]
 
     operations = [

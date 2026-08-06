@@ -1,17 +1,25 @@
+import useNavigationWarning from "core/hooks/useNavigationWarning";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 import { useCallback, useState } from "react";
 import { toast } from "react-toastify";
+import { SaveQueryDialogMode } from "workspaces/features/SavedQueries/SaveQueryDialog";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { useSavedQueryMutations } from "workspaces/features/SavedQueries/useSavedQueryMutations";
 import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
+import { hasSavePath } from "./savePath";
 
-type DialogState = { mode: "create" | "edit-details" } | null;
+// The dialog stays mounted and is toggled through `open` (so Headless UI can run
+// its enter/leave transitions), hence the mode is kept alongside it: it must
+// survive the leave transition or the title would change while fading out.
+type DialogState = { open: boolean; mode: SaveQueryDialogMode };
 
 type UseSavedQueryEditorArgs = {
   workspaceSlug: string;
   content: string;
   initialSavedQuery?: SavedQuery_SavedQueryFragment | null;
+  // Required rather than defaulted: a caller that forgets it would silently lose
+  // the navigation guard along with the Save control.
+  canCreate: boolean;
 };
 
 // Owns the write-path state machine for the SQL editor: whether the current
@@ -22,24 +30,50 @@ export const useSavedQueryEditor = ({
   workspaceSlug,
   content,
   initialSavedQuery,
+  canCreate,
 }: UseSavedQueryEditorArgs) => {
   const { t } = useTranslation();
-  const router = useRouter();
   const [savedQuery, setSavedQuery] =
     useState<SavedQuery_SavedQueryFragment | null>(initialSavedQuery ?? null);
   // Baseline the dirty check compares against; advances on each in-place save.
   const [baseline, setBaseline] = useState(initialSavedQuery?.content ?? "");
-  const [dialog, setDialog] = useState<DialogState>(null);
+  const [dialog, setDialog] = useState<DialogState>({
+    open: false,
+    mode: "create",
+  });
   const { update, updating: saving } = useSavedQueryMutations();
 
   const canUpdate = savedQuery?.permissions.update ?? false;
   const isDirty = content !== baseline;
 
+  // Only a loaded saved query is guarded. A buffer that was never saved has no
+  // stored version to diverge from, so there is no "unsaved change" to describe;
+  // warning about it would mean prompting on the way out of an editor the user
+  // may simply have been experimenting in.
+  //
+  // Edits nobody can keep are not guarded either: warning about changes that no
+  // enabled Save control could have written only states the inevitable.
+  const canPersist = hasSavePath({
+    isSaved: Boolean(savedQuery),
+    hasContent: Boolean(content.trim()),
+    canUpdate,
+    canCreate,
+  });
+  const { navigateWithoutWarning } = useNavigationWarning({
+    enabled: Boolean(savedQuery) && isDirty && canPersist,
+    message: savedQuery
+      ? t(
+          'You have unsaved changes to "{{name}}". If you leave this page, they will be lost.',
+          { name: savedQuery.name },
+        )
+      : undefined,
+  });
+
   // Primary Save: create a brand-new query (via the dialog), or update the
   // content of the loaded query in place.
   const save = useCallback(async () => {
     if (!savedQuery) {
-      setDialog({ mode: "create" });
+      setDialog({ open: true, mode: "create" });
       return;
     }
     if (!canUpdate || saving) {
@@ -59,25 +93,32 @@ export const useSavedQueryEditor = ({
     }
   }, [savedQuery, canUpdate, saving, content, update, t]);
 
-  const saveAsNew = useCallback(() => setDialog({ mode: "create" }), []);
-  const editDetails = useCallback(
-    () => setDialog({ mode: "edit-details" }),
+  const saveAsNew = useCallback(
+    () => setDialog({ open: true, mode: "create" }),
     [],
   );
-  const closeDialog = useCallback(() => setDialog(null), []);
+  const editDetails = useCallback(
+    () => setDialog({ open: true, mode: "edit-details" }),
+    [],
+  );
+  const closeDialog = useCallback(
+    () => setDialog((current) => ({ ...current, open: false })),
+    [],
+  );
 
   const onDialogSaved = useCallback(
     (sq: SavedQuery_SavedQueryFragment) => {
-      if (dialog?.mode === "edit-details") {
+      if (dialog.mode === "edit-details") {
         // Only metadata changed; the content baseline is untouched.
         setSavedQuery(sq);
-      } else {
-        // A new query was created (first save or save-as-new): open its page,
-        // which remounts the editor against the freshly saved query.
-        router.push(dataStudioRoutes(workspaceSlug).query(sq.id));
+        return;
       }
+      // A new query was created (first save or save-as-new): open its page,
+      // which remounts the editor against the freshly saved query. The buffer
+      // still counts as dirty against the old baseline, hence the bypass.
+      navigateWithoutWarning(dataStudioRoutes(workspaceSlug).query(sq.id));
     },
-    [dialog, router, workspaceSlug],
+    [dialog, navigateWithoutWarning, workspaceSlug],
   );
 
   return {

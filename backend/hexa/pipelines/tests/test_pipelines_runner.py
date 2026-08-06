@@ -23,7 +23,7 @@ from hexa.pipelines.models import (
     PipelineVersion,
 )
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class TestRunPipeline(TestCase):
@@ -130,7 +130,7 @@ class TestRunPipeline(TestCase):
 class TestKubernetesPipelineIntegration(TestCase):
     def setUp(self):
         self.user = User.objects.create(email="test@example.com")
-        self.workspace = Workspace.objects.create(
+        self.workspace = create_workspace(
             slug="test-workspace",
             name="Test Workspace",
         )

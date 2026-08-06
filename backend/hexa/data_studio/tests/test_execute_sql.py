@@ -16,10 +16,10 @@ from hexa.pipelines.models import PipelineRun
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class ExecuteSqlTest(GraphQLTestCase):
@@ -44,7 +44,7 @@ class ExecuteSqlTest(GraphQLTestCase):
             password="pwd",
             database="hexa-explore-demo",
         )
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_SUPERUSER,
             name="Test Workspace",
             description="Test workspace",

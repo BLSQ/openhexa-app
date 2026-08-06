@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from typing import Dict, Iterator, List, Tuple
 
 import psycopg2
-import sqlparse
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from psycopg2 import sql
@@ -17,6 +16,7 @@ from psycopg2.extras import RealDictCursor
 from hexa.workspaces.models import Workspace
 
 from .api import get_db_server_credentials
+from .query_text import PreparedQuery
 
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
@@ -33,34 +33,9 @@ class ResultJSONEncoder(DjangoJSONEncoder):
             return str(o)
 
 
-class MultipleStatementsError(Exception):
-    """Raised when more than one SQL statement is submitted for execution."""
-
-
 def elapsed_ms(started_at: float) -> int:
     """Milliseconds elapsed since ``started_at``, a ``time.perf_counter()`` value."""
     return round((time.perf_counter() - started_at) * 1000)
-
-
-def ensure_single_statement(query: str) -> None:
-    """Reject input that contains more than one SQL statement."""
-    statements = [s for s in sqlparse.split(query) if s.strip().rstrip(";").strip()]
-    if len(statements) > 1:
-        raise MultipleStatementsError("Only a single SQL statement can be executed.")
-
-
-def is_explain_query(query: str) -> bool:
-    """Whether the statement is an EXPLAIN.
-
-    An EXPLAIN returns a query plan whose length depends on the query's
-    complexity, not on the amount of data, so the row cap (meant to bound large
-    result sets) would truncate the plan mid-tree and must not apply.
-    """
-    parsed = sqlparse.parse(query)
-    if not parsed:
-        return False
-    first_token = parsed[0].token_first(skip_cm=True)
-    return first_token is not None and first_token.normalized.upper() == "EXPLAIN"
 
 
 def get_row_count_estimate(cursor, table_name: str) -> int:
@@ -151,11 +126,11 @@ def execute_database_query(
     of an API request must go through
     ``hexa.data_studio.query_runner.run_and_log_database_query``.
     """
-    ensure_single_statement(query)
+    prepared = PreparedQuery.from_text(query)
     hard_limit = settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS
     # A plan is bounded by query complexity, so let it through the hard limit
     # in full rather than clipping it to the (small) requested row cap.
-    max_rows = hard_limit if is_explain_query(query) else min(max_rows, hard_limit)
+    max_rows = hard_limit if prepared.is_explain else min(max_rows, hard_limit)
     conn = None
     try:
         conn = get_workspace_database_ro_connection(workspace)
@@ -166,7 +141,7 @@ def execute_database_query(
                 )
             )
             started_at = time.perf_counter()
-            cursor.execute(query)
+            cursor.execute(prepared.sql)
             # cursor.description is None for statements that do not return rows
             columns = (
                 [column.name for column in cursor.description]
@@ -216,12 +191,16 @@ def stream_database_query(
     to ``batch_size`` rows whatever the result size, and rows are yielded a batch at a
     time so the caller can fetch off the event loop once per batch.
 
+    The text goes through ``PreparedQuery`` exactly as the interactive path does: the
+    export runs SQL posted as a form field, so it is the path that most needs both the
+    cleaning and the rejection of stacked statements.
+
     The first batch is fetched eagerly, so an invalid statement raises here (surfacing
     as an HTTP 400) rather than mid-stream once bytes are on the wire. The returned
     generator owns the connection and closes it when exhausted or closed early. The two
     timeouts set below bound a runaway scan and a stalled client.
     """
-    ensure_single_statement(query)
+    prepared = PreparedQuery.from_text(query)
     conn = get_workspace_database_ro_connection(workspace)
     try:
         # SET LOCAL scopes both timeouts to this transaction, which stays open for
@@ -242,7 +221,7 @@ def stream_database_query(
             name="database_query_stream",
             cursor_factory=RealDictCursor,
         )
-        cursor.execute(query)
+        cursor.execute(prepared.sql)
         first_batch = cursor.fetchmany(batch_size)
         columns = (
             [column.name for column in cursor.description] if cursor.description else []
@@ -276,8 +255,12 @@ def validate_query(workspace: Workspace, query: str) -> None:
     catching syntax errors and references to unknown tables or columns at
     near-zero cost. Raises ``MultipleStatementsError`` when more than one
     statement is submitted and ``psycopg2.Error`` when the query is invalid.
+
+    A statement that is already an ``EXPLAIN`` is run as it stands, since
+    PostgreSQL cannot nest them -- which means an ``EXPLAIN ANALYZE`` submitted
+    here does run its inner query, bounded by the read-only role and the timeout.
     """
-    ensure_single_statement(query)
+    prepared = PreparedQuery.from_text(query)
     conn = None
     try:
         conn = get_workspace_database_ro_connection(workspace)
@@ -287,7 +270,9 @@ def validate_query(workspace: Workspace, query: str) -> None:
                     timeout=sql.Literal(_VALIDATE_QUERY_TIMEOUT_MS)
                 )
             )
-            cursor.execute("EXPLAIN " + query)
+            cursor.execute(
+                prepared.sql if prepared.is_explain else "EXPLAIN " + prepared.sql
+            )
     finally:
         if conn:
             conn.close()

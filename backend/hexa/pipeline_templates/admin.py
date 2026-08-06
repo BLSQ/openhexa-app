@@ -1,7 +1,9 @@
 from django.contrib import admin
+from django.urls import path
 
 from hexa.core.admin import GlobalObjectsModelAdmin
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
+from hexa.workspace_copier.admin import copy_templates_view
 
 
 @admin.register(PipelineTemplate)
@@ -10,6 +12,7 @@ class PipelineTemplateAdmin(GlobalObjectsModelAdmin):
     list_select_related = ("workspace",)
     list_filter = ("validated_at",)
     search_fields = ("id", "code", "name")
+    change_list_template = "admin/pipeline_templates/pipelinetemplate/change_list.html"
     fields = (
         "name",
         "code",
@@ -24,6 +27,16 @@ class PipelineTemplateAdmin(GlobalObjectsModelAdmin):
         "deleted_at",
     )
     readonly_fields = ("workspace", "source_pipeline", "created_at", "updated_at")
+
+    def get_urls(self):
+        custom = [
+            path(
+                "copy/",
+                self.admin_site.admin_view(copy_templates_view),
+                name="pipeline_templates_pipelinetemplate_copy",
+            ),
+        ]
+        return custom + super().get_urls()
 
 
 @admin.register(PipelineTemplateVersion)

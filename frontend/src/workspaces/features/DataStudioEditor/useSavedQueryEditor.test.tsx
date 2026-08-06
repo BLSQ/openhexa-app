@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { NavigationAbortedError } from "core/hooks/useNavigationWarning";
 import mockRouter from "next-router-mock";
 import { toast } from "react-toastify";
 import { useSavedQueryEditor } from "./useSavedQueryEditor";
@@ -26,13 +27,18 @@ const savedQuery = {
   permissions: { update: true, delete: true },
 } as any;
 
-const renderEditor = (content: string, initialSavedQuery: any = savedQuery) =>
+const renderEditor = (
+  content: string,
+  initialSavedQuery: any = savedQuery,
+  canCreate = true,
+) =>
   renderHook(
     (props: { content: string; initialSavedQuery: any }) =>
       useSavedQueryEditor({
         workspaceSlug: "ws-1",
         content: props.content,
         initialSavedQuery: props.initialSavedQuery,
+        canCreate,
       }),
     { initialProps: { content, initialSavedQuery } },
   );
@@ -58,7 +64,7 @@ describe("useSavedQueryEditor", () => {
       await result.current.save();
     });
 
-    expect(result.current.dialog).toEqual({ mode: "create" });
+    expect(result.current.dialog).toEqual({ open: true, mode: "create" });
     expect(updateMock).not.toHaveBeenCalled();
   });
 
@@ -104,7 +110,7 @@ describe("useSavedQueryEditor", () => {
     const { result } = renderEditor("SELECT 42", null);
 
     act(() => result.current.saveAsNew());
-    expect(result.current.dialog).toEqual({ mode: "create" });
+    expect(result.current.dialog).toEqual({ open: true, mode: "create" });
 
     act(() => result.current.onDialogSaved({ ...savedQuery, id: "new-1" }));
 
@@ -119,7 +125,7 @@ describe("useSavedQueryEditor", () => {
     const { result } = renderEditor("SELECT 1");
 
     act(() => result.current.editDetails());
-    expect(result.current.dialog).toEqual({ mode: "edit-details" });
+    expect(result.current.dialog).toEqual({ open: true, mode: "edit-details" });
 
     act(() => result.current.onDialogSaved({ ...savedQuery, name: "Renamed" }));
 
@@ -127,11 +133,102 @@ describe("useSavedQueryEditor", () => {
     expect(mockRouter.asPath).toBe("/");
   });
 
-  it("closes the dialog", () => {
+  it("starts with the dialog closed", () => {
+    const { result } = renderEditor("SELECT 1");
+    expect(result.current.dialog.open).toBe(false);
+  });
+
+  // The mode has to outlive the close so the title does not change while the
+  // dialog fades out.
+  it("closes the dialog while keeping its mode", () => {
     const { result } = renderEditor("SELECT 1");
     act(() => result.current.editDetails());
-    expect(result.current.dialog).not.toBeNull();
+    expect(result.current.dialog.open).toBe(true);
+
     act(() => result.current.closeDialog());
-    expect(result.current.dialog).toBeNull();
+    expect(result.current.dialog).toEqual({
+      open: false,
+      mode: "edit-details",
+    });
+  });
+
+  describe("navigation guard", () => {
+    const leave = () => mockRouter.push("/elsewhere");
+
+    it("warns before leaving a saved query with unsaved changes", async () => {
+      (window.confirm as jest.Mock).mockReturnValue(false);
+      renderEditor("SELECT 2");
+
+      await expect(leave()).rejects.toBeInstanceOf(NavigationAbortedError);
+      expect(window.confirm).toHaveBeenCalled();
+      expect(mockRouter.asPath).toBe("/");
+    });
+
+    it("does not warn when the saved query is unchanged", async () => {
+      renderEditor("SELECT 1");
+
+      await act(() => leave());
+
+      expect(window.confirm).not.toHaveBeenCalled();
+    });
+
+    it("does not warn about an emptied buffer, which Save refuses anyway", async () => {
+      (window.confirm as jest.Mock).mockReturnValue(false);
+      renderEditor("   ");
+
+      await act(() => leave());
+
+      expect(window.confirm).not.toHaveBeenCalled();
+      expect(mockRouter.asPath).toBe("/elsewhere");
+    });
+
+    it("does not warn about the unsaved editor", async () => {
+      renderEditor("SELECT 42", null);
+
+      await act(() => leave());
+
+      expect(window.confirm).not.toHaveBeenCalled();
+    });
+
+    it("does not warn a viewer, who has no way to keep the changes", async () => {
+      (window.confirm as jest.Mock).mockReturnValue(false);
+      const readOnly = {
+        ...savedQuery,
+        permissions: { update: false, delete: false },
+      };
+      renderEditor("SELECT 2", readOnly, false);
+
+      await act(() => leave());
+
+      expect(window.confirm).not.toHaveBeenCalled();
+      expect(mockRouter.asPath).toBe("/elsewhere");
+    });
+
+    it("warns a viewer who can still save the changes as a new query", async () => {
+      (window.confirm as jest.Mock).mockReturnValue(false);
+      const readOnly = {
+        ...savedQuery,
+        permissions: { update: false, delete: false },
+      };
+      renderEditor("SELECT 2", readOnly, true);
+
+      await expect(leave()).rejects.toBeInstanceOf(NavigationAbortedError);
+      expect(window.confirm).toHaveBeenCalled();
+    });
+
+    it("does not warn about the redirect that follows a save-as-new", async () => {
+      (window.confirm as jest.Mock).mockReturnValue(false);
+      const { result } = renderEditor("SELECT 2");
+
+      act(() => result.current.saveAsNew());
+      await act(async () => {
+        result.current.onDialogSaved({ ...savedQuery, id: "new-1" });
+      });
+
+      expect(window.confirm).not.toHaveBeenCalled();
+      expect(mockRouter.asPath).toBe(
+        "/workspaces/ws-1/data-studio/queries/new-1",
+      );
+    });
   });
 });

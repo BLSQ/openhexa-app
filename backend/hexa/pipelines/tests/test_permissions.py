@@ -18,10 +18,10 @@ from hexa.user_management.models import (
     User,
 )
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class PipelinesOrganizationPermissionsTest(TestCase):
@@ -30,7 +30,6 @@ class PipelinesOrganizationPermissionsTest(TestCase):
         cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
             short_name="test-org-pipelines",
-            organization_type="CORPORATE",
         )
 
         cls.USER_ORG_OWNER = User.objects.create_user(
@@ -71,7 +70,7 @@ class PipelinesOrganizationPermissionsTest(TestCase):
             role=OrganizationMembershipRole.MEMBER,
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_WORKSPACE_ADMIN,
             name="Test Workspace",
             description="Test workspace for pipeline permissions",
@@ -377,58 +376,66 @@ class PipelinesOrganizationPermissionsTest(TestCase):
             delete_pipeline_version(self.USER_WORKSPACE_ADMIN, single_version)
         )
 
-    def test_permissions_with_null_organization(self):
-        """Test permissions when workspace has no organization"""
-        workspace_no_org = Workspace.objects.create(
-            name="No Org Workspace",
-            description="Workspace without organization",
+    def test_permissions_with_other_organization(self):
+        """Test permissions when workspace belongs to another organization"""
+        workspace_other_org = create_workspace(
+            name="Other Org Workspace",
+            description="Workspace in another organization",
         )
         WorkspaceMembership.objects.create(
-            workspace=workspace_no_org,
+            workspace=workspace_other_org,
             user=self.USER_WORKSPACE_ADMIN,
             role=WorkspaceMembershipRole.ADMIN,
         )
 
-        pipeline_no_org = Pipeline.objects.create(
-            workspace=workspace_no_org,
-            name="Pipeline No Org",
-            description="Pipeline in workspace without organization",
+        pipeline_other_org = Pipeline.objects.create(
+            workspace=workspace_other_org,
+            name="Pipeline Other Org",
+            description="Pipeline in workspace of another organization",
         )
 
-        version_no_org = PipelineVersion.objects.create(
-            pipeline=pipeline_no_org, version_number=1
+        version_other_org = PipelineVersion.objects.create(
+            pipeline=pipeline_other_org, version_number=1
         )
 
-        # Organization admin/owner should not have permissions for pipelines in workspace without organization
-        self.assertFalse(create_pipeline(self.USER_ORG_OWNER, workspace_no_org))
-        self.assertFalse(create_pipeline(self.USER_ORG_ADMIN, workspace_no_org))
-        self.assertFalse(update_pipeline(self.USER_ORG_OWNER, pipeline_no_org))
-        self.assertFalse(update_pipeline(self.USER_ORG_ADMIN, pipeline_no_org))
-        self.assertFalse(delete_pipeline(self.USER_ORG_OWNER, pipeline_no_org))
-        self.assertFalse(delete_pipeline(self.USER_ORG_ADMIN, pipeline_no_org))
-        self.assertFalse(run_pipeline(self.USER_ORG_OWNER, pipeline_no_org))
-        self.assertFalse(run_pipeline(self.USER_ORG_ADMIN, pipeline_no_org))
-        self.assertFalse(stop_pipeline(self.USER_ORG_OWNER, pipeline_no_org))
-        self.assertFalse(stop_pipeline(self.USER_ORG_ADMIN, pipeline_no_org))
-        self.assertFalse(create_pipeline_version(self.USER_ORG_OWNER, pipeline_no_org))
-        self.assertFalse(create_pipeline_version(self.USER_ORG_ADMIN, pipeline_no_org))
-        self.assertFalse(update_pipeline_version(self.USER_ORG_OWNER, version_no_org))
-        self.assertFalse(update_pipeline_version(self.USER_ORG_ADMIN, version_no_org))
-        self.assertFalse(view_pipeline_version(self.USER_ORG_OWNER, version_no_org))
-        self.assertFalse(view_pipeline_version(self.USER_ORG_ADMIN, version_no_org))
+        # Organization admin/owner should not have permissions for pipelines in workspaces of other organizations
+        self.assertFalse(create_pipeline(self.USER_ORG_OWNER, workspace_other_org))
+        self.assertFalse(create_pipeline(self.USER_ORG_ADMIN, workspace_other_org))
+        self.assertFalse(update_pipeline(self.USER_ORG_OWNER, pipeline_other_org))
+        self.assertFalse(update_pipeline(self.USER_ORG_ADMIN, pipeline_other_org))
+        self.assertFalse(delete_pipeline(self.USER_ORG_OWNER, pipeline_other_org))
+        self.assertFalse(delete_pipeline(self.USER_ORG_ADMIN, pipeline_other_org))
+        self.assertFalse(run_pipeline(self.USER_ORG_OWNER, pipeline_other_org))
+        self.assertFalse(run_pipeline(self.USER_ORG_ADMIN, pipeline_other_org))
+        self.assertFalse(stop_pipeline(self.USER_ORG_OWNER, pipeline_other_org))
+        self.assertFalse(stop_pipeline(self.USER_ORG_ADMIN, pipeline_other_org))
+        self.assertFalse(
+            create_pipeline_version(self.USER_ORG_OWNER, pipeline_other_org)
+        )
+        self.assertFalse(
+            create_pipeline_version(self.USER_ORG_ADMIN, pipeline_other_org)
+        )
+        self.assertFalse(
+            update_pipeline_version(self.USER_ORG_OWNER, version_other_org)
+        )
+        self.assertFalse(
+            update_pipeline_version(self.USER_ORG_ADMIN, version_other_org)
+        )
+        self.assertFalse(view_pipeline_version(self.USER_ORG_OWNER, version_other_org))
+        self.assertFalse(view_pipeline_version(self.USER_ORG_ADMIN, version_other_org))
 
         # Only workspace members should have permissions
-        self.assertTrue(create_pipeline(self.USER_WORKSPACE_ADMIN, workspace_no_org))
-        self.assertTrue(update_pipeline(self.USER_WORKSPACE_ADMIN, pipeline_no_org))
-        self.assertTrue(delete_pipeline(self.USER_WORKSPACE_ADMIN, pipeline_no_org))
-        self.assertTrue(run_pipeline(self.USER_WORKSPACE_ADMIN, pipeline_no_org))
-        self.assertTrue(stop_pipeline(self.USER_WORKSPACE_ADMIN, pipeline_no_org))
+        self.assertTrue(create_pipeline(self.USER_WORKSPACE_ADMIN, workspace_other_org))
+        self.assertTrue(update_pipeline(self.USER_WORKSPACE_ADMIN, pipeline_other_org))
+        self.assertTrue(delete_pipeline(self.USER_WORKSPACE_ADMIN, pipeline_other_org))
+        self.assertTrue(run_pipeline(self.USER_WORKSPACE_ADMIN, pipeline_other_org))
+        self.assertTrue(stop_pipeline(self.USER_WORKSPACE_ADMIN, pipeline_other_org))
         self.assertTrue(
-            create_pipeline_version(self.USER_WORKSPACE_ADMIN, pipeline_no_org)
+            create_pipeline_version(self.USER_WORKSPACE_ADMIN, pipeline_other_org)
         )
         self.assertTrue(
-            update_pipeline_version(self.USER_WORKSPACE_ADMIN, version_no_org)
+            update_pipeline_version(self.USER_WORKSPACE_ADMIN, version_other_org)
         )
         self.assertTrue(
-            view_pipeline_version(self.USER_WORKSPACE_ADMIN, version_no_org)
+            view_pipeline_version(self.USER_WORKSPACE_ADMIN, version_other_org)
         )

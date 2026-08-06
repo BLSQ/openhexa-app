@@ -36,6 +36,10 @@ mockAnimationsApi();
 beforeEach(() => {
   // Set seed for faker
   faker.seed(1);
+  // Also cleared here, not just in afterEach: RTL unmounts components in its own
+  // afterEach, which runs after ours, so an unmount that writes to storage would
+  // otherwise leak into the next test.
+  window.localStorage.clear();
 });
 afterEach(() => {
   window.localStorage.clear();

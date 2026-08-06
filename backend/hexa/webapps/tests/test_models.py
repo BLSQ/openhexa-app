@@ -18,14 +18,20 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class WebappModelTest(TestCase):
     def setUp(self):
-        self.workspace = Workspace.objects.create(name="Test Workspace")
+        self.workspace = create_workspace(name="Test Workspace")
         self.user_admin = User.objects.create_user(
             "admin@bluesquarehub.com",
             "admin",
+        )
+        OrganizationMembership.objects.create(
+            organization=self.workspace.organization,
+            user=self.user_admin,
+            role=OrganizationMembershipRole.MEMBER,
         )
         WorkspaceMembership.objects.create(
             user=self.user_admin,
@@ -184,11 +190,12 @@ class WebappModelTest(TestCase):
         self.assertEqual(len(slug2), len("collision-test-") + 6)
 
     def test_webapp_slug_uniqueness_per_workspace(self):
-        workspace2 = Workspace.objects.create_if_has_perm(
+        workspace2 = create_workspace(
             self.user_admin,
             name="Test Workspace 2",
             description="Second test workspace",
             countries=[{"code": "FR"}],
+            organization=self.workspace.organization,
         )
 
         webapp1 = Webapp.objects.create_if_has_perm(
@@ -296,11 +303,12 @@ class WebappModelTest(TestCase):
         )
         self.assertEqual(webapp1.subdomain, webapp1.slug)
 
-        workspace2 = Workspace.objects.create_if_has_perm(
+        workspace2 = create_workspace(
             self.user_admin,
             name="Other Workspace",
             description="",
             countries=[{"code": "FR"}],
+            organization=self.workspace.organization,
         )
         webapp2 = Webapp.objects.create_if_has_perm(
             self.user_admin,
@@ -312,11 +320,12 @@ class WebappModelTest(TestCase):
         self.assertEqual(webapp2.subdomain, f"{workspace2.slug}-{webapp2.slug}")
 
     def test_assign_subdomain_skips_reserved_slug(self):
-        workspace = Workspace.objects.create_if_has_perm(
+        workspace = create_workspace(
             self.user_admin,
             name="Reserved Slug Workspace",
             description="",
             countries=[{"code": "FR"}],
+            organization=self.workspace.organization,
         )
         webapp = Webapp.objects.create_if_has_perm(
             self.user_admin,
@@ -696,8 +705,9 @@ class GitWebappModelTest(TestCase):
         self.mock_git_client.get_commits.return_value = [{"id": self.INITIAL_SHA}]
         self.mock_get_client.return_value = self.mock_git_client
 
-        self.workspace = Workspace.objects.create(
-            name="Git Workspace", slug="git-workspace"
+        self.workspace = create_workspace(
+            name="Git Workspace",
+            slug="git-workspace",
         )
         self.user_admin = User.objects.create_user(
             "gitadmin@test.com",
@@ -740,13 +750,13 @@ class GitWebappModelTest(TestCase):
         self.assertEqual(webapp.url, "")
 
         self.mock_git_client.create_org_repository.assert_called_with(
-            "no-org", webapp.repository, auto_init=True
+            self.workspace.organization.slug, webapp.repository, auto_init=True
         )
         self.mock_git_client.protect_branch.assert_called_once_with(
-            "no-org", webapp.repository
+            self.workspace.organization.slug, webapp.repository
         )
         self.mock_git_client.add_collaborator.assert_called_once_with(
-            "no-org", webapp.repository, "openhexa-proxy"
+            self.workspace.organization.slug, webapp.repository, "openhexa-proxy"
         )
 
     def test_create_if_has_perm_static_no_files(self):
@@ -783,7 +793,7 @@ class GitWebappModelTest(TestCase):
             message="Initial content",
             author_name=self.user_admin.display_name,
             author_email=self.user_admin.email,
-            org_slug="no-org",
+            org_slug=self.workspace.organization.slug,
         )
 
     def test_create_if_has_perm_denied(self):
@@ -839,7 +849,7 @@ class GitWebappModelTest(TestCase):
         base_webapp.delete_if_has_perm(principal=self.user_admin)
 
         self.mock_git_client.archive_repository.assert_called_once_with(
-            "no-org", git_webapp.repository
+            self.workspace.organization.slug, git_webapp.repository
         )
         self.assertFalse(Webapp.objects.filter(pk=webapp_id).exists())
 
@@ -875,17 +885,6 @@ class GitWebappModelTest(TestCase):
             base_webapp.delete_if_has_perm(principal=self.user_admin)
 
         self.assertTrue(Webapp.objects.filter(pk=webapp_id).exists())
-
-    def test_git_org_falls_back_to_no_org_when_workspace_has_no_organization(self):
-        webapp = GitWebapp.create_if_has_perm(
-            principal=self.user_admin,
-            workspace=self.workspace,
-            name="Org Name Test",
-            created_by=self.user_admin,
-            webapp_type=Webapp.WebappType.STATIC,
-        )
-
-        self.assertEqual(webapp.git_org.slug, "no-org")
 
     def test_org_name_with_organization(self):
         org = Organization.objects.create(
@@ -964,7 +963,7 @@ class GitWebappModelTest(TestCase):
         self.assertEqual(webapp.published_commit, "existing-sha")
         mock_logger.warning.assert_called_once_with(
             "Repository %s/%s already exists, reusing it",
-            "no-org",
+            self.workspace.organization.slug,
             f"{self.workspace.slug}-webapp-idempotent-app",
         )
 

@@ -6,8 +6,8 @@ import psycopg2
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 
+from hexa.databases.query_text import MultipleStatementsError
 from hexa.databases.utils import (
-    MultipleStatementsError,
     elapsed_ms,
     execute_database_query,
     stream_database_query,

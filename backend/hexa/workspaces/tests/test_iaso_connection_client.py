@@ -8,7 +8,6 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import (
     Connection,
     ConnectionType,
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
@@ -18,6 +17,7 @@ from hexa.workspaces.tests.fixtures.iaso.iaso_fixtures import (
     iaso_mocked_orgunits,
     iaso_mocked_projects,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 from hexa.workspaces.utils import (
     IASOMetadataQueryType,
     query_iaso_metadata,
@@ -43,8 +43,9 @@ class TestIASOClientMethods(TestCase):
         with patch("hexa.workspaces.models.create_database"), patch(
             "hexa.workspaces.models.load_database_sample_data"
         ):
-            cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-                cls.USER_ADMIN, name="Workspace's title"
+            cls.WORKSPACE = create_workspace(
+                cls.USER_ADMIN,
+                name="Workspace's title",
             )
 
         WorkspaceMembership.objects.create(

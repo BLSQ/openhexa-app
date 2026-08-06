@@ -102,13 +102,19 @@ query WorkspaceSavedQueriesPage(
   $query: String
   $page: Int
   $perPage: Int
+  $orderBy: SavedQueryOrderBy!
 ) {
   workspace(slug: $workspaceSlug) {
     slug
     permissions {
       createSavedQuery
     }
-    savedQueries(query: $query, page: $page, perPage: $perPage) {
+    savedQueries(
+      query: $query
+      page: $page
+      perPage: $perPage
+      orderBy: $orderBy
+    ) {
       totalItems
       totalPages
       pageNumber

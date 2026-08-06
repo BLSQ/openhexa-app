@@ -15,7 +15,7 @@ from hexa.databases.utils import (
 )
 from hexa.files import storage
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class Migration0061Test(TransactionTestCase):
@@ -33,7 +33,7 @@ class Migration0061Test(TransactionTestCase):
         # The dummy test storage doesn't support bucket sample data; the database
         # part of the tutorial load is what matters here.
         with patch("hexa.workspaces.models.load_bucket_sample_data"):
-            self.workspace = Workspace.objects.create_if_has_perm(
+            self.workspace = create_workspace(
                 self.user, name="Covid WS", description="", load_sample_data=True
             )
         # Revoke the auto-granted SELECT to reproduce a pre-fix workspace where

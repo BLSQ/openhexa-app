@@ -12,7 +12,6 @@ from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.tags.models import Tag
 from hexa.user_management.models import OrganizationMembership
-from hexa.user_management.schema.types import me_permissions_object
 
 from ..models import (
     Connection,
@@ -69,16 +68,6 @@ def resolve_workspace_permissions_delete_table(obj: Workspace, info, **kwargs):
     request: HttpRequest = info.context["request"]
     return (
         request.user.has_perm("workspaces.delete_database_table", obj)
-        if request.user.is_authenticated
-        else False
-    )
-
-
-@me_permissions_object.field("createWorkspace")
-def resolve_me_permissions_create_workspace(me, info):
-    request: HttpRequest = info.context["request"]
-    return (
-        request.user.has_perm("user_management.create_workspace")
         if request.user.is_authenticated
         else False
     )
@@ -243,17 +232,10 @@ def resolve_workspace_pipeline_last_run_statuses(workspace: Workspace, info, **k
 
 @workspace_object.field("pipelineTemplateTags")
 def resolve_workspace_pipeline_template_tags(workspace: Workspace, info, **kwargs):
-    if workspace.organization:
-        return (
-            Tag.objects.filter(
-                pipeline_templates__workspace__organization=workspace.organization
-            )
-            .distinct()
-            .values_list("name", flat=True)
-            .order_by("name")
-        )
     return (
-        Tag.objects.filter(pipeline_templates__workspace=workspace)
+        Tag.objects.filter(
+            pipeline_templates__workspace__organization=workspace.organization
+        )
         .distinct()
         .values_list("name", flat=True)
         .order_by("name")
@@ -264,10 +246,6 @@ def resolve_workspace_pipeline_template_tags(workspace: Workspace, info, **kwarg
 def resolve_workspace_membership_organization_membership(
     membership: WorkspaceMembership, info, **kwargs
 ):
-    """Return the user's organization membership if the workspace belongs to an organization."""
-    if not membership.workspace.organization:
-        return None
-
     try:
         return OrganizationMembership.objects.get(
             user=membership.user, organization=membership.workspace.organization
