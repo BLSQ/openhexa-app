@@ -55,8 +55,8 @@ extend type WorkspacePermissions {
 }
 
 extend type Query {
-  "Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace."
-  savedQuery(id: ID!, workspaceSlug: String): SavedQuery
+  "Retrieves a saved query by workspace slug and id."
+  savedQuery(workspaceSlug: String!, id: ID!): SavedQuery
 }
 
 """
