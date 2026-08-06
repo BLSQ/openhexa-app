@@ -48,10 +48,11 @@ const DataStudioEditor = ({
   });
 
   const runShortcutLabel = isMac ? "⌘+Enter" : "Ctrl+Enter";
-  const formatShortcutLabel = isMac ? "⌘+F" : "Ctrl+F";
-  // Compact form for the in-button pill: the return glyph reads cleanly next to
-  // ⌘ on macOS; other platforms keep the spelled-out modifier.
+  const formatShortcutLabel = isMac ? "⇧+⌥+F" : "Shift+Alt+F";
+  // Compact form for the in-button pills: the modifier glyphs read cleanly on
+  // macOS; other platforms keep the spelled-out modifiers.
   const runShortcutBadge = isMac ? "⌘↵" : "Ctrl+Enter";
+  const formatShortcutBadge = isMac ? "⇧⌥F" : "Shift+Alt+F";
 
   const { run, retry, result, loading, error, canExport } =
     useDataStudioQuery(workspaceSlug);
@@ -83,16 +84,17 @@ const DataStudioEditor = ({
   // consumed and does not also insert a newline. Runs the selection when there
   // is one, otherwise the whole query. "Mod" is Cmd on macOS / Ctrl elsewhere;
   // "Ctrl" is added so Ctrl+Enter works on macOS too.
-  // "Mod-f" shadows the browser's find bar while the editor has focus, which is
-  // the intent; CodeEditor moves its own search panel to Mod-Shift-f in
-  // response, so in-editor find survives. "Ctrl-f" is deliberately not bound:
-  // on macOS it is CodeMirror's move-cursor-right. "Shift-Alt-f" is the
-  // editor-conventional alias for formatting.
+  // Formatting deliberately stays off Mod-f: that is find, both in the browser
+  // and in CodeMirror, and it is used far more often than formatting.
+  // "Shift-Alt-f" is the editor-conventional binding for formatting. It needs
+  // both cases: CodeMirror skips its keyCode fallback for plain Alt combos on
+  // macOS (Alt there types a character — ⇧⌥F is "Ï"), so it resolves the
+  // keystroke to "Shift-Alt-F" on Mac and to "Shift-Alt-f" everywhere else.
   const editorShortcuts = [
     { key: "Mod-Enter", run: runSelection },
     { key: "Ctrl-Enter", run: runSelection },
-    { key: "Mod-f", run: formatQuery },
     { key: "Shift-Alt-f", run: formatQuery },
+    { key: "Shift-Alt-F", run: formatQuery },
   ];
 
   return (
@@ -156,6 +158,12 @@ const DataStudioEditor = ({
               >
                 <Bars3BottomLeftIcon className="h-4 w-4" />
                 {t("Format")}
+                <span
+                  aria-hidden
+                  className="ml-0.5 hidden rounded bg-gray-100 px-1 py-0.5 text-[10px] leading-none font-medium text-gray-500 sm:inline-block"
+                >
+                  {formatShortcutBadge}
+                </span>
               </button>
               <button
                 onClick={exportCsv}

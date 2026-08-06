@@ -365,13 +365,19 @@ describe("DataStudioEditor", () => {
     expect(mockInsertText).not.toHaveBeenCalled();
   });
 
-  it("registers the format shortcuts on the editor", () => {
+  it("registers the format shortcut on the editor", () => {
     renderEditor();
     // The bindings themselves are exercised against real CodeMirror in
-    // CodeEditor.test.tsx; this only pins the keys this editor asks for.
+    // CodeEditor.test.tsx; this only pins the keys this editor asks for. Both
+    // cases are required — macOS resolves ⇧⌥F to the uppercase spec.
     expect(shortcutKeys()).toEqual(
-      expect.arrayContaining(["Mod-f", "Shift-Alt-f"]),
+      expect.arrayContaining(["Shift-Alt-f", "Shift-Alt-F"]),
     );
+  });
+
+  it("leaves Mod-f to the editor's find", () => {
+    renderEditor();
+    expect(shortcutKeys()).not.toContain("Mod-f");
   });
 
   it("disables Format while the query is empty", async () => {
