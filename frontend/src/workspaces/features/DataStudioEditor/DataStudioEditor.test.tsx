@@ -1,8 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { downloadBlob } from "core/helpers/files";
 import { ComponentProps } from "react";
 import DataStudioEditor from "./DataStudioEditor";
+import { downloadQueryCsv } from "./downloadQueryCsv";
 
 // `useTranslation` is globally mocked to echo the key, so button/label
 // assertions below use the raw key strings.
@@ -117,8 +117,12 @@ jest.mock("core/components/CodeEditor/CodeEditor", () => {
   };
 });
 
-jest.mock("core/helpers/files", () => ({
-  downloadBlob: jest.fn(),
+jest.mock("./downloadQueryCsv", () => ({
+  downloadQueryCsv: jest.fn(),
+}));
+
+jest.mock("react-toastify", () => ({
+  toast: { error: jest.fn() },
 }));
 
 // GenerateSqlBar pulls in the real Apollo `useCreateAssistantConversationMutation`
@@ -177,8 +181,9 @@ const renderEditor = (
 beforeEach(() => {
   mockExecute.mockClear();
   mockInsertText.mockClear();
-  (downloadBlob as jest.Mock).mockClear();
   mockEditDetails.mockClear();
+  (downloadQueryCsv as jest.Mock).mockClear();
+  (downloadQueryCsv as jest.Mock).mockResolvedValue(undefined);
   mockQueryState = { loading: false };
   mockEditorState = {
     savedQuery: null,
@@ -273,15 +278,29 @@ describe("DataStudioEditor", () => {
     });
   });
 
-  it("exports the current result to CSV", async () => {
-    mockQueryState = successState();
+  it("shows an inline in-progress affordance while a server export runs", async () => {
+    let resolveDownload!: () => void;
+    (downloadQueryCsv as jest.Mock).mockReturnValue(
+      new Promise<void>((res) => {
+        resolveDownload = res;
+      }),
+    );
+    mockQueryState = successState({ truncated: true });
     renderEditor();
+    await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
+    await userEvent.click(screen.getByRole("button", { name: "Run" }));
 
     await userEvent.click(screen.getByRole("button", { name: "Export CSV" }));
-    expect(downloadBlob).toHaveBeenCalledTimes(1);
-    expect(downloadBlob).toHaveBeenCalledWith(
-      "query-results.csv",
-      expect.any(Blob),
+
+    const exportingButton = screen.getByRole("button", { name: "Exporting…" });
+    expect(exportingButton).toBeDisabled();
+    expect(screen.getByText("This may take a while")).toBeInTheDocument();
+
+    resolveDownload();
+    await waitFor(() =>
+      expect(
+        screen.queryByText("This may take a while"),
+      ).not.toBeInTheDocument(),
     );
   });
 

@@ -121,11 +121,18 @@ class QueryLog(Base):
         DENIED = "DENIED"
         # The query was rejected before reaching the data source (e.g. multiple statements)
         REJECTED = "REJECTED"
+        # A streaming export still in flight: the entry is written when the stream starts
+        # and only becomes SUCCESS/ERROR once it ends, so an entry left here means that
+        # end was never observed — a cancelled download or a worker killed mid-stream.
+        STREAMING = "STREAMING"
 
     class Origin(models.TextChoices):
         # The client did not identify itself; every query arrives through the API anyway
         OTHER = "OTHER"
         DATA_STUDIO = "DATA_STUDIO"
+        # Set server-side by the CSV export view and never accepted from a client (see
+        # schema.py), so it marks an actual full-result export rather than a claim
+        DATA_STUDIO_EXPORT = "DATA_STUDIO_EXPORT"
 
     workspace = models.ForeignKey(
         Workspace, on_delete=models.CASCADE, related_name="query_logs"
