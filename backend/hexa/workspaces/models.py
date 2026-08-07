@@ -389,6 +389,12 @@ class WorkspaceMembershipManager(models.Manager):
         return workspace_membership
 
 
+def build_notebooks_server_hash(workspace_id, user_id) -> str:
+    return hashlib.blake2s(
+        f"{workspace_id}_{user_id}".encode(), digest_size=16
+    ).hexdigest()
+
+
 class WorkspaceMembership(models.Model):
     class Meta:
         constraints = [
@@ -427,9 +433,9 @@ class WorkspaceMembership(models.Model):
 
     def save(self, *args, **kwargs):
         if self.notebooks_server_hash == "":
-            self.notebooks_server_hash = hashlib.blake2s(
-                f"{self.workspace_id}_{self.user_id}".encode(), digest_size=16
-            ).hexdigest()
+            self.notebooks_server_hash = build_notebooks_server_hash(
+                self.workspace_id, self.user_id
+            )
 
         if self.access_token == "":
             self.access_token = str(uuid.uuid4())

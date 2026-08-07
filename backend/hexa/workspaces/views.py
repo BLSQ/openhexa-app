@@ -9,10 +9,11 @@ from django.views.decorators.http import require_POST
 from hexa.databases.api import get_db_server_credentials
 from hexa.files import storage
 from hexa.pipelines.models import PipelineRun
+from hexa.workspaces.authentication import WorkspaceToken
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceMembership,
-    WorkspaceMembershipRole,
+    build_notebooks_server_hash,
 )
 
 # ease patching
@@ -54,7 +55,6 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
             pipeline_run = PipelineRun.objects.get(
                 pipeline__workspace=workspace, access_token=access_token
             )
-            sdk_auth_token = access_token
             server_hash = str(pipeline_run.id)
             pg_application_name = f"{workspace.slug} - {pipeline_run.pipeline.name} (run {pipeline_run.id})"
         except BadSignature:
@@ -71,23 +71,13 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
                 status=401,
             )
 
-        try:
-            membership = WorkspaceMembership.objects.get(
-                workspace=workspace, user=request.user
-            )
-        except WorkspaceMembership.DoesNotExist:
-            assert (
-                request.user.is_superuser
-                or request.user.is_organization_admin_or_owner(workspace.organization)
-            )
-            # Auto-create membership on the fly for admins/owners/superusers
-            membership = WorkspaceMembership.objects.create(
-                workspace=workspace,
-                user=request.user,
-                role=WorkspaceMembershipRole.ADMIN,
-            )
-        server_hash = membership.notebooks_server_hash
-        sdk_auth_token = membership.access_token
+        membership = WorkspaceMembership.objects.filter(
+            workspace=workspace, user=request.user
+        ).first()
+        server_hash = build_notebooks_server_hash(workspace.id, request.user.id)
+        token = WorkspaceToken.issue(
+            user=request.user, workspace=workspace, membership=membership
+        ).sign()
         pg_application_name = f"notebook /user/{request.user.email}/{workspace_slug}"
     else:
         return JsonResponse(
@@ -135,9 +125,8 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
         else settings.DEFAULT_WORKSPACE_IMAGE
     )
 
-    if sdk_auth_token is not None:
-        # SDK Credentials
-        env.update({"HEXA_TOKEN": Signer().sign_object(sdk_auth_token)})
+    # SDK Credentials
+    env.update({"HEXA_TOKEN": token})
 
     return JsonResponse(
         {"env": env, "notebooks_server_hash": server_hash, "image": image},
