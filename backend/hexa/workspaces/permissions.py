@@ -53,6 +53,15 @@ def archive_workspace(principal: User, workspace: Workspace):
     ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
+def manage_tags(principal: User, workspace: Workspace):
+    """Only organization admins and owners can tag a workspace.
+
+    Unlike the other workspace permissions, workspace admins are excluded on purpose:
+    tags are an organization-level taxonomy used for cross-workspace administration.
+    """
+    return principal.is_organization_admin_or_owner(workspace.organization)
+
+
 def manage_members(principal: User, workspace: Workspace):
     """Only admin users of a workspace can manage members"""
     return workspace.workspacemembership_set.filter(
