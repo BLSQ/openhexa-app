@@ -1,5 +1,30 @@
 # Changelog
 
+## [5.14.0](https://github.com/BLSQ/openhexa-app/compare/5.13.2...5.14.0) (2026-08-07)
+
+
+### Features
+
+* add mixpanel autocapture and session replay (HEXA-1679) ([#1931](https://github.com/BLSQ/openhexa-app/issues/1931)) ([a8fa82a](https://github.com/BLSQ/openhexa-app/commit/a8fa82a7d256c95c2e961ccfb5e8a28c013229d8))
+* add schema-aware sql autocomplete to Data Studio editor (HEXA-1714) ([#1938](https://github.com/BLSQ/openhexa-app/issues/1938)) ([85630f7](https://github.com/BLSQ/openhexa-app/commit/85630f7d4eac07b2fbed60085aff06094be15bc1))
+* agent that generate sql queries(HEXA-1697) ([#1919](https://github.com/BLSQ/openhexa-app/issues/1919)) ([1027bec](https://github.com/BLSQ/openhexa-app/commit/1027bec9bcc741fd601bbf84ac240cd2882e1b5e))
+* magical web app local dev (HEXA-1727) ([#1908](https://github.com/BLSQ/openhexa-app/issues/1908)) ([49f87c7](https://github.com/BLSQ/openhexa-app/commit/49f87c7b7910fddf93c6ec23b81125eba7fe1ae8))
+* save query shortcut ctrl+s (HEXA-1749) ([#1976](https://github.com/BLSQ/openhexa-app/issues/1976)) ([6da841d](https://github.com/BLSQ/openhexa-app/commit/6da841dd90431a0d46ba0a6256c7d272b5027bae))
+* Saved query navigation guard (HEXA-1749) ([#1972](https://github.com/BLSQ/openhexa-app/issues/1972)) ([84e81df](https://github.com/BLSQ/openhexa-app/commit/84e81df97b2caa4b4eec2142d2fba2f921a3883e))
+* Saved query table sorting (HEXA-1749) ([#1970](https://github.com/BLSQ/openhexa-app/issues/1970)) ([f494fd3](https://github.com/BLSQ/openhexa-app/commit/f494fd31a567db250d26cc23a841c92d686fbcc5))
+* Support the copying of template pipelines to a remote server ([#1935](https://github.com/BLSQ/openhexa-app/issues/1935)) ([1bc9915](https://github.com/BLSQ/openhexa-app/commit/1bc9915e1d4207a190d84751d30299cb02eae177))
+
+
+### Bug Fixes
+
+* archiving a workspace should rotate db user passwords (HEXA-1773) ([#1988](https://github.com/BLSQ/openhexa-app/issues/1988)) ([8a59ca6](https://github.com/BLSQ/openhexa-app/commit/8a59ca66c2d0d235bd5fbc16a2d28b1916433637))
+* archiving workspaces should prevent scheduled pipelines to run (HEXA-1772) ([#1987](https://github.com/BLSQ/openhexa-app/issues/1987)) ([8a8b43b](https://github.com/BLSQ/openhexa-app/commit/8a8b43b479f0fabe634dcf620417ec3d8b93016c))
+* documentation for testing webapps locally ([67f95bd](https://github.com/BLSQ/openhexa-app/commit/67f95bde3f59c8dcf653be52a23cb0e161819f29))
+* empty non-recognized whitespaces breaking data studio (HEXA-1749)  ([#1978](https://github.com/BLSQ/openhexa-app/issues/1978)) ([6e180c0](https://github.com/BLSQ/openhexa-app/commit/6e180c06fa66e1f94ba9a2241f9cf6c7404e09c5))
+* saved query dialog flickering (HEXA-1762) ([#1968](https://github.com/BLSQ/openhexa-app/issues/1968)) ([6e8c304](https://github.com/BLSQ/openhexa-app/commit/6e8c3044987ba974ebdb7c7802c6cf7eed8c1a72))
+* Timestamp formatting and small Django SQL dashboard improvements ([#1971](https://github.com/BLSQ/openhexa-app/issues/1971)) ([c7aeb6c](https://github.com/BLSQ/openhexa-app/commit/c7aeb6cd7facc982adc1f155bc7058884d278548))
+* workspaces should always be created inside an organization (HEXA-1729) ([#1914](https://github.com/BLSQ/openhexa-app/issues/1914)) ([54dd495](https://github.com/BLSQ/openhexa-app/commit/54dd495bfad83ca43400053e702cd6366f4738a1))
+
 ## [5.13.2](https://github.com/BLSQ/openhexa-app/compare/5.13.1...5.13.2) (2026-07-28)
 
 
