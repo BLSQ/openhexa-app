@@ -9,6 +9,7 @@ logger = getLogger(__name__)
 
 # FIXME: This needs to be changed as it allows the user to query everything with just a simple workspace token.
 #        We need to restrict the user's actions to only the workspace he is part of.
+#        https://bluesquare.atlassian.net/browse/HEXA-1775
 def workspace_token_authentication_middleware(get_response):
     """This middleware allows an user to be authenticated through a simple token linked to a workspace"""
 
