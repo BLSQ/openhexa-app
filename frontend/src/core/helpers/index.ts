@@ -1,5 +1,10 @@
 import { remark } from "remark";
 import strip from "strip-markdown";
+import { validate as validateUuid } from "uuid";
+
+export function isValidUuid(value: unknown): value is string {
+  return typeof value === "string" && validateUuid(value);
+}
 
 export function isValidUrl(url: string) {
   try {
