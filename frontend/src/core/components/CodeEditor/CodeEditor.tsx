@@ -53,6 +53,8 @@ export type CodeEditorHandle = {
   insertText(text: string): void;
   /** The currently selected text, or an empty string when nothing is selected. */
   getSelectedText(): string;
+  /** Replace the whole document, keeping the change in the undo history. */
+  replaceAll(text: string): void;
 };
 
 const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
@@ -100,6 +102,23 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
         }
         const { from, to } = view.state.selection.main;
         return view.state.sliceDoc(from, to);
+      },
+      replaceAll(text: string) {
+        const view = cmRef.current?.view;
+        if (!view) {
+          return;
+        }
+        const length = view.state.doc.length;
+        view.dispatch({
+          changes: { from: 0, to: length, insert: text },
+          // The old offset rarely points at the same token in the new text, but
+          // clamping it keeps the caret in the neighbourhood instead of
+          // snapping to the top of the document.
+          selection: {
+            anchor: Math.min(view.state.selection.main.head, text.length),
+          },
+        });
+        view.focus();
       },
     }));
 
