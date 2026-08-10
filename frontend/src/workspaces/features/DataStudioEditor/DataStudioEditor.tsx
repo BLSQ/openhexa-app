@@ -79,10 +79,9 @@ const DataStudioEditor = ({
 
   const runShortcutLabel = isMac ? "⌘+Enter" : "Ctrl+Enter";
   const formatShortcutLabel = isMac ? "⇧+⌥+F" : "Shift+Alt+F";
-  // Compact form for the in-button pills: the modifier glyphs read cleanly on
+  // Compact form for the in-button pill: the modifier glyphs read cleanly on
   // macOS; other platforms keep the spelled-out modifiers.
   const runShortcutBadge = isMac ? "⌘↵" : "Ctrl+Enter";
-  const formatShortcutBadge = isMac ? "⇧⌥F" : "Shift+Alt+F";
 
   const { run, retry, result, loading, error, canExport } =
     useDataStudioQuery(workspaceSlug);
@@ -217,12 +216,6 @@ const DataStudioEditor = ({
               >
                 <Bars3BottomLeftIcon className="h-4 w-4" />
                 {t("Format")}
-                <span
-                  aria-hidden
-                  className="ml-0.5 hidden rounded bg-gray-100 px-1 py-0.5 text-[10px] leading-none font-medium text-gray-500 sm:inline-block"
-                >
-                  {formatShortcutBadge}
-                </span>
               </button>
               <button
                 onClick={exportCsv}

@@ -1,9 +1,11 @@
-import { format } from "sql-formatter";
+import { formatDialect, postgresql } from "sql-formatter";
 
 // Workspace databases are PostgreSQL, so parse with its dialect: the ANSI
 // dialect chokes on Postgres-only syntax (casts with `::`, `RETURNING`, …).
+// Naming the dialect rather than passing `language` to `format` also keeps the
+// other ~22 dialects out of the bundle.
 const OPTIONS = {
-  language: "postgresql",
+  dialect: postgresql,
   keywordCase: "upper",
   tabWidth: 2,
 } as const;
@@ -15,7 +17,7 @@ const OPTIONS = {
  */
 export const formatSql = (sql: string): string => {
   try {
-    return format(sql, OPTIONS);
+    return formatDialect(sql, OPTIONS);
   } catch {
     return sql;
   }
