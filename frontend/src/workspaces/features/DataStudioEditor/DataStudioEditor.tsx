@@ -7,6 +7,7 @@ import {
   TableCellsIcon,
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
+import { SQLNamespace } from "@codemirror/lang-sql";
 import CodeEditor, {
   CodeEditorHandle,
 } from "core/components/CodeEditor/CodeEditor";
@@ -14,10 +15,11 @@ import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import useIsMac from "core/hooks/useIsMac";
 import useSaveShortcut from "core/hooks/useSaveShortcut";
 import { useTranslation } from "next-i18next";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import SaveQueryDialog from "workspaces/features/SavedQueries/SaveQueryDialog";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { buildCsv, downloadCsv } from "./csv";
+import { useWorkspaceDataStudioSchemaQuery } from "./DataStudioSchemaBrowser.generated";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
 import { formatSql } from "./formatSql";
@@ -84,6 +86,28 @@ const DataStudioEditor = ({
 
   const { run, retry, result, loading, error, canExport } =
     useDataStudioQuery(workspaceSlug);
+
+  // Same query DataStudioSchemaBrowser runs to populate its table tree.
+  // Apollo dedupes identical in-flight queries and serves matching variables
+  // from its normalized cache afterwards, so this doesn't add a network
+  // request — it's how the editor gets at the schema it needs for autocomplete.
+  const { data: schemaData } = useWorkspaceDataStudioSchemaQuery({
+    variables: { workspaceSlug },
+  });
+
+  const sqlSchema = useMemo<SQLNamespace>(() => {
+    const items = schemaData?.workspace?.database?.tables?.items ?? [];
+    return Object.fromEntries(
+      items.map((table) => [
+        table.name,
+        table.columns.map((column) => ({
+          label: column.name,
+          type: "property",
+          detail: column.type,
+        })),
+      ]),
+    );
+  }, [schemaData]);
 
   const canRun = !loading && Boolean(query.trim());
 
@@ -254,6 +278,7 @@ const DataStudioEditor = ({
                 autoFocus
                 value={query}
                 onChange={setQuery}
+                sqlSchema={sqlSchema}
                 height="100%"
                 minHeight="100%"
                 placeholder={t("Write a SQL query… ({{shortcut}} to run)", {

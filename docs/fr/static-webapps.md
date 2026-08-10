@@ -85,32 +85,50 @@ Les exemples ci-dessous lisent `workspaceSlug` depuis ce global, donc ils sont c
 
 ## Développer en local
 
-Vous pouvez développer une webapp sur votre machine tout en accédant à de **vraies** données, avec le même filtrage par scopes qu'en production — sans proxy fait maison ni jeton manuel. Ajoutez un seul script à votre page :
+Vous pouvez développer une webapp sur votre machine — votre éditeur, votre rechargement à chaud, vos outils de développement — tout en lisant de **vraies données** du workspace via la même API filtrée par scopes qu'en production. Sans proxy fait maison ni jeton manuel : un seul script et deux clics.
+
+### 1. Ajoutez le script à votre page
 
 ```html
 <script src="https://app.openhexa.org/webapps/dev.js"></script>
 ```
 
-Ouvrez ensuite la page dans un navigateur où vous êtes connecté à OpenHEXA — soit en ouvrant directement le fichier `.html` (`file://`), soit en le servant localement (`http://localhost`). La première fois, une petite fenêtre popup vous laisse **choisir la webapp** à cibler, puis réalise une authentification et remet à votre page un identifiant de prévisualisation à courte durée de vie. Pour éviter le sélecteur, indiquez le workspace et la webapp directement :
+Pointez-le vers l'installation OpenHEXA que vous utilisez — `http://localhost:8000/webapps/dev.js` pour un backend local.
+
+Les webapps créées à partir du template par défaut incluent déjà cette balise. Elle est inerte une fois déployée (elle ne s'active que sur les pages `file://` et `localhost`), vous pouvez donc la laisser dans votre `index.html`.
+
+### 2. Ouvrez votre page et cliquez sur Connect
+
+Ouvrez votre page dans un navigateur où vous êtes déjà connecté à OpenHEXA — soit en ouvrant directement le fichier `.html` (`file://`), soit en le servant localement (n'importe quel serveur statique convient, par ex. `python -m http.server 5173`).
+
+Un bouton **Connect to OpenHEXA** apparaît dans le coin :
+
+![Le bouton Connect to OpenHEXA sur une page locale](../assets/images/webapps/dev-connect.png)
+
+### 3. Choisissez une webapp et approuvez
+
+Un clic ouvre une petite fenêtre OpenHEXA listant les webapps statiques privées auxquelles vous avez accès. Choisissez-en une et cliquez sur **Approve** :
+
+![Choix de la webapp à cibler](../assets/images/webapps/dev-picker.png)
+
+### C'est tout
+
+La fenêtre se ferme et votre page se recharge, connectée. `window.OPENHEXA` est renseigné et vos appels `fetch("/graphql/")` renvoient de vraies données. Une pastille dans le coin indique la webapp connectée :
+
+![Une page locale affichant de vraies données, avec la pastille de connexion](../assets/images/webapps/dev-connected.png)
+
+### Éviter le sélecteur
+
+Indiquez le workspace et la webapp directement : la liste se réduit à cette seule entrée, présélectionnée — vous confirmez toujours avec **Approve** :
 
 ```html
 <script src="https://app.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
 ```
 
-Ensuite, `dev.js` :
+### Bon à savoir
 
-- définit `window.OPENHEXA` (les exemples ci-dessus fonctionnent donc sans modification), et
-- redirige de façon transparente vos appels `fetch("/graphql/")` vers l'endpoint authentifié.
-
-Vos appels locaux respectent les `allowed_operations` de la webapp exactement comme en production : une opération qui fonctionne en local ne renverra pas de `403` une fois déployée. Pointez `dev.js` vers l'installation OpenHEXA que vous utilisez (par ex. `http://localhost:8000/webapps/dev.js` pour un backend local).
-
-Si votre navigateur bloque la popup, un bouton **Connect to OpenHEXA** apparaît — cliquez dessus pour lancer le handshake.
-
-**`file://` ou `http://localhost`.** Les deux fonctionnent. En servant via `http://localhost`, le navigateur garantit que l'identifiant n'est remis qu'à votre page : le handshake se termine sans confirmation. Une page `file://` a une origine opaque que le navigateur ne peut pas cibler, donc OpenHEXA affiche un écran d'**approbation** dans la popup avant de remettre l'identifiant — ne l'approuvez que si vous venez d'ouvrir votre propre fichier local. Pour une boucle sans aucune confirmation, servez via `http://localhost` (n'importe quel serveur statique convient, par ex. `python -m http.server 5173`).
-
-L'identifiant est mis en cache pour l'onglet du navigateur : vous ne vous connectez donc **qu'une fois par session d'onglet** — recharger la page le réutilise, sans popup. Il a une courte durée de vie (environ une heure) et ne se renouvelle pas avec l'activité ; à son expiration, le prochain appel `/graphql/` réaffiche le bouton **Connect** — cliquez dessus pour vous reconnecter. Fermer l'onglet vide le cache.
-
-Une petite pastille dans le coin indique la webapp connectée. Utilisez son action **Switch** pour choisir une autre webapp, ou **Reconnect** pour forcer un nouvel identifiant.
+- **Les mêmes permissions qu'en production.** Vos appels locaux respectent les `allowed_operations` de la webapp exactement comme une fois déployée : une opération qui fonctionne en local ne renverra pas un `403` plus tard.
+- **La pastille est votre contrôle.** Utilisez **Switch** pour passer à une autre webapp, ou **Reconnect** pour forcer un nouvel identifiant.
 
 ---
 

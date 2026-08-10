@@ -1,7 +1,7 @@
 import { syntaxHighlighting } from "@codemirror/language";
 import { json } from "@codemirror/lang-json";
 import { python } from "@codemirror/lang-python";
-import { PostgreSQL, sql } from "@codemirror/lang-sql";
+import { PostgreSQL, SQLNamespace, sql } from "@codemirror/lang-sql";
 import { xml } from "@codemirror/lang-xml";
 import { yaml } from "@codemirror/lang-yaml";
 import CodeMirror, {
@@ -44,6 +44,8 @@ type CodeEditorProps = {
    */
   shortcuts?: CodeEditorShortcut[];
   className?: string;
+  /** Table/column metadata for `lang="sql"` autocomplete (`sql()`'s `schema` option). */
+  sqlSchema?: SQLNamespace;
 };
 
 export type CodeEditorHandle = {
@@ -70,6 +72,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
       autoFocus = false,
       shortcuts,
       className,
+      sqlSchema,
     } = props;
 
     const cmRef = useRef<ReactCodeMirrorRef>(null);
@@ -152,8 +155,11 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
           case "sql":
             // Workspace databases are PostgreSQL, so use its dialect to
             // highlight Postgres-only keywords (EXPLAIN, ANALYZE, VACUUM, …)
-            // that the default ANSI dialect does not recognise.
-            return [sql({ dialect: PostgreSQL })];
+            // that the default ANSI dialect does not recognise. Passing
+            // `schema` plugs real table/column names into the same
+            // `autocompletion()` popup (from @uiw/react-codemirror's default
+            // basicSetup) and also resolves table aliases automatically.
+            return [sql({ dialect: PostgreSQL, schema: sqlSchema })];
           default:
             return [];
         }
@@ -166,7 +172,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
           ]
         : langExtension;
       return [...base, shortcutExtension];
-    }, [lang, embedded, shortcutExtension]);
+    }, [lang, embedded, shortcutExtension, sqlSchema]);
 
     return (
       <div

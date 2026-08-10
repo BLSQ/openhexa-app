@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 
 from ariadne import MutationType
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.signing import Signer
 from django.db import transaction
 from django.http import HttpRequest
 
@@ -10,6 +9,7 @@ from hexa.countries.models import Country
 from hexa.databases.utils import TableNotFound, delete_table
 from hexa.user_management.models import Organization, User
 
+from ..authentication import WorkspaceToken
 from ..connection_utils import test_connection
 from ..jwt_utils import (
     JWTConfigurationError,
@@ -458,17 +458,23 @@ def resolve_generate_workspace_token(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     mutation_input = kwargs["input"]
 
-    try:
-        membership = WorkspaceMembership.objects.get(
-            workspace__slug=mutation_input["slug"], user=request.user
-        )
-    except WorkspaceMembership.DoesNotExist:
+    workspace = (
+        Workspace.objects.filter_for_user(request.user)
+        .filter(slug=mutation_input["slug"])
+        .first()
+    )
+    if workspace is None:
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
 
-    if membership.role == WorkspaceMembershipRole.VIEWER:
+    membership = WorkspaceMembership.objects.filter(
+        workspace=workspace, user=request.user
+    ).first()
+    if membership is not None and membership.role == WorkspaceMembershipRole.VIEWER:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
-    token = Signer().sign_object(str(membership.access_token))
+    token = WorkspaceToken.issue(
+        user=request.user, workspace=workspace, membership=membership
+    ).sign()
     return {"success": True, "errors": [], "token": token}
 
 
