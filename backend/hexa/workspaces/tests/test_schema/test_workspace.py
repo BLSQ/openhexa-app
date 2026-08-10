@@ -2,7 +2,7 @@ import base64
 import html
 import uuid
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -1202,6 +1202,99 @@ class WorkspaceTest(GraphQLTestCase):
             },
             r["data"]["generateWorkspaceToken"],
         )
+
+    GENERATE_TOKEN_MUTATION = """
+    mutation generateWorkspaceToken($input: GenerateWorkspaceTokenInput!) {
+        generateWorkspaceToken(input: $input) {
+            success
+            errors
+            token
+        }
+    }
+    """
+
+    def test_generate_workspace_token_org_admin_without_membership(self):
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                user=self.USER_JOE, workspace=self.WORKSPACE
+            ).exists()
+        )
+
+        self.client.force_login(self.USER_JOE)
+        r = self.run_query(
+            self.GENERATE_TOKEN_MUTATION, {"input": {"slug": self.WORKSPACE.slug}}
+        )
+        result = r["data"]["generateWorkspaceToken"]
+        self.assertTrue(result["success"])
+        self.assertEqual([], result["errors"])
+        self.assertIsNotNone(result["token"])
+
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                user=self.USER_JOE, workspace=self.WORKSPACE
+            ).exists()
+        )
+        self.assertEqual(
+            Signer().unsign_object(result["token"]),
+            {
+                "type": "identity",
+                "workspace_id": str(self.WORKSPACE.id),
+                "user_id": str(self.USER_JOE.id),
+                "issued_at": ANY,
+            },
+        )
+
+        self.client.logout()
+        r = self.run_query(
+            "query { me { user { id } } }",
+            headers={"HTTP_AUTHORIZATION": f"Bearer {result['token']}"},
+        )
+        self.assertEqual(str(self.USER_JOE.id), r["data"]["me"]["user"]["id"])
+
+    def test_generate_workspace_token_superuser_without_membership(self):
+        superuser = User.objects.create_superuser(
+            "super@bluesquarehub.com", "superpassword"
+        )
+        self.client.force_login(superuser)
+        r = self.run_query(
+            self.GENERATE_TOKEN_MUTATION, {"input": {"slug": self.WORKSPACE.slug}}
+        )
+        result = r["data"]["generateWorkspaceToken"]
+        self.assertTrue(result["success"])
+        self.assertIsNotNone(result["token"])
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                user=superuser, workspace=self.WORKSPACE
+            ).exists()
+        )
+
+    def test_generate_workspace_token_no_access(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            self.GENERATE_TOKEN_MUTATION, {"input": {"slug": self.WORKSPACE_2.slug}}
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["WORKSPACE_NOT_FOUND"], "token": None},
+            r["data"]["generateWorkspaceToken"],
+        )
+
+    def test_workspace_identity_token_revoked_when_org_role_removed(self):
+        self.client.force_login(self.USER_JOE)
+        r = self.run_query(
+            self.GENERATE_TOKEN_MUTATION, {"input": {"slug": self.WORKSPACE.slug}}
+        )
+        token = r["data"]["generateWorkspaceToken"]["token"]
+        self.client.logout()
+
+        OrganizationMembership.objects.filter(
+            organization=self.ORGANIZATION, user=self.USER_JOE
+        ).delete()
+
+        r = self.run_query(
+            "query { me { user { id } } }",
+            headers={"HTTP_AUTHORIZATION": f"Bearer {token}"},
+        )
+        self.assertIsNone(r["data"]["me"]["user"])
 
     def test_invite_workspace_member_external_user(self):
         import random
