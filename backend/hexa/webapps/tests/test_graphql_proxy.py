@@ -5,6 +5,7 @@ from django.contrib.sessions.backends.db import SessionStore
 from django.test import TestCase, override_settings
 
 from hexa.core.test import GraphQLTestCase
+from hexa.data_studio.models import QueryLog, SavedQuery
 from hexa.datasets.models import Dataset, DatasetLink
 from hexa.files.backends.base import StorageObject
 from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
@@ -362,6 +363,122 @@ class GraphQLProxyMiddlewareTest(TestCase):
         self.assertEqual(response.status_code, 403)
         data = json.loads(response.content)
         self.assertIn("runPipeline", data["errors"][0]["message"])
+
+    def test_user_read_cannot_reach_execute_sql(self):
+        """`executeSQL` hangs off `Workspace`, which `USER_READ` grants, and the
+        proxy only validates top-level fields -- so the endpoint itself has to
+        refuse a webapp rather than rely on the scope check.
+        """
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        response = self._graphql_post(
+            "private-app",
+            f"""query {{
+                workspace(slug: "{self.WORKSPACE.slug}") {{
+                    database {{
+                        executeSQL(query: "SELECT 1") {{ success errors rows }}
+                    }}
+                }}
+            }}""",
+            session_key=session.session_key,
+        )
+        # The proxy lets the query through (its top-level field is allowed);
+        # the refusal comes from the resolver.
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.content)["data"]["workspace"]["database"][
+            "executeSQL"
+        ]
+        self.assertEqual(
+            result, {"success": False, "errors": ["PERMISSION_DENIED"], "rows": None}
+        )
+        query_log = QueryLog.objects.get(workspace=self.WORKSPACE)
+        self.assertEqual(query_log.status, QueryLog.Status.DENIED)
+        self.assertEqual(query_log.user, self.USER)
+
+    def _execute_saved_query(self, webapp, subdomain, slug):
+        session = self._create_webapp_session(webapp, self.USER)
+        return self._graphql_post(
+            subdomain,
+            f"""query {{
+                executeSavedQuery(input: {{
+                    workspaceSlug: "{self.WORKSPACE.slug}", slug: "{slug}"
+                }}) {{ success errors rows }}
+            }}""",
+            session_key=session.session_key,
+        )
+
+    def _create_saved_query(self):
+        return SavedQuery.objects.create(
+            workspace=self.WORKSPACE,
+            created_by=self.USER,
+            name="Probe",
+            content="SELECT 1 AS probe",
+        )
+
+    def test_database_read_scope_runs_a_saved_query(self):
+        saved_query = self._create_saved_query()
+        webapp = self._create_scoped_webapp(
+            "db-app", [Webapp.OperationScope.DATABASE_READ]
+        )
+
+        # This class's workspace has no provisioned database (it is created
+        # without a principal). What is under test here is the scope gate and
+        # how the run is attributed; executing SQL for real is covered in
+        # hexa.data_studio.tests.test_schema.
+        with patch(
+            "hexa.databases.utils.execute_database_query",
+            return_value={
+                "columns": ["probe"],
+                "rows": [{"probe": 1}],
+                "row_count": 1,
+                "truncated": False,
+                "duration_ms": 1,
+            },
+        ):
+            response = self._execute_saved_query(webapp, "db-app", saved_query.slug)
+
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.content)["data"]["executeSavedQuery"]
+        self.assertEqual(
+            {"success": True, "errors": [], "rows": [{"probe": 1}]}, result
+        )
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Origin.WEBAPP, log.origin)
+        self.assertEqual(saved_query, log.saved_query)
+        self.assertEqual(self.USER, log.user)
+
+    def test_saved_query_needs_the_database_read_scope(self):
+        saved_query = self._create_saved_query()
+
+        response = self._execute_saved_query(
+            self.WEBAPP_PRIVATE, "private-app", saved_query.slug
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIn(
+            "executeSavedQuery", json.loads(response.content)["errors"][0]["message"]
+        )
+
+    def test_database_read_scope_does_not_expose_the_sql(self):
+        """The scope buys execution, not the query text: a web app that could
+        read `content` could rewrite the query and run that instead.
+        """
+        webapp = self._create_scoped_webapp(
+            "db-app-2", [Webapp.OperationScope.DATABASE_READ]
+        )
+        session = self._create_webapp_session(webapp, self.USER)
+
+        lookups = [
+            'savedQuery(id: "00000000-0000-0000-0000-000000000000")',
+            'savedQueryBySlug(workspaceSlug: "ws", slug: "probe")',
+        ]
+        for lookup in lookups:
+            with self.subTest(lookup=lookup):
+                response = self._graphql_post(
+                    "db-app-2",
+                    f"query {{ {lookup} {{ content }} }}",
+                    session_key=session.session_key,
+                )
+                self.assertEqual(response.status_code, 403)
 
     def test_introspection_passes_through(self):
         session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
