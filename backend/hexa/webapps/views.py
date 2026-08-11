@@ -34,8 +34,13 @@ def _login_redirect(request):
     resolves a relative `next` against its own origin. On deployments where the
     backend answers on a host of its own (api.<env> vs app.<env>), a relative
     `next` would send the user back to a frontend URL that doesn't exist.
+
+    The origin comes from BASE_URL rather than the request, so a forged Host
+    header cannot turn the frontend's post-login redirect into an open redirect.
+    Both callers are routed on the backend itself, so BASE_URL is the host that
+    served this request anyway.
     """
-    current_absolute_url = request.build_absolute_uri(request.get_full_path())
+    current_absolute_url = f"{settings.BASE_URL}{request.get_full_path()}"
     return HttpResponseRedirect(
         f"{settings.NEW_FRONTEND_DOMAIN}/login?next={quote(current_absolute_url)}"
     )

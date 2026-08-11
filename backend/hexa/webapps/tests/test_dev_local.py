@@ -132,7 +132,22 @@ class DevLocalViewsTest(TestCase):
         self.assertEqual(
             response.url,
             f"{settings.NEW_FRONTEND_DOMAIN}/login?next="
-            + quote(f"http://testserver{self._dev_auth_url('http://localhost:5173')}"),
+            + quote(
+                f"{settings.BASE_URL}{self._dev_auth_url('http://localhost:5173')}"
+            ),
+        )
+
+    def test_dev_auth_login_redirect_ignores_forged_host(self):
+        response = self.client.get(
+            self._dev_auth_url("http://localhost:5173"), HTTP_HOST="evil.example.com"
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            f"{settings.NEW_FRONTEND_DOMAIN}/login?next="
+            + quote(
+                f"{settings.BASE_URL}{self._dev_auth_url('http://localhost:5173')}"
+            ),
         )
 
     def test_dev_auth_post_requires_login(self):
