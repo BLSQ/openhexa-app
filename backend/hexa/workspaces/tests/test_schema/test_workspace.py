@@ -1600,6 +1600,27 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["pendingWorkspaceInvitations"],
         )
 
+    def test_anonymous_workspace_invitations(self):
+        r = self.run_query(
+            """
+            query{
+                pendingWorkspaceInvitations {
+                    totalItems
+                    items {
+                        email
+                    }
+                }
+            }
+            """,
+        )
+        self.assertEqual(
+            {
+                "totalItems": 0,
+                "items": [],
+            },
+            r["data"]["pendingWorkspaceInvitations"],
+        )
+
     def test_pending_workspace_invitations(self):
         self.client.force_login(self.USER_PENDING)
         r = self.run_query(
