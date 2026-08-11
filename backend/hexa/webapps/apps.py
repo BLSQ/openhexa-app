@@ -25,7 +25,7 @@ class WebappsConfig(CoreAppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "hexa.webapps"
     label = "webapps"
-    ANONYMOUS_URLS = ["webapps:auth_token", "webapps:dev_js"]
+    ANONYMOUS_URLS = ["webapps:auth_token", "webapps:dev_js", "webapps:dev_auth"]
 
     def ready(self):
         super().ready()
