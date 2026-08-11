@@ -2436,6 +2436,48 @@ export type ExecuteSqlResult = {
   truncated?: Maybe<Scalars['Boolean']['output']>;
 };
 
+/** Errors that can occur when executing a saved query. */
+export enum ExecuteSavedQueryError {
+  /** The stored query holds more than one SQL statement; only a single statement is allowed. */
+  MultipleStatements = 'MULTIPLE_STATEMENTS',
+  /** No saved query with this slug in this workspace, or the workspace is not visible to the caller. */
+  NotFound = 'NOT_FOUND',
+  /** The caller is not allowed to run queries against this workspace database. */
+  PermissionDenied = 'PERMISSION_DENIED',
+  /** The query could not be executed (e.g. the schema changed since it was saved). */
+  QueryError = 'QUERY_ERROR',
+  /** The query was cancelled because it exceeded the statement timeout. */
+  QueryTimeout = 'QUERY_TIMEOUT'
+}
+
+/** Input for executing a saved query. */
+export type ExecuteSavedQueryInput = {
+  /** Caps the number of returned rows; defaults to 50 and is itself capped to a server-side hard limit. */
+  maxRows?: InputMaybe<Scalars['Int']['input']>;
+  slug: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
+};
+
+/**
+ * Result of executing a saved query. Mirrors ExecuteSQLResult, without ever
+ * exposing the SQL that was run.
+ */
+export type ExecuteSavedQueryResult = {
+  __typename?: 'ExecuteSavedQueryResult';
+  columns?: Maybe<Array<Scalars['String']['output']>>;
+  /** The server-side execution time of the query, in milliseconds. */
+  durationMs?: Maybe<Scalars['Int']['output']>;
+  /** The underlying database error message, when the query failed. */
+  errorMessage?: Maybe<Scalars['String']['output']>;
+  errors: Array<ExecuteSavedQueryError>;
+  rowCount?: Maybe<Scalars['Int']['output']>;
+  /** The rows returned by the query, each one a JSON object keyed by column name. */
+  rows?: Maybe<Array<Scalars['JSON']['output']>>;
+  success: Scalars['Boolean']['output'];
+  /** Whether the result was truncated because it exceeded the maximum number of rows. */
+  truncated?: Maybe<Scalars['Boolean']['output']>;
+};
+
 /** Represents an external collaborator who has workspace access but no organization membership. */
 export type ExternalCollaborator = OrganizationMember & {
   __typename?: 'ExternalCollaborator';
@@ -4795,6 +4837,8 @@ export type Query = {
   datasetVersionFile?: Maybe<DatasetVersionFile>;
   /** Search datasets. */
   datasets: DatasetPage;
+  /** Runs a saved query against the workspace database and returns its result, without exposing the SQL. */
+  executeSavedQuery: ExecuteSavedQueryResult;
   /** Get a file by its path within a workspace. */
   getFileByPath?: Maybe<BucketObject>;
   /** Retrieves the currently authenticated user. */
@@ -4832,6 +4876,8 @@ export type Query = {
   readWebappFile: ReadWebappFileResult;
   /** Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace. */
   savedQuery?: Maybe<SavedQuery>;
+  /** Retrieves a saved query by its slug within a workspace. */
+  savedQueryBySlug?: Maybe<SavedQuery>;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
   searchFiles: FileResultPage;
@@ -4986,6 +5032,11 @@ export type QueryDatasetsArgs = {
 };
 
 
+export type QueryExecuteSavedQueryArgs = {
+  input: ExecuteSavedQueryInput;
+};
+
+
 export type QueryGetFileByPathArgs = {
   path: Scalars['String']['input'];
   workspaceSlug: Scalars['String']['input'];
@@ -5090,6 +5141,12 @@ export type QueryReadWebappFileArgs = {
 export type QuerySavedQueryArgs = {
   id: Scalars['ID']['input'];
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QuerySavedQueryBySlugArgs = {
+  slug: Scalars['String']['input'];
+  workspaceSlug: Scalars['String']['input'];
 };
 
 
@@ -5516,6 +5573,8 @@ export type SavedQuery = {
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   permissions: SavedQueryPermissions;
+  /** Stable identifier, unique within the workspace. Generated from the name and left unchanged when the query is renamed. */
+  slug: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
   workspace: Workspace;
 };
@@ -6698,6 +6757,7 @@ export type WebappFileInput = {
 };
 
 export enum WebappOperationScope {
+  DatabaseRead = 'DATABASE_READ',
   DatasetsRead = 'DATASETS_READ',
   DatasetsWrite = 'DATASETS_WRITE',
   FilesRead = 'FILES_READ',

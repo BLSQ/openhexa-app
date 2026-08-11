@@ -2438,6 +2438,69 @@ type ExecuteSQLResult {
   truncated: Boolean
 }
 
+"""Errors that can occur when executing a saved query."""
+enum ExecuteSavedQueryError {
+  """
+  The stored query holds more than one SQL statement; only a single statement is allowed.
+  """
+  MULTIPLE_STATEMENTS
+
+  """
+  No saved query with this slug in this workspace, or the workspace is not visible to the caller.
+  """
+  NOT_FOUND
+
+  """
+  The caller is not allowed to run queries against this workspace database.
+  """
+  PERMISSION_DENIED
+
+  """
+  The query could not be executed (e.g. the schema changed since it was saved).
+  """
+  QUERY_ERROR
+
+  """The query was cancelled because it exceeded the statement timeout."""
+  QUERY_TIMEOUT
+}
+
+"""Input for executing a saved query."""
+input ExecuteSavedQueryInput {
+  """
+  Caps the number of returned rows; defaults to 50 and is itself capped to a server-side hard limit.
+  """
+  maxRows: Int
+  slug: String!
+  workspaceSlug: String!
+}
+
+"""
+Result of executing a saved query. Mirrors ExecuteSQLResult, without ever
+exposing the SQL that was run.
+"""
+type ExecuteSavedQueryResult {
+  columns: [String!]
+
+  """The server-side execution time of the query, in milliseconds."""
+  durationMs: Int
+
+  """The underlying database error message, when the query failed."""
+  errorMessage: String
+  errors: [ExecuteSavedQueryError!]!
+  rowCount: Int
+
+  """
+  The rows returned by the query, each one a JSON object keyed by column name.
+  """
+  rows: [JSON!]
+  success: Boolean!
+
+  """
+  Whether the result was truncated because it exceeded the maximum number of rows.
+  """
+  truncated: Boolean
+}
+
 """
 Represents an external collaborator who has workspace access but no organization membership.
 """
@@ -4160,6 +4223,11 @@ type Query {
   """Search datasets."""
   datasets(page: Int = 1, perPage: Int = 15, query: String): DatasetPage!
 
+  """
+  Runs a saved query against the workspace database and returns its result, without exposing the SQL.
+  """
+  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSavedQueryResult!
+
   """Get a file by its path within a workspace."""
   getFileByPath(path: String!, workspaceSlug: String!): BucketObject
 
@@ -4211,6 +4279,9 @@ type Query {
   Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace.
   """
   savedQuery(id: ID!, workspaceSlug: String): SavedQuery
+
+  """Retrieves a saved query by its slug within a workspace."""
+  savedQueryBySlug(slug: String!, workspaceSlug: String!): SavedQuery
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
@@ -4569,6 +4640,11 @@ type SavedQuery {
   id: ID!
   name: String!
   permissions: SavedQueryPermissions!
+
+  """
+  Stable identifier, unique within the workspace. Generated from the name and left unchanged when the query is renamed.
+  """
+  slug: String!
   updatedAt: DateTime!
   workspace: Workspace!
 }
@@ -5880,6 +5956,7 @@ input WebappFileInput {
 }
 
 enum WebappOperationScope {
+  DATABASE_READ
   DATASETS_READ
   DATASETS_WRITE
   FILES_READ
