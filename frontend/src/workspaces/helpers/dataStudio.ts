@@ -6,6 +6,8 @@ export const dataStudioRoutes = (workspaceSlug: string) => {
   return {
     base,
     queries: `${base}/queries`,
-    query: (id: string) => `${base}/queries/${encodeURIComponent(id)}`,
+    // Saved queries are addressed by slug: it is stable across renames and
+    // readable in the URL, and it is the same identifier web apps use.
+    query: (slug: string) => `${base}/queries/${encodeURIComponent(slug)}`,
   };
 };

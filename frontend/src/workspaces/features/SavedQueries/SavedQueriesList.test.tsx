@@ -29,6 +29,9 @@ jest.mock("core/hooks/useCacheKey", () => ({
 const item = (id: string, name: string, description: string) => ({
   __typename: "SavedQuery",
   id,
+  // Rows navigate by slug, not id: distinct values here so a regression that
+  // routes on the id cannot pass by coincidence.
+  slug: `${id}-slug`,
   name,
   description,
   updatedAt: "2024-01-01T00:00:00Z",
@@ -104,7 +107,9 @@ describe("SavedQueriesList", () => {
   it("opens a query when its row is clicked", () => {
     renderList();
     fireEvent.click(screen.getByText("Query One"));
-    expect(mockRouter.asPath).toBe("/workspaces/ws-1/data-studio/queries/q1");
+    expect(mockRouter.asPath).toBe(
+      "/workspaces/ws-1/data-studio/queries/q1-slug",
+    );
   });
 });
 

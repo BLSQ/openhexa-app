@@ -47,7 +47,7 @@ const SavedQueriesList = ({
   const routes = dataStudioRoutes(workspace.slug);
   const { items, totalItems } = workspace.savedQueries;
 
-  const openQuery = (id: string) => router.push(routes.query(id));
+  const openQuery = (slug: string) => router.push(routes.query(slug));
 
   const onFetchData = ({
     page: nextPage,
@@ -104,7 +104,7 @@ const SavedQueriesList = ({
               loading={loading}
               emptyLabel={t("No saved queries yet.")}
               onRowClick={(row) =>
-                openQuery((row as SavedQueryListItem_SavedQueryFragment).id)
+                openQuery((row as SavedQueryListItem_SavedQueryFragment).slug)
               }
               rowClassName="cursor-pointer items-center hover:bg-gray-50"
             >

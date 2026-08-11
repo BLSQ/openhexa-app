@@ -8,24 +8,31 @@ import {
   WorkspaceSavedQueryPageDocument,
   WorkspaceSavedQueryPageQuery,
   WorkspaceSavedQueryPageQueryVariables,
+  WorkspaceSavedQuerySlugByIdDocument,
+  WorkspaceSavedQuerySlugByIdQuery,
+  WorkspaceSavedQuerySlugByIdQueryVariables,
 } from "workspaces/graphql/queries.generated";
+import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
 import DataStudioLayout from "workspaces/layouts/DataStudioLayout";
 
 type Props = {
   workspaceSlug: string;
-  queryId: string;
+  querySlug: string;
 };
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const WorkspaceSavedQueryPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
   const { data } = useWorkspaceSavedQueryPageQuery({
-    variables: { workspaceSlug: props.workspaceSlug, id: props.queryId },
+    variables: { workspaceSlug: props.workspaceSlug, slug: props.querySlug },
   });
 
   if (!data?.workspace) {
     return null;
   }
-  const { workspace, savedQuery } = data;
+  const { workspace, savedQueryBySlug: savedQuery } = data;
 
   return (
     <Page title={savedQuery?.name || t("Data Studio")}>
@@ -65,26 +72,50 @@ export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
     await DataStudioLayout.prefetch(ctx, client);
+    const workspaceSlug = ctx.params?.workspaceSlug as string;
+    const querySlug = ctx.params?.querySlug as string;
+
     const { data } = await client.query<
       WorkspaceSavedQueryPageQuery,
       WorkspaceSavedQueryPageQueryVariables
     >({
       query: WorkspaceSavedQueryPageDocument,
-      variables: {
-        workspaceSlug: ctx.params?.workspaceSlug as string,
-        id: ctx.params?.queryId as string,
-      },
+      variables: { workspaceSlug, slug: querySlug },
     });
 
-    if (!data.workspace || !data.savedQuery) {
-      return {
-        notFound: true,
-      };
+    if (!data.workspace) {
+      return { notFound: true };
     }
+
+    if (!data.savedQueryBySlug) {
+      // Saved queries used to be addressed by id. A link made before the move
+      // still resolves, once: redirect it to the slug URL rather than 404.
+      if (UUID_RE.test(querySlug)) {
+        const { data: byId } = await client.query<
+          WorkspaceSavedQuerySlugByIdQuery,
+          WorkspaceSavedQuerySlugByIdQueryVariables
+        >({
+          query: WorkspaceSavedQuerySlugByIdDocument,
+          variables: { workspaceSlug, id: querySlug },
+        });
+        if (byId.savedQuery) {
+          return {
+            redirect: {
+              destination: dataStudioRoutes(workspaceSlug).query(
+                byId.savedQuery.slug,
+              ),
+              permanent: false,
+            },
+          };
+        }
+      }
+      return { notFound: true };
+    }
+
     return {
       props: {
         workspaceSlug: data.workspace.slug,
-        queryId: ctx.params?.queryId as string,
+        querySlug,
       },
     };
   },

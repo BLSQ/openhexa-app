@@ -192,7 +192,7 @@ export const useSavedQueryEditor = ({
       // A new query was created (first save or save-as-new): open its page,
       // which remounts the editor against the freshly saved query. The buffer
       // still counts as dirty against the old baseline, hence the bypass.
-      navigateWithoutWarning(dataStudioRoutes(workspaceSlug).query(sq.id));
+      navigateWithoutWarning(dataStudioRoutes(workspaceSlug).query(sq.slug));
     },
     [dialog, navigateWithoutWarning, workspaceSlug],
   );

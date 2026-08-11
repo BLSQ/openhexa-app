@@ -98,15 +98,23 @@ export type WorkspaceSavedQueriesPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceSavedQueriesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', createSavedQuery: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, savedQueries: { __typename?: 'SavedQueryPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<{ __typename?: 'SavedQuery', id: string, name: string, description?: string | null, updatedAt: any, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean } }> }, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
+export type WorkspaceSavedQueriesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', createSavedQuery: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, savedQueries: { __typename?: 'SavedQueryPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<{ __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, updatedAt: any, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean } }> }, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type WorkspaceSavedQueryPageQueryVariables = Types.Exact<{
+  workspaceSlug: Types.Scalars['String']['input'];
+  slug: Types.Scalars['String']['input'];
+}>;
+
+
+export type WorkspaceSavedQueryPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', createSavedQuery: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, savedQueryBySlug?: { __typename?: 'SavedQuery', id: string, slug: string, name: string, description?: string | null, content: string, updatedAt: any, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean } } | null };
+
+export type WorkspaceSavedQuerySlugByIdQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
   id: Types.Scalars['ID']['input'];
 }>;
 
 
-export type WorkspaceSavedQueryPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, webappsEnabled: boolean, name: string, permissions: { __typename?: 'WorkspacePermissions', createSavedQuery: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, savedQuery?: { __typename?: 'SavedQuery', id: string, name: string, description?: string | null, content: string, updatedAt: any, createdBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'SavedQueryPermissions', update: boolean, delete: boolean } } | null };
+export type WorkspaceSavedQuerySlugByIdQuery = { __typename?: 'Query', savedQuery?: { __typename?: 'SavedQuery', id: string, slug: string } | null };
 
 export type WorkspacePipelinePageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -674,7 +682,7 @@ export type WorkspaceSavedQueriesPageLazyQueryHookResult = ReturnType<typeof use
 export type WorkspaceSavedQueriesPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceSavedQueriesPageSuspenseQuery>;
 export type WorkspaceSavedQueriesPageQueryResult = Apollo.QueryResult<WorkspaceSavedQueriesPageQuery, WorkspaceSavedQueriesPageQueryVariables>;
 export const WorkspaceSavedQueryPageDocument = gql`
-    query WorkspaceSavedQueryPage($workspaceSlug: String!, $id: ID!) {
+    query WorkspaceSavedQueryPage($workspaceSlug: String!, $slug: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     permissions {
@@ -682,7 +690,7 @@ export const WorkspaceSavedQueryPageDocument = gql`
     }
     ...WorkspaceLayout_workspace
   }
-  savedQuery(workspaceSlug: $workspaceSlug, id: $id) {
+  savedQueryBySlug(workspaceSlug: $workspaceSlug, slug: $slug) {
     ...SavedQuery_savedQuery
   }
 }
@@ -702,7 +710,7 @@ ${SavedQuery_SavedQueryFragmentDoc}`;
  * const { data, loading, error } = useWorkspaceSavedQueryPageQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
- *      id: // value for 'id'
+ *      slug: // value for 'slug'
  *   },
  * });
  */
@@ -722,6 +730,48 @@ export type WorkspaceSavedQueryPageQueryHookResult = ReturnType<typeof useWorksp
 export type WorkspaceSavedQueryPageLazyQueryHookResult = ReturnType<typeof useWorkspaceSavedQueryPageLazyQuery>;
 export type WorkspaceSavedQueryPageSuspenseQueryHookResult = ReturnType<typeof useWorkspaceSavedQueryPageSuspenseQuery>;
 export type WorkspaceSavedQueryPageQueryResult = Apollo.QueryResult<WorkspaceSavedQueryPageQuery, WorkspaceSavedQueryPageQueryVariables>;
+export const WorkspaceSavedQuerySlugByIdDocument = gql`
+    query WorkspaceSavedQuerySlugById($workspaceSlug: String!, $id: ID!) {
+  savedQuery(workspaceSlug: $workspaceSlug, id: $id) {
+    id
+    slug
+  }
+}
+    `;
+
+/**
+ * __useWorkspaceSavedQuerySlugByIdQuery__
+ *
+ * To run a query within a React component, call `useWorkspaceSavedQuerySlugByIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWorkspaceSavedQuerySlugByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorkspaceSavedQuerySlugByIdQuery({
+ *   variables: {
+ *      workspaceSlug: // value for 'workspaceSlug'
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useWorkspaceSavedQuerySlugByIdQuery(baseOptions: Apollo.QueryHookOptions<WorkspaceSavedQuerySlugByIdQuery, WorkspaceSavedQuerySlugByIdQueryVariables> & ({ variables: WorkspaceSavedQuerySlugByIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WorkspaceSavedQuerySlugByIdQuery, WorkspaceSavedQuerySlugByIdQueryVariables>(WorkspaceSavedQuerySlugByIdDocument, options);
+      }
+export function useWorkspaceSavedQuerySlugByIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspaceSavedQuerySlugByIdQuery, WorkspaceSavedQuerySlugByIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WorkspaceSavedQuerySlugByIdQuery, WorkspaceSavedQuerySlugByIdQueryVariables>(WorkspaceSavedQuerySlugByIdDocument, options);
+        }
+export function useWorkspaceSavedQuerySlugByIdSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkspaceSavedQuerySlugByIdQuery, WorkspaceSavedQuerySlugByIdQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WorkspaceSavedQuerySlugByIdQuery, WorkspaceSavedQuerySlugByIdQueryVariables>(WorkspaceSavedQuerySlugByIdDocument, options);
+        }
+export type WorkspaceSavedQuerySlugByIdQueryHookResult = ReturnType<typeof useWorkspaceSavedQuerySlugByIdQuery>;
+export type WorkspaceSavedQuerySlugByIdLazyQueryHookResult = ReturnType<typeof useWorkspaceSavedQuerySlugByIdLazyQuery>;
+export type WorkspaceSavedQuerySlugByIdSuspenseQueryHookResult = ReturnType<typeof useWorkspaceSavedQuerySlugByIdSuspenseQuery>;
+export type WorkspaceSavedQuerySlugByIdQueryResult = Apollo.QueryResult<WorkspaceSavedQuerySlugByIdQuery, WorkspaceSavedQuerySlugByIdQueryVariables>;
 export const WorkspacePipelinePageDocument = gql`
     query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
   workspace(slug: $workspaceSlug) {
