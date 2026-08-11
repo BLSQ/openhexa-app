@@ -66,8 +66,18 @@ Par défaut, une webapp statique a une liste `allowed_operations` vide, ce qui s
 | `FILES_WRITE` | `prepareObjectUpload`, `createBucketFolder`, `deleteBucketObject`, `writeFileContent` |
 | `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
 | `DATASETS_WRITE` | `createDataset`, `updateDataset`, `deleteDataset`, `createDatasetVersion`, `updateDatasetVersion`, `deleteDatasetVersion`, `createDatasetVersionFile`, `deleteDatasetLink` |
+| `DATABASE_READ` | `executeSavedQuery` |
 
 Les champs d'introspection `__typename`, `__schema`, `__type` sont toujours autorisés.
+
+!!! note "Base de données : lecture seule, et uniquement via des requêtes enregistrées"
+
+    Une webapp ne peut pas envoyer son propre SQL — `executeSQL` est refusé sur
+    ce point d'entrée quels que soient les scopes activés. `DATABASE_READ` lui
+    permet d'exécuter une requête écrite et enregistrée dans le Data Studio par
+    un membre du workspace, désignée par son slug. Le SQL n'est jamais renvoyé :
+    la webapp peut exécuter la requête, pas la lire ni la modifier. Les requêtes
+    s'exécutent avec le rôle de base de données en lecture seule.
 
 ## Le global `window.OPENHEXA`
 
@@ -652,6 +662,114 @@ Petit formulaire qui crée un jeu de données et affiche le nouvel id/slug.
       }
       out.textContent = `Créé : ${createDataset.dataset.name} (slug : ${createDataset.dataset.slug})`;
     }
+  </script>
+</body>
+</html>
+```
+
+### DATABASE_READ — Exécuter une requête enregistrée
+
+Exécute une requête enregistrée dans le Data Studio et affiche les lignes dans
+un tableau. La webapp désigne la requête par son slug ; elle ne détient jamais
+le SQL.
+
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSavedQueryResult!
+}
+
+input ExecuteSavedQueryInput {
+  workspaceSlug: String!
+  slug: String!
+  maxRows: Int
+}
+
+type ExecuteSavedQueryResult {
+  success: Boolean!
+  errors: [ExecuteSavedQueryError!]!
+  errorMessage: String
+  columns: [String!]
+  rows: [JSON!]
+  rowCount: Int
+  truncated: Boolean
+  durationMs: Int
+}
+
+enum ExecuteSavedQueryError {
+  NOT_FOUND
+  PERMISSION_DENIED
+  QUERY_TIMEOUT
+  QUERY_ERROR
+  MULTIPLE_STATEMENTS
+}
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
+
+Le slug se lit dans le Data Studio : c'est le dernier segment de l'URL de la
+requête enregistrée. `NOT_FOUND` couvre à la fois un slug inconnu et un
+workspace que vous ne pouvez pas voir, afin de ne rien révéler de ce qui existe.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Requête enregistrée</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #e5e7eb; padding: 0.375rem 0.5rem; text-align: left; font-size: 0.875rem; }
+    th { background: #f9fafb; }
+  </style>
+</head>
+<body>
+  <h1>Requête enregistrée</h1>
+  <div id="out">Chargement…</div>
+
+  <script>
+    const { workspaceSlug } = window.OPENHEXA;
+    const SAVED_QUERY_SLUG = "ma-requete-enregistree";
+
+    async function gql(query, variables) {
+      const res = await fetch("/graphql/", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, variables }),
+      });
+      const json = await res.json();
+      if (json.errors) throw new Error(json.errors.map(e => e.message).join("; "));
+      return json.data;
+    }
+
+    (async () => {
+      const out = document.getElementById("out");
+      const { executeSavedQuery: result } = await gql(`
+        query($input: ExecuteSavedQueryInput!) {
+          executeSavedQuery(input: $input) {
+            success errors columns rows rowCount truncated
+          }
+        }
+      `, { input: { workspaceSlug, slug: SAVED_QUERY_SLUG, maxRows: 100 } });
+
+      if (!result.success) {
+        out.textContent = "Erreur : " + result.errors.join(", ");
+        return;
+      }
+
+      const header = result.columns.map(c => `<th>${c}</th>`).join("");
+      const body = result.rows.map(row =>
+        `<tr>${result.columns.map(c => `<td>${row[c] ?? ""}</td>`).join("")}</tr>`
+      ).join("");
+      out.innerHTML = `<table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>` +
+        (result.truncated ? `<p>Affichage des ${result.rowCount} premières lignes.</p>` : "");
+    })();
   </script>
 </body>
 </html>
