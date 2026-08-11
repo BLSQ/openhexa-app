@@ -16,8 +16,29 @@ from django.views.decorators.http import require_GET, require_http_methods
 from hexa.files.utils import is_safe_path
 from hexa.git.exceptions import GitFileNotFound
 from hexa.git.forgejo import get_forgejo_client
+from hexa.user_management.utils import has_configured_two_factor
 from hexa.webapps.models import Webapp
 from hexa.webapps.utils import extract_webapp_subdomain, is_local_dev_origin
+
+
+def _needs_login(user):
+    return not user.is_authenticated or (
+        has_configured_two_factor(user) and not user.is_verified()
+    )
+
+
+def _login_redirect(request):
+    """Send the visitor to the frontend login, returning to this exact URL after.
+
+    `next` has to be absolute: the login page lives on the frontend domain and
+    resolves a relative `next` against its own origin. On deployments where the
+    backend answers on a host of its own (api.<env> vs app.<env>), a relative
+    `next` would send the user back to a frontend URL that doesn't exist.
+    """
+    current_absolute_url = request.build_absolute_uri(request.get_full_path())
+    return HttpResponseRedirect(
+        f"{settings.NEW_FRONTEND_DOMAIN}/login?next={quote(current_absolute_url)}"
+    )
 
 
 @require_GET
@@ -44,10 +65,7 @@ def auth_token(request, webapp_id):
         return HttpResponseBadRequest("Invalid redirect target")
 
     if not request.user.is_authenticated:
-        current_absolute_url = request.build_absolute_uri(request.get_full_path())
-        return HttpResponseRedirect(
-            f"{settings.NEW_FRONTEND_DOMAIN}/login?next={quote(current_absolute_url)}"
-        )
+        return _login_redirect(request)
 
     user = request.user
     should_have_access = (
@@ -165,6 +183,13 @@ def dev_auth(request):
     is_opaque = origin in {"null", "file://"}
     if not is_opaque and not is_local_dev_origin(origin):
         return HttpResponseBadRequest("Invalid origin")
+
+    # This view handles its own login bounce (it is in ANONYMOUS_URLS) because the
+    # generic one sends a relative `next`, which strands the popup on the frontend.
+    if _needs_login(request.user):
+        if request.method == "POST":
+            return HttpResponse("Authentication required", status=401)
+        return _login_redirect(request)
 
     workspace_slug = params.get("workspaceSlug", "")
     webapp_slug = params.get("webappSlug", "")
