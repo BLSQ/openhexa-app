@@ -34,8 +34,19 @@ workspace_object = ObjectType("Workspace")
 workspace_mutations = MutationType()
 
 order_by_direction_enum = EnumType("OrderByDirection", OrderByDirectionEnum)
-# Bound to the model enum so the GraphQL contract and the stored values stay in sync
-execute_sql_origin_enum = EnumType("ExecuteSQLOrigin", QueryLog.Origin)
+# The client-selectable subset of the stored origins, bound to the model constants
+# so the GraphQL contract and the stored values stay in sync. WEBAPP is missing on
+# purpose: it is set server-side from the request and carries a security meaning
+# ("ran through a web app"), so a client must not be able to claim it. Ariadne
+# rejects a Python member with no GraphQL counterpart, so a new origin has to be
+# classified here as one or the other rather than leaking in silently.
+execute_sql_origin_enum = EnumType(
+    "ExecuteSQLOrigin",
+    {
+        QueryLog.Origin.OTHER.value: QueryLog.Origin.OTHER,
+        QueryLog.Origin.DATA_STUDIO.value: QueryLog.Origin.DATA_STUDIO,
+    },
+)
 
 
 @database_object.field("tables")

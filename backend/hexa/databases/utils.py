@@ -3,7 +3,7 @@ import json
 import math
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import Dict, List, NoReturn, Tuple
 
 import psycopg2
 from django.conf import settings
@@ -191,55 +191,64 @@ def _log_executed_query(
     )
 
 
-def run_and_log_database_query(
+def _deny_query(
+    request: HttpRequest,
+    workspace: Workspace,
+    query: str,
+    origin: str,
+    saved_query=None,
+) -> NoReturn:
+    """Record a refused query and raise, so denials are audited like any outcome."""
+    _log_executed_query(
+        request,
+        workspace,
+        query,
+        origin,
+        QueryLog.Status.DENIED,
+        saved_query=saved_query,
+    )
+    raise PermissionDenied
+
+
+def _execute_and_log(
     request: HttpRequest,
     workspace: Workspace,
     query: str,
     origin: str,
     max_rows: int | None = None,
+    saved_query=None,
 ):
-    """Single point of entry for executing SQL on behalf of an API request.
+    """Delegate to ``execute_database_query`` and record a ``QueryLog`` entry for
+    every outcome, re-raising errors so that callers only have to translate them
+    into API responses.
 
-    Checks the permission, delegates to ``execute_database_query`` and records
-    a ``QueryLog`` entry for every outcome, re-raising errors so that
-    callers only have to translate them into API responses.
+    Performs no permission check: every caller owns the question of who may run
+    what, and they do not all answer it the same way.
     """
-    if not request.user.has_perm("databases.run_query", workspace):
-        _log_executed_query(request, workspace, query, origin, QueryLog.Status.DENIED)
-        raise PermissionDenied
+
+    def log(status, **fields):
+        _log_executed_query(
+            request, workspace, query, origin, status, saved_query=saved_query, **fields
+        )
+
     max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
     started_at = time.perf_counter()
     try:
         result = execute_database_query(workspace, query, **max_rows_kwarg)
     except MultipleStatementsError as e:
-        _log_executed_query(
-            request,
-            workspace,
-            query,
-            origin,
-            QueryLog.Status.REJECTED,
-            error_message=str(e),
-        )
+        log(QueryLog.Status.REJECTED, error_message=str(e))
         raise
     except psycopg2.Error as e:
         # QueryCanceled (statement timeout) is a psycopg2.Error subclass and
         # needs no dedicated handling here: both outcomes log the same fields.
-        _log_executed_query(
-            request,
-            workspace,
-            query,
-            origin,
+        log(
             QueryLog.Status.ERROR,
             result_code=e.pgcode,
             error_message=str(e).strip(),
             duration_ms=elapsed_ms(started_at),
         )
         raise
-    _log_executed_query(
-        request,
-        workspace,
-        query,
-        origin,
+    log(
         QueryLog.Status.SUCCESS,
         result_code=QueryLog.SQLSTATE_SUCCESS,
         duration_ms=result["duration_ms"],
@@ -247,6 +256,58 @@ def run_and_log_database_query(
         truncated=result["truncated"],
     )
     return result
+
+
+def run_and_log_database_query(
+    request: HttpRequest,
+    workspace: Workspace,
+    query: str,
+    origin: str,
+    max_rows: int | None = None,
+):
+    """Single point of entry for executing caller-supplied SQL on behalf of an API request.
+
+    Checks the permission, then delegates to ``_execute_and_log``.
+    """
+    # A webapp may only run SQL the workspace already stored, never SQL of its
+    # own: the GraphQL proxy validates top-level fields only, so the `workspace`
+    # field that `USER_READ` grants would otherwise reach this endpoint through
+    # `workspace { database { executeSQL } }` and turn the narrowest scope into
+    # an unrestricted read of the workspace database.
+    if getattr(request, "webapp", None) is not None:
+        _deny_query(request, workspace, query, origin)
+    if not request.user.has_perm("databases.run_query", workspace):
+        _deny_query(request, workspace, query, origin)
+    return _execute_and_log(request, workspace, query, origin, max_rows=max_rows)
+
+
+def run_saved_query(request: HttpRequest, saved_query, max_rows: int | None = None):
+    """Execute a stored query on behalf of an API request.
+
+    Unlike ``run_and_log_database_query`` this is reachable from a web app: the
+    SQL was written and vetted by a workspace member when the query was saved,
+    not supplied by the caller, which is the whole point of the endpoint.
+    """
+    workspace = saved_query.workspace
+    # Derived from the request rather than accepted as an argument: a client that
+    # could name its own origin could disown the queries it ran.
+    origin = (
+        QueryLog.Origin.WEBAPP
+        if getattr(request, "webapp", None) is not None
+        else QueryLog.Origin.OTHER
+    )
+    if not request.user.has_perm("databases.run_query", workspace):
+        _deny_query(
+            request, workspace, saved_query.content, origin, saved_query=saved_query
+        )
+    return _execute_and_log(
+        request,
+        workspace,
+        saved_query.content,
+        origin,
+        max_rows=max_rows,
+        saved_query=saved_query,
+    )
 
 
 # EXPLAIN only parses and plans the query (it never executes it), so this is a

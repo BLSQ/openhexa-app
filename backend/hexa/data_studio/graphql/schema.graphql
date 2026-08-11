@@ -4,6 +4,8 @@ workspace and are visible to all of its members.
 """
 type SavedQuery {
   id: ID!
+  "Stable identifier, unique within the workspace. Generated from the name and left unchanged when the query is renamed."
+  slug: String!
   name: String!
   description: String
   content: String!
@@ -57,6 +59,55 @@ extend type WorkspacePermissions {
 extend type Query {
   "Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace."
   savedQuery(id: ID!, workspaceSlug: String): SavedQuery
+  "Retrieves a saved query by its slug within a workspace."
+  savedQueryBySlug(workspaceSlug: String!, slug: String!): SavedQuery
+  "Runs a saved query against the workspace database and returns its result, without exposing the SQL."
+  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSavedQueryResult! @loginRequired
+}
+
+"""
+Input for executing a saved query.
+"""
+input ExecuteSavedQueryInput {
+  workspaceSlug: String!
+  slug: String!
+  "Caps the number of returned rows; defaults to 50 and is itself capped to a server-side hard limit."
+  maxRows: Int
+}
+
+"""
+Errors that can occur when executing a saved query.
+"""
+enum ExecuteSavedQueryError {
+  "No saved query with this slug in this workspace, or the workspace is not visible to the caller."
+  NOT_FOUND
+  "The caller is not allowed to run queries against this workspace database."
+  PERMISSION_DENIED
+  "The query was cancelled because it exceeded the statement timeout."
+  QUERY_TIMEOUT
+  "The query could not be executed (e.g. the schema changed since it was saved)."
+  QUERY_ERROR
+  "The stored query holds more than one SQL statement; only a single statement is allowed."
+  MULTIPLE_STATEMENTS
+}
+
+"""
+Result of executing a saved query. Mirrors ExecuteSQLResult, without ever
+exposing the SQL that was run.
+"""
+type ExecuteSavedQueryResult {
+  success: Boolean!
+  errors: [ExecuteSavedQueryError!]!
+  "The underlying database error message, when the query failed."
+  errorMessage: String
+  columns: [String!]
+  "The rows returned by the query, each one a JSON object keyed by column name."
+  rows: [JSON!]
+  rowCount: Int
+  "Whether the result was truncated because it exceeded the maximum number of rows."
+  truncated: Boolean
+  "The server-side execution time of the query, in milliseconds."
+  durationMs: Int
 }
 
 """
