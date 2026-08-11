@@ -1,5 +1,19 @@
 # Changelog
 
+## [5.15.0](https://github.com/BLSQ/openhexa-app/compare/5.14.0...5.15.0) (2026-08-11)
+
+
+### Features
+
+* format SQL queries from the data studio editor(HEXA-1713) ([#1969](https://github.com/BLSQ/openhexa-app/issues/1969)) ([b6398d9](https://github.com/BLSQ/openhexa-app/commit/b6398d9355da32a763e2548311893e3ffaf0cdcd))
+
+
+### Bug Fixes
+
+* Cannot return null for non-nullable field WorkspaceInvitationPage.totalItems ([#1995](https://github.com/BLSQ/openhexa-app/issues/1995)) ([043087b](https://github.com/BLSQ/openhexa-app/commit/043087b9dce5be72f3c8a91f18279f3229503053))
+* dev auth redirect for webapp local dev workflow ([#1997](https://github.com/BLSQ/openhexa-app/issues/1997)) ([daafd9e](https://github.com/BLSQ/openhexa-app/commit/daafd9ef71db07ab0d70c4f4880326cab8536f08))
+* terminating pipeline should be part of the zombie reaper (HEXA-1777) ([#1996](https://github.com/BLSQ/openhexa-app/issues/1996)) ([8bdfeb8](https://github.com/BLSQ/openhexa-app/commit/8bdfeb85244fa2a856d559f5173d9086c957f6bc))
+
 ## [5.14.0](https://github.com/BLSQ/openhexa-app/compare/5.13.2...5.14.0) (2026-08-10)
 
 
