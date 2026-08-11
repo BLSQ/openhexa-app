@@ -985,7 +985,7 @@ app names the query by its slug; it never holds the SQL.
 
 ```graphql
 type Query {
-  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSavedQueryResult!
+  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSQLResult!
 }
 
 input ExecuteSavedQueryInput {
@@ -994,9 +994,10 @@ input ExecuteSavedQueryInput {
   maxRows: Int
 }
 
-type ExecuteSavedQueryResult {
+# Same payload as executeSQL.
+type ExecuteSQLResult {
   success: Boolean!
-  errors: [ExecuteSavedQueryError!]!
+  errors: [ExecuteSQLError!]!
   errorMessage: String
   columns: [String!]
   rows: [JSON!]
@@ -1005,8 +1006,8 @@ type ExecuteSavedQueryResult {
   durationMs: Int
 }
 
-enum ExecuteSavedQueryError {
-  NOT_FOUND
+enum ExecuteSQLError {
+  SAVED_QUERY_NOT_FOUND
   PERMISSION_DENIED
   QUERY_TIMEOUT
   QUERY_ERROR
@@ -1019,8 +1020,8 @@ enum ExecuteSavedQueryError {
 </details>
 
 Find the slug in the Data Studio: it is the last segment of the saved query's
-URL. `NOT_FOUND` covers both an unknown slug and a workspace you cannot see, so
-it does not reveal what exists.
+URL. `SAVED_QUERY_NOT_FOUND` covers both an unknown slug and a workspace you
+cannot see, so it does not reveal what exists.
 
 ```html
 <!DOCTYPE html>

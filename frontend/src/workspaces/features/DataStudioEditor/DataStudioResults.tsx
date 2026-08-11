@@ -55,6 +55,9 @@ const DataStudioResults = ({
     [ExecuteSqlError.MultipleStatements]: t(
       "Only a single SQL statement can be run at a time.",
     ),
+    // executeSavedQuery shares this enum and is the only field that can return
+    // this value; the editor submits SQL directly, so it never renders here.
+    [ExecuteSqlError.SavedQueryNotFound]: t("The saved query was not found."),
   };
 
   const transportErrorLabels: Record<TransportErrorKind, string> = {

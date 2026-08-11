@@ -2392,6 +2392,11 @@ enum ExecuteSQLError {
 
   """The query was cancelled because it exceeded the statement timeout."""
   QUERY_TIMEOUT
+
+  """
+  No saved query with this slug in this workspace, or the workspace is not visible to the caller.
+  """
+  SAVED_QUERY_NOT_FOUND
 }
 
 """
@@ -2438,32 +2443,6 @@ type ExecuteSQLResult {
   truncated: Boolean
 }
 
-"""Errors that can occur when executing a saved query."""
-enum ExecuteSavedQueryError {
-  """
-  The stored query holds more than one SQL statement; only a single statement is allowed.
-  """
-  MULTIPLE_STATEMENTS
-
-  """
-  No saved query with this slug in this workspace, or the workspace is not visible to the caller.
-  """
-  NOT_FOUND
-
-  """
-  The caller is not allowed to run queries against this workspace database.
-  """
-  PERMISSION_DENIED
-
-  """
-  The query could not be executed (e.g. the schema changed since it was saved).
-  """
-  QUERY_ERROR
-
-  """The query was cancelled because it exceeded the statement timeout."""
-  QUERY_TIMEOUT
-}
-
 """Input for executing a saved query."""
 input ExecuteSavedQueryInput {
   """
@@ -2472,33 +2451,6 @@ input ExecuteSavedQueryInput {
   maxRows: Int
   slug: String!
   workspaceSlug: String!
-}
-
-"""
-Result of executing a saved query. Mirrors ExecuteSQLResult, without ever
-exposing the SQL that was run.
-"""
-type ExecuteSavedQueryResult {
-  columns: [String!]
-
-  """The server-side execution time of the query, in milliseconds."""
-  durationMs: Int
-
-  """The underlying database error message, when the query failed."""
-  errorMessage: String
-  errors: [ExecuteSavedQueryError!]!
-  rowCount: Int
-
-  """
-  The rows returned by the query, each one a JSON object keyed by column name.
-  """
-  rows: [JSON!]
-  success: Boolean!
-
-  """
-  Whether the result was truncated because it exceeded the maximum number of rows.
-  """
-  truncated: Boolean
 }
 
 """
@@ -4226,7 +4178,7 @@ type Query {
   """
   Runs a saved query against the workspace database and returns its result, without exposing the SQL.
   """
-  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSavedQueryResult!
+  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSQLResult!
 
   """Get a file by its path within a workspace."""
   getFileByPath(path: String!, workspaceSlug: String!): BucketObject

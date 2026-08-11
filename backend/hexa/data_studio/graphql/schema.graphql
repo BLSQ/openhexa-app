@@ -62,7 +62,7 @@ extend type Query {
   "Retrieves a saved query by its slug within a workspace."
   savedQueryBySlug(workspaceSlug: String!, slug: String!): SavedQuery
   "Runs a saved query against the workspace database and returns its result, without exposing the SQL."
-  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSavedQueryResult! @loginRequired
+  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSQLResult! @loginRequired
 }
 
 """
@@ -75,39 +75,14 @@ input ExecuteSavedQueryInput {
   maxRows: Int
 }
 
-"""
-Errors that can occur when executing a saved query.
-"""
-enum ExecuteSavedQueryError {
+# executeSavedQuery returns the same payload as executeSQL -- the two differ in
+# what they accept, not in what a result looks like -- so it reuses that type
+# rather than declaring a twin of it. Addressing a query by slug is the one
+# failure the shared enum did not cover; it is named for its endpoint since
+# executeSQL can never return it.
+extend enum ExecuteSQLError {
   "No saved query with this slug in this workspace, or the workspace is not visible to the caller."
-  NOT_FOUND
-  "The caller is not allowed to run queries against this workspace database."
-  PERMISSION_DENIED
-  "The query was cancelled because it exceeded the statement timeout."
-  QUERY_TIMEOUT
-  "The query could not be executed (e.g. the schema changed since it was saved)."
-  QUERY_ERROR
-  "The stored query holds more than one SQL statement; only a single statement is allowed."
-  MULTIPLE_STATEMENTS
-}
-
-"""
-Result of executing a saved query. Mirrors ExecuteSQLResult, without ever
-exposing the SQL that was run.
-"""
-type ExecuteSavedQueryResult {
-  success: Boolean!
-  errors: [ExecuteSavedQueryError!]!
-  "The underlying database error message, when the query failed."
-  errorMessage: String
-  columns: [String!]
-  "The rows returned by the query, each one a JSON object keyed by column name."
-  rows: [JSON!]
-  rowCount: Int
-  "Whether the result was truncated because it exceeded the maximum number of rows."
-  truncated: Boolean
-  "The server-side execution time of the query, in milliseconds."
-  durationMs: Int
+  SAVED_QUERY_NOT_FOUND
 }
 
 """

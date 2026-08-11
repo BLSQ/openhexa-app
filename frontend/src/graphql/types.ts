@@ -2404,7 +2404,9 @@ export enum ExecuteSqlError {
   /** The query could not be executed (e.g. invalid SQL or a disallowed operation). */
   QueryError = 'QUERY_ERROR',
   /** The query was cancelled because it exceeded the statement timeout. */
-  QueryTimeout = 'QUERY_TIMEOUT'
+  QueryTimeout = 'QUERY_TIMEOUT',
+  /** No saved query with this slug in this workspace, or the workspace is not visible to the caller. */
+  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND'
 }
 
 /** The origin of a SQL query, recorded for auditing and to build a per-user query history. */
@@ -2436,46 +2438,12 @@ export type ExecuteSqlResult = {
   truncated?: Maybe<Scalars['Boolean']['output']>;
 };
 
-/** Errors that can occur when executing a saved query. */
-export enum ExecuteSavedQueryError {
-  /** The stored query holds more than one SQL statement; only a single statement is allowed. */
-  MultipleStatements = 'MULTIPLE_STATEMENTS',
-  /** No saved query with this slug in this workspace, or the workspace is not visible to the caller. */
-  NotFound = 'NOT_FOUND',
-  /** The caller is not allowed to run queries against this workspace database. */
-  PermissionDenied = 'PERMISSION_DENIED',
-  /** The query could not be executed (e.g. the schema changed since it was saved). */
-  QueryError = 'QUERY_ERROR',
-  /** The query was cancelled because it exceeded the statement timeout. */
-  QueryTimeout = 'QUERY_TIMEOUT'
-}
-
 /** Input for executing a saved query. */
 export type ExecuteSavedQueryInput = {
   /** Caps the number of returned rows; defaults to 50 and is itself capped to a server-side hard limit. */
   maxRows?: InputMaybe<Scalars['Int']['input']>;
   slug: Scalars['String']['input'];
   workspaceSlug: Scalars['String']['input'];
-};
-
-/**
- * Result of executing a saved query. Mirrors ExecuteSQLResult, without ever
- * exposing the SQL that was run.
- */
-export type ExecuteSavedQueryResult = {
-  __typename?: 'ExecuteSavedQueryResult';
-  columns?: Maybe<Array<Scalars['String']['output']>>;
-  /** The server-side execution time of the query, in milliseconds. */
-  durationMs?: Maybe<Scalars['Int']['output']>;
-  /** The underlying database error message, when the query failed. */
-  errorMessage?: Maybe<Scalars['String']['output']>;
-  errors: Array<ExecuteSavedQueryError>;
-  rowCount?: Maybe<Scalars['Int']['output']>;
-  /** The rows returned by the query, each one a JSON object keyed by column name. */
-  rows?: Maybe<Array<Scalars['JSON']['output']>>;
-  success: Scalars['Boolean']['output'];
-  /** Whether the result was truncated because it exceeded the maximum number of rows. */
-  truncated?: Maybe<Scalars['Boolean']['output']>;
 };
 
 /** Represents an external collaborator who has workspace access but no organization membership. */
@@ -4838,7 +4806,7 @@ export type Query = {
   /** Search datasets. */
   datasets: DatasetPage;
   /** Runs a saved query against the workspace database and returns its result, without exposing the SQL. */
-  executeSavedQuery: ExecuteSavedQueryResult;
+  executeSavedQuery: ExecuteSqlResult;
   /** Get a file by its path within a workspace. */
   getFileByPath?: Maybe<BucketObject>;
   /** Retrieves the currently authenticated user. */

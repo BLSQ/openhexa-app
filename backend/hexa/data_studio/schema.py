@@ -154,7 +154,7 @@ def resolve_execute_saved_query(_, info, **kwargs):
     except SavedQuery.DoesNotExist:
         # A missing workspace and a missing query are reported the same way, so
         # that a caller cannot use this endpoint to discover what exists.
-        return {"success": False, "errors": ["NOT_FOUND"]}
+        return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
     except MultipleStatementsError as e:

@@ -586,7 +586,7 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
 
         result = self._execute(self.USER_VIEWER, "no-such-query")
 
-        self.assertEqual(["NOT_FOUND"], result["errors"])
+        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
         self.assertFalse(result["success"])
         # Nothing was executed, so nothing is logged.
         self.assertEqual(0, QueryLog.objects.count())
@@ -598,7 +598,7 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
             self.USER_ADMIN, saved_query.slug, workspace=self.WORKSPACE_2
         )
 
-        self.assertEqual(["NOT_FOUND"], result["errors"])
+        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
 
     def test_execute_saved_query_outsider(self):
         # An outsider cannot see the query at all, so the lookup misses before
@@ -607,7 +607,7 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
 
         result = self._execute(self.USER_OUTSIDER, saved_query.slug)
 
-        self.assertEqual(["NOT_FOUND"], result["errors"])
+        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
 
     def test_execute_saved_query_max_rows(self):
         seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])

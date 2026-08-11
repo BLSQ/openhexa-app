@@ -939,6 +939,7 @@
   "The query is empty": "La requête est vide",
   "The query or its result is too large. Try lowering the maximum number of rows or narrowing your query.": "La requête ou son résultat est trop volumineux. Essayez de réduire le nombre maximal de lignes ou d'affiner votre requête.",
   "The query timed out.": "Le délai d'exécution de la requête a expiré.",
+  "The saved query was not found.": "La requête enregistrée est introuvable.",
   "The schedule value should follow the CRON syntax.": "La valeur du calendrier doit respecter la syntaxe CRON.",
   "The service account key in JSON format": "Clé du compte de service au format JSON",
   "The short name is invalid": "Le nom court est invalide",

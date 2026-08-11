@@ -5,7 +5,10 @@
       "AccessmodGeographicCoverageAnalysis",
       "AccessmodZonalStatistics"
     ],
-    "AccessmodOwner": ["Team", "User"],
+    "AccessmodOwner": [
+      "Team",
+      "User"
+    ],
     "AccessmodOwnership": [
       "AccessmodAccessibilityAnalysis",
       "AccessmodFileset",
@@ -13,7 +16,10 @@
       "AccessmodProject",
       "AccessmodZonalStatistics"
     ],
-    "AssistantMessageSegment": ["AssistantTextSegment", "AssistantToolSegment"],
+    "AssistantMessageSegment": [
+      "AssistantTextSegment",
+      "AssistantToolSegment"
+    ],
     "Connection": [
       "CustomConnection",
       "DHIS2Connection",
@@ -22,9 +28,20 @@
       "PostgreSQLConnection",
       "S3Connection"
     ],
-    "MetadataObject": ["Dataset", "DatasetVersion", "DatasetVersionFile"],
-    "OrganizationMember": ["ExternalCollaborator", "OrganizationMembership"],
-    "PipelineRunOutput": ["BucketObject", "DatabaseTable", "GenericOutput"],
+    "MetadataObject": [
+      "Dataset",
+      "DatasetVersion",
+      "DatasetVersionFile"
+    ],
+    "OrganizationMember": [
+      "ExternalCollaborator",
+      "OrganizationMembership"
+    ],
+    "PipelineRunOutput": [
+      "BucketObject",
+      "DatabaseTable",
+      "GenericOutput"
+    ],
     "SearchResult": [
       "DatabaseTableResult",
       "DatasetResult",
@@ -32,6 +49,10 @@
       "PipelineResult",
       "PipelineTemplateResult"
     ],
-    "WebappSource": ["GitSource", "IframeSource", "SupersetSource"]
+    "WebappSource": [
+      "GitSource",
+      "IframeSource",
+      "SupersetSource"
+    ]
   }
 }
