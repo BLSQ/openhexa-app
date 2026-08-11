@@ -1,11 +1,30 @@
+import secrets
+
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
+from django.core.validators import validate_slug
 from django.db import models
+from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.databases.query_text import sanitize_sql
 from hexa.user_management.models import User, UserInterface
 from hexa.workspaces.models import Workspace
+
+SLUG_MAX_LENGTH = 255
+
+
+def generate_saved_query_slug(name: str, workspace: Workspace) -> str:
+    """Build a slug unique within ``workspace``, suffixing on collision."""
+    suffix = ""
+    while True:
+        # A name made only of characters slugify drops (punctuation, emoji)
+        # leaves nothing to build on, and an empty slug would make the query
+        # unaddressable by the endpoints keyed on it.
+        slug = slugify(name[: SLUG_MAX_LENGTH - len(suffix)] + suffix) or "query"
+        if not SavedQuery.objects.filter(workspace=workspace, slug=slug).exists():
+            return slug
+        suffix = "-" + secrets.token_hex(3)
 
 
 class SavedQueryQuerySet(BaseQuerySet):
@@ -45,6 +64,11 @@ class SavedQuery(Base):
     )
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     name = models.CharField(max_length=255, null=False, blank=False)
+    # Stable public identifier: web apps address a saved query by slug, so it is
+    # generated once and left alone when the query is renamed.
+    slug = models.CharField(
+        max_length=SLUG_MAX_LENGTH, editable=False, validators=[validate_slug]
+    )
     description = models.TextField(blank=True, default="")
     content = models.TextField()
 
@@ -53,6 +77,13 @@ class SavedQuery(Base):
     class Meta:
         verbose_name_plural = "saved queries"
         ordering = ["-updated_at"]
+        constraints = [
+            models.UniqueConstraint(
+                "workspace_id",
+                "slug",
+                name="unique_saved_query_slug_per_workspace",
+            )
+        ]
         indexes = [
             # `id` mirrors the tiebreaker the listing resolver appends: without it
             # Postgres can only presort on the leading column and still has to run an
@@ -75,6 +106,11 @@ class SavedQuery(Base):
         # rejects; cleaning them here means a query is stored runnable whichever
         # way it was written (editor, admin, ...).
         self.content = sanitize_sql(self.content)
+        # Generated here rather than in the manager (as pipelines do) because the
+        # Django admin creates saved queries through a plain form, which would
+        # otherwise hit the not-null column with nothing in it.
+        if not self.slug:
+            self.slug = generate_saved_query_slug(self.name, self.workspace)
         return super().save(*args, **kwargs)
 
     def update_if_has_perm(self, principal: User, **kwargs):
@@ -126,6 +162,10 @@ class QueryLog(Base):
         # The client did not identify itself; every query arrives through the API anyway
         OTHER = "OTHER"
         DATA_STUDIO = "DATA_STUDIO"
+        # Set server-side from the request, never accepted from a client: it is
+        # the only origin that carries a security meaning (a web app can run
+        # stored queries and nothing else).
+        WEBAPP = "WEBAPP"
 
     workspace = models.ForeignKey(
         Workspace, on_delete=models.CASCADE, related_name="query_logs"
@@ -137,6 +177,15 @@ class QueryLog(Base):
         related_name="query_logs",
     )
     query = models.TextField()
+    # Set when the SQL came from a stored query rather than from the caller, so
+    # the audit trail answers "which saved query ran" and not only "what SQL ran".
+    saved_query = models.ForeignKey(
+        SavedQuery,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="query_logs",
+    )
     status = models.CharField(max_length=10, choices=Status.choices)
     # SQLSTATE error code (https://www.postgresql.org/docs/current/errcodes-appendix.html);
     # SQLSTATE_SUCCESS on success, null when the query never reached the data source

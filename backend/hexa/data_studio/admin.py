@@ -23,6 +23,7 @@ class QueryLogAdmin(admin.ModelAdmin):
 class SavedQueryAdmin(admin.ModelAdmin):
     list_display = (
         "name",
+        "slug",
         "workspace",
         "organization",
         "created_by",
@@ -31,9 +32,11 @@ class SavedQueryAdmin(admin.ModelAdmin):
     )
     list_filter = ("workspace__organization",)
     list_select_related = ("workspace__organization", "created_by")
+    readonly_fields = ("slug",)
     search_fields = (
         "id",
         "name",
+        "slug",
         "workspace__name",
         "workspace__slug",
         "workspace__organization__name",
@@ -42,6 +45,7 @@ class SavedQueryAdmin(admin.ModelAdmin):
     autocomplete_fields = ("workspace", "created_by")
     fields = (
         "name",
+        "slug",
         "description",
         "workspace",
         "created_by",

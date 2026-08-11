@@ -111,6 +111,32 @@ class SavedQueryModelTest(SavedQueryTestMixin, TestCase):
         query.refresh_from_db()
         self.assertEqual("SELECT label FROM demo", query.content)
 
+    def test_slug_generated_from_name(self):
+        self.assertEqual("my-query", self._create(name="My query").slug)
+
+    def test_slug_suffixed_on_collision(self):
+        first = self._create(name="My query")
+        second = self._create(name="My query")
+        self.assertEqual("my-query", first.slug)
+        self.assertNotEqual(first.slug, second.slug)
+        self.assertTrue(second.slug.startswith("my-query-"))
+
+    def test_slug_unchanged_on_rename(self):
+        # Web apps address a saved query by slug: a rename must not break them.
+        query = self._create(name="My query")
+        query.update_if_has_perm(principal=self.USER_EDITOR, name="Something else")
+        query.refresh_from_db()
+        self.assertEqual("my-query", query.slug)
+
+    def test_slug_falls_back_when_name_has_nothing_to_slugify(self):
+        self.assertEqual("query", self._create(name="!@#$%").slug)
+
+    def test_slug_reusable_across_workspaces(self):
+        # Uniqueness is per workspace, so the same name elsewhere keeps its slug.
+        first = self._create(user=self.USER_ADMIN, workspace=self.WORKSPACE)
+        second = self._create(user=self.USER_ADMIN, workspace=self.WORKSPACE_2)
+        self.assertEqual(first.slug, second.slug)
+
     def test_content_keeps_literals_verbatim(self):
         # PostgreSQL accepts any character inside a literal, so an exotic blank
         # there is data the user meant to write.
