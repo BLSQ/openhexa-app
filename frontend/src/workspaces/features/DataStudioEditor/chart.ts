@@ -12,29 +12,22 @@ export type Point = {
 /**
  * A chart is selected by the names of the columns a query returns — the
  * convention django-sql-dashboard uses, kept identical so the names are already
- * familiar. The key is the column names sorted alphabetically and joined with
- * hyphens, and matching is on the whole column list: a query returning anything
- * extra is a normal result set and stays a table, which keeps it predictable.
+ * familiar. Only the pair a chart plots has to be present: a query is free to
+ * return extra columns (an id, a filter it also selects, anything kept while
+ * debugging) and is still charted, with the extras a tab away in the table.
+ * The declaration order below is the precedence when a query happens to return
+ * more than one convention, so the choice stays predictable.
  */
-const CHARTS: Record<
-  string,
-  { kind: ChartKind; label: string; value: string }
-> = {
-  "bar_label-bar_quantity": {
-    kind: "bar",
-    label: "bar_label",
-    value: "bar_quantity",
-  },
-  "line_x-line_y": { kind: "line", label: "line_x", value: "line_y" },
-  "pie_label-pie_quantity": {
-    kind: "pie",
-    label: "pie_label",
-    value: "pie_quantity",
-  },
-};
+const CHARTS: { kind: ChartKind; label: string; value: string }[] = [
+  { kind: "bar", label: "bar_label", value: "bar_quantity" },
+  { kind: "line", label: "line_x", value: "line_y" },
+  { kind: "pie", label: "pie_label", value: "pie_quantity" },
+];
 
-export const chartKey = (columns: string[]): string =>
-  [...columns].sort().join("-");
+const findChart = (columns: string[]) =>
+  CHARTS.find(
+    (chart) => columns.includes(chart.label) && columns.includes(chart.value),
+  );
 
 /** Postgres serialises NUMERIC/bigint as strings, so parse through the same
  * numeric-shape check the results table uses rather than trusting typeof. */
@@ -58,7 +51,7 @@ export const detectChart = (
   columns: string[],
   rows: Row[],
 ): ChartKind | null => {
-  const chart = CHARTS[chartKey(columns)];
+  const chart = findChart(columns);
   if (!chart || rows.length === 0) {
     return null;
   }
@@ -80,7 +73,7 @@ export const toPoints = (
   rows: Row[],
   limit: number,
 ): { points: Point[]; hidden: number } => {
-  const chart = Object.values(CHARTS).find((entry) => entry.kind === kind)!;
+  const chart = CHARTS.find((entry) => entry.kind === kind)!;
   const points: Point[] = [];
   for (const row of rows) {
     const value = toNumber(row[chart.value]);

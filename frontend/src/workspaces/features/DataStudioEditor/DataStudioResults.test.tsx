@@ -252,6 +252,28 @@ describe("DataStudioResults", () => {
       ).not.toBeInTheDocument();
     });
 
+    it("charts a result that returns extra columns beside the widget pair", async () => {
+      render(
+        <DataStudioResults
+          loading={false}
+          result={successResult({
+            columns: ["bar_label", "bar_quantity", "region"],
+            rows: [
+              { bar_label: "Gasabo", bar_quantity: 120, region: "Kigali" },
+            ],
+            rowCount: 1,
+          })}
+        />,
+      );
+      expect(screen.getByRole("tab", { name: "Chart" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+
+      await userEvent.click(screen.getByRole("tab", { name: "Table" }));
+      expect(screen.getByText("region")).toBeInTheDocument();
+    });
+
     it("falls back to the table when a widget column holds non-numeric values", () => {
       render(
         <DataStudioResults
