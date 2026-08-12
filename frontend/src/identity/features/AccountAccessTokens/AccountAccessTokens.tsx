@@ -56,7 +56,7 @@ const AccountAccessTokens = (props: AccountAccessTokensProps) => {
             label={t("Role")}
             id="role"
           />
-          <BaseColumn label={t("Token")} id="token">
+          <BaseColumn label={t("Token")} id="token" className="w-1/2 min-w-64">
             {(workspace: WorkspaceItem) => (
               <WorkspaceAccessToken
                 workspaceSlug={workspace.slug}
