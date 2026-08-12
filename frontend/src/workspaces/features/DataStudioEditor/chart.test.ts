@@ -1,18 +1,4 @@
-import {
-  chartKey,
-  detectChart,
-  formatNumber,
-  niceTicks,
-  toPoints,
-} from "./chart";
-
-describe("chartKey", () => {
-  it("sorts column names alphabetically and joins them with hyphens", () => {
-    expect(chartKey(["bar_quantity", "bar_label"])).toBe(
-      "bar_label-bar_quantity",
-    );
-  });
-});
+import { detectChart, formatNumber, niceTicks, toPoints } from "./chart";
 
 describe("detectChart", () => {
   const barRows = [
@@ -37,12 +23,34 @@ describe("detectChart", () => {
     expect(detectChart(["bar_quantity", "bar_label"], barRows)).toBe("bar");
   });
 
-  it("falls back to the table when an extra column is returned", () => {
+  it("charts anyway when extra columns are returned alongside the pair", () => {
     expect(
       detectChart(
         ["bar_label", "bar_quantity", "region"],
         barRows.map((row) => ({ ...row, region: "North" })),
       ),
+    ).toBe("bar");
+  });
+
+  it("resolves in declaration order when a query returns several conventions", () => {
+    expect(
+      detectChart(
+        ["pie_label", "pie_quantity", "bar_label", "bar_quantity"],
+        [
+          {
+            bar_label: "Gasabo",
+            bar_quantity: 12,
+            pie_label: "Gasabo",
+            pie_quantity: 12,
+          },
+        ],
+      ),
+    ).toBe("bar");
+  });
+
+  it("falls back to the table when only one column of a pair is returned", () => {
+    expect(
+      detectChart(["bar_label", "region"], [{ bar_label: "a" }]),
     ).toBeNull();
   });
 

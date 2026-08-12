@@ -18,7 +18,7 @@ The chart appears in a first tab and the usual tabular output stays in a second 
 
 ## Rules that decide whether a chart is drawn
 
-The query must return **exactly** the two columns of one chart, and nothing else. A third column means the result is a normal data set and stays a table — so select only what you are charting, and move any filters into the `WHERE` clause instead of returning them.
+The query must return the two columns of one chart. Extra columns are allowed: the chart ignores them and they stay readable in the table tab, so a query can keep an id or a filter column and still be drawn. If a query returns the columns of several charts at once, the first match wins, in the order bar, line, pie.
 
 The value column must contain numbers. If it holds text, the result falls back to the table rather than drawing a misleading chart.
 
