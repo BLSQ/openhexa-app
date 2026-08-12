@@ -65,6 +65,11 @@ class CopyWorkspaceForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
         help_text="The workspace-metadata copier always runs.",
     )
+    all_dataset_versions = forms.BooleanField(
+        required=False,
+        label="Copy all dataset versions",
+        help_text="Off by default: only each dataset's latest version is copied.",
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
