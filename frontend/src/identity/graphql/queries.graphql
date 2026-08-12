@@ -42,24 +42,6 @@ query AccountPage {
     }
   }
 
-  # Access tokens are listed as a flat list, capped at 100 workspaces: the grid
-  # paginates client-side and users are not expected to exceed that.
-  # A token lives on the membership, so workspaces the user only sees as an
-  # organization admin are excluded — they have no token there.
-  workspaces(page: 1, perPage: 100, withCurrentMembership: true) {
-    totalItems
-    items {
-      slug
-      name
-      currentMembership {
-        role
-      }
-      permissions {
-        generateToken
-      }
-    }
-  }
-
   pendingWorkspaceInvitations {
     totalItems
     items {
@@ -74,6 +56,24 @@ query AccountPage {
         name
       }
       createdAt
+    }
+  }
+}
+
+query AccountAccessTokens($page: Int!, $perPage: Int!) {
+  # A token lives on the membership, so workspaces the user only sees through an
+  # organization admin role are excluded — they have no token there.
+  workspaces(page: $page, perPage: $perPage, withCurrentMembership: true) {
+    totalItems
+    items {
+      slug
+      name
+      currentMembership {
+        role
+      }
+      permissions {
+        generateToken
+      }
     }
   }
 }

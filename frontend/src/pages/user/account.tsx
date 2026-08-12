@@ -49,7 +49,7 @@ function AccountPage() {
           />
         </DataCard>
 
-        <AccountAccessTokens workspaces={data.workspaces} />
+        <AccountAccessTokens />
 
         <PendingWorkspaceInvitations
           invitations={data.pendingWorkspaceInvitations}
@@ -72,6 +72,7 @@ export const getServerSideProps = createGetServerSideProps({
         notFound: true,
       };
     }
+    await AccountAccessTokens.prefetch(client);
   },
 });
 

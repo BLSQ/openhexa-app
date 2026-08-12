@@ -3,22 +3,46 @@ import { BaseColumn } from "core/components/DataGrid";
 import DataGrid from "core/components/DataGrid/DataGrid";
 import { TextColumn } from "core/components/DataGrid/TextColumn";
 import Link from "core/components/Link";
-import { AccountPageQuery } from "identity/graphql/queries.generated";
+import { CustomApolloClient } from "core/helpers/apollo";
+import {
+  AccountAccessTokensDocument,
+  AccountAccessTokensQuery,
+  useAccountAccessTokensQuery,
+} from "identity/graphql/queries.generated";
 import { Trans, useTranslation } from "next-i18next";
+import React, { useState } from "react";
 import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
 import WorkspaceAccessToken from "workspaces/features/WorkspaceAccessToken";
 
-type AccountAccessTokensProps = {
-  workspaces: AccountPageQuery["workspaces"];
-};
+// A page costs only the workspaces that exist, so a generous default is free for
+// the many users with a handful of workspaces and saves paging for the few with
+// dozens. Those few can go further with the page size selector.
+const DEFAULT_PAGE_SIZE = 20;
+const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
-type WorkspaceItem = AccountPageQuery["workspaces"]["items"][number];
+type WorkspaceItem = AccountAccessTokensQuery["workspaces"]["items"][number];
 
-const AccountAccessTokens = (props: AccountAccessTokensProps) => {
-  const { workspaces } = props;
+const AccountAccessTokens = () => {
   const { t } = useTranslation();
+  const [pagination, setPagination] = useState({
+    page: 1,
+    perPage: DEFAULT_PAGE_SIZE,
+  });
 
-  if (workspaces.totalItems === 0) {
+  const { data, previousData } = useAccountAccessTokensQuery({
+    variables: pagination,
+  });
+
+  const onFetchData: React.ComponentProps<typeof DataGrid>["fetchData"] = ({
+    page,
+    pageSize,
+  }) => {
+    setPagination({ page, perPage: pageSize });
+  };
+
+  // previousData keeps the current page visible while the next one loads
+  const workspaces = (data ?? previousData)?.workspaces;
+  if (!workspaces || workspaces.totalItems === 0) {
     return null;
   }
 
@@ -40,8 +64,11 @@ const AccountAccessTokens = (props: AccountAccessTokensProps) => {
           </Trans>
         </p>
         <DataGrid
-          totalItems={workspaces.items.length}
+          totalItems={workspaces.totalItems}
           data={workspaces.items}
+          defaultPageSize={DEFAULT_PAGE_SIZE}
+          pageSizeOptions={PAGE_SIZE_OPTIONS}
+          fetchData={onFetchData}
           fixedLayout={false}
         >
           <TextColumn accessor="name" label={t("Workspace")} id="workspace" />
@@ -69,5 +96,11 @@ const AccountAccessTokens = (props: AccountAccessTokensProps) => {
     </Block>
   );
 };
+
+AccountAccessTokens.prefetch = async (client: CustomApolloClient) =>
+  client.query({
+    query: AccountAccessTokensDocument,
+    variables: { page: 1, perPage: DEFAULT_PAGE_SIZE },
+  });
 
 export default AccountAccessTokens;

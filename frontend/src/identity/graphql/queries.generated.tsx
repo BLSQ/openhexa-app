@@ -13,7 +13,15 @@ export type GetUserQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasT
 export type AccountPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, user?: { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, displayName: string, id: string, email: string, language: string, analyticsEnabled: boolean, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, currentMembership?: { __typename?: 'WorkspaceMembership', role: Types.WorkspaceMembershipRole } | null, permissions: { __typename?: 'WorkspacePermissions', generateToken: boolean } }> }, pendingWorkspaceInvitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: string, status: Types.WorkspaceInvitationStatus, role: Types.WorkspaceMembershipRole, createdAt: any, invitedBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
+export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, user?: { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, displayName: string, id: string, email: string, language: string, analyticsEnabled: boolean, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }, pendingWorkspaceInvitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: string, status: Types.WorkspaceInvitationStatus, role: Types.WorkspaceMembershipRole, createdAt: any, invitedBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
+
+export type AccountAccessTokensQueryVariables = Types.Exact<{
+  page: Types.Scalars['Int']['input'];
+  perPage: Types.Scalars['Int']['input'];
+}>;
+
+
+export type AccountAccessTokensQuery = { __typename?: 'Query', workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, currentMembership?: { __typename?: 'WorkspaceMembership', role: Types.WorkspaceMembershipRole } | null, permissions: { __typename?: 'WorkspacePermissions', generateToken: boolean } }> } };
 
 export type RegisterPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
@@ -103,19 +111,6 @@ export const AccountPageDocument = gql`
       ...User_user
     }
   }
-  workspaces(page: 1, perPage: 100, withCurrentMembership: true) {
-    totalItems
-    items {
-      slug
-      name
-      currentMembership {
-        role
-      }
-      permissions {
-        generateToken
-      }
-    }
-  }
   pendingWorkspaceInvitations {
     totalItems
     items {
@@ -166,6 +161,57 @@ export type AccountPageQueryHookResult = ReturnType<typeof useAccountPageQuery>;
 export type AccountPageLazyQueryHookResult = ReturnType<typeof useAccountPageLazyQuery>;
 export type AccountPageSuspenseQueryHookResult = ReturnType<typeof useAccountPageSuspenseQuery>;
 export type AccountPageQueryResult = Apollo.QueryResult<AccountPageQuery, AccountPageQueryVariables>;
+export const AccountAccessTokensDocument = gql`
+    query AccountAccessTokens($page: Int!, $perPage: Int!) {
+  workspaces(page: $page, perPage: $perPage, withCurrentMembership: true) {
+    totalItems
+    items {
+      slug
+      name
+      currentMembership {
+        role
+      }
+      permissions {
+        generateToken
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useAccountAccessTokensQuery__
+ *
+ * To run a query within a React component, call `useAccountAccessTokensQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAccountAccessTokensQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAccountAccessTokensQuery({
+ *   variables: {
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
+ *   },
+ * });
+ */
+export function useAccountAccessTokensQuery(baseOptions: Apollo.QueryHookOptions<AccountAccessTokensQuery, AccountAccessTokensQueryVariables> & ({ variables: AccountAccessTokensQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AccountAccessTokensQuery, AccountAccessTokensQueryVariables>(AccountAccessTokensDocument, options);
+      }
+export function useAccountAccessTokensLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AccountAccessTokensQuery, AccountAccessTokensQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AccountAccessTokensQuery, AccountAccessTokensQueryVariables>(AccountAccessTokensDocument, options);
+        }
+export function useAccountAccessTokensSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<AccountAccessTokensQuery, AccountAccessTokensQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<AccountAccessTokensQuery, AccountAccessTokensQueryVariables>(AccountAccessTokensDocument, options);
+        }
+export type AccountAccessTokensQueryHookResult = ReturnType<typeof useAccountAccessTokensQuery>;
+export type AccountAccessTokensLazyQueryHookResult = ReturnType<typeof useAccountAccessTokensLazyQuery>;
+export type AccountAccessTokensSuspenseQueryHookResult = ReturnType<typeof useAccountAccessTokensSuspenseQuery>;
+export type AccountAccessTokensQueryResult = Apollo.QueryResult<AccountAccessTokensQuery, AccountAccessTokensQueryVariables>;
 export const RegisterPageDocument = gql`
     query RegisterPage {
   config {
