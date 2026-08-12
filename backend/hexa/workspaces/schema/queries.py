@@ -15,7 +15,15 @@ workspace_queries = QueryType()
 
 
 @workspace_queries.field("workspaces")
-def resolve_workspaces(_, info, query=None, organization_id=None, page=1, per_page=15):
+def resolve_workspaces(
+    _,
+    info,
+    query=None,
+    organization_id=None,
+    with_current_membership=False,
+    page=1,
+    per_page=15,
+):
     request = info.context["request"]
     queryset = Workspace.objects.filter_for_user(request.user).order_by("name")
     if request.user.is_authenticated:
@@ -31,6 +39,11 @@ def resolve_workspaces(_, info, query=None, organization_id=None, page=1, per_pa
                 to_attr="current_user_memberships",
             )
         )
+        if with_current_membership:
+            # filter_for_user also returns workspaces reachable through an
+            # organization admin/owner role (and every workspace for superusers),
+            # where the user has no membership at all.
+            queryset = queryset.filter(workspacemembership__user=request.user)
     if organization_id:
         queryset = queryset.filter(organization_id=organization_id)
     if query:

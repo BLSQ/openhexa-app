@@ -103,7 +103,7 @@ export const AccountPageDocument = gql`
       ...User_user
     }
   }
-  workspaces(page: 1, perPage: 100) {
+  workspaces(page: 1, perPage: 100, withCurrentMembership: true) {
     totalItems
     items {
       slug

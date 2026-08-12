@@ -44,7 +44,9 @@ query AccountPage {
 
   # Access tokens are listed as a flat list, capped at 100 workspaces: the grid
   # paginates client-side and users are not expected to exceed that.
-  workspaces(page: 1, perPage: 100) {
+  # A token lives on the membership, so workspaces the user only sees as an
+  # organization admin are excluded — they have no token there.
+  workspaces(page: 1, perPage: 100, withCurrentMembership: true) {
     totalItems
     items {
       slug

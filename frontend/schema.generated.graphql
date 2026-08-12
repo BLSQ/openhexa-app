@@ -4228,7 +4228,7 @@ type Query {
   webapp(slug: String!, workspaceSlug: String!): Webapp
   webapps(favorite: Boolean, page: Int, perPage: Int, workspaceSlug: String): WebappsPage!
   workspace(slug: String!): Workspace
-  workspaces(organizationId: UUID, page: Int, perPage: Int, query: String): WorkspacePage!
+  workspaces(organizationId: UUID, page: Int, perPage: Int, query: String, withCurrentMembership: Boolean): WorkspacePage!
 }
 
 enum ReadFileContentError {

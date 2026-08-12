@@ -1318,6 +1318,88 @@ class WorkspaceTest(GraphQLTestCase):
                     items[self.WORKSPACE.slug],
                 )
 
+    WORKSPACES_WITH_MEMBERSHIP_QUERY = """
+    query workspaces($withCurrentMembership: Boolean) {
+        workspaces(page: 1, perPage: 100, withCurrentMembership: $withCurrentMembership) {
+            totalItems
+            items {
+                slug
+                currentMembership {
+                    role
+                }
+            }
+        }
+    }
+    """
+
+    def test_workspaces_with_current_membership_excludes_organization_admin(self):
+        # Joe is an organization admin without any workspace membership: he sees the
+        # workspace in the unfiltered list, but has no token there, so the filtered
+        # list must be empty.
+        self.client.force_login(self.USER_JOE)
+
+        r = self.run_query(
+            self.WORKSPACES_WITH_MEMBERSHIP_QUERY, {"withCurrentMembership": False}
+        )
+        self.assertEqual(
+            [{"slug": self.WORKSPACE.slug, "currentMembership": None}],
+            r["data"]["workspaces"]["items"],
+        )
+
+        r = self.run_query(
+            self.WORKSPACES_WITH_MEMBERSHIP_QUERY, {"withCurrentMembership": True}
+        )
+        self.assertEqual(
+            {"totalItems": 0, "items": []},
+            r["data"]["workspaces"],
+        )
+
+    def test_workspaces_with_current_membership_excludes_superuser_non_membership(self):
+        superuser = User.objects.create_user(
+            "super@bluesquarehub.com", "password", is_superuser=True
+        )
+        self.client.force_login(superuser)
+
+        r = self.run_query(
+            self.WORKSPACES_WITH_MEMBERSHIP_QUERY, {"withCurrentMembership": False}
+        )
+        self.assertEqual(2, r["data"]["workspaces"]["totalItems"])
+
+        r = self.run_query(
+            self.WORKSPACES_WITH_MEMBERSHIP_QUERY, {"withCurrentMembership": True}
+        )
+        self.assertEqual(
+            {"totalItems": 0, "items": []},
+            r["data"]["workspaces"],
+        )
+
+    def test_workspaces_with_current_membership_keeps_members(self):
+        # The workspace admin is also an organization admin: filtering on the
+        # membership must not drop the workspace he is actually a member of.
+        for user, expected_role in [
+            (self.USER_WORKSPACE_ADMIN, WorkspaceMembershipRole.ADMIN),
+            (self.USER_WORKSPACE_EDITOR_ONLY, WorkspaceMembershipRole.EDITOR),
+            (self.USER_REBECCA, WorkspaceMembershipRole.VIEWER),
+        ]:
+            with self.subTest(user=user.email):
+                self.client.force_login(user)
+                r = self.run_query(
+                    self.WORKSPACES_WITH_MEMBERSHIP_QUERY,
+                    {"withCurrentMembership": True},
+                )
+                self.assertEqual(
+                    {
+                        "totalItems": 1,
+                        "items": [
+                            {
+                                "slug": self.WORKSPACE.slug,
+                                "currentMembership": {"role": expected_role},
+                            }
+                        ],
+                    },
+                    r["data"]["workspaces"],
+                )
+
     def test_workspace_current_membership_none_for_organization_admin(self):
         self.client.force_login(self.USER_JOE)
         r = self.run_query(
