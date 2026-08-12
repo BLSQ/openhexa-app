@@ -54,6 +54,26 @@ class PipelinesResult:
 
 
 @dataclass
+class DatasetsResult:
+    """What the datasets copier did, for the summary."""
+
+    created: list[tuple[str, list[str]]] = field(default_factory=list)
+    """(dataset_slug, [version_name, ...]) for each dataset created on target."""
+
+    skipped: list[str] = field(default_factory=list)
+    """Dataset slugs that already existed on target."""
+
+    failed: list[str] = field(default_factory=list)
+    """Dataset slugs whose copy failed; user must handle manually."""
+
+    files_copied: int = 0
+    bytes_copied: int = 0
+
+    warnings: list[str] = field(default_factory=list)
+    """Human-readable warnings to print in the summary."""
+
+
+@dataclass
 class TemplatesResult:
     """What a template copy run did, for the summary.
 
@@ -88,6 +108,7 @@ class CopyResult:
     files: FilesResult | None = None
     connections: ConnectionsResult | None = None
     pipelines: PipelinesResult | None = None
+    datasets: DatasetsResult | None = None
     warnings: list[str] = field(default_factory=list)
 
     def warn(self, message: str) -> None:
@@ -148,6 +169,28 @@ def format_summary(result: CopyResult) -> str:
         if pipes.warnings:
             lines.append("Pipeline warnings:")
             lines.extend(f"  - {w}" for w in pipes.warnings)
+
+    if result.datasets is not None:
+        datasets = result.datasets
+        lines.append(
+            f"Datasets created: {len(datasets.created)} "
+            f"({datasets.files_copied} file(s), {datasets.bytes_copied} bytes)"
+        )
+        for slug, vnames in datasets.created:
+            lines.append(f"  * {slug}")
+            lines.extend(f"      - {vn}" for vn in vnames)
+        if datasets.skipped:
+            lines.append(f"Datasets skipped (already existed): {len(datasets.skipped)}")
+            lines.extend(f"  * {slug}" for slug in datasets.skipped)
+        if datasets.failed:
+            lines.append(
+                f"Datasets that could NOT be copied "
+                f"({len(datasets.failed)} — handle manually):"
+            )
+            lines.extend(f"  * {slug}" for slug in datasets.failed)
+        if datasets.warnings:
+            lines.append("Dataset warnings:")
+            lines.extend(f"  - {w}" for w in datasets.warnings)
 
     if result.warnings:
         lines.append("Warnings:")
