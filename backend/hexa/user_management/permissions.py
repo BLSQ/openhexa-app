@@ -4,7 +4,6 @@ from hexa.user_management.models import (
     Team,
     User,
 )
-from hexa.workspaces.models import WorkspaceMembership, WorkspaceMembershipRole
 
 
 def create_team(principal: User):
@@ -54,25 +53,13 @@ def manage_members(principal: User, organization: Organization):
     return principal.is_organization_admin_or_owner(organization)
 
 
-def create_workspace(principal: User, organization: Organization = None):
-    """Any member of the organization can create a workspace.
-
-    Legacy (no organizations on instance): workspace admins can create workspaces.
-    """
+def create_workspace(principal: User, organization: Organization):
+    """Any member of the organization can create a workspace."""
     if principal.has_feature_flag("workspaces.prevent_create"):
         return False
 
     if principal.has_feature_flag("workspaces.create"):
         return True
-
-    if not Organization.objects.exists():
-        return WorkspaceMembership.objects.filter(
-            user=principal,
-            role=WorkspaceMembershipRole.ADMIN,
-        ).exists()
-
-    if not organization:
-        return False
 
     return principal.is_organization_member(organization)
 

@@ -6,11 +6,7 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
     User,
 )
-from hexa.workspaces.models import (
-    Workspace,
-    WorkspaceMembership,
-    WorkspaceMembershipRole,
-)
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class FilesOrganizationPermissionsTest(TestCase):
@@ -19,7 +15,6 @@ class FilesOrganizationPermissionsTest(TestCase):
         cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
             short_name="test-org-files",
-            organization_type="CORPORATE",
         )
 
         cls.USER_ORG_OWNER = User.objects.create_user(
@@ -54,7 +49,7 @@ class FilesOrganizationPermissionsTest(TestCase):
             role=OrganizationMembershipRole.MEMBER,
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_WORKSPACE_ADMIN,
             name="Test Workspace",
             description="Test workspace for files permissions",
@@ -103,25 +98,3 @@ class FilesOrganizationPermissionsTest(TestCase):
     def test_workspace_admin_can_delete_object(self):
         """Workspace admins should be able to delete files through workspace membership"""
         self.assertTrue(delete_object(self.USER_WORKSPACE_ADMIN, self.WORKSPACE))
-
-    def test_permissions_with_null_organization(self):
-        """Test permissions when workspace has no organization"""
-        workspace_no_org = Workspace.objects.create(
-            name="No Org Workspace",
-            description="Workspace without organization",
-        )
-        WorkspaceMembership.objects.create(
-            workspace=workspace_no_org,
-            user=self.USER_WORKSPACE_ADMIN,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
-
-        # Organization admin/owner should not have permissions for workspace without organization
-        self.assertFalse(create_object(self.USER_ORG_OWNER, workspace_no_org))
-        self.assertFalse(create_object(self.USER_ORG_ADMIN, workspace_no_org))
-        self.assertFalse(delete_object(self.USER_ORG_OWNER, workspace_no_org))
-        self.assertFalse(delete_object(self.USER_ORG_ADMIN, workspace_no_org))
-
-        # Only workspace member should have permissions
-        self.assertTrue(create_object(self.USER_WORKSPACE_ADMIN, workspace_no_org))
-        self.assertTrue(delete_object(self.USER_WORKSPACE_ADMIN, workspace_no_org))

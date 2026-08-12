@@ -1,5 +1,6 @@
 import hashlib
 from datetime import timedelta
+from urllib.parse import quote
 
 from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore
@@ -14,10 +15,10 @@ from hexa.webapps.middlewares import (
 )
 from hexa.webapps.models import Webapp
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 WEBAPPS_DOMAIN = "webapps.test.local"
 
@@ -26,7 +27,7 @@ class PreviewSessionKeyTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("preview@test.com", "password")
-        cls.WORKSPACE = Workspace.objects.create(name="Preview WS")
+        cls.WORKSPACE = create_workspace(name="Preview WS")
         WorkspaceMembership.objects.create(
             user=cls.USER,
             workspace=cls.WORKSPACE,
@@ -95,7 +96,7 @@ class DevLocalViewsTest(TestCase):
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("owner@test.com", "password")
         cls.OTHER_USER = User.objects.create_user("outsider@test.com", "password")
-        cls.WORKSPACE = Workspace.objects.create(name="Dev WS", slug="dev-ws")
+        cls.WORKSPACE = create_workspace(name="Dev WS", slug="dev-ws")
         WorkspaceMembership.objects.create(
             user=cls.USER,
             workspace=cls.WORKSPACE,
@@ -128,6 +129,37 @@ class DevLocalViewsTest(TestCase):
     def test_dev_auth_requires_login(self):
         response = self.client.get(self._dev_auth_url("http://localhost:5173"))
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            f"{settings.NEW_FRONTEND_DOMAIN}/login?next="
+            + quote(
+                f"{settings.BASE_URL}{self._dev_auth_url('http://localhost:5173')}"
+            ),
+        )
+
+    def test_dev_auth_login_redirect_ignores_forged_host(self):
+        response = self.client.get(
+            self._dev_auth_url("http://localhost:5173"), HTTP_HOST="evil.example.com"
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            f"{settings.NEW_FRONTEND_DOMAIN}/login?next="
+            + quote(
+                f"{settings.BASE_URL}{self._dev_auth_url('http://localhost:5173')}"
+            ),
+        )
+
+    def test_dev_auth_post_requires_login(self):
+        response = self.client.post(
+            "/webapps/dev-auth/",
+            {
+                "workspaceSlug": self.WORKSPACE.slug,
+                "webappSlug": self.WEBAPP.slug,
+                "origin": "http://localhost:5173",
+            },
+        )
+        self.assertEqual(response.status_code, 401)
 
     def test_dev_auth_rejects_non_local_origin(self):
         self.client.force_login(self.USER)

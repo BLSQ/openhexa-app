@@ -56,10 +56,11 @@ def resolve_workspace_connection_by_slug(_, info, **kwargs):
 def resolve_pending_workspace_invitations(_, info, page=1, per_page=10):
     request = info.context["request"]
     if not request.user.is_authenticated:
-        return []
-    qs = WorkspaceInvitation.objects.filter(
-        email=request.user.email, status=WorkspaceInvitationStatus.PENDING
-    ).order_by("-created_at")
+        qs = WorkspaceInvitation.objects.none()
+    else:
+        qs = WorkspaceInvitation.objects.filter(
+            email=request.user.email, status=WorkspaceInvitationStatus.PENDING
+        ).order_by("-created_at")
     return result_page(qs, page=page, per_page=per_page)
 
 

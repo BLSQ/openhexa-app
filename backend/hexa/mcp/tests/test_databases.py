@@ -3,10 +3,10 @@ from hexa.databases.tests.helpers import seed_demo_table
 from hexa.mcp.tools.databases import get_db_schema, get_db_table_schema
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 # These tools query the workspace database through the GraphQL layer, so unlike
@@ -23,7 +23,7 @@ class DatabaseToolsTestCase(TestCase):
             "outsider@openhexa.org", "password"
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_ADMIN,
             name="Test Workspace",
             description="A test workspace",

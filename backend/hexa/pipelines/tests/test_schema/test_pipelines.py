@@ -36,10 +36,10 @@ from hexa.pipelines.utils import mail_run_recipients
 from hexa.tags.models import Tag
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class PipelinesV2Test(GraphQLTestCase):
@@ -72,12 +72,12 @@ class PipelinesV2Test(GraphQLTestCase):
             patch("hexa.workspaces.models.create_database"),
             patch("hexa.workspaces.models.load_database_sample_data"),
         ):
-            cls.WS1 = Workspace.objects.create_if_has_perm(
+            cls.WS1 = create_workspace(
                 cls.USER_ROOT,
                 name="WS1",
                 description="Workspace 1",
             )
-            cls.WS2 = Workspace.objects.create_if_has_perm(
+            cls.WS2 = create_workspace(
                 cls.USER_ROOT,
                 name="WS2",
                 description="Workspace 2",

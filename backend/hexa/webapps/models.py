@@ -239,12 +239,10 @@ class GitWebapp(Webapp, GitRepoMixin):
 
     @property
     def git_org(self):
-        if self.workspace.organization:
-            return GitOrg(
-                slug=self.workspace.organization.slug,
-                display_name=self.workspace.organization.name,
-            )
-        return GitOrg(slug="no-org", display_name="No Organization")
+        return GitOrg(
+            slug=self.workspace.organization.slug,
+            display_name=self.workspace.organization.name,
+        )
 
     @property
     def repository_url(self) -> str:

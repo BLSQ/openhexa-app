@@ -6,7 +6,7 @@ from django.test import override_settings
 from hexa.core.test import TestCase
 from hexa.user_management.models import User
 from hexa.webapps.models import GitWebapp, Webapp
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 @override_settings(
@@ -27,9 +27,7 @@ class WebappCompressionTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.USER = User.objects.create_user("gzip@test.com", "password")
-        cls.WORKSPACE = Workspace.objects.create(
-            name="Gzip Workspace", slug="gzip-workspace"
-        )
+        cls.WORKSPACE = create_workspace(name="Gzip Workspace", slug="gzip-workspace")
         cls.WEBAPP = GitWebapp.objects.create(
             workspace=cls.WORKSPACE,
             name="Gzip Public",

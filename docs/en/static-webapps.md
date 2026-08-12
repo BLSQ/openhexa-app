@@ -91,32 +91,50 @@ The examples below read `workspaceSlug` from this global, so they're copy-pastea
 
 ## Developing locally
 
-You can iterate on a webapp on your own machine and still hit **real, scope-gated** data — no hand-rolled proxy and no manual token. Add one script to your page:
+You can build a webapp on your own machine — your editor, your live reload, your browser dev tools — while reading **real workspace data** through the same scope-gated API you get in production. No hand-rolled proxy and no manual token: it takes one script tag and two clicks.
+
+### 1. Add the script to your page
 
 ```html
 <script src="https://app.openhexa.org/webapps/dev.js"></script>
 ```
 
-Then open the page in a browser where you're logged into OpenHEXA — either by opening the `.html` file directly (`file://`) or by serving it locally (`http://localhost`). The first time, a small popup lets you **pick which web app** to develop against, then completes an authenticated handshake that hands your page a short-lived preview credential. To skip the picker, name the workspace and web app up front:
+Point it at whichever OpenHEXA install you use — `http://localhost:8000/webapps/dev.js` for a local backend.
+
+New webapps created from the default template already include this tag. It is inert once deployed (it only activates on `file://` and `localhost` pages), so you can leave it in your `index.html`.
+
+### 2. Open your page and click Connect
+
+Open your page in a browser where you're already logged into OpenHEXA — either open the `.html` file directly (`file://`) or serve it locally (any static server works, e.g. `python -m http.server 5173`).
+
+A **Connect to OpenHEXA** button appears in the corner:
+
+![The Connect to OpenHEXA button on a local page](../assets/images/webapps/dev-connect.png)
+
+### 3. Pick a web app and approve
+
+Clicking it opens a small OpenHEXA window listing the private static webapps you can develop against. Pick one and hit **Approve**:
+
+![Choosing which web app to develop against](../assets/images/webapps/dev-picker.png)
+
+### That's it
+
+The window closes and your page reloads, connected. `window.OPENHEXA` is populated and your `fetch("/graphql/")` calls now return real data. A chip in the corner shows which webapp you're connected to:
+
+![A local page showing real workspace data, with the connected chip](../assets/images/webapps/dev-connected.png)
+
+### Skipping the picker
+
+Name the workspace and webapp up front and the list is reduced to that single, preselected entry — you still confirm with **Approve**:
 
 ```html
 <script src="https://app.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
 ```
 
-After that, `dev.js`:
+### Good to know
 
-- sets `window.OPENHEXA` (so the examples above run unchanged), and
-- transparently reroutes your `fetch("/graphql/")` calls to the authenticated endpoint.
-
-Your local calls respect the webapp's `allowed_operations` exactly as they will in production, so an operation that works locally will not surprise you with a `403` once deployed. Point `dev.js` at whichever OpenHEXA install you use (e.g. `http://localhost:8000/webapps/dev.js` for a local backend).
-
-If your browser blocks the popup, a **Connect to OpenHEXA** button appears — click it to start the handshake.
-
-**`file://` vs `http://localhost`.** Both work. When you serve over `http://localhost`, the browser guarantees the credential is delivered only to your page, so the handshake completes with no prompt. A `file://` page has an opaque origin the browser cannot target, so OpenHEXA shows an **Approve** screen in the popup before releasing the credential — approve it only when you just opened your own local file. For a completely prompt-free loop, serve over `http://localhost` (any static server works, e.g. `python -m http.server 5173`).
-
-The credential is cached for the browser tab, so you connect **once per tab session** — refreshing the page reuses it, no popup. It is short-lived (about an hour) and does not renew on activity; when it expires the next `/graphql/` call shows the **Connect** button again — click it to reconnect. Closing the tab clears the cache.
-
-A small chip in the corner shows the connected web app. Use its **Switch** action to pick a different web app, or **Reconnect** to force a fresh credential.
+- **Same permissions as production.** Your local calls respect the webapp's `allowed_operations` exactly as they will once deployed, so an operation that works locally won't surprise you with a `403` later.
+- **The chip is your control.** Use **Switch** to move to a different webapp, or **Reconnect** to force a fresh credential.
 
 ---
 
