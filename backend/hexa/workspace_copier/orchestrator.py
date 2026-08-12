@@ -10,10 +10,12 @@ so this orchestration is written once and shared by every flow (CLI + admin).
 from collections.abc import Iterable
 
 from hexa.workspace_copier.endpoints import Endpoint
+from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import ProgressReporter
 from hexa.workspace_copier.resources.base import ResourceCopier
 from hexa.workspace_copier.resources.connections import ConnectionsCopier
 from hexa.workspace_copier.resources.database import DatabaseCopier
+from hexa.workspace_copier.resources.datasets import DatasetsCopier
 from hexa.workspace_copier.resources.files import FilesCopier
 from hexa.workspace_copier.resources.pipelines import PipelinesCopier
 from hexa.workspace_copier.resources.workspace import WorkspaceMetadataCopier
@@ -25,7 +27,7 @@ WORKSPACE_COPIERS: list[ResourceCopier] = [
     DatabaseCopier(),  # LOCAL→LOCAL: native pg; else skip + warning
     ConnectionsCopier(),
     PipelinesCopier(),
-    # DatasetsCopier(),  # future — append here
+    DatasetsCopier(),
 ]
 
 
@@ -49,13 +51,16 @@ def copy_workspace(
     reporter: ProgressReporter,
     *,
     resources: set[str] | None = None,
+    options: CopyOptions = CopyOptions(),
 ) -> CopyResult:
     """Copy a workspace from ``source`` to ``target``.
 
     Runs the selected copiers in registry (dependency) order, recording the
     outcome on a single :class:`CopyResult`. Live progress is emitted
     through ``reporter``; pass a :class:`~hexa.workspace_copier.progress.NullReporter`
-    to discard it.
+    to discard it. ``options`` carries the run-wide switches (see
+    :class:`~hexa.workspace_copier.options.CopyOptions`); every copier receives
+    them and reads only what concerns it.
     """
     selected = _resolve_selection(WORKSPACE_COPIERS, resources)
     selected_names = {c.name for c in selected}
@@ -67,5 +72,5 @@ def copy_workspace(
                 result.warn(message)
                 reporter.warning(message)
         reporter.info(f"=> Copying {copier.name} ...")
-        copier.copy(source, target, result, reporter)
+        copier.copy(source, target, result, reporter, options=options)
     return result
