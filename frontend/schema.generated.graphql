@@ -5947,6 +5947,7 @@ type Workspace {
   countries: [Country!]!
   createdAt: DateTime!
   createdBy: User!
+  currentMembership: WorkspaceMembership
   database: Database!
 
   """Linked datasets of the workspace"""
@@ -6080,6 +6081,7 @@ type WorkspacePermissions {
 
   """User can download objects from the workspace's bucket."""
   downloadObject: Boolean!
+  generateToken: Boolean!
   launchNotebookServer: Boolean!
   manageMembers: Boolean!
   update: Boolean!

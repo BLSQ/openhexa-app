@@ -63,6 +63,16 @@ def resolve_workspace_permissions_create_connection(obj: Workspace, info, **kwar
     )
 
 
+@workspace_permissions.field("generateToken")
+def resolve_workspace_permissions_generate_token(obj: Workspace, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("workspaces.generate_workspace_token", obj)
+        if request.user.is_authenticated
+        else False
+    )
+
+
 @workspace_permissions.field("deleteDatabaseTable")
 def resolve_workspace_permissions_delete_table(obj: Workspace, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -138,6 +148,15 @@ def resolve_workspace_countries(workspace: Workspace, info, **kwargs):
 @workspace_object.field("organization")
 def resolve_workspace_organization(workspace: Workspace, info):
     return workspace.organization
+
+
+@workspace_object.field("currentMembership")
+def resolve_workspace_current_membership(workspace: Workspace, info):
+    request: HttpRequest = info.context["request"]
+    if not request.user.is_authenticated:
+        return None
+
+    return workspace.workspacemembership_set.filter(user=request.user).first()
 
 
 @workspace_object.field("members")

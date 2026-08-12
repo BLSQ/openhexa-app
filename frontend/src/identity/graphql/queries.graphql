@@ -42,6 +42,22 @@ query AccountPage {
     }
   }
 
+  # Access tokens are listed as a flat list, capped at 100 workspaces: the grid
+  # paginates client-side and users are not expected to exceed that.
+  workspaces(page: 1, perPage: 100) {
+    totalItems
+    items {
+      slug
+      name
+      currentMembership {
+        role
+      }
+      permissions {
+        generateToken
+      }
+    }
+  }
+
   pendingWorkspaceInvitations {
     totalItems
     items {

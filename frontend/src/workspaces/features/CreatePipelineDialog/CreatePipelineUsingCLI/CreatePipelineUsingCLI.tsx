@@ -1,12 +1,8 @@
-import { gql, useMutation } from "@apollo/client";
-import Button from "core/components/Button/Button";
 import Link from "core/components/Link";
 import Field from "core/components/forms/Field/Field";
-import Textarea from "core/components/forms/Textarea/Textarea";
 import { Trans, useTranslation } from "next-i18next";
-import { useEffect, useState } from "react";
+import WorkspaceAccessToken from "workspaces/features/WorkspaceAccessToken";
 import { CreatePipelineDialog_WorkspaceFragment } from "../CreatePipelineDialog.generated";
-import { GenerateWorkspaceTokenMutation } from "./CreatePipelineUsingCLI.generated";
 
 type CreatePipelineUsingCLIProps = {
   open: boolean;
@@ -16,32 +12,6 @@ type CreatePipelineUsingCLIProps = {
 const CreatePipelineUsingCLI = (props: CreatePipelineUsingCLIProps) => {
   const { t } = useTranslation();
   const { open, workspace } = props;
-
-  const [token, setToken] = useState<null | string>(null);
-  const [generateToken] = useMutation<GenerateWorkspaceTokenMutation>(
-    gql`
-      mutation GenerateWorkspaceToken($input: GenerateWorkspaceTokenInput!) {
-        generateWorkspaceToken(input: $input) {
-          token
-          success
-        }
-      }
-    `,
-    { variables: { input: { slug: workspace.slug } } },
-  );
-
-  const onTokenClick = async () => {
-    if (!token) {
-      const { data } = await generateToken();
-      setToken(data?.generateWorkspaceToken?.token ?? null);
-    }
-  };
-
-  useEffect(() => {
-    if (open) {
-      setToken(null);
-    }
-  }, [open]);
 
   return (
     <div className="space-y-4">
@@ -79,19 +49,29 @@ const CreatePipelineUsingCLI = (props: CreatePipelineUsingCLIProps) => {
           </span>
         </div>
       </pre>
-      <Field name="token" label={t("Access Token")} required>
+      <Field
+        name="token"
+        label={t("Access Token")}
+        required
+        description={
+          <Trans>
+            Your tokens for all workspaces are available in your{" "}
+            <Link href="/user/account">account settings</Link>.
+          </Trans>
+        }
+      >
         <div className="flex w-full flex-1 items-center gap-1">
-          {token ? (
-            <Textarea className="font-mono" value={token} readOnly />
-          ) : (
-            <Button variant="secondary" onClick={onTokenClick}>
-              {t("Show")}
-            </Button>
-          )}
+          {/* The dialog stays mounted across open/close, so re-key the component
+              to hide a previously revealed token when it is reopened. */}
+          <WorkspaceAccessToken
+            key={String(open)}
+            workspaceSlug={workspace.slug}
+            canGenerate={workspace.permissions.generateToken}
+          />
         </div>
       </Field>
     </div>
-  )
-}
+  );
+};
 
 export default CreatePipelineUsingCLI;

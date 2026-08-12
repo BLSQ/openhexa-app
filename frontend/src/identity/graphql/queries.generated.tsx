@@ -13,7 +13,7 @@ export type GetUserQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasT
 export type AccountPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, user?: { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, displayName: string, id: string, email: string, language: string, analyticsEnabled: boolean, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }, pendingWorkspaceInvitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: string, status: Types.WorkspaceInvitationStatus, role: Types.WorkspaceMembershipRole, createdAt: any, invitedBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
+export type AccountPageQuery = { __typename?: 'Query', me: { __typename?: 'Me', hasTwoFactorEnabled: boolean, user?: { __typename?: 'User', firstName?: string | null, lastName?: string | null, dateJoined: any, displayName: string, id: string, email: string, language: string, analyticsEnabled: boolean, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, currentMembership?: { __typename?: 'WorkspaceMembership', role: Types.WorkspaceMembershipRole } | null, permissions: { __typename?: 'WorkspacePermissions', generateToken: boolean } }> }, pendingWorkspaceInvitations: { __typename?: 'WorkspaceInvitationPage', totalItems: number, items: Array<{ __typename?: 'WorkspaceInvitation', id: string, status: Types.WorkspaceInvitationStatus, role: Types.WorkspaceMembershipRole, createdAt: any, invitedBy?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
 
 export type RegisterPageQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
@@ -101,6 +101,19 @@ export const AccountPageDocument = gql`
       language
       analyticsEnabled
       ...User_user
+    }
+  }
+  workspaces(page: 1, perPage: 100) {
+    totalItems
+    items {
+      slug
+      name
+      currentMembership {
+        role
+      }
+      permissions {
+        generateToken
+      }
     }
   }
   pendingWorkspaceInvitations {

@@ -197,6 +197,9 @@ CreatePipelineDialog.fragments = {
   workspace: gql`
     fragment CreatePipelineDialog_workspace on Workspace {
       slug
+      permissions {
+        generateToken
+      }
       organization {
         id
         aiSettings {

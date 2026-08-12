@@ -1203,6 +1203,105 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["generateWorkspaceToken"],
         )
 
+    def test_generate_workspace_token_viewer_denied(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            """
+        mutation generateWorkspaceToken($input: GenerateWorkspaceTokenInput!) {
+            generateWorkspaceToken(input: $input) {
+                success
+                errors
+                token
+            }
+        }
+        """,
+            {
+                "input": {
+                    "slug": self.WORKSPACE.slug,
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"], "token": None},
+            r["data"]["generateWorkspaceToken"],
+        )
+
+    def test_generate_workspace_token_organization_admin_without_membership(self):
+        # Organization admins do not get a token: it is stored on the workspace
+        # membership, which they don't have.
+        self.client.force_login(self.USER_JOE)
+        r = self.run_query(
+            """
+        mutation generateWorkspaceToken($input: GenerateWorkspaceTokenInput!) {
+            generateWorkspaceToken(input: $input) {
+                success
+                errors
+                token
+            }
+        }
+        """,
+            {
+                "input": {
+                    "slug": self.WORKSPACE.slug,
+                }
+            },
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["WORKSPACE_NOT_FOUND"], "token": None},
+            r["data"]["generateWorkspaceToken"],
+        )
+
+    def test_workspace_generate_token_permission(self):
+        query = """
+        query workspace($slug: String!) {
+            workspace(slug: $slug) {
+                currentMembership {
+                    role
+                }
+                permissions {
+                    generateToken
+                }
+            }
+        }
+        """
+        for user, expected_role, expected_permission in [
+            (self.USER_WORKSPACE_ADMIN, WorkspaceMembershipRole.ADMIN, True),
+            (self.USER_WORKSPACE_EDITOR_ONLY, WorkspaceMembershipRole.EDITOR, True),
+            (self.USER_REBECCA, WorkspaceMembershipRole.VIEWER, False),
+        ]:
+            with self.subTest(user=user.email):
+                self.client.force_login(user)
+                r = self.run_query(query, {"slug": self.WORKSPACE.slug})
+                self.assertEqual(
+                    {
+                        "currentMembership": {"role": expected_role},
+                        "permissions": {"generateToken": expected_permission},
+                    },
+                    r["data"]["workspace"],
+                )
+
+    def test_workspace_current_membership_none_for_organization_admin(self):
+        self.client.force_login(self.USER_JOE)
+        r = self.run_query(
+            """
+        query workspace($slug: String!) {
+            workspace(slug: $slug) {
+                currentMembership {
+                    role
+                }
+                permissions {
+                    generateToken
+                }
+            }
+        }
+        """,
+            {"slug": self.WORKSPACE.slug},
+        )
+        self.assertEqual(
+            {"currentMembership": None, "permissions": {"generateToken": False}},
+            r["data"]["workspace"],
+        )
+
     def test_invite_workspace_member_external_user(self):
         import random
         import string

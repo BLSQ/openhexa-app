@@ -23,7 +23,6 @@ from ..models import (
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
     WorkspaceMembership,
-    WorkspaceMembershipRole,
     WorkspacesLimitReached,
 )
 from ..utils import (
@@ -465,7 +464,9 @@ def resolve_generate_workspace_token(_, info, **kwargs):
     except WorkspaceMembership.DoesNotExist:
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
 
-    if membership.role == WorkspaceMembershipRole.VIEWER:
+    if not request.user.has_perm(
+        "workspaces.generate_workspace_token", membership.workspace
+    ):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
     token = Signer().sign_object(str(membership.access_token))

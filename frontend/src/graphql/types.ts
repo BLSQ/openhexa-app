@@ -6764,6 +6764,7 @@ export type Workspace = {
   countries: Array<Country>;
   createdAt: Scalars['DateTime']['output'];
   createdBy: User;
+  currentMembership?: Maybe<WorkspaceMembership>;
   database: Database;
   /** Linked datasets of the workspace */
   datasets: DatasetLinkPage;
@@ -6920,6 +6921,7 @@ export type WorkspacePermissions = {
   deleteObject: Scalars['Boolean']['output'];
   /** User can download objects from the workspace's bucket. */
   downloadObject: Scalars['Boolean']['output'];
+  generateToken: Scalars['Boolean']['output'];
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];

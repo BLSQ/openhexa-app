@@ -19,6 +19,19 @@ def create_connection(principal: User, workspace: Workspace):
     ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
+def generate_workspace_token(principal: User, workspace: Workspace):
+    """Any workspace member except viewers can retrieve their own access token.
+
+    Contrary to the other workspace rules, organization admins/owners are not
+    granted this permission: the token is stored on the membership itself, so a
+    user without a membership has no token to retrieve.
+    """
+    return workspace.workspacemembership_set.filter(
+        user=principal,
+        role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
+    ).exists()
+
+
 def update_connection(principal: User, connection: Connection):
     """Only admin users of a workspace can update a connection"""
     return connection.workspace.workspacemembership_set.filter(
