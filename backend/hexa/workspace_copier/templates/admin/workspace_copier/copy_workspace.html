@@ -40,6 +40,7 @@
     <fieldset class="module aligned">
         <h2>{% trans 'Resources' %}</h2>
         {% include "admin/workspace_copier/_field_row.html" with field=form.resources %}
+        {% include "admin/workspace_copier/_field_row.html" with field=form.all_dataset_versions %}
     </fieldset>
     <div class="submit-row">
         <input type="submit" value="{% trans 'Run copy' %}" class="default">
