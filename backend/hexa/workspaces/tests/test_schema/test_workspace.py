@@ -1280,6 +1280,44 @@ class WorkspaceTest(GraphQLTestCase):
                     r["data"]["workspace"],
                 )
 
+    def test_workspaces_list_current_membership_is_per_user(self):
+        # The workspaces list prefetches memberships; each user must get their own
+        # membership for a workspace they share, never another member's.
+        query = """
+        query {
+            workspaces(page: 1, perPage: 100) {
+                items {
+                    slug
+                    currentMembership {
+                        role
+                    }
+                    permissions {
+                        generateToken
+                    }
+                }
+            }
+        }
+        """
+        for user, expected_role, expected_permission in [
+            (self.USER_WORKSPACE_ADMIN, WorkspaceMembershipRole.ADMIN, True),
+            (self.USER_WORKSPACE_EDITOR_ONLY, WorkspaceMembershipRole.EDITOR, True),
+            (self.USER_REBECCA, WorkspaceMembershipRole.VIEWER, False),
+        ]:
+            with self.subTest(user=user.email):
+                self.client.force_login(user)
+                r = self.run_query(query)
+                items = {
+                    item["slug"]: item for item in r["data"]["workspaces"]["items"]
+                }
+                self.assertEqual(
+                    {
+                        "slug": self.WORKSPACE.slug,
+                        "currentMembership": {"role": expected_role},
+                        "permissions": {"generateToken": expected_permission},
+                    },
+                    items[self.WORKSPACE.slug],
+                )
+
     def test_workspace_current_membership_none_for_organization_admin(self):
         self.client.force_login(self.USER_JOE)
         r = self.run_query(

@@ -156,6 +156,12 @@ def resolve_workspace_current_membership(workspace: Workspace, info):
     if not request.user.is_authenticated:
         return None
 
+    # Set by the workspaces list resolver, always for request.user, to avoid a
+    # query per workspace. Every other code path falls back to a direct lookup.
+    prefetched = getattr(workspace, "current_user_memberships", None)
+    if prefetched is not None:
+        return next(iter(prefetched), None)
+
     return workspace.workspacemembership_set.filter(user=request.user).first()
 
 
