@@ -9,10 +9,13 @@ import { useGenerateWorkspaceTokenMutation } from "workspaces/graphql/mutations.
 type WorkspaceAccessTokenProps = {
   workspaceSlug: string;
   canGenerate: boolean;
+  // Users without a membership get an identity token, which expires. Flagging it
+  // keeps them from pasting a token that stops working the next day.
+  temporary?: boolean;
 };
 
 const WorkspaceAccessToken = (props: WorkspaceAccessTokenProps) => {
-  const { workspaceSlug, canGenerate } = props;
+  const { workspaceSlug, canGenerate, temporary = false } = props;
   const { t } = useTranslation();
 
   const [token, setToken] = useState<string | null>(null);
@@ -38,24 +41,34 @@ const WorkspaceAccessToken = (props: WorkspaceAccessTokenProps) => {
     );
   }
 
-  if (!token) {
-    return (
-      <Button variant="secondary" onClick={onShowClick} disabled={loading}>
-        {t("Show")}
-      </Button>
-    );
-  }
-
   return (
-    <Input
-      name="token"
-      value={token}
-      readOnly
-      fullWidth
-      onFocus={(event) => event.target.select()}
-      classNameOverrides="font-mono text-xs"
-      trailingIcon={<Clipboard value={token} />}
-    />
+    <div className="flex items-center gap-2">
+      {token ? (
+        <Input
+          name="token"
+          value={token}
+          readOnly
+          fullWidth
+          onFocus={(event) => event.target.select()}
+          classNameOverrides="font-mono text-xs"
+          trailingIcon={<Clipboard value={token} />}
+        />
+      ) : (
+        <Button variant="secondary" onClick={onShowClick} disabled={loading}>
+          {t("Show")}
+        </Button>
+      )}
+      {temporary && (
+        <span
+          className="shrink-0 text-xs italic text-gray-500"
+          title={t(
+            "You are not a member of this workspace, so its token expires and has to be generated again.",
+          )}
+        >
+          {t("Temporary")}
+        </span>
+      )}
+    </div>
   );
 };
 

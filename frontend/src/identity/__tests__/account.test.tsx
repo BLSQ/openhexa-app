@@ -59,6 +59,12 @@ const workspace = (name: string, generateToken = true) => ({
   },
 });
 
+// An organization admin who is not a member of the workspace
+const administeredWorkspace = (name: string) => ({
+  ...workspace(name),
+  currentMembership: null,
+});
+
 const accessTokensMock = (
   items: object[],
   totalItems: number,
@@ -138,6 +144,28 @@ describe("AccountPage", () => {
     // Only the workspace the user can generate a token for offers a Show button
     expect(screen.getAllByRole("button", { name: "Show" })).toHaveLength(1);
     expect(screen.getByText("Not available for viewers")).toBeInTheDocument();
+  });
+
+  it("flags workspaces the user only administers as issuing a temporary token", async () => {
+    const graphqlMocks = [
+      accountPageMock(),
+      accessTokensMock(
+        [workspace("Member Workspace"), administeredWorkspace("Admin Only")],
+        2,
+      ),
+    ];
+
+    render(
+      <TestApp mocks={graphqlMocks}>
+        <AccountPage />
+      </TestApp>,
+    );
+
+    expect(await screen.findByText("Admin Only")).toBeInTheDocument();
+    // Both can generate a token, but only one of them lasts
+    expect(screen.getAllByRole("button", { name: "Show" })).toHaveLength(2);
+    expect(screen.getByText("-")).toBeInTheDocument();
+    expect(screen.getByText("Temporary")).toBeInTheDocument();
   });
 
   it("pages through the workspaces server-side instead of truncating them", async () => {

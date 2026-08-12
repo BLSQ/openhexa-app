@@ -53,7 +53,9 @@ const AccountAccessTokens = () => {
         <p className="text-sm text-gray-500">
           <Trans>
             Use these tokens to authenticate with the <code>openhexa</code> CLI
-            and the OpenHEXA SDK. You have one token per workspace. See the{" "}
+            and the OpenHEXA SDK. Workspaces you are a member of have a
+            long-lived token; workspaces you only administer issue a temporary
+            one that has to be generated again once it expires. See the{" "}
             <Link
               target="_blank"
               href="https://docs.openhexa.com/writing-pipelines/"
@@ -88,6 +90,7 @@ const AccountAccessTokens = () => {
               <WorkspaceAccessToken
                 workspaceSlug={workspace.slug}
                 canGenerate={workspace.permissions.generateToken}
+                temporary={!workspace.currentMembership}
               />
             )}
           </BaseColumn>

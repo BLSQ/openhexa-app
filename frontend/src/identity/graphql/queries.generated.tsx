@@ -163,7 +163,7 @@ export type AccountPageSuspenseQueryHookResult = ReturnType<typeof useAccountPag
 export type AccountPageQueryResult = Apollo.QueryResult<AccountPageQuery, AccountPageQueryVariables>;
 export const AccountAccessTokensDocument = gql`
     query AccountAccessTokens($page: Int!, $perPage: Int!) {
-  workspaces(page: $page, perPage: $perPage, withCurrentMembership: true) {
+  workspaces(page: $page, perPage: $perPage) {
     totalItems
     items {
       slug

@@ -5193,7 +5193,6 @@ export type QueryWorkspacesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
-  withCurrentMembership?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export enum ReadFileContentError {

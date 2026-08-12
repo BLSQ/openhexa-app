@@ -61,9 +61,9 @@ query AccountPage {
 }
 
 query AccountAccessTokens($page: Int!, $perPage: Int!) {
-  # A token lives on the membership, so workspaces the user only sees through an
-  # organization admin role are excluded — they have no token there.
-  workspaces(page: $page, perPage: $perPage, withCurrentMembership: true) {
+  # Every workspace the user can reach, including those they only administer:
+  # those issue a short-lived identity token rather than a membership one.
+  workspaces(page: $page, perPage: $perPage) {
     totalItems
     items {
       slug
