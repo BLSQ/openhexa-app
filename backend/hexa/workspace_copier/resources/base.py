@@ -27,6 +27,9 @@ class ResourceCopier(ABC):
     depends_on: tuple[str, ...] = ()
     """Advisory: a warning is emitted if a declared dependency is deselected."""
 
+    option_fields: tuple[str, ...] = ()
+    """``CopyWorkspaceForm`` fields tuning this copier, rendered under its checkbox."""
+
     @abstractmethod
     def copy(
         self,
