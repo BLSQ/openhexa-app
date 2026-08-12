@@ -2,7 +2,7 @@ import base64
 import html
 import uuid
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -1203,51 +1203,88 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["generateWorkspaceToken"],
         )
 
-    def test_generate_workspace_token_viewer_denied(self):
-        self.client.force_login(self.USER_REBECCA)
-        r = self.run_query(
-            """
-        mutation generateWorkspaceToken($input: GenerateWorkspaceTokenInput!) {
-            generateWorkspaceToken(input: $input) {
-                success
-                errors
-                token
-            }
+    GENERATE_TOKEN_MUTATION = """
+    mutation generateWorkspaceToken($input: GenerateWorkspaceTokenInput!) {
+        generateWorkspaceToken(input: $input) {
+            success
+            errors
+            token
         }
-        """,
-            {
-                "input": {
-                    "slug": self.WORKSPACE.slug,
-                }
-            },
-        )
-        self.assertEqual(
-            {"success": False, "errors": ["PERMISSION_DENIED"], "token": None},
-            r["data"]["generateWorkspaceToken"],
+    }
+    """
+
+    def test_generate_workspace_token_org_admin_without_membership(self):
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                user=self.USER_JOE, workspace=self.WORKSPACE
+            ).exists()
         )
 
-    def test_generate_workspace_token_organization_admin_without_membership(self):
-        # Organization admins do not get a token: it is stored on the workspace
-        # membership, which they don't have.
         self.client.force_login(self.USER_JOE)
         r = self.run_query(
-            """
-        mutation generateWorkspaceToken($input: GenerateWorkspaceTokenInput!) {
-            generateWorkspaceToken(input: $input) {
-                success
-                errors
-                token
-            }
-        }
-        """,
+            self.GENERATE_TOKEN_MUTATION, {"input": {"slug": self.WORKSPACE.slug}}
+        )
+        result = r["data"]["generateWorkspaceToken"]
+        self.assertTrue(result["success"])
+        self.assertEqual([], result["errors"])
+        self.assertIsNotNone(result["token"])
+
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                user=self.USER_JOE, workspace=self.WORKSPACE
+            ).exists()
+        )
+        self.assertEqual(
+            Signer().unsign_object(result["token"]),
             {
-                "input": {
-                    "slug": self.WORKSPACE.slug,
-                }
+                "type": "identity",
+                "workspace_id": str(self.WORKSPACE.id),
+                "user_id": str(self.USER_JOE.id),
+                "issued_at": ANY,
             },
+        )
+
+        self.client.logout()
+        r = self.run_query(
+            "query { me { user { id } } }",
+            headers={"HTTP_AUTHORIZATION": f"Bearer {result['token']}"},
+        )
+        self.assertEqual(str(self.USER_JOE.id), r["data"]["me"]["user"]["id"])
+
+    def test_generate_workspace_token_superuser_without_membership(self):
+        superuser = User.objects.create_superuser(
+            "super@bluesquarehub.com", "superpassword"
+        )
+        self.client.force_login(superuser)
+        r = self.run_query(
+            self.GENERATE_TOKEN_MUTATION, {"input": {"slug": self.WORKSPACE.slug}}
+        )
+        result = r["data"]["generateWorkspaceToken"]
+        self.assertTrue(result["success"])
+        self.assertIsNotNone(result["token"])
+        self.assertFalse(
+            WorkspaceMembership.objects.filter(
+                user=superuser, workspace=self.WORKSPACE
+            ).exists()
+        )
+
+    def test_generate_workspace_token_no_access(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            self.GENERATE_TOKEN_MUTATION, {"input": {"slug": self.WORKSPACE_2.slug}}
         )
         self.assertEqual(
             {"success": False, "errors": ["WORKSPACE_NOT_FOUND"], "token": None},
+            r["data"]["generateWorkspaceToken"],
+        )
+
+    def test_generate_workspace_token_viewer_denied(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            self.GENERATE_TOKEN_MUTATION, {"input": {"slug": self.WORKSPACE.slug}}
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"], "token": None},
             r["data"]["generateWorkspaceToken"],
         )
 
@@ -1334,8 +1371,8 @@ class WorkspaceTest(GraphQLTestCase):
 
     def test_workspaces_with_current_membership_excludes_organization_admin(self):
         # Joe is an organization admin without any workspace membership: he sees the
-        # workspace in the unfiltered list, but has no token there, so the filtered
-        # list must be empty.
+        # workspace in the unfiltered list, but has no membership there, so the
+        # filtered list must be empty.
         self.client.force_login(self.USER_JOE)
 
         r = self.run_query(
@@ -1401,6 +1438,8 @@ class WorkspaceTest(GraphQLTestCase):
                 )
 
     def test_workspace_current_membership_none_for_organization_admin(self):
+        # No membership to report, but the organization admin can still get a
+        # token for the workspace: an identity token, not a membership one.
         self.client.force_login(self.USER_JOE)
         r = self.run_query(
             """
@@ -1418,9 +1457,27 @@ class WorkspaceTest(GraphQLTestCase):
             {"slug": self.WORKSPACE.slug},
         )
         self.assertEqual(
-            {"currentMembership": None, "permissions": {"generateToken": False}},
+            {"currentMembership": None, "permissions": {"generateToken": True}},
             r["data"]["workspace"],
         )
+
+    def test_workspace_identity_token_revoked_when_org_role_removed(self):
+        self.client.force_login(self.USER_JOE)
+        r = self.run_query(
+            self.GENERATE_TOKEN_MUTATION, {"input": {"slug": self.WORKSPACE.slug}}
+        )
+        token = r["data"]["generateWorkspaceToken"]["token"]
+        self.client.logout()
+
+        OrganizationMembership.objects.filter(
+            organization=self.ORGANIZATION, user=self.USER_JOE
+        ).delete()
+
+        r = self.run_query(
+            "query { me { user { id } } }",
+            headers={"HTTP_AUTHORIZATION": f"Bearer {token}"},
+        )
+        self.assertIsNone(r["data"]["me"]["user"])
 
     def test_invite_workspace_member_external_user(self):
         import random
@@ -1713,6 +1770,27 @@ class WorkspaceTest(GraphQLTestCase):
                         invitedBy {
                             id
                         }
+                    }
+                }
+            }
+            """,
+        )
+        self.assertEqual(
+            {
+                "totalItems": 0,
+                "items": [],
+            },
+            r["data"]["pendingWorkspaceInvitations"],
+        )
+
+    def test_anonymous_workspace_invitations(self):
+        r = self.run_query(
+            """
+            query{
+                pendingWorkspaceInvitations {
+                    totalItems
+                    items {
+                        email
                     }
                 }
             }

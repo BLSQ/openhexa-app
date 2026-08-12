@@ -20,16 +20,19 @@ def create_connection(principal: User, workspace: Workspace):
 
 
 def generate_workspace_token(principal: User, workspace: Workspace):
-    """Any workspace member except viewers can retrieve their own access token.
+    """Anyone with access to the workspace can get a token, except viewers.
 
-    Contrary to the other workspace rules, organization admins/owners are not
-    granted this permission: the token is stored on the membership itself, so a
-    user without a membership has no token to retrieve.
+    Members get a token tied to their membership; users whose access is implicit
+    (organization admins/owners, superusers) get a short-lived identity token.
+    The branches below mirror Workspace.objects.filter_for_user, so the two must
+    be kept in sync.
     """
-    return workspace.workspacemembership_set.filter(
-        user=principal,
-        role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-    ).exists()
+    membership = workspace.workspacemembership_set.filter(user=principal).first()
+    if membership is not None:
+        return membership.role != WorkspaceMembershipRole.VIEWER
+    return principal.is_superuser or principal.is_organization_admin_or_owner(
+        workspace.organization
+    )
 
 
 def update_connection(principal: User, connection: Connection):

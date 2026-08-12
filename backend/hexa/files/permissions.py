@@ -17,4 +17,6 @@ def delete_object(principal: User, workspace: Workspace):
 
 
 def download_object(principal: User, workspace: Workspace):
-    return workspace.workspacemembership_set.filter(user=principal).exists()
+    return workspace.workspacemembership_set.filter(
+        user=principal
+    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
