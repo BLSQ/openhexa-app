@@ -147,8 +147,8 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
 
         self.client.force_login(self.USER_VIEWER)
         r = self.run_query(
-            "query ($slug: String!, $id: ID!) { savedQuery(workspaceSlug: $slug, id: $id) { name } }",
-            {"slug": str(self.WORKSPACE.slug), "id": query_id},
+            "query ($id: ID!) { savedQuery(id: $id) { name } }",
+            {"id": query_id},
         )
         self.assertIsNone(r["data"]["savedQuery"])
 
@@ -194,13 +194,13 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
 
         permissions_query = """
-            query ($slug: String!, $id: ID!) {
-                savedQuery(workspaceSlug: $slug, id: $id) {
+            query ($id: ID!) {
+                savedQuery(id: $id) {
                     permissions { update delete updateVisibility }
                 }
             }
         """
-        variables = {"slug": str(self.WORKSPACE.slug), "id": query_id}
+        variables = {"id": query_id}
 
         self.client.force_login(self.USER_EDITOR)
         r = self.run_query(permissions_query, variables)
