@@ -5554,6 +5554,7 @@ export type SavedQueryPermissions = {
 export enum SavedQueryVisibility {
   /** Only the author can see, run and edit the query. */
   Private = 'PRIVATE',
+  Organization = 'ORGANIZATION',
   /** Every member of the workspace can see and run the query. */
   Workspace = 'WORKSPACE'
 }
