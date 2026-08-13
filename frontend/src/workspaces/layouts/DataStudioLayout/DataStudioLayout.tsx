@@ -41,6 +41,16 @@ const DataStudioLayout = ({
       workspace={workspace}
       withMarginBottom={false}
       headerActions={headerActions}
+      helpLinks={[
+        {
+          label: t("SQL chart widgets"),
+          href: "https://docs.openhexa.com/sql-widgets/",
+        },
+        {
+          label: t("The workspace database"),
+          href: "https://docs.openhexa.com/database/",
+        },
+      ]}
       header={
         <Breadcrumbs withHome={false}>
           <Breadcrumbs.Part isFirst isLast href={routes.base}>
