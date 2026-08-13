@@ -479,3 +479,62 @@ class TestKubernetesPipelineIntegration(TestCase):
         self.run.refresh_from_db()
         self.assertEqual(self.run.state, PipelineRunState.FAILED)
         self.assertIn("Killed due to heartbeat timeout", self.run.run_logs)
+
+    @override_settings(PIPELINE_SCHEDULER_SPAWNER="docker")
+    def test_zombie_terminating_run_marked_stopped(self):
+        old_time = timezone.now() - timedelta(minutes=20)
+        self.run.state = PipelineRunState.TERMINATING
+        self.run.last_heartbeat = old_time
+        self.run.save()
+
+        process_zombie_runs()
+
+        self.run.refresh_from_db()
+        self.assertEqual(self.run.state, PipelineRunState.STOPPED)
+        self.assertIn("Stopped due to heartbeat timeout", self.run.run_logs)
+
+    @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
+    @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
+    def test_zombie_terminating_run_without_pod_marked_stopped(
+        self, mock_k8s_client, mock_config
+    ):
+        old_time = timezone.now() - timedelta(minutes=20)
+        self.run.state = PipelineRunState.TERMINATING
+        self.run.last_heartbeat = old_time
+        self.run.save()
+
+        mock_api = mock_k8s_client.return_value
+        mock_api.list_namespaced_pod.return_value.items = []
+
+        process_zombie_runs()
+
+        self.run.refresh_from_db()
+        self.assertEqual(self.run.state, PipelineRunState.STOPPED)
+        self.assertIn("Stopped due to heartbeat timeout", self.run.run_logs)
+
+    @override_settings(PIPELINE_SCHEDULER_SPAWNER="kubernetes")
+    @patch.dict(os.environ, {"IS_LOCAL_DEV": "False"}, clear=False)
+    @patch("hexa.pipelines.management.commands.pipelines_runner.k8s_config")
+    @patch("hexa.pipelines.management.commands.pipelines_runner.CoreV1Api")
+    def test_zombie_terminating_run_with_completed_pod_still_stopped(
+        self, mock_k8s_client, mock_config
+    ):
+        old_time = timezone.now() - timedelta(minutes=20)
+        self.run.state = PipelineRunState.TERMINATING
+        self.run.last_heartbeat = old_time
+        self.run.save()
+
+        mock_api = mock_k8s_client.return_value
+        mock_pod = self._create_mock_pod("Succeeded")
+        mock_pod.spec.containers = [Mock(name="test-container")]
+        mock_api.list_namespaced_pod.return_value.items = [mock_pod]
+        mock_api.read_namespaced_pod_log.return_value = "Final pod logs"
+
+        process_zombie_runs()
+
+        self.run.refresh_from_db()
+        self.assertEqual(self.run.state, PipelineRunState.STOPPED)
+        self.assertIn("Final pod logs", self.run.run_logs)
+        self.assertIn("Stopped due to heartbeat timeout", self.run.run_logs)

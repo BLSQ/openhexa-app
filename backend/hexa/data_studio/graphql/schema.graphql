@@ -97,8 +97,18 @@ type ExecuteSQLResult {
 }
 
 """
+Who a saved query is visible to within its workspace.
+"""
+enum SavedQueryVisibility {
+  "Only the author can see, run and edit the query."
+  PRIVATE
+  "Every member of the workspace can see and run the query."
+  WORKSPACE
+}
+
+"""
 A SQL query saved by a user in the Data Studio. Saved queries belong to a
-workspace and are visible to all of its members.
+workspace; their visibility decides which of its members can reach them.
 """
 type SavedQuery {
   id: ID!
@@ -109,6 +119,7 @@ type SavedQuery {
   updatedAt: DateTime!
   createdBy: User
   workspace: Workspace!
+  visibility: SavedQueryVisibility!
   permissions: SavedQueryPermissions!
 }
 
@@ -120,6 +131,8 @@ type SavedQueryPermissions {
   update: Boolean!
   "Permission to delete the saved query."
   delete: Boolean!
+  "Permission to share or unshare the saved query."
+  updateVisibility: Boolean!
 }
 
 """
@@ -153,8 +166,8 @@ extend type WorkspacePermissions {
 }
 
 extend type Query {
-  "Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace."
-  savedQuery(id: ID!, workspaceSlug: String): SavedQuery
+  "Retrieves a saved query by its id."
+  savedQuery(id: ID!): SavedQuery
 }
 
 """
@@ -165,6 +178,8 @@ input CreateSavedQueryInput {
   name: String!
   content: String!
   description: String
+  "Defaults to PRIVATE when omitted."
+  visibility: SavedQueryVisibility
 }
 
 """
@@ -192,6 +207,8 @@ input UpdateSavedQueryInput {
   name: String
   content: String
   description: String
+  "Only the author may change this; PERMISSION_DENIED otherwise."
+  visibility: SavedQueryVisibility
 }
 
 """

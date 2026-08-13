@@ -1185,6 +1185,8 @@ export type CreateSavedQueryInput = {
   content: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
+  /** Defaults to PRIVATE when omitted. */
+  visibility?: InputMaybe<SavedQueryVisibility>;
   workspaceSlug: Scalars['String']['input'];
 };
 
@@ -4836,7 +4838,7 @@ export type Query = {
   /** Read the text content of a file from a workspace's bucket. */
   readFileContent: ReadFileContentResult;
   readWebappFile: ReadWebappFileResult;
-  /** Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace. */
+  /** Retrieves a saved query by its id. */
   savedQuery?: Maybe<SavedQuery>;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
@@ -5095,7 +5097,6 @@ export type QueryReadWebappFileArgs = {
 
 export type QuerySavedQueryArgs = {
   id: Scalars['ID']['input'];
-  workspaceSlug?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -5511,7 +5512,7 @@ export type S3ObjectPage = {
 
 /**
  * A SQL query saved by a user in the Data Studio. Saved queries belong to a
- * workspace and are visible to all of its members.
+ * workspace; their visibility decides which of its members can reach them.
  */
 export type SavedQuery = {
   __typename?: 'SavedQuery';
@@ -5523,6 +5524,7 @@ export type SavedQuery = {
   name: Scalars['String']['output'];
   permissions: SavedQueryPermissions;
   updatedAt: Scalars['DateTime']['output'];
+  visibility: SavedQueryVisibility;
   workspace: Workspace;
 };
 
@@ -5550,7 +5552,17 @@ export type SavedQueryPermissions = {
   delete: Scalars['Boolean']['output'];
   /** Permission to edit the saved query. */
   update: Scalars['Boolean']['output'];
+  /** Permission to share or unshare the saved query. */
+  updateVisibility: Scalars['Boolean']['output'];
 };
+
+/** Who a saved query is visible to within its workspace. */
+export enum SavedQueryVisibility {
+  /** Only the author can see, run and edit the query. */
+  Private = 'PRIVATE',
+  /** Every member of the workspace can see and run the query. */
+  Workspace = 'WORKSPACE'
+}
 
 export type SearchResult = {
   score: Scalars['Float']['output'];
@@ -6312,6 +6324,8 @@ export type UpdateSavedQueryInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
+  /** Only the author may change this; PERMISSION_DENIED otherwise. */
+  visibility?: InputMaybe<SavedQueryVisibility>;
 };
 
 /** Result of updating a saved query. */

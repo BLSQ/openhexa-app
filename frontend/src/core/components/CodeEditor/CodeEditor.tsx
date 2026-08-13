@@ -1,7 +1,7 @@
 import { syntaxHighlighting } from "@codemirror/language";
 import { json } from "@codemirror/lang-json";
 import { python } from "@codemirror/lang-python";
-import { PostgreSQL, sql } from "@codemirror/lang-sql";
+import { PostgreSQL, SQLNamespace, sql } from "@codemirror/lang-sql";
 import { xml } from "@codemirror/lang-xml";
 import { yaml } from "@codemirror/lang-yaml";
 import CodeMirror, {
@@ -44,6 +44,8 @@ type CodeEditorProps = {
    */
   shortcuts?: CodeEditorShortcut[];
   className?: string;
+  /** Table/column metadata for `lang="sql"` autocomplete (`sql()`'s `schema` option). */
+  sqlSchema?: SQLNamespace;
 };
 
 export type CodeEditorHandle = {
@@ -51,6 +53,8 @@ export type CodeEditorHandle = {
   insertText(text: string): void;
   /** The currently selected text, or an empty string when nothing is selected. */
   getSelectedText(): string;
+  /** Replace the whole document, keeping the change in the undo history. */
+  replaceAll(text: string): void;
 };
 
 const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
@@ -68,6 +72,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
       autoFocus = false,
       shortcuts,
       className,
+      sqlSchema,
     } = props;
 
     const cmRef = useRef<ReactCodeMirrorRef>(null);
@@ -97,6 +102,23 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
         }
         const { from, to } = view.state.selection.main;
         return view.state.sliceDoc(from, to);
+      },
+      replaceAll(text: string) {
+        const view = cmRef.current?.view;
+        if (!view) {
+          return;
+        }
+        const length = view.state.doc.length;
+        view.dispatch({
+          changes: { from: 0, to: length, insert: text },
+          // The old offset rarely points at the same token in the new text, but
+          // clamping it keeps the caret in the neighbourhood instead of
+          // snapping to the top of the document.
+          selection: {
+            anchor: Math.min(view.state.selection.main.head, text.length),
+          },
+        });
+        view.focus();
       },
     }));
 
@@ -133,8 +155,11 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
           case "sql":
             // Workspace databases are PostgreSQL, so use its dialect to
             // highlight Postgres-only keywords (EXPLAIN, ANALYZE, VACUUM, …)
-            // that the default ANSI dialect does not recognise.
-            return [sql({ dialect: PostgreSQL })];
+            // that the default ANSI dialect does not recognise. Passing
+            // `schema` plugs real table/column names into the same
+            // `autocompletion()` popup (from @uiw/react-codemirror's default
+            // basicSetup) and also resolves table aliases automatically.
+            return [sql({ dialect: PostgreSQL, schema: sqlSchema })];
           default:
             return [];
         }
@@ -147,7 +172,7 @@ const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
           ]
         : langExtension;
       return [...base, shortcutExtension];
-    }, [lang, embedded, shortcutExtension]);
+    }, [lang, embedded, shortcutExtension, sqlSchema]);
 
     return (
       <div

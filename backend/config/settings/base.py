@@ -810,6 +810,13 @@ GIT_ACCESS_TOKEN_EXPIRE_SECONDS = int(
     os.environ.get("GIT_ACCESS_TOKEN_EXPIRE_SECONDS", 365 * 24 * 60 * 60)
 )
 
+# Workspace tokens issued to users whose access is implicit (organization
+# admins, superusers). Unlike membership tokens there is nothing to revoke, so
+# expiry is the only bound on a leaked one.
+WORKSPACE_IDENTITY_TOKEN_EXPIRE_SECONDS = int(
+    os.environ.get("WORKSPACE_IDENTITY_TOKEN_EXPIRE_SECONDS", 24 * 60 * 60)
+)
+
 # Public OAuth2 clients used by git credential helpers. FORGEJO_OAUTH_CLIENT_ID
 # is the universal client id baked into Git Credential Manager's Gitea provider
 # (which Forgejo is compatible with): when the proxy advertises
