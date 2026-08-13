@@ -1,10 +1,11 @@
+import useIsMac from "core/hooks/useIsMac";
 import { useTranslation } from "next-i18next";
 import {
   GHOST,
   GHOST_DIRTY,
   GHOST_SECONDARY,
 } from "workspaces/features/DataStudioEditor/toolbarStyles";
-import { hasSavePath } from "./savePath";
+import { SavePlan } from "./useSavedQueryEditor";
 
 // Heroicons has no floppy-disk/save glyph, so we inline the one from the Data
 // Studio design (stroke style matches the Heroicons 24-outline set used around
@@ -49,48 +50,39 @@ const FloppyDiskPlusIcon = ({ className }: { className?: string }) => (
 );
 
 type SaveQueryButtonProps = {
-  isSaved: boolean;
-  isDirty: boolean;
-  hasContent: boolean;
-  canUpdate: boolean;
-  canCreate: boolean;
-  saving: boolean;
-  onSave: () => void;
-  onSaveAsNew: () => void;
+  /** The resolved save policy from `useSavedQueryEditor`. */
+  plan: SavePlan;
 };
 
-// The Save control adapts to permissions and state:
-// - new query           → single "Save" (opens the create dialog)
-// - saved + can update   → primary "Save" + a muted "Save as new" sibling;
-//   metadata edits happen via the pencil next to the query name
-// - saved, cannot update → single "Save as new query" (the only way to persist)
-const SaveQueryButton = ({
-  isSaved,
-  isDirty,
-  hasContent,
-  canUpdate,
-  canCreate,
-  saving,
-  onSave,
-  onSaveAsNew,
-}: SaveQueryButtonProps) => {
+// Renders `plan.variant`; the plan (not this component) decides what saving
+// means and whether it is available, so the toolbar and ⌘S can never diverge.
+// - "create" → single "Save" (opens the create dialog)
+// - "update" → primary "Save" + a muted "Save as new" sibling; metadata edits
+//   happen via the pencil next to the query name
+// - "fork"   → single "Save as new query" (the only way to persist)
+// The shortcut hint annotates only the control ⌘S actually triggers, so the
+// muted "Save as new" sibling stays hint-free while the fork variant carries it.
+const SaveQueryButton = ({ plan }: SaveQueryButtonProps) => {
   const { t } = useTranslation();
+  const isMac = useIsMac();
 
-  // Shared with the navigation guard, which must not warn about changes that no
-  // enabled control here could have saved.
-  const canSave =
-    hasSavePath({ isSaved, hasContent, canUpdate, canCreate }) && !saving;
+  // Appended here rather than interpolated into the translated strings: the
+  // shortcut is not language, and this way the tooltips keep reusing their
+  // existing labels instead of needing a shortcut-bearing variant of each.
+  const withShortcut = (label: string) =>
+    `${label} (${isMac ? "⌘S" : "Ctrl+S"})`;
 
-  if (!isSaved) {
-    if (!canCreate) {
-      return null;
-    }
+  if (!plan.variant) {
+    return null;
+  }
+
+  if (plan.variant === "create") {
     return (
       <button
-        onClick={onSave}
-        disabled={!canSave}
+        onClick={plan.save ?? undefined}
+        disabled={!plan.save}
         className={GHOST}
-        title={t("Save query")}
+        title={withShortcut(t("Save query"))}
       >
         <FloppyDiskIcon className="h-4 w-4" />
         {t("Save")}
@@ -98,16 +90,13 @@ const SaveQueryButton = ({
     );
   }
 
-  if (!canUpdate) {
-    if (!canCreate) {
-      return null;
-    }
+  if (plan.variant === "fork") {
     return (
       <button
-        onClick={onSaveAsNew}
-        disabled={!canSave}
+        onClick={plan.save ?? undefined}
+        disabled={!plan.save}
         className={GHOST}
-        title={t("Save as a new query")}
+        title={withShortcut(t("Save as a new query"))}
       >
         <FloppyDiskPlusIcon className="h-4 w-4" />
         {t("Save as new query")}
@@ -115,19 +104,21 @@ const SaveQueryButton = ({
     );
   }
 
-  const hasUnsavedEdits = isDirty && canSave;
+  // In the "update" variant an available save means exactly "there are edits to
+  // persist", which is what the amber accent signals.
+  const hasUnsavedEdits = Boolean(plan.save);
   return (
     <div className="flex items-center gap-1">
       <button
-        onClick={onSave}
-        disabled={!hasUnsavedEdits}
+        onClick={plan.save ?? undefined}
+        disabled={!plan.save}
         className={hasUnsavedEdits ? GHOST_DIRTY : GHOST}
         title={
-          !hasContent
+          plan.blockedBy === "empty"
             ? t("The query is empty")
-            : isDirty
-              ? t("Save changes")
-              : t("No changes to save")
+            : plan.blockedBy === "clean"
+              ? t("No changes to save")
+              : withShortcut(t("Save changes"))
         }
       >
         <FloppyDiskIcon className="h-4 w-4" />
@@ -140,8 +131,8 @@ const SaveQueryButton = ({
         )}
       </button>
       <button
-        onClick={onSaveAsNew}
-        disabled={!canCreate || !canSave}
+        onClick={plan.saveAsNew ?? undefined}
+        disabled={!plan.saveAsNew}
         className={GHOST_SECONDARY}
         title={t("Save as a new query")}
       >

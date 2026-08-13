@@ -9,6 +9,7 @@ Auth (per remote side): a ServiceAccount token, sent as an
 
 from django.core.management.base import BaseCommand, CommandError
 
+from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.orchestrator import WORKSPACE_COPIERS
 from hexa.workspace_copier.progress import StreamReporter
 from hexa.workspace_copier.results import format_summary
@@ -66,6 +67,11 @@ class Command(BaseCommand):
             help="Comma-separated resources to copy (default: all). "
             f"Known: {','.join(sorted(_known_resource_names()))}.",
         )
+        parser.add_argument(
+            "--all-dataset-versions",
+            action="store_true",
+            help="Copy every version of each dataset instead of only the latest one.",
+        )
 
     def _resolve_resources(self, resources: str | None):
         known = _known_resource_names()
@@ -97,6 +103,9 @@ class Command(BaseCommand):
                 target_organization_id=options["target_organization"],
                 target_workspace_name=options["target_workspace_name"],
                 resources=resources,
+                options=CopyOptions(
+                    all_dataset_versions=options["all_dataset_versions"]
+                ),
                 reporter=reporter,
             )
         except CredentialError as exc:

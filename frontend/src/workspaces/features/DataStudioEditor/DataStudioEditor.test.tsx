@@ -15,9 +15,31 @@ jest.mock("./DataStudioEditor.generated", () => ({
   useExecuteWorkspaceSqlLazyQuery: () => [mockExecute, mockQueryState],
 }));
 
+// The schema powers CodeMirror's `sqlSchema` prop, which the CodeEditor mock
+// below doesn't inspect; stubbed here purely so DataStudioEditor's own call to
+// this hook (for autocomplete) doesn't need a real Apollo provider in this file.
+let mockSchemaState: { data?: unknown; loading?: boolean } = { loading: false };
+
+jest.mock("./DataStudioSchemaBrowser.generated", () => ({
+  useWorkspaceDataStudioSchemaQuery: () => mockSchemaState,
+}));
+
 const mockEditDetails = jest.fn();
 const mockSetVisibility = jest.fn();
+const mockCommit = jest.fn();
+const mockPlanSave = jest.fn();
 let mockEditorState: any;
+
+// Stand-in for `useSavedQueryEditor`'s resolved save policy. The hook decides
+// what saving means (covered in its own suite); these tests only check that the
+// toolbar and the ⌘S binding render/run whatever it hands them.
+const savePlan = (overrides: Record<string, unknown> = {}) => ({
+  variant: "create",
+  save: mockPlanSave,
+  blockedBy: null,
+  saveAsNew: null,
+  ...overrides,
+});
 
 // The save/write path (Apollo mutations + router navigation) is exercised in
 // its own suite; stub it here so these tests stay focused on run/export/schema
@@ -75,6 +97,9 @@ jest.mock("./DataStudioResults", () => ({
 }));
 
 const mockInsertText = jest.fn();
+const mockShortcuts: { current: { key: string }[] } = { current: [] };
+const shortcutKeys = () => mockShortcuts.current.map((s) => s.key);
+let lastCodeEditorProps: any;
 
 // A lightweight stand-in for the CodeMirror editor: a controlled textarea whose
 // imperative handle mirrors the real one (insertText + selection-aware
@@ -84,7 +109,9 @@ jest.mock("core/components/CodeEditor/CodeEditor", () => {
   return {
     __esModule: true,
     default: React.forwardRef(function CodeEditorMock(props: any, ref: any) {
+      lastCodeEditorProps = props;
       const innerRef = React.useRef(null);
+      mockShortcuts.current = props.shortcuts ?? [];
       React.useImperativeHandle(ref, () => ({
         insertText: mockInsertText,
         getSelectedText: () => {
@@ -92,9 +119,15 @@ jest.mock("core/components/CodeEditor/CodeEditor", () => {
           if (!el) return "";
           return el.value.slice(el.selectionStart ?? 0, el.selectionEnd ?? 0);
         },
+        // The real handle writes through CodeMirror, which fires onChange; the
+        // stand-in calls it directly so the controlled value stays in sync.
+        replaceAll: (text: string) => props.onChange?.(text),
       }));
       // Mirror CodeMirror's keymap: a matching shortcut runs its handler and
-      // consumes the event (preventDefault), so no newline is inserted.
+      // consumes the event (preventDefault), so no newline is inserted. Only
+      // the Enter bindings are simulated — the format shortcuts are covered
+      // against the real editor in CodeEditor.test.tsx, where the binding has
+      // to win against CodeMirror's own keymap to pass.
       const onKeyDown = (event: any) => {
         if (event.key !== "Enter" || !(event.metaKey || event.ctrlKey)) {
           return;
@@ -174,7 +207,10 @@ const successState = (overrides: Record<string, unknown> = {}) => ({
 
 const renderEditor = (
   props: Partial<ComponentProps<typeof DataStudioEditor>> = {},
-) => render(<DataStudioEditor workspaceSlug="ws-1" canCreate={false} {...props} />);
+) =>
+  render(
+    <DataStudioEditor workspaceSlug="ws-1" canCreate={false} {...props} />,
+  );
 
 beforeEach(() => {
   mockExecute.mockClear();
@@ -182,7 +218,10 @@ beforeEach(() => {
   (downloadBlob as jest.Mock).mockClear();
   mockEditDetails.mockClear();
   mockSetVisibility.mockClear();
+  mockCommit.mockClear();
+  mockPlanSave.mockClear();
   mockQueryState = { loading: false };
+  mockSchemaState = { loading: false };
   mockEditorState = {
     savedQuery: null,
     isDirty: false,
@@ -190,9 +229,11 @@ beforeEach(() => {
     canUpdate: false,
     canUpdateVisibility: false,
     dialog: { open: false, mode: "create" },
+    savePlan: savePlan(),
     save: jest.fn(),
     setVisibility: mockSetVisibility,
     saveAsNew: jest.fn(),
+    commit: mockCommit,
     editDetails: mockEditDetails,
     closeDialog: jest.fn(),
     onDialogSaved: jest.fn(),
@@ -307,6 +348,39 @@ describe("DataStudioEditor", () => {
     expect(mockInsertText).toHaveBeenCalledWith("patients");
   });
 
+  it("builds a CodeMirror sqlSchema from the fetched table/column schema", () => {
+    mockSchemaState = {
+      loading: false,
+      data: {
+        workspace: {
+          slug: "ws-1",
+          database: {
+            tables: {
+              totalItems: 1,
+              items: [
+                {
+                  name: "patients",
+                  columns: [
+                    { name: "id", type: "integer" },
+                    { name: "name", type: "text" },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+    };
+    renderEditor();
+
+    expect(lastCodeEditorProps.sqlSchema).toEqual({
+      patients: [
+        { label: "id", type: "property", detail: "integer" },
+        { label: "name", type: "property", detail: "text" },
+      ],
+    });
+  });
+
   it("forwards a transport error to the results panel", () => {
     mockQueryState = { loading: false, error: new Error("network down") };
     renderEditor();
@@ -406,21 +480,75 @@ describe("DataStudioEditor", () => {
     expect(screen.getByRole("button", { name: /Private/ })).toBeInTheDocument();
   });
 
-  it("blocks in-place Save while an existing query's content is empty", async () => {
-    mockEditorState.savedQuery = {
-      id: "q1",
-      name: "Cohort query",
-      visibility: SavedQueryVisibility.Private,
-    };
-    mockEditorState.canUpdate = true;
-    mockEditorState.isDirty = true;
+  it("disables Save when the plan withholds it, and runs it when offered", async () => {
+    mockEditorState.savePlan = savePlan({ save: null, blockedBy: "empty" });
+    const { unmount } = renderEditor();
+
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    unmount();
+
+    mockEditorState.savePlan = savePlan();
     renderEditor();
 
-    // Content starts empty (wiped), so Save stays disabled even though dirty.
-    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    const save = screen.getByRole("button", { name: "Save" });
+    expect(save).toBeEnabled();
+    await userEvent.click(save);
+    expect(mockPlanSave).toHaveBeenCalledTimes(1);
+  });
 
-    await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
-    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
+  it("shows no save control when the plan offers no variant", () => {
+    mockEditorState.savePlan = savePlan({ variant: null, save: null });
+    renderEditor();
+
+    expect(
+      screen.queryByRole("button", { name: "Save" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["Cmd+S", { key: "s", metaKey: true }],
+    ["Ctrl+S", { key: "s", ctrlKey: true }],
+  ])("saves on %s and suppresses the browser save dialog", (_label, init) => {
+    renderEditor();
+
+    expect(fireEvent.keyDown(window, init)).toBe(false);
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+  });
+
+  it("saves once on Ctrl/Cmd+S from inside the SQL editor", async () => {
+    renderEditor();
+    const editor = screen.getByTestId("editor");
+    await userEvent.type(editor, "SELECT 1");
+
+    // Only bound on the window, so a keystroke in the buffer bubbles up to a
+    // single handler instead of also hitting a CodeMirror binding.
+    fireEvent.keyDown(editor, { key: "s", ctrlKey: true });
+
+    expect(mockCommit).toHaveBeenCalledTimes(1);
+  });
+
+  it("never hands Ctrl/Cmd+S back to the browser while the save dialog is open", () => {
+    mockEditorState.dialog = { open: true, mode: "create" };
+    renderEditor();
+    expect(screen.getByTestId("save-query-dialog")).toHaveAttribute(
+      "data-open",
+      "true",
+    );
+
+    // The dialog has no ⌘S binding of its own, so releasing the keystroke here
+    // would open the browser's "Save page as…" on top of the dialog. It stays
+    // consumed; `commit` is the one that decides the dialog owns the keyboard.
+    expect(fireEvent.keyDown(window, { key: "s", ctrlKey: true })).toBe(false);
+  });
+
+  it("surfaces the save shortcut in the Save tooltip (Ctrl+S on non-mac)", () => {
+    renderEditor();
+
+    // jsdom's userAgent is not a Mac, so the tooltip uses the Ctrl variant.
+    expect(screen.getByRole("button", { name: "Save" })).toHaveAttribute(
+      "title",
+      "Save query (Ctrl+S)",
+    );
   });
 
   it("hides the Generate button when AI is not enabled for the workspace", () => {
@@ -452,5 +580,54 @@ describe("DataStudioEditor", () => {
 
     expect(screen.getByTestId("editor")).toHaveValue("SELECT 1");
     expect(screen.queryByTestId("generate-bar")).not.toBeInTheDocument();
+  });
+
+  const FORMATTED = "SELECT\n  id\nFROM\n  patients";
+
+  it("formats the whole query on click", async () => {
+    renderEditor();
+    const editor = screen.getByTestId("editor");
+    await userEvent.type(editor, "select id from patients");
+
+    await userEvent.click(screen.getByRole("button", { name: "Format" }));
+
+    expect(editor).toHaveValue(FORMATTED);
+  });
+
+  it("formats the whole query even when part of it is selected", async () => {
+    renderEditor();
+    const editor = screen.getByTestId("editor") as HTMLTextAreaElement;
+    await userEvent.type(editor, "select id from patients");
+    editor.setSelectionRange(7, 9);
+
+    await userEvent.click(screen.getByRole("button", { name: "Format" }));
+
+    // A selection must not narrow the scope: formatting a fragment produces
+    // left-aligned multi-line text that would corrupt the surrounding line.
+    expect(editor).toHaveValue(FORMATTED);
+    expect(mockInsertText).not.toHaveBeenCalled();
+  });
+
+  it("registers the format shortcut on the editor", () => {
+    renderEditor();
+    // The bindings themselves are exercised against real CodeMirror in
+    // CodeEditor.test.tsx; this only pins the keys this editor asks for. Both
+    // cases are required — macOS resolves ⇧⌥F to the uppercase spec.
+    expect(shortcutKeys()).toEqual(
+      expect.arrayContaining(["Shift-Alt-f", "Shift-Alt-F"]),
+    );
+  });
+
+  it("leaves Mod-f to the editor's find", () => {
+    renderEditor();
+    expect(shortcutKeys()).not.toContain("Mod-f");
+  });
+
+  it("disables Format while the query is empty", async () => {
+    renderEditor();
+    expect(screen.getByRole("button", { name: "Format" })).toBeDisabled();
+
+    await userEvent.type(screen.getByTestId("editor"), "select 1");
+    expect(screen.getByRole("button", { name: "Format" })).toBeEnabled();
   });
 });

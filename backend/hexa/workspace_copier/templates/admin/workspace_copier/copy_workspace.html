@@ -1,6 +1,19 @@
 {% extends "admin/base_site.html" %}
 {% load i18n %}
 
+{% block extrastyle %}{{ block.super }}
+<style>
+    .copier-resources { margin: 0; padding: 0; list-style: none; }
+    .copier-resources > li { padding: 0.2rem 0; }
+    .copier-resources label { display: inline; width: auto; float: none; }
+    .copier-always { color: var(--body-quiet-color, #666); font-size: 0.8125rem; margin-left: 0.5rem; }
+    .copier-option { margin: 0.2rem 0 0.6rem 1.7rem; }
+    .copier-option label { margin-left: 0.35rem; }
+    .copier-option .help { margin: 0; padding: 0; }
+    .copier-option.is-disabled { opacity: 0.45; }
+</style>
+{% endblock %}
+
 {% block breadcrumbs %}
 <div class="breadcrumbs">
     <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
@@ -37,14 +50,56 @@
         {% include "admin/workspace_copier/_field_row.html" with field=form.target_organization %}
         {% include "admin/workspace_copier/_field_row.html" with field=form.target_workspace_name %}
     </fieldset>
-    <fieldset class="module aligned">
+    <fieldset class="module">
         <h2>{% trans 'Resources' %}</h2>
-        {% include "admin/workspace_copier/_field_row.html" with field=form.resources %}
+        <div class="form-row field-resources{% if form.resources.errors %} errors{% endif %}">
+            {{ form.resources.errors }}
+            <ul class="copier-resources">
+                {% for row in form.resource_rows %}
+                <li>
+                    {{ row.checkbox }}
+                    {% if row.mandatory %}<span class="copier-always">{% trans 'always runs' %}</span>{% endif %}
+                    {% for option in row.options %}
+                    <div class="copier-option{% if option.errors %} errors{% endif %}">
+                        {{ option.errors }}
+                        {{ option }}{{ option.label_tag }}
+                        {% if option.help_text %}<div class="help" id="{{ option.id_for_label }}_helptext">{{ option.help_text }}</div>{% endif %}
+                    </div>
+                    {% endfor %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
     </fieldset>
     <div class="submit-row">
         <input type="submit" value="{% trans 'Run copy' %}" class="default">
     </div>
 </form>
+
+<script>
+// A resource's nested options only mean something when that resource is copied:
+// disabling them keeps them out of the POST, so the backend can't receive an
+// option for a copier that never runs.
+(function () {
+    document.querySelectorAll(".copier-resources > li").forEach(function (item) {
+        var box = item.querySelector('input[name="resources"]');
+        var options = item.querySelectorAll(".copier-option");
+        if (!box || !options.length) return;
+
+        function sync() {
+            options.forEach(function (option) {
+                option.classList.toggle("is-disabled", !box.checked);
+                option.querySelectorAll("input").forEach(function (input) {
+                    input.disabled = !box.checked;
+                });
+            });
+        }
+
+        box.addEventListener("change", sync);
+        sync();
+    });
+})();
+</script>
 
 {% if log %}
 <h2>{% trans 'Log' %}</h2>

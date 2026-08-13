@@ -25,12 +25,13 @@ Each module is the single home for one resource across both mediums. Registry
 order (see `orchestrator.WORKSPACE_COPIERS`):
 
 | name          | copier                    | notes                                                                                              |
-| ------------- | ------------------------- | -------------------------------------------------------------------------------------------------- |
+| ------------- | ------------------------- |----------------------------------------------------------------------------------------------------|
 | `workspace`   | `WorkspaceMetadataCopier` | **mandatory** — creates the target, yields its handle                                              |
 | `files`       | `FilesCopier`             | bucket objects                                                                                     |
 | `database`    | `DatabaseCopier`          | native pg copy only if **both** sides LOCAL; else skipped + warned. Local copy not yet implemented |
 | `connections` | `ConnectionsCopier`       | connections + secret fields                                                                        |
 | `pipelines`   | `PipelinesCopier`         | pipelines + versions (depends on `files` for notebook pipelines)                                   |
+| `datasets`    | `DatasetsCopier`          | datasets **owned** by the workspace                                                                |
 
 Template pipelines are **not** in this registry — they are server-wide, not a
 per-workspace resource, so they are copied by a separate flow (see
@@ -65,7 +66,8 @@ Example usage:
 	--target-url https://api.demo.openhexa.org/graphql/ \
 	--target-organization 002f2f74-7cdb-452c-8ef5-28cc27c04fbe \ # BLSQ org
 	--target-workspace-name "My Workspace (copy)" \
-	--target-token 'my-demo-service-account-token'
+	--target-token 'my-demo-service-account-token' \
+	--all-dataset-versions # optional; default copies only each dataset's latest version
 ```
 
 Tokens are ServiceAccount tokens (managed under Django admin → Service accounts). A remote side needs one with permission to read the source workspace / create under the target organization. `--target-workspace-name` is optional and defaults to the same name as the source workspace.

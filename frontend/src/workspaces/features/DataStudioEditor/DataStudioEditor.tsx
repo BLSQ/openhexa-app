@@ -1,23 +1,28 @@
 import { gql } from "@apollo/client";
 import {
   ArrowDownTrayIcon,
+  Bars3BottomLeftIcon,
   PencilIcon,
   SparklesIcon,
   TableCellsIcon,
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
+import { SQLNamespace } from "@codemirror/lang-sql";
 import CodeEditor, {
   CodeEditorHandle,
 } from "core/components/CodeEditor/CodeEditor";
 import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import useIsMac from "core/hooks/useIsMac";
+import useSaveShortcut from "core/hooks/useSaveShortcut";
 import { useTranslation } from "next-i18next";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import SaveQueryDialog from "workspaces/features/SavedQueries/SaveQueryDialog";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { buildCsv, downloadCsv } from "./csv";
+import { useWorkspaceDataStudioSchemaQuery } from "./DataStudioSchemaBrowser.generated";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
+import { formatSql } from "./formatSql";
 import GenerateSqlBar, { useGenerateSqlForm } from "./GenerateSqlBar";
 import SaveQueryButton from "./SaveQueryButton";
 import SavedQueryVisibilityButton from "./SavedQueryVisibilityButton";
@@ -64,6 +69,8 @@ const DataStudioEditor = ({
     canCreate,
   });
 
+  useSaveShortcut(editor.commit);
+
   // Stable so the memoised schema browser is not re-rendered by every keystroke
   // in the editor. Goes through the imperative handle, so it needs no deps.
   const insertIntoEditor = useCallback(
@@ -72,18 +79,49 @@ const DataStudioEditor = ({
   );
 
   const runShortcutLabel = isMac ? "⌘+Enter" : "Ctrl+Enter";
-  // Compact form for the in-button pill: the return glyph reads cleanly next to
-  // ⌘ on macOS; other platforms keep the spelled-out modifier.
+  const formatShortcutLabel = isMac ? "⇧+⌥+F" : "Shift+Alt+F";
+  // Compact form for the in-button pill: the modifier glyphs read cleanly on
+  // macOS; other platforms keep the spelled-out modifiers.
   const runShortcutBadge = isMac ? "⌘↵" : "Ctrl+Enter";
 
   const { run, retry, result, loading, error, canExport } =
     useDataStudioQuery(workspaceSlug);
+
+  // Same query DataStudioSchemaBrowser runs to populate its table tree.
+  // Apollo dedupes identical in-flight queries and serves matching variables
+  // from its normalized cache afterwards, so this doesn't add a network
+  // request — it's how the editor gets at the schema it needs for autocomplete.
+  const { data: schemaData } = useWorkspaceDataStudioSchemaQuery({
+    variables: { workspaceSlug },
+  });
+
+  const sqlSchema = useMemo<SQLNamespace>(() => {
+    const items = schemaData?.workspace?.database?.tables?.items ?? [];
+    return Object.fromEntries(
+      items.map((table) => [
+        table.name,
+        table.columns.map((column) => ({
+          label: column.name,
+          type: "property",
+          detail: column.type,
+        })),
+      ]),
+    );
+  }, [schemaData]);
 
   const canRun = !loading && Boolean(query.trim());
 
   const runSelection = () => {
     const selected = editorRef.current?.getSelectedText() ?? "";
     run(selected.trim() || query, maxRows);
+  };
+
+  // Always the whole query, never the selection — unlike Run, where a bad
+  // fragment fails loudly at the database, the formatter reflows fragments
+  // happily ("id, name" becomes two left-aligned lines) and would splice that
+  // back into the middle of a line.
+  const formatQuery = () => {
+    editorRef.current?.replaceAll(formatSql(query));
   };
 
   const exportCsv = () => {
@@ -98,9 +136,17 @@ const DataStudioEditor = ({
   // consumed and does not also insert a newline. Runs the selection when there
   // is one, otherwise the whole query. "Mod" is Cmd on macOS / Ctrl elsewhere;
   // "Ctrl" is added so Ctrl+Enter works on macOS too.
+  // Formatting deliberately stays off Mod-f: that is find, both in the browser
+  // and in CodeMirror, and it is used far more often than formatting.
+  // "Shift-Alt-f" is the editor-conventional binding for formatting. It needs
+  // both cases: CodeMirror skips its keyCode fallback for plain Alt combos on
+  // macOS (Alt there types a character — ⇧⌥F is "Ï"), so it resolves the
+  // keystroke to "Shift-Alt-F" on Mac and to "Shift-Alt-f" everywhere else.
   const editorShortcuts = [
     { key: "Mod-Enter", run: runSelection },
     { key: "Ctrl-Enter", run: runSelection },
+    { key: "Shift-Alt-f", run: formatQuery },
+    { key: "Shift-Alt-F", run: formatQuery },
   ];
 
   return (
@@ -130,16 +176,7 @@ const DataStudioEditor = ({
               </button>
             )}
             <div className="ml-auto flex items-center gap-2">
-              <SaveQueryButton
-                isSaved={Boolean(editor.savedQuery)}
-                isDirty={editor.isDirty}
-                hasContent={Boolean(query.trim())}
-                canUpdate={editor.canUpdate}
-                canCreate={canCreate}
-                saving={editor.saving}
-                onSave={editor.save}
-                onSaveAsNew={editor.saveAsNew}
-              />
+              <SaveQueryButton plan={editor.savePlan} />
               {editor.savedQuery && (
                 <SavedQueryVisibilityButton
                   visibility={editor.savedQuery.visibility}
@@ -178,6 +215,17 @@ const DataStudioEditor = ({
                   </button>
                 </SubscriptionLimitTooltip>
               )}
+              <button
+                onClick={formatQuery}
+                disabled={!query.trim()}
+                title={t("Format ({{shortcut}})", {
+                  shortcut: formatShortcutLabel,
+                })}
+                className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
+              >
+                <Bars3BottomLeftIcon className="h-4 w-4" />
+                {t("Format")}
+              </button>
               <button
                 onClick={exportCsv}
                 disabled={!canExport}
@@ -232,6 +280,7 @@ const DataStudioEditor = ({
                 autoFocus
                 value={query}
                 onChange={setQuery}
+                sqlSchema={sqlSchema}
                 height="100%"
                 minHeight="100%"
                 placeholder={t("Write a SQL query… ({{shortcut}} to run)", {
