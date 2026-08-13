@@ -4,7 +4,10 @@ import { CustomApolloClient } from "core/helpers/apollo";
 import { GetServerSidePropsContext } from "next";
 import { useTranslation } from "next-i18next";
 import { ReactElement, ReactNode } from "react";
-import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
+import {
+  dataStudioRoutes,
+  SQL_WIDGETS_DOCS_URL,
+} from "workspaces/helpers/dataStudio";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import { WorkspaceLayout_WorkspaceFragment } from "workspaces/layouts/WorkspaceLayout/WorkspaceLayout.generated";
 
@@ -44,7 +47,7 @@ const DataStudioLayout = ({
       helpLinks={[
         {
           label: t("SQL chart widgets"),
-          href: "https://docs.openhexa.com/sql-widgets/",
+          href: SQL_WIDGETS_DOCS_URL,
         },
         {
           label: t("The workspace database"),

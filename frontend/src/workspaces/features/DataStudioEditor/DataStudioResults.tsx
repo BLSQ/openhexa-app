@@ -10,6 +10,7 @@ import { ExecuteSqlError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { memo, useState } from "react";
 import { detectChart } from "./chart";
+import ChartHint from "./ChartHint";
 import { ExecuteWorkspaceSqlQuery } from "./DataStudioEditor.generated";
 import ResultsChart from "./ResultsChart";
 import ResultsTable from "./ResultsTable";
@@ -239,6 +240,17 @@ const DataStudioResults = ({
           {typeof result.durationMs === "number" &&
             ` · ${result.durationMs.toLocaleString()} ms`}
         </span>
+        {/* Only offered when the result was not charted: that is exactly the
+            user who has not met the convention yet. Once a chart is drawn the
+            tab strip above already advertises the feature, and an invitation
+            to chart what is already a chart would read as a mistake. A query
+            plan is never chartable, so it is excluded too.
+
+            Kept in this left cluster rather than pushed to the right: the
+            workspace layout pins its floating help button to the viewport's
+            bottom-right corner, which overlaps the end of this bar and would
+            bury the hint under it. */}
+        {!chart && !isQueryPlan && <ChartHint />}
         {!showChart && hasHiddenRows && (
           <span className="ml-auto text-gray-400">
             {t(

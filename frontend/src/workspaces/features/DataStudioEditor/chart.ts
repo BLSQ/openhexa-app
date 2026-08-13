@@ -18,14 +18,18 @@ export type Point = {
  * The declaration order below is the precedence when a query happens to return
  * more than one convention, so the choice stays predictable.
  */
-const CHARTS: { kind: ChartKind; label: string; value: string }[] = [
+export const CHART_CONVENTIONS: {
+  kind: ChartKind;
+  label: string;
+  value: string;
+}[] = [
   { kind: "bar", label: "bar_label", value: "bar_quantity" },
   { kind: "line", label: "line_x", value: "line_y" },
   { kind: "pie", label: "pie_label", value: "pie_quantity" },
 ];
 
 const findChart = (columns: string[]) =>
-  CHARTS.find(
+  CHART_CONVENTIONS.find(
     (chart) => columns.includes(chart.label) && columns.includes(chart.value),
   );
 
@@ -73,7 +77,7 @@ export const toPoints = (
   rows: Row[],
   limit: number,
 ): { points: Point[]; hidden: number } => {
-  const chart = CHARTS.find((entry) => entry.kind === kind)!;
+  const chart = CHART_CONVENTIONS.find((entry) => entry.kind === kind)!;
   const points: Point[] = [];
   for (const row of rows) {
     const value = toNumber(row[chart.value]);

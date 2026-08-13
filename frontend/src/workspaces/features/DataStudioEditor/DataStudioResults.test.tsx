@@ -314,6 +314,48 @@ describe("DataStudioResults", () => {
         ),
       ).not.toBeInTheDocument();
     });
+
+    describe("discoverability hint", () => {
+      const hint = () =>
+        screen.queryByRole("link", { name: "Chart this result" });
+
+      it("points a plain result at the widget guide", () => {
+        render(<DataStudioResults loading={false} result={successResult()} />);
+        expect(hint()).toHaveAttribute(
+          "href",
+          "https://docs.openhexa.com/sql-widgets/",
+        );
+      });
+
+      it("names the column pairs of every chart on hover", async () => {
+        render(<DataStudioResults loading={false} result={successResult()} />);
+
+        await userEvent.hover(hint()!);
+
+        expect(screen.getByText("bar_label, bar_quantity")).toBeInTheDocument();
+        expect(screen.getByText("line_x, line_y")).toBeInTheDocument();
+        expect(screen.getByText("pie_label, pie_quantity")).toBeInTheDocument();
+      });
+
+      it("is not offered on a result that is already charted", () => {
+        render(<DataStudioResults loading={false} result={barResult()} />);
+        expect(hint()).not.toBeInTheDocument();
+      });
+
+      it("is not offered on an EXPLAIN plan, which is never chartable", () => {
+        render(
+          <DataStudioResults
+            loading={false}
+            result={successResult({
+              columns: ["QUERY PLAN"],
+              rows: [{ "QUERY PLAN": "Seq Scan on cases" }],
+              rowCount: 1,
+            })}
+          />,
+        );
+        expect(hint()).not.toBeInTheDocument();
+      });
+    });
   });
 
   it("caps the displayed rows at 500 even when more are returned", () => {
