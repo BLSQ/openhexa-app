@@ -154,7 +154,7 @@ const SaveQueryDialog = ({
               placeholder={t("What does this query return? Any caveats?")}
             />
           </Field>
-          <Field name="visibility" label={t("Sharing")}>
+          <Field name="visibility" label={t("Sharing")} showOptional={false}>
             <SavedQueryVisibilityPicker
               value={form.formData.visibility ?? SavedQueryVisibility.Private}
               onChange={(visibility) =>
