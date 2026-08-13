@@ -62,6 +62,18 @@ def resolve_saved_query_permissions_delete(saved_query: SavedQuery, info, **kwar
     )
 
 
+@saved_query_permissions.field("updateVisibility")
+def resolve_saved_query_permissions_update_visibility(
+    saved_query: SavedQuery, info, **kwargs
+):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("data_studio.update_saved_query_visibility", saved_query)
+        if request.user.is_authenticated
+        else False
+    )
+
+
 @workspace_object.field("savedQueries")
 def resolve_workspace_saved_queries(workspace: Workspace, info, query=None, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -129,6 +141,7 @@ def resolve_create_saved_query(_, info, **kwargs):
             name=mutation_input["name"],
             content=mutation_input["content"],
             description=mutation_input.get("description") or "",
+            visibility=mutation_input.get("visibility"),
         )
         return {"success": True, "errors": [], "saved_query": saved_query}
     except Workspace.DoesNotExist:

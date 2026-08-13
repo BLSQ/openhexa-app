@@ -1,4 +1,5 @@
 import useNavigationWarning from "core/hooks/useNavigationWarning";
+import { SavedQueryVisibility } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "react-toastify";
@@ -67,6 +68,7 @@ export const useSavedQueryEditor = ({
   const { update, updating: saving } = useSavedQueryMutations();
 
   const canUpdate = savedQuery?.permissions.update ?? false;
+  const canUpdateVisibility = savedQuery?.permissions.updateVisibility ?? false;
   const isDirty = content !== baseline;
   const hasContent = Boolean(content.trim());
 
@@ -125,6 +127,32 @@ export const useSavedQueryEditor = ({
       toast.error(err.message);
     }
   }, [savedQuery, canUpdate, saving, content, update, t]);
+
+  // Sharing is persisted on its own, without touching the SQL buffer: the content
+  // baseline is deliberately left alone so unsaved edits stay unsaved.
+  const setVisibility = useCallback(
+    async (visibility: SavedQueryVisibility) => {
+      if (!savedQuery || !canUpdateVisibility || saving) {
+        return;
+      }
+      try {
+        const res = await update({ id: savedQuery.id, visibility });
+        if (res.ok) {
+          setSavedQuery(res.savedQuery);
+          toast.success(
+            visibility === SavedQueryVisibility.Workspace
+              ? t("Query shared with the workspace")
+              : t("Query is now private"),
+          );
+        } else {
+          toast.error(res.message);
+        }
+      } catch (err: any) {
+        toast.error(err.message);
+      }
+    },
+    [savedQuery, canUpdateVisibility, saving, update, t],
+  );
 
   const saveAsNew = useCallback(
     () => setDialog({ open: true, mode: "create" }),
@@ -202,9 +230,11 @@ export const useSavedQueryEditor = ({
     isDirty,
     saving,
     canUpdate,
+    canUpdateVisibility,
     dialog,
     savePlan,
     save,
+    setVisibility,
     saveAsNew,
     commit,
     editDetails,
