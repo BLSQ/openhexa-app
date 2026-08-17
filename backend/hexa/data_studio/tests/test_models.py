@@ -1,8 +1,9 @@
 from unittest.mock import MagicMock
 
+from django.contrib.admin.utils import NestedObjects
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, connection, router, transaction
 
 from hexa.core.test import TestCase
 from hexa.data_studio.models import (
@@ -325,6 +326,28 @@ class SavedQueryAuthorDeletionTest(SavedQueryTestMixin, TestCase):
         with self.assertRaises(IntegrityError), transaction.atomic():
             SavedQuery.objects.filter(id=query.id).update(created_by=None)
 
+    def test_the_backend_can_defer_constraint_checks(self):
+        # The one thing the PRIVATE policy assumes about the database. CASCADE nulls
+        # created_by before deleting on backends that cannot defer, which
+        # `data_studio_private_query_has_author` rejects - so on such a backend every
+        # test above fails with an IntegrityError. The replacement is the six-line
+        # handler documented in `saved_queries_on_author_deleted`: collect() with
+        # source_attr, and no field update.
+        self.assertTrue(connection.features.can_defer_constraint_checks)
+
+    def test_private_queries_are_listed_under_their_author_in_the_admin(self):
+        # The confirmation page is the whole UI of this feature - user deletion has no
+        # mutation - and it nests what will be deleted under what causes it. Django's
+        # CASCADE passes the collector the relation the queries hang from; an
+        # equivalent that omits it still deletes them, but lists them at the top level
+        # next to the user rather than underneath.
+        query = self._create_private(self.USER_VIEWER)
+        collector = NestedObjects(using=router.db_for_write(User))
+
+        collector.collect([self.USER_VIEWER])
+
+        self.assertIn(query, collector.edges.get(self.USER_VIEWER, []))
+
     def test_every_visibility_states_a_policy(self):
         # A visibility added without deciding whether its queries outlive their author
         # would otherwise be handled by whichever branch happens to catch it.
@@ -338,6 +361,62 @@ class SavedQueryAuthorDeletionTest(SavedQueryTestMixin, TestCase):
 
         with self.assertRaises(ImproperlyConfigured):
             self.USER_VIEWER.delete()
+
+
+class SavedQueryMembershipRemovalTest(SavedQueryTestMixin, TestCase):
+    """Losing access to a workspace is not losing the query.
+
+    Nothing deletes saved queries when a membership goes away, and these tests pin
+    that absence rather than any code: `hexa.pipelines.signals` already hangs a
+    `post_delete` receiver on WorkspaceMembership to clean up after a departing
+    member, which is exactly where someone would reach for saved queries next.
+    """
+
+    def _revoke_membership(self, user):
+        WorkspaceMembership.objects.get(workspace=self.WORKSPACE, user=user).delete()
+
+    def test_private_query_is_hidden_not_deleted(self):
+        query = self.create_saved_query(
+            user=self.USER_VIEWER, visibility=SavedQueryVisibility.PRIVATE
+        )
+
+        self._revoke_membership(self.USER_VIEWER)
+
+        query.refresh_from_db()
+        self.assertEqual(self.USER_VIEWER, query.created_by)
+        self.assertFalse(
+            SavedQuery.objects.filter_for_user(self.USER_VIEWER)
+            .filter(id=query.id)
+            .exists()
+        )
+
+    def test_rejoining_the_workspace_brings_the_query_back(self):
+        query = self.create_saved_query(
+            user=self.USER_VIEWER, visibility=SavedQueryVisibility.PRIVATE
+        )
+
+        self._revoke_membership(self.USER_VIEWER)
+        WorkspaceMembership.objects.create(
+            workspace=self.WORKSPACE,
+            user=self.USER_VIEWER,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        self.assertEqual(
+            [query], list(SavedQuery.objects.filter_for_user(self.USER_VIEWER))
+        )
+
+    def test_a_hidden_query_still_goes_with_its_deleted_author(self):
+        # The half of the promise that survives the other one: a query kept through a
+        # membership change is not thereby kept forever.
+        query = self.create_saved_query(
+            user=self.USER_VIEWER, visibility=SavedQueryVisibility.PRIVATE
+        )
+        self._revoke_membership(self.USER_VIEWER)
+
+        self.USER_VIEWER.delete()
+
+        self.assertFalse(SavedQuery.objects.filter(id=query.id).exists())
 
 
 class QueryLogModelTest(TestCase):

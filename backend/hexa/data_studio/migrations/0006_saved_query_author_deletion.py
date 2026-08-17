@@ -11,7 +11,7 @@ def delete_orphaned_private_queries(apps, schema_editor):
 
     `created_by` used to be SET_NULL, so those queries survived their author as rows
     no workspace or organization role gives access to: unreachable for everyone but a
-    superuser, and holding the SQL of an account that was deleted.
+    superuser, and kept forever for nobody.
     """
     SavedQuery = apps.get_model("data_studio", "SavedQuery")
     SavedQuery.objects.filter(visibility="PRIVATE", created_by__isnull=True).delete()
