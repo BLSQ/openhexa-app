@@ -1,6 +1,9 @@
+from collections import defaultdict
+
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.db import models
+from django.db.models.deletion import SET_NULL
 from django.utils.translation import gettext_lazy as _
 
 from hexa.core.models.base import Base, BaseQuerySet
@@ -57,12 +60,81 @@ class SavedQueryManager(models.Manager):
         )
 
 
+def _delete_with_author(collector, field, sub_objs, using):
+    """Let the queries go with their author.
+
+    Django's own CASCADE also nulls the foreign key first on backends that cannot
+    defer constraint checks, which would trip the check constraint below; going
+    through the collector deletes the rows in the same transaction as the user and
+    still cascades to whatever may later point at a saved query.
+    """
+    collector.collect(
+        sub_objs,
+        source=field.remote_field.model,
+        nullable=field.null,
+        fail_on_restricted=False,
+    )
+
+
+# Keep the queries and forget who wrote them - exactly what SET_NULL does.
+_keep_without_author = SET_NULL
+
+
+# Every SavedQueryVisibility must appear here: a new visibility has to state whether
+# its queries outlive their author, and there is no sane default to fall back on.
+ON_AUTHOR_DELETED = {
+    # Nothing but its author can reach a private query - no workspace or organization
+    # role grants access to one - so leaving it behind would keep a row alive that
+    # only a superuser could still see.
+    SavedQueryVisibility.PRIVATE: _delete_with_author,
+    # Shared queries outlive their author: colleagues, and the webapps and pipelines
+    # built on them, depend on queries they did not write.
+    SavedQueryVisibility.WORKSPACE: _keep_without_author,
+}
+
+
+def _policy_for(visibility: str):
+    try:
+        return ON_AUTHOR_DELETED[visibility]
+    except KeyError:
+        raise ImproperlyConfigured(
+            f"No author-deletion policy for saved query visibility {visibility!r}:"
+            " every visibility must state whether its queries outlive their author."
+        ) from None
+
+
+def saved_queries_on_author_deleted(collector, field, sub_objs, using):
+    """`on_delete` for SavedQuery.created_by: what a query survives depends on who could read it.
+
+    Nullifying every query would strand the private ones - unreachable, yet holding
+    the SQL of someone who asked to be deleted - while deleting every query would
+    break shared ones their workspace still relies on. The split mirrors the access
+    rule in SavedQueryQuerySet.filter_for_user: what survives is exactly what someone
+    other than the author could already read.
+
+    This is deliberately enforced at the model layer: user deletion happens through
+    the Django admin or a shell, so any policy living in a service or a mutation
+    would simply be bypassed.
+    """
+    by_policy = defaultdict(list)
+    for saved_query in sub_objs:
+        by_policy[_policy_for(saved_query.visibility)].append(saved_query)
+
+    for policy, saved_queries in by_policy.items():
+        policy(collector, field, saved_queries, using)
+
+
 class SavedQuery(Base):
     """A SQL query saved by a user in the Data Studio.
 
     A saved query belongs to a workspace, but its `visibility` decides who within
     that workspace can reach it: WORKSPACE queries are shared with every member,
     PRIVATE ones are the author's alone.
+
+    Losing access and losing the author are two different things: a member removed
+    from the workspace stops seeing their private queries but gets them back if they
+    are added again, while deleting the account itself takes them for good (see
+    `saved_queries_on_author_deleted`).
     """
 
     workspace = models.ForeignKey(
@@ -70,7 +142,9 @@ class SavedQuery(Base):
         on_delete=models.CASCADE,
         related_name="saved_queries",
     )
-    created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    created_by = models.ForeignKey(
+        User, null=True, on_delete=saved_queries_on_author_deleted
+    )
     name = models.CharField(max_length=255, null=False, blank=False)
     description = models.TextField(blank=True, default="")
     content = models.TextField()
@@ -85,6 +159,17 @@ class SavedQuery(Base):
     class Meta:
         verbose_name_plural = "saved queries"
         ordering = ["-updated_at"]
+        constraints = [
+            # An author-less private query is readable by nobody, so it can only be
+            # dead weight. `saved_queries_on_author_deleted` is what keeps that from
+            # happening; this makes any other code path that forgets an author fail
+            # where it writes instead of leaving an invisible row behind.
+            models.CheckConstraint(
+                condition=models.Q(created_by__isnull=False)
+                | ~models.Q(visibility=SavedQueryVisibility.PRIVATE),
+                name="data_studio_private_query_has_author",
+            ),
+        ]
         indexes = [
             # `id` mirrors the tiebreaker the listing resolver appends: without it
             # Postgres can only presort on the leading column and still has to run an
