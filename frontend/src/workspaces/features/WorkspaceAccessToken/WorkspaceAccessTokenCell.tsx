@@ -25,9 +25,11 @@ const WorkspaceAccessTokenCell = (props: WorkspaceAccessTokenCellProps) => {
     useWorkspaceAccessToken(workspaceSlug);
 
   if (!canGenerate) {
+    // The Role column already says "Viewer" next to this, so only the way out of
+    // it is worth the space. whitespace-normal, as DataGrid cells forbid wrapping.
     return (
-      <span className="text-sm italic text-gray-500">
-        {t("Not available for viewers")}
+      <span className="block max-w-[48ch] whitespace-normal text-sm italic text-gray-500">
+        {t("Ask a workspace admin for an editor role.")}
       </span>
     );
   }

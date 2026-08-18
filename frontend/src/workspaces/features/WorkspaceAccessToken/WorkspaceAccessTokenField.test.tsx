@@ -71,6 +71,11 @@ describe("WorkspaceAccessTokenField", () => {
     );
 
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
-    expect(screen.getByText("Not available for viewers")).toBeInTheDocument();
+    // No role is shown near the field, so the message says why as well
+    expect(
+      screen.getByText(
+        "Viewers cannot generate tokens. Ask a workspace admin for an editor role.",
+      ),
+    ).toBeInTheDocument();
   });
 });

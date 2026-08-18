@@ -22,9 +22,12 @@ const WorkspaceAccessTokenField = (props: WorkspaceAccessTokenFieldProps) => {
     useWorkspaceAccessToken(workspaceSlug);
 
   if (!canGenerate) {
+    // No role is shown anywhere near this field, so it has to say why as well
     return (
       <span className="text-sm italic text-gray-500">
-        {t("Not available for viewers")}
+        {t(
+          "Viewers cannot generate tokens. Ask a workspace admin for an editor role.",
+        )}
       </span>
     );
   }

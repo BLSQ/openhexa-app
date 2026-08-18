@@ -99,6 +99,9 @@ describe("WorkspaceAccessTokenCell", () => {
     );
 
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
-    expect(screen.getByText("Not available for viewers")).toBeInTheDocument();
+    // The Role column carries the "why", so the cell only points the way out
+    expect(
+      screen.getByText("Ask a workspace admin for an editor role."),
+    ).toBeInTheDocument();
   });
 });

@@ -145,7 +145,9 @@ describe("AccountPage", () => {
     expect(
       screen.getAllByRole("button", { name: "Show the access token" }),
     ).toHaveLength(1);
-    expect(screen.getByText("Not available for viewers")).toBeInTheDocument();
+    expect(
+      screen.getByText("Ask a workspace admin for an editor role."),
+    ).toBeInTheDocument();
   });
 
   it("flags workspaces the user only administers as issuing a temporary token", async () => {
