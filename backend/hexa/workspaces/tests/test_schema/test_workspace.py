@@ -8,6 +8,8 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.core import mail
 from django.core.signing import Signer
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 
 from hexa.core.test import GraphQLTestCase
 from hexa.databases.utils import TableNotFound
@@ -25,6 +27,8 @@ from hexa.workspaces.models import (
     WorkspaceInvitationStatus,
     WorkspaceMembership,
     WorkspaceMembershipRole,
+    get_workspace_membership,
+    prime_workspace_memberships,
 )
 
 
@@ -1318,8 +1322,8 @@ class WorkspaceTest(GraphQLTestCase):
                 )
 
     def test_workspaces_list_current_membership_is_per_user(self):
-        # The workspaces list prefetches memberships; each user must get their own
-        # membership for a workspace they share, never another member's.
+        # Memberships are cached per user for the whole request; each user must get
+        # their own membership for a workspace they share, never another member's.
         query = """
         query {
             workspaces(page: 1, perPage: 100) {
@@ -1354,6 +1358,69 @@ class WorkspaceTest(GraphQLTestCase):
                     },
                     items[self.WORKSPACE.slug],
                 )
+
+    def test_workspaces_list_membership_queries_do_not_grow_with_page(self):
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            for i in range(3):
+                Workspace.objects.create_if_has_perm(
+                    self.USER_JULIA,
+                    name=f"Extra Workspace {i}",
+                    organization=self.ORGANIZATION,
+                )
+
+        self.client.force_login(self.USER_JULIA)
+        with CaptureQueriesContext(connection) as captured:
+            r = self.run_query(
+                """
+            query {
+                workspaces(page: 1, perPage: 20) {
+                    items {
+                        slug
+                        currentMembership {
+                            role
+                        }
+                        permissions {
+                            generateToken
+                        }
+                    }
+                }
+            }
+            """
+            )
+
+        self.assertEqual(5, len(r["data"]["workspaces"]["items"]))
+        # The list itself joins on both tables; what matters is that neither is
+        # queried once per workspace on top of that.
+        membership_queries = [
+            q["sql"]
+            for q in captured.captured_queries
+            if 'FROM "workspaces_workspacemembership"' in q["sql"]
+        ]
+        organization_queries = [
+            q["sql"]
+            for q in captured.captured_queries
+            if 'FROM "identity_organizationmembership"' in q["sql"]
+        ]
+        self.assertEqual(1, len(membership_queries), membership_queries)
+        self.assertLessEqual(len(organization_queries), 1, organization_queries)
+
+    def test_primed_memberships_are_not_reused_across_users(self):
+        # The primed lookup must never hand a user another user's membership.
+        workspace = Workspace.objects.get(pk=self.WORKSPACE.pk)
+        prime_workspace_memberships(self.USER_REBECCA, [workspace])
+
+        self.assertEqual(
+            WorkspaceMembershipRole.VIEWER,
+            get_workspace_membership(self.USER_REBECCA, workspace).role,
+        )
+        self.assertEqual(
+            WorkspaceMembershipRole.ADMIN,
+            get_workspace_membership(self.USER_WORKSPACE_ADMIN, workspace).role,
+        )
+        self.assertIsNone(get_workspace_membership(self.USER_SABRINA, workspace))
 
     def test_workspace_current_membership_none_for_organization_admin(self):
         # No membership to report, but the organization admin can still get a

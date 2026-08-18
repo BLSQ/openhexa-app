@@ -20,6 +20,7 @@ from ..models import (
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
     WorkspaceMembership,
+    get_workspace_membership,
 )
 from ..utils import (
     DHIS2MetadataQueryType,
@@ -153,16 +154,7 @@ def resolve_workspace_organization(workspace: Workspace, info):
 @workspace_object.field("currentMembership")
 def resolve_workspace_current_membership(workspace: Workspace, info):
     request: HttpRequest = info.context["request"]
-    if not request.user.is_authenticated:
-        return None
-
-    # Set by the workspaces list resolver, always for request.user, to avoid a
-    # query per workspace. Every other code path falls back to a direct lookup.
-    prefetched = getattr(workspace, "current_user_memberships", None)
-    if prefetched is not None:
-        return next(iter(prefetched), None)
-
-    return workspace.workspacemembership_set.filter(user=request.user).first()
+    return get_workspace_membership(request.user, workspace)
 
 
 @workspace_object.field("members")

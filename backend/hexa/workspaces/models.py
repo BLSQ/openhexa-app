@@ -462,6 +462,54 @@ class WorkspaceMembership(models.Model):
         return self.delete()
 
 
+def get_workspace_membership(
+    user: AnonymousUser | UserInterface, workspace: Workspace
+) -> WorkspaceMembership | None:
+    """Return the membership of a user in a workspace, or None if they have none.
+
+    Both the `currentMembership` field and the token permission need it, hence a
+    single lookup rather than one each. `prime_workspace_memberships` turns it into
+    a single query for a whole page of workspaces.
+    """
+    if not isinstance(user, User) or not user.is_authenticated:
+        return None
+
+    primed_for_user_id, membership = getattr(
+        workspace, "_current_membership", (None, None)
+    )
+    if primed_for_user_id == user.pk:
+        return membership
+
+    return (
+        workspace.workspacemembership_set.filter(user=user)
+        # access_token is a secret, only ever read through generateWorkspaceToken
+        .defer("access_token")
+        .first()
+    )
+
+
+def prime_workspace_memberships(
+    user: AnonymousUser | UserInterface, workspaces: typing.Iterable[Workspace]
+) -> None:
+    """Load the memberships of a user in several workspaces in a single query.
+
+    `get_workspace_membership` reads them back from the workspace instances, so the
+    memberships live exactly as long as the workspaces they were loaded with.
+    """
+    if not isinstance(user, User) or not user.is_authenticated:
+        return
+
+    workspaces = list(workspaces)
+    memberships = {
+        membership.workspace_id: membership
+        for membership in WorkspaceMembership.objects.filter(
+            user=user, workspace__in=workspaces
+        ).defer("access_token")
+    }
+    for workspace in workspaces:
+        workspace._current_membership = (user.pk, memberships.get(workspace.id))
+
+
 class WorkspaceInvitationStatus(models.TextChoices):
     PENDING = "PENDING"
     DECLINED = "DECLINED"

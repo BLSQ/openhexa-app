@@ -1,5 +1,4 @@
 from ariadne import QueryType
-from django.db.models import Prefetch
 
 from hexa.core.graphql import result_page
 
@@ -8,7 +7,7 @@ from ..models import (
     Workspace,
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
-    WorkspaceMembership,
+    prime_workspace_memberships,
 )
 
 workspace_queries = QueryType()
@@ -17,25 +16,19 @@ workspace_queries = QueryType()
 @workspace_queries.field("workspaces")
 def resolve_workspaces(_, info, query=None, organization_id=None, page=1, per_page=15):
     request = info.context["request"]
-    queryset = Workspace.objects.filter_for_user(request.user).order_by("name")
-    if request.user.is_authenticated:
-        # Without this, resolving `currentMembership` costs one query per workspace
-        queryset = queryset.prefetch_related(
-            Prefetch(
-                "workspacemembership_set",
-                # access_token is deferred: it is a secret and is only ever read
-                # through the generateWorkspaceToken mutation, never from here.
-                queryset=WorkspaceMembership.objects.filter(user=request.user).defer(
-                    "access_token"
-                ),
-                to_attr="current_user_memberships",
-            )
-        )
+    queryset = (
+        Workspace.objects.filter_for_user(request.user)
+        .select_related("organization")
+        .order_by("name")
+    )
     if organization_id:
         queryset = queryset.filter(organization_id=organization_id)
     if query:
         queryset = queryset.filter(name__icontains=query)
-    return result_page(queryset=queryset, page=page, per_page=per_page)
+
+    result = result_page(queryset=queryset, page=page, per_page=per_page)
+    prime_workspace_memberships(request.user, result["items"])
+    return result
 
 
 @workspace_queries.field("workspace")
