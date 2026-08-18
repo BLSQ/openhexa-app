@@ -1,9 +1,9 @@
 import { MockedResponse } from "@apollo/client/testing";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TestApp } from "core/helpers/testutils";
 import { GenerateWorkspaceTokenDocument } from "workspaces/graphql/mutations.generated";
-import WorkspaceAccessToken from "./WorkspaceAccessToken";
+import WorkspaceAccessTokenField from "./WorkspaceAccessTokenField";
 
 const TOKEN = "signed-access-token";
 
@@ -24,69 +24,53 @@ const buildMock = (): MockedResponse => ({
   },
 });
 
-describe("WorkspaceAccessToken", () => {
-  it("does not fetch the token until the user asks for it", async () => {
+describe("WorkspaceAccessTokenField", () => {
+  it("shows the whole token in a field once asked for", async () => {
     const user = userEvent.setup();
     render(
       <TestApp mocks={[buildMock()]}>
-        <WorkspaceAccessToken workspaceSlug="my-workspace" canGenerate />
+        <WorkspaceAccessTokenField workspaceSlug="my-workspace" canGenerate />
       </TestApp>,
     );
 
-    expect(screen.queryByDisplayValue(TOKEN)).not.toBeInTheDocument();
+    // Nothing is masked here: the field has no other content to reveal
+    expect(screen.queryByText("*********")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Show" }));
+    expect(await screen.findByDisplayValue(TOKEN)).toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(screen.getByDisplayValue(TOKEN)).toBeInTheDocument();
-    });
+    // Unlike the table cell, the dialog keeps the token in view: it is open to
+    // hand it over, and reopening it starts from a hidden token again.
+    expect(
+      screen.queryByRole("button", { name: "Hide" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("flags a token that will expire, before and after revealing it", async () => {
+  it("offers to copy the revealed token", async () => {
     const user = userEvent.setup();
     render(
       <TestApp mocks={[buildMock()]}>
-        <WorkspaceAccessToken
-          workspaceSlug="my-workspace"
-          canGenerate
-          temporary
-        />
+        <WorkspaceAccessTokenField workspaceSlug="my-workspace" canGenerate />
       </TestApp>,
     );
-
-    expect(screen.getByText("Temporary")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Show" }));
+    await screen.findByDisplayValue(TOKEN);
 
-    await waitFor(() => {
-      expect(screen.getByDisplayValue(TOKEN)).toBeInTheDocument();
-    });
-    expect(screen.getByText("Temporary")).toBeInTheDocument();
-  });
-
-  it("does not flag a membership token as temporary", () => {
-    render(
-      <TestApp mocks={[]}>
-        <WorkspaceAccessToken workspaceSlug="my-workspace" canGenerate />
-      </TestApp>,
-    );
-
-    expect(screen.queryByText("Temporary")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Copy" })).toBeInTheDocument();
   });
 
   it("does not offer to reveal a token without the permission", () => {
     render(
       <TestApp mocks={[]}>
-        <WorkspaceAccessToken
+        <WorkspaceAccessTokenField
           workspaceSlug="my-workspace"
           canGenerate={false}
         />
       </TestApp>,
     );
 
-    expect(
-      screen.queryByRole("button", { name: "Show" }),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
     expect(screen.getByText("Not available for viewers")).toBeInTheDocument();
   });
 });

@@ -142,7 +142,9 @@ describe("AccountPage", () => {
     expect(screen.getByText("Viewer Workspace")).toBeInTheDocument();
 
     // Only the workspace the user can generate a token for offers a Show button
-    expect(screen.getAllByRole("button", { name: "Show" })).toHaveLength(1);
+    expect(
+      screen.getAllByRole("button", { name: "Show the access token" }),
+    ).toHaveLength(1);
     expect(screen.getByText("Not available for viewers")).toBeInTheDocument();
   });
 
@@ -163,9 +165,13 @@ describe("AccountPage", () => {
 
     expect(await screen.findByText("Admin Only")).toBeInTheDocument();
     // Both can generate a token, but only one of them lasts
-    expect(screen.getAllByRole("button", { name: "Show" })).toHaveLength(2);
-    expect(screen.getByText("-")).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button", { name: "Show the access token" }),
+    ).toHaveLength(2);
     expect(screen.getByText("Temporary")).toBeInTheDocument();
+    // The role column says where the access comes from instead of being empty
+    expect(screen.getByText("Organization admin")).toBeInTheDocument();
+    expect(screen.queryByText("-")).not.toBeInTheDocument();
   });
 
   it("pages through the workspaces server-side instead of truncating them", async () => {

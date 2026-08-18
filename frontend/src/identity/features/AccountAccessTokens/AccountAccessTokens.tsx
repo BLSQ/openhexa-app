@@ -12,7 +12,7 @@ import {
 import { Trans, useTranslation } from "next-i18next";
 import React, { useState } from "react";
 import { formatWorkspaceMembershipRole } from "workspaces/helpers/workspace";
-import WorkspaceAccessToken from "workspaces/features/WorkspaceAccessToken";
+import { WorkspaceAccessTokenCell } from "workspaces/features/WorkspaceAccessToken";
 
 // A page costs only the workspaces that exist, so a generous default is free for
 // the many users with a handful of workspaces and saves paging for the few with
@@ -53,7 +53,7 @@ const AccountAccessTokens = () => {
         <p className="text-sm text-gray-500">
           <Trans>
             Use these tokens to authenticate with the <code>openhexa</code> CLI
-            and the OpenHEXA SDK. Workspaces you are a member of have a
+            and the OpenHEXA SDK. Workspaces you are a direct member of have a
             long-lived token; workspaces you only administer issue a temporary
             one that has to be generated again once it expires. See the{" "}
             <Link
@@ -80,14 +80,17 @@ const AccountAccessTokens = () => {
                 ? formatWorkspaceMembershipRole(
                     workspace.currentMembership.role,
                   )
-                : "-"
+                : // Without a membership, the only way to reach a workspace is to
+                  // administer its organization (or to be a superuser, who reads
+                  // as an organization admin here).
+                  t("Organization admin")
             }
             label={t("Role")}
             id="role"
           />
           <BaseColumn label={t("Token")} id="token" className="w-1/2 min-w-64">
             {(workspace: WorkspaceItem) => (
-              <WorkspaceAccessToken
+              <WorkspaceAccessTokenCell
                 workspaceSlug={workspace.slug}
                 canGenerate={workspace.permissions.generateToken}
                 temporary={!workspace.currentMembership}

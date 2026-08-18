@@ -1,7 +1,7 @@
 import Link from "core/components/Link";
 import Field from "core/components/forms/Field/Field";
 import { Trans, useTranslation } from "next-i18next";
-import WorkspaceAccessToken from "workspaces/features/WorkspaceAccessToken";
+import { WorkspaceAccessTokenField } from "workspaces/features/WorkspaceAccessToken";
 import { CreatePipelineDialog_WorkspaceFragment } from "../CreatePipelineDialog.generated";
 
 type CreatePipelineUsingCLIProps = {
@@ -60,15 +60,13 @@ const CreatePipelineUsingCLI = (props: CreatePipelineUsingCLIProps) => {
           </Trans>
         }
       >
-        <div className="flex w-full flex-1 items-center gap-1">
-          {/* The dialog stays mounted across open/close, so re-key the component
-              to hide a previously revealed token when it is reopened. */}
-          <WorkspaceAccessToken
-            key={String(open)}
-            workspaceSlug={workspace.slug}
-            canGenerate={workspace.permissions.generateToken}
-          />
-        </div>
+        {/* The dialog stays mounted across open/close, so re-key the component
+            to hide a previously revealed token when it is reopened. */}
+        <WorkspaceAccessTokenField
+          key={String(open)}
+          workspaceSlug={workspace.slug}
+          canGenerate={workspace.permissions.generateToken}
+        />
       </Field>
     </div>
   );
