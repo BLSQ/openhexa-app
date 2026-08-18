@@ -4,7 +4,7 @@ import json
 import responses
 from django.test import TestCase, override_settings
 
-from hexa.git.exceptions import GitFileNotFound
+from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 from hexa.git.forgejo import ForgejoAPIError, ForgejoClient, get_forgejo_client
 
 FORGEJO_URL = "http://forgejo-test:3000"
@@ -131,6 +131,117 @@ class ForgejoClientGetFileTest(TestCase):
         data = client.get_file("my-repo", "README.md")
 
         self.assertEqual(data, b"hello world")
+
+    @responses.activate
+    def test_get_file_raises_when_content_omitted_for_large_blob(self):
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/big.pmtiles",
+            json={"content": "", "encoding": None, "size": 108570598},
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+
+        with self.assertRaises(GitFileTooLarge) as ctx:
+            client.get_file("my-repo", "big.pmtiles")
+
+        self.assertEqual(ctx.exception.path, "big.pmtiles")
+        self.assertEqual(ctx.exception.size, 108570598)
+
+    @responses.activate
+    def test_get_file_returns_empty_bytes_for_genuinely_empty_file(self):
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/empty.txt",
+            json={"content": "", "encoding": "base64", "size": 0},
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+
+        self.assertEqual(client.get_file("my-repo", "empty.txt"), b"")
+
+
+class ForgejoClientStreamFileTest(TestCase):
+    RAW_URL = f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/raw/big.pmtiles"
+
+    def _client(self):
+        return ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+
+    @responses.activate
+    def test_stream_file_forwards_range_and_returns_partial_content(self):
+        responses.get(
+            self.RAW_URL,
+            body=b"PMTiles-header",
+            status=206,
+            headers={"Content-Range": "bytes 0-13/108570598"},
+        )
+
+        response = self._client().stream_file(
+            "my-repo", "big.pmtiles", "sha-1", headers={"Range": "bytes=0-13"}
+        )
+
+        self.assertEqual(response.status_code, 206)
+        self.assertEqual(response.headers["Content-Range"], "bytes 0-13/108570598")
+        self.assertEqual(response.content, b"PMTiles-header")
+        self.assertEqual(responses.calls[0].request.headers["Range"], "bytes=0-13")
+        self.assertIn("ref=sha-1", responses.calls[0].request.url)
+
+    @responses.activate
+    def test_stream_file_sends_no_range_header_when_not_asked(self):
+        responses.get(self.RAW_URL, body=b"whole file", status=200)
+
+        self._client().stream_file("my-repo", "big.pmtiles", "sha-1")
+
+        self.assertNotIn("Range", responses.calls[0].request.headers)
+
+    @responses.activate
+    def test_stream_file_passes_through_unsatisfiable_range(self):
+        responses.get(
+            self.RAW_URL,
+            body=b"",
+            status=416,
+            headers={"Content-Range": "bytes */108570598"},
+        )
+
+        response = self._client().stream_file(
+            "my-repo",
+            "big.pmtiles",
+            "sha-1",
+            headers={"Range": "bytes=99999999999-"},
+        )
+
+        self.assertEqual(response.status_code, 416)
+        self.assertEqual(response.headers["Content-Range"], "bytes */108570598")
+
+    @responses.activate
+    def test_stream_file_raises_not_found(self):
+        responses.get(self.RAW_URL, body="not found", status=404)
+
+        with self.assertRaises(GitFileNotFound):
+            self._client().stream_file("my-repo", "big.pmtiles", "sha-1")
+
+    @responses.activate
+    def test_stream_file_raises_on_server_error(self):
+        responses.get(self.RAW_URL, body="boom", status=500)
+
+        with self.assertRaises(ForgejoAPIError) as ctx:
+            self._client().stream_file("my-repo", "big.pmtiles", "sha-1")
+
+        self.assertEqual(ctx.exception.status_code, 500)
+
+    @responses.activate
+    def test_stream_file_uses_org_slug_when_given(self):
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/ws-myworkspace/my-repo/raw/big.pmtiles",
+            body=b"data",
+            status=200,
+        )
+
+        response = self._client().stream_file(
+            "my-repo", "big.pmtiles", "sha-1", org_slug="ws-myworkspace"
+        )
+
+        self.assertEqual(response.status_code, 200)
 
 
 class ForgejoClientGetFilesTreeTest(TestCase):
@@ -860,6 +971,38 @@ class ForgejoClientFileEncodingTest(TestCase):
         self.assertEqual(len(files), 1)
         self.assertEqual(files[0]["encoding"], "BASE64")
         self.assertEqual(base64.b64decode(files[0]["content"]), png)
+
+    @responses.activate
+    def test_get_repository_files_lists_too_large_blob_without_content(self):
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/git/trees/main",
+            json={
+                "sha": "abc",
+                "tree": [
+                    {"path": "index.html", "type": "blob"},
+                    {"path": "big.pmtiles", "type": "blob"},
+                ],
+            },
+            status=200,
+        )
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/index.html",
+            json={"content": base64.b64encode(b"<h1>hi</h1>").decode("ascii")},
+            status=200,
+        )
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/big.pmtiles",
+            json={"content": "", "encoding": None, "size": 108570598},
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        files = client.get_repository_files("my-repo")
+
+        by_path = {f["path"]: f for f in files}
+        self.assertEqual(by_path["index.html"]["content"], "<h1>hi</h1>")
+        self.assertIsNone(by_path["big.pmtiles"]["content"])
+        self.assertIsNone(by_path["big.pmtiles"]["encoding"])
 
     @responses.activate
     def test_get_repository_files_invalid_utf8_marked_base64(self):
