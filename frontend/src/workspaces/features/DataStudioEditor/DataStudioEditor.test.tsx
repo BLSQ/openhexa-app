@@ -329,4 +329,48 @@ describe("DataStudioEditor", () => {
     await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
     expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
   });
+
+  describe("resizable panels", () => {
+    beforeEach(() => window.localStorage.clear());
+
+    it("offers a separator for the table list and one for the results panel", () => {
+      renderEditor();
+      const separators = screen.getAllByRole("separator");
+      expect(separators).toHaveLength(2);
+      expect(
+        screen.getByRole("separator", { name: "Resize the table list" }),
+      ).toHaveAttribute("aria-orientation", "vertical");
+      expect(
+        screen.getByRole("separator", { name: "Resize the results panel" }),
+      ).toHaveAttribute("aria-orientation", "horizontal");
+    });
+
+    it("applies the remembered sizes so a layout survives a reload", () => {
+      window.localStorage.setItem("datastudio.sidebarWidth", "380");
+      window.localStorage.setItem("datastudio.editorHeight", "420");
+      renderEditor();
+
+      expect(
+        screen.getByRole("separator", { name: "Resize the table list" }),
+      ).toHaveAttribute("aria-valuenow", "380");
+      expect(
+        screen.getByRole("separator", { name: "Resize the results panel" }),
+      ).toHaveAttribute("aria-valuenow", "420");
+    });
+
+    it("widens the table list on ArrowRight, for long table names", async () => {
+      renderEditor();
+      const separator = screen.getByRole("separator", {
+        name: "Resize the table list",
+      });
+
+      separator.focus();
+      await userEvent.keyboard("{ArrowRight}");
+
+      expect(separator).toHaveAttribute("aria-valuenow", "264");
+      expect(window.localStorage.getItem("datastudio.sidebarWidth")).toBe(
+        "264",
+      );
+    });
+  });
 });

@@ -4,6 +4,16 @@ import userEvent from "@testing-library/user-event";
 import { ExecuteSqlError } from "graphql/types";
 import DataStudioResults from "./DataStudioResults";
 
+// Leaflet measures real layout, which jsdom does not provide. Choosing the map
+// and handing it the right features is this component's job; drawing it is the
+// map's, so the map is stubbed down to what it was asked to render.
+jest.mock("./ResultsMap", () => ({
+  __esModule: true,
+  default: ({ features }: { features: unknown[] }) => (
+    <div data-testid="results-map">{features.length}</div>
+  ),
+}));
+
 // `useTranslation` is globally mocked to echo the key, so assertions target raw
 // key strings and rendered structure rather than interpolated/pluralised text.
 
@@ -239,5 +249,73 @@ describe("DataStudioResults", () => {
         "Showing the first {{count}} rows — export for the full result.",
       ),
     ).toBeInTheDocument();
+  });
+
+  describe("map view", () => {
+    const located = (overrides: Partial<Result> = {}) =>
+      successResult({
+        columns: ["name", "Latitude", "Longitude"],
+        rows: [
+          { name: "Diogo", Latitude: 5.34, Longitude: -4.02 },
+          { name: "Boundiali", Latitude: 9.52, Longitude: -6.48 },
+        ],
+        rowCount: 2,
+        ...overrides,
+      });
+
+    it("shows a located result on a map rather than as a table", async () => {
+      render(<DataStudioResults loading={false} result={located()} />);
+
+      expect(await screen.findByTestId("results-map")).toHaveTextContent("2");
+      expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    });
+
+    it("keeps the full result reachable through the table tab", async () => {
+      render(<DataStudioResults loading={false} result={located()} />);
+
+      await userEvent.click(screen.getByRole("tab", { name: "Table" }));
+
+      expect(screen.getByRole("table")).toBeInTheDocument();
+      expect(screen.getByText("Diogo")).toBeInTheDocument();
+    });
+
+    it("offers no map for a result that has no geography", () => {
+      render(<DataStudioResults loading={false} result={successResult()} />);
+      expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+    });
+
+    it("says how to convert a geometry column it cannot draw", async () => {
+      render(
+        <DataStudioResults
+          loading={false}
+          result={successResult({
+            columns: ["geom"],
+            rows: [
+              { geom: "0101000020E6100000B81E85EB51101040295C8FC2F5A81440" },
+            ],
+            rowCount: 1,
+          })}
+        />,
+      );
+
+      expect(
+        await screen.findByText(/ST_AsGeoJSON\(geom\)/),
+      ).toBeInTheDocument();
+      expect(screen.queryByTestId("results-map")).not.toBeInTheDocument();
+    });
+
+    it("never maps an EXPLAIN plan, whose single column is not a geography", () => {
+      render(
+        <DataStudioResults
+          loading={false}
+          result={successResult({
+            columns: ["QUERY PLAN"],
+            rows: [{ "QUERY PLAN": "Seq Scan on cases" }],
+            rowCount: 1,
+          })}
+        />,
+      );
+      expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+    });
   });
 });
