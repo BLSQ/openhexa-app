@@ -46,6 +46,14 @@ const FileEditorPane = ({
   const isDiffMode =
     selectedFile !== null && proposedByKey.has(selectedFile.path);
 
+  const metaParts = [
+    selectedFile?.language,
+    selectedFile?.lineCount != null
+      ? `${selectedFile.lineCount} ${selectedFile.lineCount > 1 ? t("lines") : t("line")}`
+      : null,
+    currentFileIsModified ? t("Modified") : null,
+  ].filter(Boolean);
+
   const extensions = useMemo(
     () => [
       python(),
@@ -108,11 +116,7 @@ const FileEditorPane = ({
             )}
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            {selectedFile.language}
-            {" • "}
-            {selectedFile.lineCount}
-            {` ${(selectedFile.lineCount ?? 0) > 1 ? t("lines") : t("line")}`}
-            {currentFileIsModified && ` • ${t("Modified")}`}
+            {metaParts.join(" • ")}
             {saveError && (
               <>
                 {" • "}
