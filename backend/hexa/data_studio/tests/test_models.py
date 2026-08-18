@@ -396,6 +396,10 @@ class SavedQueryMembershipRemovalTest(SavedQueryTestMixin, TestCase):
         )
 
         self._revoke_membership(self.USER_VIEWER)
+        # Pinned in the middle, not just at the end: "brings the query back" would
+        # hold trivially if revoking the membership had never hidden it.
+        self.assertEqual([], list(SavedQuery.objects.filter_for_user(self.USER_VIEWER)))
+
         WorkspaceMembership.objects.create(
             workspace=self.WORKSPACE,
             user=self.USER_VIEWER,
