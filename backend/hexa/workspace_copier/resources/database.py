@@ -7,6 +7,7 @@ native local copy is implemented in a later phase.
 """
 
 from hexa.workspace_copier.endpoints import Endpoint
+from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import ProgressReporter
 from hexa.workspace_copier.resources.base import ResourceCopier
 from hexa.workspace_copier.results import CopyResult
@@ -22,6 +23,8 @@ class DatabaseCopier(ResourceCopier):
         target: Endpoint,
         result: CopyResult,
         reporter: ProgressReporter,
+        *,
+        options: CopyOptions = CopyOptions(),
     ) -> None:
         if source.is_remote or target.is_remote:
             message = (

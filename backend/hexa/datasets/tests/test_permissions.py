@@ -15,8 +15,6 @@ from hexa.user_management.models import (
 )
 from hexa.workspaces.models import (
     Workspace,
-    WorkspaceMembership,
-    WorkspaceMembershipRole,
 )
 
 
@@ -185,47 +183,4 @@ class DatasetsOrganizationPermissionsTest(TestCase):
         """Workspace admins should be able to link datasets through workspace membership"""
         self.assertTrue(
             link_dataset(self.USER_WORKSPACE_ADMIN, (self.DATASET, self.WORKSPACE))
-        )
-
-    def test_permissions_with_null_organization(self):
-        """Test permissions when workspace has no organization"""
-        workspace_no_org = Workspace.objects.create(
-            name="No Org Workspace",
-            description="Workspace without organization",
-        )
-        WorkspaceMembership.objects.create(
-            workspace=workspace_no_org,
-            user=self.USER_WORKSPACE_ADMIN,
-            role=WorkspaceMembershipRole.ADMIN,
-        )
-
-        dataset_no_org = Dataset.objects.create(
-            name="No Org Dataset",
-            description="Dataset in workspace without organization",
-            workspace=workspace_no_org,
-        )
-
-        # Organization admin/owner should not have permissions for workspace without organization
-        self.assertFalse(create_dataset(self.USER_ORG_OWNER, workspace_no_org))
-        self.assertFalse(create_dataset(self.USER_ORG_ADMIN, workspace_no_org))
-        self.assertFalse(update_dataset(self.USER_ORG_OWNER, dataset_no_org))
-        self.assertFalse(update_dataset(self.USER_ORG_ADMIN, dataset_no_org))
-        self.assertFalse(delete_dataset(self.USER_ORG_OWNER, dataset_no_org))
-        self.assertFalse(delete_dataset(self.USER_ORG_ADMIN, dataset_no_org))
-        self.assertFalse(view_dataset(self.USER_ORG_OWNER, dataset_no_org))
-        self.assertFalse(view_dataset(self.USER_ORG_ADMIN, dataset_no_org))
-        self.assertFalse(
-            link_dataset(self.USER_ORG_OWNER, (dataset_no_org, workspace_no_org))
-        )
-        self.assertFalse(
-            link_dataset(self.USER_ORG_ADMIN, (dataset_no_org, workspace_no_org))
-        )
-
-        # Only workspace member should have permissions
-        self.assertTrue(create_dataset(self.USER_WORKSPACE_ADMIN, workspace_no_org))
-        self.assertTrue(update_dataset(self.USER_WORKSPACE_ADMIN, dataset_no_org))
-        self.assertTrue(delete_dataset(self.USER_WORKSPACE_ADMIN, dataset_no_org))
-        self.assertTrue(view_dataset(self.USER_WORKSPACE_ADMIN, dataset_no_org))
-        self.assertTrue(
-            link_dataset(self.USER_WORKSPACE_ADMIN, (dataset_no_org, workspace_no_org))
         )

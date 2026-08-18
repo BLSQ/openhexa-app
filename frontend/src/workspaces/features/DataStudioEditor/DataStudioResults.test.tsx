@@ -228,6 +228,164 @@ describe("DataStudioResults", () => {
     expect(cell).toHaveClass("whitespace-pre", "font-mono");
   });
 
+  describe("widgets", () => {
+    const barResult = () =>
+      successResult({
+        columns: ["bar_label", "bar_quantity"],
+        rows: [
+          { bar_label: "Gasabo", bar_quantity: 120 },
+          { bar_label: "Kicukiro", bar_quantity: 80 },
+        ],
+      });
+
+    it("shows the chart first and the table on a second tab when the columns match a widget", async () => {
+      render(<DataStudioResults loading={false} result={barResult()} />);
+
+      expect(screen.getByRole("tab", { name: "Chart" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+      // The chart is showing, so the table is not rendered yet.
+      expect(screen.queryByRole("table")).not.toBeInTheDocument();
+      expect(screen.getByText("Gasabo")).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("tab", { name: "Table" }));
+      expect(screen.getByRole("table")).toBeInTheDocument();
+      expect(screen.getByText("bar_quantity")).toBeInTheDocument();
+    });
+
+    it("renders a plain table with no tabs when the columns do not match", () => {
+      render(<DataStudioResults loading={false} result={successResult()} />);
+      expect(screen.getByRole("table")).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Chart" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("charts a result that returns extra columns beside the widget pair", async () => {
+      render(
+        <DataStudioResults
+          loading={false}
+          result={successResult({
+            columns: ["bar_label", "bar_quantity", "region"],
+            rows: [
+              { bar_label: "Gasabo", bar_quantity: 120, region: "Kigali" },
+            ],
+            rowCount: 1,
+          })}
+        />,
+      );
+      expect(screen.getByRole("tab", { name: "Chart" })).toHaveAttribute(
+        "aria-selected",
+        "true",
+      );
+
+      await userEvent.click(screen.getByRole("tab", { name: "Table" }));
+      expect(screen.getByText("region")).toBeInTheDocument();
+    });
+
+    it("falls back to the table when a widget column holds non-numeric values", () => {
+      render(
+        <DataStudioResults
+          loading={false}
+          result={successResult({
+            columns: ["bar_label", "bar_quantity"],
+            rows: [{ bar_label: "Gasabo", bar_quantity: "many" }],
+            rowCount: 1,
+          })}
+        />,
+      );
+      expect(screen.getByRole("table")).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Chart" }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("charts every returned row rather than the 500-row table cap", () => {
+      const rows = Array.from({ length: 600 }, (_, i) => ({
+        line_x: `2026-${i}`,
+        line_y: i,
+      }));
+      render(
+        <DataStudioResults
+          loading={false}
+          result={successResult({
+            columns: ["line_x", "line_y"],
+            rows,
+            rowCount: 600,
+          })}
+        />,
+      );
+      // The last point's label is only reachable if all 600 rows were plotted.
+      expect(screen.getByText("2026-599")).toBeInTheDocument();
+      expect(
+        screen.queryByText(
+          "Showing the first {{count}} rows — export for the full result.",
+        ),
+      ).not.toBeInTheDocument();
+    });
+
+    describe("discoverability hint", () => {
+      const hint = () =>
+        screen.queryByRole("link", { name: "Visualize this result" });
+
+      it("points a plain result at the widget guide", () => {
+        render(<DataStudioResults loading={false} result={successResult()} />);
+        expect(hint()).toHaveAttribute(
+          "href",
+          "https://docs.openhexa.com/sql-widgets/",
+        );
+      });
+
+      it("names the columns of every widget on hover", async () => {
+        render(<DataStudioResults loading={false} result={successResult()} />);
+
+        await userEvent.hover(hint()!);
+
+        expect(screen.getByText("bar_label, bar_quantity")).toBeInTheDocument();
+        expect(screen.getByText("line_x, line_y")).toBeInTheDocument();
+        expect(screen.getByText("pie_label, pie_quantity")).toBeInTheDocument();
+        expect(
+          screen.getByText("map_latitude, map_longitude"),
+        ).toBeInTheDocument();
+        expect(screen.getByText("map_geometry")).toBeInTheDocument();
+      });
+
+      it("is not offered on a result that is already charted", () => {
+        render(<DataStudioResults loading={false} result={barResult()} />);
+        expect(hint()).not.toBeInTheDocument();
+      });
+
+      it("is not offered on a result that is already mapped", () => {
+        render(
+          <DataStudioResults
+            loading={false}
+            result={successResult({
+              columns: ["map_latitude", "map_longitude"],
+              rows: [{ map_latitude: 5.34, map_longitude: -4.02 }],
+              rowCount: 1,
+            })}
+          />,
+        );
+        expect(hint()).not.toBeInTheDocument();
+      });
+
+      it("is not offered on an EXPLAIN plan, which is never chartable", () => {
+        render(
+          <DataStudioResults
+            loading={false}
+            result={successResult({
+              columns: ["QUERY PLAN"],
+              rows: [{ "QUERY PLAN": "Seq Scan on cases" }],
+              rowCount: 1,
+            })}
+          />,
+        );
+        expect(hint()).not.toBeInTheDocument();
+      });
+    });
+  });
+
   it("caps the displayed rows at 500 even when more are returned", () => {
     const rows = Array.from({ length: 600 }, (_, i) => ({
       id: i,
@@ -254,10 +412,10 @@ describe("DataStudioResults", () => {
   describe("map view", () => {
     const located = (overrides: Partial<Result> = {}) =>
       successResult({
-        columns: ["name", "Latitude", "Longitude"],
+        columns: ["name", "map_latitude", "map_longitude"],
         rows: [
-          { name: "Diogo", Latitude: 5.34, Longitude: -4.02 },
-          { name: "Boundiali", Latitude: 9.52, Longitude: -6.48 },
+          { name: "Diogo", map_latitude: 5.34, map_longitude: -4.02 },
+          { name: "Boundiali", map_latitude: 9.52, map_longitude: -6.48 },
         ],
         rowCount: 2,
         ...overrides,
@@ -268,6 +426,21 @@ describe("DataStudioResults", () => {
 
       expect(await screen.findByTestId("results-map")).toHaveTextContent("2");
       expect(screen.queryByRole("table")).not.toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: "Map" })).toBeInTheDocument();
+    });
+
+    it("maps only a result that opted in through the column names", () => {
+      render(
+        <DataStudioResults
+          loading={false}
+          result={successResult({
+            columns: ["name", "latitude", "longitude"],
+            rows: [{ name: "Diogo", latitude: 5.34, longitude: -4.02 }],
+            rowCount: 1,
+          })}
+        />,
+      );
+      expect(screen.queryByRole("tab")).not.toBeInTheDocument();
     });
 
     it("keeps the full result reachable through the table tab", async () => {
@@ -289,9 +462,12 @@ describe("DataStudioResults", () => {
         <DataStudioResults
           loading={false}
           result={successResult({
-            columns: ["geom"],
+            columns: ["map_geometry"],
             rows: [
-              { geom: "0101000020E6100000B81E85EB51101040295C8FC2F5A81440" },
+              {
+                map_geometry:
+                  "0101000020E6100000B81E85EB51101040295C8FC2F5A81440",
+              },
             ],
             rowCount: 1,
           })}
@@ -299,7 +475,7 @@ describe("DataStudioResults", () => {
       );
 
       expect(
-        await screen.findByText(/ST_AsGeoJSON\(geom\)/),
+        await screen.findByText(/ST_AsGeoJSON\(map_geometry\)/),
       ).toBeInTheDocument();
       expect(screen.queryByTestId("results-map")).not.toBeInTheDocument();
     });

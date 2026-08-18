@@ -83,6 +83,53 @@ window.OPENHEXA = Object.freeze({
 
 Les exemples ci-dessous lisent `workspaceSlug` depuis ce global, donc ils sont copiables-collables dans n'importe quelle webapp sans avoir à modifier de constante. L'injection ne touche que les réponses `text/html` ; les fichiers CSS, JS et JSON ne sont pas modifiés.
 
+## Développer en local
+
+Vous pouvez développer une webapp sur votre machine — votre éditeur, votre rechargement à chaud, vos outils de développement — tout en lisant de **vraies données** du workspace via la même API filtrée par scopes qu'en production. Sans proxy fait maison ni jeton manuel : un seul script et deux clics.
+
+### 1. Ajoutez le script à votre page
+
+```html
+<script src="https://app.openhexa.org/webapps/dev.js"></script>
+```
+
+Pointez-le vers l'installation OpenHEXA que vous utilisez — `http://localhost:8000/webapps/dev.js` pour un backend local.
+
+Les webapps créées à partir du template par défaut incluent déjà cette balise. Elle est inerte une fois déployée (elle ne s'active que sur les pages `file://` et `localhost`), vous pouvez donc la laisser dans votre `index.html`.
+
+### 2. Ouvrez votre page et cliquez sur Connect
+
+Ouvrez votre page dans un navigateur où vous êtes déjà connecté à OpenHEXA — soit en ouvrant directement le fichier `.html` (`file://`), soit en le servant localement (n'importe quel serveur statique convient, par ex. `python -m http.server 5173`).
+
+Un bouton **Connect to OpenHEXA** apparaît dans le coin :
+
+![Le bouton Connect to OpenHEXA sur une page locale](../assets/images/webapps/dev-connect.png)
+
+### 3. Choisissez une webapp et approuvez
+
+Un clic ouvre une petite fenêtre OpenHEXA listant les webapps statiques privées auxquelles vous avez accès. Choisissez-en une et cliquez sur **Approve** :
+
+![Choix de la webapp à cibler](../assets/images/webapps/dev-picker.png)
+
+### C'est tout
+
+La fenêtre se ferme et votre page se recharge, connectée. `window.OPENHEXA` est renseigné et vos appels `fetch("/graphql/")` renvoient de vraies données. Une pastille dans le coin indique la webapp connectée :
+
+![Une page locale affichant de vraies données, avec la pastille de connexion](../assets/images/webapps/dev-connected.png)
+
+### Éviter le sélecteur
+
+Indiquez le workspace et la webapp directement : la liste se réduit à cette seule entrée, présélectionnée — vous confirmez toujours avec **Approve** :
+
+```html
+<script src="https://app.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
+```
+
+### Bon à savoir
+
+- **Les mêmes permissions qu'en production.** Vos appels locaux respectent les `allowed_operations` de la webapp exactement comme une fois déployée : une opération qui fonctionne en local ne renverra pas un `403` plus tard.
+- **La pastille est votre contrôle.** Utilisez **Switch** pour passer à une autre webapp, ou **Reconnect** pour forcer un nouvel identifiant.
+
 ---
 
 ## Exemples de webapps

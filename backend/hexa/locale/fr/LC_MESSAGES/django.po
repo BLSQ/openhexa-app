@@ -2152,6 +2152,14 @@ msgstr ""
 msgid "Non-governmental"
 msgstr ""
 
+#: hexa/data_studio/models.py:13
+msgid "Private"
+msgstr "Privé"
+
+#: hexa/data_studio/models.py:14
+msgid "Workspace"
+msgstr "Workspace"
+
 #: hexa/user_management/models.py:192 hexa/workspaces/models.py:225
 msgid "Admin"
 msgstr ""

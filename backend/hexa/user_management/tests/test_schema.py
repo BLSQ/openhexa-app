@@ -33,6 +33,7 @@ from hexa.workspaces.models import (
     WorkspaceMembershipRole,
 )
 
+from ...workspaces.tests.testutils import create_workspace
 from ..utils import default_device, devices_for_user
 
 
@@ -1057,7 +1058,7 @@ class SchemaTest(GraphQLTestCase):
         )
 
     def test_search_users_success_all(self):
-        workspace = Workspace.objects.create(name="Workspace", slug="workspace")
+        workspace = create_workspace(name="Workspace", slug="workspace")
         WorkspaceMembership.objects.create(
             workspace=workspace,
             user=self.USER_JANE,
@@ -1088,7 +1089,8 @@ class SchemaTest(GraphQLTestCase):
         )
 
     def test_search_users_success_with_query(self):
-        workspace = Workspace.objects.create(name="Workspace", slug="workspace")
+        workspace = create_workspace(name="Workspace", slug="workspace")
+
         WorkspaceMembership.objects.create(
             workspace=workspace,
             user=self.USER_JANE,
@@ -1130,7 +1132,7 @@ class SchemaTest(GraphQLTestCase):
         self.assertEqual([], r["data"]["users"])
 
     def test_search_users_not_admin(self):
-        workspace = Workspace.objects.create(name="Workspace", slug="workspace")
+        workspace = create_workspace(name="Workspace", slug="workspace")
         WorkspaceMembership.objects.create(
             workspace=workspace,
             user=self.USER_JANE,
@@ -1487,14 +1489,15 @@ class RegisterTest(GraphQLTestCase):
             "john@bluesquarehub.com",
             "regular",
         )
-        cls.WORKSPACE = Workspace.objects.create(name="Workspace")
+        cls.ORGANIZATION = Organization.objects.create(name="Test Organization")
+        cls.WORKSPACE = Workspace.objects.create(
+            name="Workspace", organization=cls.ORGANIZATION
+        )
         cls.WORKSPACE_INVITATION = WorkspaceInvitation.objects.create(
             workspace=cls.WORKSPACE,
             email="johndoe@email.com",
             role=WorkspaceMembershipRole.EDITOR,
         )
-
-        cls.ORGANIZATION = Organization.objects.create(name="Test Organization")
         cls.ORG_OWNER = User.objects.create_user("owner@test.com", "ownerpass")
         OrganizationMembership.objects.create(
             organization=cls.ORGANIZATION,
@@ -1658,6 +1661,7 @@ class RegisterTest(GraphQLTestCase):
             slug="other-workspace",
             db_name="db_other_workspace",
             bucket_name="bucket_other_workspace",
+            organization=self.ORGANIZATION,
         )
         other_invitation = WorkspaceInvitation.objects.create(
             workspace=other_workspace,

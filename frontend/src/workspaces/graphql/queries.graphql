@@ -83,7 +83,17 @@ query WorkspaceDataStudioPage($workspaceSlug: String!) {
     permissions {
       createSavedQuery
     }
+    organization {
+      id
+      aiSettings {
+        enabled
+      }
+      aiBudgetLimitReached
+    }
     ...WorkspaceLayout_workspace
+  }
+  me {
+    assistantMonthlyLimitExceeded
   }
 }
 
@@ -92,13 +102,19 @@ query WorkspaceSavedQueriesPage(
   $query: String
   $page: Int
   $perPage: Int
+  $orderBy: SavedQueryOrderBy!
 ) {
   workspace(slug: $workspaceSlug) {
     slug
     permissions {
       createSavedQuery
     }
-    savedQueries(query: $query, page: $page, perPage: $perPage) {
+    savedQueries(
+      query: $query
+      page: $page
+      perPage: $perPage
+      orderBy: $orderBy
+    ) {
       totalItems
       totalPages
       pageNumber
@@ -118,7 +134,10 @@ query WorkspaceSavedQueryPage($workspaceSlug: String!, $id: ID!) {
     }
     ...WorkspaceLayout_workspace
   }
-  savedQuery(workspaceSlug: $workspaceSlug, id: $id) {
+  savedQuery(id: $id) {
+    workspace {
+      slug
+    }
     ...SavedQuery_savedQuery
   }
 }

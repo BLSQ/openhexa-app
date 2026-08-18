@@ -106,16 +106,16 @@ class WorkspaceManager(models.Manager):
         self,
         principal: User,
         name: str,
+        organization: Organization,
         description: str | None = None,
         countries: typing.Sequence[Country] | None = None,
         load_sample_data: bool = False,
-        organization: Organization | None = None,
         configuration: dict | None = None,
     ):
         if not principal.has_perm("user_management.create_workspace", organization):
             raise PermissionDenied
 
-        if organization and organization.is_workspaces_limit_reached():
+        if organization.is_workspaces_limit_reached():
             raise WorkspacesLimitReached
 
         slug = create_workspace_slug(name)
@@ -124,6 +124,7 @@ class WorkspaceManager(models.Manager):
             "description": description,
             "slug": slug,
             "created_by": principal,
+            "organization": organization,
         }
         if countries is not None:
             create_kwargs["countries"] = countries
@@ -131,8 +132,6 @@ class WorkspaceManager(models.Manager):
             create_kwargs["description"] = DEFAULT_WORKSPACE_DESCRIPTION.format(
                 workspace_name=name, workspace_slug=slug
             )
-        if organization:
-            create_kwargs["organization"] = organization
         if configuration is not None:
             create_kwargs["configuration"] = configuration
 
@@ -254,8 +253,7 @@ class Workspace(Base):
     )
     organization = models.ForeignKey(
         "user_management.Organization",
-        null=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         related_name="workspaces",
     )
     configuration = models.JSONField(
@@ -293,9 +291,7 @@ class Workspace(Base):
 
     @property
     def current_subscription(self) -> OrganizationSubscription | None:
-        if self.organization:
-            return self.organization.current_subscription
-        return None
+        return self.organization.current_subscription
 
     def update_if_has_perm(self, *, principal: User, **kwargs):
         if not principal.has_perm("workspaces.update_workspace", self):
@@ -317,17 +313,21 @@ class Workspace(Base):
     def delete_if_has_perm(self, *, principal: User):
         if not principal.has_perm("workspaces.delete_workspace", self):
             raise PermissionDenied
-        # TODO: clarify workspace deletion workflow - buckets are not deleted for now
-        # delete_database(self.db_name)
+        # TODO: clarify workspace deletion workflow - buckets and the database are not deleted for now
+        #  until we decide, just rotate passwords to prevent access
+        self.generate_new_database_password(principal=principal)
+        self.generate_new_database_ro_password(principal=principal)
         self.delete()
 
     def archive_if_has_perm(self, *, principal: User):
-        if self.organization and not principal.has_perm(
+        if not principal.has_perm(
             "user_management.archive_workspace", self.organization
         ):
             raise PermissionDenied
-        elif not principal.has_perm("workspaces.archive_workspace", self):
+        if not principal.has_perm("workspaces.archive_workspace", self):
             raise PermissionDenied
+        self.generate_new_database_password(principal=principal)
+        self.generate_new_database_ro_password(principal=principal)
         self.archived = True
         self.archived_at = timezone.now()
         self.save()
@@ -389,6 +389,12 @@ class WorkspaceMembershipManager(models.Manager):
         return workspace_membership
 
 
+def build_notebooks_server_hash(workspace_id, user_id) -> str:
+    return hashlib.blake2s(
+        f"{workspace_id}_{user_id}".encode(), digest_size=16
+    ).hexdigest()
+
+
 class WorkspaceMembership(models.Model):
     class Meta:
         constraints = [
@@ -427,9 +433,9 @@ class WorkspaceMembership(models.Model):
 
     def save(self, *args, **kwargs):
         if self.notebooks_server_hash == "":
-            self.notebooks_server_hash = hashlib.blake2s(
-                f"{self.workspace_id}_{self.user_id}".encode(), digest_size=16
-            ).hexdigest()
+            self.notebooks_server_hash = build_notebooks_server_hash(
+                self.workspace_id, self.user_id
+            )
 
         if self.access_token == "":
             self.access_token = str(uuid.uuid4())

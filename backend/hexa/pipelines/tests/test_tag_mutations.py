@@ -9,10 +9,10 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
 )
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 User = get_user_model()
 
@@ -34,16 +34,14 @@ class PipelineTagMutationTest(GraphQLTestCase):
         cls.ORGANIZATION = Organization.objects.create(
             name="Test Organization",
             short_name="test-org",
-            organization_type="CORPORATE",
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_SUPERUSER,
             name="Test workspace",
             description="Test workspace",
+            organization=cls.ORGANIZATION,
         )
-        cls.WORKSPACE.organization = cls.ORGANIZATION
-        cls.WORKSPACE.save()
 
         OrganizationMembership.objects.create(
             organization=cls.ORGANIZATION,

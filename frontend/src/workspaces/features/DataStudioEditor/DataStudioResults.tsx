@@ -9,15 +9,19 @@ import {
 import { ExecuteSqlError } from "graphql/types";
 import dynamic from "next/dynamic";
 import { useTranslation } from "next-i18next";
-import { useState } from "react";
+import { memo, useState } from "react";
+import { detectChart } from "./chart";
 import { ExecuteWorkspaceSqlQuery } from "./DataStudioEditor.generated";
 import { detectMap, toFeatures } from "./map";
+import ResultsChart from "./ResultsChart";
 import ResultsTable from "./ResultsTable";
+import WidgetHint from "./WidgetHint";
 
 // Leaflet reads `window` while its module initialises, which a server render
 // cannot provide, and the whole mapping stack is dead weight for the queries
 // that return no geography — the common case. Loading it only when a map is
-// actually shown keeps it out of the editor's bundle.
+// actually shown keeps it out of the editor's bundle, which charts (bundled
+// normally) do not need to pay for.
 const ResultsMap = dynamic(() => import("./ResultsMap"), {
   ssr: false,
   loading: () => (
@@ -90,7 +94,7 @@ const DataStudioResults = ({
   onRetry,
 }: DataStudioResultsProps) => {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<"map" | "table">("map");
+  const [tab, setTab] = useState<"widget" | "table">("widget");
 
   const errorLabels: Record<ExecuteSqlError, string> = {
     [ExecuteSqlError.PermissionDenied]: t(
@@ -195,13 +199,14 @@ const DataStudioResults = ({
   const displayedRows = isQueryPlan ? rows : rows.slice(0, MAX_DISPLAYED_ROWS);
   const hasHiddenRows = rows.length > displayedRows.length;
 
-  // Column names decide the presentation: when they name a geography the result
-  // is a set of places, and a table of coordinates is the wrong way to read it.
-  const mapSource = isQueryPlan ? null : detectMap(columns, rows);
-  // The map reads every returned row: the 500-row cap above exists to keep the
-  // DOM small, which markers on a canvas do not suffer from in the same way.
-  const map = mapSource ? toFeatures(mapSource, rows) : null;
-  const showMap = mapSource !== null && tab === "map";
+  // Column names decide the presentation: when they follow a widget convention
+  // the query is a little dashboard rather than a result set. Charts are looked
+  // for first, so a result that somehow satisfies both stays predictable.
+  const chart = isQueryPlan ? null : detectChart(columns, rows);
+  const mapSource = isQueryPlan || chart ? null : detectMap(columns, rows);
+  const hasWidget = chart !== null || mapSource !== null;
+  const showWidget = hasWidget && tab === "widget";
+  const mapFeatures = mapSource ? toFeatures(mapSource, rows) : null;
 
   return (
     <Block>
@@ -212,42 +217,46 @@ const DataStudioResults = ({
           })}
         </div>
       )}
-      {mapSource && (
+      {hasWidget && (
         <div
           role="tablist"
           className="flex shrink-0 items-center gap-4 border-b border-gray-200 px-3"
         >
-          <TabButton active={tab === "map"} onClick={() => setTab("map")}>
-            {t("Map")}
+          <TabButton active={tab === "widget"} onClick={() => setTab("widget")}>
+            {chart ? t("Chart") : t("Map")}
           </TabButton>
           <TabButton active={tab === "table"} onClick={() => setTab("table")}>
             {t("Table")}
           </TabButton>
         </div>
       )}
-      {showMap ? (
+      {showWidget ? (
         <div className="min-h-0 flex-1">
-          {mapSource.kind === "unreadable-geometry" ? (
-            // Detected as a geography but still in PostGIS' binary form. Saying
-            // so — with the one-line fix — beats a blank map or silently
-            // dropping back to the table, which would look like the feature
-            // simply does not work.
+          {/* Both widgets read every returned row: the 500-row cap below exists
+              to keep the DOM small, which an aggregated chart does not suffer
+              from and which markers on a canvas suffer from far less. */}
+          {chart ? (
+            <ResultsChart kind={chart} rows={rows} />
+          ) : mapSource!.kind === "unreadable-geometry" ? (
+            // Asked for as a map but still in PostGIS' binary form. Saying so —
+            // with the one-line fix — beats a blank map or silently dropping
+            // back to the table, which would look like the feature is broken.
             <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center text-sm text-gray-500">
               <p>
                 {t(
                   'The "{{column}}" column holds binary geometry, which cannot be drawn directly.',
-                  { column: mapSource.column },
+                  { column: mapSource!.column },
                 )}
               </p>
               <p className="text-gray-400">
                 {t("Select it as GeoJSON to map it:")}{" "}
                 <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs text-gray-700">
-                  ST_AsGeoJSON({mapSource.column}) AS {mapSource.column}
+                  ST_AsGeoJSON({mapSource!.column}) AS {mapSource!.column}
                 </code>
               </p>
             </div>
           ) : (
-            <ResultsMap features={map?.features ?? []} />
+            <ResultsMap features={mapFeatures?.features ?? []} />
           )}
         </div>
       ) : (
@@ -274,13 +283,24 @@ const DataStudioResults = ({
           {typeof result.durationMs === "number" &&
             ` · ${result.durationMs.toLocaleString()} ms`}
         </span>
+        {/* Only offered when the result was not charted: that is exactly the
+            user who has not met the convention yet. Once a chart is drawn the
+            tab strip above already advertises the feature, and an invitation
+            to chart what is already a chart would read as a mistake. A query
+            plan is never chartable, so it is excluded too.
+
+            Kept in this left cluster rather than pushed to the right: the
+            workspace layout pins its floating help button to the viewport's
+            bottom-right corner, which overlaps the end of this bar and would
+            bury the hint under it. */}
+        {!hasWidget && !isQueryPlan && <WidgetHint />}
         {/* Each view reports only the cap that applies to what is on screen:
             the row cap belongs to the table, the feature cap to the map. */}
-        {showMap
-          ? !!map?.hidden && (
+        {showWidget
+          ? !!mapFeatures?.hidden && (
               <span className="ml-auto text-gray-400">
                 {t("Showing the first {{count}} locations.", {
-                  count: map.features.length,
+                  count: mapFeatures.features.length,
                 })}
               </span>
             )
@@ -299,4 +319,9 @@ const DataStudioResults = ({
   );
 };
 
-export default DataStudioResults;
+// Memoised because the SQL text lives in DataStudioEditor's state: without this,
+// every keystroke re-renders the grid, reconciling up to MAX_DISPLAYED_ROWS rows
+// worth of cells for an input this component does not even read. Apollo keeps
+// `data` referentially stable between renders and `onRetry` is memoised in
+// useDataStudioQuery, so the props only change when a query actually resolves.
+export default memo(DataStudioResults);

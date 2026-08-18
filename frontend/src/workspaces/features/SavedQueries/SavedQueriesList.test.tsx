@@ -5,9 +5,11 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import { SavedQueryOrderBy, SavedQueryVisibility } from "graphql/types";
 import mockRouter from "next-router-mock";
 import { useEffect, useState } from "react";
 import SavedQueriesList from "./SavedQueriesList";
+import { DEFAULT_SAVED_QUERY_ORDER_BY } from "./sorting";
 
 jest.mock("workspaces/features/SavedQueries/SavedQueries.generated", () => ({
   useCreateSavedQueryMutation: () => [jest.fn(), { loading: false }],
@@ -24,14 +26,20 @@ jest.mock("core/hooks/useCacheKey", () => ({
   default: () => jest.fn(),
 }));
 
-const item = (id: string, name: string, description: string) => ({
+const item = (
+  id: string,
+  name: string,
+  description: string,
+  visibility: SavedQueryVisibility = SavedQueryVisibility.Workspace,
+) => ({
   __typename: "SavedQuery",
   id,
   name,
   description,
   updatedAt: "2024-01-01T00:00:00Z",
+  visibility,
   createdBy: null,
-  permissions: { update: true, delete: true },
+  permissions: { update: true, delete: true, updateVisibility: true },
 });
 
 const makeWorkspace = (overrides: any = {}) =>
@@ -44,7 +52,7 @@ const makeWorkspace = (overrides: any = {}) =>
       pageNumber: 1,
       items: [
         item("q1", "Query One", "first"),
-        item("q2", "Query Two", "second"),
+        item("q2", "Query Two", "second", SavedQueryVisibility.Private),
       ],
     },
     ...overrides,
@@ -54,12 +62,13 @@ const renderList = (props: any = {}) =>
   render(
     <SavedQueriesList
       workspace={makeWorkspace(props.workspace)}
-      page={1}
+      page={props.page ?? 1}
       perPage={15}
+      orderBy={props.orderBy ?? DEFAULT_SAVED_QUERY_ORDER_BY}
       loading={false}
       searchValue=""
       onSearchChange={props.onSearchChange ?? jest.fn()}
-      onChangePage={jest.fn()}
+      onChange={props.onChange ?? jest.fn()}
     />,
   );
 
@@ -73,6 +82,12 @@ describe("SavedQueriesList", () => {
     renderList();
     expect(screen.getByText("Query One")).toBeInTheDocument();
     expect(screen.getByText("Query Two")).toBeInTheDocument();
+  });
+
+  it("shows each query's visibility", () => {
+    renderList();
+    expect(screen.getByText("Workspace")).toBeInTheDocument();
+    expect(screen.getByText("Private")).toBeInTheDocument();
   });
 
   it("shows an empty state when there are no queries", () => {
@@ -141,10 +156,11 @@ const PaginatedHarness = () => {
       workspace={workspace}
       page={page}
       perPage={PAGE_SIZE}
+      orderBy={DEFAULT_SAVED_QUERY_ORDER_BY}
       loading={page !== dataPage}
       searchValue=""
       onSearchChange={() => setPage(1)}
-      onChangePage={({ page: nextPage }) => setPage(nextPage)}
+      onChange={({ page: nextPage }) => setPage(nextPage)}
     />
   );
 };
@@ -188,5 +204,80 @@ describe("SavedQueriesList pagination", () => {
       expect(pagerButtons().prev).toBeDisabled();
       expect(pagerButtons().next).toBeEnabled();
     });
+  });
+});
+
+// Not `getByRole(..., { name })`: react-table puts title="Toggle SortBy" on
+// sortable headers, and testing-library's accessible-name computation lets that
+// shadow the label. Match on the rendered text instead.
+const header = (label: string) => {
+  const match = screen
+    .getAllByRole("columnheader")
+    .find((cell) => cell.textContent === label);
+  if (!match) {
+    throw new Error(`No column header labelled "${label}"`);
+  }
+  return match;
+};
+
+describe("SavedQueriesList sorting", () => {
+  it("marks the column the list is ordered by", () => {
+    renderList({ orderBy: SavedQueryOrderBy.NameAsc });
+
+    expect(header("Name")).toHaveAttribute("aria-sort", "ascending");
+    expect(header("Last updated")).toHaveAttribute("aria-sort", "none");
+    expect(header("Description")).not.toHaveAttribute("aria-sort");
+  });
+
+  it("reports the sorted column as an orderBy, toggling direction", () => {
+    const onChange = jest.fn();
+    const { rerender } = renderList({ onChange });
+
+    fireEvent.click(header("Name"));
+    expect(onChange).toHaveBeenLastCalledWith({
+      page: 1,
+      perPage: 15,
+      orderBy: SavedQueryOrderBy.NameAsc,
+    });
+
+    // The parent owns orderBy, so a real toggle only happens once it feeds the
+    // new value back in.
+    rerender(
+      <SavedQueriesList
+        workspace={makeWorkspace()}
+        page={1}
+        perPage={15}
+        orderBy={SavedQueryOrderBy.NameAsc}
+        loading={false}
+        searchValue=""
+        onSearchChange={jest.fn()}
+        onChange={onChange}
+      />,
+    );
+    fireEvent.click(header("Name"));
+    expect(onChange).toHaveBeenLastCalledWith({
+      page: 1,
+      perPage: 15,
+      orderBy: SavedQueryOrderBy.NameDesc,
+    });
+  });
+
+  it("returns to the first page when the sort changes", () => {
+    const onChange = jest.fn();
+    renderList({ onChange, page: 3 });
+
+    fireEvent.click(header("Name"));
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ page: 1, orderBy: SavedQueryOrderBy.NameAsc }),
+    );
+  });
+
+  it("does not sort on columns with no server-side ordering", () => {
+    const onChange = jest.fn();
+    renderList({ onChange });
+
+    fireEvent.click(header("Description"));
+    fireEvent.click(header("Created by"));
+    expect(onChange).not.toHaveBeenCalled();
   });
 });

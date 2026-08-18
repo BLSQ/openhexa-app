@@ -4,49 +4,43 @@ import { isNumericValue } from "./format";
 type Row = Record<string, unknown>;
 
 /**
- * A result is drawn on a map when its columns name a geography, the same way
- * chart widgets are selected by column name: the query author opts in by what
- * they alias their columns to, and nothing else in the editor has to change.
+ * A map is selected by the names of the columns a query returns, the same way
+ * charts are (see CHART_CONVENTIONS in ./chart). The `map_` prefix is what makes
+ * it an opt-in: a table that happens to store `latitude` is not turned into a
+ * map behind the author's back, and the alias states the intent in the query
+ * itself. Only the columns a map plots have to be present — extra columns are
+ * carried into the popup and stay readable in the table tab.
  *
- * Matching is case-insensitive because column names reach us however the query
- * spelled them — the CPS monitoring tables return `Latitude`/`Longitude`, not
- * the lowercase form a hand-written query would use.
+ * Declaration order is the precedence when a query satisfies both.
  */
-const LATITUDE_NAMES = ["latitude", "lat"];
-const LONGITUDE_NAMES = ["longitude", "lon", "lng", "long"];
-
-/**
- * Geometry columns, in the spellings PostGIS tables use in practice.
- * `coordinates` is grouped here rather than with lat/lon: when a query returns a
- * single column of that name it holds a GeoJSON coordinate array, not a scalar.
- */
-const GEOMETRY_NAMES = [
-  "geometry",
-  "geom",
-  "simplified_geom",
-  "the_geom",
-  "coordinates",
+export const MAP_CONVENTIONS = [
+  { kind: "latlon" as const, columns: ["map_latitude", "map_longitude"] },
+  { kind: "geometry" as const, columns: ["map_geometry"] },
 ];
 
-/** The map is a preview, like the table: enough points to see the shape of the
- * data without handing the browser tens of thousands of layers to keep alive. */
+export const MAP_LATITUDE = "map_latitude";
+export const MAP_LONGITUDE = "map_longitude";
+export const MAP_GEOMETRY = "map_geometry";
+
+/** The map is a preview, like the table: enough features to see the shape of
+ * the data without handing the browser tens of thousands of layers to keep
+ * alive. */
 export const MAX_MAP_FEATURES = 2000;
 
 export type MapSource =
   | { kind: "latlon"; latitude: string; longitude: string }
   | { kind: "geojson"; column: string }
-  // Detected as geography but not renderable as-is: PostGIS hands back WKB hex
+  // Asked for as a map but not renderable as-is: PostGIS hands back WKB hex
   // unless the query converts it. Kept as its own kind rather than folded into
-  // `null` so the UI can say what to do instead of silently showing a table.
+  // `null` so the UI can say what to do about it. The author aliased a column
+  // to `map_geometry`, so silently falling back to a table would read as the
+  // feature being broken.
   | { kind: "unreadable-geometry"; column: string };
 
 export type MapFeature = {
   geometry: Geometry;
   properties: Row;
 };
-
-const findColumn = (columns: string[], names: string[]) =>
-  columns.find((column) => names.includes(column.trim().toLowerCase()));
 
 /** PostGIS renders geometry as (E)WKB hex when it is not converted: an even
  * number of hex digits, long enough that no realistic label collides with it. */
@@ -57,9 +51,8 @@ const isWkbHex = (value: unknown): value is string =>
   value.length % 2 === 0 &&
   WKB_HEX.test(value.startsWith("\\x") ? value.slice(2) : value);
 
-// Guards against a query that pairs two numeric columns which happen to be
-// named like coordinates but hold something else: out-of-range values would
-// place a marker nowhere, so the row is dropped instead.
+// Guards against coordinate columns holding something that is not a coordinate:
+// an out-of-range value would place a marker nowhere, so the row is dropped.
 const isValidLonLat = (lon: unknown, lat: unknown) =>
   isNumericValue(lon) &&
   isNumericValue(lat) &&
@@ -101,37 +94,37 @@ export const parseGeometry = (value: unknown): Geometry | null => {
 };
 
 /**
- * How a result should be mapped, or null to leave it as a table. Column names
- * alone are not enough: a `geom` column still holding WKB cannot be drawn, and
- * a `lat`/`lon` pair of text columns is not a geography, so the values are
- * checked before committing to a map.
+ * How a result should be mapped, or null to fall back to the table. Column
+ * names alone are not enough: a `map_latitude` column holding text is not a
+ * coordinate, so the values are checked before committing to a map.
  */
 export const detectMap = (columns: string[], rows: Row[]): MapSource | null => {
   if (rows.length === 0) {
     return null;
   }
 
-  const latitude = findColumn(columns, LATITUDE_NAMES);
-  const longitude = findColumn(columns, LONGITUDE_NAMES);
-  if (latitude && longitude) {
+  if (columns.includes(MAP_LATITUDE) && columns.includes(MAP_LONGITUDE)) {
     const plottable = rows.some((row) =>
-      isValidLonLat(row[longitude], row[latitude]),
+      isValidLonLat(row[MAP_LONGITUDE], row[MAP_LATITUDE]),
     );
     if (plottable) {
-      return { kind: "latlon", latitude, longitude };
+      return {
+        kind: "latlon",
+        latitude: MAP_LATITUDE,
+        longitude: MAP_LONGITUDE,
+      };
     }
   }
 
-  const geometry = findColumn(columns, GEOMETRY_NAMES);
-  if (geometry) {
+  if (columns.includes(MAP_GEOMETRY)) {
     const present = rows.filter(
-      (row) => row[geometry] !== null && row[geometry] !== undefined,
+      (row) => row[MAP_GEOMETRY] !== null && row[MAP_GEOMETRY] !== undefined,
     );
-    if (present.some((row) => parseGeometry(row[geometry]) !== null)) {
-      return { kind: "geojson", column: geometry };
+    if (present.some((row) => parseGeometry(row[MAP_GEOMETRY]) !== null)) {
+      return { kind: "geojson", column: MAP_GEOMETRY };
     }
-    if (present.some((row) => isWkbHex(row[geometry]))) {
-      return { kind: "unreadable-geometry", column: geometry };
+    if (present.some((row) => isWkbHex(row[MAP_GEOMETRY]))) {
+      return { kind: "unreadable-geometry", column: MAP_GEOMETRY };
     }
   }
 

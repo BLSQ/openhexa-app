@@ -477,6 +477,8 @@ registry (`hexa.assistant.agents.all_agent_tool_names`) — a unit test enforces
 enum AssistantToolName {
   create_pipeline
   get_dataset
+  get_db_schema
+  get_db_table_schema
   get_help_or_doc
   get_pipeline
   get_static_webapp_file
@@ -1180,6 +1182,9 @@ input CreateSavedQueryInput {
   content: String!
   description: String
   name: String!
+
+  """Defaults to PRIVATE when omitted."""
+  visibility: SavedQueryVisibility
   workspaceSlug: String!
 }
 
@@ -1188,6 +1193,21 @@ type CreateSavedQueryResult {
   errors: [CreateSavedQueryError!]!
   savedQuery: SavedQuery
   success: Boolean!
+}
+
+"""
+The CreateSelfHostedOrganizationInput type represents the input for the createSelfHostedOrganization mutation.
+Used by superusers to provision a subscription-less organization (self-hosted mode).
+"""
+input CreateSelfHostedOrganizationInput {
+  """The name of the organization."""
+  name: String!
+
+  """
+  The short name of the organization (max 5 uppercase letters).
+  If not provided, it will be auto-generated from the name.
+  """
+  shortName: String
 }
 
 """
@@ -1285,7 +1305,7 @@ input CreateWorkspaceInput {
   description: String
   loadSampleData: Boolean
   name: String!
-  organizationId: UUID
+  organizationId: UUID!
   slug: String
 }
 
@@ -2949,7 +2969,6 @@ type MePermissions {
 
   """Indicates whether the user has permission to create a team."""
   createTeam: Boolean!
-  createWorkspace: Boolean!
   manageAccessmodAccessRequests: Boolean!
 
   """Indicates whether the user has superuser privileges."""
@@ -3088,6 +3107,7 @@ type Mutation {
 
   """Creates a new saved query in a workspace."""
   createSavedQuery(input: CreateSavedQueryInput!): CreateSavedQueryResult!
+  createSelfHostedOrganization(input: CreateSelfHostedOrganizationInput!): CreateOrganizationResult!
   createTeam(input: CreateTeamInput!): CreateTeamResult!
   createWebapp(input: CreateWebappInput!): CreateWebappResult!
   createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult!
@@ -4190,10 +4210,8 @@ type Query {
   readFileContent(endLine: Int, filePath: String!, startLine: Int, workspaceSlug: String!): ReadFileContentResult!
   readWebappFile(endLine: Int, path: String!, startLine: Int, webappSlug: String!, workspaceSlug: String!): ReadWebappFileResult!
 
-  """
-  Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace.
-  """
-  savedQuery(id: ID!, workspaceSlug: String): SavedQuery
+  """Retrieves a saved query by its id."""
+  savedQuery(id: ID!): SavedQuery
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
@@ -4542,7 +4560,7 @@ type S3ObjectPage {
 
 """
 A SQL query saved by a user in the Data Studio. Saved queries belong to a
-workspace and are visible to all of its members.
+workspace; their visibility decides which of its members can reach them.
 """
 type SavedQuery {
   content: String!
@@ -4553,7 +4571,16 @@ type SavedQuery {
   name: String!
   permissions: SavedQueryPermissions!
   updatedAt: DateTime!
+  visibility: SavedQueryVisibility!
   workspace: Workspace!
+}
+
+"""Enum representing the possible orderings for saved queries."""
+enum SavedQueryOrderBy {
+  NAME_ASC
+  NAME_DESC
+  UPDATED_AT_ASC
+  UPDATED_AT_DESC
 }
 
 """A page of saved queries."""
@@ -4571,6 +4598,18 @@ type SavedQueryPermissions {
 
   """Permission to edit the saved query."""
   update: Boolean!
+
+  """Permission to share or unshare the saved query."""
+  updateVisibility: Boolean!
+}
+
+"""Who a saved query is visible to within its workspace."""
+enum SavedQueryVisibility {
+  """Only the author can see, run and edit the query."""
+  PRIVATE
+
+  """Every member of the workspace can see and run the query."""
+  WORKSPACE
 }
 
 interface SearchResult {
@@ -5447,6 +5486,9 @@ input UpdateSavedQueryInput {
   description: String
   id: ID!
   name: String
+
+  """Only the author may change this; PERMISSION_DENIED otherwise."""
+  visibility: SavedQueryVisibility
 }
 
 """Result of updating a saved query."""
@@ -5731,6 +5773,9 @@ type UploadPipelineResult {
 
 """The User type represents a user in the system."""
 type User {
+  """Whether the user has consented to product analytics tracking."""
+  analyticsEnabled: Boolean!
+
   """The avatar of the user."""
   avatar: Avatar!
 
@@ -5928,14 +5973,14 @@ type Workspace {
   invitations(includeAccepted: Boolean, page: Int, perPage: Int): WorkspaceInvitationPage!
   members(page: Int, perPage: Int): WorkspaceMembershipPage!
   name: String!
-  organization: Organization
+  organization: Organization!
   permissions: WorkspacePermissions!
   pipelineLastRunStatuses: [PipelineRunStatus!]!
   pipelineTags: [String!]!
   pipelineTemplateTags: [String!]!
 
   """The saved queries of the workspace."""
-  savedQueries(page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
+  savedQueries(orderBy: SavedQueryOrderBy! = UPDATED_AT_DESC, page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
   shortcuts: [ShortcutItem!]!
   slug: String!
   updatedAt: DateTime

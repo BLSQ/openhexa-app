@@ -17,6 +17,7 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class SearchResolversTest(GraphQLTestCase):
@@ -51,7 +52,7 @@ class SearchResolversTest(GraphQLTestCase):
             user=cls.USER,
             role=OrganizationMembershipRole.MEMBER,
         )
-        cls.WORKSPACE1 = Workspace.objects.create(
+        cls.WORKSPACE1 = create_workspace(
             name="Workspace 1",
             slug="workspace1",
             description="First workspace",
@@ -59,14 +60,14 @@ class SearchResolversTest(GraphQLTestCase):
             bucket_name="bucket_workspace1",
             organization=cls.ORGANIZATION,
         )
-        cls.WORKSPACE2 = Workspace.objects.create(
+        cls.WORKSPACE2 = create_workspace(
             name="Workspace 2",
             slug="workspace2",
             description="Second workspace",
             db_name="db_workspace2",
             bucket_name="bucket_workspace2",
         )
-        cls.WORKSPACE3 = Workspace.objects.create(
+        cls.WORKSPACE3 = create_workspace(
             name="Workspace 3",
             slug="workspace3",
             description="Third workspace (user not part of)",

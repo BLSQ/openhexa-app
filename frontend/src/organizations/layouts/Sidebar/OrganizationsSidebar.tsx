@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import clsx from "clsx";
-import { BuildingOffice2Icon } from "@heroicons/react/24/outline";
+import { BuildingOffice2Icon, PlusIcon } from "@heroicons/react/24/outline";
 import { OrganizationsQuery } from "organizations/graphql/queries.generated";
 import SidebarToggleButton from "./SidebarToggleButton";
 import UserMenu from "workspaces/features/UserMenu";
 import NavItem from "./NavItem";
 import { useTranslation } from "next-i18next";
 import useSidebarOpen from "core/hooks/useSidebarOpen";
+import useMe from "identity/hooks/useMe";
+import CreateOrganizationDialog from "organizations/features/CreateOrganizationDialog";
 
 type OrganizationsSidebarProps = {
   organizations: OrganizationsQuery["organizations"];
@@ -16,6 +18,8 @@ const OrganizationsSidebar = ({ organizations }: OrganizationsSidebarProps) => {
   const { t } = useTranslation();
 
   const [isSidebarOpen] = useSidebarOpen();
+  const me = useMe();
+  const [isCreateOpen, setCreateOpen] = useState(false);
 
   return (
     <div
@@ -46,11 +50,31 @@ const OrganizationsSidebar = ({ organizations }: OrganizationsSidebarProps) => {
                 compact={!isSidebarOpen}
               />
             ))}
+            {me?.permissions.superUser && (
+              <button
+                type="button"
+                onClick={() => setCreateOpen(true)}
+                title={t("Create an organization")}
+                className={clsx(
+                  "text-md group m-2 flex items-center gap-3 rounded-md px-2 py-2 font-medium text-gray-300 hover:bg-gray-700 hover:text-white",
+                  !isSidebarOpen && "justify-center",
+                )}
+              >
+                <PlusIcon
+                  className={clsx(!isSidebarOpen ? "h-7 w-7" : "ml-1 h-5 w-5")}
+                />
+                {isSidebarOpen && <span>{t("Create an organization")}</span>}
+              </button>
+            )}
           </div>
           <UserMenu compact={!isSidebarOpen} />
         </div>
         <SidebarToggleButton />
       </div>
+      <CreateOrganizationDialog
+        open={isCreateOpen}
+        onClose={() => setCreateOpen(false)}
+      />
     </div>
   );
 };

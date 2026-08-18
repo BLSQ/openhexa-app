@@ -76,7 +76,14 @@ export const getServerSideProps = createGetServerSideProps({
       },
     });
 
-    if (!data.workspace || !data.savedQuery) {
+    // A saved query is addressable by id alone, so the id in the URL may belong
+    // to another workspace the user can also see: treat that as a wrong URL
+    // rather than rendering the query under the wrong workspace.
+    if (
+      !data.workspace ||
+      !data.savedQuery ||
+      data.savedQuery.workspace.slug !== data.workspace.slug
+    ) {
       return {
         notFound: true,
       };

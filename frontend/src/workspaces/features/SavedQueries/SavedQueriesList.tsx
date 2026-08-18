@@ -5,10 +5,14 @@ import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import UserColumn from "core/components/DataGrid/UserColumn";
 import SearchInput from "core/features/SearchInput";
+import { SavedQueryOrderBy } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
+import { SortingRule } from "react-table";
 import DeleteSavedQueryTrigger from "workspaces/features/SavedQueries/DeleteSavedQueryTrigger";
 import { SavedQueryListItem_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
+import SavedQueryVisibilityBadge from "workspaces/features/SavedQueries/SavedQueryVisibilityBadge";
+import { savedQuerySorting } from "workspaces/features/SavedQueries/sorting";
 import { WorkspaceSavedQueriesPageQuery } from "workspaces/graphql/queries.generated";
 import { dataStudioRoutes } from "workspaces/helpers/dataStudio";
 
@@ -18,20 +22,26 @@ type SavedQueriesListProps = {
   workspace: Workspace;
   page: number;
   perPage: number;
+  orderBy: SavedQueryOrderBy;
   loading?: boolean;
   searchValue: string;
   onSearchChange: (value: string) => void;
-  onChangePage: (params: { page: number; pageSize: number }) => void;
+  onChange: (params: {
+    page: number;
+    perPage: number;
+    orderBy: SavedQueryOrderBy;
+  }) => void;
 };
 
 const SavedQueriesList = ({
   workspace,
   page,
   perPage,
+  orderBy,
   loading,
   searchValue,
   onSearchChange,
-  onChangePage,
+  onChange,
 }: SavedQueriesListProps) => {
   const { t } = useTranslation();
   const router = useRouter();
@@ -39,6 +49,25 @@ const SavedQueriesList = ({
   const { items, totalItems } = workspace.savedQueries;
 
   const openQuery = (id: string) => router.push(routes.query(id));
+
+  const onFetchData = ({
+    page: nextPage,
+    pageSize,
+    sortBy,
+  }: {
+    page: number;
+    pageSize: number;
+    sortBy: SortingRule<object>[];
+  }) => {
+    const nextOrderBy =
+      savedQuerySorting.convertDataGridSort(sortBy) ?? orderBy;
+    onChange({
+      // A new sort re-deals every row, so the current page number is meaningless.
+      page: nextOrderBy === orderBy ? nextPage : 1,
+      perPage: pageSize,
+      orderBy: nextOrderBy,
+    });
+  };
 
   return (
     <div className="h-full overflow-auto">
@@ -68,7 +97,9 @@ const SavedQueriesList = ({
               totalItems={totalItems}
               defaultPageSize={perPage}
               defaultPageIndex={page - 1}
-              fetchData={onChangePage}
+              fetchData={onFetchData}
+              sortable
+              defaultSortBy={savedQuerySorting.convertToDataGridSort(orderBy)}
               skipPageReset
               fixedLayout={false}
               loading={loading}
@@ -89,6 +120,7 @@ const SavedQueriesList = ({
               <BaseColumn<SavedQueryListItem_SavedQueryFragment>
                 id="description"
                 label={t("Description")}
+                disableSortBy
               >
                 {(item) =>
                   item.description ? (
@@ -103,8 +135,25 @@ const SavedQueriesList = ({
                   )
                 }
               </BaseColumn>
-              <UserColumn accessor="createdBy" header={t("Created by")} />
+              <UserColumn
+                accessor="createdBy"
+                header={t("Created by")}
+                disableSortBy
+              />
+              <BaseColumn<SavedQueryListItem_SavedQueryFragment>
+                id="visibility"
+                label={t("Visibility")}
+                disableSortBy
+              >
+                {(item) => (
+                  <SavedQueryVisibilityBadge
+                    visibility={item.visibility}
+                    className="text-gray-700"
+                  />
+                )}
+              </BaseColumn>
               <DateColumn
+                id="updatedAt"
                 accessor="updatedAt"
                 header={t("Last updated")}
                 relative
@@ -113,6 +162,7 @@ const SavedQueriesList = ({
                 id="actions"
                 label={t("Actions")}
                 hideLabel
+                disableSortBy
               >
                 {(item) => (
                   <div className="flex items-center justify-end gap-1 text-gray-400">

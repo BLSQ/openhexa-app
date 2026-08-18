@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from hexa.core.test.migrator import Migrator
 from hexa.user_management.models import User
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class MessageContentSegmentsMigrationTest(TransactionTestCase):
@@ -21,8 +21,10 @@ class MessageContentSegmentsMigrationTest(TransactionTestCase):
             "migration-test@example.com", "password", is_superuser=True
         )
         with patch("hexa.workspaces.models.create_database"):
-            self.workspace = Workspace.objects.create_if_has_perm(
-                self.user, name="Migration Test WS", description=""
+            self.workspace = create_workspace(
+                self.user,
+                name="Migration Test WS",
+                description="",
             )
 
         Conversation = self.migrator.apps.get_model("assistant", "Conversation")

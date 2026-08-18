@@ -4,7 +4,6 @@ query GetUser {
     permissions {
       adminPanel
       superUser
-      createWorkspace
     }
     features {
       code
@@ -17,6 +16,8 @@ query GetUser {
       lastName
       displayName
       language
+      dateJoined
+      analyticsEnabled
       avatar {
         initials
         color
@@ -36,6 +37,7 @@ query AccountPage {
       id
       email
       language
+      analyticsEnabled
       ...User_user
     }
   }

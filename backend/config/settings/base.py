@@ -801,6 +801,13 @@ GIT_ACCESS_TOKEN_EXPIRE_SECONDS = int(
     os.environ.get("GIT_ACCESS_TOKEN_EXPIRE_SECONDS", 365 * 24 * 60 * 60)
 )
 
+# Workspace tokens issued to users whose access is implicit (organization
+# admins, superusers). Unlike membership tokens there is nothing to revoke, so
+# expiry is the only bound on a leaked one.
+WORKSPACE_IDENTITY_TOKEN_EXPIRE_SECONDS = int(
+    os.environ.get("WORKSPACE_IDENTITY_TOKEN_EXPIRE_SECONDS", 24 * 60 * 60)
+)
+
 # Public OAuth2 clients used by git credential helpers. FORGEJO_OAUTH_CLIENT_ID
 # is the universal client id baked into Git Credential Manager's Gitea provider
 # (which Forgejo is compatible with): when the proxy advertises
@@ -822,3 +829,8 @@ if "OAUTH2_ALLOWED_REDIRECT_URI_HOSTS" in os.environ:
     OAUTH2_ALLOWED_REDIRECT_URI_HOSTS.update(
         os.environ["OAUTH2_ALLOWED_REDIRECT_URI_HOSTS"].split(",")
     )
+
+# django-sql-dashboard additional settings
+# https://django-sql-dashboard.datasette.io/en/stable/setup.html#additional-settings
+DASHBOARD_ROW_LIMIT = 1000  # default 100
+DASHBOARD_ENABLE_FULL_EXPORT = True  # default False

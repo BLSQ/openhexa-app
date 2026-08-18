@@ -523,6 +523,8 @@ export type AssistantTextSegment = {
 export enum AssistantToolName {
   CreatePipeline = 'create_pipeline',
   GetDataset = 'get_dataset',
+  GetDbSchema = 'get_db_schema',
+  GetDbTableSchema = 'get_db_table_schema',
   GetHelpOrDoc = 'get_help_or_doc',
   GetPipeline = 'get_pipeline',
   GetStaticWebappFile = 'get_static_webapp_file',
@@ -1183,6 +1185,8 @@ export type CreateSavedQueryInput = {
   content: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
+  /** Defaults to PRIVATE when omitted. */
+  visibility?: InputMaybe<SavedQueryVisibility>;
   workspaceSlug: Scalars['String']['input'];
 };
 
@@ -1192,6 +1196,20 @@ export type CreateSavedQueryResult = {
   errors: Array<CreateSavedQueryError>;
   savedQuery?: Maybe<SavedQuery>;
   success: Scalars['Boolean']['output'];
+};
+
+/**
+ * The CreateSelfHostedOrganizationInput type represents the input for the createSelfHostedOrganization mutation.
+ * Used by superusers to provision a subscription-less organization (self-hosted mode).
+ */
+export type CreateSelfHostedOrganizationInput = {
+  /** The name of the organization. */
+  name: Scalars['String']['input'];
+  /**
+   * The short name of the organization (max 5 uppercase letters).
+   * If not provided, it will be auto-generated from the name.
+   */
+  shortName?: InputMaybe<Scalars['String']['input']>;
 };
 
 /** The CreateTeamError enum represents the possible errors that can occur during the createTeam mutation. */
@@ -1279,7 +1297,7 @@ export type CreateWorkspaceInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   loadSampleData?: InputMaybe<Scalars['Boolean']['input']>;
   name: Scalars['String']['input'];
-  organizationId?: InputMaybe<Scalars['UUID']['input']>;
+  organizationId: Scalars['UUID']['input'];
   slug?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -2940,7 +2958,6 @@ export type MePermissions = {
   createAccessmodProject: Scalars['Boolean']['output'];
   /** Indicates whether the user has permission to create a team. */
   createTeam: Scalars['Boolean']['output'];
-  createWorkspace: Scalars['Boolean']['output'];
   manageAccessmodAccessRequests: Scalars['Boolean']['output'];
   /** Indicates whether the user has superuser privileges. */
   superUser: Scalars['Boolean']['output'];
@@ -3060,6 +3077,7 @@ export type Mutation = {
   createPipelineTemplateVersion: CreatePipelineTemplateVersionResult;
   /** Creates a new saved query in a workspace. */
   createSavedQuery: CreateSavedQueryResult;
+  createSelfHostedOrganization: CreateOrganizationResult;
   createTeam: CreateTeamResult;
   createWebapp: CreateWebappResult;
   createWorkspace: CreateWorkspaceResult;
@@ -3345,6 +3363,11 @@ export type MutationCreatePipelineTemplateVersionArgs = {
 
 export type MutationCreateSavedQueryArgs = {
   input: CreateSavedQueryInput;
+};
+
+
+export type MutationCreateSelfHostedOrganizationArgs = {
+  input: CreateSelfHostedOrganizationInput;
 };
 
 
@@ -4809,7 +4832,7 @@ export type Query = {
   /** Read the text content of a file from a workspace's bucket. */
   readFileContent: ReadFileContentResult;
   readWebappFile: ReadWebappFileResult;
-  /** Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace. */
+  /** Retrieves a saved query by its id. */
   savedQuery?: Maybe<SavedQuery>;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
@@ -5068,7 +5091,6 @@ export type QueryReadWebappFileArgs = {
 
 export type QuerySavedQueryArgs = {
   id: Scalars['ID']['input'];
-  workspaceSlug?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -5484,7 +5506,7 @@ export type S3ObjectPage = {
 
 /**
  * A SQL query saved by a user in the Data Studio. Saved queries belong to a
- * workspace and are visible to all of its members.
+ * workspace; their visibility decides which of its members can reach them.
  */
 export type SavedQuery = {
   __typename?: 'SavedQuery';
@@ -5496,8 +5518,17 @@ export type SavedQuery = {
   name: Scalars['String']['output'];
   permissions: SavedQueryPermissions;
   updatedAt: Scalars['DateTime']['output'];
+  visibility: SavedQueryVisibility;
   workspace: Workspace;
 };
+
+/** Enum representing the possible orderings for saved queries. */
+export enum SavedQueryOrderBy {
+  NameAsc = 'NAME_ASC',
+  NameDesc = 'NAME_DESC',
+  UpdatedAtAsc = 'UPDATED_AT_ASC',
+  UpdatedAtDesc = 'UPDATED_AT_DESC'
+}
 
 /** A page of saved queries. */
 export type SavedQueryPage = {
@@ -5515,7 +5546,17 @@ export type SavedQueryPermissions = {
   delete: Scalars['Boolean']['output'];
   /** Permission to edit the saved query. */
   update: Scalars['Boolean']['output'];
+  /** Permission to share or unshare the saved query. */
+  updateVisibility: Scalars['Boolean']['output'];
 };
+
+/** Who a saved query is visible to within its workspace. */
+export enum SavedQueryVisibility {
+  /** Only the author can see, run and edit the query. */
+  Private = 'PRIVATE',
+  /** Every member of the workspace can see and run the query. */
+  Workspace = 'WORKSPACE'
+}
 
 export type SearchResult = {
   score: Scalars['Float']['output'];
@@ -6277,6 +6318,8 @@ export type UpdateSavedQueryInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
+  /** Only the author may change this; PERMISSION_DENIED otherwise. */
+  visibility?: InputMaybe<SavedQueryVisibility>;
 };
 
 /** Result of updating a saved query. */
@@ -6534,6 +6577,8 @@ export type UploadPipelineResult = {
 /** The User type represents a user in the system. */
 export type User = {
   __typename?: 'User';
+  /** Whether the user has consented to product analytics tracking. */
+  analyticsEnabled: Scalars['Boolean']['output'];
   /** The avatar of the user. */
   avatar: Avatar;
   /** The date when the user joined the system. */
@@ -6741,7 +6786,7 @@ export type Workspace = {
   invitations: WorkspaceInvitationPage;
   members: WorkspaceMembershipPage;
   name: Scalars['String']['output'];
-  organization?: Maybe<Organization>;
+  organization: Organization;
   permissions: WorkspacePermissions;
   pipelineLastRunStatuses: Array<PipelineRunStatus>;
   pipelineTags: Array<Scalars['String']['output']>;
@@ -6781,6 +6826,7 @@ export type WorkspaceMembersArgs = {
 
 /** Represents a workspace. A workspace is a shared environment where users can collaborate on data projects. */
 export type WorkspaceSavedQueriesArgs = {
+  orderBy?: SavedQueryOrderBy;
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;

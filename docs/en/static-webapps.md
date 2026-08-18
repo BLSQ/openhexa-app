@@ -89,6 +89,53 @@ window.OPENHEXA = Object.freeze({
 
 The examples below read `workspaceSlug` from this global, so they're copy-pasteable into any webapp without having to edit a constant. The injection only touches `text/html` responses; CSS, JS, and JSON files are untouched.
 
+## Developing locally
+
+You can build a webapp on your own machine — your editor, your live reload, your browser dev tools — while reading **real workspace data** through the same scope-gated API you get in production. No hand-rolled proxy and no manual token: it takes one script tag and two clicks.
+
+### 1. Add the script to your page
+
+```html
+<script src="https://app.openhexa.org/webapps/dev.js"></script>
+```
+
+Point it at whichever OpenHEXA install you use — `http://localhost:8000/webapps/dev.js` for a local backend.
+
+New webapps created from the default template already include this tag. It is inert once deployed (it only activates on `file://` and `localhost` pages), so you can leave it in your `index.html`.
+
+### 2. Open your page and click Connect
+
+Open your page in a browser where you're already logged into OpenHEXA — either open the `.html` file directly (`file://`) or serve it locally (any static server works, e.g. `python -m http.server 5173`).
+
+A **Connect to OpenHEXA** button appears in the corner:
+
+![The Connect to OpenHEXA button on a local page](../assets/images/webapps/dev-connect.png)
+
+### 3. Pick a web app and approve
+
+Clicking it opens a small OpenHEXA window listing the private static webapps you can develop against. Pick one and hit **Approve**:
+
+![Choosing which web app to develop against](../assets/images/webapps/dev-picker.png)
+
+### That's it
+
+The window closes and your page reloads, connected. `window.OPENHEXA` is populated and your `fetch("/graphql/")` calls now return real data. A chip in the corner shows which webapp you're connected to:
+
+![A local page showing real workspace data, with the connected chip](../assets/images/webapps/dev-connected.png)
+
+### Skipping the picker
+
+Name the workspace and webapp up front and the list is reduced to that single, preselected entry — you still confirm with **Approve**:
+
+```html
+<script src="https://app.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
+```
+
+### Good to know
+
+- **Same permissions as production.** Your local calls respect the webapp's `allowed_operations` exactly as they will once deployed, so an operation that works locally won't surprise you with a `403` later.
+- **The chip is your control.** Use **Switch** to move to a different webapp, or **Reconnect** to force a fresh credential.
+
 ---
 
 ## Example webapps

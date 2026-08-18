@@ -48,6 +48,28 @@ class CopyWorkspaceFormTest(SimpleTestCase):
         self.assertTrue(form.is_valid(), form.errors)
         self.assertIn("workspace", form.cleaned_data["resources"])
 
+    def test_resource_rows_nest_options_under_their_copier(self):
+        rows = {
+            row["checkbox"].data["value"]: row
+            for row in CopyWorkspaceForm().resource_rows()
+        }
+        self.assertEqual(
+            [option.name for option in rows["datasets"]["options"]],
+            ["all_dataset_versions"],
+        )
+        self.assertEqual(rows["connections"]["options"], [])
+
+    def test_mandatory_resource_renders_checked_and_locked(self):
+        rows = {
+            row["checkbox"].data["value"]: row
+            for row in CopyWorkspaceForm().resource_rows()
+        }
+        self.assertTrue(rows["workspace"]["mandatory"])
+        self.assertFalse(rows["datasets"]["mandatory"])
+        markup = str(rows["workspace"]["checkbox"])
+        self.assertIn("checked", markup)
+        self.assertIn("disabled", markup)
+
     def test_empty_resources_defaults_to_all(self):
         form = CopyWorkspaceForm(data=_base_data(resources=[]))
         self.assertTrue(form.is_valid(), form.errors)

@@ -4,6 +4,13 @@ import { gql } from '@apollo/client';
 import { Organization_OrganizationFragmentDoc } from './queries.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
+export type CreateSelfHostedOrganizationMutationVariables = Types.Exact<{
+  input: Types.CreateSelfHostedOrganizationInput;
+}>;
+
+
+export type CreateSelfHostedOrganizationMutation = { __typename?: 'Mutation', createSelfHostedOrganization: { __typename?: 'CreateOrganizationResult', success: boolean, errors: Array<Types.CreateOrganizationError>, organization?: { __typename?: 'Organization', id: string, name: string } | null } };
+
 export type UpdateOrganizationMutationVariables = Types.Exact<{
   input: Types.UpdateOrganizationInput;
 }>;
@@ -26,6 +33,44 @@ export type UpdateOrganizationAiSettingsMutationVariables = Types.Exact<{
 export type UpdateOrganizationAiSettingsMutation = { __typename?: 'Mutation', updateOrganizationAiSettings: { __typename?: 'UpdateOrganizationAiSettingsResult', success: boolean, errors: Array<Types.UpdateOrganizationAiSettingsError>, organization?: { __typename?: 'Organization', id: string, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null, provider?: Types.AiProvider | null, model?: Types.AiModel | null, hasApiKey?: boolean | null } | null } | null } };
 
 
+export const CreateSelfHostedOrganizationDocument = gql`
+    mutation CreateSelfHostedOrganization($input: CreateSelfHostedOrganizationInput!) {
+  createSelfHostedOrganization(input: $input) {
+    success
+    errors
+    organization {
+      id
+      name
+    }
+  }
+}
+    `;
+export type CreateSelfHostedOrganizationMutationFn = Apollo.MutationFunction<CreateSelfHostedOrganizationMutation, CreateSelfHostedOrganizationMutationVariables>;
+
+/**
+ * __useCreateSelfHostedOrganizationMutation__
+ *
+ * To run a mutation, you first call `useCreateSelfHostedOrganizationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateSelfHostedOrganizationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createSelfHostedOrganizationMutation, { data, loading, error }] = useCreateSelfHostedOrganizationMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateSelfHostedOrganizationMutation(baseOptions?: Apollo.MutationHookOptions<CreateSelfHostedOrganizationMutation, CreateSelfHostedOrganizationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateSelfHostedOrganizationMutation, CreateSelfHostedOrganizationMutationVariables>(CreateSelfHostedOrganizationDocument, options);
+      }
+export type CreateSelfHostedOrganizationMutationHookResult = ReturnType<typeof useCreateSelfHostedOrganizationMutation>;
+export type CreateSelfHostedOrganizationMutationResult = Apollo.MutationResult<CreateSelfHostedOrganizationMutation>;
+export type CreateSelfHostedOrganizationMutationOptions = Apollo.BaseMutationOptions<CreateSelfHostedOrganizationMutation, CreateSelfHostedOrganizationMutationVariables>;
 export const UpdateOrganizationDocument = gql`
     mutation UpdateOrganization($input: UpdateOrganizationInput!) {
   updateOrganization(input: $input) {

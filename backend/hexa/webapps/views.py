@@ -9,14 +9,41 @@ from django.http import (
     HttpResponseNotFound,
     HttpResponseRedirect,
 )
-from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_GET
+from django.shortcuts import get_object_or_404, render
+from django.template.loader import render_to_string
+from django.views.decorators.http import require_GET, require_http_methods
 
 from hexa.files.utils import is_safe_path
 from hexa.git.exceptions import GitFileNotFound
 from hexa.git.forgejo import get_forgejo_client
+from hexa.user_management.utils import has_configured_two_factor
 from hexa.webapps.models import Webapp
-from hexa.webapps.utils import extract_webapp_subdomain
+from hexa.webapps.utils import extract_webapp_subdomain, is_local_dev_origin
+
+
+def _needs_login(user):
+    return not user.is_authenticated or (
+        has_configured_two_factor(user) and not user.is_verified()
+    )
+
+
+def _login_redirect(request):
+    """Send the visitor to the frontend login, returning to this exact URL after.
+
+    `next` has to be absolute: the login page lives on the frontend domain and
+    resolves a relative `next` against its own origin. On deployments where the
+    backend answers on a host of its own (api.<env> vs app.<env>), a relative
+    `next` would send the user back to a frontend URL that doesn't exist.
+
+    The origin comes from BASE_URL rather than the request, so a forged Host
+    header cannot turn the frontend's post-login redirect into an open redirect.
+    Both callers are routed on the backend itself, so BASE_URL is the host that
+    served this request anyway.
+    """
+    current_absolute_url = f"{settings.BASE_URL}{request.get_full_path()}"
+    return HttpResponseRedirect(
+        f"{settings.NEW_FRONTEND_DOMAIN}/login?next={quote(current_absolute_url)}"
+    )
 
 
 @require_GET
@@ -43,10 +70,7 @@ def auth_token(request, webapp_id):
         return HttpResponseBadRequest("Invalid redirect target")
 
     if not request.user.is_authenticated:
-        current_absolute_url = request.build_absolute_uri(request.get_full_path())
-        return HttpResponseRedirect(
-            f"{settings.NEW_FRONTEND_DOMAIN}/login?next={quote(current_absolute_url)}"
-        )
+        return _login_redirect(request)
 
     user = request.user
     should_have_access = (
@@ -94,3 +118,123 @@ def serve_webapp(request, git_webapp, path="index.html"):
         content_type = "application/octet-stream"
 
     return HttpResponse(content, content_type=content_type)
+
+
+@require_GET
+def dev_js(request):
+    """Serve the local-development shim.
+
+    Authors include this script from their local page; it sets `window.OPENHEXA`
+    and reroutes `/graphql/` calls to the webapp's rotating preview URL (obtained
+    through the authenticated `dev_auth` handshake). Must stay anonymous so a
+    cross-origin `<script src>` isn't redirected to login.
+    """
+    js = render_to_string("webapps/dev.js", {"base_url": settings.BASE_URL})
+    return HttpResponse(js, content_type="application/javascript")
+
+
+def _resolve_dev_webapp(workspace_slug, webapp_slug):
+    if not (workspace_slug and webapp_slug):
+        return None
+    return Webapp.objects.filter(
+        workspace__slug=workspace_slug, slug=webapp_slug
+    ).first()
+
+
+def _selectable_dev_webapps(user):
+    """Private static webapps the user can develop against (the picker list)."""
+    return (
+        Webapp.objects.filter_for_user(user)
+        .filter(type=Webapp.WebappType.STATIC, is_public=False)
+        .select_related("workspace")
+        .order_by("workspace__name", "name")
+    )
+
+
+def _set_dev_auth_headers(response):
+    response["Content-Security-Policy"] = "frame-ancestors 'none'"
+    response["X-Frame-Options"] = "DENY"
+    response["Cross-Origin-Opener-Policy"] = "unsafe-none"
+    return response
+
+
+def _render_authorize(request, webapps, origin, selected=None):
+    """Render the authorization screen: a selectable list of web apps and a single
+    Approve button. Picker and preselected modes are the same UI — when a web app
+    is provided it is preselected; otherwise the user selects one before approving.
+    """
+    return _set_dev_auth_headers(
+        render(
+            request,
+            "webapps/dev_auth_authorize.html",
+            {
+                "webapps": webapps,
+                "origin": origin,
+                "selected_ws": selected.workspace.slug if selected else "",
+                "selected_app": selected.slug if selected else "",
+            },
+        )
+    )
+
+
+@require_http_methods(["GET", "POST"])
+def dev_auth(request):
+    """Authenticated handshake that hands a rotating preview URL to a local page."""
+    params = request.POST if request.method == "POST" else request.GET
+    origin = params.get("origin", "")
+    # The origin becomes the postMessage target for the credential, so only
+    # accept local-dev origins: an opaque file:// page (null/file://) or a
+    # concrete localhost URL. Anything remote (e.g. https://evil.com) is rejected.
+    is_opaque = origin in {"null", "file://"}
+    if not is_opaque and not is_local_dev_origin(origin):
+        return HttpResponseBadRequest("Invalid origin")
+
+    # This view handles its own login bounce (it is in ANONYMOUS_URLS) because the
+    # generic one sends a relative `next`, which strands the popup on the frontend.
+    if _needs_login(request.user):
+        if request.method == "POST":
+            return HttpResponse("Authentication required", status=401)
+        return _login_redirect(request)
+
+    workspace_slug = params.get("workspaceSlug", "")
+    webapp_slug = params.get("webappSlug", "")
+
+    # No webapp specified: let the (authenticated) user pick and approve one from
+    # the list. Selecting an app POSTs back with the workspace + webapp.
+    if not (workspace_slug and webapp_slug):
+        return _render_authorize(request, _selectable_dev_webapps(request.user), origin)
+
+    webapp = _resolve_dev_webapp(workspace_slug, webapp_slug)
+    if webapp is None:
+        return HttpResponseNotFound("Web app not found")
+    if not Webapp.objects.filter_for_user(request.user).filter(pk=webapp.pk).exists():
+        return HttpResponse("Forbidden", status=403)
+
+    # The credential is only ever minted on the CSRF-protected POST from the
+    # approval screen. A GET must never hand it out: any page served on
+    # localhost could otherwise obtain a webapp-scoped credential just by
+    # opening this URL with pinned slugs. The preselected app is shown on the
+    # same authorization screen as the picker, as a single-item list.
+    if request.method == "GET":
+        return _render_authorize(request, [webapp], origin, selected=webapp)
+
+    # Deferred import: middlewares imports serve_webapp from this module.
+    from hexa.webapps.middlewares import get_or_create_preview_url
+
+    return _set_dev_auth_headers(
+        render(
+            request,
+            "webapps/dev_auth.html",
+            {
+                "data": {
+                    "type": "openhexa-dev-auth",
+                    "previewUrl": get_or_create_preview_url(
+                        request, webapp, request.user
+                    ),
+                    "workspaceSlug": webapp.workspace.slug,
+                    "webappSlug": webapp.slug,
+                },
+                "target_origin": "*" if is_opaque else origin,
+            },
+        )
+    )

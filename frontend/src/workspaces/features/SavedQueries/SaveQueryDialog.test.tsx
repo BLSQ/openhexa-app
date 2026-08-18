@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { SavedQueryVisibility } from "graphql/types";
 import { toast } from "react-toastify";
 import SaveQueryDialog from "./SaveQueryDialog";
 
@@ -21,6 +22,14 @@ jest.mock("core/hooks/useCacheKey", () => ({
 }));
 
 beforeEach(() => jest.clearAllMocks());
+
+const savedQuery = {
+  id: "q1",
+  name: "Old name",
+  description: "desc",
+  visibility: SavedQueryVisibility.Workspace,
+  permissions: { update: true, delete: true, updateVisibility: true },
+};
 
 describe("SaveQueryDialog", () => {
   it("creates a query from the current editor content", async () => {
@@ -61,6 +70,8 @@ describe("SaveQueryDialog", () => {
             name: "My query",
             content: "SELECT 1",
             description: "",
+            // A new query starts private until its author shares it.
+            visibility: SavedQueryVisibility.Private,
           },
         },
       }),
@@ -113,7 +124,7 @@ describe("SaveQueryDialog", () => {
     expect(createMock).not.toHaveBeenCalled();
   });
 
-  it("edits only name/description in edit-details mode", async () => {
+  it("edits name/description/visibility in edit-details mode", async () => {
     updateMock.mockResolvedValue({
       data: {
         updateSavedQuery: {
@@ -130,7 +141,7 @@ describe("SaveQueryDialog", () => {
         mode="edit-details"
         workspaceSlug="ws-1"
         content="SELECT 1"
-        savedQuery={{ id: "q1", name: "Old name", description: "desc" }}
+        savedQuery={savedQuery}
         onClose={jest.fn()}
         onSaved={jest.fn()}
       />,
@@ -144,12 +155,160 @@ describe("SaveQueryDialog", () => {
     await waitFor(() =>
       expect(updateMock).toHaveBeenCalledWith({
         variables: {
-          input: { id: "q1", name: "Renamed", description: "desc" },
+          input: {
+            id: "q1",
+            name: "Renamed",
+            description: "desc",
+            // Echoed back unchanged: the backend only gates an actual change, so
+            // this must not require the author's rights.
+            visibility: SavedQueryVisibility.Workspace,
+          },
         },
       }),
     );
     expect(createMock).not.toHaveBeenCalled();
     expect(toast.success).toHaveBeenCalledWith("Query updated");
+  });
+
+  it("seeds the picker from the query being edited", () => {
+    render(
+      <SaveQueryDialog
+        open
+        mode="edit-details"
+        workspaceSlug="ws-1"
+        content="SELECT 1"
+        savedQuery={savedQuery}
+        onClose={jest.fn()}
+        onSaved={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("radio", { name: /Workspace/ })).toBeChecked();
+    expect(screen.getByRole("radio", { name: /Private/ })).not.toBeChecked();
+  });
+
+  it("creates a shared query when the author picks Workspace", async () => {
+    createMock.mockResolvedValue({
+      data: {
+        createSavedQuery: {
+          success: true,
+          errors: [],
+          savedQuery: { id: "new-1", name: "My query" },
+        },
+      },
+    });
+
+    render(
+      <SaveQueryDialog
+        open
+        mode="create"
+        workspaceSlug="ws-1"
+        content="SELECT 1"
+        savedQuery={null}
+        onClose={jest.fn()}
+        onSaved={jest.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "My query" },
+    });
+    fireEvent.click(screen.getByRole("radio", { name: /Workspace/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Save query" }));
+
+    await waitFor(() =>
+      expect(createMock).toHaveBeenCalledWith({
+        variables: {
+          input: expect.objectContaining({
+            visibility: SavedQueryVisibility.Workspace,
+          }),
+        },
+      }),
+    );
+  });
+
+  it("locks the picker for a member who may edit but not unshare", () => {
+    render(
+      <SaveQueryDialog
+        open
+        mode="edit-details"
+        workspaceSlug="ws-1"
+        content="SELECT 1"
+        savedQuery={{
+          ...savedQuery,
+          permissions: { update: true, delete: true, updateVisibility: false },
+        }}
+        onClose={jest.fn()}
+        onSaved={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("radio", { name: /Private/ })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: /Workspace/ })).toBeDisabled();
+  });
+
+  // A fork is a new query, so it must not inherit the source's sharing.
+  it("forks a shared query as private", async () => {
+    createMock.mockResolvedValue({
+      data: {
+        createSavedQuery: {
+          success: true,
+          errors: [],
+          savedQuery: { id: "new-2", name: "Copy" },
+        },
+      },
+    });
+
+    render(
+      <SaveQueryDialog
+        open
+        mode="create"
+        workspaceSlug="ws-1"
+        content="SELECT 1"
+        savedQuery={savedQuery}
+        onClose={jest.fn()}
+        onSaved={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("radio", { name: /Private/ })).toBeChecked();
+    fireEvent.click(screen.getByRole("button", { name: "Save query" }));
+
+    await waitFor(() =>
+      expect(createMock).toHaveBeenCalledWith({
+        variables: {
+          input: expect.objectContaining({
+            visibility: SavedQueryVisibility.Private,
+          }),
+        },
+      }),
+    );
+  });
+
+  // The dialog is not remounted between opens (it stays mounted so it can
+  // animate), so each open has to re-seed the form from the current props.
+  it("re-seeds the form on every open", async () => {
+    const props = {
+      mode: "create" as const,
+      workspaceSlug: "ws-1",
+      content: "SELECT 1",
+      savedQuery: null,
+      onClose: jest.fn(),
+      onSaved: jest.fn(),
+    };
+    const { rerender } = render(<SaveQueryDialog open {...props} />);
+
+    fireEvent.change(screen.getByLabelText("Name"), {
+      target: { value: "Abandoned draft" },
+    });
+    rerender(<SaveQueryDialog open={false} {...props} />);
+    rerender(<SaveQueryDialog open {...props} />);
+
+    await waitFor(() =>
+      expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe(
+        "",
+      ),
+    );
   });
 
   it("surfaces a permission error without navigating", async () => {

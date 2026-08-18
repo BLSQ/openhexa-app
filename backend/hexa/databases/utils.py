@@ -6,7 +6,6 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple
 
 import psycopg2
-import sqlparse
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
@@ -21,6 +20,7 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 from .api import get_db_server_credentials
+from .query_text import MultipleStatementsError, PreparedQuery
 
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
@@ -37,34 +37,9 @@ class ResultJSONEncoder(DjangoJSONEncoder):
             return str(o)
 
 
-class MultipleStatementsError(Exception):
-    """Raised when more than one SQL statement is submitted for execution."""
-
-
 def elapsed_ms(started_at: float) -> int:
     """Milliseconds elapsed since ``started_at``, a ``time.perf_counter()`` value."""
     return round((time.perf_counter() - started_at) * 1000)
-
-
-def ensure_single_statement(query: str) -> None:
-    """Reject input that contains more than one SQL statement."""
-    statements = [s for s in sqlparse.split(query) if s.strip().rstrip(";").strip()]
-    if len(statements) > 1:
-        raise MultipleStatementsError("Only a single SQL statement can be executed.")
-
-
-def is_explain_query(query: str) -> bool:
-    """Whether the statement is an EXPLAIN.
-
-    An EXPLAIN returns a query plan whose length depends on the query's
-    complexity, not on the amount of data, so the row cap (meant to bound large
-    result sets) would truncate the plan mid-tree and must not apply.
-    """
-    parsed = sqlparse.parse(query)
-    if not parsed:
-        return False
-    first_token = parsed[0].token_first(skip_cm=True)
-    return first_token is not None and first_token.normalized.upper() == "EXPLAIN"
 
 
 def get_row_count_estimate(cursor, table_name: str) -> int:
@@ -154,11 +129,11 @@ def execute_database_query(
     This function does no permission check and no audit logging: SQL executed
     on behalf of an API request must go through ``run_and_log_database_query``.
     """
-    ensure_single_statement(query)
+    prepared = PreparedQuery.from_text(query)
     hard_limit = settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS
     # A plan is bounded by query complexity, so let it through the hard limit
     # in full rather than clipping it to the (small) requested row cap.
-    max_rows = hard_limit if is_explain_query(query) else min(max_rows, hard_limit)
+    max_rows = hard_limit if prepared.is_explain else min(max_rows, hard_limit)
     conn = None
     try:
         conn = get_workspace_database_ro_connection(workspace)
@@ -169,7 +144,7 @@ def execute_database_query(
                 )
             )
             started_at = time.perf_counter()
-            cursor.execute(query)
+            cursor.execute(prepared.sql)
             # cursor.description is None for statements that do not return rows
             columns = (
                 [column.name for column in cursor.description]
@@ -272,6 +247,41 @@ def run_and_log_database_query(
         truncated=result["truncated"],
     )
     return result
+
+
+# EXPLAIN only parses and plans the query (it never executes it), so this is a
+# generous ceiling that only guards against a pathological planning time.
+_VALIDATE_QUERY_TIMEOUT_MS = 5_000
+
+
+def validate_query(workspace: Workspace, query: str) -> None:
+    """Check a query against the database without executing it.
+
+    Runs ``EXPLAIN`` with the read-only role, which parses and plans the query,
+    catching syntax errors and references to unknown tables or columns at
+    near-zero cost. Raises ``MultipleStatementsError`` when more than one
+    statement is submitted and ``psycopg2.Error`` when the query is invalid.
+
+    A statement that is already an ``EXPLAIN`` is run as it stands, since
+    PostgreSQL cannot nest them -- which means an ``EXPLAIN ANALYZE`` submitted
+    here does run its inner query, bounded by the read-only role and the timeout.
+    """
+    prepared = PreparedQuery.from_text(query)
+    conn = None
+    try:
+        conn = get_workspace_database_ro_connection(workspace)
+        with conn.cursor() as cursor:
+            cursor.execute(
+                sql.SQL("SET LOCAL statement_timeout = {timeout};").format(
+                    timeout=sql.Literal(_VALIDATE_QUERY_TIMEOUT_MS)
+                )
+            )
+            cursor.execute(
+                prepared.sql if prepared.is_explain else "EXPLAIN " + prepared.sql
+            )
+    finally:
+        if conn:
+            conn.close()
 
 
 def get_database_definition(workspace: Workspace):
@@ -423,6 +433,33 @@ def get_database_definition_page(
             "total_items": total_items,
             "items": items,
         }
+    finally:
+        if conn:
+            conn.close()
+
+
+def get_full_database_definition(workspace: Workspace) -> List[Dict]:
+    """Return every table with its columns, without row counts.
+
+    Used to inline the whole database schema into LLM agent instructions:
+    row counts would trigger a potentially expensive COUNT(*) per table on
+    every conversation turn, and the consumer needs all tables at once, so
+    pagination does not apply.
+    """
+    conn = None
+    try:
+        conn = get_workspace_database_connection(workspace)
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            # LIMIT NULL means "no limit" in PostgreSQL, which lets us reuse
+            # the paginated query to fetch the full listing.
+            params = {"ignore_tables": IGNORE_TABLES, "limit": None, "offset": 0}
+            tables = _fetch_tables_with_columns(cursor, workspace, params)
+        # The shared query also carries a reltuples-based ``count`` and the
+        # workspace, but only names and columns are inlined into the LLM schema,
+        # so keep just those (no COUNT(*) is ever run here).
+        return [
+            {"name": table["name"], "columns": table["columns"]} for table in tables
+        ]
     finally:
         if conn:
             conn.close()

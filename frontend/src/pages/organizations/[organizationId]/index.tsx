@@ -1,3 +1,4 @@
+import { isValidUuid } from "core/helpers";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import OrganizationLayout from "organizations/layouts/OrganizationLayout";
@@ -173,11 +174,18 @@ OrganizationPage.getLayout = (page) => page;
 export const getServerSideProps = createGetServerSideProps({
   requireAuth: true,
   async getServerSideProps(ctx, client) {
+    const organizationId = ctx.params?.organizationId;
+    if (!isValidUuid(organizationId)) {
+      return {
+        notFound: true,
+      };
+    }
+
     await OrganizationLayout.prefetch(ctx);
     const { data } = await client.query({
       query: OrganizationDocument,
       variables: {
-        id: ctx.params?.organizationId as string,
+        id: organizationId,
       },
     });
 

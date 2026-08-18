@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import QueryLog
+from .models import QueryLog, SavedQuery
 
 
 @admin.register(QueryLog)
@@ -17,3 +17,39 @@ class QueryLogAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+
+@admin.register(SavedQuery)
+class SavedQueryAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "workspace",
+        "organization",
+        "created_by",
+        "visibility",
+        "created_at",
+        "updated_at",
+    )
+    list_filter = ("visibility", "workspace__organization")
+    list_select_related = ("workspace__organization", "created_by")
+    search_fields = (
+        "id",
+        "name",
+        "workspace__name",
+        "workspace__slug",
+        "workspace__organization__name",
+        "created_by__email",
+    )
+    autocomplete_fields = ("workspace", "created_by")
+    fields = (
+        "name",
+        "description",
+        "workspace",
+        "created_by",
+        "visibility",
+        "content",
+    )
+
+    @admin.display(ordering="workspace__organization")
+    def organization(self, obj):
+        return obj.workspace.organization

@@ -2,30 +2,42 @@ import { gql } from "@apollo/client";
 import clsx from "clsx";
 import {
   ArrowDownTrayIcon,
+  Bars3BottomLeftIcon,
   PencilIcon,
+  SparklesIcon,
   TableCellsIcon,
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
+import { SQLNamespace } from "@codemirror/lang-sql";
 import CodeEditor, {
   CodeEditorHandle,
 } from "core/components/CodeEditor/CodeEditor";
+import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import useIsMac from "core/hooks/useIsMac";
 import useResizablePanel from "core/hooks/useResizablePanel";
+import useSaveShortcut from "core/hooks/useSaveShortcut";
 import { useTranslation } from "next-i18next";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import SaveQueryDialog from "workspaces/features/SavedQueries/SaveQueryDialog";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
 import { buildCsv, downloadCsv } from "./csv";
+import { useWorkspaceDataStudioSchemaQuery } from "./DataStudioSchemaBrowser.generated";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
+import { formatSql } from "./formatSql";
+import GenerateSqlBar, { useGenerateSqlForm } from "./GenerateSqlBar";
 import SaveQueryButton from "./SaveQueryButton";
+import SavedQueryVisibilityButton from "./SavedQueryVisibilityButton";
 import { useDataStudioQuery } from "./useDataStudioQuery";
 import { useSavedQueryEditor } from "./useSavedQueryEditor";
 
 type DataStudioEditorProps = {
   workspaceSlug: string;
   savedQuery?: SavedQuery_SavedQueryFragment | null;
-  canCreate?: boolean;
+  canCreate: boolean;
+  aiEnabled?: boolean;
+  aiBudgetLimitReached?: boolean;
+  monthlyLimitExceeded?: boolean;
 };
 
 const MAX_ROWS_OPTIONS = [50, 100, 500, 1000, 10_000];
@@ -46,13 +58,17 @@ const RESULTS_MIN_HEIGHT = 140;
 const DataStudioEditor = ({
   workspaceSlug,
   savedQuery,
-  canCreate = false,
+  canCreate,
+  aiEnabled = false,
+  aiBudgetLimitReached = false,
+  monthlyLimitExceeded = false,
 }: DataStudioEditorProps) => {
   const { t } = useTranslation();
   const isMac = useIsMac();
   const [query, setQuery] = useState(savedQuery?.content ?? "");
   const [maxRows, setMaxRows] = useState(MAX_ROWS_OPTIONS[0]);
   const editorRef = useRef<CodeEditorHandle>(null);
+  const [generateBarOpen, setGenerateBarOpen] = useState(false);
   // Measured at drag time so the editor can never be grown past the point where
   // the results panel would collapse.
   const splitRef = useRef<HTMLDivElement>(null);
@@ -82,25 +98,73 @@ const DataStudioEditor = ({
     axis: "y",
   });
 
+  const handleGenerated = useCallback((sql: string) => {
+    setQuery(sql);
+    setGenerateBarOpen(false);
+  }, []);
+
+  const generateForm = useGenerateSqlForm(workspaceSlug, handleGenerated);
+
   const editor = useSavedQueryEditor({
     workspaceSlug,
     content: query,
     initialSavedQuery: savedQuery,
+    canCreate,
   });
 
+  useSaveShortcut(editor.commit);
+
+  // Stable so the memoised schema browser is not re-rendered by every keystroke
+  // in the editor. Goes through the imperative handle, so it needs no deps.
+  const insertIntoEditor = useCallback(
+    (text: string) => editorRef.current?.insertText(text),
+    [],
+  );
+
   const runShortcutLabel = isMac ? "⌘+Enter" : "Ctrl+Enter";
-  // Compact form for the in-button pill: the return glyph reads cleanly next to
-  // ⌘ on macOS; other platforms keep the spelled-out modifier.
+  const formatShortcutLabel = isMac ? "⇧+⌥+F" : "Shift+Alt+F";
+  // Compact form for the in-button pill: the modifier glyphs read cleanly on
+  // macOS; other platforms keep the spelled-out modifiers.
   const runShortcutBadge = isMac ? "⌘↵" : "Ctrl+Enter";
 
   const { run, retry, result, loading, error, canExport } =
     useDataStudioQuery(workspaceSlug);
+
+  // Same query DataStudioSchemaBrowser runs to populate its table tree.
+  // Apollo dedupes identical in-flight queries and serves matching variables
+  // from its normalized cache afterwards, so this doesn't add a network
+  // request — it's how the editor gets at the schema it needs for autocomplete.
+  const { data: schemaData } = useWorkspaceDataStudioSchemaQuery({
+    variables: { workspaceSlug },
+  });
+
+  const sqlSchema = useMemo<SQLNamespace>(() => {
+    const items = schemaData?.workspace?.database?.tables?.items ?? [];
+    return Object.fromEntries(
+      items.map((table) => [
+        table.name,
+        table.columns.map((column) => ({
+          label: column.name,
+          type: "property",
+          detail: column.type,
+        })),
+      ]),
+    );
+  }, [schemaData]);
 
   const canRun = !loading && Boolean(query.trim());
 
   const runSelection = () => {
     const selected = editorRef.current?.getSelectedText() ?? "";
     run(selected.trim() || query, maxRows);
+  };
+
+  // Always the whole query, never the selection — unlike Run, where a bad
+  // fragment fails loudly at the database, the formatter reflows fragments
+  // happily ("id, name" becomes two left-aligned lines) and would splice that
+  // back into the middle of a line.
+  const formatQuery = () => {
+    editorRef.current?.replaceAll(formatSql(query));
   };
 
   const exportCsv = () => {
@@ -115,9 +179,17 @@ const DataStudioEditor = ({
   // consumed and does not also insert a newline. Runs the selection when there
   // is one, otherwise the whole query. "Mod" is Cmd on macOS / Ctrl elsewhere;
   // "Ctrl" is added so Ctrl+Enter works on macOS too.
+  // Formatting deliberately stays off Mod-f: that is find, both in the browser
+  // and in CodeMirror, and it is used far more often than formatting.
+  // "Shift-Alt-f" is the editor-conventional binding for formatting. It needs
+  // both cases: CodeMirror skips its keyCode fallback for plain Alt combos on
+  // macOS (Alt there types a character — ⇧⌥F is "Ï"), so it resolves the
+  // keystroke to "Shift-Alt-F" on Mac and to "Shift-Alt-f" everywhere else.
   const editorShortcuts = [
     { key: "Mod-Enter", run: runSelection },
     { key: "Ctrl-Enter", run: runSelection },
+    { key: "Shift-Alt-f", run: formatQuery },
+    { key: "Shift-Alt-F", run: formatQuery },
   ];
 
   return (
@@ -127,7 +199,7 @@ const DataStudioEditor = ({
           <DataStudioSchemaBrowser
             workspaceSlug={workspaceSlug}
             className="h-full w-full"
-            onInsert={(text) => editorRef.current?.insertText(text)}
+            onInsert={insertIntoEditor}
           />
         </div>
         {/* A 1px border would be too small a target, so the handle is a 2px
@@ -166,16 +238,15 @@ const DataStudioEditor = ({
               </button>
             )}
             <div className="ml-auto flex items-center gap-2">
-              <SaveQueryButton
-                isSaved={Boolean(editor.savedQuery)}
-                isDirty={editor.isDirty}
-                hasContent={Boolean(query.trim())}
-                canUpdate={editor.canUpdate}
-                canCreate={canCreate}
-                saving={editor.saving}
-                onSave={editor.save}
-                onSaveAsNew={editor.saveAsNew}
-              />
+              <SaveQueryButton plan={editor.savePlan} />
+              {editor.savedQuery && (
+                <SavedQueryVisibilityButton
+                  visibility={editor.savedQuery.visibility}
+                  canUpdate={editor.canUpdateVisibility}
+                  saving={editor.saving}
+                  onChange={editor.setVisibility}
+                />
+              )}
               <label className="flex items-center gap-1.5 text-xs text-gray-500">
                 {t("Max rows")}
                 <select
@@ -190,6 +261,33 @@ const DataStudioEditor = ({
                   ))}
                 </select>
               </label>
+              {aiEnabled && (
+                <SubscriptionLimitTooltip
+                  isLimitReached={aiBudgetLimitReached}
+                  title={t("Monthly AI budget reached")}
+                >
+                  <button
+                    onClick={() => setGenerateBarOpen((open) => !open)}
+                    disabled={aiBudgetLimitReached}
+                    aria-pressed={generateBarOpen}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-md bg-indigo-100 px-2.5 text-xs font-medium text-indigo-700 hover:bg-indigo-200 disabled:cursor-not-allowed disabled:bg-transparent disabled:text-gray-300"
+                  >
+                    <SparklesIcon className="h-4 w-4" />
+                    {t("Generate")}
+                  </button>
+                </SubscriptionLimitTooltip>
+              )}
+              <button
+                onClick={formatQuery}
+                disabled={!query.trim()}
+                title={t("Format ({{shortcut}})", {
+                  shortcut: formatShortcutLabel,
+                })}
+                className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
+              >
+                <Bars3BottomLeftIcon className="h-4 w-4" />
+                {t("Format")}
+              </button>
               <button
                 onClick={exportCsv}
                 disabled={!canExport}
@@ -225,6 +323,15 @@ const DataStudioEditor = ({
             </div>
           </div>
 
+          {aiEnabled && (
+            <GenerateSqlBar
+              open={generateBarOpen}
+              onClose={() => setGenerateBarOpen(false)}
+              form={generateForm}
+              monthlyLimitExceeded={monthlyLimitExceeded}
+            />
+          )}
+
           {/* Editor + results split: the editor is sized, the results panel below
               takes the remaining height. */}
           <div ref={splitRef} className="flex min-h-0 flex-1 flex-col">
@@ -236,6 +343,7 @@ const DataStudioEditor = ({
                 autoFocus
                 value={query}
                 onChange={setQuery}
+                sqlSchema={sqlSchema}
                 height="100%"
                 minHeight="100%"
                 placeholder={t("Write a SQL query… ({{shortcut}} to run)", {
@@ -268,17 +376,17 @@ const DataStudioEditor = ({
           </div>
         </div>
       </div>
-      {editor.dialog && (
-        <SaveQueryDialog
-          open
-          mode={editor.dialog.mode}
-          workspaceSlug={workspaceSlug}
-          content={query}
-          savedQuery={editor.savedQuery}
-          onClose={editor.closeDialog}
-          onSaved={editor.onDialogSaved}
-        />
-      )}
+      {/* Kept mounted and toggled through `open`: Headless UI skips its enter
+          transition for a dialog that mounts already open. */}
+      <SaveQueryDialog
+        open={editor.dialog.open}
+        mode={editor.dialog.mode}
+        workspaceSlug={workspaceSlug}
+        content={query}
+        savedQuery={editor.savedQuery}
+        onClose={editor.closeDialog}
+        onSaved={editor.onDialogSaved}
+      />
     </>
   );
 };

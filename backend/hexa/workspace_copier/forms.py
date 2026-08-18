@@ -3,6 +3,7 @@
 from django import forms
 
 from hexa.workspace_copier.orchestrator import WORKSPACE_COPIERS
+from hexa.workspace_copier.templates import DEFAULT_SOURCE_URL
 
 
 def _resource_choices() -> list[tuple[str, str]]:
@@ -15,6 +16,25 @@ def _default_resources() -> list[str]:
 
 def _mandatory_resources() -> set[str]:
     return {c.name for c in WORKSPACE_COPIERS if c.mandatory}
+
+
+def _option_fields() -> dict[str, tuple[str, ...]]:
+    return {c.name: c.option_fields for c in WORKSPACE_COPIERS if c.option_fields}
+
+
+class ResourceSelect(forms.CheckboxSelectMultiple):
+    """Checkbox list where a mandatory copier is checked and locked.
+
+    ``clean`` adds those back whatever is submitted, so an enabled box would
+    offer a choice that doesn't exist.
+    """
+
+    def create_option(self, name, value, *args, **kwargs):
+        option = super().create_option(name, value, *args, **kwargs)
+        if str(value) in _mandatory_resources():
+            option["attrs"]["checked"] = True
+            option["attrs"]["disabled"] = True
+        return option
 
 
 class CopyWorkspaceForm(forms.Form):
@@ -61,13 +81,35 @@ class CopyWorkspaceForm(forms.Form):
     resources = forms.MultipleChoiceField(
         required=False,
         choices=_resource_choices,
-        widget=forms.CheckboxSelectMultiple,
-        help_text="The workspace-metadata copier always runs.",
+        widget=ResourceSelect,
+    )
+    all_dataset_versions = forms.BooleanField(
+        required=False,
+        label="Copy all dataset versions",
+        label_suffix="",
+        help_text="Off by default: only each dataset's latest version is copied.",
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["resources"].initial = _default_resources()
+
+    def resource_rows(self):
+        """Pair each resource checkbox with the option fields tuning that resource.
+
+        Lets the template nest a copier's options under its own checkbox instead
+        of listing them all after the resource list, where nothing says which
+        resource they affect.
+        """
+        option_fields = _option_fields()
+        mandatory = _mandatory_resources()
+        for checkbox in self["resources"]:
+            name = str(checkbox.data["value"])
+            yield {
+                "checkbox": checkbox,
+                "mandatory": name in mandatory,
+                "options": [self[field] for field in option_fields.get(name, ())],
+            }
 
     def _clean_endpoint_credentials(self, side: str) -> None:
         url = self.cleaned_data.get(f"{side}_url")
@@ -88,3 +130,37 @@ class CopyWorkspaceForm(forms.Form):
         selected |= _mandatory_resources()
         cleaned["resources"] = selected
         return cleaned
+
+
+class CopyTemplatesForm(forms.Form):
+    """Pick a source and target server to copy all pipeline templates between.
+
+    Templates are server-wide, so there is no workspace slug or resource
+    selection — both sides are remote and each needs a ServiceAccount token. The
+    target organization is where the host "Template pipelines" workspace is
+    created when it doesn't already exist.
+    """
+
+    source_url = forms.URLField(
+        label="Source server URL",
+        initial=DEFAULT_SOURCE_URL,
+        help_text="GraphQL endpoint of the source server. Defaults to production.",
+    )
+    source_token = forms.CharField(
+        label="Source ServiceAccount token",
+        widget=forms.PasswordInput(render_value=True),
+    )
+
+    target_url = forms.URLField(
+        label="Target server URL",
+        help_text="GraphQL endpoint of the target server.",
+    )
+    target_token = forms.CharField(
+        label="Target ServiceAccount token",
+        widget=forms.PasswordInput(render_value=True),
+    )
+    target_organization = forms.CharField(
+        label="Target organization id",
+        help_text="UUID of the organization the host 'Template pipelines' "
+        "workspace is created under when needed.",
+    )

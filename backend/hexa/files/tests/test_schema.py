@@ -5,10 +5,10 @@ from hexa.files.backends.base import StorageObject
 from hexa.files.backends.exceptions import NotFound
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class FilesTest(GraphQLTestCase):
@@ -22,14 +22,14 @@ class FilesTest(GraphQLTestCase):
             "workspaceroot@bluesquarehub.com", "workspace", is_superuser=True
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_WORKSPACE_ADMIN,
             name="Senegal Workspace",
             description="This is a workspace for Senegal",
             countries=[{"code": "AL"}],
         )
 
-        cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_2 = create_workspace(
             cls.USER_WORKSPACE_ADMIN,
             name="Burundi Workspace",
             description="This is a workspace for Burundi",

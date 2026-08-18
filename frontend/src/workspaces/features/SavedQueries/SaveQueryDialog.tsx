@@ -3,10 +3,12 @@ import Dialog from "core/components/Dialog";
 import Field from "core/components/forms/Field";
 import Textarea from "core/components/forms/Textarea";
 import useForm from "core/hooks/useForm";
+import { SavedQueryVisibility } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
+import SavedQueryVisibilityPicker from "workspaces/features/SavedQueries/SavedQueryVisibilityPicker";
 import { useSavedQueryMutations } from "workspaces/features/SavedQueries/useSavedQueryMutations";
 
 export type SaveQueryDialogMode = "create" | "edit-details";
@@ -22,7 +24,7 @@ type SaveQueryDialogProps = {
   // copied ("create" / save-as-new). Null for a brand-new query.
   savedQuery?: Pick<
     SavedQuery_SavedQueryFragment,
-    "id" | "name" | "description"
+    "id" | "name" | "description" | "visibility" | "permissions"
   > | null;
   onSaved?: (savedQuery: SavedQuery_SavedQueryFragment) => void;
 };
@@ -30,11 +32,14 @@ type SaveQueryDialogProps = {
 // max_length of SavedQuery.name on the backend.
 const NAME_MAX_LENGTH = 255;
 
-type Values = { name: string; description: string };
+type Values = {
+  name: string;
+  description: string;
+  visibility: SavedQueryVisibility;
+};
 
-// Create / edit-details modal for a saved query. Visibility and slug are
-// intentionally absent: the backend has no such concepts (all saved queries are
-// workspace-visible, identified by id).
+// Create / edit-details modal for a saved query. Slug is intentionally absent:
+// queries are identified by id on the backend.
 const SaveQueryDialog = ({
   open,
   onClose,
@@ -47,10 +52,21 @@ const SaveQueryDialog = ({
   const { t } = useTranslation();
   const { create, update } = useSavedQueryMutations();
 
+  // An editor may edit a shared query without being allowed to unshare it. The
+  // picker still shows the current state, just read-only.
+  const canEditVisibility =
+    mode === "create" || (savedQuery?.permissions.updateVisibility ?? false);
+
   const form = useForm<Values>({
     getInitialState: () => ({
       name: savedQuery?.name ?? "",
       description: savedQuery?.description ?? "",
+      // Anything created here is a new query - including a save-as-new fork of a
+      // shared one - so it starts private until its author shares it.
+      visibility:
+        mode === "create"
+          ? SavedQueryVisibility.Private
+          : (savedQuery?.visibility ?? SavedQueryVisibility.Private),
     }),
     validate: (values) => {
       const errors: any = {};
@@ -79,8 +95,14 @@ const SaveQueryDialog = ({
               name,
               content: content ?? "",
               description,
+              visibility: values.visibility,
             })
-          : await update({ id: savedQuery!.id, name, description });
+          : await update({
+              id: savedQuery!.id,
+              name,
+              description,
+              visibility: values.visibility,
+            });
 
       if (res.ok) {
         toast.success(
@@ -95,7 +117,10 @@ const SaveQueryDialog = ({
     },
   });
 
-  // Re-seed the form from the current props each time the dialog opens.
+  // The dialog stays mounted between opens (so its transitions can run), so the
+  // form has to be re-seeded from the current props each time it opens. Keyed on
+  // `open` alone on purpose: re-running this on a new `form` identity would wipe
+  // whatever the user has typed.
   useEffect(() => {
     if (open) {
       form.resetForm();
@@ -127,6 +152,15 @@ const SaveQueryDialog = ({
               onChange={form.handleInputChange}
               rows={7}
               placeholder={t("What does this query return? Any caveats?")}
+            />
+          </Field>
+          <Field name="visibility" label={t("Sharing")} showOptional={false}>
+            <SavedQueryVisibilityPicker
+              value={form.formData.visibility ?? SavedQueryVisibility.Private}
+              onChange={(visibility) =>
+                form.setFieldValue("visibility", visibility)
+              }
+              disabled={!canEditVisibility}
             />
           </Field>
           {form.submitError && (
