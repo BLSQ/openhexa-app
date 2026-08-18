@@ -517,12 +517,20 @@ def run_pipeline(run: PipelineRun, create_container: bool = True):
 
 
 KILLED_BY_TIMEOUT_MESSAGE = "Killed due to heartbeat timeout"
+STOPPED_BY_TIMEOUT_MESSAGE = "Stopped due to heartbeat timeout"
+
+
+def timed_out_state(run: PipelineRun):
+    """A run that was already terminating had been asked to stop, so honour that intent."""
+    if run.state == PipelineRunState.TERMINATING:
+        return PipelineRunState.STOPPED, STOPPED_BY_TIMEOUT_MESSAGE
+    return PipelineRunState.FAILED, KILLED_BY_TIMEOUT_MESSAGE
 
 
 def process_zombie_runs():
     """Check for zombie runs and update their status based on actual pod state."""
     zombie_runs = PipelineRun.objects.filter(
-        state=PipelineRunState.RUNNING,
+        state__in=[PipelineRunState.RUNNING, PipelineRunState.TERMINATING],
         last_heartbeat__lt=(timezone.now() - timedelta(seconds=HEARTBEAT_TIMEOUT)),
     )
 
@@ -533,11 +541,10 @@ def process_zombie_runs():
         # For non-Kubernetes spawners, mark all zombie runs as failed
         for run in zombie_runs:
             logger.warning("Timeout kill run %s #%s", run.pipeline.name, run.id)
-            run.state = PipelineRunState.FAILED
+            state, message = timed_out_state(run)
+            run.state = state
             run.run_logs = (
-                "\n".join([run.run_logs, KILLED_BY_TIMEOUT_MESSAGE])
-                if run.run_logs
-                else KILLED_BY_TIMEOUT_MESSAGE
+                "\n".join([run.run_logs, message]) if run.run_logs else message
             )
             run.save()
         return
@@ -589,7 +596,10 @@ def process_zombie_runs():
                 logs = ""
 
             run.run_logs = logs or run.run_logs
-            if phase in {"Succeeded", "Failed"}:
+            if run.state != PipelineRunState.TERMINATING and phase in {
+                "Succeeded",
+                "Failed",
+            }:
                 run.state = (
                     PipelineRunState.SUCCESS
                     if phase == "Succeeded"
@@ -599,12 +609,9 @@ def process_zombie_runs():
                 continue
 
         logger.warning("Timeout kill run %s #%s", run.pipeline.name, run.id)
-        run.state = PipelineRunState.FAILED
-        run.run_logs = (
-            "\n".join([run.run_logs, KILLED_BY_TIMEOUT_MESSAGE])
-            if run.run_logs
-            else KILLED_BY_TIMEOUT_MESSAGE
-        )
+        state, message = timed_out_state(run)
+        run.state = state
+        run.run_logs = "\n".join([run.run_logs, message]) if run.run_logs else message
         run.save()
 
 

@@ -22,6 +22,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from openhexa.graphql.graphql_client.client import Client
 
 from hexa.workspace_copier.endpoints import Endpoint
+from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.orchestrator import copy_workspace
 from hexa.workspace_copier.progress import ProgressReporter
 from hexa.workspace_copier.results import CopyResult, TemplatesResult
@@ -137,6 +138,7 @@ def run_copy(
     target_organization_id: str,
     target_workspace_name: str | None = None,
     resources: set[str] | None = None,
+    options: CopyOptions = CopyOptions(),
     reporter: ProgressReporter,
 ) -> CopyResult:
     """Verify both endpoints, then copy the workspace, returning the result."""
@@ -149,7 +151,9 @@ def run_copy(
         target_organization_id=target_organization_id,
         target_workspace_name=target_workspace_name,
     )
-    return copy_workspace(source, target, reporter, resources=resources)
+    return copy_workspace(
+        source, target, reporter, resources=resources, options=options
+    )
 
 
 def run_template_copy(

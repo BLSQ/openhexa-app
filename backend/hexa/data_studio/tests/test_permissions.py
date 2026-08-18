@@ -1,9 +1,10 @@
 from hexa.core.test import TestCase
-from hexa.data_studio.models import SavedQuery
+from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
 from hexa.data_studio.permissions import (
     create_saved_query,
     delete_saved_query,
     update_saved_query,
+    update_saved_query_visibility,
 )
 from hexa.user_management.models import (
     Organization,
@@ -17,10 +18,8 @@ from .testutils import SavedQueryTestMixin
 
 
 class SavedQueryPermissionsTest(SavedQueryTestMixin, TestCase):
-    def _create(self, user):
-        return SavedQuery.objects.create_if_has_perm(
-            user, self.WORKSPACE, name="q", content="SELECT 1"
-        )
+    def _create(self, user, visibility=SavedQueryVisibility.WORKSPACE):
+        return self.create_saved_query(user=user, name="q", visibility=visibility)
 
     def test_create_saved_query(self):
         self.assertTrue(create_saved_query(self.USER_ADMIN, self.WORKSPACE))
@@ -32,7 +31,7 @@ class SavedQueryPermissionsTest(SavedQueryTestMixin, TestCase):
         query = self._create(self.USER_VIEWER)
         # author (a viewer) can update their own query
         self.assertTrue(update_saved_query(self.USER_VIEWER, query))
-        # editor/admin can update any query in the workspace
+        # editor/admin can update any shared query in the workspace
         self.assertTrue(update_saved_query(self.USER_EDITOR, query))
         self.assertTrue(update_saved_query(self.USER_ADMIN, query))
         # non-author viewer cannot
@@ -41,12 +40,43 @@ class SavedQueryPermissionsTest(SavedQueryTestMixin, TestCase):
         # outsider cannot
         self.assertFalse(update_saved_query(self.USER_OUTSIDER, query))
 
+    def test_update_private_saved_query(self):
+        query = self._create(self.USER_VIEWER, visibility=SavedQueryVisibility.PRIVATE)
+        # the author keeps their rights, no role grants access to anyone else
+        self.assertTrue(update_saved_query(self.USER_VIEWER, query))
+        self.assertFalse(update_saved_query(self.USER_EDITOR, query))
+        self.assertFalse(update_saved_query(self.USER_ADMIN, query))
+        self.assertFalse(update_saved_query(self.USER_OUTSIDER, query))
+
+    def test_update_saved_query_visibility(self):
+        query = self._create(self.USER_VIEWER)
+        self.assertTrue(update_saved_query_visibility(self.USER_VIEWER, query))
+        # sharing is the author's call alone, even for members who may edit it
+        self.assertFalse(update_saved_query_visibility(self.USER_EDITOR, query))
+        self.assertFalse(update_saved_query_visibility(self.USER_ADMIN, query))
+        self.assertFalse(update_saved_query_visibility(self.USER_OUTSIDER, query))
+
+    def test_update_saved_query_visibility_without_author(self):
+        # created_by is SET_NULL, so an author-less query must not be claimed by
+        # whoever comes along.
+        query = self._create(self.USER_VIEWER)
+        query.created_by = None
+        query.save()
+        self.assertFalse(update_saved_query_visibility(self.USER_VIEWER, query))
+        self.assertFalse(update_saved_query_visibility(self.USER_ADMIN, query))
+
     def test_delete_saved_query(self):
         query = self._create(self.USER_EDITOR)
         self.assertTrue(delete_saved_query(self.USER_EDITOR, query))
         self.assertTrue(delete_saved_query(self.USER_ADMIN, query))
         self.assertFalse(delete_saved_query(self.USER_VIEWER, query))
         self.assertFalse(delete_saved_query(self.USER_OUTSIDER, query))
+
+    def test_delete_private_saved_query(self):
+        query = self._create(self.USER_VIEWER, visibility=SavedQueryVisibility.PRIVATE)
+        self.assertTrue(delete_saved_query(self.USER_VIEWER, query))
+        self.assertFalse(delete_saved_query(self.USER_EDITOR, query))
+        self.assertFalse(delete_saved_query(self.USER_ADMIN, query))
 
 
 class SavedQueryOrganizationPermissionsTest(TestCase):
@@ -103,6 +133,14 @@ class SavedQueryOrganizationPermissionsTest(TestCase):
             created_by=cls.USER_WS_CREATOR,
             name="q",
             content="SELECT 1",
+            visibility=SavedQueryVisibility.WORKSPACE,
+        )
+        cls.PRIVATE_SAVED_QUERY = SavedQuery.objects.create(
+            workspace=cls.WORKSPACE,
+            created_by=cls.USER_WS_CREATOR,
+            name="private q",
+            content="SELECT 1",
+            visibility=SavedQueryVisibility.PRIVATE,
         )
 
     def test_create_via_organization_role(self):
@@ -122,3 +160,29 @@ class SavedQueryOrganizationPermissionsTest(TestCase):
         self.assertTrue(delete_saved_query(self.USER_ORG_ADMIN, self.SAVED_QUERY))
         self.assertFalse(delete_saved_query(self.USER_ORG_MEMBER, self.SAVED_QUERY))
         self.assertFalse(delete_saved_query(self.USER_NON_MEMBER, self.SAVED_QUERY))
+
+    def test_organization_role_does_not_reach_private_queries(self):
+        # Being an organization admin grants workspace-wide access, not access to
+        # somebody's private drafts.
+        for user in [self.USER_ORG_OWNER, self.USER_ORG_ADMIN]:
+            self.assertFalse(update_saved_query(user, self.PRIVATE_SAVED_QUERY))
+            self.assertFalse(delete_saved_query(user, self.PRIVATE_SAVED_QUERY))
+            self.assertFalse(
+                update_saved_query_visibility(user, self.PRIVATE_SAVED_QUERY)
+            )
+
+    def test_organization_role_cannot_change_visibility(self):
+        self.assertFalse(
+            update_saved_query_visibility(self.USER_ORG_OWNER, self.SAVED_QUERY)
+        )
+        self.assertFalse(
+            update_saved_query_visibility(self.USER_ORG_ADMIN, self.SAVED_QUERY)
+        )
+        self.assertTrue(
+            update_saved_query_visibility(self.USER_WS_CREATOR, self.SAVED_QUERY)
+        )
+
+    def test_organization_role_does_not_list_private_queries(self):
+        visible = set(SavedQuery.objects.filter_for_user(self.USER_ORG_ADMIN))
+        self.assertIn(self.SAVED_QUERY, visible)
+        self.assertNotIn(self.PRIVATE_SAVED_QUERY, visible)

@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.test import SimpleTestCase
 
 from hexa.workspace_copier import orchestrator
+from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.orchestrator import (
     WORKSPACE_COPIERS,
     _resolve_selection,
@@ -19,9 +20,11 @@ class FakeCopier(ResourceCopier):
         self.mandatory = mandatory
         self.depends_on = depends_on
         self.calls = []
+        self.options = {}
 
-    def copy(self, source, target, result, reporter):
+    def copy(self, source, target, result, reporter, *, options=CopyOptions()):
         self.calls.append((source, target))
+        self.options = options
         reporter.info(f"ran:{self.name}")
         result.warn(f"ran:{self.name}")
 
@@ -73,6 +76,13 @@ class CopyWorkspaceTest(SimpleTestCase):
         )
         # files copier did not run
         self.assertFalse(fakes[1].calls)
+
+    def test_options_reach_every_copier(self):
+        fakes = [FakeCopier("workspace", mandatory=True), FakeCopier("datasets")]
+        options = CopyOptions(all_dataset_versions=True)
+        with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
+            copy_workspace(object(), object(), NullReporter(), options=options)
+        self.assertTrue(all(f.options is options for f in fakes))
 
     def test_no_warning_when_dependency_selected(self):
         fakes = [

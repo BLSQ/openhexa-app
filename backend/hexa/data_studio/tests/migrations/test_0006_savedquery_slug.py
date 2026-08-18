@@ -4,7 +4,7 @@ from hexa.core.test.migrator import Migrator
 from hexa.workspaces.tests.testutils import create_workspace
 
 
-class Migration0005Test(TransactionTestCase):
+class Migration0006Test(TransactionTestCase):
     """The backfill runs against rows that predate the slug column, where names
     are free to repeat inside a workspace.
 
@@ -13,8 +13,8 @@ class Migration0005Test(TransactionTestCase):
     same transaction.
     """
 
-    migrate_from = ("data_studio", "0004_merge_20260731_2053")
-    migrate_to = ("data_studio", "0005_savedquery_slug")
+    migrate_from = ("data_studio", "0005_savedquery_visibility_and_more")
+    migrate_to = ("data_studio", "0006_savedquery_slug")
 
     def setUp(self):
         self.migrator = Migrator()

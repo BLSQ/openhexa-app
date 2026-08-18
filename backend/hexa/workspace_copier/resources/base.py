@@ -9,6 +9,7 @@ did/skipped/failed on the shared :class:`CopyResult`.
 from abc import ABC, abstractmethod
 
 from hexa.workspace_copier.endpoints import Endpoint
+from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import ProgressReporter
 from hexa.workspace_copier.results import CopyResult
 
@@ -26,6 +27,9 @@ class ResourceCopier(ABC):
     depends_on: tuple[str, ...] = ()
     """Advisory: a warning is emitted if a declared dependency is deselected."""
 
+    option_fields: tuple[str, ...] = ()
+    """``CopyWorkspaceForm`` fields tuning this copier, rendered under its checkbox."""
+
     @abstractmethod
     def copy(
         self,
@@ -33,5 +37,7 @@ class ResourceCopier(ABC):
         target: Endpoint,
         result: CopyResult,
         reporter: ProgressReporter,
+        *,
+        options: CopyOptions = CopyOptions(),
     ) -> None:
         ...

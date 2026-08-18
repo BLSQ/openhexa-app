@@ -13,6 +13,7 @@ import httpx
 from openhexa.graphql.graphql_client.client import Client
 
 from hexa.workspace_copier.endpoints import Endpoint
+from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import ProgressReporter
 from hexa.workspace_copier.resources.base import ResourceCopier
 from hexa.workspace_copier.results import CopyResult, FilesResult
@@ -171,6 +172,8 @@ class FilesCopier(ResourceCopier):
         target: Endpoint,
         result: CopyResult,
         reporter: ProgressReporter,
+        *,
+        options: CopyOptions = CopyOptions(),
     ) -> None:
         files_result = FilesResult()
         result.files = files_result

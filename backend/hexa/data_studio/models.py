@@ -4,11 +4,12 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.validators import validate_slug
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.databases.query_text import sanitize_sql
-from hexa.user_management.models import User, UserInterface
+from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.workspaces.models import Workspace
 
 SLUG_MAX_LENGTH = 255
@@ -27,9 +28,26 @@ def generate_saved_query_slug(name: str, workspace: Workspace) -> str:
         suffix = "-" + secrets.token_hex(3)
 
 
+class SavedQueryVisibility(models.TextChoices):
+    PRIVATE = "PRIVATE", _("Private")
+    WORKSPACE = "WORKSPACE", _("Workspace")
+
+
 class SavedQueryQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
-        return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
+        accessible = models.Q(visibility=SavedQueryVisibility.WORKSPACE)
+        # Service principals (pipeline runs, webapps) impersonate a workspace rather
+        # than a person, so they never own a private query - a deliberate call for
+        # WebappUser, whose real User row `created_by` would match and which
+        # WorkspaceQuerySet does treat as a person.
+        if isinstance(user, User) and not isinstance(user, ServicePrincipal):
+            accessible |= models.Q(created_by=user)
+
+        return self._filter_for_user_and_query_object(
+            user,
+            models.Q(workspace__in=Workspace.objects.filter_for_user(user))
+            & accessible,
+        )
 
 
 class SavedQueryManager(models.Manager):
@@ -41,6 +59,9 @@ class SavedQueryManager(models.Manager):
         name: str,
         content: str,
         description: str = "",
+        # None means "unspecified" and lands on the default: a brand-new query is
+        # private until its author decides to share it.
+        visibility: str | None = None,
     ):
         if not principal.has_perm("data_studio.create_saved_query", workspace):
             raise PermissionDenied
@@ -51,11 +72,17 @@ class SavedQueryManager(models.Manager):
             name=name,
             content=content,
             description=description,
+            visibility=visibility or SavedQueryVisibility.PRIVATE,
         )
 
 
 class SavedQuery(Base):
-    """A SQL query saved by a user in the Data Studio, shared with the whole workspace."""
+    """A SQL query saved by a user in the Data Studio.
+
+    A saved query belongs to a workspace, but its `visibility` decides who within
+    that workspace can reach it: WORKSPACE queries are shared with every member,
+    PRIVATE ones are the author's alone.
+    """
 
     workspace = models.ForeignKey(
         Workspace,
@@ -71,6 +98,11 @@ class SavedQuery(Base):
     )
     description = models.TextField(blank=True, default="")
     content = models.TextField()
+    visibility = models.CharField(
+        max_length=20,
+        choices=SavedQueryVisibility.choices,
+        default=SavedQueryVisibility.PRIVATE,
+    )
 
     objects = SavedQueryManager.from_queryset(SavedQueryQuerySet)()
 
@@ -96,6 +128,17 @@ class SavedQuery(Base):
                 fields=["workspace", "name", "id"],
                 name="data_studio_ws_name_idx",
             ),
+            # Listings match `workspace = X AND (visibility = 'WORKSPACE' OR
+            # created_by = me)`. Postgres serves that OR as a BitmapOr, so the two
+            # indexes above cover the shared branch and this one covers the author
+            # branch. `visibility` is deliberately not folded into their leading
+            # columns: a BitmapOr discards index ordering anyway, so it would buy
+            # nothing. If this ever shows up in profiling, the next step is partial
+            # indexes, not a reshuffle here.
+            models.Index(
+                fields=["workspace", "created_by", "-updated_at", "id"],
+                name="data_studio_ws_author_idx",
+            ),
         ]
 
     def __str__(self) -> str:
@@ -116,6 +159,17 @@ class SavedQuery(Base):
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("data_studio.update_saved_query", self):
             raise PermissionDenied
+
+        # Sharing is gated separately from the rest of the attributes, and only when
+        # it actually changes: a client echoing back the current visibility must not
+        # need the stricter permission.
+        visibility = kwargs.get("visibility")
+        if visibility is not None and visibility != self.visibility:
+            if not principal.has_perm(
+                "data_studio.update_saved_query_visibility", self
+            ):
+                raise PermissionDenied
+            self.visibility = visibility
 
         for key in ["name", "content"]:
             if kwargs.get(key) is not None:

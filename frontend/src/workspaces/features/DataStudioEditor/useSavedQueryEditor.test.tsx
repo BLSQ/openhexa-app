@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { NavigationAbortedError } from "core/hooks/useNavigationWarning";
+import { SavedQueryVisibility } from "graphql/types";
 import mockRouter from "next-router-mock";
 import { toast } from "react-toastify";
 import { useSavedQueryEditor } from "./useSavedQueryEditor";
@@ -27,13 +28,14 @@ const savedQuery = {
   description: "",
   content: "SELECT 1",
   updatedAt: "2024-01-01T00:00:00Z",
+  visibility: SavedQueryVisibility.Private,
   createdBy: null,
-  permissions: { update: true, delete: true },
+  permissions: { update: true, delete: true, updateVisibility: true },
 } as any;
 
 const readOnlyQuery = {
   ...savedQuery,
-  permissions: { update: false, delete: false },
+  permissions: { update: false, delete: false, updateVisibility: false },
 };
 
 const renderEditor = (
@@ -100,6 +102,79 @@ describe("useSavedQueryEditor", () => {
     });
     expect(toast.success).toHaveBeenCalledWith("Query saved");
     expect(result.current.isDirty).toBe(false);
+  });
+
+  it("shares the query without touching the unsaved content", async () => {
+    updateMock.mockResolvedValue({
+      data: {
+        updateSavedQuery: {
+          success: true,
+          errors: [],
+          savedQuery: {
+            ...savedQuery,
+            visibility: SavedQueryVisibility.Workspace,
+          },
+        },
+      },
+    });
+    // Content diverges from the baseline: persisting sharing must not be mistaken
+    // for saving the SQL.
+    const { result } = renderEditor("SELECT 2");
+    expect(result.current.isDirty).toBe(true);
+
+    await act(async () => {
+      await result.current.setVisibility(SavedQueryVisibility.Workspace);
+    });
+
+    expect(updateMock).toHaveBeenCalledWith({
+      variables: {
+        input: { id: "q1", visibility: SavedQueryVisibility.Workspace },
+      },
+    });
+    expect(result.current.savedQuery?.visibility).toBe(
+      SavedQueryVisibility.Workspace,
+    );
+    expect(toast.success).toHaveBeenCalledWith(
+      "Query shared with the workspace",
+    );
+    expect(result.current.isDirty).toBe(true);
+  });
+
+  it("surfaces a rejected visibility change", async () => {
+    updateMock.mockResolvedValue({
+      data: {
+        updateSavedQuery: {
+          success: false,
+          errors: ["PERMISSION_DENIED"],
+          savedQuery: null,
+        },
+      },
+    });
+    const { result } = renderEditor("SELECT 1");
+
+    await act(async () => {
+      await result.current.setVisibility(SavedQueryVisibility.Workspace);
+    });
+
+    expect(toast.error).toHaveBeenCalledWith(
+      "You are not authorized to perform this action",
+    );
+    expect(result.current.savedQuery?.visibility).toBe(
+      SavedQueryVisibility.Private,
+    );
+  });
+
+  it("does not change visibility without the permission to unshare", async () => {
+    const { result } = renderEditor("SELECT 1", {
+      ...savedQuery,
+      permissions: { update: true, delete: true, updateVisibility: false },
+    });
+
+    expect(result.current.canUpdateVisibility).toBe(false);
+    await act(async () => {
+      await result.current.setVisibility(SavedQueryVisibility.Workspace);
+    });
+    expect(updateMock).not.toHaveBeenCalled();
   });
 
   it("does not update a query the user cannot edit", async () => {

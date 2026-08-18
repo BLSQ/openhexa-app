@@ -31,6 +31,7 @@ _ALLOWED_SLUGS = frozenset(
         "toolbox-hexa",
         "notebooks-advanced",
         "static-webapps",
+        "sql-widgets",
     }
 )
 

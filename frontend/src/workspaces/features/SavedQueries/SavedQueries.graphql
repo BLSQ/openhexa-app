@@ -7,12 +7,14 @@ fragment SavedQueryListItem_savedQuery on SavedQuery {
   name
   description
   updatedAt
+  visibility
   createdBy {
     ...UserColumn_user
   }
   permissions {
     update
     delete
+    updateVisibility
   }
 }
 
@@ -23,12 +25,14 @@ fragment SavedQuery_savedQuery on SavedQuery {
   description
   content
   updatedAt
+  visibility
   createdBy {
     ...User_user
   }
   permissions {
     update
     delete
+    updateVisibility
   }
 }
 

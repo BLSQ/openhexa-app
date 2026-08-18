@@ -5,7 +5,7 @@ from django.contrib.sessions.backends.db import SessionStore
 from django.test import TestCase, override_settings
 
 from hexa.core.test import GraphQLTestCase
-from hexa.data_studio.models import QueryLog, SavedQuery
+from hexa.data_studio.models import QueryLog, SavedQuery, SavedQueryVisibility
 from hexa.datasets.models import Dataset, DatasetLink
 from hexa.files.backends.base import StorageObject
 from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
@@ -406,12 +406,15 @@ class GraphQLProxyMiddlewareTest(TestCase):
             session_key=session.session_key,
         )
 
-    def _create_saved_query(self):
+    def _create_saved_query(self, visibility=SavedQueryVisibility.WORKSPACE):
+        # Shared by default: a web app authenticates as the workspace rather than
+        # as a person, so it only ever reaches WORKSPACE-visibility queries.
         return SavedQuery.objects.create(
             workspace=self.WORKSPACE,
             created_by=self.USER,
             name="Probe",
             content="SELECT 1 AS probe",
+            visibility=visibility,
         )
 
     def test_database_read_scope_runs_a_saved_query(self):
@@ -445,6 +448,21 @@ class GraphQLProxyMiddlewareTest(TestCase):
         self.assertEqual(QueryLog.Origin.WEBAPP, log.origin)
         self.assertEqual(saved_query, log.saved_query)
         self.assertEqual(self.USER, log.user)
+
+    def test_private_saved_query_is_out_of_reach(self):
+        # A web app authenticates as the workspace, not as the query's author, so
+        # a PRIVATE query stays the author's own even with the scope granted.
+        saved_query = self._create_saved_query(visibility=SavedQueryVisibility.PRIVATE)
+        webapp = self._create_scoped_webapp(
+            "db-app", [Webapp.OperationScope.DATABASE_READ]
+        )
+
+        response = self._execute_saved_query(webapp, "db-app", saved_query.slug)
+
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.content)["data"]["executeSavedQuery"]
+        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
+        self.assertEqual(0, QueryLog.objects.count())
 
     def test_saved_query_needs_the_database_read_scope(self):
         saved_query = self._create_saved_query()

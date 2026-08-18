@@ -18,7 +18,14 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         content="SELECT 1",
         workspace=None,
         description="d",
+        visibility="WORKSPACE",
     ):
+        """Create a query through the API, workspace-shared unless stated otherwise.
+
+        The mutation defaults to PRIVATE; tests about what one user sees of another
+        user's query say which visibility they mean rather than leaning on that
+        default.
+        """
         self.client.force_login(user)
         return self.run_query(
             """
@@ -26,7 +33,9 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
                 createSavedQuery(input: $input) {
                     success
                     errors
-                    savedQuery { id name content description createdBy { email } }
+                    savedQuery {
+                        id name content description visibility createdBy { email }
+                    }
                 }
             }
             """,
@@ -36,6 +45,7 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
                     "name": name,
                     "content": content,
                     "description": description,
+                    "visibility": visibility,
                 }
             },
         )
@@ -48,6 +58,34 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertEqual(payload["savedQuery"]["name"], "My query")
         self.assertEqual(
             payload["savedQuery"]["createdBy"]["email"], self.USER_EDITOR.email
+        )
+
+    def test_create_saved_query_defaults_to_private(self):
+        self.client.force_login(self.USER_EDITOR)
+        r = self.run_query(
+            """
+            mutation ($input: CreateSavedQueryInput!) {
+                createSavedQuery(input: $input) {
+                    success savedQuery { visibility }
+                }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": str(self.WORKSPACE.slug),
+                    "name": "Draft",
+                    "content": "SELECT 1",
+                }
+            },
+        )
+        payload = r["data"]["createSavedQuery"]
+        self.assertTrue(payload["success"])
+        self.assertEqual("PRIVATE", payload["savedQuery"]["visibility"])
+
+    def test_create_saved_query_shared(self):
+        r = self._create_query(self.USER_EDITOR, visibility="WORKSPACE")
+        self.assertEqual(
+            "WORKSPACE", r["data"]["createSavedQuery"]["savedQuery"]["visibility"]
         )
 
     def test_create_saved_query_not_member(self):
@@ -81,6 +119,106 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         # Viewer is not the author of either -> cannot update/delete
         for item in result["items"]:
             self.assertEqual(item["permissions"], {"update": False, "delete": False})
+
+    def test_workspace_saved_queries_listing_excludes_others_private(self):
+        self._create_query(self.USER_EDITOR, name="shared")
+        self._create_query(self.USER_EDITOR, name="editor-draft", visibility="PRIVATE")
+        self._create_query(self.USER_VIEWER, name="viewer-draft", visibility="PRIVATE")
+
+        self.client.force_login(self.USER_VIEWER)
+        r = self.run_query(
+            """
+            query ($slug: String!) {
+                workspace(slug: $slug) {
+                    savedQueries { totalItems items { name visibility } }
+                }
+            }
+            """,
+            {"slug": str(self.WORKSPACE.slug)},
+        )
+        result = r["data"]["workspace"]["savedQueries"]
+        # The viewer's own draft counts, the editor's does not - including in the
+        # total, or paging would advertise rows that are never returned.
+        self.assertEqual(2, result["totalItems"])
+        self.assertCountEqual(
+            ["shared", "viewer-draft"], [i["name"] for i in result["items"]]
+        )
+
+    def test_get_other_members_private_query_is_not_found(self):
+        created = self._create_query(self.USER_EDITOR, visibility="PRIVATE")
+        query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
+
+        self.client.force_login(self.USER_VIEWER)
+        r = self.run_query(
+            "query ($id: ID!) { savedQuery(id: $id) { name } }",
+            {"id": query_id},
+        )
+        self.assertIsNone(r["data"]["savedQuery"])
+
+    def test_update_saved_query_visibility(self):
+        created = self._create_query(self.USER_EDITOR, visibility="PRIVATE")
+        query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
+
+        self.client.force_login(self.USER_EDITOR)
+        r = self.run_query(
+            """
+            mutation ($input: UpdateSavedQueryInput!) {
+                updateSavedQuery(input: $input) {
+                    success errors savedQuery { visibility }
+                }
+            }
+            """,
+            {"input": {"id": query_id, "visibility": "WORKSPACE"}},
+        )
+        payload = r["data"]["updateSavedQuery"]
+        self.assertTrue(payload["success"])
+        self.assertEqual("WORKSPACE", payload["savedQuery"]["visibility"])
+
+    def test_update_saved_query_visibility_denied_for_non_author(self):
+        created = self._create_query(self.USER_EDITOR)
+        query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
+
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(
+            """
+            mutation ($input: UpdateSavedQueryInput!) {
+                updateSavedQuery(input: $input) { success errors }
+            }
+            """,
+            {"input": {"id": query_id, "visibility": "PRIVATE"}},
+        )
+        payload = r["data"]["updateSavedQuery"]
+        self.assertFalse(payload["success"])
+        self.assertEqual(["PERMISSION_DENIED"], payload["errors"])
+        self.assertEqual("WORKSPACE", SavedQuery.objects.get(id=query_id).visibility)
+
+    def test_saved_query_permissions_update_visibility(self):
+        created = self._create_query(self.USER_EDITOR)
+        query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
+
+        permissions_query = """
+            query ($id: ID!) {
+                savedQuery(id: $id) {
+                    permissions { update delete updateVisibility }
+                }
+            }
+        """
+        variables = {"id": query_id}
+
+        self.client.force_login(self.USER_EDITOR)
+        r = self.run_query(permissions_query, variables)
+        self.assertEqual(
+            {"update": True, "delete": True, "updateVisibility": True},
+            r["data"]["savedQuery"]["permissions"],
+        )
+
+        # The admin may edit and delete a shared query, but not unshare it.
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(permissions_query, variables)
+        self.assertEqual(
+            {"update": True, "delete": True, "updateVisibility": False},
+            r["data"]["savedQuery"]["permissions"],
+        )
 
     def test_workspace_saved_queries_isolated_per_workspace(self):
         # USER_ADMIN belongs to both workspaces; each list must only show its own.
@@ -144,8 +282,8 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         for user in (self.USER_EDITOR, self.USER_ADMIN):
             self.client.force_login(user)
             r = self.run_query(
-                "query ($slug: String!, $id: ID!) { savedQuery(workspaceSlug: $slug, id: $id) { permissions { update delete } } }",
-                {"slug": str(self.WORKSPACE.slug), "id": query_id},
+                "query ($id: ID!) { savedQuery(id: $id) { permissions { update delete } } }",
+                {"id": query_id},
             )
             self.assertEqual(
                 r["data"]["savedQuery"]["permissions"],
@@ -273,8 +411,8 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
 
         self.client.force_login(self.USER_VIEWER)
         r = self.run_query(
-            "query ($slug: String!, $id: ID!) { savedQuery(workspaceSlug: $slug, id: $id) { name } }",
-            {"slug": str(self.WORKSPACE.slug), "id": query_id},
+            "query ($id: ID!) { savedQuery(id: $id) { name } }",
+            {"id": query_id},
         )
         self.assertEqual(r["data"]["savedQuery"]["name"], "My query")
 
@@ -284,28 +422,16 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
 
         self.client.force_login(self.USER_OUTSIDER)
         r = self.run_query(
-            "query ($slug: String!, $id: ID!) { savedQuery(workspaceSlug: $slug, id: $id) { name } }",
-            {"slug": str(self.WORKSPACE.slug), "id": query_id},
+            "query ($id: ID!) { savedQuery(id: $id) { name } }",
+            {"id": query_id},
         )
         self.assertIsNone(r["data"]["savedQuery"])
 
-    def test_get_saved_query_wrong_workspace(self):
-        # A query id that exists but is addressed via a different workspace's
-        # slug resolves to nothing: saved queries are scoped to their workspace.
-        created = self._create_query(self.USER_EDITOR)
-        query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
-
-        self.client.force_login(self.USER_ADMIN)
-        r = self.run_query(
-            "query ($slug: String!, $id: ID!) { savedQuery(workspaceSlug: $slug, id: $id) { name } }",
-            {"slug": str(self.WORKSPACE_2.slug), "id": query_id},
-        )
-        self.assertIsNone(r["data"]["savedQuery"])
-
-    def test_get_saved_query_without_workspace(self):
-        # workspaceSlug is optional: omitting it keeps the original id-only
-        # lookup (still gated by filter_for_user), so existing callers work.
-        created = self._create_query(self.USER_EDITOR)
+    def test_get_saved_query_from_other_workspace(self):
+        # The id alone carries no authority: a member of WORKSPACE cannot read a
+        # query living in WORKSPACE_2, which is what makes the workspace safe to
+        # leave out of the field's arguments.
+        created = self._create_query(self.USER_ADMIN, workspace=self.WORKSPACE_2)
         query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
 
         self.client.force_login(self.USER_VIEWER)
@@ -313,7 +439,22 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
             "query ($id: ID!) { savedQuery(id: $id) { name } }",
             {"id": query_id},
         )
-        self.assertEqual(r["data"]["savedQuery"]["name"], "My query")
+        self.assertIsNone(r["data"]["savedQuery"])
+
+    def test_get_saved_query_exposes_its_workspace(self):
+        # Callers that render a query under a workspace-scoped URL need the
+        # owning workspace to detect a mismatch themselves.
+        created = self._create_query(self.USER_EDITOR)
+        query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
+
+        self.client.force_login(self.USER_VIEWER)
+        r = self.run_query(
+            "query ($id: ID!) { savedQuery(id: $id) { workspace { slug } } }",
+            {"id": query_id},
+        )
+        self.assertEqual(
+            r["data"]["savedQuery"]["workspace"]["slug"], self.WORKSPACE.slug
+        )
 
     BY_SLUG_QUERY = """
         query ($workspaceSlug: String!, $slug: String!) {
@@ -488,8 +629,8 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
 
         self.client.logout()
         r = self.run_query(
-            "query ($slug: String!, $id: ID!) { savedQuery(workspaceSlug: $slug, id: $id) { name } }",
-            {"slug": str(self.WORKSPACE.slug), "id": query_id},
+            "query ($id: ID!) { savedQuery(id: $id) { name } }",
+            {"id": query_id},
         )
         self.assertIsNone(r["data"]["savedQuery"])
 
@@ -525,14 +666,6 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         }
     """
 
-    def _save(self, content, name="Demo", workspace=None, user=None):
-        return SavedQuery.objects.create_if_has_perm(
-            user or self.USER_EDITOR,
-            workspace or self.WORKSPACE,
-            name=name,
-            content=content,
-        )
-
     def _execute(self, user, slug, workspace=None, max_rows=None):
         self.client.force_login(user)
         payload = {
@@ -547,7 +680,9 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
 
     def test_execute_saved_query(self):
         seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
-        saved_query = self._save("SELECT id, label FROM demo ORDER BY id")
+        saved_query = self.create_saved_query(
+            content="SELECT id, label FROM demo ORDER BY id"
+        )
 
         result = self._execute(self.USER_VIEWER, saved_query.slug)
 
@@ -568,7 +703,7 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
 
     def test_execute_saved_query_is_audited(self):
         seed_demo_table(self.WORKSPACE, [(1, "a")])
-        saved_query = self._save("SELECT id FROM demo")
+        saved_query = self.create_saved_query(content="SELECT id FROM demo")
 
         self._execute(self.USER_VIEWER, saved_query.slug)
 
@@ -582,7 +717,7 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertEqual(QueryLog.Origin.OTHER, log.origin)
 
     def test_execute_saved_query_unknown_slug(self):
-        self._save("SELECT 1")
+        self.create_saved_query(content="SELECT 1")
 
         result = self._execute(self.USER_VIEWER, "no-such-query")
 
@@ -592,7 +727,7 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertEqual(0, QueryLog.objects.count())
 
     def test_execute_saved_query_other_workspace(self):
-        saved_query = self._save("SELECT 1")
+        saved_query = self.create_saved_query(content="SELECT 1")
 
         result = self._execute(
             self.USER_ADMIN, saved_query.slug, workspace=self.WORKSPACE_2
@@ -603,7 +738,7 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
     def test_execute_saved_query_outsider(self):
         # An outsider cannot see the query at all, so the lookup misses before
         # the run_query permission is ever consulted.
-        saved_query = self._save("SELECT 1")
+        saved_query = self.create_saved_query(content="SELECT 1")
 
         result = self._execute(self.USER_OUTSIDER, saved_query.slug)
 
@@ -611,7 +746,7 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
 
     def test_execute_saved_query_max_rows(self):
         seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
-        saved_query = self._save("SELECT id FROM demo ORDER BY id")
+        saved_query = self.create_saved_query(content="SELECT id FROM demo ORDER BY id")
 
         result = self._execute(self.USER_VIEWER, saved_query.slug, max_rows=2)
 
@@ -620,7 +755,7 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
 
     def test_execute_saved_query_invalid_sql(self):
         # A query saved against a table that has since been dropped.
-        saved_query = self._save("SELECT * FROM gone")
+        saved_query = self.create_saved_query(content="SELECT * FROM gone")
 
         result = self._execute(self.USER_VIEWER, saved_query.slug)
 
@@ -634,7 +769,7 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         # Nothing stops two statements being saved, so the single-statement rule
         # has to hold at execution time too -- it is what keeps a stored
         # `SET statement_timeout = 0` from running ahead of the query.
-        saved_query = self._save("SELECT 1; SELECT 2")
+        saved_query = self.create_saved_query(content="SELECT 1; SELECT 2")
 
         result = self._execute(self.USER_VIEWER, saved_query.slug)
 
@@ -645,7 +780,7 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         # Not reachable through GraphQL today (seeing a query and being allowed
         # to run one currently coincide), but run_saved_query is a library entry
         # point and owns the check, so the refusal must still be audited.
-        saved_query = self._save("SELECT 1")
+        saved_query = self.create_saved_query(content="SELECT 1")
         request = self.mock_request(self.USER_OUTSIDER)
 
         with self.assertRaises(PermissionDenied):

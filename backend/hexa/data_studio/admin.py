@@ -27,10 +27,11 @@ class SavedQueryAdmin(admin.ModelAdmin):
         "workspace",
         "organization",
         "created_by",
+        "visibility",
         "created_at",
         "updated_at",
     )
-    list_filter = ("workspace__organization",)
+    list_filter = ("visibility", "workspace__organization")
     list_select_related = ("workspace__organization", "created_by")
     readonly_fields = ("slug",)
     search_fields = (
@@ -49,6 +50,7 @@ class SavedQueryAdmin(admin.ModelAdmin):
         "description",
         "workspace",
         "created_by",
+        "visibility",
         "content",
     )
 
