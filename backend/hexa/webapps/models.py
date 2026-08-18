@@ -275,6 +275,7 @@ class GitWebapp(Webapp, GitRepoMixin):
         ".r": "r",
         ".sql": "sql",
     }
+    DEFAULT_LANGUAGE = "text"
 
     def get_files(self, ref=None, include_binary_content=True):
         ref = ref or "main"
@@ -303,7 +304,9 @@ class GitWebapp(Webapp, GitRepoMixin):
                     "encoding": encoding,
                     "parent_id": parent,
                     "auto_select": path == "index.html",
-                    "language": self.LANGUAGE_MAP.get(extension) if is_text else None,
+                    "language": self.LANGUAGE_MAP.get(extension, self.DEFAULT_LANGUAGE)
+                    if is_text
+                    else None,
                     "line_count": content.count("\n") + 1 if is_text else None,
                 }
             )
