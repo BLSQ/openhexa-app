@@ -205,14 +205,14 @@ class ForgejoClient(GitClient):
         ref: str = "main",
         *,
         org_slug: str | None = None,
-        range_header: str | None = None,
+        headers: dict[str, str] | None = None,
     ) -> requests.Response:
         org_slug = org_slug or self._username
         url = f"{self._url}/api/v1/repos/{org_slug}/{repo_name}/raw/{path}"
         response = self._session.get(
             url,
             params={"ref": ref},
-            headers={"Range": range_header} if range_header else {},
+            headers=headers or {},
             stream=True,
             allow_redirects=False,
         )
