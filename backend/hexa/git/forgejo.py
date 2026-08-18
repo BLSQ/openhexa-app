@@ -5,7 +5,7 @@ from django.conf import settings
 
 from hexa.git.client import GitClient
 from hexa.git.enums import FileEncoding
-from hexa.git.exceptions import GitFileNotFound
+from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 
 
 class ForgejoAPIError(Exception):
@@ -191,8 +191,39 @@ class ForgejoClient(GitClient):
             if e.status_code == 404:
                 raise GitFileNotFound(path) from e
             raise
-        content = response.json().get("content", "")
+        payload = response.json()
+        content = payload.get("content", "")
+        size = payload.get("size", 0)
+        if not content and size > 0:
+            raise GitFileTooLarge(path, size)
         return base64.b64decode(content)
+
+    def stream_file(
+        self,
+        repo_name: str,
+        path: str,
+        ref: str = "main",
+        *,
+        org_slug: str | None = None,
+        range_header: str | None = None,
+    ) -> requests.Response:
+        org_slug = org_slug or self._username
+        url = f"{self._url}/api/v1/repos/{org_slug}/{repo_name}/raw/{path}"
+        response = self._session.get(
+            url,
+            params={"ref": ref},
+            headers={"Range": range_header} if range_header else {},
+            stream=True,
+            allow_redirects=False,
+        )
+        if response.status_code == 404:
+            response.close()
+            raise GitFileNotFound(path)
+        if not response.ok and response.status_code != 416:
+            detail = response.text
+            response.close()
+            raise ForgejoAPIError("GET", url, response.status_code, detail)
+        return response
 
     def commit_files(
         self,
@@ -294,7 +325,13 @@ class ForgejoClient(GitClient):
             if entry_type != "blob":
                 continue
 
-            raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
+            try:
+                raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
+            except GitFileTooLarge:
+                nodes.append(
+                    {"path": path, "type": "file", "content": None, "encoding": None}
+                )
+                continue
             content: str
             encoding: FileEncoding
             if b"\x00" not in raw:
