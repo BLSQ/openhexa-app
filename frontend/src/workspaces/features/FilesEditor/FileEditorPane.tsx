@@ -5,6 +5,7 @@ import { EditorView } from "@codemirror/view";
 import { DocumentIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import CodeMirrorClient from "core/components/CodeMirrorClient/CodeMirrorClient";
+import { FileEncoding } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { ReactNode, useMemo } from "react";
 import { r } from "codemirror-lang-r";
@@ -46,8 +47,12 @@ const FileEditorPane = ({
   const isDiffMode =
     selectedFile !== null && proposedByKey.has(selectedFile.path);
 
+  const fileTypeLabel =
+    selectedFile?.language ??
+    (selectedFile?.encoding === FileEncoding.Base64 ? t("Binary") : null);
+
   const metaParts = [
-    selectedFile?.language,
+    fileTypeLabel,
     selectedFile?.lineCount != null
       ? `${selectedFile.lineCount} ${selectedFile.lineCount > 1 ? t("lines") : t("line")}`
       : null,
@@ -115,7 +120,7 @@ const FileEditorPane = ({
               />
             )}
           </div>
-          <div className="text-xs text-gray-500 mt-1">
+          <div className="text-xs text-gray-500 mt-1 min-h-4">
             {metaParts.join(" • ")}
             {saveError && (
               <>
