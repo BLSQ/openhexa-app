@@ -10,12 +10,13 @@ from django.test import override_settings
 from django.utils import timezone
 
 from hexa.core.test import GraphQLTestCase, TestCase
-from hexa.git.exceptions import GitFileNotFound
+from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 from hexa.superset.models import SupersetInstance
 from hexa.user_management.models import (
     User,
 )
 from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
+from hexa.webapps.tests.testutils import make_upstream, read_body
 from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
@@ -378,20 +379,20 @@ class GitWebappServeViewTest(TestCase):
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_serve_css_file(self, mock_get_client):
         mock_client = MagicMock()
-        mock_client.get_file.return_value = b"body { color: red; }"
+        mock_client.stream_file.return_value = make_upstream(b"body { color: red; }")
         mock_get_client.return_value = mock_client
 
         self._create_webapp_session(self.PRIVATE_WEBAPP, self.USER_MEMBER)
         response = self._get(self.PRIVATE_WEBAPP, "/style.css")
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, b"body { color: red; }")
+        self.assertEqual(read_body(response), b"body { color: red; }")
         self.assertEqual(response["Content-Type"], "text/css")
 
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_serve_js_file(self, mock_get_client):
         mock_client = MagicMock()
-        mock_client.get_file.return_value = b"console.log('hello');"
+        mock_client.stream_file.return_value = make_upstream(b"console.log('hello');")
         mock_get_client.return_value = mock_client
 
         self._create_webapp_session(self.PRIVATE_WEBAPP, self.USER_MEMBER)
@@ -399,6 +400,18 @@ class GitWebappServeViewTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("javascript", response["Content-Type"])
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_serve_html_too_large_returns_error(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.side_effect = GitFileTooLarge("index.html", 108570598)
+        mock_get_client.return_value = mock_client
+
+        self._create_webapp_session(self.PRIVATE_WEBAPP, self.USER_MEMBER)
+        response = self._get(self.PRIVATE_WEBAPP)
+
+        self.assertEqual(response.status_code, 500)
+        self.assertNotEqual(response.content, b"")
 
     def test_serve_nonexistent_webapp(self):
         response = self.client.get("/", HTTP_HOST=f"nonexistent.{self.SUBDOMAIN_BASE}")
@@ -460,18 +473,21 @@ class GitWebappServeViewTest(TestCase):
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_serve_nested_path(self, mock_get_client):
         mock_client = MagicMock()
-        mock_client.get_file.return_value = b".icon { display: block; }"
+        mock_client.stream_file.return_value = make_upstream(
+            b".icon { display: block; }"
+        )
         mock_get_client.return_value = mock_client
 
         self._create_webapp_session(self.PRIVATE_WEBAPP, self.USER_MEMBER)
         response = self._get(self.PRIVATE_WEBAPP, "/assets/icons/style.css")
 
         self.assertEqual(response.status_code, 200)
-        mock_client.get_file.assert_called_once_with(
+        mock_client.stream_file.assert_called_once_with(
             "webapp-private",
             "assets/icons/style.css",
             "sha-published",
             org_slug=self.WORKSPACE.organization.slug,
+            headers={},
         )
 
     def test_invalid_session_cookie_redirects_to_auth(self):
@@ -793,14 +809,16 @@ class PreviewSessionSubdomainTest(TestCase):
     def test_session_key_subdomain_serves_subresources_without_cookie(
         self, mock_get_client
     ):
-        mock_get_client.return_value.get_file.return_value = b"body { color: red; }"
+        mock_get_client.return_value.stream_file.return_value = make_upstream(
+            b"body { color: red; }"
+        )
 
         session_key = self._mint_session(self.USER_MEMBER, self.PRIVATE_WEBAPP)
         response = self.client.get(
             "/style.css", HTTP_HOST=f"{session_key}.{self.SUBDOMAIN_BASE}"
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"color: red", response.content)
+        self.assertIn(b"color: red", read_body(response))
 
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_session_key_response_sets_referrer_policy(self, mock_get_client):
@@ -990,14 +1008,14 @@ class PoweredByBannerTest(TestCase):
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_static_banner_not_injected_in_css(self, mock_get_client):
         mock_client = MagicMock()
-        mock_client.get_file.return_value = b"body { color: red; }"
+        mock_client.stream_file.return_value = make_upstream(b"body { color: red; }")
         mock_get_client.return_value = mock_client
 
         response = self.client.get(
             "/style.css", HTTP_HOST=self._subdomain_host(self.PUBLIC_STATIC)
         )
         self.assertEqual(response.status_code, 200)
-        self.assertNotIn(b"Powered by", response.content)
+        self.assertNotIn(b"Powered by", read_body(response))
 
     def test_iframe_public_anonymous_has_banner(self):
         response = self.client.get(
