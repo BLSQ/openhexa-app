@@ -2407,7 +2407,7 @@ export enum ExecuteSqlError {
   QueryError = 'QUERY_ERROR',
   /** The query was cancelled because it exceeded the statement timeout. */
   QueryTimeout = 'QUERY_TIMEOUT',
-  /** No saved query with this slug in this workspace, or the workspace is not visible to the caller. */
+  /** No saved query with this slug, or it is not visible to the caller. */
   SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND'
 }
 
@@ -2445,7 +2445,6 @@ export type ExecuteSavedQueryInput = {
   /** Caps the number of returned rows; defaults to 50 and is itself capped to a server-side hard limit. */
   maxRows?: InputMaybe<Scalars['Int']['input']>;
   slug: Scalars['String']['input'];
-  workspaceSlug: Scalars['String']['input'];
 };
 
 /** Represents an external collaborator who has workspace access but no organization membership. */
@@ -4846,7 +4845,7 @@ export type Query = {
   readWebappFile: ReadWebappFileResult;
   /** Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace. */
   savedQuery?: Maybe<SavedQuery>;
-  /** Retrieves a saved query by its slug within a workspace. */
+  /** Retrieves a saved query by its slug, which is unique across workspaces. */
   savedQueryBySlug?: Maybe<SavedQuery>;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
@@ -5116,7 +5115,6 @@ export type QuerySavedQueryArgs = {
 
 export type QuerySavedQueryBySlugArgs = {
   slug: Scalars['String']['input'];
-  workspaceSlug: Scalars['String']['input'];
 };
 
 

@@ -3,7 +3,7 @@ from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
 from hexa.core.test import GraphQLTestCase
-from hexa.data_studio.models import QueryLog, SavedQuery
+from hexa.data_studio.models import QueryLog, SavedQuery, SavedQueryVisibility
 from hexa.databases.tests.helpers import seed_demo_table
 from hexa.databases.utils import run_saved_query
 
@@ -457,20 +457,16 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         )
 
     BY_SLUG_QUERY = """
-        query ($workspaceSlug: String!, $slug: String!) {
-            savedQueryBySlug(workspaceSlug: $workspaceSlug, slug: $slug) { id name slug }
+        query ($slug: String!) {
+            savedQueryBySlug(slug: $slug) { id name slug }
         }
     """
 
-    def _get_by_slug(self, user, slug, workspace=None):
+    def _get_by_slug(self, user, slug):
         self.client.force_login(user)
-        return self.run_query(
-            self.BY_SLUG_QUERY,
-            {
-                "workspaceSlug": str((workspace or self.WORKSPACE).slug),
-                "slug": slug,
-            },
-        )["data"]["savedQueryBySlug"]
+        return self.run_query(self.BY_SLUG_QUERY, {"slug": slug})["data"][
+            "savedQueryBySlug"
+        ]
 
     def test_get_saved_query_by_slug(self):
         created = self._create_query(self.USER_EDITOR)["data"]["createSavedQuery"][
@@ -491,26 +487,23 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         self._create_query(self.USER_EDITOR)
         self.assertIsNone(self._get_by_slug(self.USER_OUTSIDER, "my-query"))
 
-    def test_get_saved_query_by_slug_wrong_workspace(self):
-        # Slugs are only unique per workspace, so the pair has to match: the
-        # same slug in another workspace must not resolve to this query.
-        self._create_query(self.USER_EDITOR, workspace=self.WORKSPACE)
-
-        self.assertIsNone(
-            self._get_by_slug(self.USER_ADMIN, "my-query", workspace=self.WORKSPACE_2)
+    def test_get_saved_query_by_slug_resolves_one_query_across_workspaces(self):
+        # Slugs are unique across workspaces, so the same name in a second
+        # workspace is suffixed and each slug still resolves to its own query.
+        first = self.create_saved_query(
+            user=self.USER_ADMIN, workspace=self.WORKSPACE, name="Shared"
+        )
+        second = self.create_saved_query(
+            user=self.USER_ADMIN, workspace=self.WORKSPACE_2, name="Shared"
         )
 
-    def test_get_saved_query_by_slug_scoped_to_its_workspace(self):
-        self._create_query(self.USER_ADMIN, name="Shared", workspace=self.WORKSPACE)
-        other = self._create_query(
-            self.USER_ADMIN, name="Shared", workspace=self.WORKSPACE_2
-        )["data"]["createSavedQuery"]["savedQuery"]
-
-        result = self._get_by_slug(
-            self.USER_ADMIN, "shared", workspace=self.WORKSPACE_2
+        self.assertNotEqual(first.slug, second.slug)
+        self.assertEqual(
+            str(first.id), self._get_by_slug(self.USER_ADMIN, first.slug)["id"]
         )
-
-        self.assertEqual(other["id"], result["id"])
+        self.assertEqual(
+            str(second.id), self._get_by_slug(self.USER_ADMIN, second.slug)["id"]
+        )
 
     def test_update_saved_query(self):
         created = self._create_query(self.USER_EDITOR)
@@ -666,12 +659,9 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         }
     """
 
-    def _execute(self, user, slug, workspace=None, max_rows=None):
+    def _execute(self, user, slug, max_rows=None):
         self.client.force_login(user)
-        payload = {
-            "workspaceSlug": str((workspace or self.WORKSPACE).slug),
-            "slug": slug,
-        }
+        payload = {"slug": slug}
         if max_rows is not None:
             payload["maxRows"] = max_rows
         return self.run_query(self.EXECUTE_QUERY, {"input": payload})["data"][
@@ -726,12 +716,17 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         # Nothing was executed, so nothing is logged.
         self.assertEqual(0, QueryLog.objects.count())
 
-    def test_execute_saved_query_other_workspace(self):
-        saved_query = self.create_saved_query(content="SELECT 1")
-
-        result = self._execute(
-            self.USER_ADMIN, saved_query.slug, workspace=self.WORKSPACE_2
+    def test_execute_saved_query_of_a_workspace_the_caller_is_not_in(self):
+        # The input names no workspace, so visibility is what scopes the lookup:
+        # a query in a workspace the caller does not belong to stays unreachable.
+        saved_query = self.create_saved_query(
+            user=self.USER_ADMIN,
+            workspace=self.WORKSPACE_2,
+            content="SELECT 1",
+            visibility=SavedQueryVisibility.WORKSPACE,
         )
+
+        result = self._execute(self.USER_VIEWER, saved_query.slug)
 
         self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
 

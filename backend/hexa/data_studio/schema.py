@@ -143,9 +143,7 @@ def resolve_saved_query(_, info, **kwargs):
 def resolve_saved_query_by_slug(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     try:
-        return _visible_saved_queries(request).get(
-            workspace__slug=kwargs["workspace_slug"], slug=kwargs["slug"]
-        )
+        return _visible_saved_queries(request).get(slug=kwargs["slug"])
     except SavedQuery.DoesNotExist:
         return None
 
@@ -156,16 +154,18 @@ def resolve_execute_saved_query(_, info, **kwargs):
     query_input = kwargs["input"]
 
     try:
-        saved_query = _visible_saved_queries(request).get(
-            workspace__slug=query_input["workspace_slug"], slug=query_input["slug"]
-        )
+        # No workspace to match on: the slug is unique across workspaces, and
+        # `filter_for_user` already confines a web app to the single workspace
+        # its token was issued for.
+        saved_query = _visible_saved_queries(request).get(slug=query_input["slug"])
         result = run_saved_query(
             request, saved_query, max_rows=query_input.get("max_rows")
         )
         return {"success": True, "errors": [], **result}
     except SavedQuery.DoesNotExist:
-        # A missing workspace and a missing query are reported the same way, so
-        # that a caller cannot use this endpoint to discover what exists.
+        # A query that does not exist and one the caller cannot see are reported
+        # the same way, so that this endpoint cannot be used to discover what
+        # exists elsewhere.
         return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}

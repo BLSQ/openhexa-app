@@ -62,14 +62,18 @@ class Migration0006Test(TransactionTestCase):
         self.assertIn("my-query", slugs)
         self.assertTrue(all(slug.startswith("my-query") for slug in slugs))
 
-    def test_backfills_same_name_in_two_workspaces_to_same_slug(self):
+    def test_backfills_same_name_in_two_workspaces_to_distinct_slugs(self):
+        # Slugs are unique across workspaces, so only one of the two can keep the
+        # bare name; the other is suffixed like an in-workspace duplicate.
         first = self._create_saved_query(self._create_workspace("ws-1"), "My query")
         second = self._create_saved_query(self._create_workspace("ws-2"), "My query")
 
         self.migrator.migrate(*self.migrate_to)
 
-        self.assertEqual("my-query", self._slug_of(first))
-        self.assertEqual("my-query", self._slug_of(second))
+        slugs = [self._slug_of(first), self._slug_of(second)]
+        self.assertEqual(2, len(set(slugs)))
+        self.assertIn("my-query", slugs)
+        self.assertTrue(all(slug.startswith("my-query") for slug in slugs))
 
     def test_backfills_unslugifiable_name(self):
         query = self._create_saved_query(self._create_workspace("ws"), "!@#$%")

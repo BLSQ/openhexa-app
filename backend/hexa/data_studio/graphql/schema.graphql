@@ -72,8 +72,8 @@ extend type WorkspacePermissions {
 extend type Query {
   "Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace."
   savedQuery(id: ID!, workspaceSlug: String): SavedQuery
-  "Retrieves a saved query by its slug within a workspace."
-  savedQueryBySlug(workspaceSlug: String!, slug: String!): SavedQuery
+  "Retrieves a saved query by its slug, which is unique across workspaces."
+  savedQueryBySlug(slug: String!): SavedQuery
   "Runs a saved query against the workspace database and returns its result, without exposing the SQL."
   executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSQLResult! @loginRequired
 }
@@ -82,7 +82,6 @@ extend type Query {
 Input for executing a saved query.
 """
 input ExecuteSavedQueryInput {
-  workspaceSlug: String!
   slug: String!
   "Caps the number of returned rows; defaults to 50 and is itself capped to a server-side hard limit."
   maxRows: Int
@@ -94,7 +93,7 @@ input ExecuteSavedQueryInput {
 # failure the shared enum did not cover; it is named for its endpoint since
 # executeSQL can never return it.
 extend enum ExecuteSQLError {
-  "No saved query with this slug in this workspace, or the workspace is not visible to the caller."
+  "No saved query with this slug, or it is not visible to the caller."
   SAVED_QUERY_NOT_FOUND
 }
 
