@@ -77,20 +77,20 @@ def _serve_static_webapp(webapp, request):
     return response
 
 
-def _serve_iframe_webapp(webapp, show_powered_by=False, powered_by_url=None):
+def _serve_iframe_webapp(webapp, show_powered_by=False, banner_url=None):
     html = render_to_string(
         "webapps/embed.html",
         {
             "name": webapp.name,
             "url": webapp.url,
             "show_powered_by": show_powered_by,
-            "powered_by_url": powered_by_url,
+            "powered_by_url": banner_url,
         },
     )
     return HttpResponse(html)
 
 
-def _inject_powered_by_banner(response, powered_by_url):
+def _inject_powered_by_banner(response, banner_url):
     content_type = response.get("Content-Type", "")
     if "text/html" not in content_type:
         return response
@@ -100,7 +100,7 @@ def _inject_powered_by_banner(response, powered_by_url):
     banner_html = render_to_string(
         "webapps/_powered_by_banner.html",
         {
-            "powered_by_url": powered_by_url,
+            "powered_by_url": banner_url,
             "banner_height": POWERED_BY_BANNER_HEIGHT,
         },
     )
@@ -153,7 +153,7 @@ def _dispatch_webapp_response(request, webapp, show_powered_by=False):
         response = _serve_iframe_webapp(
             webapp,
             show_powered_by=show_powered_by,
-            powered_by_url=powered_by_url(request, "iframe")
+            banner_url=powered_by_url(request, "iframe")
             if show_powered_by
             else None,
         )
