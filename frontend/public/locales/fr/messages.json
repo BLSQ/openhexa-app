@@ -623,6 +623,7 @@
   "Open in Airflow": "Ouvert dans le flux d'air",
   "Opening pipeline editor": "Ouverture de l'éditeur de pipeline",
   "optional": "optionnel",
+  "Optional — run this to force Git Credential Manager to sign in through OpenHEXA:": "Facultatif — exécutez cette commande pour forcer Git Credential Manager à s'authentifier via OpenHEXA :",
   "Optional. Up to 5 uppercase letters. Auto-generated if left empty.": "Optionnel. Jusqu'à 5 lettres majuscules. Généré automatiquement si laissé vide.",
   "or": "ou",
   "Or create your own organization": "Ou créez votre propre organisation",
