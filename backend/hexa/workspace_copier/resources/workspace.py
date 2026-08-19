@@ -37,12 +37,11 @@ class WorkspaceMetadataCopier(ResourceCopier):
         *,
         options: CopyOptions = CopyOptions(),
     ) -> None:
-        src_ws = self._read_source(source)
-
         if target.slug:
             self._use_existing_target(target, result, reporter)
             return
 
+        src_ws = source.get_workspace("source")
         result.workspace_name = target.workspace_name or src_ws.name
 
         if target.is_remote:
@@ -66,26 +65,10 @@ class WorkspaceMetadataCopier(ResourceCopier):
         downstream copiers make the rest of the run idempotent by skipping
         resources that already exist on the target.
         """
-        ws = self._read_target(target)
+        ws = target.get_workspace("target")
         result.workspace_slug = target.slug
         result.workspace_name = ws.name
         reporter.info(f"   using existing workspace {ws.name!r} (slug '{target.slug}')")
-
-    def _read_target(self, target: Endpoint) -> Any:
-        if target.is_remote:
-            tgt_ws = target.client.workspace(slug=target.slug)
-            if tgt_ws is None:
-                raise GraphQLError(f"target workspace '{target.slug}' not found")
-            return tgt_ws
-        return target.workspace
-
-    def _read_source(self, source: Endpoint) -> Any:
-        if source.is_remote:
-            src_ws = source.client.workspace(slug=source.slug)
-            if src_ws is None:
-                raise GraphQLError(f"source workspace '{source.slug}' not found")
-            return src_ws
-        return source.workspace
 
     def _create_remote(self, target: Endpoint, src_ws: Any, result: CopyResult) -> str:
         """Create the workspace on a remote target, returning the server slug.

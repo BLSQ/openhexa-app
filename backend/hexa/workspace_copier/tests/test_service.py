@@ -112,6 +112,19 @@ class VerifyEndpointsTest(SimpleTestCase):
         )
 
     @patch("hexa.workspace_copier.service.build_client")
+    def test_unknown_source_slug_aborts_verification(self, mock_build):
+        # The copiers read an absent source workspace as an empty one, so this
+        # has to fail here rather than come back as a run that copied nothing.
+        src_client = MagicMock()
+        src_client.workspace.return_value = None
+        mock_build.side_effect = [src_client, MagicMock()]
+
+        with self.assertRaises(CredentialError) as ctx:
+            _verify_endpoints(**_kwargs())
+
+        self.assertEqual(ctx.exception.errors, ["source workspace 'my-ws' not found"])
+
+    @patch("hexa.workspace_copier.service.build_client")
     def test_success_returns_both_endpoints(self, mock_build):
         src_client, tgt_client = MagicMock(), MagicMock()
         mock_build.side_effect = [src_client, tgt_client]
@@ -121,6 +134,7 @@ class VerifyEndpointsTest(SimpleTestCase):
         self.assertTrue(source.is_remote)
         self.assertIs(source.client, src_client)
         self.assertEqual(source.slug, "my-ws")
+        self.assertIs(source.workspace, src_client.workspace.return_value)
         self.assertTrue(target.is_remote)
         self.assertIs(target.client, tgt_client)
         self.assertEqual(target.organization_id, "org-1")
@@ -138,6 +152,8 @@ class ExistingTargetTest(SimpleTestCase):
 
         tgt_client.workspace.assert_called_once_with(slug="live-ws")
         self.assertEqual(target.slug, "live-ws")
+        # Stashed so the workspace copier reuses it instead of fetching again.
+        self.assertIs(target.workspace, tgt_client.workspace.return_value)
         # The organization/name only apply when creating: with the slug set, the
         # workspace-metadata copier skips creation entirely.
         self.assertIsNone(target.organization_id)

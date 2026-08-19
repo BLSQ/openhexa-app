@@ -45,9 +45,19 @@ class CredentialError(GraphQLError):
 
 
 def _build_source(url: str | None, token: str | None, slug: str) -> Endpoint:
+    """Build the source endpoint, verifying the workspace exists.
+
+    The lookup is what makes a wrong slug a pre-flight failure: the copiers read
+    an absent source workspace as an *empty* one, so without it a typo would
+    report a clean run that copied nothing. The workspace is stashed on the
+    endpoint, so the copiers reuse it rather than fetching it again.
+    """
     if url:
         client = build_client(url, token, label="source")
-        return Endpoint.remote(client, slug)
+        workspace = client.workspace(slug=slug)
+        if workspace is None:
+            raise GraphQLError(f"source workspace '{slug}' not found")
+        return Endpoint.remote(client, slug, workspace=workspace)
     return Endpoint.local(slug, workspace=Workspace.objects.get(slug=slug))
 
 
@@ -84,12 +94,13 @@ def _build_existing_target(
     """
     if url:
         client = build_client(url, token, label="target")
-        if client.workspace(slug=workspace_slug) is None:
+        workspace = client.workspace(slug=workspace_slug)
+        if workspace is None:
             raise GraphQLError(
                 f"target workspace '{workspace_slug}' not found — create it first "
                 "or omit --target-workspace-slug to create a new workspace."
             )
-        return Endpoint.remote(client, slug=workspace_slug)
+        return Endpoint.remote(client, slug=workspace_slug, workspace=workspace)
     return Endpoint.local(
         slug=workspace_slug,
         workspace=Workspace.objects.get(slug=workspace_slug),
