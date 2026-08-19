@@ -399,9 +399,9 @@ class GraphQLProxyMiddlewareTest(TestCase):
         return self._graphql_post(
             subdomain,
             f"""query {{
-                executeSavedQuery(input: {{
-                    workspaceSlug: "{self.WORKSPACE.slug}", slug: "{slug}"
-                }}) {{ success errors rows }}
+                executeSavedQuery(input: {{ slug: "{slug}" }}) {{
+                    success errors rows
+                }}
             }}""",
             session_key=session.session_key,
         )
@@ -868,6 +868,43 @@ class GraphQLProxyWorkspaceScopingTest(TestCase):
         self.assertEqual(response.status_code, 200)
         items = json.loads(response.content)["data"]["pipelines"]["items"]
         self.assertEqual(items, [])
+
+    def test_saved_query_of_other_workspace_is_out_of_reach(self):
+        """`executeSavedQuery` takes a slug and no workspace, so nothing in the
+        request says which workspace to look in. What keeps a web app to its own
+        is `filter_for_user`, which confines a WebappUser to the workspace its
+        session was issued for.
+        """
+        webapp = Webapp.objects.create(
+            name="Db App A",
+            slug="db-app-a",
+            subdomain="db-app-a",
+            url="http://example.com",
+            workspace=self.WORKSPACE_A,
+            created_by=self.USER,
+            is_public=False,
+            allowed_operations=[Webapp.OperationScope.DATABASE_READ],
+        )
+        saved_query = SavedQuery.objects.create(
+            workspace=self.WORKSPACE_B,
+            created_by=self.USER,
+            name="B only",
+            content="SELECT 1",
+            visibility=SavedQueryVisibility.WORKSPACE,
+        )
+        session = self._create_session(webapp, self.USER)
+
+        response = self._graphql_post(
+            "db-app-a",
+            f'query {{ executeSavedQuery(input: {{ slug: "{saved_query.slug}" }}) '
+            f"{{ success errors }} }}",
+            session.session_key,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.content)["data"]["executeSavedQuery"]
+        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
+        self.assertEqual(0, QueryLog.objects.count())
 
     def test_non_proxy_graphql_unaffected(self):
         """Hitting the main /graphql/ endpoint (no webapp subdomain) with

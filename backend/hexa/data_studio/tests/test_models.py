@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
@@ -226,13 +226,26 @@ class SavedQueryModelTest(SavedQueryTestMixin, TestCase):
     def test_slug_falls_back_when_name_has_nothing_to_slugify(self):
         self.assertEqual("query", self.create_saved_query(name="!@#$%").slug)
 
-    def test_slug_reusable_across_workspaces(self):
-        # Uniqueness is per workspace, so the same name elsewhere keeps its slug.
+    def test_slug_unique_across_workspaces(self):
+        # The slug identifies a saved query on its own, so the same name in
+        # another workspace has to be suffixed rather than reused.
         first = self.create_saved_query(user=self.USER_ADMIN, workspace=self.WORKSPACE)
         second = self.create_saved_query(
             user=self.USER_ADMIN, workspace=self.WORKSPACE_2
         )
-        self.assertEqual(first.slug, second.slug)
+        self.assertNotEqual(first.slug, second.slug)
+        self.assertTrue(second.slug.startswith(f"{first.slug}-"))
+
+    def test_slug_generation_gives_up_instead_of_looping(self):
+        # Only a slugify that ignores the suffix can collide every time; a real
+        # run varies it and settles on the first or second attempt.
+        self.create_saved_query(name="My query")
+
+        with (
+            patch("hexa.data_studio.models.slugify", return_value="my-query"),
+            self.assertRaises(RuntimeError),
+        ):
+            self.create_saved_query(name="My query")
 
     def test_content_keeps_literals_verbatim(self):
         # PostgreSQL accepts any character inside a literal, so an exotic blank
