@@ -2497,6 +2497,8 @@ type FileNode {
   name: String!
   parentId: String
   path: String!
+  size: Int
+  tooLarge: Boolean
   type: FileType!
 }
 
