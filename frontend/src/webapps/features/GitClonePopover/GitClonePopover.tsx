@@ -19,6 +19,15 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
+const getProviderCommand = (repositoryUrl: string): string | null => {
+  try {
+    const { origin } = new URL(repositoryUrl);
+    return `git config --global credential.${origin}.provider generic`;
+  } catch {
+    return null;
+  }
+};
+
 type GitClonePopoverProps = {
   repositoryUrl: string;
 };
@@ -26,6 +35,7 @@ type GitClonePopoverProps = {
 const GitClonePopover = ({ repositoryUrl }: GitClonePopoverProps) => {
   const { t } = useTranslation();
   const cloneCommand = `git clone ${repositoryUrl}`;
+  const providerCommand = getProviderCommand(repositoryUrl);
 
   return (
     <Popover
@@ -96,6 +106,16 @@ const GitClonePopover = ({ repositoryUrl }: GitClonePopoverProps) => {
               </div>
             </Tabs.Tab>
           </Tabs>
+          {providerCommand && (
+            <div className="space-y-2 pt-1">
+              <p className="text-xs leading-relaxed text-gray-600">
+                {t(
+                  "Optional — run this to force Git Credential Manager to sign in through OpenHEXA:",
+                )}
+              </p>
+              <CommandBox command={providerCommand} />
+            </div>
+          )}
         </div>
       </div>
     </Popover>
