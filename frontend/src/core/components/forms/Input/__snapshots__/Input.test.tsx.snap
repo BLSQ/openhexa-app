@@ -30,7 +30,7 @@ exports[`Input renders a trailing icon 1`] = `
     <input
       aria-describedby="undefined-description"
       aria-invalid="false"
-      class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 pr-4"
+      class="form-input appearance-none relative block px-3 py-2 border rounded-md focus:outline-hidden focus:z-10 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500 pr-10"
       type="text"
       value=""
     />
