@@ -52,7 +52,6 @@ def copy_workspace(
     *,
     resources: set[str] | None = None,
     options: CopyOptions = CopyOptions(),
-    skip_existing: bool = False,
 ) -> CopyResult:
     """Copy a workspace from ``source`` to ``target``.
 
@@ -62,17 +61,8 @@ def copy_workspace(
     to discard it. ``options`` carries the run-wide switches (see
     :class:`~hexa.workspace_copier.options.CopyOptions`); every copier receives
     them and reads only what concerns it.
-    ``skip_existing`` skips files already on the target with
-    the same key and size (the idempotent re-run flow).
     """
     selected = _resolve_selection(WORKSPACE_COPIERS, resources)
-    if skip_existing:
-        # Only the files copier has per-run configuration; swap in a configured
-        # instance rather than mutating the shared registry singleton.
-        selected = [
-            FilesCopier(skip_existing=True) if isinstance(c, FilesCopier) else c
-            for c in selected
-        ]
     selected_names = {c.name for c in selected}
     result = CopyResult()
     for copier in selected:

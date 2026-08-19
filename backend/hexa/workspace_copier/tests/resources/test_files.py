@@ -5,6 +5,7 @@ import httpx
 from django.test import SimpleTestCase
 
 from hexa.workspace_copier.endpoints import Endpoint
+from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import NullReporter
 from hexa.workspace_copier.resources.files import (
     MAX_UPLOAD_SIZE,
@@ -175,8 +176,12 @@ class FilesCopierRemoteTest(SimpleTestCase):
             {"grew.txt": b"12345", "new.txt": b"12"}
         )
 
-        FilesCopier(skip_existing=True).copy(
-            self.source, self.target, self.result, NullReporter()
+        FilesCopier().copy(
+            self.source,
+            self.target,
+            self.result,
+            NullReporter(),
+            options=CopyOptions(skip_existing_files=True),
         )
 
         self.assertEqual(
@@ -197,8 +202,12 @@ class FilesCopierRemoteTest(SimpleTestCase):
         ]
         mock_download.side_effect = fake_download({"a.txt": b"abc"})
 
-        FilesCopier(skip_existing=True).copy(
-            self.source, self.target, self.result, NullReporter()
+        FilesCopier().copy(
+            self.source,
+            self.target,
+            self.result,
+            NullReporter(),
+            options=CopyOptions(skip_existing_files=True),
         )
 
         self.assertEqual(self.result.files.copied, [("a.txt", 3)])

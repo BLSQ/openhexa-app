@@ -15,6 +15,7 @@ than fixing them one round-trip at a time.
 """
 
 from collections.abc import Callable
+from dataclasses import replace
 from typing import Any
 
 import httpx
@@ -194,8 +195,11 @@ def run_copy(
         target,
         reporter,
         resources=resources,
-        options=options,
-        skip_existing=bool(target_workspace_slug),
+        options=replace(
+            options,
+            skip_existing_files=options.skip_existing_files
+            or bool(target_workspace_slug),
+        ),
     )
 
 

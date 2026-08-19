@@ -213,9 +213,6 @@ class FilesCopier(ResourceCopier):
     name = "files"
     label = "Files (bucket)"
 
-    def __init__(self, skip_existing: bool = False):
-        self.skip_existing = skip_existing
-
     def _existing_on_target(
         self, target: Endpoint, reporter: ProgressReporter
     ) -> dict[str, int]:
@@ -253,7 +250,9 @@ class FilesCopier(ResourceCopier):
         result.files = files_result
 
         existing = (
-            self._existing_on_target(target, reporter) if self.skip_existing else {}
+            self._existing_on_target(target, reporter)
+            if options.skip_existing_files
+            else {}
         )
 
         # One shared client for all presigned download/upload requests so the

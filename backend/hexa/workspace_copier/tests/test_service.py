@@ -138,7 +138,7 @@ class RunCopyTest(SimpleTestCase):
 
         self.assertIs(result, sentinel)
         mock_dup.assert_called_once()
-        self.assertFalse(mock_dup.call_args.kwargs["skip_existing"])
+        self.assertFalse(mock_dup.call_args.kwargs["options"].skip_existing_files)
 
     @patch("hexa.workspace_copier.service.copy_workspace")
     @patch("hexa.workspace_copier.service.build_client")
@@ -151,7 +151,7 @@ class RunCopyTest(SimpleTestCase):
             **_kwargs(),
         )
 
-        self.assertTrue(mock_dup.call_args.kwargs["skip_existing"])
+        self.assertTrue(mock_dup.call_args.kwargs["options"].skip_existing_files)
 
     @patch("hexa.workspace_copier.service.copy_workspace")
     @patch("hexa.workspace_copier.service.build_client")
