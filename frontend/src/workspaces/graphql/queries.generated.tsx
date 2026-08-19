@@ -690,7 +690,7 @@ export const WorkspaceSavedQueryPageDocument = gql`
     }
     ...WorkspaceLayout_workspace
   }
-  savedQueryBySlug(workspaceSlug: $workspaceSlug, slug: $slug) {
+  savedQueryBySlug(slug: $slug) {
     ...SavedQuery_savedQuery
   }
 }

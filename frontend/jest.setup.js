@@ -60,8 +60,19 @@ jest.mock("react", () => {
 });
 
 jest.mock("core/components/MarkdownEditor/MarkdownEditor");
-jest.mock("core/helpers", () => ({
-  stripMarkdown: (markdown) => markdown,
+// `core/helpers` is loaded for real; only the two ESM-only packages it pulls in
+// are stubbed, so the rest of the barrel (isValidUuid, isValidUrl) behaves as it
+// does in the browser. `stripMarkdown` stays an identity function, as before.
+jest.mock("remark", () => ({
+  remark: () => ({
+    use: () => ({
+      processSync: (markdown) => ({ toString: () => markdown }),
+    }),
+  }),
+}));
+jest.mock("strip-markdown", () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 jest.mock("next-i18next", () => ({
   I18nextProvider: jest.fn(),

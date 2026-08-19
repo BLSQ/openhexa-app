@@ -1,4 +1,5 @@
 import Page from "core/components/Page";
+import { isValidUuid } from "core/helpers";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { useTranslation } from "next-i18next";
@@ -19,9 +20,6 @@ type Props = {
   workspaceSlug: string;
   querySlug: string;
 };
-
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const WorkspaceSavedQueryPage: NextPageWithLayout = (props: Props) => {
   const { t } = useTranslation();
@@ -90,7 +88,7 @@ export const getServerSideProps = createGetServerSideProps({
     if (!data.savedQueryBySlug) {
       // Saved queries used to be addressed by id. A link made before the move
       // still resolves, once: redirect it to the slug URL rather than 404.
-      if (UUID_RE.test(querySlug)) {
+      if (isValidUuid(querySlug)) {
         const { data: byId } = await client.query<
           WorkspaceSavedQuerySlugByIdQuery,
           WorkspaceSavedQuerySlugByIdQueryVariables

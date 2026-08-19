@@ -21,7 +21,9 @@ jest.mock("next-i18next/serverSideTranslations", () => ({
 }));
 
 const WORKSPACE = { slug: "ws-1", permissions: { createSavedQuery: true } };
-const UUID = "11111111-2222-3333-4444-555555555555";
+// A real v4 UUID: the page validates the id with `isValidUuid`, which checks the
+// version and variant nibbles rather than the hex shape alone.
+const UUID = "11111111-2222-4333-8444-555555555555";
 
 const buildCtx = (querySlug: string) =>
   ({

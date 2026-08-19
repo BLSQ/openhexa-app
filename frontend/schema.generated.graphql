@@ -2396,9 +2396,7 @@ enum ExecuteSQLError {
   """The query was cancelled because it exceeded the statement timeout."""
   QUERY_TIMEOUT
 
-  """
-  No saved query with this slug in this workspace, or the workspace is not visible to the caller.
-  """
+  """No saved query with this slug, or it is not visible to the caller."""
   SAVED_QUERY_NOT_FOUND
 }
 
@@ -2453,7 +2451,6 @@ input ExecuteSavedQueryInput {
   """
   maxRows: Int
   slug: String!
-  workspaceSlug: String!
 }
 
 """
@@ -4235,8 +4232,10 @@ type Query {
   """
   savedQuery(id: ID!, workspaceSlug: String): SavedQuery
 
-  """Retrieves a saved query by its slug within a workspace."""
-  savedQueryBySlug(slug: String!, workspaceSlug: String!): SavedQuery
+  """
+  Retrieves a saved query by its slug, which is unique across workspaces.
+  """
+  savedQueryBySlug(slug: String!): SavedQuery
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
