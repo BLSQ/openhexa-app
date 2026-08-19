@@ -15,7 +15,6 @@ than fixing them one round-trip at a time.
 """
 
 from collections.abc import Callable
-from dataclasses import replace
 from typing import Any
 
 import httpx
@@ -174,12 +173,7 @@ def run_copy(
     options: CopyOptions = CopyOptions(),
     reporter: ProgressReporter,
 ) -> CopyResult:
-    """Verify both endpoints, then copy the workspace, returning the result.
-
-    Copying into an existing workspace (``target_workspace_slug``) is the
-    idempotent re-run flow, so it also skips files already present on the
-    target with the same key and size.
-    """
+    """Verify both endpoints, then copy the workspace, returning the result."""
     source, target = _verify_endpoints(
         source_url=source_url,
         source_token=source_token,
@@ -195,11 +189,7 @@ def run_copy(
         target,
         reporter,
         resources=resources,
-        options=replace(
-            options,
-            skip_existing_files=options.skip_existing_files
-            or bool(target_workspace_slug),
-        ),
+        options=options,
     )
 
 

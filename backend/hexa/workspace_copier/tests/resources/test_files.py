@@ -5,7 +5,6 @@ import httpx
 from django.test import SimpleTestCase
 
 from hexa.workspace_copier.endpoints import Endpoint
-from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import NullReporter
 from hexa.workspace_copier.resources.files import (
     MAX_UPLOAD_SIZE,
@@ -35,6 +34,11 @@ def fake_download(contents: dict[str, bytes | Exception]):
     return _download
 
 
+def fake_walk(source_objects, target_objects=()):
+    """Stub for `walk`: the copier lists the target first, then walks the source."""
+    return [iter(target_objects), iter(source_objects)]
+
+
 class FilesCopierRemoteTest(SimpleTestCase):
     def setUp(self):
         self.source = Endpoint.remote(MagicMock(), "src")
@@ -45,7 +49,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
     @patch("hexa.workspace_copier.resources.files.download")
     @patch("hexa.workspace_copier.resources.files.walk")
     def test_copies_each_file(self, mock_walk, mock_download, mock_upload):
-        mock_walk.return_value = iter(
+        mock_walk.side_effect = fake_walk(
             [{"key": "a.txt", "size": 3}, {"key": "dir/b.txt", "size": 5}]
         )
         mock_download.side_effect = fake_download(
@@ -63,7 +67,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
     def test_upload_gets_the_downloaded_bytes_from_the_start_of_the_spool(
         self, mock_walk, mock_download, mock_upload
     ):
-        mock_walk.return_value = iter([{"key": "a.txt", "size": 5}])
+        mock_walk.side_effect = fake_walk([{"key": "a.txt", "size": 5}])
         mock_download.side_effect = fake_download({"a.txt": b"hello"})
         uploaded = []
         mock_upload.side_effect = lambda client, slug, path, buf, http: uploaded.append(
@@ -80,7 +84,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
     def test_file_above_single_part_limit_is_failed_without_transferring(
         self, mock_walk, mock_download, mock_upload
     ):
-        mock_walk.return_value = iter(
+        mock_walk.side_effect = fake_walk(
             [
                 {"key": "huge.json", "size": MAX_UPLOAD_SIZE + 1},
                 {"key": "ok", "size": 2},
@@ -103,7 +107,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
     def test_failed_file_is_recorded_and_loop_continues(
         self, mock_walk, mock_download, mock_upload
     ):
-        mock_walk.return_value = iter(
+        mock_walk.side_effect = fake_walk(
             [{"key": "bad.txt", "size": 1}, {"key": "ok.txt", "size": 2}]
         )
         mock_download.side_effect = fake_download(
@@ -121,7 +125,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
     def test_httpx_error_during_transfer_is_recorded_and_loop_continues(
         self, mock_walk, mock_download, mock_upload
     ):
-        mock_walk.return_value = iter(
+        mock_walk.side_effect = fake_walk(
             [{"key": "bad.txt", "size": 1}, {"key": "ok.txt", "size": 2}]
         )
         mock_download.side_effect = fake_download(
@@ -139,7 +143,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
     def test_spool_write_failure_is_recorded_and_loop_continues(
         self, mock_walk, mock_download, mock_upload
     ):
-        mock_walk.return_value = iter(
+        mock_walk.side_effect = fake_walk(
             [{"key": "bad.txt", "size": 1}, {"key": "ok.txt", "size": 2}]
         )
         mock_download.side_effect = fake_download(
@@ -156,33 +160,24 @@ class FilesCopierRemoteTest(SimpleTestCase):
     @patch("hexa.workspace_copier.resources.files.upload")
     @patch("hexa.workspace_copier.resources.files.download")
     @patch("hexa.workspace_copier.resources.files.walk")
-    def test_skip_existing_skips_matching_key_and_size(
+    def test_skips_target_files_matching_key_and_size(
         self, mock_walk, mock_download, mock_upload
     ):
-        # First walk() call lists the target, second walks the source.
         # 'same.txt' matches key+size and is skipped; 'grew.txt' exists but
         # with a different size so it is re-copied; 'new.txt' is absent.
-        mock_walk.side_effect = [
-            iter([{"key": "same.txt", "size": 3}, {"key": "grew.txt", "size": 1}]),
-            iter(
-                [
-                    {"key": "same.txt", "size": 3},
-                    {"key": "grew.txt", "size": 5},
-                    {"key": "new.txt", "size": 2},
-                ]
-            ),
-        ]
+        mock_walk.side_effect = fake_walk(
+            [
+                {"key": "same.txt", "size": 3},
+                {"key": "grew.txt", "size": 5},
+                {"key": "new.txt", "size": 2},
+            ],
+            [{"key": "same.txt", "size": 3}, {"key": "grew.txt", "size": 1}],
+        )
         mock_download.side_effect = fake_download(
             {"grew.txt": b"12345", "new.txt": b"12"}
         )
 
-        FilesCopier().copy(
-            self.source,
-            self.target,
-            self.result,
-            NullReporter(),
-            options=CopyOptions(skip_existing_files=True),
-        )
+        FilesCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertEqual(
             set(self.result.files.copied), {("grew.txt", 5), ("new.txt", 2)}
@@ -193,7 +188,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
     @patch("hexa.workspace_copier.resources.files.upload")
     @patch("hexa.workspace_copier.resources.files.download")
     @patch("hexa.workspace_copier.resources.files.walk")
-    def test_skip_existing_target_listing_failure_copies_everything(
+    def test_target_listing_failure_copies_everything(
         self, mock_walk, mock_download, mock_upload
     ):
         mock_walk.side_effect = [
@@ -202,13 +197,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
         ]
         mock_download.side_effect = fake_download({"a.txt": b"abc"})
 
-        FilesCopier().copy(
-            self.source,
-            self.target,
-            self.result,
-            NullReporter(),
-            options=CopyOptions(skip_existing_files=True),
-        )
+        FilesCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertEqual(self.result.files.copied, [("a.txt", 3)])
         self.assertEqual(self.result.files.skipped, 0)
@@ -224,7 +213,7 @@ class FilesCopierRemoteTest(SimpleTestCase):
             yield {"key": "a.txt", "size": 3}
             raise GraphQLError("listing page 2 failed")
 
-        mock_walk.return_value = walk_then_fail()
+        mock_walk.side_effect = fake_walk(walk_then_fail())
         mock_download.side_effect = fake_download({"a.txt": b"abc"})
 
         FilesCopier().copy(self.source, self.target, self.result, NullReporter())

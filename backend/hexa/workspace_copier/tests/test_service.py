@@ -138,20 +138,6 @@ class RunCopyTest(SimpleTestCase):
 
         self.assertIs(result, sentinel)
         mock_dup.assert_called_once()
-        self.assertFalse(mock_dup.call_args.kwargs["options"].skip_existing_files)
-
-    @patch("hexa.workspace_copier.service.copy_workspace")
-    @patch("hexa.workspace_copier.service.build_client")
-    def test_existing_target_slug_enables_skip_existing(self, mock_build, mock_dup):
-        mock_build.side_effect = [MagicMock(), MagicMock()]
-
-        run_copy(
-            reporter=NullReporter(),
-            target_workspace_slug="existing-ws",
-            **_kwargs(),
-        )
-
-        self.assertTrue(mock_dup.call_args.kwargs["options"].skip_existing_files)
 
     @patch("hexa.workspace_copier.service.copy_workspace")
     @patch("hexa.workspace_copier.service.build_client")

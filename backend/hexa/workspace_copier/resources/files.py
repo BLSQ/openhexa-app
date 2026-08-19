@@ -231,10 +231,11 @@ class FilesCopier(ResourceCopier):
                 f"   could not list target files ({exc}) — copying everything"
             )
             return {}
-        reporter.info(
-            f"   target already has {len(existing)} file(s); "
-            "files matching by key and size will be skipped"
-        )
+        if existing:
+            reporter.info(
+                f"   target already has {len(existing)} file(s); "
+                "files matching by key and size will be skipped"
+            )
         return existing
 
     def copy(
@@ -249,11 +250,7 @@ class FilesCopier(ResourceCopier):
         files_result = FilesResult()
         result.files = files_result
 
-        existing = (
-            self._existing_on_target(target, reporter)
-            if options.skip_existing_files
-            else {}
-        )
+        existing = self._existing_on_target(target, reporter)
 
         # One shared client for all presigned download/upload requests so the
         # connection pool reuses TLS handshakes across files instead of paying

@@ -27,7 +27,7 @@ order (see `orchestrator.WORKSPACE_COPIERS`):
 | name          | copier                    | notes                                                                                              |
 | ------------- | ------------------------- |----------------------------------------------------------------------------------------------------|
 | `workspace`   | `WorkspaceMetadataCopier` | **mandatory** — creates the target, yields its handle                                              |
-| `files`       | `FilesCopier`             | bucket objects (streamed through a temp file — see [Large files](#large-files))                     |
+| `files`       | `FilesCopier`             | bucket objects (streamed through a temp file — see [Large files](#large-files)); the target bucket is listed first and files matching by key + size are skipped |
 | `database`    | `DatabaseCopier`          | native pg copy only if **both** sides LOCAL; else skipped + warned. Local copy not yet implemented |
 | `connections` | `ConnectionsCopier`       | connections + secret fields                                                                        |
 | `pipelines`   | `PipelinesCopier`         | pipelines + versions (depends on `files` for notebook pipelines)                                   |
@@ -107,7 +107,7 @@ Pass `--target-workspace-slug` to copy **into an existing workspace** instead:
 When `--target-workspace-slug` is set:
 
 - the workspace-metadata copier **skips creation** and leaves the existing workspace's metadata untouched;
-- every resource copier skips what already exists (pipelines by code, connections by slug, files re-uploaded), so only the missing pieces are filled in;
+- every resource copier skips what already exists (pipelines by code, connections by slug, files by key + size), so only the missing pieces are filled in;
 - if the slug does **not** exist on the target, the run exists early with a clear message;
 - `--target-organization` and `--target-workspace-name` are no longer required or taken into account.
 
