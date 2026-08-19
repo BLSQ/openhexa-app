@@ -1,4 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
+import { toast } from "react-toastify";
+import { downloadQueryCsv } from "./downloadQueryCsv";
 import { useDataStudioQuery } from "./useDataStudioQuery";
 
 const mockExecute = jest.fn();
@@ -8,6 +10,14 @@ jest.mock("./DataStudioEditor.generated", () => ({
   useExecuteWorkspaceSqlLazyQuery: () => [mockExecute, mockState],
 }));
 
+jest.mock("./downloadQueryCsv", () => ({
+  downloadQueryCsv: jest.fn(),
+}));
+
+jest.mock("react-toastify", () => ({
+  toast: { error: jest.fn() },
+}));
+
 const withResult = (executeSQL: unknown) => ({
   loading: false,
   data: { workspace: { database: { executeSQL } } },
@@ -15,6 +25,9 @@ const withResult = (executeSQL: unknown) => ({
 
 beforeEach(() => {
   mockExecute.mockClear();
+  (downloadQueryCsv as jest.Mock).mockClear();
+  (downloadQueryCsv as jest.Mock).mockResolvedValue(undefined);
+  (toast.error as jest.Mock).mockClear();
   mockState = { loading: false };
 });
 
@@ -56,6 +69,96 @@ describe("useDataStudioQuery", () => {
     const { result } = renderHook(() => useDataStudioQuery("ws-1"));
     act(() => result.current.retry());
     expect(mockExecute).not.toHaveBeenCalled();
+  });
+
+  it("streams even a complete (not truncated) result from the server", async () => {
+    mockState = withResult({
+      success: true,
+      truncated: false,
+      columns: ["id"],
+      rows: [{ id: 1 }],
+    });
+    const { result } = renderHook(() => useDataStudioQuery("ws-1"));
+    act(() => result.current.run("SELECT 2", 50));
+
+    await act(async () => {
+      await result.current.downloadCsv();
+    });
+
+    expect(downloadQueryCsv).toHaveBeenCalledWith("ws-1", "SELECT 2");
+  });
+
+  it("streams the last run query from the server (not the editor contents)", async () => {
+    mockState = withResult({
+      success: true,
+      truncated: true,
+      rows: [{ id: 1 }],
+    });
+    const { result } = renderHook(() => useDataStudioQuery("ws-1"));
+    // Runs a query (which may be a selection), then exports: the server export
+    // must use what was run, not the editor contents.
+    act(() => result.current.run("SELECT 2", 50));
+
+    await act(async () => {
+      await result.current.downloadCsv();
+    });
+
+    expect(downloadQueryCsv).toHaveBeenCalledWith("ws-1", "SELECT 2");
+    expect(result.current.exporting).toBe(false);
+  });
+
+  it("toasts and clears the exporting state when a server export fails", async () => {
+    (downloadQueryCsv as jest.Mock).mockRejectedValue(new Error("boom"));
+    mockState = withResult({
+      success: true,
+      truncated: true,
+      rows: [{ id: 1 }],
+    });
+    const { result } = renderHook(() => useDataStudioQuery("ws-1"));
+    act(() => result.current.run("SELECT 2", 50));
+
+    await act(async () => {
+      await result.current.downloadCsv();
+    });
+
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    expect(result.current.exporting).toBe(false);
+  });
+
+  it("marks exporting while a server export is in flight", async () => {
+    let resolveDownload!: () => void;
+    (downloadQueryCsv as jest.Mock).mockReturnValue(
+      new Promise<void>((res) => {
+        resolveDownload = res;
+      }),
+    );
+    mockState = withResult({
+      success: true,
+      truncated: true,
+      rows: [{ id: 1 }],
+    });
+    const { result } = renderHook(() => useDataStudioQuery("ws-1"));
+    act(() => result.current.run("SELECT 2", 50));
+
+    let call!: Promise<void>;
+    act(() => {
+      call = result.current.downloadCsv();
+    });
+    expect(result.current.exporting).toBe(true);
+
+    await act(async () => {
+      resolveDownload();
+      await call;
+    });
+    expect(result.current.exporting).toBe(false);
+  });
+
+  it("does not download before any query has run", async () => {
+    const { result } = renderHook(() => useDataStudioQuery("ws-1"));
+    await act(async () => {
+      await result.current.downloadCsv();
+    });
+    expect(downloadQueryCsv).not.toHaveBeenCalled();
   });
 
   it("allows export for a successful result with rows", () => {

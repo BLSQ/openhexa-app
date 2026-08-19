@@ -1,16 +1,36 @@
+from collections import defaultdict
+
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.databases.query_text import sanitize_sql
-from hexa.user_management.models import User, UserInterface
+from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.workspaces.models import Workspace
+
+
+class SavedQueryVisibility(models.TextChoices):
+    PRIVATE = "PRIVATE", _("Private")
+    WORKSPACE = "WORKSPACE", _("Workspace")
 
 
 class SavedQueryQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
-        return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
+        accessible = models.Q(visibility=SavedQueryVisibility.WORKSPACE)
+        # Service principals (pipeline runs, webapps) impersonate a workspace rather
+        # than a person, so they never own a private query - a deliberate call for
+        # WebappUser, whose real User row `created_by` would match and which
+        # WorkspaceQuerySet does treat as a person.
+        if isinstance(user, User) and not isinstance(user, ServicePrincipal):
+            accessible |= models.Q(created_by=user)
+
+        return self._filter_for_user_and_query_object(
+            user,
+            models.Q(workspace__in=Workspace.objects.filter_for_user(user))
+            & accessible,
+        )
 
 
 class SavedQueryManager(models.Manager):
@@ -22,6 +42,9 @@ class SavedQueryManager(models.Manager):
         name: str,
         content: str,
         description: str = "",
+        # None means "unspecified" and lands on the default: a brand-new query is
+        # private until its author decides to share it.
+        visibility: str | None = None,
     ):
         if not principal.has_perm("data_studio.create_saved_query", workspace):
             raise PermissionDenied
@@ -32,27 +55,117 @@ class SavedQueryManager(models.Manager):
             name=name,
             content=content,
             description=description,
+            visibility=visibility or SavedQueryVisibility.PRIVATE,
         )
 
 
+# Every SavedQueryVisibility must appear here: a new visibility has to state whether
+# its queries outlive their author, and there is no sane default to fall back on.
+ON_AUTHOR_DELETED = {
+    # Nothing but its author can reach a private query - no workspace or organization
+    # role grants access to one - so leaving it behind would keep a row alive that
+    # only a superuser could still see.
+    #
+    # CASCADE nulls the foreign key before deleting on backends that cannot defer
+    # constraint checks, which the check constraint below would reject. PostgreSQL
+    # defers, and it is the only backend OpenHEXA runs on - pinned by
+    # `test_the_backend_can_defer_constraint_checks`. On a backend that cannot, drop
+    # the delegation for a handler that collects without the field update:
+    #
+    #     collector.collect(sub_objs, source=field.remote_field.model,
+    #                       source_attr=field.name, nullable=field.null,
+    #                       fail_on_restricted=False)
+    #
+    # `source_attr` is what nests the queries under the user in the admin's delete
+    # confirmation, so it is not optional.
+    SavedQueryVisibility.PRIVATE: models.CASCADE,
+    # Shared queries outlive their author: colleagues, and the webapps and pipelines
+    # built on them, depend on queries they did not write.
+    SavedQueryVisibility.WORKSPACE: models.SET_NULL,
+}
+
+
+def _policy_for(visibility: str):
+    try:
+        return ON_AUTHOR_DELETED[visibility]
+    except KeyError:
+        raise ImproperlyConfigured(
+            f"No author-deletion policy for saved query visibility {visibility!r}:"
+            " every visibility must state whether its queries outlive their author."
+        ) from None
+
+
+def saved_queries_on_author_deleted(collector, field, sub_objs, using):
+    """`on_delete` for SavedQuery.created_by: what a query survives depends on who could read it.
+
+    Nullifying every query would strand the private ones - rows no role can reach,
+    kept forever for nobody - while deleting every query would break shared ones their
+    workspace still relies on. The split mirrors the access rule in
+    SavedQueryQuerySet.filter_for_user: what survives is exactly what someone other
+    than the author could already read.
+
+    What this is *not* is an erasure policy: it removes queries that became
+    unreachable, not everything the account left behind. QueryLog keeps the text of
+    what that user ran (see QueryLog.user).
+
+    This is deliberately enforced at the model layer: user deletion happens through
+    the Django admin or a shell, so any policy living in a service or a mutation
+    would simply be bypassed.
+    """
+    by_policy = defaultdict(list)
+    for saved_query in sub_objs:
+        by_policy[_policy_for(saved_query.visibility)].append(saved_query)
+
+    for policy, saved_queries in by_policy.items():
+        policy(collector, field, saved_queries, using)
+
+
 class SavedQuery(Base):
-    """A SQL query saved by a user in the Data Studio, shared with the whole workspace."""
+    """A SQL query saved by a user in the Data Studio.
+
+    A saved query belongs to a workspace, but its `visibility` decides who within
+    that workspace can reach it: WORKSPACE queries are shared with every member,
+    PRIVATE ones are the author's alone.
+
+    Losing access and losing the author are two different things: a member removed
+    from the workspace stops seeing their private queries but gets them back if they
+    are added again, while deleting the account itself takes them for good (see
+    `saved_queries_on_author_deleted`).
+    """
 
     workspace = models.ForeignKey(
         Workspace,
         on_delete=models.CASCADE,
         related_name="saved_queries",
     )
-    created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    created_by = models.ForeignKey(
+        User, null=True, on_delete=saved_queries_on_author_deleted
+    )
     name = models.CharField(max_length=255, null=False, blank=False)
     description = models.TextField(blank=True, default="")
     content = models.TextField()
+    visibility = models.CharField(
+        max_length=20,
+        choices=SavedQueryVisibility.choices,
+        default=SavedQueryVisibility.PRIVATE,
+    )
 
     objects = SavedQueryManager.from_queryset(SavedQueryQuerySet)()
 
     class Meta:
         verbose_name_plural = "saved queries"
         ordering = ["-updated_at"]
+        constraints = [
+            # An author-less private query is readable by nobody, so it can only be
+            # dead weight. `saved_queries_on_author_deleted` is what keeps that from
+            # happening; this makes any other code path that forgets an author fail
+            # where it writes instead of leaving an invisible row behind.
+            models.CheckConstraint(
+                condition=models.Q(created_by__isnull=False)
+                | ~models.Q(visibility=SavedQueryVisibility.PRIVATE),
+                name="data_studio_private_query_has_author",
+            ),
+        ]
         indexes = [
             # `id` mirrors the tiebreaker the listing resolver appends: without it
             # Postgres can only presort on the leading column and still has to run an
@@ -64,6 +177,17 @@ class SavedQuery(Base):
             models.Index(
                 fields=["workspace", "name", "id"],
                 name="data_studio_ws_name_idx",
+            ),
+            # Listings match `workspace = X AND (visibility = 'WORKSPACE' OR
+            # created_by = me)`. Postgres serves that OR as a BitmapOr, so the two
+            # indexes above cover the shared branch and this one covers the author
+            # branch. `visibility` is deliberately not folded into their leading
+            # columns: a BitmapOr discards index ordering anyway, so it would buy
+            # nothing. If this ever shows up in profiling, the next step is partial
+            # indexes, not a reshuffle here.
+            models.Index(
+                fields=["workspace", "created_by", "-updated_at", "id"],
+                name="data_studio_ws_author_idx",
             ),
         ]
 
@@ -80,6 +204,17 @@ class SavedQuery(Base):
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("data_studio.update_saved_query", self):
             raise PermissionDenied
+
+        # Sharing is gated separately from the rest of the attributes, and only when
+        # it actually changes: a client echoing back the current visibility must not
+        # need the stricter permission.
+        visibility = kwargs.get("visibility")
+        if visibility is not None and visibility != self.visibility:
+            if not principal.has_perm(
+                "data_studio.update_saved_query_visibility", self
+            ):
+                raise PermissionDenied
+            self.visibility = visibility
 
         for key in ["name", "content"]:
             if kwargs.get(key) is not None:
@@ -121,15 +256,28 @@ class QueryLog(Base):
         DENIED = "DENIED"
         # The query was rejected before reaching the data source (e.g. multiple statements)
         REJECTED = "REJECTED"
+        # A streaming export still in flight: the entry is written when the stream starts
+        # and only becomes SUCCESS/ERROR once it ends, so an entry left here means that
+        # end was never observed — a cancelled download or a worker killed mid-stream.
+        STREAMING = "STREAMING"
 
     class Origin(models.TextChoices):
         # The client did not identify itself; every query arrives through the API anyway
         OTHER = "OTHER"
         DATA_STUDIO = "DATA_STUDIO"
+        # Set server-side by the CSV export view and never accepted from a client (see
+        # schema.py), so it marks an actual full-result export rather than a claim
+        DATA_STUDIO_EXPORT = "DATA_STUDIO_EXPORT"
 
     workspace = models.ForeignKey(
         Workspace, on_delete=models.CASCADE, related_name="query_logs"
     )
+    # SET_NULL, unlike SavedQuery.created_by: a log entry is worth keeping even once
+    # nobody is named on it, because what it answers ("how much was this workspace
+    # queried, what failed") is about the workspace rather than the person. The SQL
+    # text stays with it; dropping that is a retention decision about the audit trail
+    # as a whole, not something the saved-query deletion policy should settle on its
+    # own (see `saved_queries_on_author_deleted`).
     user = models.ForeignKey(
         User,
         null=True,

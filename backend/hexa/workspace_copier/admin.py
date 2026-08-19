@@ -12,6 +12,7 @@ from django.core.exceptions import PermissionDenied
 from django.template.response import TemplateResponse
 
 from hexa.workspace_copier.forms import CopyTemplatesForm, CopyWorkspaceForm
+from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import BufferReporter
 from hexa.workspace_copier.results import format_summary, format_templates_summary
 from hexa.workspace_copier.service import (
@@ -43,6 +44,9 @@ def copy_workspace_view(request):
                     target_organization_id=data["target_organization"],
                     target_workspace_name=data["target_workspace_name"] or None,
                     resources=set(data["resources"]),
+                    options=CopyOptions(
+                        all_dataset_versions=data["all_dataset_versions"]
+                    ),
                     reporter=reporter,
                 )
                 summary = format_summary(result)

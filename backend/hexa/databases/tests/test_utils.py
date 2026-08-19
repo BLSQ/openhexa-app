@@ -25,6 +25,8 @@ from hexa.databases.utils import (
     get_row_count,
     get_table_definition,
     get_table_rows,
+    get_workspace_database_ro_connection,
+    stream_database_query,
     validate_query,
 )
 from hexa.plugins.connector_postgresql.models import Database
@@ -447,7 +449,7 @@ class DatabaseUtilsTest(TestCase):
         The timeout is the only thing bounding how long a single (possibly
         AI-generated and untrusted) query can run. statement_timeout is a USERSET
         GUC, so the read-only role is technically allowed to raise it -- the only
-        reason it can't is that ensure_single_statement forbids running a SET
+        reason it can't is that PreparedQuery forbids running a SET
         *before* the query. This guards the remaining escape hatch: changing the
         timeout from *within* the single executing statement. PostgreSQL arms the
         timer once at statement start and never re-reads the GUC mid-statement, so
@@ -491,6 +493,66 @@ class DatabaseUtilsTest(TestCase):
             with self.subTest(statement=statement):
                 with self.assertRaises(InsufficientPrivilege):
                     execute_database_query(self.WORKSPACE, statement)
+
+    def test_stream_database_query_returns_every_row(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
+
+        columns, batches = stream_database_query(
+            self.WORKSPACE, "SELECT id, label FROM demo ORDER BY id"
+        )
+
+        self.assertEqual(["id", "label"], columns)
+        rows = [row for batch in batches for row in batch]
+        self.assertEqual(
+            [
+                {"id": 1, "label": "a"},
+                {"id": 2, "label": "b"},
+                {"id": 3, "label": "c"},
+            ],
+            rows,
+        )
+
+    def test_stream_database_query_is_not_capped(self):
+        # generate_series returns far more rows than the interactive default cap;
+        # the stream must yield all of them.
+        columns, batches = stream_database_query(
+            self.WORKSPACE, "SELECT generate_series(1, 5000) AS id"
+        )
+
+        self.assertEqual(["id"], columns)
+        self.assertEqual(5000, sum(len(batch) for batch in batches))
+
+    def test_stream_database_query_batches_across_multiple_fetches(self):
+        # A batch_size smaller than the result forces several server-side fetches;
+        # the rows must come through in order, grouped into batches of that size.
+        columns, batches = stream_database_query(
+            self.WORKSPACE,
+            "SELECT generate_series(1, 5) AS id",
+            batch_size=2,
+        )
+
+        materialised = list(batches)
+        self.assertEqual([2, 2, 1], [len(batch) for batch in materialised])
+        self.assertEqual(
+            [1, 2, 3, 4, 5],
+            [row["id"] for batch in materialised for row in batch],
+        )
+
+    def test_stream_database_query_rejects_multiple_statements(self):
+        with self.assertRaises(MultipleStatementsError):
+            stream_database_query(self.WORKSPACE, "SELECT 1; SELECT 2")
+
+    def test_stream_database_query_closes_connection_when_exhausted(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+        real_connection = get_workspace_database_ro_connection(self.WORKSPACE)
+        with mock.patch(
+            "hexa.databases.utils.get_workspace_database_ro_connection",
+            return_value=real_connection,
+        ):
+            _, rows = stream_database_query(self.WORKSPACE, "SELECT id FROM demo")
+            list(rows)
+
+        self.assertTrue(real_connection.closed)
 
     def test_get_full_database_definition(self):
         seed_demo_table(self.WORKSPACE, [(1, "a")])

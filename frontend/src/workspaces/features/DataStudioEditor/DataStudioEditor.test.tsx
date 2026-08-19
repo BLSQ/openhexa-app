@@ -1,8 +1,9 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { downloadBlob } from "core/helpers/files";
+import { SavedQueryVisibility } from "graphql/types";
 import { ComponentProps } from "react";
 import DataStudioEditor from "./DataStudioEditor";
+import { downloadQueryCsv } from "./downloadQueryCsv";
 
 // `useTranslation` is globally mocked to echo the key, so button/label
 // assertions below use the raw key strings.
@@ -24,6 +25,7 @@ jest.mock("./DataStudioSchemaBrowser.generated", () => ({
 }));
 
 const mockEditDetails = jest.fn();
+const mockSetVisibility = jest.fn();
 const mockCommit = jest.fn();
 const mockPlanSave = jest.fn();
 let mockEditorState: any;
@@ -150,8 +152,12 @@ jest.mock("core/components/CodeEditor/CodeEditor", () => {
   };
 });
 
-jest.mock("core/helpers/files", () => ({
-  downloadBlob: jest.fn(),
+jest.mock("./downloadQueryCsv", () => ({
+  downloadQueryCsv: jest.fn(),
+}));
+
+jest.mock("react-toastify", () => ({
+  toast: { error: jest.fn() },
 }));
 
 // GenerateSqlBar pulls in the real Apollo `useCreateAssistantConversationMutation`
@@ -213,8 +219,10 @@ const renderEditor = (
 beforeEach(() => {
   mockExecute.mockClear();
   mockInsertText.mockClear();
-  (downloadBlob as jest.Mock).mockClear();
   mockEditDetails.mockClear();
+  (downloadQueryCsv as jest.Mock).mockClear();
+  (downloadQueryCsv as jest.Mock).mockResolvedValue(undefined);
+  mockSetVisibility.mockClear();
   mockCommit.mockClear();
   mockPlanSave.mockClear();
   mockQueryState = { loading: false };
@@ -224,9 +232,11 @@ beforeEach(() => {
     isDirty: false,
     saving: false,
     canUpdate: false,
+    canUpdateVisibility: false,
     dialog: { open: false, mode: "create" },
     savePlan: savePlan(),
     save: jest.fn(),
+    setVisibility: mockSetVisibility,
     saveAsNew: jest.fn(),
     commit: mockCommit,
     editDetails: mockEditDetails,
@@ -314,15 +324,29 @@ describe("DataStudioEditor", () => {
     });
   });
 
-  it("exports the current result to CSV", async () => {
-    mockQueryState = successState();
+  it("shows an inline in-progress affordance while a server export runs", async () => {
+    let resolveDownload!: () => void;
+    (downloadQueryCsv as jest.Mock).mockReturnValue(
+      new Promise<void>((res) => {
+        resolveDownload = res;
+      }),
+    );
+    mockQueryState = successState({ truncated: true });
     renderEditor();
+    await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
+    await userEvent.click(screen.getByRole("button", { name: "Run" }));
 
     await userEvent.click(screen.getByRole("button", { name: "Export CSV" }));
-    expect(downloadBlob).toHaveBeenCalledTimes(1);
-    expect(downloadBlob).toHaveBeenCalledWith(
-      "query-results.csv",
-      expect.any(Blob),
+
+    const exportingButton = screen.getByRole("button", { name: "Exporting…" });
+    expect(exportingButton).toBeDisabled();
+    expect(screen.getByText("This may take a while")).toBeInTheDocument();
+
+    resolveDownload();
+    await waitFor(() =>
+      expect(
+        screen.queryByText("This may take a while"),
+      ).not.toBeInTheDocument(),
     );
   });
 
@@ -433,7 +457,11 @@ describe("DataStudioEditor", () => {
   });
 
   it("opens the edit-details dialog from the pencil next to a saved query name", async () => {
-    mockEditorState.savedQuery = { id: "q1", name: "Cohort query" };
+    mockEditorState.savedQuery = {
+      id: "q1",
+      name: "Cohort query",
+      visibility: SavedQueryVisibility.Private,
+    };
     mockEditorState.canUpdate = true;
     renderEditor();
 
@@ -443,13 +471,32 @@ describe("DataStudioEditor", () => {
   });
 
   it("hides the edit-details pencil when the query cannot be updated", () => {
-    mockEditorState.savedQuery = { id: "q1", name: "Cohort query" };
+    mockEditorState.savedQuery = {
+      id: "q1",
+      name: "Cohort query",
+      visibility: SavedQueryVisibility.Private,
+    };
     mockEditorState.canUpdate = false;
     renderEditor();
 
     expect(
       screen.queryByRole("button", { name: "Edit details" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("shows the visibility control only once a query is saved", () => {
+    renderEditor();
+    expect(screen.queryByText("Private")).not.toBeInTheDocument();
+
+    mockEditorState.savedQuery = {
+      id: "q1",
+      name: "Cohort query",
+      visibility: SavedQueryVisibility.Private,
+    };
+    mockEditorState.canUpdateVisibility = true;
+    renderEditor();
+
+    expect(screen.getByRole("button", { name: /Private/ })).toBeInTheDocument();
   });
 
   it("disables Save when the plan withholds it, and runs it when offered", async () => {

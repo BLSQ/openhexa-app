@@ -23,6 +23,14 @@ class SSEAwareGZipMiddleware(GZipMiddleware):
     def process_response(self, request, response):
         if response.get("Content-Type", "").startswith("text/event-stream"):
             return response
+        # An async streaming response is gzipped one gzip member per chunk
+        # (django/middleware/gzip.py compresses each chunk via compress_string),
+        # which browsers can't reliably stream-decode — the same failure this
+        # class already avoids for SSE, fixed upstream in Django 6.0. The Data
+        # Studio CSV export is served as an async stream, so leave every async
+        # stream uncompressed until the upgrade.
+        if getattr(response, "is_async", False) and response.streaming:
+            return response
         return super().process_response(request, response)
 
 

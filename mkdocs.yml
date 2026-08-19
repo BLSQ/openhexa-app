@@ -104,6 +104,7 @@ plugins:
             Files: Fichiers
             Datasets: Jeux de données
             Database: Base de données
+            SQL Chart Widgets: Graphiques SQL
             Connections: Connexions
             Pipelines: Pipelines
             Notebooks: Notebooks
@@ -214,6 +215,7 @@ nav:
     - Files: files.md
     - Datasets: datasets.md
     - Database: database.md
+    - SQL Chart Widgets: sql-widgets.md
     - Connections: connections.md
     - Pipelines: pipelines.md
     - Notebooks: notebooks.md

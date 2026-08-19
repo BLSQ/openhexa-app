@@ -10,12 +10,17 @@ from ariadne import (
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import HttpRequest
+from psycopg2 import Error as Psycopg2Error
+from psycopg2.errors import QueryCanceled
 
 from hexa.core.graphql import result_page
+from hexa.databases.query_text import MultipleStatementsError
+from hexa.databases.schema import database_object
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
-from .models import SavedQuery
+from .models import QueryLog, SavedQuery
+from .query_runner import run_and_log_database_query
 
 data_studio_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -35,6 +40,63 @@ saved_query_order_by_enum = EnumType(
         "UPDATED_AT_DESC": "-updated_at",
     },
 )
+
+# Only the origins a client may declare are bound to the GraphQL enum: the CSV export's
+# origin is set server-side (see views.download_query_csv), so it cannot be claimed on an
+# interactive query and means what it says in the audit log. Derived from the model enum
+# rather than hand-listed, so the two stay in sync — a new client-settable value missing
+# from schema.graphql fails loudly when the schema is built.
+execute_sql_origin_enum = EnumType(
+    "ExecuteSQLOrigin",
+    {
+        origin.name: origin
+        for origin in QueryLog.Origin
+        if origin != QueryLog.Origin.DATA_STUDIO_EXPORT
+    },
+)
+
+
+# executeSQL extends the databases app's Database type: the field belongs to the
+# database, but the execution path lives here because it writes to QueryLog. The
+# resolver is attached to the imported bindable, which the databases app already
+# registers — hence no database_object in data_studio_bindables below.
+@database_object.field("executeSQL")
+def resolve_database_execute_sql(
+    workspace: Workspace,
+    info,
+    query: str,
+    max_rows: int | None = None,
+    origin: str | None = None,
+    **kwargs,
+):
+    request: HttpRequest = info.context["request"]
+    # Clients may send an explicit null, which bypasses the Python default
+    origin = origin or QueryLog.Origin.OTHER
+    try:
+        result = run_and_log_database_query(
+            request, workspace, query, origin, max_rows=max_rows
+        )
+        return {"success": True, "errors": [], **result}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except MultipleStatementsError as e:
+        return {
+            "success": False,
+            "errors": ["MULTIPLE_STATEMENTS"],
+            "error_message": str(e),
+        }
+    except QueryCanceled as e:
+        return {
+            "success": False,
+            "errors": ["QUERY_TIMEOUT"],
+            "error_message": str(e).strip(),
+        }
+    except Psycopg2Error as e:
+        return {
+            "success": False,
+            "errors": ["QUERY_ERROR"],
+            "error_message": str(e).strip(),
+        }
 
 
 @saved_query_object.field("permissions")
@@ -57,6 +119,18 @@ def resolve_saved_query_permissions_delete(saved_query: SavedQuery, info, **kwar
     request: HttpRequest = info.context["request"]
     return (
         request.user.has_perm("data_studio.delete_saved_query", saved_query)
+        if request.user.is_authenticated
+        else False
+    )
+
+
+@saved_query_permissions.field("updateVisibility")
+def resolve_saved_query_permissions_update_visibility(
+    saved_query: SavedQuery, info, **kwargs
+):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("data_studio.update_saved_query_visibility", saved_query)
         if request.user.is_authenticated
         else False
     )
@@ -104,17 +178,12 @@ def resolve_workspace_permissions_create_saved_query(
 @data_studio_queries.field("savedQuery")
 def resolve_saved_query(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
-    queryset = SavedQuery.objects.filter_for_user(request.user).select_related(
-        "created_by", "workspace", "workspace__organization"
-    )
-    # workspaceSlug is optional to keep the field's existing id-only contract;
-    # when supplied it scopes the lookup to that workspace, matching where
-    # saved queries live (mirrors pipelineByCode).
-    workspace_slug = kwargs.get("workspace_slug")
-    if workspace_slug is not None:
-        queryset = queryset.filter(workspace__slug=workspace_slug)
     try:
-        return queryset.get(id=kwargs["id"])
+        return (
+            SavedQuery.objects.filter_for_user(request.user)
+            .select_related("created_by", "workspace", "workspace__organization")
+            .get(id=kwargs["id"])
+        )
     except SavedQuery.DoesNotExist:
         return None
 
@@ -134,6 +203,7 @@ def resolve_create_saved_query(_, info, **kwargs):
             name=mutation_input["name"],
             content=mutation_input["content"],
             description=mutation_input.get("description") or "",
+            visibility=mutation_input.get("visibility"),
         )
         return {"success": True, "errors": [], "saved_query": saved_query}
     except Workspace.DoesNotExist:
@@ -182,4 +252,5 @@ data_studio_bindables = [
     saved_query_order_by_enum,
     data_studio_queries,
     data_studio_mutations,
+    execute_sql_origin_enum,
 ]

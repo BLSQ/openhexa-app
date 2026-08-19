@@ -11,6 +11,7 @@ import { SQLNamespace } from "@codemirror/lang-sql";
 import CodeEditor, {
   CodeEditorHandle,
 } from "core/components/CodeEditor/CodeEditor";
+import Spinner from "core/components/Spinner";
 import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import useIsMac from "core/hooks/useIsMac";
 import useSaveShortcut from "core/hooks/useSaveShortcut";
@@ -18,13 +19,13 @@ import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useRef, useState } from "react";
 import SaveQueryDialog from "workspaces/features/SavedQueries/SaveQueryDialog";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
-import { buildCsv, downloadCsv } from "./csv";
 import { useWorkspaceDataStudioSchemaQuery } from "./DataStudioSchemaBrowser.generated";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
 import { formatSql } from "./formatSql";
 import GenerateSqlBar, { useGenerateSqlForm } from "./GenerateSqlBar";
 import SaveQueryButton from "./SaveQueryButton";
+import SavedQueryVisibilityButton from "./SavedQueryVisibilityButton";
 import { useDataStudioQuery } from "./useDataStudioQuery";
 import { useSavedQueryEditor } from "./useSavedQueryEditor";
 
@@ -83,8 +84,16 @@ const DataStudioEditor = ({
   // macOS; other platforms keep the spelled-out modifiers.
   const runShortcutBadge = isMac ? "⌘↵" : "Ctrl+Enter";
 
-  const { run, retry, result, loading, error, canExport } =
-    useDataStudioQuery(workspaceSlug);
+  const {
+    run,
+    retry,
+    downloadCsv,
+    exporting,
+    result,
+    loading,
+    error,
+    canExport,
+  } = useDataStudioQuery(workspaceSlug);
 
   // Same query DataStudioSchemaBrowser runs to populate its table tree.
   // Apollo dedupes identical in-flight queries and serves matching variables
@@ -121,14 +130,6 @@ const DataStudioEditor = ({
   // back into the middle of a line.
   const formatQuery = () => {
     editorRef.current?.replaceAll(formatSql(query));
-  };
-
-  const exportCsv = () => {
-    if (!result?.success) {
-      return;
-    }
-    const csv = buildCsv(result.columns ?? [], result.rows ?? []);
-    downloadCsv("query-results.csv", csv);
   };
 
   // Bound inside CodeMirror (see CodeEditor `shortcuts`) so the keystroke is
@@ -176,6 +177,14 @@ const DataStudioEditor = ({
             )}
             <div className="ml-auto flex items-center gap-2">
               <SaveQueryButton plan={editor.savePlan} />
+              {editor.savedQuery && (
+                <SavedQueryVisibilityButton
+                  visibility={editor.savedQuery.visibility}
+                  canUpdate={editor.canUpdateVisibility}
+                  saving={editor.saving}
+                  onChange={editor.setVisibility}
+                />
+              )}
               <label className="flex items-center gap-1.5 text-xs text-gray-500">
                 {t("Max rows")}
                 <select
@@ -217,13 +226,29 @@ const DataStudioEditor = ({
                 <Bars3BottomLeftIcon className="h-4 w-4" />
                 {t("Format")}
               </button>
+              {/* The server re-run can take a while; reassure the user right
+                  where they clicked. */}
+              {exporting && (
+                <span className="text-xs text-gray-400">
+                  {t("This may take a while")}
+                </span>
+              )}
               <button
-                onClick={exportCsv}
-                disabled={!canExport}
+                onClick={downloadCsv}
+                disabled={!canExport || exporting}
                 className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent"
               >
-                <ArrowDownTrayIcon className="h-4 w-4" />
-                {t("Export CSV")}
+                {exporting ? (
+                  <>
+                    <Spinner size="xs" />
+                    {t("Exporting…")}
+                  </>
+                ) : (
+                  <>
+                    <ArrowDownTrayIcon className="h-4 w-4" />
+                    {t("Export CSV")}
+                  </>
+                )}
               </button>
               <button
                 onClick={runSelection}
