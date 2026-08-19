@@ -27,8 +27,6 @@ from hexa.workspaces.models import (
     WorkspaceInvitationStatus,
     WorkspaceMembership,
     WorkspaceMembershipRole,
-    get_workspace_membership,
-    prime_workspace_memberships,
 )
 
 
@@ -1407,20 +1405,20 @@ class WorkspaceTest(GraphQLTestCase):
         self.assertEqual(1, len(membership_queries), membership_queries)
         self.assertLessEqual(len(organization_queries), 1, organization_queries)
 
-    def test_primed_memberships_are_not_reused_across_users(self):
-        # The primed lookup must never hand a user another user's membership.
+    def test_preloaded_memberships_are_not_reused_across_users(self):
+        # The preloaded lookup must never hand a user another user's membership.
         workspace = Workspace.objects.get(pk=self.WORKSPACE.pk)
-        prime_workspace_memberships(self.USER_REBECCA, [workspace])
+        Workspace.preload_memberships(self.USER_REBECCA, [workspace])
 
         self.assertEqual(
             WorkspaceMembershipRole.VIEWER,
-            get_workspace_membership(self.USER_REBECCA, workspace).role,
+            workspace.get_membership(self.USER_REBECCA).role,
         )
         self.assertEqual(
             WorkspaceMembershipRole.ADMIN,
-            get_workspace_membership(self.USER_WORKSPACE_ADMIN, workspace).role,
+            workspace.get_membership(self.USER_WORKSPACE_ADMIN).role,
         )
-        self.assertIsNone(get_workspace_membership(self.USER_SABRINA, workspace))
+        self.assertIsNone(workspace.get_membership(self.USER_SABRINA))
 
     def test_workspace_current_membership_none_for_organization_admin(self):
         # No membership to report, but the organization admin can still get a

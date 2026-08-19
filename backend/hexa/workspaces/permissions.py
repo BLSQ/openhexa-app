@@ -1,11 +1,6 @@
 from hexa.user_management.models import User
 
-from .models import (
-    Connection,
-    Workspace,
-    WorkspaceMembershipRole,
-    get_workspace_membership,
-)
+from .models import Connection, Workspace, WorkspaceMembershipRole
 
 
 def update_workspace(principal: User, workspace: Workspace):
@@ -32,7 +27,7 @@ def generate_workspace_token(principal: User, workspace: Workspace):
     The branches below mirror Workspace.objects.filter_for_user, so the two must
     be kept in sync.
     """
-    membership = get_workspace_membership(principal, workspace)
+    membership = workspace.get_membership(principal)
     if membership is not None:
         return membership.role != WorkspaceMembershipRole.VIEWER
     return principal.is_superuser or principal.is_organization_admin_or_owner(

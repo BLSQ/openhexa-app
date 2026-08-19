@@ -20,7 +20,6 @@ from ..models import (
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
     WorkspaceMembership,
-    get_workspace_membership,
 )
 from ..utils import (
     DHIS2MetadataQueryType,
@@ -154,7 +153,7 @@ def resolve_workspace_organization(workspace: Workspace, info):
 @workspace_object.field("currentMembership")
 def resolve_workspace_current_membership(workspace: Workspace, info):
     request: HttpRequest = info.context["request"]
-    return get_workspace_membership(request.user, workspace)
+    return workspace.get_membership(request.user)
 
 
 @workspace_object.field("members")

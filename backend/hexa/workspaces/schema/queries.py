@@ -7,7 +7,6 @@ from ..models import (
     Workspace,
     WorkspaceInvitation,
     WorkspaceInvitationStatus,
-    prime_workspace_memberships,
 )
 
 workspace_queries = QueryType()
@@ -27,7 +26,7 @@ def resolve_workspaces(_, info, query=None, organization_id=None, page=1, per_pa
         queryset = queryset.filter(name__icontains=query)
 
     result = result_page(queryset=queryset, page=page, per_page=per_page)
-    prime_workspace_memberships(request.user, result["items"])
+    Workspace.preload_memberships(request.user, result["items"])
     return result
 
 
