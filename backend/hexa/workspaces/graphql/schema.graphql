@@ -47,6 +47,9 @@ type Workspace {
     # The connections associated with the workspace.
     connections: [Connection!]!
 
+    # The tags assigned to this workspace by its organization administrators.
+    tags: [Tag!]!
+
     # Pipeline tags used within this workspace's organization.
     pipelineTags: [String!]!
 
@@ -131,6 +134,9 @@ type WorkspacePermissions {
     # Indicates whether the workspace members can be managed.
     manageMembers: Boolean!
 
+    # Indicates whether the tags of the workspace can be managed.
+    manageTags: Boolean!
+
     # Indicates whether a connection can be created in the workspace.
     createConnection: Boolean!
 
@@ -210,7 +216,8 @@ extend type Query {
     # Returns a workspace by its unique identifier.
     workspace(slug: String!): Workspace @loginRequired
     # Returns a page of workspaces.
-    workspaces(query: String, organizationId: UUID, page: Int, perPage: Int): WorkspacePage! @loginRequired
+    workspaces(query: String, organizationId: UUID, tags: [String!], page: Int, perPage: Int): WorkspacePage!
+        @loginRequired
     # Returns the invitations to workspaces of the current user.
     pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
 
@@ -234,6 +241,15 @@ Enum representing the possible errors that can occur when updating a workspace.
 enum UpdateWorkspaceError {
     PERMISSION_DENIED
     NOT_FOUND
+}
+
+"""
+Enum representing the possible errors that can occur when setting the tags of a workspace.
+"""
+enum SetWorkspaceTagsError {
+    PERMISSION_DENIED
+    NOT_FOUND
+    INVALID_TAG
 }
 
 """
@@ -301,6 +317,20 @@ type UpdateWorkspaceResult {
 
     # The errors that occurred during the update.
     errors: [UpdateWorkspaceError!]!
+
+    # The updated workspace.
+    workspace: Workspace
+}
+
+"""
+Represents the result of setting the tags of a workspace.
+"""
+type SetWorkspaceTagsResult {
+    # Indicates whether the tags were successfully set.
+    success: Boolean!
+
+    # The errors that occurred while setting the tags.
+    errors: [SetWorkspaceTagsError!]!
 
     # The updated workspace.
     workspace: Workspace
@@ -414,6 +444,17 @@ input UpdateWorkspaceInput {
 
     # The new configuration properties for the workspace.
     configuration: JSON
+}
+
+"""
+Represents the input for setting the tags of a workspace.
+"""
+input SetWorkspaceTagsInput {
+    # The slug of the workspace.
+    slug: String!
+
+    # The tag names to assign, replacing the current ones. Names are slugified.
+    tags: [String!]!
 }
 
 """
@@ -703,6 +744,7 @@ enum IssueWorkspaceTokenError {
 extend type Mutation {
     createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult! @loginRequired
     updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult! @loginRequired
+    setWorkspaceTags(input: SetWorkspaceTagsInput!): SetWorkspaceTagsResult! @loginRequired
     deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult! @loginRequired
     archiveWorkspace(input: ArchiveWorkspaceInput!): ArchiveWorkspaceResult! @loginRequired
     inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult! @loginRequired

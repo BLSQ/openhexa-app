@@ -3189,6 +3189,7 @@ export type Mutation = {
   setMetadataAttribute: SetMetadataAttributeResult;
   /** Sets a new password for the user. */
   setPassword: SetPasswordResult;
+  setWorkspaceTags: SetWorkspaceTagsResult;
   signup: SignupResult;
   /** Stops a pipeline. */
   stopPipeline: StopPipelineResult;
@@ -3732,6 +3733,11 @@ export type MutationSetPasswordArgs = {
 };
 
 
+export type MutationSetWorkspaceTagsArgs = {
+  input: SetWorkspaceTagsInput;
+};
+
+
 export type MutationSignupArgs = {
   input: SignupInput;
 };
@@ -3964,6 +3970,8 @@ export type Organization = {
   url: Scalars['String']['output'];
   /** Current resource usage counts. */
   usage: ResourceCounts;
+  /** The tags assigned to the workspaces of the organization, used to filter them. */
+  workspaceTags: Array<Scalars['String']['output']>;
   /** The workspaces associated with the organization. */
   workspaces: WorkspacePage;
 };
@@ -5200,6 +5208,7 @@ export type QueryWorkspacesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export enum ReadFileContentError {
@@ -5639,6 +5648,27 @@ export type SetPasswordResult = {
   error?: Maybe<SetPasswordError>;
   /** Indicates whether the password was set successfully. */
   success: Scalars['Boolean']['output'];
+};
+
+/** Enum representing the possible errors that can occur when setting the tags of a workspace. */
+export enum SetWorkspaceTagsError {
+  InvalidTag = 'INVALID_TAG',
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+/** Represents the input for setting the tags of a workspace. */
+export type SetWorkspaceTagsInput = {
+  slug: Scalars['String']['input'];
+  tags: Array<Scalars['String']['input']>;
+};
+
+/** Represents the result of setting the tags of a workspace. */
+export type SetWorkspaceTagsResult = {
+  __typename?: 'SetWorkspaceTagsResult';
+  errors: Array<SetWorkspaceTagsError>;
+  success: Scalars['Boolean']['output'];
+  workspace?: Maybe<Workspace>;
 };
 
 /** Represents a shortcut item in the sidebar. */
@@ -6802,6 +6832,7 @@ export type Workspace = {
   savedQueries: SavedQueryPage;
   shortcuts: Array<ShortcutItem>;
   slug: Scalars['String']['output'];
+  tags: Array<Tag>;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   webappsEnabled: Scalars['Boolean']['output'];
 };
@@ -6944,6 +6975,7 @@ export type WorkspacePermissions = {
   generateToken: Scalars['Boolean']['output'];
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
+  manageTags: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 
