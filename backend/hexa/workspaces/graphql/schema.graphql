@@ -241,14 +241,6 @@ Enum representing the possible errors that can occur when updating a workspace.
 enum UpdateWorkspaceError {
     PERMISSION_DENIED
     NOT_FOUND
-}
-
-"""
-Enum representing the possible errors that can occur when setting the tags of a workspace.
-"""
-enum SetWorkspaceTagsError {
-    PERMISSION_DENIED
-    NOT_FOUND
     INVALID_TAG
 }
 
@@ -317,20 +309,6 @@ type UpdateWorkspaceResult {
 
     # The errors that occurred during the update.
     errors: [UpdateWorkspaceError!]!
-
-    # The updated workspace.
-    workspace: Workspace
-}
-
-"""
-Represents the result of setting the tags of a workspace.
-"""
-type SetWorkspaceTagsResult {
-    # Indicates whether the tags were successfully set.
-    success: Boolean!
-
-    # The errors that occurred while setting the tags.
-    errors: [SetWorkspaceTagsError!]!
 
     # The updated workspace.
     workspace: Workspace
@@ -444,17 +422,10 @@ input UpdateWorkspaceInput {
 
     # The new configuration properties for the workspace.
     configuration: JSON
-}
-
-"""
-Represents the input for setting the tags of a workspace.
-"""
-input SetWorkspaceTagsInput {
-    # The slug of the workspace.
-    slug: String!
 
     # The tag names to assign, replacing the current ones. Names are slugified.
-    tags: [String!]!
+    # Restricted to organization admins and owners.
+    tags: [String!]
 }
 
 """
@@ -744,7 +715,6 @@ enum IssueWorkspaceTokenError {
 extend type Mutation {
     createWorkspace(input: CreateWorkspaceInput!): CreateWorkspaceResult! @loginRequired
     updateWorkspace(input: UpdateWorkspaceInput!): UpdateWorkspaceResult! @loginRequired
-    setWorkspaceTags(input: SetWorkspaceTagsInput!): SetWorkspaceTagsResult! @loginRequired
     deleteWorkspace(input: DeleteWorkspaceInput!): DeleteWorkspaceResult! @loginRequired
     archiveWorkspace(input: ArchiveWorkspaceInput!): ArchiveWorkspaceResult! @loginRequired
     inviteWorkspaceMember(input: InviteWorkspaceMemberInput!): InviteWorkspaceMemberResult! @loginRequired

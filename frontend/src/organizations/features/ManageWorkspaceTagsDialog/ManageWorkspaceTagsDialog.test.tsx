@@ -1,15 +1,15 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { TestApp } from "core/helpers/testutils";
-import { SetWorkspaceTagsError } from "graphql/types";
+import { UpdateWorkspaceError } from "graphql/types";
 import { toast } from "react-toastify";
 import { v4 } from "uuid";
 import ManageWorkspaceTagsDialog from "./ManageWorkspaceTagsDialog";
-import { useSetWorkspaceTagsMutation } from "./ManageWorkspaceTagsDialog.generated";
+import { useUpdateWorkspaceTagsMutation } from "./ManageWorkspaceTagsDialog.generated";
 
 jest.mock("./ManageWorkspaceTagsDialog.generated", () => ({
   ...jest.requireActual("./ManageWorkspaceTagsDialog.generated"),
-  useSetWorkspaceTagsMutation: jest.fn(),
+  useUpdateWorkspaceTagsMutation: jest.fn(),
 }));
 
 jest.mock("react-toastify", () => ({
@@ -42,8 +42,8 @@ const WORKSPACE = {
 
 const AVAILABLE_TAGS = ["analytics", "covid", "malaria"];
 
-const useSetWorkspaceTagsMutationMock =
-  useSetWorkspaceTagsMutation as unknown as jest.Mock;
+const useUpdateWorkspaceTagsMutationMock =
+  useUpdateWorkspaceTagsMutation as unknown as jest.Mock;
 
 const renderDialog = (onClose: jest.Mock) =>
   render(
@@ -60,13 +60,13 @@ const renderDialog = (onClose: jest.Mock) =>
 
 const mockMutationResult = (result: any) => {
   const mutate = jest.fn().mockResolvedValue(result);
-  useSetWorkspaceTagsMutationMock.mockReturnValue([mutate, {}]);
+  useUpdateWorkspaceTagsMutationMock.mockReturnValue([mutate, {}]);
   return mutate;
 };
 
-const mockFailure = (errors: SetWorkspaceTagsError[]) =>
+const mockFailure = (errors: UpdateWorkspaceError[]) =>
   mockMutationResult({
-    data: { setWorkspaceTags: { success: false, errors } },
+    data: { updateWorkspace: { success: false, errors } },
   });
 
 describe("ManageWorkspaceTagsDialog", () => {
@@ -75,7 +75,7 @@ describe("ManageWorkspaceTagsDialog", () => {
   beforeEach(() => {
     mockMutationResult({
       data: {
-        setWorkspaceTags: {
+        updateWorkspace: {
           success: true,
           errors: [],
           workspace: { slug: WORKSPACE.slug, tags: [] },
@@ -111,7 +111,7 @@ describe("ManageWorkspaceTagsDialog", () => {
     const user = userEvent.setup();
     const mutate = mockMutationResult({
       data: {
-        setWorkspaceTags: {
+        updateWorkspace: {
           success: true,
           errors: [],
           workspace: { slug: WORKSPACE.slug, tags: [{ name: "covid" }] },
@@ -136,7 +136,7 @@ describe("ManageWorkspaceTagsDialog", () => {
     const user = userEvent.setup();
     const mutate = mockMutationResult({
       data: {
-        setWorkspaceTags: { success: true, errors: [], workspace: null },
+        updateWorkspace: { success: true, errors: [], workspace: null },
       },
     });
 
@@ -175,7 +175,7 @@ describe("ManageWorkspaceTagsDialog", () => {
     const user = userEvent.setup();
     const mutate = mockMutationResult({
       data: {
-        setWorkspaceTags: { success: true, errors: [], workspace: null },
+        updateWorkspace: { success: true, errors: [], workspace: null },
       },
     });
 
@@ -197,7 +197,7 @@ describe("ManageWorkspaceTagsDialog", () => {
 
   it("reports a permission denial and keeps the dialog open", async () => {
     const user = userEvent.setup();
-    mockFailure([SetWorkspaceTagsError.PermissionDenied]);
+    mockFailure([UpdateWorkspaceError.PermissionDenied]);
 
     renderDialog(onClose);
     await user.click(screen.getByText("Save"));
@@ -214,7 +214,7 @@ describe("ManageWorkspaceTagsDialog", () => {
 
   it("reports an unusable tag", async () => {
     const user = userEvent.setup();
-    mockFailure([SetWorkspaceTagsError.InvalidTag]);
+    mockFailure([UpdateWorkspaceError.InvalidTag]);
 
     renderDialog(onClose);
     await user.click(screen.getByText("Save"));
@@ -232,7 +232,7 @@ describe("ManageWorkspaceTagsDialog", () => {
 
   it("reports a missing workspace", async () => {
     const user = userEvent.setup();
-    mockFailure([SetWorkspaceTagsError.NotFound]);
+    mockFailure([UpdateWorkspaceError.NotFound]);
 
     renderDialog(onClose);
     await user.click(screen.getByText("Save"));
@@ -264,7 +264,7 @@ describe("ManageWorkspaceTagsDialog", () => {
     const user = userEvent.setup();
     const mutate = mockMutationResult({
       data: {
-        setWorkspaceTags: { success: true, errors: [], workspace: null },
+        updateWorkspace: { success: true, errors: [], workspace: null },
       },
     });
 

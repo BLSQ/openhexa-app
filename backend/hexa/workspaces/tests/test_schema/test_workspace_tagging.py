@@ -15,11 +15,12 @@ from hexa.workspaces.models import (
 )
 
 SET_TAGS_MUTATION = """
-    mutation setWorkspaceTags($input: SetWorkspaceTagsInput!) {
-        setWorkspaceTags(input: $input) {
+    mutation updateWorkspace($input: UpdateWorkspaceInput!) {
+        updateWorkspace(input: $input) {
             success
             errors
             workspace {
+                name
                 tags {
                     name
                 }
@@ -96,10 +97,15 @@ class WorkspaceTaggingTest(GraphQLTestCase):
             role=WorkspaceMembershipRole.ADMIN,
         )
 
-    def set_tags(self, slug, tags):
+    def set_tags(self, slug, tags, **extra):
         return self.run_query(
-            SET_TAGS_MUTATION, {"input": {"slug": slug, "tags": tags}}
-        )["data"]["setWorkspaceTags"]
+            SET_TAGS_MUTATION, {"input": {"slug": slug, "tags": tags, **extra}}
+        )["data"]["updateWorkspace"]
+
+    def update_workspace(self, slug, **fields):
+        return self.run_query(SET_TAGS_MUTATION, {"input": {"slug": slug, **fields}})[
+            "data"
+        ]["updateWorkspace"]
 
     def test_organization_admin_sets_tags(self):
         self.client.force_login(self.USER_ADMIN)
@@ -126,6 +132,58 @@ class WorkspaceTaggingTest(GraphQLTestCase):
         self.assertFalse(result["success"])
         self.assertEqual(["PERMISSION_DENIED"], result["errors"])
         self.assertEqual(0, self.WORKSPACE.tags.count())
+
+    def test_tags_and_other_fields_in_one_update(self):
+        """An org admin may set tags and ordinary fields in a single mutation."""
+        self.client.force_login(self.USER_ADMIN)
+        result = self.set_tags(self.WORKSPACE.slug, ["malaria"], name="Renamed")
+
+        self.assertTrue(result["success"])
+        self.assertEqual("Renamed", result["workspace"]["name"])
+        self.assertEqual([{"name": "malaria"}], result["workspace"]["tags"])
+
+    def test_rejected_tags_do_not_save_the_other_fields(self):
+        """The whole update is rolled back when the caller may not set tags."""
+        original_name = self.WORKSPACE.name
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+
+        result = self.set_tags(self.WORKSPACE.slug, ["malaria"], name="Renamed")
+
+        self.assertFalse(result["success"])
+        self.assertEqual(["PERMISSION_DENIED"], result["errors"])
+        self.WORKSPACE.refresh_from_db()
+        self.assertEqual(original_name, self.WORKSPACE.name)
+        self.assertEqual(0, self.WORKSPACE.tags.count())
+
+    def test_invalid_tag_does_not_save_the_other_fields(self):
+        original_name = self.WORKSPACE.name
+        self.client.force_login(self.USER_ADMIN)
+
+        result = self.set_tags(self.WORKSPACE.slug, ["!!!"], name="Renamed")
+
+        self.assertFalse(result["success"])
+        self.assertEqual(["INVALID_TAG"], result["errors"])
+        self.WORKSPACE.refresh_from_db()
+        self.assertEqual(original_name, self.WORKSPACE.name)
+
+    def test_update_without_tags_leaves_them_untouched(self):
+        """Omitting `tags` is not the same as clearing them."""
+        self.client.force_login(self.USER_ADMIN)
+        self.set_tags(self.WORKSPACE.slug, ["malaria"])
+
+        result = self.update_workspace(self.WORKSPACE.slug, name="Renamed")
+
+        self.assertTrue(result["success"])
+        self.assertEqual([{"name": "malaria"}], result["workspace"]["tags"])
+
+    def test_workspace_admin_can_still_update_other_fields(self):
+        """The narrower tag permission must not restrict ordinary updates."""
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+
+        result = self.update_workspace(self.WORKSPACE.slug, name="Renamed by ws admin")
+
+        self.assertTrue(result["success"])
+        self.assertEqual("Renamed by ws admin", result["workspace"]["name"])
 
     def test_set_tags_on_invisible_workspace(self):
         self.client.force_login(self.USER_ADMIN)

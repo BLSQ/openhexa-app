@@ -3256,7 +3256,6 @@ type Mutation {
 
   """Sets a new password for the user."""
   setPassword(input: SetPasswordInput!): SetPasswordResult!
-  setWorkspaceTags(input: SetWorkspaceTagsInput!): SetWorkspaceTagsResult!
   signup(input: SignupInput!): SignupResult!
 
   """Stops a pipeline."""
@@ -4712,28 +4711,6 @@ type SetPasswordResult {
   success: Boolean!
 }
 
-"""
-Enum representing the possible errors that can occur when setting the tags of a workspace.
-"""
-enum SetWorkspaceTagsError {
-  INVALID_TAG
-  NOT_FOUND
-  PERMISSION_DENIED
-}
-
-"""Represents the input for setting the tags of a workspace."""
-input SetWorkspaceTagsInput {
-  slug: String!
-  tags: [String!]!
-}
-
-"""Represents the result of setting the tags of a workspace."""
-type SetWorkspaceTagsResult {
-  errors: [SetWorkspaceTagsError!]!
-  success: Boolean!
-  workspace: Workspace
-}
-
 """Represents a shortcut item in the sidebar."""
 type ShortcutItem {
   id: UUID!
@@ -5714,6 +5691,7 @@ input UpdateWebappSourceInput @oneOf {
 Enum representing the possible errors that can occur when updating a workspace.
 """
 enum UpdateWorkspaceError {
+  INVALID_TAG
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -5726,6 +5704,7 @@ input UpdateWorkspaceInput {
   dockerImage: String
   name: String
   slug: String!
+  tags: [String!]
 }
 
 """

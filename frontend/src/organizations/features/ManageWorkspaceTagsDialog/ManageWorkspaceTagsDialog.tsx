@@ -5,10 +5,10 @@ import Select from "core/components/forms/Select";
 import Spinner from "core/components/Spinner";
 import useCacheKey from "core/hooks/useCacheKey";
 import useForm from "core/hooks/useForm";
-import { SetWorkspaceTagsError } from "graphql/types";
+import { UpdateWorkspaceError } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { toast } from "react-toastify";
-import { useSetWorkspaceTagsMutation } from "./ManageWorkspaceTagsDialog.generated";
+import { useUpdateWorkspaceTagsMutation } from "./ManageWorkspaceTagsDialog.generated";
 
 type WorkspaceForDialog = {
   slug: string;
@@ -36,28 +36,28 @@ const ManageWorkspaceTagsDialog = ({
   availableTags,
 }: ManageWorkspaceTagsDialogProps) => {
   const { t } = useTranslation();
-  const [setWorkspaceTags] = useSetWorkspaceTagsMutation({
+  const [updateWorkspaceTags] = useUpdateWorkspaceTagsMutation({
     refetchQueries: ["OrganizationWorkspaces"],
   });
   const clearCache = useCacheKey(["organization", organizationId]);
 
   const form = useForm<Form>({
     onSubmit: async (values) => {
-      const result = await setWorkspaceTags({
+      const result = await updateWorkspaceTags({
         variables: { input: { slug: workspace.slug, tags: values.tags } },
       });
 
-      if (!result.data?.setWorkspaceTags.success) {
-        const errors = result.data?.setWorkspaceTags.errors || [];
-        if (errors.includes(SetWorkspaceTagsError.PermissionDenied)) {
+      if (!result.data?.updateWorkspace.success) {
+        const errors = result.data?.updateWorkspace.errors || [];
+        if (errors.includes(UpdateWorkspaceError.PermissionDenied)) {
           throw new Error(t("You are not authorized to perform this action"));
         }
-        if (errors.includes(SetWorkspaceTagsError.InvalidTag)) {
+        if (errors.includes(UpdateWorkspaceError.InvalidTag)) {
           throw new Error(
             t("One of the tags contains no letters or numbers to use."),
           );
         }
-        if (errors.includes(SetWorkspaceTagsError.NotFound)) {
+        if (errors.includes(UpdateWorkspaceError.NotFound)) {
           throw new Error(t("Workspace not found"));
         }
         throw new Error(t("Failed to update the tags of the workspace"));

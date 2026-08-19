@@ -1,5 +1,5 @@
-mutation SetWorkspaceTags($input: SetWorkspaceTagsInput!) {
-  setWorkspaceTags(input: $input) {
+mutation UpdateWorkspaceTags($input: UpdateWorkspaceInput!) {
+  updateWorkspace(input: $input) {
     success
     errors
     workspace {

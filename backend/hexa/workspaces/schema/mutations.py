@@ -92,24 +92,16 @@ def resolve_update_workspace(_, info, **kwargs):
         if "configuration" in input:
             args["configuration"] = input["configuration"]
 
-        workspace.update_if_has_perm(principal=request.user, **args)
+        has_tags = "tags" in input
 
-        return {"success": True, "workspace": workspace, "errors": []}
-    except Workspace.DoesNotExist:
-        return {"success": False, "errors": ["NOT_FOUND"]}
-    except PermissionDenied:
-        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+        with transaction.atomic():
+            if args or not has_tags:
+                workspace.update_if_has_perm(principal=request.user, **args)
+            if has_tags:
+                workspace.set_tags_if_has_perm(
+                    principal=request.user, tag_names=input["tags"]
+                )
 
-
-@workspace_mutations.field("setWorkspaceTags")
-def resolve_set_workspace_tags(_, info, **kwargs):
-    request: HttpRequest = info.context["request"]
-    input = kwargs["input"]
-    try:
-        workspace: Workspace = Workspace.objects.filter_for_user(request.user).get(
-            slug=input["slug"]
-        )
-        workspace.set_tags_if_has_perm(principal=request.user, tag_names=input["tags"])
         return {"success": True, "workspace": workspace, "errors": []}
     except Workspace.DoesNotExist:
         return {"success": False, "errors": ["NOT_FOUND"]}
