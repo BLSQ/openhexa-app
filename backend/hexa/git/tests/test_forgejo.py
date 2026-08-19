@@ -1003,6 +1003,37 @@ class ForgejoClientFileEncodingTest(TestCase):
         self.assertEqual(by_path["index.html"]["content"], "<h1>hi</h1>")
         self.assertIsNone(by_path["big.pmtiles"]["content"])
         self.assertIsNone(by_path["big.pmtiles"]["encoding"])
+        self.assertTrue(by_path["big.pmtiles"]["too_large"])
+        self.assertEqual(by_path["big.pmtiles"]["size"], 108570598)
+
+    @responses.activate
+    def test_get_repository_files_skips_fetching_oversized_blobs(self):
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/git/trees/main",
+            json={
+                "sha": "abc",
+                "tree": [{"path": "big.pmtiles", "type": "blob", "size": 108570598}],
+            },
+            status=200,
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        files = client.get_repository_files("my-repo")
+
+        self.assertEqual(len(responses.calls), 1)
+        self.assertEqual(
+            files,
+            [
+                {
+                    "path": "big.pmtiles",
+                    "type": "file",
+                    "content": None,
+                    "encoding": None,
+                    "size": 108570598,
+                    "too_large": True,
+                }
+            ],
+        )
 
     @responses.activate
     def test_get_repository_files_invalid_utf8_marked_base64(self):
