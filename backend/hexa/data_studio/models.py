@@ -13,19 +13,25 @@ from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.workspaces.models import Workspace
 
 SLUG_MAX_LENGTH = 255
+SLUG_COLLISION_ATTEMPTS = 8
 
 
-def generate_saved_query_slug(name: str, workspace: Workspace) -> str:
-    """Build a slug unique within ``workspace``, suffixing on collision."""
+def generate_saved_query_slug(name: str) -> str:
+    """Build a slug unique across all workspaces, suffixing on collision."""
     suffix = ""
-    while True:
+    for _attempt in range(SLUG_COLLISION_ATTEMPTS):
         # A name made only of characters slugify drops (punctuation, emoji)
         # leaves nothing to build on, and an empty slug would make the query
         # unaddressable by the endpoints keyed on it.
         slug = slugify(name[: SLUG_MAX_LENGTH - len(suffix)] + suffix) or "query"
-        if not SavedQuery.objects.filter(workspace=workspace, slug=slug).exists():
+        if not SavedQuery.objects.filter(slug=slug).exists():
             return slug
         suffix = "-" + secrets.token_hex(3)
+
+    raise RuntimeError(
+        f"Could not generate a unique saved query slug for {name!r} "
+        f"in {SLUG_COLLISION_ATTEMPTS} attempts"
+    )
 
 
 class SavedQueryVisibility(models.TextChoices):
@@ -92,7 +98,9 @@ class SavedQuery(Base):
     created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
     name = models.CharField(max_length=255, null=False, blank=False)
     # Stable public identifier: web apps address a saved query by slug, so it is
-    # generated once and left alone when the query is renamed.
+    # generated once and left alone when the query is renamed. Unique across all
+    # workspaces, so the slug alone identifies a query and callers need not pair
+    # it with a workspace.
     slug = models.CharField(
         max_length=SLUG_MAX_LENGTH, editable=False, validators=[validate_slug]
     )
@@ -110,11 +118,7 @@ class SavedQuery(Base):
         verbose_name_plural = "saved queries"
         ordering = ["-updated_at"]
         constraints = [
-            models.UniqueConstraint(
-                "workspace_id",
-                "slug",
-                name="unique_saved_query_slug_per_workspace",
-            )
+            models.UniqueConstraint(fields=["slug"], name="unique_saved_query_slug")
         ]
         indexes = [
             # `id` mirrors the tiebreaker the listing resolver appends: without it
@@ -153,7 +157,7 @@ class SavedQuery(Base):
         # Django admin creates saved queries through a plain form, which would
         # otherwise hit the not-null column with nothing in it.
         if not self.slug:
-            self.slug = generate_saved_query_slug(self.name, self.workspace)
+            self.slug = generate_saved_query_slug(self.name)
         return super().save(*args, **kwargs)
 
     def update_if_has_perm(self, principal: User, **kwargs):
