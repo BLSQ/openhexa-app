@@ -38,7 +38,7 @@ TRANSFER_TIMEOUT = httpx.Timeout(connect=30.0, read=120.0, write=120.0, pool=30.
 # Directory names whose contents are never worth copying (editor/runtime
 # scratch dirs). Matched against any segment of an object key, so a nested
 # ``notebooks/.ipynb_checkpoints/foo.ipynb`` is skipped too.
-SKIPPED_DIRECTORIES = frozenset({".ipynb_checkpoints", "cache", ".cache"})
+SKIPPED_DIRECTORIES = frozenset({".ipynb_checkpoints", ".cache"})
 
 
 def is_skipped(key: str) -> bool:
