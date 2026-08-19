@@ -212,6 +212,12 @@ def walk(client: Client, ws_slug: str, prefix: str = "") -> Iterator[dict[str, A
 class FilesCopier(ResourceCopier):
     name = "files"
     label = "Files (bucket)"
+    help_text = (
+        "Files already on the target with the same key and size are skipped, as is "
+        "anything under a scratch directory ("
+        + ", ".join(sorted(SKIPPED_DIRECTORIES))
+        + ")."
+    )
 
     def _existing_on_target(
         self, target: Endpoint, reporter: ProgressReporter

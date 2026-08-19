@@ -22,6 +22,10 @@ def _option_fields() -> dict[str, tuple[str, ...]]:
     return {c.name: c.option_fields for c in WORKSPACE_COPIERS if c.option_fields}
 
 
+def _help_texts() -> dict[str, str]:
+    return {c.name: c.help_text for c in WORKSPACE_COPIERS if c.help_text}
+
+
 class ResourceSelect(forms.CheckboxSelectMultiple):
     """Checkbox list where a mandatory copier is checked and locked.
 
@@ -120,12 +124,14 @@ class CopyWorkspaceForm(forms.Form):
         resource they affect.
         """
         option_fields = _option_fields()
+        help_texts = _help_texts()
         mandatory = _mandatory_resources()
         for checkbox in self["resources"]:
             name = str(checkbox.data["value"])
             yield {
                 "checkbox": checkbox,
                 "mandatory": name in mandatory,
+                "help_text": help_texts.get(name, ""),
                 "options": [self[field] for field in option_fields.get(name, ())],
             }
 

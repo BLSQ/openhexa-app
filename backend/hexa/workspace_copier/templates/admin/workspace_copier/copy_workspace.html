@@ -7,6 +7,7 @@
     .copier-resources > li { padding: 0.2rem 0; }
     .copier-resources label { display: inline; width: auto; float: none; }
     .copier-always { color: var(--body-quiet-color, #666); font-size: 0.8125rem; margin-left: 0.5rem; }
+    .copier-help { margin: 0.1rem 0 0.3rem 1.7rem; padding: 0; }
     .copier-option { margin: 0.2rem 0 0.6rem 1.7rem; }
     .copier-option label { margin-left: 0.35rem; }
     .copier-option .help { margin: 0; padding: 0; }
@@ -72,6 +73,7 @@
                 <li>
                     {{ row.checkbox }}
                     {% if row.mandatory %}<span class="copier-always">{% trans 'always runs' %}</span>{% endif %}
+                    {% if row.help_text %}<div class="help copier-help">{{ row.help_text }}</div>{% endif %}
                     {% for option in row.options %}
                     <div class="copier-option{% if option.errors %} errors{% endif %}">
                         {{ option.errors }}
