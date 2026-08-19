@@ -304,6 +304,8 @@ class GitWebapp(Webapp, GitRepoMixin):
                     "encoding": encoding,
                     "parent_id": parent,
                     "auto_select": path == "index.html",
+                    "size": entry.get("size"),
+                    "too_large": entry.get("too_large", False),
                     "language": self.LANGUAGE_MAP.get(extension, self.DEFAULT_LANGUAGE)
                     if is_text
                     else None,
