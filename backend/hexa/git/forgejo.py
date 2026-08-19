@@ -7,6 +7,8 @@ from hexa.git.client import GitClient
 from hexa.git.enums import FileEncoding
 from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 
+MAX_INLINE_BLOB_SIZE = 10 * 1024 * 1024
+
 
 class ForgejoAPIError(Exception):
     def __init__(self, method: str, url: str, status_code: int, detail: str = ""):
@@ -304,6 +306,7 @@ class ForgejoClient(GitClient):
 
         Content is either UTF-8 (for text files) or base64 (for binary files).
         To detect if a blob is binary, check for a NULL byte or a failed UTF-8 decode.
+        Blobs too large to read carry too_large=True and no content.
         """
         tree = self.get_files_tree(repo_name, ref, org_slug=org_slug)
         nodes: list[dict] = []
@@ -319,18 +322,31 @@ class ForgejoClient(GitClient):
                         "type": "directory",
                         "content": None,
                         "encoding": None,
+                        "size": None,
+                        "too_large": False,
                     }
                 )
                 continue
             if entry_type != "blob":
                 continue
 
+            size = entry.get("size") or 0
+            too_large_node = {
+                "path": path,
+                "type": "file",
+                "content": None,
+                "encoding": None,
+                "size": size,
+                "too_large": True,
+            }
+            if size >= MAX_INLINE_BLOB_SIZE:
+                nodes.append(too_large_node)
+                continue
+
             try:
                 raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
-            except GitFileTooLarge:
-                nodes.append(
-                    {"path": path, "type": "file", "content": None, "encoding": None}
-                )
+            except GitFileTooLarge as e:
+                nodes.append({**too_large_node, "size": e.size})
                 continue
             content: str
             encoding: FileEncoding
@@ -346,7 +362,14 @@ class ForgejoClient(GitClient):
                 encoding = FileEncoding.BASE64
 
             nodes.append(
-                {"path": path, "type": "file", "content": content, "encoding": encoding}
+                {
+                    "path": path,
+                    "type": "file",
+                    "content": content,
+                    "encoding": encoding,
+                    "size": size,
+                    "too_large": False,
+                }
             )
 
         return nodes
