@@ -1,0 +1,209 @@
+import logging
+import re
+import threading
+from contextlib import ExitStack
+
+from asgiref.sync import sync_to_async
+from django.conf import settings
+from django.core.exceptions import PermissionDenied
+from django.http import (
+    Http404,
+    HttpRequest,
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+)
+from django.views.decorators.http import require_POST
+from psycopg2 import Error as Psycopg2Error
+
+from hexa.core.csv import async_streaming_csv_response
+from hexa.databases.query_text import MultipleStatementsError
+from hexa.workspaces.models import Workspace
+
+from .models import QueryLog
+from .query_runner import (
+    QueryExportAudit,
+    ensure_can_run_query,
+    log_rejected_query,
+    stream_and_log_database_query,
+)
+
+logger = logging.getLogger(__name__)
+
+# Set here rather than taken from the request: an export is always an export, and the
+# value is deliberately not client-settable (see schema.py), so it identifies these
+# unbounded runs in the audit log unambiguously.
+_EXPORT_ORIGIN = QueryLog.Origin.DATA_STUDIO_EXPORT
+
+# The token is echoed back inside a Set-Cookie *name*, so restrict it to characters
+# safe there. A token failing this is ignored (the frontend then times out rather
+# than misreading another download's signal).
+_DOWNLOAD_TOKEN_RE = re.compile(r"[A-Za-z0-9-]{1,64}")
+
+# Per-process admission control (settings.DATA_STUDIO_EXPORT_MAX_CONCURRENCY): each
+# export holds a read-only connection open for the whole download, so an unbounded
+# number would pile up connections and threads in one worker. Excess callers get a 429
+# immediately rather than queueing behind a backlog. See the app README.
+_EXPORT_SLOTS = threading.BoundedSemaphore(settings.DATA_STUDIO_EXPORT_MAX_CONCURRENCY)
+
+
+def _next_projected_batch(batch_iter, columns):
+    """Pull the next batch off the blocking cursor and project it to ``columns``.
+
+    Returns ``None`` once exhausted. Run through ``sync_to_async`` (see
+    :func:`_tracked_row_batches`) so the blocking fetch and projection stay off the
+    event loop.
+    """
+    batch = next(batch_iter, None)
+    if batch is None:
+        return None
+    return [[row[column] for column in columns] for row in batch]
+
+
+async def _tracked_row_batches(
+    batch_iter, columns, *, workspace, user, audit: QueryExportAudit
+):
+    """Yield projected row batches, closing the export's audit entry when the stream ends.
+
+    Each fetch runs off the event loop (``sync_to_async(thread_sensitive=False)``) as the
+    psycopg2 cursor is blocking. Once headers are sent the status is fixed at 200, so a
+    failure mid-scan can only truncate the download; it is logged here, where it surfaces,
+    and recorded on the audit entry with the rows streamed until then. A client disconnect
+    raises ``GeneratorExit`` (not caught), which leaves the entry at ``STREAMING`` — the
+    status meaning "end of stream never observed" (see :class:`QueryExportAudit`).
+    Closing ``batch_iter`` is the response's ``on_finish`` job (see :func:`download_query_csv`).
+    """
+    fetched = 0
+    try:
+        while True:
+            batch = await sync_to_async(_next_projected_batch, thread_sensitive=False)(
+                batch_iter, columns
+            )
+            if batch is None:
+                break
+            fetched += len(batch)
+            yield batch
+    except Exception as error:
+        logger.warning(
+            "Data Studio CSV export stream aborted after %d rows "
+            "(workspace=%s, user=%s)",
+            fetched,
+            workspace.slug,
+            getattr(user, "id", None),
+            exc_info=True,
+        )
+        await audit.finish_error(fetched, error)
+        raise
+    await audit.finish_success(fetched)
+
+
+@require_POST
+def download_query_csv(request: HttpRequest, workspace_slug: str) -> HttpResponse:
+    """Export the full result of a Data Studio SQL query as a streaming CSV download.
+
+    No row cap is applied. ``stream_and_log_database_query`` runs the query and fetches its
+    first batch eagerly, so the common failures (invalid SQL, permission error, empty
+    statement) surface here as a clean HTTP 400 before any byte is sent; a failure after that
+    can only truncate the already-200 download (logged in :func:`_tracked_row_batches`). A
+    read-only connection is held for the whole download, bounded by ``statement_timeout``,
+    ``idle_in_transaction_session_timeout`` and ``_EXPORT_SLOTS`` (excess callers get a 429).
+
+    Every outcome writes a ``QueryLog`` entry, as the interactive path does — these are the
+    uncapped runs, so they are the ones worth auditing. The exceptions are the requests that
+    carry no query to audit: an unknown workspace and an empty statement.
+
+    The app README is the design home: why stream rather than buffer, why async, the
+    memory/timeout bounds, the resource lifecycle and how the audit entry is written.
+    """
+    try:
+        workspace = Workspace.objects.filter_for_user(request.user).get(
+            slug=workspace_slug
+        )
+    except Workspace.DoesNotExist:
+        raise Http404("Workspace not found")
+
+    query = (request.POST.get("query") or "").strip()
+
+    try:
+        ensure_can_run_query(request, workspace, query, _EXPORT_ORIGIN)
+    except PermissionDenied:
+        return HttpResponseForbidden(
+            "You are not allowed to run queries on this workspace."
+        )
+
+    if not query:
+        return HttpResponseBadRequest("A query is required.")
+
+    # Acquire only after the cheap request checks above; a full pool turns callers
+    # away with a 429 rather than queueing them. Logged, so slot exhaustion is
+    # visible in the audit log rather than only in a client-side error.
+    if not _EXPORT_SLOTS.acquire(blocking=False):
+        log_rejected_query(
+            request,
+            workspace,
+            query,
+            _EXPORT_ORIGIN,
+            "No export slot free in this worker "
+            f"(DATA_STUDIO_EXPORT_MAX_CONCURRENCY={settings.DATA_STUDIO_EXPORT_MAX_CONCURRENCY}).",
+        )
+        return HttpResponse(
+            "Too many exports are running right now. Please try again in a moment.",
+            status=429,
+        )
+    # The slot and connection outlive this view call — the stream keeps consuming
+    # rows after it returns — so a single teardown (close the DB connection, then
+    # hand the slot back; LIFO) owns both. It runs from the stream's on_finish once
+    # streaming has started, and from this view's finally otherwise, so nothing
+    # leaks even if building the response raises before the stream takes over.
+    # ExitStack.close() is a no-op after its first call, and only one of the two
+    # sites ever runs it (gated by handed_off_to_stream), so it fires exactly once.
+    cleanup = ExitStack()
+    cleanup.callback(_EXPORT_SLOTS.release)
+    handed_off_to_stream = False
+    try:
+        try:
+            columns, db_batches, audit = stream_and_log_database_query(
+                request, workspace, query, _EXPORT_ORIGIN
+            )
+        except MultipleStatementsError:
+            return HttpResponseBadRequest("Only a single SQL statement is allowed.")
+        except Psycopg2Error:
+            return HttpResponseBadRequest("The query could not be executed.")
+        cleanup.callback(db_batches.close)
+
+        response = async_streaming_csv_response(
+            header=columns,
+            row_batches=_tracked_row_batches(
+                db_batches,
+                columns,
+                workspace=workspace,
+                user=request.user,
+                audit=audit,
+            ),
+            filename="query-results.csv",
+            on_finish=cleanup.close,
+        )
+
+        # A successful attachment never navigates the iframe the frontend posts into,
+        # so the page can't see the download start. Signal it with a short-lived,
+        # JS-readable cookie whose *name* carries the caller's token (per-token, so
+        # concurrent downloads don't clobber each other). Signals "began", not
+        # "completed". See the app README and frontend downloadQueryCsv.ts.
+        download_token = request.POST.get("download_token")
+        if download_token and _DOWNLOAD_TOKEN_RE.fullmatch(download_token):
+            # secure follows the session cookie (TLS-gated): set over HTTPS in production,
+            # left off in plain-HTTP dev, where a Secure cookie is dropped by the browser
+            # and would silently break the poll. Not httponly — the frontend reads it
+            # (see downloadQueryCsv.ts).
+            response.set_cookie(
+                f"csvDownloadToken-{download_token}",
+                "1",
+                max_age=120,
+                samesite="Lax",
+                secure=settings.SESSION_COOKIE_SECURE,
+            )
+        handed_off_to_stream = True
+        return response
+    finally:
+        if not handed_off_to_stream:
+            cleanup.close()
