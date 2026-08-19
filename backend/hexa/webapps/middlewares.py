@@ -153,9 +153,7 @@ def _dispatch_webapp_response(request, webapp, show_powered_by=False):
         response = _serve_iframe_webapp(
             webapp,
             show_powered_by=show_powered_by,
-            banner_url=powered_by_url(request, "iframe")
-            if show_powered_by
-            else None,
+            banner_url=powered_by_url(request, "iframe") if show_powered_by else None,
         )
     return response
 
