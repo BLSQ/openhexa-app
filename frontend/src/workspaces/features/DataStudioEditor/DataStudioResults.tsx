@@ -17,11 +17,12 @@ import ResultsChart from "./ResultsChart";
 import ResultsTable from "./ResultsTable";
 import WidgetHint from "./WidgetHint";
 
-// Leaflet reads `window` while its module initialises, which a server render
+// MapLibre reads `window` while its module initialises, which a server render
 // cannot provide, and the whole mapping stack is dead weight for the queries
-// that return no geography — the common case. Loading it only when a map is
-// actually shown keeps it out of the editor's bundle, which charts (bundled
-// normally) do not need to pay for.
+// that return no geography — the common case. It is also an order of magnitude
+// heavier than the chart library, so loading it only when a map is actually
+// shown keeps it out of the editor's bundle, which charts (bundled normally) do
+// not need to pay for.
 const ResultsMap = dynamic(() => import("./ResultsMap"), {
   ssr: false,
   loading: () => (

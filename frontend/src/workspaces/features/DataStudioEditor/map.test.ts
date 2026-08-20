@@ -1,4 +1,4 @@
-import { detectMap, parseGeometry, toFeatures } from "./map";
+import { detectMap, featuresBounds, parseGeometry, toFeatures } from "./map";
 
 // A single Abidjan point, as PostGIS returns it from ST_AsGeoJSON.
 const GEOJSON_POINT = '{"type":"Point","coordinates":[-4.02,5.34]}';
@@ -205,5 +205,108 @@ describe("toFeatures", () => {
         { map_geometry: WKB_POINT },
       ]),
     ).toEqual({ features: [], hidden: 0 });
+  });
+});
+
+describe("featuresBounds", () => {
+  const point = (lon: number, lat: number) => ({
+    geometry: { type: "Point" as const, coordinates: [lon, lat] },
+    properties: {},
+  });
+
+  it("covers every point", () => {
+    expect(featuresBounds([point(-4.02, 5.34), point(15.3, -4.3)])).toEqual([
+      [-4.02, -4.3],
+      [15.3, 5.34],
+    ]);
+  });
+
+  it("collapses to a single corner pair for one point", () => {
+    expect(featuresBounds([point(-4.02, 5.34)])).toEqual([
+      [-4.02, 5.34],
+      [-4.02, 5.34],
+    ]);
+  });
+
+  it("reaches the coordinates nested inside a polygon", () => {
+    expect(
+      featuresBounds([
+        {
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [0, 0],
+                [2, 0],
+                [2, 3],
+                [0, 0],
+              ],
+            ],
+          },
+          properties: {},
+        },
+      ]),
+    ).toEqual([
+      [0, 0],
+      [2, 3],
+    ]);
+  });
+
+  it("reaches the coordinates nested inside a multi-polygon", () => {
+    expect(
+      featuresBounds([
+        {
+          geometry: {
+            type: "MultiPolygon",
+            coordinates: [
+              [
+                [
+                  [0, 0],
+                  [1, 1],
+                  [0, 0],
+                ],
+              ],
+              [
+                [
+                  [-5, -6],
+                  [-4, -4],
+                  [-5, -6],
+                ],
+              ],
+            ],
+          },
+          properties: {},
+        },
+      ]),
+    ).toEqual([
+      [-5, -6],
+      [1, 1],
+    ]);
+  });
+
+  it("ignores the elevation a third position value carries", () => {
+    expect(
+      featuresBounds([
+        {
+          geometry: { type: "Point", coordinates: [3, 4, 250] },
+          properties: {},
+        },
+      ]),
+    ).toEqual([
+      [3, 4],
+      [3, 4],
+    ]);
+  });
+
+  it("returns null when there is nothing to frame", () => {
+    expect(featuresBounds([])).toBeNull();
+    expect(
+      featuresBounds([
+        {
+          geometry: { type: "Polygon", coordinates: [] },
+          properties: {},
+        },
+      ]),
+    ).toBeNull();
   });
 });

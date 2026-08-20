@@ -4,9 +4,10 @@ import userEvent from "@testing-library/user-event";
 import { ExecuteSqlError } from "graphql/types";
 import DataStudioResults from "./DataStudioResults";
 
-// Leaflet measures real layout, which jsdom does not provide. Choosing the map
-// and handing it the right features is this component's job; drawing it is the
-// map's, so the map is stubbed down to what it was asked to render.
+// MapLibre needs a WebGL context and real layout, neither of which jsdom
+// provides. Choosing the map and handing it the right features is this
+// component's job; drawing it is the map's, so the map is stubbed down to what
+// it was asked to render.
 jest.mock("./ResultsMap", () => ({
   __esModule: true,
   default: ({ features }: { features: unknown[] }) => (

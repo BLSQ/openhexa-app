@@ -190,3 +190,57 @@ export const toFeatures = (
 
   return { features, hidden };
 };
+
+/** Longitude/latitude corners, `[[west, south], [east, north]]` — the order
+ * MapLibre's `fitBounds` takes, which is the reverse of GeoJSON's own
+ * lat/lon-free convention being easy to flip by accident. */
+export type MapBounds = [[number, number], [number, number]];
+
+/**
+ * The extent covering every feature, or null when none of them carries a usable
+ * coordinate. Walks the coordinate arrays rather than switching on geometry
+ * type: `[lon, lat]` positions are the leaves of every geometry GeoJSON
+ * defines, so one recursion handles points, lines, polygons and their multi
+ * variants — including positions that carry a third elevation value.
+ *
+ * Data straddling the antimeridian yields an extent spanning the globe. Leaflet
+ * behaved the same way, and splitting the extent in two is only worth doing for
+ * a dataset that actually crosses it.
+ */
+export const featuresBounds = (features: MapFeature[]): MapBounds | null => {
+  let west = Infinity;
+  let south = Infinity;
+  let east = -Infinity;
+  let north = -Infinity;
+
+  const visit = (coordinates: unknown) => {
+    if (!Array.isArray(coordinates)) {
+      return;
+    }
+    if (
+      typeof coordinates[0] === "number" &&
+      typeof coordinates[1] === "number"
+    ) {
+      const [lon, lat] = coordinates;
+      west = Math.min(west, lon);
+      east = Math.max(east, lon);
+      south = Math.min(south, lat);
+      north = Math.max(north, lat);
+      return;
+    }
+    for (const child of coordinates) {
+      visit(child);
+    }
+  };
+
+  for (const feature of features) {
+    visit((feature.geometry as { coordinates?: unknown }).coordinates);
+  }
+
+  return west === Infinity
+    ? null
+    : [
+        [west, south],
+        [east, north],
+      ];
+};
