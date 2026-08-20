@@ -126,7 +126,7 @@ query WorkspaceSavedQueriesPage(
   }
 }
 
-query WorkspaceSavedQueryPage($workspaceSlug: String!, $id: ID!) {
+query WorkspaceSavedQueryPage($workspaceSlug: String!, $slug: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     permissions {
@@ -134,11 +134,17 @@ query WorkspaceSavedQueryPage($workspaceSlug: String!, $id: ID!) {
     }
     ...WorkspaceLayout_workspace
   }
-  savedQuery(id: $id) {
-    workspace {
-      slug
-    }
+  savedQueryBySlug(slug: $slug) {
     ...SavedQuery_savedQuery
+  }
+}
+
+# Only used to redirect a legacy /queries/<uuid> URL to its slug: pages linked
+# or bookmarked before saved queries moved to slugs must not 404.
+query WorkspaceSavedQuerySlugById($workspaceSlug: String!, $id: ID!) {
+  savedQuery(workspaceSlug: $workspaceSlug, id: $id) {
+    id
+    slug
   }
 }
 

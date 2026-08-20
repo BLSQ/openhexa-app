@@ -1,14 +1,38 @@
+import secrets
 from collections import defaultdict
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.core.validators import validate_slug
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.databases.query_text import sanitize_sql
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.workspaces.models import Workspace
+
+SLUG_MAX_LENGTH = 255
+SLUG_COLLISION_ATTEMPTS = 8
+
+
+def generate_saved_query_slug(name: str) -> str:
+    """Build a slug unique across all workspaces, suffixing on collision."""
+    suffix = ""
+    for _attempt in range(SLUG_COLLISION_ATTEMPTS):
+        # A name made only of characters slugify drops (punctuation, emoji)
+        # leaves nothing to build on, and an empty slug would make the query
+        # unaddressable by the endpoints keyed on it.
+        slug = slugify(name[: SLUG_MAX_LENGTH - len(suffix)] + suffix) or "query"
+        if not SavedQuery.objects.filter(slug=slug).exists():
+            return slug
+        suffix = "-" + secrets.token_hex(3)
+
+    raise RuntimeError(
+        f"Could not generate a unique saved query slug for {name!r} "
+        f"in {SLUG_COLLISION_ATTEMPTS} attempts"
+    )
 
 
 class SavedQueryVisibility(models.TextChoices):
@@ -142,6 +166,13 @@ class SavedQuery(Base):
         User, null=True, on_delete=saved_queries_on_author_deleted
     )
     name = models.CharField(max_length=255, null=False, blank=False)
+    # Stable public identifier: web apps address a saved query by slug, so it is
+    # generated once and left alone when the query is renamed. Unique across all
+    # workspaces, so the slug alone identifies a query and callers need not pair
+    # it with a workspace.
+    slug = models.CharField(
+        max_length=SLUG_MAX_LENGTH, editable=False, validators=[validate_slug]
+    )
     description = models.TextField(blank=True, default="")
     content = models.TextField()
     visibility = models.CharField(
@@ -165,6 +196,7 @@ class SavedQuery(Base):
                 | ~models.Q(visibility=SavedQueryVisibility.PRIVATE),
                 name="data_studio_private_query_has_author",
             ),
+            models.UniqueConstraint(fields=["slug"], name="unique_saved_query_slug"),
         ]
         indexes = [
             # `id` mirrors the tiebreaker the listing resolver appends: without it
@@ -199,6 +231,11 @@ class SavedQuery(Base):
         # rejects; cleaning them here means a query is stored runnable whichever
         # way it was written (editor, admin, ...).
         self.content = sanitize_sql(self.content)
+        # Generated here rather than in the manager (as pipelines do) because the
+        # Django admin creates saved queries through a plain form, which would
+        # otherwise hit the not-null column with nothing in it.
+        if not self.slug:
+            self.slug = generate_saved_query_slug(self.name)
         return super().save(*args, **kwargs)
 
     def update_if_has_perm(self, principal: User, **kwargs):
@@ -268,6 +305,10 @@ class QueryLog(Base):
         # Set server-side by the CSV export view and never accepted from a client (see
         # schema.py), so it marks an actual full-result export rather than a claim
         DATA_STUDIO_EXPORT = "DATA_STUDIO_EXPORT"
+        # Set server-side from the request, never accepted from a client: it is
+        # the only origin that carries a security meaning (a web app can run
+        # stored queries and nothing else).
+        WEBAPP = "WEBAPP"
 
     workspace = models.ForeignKey(
         Workspace, on_delete=models.CASCADE, related_name="query_logs"
@@ -285,6 +326,15 @@ class QueryLog(Base):
         related_name="query_logs",
     )
     query = models.TextField()
+    # Set when the SQL came from a stored query rather than from the caller, so
+    # the audit trail answers "which saved query ran" and not only "what SQL ran".
+    saved_query = models.ForeignKey(
+        SavedQuery,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="query_logs",
+    )
     status = models.CharField(max_length=10, choices=Status.choices)
     # SQLSTATE error code (https://www.postgresql.org/docs/current/errcodes-appendix.html);
     # SQLSTATE_SUCCESS on success, null when the query never reached the data source

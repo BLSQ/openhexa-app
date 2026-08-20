@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from django.contrib.admin.utils import NestedObjects
 from django.contrib.auth.models import AnonymousUser
@@ -212,6 +212,47 @@ class SavedQueryModelTest(SavedQueryTestMixin, TestCase):
         )
         query.refresh_from_db()
         self.assertEqual("SELECT label FROM demo", query.content)
+
+    def test_slug_generated_from_name(self):
+        self.assertEqual("my-query", self.create_saved_query(name="My query").slug)
+
+    def test_slug_suffixed_on_collision(self):
+        first = self.create_saved_query(name="My query")
+        second = self.create_saved_query(name="My query")
+        self.assertEqual("my-query", first.slug)
+        self.assertNotEqual(first.slug, second.slug)
+        self.assertTrue(second.slug.startswith("my-query-"))
+
+    def test_slug_unchanged_on_rename(self):
+        # Web apps address a saved query by slug: a rename must not break them.
+        query = self.create_saved_query(name="My query")
+        query.update_if_has_perm(principal=self.USER_EDITOR, name="Something else")
+        query.refresh_from_db()
+        self.assertEqual("my-query", query.slug)
+
+    def test_slug_falls_back_when_name_has_nothing_to_slugify(self):
+        self.assertEqual("query", self.create_saved_query(name="!@#$%").slug)
+
+    def test_slug_unique_across_workspaces(self):
+        # The slug identifies a saved query on its own, so the same name in
+        # another workspace has to be suffixed rather than reused.
+        first = self.create_saved_query(user=self.USER_ADMIN, workspace=self.WORKSPACE)
+        second = self.create_saved_query(
+            user=self.USER_ADMIN, workspace=self.WORKSPACE_2
+        )
+        self.assertNotEqual(first.slug, second.slug)
+        self.assertTrue(second.slug.startswith(f"{first.slug}-"))
+
+    def test_slug_generation_gives_up_instead_of_looping(self):
+        # Only a slugify that ignores the suffix can collide every time; a real
+        # run varies it and settles on the first or second attempt.
+        self.create_saved_query(name="My query")
+
+        with (
+            patch("hexa.data_studio.models.slugify", return_value="my-query"),
+            self.assertRaises(RuntimeError),
+        ):
+            self.create_saved_query(name="My query")
 
     def test_content_keeps_literals_verbatim(self):
         # PostgreSQL accepts any character inside a literal, so an exotic blank
