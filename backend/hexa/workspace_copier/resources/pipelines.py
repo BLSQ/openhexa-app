@@ -183,6 +183,14 @@ class PipelinesCopier(ResourceCopier):
         )
 
         _update_settings(target.client, target_pid, detail, scheduled_version_id)
+
+        # schedule deliberately left unset on the target
+        src_schedule = detail.get("schedule")
+        if src_schedule:
+            schedule_wrn_msg = f"pipeline '{target_code}' schedule '{src_schedule}' not copied — set it manually once validated"
+            pipes_result.warnings.append(schedule_wrn_msg)
+            reporter.warning(f"   {schedule_wrn_msg}")
+
         pipes_result.created.append((target_code, uploaded_names))
         reporter.info(
             f"   created pipeline '{target_code}' ({len(uploaded_names)} version(s))"
@@ -394,10 +402,13 @@ def _update_settings(
     src_pipeline: dict[str, Any],
     scheduled_version_id: str | None,
 ) -> None:
-    """Apply pipeline-level fields that createPipeline/uploadPipeline cannot set."""
+    """Apply pipeline-level fields that createPipeline/uploadPipeline cannot set.
+
+    Note: ``schedule`` is intentionally left out to avoid it running immediately
+    after the copy.
+    """
     input_: dict[str, Any] = {
         "id": target_pipeline_id,
-        "schedule": src_pipeline.get("schedule"),
         "webhookEnabled": src_pipeline.get("webhookEnabled"),
         "config": src_pipeline.get("config") or None,
         "scheduledPipelineVersionId": scheduled_version_id,
