@@ -1,10 +1,17 @@
 from unittest.mock import MagicMock, patch
 
+from django.contrib.admin.utils import NestedObjects
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.db import IntegrityError, connection, router, transaction
 
 from hexa.core.test import TestCase
-from hexa.data_studio.models import QueryLog, SavedQuery, SavedQueryVisibility
+from hexa.data_studio.models import (
+    ON_AUTHOR_DELETED,
+    QueryLog,
+    SavedQuery,
+    SavedQueryVisibility,
+)
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.user_management.models import User
@@ -255,6 +262,206 @@ class SavedQueryModelTest(SavedQueryTestMixin, TestCase):
             self.USER_EDITOR, self.WORKSPACE, name="Literal query", content=content
         )
         self.assertEqual(content, query.content)
+
+
+class SavedQueryAuthorDeletionTest(SavedQueryTestMixin, TestCase):
+    """What saved queries survive the deletion of the account that wrote them.
+
+    Deletion is exercised through `User.delete()` rather than by calling the handler
+    directly: it is the ORM wiring - not the partitioning - that decides whether the
+    Django admin, a shell or a cascade all get the same behaviour.
+    """
+
+    def _create_private(self, user, **kwargs):
+        return self.create_saved_query(
+            user=user, visibility=SavedQueryVisibility.PRIVATE, **kwargs
+        )
+
+    def test_private_queries_go_with_their_author(self):
+        query = self._create_private(self.USER_VIEWER)
+
+        self.USER_VIEWER.delete()
+
+        self.assertFalse(SavedQuery.objects.filter(id=query.id).exists())
+
+    def test_shared_queries_outlive_their_author(self):
+        # Colleagues, and the webapps and pipelines built on a shared query, must not
+        # lose it because its author left.
+        query = self.create_saved_query(user=self.USER_EDITOR)
+
+        self.USER_EDITOR.delete()
+
+        query.refresh_from_db()
+        self.assertIsNone(query.created_by)
+
+    def test_only_the_deleted_authors_queries_are_affected(self):
+        deleted_author_query = self._create_private(self.USER_VIEWER, name="Theirs")
+        other_query = self._create_private(self.USER_EDITOR, name="Mine")
+
+        self.USER_VIEWER.delete()
+
+        self.assertEqual(
+            [other_query], list(SavedQuery.objects.filter(id=other_query.id))
+        )
+        self.assertFalse(SavedQuery.objects.filter(id=deleted_author_query.id).exists())
+
+    def test_bulk_deletion_splits_a_mixed_batch(self):
+        # Deleting from the Django admin deletes a queryset of users at once, so the
+        # handler gets both authors' queries in a single batch.
+        private_query = self._create_private(self.USER_VIEWER)
+        shared_query = self.create_saved_query(user=self.USER_EDITOR)
+
+        User.objects.filter(id__in=[self.USER_VIEWER.id, self.USER_EDITOR.id]).delete()
+
+        self.assertFalse(SavedQuery.objects.filter(id=private_query.id).exists())
+        shared_query.refresh_from_db()
+        self.assertIsNone(shared_query.created_by)
+
+    def test_policy_applies_in_every_workspace(self):
+        query = self._create_private(self.USER_ADMIN, workspace=self.WORKSPACE)
+        query_2 = self._create_private(self.USER_ADMIN, workspace=self.WORKSPACE_2)
+
+        self.USER_ADMIN.delete()
+
+        self.assertFalse(
+            SavedQuery.objects.filter(id__in=[query.id, query_2.id]).exists()
+        )
+
+    def test_author_without_queries(self):
+        self.USER_VIEWER.delete()
+
+        self.assertFalse(User.objects.filter(id=self.USER_VIEWER.id).exists())
+
+    def test_orphaned_shared_query_stays_visible_to_members(self):
+        query = self.create_saved_query(user=self.USER_EDITOR)
+
+        self.USER_EDITOR.delete()
+
+        self.assertEqual(
+            [query], list(SavedQuery.objects.filter_for_user(self.USER_ADMIN))
+        )
+
+    def test_workspace_deletion_removes_every_query(self):
+        # The workspace cascade is unconditional: a private query is not kept alive by
+        # the workspace it belonged to disappearing.
+        private_query = self._create_private(
+            self.USER_ADMIN, workspace=self.WORKSPACE_2
+        )
+        shared_query = self.create_saved_query(
+            user=self.USER_ADMIN, workspace=self.WORKSPACE_2, name="Shared"
+        )
+
+        self.WORKSPACE_2.delete()
+
+        self.assertFalse(
+            SavedQuery.objects.filter(
+                id__in=[private_query.id, shared_query.id]
+            ).exists()
+        )
+
+    def test_private_query_cannot_lose_its_author(self):
+        # Nothing can read an author-less private query, so the database refuses to
+        # store one rather than let it linger invisible.
+        query = self._create_private(self.USER_VIEWER)
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            SavedQuery.objects.filter(id=query.id).update(created_by=None)
+
+    def test_the_backend_can_defer_constraint_checks(self):
+        # The one thing the PRIVATE policy assumes about the database. CASCADE nulls
+        # created_by before deleting on backends that cannot defer, which
+        # `data_studio_private_query_has_author` rejects - so on such a backend every
+        # test above fails with an IntegrityError. The replacement is the six-line
+        # handler documented in `saved_queries_on_author_deleted`: collect() with
+        # source_attr, and no field update.
+        self.assertTrue(connection.features.can_defer_constraint_checks)
+
+    def test_private_queries_are_listed_under_their_author_in_the_admin(self):
+        # The confirmation page is the whole UI of this feature - user deletion has no
+        # mutation - and it nests what will be deleted under what causes it. Django's
+        # CASCADE passes the collector the relation the queries hang from; an
+        # equivalent that omits it still deletes them, but lists them at the top level
+        # next to the user rather than underneath.
+        query = self._create_private(self.USER_VIEWER)
+        collector = NestedObjects(using=router.db_for_write(User))
+
+        collector.collect([self.USER_VIEWER])
+
+        self.assertIn(query, collector.edges.get(self.USER_VIEWER, []))
+
+    def test_every_visibility_states_a_policy(self):
+        # A visibility added without deciding whether its queries outlive their author
+        # would otherwise be handled by whichever branch happens to catch it.
+        self.assertEqual(set(SavedQueryVisibility), set(ON_AUTHOR_DELETED))
+
+    def test_unknown_visibility_fails_loudly(self):
+        # Choices are not enforced by the database, so the guard - not the schema - is
+        # what stops an unmapped visibility from being silently kept or dropped.
+        query = self.create_saved_query(user=self.USER_VIEWER)
+        SavedQuery.objects.filter(id=query.id).update(visibility="TEAM")
+
+        with self.assertRaises(ImproperlyConfigured):
+            self.USER_VIEWER.delete()
+
+
+class SavedQueryMembershipRemovalTest(SavedQueryTestMixin, TestCase):
+    """Losing access to a workspace is not losing the query.
+
+    Nothing deletes saved queries when a membership goes away, and these tests pin
+    that absence rather than any code: `hexa.pipelines.signals` already hangs a
+    `post_delete` receiver on WorkspaceMembership to clean up after a departing
+    member, which is exactly where someone would reach for saved queries next.
+    """
+
+    def _revoke_membership(self, user):
+        WorkspaceMembership.objects.get(workspace=self.WORKSPACE, user=user).delete()
+
+    def test_private_query_is_hidden_not_deleted(self):
+        query = self.create_saved_query(
+            user=self.USER_VIEWER, visibility=SavedQueryVisibility.PRIVATE
+        )
+
+        self._revoke_membership(self.USER_VIEWER)
+
+        query.refresh_from_db()
+        self.assertEqual(self.USER_VIEWER, query.created_by)
+        self.assertFalse(
+            SavedQuery.objects.filter_for_user(self.USER_VIEWER)
+            .filter(id=query.id)
+            .exists()
+        )
+
+    def test_rejoining_the_workspace_brings_the_query_back(self):
+        query = self.create_saved_query(
+            user=self.USER_VIEWER, visibility=SavedQueryVisibility.PRIVATE
+        )
+
+        self._revoke_membership(self.USER_VIEWER)
+        # Pinned in the middle, not just at the end: "brings the query back" would
+        # hold trivially if revoking the membership had never hidden it.
+        self.assertEqual([], list(SavedQuery.objects.filter_for_user(self.USER_VIEWER)))
+
+        WorkspaceMembership.objects.create(
+            workspace=self.WORKSPACE,
+            user=self.USER_VIEWER,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+        self.assertEqual(
+            [query], list(SavedQuery.objects.filter_for_user(self.USER_VIEWER))
+        )
+
+    def test_a_hidden_query_still_goes_with_its_deleted_author(self):
+        # The half of the promise that survives the other one: a query kept through a
+        # membership change is not thereby kept forever.
+        query = self.create_saved_query(
+            user=self.USER_VIEWER, visibility=SavedQueryVisibility.PRIVATE
+        )
+        self._revoke_membership(self.USER_VIEWER)
+
+        self.USER_VIEWER.delete()
+
+        self.assertFalse(SavedQuery.objects.filter(id=query.id).exists())
 
 
 class QueryLogModelTest(TestCase):

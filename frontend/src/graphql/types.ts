@@ -1507,6 +1507,12 @@ export type Dhis2QueryResultPage = {
 export type Database = {
   __typename?: 'Database';
   credentials?: Maybe<DatabaseCredentials>;
+  /**
+   * Runs a read-only SQL query against the workspace database and returns the result.
+   * `maxRows` caps the number of returned rows; it defaults to 50 when omitted and is
+   * itself capped to a server-side hard limit. `origin` identifies where the query comes
+   * from for auditing purposes; it defaults to OTHER.
+   */
   executeSQL: ExecuteSqlResult;
   readOnlyCredentials?: Maybe<DatabaseCredentials>;
   table?: Maybe<DatabaseTable>;
@@ -6805,6 +6811,7 @@ export type Workspace = {
   countries: Array<Country>;
   createdAt: Scalars['DateTime']['output'];
   createdBy: User;
+  currentMembership?: Maybe<WorkspaceMembership>;
   database: Database;
   /** Linked datasets of the workspace */
   datasets: DatasetLinkPage;
@@ -6961,6 +6968,7 @@ export type WorkspacePermissions = {
   deleteObject: Scalars['Boolean']['output'];
   /** User can download objects from the workspace's bucket. */
   downloadObject: Scalars['Boolean']['output'];
+  generateToken: Scalars['Boolean']['output'];
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];

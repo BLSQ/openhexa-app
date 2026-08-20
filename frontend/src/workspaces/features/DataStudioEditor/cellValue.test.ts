@@ -1,4 +1,4 @@
-import { isNumericValue, stringifyCellValue } from "./format";
+import { isNumericValue, stringifyCellValue } from "./cellValue";
 
 describe("isNumericValue", () => {
   it("treats JS numbers as numeric", () => {

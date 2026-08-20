@@ -1485,6 +1485,13 @@ type DHIS2QueryResultPage {
 
 type Database {
   credentials: DatabaseCredentials
+
+  """
+  Runs a read-only SQL query against the workspace database and returns the result.
+  `maxRows` caps the number of returned rows; it defaults to 50 when omitted and is
+  itself capped to a server-side hard limit. `origin` identifies where the query comes
+  from for auditing purposes; it defaults to OTHER.
+  """
   executeSQL(maxRows: Int, origin: ExecuteSQLOrigin, query: String!): ExecuteSQLResult!
   readOnlyCredentials: DatabaseCredentials
   table(name: String!): DatabaseTable
@@ -5994,6 +6001,7 @@ type Workspace {
   countries: [Country!]!
   createdAt: DateTime!
   createdBy: User!
+  currentMembership: WorkspaceMembership
   database: Database!
 
   """Linked datasets of the workspace"""
@@ -6127,6 +6135,7 @@ type WorkspacePermissions {
 
   """User can download objects from the workspace's bucket."""
   downloadObject: Boolean!
+  generateToken: Boolean!
   launchNotebookServer: Boolean!
   manageMembers: Boolean!
   update: Boolean!

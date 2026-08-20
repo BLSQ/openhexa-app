@@ -77,6 +77,11 @@ jest.mock("strip-markdown", () => ({
 jest.mock("next-i18next", () => ({
   I18nextProvider: jest.fn(),
   useTranslation: () => ({ t: (key) => key }),
+  // <Trans> renders its children as-is, which matches the English catalog where
+  // the key is the source string. `i18n` is the singleton used by helpers that
+  // translate outside of a component (e.g. formatWorkspaceMembershipRole).
+  Trans: ({ children }) => children,
+  i18n: { t: (key) => key },
   __esModule: true,
 }));
 

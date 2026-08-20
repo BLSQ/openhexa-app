@@ -428,7 +428,7 @@ class GraphQLProxyMiddlewareTest(TestCase):
         # how the run is attributed; executing SQL for real is covered in
         # hexa.data_studio.tests.test_schema.
         with patch(
-            "hexa.databases.utils.execute_database_query",
+            "hexa.data_studio.query_runner.execute_database_query",
             return_value={
                 "columns": ["probe"],
                 "rows": [{"probe": 1}],

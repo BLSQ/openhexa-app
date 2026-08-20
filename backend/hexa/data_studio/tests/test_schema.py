@@ -4,8 +4,8 @@ from django.test.utils import CaptureQueriesContext
 
 from hexa.core.test import GraphQLTestCase
 from hexa.data_studio.models import QueryLog, SavedQuery, SavedQueryVisibility
+from hexa.data_studio.query_runner import run_saved_query
 from hexa.databases.tests.helpers import seed_demo_table
-from hexa.databases.utils import run_saved_query
 
 from .testutils import SavedQueryTestMixin
 
