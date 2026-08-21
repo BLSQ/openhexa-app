@@ -10,10 +10,19 @@ entrypoint supplies:
   record; see :class:`BufferReporter` for the shape such a class would follow.
 """
 
+from datetime import datetime
 from typing import Protocol, runtime_checkable
+
+from django.utils import timezone
 
 # Ordered low -> high so a reporter can filter by a minimum level.
 LEVELS = ("INFO", "WARNING", "ERROR")
+
+
+def format_entry(timestamp: datetime, level: str, message: str) -> str:
+    """Render one log line, shared by every reporter so they can't drift apart."""
+    prefix = "" if level == "INFO" else f"[{level}] "
+    return f"{timestamp.strftime('%H:%M:%S')} {prefix}{message}"
 
 
 @runtime_checkable
@@ -53,8 +62,8 @@ class StreamReporter(BaseReporter):
         self.stream = stream
 
     def log(self, message: str, *, level: str = "INFO") -> None:
-        prefix = "" if level == "INFO" else f"[{level}] "
-        self.stream.write(f"{prefix}{message}\n")
+        self.stream.write(f"{format_entry(timezone.localtime(), level, message)}\n")
+        self.stream.flush()
 
 
 class BufferReporter(BaseReporter):
@@ -66,13 +75,13 @@ class BufferReporter(BaseReporter):
     """
 
     def __init__(self):
-        self.entries: list[tuple[str, str]] = []
+        self.entries: list[tuple[datetime, str, str]] = []
 
     def log(self, message: str, *, level: str = "INFO") -> None:
-        self.entries.append((level, message))
+        self.entries.append((timezone.localtime(), level, message))
 
     def render(self) -> str:
         return "\n".join(
-            msg if level == "INFO" else f"[{level}] {msg}"
-            for level, msg in self.entries
+            format_entry(timestamp, level, message)
+            for timestamp, level, message in self.entries
         )
