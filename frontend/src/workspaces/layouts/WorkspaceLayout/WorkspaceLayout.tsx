@@ -65,9 +65,9 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
             isSidebarOpen ? "left-64 2xl:left-72" : "left-16",
           )}
         >
-          <div className="flex items-center h-full px-4 md:px-6 xl:px-10 2xl:px-12">
-            <div className="flex-1 min-w-0">{header}</div>
-            <div className="shrink-0 w-100 max-w-md mx-auto p-2">
+          <div className="flex items-center h-full gap-2 px-4 md:px-6 xl:px-10 2xl:px-12">
+            <div className="flex-1 min-w-24 xl:min-w-48">{header}</div>
+            <div className="shrink basis-auto max-w-md p-2 xl:basis-80 xl:min-w-48 2xl:basis-100">
               <SpotlightSearch organizationId={workspace.organization?.id} />
             </div>
             <div className="flex-1 flex justify-end items-center gap-2">
