@@ -17,7 +17,7 @@ from hexa.core.models.soft_delete import (
     SoftDeleteQuerySet,
 )
 from hexa.git.enums import FileEncoding
-from hexa.git.exceptions import GitFileNotFound
+from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
@@ -49,6 +49,10 @@ class WebappFileStringNotUniqueError(WebappFileEditError):
 
 class WebappFileNoChangeError(WebappFileEditError):
     """old_string and new_string are identical; there is nothing to change."""
+
+
+class WebappFileTooLargeError(WebappFileEditError):
+    """The file exists but is too large to be read back through the git API."""
 
 
 def create_webapp_slug(name: str, workspace: Workspace):
@@ -379,6 +383,8 @@ class GitWebapp(Webapp, GitRepoMixin):
             )
         except GitFileNotFound:
             raise WebappFilePathNotFoundError(path)
+        except GitFileTooLarge:
+            raise WebappFileTooLargeError(path)
 
         try:
             content = raw.decode("utf-8")
