@@ -17,7 +17,7 @@ import type {
   ViewStateChangeEvent,
 } from "react-map-gl/maplibre";
 import Map, { NavigationControl, Popup } from "react-map-gl/maplibre";
-import { stringifyCellValue } from "./format";
+import { stringifyCellValue } from "./cellValue";
 import { featuresBounds, MapBounds, MapFeature } from "./map";
 
 type ResultsMapProps = {

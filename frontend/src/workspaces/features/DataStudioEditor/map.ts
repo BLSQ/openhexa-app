@@ -1,5 +1,5 @@
 import type { Geometry, Point } from "geojson";
-import { isNumericValue } from "./format";
+import { isNumericValue } from "./cellValue";
 
 type Row = Record<string, unknown>;
 
