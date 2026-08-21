@@ -22,6 +22,10 @@ def _option_fields() -> dict[str, tuple[str, ...]]:
     return {c.name: c.option_fields for c in WORKSPACE_COPIERS if c.option_fields}
 
 
+def _help_texts() -> dict[str, str]:
+    return {c.name: c.help_text for c in WORKSPACE_COPIERS if c.help_text}
+
+
 class ResourceSelect(forms.CheckboxSelectMultiple):
     """Checkbox list where a mandatory copier is checked and locked.
 
@@ -67,15 +71,33 @@ class CopyWorkspaceForm(forms.Form):
         label="Target ServiceAccount token",
         widget=forms.PasswordInput(render_value=True),
     )
+    target_mode = forms.ChoiceField(
+        label="Target workspace",
+        choices=[
+            ("new", "Create a new workspace"),
+            ("existing", "Copy into an existing workspace"),
+        ],
+        initial="new",
+        widget=forms.RadioSelect,
+        help_text="Copying into an existing workspace makes the copy idempotent: "
+        "resources that already exist are skipped, so an interrupted run can be "
+        "re-run safely.",
+    )
     target_organization = forms.CharField(
+        required=False,
         label="Target organization id",
         help_text="UUID of the organization to create the workspace under.",
     )
     target_workspace_name = forms.CharField(
         required=False,
         label="Target workspace name",
-        help_text="Optional name for the target workspace. "
+        help_text="Optional name for the new workspace. "
         "Defaults to the source workspace name.",
+    )
+    target_workspace_slug = forms.CharField(
+        required=False,
+        label="Target workspace slug",
+        help_text="Slug of the existing workspace to copy into.",
     )
 
     resources = forms.MultipleChoiceField(
@@ -102,12 +124,14 @@ class CopyWorkspaceForm(forms.Form):
         resource they affect.
         """
         option_fields = _option_fields()
+        help_texts = _help_texts()
         mandatory = _mandatory_resources()
         for checkbox in self["resources"]:
             name = str(checkbox.data["value"])
             yield {
                 "checkbox": checkbox,
                 "mandatory": name in mandatory,
+                "help_text": help_texts.get(name, ""),
                 "options": [self[field] for field in option_fields.get(name, ())],
             }
 
@@ -125,6 +149,17 @@ class CopyWorkspaceForm(forms.Form):
         cleaned = super().clean()
         self._clean_endpoint_credentials("source")
         self._clean_endpoint_credentials("target")
+
+        if cleaned.get("target_mode") == "existing":
+            # Hidden fields may still carry values typed before switching mode.
+            cleaned["target_organization"] = ""
+            cleaned["target_workspace_name"] = ""
+            if not cleaned.get("target_workspace_slug"):
+                self.add_error("target_workspace_slug", "This field is required.")
+        else:
+            cleaned["target_workspace_slug"] = ""
+            if not cleaned.get("target_organization"):
+                self.add_error("target_organization", "This field is required.")
 
         selected = set(cleaned.get("resources") or _default_resources())
         selected |= _mandatory_resources()
