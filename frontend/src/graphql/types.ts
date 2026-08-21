@@ -2351,6 +2351,7 @@ export type DisableTwoFactorResult = {
 /** Represents the error message for a web app file edit. */
 export enum EditWebappFileError {
   BinaryFile = 'BINARY_FILE',
+  FileTooLarge = 'FILE_TOO_LARGE',
   NoChange = 'NO_CHANGE',
   PathNotFound = 'PATH_NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED',
@@ -5248,6 +5249,7 @@ export type ReadFileContentResult = {
 /** Represents the error message for reading a web app file. */
 export enum ReadWebappFileError {
   BinaryFile = 'BINARY_FILE',
+  FileTooLarge = 'FILE_TOO_LARGE',
   PathNotFound = 'PATH_NOT_FOUND',
   WebappsNotConfigured = 'WEBAPPS_NOT_CONFIGURED',
   WebappNotFound = 'WEBAPP_NOT_FOUND'
