@@ -425,20 +425,22 @@ exports[`Workspaces renders the workspace page 1`] = `
     class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
   >
     <div
-      class="flex items-center h-full px-4 md:px-6 xl:px-10 2xl:px-12"
+      class="flex items-center h-full gap-2 px-4 md:px-6 xl:px-10 2xl:px-12"
     >
       <div
-        class="flex-1 min-w-0"
+        class="flex-1 min-w-24 xl:min-w-48"
       />
       <div
-        class="shrink-0 w-100 max-w-md mx-auto p-2"
+        class="shrink basis-auto max-w-md p-2 xl:basis-80 xl:min-w-48 2xl:basis-100"
       >
         <button
-          class="flex items-center gap-2 w-full px-3 py-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors cursor-pointer"
+          aria-label="Search..."
+          class="flex items-center justify-center gap-2 w-full px-3 py-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors cursor-pointer xl:justify-start"
+          title="Search..."
         >
           <svg
             aria-hidden="true"
-            class="h-4 w-4 text-gray-500"
+            class="h-4 w-4 shrink-0 text-gray-500"
             data-slot="icon"
             fill="none"
             stroke="currentColor"
@@ -453,12 +455,12 @@ exports[`Workspaces renders the workspace page 1`] = `
             />
           </svg>
           <span
-            class="flex-1 text-left text-gray-500"
+            class="hidden flex-1 truncate text-left text-gray-500 xl:block"
           >
             Search...
           </span>
           <kbd
-            class="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded"
+            class="hidden xl:inline-flex items-center gap-0.5 px-1.5 py-0.5 font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded"
           >
             <span
               class="text-xs"
@@ -986,20 +988,22 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
     class="fixed top-0 left-0 right-0 z-10 h-16 border-b border-gray-200 bg-white py-3 shadow-xs group/header left-64 2xl:left-72"
   >
     <div
-      class="flex items-center h-full px-4 md:px-6 xl:px-10 2xl:px-12"
+      class="flex items-center h-full gap-2 px-4 md:px-6 xl:px-10 2xl:px-12"
     >
       <div
-        class="flex-1 min-w-0"
+        class="flex-1 min-w-24 xl:min-w-48"
       />
       <div
-        class="shrink-0 w-100 max-w-md mx-auto p-2"
+        class="shrink basis-auto max-w-md p-2 xl:basis-80 xl:min-w-48 2xl:basis-100"
       >
         <button
-          class="flex items-center gap-2 w-full px-3 py-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors cursor-pointer"
+          aria-label="Search..."
+          class="flex items-center justify-center gap-2 w-full px-3 py-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors cursor-pointer xl:justify-start"
+          title="Search..."
         >
           <svg
             aria-hidden="true"
-            class="h-4 w-4 text-gray-500"
+            class="h-4 w-4 shrink-0 text-gray-500"
             data-slot="icon"
             fill="none"
             stroke="currentColor"
@@ -1014,12 +1018,12 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
             />
           </svg>
           <span
-            class="flex-1 text-left text-gray-500"
+            class="hidden flex-1 truncate text-left text-gray-500 xl:block"
           >
             Search...
           </span>
           <kbd
-            class="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded"
+            class="hidden xl:inline-flex items-center gap-0.5 px-1.5 py-0.5 font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded"
           >
             <span
               class="text-xs"
