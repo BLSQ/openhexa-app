@@ -27,7 +27,8 @@ def format_entry(timestamp: datetime, level: str, message: str) -> str:
 
 @runtime_checkable
 class ProgressReporter(Protocol):
-    def log(self, message: str, *, level: str = "INFO") -> None: ...
+    def log(self, message: str, *, level: str = "INFO") -> None:
+        ...
 
 
 class BaseReporter:
