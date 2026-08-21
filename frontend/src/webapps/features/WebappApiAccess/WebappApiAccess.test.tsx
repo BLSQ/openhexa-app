@@ -88,6 +88,44 @@ describe("WebappApiAccess", () => {
     });
   });
 
+  it("offers the database scope and saves it", async () => {
+    const mocks: MockedResponse[] = [
+      {
+        request: {
+          query: UpdateWebappDocument,
+          variables: {
+            input: {
+              id: "1",
+              allowedOperations: [
+                WebappOperationScope.PipelinesRead,
+                WebappOperationScope.DatabaseRead,
+              ],
+            },
+          },
+        },
+        result: {
+          data: { updateWebapp: { success: true, errors: [], webapp: null } },
+        },
+      },
+    ];
+
+    render(
+      <TestApp mocks={mocks}>
+        <WebappApiAccess webapp={webapp} />
+      </TestApp>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("switch", { name: "Read database" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith(
+        "API access updated successfully",
+      );
+    });
+  });
+
   it("does not allow editing without update permission", () => {
     render(
       <TestApp mocks={[]}>

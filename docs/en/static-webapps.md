@@ -66,8 +66,17 @@ By default a static webapp has an empty `allowed_operations` list, which means i
 | `FILES_WRITE` | `prepareObjectUpload`, `createBucketFolder`, `writeFileContent` |
 | `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
 | `DATASETS_WRITE` | `createDataset`, `updateDataset`, `createDatasetVersion`, `updateDatasetVersion`, `createDatasetVersionFile` |
+| `DATABASE_READ` | `executeSavedQuery` |
 
 Introspection fields `__typename`, `__schema`, `__type` are always allowed.
+
+!!! note "Databases are read-only, and only through saved queries"
+
+    A web app cannot send SQL of its own — `executeSQL` is refused on this
+    endpoint whatever scopes are enabled. `DATABASE_READ` lets it run a query a
+    workspace member wrote and saved in the Data Studio, addressed by slug. The
+    SQL itself is never returned, so the app can run the query but not read or
+    change it. Queries execute with the read-only database role.
 
 ## Exploring the schema
 
@@ -962,6 +971,113 @@ type UpdateDatasetVersionResult { version: DatasetVersion, success: Boolean!, er
       }
       out.textContent = `Created: ${createDataset.dataset.name} (slug: ${createDataset.dataset.slug})`;
     }
+  </script>
+</body>
+</html>
+```
+### DATABASE_READ — Run a saved query
+
+Runs a query saved in the Data Studio and renders the rows as a table. The web
+app names the query by its slug; it never holds the SQL.
+
+<details markdown="1">
+<summary>Schema</summary>
+
+```graphql
+type Query {
+  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSQLResult!
+}
+
+input ExecuteSavedQueryInput {
+  workspaceSlug: String!
+  slug: String!
+  maxRows: Int
+}
+
+# Same payload as executeSQL.
+type ExecuteSQLResult {
+  success: Boolean!
+  errors: [ExecuteSQLError!]!
+  errorMessage: String
+  columns: [String!]
+  rows: [JSON!]
+  rowCount: Int
+  truncated: Boolean
+  durationMs: Int
+}
+
+enum ExecuteSQLError {
+  SAVED_QUERY_NOT_FOUND
+  PERMISSION_DENIED
+  QUERY_TIMEOUT
+  QUERY_ERROR
+  MULTIPLE_STATEMENTS
+}
+```
+
+[Browse the full schema in the playground →](https://app.openhexa.org/graphql/)
+
+</details>
+
+Find the slug in the Data Studio: it is the last segment of the saved query's
+URL. `SAVED_QUERY_NOT_FOUND` covers both an unknown slug and a workspace you
+cannot see, so it does not reveal what exists.
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Saved query</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #e5e7eb; padding: 0.375rem 0.5rem; text-align: left; font-size: 0.875rem; }
+    th { background: #f9fafb; }
+  </style>
+</head>
+<body>
+  <h1>Saved query</h1>
+  <div id="out">Loading…</div>
+
+  <script>
+    const { workspaceSlug } = window.OPENHEXA;
+    const SAVED_QUERY_SLUG = "my-saved-query";
+
+    async function gql(query, variables) {
+      const res = await fetch("/graphql/", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, variables }),
+      });
+      const json = await res.json();
+      if (json.errors) throw new Error(json.errors.map(e => e.message).join("; "));
+      return json.data;
+    }
+
+    (async () => {
+      const out = document.getElementById("out");
+      const { executeSavedQuery: result } = await gql(`
+        query($input: ExecuteSavedQueryInput!) {
+          executeSavedQuery(input: $input) {
+            success errors columns rows rowCount truncated
+          }
+        }
+      `, { input: { workspaceSlug, slug: SAVED_QUERY_SLUG, maxRows: 100 } });
+
+      if (!result.success) {
+        out.textContent = "Error: " + result.errors.join(", ");
+        return;
+      }
+
+      const header = result.columns.map(c => `<th>${c}</th>`).join("");
+      const body = result.rows.map(row =>
+        `<tr>${result.columns.map(c => `<td>${row[c] ?? ""}</td>`).join("")}</tr>`
+      ).join("");
+      out.innerHTML = `<table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>` +
+        (result.truncated ? `<p>Showing the first ${result.rowCount} rows.</p>` : "");
+    })();
   </script>
 </body>
 </html>

@@ -293,6 +293,56 @@ class Workspace(Base):
     def current_subscription(self) -> OrganizationSubscription | None:
         return self.organization.current_subscription
 
+    @classmethod
+    def preload_memberships(
+        cls,
+        user: AnonymousUser | UserInterface,
+        workspaces: typing.Iterable["Workspace"],
+    ) -> None:
+        """Load the memberships of a user in several workspaces in a single query.
+
+        `get_membership` reads them back from the workspace instances, so the
+        memberships live exactly as long as the workspaces they were loaded with.
+        """
+        if not isinstance(user, User) or not user.is_authenticated:
+            return
+
+        workspaces = list(workspaces)
+        memberships = {
+            membership.workspace_id: membership
+            for membership in WorkspaceMembership.objects.filter(
+                user=user, workspace__in=workspaces
+            ).defer("access_token")
+        }
+        for workspace in workspaces:
+            workspace._preloaded_membership = (user.pk, memberships.get(workspace.id))
+
+    def get_membership(
+        self, user: AnonymousUser | UserInterface
+    ) -> "WorkspaceMembership | None":
+        """Return the membership of a user in this workspace, or None if they have none.
+
+        None is also the answer for principals that cannot hold a membership at all
+        (anonymous users, service principals): their access, when they have any, is
+        implicit. `preload_memberships` turns repeated calls over a page of workspaces
+        into a single query.
+        """
+        if not isinstance(user, User) or not user.is_authenticated:
+            return None
+
+        preloaded_for_user_id, membership = getattr(
+            self, "_preloaded_membership", (None, None)
+        )
+        if preloaded_for_user_id == user.pk:
+            return membership
+
+        return (
+            self.workspacemembership_set.filter(user=user)
+            # access_token is a secret, only ever read through generateWorkspaceToken
+            .defer("access_token")
+            .first()
+        )
+
     def update_if_has_perm(self, *, principal: User, **kwargs):
         if not principal.has_perm("workspaces.update_workspace", self):
             raise PermissionDenied

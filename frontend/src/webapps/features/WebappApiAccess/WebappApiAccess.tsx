@@ -50,6 +50,12 @@ function getScopeDescriptions(t: (key: string) => string) {
       label: t("Read user info"),
       description: t("Access current user details and workspace role"),
     },
+    [WebappOperationScope.DatabaseRead]: {
+      label: t("Read database"),
+      description: t(
+        "Run saved queries against the workspace database. The SQL stays hidden from the web app.",
+      ),
+    },
   };
 }
 
@@ -76,10 +82,11 @@ function getScopeGroups(t: (key: string) => string): ScopeGroup[] {
     },
     {
       title: t("Files"),
-      scopes: [
-        WebappOperationScope.FilesRead,
-        WebappOperationScope.FilesWrite,
-      ],
+      scopes: [WebappOperationScope.FilesRead, WebappOperationScope.FilesWrite],
+    },
+    {
+      title: t("Database"),
+      scopes: [WebappOperationScope.DatabaseRead],
     },
     {
       title: t("User"),

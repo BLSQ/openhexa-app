@@ -23,6 +23,7 @@ jest.mock("react-toastify", () => ({
 const savedQuery = {
   __typename: "SavedQuery",
   id: "q1",
+  slug: "query-one",
   name: "Query One",
   description: "",
   content: "SELECT 1",
@@ -192,11 +193,17 @@ describe("useSavedQueryEditor", () => {
     act(() => result.current.saveAsNew());
     expect(result.current.dialog).toEqual({ open: true, mode: "create" });
 
-    act(() => result.current.onDialogSaved({ ...savedQuery, id: "new-1" }));
+    act(() =>
+      result.current.onDialogSaved({
+        ...savedQuery,
+        id: "new-1",
+        slug: "new-one",
+      }),
+    );
 
     await waitFor(() =>
       expect(mockRouter.asPath).toBe(
-        "/workspaces/ws-1/data-studio/queries/new-1",
+        "/workspaces/ws-1/data-studio/queries/new-one",
       ),
     );
   });
@@ -294,12 +301,16 @@ describe("useSavedQueryEditor", () => {
 
       act(() => result.current.saveAsNew());
       await act(async () => {
-        result.current.onDialogSaved({ ...savedQuery, id: "new-1" });
+        result.current.onDialogSaved({
+          ...savedQuery,
+          id: "new-1",
+          slug: "new-one",
+        });
       });
 
       expect(window.confirm).not.toHaveBeenCalled();
       expect(mockRouter.asPath).toBe(
-        "/workspaces/ws-1/data-studio/queries/new-1",
+        "/workspaces/ws-1/data-studio/queries/new-one",
       );
     });
   });

@@ -5,11 +5,17 @@ on:
     paths:
       - 'frontend/**'
       - 'backend/**/schema.graphql'
+      # Read cross-tier by the frontend suite (downloadQueryCsv.test.ts), so a
+      # change to it must re-run frontend CI too.
+      - 'backend/hexa/data_studio/tests/fixtures/download_contract.json'
   push:
     branches: [main]
     paths:
       - 'frontend/**'
       - 'backend/**/schema.graphql'
+      # Read cross-tier by the frontend suite (downloadQueryCsv.test.ts), so a
+      # change to it must re-run frontend CI too.
+      - 'backend/hexa/data_studio/tests/fixtures/download_contract.json'
 
 env:
   CI: true

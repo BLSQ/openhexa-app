@@ -47,6 +47,10 @@ SCOPE_FIELDS = {
         "createDatasetVersionFile",
     },
     Webapp.OperationScope.USER_READ: {"me", "workspace"},
+    # Only the execution endpoint: `savedQuery` and `savedQueryBySlug` return the
+    # SQL body, and the point of this scope is to run a vetted query without
+    # handing the web app the query itself.
+    Webapp.OperationScope.DATABASE_READ: {"executeSavedQuery"},
 }
 
 

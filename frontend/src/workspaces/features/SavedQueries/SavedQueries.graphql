@@ -3,6 +3,7 @@
 
 fragment SavedQueryListItem_savedQuery on SavedQuery {
   id
+  slug
   name
   description
   updatedAt
@@ -19,6 +20,7 @@ fragment SavedQueryListItem_savedQuery on SavedQuery {
 
 fragment SavedQuery_savedQuery on SavedQuery {
   id
+  slug
   name
   description
   content

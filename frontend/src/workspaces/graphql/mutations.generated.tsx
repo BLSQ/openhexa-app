@@ -82,6 +82,13 @@ export type GenerateNewDatabaseRoPasswordMutationVariables = Types.Exact<{
 
 export type GenerateNewDatabaseRoPasswordMutation = { __typename?: 'Mutation', generateNewDatabaseRoPassword: { __typename?: 'GenerateNewDatabasePasswordResult', success: boolean, errors: Array<Types.GenerateNewDatabasePasswordError> } };
 
+export type GenerateWorkspaceTokenMutationVariables = Types.Exact<{
+  input: Types.GenerateWorkspaceTokenInput;
+}>;
+
+
+export type GenerateWorkspaceTokenMutation = { __typename?: 'Mutation', generateWorkspaceToken: { __typename?: 'GenerateWorkspaceTokenResult', success: boolean, errors: Array<Types.GenerateWorkspaceTokenError>, token?: string | null } };
+
 export type CreatePipelineMutationVariables = Types.Exact<{
   input: Types.CreatePipelineInput;
 }>;
@@ -591,6 +598,41 @@ export function useGenerateNewDatabaseRoPasswordMutation(baseOptions?: Apollo.Mu
 export type GenerateNewDatabaseRoPasswordMutationHookResult = ReturnType<typeof useGenerateNewDatabaseRoPasswordMutation>;
 export type GenerateNewDatabaseRoPasswordMutationResult = Apollo.MutationResult<GenerateNewDatabaseRoPasswordMutation>;
 export type GenerateNewDatabaseRoPasswordMutationOptions = Apollo.BaseMutationOptions<GenerateNewDatabaseRoPasswordMutation, GenerateNewDatabaseRoPasswordMutationVariables>;
+export const GenerateWorkspaceTokenDocument = gql`
+    mutation generateWorkspaceToken($input: GenerateWorkspaceTokenInput!) {
+  generateWorkspaceToken(input: $input) {
+    success
+    errors
+    token
+  }
+}
+    `;
+export type GenerateWorkspaceTokenMutationFn = Apollo.MutationFunction<GenerateWorkspaceTokenMutation, GenerateWorkspaceTokenMutationVariables>;
+
+/**
+ * __useGenerateWorkspaceTokenMutation__
+ *
+ * To run a mutation, you first call `useGenerateWorkspaceTokenMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGenerateWorkspaceTokenMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [generateWorkspaceTokenMutation, { data, loading, error }] = useGenerateWorkspaceTokenMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useGenerateWorkspaceTokenMutation(baseOptions?: Apollo.MutationHookOptions<GenerateWorkspaceTokenMutation, GenerateWorkspaceTokenMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GenerateWorkspaceTokenMutation, GenerateWorkspaceTokenMutationVariables>(GenerateWorkspaceTokenDocument, options);
+      }
+export type GenerateWorkspaceTokenMutationHookResult = ReturnType<typeof useGenerateWorkspaceTokenMutation>;
+export type GenerateWorkspaceTokenMutationResult = Apollo.MutationResult<GenerateWorkspaceTokenMutation>;
+export type GenerateWorkspaceTokenMutationOptions = Apollo.BaseMutationOptions<GenerateWorkspaceTokenMutation, GenerateWorkspaceTokenMutationVariables>;
 export const CreatePipelineDocument = gql`
     mutation createPipeline($input: CreatePipelineInput!) {
   createPipeline(input: $input) {

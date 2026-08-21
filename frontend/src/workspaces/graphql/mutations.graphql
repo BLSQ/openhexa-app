@@ -121,6 +121,14 @@ mutation generateNewDatabaseRoPassword(
   }
 }
 
+mutation generateWorkspaceToken($input: GenerateWorkspaceTokenInput!) {
+  generateWorkspaceToken(input: $input) {
+    success
+    errors
+    token
+  }
+}
+
 mutation createPipeline($input: CreatePipelineInput!) {
   createPipeline(input: $input) {
     success

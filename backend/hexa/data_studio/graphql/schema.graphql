@@ -1,3 +1,101 @@
+# Running SQL against a workspace database. The 'Database' type itself is defined by
+# the databases app; the Data Studio owns the execution path because it also owns the
+# audit log ('QueryLog') that every execution writes to.
+extend type Database {
+  """
+  Runs a read-only SQL query against the workspace database and returns the result.
+  `maxRows` caps the number of returned rows; it defaults to 50 when omitted and is
+  itself capped to a server-side hard limit. `origin` identifies where the query comes
+  from for auditing purposes; it defaults to OTHER.
+  """
+  executeSQL(query: String!, maxRows: Int, origin: ExecuteSQLOrigin): ExecuteSQLResult!
+}
+
+"""
+The origin of a SQL query, recorded for auditing and to build a per-user query history.
+"""
+enum ExecuteSQLOrigin {
+  """
+  The client did not identify where the query comes from.
+  """
+  OTHER
+
+  """
+  The query originates from the Data Studio frontend.
+  """
+  DATA_STUDIO
+}
+
+"""
+Possible errors when executing a SQL query against the workspace database.
+"""
+enum ExecuteSQLError {
+  """
+  The user is not allowed to run queries against this workspace database.
+  """
+  PERMISSION_DENIED
+
+  """
+  The query was cancelled because it exceeded the statement timeout.
+  """
+  QUERY_TIMEOUT
+
+  """
+  The query could not be executed (e.g. invalid SQL or a disallowed operation).
+  """
+  QUERY_ERROR
+
+  """
+  More than one SQL statement was submitted; only a single statement is allowed.
+  """
+  MULTIPLE_STATEMENTS
+}
+
+"""
+Represents the result of executing a SQL query against the workspace database.
+"""
+type ExecuteSQLResult {
+  """
+  Indicates whether the query executed successfully.
+  """
+  success: Boolean!
+
+  """
+  The errors that occurred while executing the query.
+  """
+  errors: [ExecuteSQLError!]!
+
+  """
+  The underlying database error message, when the query failed.
+  """
+  errorMessage: String
+
+  """
+  The names of the columns returned by the query.
+  """
+  columns: [String!]
+
+  """
+  The rows returned by the query, each one a JSON object keyed by column name.
+  """
+  rows: [JSON!]
+
+  """
+  The number of rows returned by the query (after any truncation).
+  """
+  rowCount: Int
+
+  """
+  Whether the result was truncated because it exceeded the maximum number of rows.
+  """
+  truncated: Boolean
+
+  """
+  The server-side execution time of the query, in milliseconds.
+  """
+  durationMs: Int
+}
+
 """
 Who a saved query is visible to within its workspace.
 """
@@ -14,6 +112,8 @@ workspace; their visibility decides which of its members can reach them.
 """
 type SavedQuery {
   id: ID!
+  "Stable identifier, unique within the workspace. Generated from the name and left unchanged when the query is renamed."
+  slug: String!
   name: String!
   description: String
   content: String!
@@ -68,8 +168,31 @@ extend type WorkspacePermissions {
 }
 
 extend type Query {
-  "Retrieves a saved query by its id."
-  savedQuery(id: ID!): SavedQuery
+  "Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace."
+  savedQuery(id: ID!, workspaceSlug: String): SavedQuery
+  "Retrieves a saved query by its slug, which is unique across workspaces."
+  savedQueryBySlug(slug: String!): SavedQuery
+  "Runs a saved query against the workspace database and returns its result, without exposing the SQL."
+  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSQLResult! @loginRequired
+}
+
+"""
+Input for executing a saved query.
+"""
+input ExecuteSavedQueryInput {
+  slug: String!
+  "Caps the number of returned rows; defaults to 50 and is itself capped to a server-side hard limit."
+  maxRows: Int
+}
+
+# executeSavedQuery returns the same payload as executeSQL -- the two differ in
+# what they accept, not in what a result looks like -- so it reuses that type
+# rather than declaring a twin of it. Addressing a query by slug is the one
+# failure the shared enum did not cover; it is named for its endpoint since
+# executeSQL can never return it.
+extend enum ExecuteSQLError {
+  "No saved query with this slug, or it is not visible to the caller."
+  SAVED_QUERY_NOT_FOUND
 }
 
 """

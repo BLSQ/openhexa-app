@@ -1,9 +1,9 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { downloadBlob } from "core/helpers/files";
 import { SavedQueryVisibility } from "graphql/types";
 import { ComponentProps } from "react";
 import DataStudioEditor from "./DataStudioEditor";
+import { downloadQueryCsv } from "./downloadQueryCsv";
 
 // `useTranslation` is globally mocked to echo the key, so button/label
 // assertions below use the raw key strings.
@@ -152,8 +152,12 @@ jest.mock("core/components/CodeEditor/CodeEditor", () => {
   };
 });
 
-jest.mock("core/helpers/files", () => ({
-  downloadBlob: jest.fn(),
+jest.mock("./downloadQueryCsv", () => ({
+  downloadQueryCsv: jest.fn(),
+}));
+
+jest.mock("react-toastify", () => ({
+  toast: { error: jest.fn() },
 }));
 
 // GenerateSqlBar pulls in the real Apollo `useCreateAssistantConversationMutation`
@@ -215,8 +219,9 @@ const renderEditor = (
 beforeEach(() => {
   mockExecute.mockClear();
   mockInsertText.mockClear();
-  (downloadBlob as jest.Mock).mockClear();
   mockEditDetails.mockClear();
+  (downloadQueryCsv as jest.Mock).mockClear();
+  (downloadQueryCsv as jest.Mock).mockResolvedValue(undefined);
   mockSetVisibility.mockClear();
   mockCommit.mockClear();
   mockPlanSave.mockClear();
@@ -319,15 +324,29 @@ describe("DataStudioEditor", () => {
     });
   });
 
-  it("exports the current result to CSV", async () => {
-    mockQueryState = successState();
+  it("shows an inline in-progress affordance while a server export runs", async () => {
+    let resolveDownload!: () => void;
+    (downloadQueryCsv as jest.Mock).mockReturnValue(
+      new Promise<void>((res) => {
+        resolveDownload = res;
+      }),
+    );
+    mockQueryState = successState({ truncated: true });
     renderEditor();
+    await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
+    await userEvent.click(screen.getByRole("button", { name: "Run" }));
 
     await userEvent.click(screen.getByRole("button", { name: "Export CSV" }));
-    expect(downloadBlob).toHaveBeenCalledTimes(1);
-    expect(downloadBlob).toHaveBeenCalledWith(
-      "query-results.csv",
-      expect.any(Blob),
+
+    const exportingButton = screen.getByRole("button", { name: "Exporting…" });
+    expect(exportingButton).toBeDisabled();
+    expect(screen.getByText("This may take a while")).toBeInTheDocument();
+
+    resolveDownload();
+    await waitFor(() =>
+      expect(
+        screen.queryByText("This may take a while"),
+      ).not.toBeInTheDocument(),
     );
   });
 
@@ -629,5 +648,49 @@ describe("DataStudioEditor", () => {
 
     await userEvent.type(screen.getByTestId("editor"), "select 1");
     expect(screen.getByRole("button", { name: "Format" })).toBeEnabled();
+  });
+
+  describe("resizable panels", () => {
+    beforeEach(() => window.localStorage.clear());
+
+    it("offers a separator for the table list and one for the results panel", () => {
+      renderEditor();
+      const separators = screen.getAllByRole("separator");
+      expect(separators).toHaveLength(2);
+      expect(
+        screen.getByRole("separator", { name: "Resize the table list" }),
+      ).toHaveAttribute("aria-orientation", "vertical");
+      expect(
+        screen.getByRole("separator", { name: "Resize the results panel" }),
+      ).toHaveAttribute("aria-orientation", "horizontal");
+    });
+
+    it("applies the remembered sizes so a layout survives a reload", () => {
+      window.localStorage.setItem("datastudio.sidebarWidth", "380");
+      window.localStorage.setItem("datastudio.editorHeight", "420");
+      renderEditor();
+
+      expect(
+        screen.getByRole("separator", { name: "Resize the table list" }),
+      ).toHaveAttribute("aria-valuenow", "380");
+      expect(
+        screen.getByRole("separator", { name: "Resize the results panel" }),
+      ).toHaveAttribute("aria-valuenow", "420");
+    });
+
+    it("widens the table list on ArrowRight, for long table names", async () => {
+      renderEditor();
+      const separator = screen.getByRole("separator", {
+        name: "Resize the table list",
+      });
+
+      separator.focus();
+      await userEvent.keyboard("{ArrowRight}");
+
+      expect(separator).toHaveAttribute("aria-valuenow", "264");
+      expect(window.localStorage.getItem("datastudio.sidebarWidth")).toBe(
+        "264",
+      );
+    });
   });
 });

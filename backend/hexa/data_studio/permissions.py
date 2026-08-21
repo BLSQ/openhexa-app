@@ -41,6 +41,11 @@ def update_saved_query_visibility(principal: User, saved_query: SavedQuery):
     Sharing is deliberately not part of the role-based edit rights: anyone else
     switching a query from WORKSPACE to PRIVATE would hand exclusive access to the
     author and lock themselves out of the query they just edited.
+
+    Author-less queries (the account was deleted) therefore stay shared for good,
+    which is also what keeps them reachable: making one private would hand it to
+    nobody. The `data_studio_private_query_has_author` constraint is the backstop
+    should this rule ever be relaxed.
     """
     return _is_author(principal, saved_query)
 
