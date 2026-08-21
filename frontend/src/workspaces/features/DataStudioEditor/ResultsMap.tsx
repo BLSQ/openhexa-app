@@ -1,16 +1,5 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 
-/**
- * Pinned to maplibre-gl 5.x on purpose — do not take the 6.x major.
- *
- * MapLibre tiles GeoJSON inside a Web Worker, and 6.x resolves that worker's URL
- * from `import.meta.url` at runtime. Inside a webpack chunk that is not an http
- * URL, so the lookup returns an empty string, no worker is ever spawned, and the
- * source never tiles: a working basemap with the data silently absent, and not
- * one error raised. 5.x inlines the worker as a blob, which every bundler can
- * carry. Leaflet had no worker at all, which is why this never came up before.
- */
-
 import type { FeatureCollection } from "geojson";
 import type {
   GeoJSONSource,
@@ -18,6 +7,7 @@ import type {
   Map as MaplibreMap,
   StyleSpecification,
 } from "maplibre-gl";
+import { setWorkerUrl } from "maplibre-gl";
 import { useTranslation } from "next-i18next";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
@@ -33,6 +23,28 @@ import { featuresBounds, MapBounds, MapFeature } from "./map";
 type ResultsMapProps = {
   features: MapFeature[];
 };
+
+/**
+ * MapLibre tiles GeoJSON inside a Web Worker, which it loads as a separate ES
+ * module. It finds that module by resolving `import.meta.url`, and inside a Next
+ * bundle that is not an http URL, so the lookup returns an empty string and no
+ * worker ever runs: the basemap renders and the data is silently absent, with no
+ * error raised. Pointing `setWorkerUrl` at a copy we serve ourselves is
+ * MapLibre's documented answer for bundlers, and Next needs it in both the
+ * Turbopack and webpack modes.
+ *
+ * `frontend/scripts/copy-maplibre-worker.mjs` puts the files under
+ * `public/maplibre/` before every dev and build. The base path is prepended
+ * because a deployment can be served from a sub-path, where a root-relative
+ * worker URL would 404 — and a 404 here costs the whole map's data.
+ *
+ * Called at module scope so it runs before <Map> can construct anything. The
+ * module itself is only loaded once a map is actually shown, since
+ * DataStudioResults imports it dynamically.
+ */
+setWorkerUrl(
+  `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/maplibre/maplibre-gl-worker.mjs`,
+);
 
 // OpenStreetMap's public tiles: no API key and no account, and a deployment that
 // cannot reach them can point this one style at its own mirror. MapLibre needs a
@@ -123,12 +135,11 @@ const WORLD_BOUNDS: MapBounds = [
 
 const FIT_OPTIONS = { padding: 24, maxZoom: 14 } as const;
 
-// MapLibre serialises feature properties into its own internal tiles, turning a
-// JSONB object into a JSON string and dropping nulls, so reading a popup's values
-// back off the map would show something subtly different from the table tab. Only
-// a row index travels through the map; the values are read from the rows we were
-// handed, and the popup then holds the row itself rather than the index, so it
-// cannot end up pointing into a later result.
+// Only a row index travels through the map: feature properties go through
+// MapLibre's tiler, so reading a popup's values back off the map risks showing
+// something subtly different from the table tab. The values are read from the
+// rows we were handed instead, and the popup holds the row itself rather than the
+// index, so it cannot end up pointing into a later result.
 const FEATURE_INDEX = "_index";
 
 type Selection = {
@@ -174,11 +185,12 @@ const ResultsMap = ({ features }: ResultsMapProps) => {
 
   /**
    * The source and the layers are installed by hand rather than declared as
-   * <Source>/<Layer> children. Those components add themselves only once they
-   * observe the map's private `style._loaded` flag, and against MapLibre 6 that
-   * left the layers absent from the style: a working basemap with nothing drawn
-   * on it. Adding them on the load event is the library's own documented order —
-   * the style is ready by definition — and it is one call each.
+   * <Source>/<Layer> children. Those components decide whether the map is ready
+   * by reading its private `style._loaded` flag, and when it reads false they
+   * render nothing at all — children included — so a missed window leaves the
+   * layers absent from the style with no error raised. The load event is
+   * MapLibre's own documented signal that the style is ready, and it is one call
+   * each from there.
    */
   const install = useCallback((map: MaplibreMap) => {
     if (!map.getSource(SOURCE_ID)) {
