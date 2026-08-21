@@ -187,6 +187,16 @@ class ForgejoClientStreamFileTest(TestCase):
         self.assertIn("ref=sha-1", responses.calls[0].request.url)
 
     @responses.activate
+    def test_stream_file_asks_for_an_unencoded_body(self):
+        responses.get(self.RAW_URL, body=b"whole file", status=200)
+
+        self._client().stream_file("my-repo", "big.pmtiles", "sha-1")
+
+        self.assertEqual(
+            responses.calls[0].request.headers["Accept-Encoding"], "identity"
+        )
+
+    @responses.activate
     def test_stream_file_sends_no_range_header_when_not_asked(self):
         responses.get(self.RAW_URL, body=b"whole file", status=200)
 

@@ -99,7 +99,7 @@ def auth_token(request, webapp_id):
 
 STREAM_CHUNK_SIZE = 64 * 1024
 FORWARDED_REQUEST_HEADERS = ("Range",)
-FORWARDED_RESPONSE_HEADERS = ("Content-Length", "Content-Range")
+FORWARDED_RESPONSE_HEADERS = ("Content-Length", "Content-Range", "Content-Encoding")
 
 
 def _forwarded_request_headers(request):
@@ -118,7 +118,7 @@ def _guess_content_type(path):
 def _drain_upstream(upstream):
     """Yield the upstream body, releasing the connection once it is exhausted."""
     try:
-        yield from upstream.iter_content(chunk_size=STREAM_CHUNK_SIZE)
+        yield from upstream.raw.stream(STREAM_CHUNK_SIZE, decode_content=False)
     finally:
         upstream.close()
 

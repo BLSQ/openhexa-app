@@ -214,7 +214,7 @@ class ForgejoClient(GitClient):
         response = self._session.get(
             url,
             params={"ref": ref},
-            headers=headers or {},
+            headers={"Accept-Encoding": "identity", **(headers or {})},
             stream=True,
             allow_redirects=False,
         )
