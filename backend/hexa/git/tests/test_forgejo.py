@@ -1,5 +1,6 @@
 import base64
 import json
+import re
 
 import responses
 from django.test import TestCase, override_settings
@@ -133,6 +134,21 @@ class ForgejoClientGetFileTest(TestCase):
         self.assertEqual(data, b"hello world")
 
     @responses.activate
+    def test_get_file_escapes_the_path_so_it_cannot_forge_query_params(self):
+        responses.get(re.compile(r".*"), json={"content": ""}, status=200)
+
+        client = ForgejoClient(
+            url=FORGEJO_URL,
+            username=USERNAME,
+            password=PASSWORD,
+        )
+        client.get_file("my-repo", "config.js?ref=attacker", "sha-1")
+
+        url = responses.calls[0].request.url
+        self.assertIn("/contents/config.js%3Fref%3Dattacker", url)
+        self.assertIn("ref=sha-1", url)
+
+    @responses.activate
     def test_get_file_raises_when_content_omitted_for_large_blob(self):
         responses.get(
             f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/big.pmtiles",
@@ -197,6 +213,16 @@ class ForgejoClientStreamFileTest(TestCase):
         )
 
     @responses.activate
+    def test_stream_file_escapes_the_path_so_it_cannot_forge_query_params(self):
+        responses.get(re.compile(r".*"), body=b"whole file", status=200)
+
+        self._client().stream_file("my-repo", "config.js?ref=attacker", "sha-1")
+
+        url = responses.calls[0].request.url
+        self.assertIn("/raw/config.js%3Fref%3Dattacker", url)
+        self.assertIn("ref=sha-1", url)
+
+    @responses.activate
     def test_stream_file_sends_no_range_header_when_not_asked(self):
         responses.get(self.RAW_URL, body=b"whole file", status=200)
 
@@ -222,6 +248,21 @@ class ForgejoClientStreamFileTest(TestCase):
 
         self.assertEqual(response.status_code, 416)
         self.assertEqual(response.headers["Content-Range"], "bytes */108570598")
+
+    @responses.activate
+    def test_stream_file_raises_on_redirect(self):
+        responses.get(
+            self.RAW_URL,
+            body="",
+            status=302,
+            headers={"Location": f"{FORGEJO_URL}/user/login"},
+        )
+
+        with self.assertRaises(ForgejoAPIError) as ctx:
+            self._client().stream_file("my-repo", "big.pmtiles", "sha-1")
+
+        self.assertEqual(ctx.exception.status_code, 302)
+        self.assertIn("/user/login", ctx.exception.detail)
 
     @responses.activate
     def test_stream_file_raises_not_found(self):
@@ -489,6 +530,23 @@ class ForgejoAPIErrorTest(TestCase):
         )
         with self.assertRaises(GitFileNotFound):
             client.get_file("my-repo", "missing.txt")
+
+    @responses.activate
+    def test_get_file_raises_on_redirect(self):
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/index.html",
+            body="",
+            status=302,
+            headers={"Location": f"{FORGEJO_URL}/user/login"},
+        )
+
+        with self.assertRaises(ForgejoAPIError) as ctx:
+            ForgejoClient(
+                url=FORGEJO_URL, username=USERNAME, password=PASSWORD
+            ).get_file("my-repo", "index.html")
+
+        self.assertEqual(ctx.exception.status_code, 302)
+        self.assertIn("/user/login", ctx.exception.detail)
 
     @responses.activate
     def test_get_file_other_error_propagates(self):
