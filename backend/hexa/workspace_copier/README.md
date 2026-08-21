@@ -27,7 +27,7 @@ order (see `orchestrator.WORKSPACE_COPIERS`):
 | name          | copier                    | notes                                                                                              |
 | ------------- | ------------------------- |----------------------------------------------------------------------------------------------------|
 | `workspace`   | `WorkspaceMetadataCopier` | **mandatory** — creates the target, yields its handle                                              |
-| `files`       | `FilesCopier`             | bucket objects                                                                                     |
+| `files`       | `FilesCopier`             | bucket objects (streamed through a temp file — see [Large files](#large-files)); the target bucket is listed first and files matching by key + size are skipped, as is anything under a `SKIPPED_DIRECTORIES` scratch dir |
 | `database`    | `DatabaseCopier`          | native pg copy only if **both** sides LOCAL; else skipped + warned. Local copy not yet implemented |
 | `connections` | `ConnectionsCopier`       | connections + secret fields                                                                        |
 | `pipelines`   | `PipelinesCopier`         | pipelines + versions (depends on `files` for notebook pipelines)                                   |
@@ -38,6 +38,23 @@ per-workspace resource, so they are copied by a separate flow (see
 [Template pipelines](#template-pipelines) below).
 
 Adding a resource is a drop-in: one module under `resources/` + one registry entry.
+
+### Large files
+
+Each object is streamed through a `tempfile.TemporaryFile` rather than buffered
+in memory, so peak RSS is one chunk (`CHUNK_SIZE`) regardless of object size —
+buffering whole objects used to get the process OOM-killed on workspaces holding
+multi-GB files. Two consequences:
+
+- `TMPDIR` needs room for the largest object being copied. Point it elsewhere
+  (`TMPDIR=/mnt/big docker compose run ...`) if the default is small.
+- Objects larger than `MAX_UPLOAD_SIZE` (5 GiB, the S3 single-part `PutObject`
+  ceiling) are reported as failed without being transferred: a presigned PUT
+  cannot do a multipart upload, so they have to be moved by hand.
+
+`TRANSFER_TIMEOUT` bounds a single chunk read/write, not a whole file, so a
+stalled connection fails in a couple of minutes while a legitimately slow
+multi-GB transfer runs as long as it needs.
 
 ## Entry points
 
@@ -71,6 +88,28 @@ Example usage:
 ```
 
 Tokens are ServiceAccount tokens (managed under Django admin → Service accounts). A remote side needs one with permission to read the source workspace / create under the target organization. `--target-workspace-name` is optional and defaults to the same name as the source workspace.
+
+#### Re-running into an existing workspace (idempotency)
+
+By default each run creates a **new** target workspace (the server appends a random suffix to the slug), so if a run is interrupted mid-way, you can't simply repeat.
+Pass `--target-workspace-slug` to copy **into an existing workspace** instead:
+
+```
+./manage.py copy_workspace \
+	--source-workspace-slug my-workspace \
+	--source-url https://api.openhexa.org/graphql/ \
+	--source-token 'my-prod-service-account-token' \
+	--target-url https://api.demo.openhexa.org/graphql/ \
+	--target-token 'my-demo-service-account-token' \
+	--target-workspace-slug my-workspace-ab12   # slug created by the first run
+```
+
+When `--target-workspace-slug` is set:
+
+- the workspace-metadata copier **skips creation** and leaves the existing workspace's metadata untouched;
+- every resource copier skips what already exists (pipelines by code, connections by slug, files by key + size), so only the missing pieces are filled in;
+- if the slug does **not** exist on the target, the run exists early with a clear message;
+- `--target-organization` and `--target-workspace-name` are no longer required or taken into account.
 
 ### Django Admin:
 

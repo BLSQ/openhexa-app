@@ -1,12 +1,38 @@
+import secrets
+from collections import defaultdict
+
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.core.validators import validate_slug
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.databases.query_text import sanitize_sql
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.workspaces.models import Workspace
+
+SLUG_MAX_LENGTH = 255
+SLUG_COLLISION_ATTEMPTS = 8
+
+
+def generate_saved_query_slug(name: str) -> str:
+    """Build a slug unique across all workspaces, suffixing on collision."""
+    suffix = ""
+    for _attempt in range(SLUG_COLLISION_ATTEMPTS):
+        # A name made only of characters slugify drops (punctuation, emoji)
+        # leaves nothing to build on, and an empty slug would make the query
+        # unaddressable by the endpoints keyed on it.
+        slug = slugify(name[: SLUG_MAX_LENGTH - len(suffix)] + suffix) or "query"
+        if not SavedQuery.objects.filter(slug=slug).exists():
+            return slug
+        suffix = "-" + secrets.token_hex(3)
+
+    raise RuntimeError(
+        f"Could not generate a unique saved query slug for {name!r} "
+        f"in {SLUG_COLLISION_ATTEMPTS} attempts"
+    )
 
 
 class SavedQueryVisibility(models.TextChoices):
@@ -57,12 +83,78 @@ class SavedQueryManager(models.Manager):
         )
 
 
+# Every SavedQueryVisibility must appear here: a new visibility has to state whether
+# its queries outlive their author, and there is no sane default to fall back on.
+ON_AUTHOR_DELETED = {
+    # Nothing but its author can reach a private query - no workspace or organization
+    # role grants access to one - so leaving it behind would keep a row alive that
+    # only a superuser could still see.
+    #
+    # CASCADE nulls the foreign key before deleting on backends that cannot defer
+    # constraint checks, which the check constraint below would reject. PostgreSQL
+    # defers, and it is the only backend OpenHEXA runs on - pinned by
+    # `test_the_backend_can_defer_constraint_checks`. On a backend that cannot, drop
+    # the delegation for a handler that collects without the field update:
+    #
+    #     collector.collect(sub_objs, source=field.remote_field.model,
+    #                       source_attr=field.name, nullable=field.null,
+    #                       fail_on_restricted=False)
+    #
+    # `source_attr` is what nests the queries under the user in the admin's delete
+    # confirmation, so it is not optional.
+    SavedQueryVisibility.PRIVATE: models.CASCADE,
+    # Shared queries outlive their author: colleagues, and the webapps and pipelines
+    # built on them, depend on queries they did not write.
+    SavedQueryVisibility.WORKSPACE: models.SET_NULL,
+}
+
+
+def _policy_for(visibility: str):
+    try:
+        return ON_AUTHOR_DELETED[visibility]
+    except KeyError:
+        raise ImproperlyConfigured(
+            f"No author-deletion policy for saved query visibility {visibility!r}:"
+            " every visibility must state whether its queries outlive their author."
+        ) from None
+
+
+def saved_queries_on_author_deleted(collector, field, sub_objs, using):
+    """`on_delete` for SavedQuery.created_by: what a query survives depends on who could read it.
+
+    Nullifying every query would strand the private ones - rows no role can reach,
+    kept forever for nobody - while deleting every query would break shared ones their
+    workspace still relies on. The split mirrors the access rule in
+    SavedQueryQuerySet.filter_for_user: what survives is exactly what someone other
+    than the author could already read.
+
+    What this is *not* is an erasure policy: it removes queries that became
+    unreachable, not everything the account left behind. QueryLog keeps the text of
+    what that user ran (see QueryLog.user).
+
+    This is deliberately enforced at the model layer: user deletion happens through
+    the Django admin or a shell, so any policy living in a service or a mutation
+    would simply be bypassed.
+    """
+    by_policy = defaultdict(list)
+    for saved_query in sub_objs:
+        by_policy[_policy_for(saved_query.visibility)].append(saved_query)
+
+    for policy, saved_queries in by_policy.items():
+        policy(collector, field, saved_queries, using)
+
+
 class SavedQuery(Base):
     """A SQL query saved by a user in the Data Studio.
 
     A saved query belongs to a workspace, but its `visibility` decides who within
     that workspace can reach it: WORKSPACE queries are shared with every member,
     PRIVATE ones are the author's alone.
+
+    Losing access and losing the author are two different things: a member removed
+    from the workspace stops seeing their private queries but gets them back if they
+    are added again, while deleting the account itself takes them for good (see
+    `saved_queries_on_author_deleted`).
     """
 
     workspace = models.ForeignKey(
@@ -70,8 +162,17 @@ class SavedQuery(Base):
         on_delete=models.CASCADE,
         related_name="saved_queries",
     )
-    created_by = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    created_by = models.ForeignKey(
+        User, null=True, on_delete=saved_queries_on_author_deleted
+    )
     name = models.CharField(max_length=255, null=False, blank=False)
+    # Stable public identifier: web apps address a saved query by slug, so it is
+    # generated once and left alone when the query is renamed. Unique across all
+    # workspaces, so the slug alone identifies a query and callers need not pair
+    # it with a workspace.
+    slug = models.CharField(
+        max_length=SLUG_MAX_LENGTH, editable=False, validators=[validate_slug]
+    )
     description = models.TextField(blank=True, default="")
     content = models.TextField()
     visibility = models.CharField(
@@ -85,6 +186,18 @@ class SavedQuery(Base):
     class Meta:
         verbose_name_plural = "saved queries"
         ordering = ["-updated_at"]
+        constraints = [
+            # An author-less private query is readable by nobody, so it can only be
+            # dead weight. `saved_queries_on_author_deleted` is what keeps that from
+            # happening; this makes any other code path that forgets an author fail
+            # where it writes instead of leaving an invisible row behind.
+            models.CheckConstraint(
+                condition=models.Q(created_by__isnull=False)
+                | ~models.Q(visibility=SavedQueryVisibility.PRIVATE),
+                name="data_studio_private_query_has_author",
+            ),
+            models.UniqueConstraint(fields=["slug"], name="unique_saved_query_slug"),
+        ]
         indexes = [
             # `id` mirrors the tiebreaker the listing resolver appends: without it
             # Postgres can only presort on the leading column and still has to run an
@@ -118,6 +231,11 @@ class SavedQuery(Base):
         # rejects; cleaning them here means a query is stored runnable whichever
         # way it was written (editor, admin, ...).
         self.content = sanitize_sql(self.content)
+        # Generated here rather than in the manager (as pipelines do) because the
+        # Django admin creates saved queries through a plain form, which would
+        # otherwise hit the not-null column with nothing in it.
+        if not self.slug:
+            self.slug = generate_saved_query_slug(self.name)
         return super().save(*args, **kwargs)
 
     def update_if_has_perm(self, principal: User, **kwargs):
@@ -175,15 +293,32 @@ class QueryLog(Base):
         DENIED = "DENIED"
         # The query was rejected before reaching the data source (e.g. multiple statements)
         REJECTED = "REJECTED"
+        # A streaming export still in flight: the entry is written when the stream starts
+        # and only becomes SUCCESS/ERROR once it ends, so an entry left here means that
+        # end was never observed — a cancelled download or a worker killed mid-stream.
+        STREAMING = "STREAMING"
 
     class Origin(models.TextChoices):
         # The client did not identify itself; every query arrives through the API anyway
         OTHER = "OTHER"
         DATA_STUDIO = "DATA_STUDIO"
+        # Set server-side by the CSV export view and never accepted from a client (see
+        # schema.py), so it marks an actual full-result export rather than a claim
+        DATA_STUDIO_EXPORT = "DATA_STUDIO_EXPORT"
+        # Set server-side from the request, never accepted from a client: it is
+        # the only origin that carries a security meaning (a web app can run
+        # stored queries and nothing else).
+        WEBAPP = "WEBAPP"
 
     workspace = models.ForeignKey(
         Workspace, on_delete=models.CASCADE, related_name="query_logs"
     )
+    # SET_NULL, unlike SavedQuery.created_by: a log entry is worth keeping even once
+    # nobody is named on it, because what it answers ("how much was this workspace
+    # queried, what failed") is about the workspace rather than the person. The SQL
+    # text stays with it; dropping that is a retention decision about the audit trail
+    # as a whole, not something the saved-query deletion policy should settle on its
+    # own (see `saved_queries_on_author_deleted`).
     user = models.ForeignKey(
         User,
         null=True,
@@ -191,6 +326,15 @@ class QueryLog(Base):
         related_name="query_logs",
     )
     query = models.TextField()
+    # Set when the SQL came from a stored query rather than from the caller, so
+    # the audit trail answers "which saved query ran" and not only "what SQL ran".
+    saved_query = models.ForeignKey(
+        SavedQuery,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="query_logs",
+    )
     status = models.CharField(max_length=10, choices=Status.choices)
     # SQLSTATE error code (https://www.postgresql.org/docs/current/errcodes-appendix.html);
     # SQLSTATE_SUCCESS on success, null when the query never reached the data source

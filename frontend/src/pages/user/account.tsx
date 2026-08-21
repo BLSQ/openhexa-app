@@ -11,6 +11,7 @@ import {
 } from "identity/graphql/queries.generated";
 import { logout } from "identity/helpers/auth";
 import { useTranslation } from "next-i18next";
+import AccountAccessTokens from "identity/features/AccountAccessTokens";
 import AccountProfileSettings from "identity/features/AccountProfileSettings";
 import AccountSecuritySettings from "identity/features/AccountSecuritySettings";
 import PendingWorkspaceInvitations from "identity/features/PendingWorkspaceInvitations";
@@ -48,6 +49,8 @@ function AccountPage() {
           />
         </DataCard>
 
+        <AccountAccessTokens />
+
         <PendingWorkspaceInvitations
           invitations={data.pendingWorkspaceInvitations}
         />
@@ -69,6 +72,7 @@ export const getServerSideProps = createGetServerSideProps({
         notFound: true,
       };
     }
+    await AccountAccessTokens.prefetch(client);
   },
 });
 

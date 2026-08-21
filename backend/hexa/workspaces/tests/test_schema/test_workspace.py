@@ -8,6 +8,8 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.core import mail
 from django.core.signing import Signer
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 
 from hexa.core.test import GraphQLTestCase
 from hexa.databases.utils import TableNotFound
@@ -1276,6 +1278,170 @@ class WorkspaceTest(GraphQLTestCase):
         self.assertEqual(
             {"success": False, "errors": ["WORKSPACE_NOT_FOUND"], "token": None},
             r["data"]["generateWorkspaceToken"],
+        )
+
+    def test_generate_workspace_token_viewer_denied(self):
+        self.client.force_login(self.USER_REBECCA)
+        r = self.run_query(
+            self.GENERATE_TOKEN_MUTATION, {"input": {"slug": self.WORKSPACE.slug}}
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"], "token": None},
+            r["data"]["generateWorkspaceToken"],
+        )
+
+    def test_workspace_generate_token_permission(self):
+        query = """
+        query workspace($slug: String!) {
+            workspace(slug: $slug) {
+                currentMembership {
+                    role
+                }
+                permissions {
+                    generateToken
+                }
+            }
+        }
+        """
+        for user, expected_role, expected_permission in [
+            (self.USER_WORKSPACE_ADMIN, WorkspaceMembershipRole.ADMIN, True),
+            (self.USER_WORKSPACE_EDITOR_ONLY, WorkspaceMembershipRole.EDITOR, True),
+            (self.USER_REBECCA, WorkspaceMembershipRole.VIEWER, False),
+        ]:
+            with self.subTest(user=user.email):
+                self.client.force_login(user)
+                r = self.run_query(query, {"slug": self.WORKSPACE.slug})
+                self.assertEqual(
+                    {
+                        "currentMembership": {"role": expected_role},
+                        "permissions": {"generateToken": expected_permission},
+                    },
+                    r["data"]["workspace"],
+                )
+
+    def test_workspaces_list_current_membership_is_per_user(self):
+        # Memberships are cached per user for the whole request; each user must get
+        # their own membership for a workspace they share, never another member's.
+        query = """
+        query {
+            workspaces(page: 1, perPage: 100) {
+                items {
+                    slug
+                    currentMembership {
+                        role
+                    }
+                    permissions {
+                        generateToken
+                    }
+                }
+            }
+        }
+        """
+        for user, expected_role, expected_permission in [
+            (self.USER_WORKSPACE_ADMIN, WorkspaceMembershipRole.ADMIN, True),
+            (self.USER_WORKSPACE_EDITOR_ONLY, WorkspaceMembershipRole.EDITOR, True),
+            (self.USER_REBECCA, WorkspaceMembershipRole.VIEWER, False),
+        ]:
+            with self.subTest(user=user.email):
+                self.client.force_login(user)
+                r = self.run_query(query)
+                items = {
+                    item["slug"]: item for item in r["data"]["workspaces"]["items"]
+                }
+                self.assertEqual(
+                    {
+                        "slug": self.WORKSPACE.slug,
+                        "currentMembership": {"role": expected_role},
+                        "permissions": {"generateToken": expected_permission},
+                    },
+                    items[self.WORKSPACE.slug],
+                )
+
+    def test_workspaces_list_membership_queries_do_not_grow_with_page(self):
+        with (
+            patch("hexa.workspaces.models.create_database"),
+            patch("hexa.workspaces.models.load_database_sample_data"),
+        ):
+            for i in range(3):
+                Workspace.objects.create_if_has_perm(
+                    self.USER_JULIA,
+                    name=f"Extra Workspace {i}",
+                    organization=self.ORGANIZATION,
+                )
+
+        self.client.force_login(self.USER_JULIA)
+        with CaptureQueriesContext(connection) as captured:
+            r = self.run_query(
+                """
+            query {
+                workspaces(page: 1, perPage: 20) {
+                    items {
+                        slug
+                        currentMembership {
+                            role
+                        }
+                        permissions {
+                            generateToken
+                        }
+                    }
+                }
+            }
+            """
+            )
+
+        self.assertEqual(5, len(r["data"]["workspaces"]["items"]))
+        # The list itself joins on both tables; what matters is that neither is
+        # queried once per workspace on top of that.
+        membership_queries = [
+            q["sql"]
+            for q in captured.captured_queries
+            if 'FROM "workspaces_workspacemembership"' in q["sql"]
+        ]
+        organization_queries = [
+            q["sql"]
+            for q in captured.captured_queries
+            if 'FROM "identity_organizationmembership"' in q["sql"]
+        ]
+        self.assertEqual(1, len(membership_queries), membership_queries)
+        self.assertLessEqual(len(organization_queries), 1, organization_queries)
+
+    def test_preloaded_memberships_are_not_reused_across_users(self):
+        # The preloaded lookup must never hand a user another user's membership.
+        workspace = Workspace.objects.get(pk=self.WORKSPACE.pk)
+        Workspace.preload_memberships(self.USER_REBECCA, [workspace])
+
+        self.assertEqual(
+            WorkspaceMembershipRole.VIEWER,
+            workspace.get_membership(self.USER_REBECCA).role,
+        )
+        self.assertEqual(
+            WorkspaceMembershipRole.ADMIN,
+            workspace.get_membership(self.USER_WORKSPACE_ADMIN).role,
+        )
+        self.assertIsNone(workspace.get_membership(self.USER_SABRINA))
+
+    def test_workspace_current_membership_none_for_organization_admin(self):
+        # No membership to report, but the organization admin can still get a
+        # token for the workspace: an identity token, not a membership one.
+        self.client.force_login(self.USER_JOE)
+        r = self.run_query(
+            """
+        query workspace($slug: String!) {
+            workspace(slug: $slug) {
+                currentMembership {
+                    role
+                }
+                permissions {
+                    generateToken
+                }
+            }
+        }
+        """,
+            {"slug": self.WORKSPACE.slug},
+        )
+        self.assertEqual(
+            {"currentMembership": None, "permissions": {"generateToken": True}},
+            r["data"]["workspace"],
         )
 
     def test_workspace_identity_token_revoked_when_org_role_removed(self):

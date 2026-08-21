@@ -1,8 +1,11 @@
+from django.core.exceptions import PermissionDenied
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
 from hexa.core.test import GraphQLTestCase
-from hexa.data_studio.models import SavedQuery
+from hexa.data_studio.models import QueryLog, SavedQuery, SavedQueryVisibility
+from hexa.data_studio.query_runner import run_saved_query
+from hexa.databases.tests.helpers import seed_demo_table
 
 from .testutils import SavedQueryTestMixin
 
@@ -453,6 +456,55 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
             r["data"]["savedQuery"]["workspace"]["slug"], self.WORKSPACE.slug
         )
 
+    BY_SLUG_QUERY = """
+        query ($slug: String!) {
+            savedQueryBySlug(slug: $slug) { id name slug }
+        }
+    """
+
+    def _get_by_slug(self, user, slug):
+        self.client.force_login(user)
+        return self.run_query(self.BY_SLUG_QUERY, {"slug": slug})["data"][
+            "savedQueryBySlug"
+        ]
+
+    def test_get_saved_query_by_slug(self):
+        created = self._create_query(self.USER_EDITOR)["data"]["createSavedQuery"][
+            "savedQuery"
+        ]
+
+        result = self._get_by_slug(self.USER_VIEWER, "my-query")
+
+        self.assertEqual(
+            {"id": created["id"], "name": "My query", "slug": "my-query"}, result
+        )
+
+    def test_get_saved_query_by_slug_unknown(self):
+        self._create_query(self.USER_EDITOR)
+        self.assertIsNone(self._get_by_slug(self.USER_VIEWER, "no-such-query"))
+
+    def test_get_saved_query_by_slug_outsider(self):
+        self._create_query(self.USER_EDITOR)
+        self.assertIsNone(self._get_by_slug(self.USER_OUTSIDER, "my-query"))
+
+    def test_get_saved_query_by_slug_resolves_one_query_across_workspaces(self):
+        # Slugs are unique across workspaces, so the same name in a second
+        # workspace is suffixed and each slug still resolves to its own query.
+        first = self.create_saved_query(
+            user=self.USER_ADMIN, workspace=self.WORKSPACE, name="Shared"
+        )
+        second = self.create_saved_query(
+            user=self.USER_ADMIN, workspace=self.WORKSPACE_2, name="Shared"
+        )
+
+        self.assertNotEqual(first.slug, second.slug)
+        self.assertEqual(
+            str(first.id), self._get_by_slug(self.USER_ADMIN, first.slug)["id"]
+        )
+        self.assertEqual(
+            str(second.id), self._get_by_slug(self.USER_ADMIN, second.slug)["id"]
+        )
+
     def test_update_saved_query(self):
         created = self._create_query(self.USER_EDITOR)
         query_id = created["data"]["createSavedQuery"]["savedQuery"]["id"]
@@ -594,3 +646,141 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         # @loginRequired raises before the resolver runs -> null data + top-level error
         self.assertIsNone(r["data"])
         self.assertTrue(r["errors"])
+
+
+class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
+    """The endpoint web apps use: run a stored query without ever seeing its SQL."""
+
+    EXECUTE_QUERY = """
+        query ($input: ExecuteSavedQueryInput!) {
+            executeSavedQuery(input: $input) {
+                success errors errorMessage columns rows rowCount truncated durationMs
+            }
+        }
+    """
+
+    def _execute(self, user, slug, max_rows=None):
+        self.client.force_login(user)
+        payload = {"slug": slug}
+        if max_rows is not None:
+            payload["maxRows"] = max_rows
+        return self.run_query(self.EXECUTE_QUERY, {"input": payload})["data"][
+            "executeSavedQuery"
+        ]
+
+    def test_execute_saved_query(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
+        saved_query = self.create_saved_query(
+            content="SELECT id, label FROM demo ORDER BY id"
+        )
+
+        result = self._execute(self.USER_VIEWER, saved_query.slug)
+
+        duration_ms = result.pop("durationMs")
+        self.assertIsInstance(duration_ms, int)
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "errorMessage": None,
+                "columns": ["id", "label"],
+                "rows": [{"id": 1, "label": "a"}, {"id": 2, "label": "b"}],
+                "rowCount": 2,
+                "truncated": False,
+            },
+            result,
+        )
+
+    def test_execute_saved_query_is_audited(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+        saved_query = self.create_saved_query(content="SELECT id FROM demo")
+
+        self._execute(self.USER_VIEWER, saved_query.slug)
+
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.SUCCESS, log.status)
+        self.assertEqual(self.USER_VIEWER, log.user)
+        # The stored query is named, not just its text: the audit trail has to
+        # answer "which saved query ran", which the SQL alone cannot.
+        self.assertEqual(saved_query, log.saved_query)
+        # No web app in this request, so it is not attributed to one.
+        self.assertEqual(QueryLog.Origin.OTHER, log.origin)
+
+    def test_execute_saved_query_unknown_slug(self):
+        self.create_saved_query(content="SELECT 1")
+
+        result = self._execute(self.USER_VIEWER, "no-such-query")
+
+        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
+        self.assertFalse(result["success"])
+        # Nothing was executed, so nothing is logged.
+        self.assertEqual(0, QueryLog.objects.count())
+
+    def test_execute_saved_query_of_a_workspace_the_caller_is_not_in(self):
+        # The input names no workspace, so visibility is what scopes the lookup:
+        # a query in a workspace the caller does not belong to stays unreachable.
+        saved_query = self.create_saved_query(
+            user=self.USER_ADMIN,
+            workspace=self.WORKSPACE_2,
+            content="SELECT 1",
+            visibility=SavedQueryVisibility.WORKSPACE,
+        )
+
+        result = self._execute(self.USER_VIEWER, saved_query.slug)
+
+        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
+
+    def test_execute_saved_query_outsider(self):
+        # An outsider cannot see the query at all, so the lookup misses before
+        # the run_query permission is ever consulted.
+        saved_query = self.create_saved_query(content="SELECT 1")
+
+        result = self._execute(self.USER_OUTSIDER, saved_query.slug)
+
+        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
+
+    def test_execute_saved_query_max_rows(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
+        saved_query = self.create_saved_query(content="SELECT id FROM demo ORDER BY id")
+
+        result = self._execute(self.USER_VIEWER, saved_query.slug, max_rows=2)
+
+        self.assertEqual(2, result["rowCount"])
+        self.assertTrue(result["truncated"])
+
+    def test_execute_saved_query_invalid_sql(self):
+        # A query saved against a table that has since been dropped.
+        saved_query = self.create_saved_query(content="SELECT * FROM gone")
+
+        result = self._execute(self.USER_VIEWER, saved_query.slug)
+
+        self.assertEqual(["QUERY_ERROR"], result["errors"])
+        self.assertIn("gone", result["errorMessage"])
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.ERROR, log.status)
+        self.assertEqual(saved_query, log.saved_query)
+
+    def test_execute_saved_query_multiple_statements(self):
+        # Nothing stops two statements being saved, so the single-statement rule
+        # has to hold at execution time too -- it is what keeps a stored
+        # `SET statement_timeout = 0` from running ahead of the query.
+        saved_query = self.create_saved_query(content="SELECT 1; SELECT 2")
+
+        result = self._execute(self.USER_VIEWER, saved_query.slug)
+
+        self.assertEqual(["MULTIPLE_STATEMENTS"], result["errors"])
+        self.assertEqual(QueryLog.Status.REJECTED, QueryLog.objects.get().status)
+
+    def test_run_saved_query_denies_and_logs(self):
+        # Not reachable through GraphQL today (seeing a query and being allowed
+        # to run one currently coincide), but run_saved_query is a library entry
+        # point and owns the check, so the refusal must still be audited.
+        saved_query = self.create_saved_query(content="SELECT 1")
+        request = self.mock_request(self.USER_OUTSIDER)
+
+        with self.assertRaises(PermissionDenied):
+            run_saved_query(request, saved_query)
+
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.DENIED, log.status)
+        self.assertEqual(saved_query, log.saved_query)

@@ -19,6 +19,22 @@ def create_connection(principal: User, workspace: Workspace):
     ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
+def generate_workspace_token(principal: User, workspace: Workspace):
+    """Anyone with access to the workspace can get a token, except viewers.
+
+    Members get a token tied to their membership; users whose access is implicit
+    (organization admins/owners, superusers) get a short-lived identity token.
+    The branches below mirror Workspace.objects.filter_for_user, so the two must
+    be kept in sync.
+    """
+    membership = workspace.get_membership(principal)
+    if membership is not None:
+        return membership.role != WorkspaceMembershipRole.VIEWER
+    return principal.is_superuser or principal.is_organization_admin_or_owner(
+        workspace.organization
+    )
+
+
 def update_connection(principal: User, connection: Connection):
     """Only admin users of a workspace can update a connection"""
     return connection.workspace.workspacemembership_set.filter(

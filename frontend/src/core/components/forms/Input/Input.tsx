@@ -37,7 +37,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     error
       ? "border-red-300 placeholder-red-300  text-red-900  focus:ring-red-500  focus:border-red-500"
       : "border-gray-300 placeholder-gray-500 text-gray-900 focus:ring-blue-500 focus:border-blue-500",
-    "pr-4",
+    trailingIcon ? "pr-10" : "pr-4",
     leading && "pl-10",
     fullWidth && "w-full",
     className,

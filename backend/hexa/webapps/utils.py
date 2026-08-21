@@ -1,9 +1,10 @@
 import re
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 from django.conf import settings
 
 PREVIEW_KEY_RE = re.compile(r"^[a-z0-9]{32}$")
+POWERED_BY_TARGET_URL = "https://www.openhexa.com/"
 
 
 def is_local_dev_origin(origin):
@@ -31,6 +32,27 @@ def webapp_host_url(label):
     webapp's subdomain (serve URL) or a preview session key (preview URL).
     """
     return f"{settings.SCHEME}://{label}.{settings.WEBAPPS_DOMAIN}/"
+
+
+def powered_by_url(request, source):
+    """Build the marketing-site link for a 'Powered by OpenHEXA' banner, tagged
+    with UTM parameters so Google Analytics on openhexa.com can attribute traffic.
+
+    UTM scheme: a constant `utm_source` groups all banner traffic under a single
+    source, `utm_content` carries the surface (iFrame, Static, Superset), and
+    `utm_term` carries the serving host so per-deployment/custom-domain detail is
+    preserved separately.
+    """
+    query = urlencode(
+        {
+            "utm_source": "openhexa-webapps",
+            "utm_medium": "referral",
+            "utm_campaign": "powered-by-openhexa-banner",
+            "utm_content": source,
+            "utm_term": request.get_host(),
+        }
+    )
+    return f"{POWERED_BY_TARGET_URL}?{query}"
 
 
 def extract_webapp_subdomain(hostname):

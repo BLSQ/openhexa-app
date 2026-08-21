@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { isNumericValue, stringifyCellValue } from "./format";
+import { isNumericValue, stringifyCellValue } from "./cellValue";
 
 type Row = Record<string, unknown>;
 

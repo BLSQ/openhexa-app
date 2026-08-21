@@ -149,6 +149,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         DATASETS_READ = "DATASETS_READ", "Read datasets"
         DATASETS_WRITE = "DATASETS_WRITE", "Write datasets"
         USER_READ = "USER_READ", "Read user info"
+        DATABASE_READ = "DATABASE_READ", "Read database"
 
     name = models.CharField(max_length=255)
     slug = models.CharField(

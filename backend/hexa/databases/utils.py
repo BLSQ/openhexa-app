@@ -3,24 +3,20 @@ import json
 import math
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import Dict, Iterator, List, Tuple
 
 import psycopg2
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
 from django.core.serializers.json import DjangoJSONEncoder
-from django.http import HttpRequest
 from psycopg2 import sql
 from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from psycopg2.extras import RealDictCursor
 
-from hexa.data_studio.models import QueryLog
-from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 from .api import get_db_server_credentials
-from .query_text import MultipleStatementsError, PreparedQuery
+from .query_text import PreparedQuery
 
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
@@ -126,8 +122,9 @@ def execute_database_query(
     returned, capped to ``settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS``;
     ``truncated`` indicates whether the result was capped.
 
-    This function does no permission check and no audit logging: SQL executed
-    on behalf of an API request must go through ``run_and_log_database_query``.
+    This function does no permission check and no audit logging: SQL executed on behalf
+    of an API request must go through
+    ``hexa.data_studio.query_runner.run_and_log_database_query``.
     """
     prepared = PreparedQuery.from_text(query)
     hard_limit = settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS
@@ -168,85 +165,82 @@ def execute_database_query(
             conn.close()
 
 
-def _log_executed_query(
-    request: HttpRequest,
+# The full result set makes the interactive per-request timeout far too short; this
+# generous ceiling still guards a runaway scan from pinning a connection.
+DOWNLOAD_QUERY_TIMEOUT_MS = 5 * 60 * 1000
+# statement_timeout bounds a single FETCH; between batches the transaction sits idle
+# while the client consumes the previous one. This caps that idle time so a stalled or
+# vanished client can't pin the connection (and block VACUUM) indefinitely.
+DOWNLOAD_QUERY_IDLE_TIMEOUT_MS = 5 * 60 * 1000
+# Server-side cursor batch size, bounding peak memory regardless of result size.
+DOWNLOAD_QUERY_BATCH_SIZE = 2_000
+
+
+def stream_database_query(
     workspace: Workspace,
     query: str,
-    origin: str,
-    status: str,
-    **fields,
-):
-    user = request.user
-    if not isinstance(user, User):
-        # Service principals (PipelineRunUser, ...) expose the triggering human
-        user = getattr(user, "real_user", None)
-    QueryLog.objects.create(
-        workspace=workspace,
-        user=user,
-        query=query,
-        origin=origin,
-        status=status,
-        target="workspace_database",
-        **fields,
-    )
+    *,
+    timeout_ms: int = DOWNLOAD_QUERY_TIMEOUT_MS,
+    idle_timeout_ms: int = DOWNLOAD_QUERY_IDLE_TIMEOUT_MS,
+    batch_size: int = DOWNLOAD_QUERY_BATCH_SIZE,
+) -> Tuple[List[str], Iterator[List[dict]]]:
+    """Execute a read-only query and stream its full result set, batch by batch.
 
+    Unlike :func:`execute_database_query`, no row cap is applied — the whole result is
+    meant to go straight to a download. A named (server-side) cursor bounds peak memory
+    to ``batch_size`` rows whatever the result size, and rows are yielded a batch at a
+    time so the caller can fetch off the event loop once per batch.
 
-def run_and_log_database_query(
-    request: HttpRequest,
-    workspace: Workspace,
-    query: str,
-    origin: str,
-    max_rows: int | None = None,
-):
-    """Single point of entry for executing SQL on behalf of an API request.
+    The text goes through ``PreparedQuery`` exactly as the interactive path does: the
+    export runs SQL posted as a form field, so it is the path that most needs both the
+    cleaning and the rejection of stacked statements.
 
-    Checks the permission, delegates to ``execute_database_query`` and records
-    a ``QueryLog`` entry for every outcome, re-raising errors so that
-    callers only have to translate them into API responses.
+    The first batch is fetched eagerly, so an invalid statement raises here (surfacing
+    as an HTTP 400) rather than mid-stream once bytes are on the wire. The returned
+    generator owns the connection and closes it when exhausted or closed early. The two
+    timeouts set below bound a runaway scan and a stalled client.
     """
-    if not request.user.has_perm("databases.run_query", workspace):
-        _log_executed_query(request, workspace, query, origin, QueryLog.Status.DENIED)
-        raise PermissionDenied
-    max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
-    started_at = time.perf_counter()
+    prepared = PreparedQuery.from_text(query)
+    conn = get_workspace_database_ro_connection(workspace)
     try:
-        result = execute_database_query(workspace, query, **max_rows_kwarg)
-    except MultipleStatementsError as e:
-        _log_executed_query(
-            request,
-            workspace,
-            query,
-            origin,
-            QueryLog.Status.REJECTED,
-            error_message=str(e),
+        # SET LOCAL scopes both timeouts to this transaction, which stays open for
+        # the whole stream: the connection is not in autocommit, so the named
+        # cursor below shares the same transaction these settings apply to.
+        with conn.cursor() as setup_cursor:
+            setup_cursor.execute(
+                sql.SQL("SET LOCAL statement_timeout = {timeout};").format(
+                    timeout=sql.Literal(timeout_ms)
+                )
+            )
+            setup_cursor.execute(
+                sql.SQL(
+                    "SET LOCAL idle_in_transaction_session_timeout = {timeout};"
+                ).format(timeout=sql.Literal(idle_timeout_ms))
+            )
+        cursor = conn.cursor(
+            name="database_query_stream",
+            cursor_factory=RealDictCursor,
         )
-        raise
-    except psycopg2.Error as e:
-        # QueryCanceled (statement timeout) is a psycopg2.Error subclass and
-        # needs no dedicated handling here: both outcomes log the same fields.
-        _log_executed_query(
-            request,
-            workspace,
-            query,
-            origin,
-            QueryLog.Status.ERROR,
-            result_code=e.pgcode,
-            error_message=str(e).strip(),
-            duration_ms=elapsed_ms(started_at),
+        cursor.execute(prepared.sql)
+        first_batch = cursor.fetchmany(batch_size)
+        columns = (
+            [column.name for column in cursor.description] if cursor.description else []
         )
+    except Exception:
+        conn.close()
         raise
-    _log_executed_query(
-        request,
-        workspace,
-        query,
-        origin,
-        QueryLog.Status.SUCCESS,
-        result_code=QueryLog.SQLSTATE_SUCCESS,
-        duration_ms=result["duration_ms"],
-        row_count=result["row_count"],
-        truncated=result["truncated"],
-    )
-    return result
+
+    def row_batches() -> Iterator[List[dict]]:
+        try:
+            batch = first_batch
+            while batch:
+                yield batch
+                batch = cursor.fetchmany(batch_size)
+        finally:
+            cursor.close()
+            conn.close()
+
+    return columns, row_batches()
 
 
 # EXPLAIN only parses and plans the query (it never executes it), so this is a

@@ -114,6 +114,18 @@ class SupersetDashboardViewAccessTest(TestCase):
             response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
+    def test_superset_public_banner_href_has_utm(self):
+        url = f"/superset/dashboard/{self.DASHBOARD_PUBLIC.id}/"
+        with requests_mock.Mocker() as mocker:
+            self._mock_superset(mocker)
+            response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode()
+        self.assertIn("https://www.openhexa.com/?", body)
+        self.assertIn("utm_content=superset", body)
+        self.assertIn("utm_campaign=powered-by-openhexa-banner", body)
+        self.assertIn("nofollow", body)
+
     def test_non_member_can_view_public_superset_dashboard(self):
         self.client.force_login(self.USER_NON_MEMBER)
         url = f"/superset/dashboard/{self.DASHBOARD_PUBLIC.id}/"
@@ -1049,6 +1061,34 @@ class PoweredByBannerTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertNotIn(b"Powered by", response.content)
+
+    @patch("hexa.webapps.views.get_forgejo_client")
+    def test_static_banner_href_has_utm(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.return_value = b"<html><body><h1>Hi</h1></body></html>"
+        mock_get_client.return_value = mock_client
+
+        response = self.client.get(
+            "/", HTTP_HOST=self._subdomain_host(self.PUBLIC_STATIC)
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode()
+        self.assertIn("https://www.openhexa.com/?", body)
+        self.assertIn("utm_campaign=powered-by-openhexa-banner", body)
+        self.assertIn("utm_content=static", body)
+        self.assertIn("utm_medium=referral", body)
+        self.assertIn('rel="nofollow noopener noreferrer"', body)
+
+    def test_iframe_banner_href_has_utm(self):
+        response = self.client.get(
+            "/", HTTP_HOST=self._subdomain_host(self.PUBLIC_IFRAME)
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.content.decode()
+        self.assertIn("https://www.openhexa.com/?", body)
+        self.assertIn("utm_content=iframe", body)
+        self.assertIn("utm_campaign=powered-by-openhexa-banner", body)
+        self.assertIn("nofollow", body)
 
 
 @override_settings(

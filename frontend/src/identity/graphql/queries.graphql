@@ -60,6 +60,24 @@ query AccountPage {
   }
 }
 
+query AccountAccessTokens($page: Int!, $perPage: Int!) {
+  # Every workspace the user can reach, including those they only administer:
+  # those issue a short-lived identity token rather than a membership one.
+  workspaces(page: $page, perPage: $perPage) {
+    totalItems
+    items {
+      slug
+      name
+      currentMembership {
+        role
+      }
+      permissions {
+        generateToken
+      }
+    }
+  }
+}
+
 query RegisterPage {
   config {
     passwordRequirements

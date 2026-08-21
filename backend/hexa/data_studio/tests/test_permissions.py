@@ -57,13 +57,23 @@ class SavedQueryPermissionsTest(SavedQueryTestMixin, TestCase):
         self.assertFalse(update_saved_query_visibility(self.USER_OUTSIDER, query))
 
     def test_update_saved_query_visibility_without_author(self):
-        # created_by is SET_NULL, so an author-less query must not be claimed by
-        # whoever comes along.
+        # A shared query keeps living once its author's account is deleted, and must
+        # not be claimed by whoever comes along. It also stays shared for good:
+        # unsharing it would hand it to nobody.
         query = self._create(self.USER_VIEWER)
         query.created_by = None
         query.save()
         self.assertFalse(update_saved_query_visibility(self.USER_VIEWER, query))
         self.assertFalse(update_saved_query_visibility(self.USER_ADMIN, query))
+
+    def test_manage_saved_query_without_author(self):
+        # Someone has to be able to maintain a query its author left behind.
+        query = self._create(self.USER_VIEWER)
+        query.created_by = None
+        query.save()
+        self.assertTrue(update_saved_query(self.USER_EDITOR, query))
+        self.assertTrue(delete_saved_query(self.USER_ADMIN, query))
+        self.assertFalse(update_saved_query(self.USER_OUTSIDER, query))
 
     def test_delete_saved_query(self):
         query = self._create(self.USER_EDITOR)

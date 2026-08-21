@@ -20,6 +20,9 @@ type Workspace {
     # The permissions of the workspace.
     permissions: WorkspacePermissions!
 
+    # The membership of the current user in this workspace, if any.
+    currentMembership: WorkspaceMembership
+
     # The countries associated with the workspace.
     countries: [Country!]!
 
@@ -136,6 +139,9 @@ type WorkspacePermissions {
 
     # Indicates whether a database table can be deleted in the workspace.
     deleteDatabaseTable: Boolean!
+
+    # Indicates whether the current user can retrieve their workspace access token.
+    generateToken: Boolean!
 }
 
 """

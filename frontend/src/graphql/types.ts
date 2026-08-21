@@ -1507,6 +1507,12 @@ export type Dhis2QueryResultPage = {
 export type Database = {
   __typename?: 'Database';
   credentials?: Maybe<DatabaseCredentials>;
+  /**
+   * Runs a read-only SQL query against the workspace database and returns the result.
+   * `maxRows` caps the number of returned rows; it defaults to 50 when omitted and is
+   * itself capped to a server-side hard limit. `origin` identifies where the query comes
+   * from for auditing purposes; it defaults to OTHER.
+   */
   executeSQL: ExecuteSqlResult;
   readOnlyCredentials?: Maybe<DatabaseCredentials>;
   table?: Maybe<DatabaseTable>;
@@ -2406,7 +2412,9 @@ export enum ExecuteSqlError {
   /** The query could not be executed (e.g. invalid SQL or a disallowed operation). */
   QueryError = 'QUERY_ERROR',
   /** The query was cancelled because it exceeded the statement timeout. */
-  QueryTimeout = 'QUERY_TIMEOUT'
+  QueryTimeout = 'QUERY_TIMEOUT',
+  /** No saved query with this slug, or it is not visible to the caller. */
+  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND'
 }
 
 /** The origin of a SQL query, recorded for auditing and to build a per-user query history. */
@@ -2436,6 +2444,13 @@ export type ExecuteSqlResult = {
   success: Scalars['Boolean']['output'];
   /** Whether the result was truncated because it exceeded the maximum number of rows. */
   truncated?: Maybe<Scalars['Boolean']['output']>;
+};
+
+/** Input for executing a saved query. */
+export type ExecuteSavedQueryInput = {
+  /** Caps the number of returned rows; defaults to 50 and is itself capped to a server-side hard limit. */
+  maxRows?: InputMaybe<Scalars['Int']['input']>;
+  slug: Scalars['String']['input'];
 };
 
 /** Represents an external collaborator who has workspace access but no organization membership. */
@@ -4799,6 +4814,8 @@ export type Query = {
   datasetVersionFile?: Maybe<DatasetVersionFile>;
   /** Search datasets. */
   datasets: DatasetPage;
+  /** Runs a saved query against the workspace database and returns its result, without exposing the SQL. */
+  executeSavedQuery: ExecuteSqlResult;
   /** Get a file by its path within a workspace. */
   getFileByPath?: Maybe<BucketObject>;
   /** Retrieves the currently authenticated user. */
@@ -4834,8 +4851,10 @@ export type Query = {
   /** Read the text content of a file from a workspace's bucket. */
   readFileContent: ReadFileContentResult;
   readWebappFile: ReadWebappFileResult;
-  /** Retrieves a saved query by its id. */
+  /** Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace. */
   savedQuery?: Maybe<SavedQuery>;
+  /** Retrieves a saved query by its slug, which is unique across workspaces. */
+  savedQueryBySlug?: Maybe<SavedQuery>;
   searchDatabaseTables: DatabaseTableResultPage;
   searchDatasets: DatasetResultPage;
   searchFiles: FileResultPage;
@@ -4990,6 +5009,11 @@ export type QueryDatasetsArgs = {
 };
 
 
+export type QueryExecuteSavedQueryArgs = {
+  input: ExecuteSavedQueryInput;
+};
+
+
 export type QueryGetFileByPathArgs = {
   path: Scalars['String']['input'];
   workspaceSlug: Scalars['String']['input'];
@@ -5093,6 +5117,12 @@ export type QueryReadWebappFileArgs = {
 
 export type QuerySavedQueryArgs = {
   id: Scalars['ID']['input'];
+  workspaceSlug?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QuerySavedQueryBySlugArgs = {
+  slug: Scalars['String']['input'];
 };
 
 
@@ -5519,6 +5549,8 @@ export type SavedQuery = {
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   permissions: SavedQueryPermissions;
+  /** Stable identifier, unique within the workspace. Generated from the name and left unchanged when the query is renamed. */
+  slug: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
   visibility: SavedQueryVisibility;
   workspace: Workspace;
@@ -6714,6 +6746,7 @@ export type WebappFileInput = {
 };
 
 export enum WebappOperationScope {
+  DatabaseRead = 'DATABASE_READ',
   DatasetsRead = 'DATASETS_READ',
   DatasetsWrite = 'DATASETS_WRITE',
   FilesRead = 'FILES_READ',
@@ -6780,6 +6813,7 @@ export type Workspace = {
   countries: Array<Country>;
   createdAt: Scalars['DateTime']['output'];
   createdBy: User;
+  currentMembership?: Maybe<WorkspaceMembership>;
   database: Database;
   /** Linked datasets of the workspace */
   datasets: DatasetLinkPage;
@@ -6936,6 +6970,7 @@ export type WorkspacePermissions = {
   deleteObject: Scalars['Boolean']['output'];
   /** User can download objects from the workspace's bucket. */
   downloadObject: Scalars['Boolean']['output'];
+  generateToken: Scalars['Boolean']['output'];
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
