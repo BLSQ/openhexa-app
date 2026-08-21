@@ -1,4 +1,5 @@
 import base64
+from urllib.parse import quote
 
 import requests
 from django.conf import settings
@@ -25,6 +26,18 @@ class ForgejoAPIError(Exception):
         )
 
 
+def _is_failure_status(status_code: int) -> bool:
+    return status_code >= 300
+
+
+def _failure_detail(response: requests.Response) -> str:
+    """Describe a failed response, naming the target of an unfollowed redirect."""
+    location = response.headers.get("Location")
+    if location:
+        return f"redirected to {location}"
+    return response.text
+
+
 class ForgejoClient(GitClient):
     def __init__(self, *, url: str, username: str, password: str):
         self._url = url.rstrip("/")
@@ -35,9 +48,9 @@ class ForgejoClient(GitClient):
     def _request(self, method: str, path: str, **kwargs) -> requests.Response:
         url = f"{self._url}/api/v1{path}"
         response = self._session.request(method, url, allow_redirects=False, **kwargs)
-        if not response.ok:
+        if _is_failure_status(response.status_code):
             raise ForgejoAPIError(
-                method.upper(), url, response.status_code, response.text
+                method.upper(), url, response.status_code, _failure_detail(response)
             )
         return response
 
@@ -186,7 +199,7 @@ class ForgejoClient(GitClient):
         try:
             response = self._request(
                 "GET",
-                f"/repos/{org_slug}/{repo_name}/contents/{path}",
+                f"/repos/{org_slug}/{repo_name}/contents/{quote(path, safe='/')}",
                 params={"ref": ref},
             )
         except ForgejoAPIError as e:
@@ -210,7 +223,7 @@ class ForgejoClient(GitClient):
         headers: dict[str, str] | None = None,
     ) -> requests.Response:
         org_slug = org_slug or self._username
-        url = f"{self._url}/api/v1/repos/{org_slug}/{repo_name}/raw/{path}"
+        url = f"{self._url}/api/v1/repos/{org_slug}/{repo_name}/raw/{quote(path, safe='/')}"
         response = self._session.get(
             url,
             params={"ref": ref},
@@ -221,8 +234,8 @@ class ForgejoClient(GitClient):
         if response.status_code == 404:
             response.close()
             raise GitFileNotFound(path)
-        if not response.ok and response.status_code != 416:
-            detail = response.text
+        if response.status_code != 416 and _is_failure_status(response.status_code):
+            detail = _failure_detail(response)
             response.close()
             raise ForgejoAPIError("GET", url, response.status_code, detail)
         return response
