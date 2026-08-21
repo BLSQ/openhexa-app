@@ -107,6 +107,28 @@ class ServicePrincipal:
         raise NotImplementedError
 
 
+class WorkspaceScopedPrincipal:
+    """Marker mixin for principals whose access is confined to one workspace.
+
+    Where `ServicePrincipal` says "this is not a person", this says "whatever
+    this principal is, it may only reach `workspace`". The two are orthogonal:
+    `WebappUser` is both, a workspace token is only the latter (it acts as a
+    real person, but through one workspace).
+
+    Access control reads this in two places, and nowhere else: querysets
+    narrow their result to `workspace_id` as a final step, and the principal's
+    own `has_perm` refuses objects outside the scope.
+    """
+
+    @property
+    def workspace(self):
+        raise NotImplementedError
+
+    @property
+    def workspace_id(self):
+        raise NotImplementedError
+
+
 class User(AbstractUser, UserInterface):
     class Meta:
         db_table = "identity_user"

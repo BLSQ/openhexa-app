@@ -37,6 +37,7 @@ from hexa.user_management.models import (
     ServicePrincipal,
     User,
     UserInterface,
+    WorkspaceScopedPrincipal,
 )
 
 
@@ -834,3 +835,31 @@ class OrganizationWorkspaceInvitation(Base):
                 )
             except Workspace.DoesNotExist:
                 continue
+
+
+class WorkspaceTokenUser(User, WorkspaceScopedPrincipal):
+    """The principal behind a workspace access token.
+
+    A token acts as the person who owns it, but only inside the workspace it was
+    issued for: this is the real `User` row narrowed to one workspace, not a
+    service account. `WorkspaceScopedPrincipal` is what access control keys off.
+    """
+
+    class Meta:
+        proxy = True
+
+    workspace = None
+
+    @classmethod
+    def from_token(cls, token) -> "WorkspaceTokenUser":
+        """Cast the user a token authenticates to a principal scoped to its workspace."""
+        instance = cls.objects.get(pk=token.user.pk)
+        instance.workspace = token.workspace
+        return instance
+
+    @property
+    def workspace_id(self):
+        return self.workspace.id
+
+    def get_username(self):
+        return f"workspace_token_{self.workspace.slug}_as_{self.email}"
