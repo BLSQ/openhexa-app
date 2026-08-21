@@ -20,37 +20,40 @@ export const Part = ({
   href?: UrlObject | string;
 }) => {
   return (
-    <li className={clsx(!isFirst && !small && "ml-2")}>
-      <div className="flex items-center">
-        {!isFirst && (
-          <svg
-            className="h-5 w-5 shrink-0 text-gray-300"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            aria-hidden="true"
-          >
-            <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
-          </svg>
-        )}
-        <span
-          className={clsx(
-            !isFirst && !small && "ml-3",
-            "text-sm hover:text-gray-700",
-            isLast
-              ? "font-semibold text-gray-800"
-              : "font-medium text-gray-500",
-          )}
+    <li
+      className={clsx(
+        "flex min-w-0 items-center",
+        isLast ? "shrink min-w-16" : "shrink-0 max-w-1/3",
+        !isFirst && !small && "ml-2",
+      )}
+    >
+      {!isFirst && (
+        <svg
+          className="h-5 w-5 shrink-0 text-gray-300"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          aria-hidden="true"
         >
-          {href ? (
-            <Link noStyle href={href}>
-              {children}
-            </Link>
-          ) : (
-            children
-          )}
-        </span>
-      </div>
+          <path d="M5.555 17.776l8-16 .894.448-8 16-.894-.448z" />
+        </svg>
+      )}
+      <span
+        title={typeof children === "string" ? children : undefined}
+        className={clsx(
+          !isFirst && !small && "ml-3",
+          "truncate text-sm hover:text-gray-700",
+          isLast ? "font-semibold text-gray-800" : "font-medium text-gray-500",
+        )}
+      >
+        {href ? (
+          <Link noStyle href={href}>
+            {children}
+          </Link>
+        ) : (
+          children
+        )}
+      </span>
     </li>
   );
 };
@@ -64,10 +67,13 @@ const Breadcrumbs = (props: {
   const { t } = useTranslation();
 
   return (
-    <nav className={className} aria-label={t("Breadcrumbs")}>
-      <ol role="list" className="flex items-center">
+    <nav
+      className={clsx("min-w-0 overflow-hidden", className)}
+      aria-label={t("Breadcrumbs")}
+    >
+      <ol role="list" className="flex min-w-0 items-center">
         {withHome && (
-          <li>
+          <li className="shrink-0">
             <div>
               <Link href="/" customStyle="text-gray-400 hover:text-gray-500">
                 <HomeIcon className="h-5 w-5 shrink-0" />
