@@ -7,6 +7,7 @@ from django.http import HttpRequest
 
 from hexa.countries.models import Country
 from hexa.databases.utils import TableNotFound, delete_table
+from hexa.tags.models import InvalidTag
 from hexa.user_management.models import Organization, User
 
 from ..authentication import WorkspaceToken
@@ -91,11 +92,21 @@ def resolve_update_workspace(_, info, **kwargs):
         if "configuration" in input:
             args["configuration"] = input["configuration"]
 
-        workspace.update_if_has_perm(principal=request.user, **args)
+        has_tags = "tags" in input
+
+        with transaction.atomic():
+            if args or not has_tags:
+                workspace.update_if_has_perm(principal=request.user, **args)
+            if has_tags:
+                workspace.set_tags_if_has_perm(
+                    principal=request.user, tag_names=input["tags"]
+                )
 
         return {"success": True, "workspace": workspace, "errors": []}
     except Workspace.DoesNotExist:
         return {"success": False, "errors": ["NOT_FOUND"]}
+    except InvalidTag:
+        return {"success": False, "errors": ["INVALID_TAG"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
 
