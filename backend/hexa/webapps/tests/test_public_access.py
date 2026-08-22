@@ -1197,6 +1197,10 @@ class WebappCacheHeadersTest(TestCase):
         self.assertEqual(response.status_code, 304)
         # The whole point of the cache hit: skip the Forgejo round-trip.
         mock_client.get_file.assert_not_called()
+        # A 304 stands in for the 200, so it repeats that answer's validator and
+        # caching policy; a shared cache has nothing else to refresh its entry.
+        self.assertEqual(response["ETag"], 'W/"sha-public-v1"')
+        self.assertEqual(response["Cache-Control"], "public, no-cache")
 
     @patch("hexa.webapps.views.get_forgejo_client")
     def test_stale_if_none_match_serves_fresh_content_with_new_etag(
