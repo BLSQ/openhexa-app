@@ -7,13 +7,33 @@ import {
   TransportErrorKind,
 } from "core/helpers/errors";
 import { ExecuteSqlError } from "graphql/types";
+import dynamic from "next/dynamic";
 import { useTranslation } from "next-i18next";
 import { memo, useState } from "react";
-import { detectChart } from "./chart";
-import ChartHint from "./ChartHint";
 import { ExecuteWorkspaceSqlQuery } from "./DataStudioEditor.generated";
-import ResultsChart from "./ResultsChart";
-import ResultsTable from "./ResultsTable";
+import {
+  detectChart,
+  detectMap,
+  ResultsChart,
+  ResultsTable,
+  toFeatures,
+  WidgetHint,
+} from "./widgets";
+
+// MapLibre reads `window` while its module initialises, which a server render
+// cannot provide, and the whole mapping stack is dead weight for the queries
+// that return no geography — the common case. It is also an order of magnitude
+// heavier than the chart library, so loading it only when a map is actually
+// shown keeps it out of the editor's bundle, which charts (bundled normally) do
+// not need to pay for.
+const ResultsMap = dynamic(() => import("./widgets/ResultsMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-full items-center justify-center">
+      <Spinner size="md" />
+    </div>
+  ),
+});
 
 type ExecuteSqlResult = NonNullable<
   ExecuteWorkspaceSqlQuery["workspace"]
@@ -78,7 +98,7 @@ const DataStudioResults = ({
   onRetry,
 }: DataStudioResultsProps) => {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<"chart" | "table">("chart");
+  const [tab, setTab] = useState<"widget" | "table">("widget");
 
   const errorLabels: Record<ExecuteSqlError, string> = {
     [ExecuteSqlError.PermissionDenied]: t(
@@ -186,10 +206,14 @@ const DataStudioResults = ({
   const displayedRows = isQueryPlan ? rows : rows.slice(0, MAX_DISPLAYED_ROWS);
   const hasHiddenRows = rows.length > displayedRows.length;
 
-  // Column names decide the presentation: when they follow a chart convention
-  // the query is a little dashboard rather than a result set.
+  // Column names decide the presentation: when they follow a widget convention
+  // the query is a little dashboard rather than a result set. Charts are looked
+  // for first, so a result that somehow satisfies both stays predictable.
   const chart = isQueryPlan ? null : detectChart(columns, rows);
-  const showChart = chart !== null && tab === "chart";
+  const mapSource = isQueryPlan || chart ? null : detectMap(columns, rows);
+  const hasWidget = chart !== null || mapSource !== null;
+  const showWidget = hasWidget && tab === "widget";
+  const mapFeatures = mapSource ? toFeatures(mapSource, rows) : null;
 
   return (
     <Block>
@@ -200,24 +224,47 @@ const DataStudioResults = ({
           })}
         </div>
       )}
-      {chart && (
+      {hasWidget && (
         <div
           role="tablist"
           className="flex shrink-0 items-center gap-4 border-b border-gray-200 px-3"
         >
-          <TabButton active={tab === "chart"} onClick={() => setTab("chart")}>
-            {t("Chart")}
+          <TabButton active={tab === "widget"} onClick={() => setTab("widget")}>
+            {chart ? t("Chart") : t("Map")}
           </TabButton>
           <TabButton active={tab === "table"} onClick={() => setTab("table")}>
             {t("Table")}
           </TabButton>
         </div>
       )}
-      {showChart ? (
+      {showWidget ? (
         <div className="min-h-0 flex-1">
-          {/* The chart reads every returned row: the 500-row cap below exists to
-              keep the DOM small, which an aggregated chart does not suffer from. */}
-          <ResultsChart kind={chart} rows={rows} />
+          {/* Both widgets read every returned row: the 500-row cap below exists
+              to keep the DOM small, which an aggregated chart does not suffer
+              from and which markers on a canvas suffer from far less. */}
+          {chart ? (
+            <ResultsChart kind={chart} rows={rows} />
+          ) : mapSource!.kind === "unreadable-geometry" ? (
+            // Asked for as a map but still in PostGIS' binary form. Saying so —
+            // with the one-line fix — beats a blank map or silently dropping
+            // back to the table, which would look like the feature is broken.
+            <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center text-sm text-gray-500">
+              <p>
+                {t(
+                  'The "{{column}}" column holds binary geometry, which cannot be drawn directly.',
+                  { column: mapSource!.column },
+                )}
+              </p>
+              <p className="text-gray-400">
+                {t("Select it as GeoJSON to map it:")}{" "}
+                <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs text-gray-700">
+                  ST_AsGeoJSON({mapSource!.column}) AS {mapSource!.column}
+                </code>
+              </p>
+            </div>
+          ) : (
+            <ResultsMap features={mapFeatures?.features ?? []} />
+          )}
         </div>
       ) : (
         <ResultsTable
@@ -253,17 +300,27 @@ const DataStudioResults = ({
             workspace layout pins its floating help button to the viewport's
             bottom-right corner, which overlaps the end of this bar and would
             bury the hint under it. */}
-        {!chart && !isQueryPlan && <ChartHint />}
-        {!showChart && hasHiddenRows && (
-          <span className="ml-auto text-gray-400">
-            {t(
-              "Showing the first {{count}} rows — export for the full result.",
-              {
-                count: displayedRows.length,
-              },
+        {!hasWidget && !isQueryPlan && <WidgetHint />}
+        {/* Each view reports only the cap that applies to what is on screen:
+            the row cap belongs to the table, the feature cap to the map. */}
+        {showWidget
+          ? !!mapFeatures?.hidden && (
+              <span className="ml-auto text-gray-400">
+                {t("Showing the first {{count}} locations.", {
+                  count: mapFeatures.features.length,
+                })}
+              </span>
+            )
+          : hasHiddenRows && (
+              <span className="ml-auto text-gray-400">
+                {t(
+                  "Showing the first {{count}} rows — export for the full result.",
+                  {
+                    count: displayedRows.length,
+                  },
+                )}
+              </span>
             )}
-          </span>
-        )}
       </div>
     </Block>
   );

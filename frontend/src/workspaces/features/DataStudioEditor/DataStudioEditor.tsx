@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import clsx from "clsx";
 import {
   ArrowDownTrayIcon,
   Bars3BottomLeftIcon,
@@ -14,6 +15,7 @@ import CodeEditor, {
 import Spinner from "core/components/Spinner";
 import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import useIsMac from "core/hooks/useIsMac";
+import useResizablePanel from "core/hooks/useResizablePanel";
 import useSaveShortcut from "core/hooks/useSaveShortcut";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -40,6 +42,19 @@ type DataStudioEditorProps = {
 
 const MAX_ROWS_OPTIONS = [50, 100, 500, 1000, 10_000];
 
+// Schema browser bounds. The floor keeps the tree usable rather than letting it
+// be dragged shut; the ceiling leaves room for the editor on a laptop screen.
+const SIDEBAR_DEFAULT_WIDTH = 240;
+const SIDEBAR_MIN_WIDTH = 160;
+const SIDEBAR_MAX_WIDTH = 640;
+
+// Editor pane bounds. Dragging the separator sizes the editor, and the results
+// panel below takes whatever is left, so the floor here is the editor's and the
+// ceiling is whatever keeps the results panel from collapsing.
+const EDITOR_DEFAULT_HEIGHT = 260;
+const EDITOR_MIN_HEIGHT = 120;
+const RESULTS_MIN_HEIGHT = 140;
+
 const DataStudioEditor = ({
   workspaceSlug,
   savedQuery,
@@ -54,6 +69,34 @@ const DataStudioEditor = ({
   const [maxRows, setMaxRows] = useState(MAX_ROWS_OPTIONS[0]);
   const editorRef = useRef<CodeEditorHandle>(null);
   const [generateBarOpen, setGenerateBarOpen] = useState(false);
+  // Measured at drag time so the editor can never be grown past the point where
+  // the results panel would collapse.
+  const splitRef = useRef<HTMLDivElement>(null);
+
+  const sidebar = useResizablePanel({
+    storageKey: "datastudio.sidebarWidth",
+    defaultSize: SIDEBAR_DEFAULT_WIDTH,
+    min: SIDEBAR_MIN_WIDTH,
+    max: SIDEBAR_MAX_WIDTH,
+    axis: "x",
+  });
+
+  const editorPane = useResizablePanel({
+    storageKey: "datastudio.editorHeight",
+    defaultSize: EDITOR_DEFAULT_HEIGHT,
+    min: EDITOR_MIN_HEIGHT,
+    max: useCallback(() => {
+      const available = splitRef.current?.clientHeight ?? 0;
+      // Nothing to clamp against until the split has been laid out — and
+      // clamping to the floor here would quietly throw away a remembered
+      // height, which is what happens when the panel mounts hidden.
+      if (available === 0) {
+        return Number.POSITIVE_INFINITY;
+      }
+      return Math.max(EDITOR_MIN_HEIGHT, available - RESULTS_MIN_HEIGHT);
+    }, []),
+    axis: "y",
+  });
 
   const handleGenerated = useCallback((sql: string) => {
     setQuery(sql);
@@ -152,11 +195,30 @@ const DataStudioEditor = ({
   return (
     <>
       <div className="flex h-full overflow-hidden rounded-md border bg-white shadow-xs">
-        <DataStudioSchemaBrowser
-          workspaceSlug={workspaceSlug}
-          className="w-[240px] shrink-0 border-r border-gray-200"
-          onInsert={insertIntoEditor}
-        />
+        <div className="shrink-0" style={{ width: sidebar.size }}>
+          <DataStudioSchemaBrowser
+            workspaceSlug={workspaceSlug}
+            className="h-full w-full"
+            onInsert={insertIntoEditor}
+          />
+        </div>
+        {/* A 1px border would be too small a target, so the handle is a 2px
+            strip that carries the divider itself and widens its highlight on
+            hover. `group` lets the inner line react without a second selector. */}
+        <div
+          {...sidebar.separatorProps}
+          aria-label={t("Resize the table list")}
+          title={t("Drag to resize — arrow keys also work")}
+          className={clsx(
+            "group relative w-[2px] shrink-0 cursor-col-resize bg-gray-200 transition-colors",
+            "hover:bg-blue-400 focus-visible:bg-blue-500 focus-visible:outline-none",
+            sidebar.isResizing && "bg-blue-500",
+          )}
+        >
+          {/* Widens the grab area past the visible strip without moving the
+              layout, the way an editor gutter behaves. */}
+          <span className="absolute inset-y-0 -left-1 -right-1" />
+        </div>
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Toolbar: controls right-aligned, Run at the far right. */}
           <div className="flex h-11 shrink-0 items-center gap-2 border-b border-gray-200 px-3">
@@ -286,9 +348,10 @@ const DataStudioEditor = ({
             />
           )}
 
-          {/* Editor + results split: editor on top, results fill the rest. */}
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="h-[38%] min-h-[140px] shrink-0 border-b border-gray-200">
+          {/* Editor + results split: the editor is sized, the results panel below
+              takes the remaining height. */}
+          <div ref={splitRef} className="flex min-h-0 flex-1 flex-col">
+            <div className="shrink-0" style={{ height: editorPane.size }}>
               <CodeEditor
                 ref={editorRef}
                 lang="sql"
@@ -305,6 +368,18 @@ const DataStudioEditor = ({
                 shortcuts={editorShortcuts}
                 className="h-full !rounded-none"
               />
+            </div>
+            <div
+              {...editorPane.separatorProps}
+              aria-label={t("Resize the results panel")}
+              title={t("Drag to resize — arrow keys also work")}
+              className={clsx(
+                "group relative h-[2px] shrink-0 cursor-row-resize bg-gray-200 transition-colors",
+                "hover:bg-blue-400 focus-visible:bg-blue-500 focus-visible:outline-none",
+                editorPane.isResizing && "bg-blue-500",
+              )}
+            >
+              <span className="absolute inset-x-0 -top-1 -bottom-1" />
             </div>
             <div className="min-h-0 flex-1">
               <DataStudioResults
