@@ -2325,6 +2325,7 @@ type DisableTwoFactorResult {
 """Represents the error message for a web app file edit."""
 enum EditWebappFileError {
   BINARY_FILE
+  FILE_TOO_LARGE
   NO_CHANGE
   PATH_NOT_FOUND
   PERMISSION_DENIED
@@ -2516,6 +2517,8 @@ type FileNode {
   name: String!
   parentId: String
   path: String!
+  size: Int
+  tooLarge: Boolean
   type: FileType!
 }
 
@@ -4282,6 +4285,7 @@ type ReadFileContentResult {
 """Represents the error message for reading a web app file."""
 enum ReadWebappFileError {
   BINARY_FILE
+  FILE_TOO_LARGE
   PATH_NOT_FOUND
   WEBAPPS_NOT_CONFIGURED
   WEBAPP_NOT_FOUND

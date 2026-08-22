@@ -1,11 +1,14 @@
 import base64
+from urllib.parse import quote
 
 import requests
 from django.conf import settings
 
 from hexa.git.client import GitClient
 from hexa.git.enums import FileEncoding
-from hexa.git.exceptions import GitFileNotFound
+from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
+
+MAX_INLINE_BLOB_SIZE = 10 * 1024 * 1024
 
 
 class ForgejoAPIError(Exception):
@@ -23,6 +26,18 @@ class ForgejoAPIError(Exception):
         )
 
 
+def _is_failure_status(status_code: int) -> bool:
+    return status_code >= 300
+
+
+def _failure_detail(response: requests.Response) -> str:
+    """Describe a failed response, naming the target of an unfollowed redirect."""
+    location = response.headers.get("Location")
+    if location:
+        return f"redirected to {location}"
+    return response.text
+
+
 class ForgejoClient(GitClient):
     def __init__(self, *, url: str, username: str, password: str):
         self._url = url.rstrip("/")
@@ -33,9 +48,9 @@ class ForgejoClient(GitClient):
     def _request(self, method: str, path: str, **kwargs) -> requests.Response:
         url = f"{self._url}/api/v1{path}"
         response = self._session.request(method, url, allow_redirects=False, **kwargs)
-        if not response.ok:
+        if _is_failure_status(response.status_code):
             raise ForgejoAPIError(
-                method.upper(), url, response.status_code, response.text
+                method.upper(), url, response.status_code, _failure_detail(response)
             )
         return response
 
@@ -184,15 +199,46 @@ class ForgejoClient(GitClient):
         try:
             response = self._request(
                 "GET",
-                f"/repos/{org_slug}/{repo_name}/contents/{path}",
+                f"/repos/{org_slug}/{repo_name}/contents/{quote(path, safe='/')}",
                 params={"ref": ref},
             )
         except ForgejoAPIError as e:
             if e.status_code == 404:
                 raise GitFileNotFound(path) from e
             raise
-        content = response.json().get("content", "")
+        payload = response.json()
+        content = payload.get("content", "")
+        size = payload.get("size", 0)
+        if not content and size > 0:
+            raise GitFileTooLarge(path, size)
         return base64.b64decode(content)
+
+    def stream_file(
+        self,
+        repo_name: str,
+        path: str,
+        ref: str = "main",
+        *,
+        org_slug: str | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> requests.Response:
+        org_slug = org_slug or self._username
+        url = f"{self._url}/api/v1/repos/{org_slug}/{repo_name}/raw/{quote(path, safe='/')}"
+        response = self._session.get(
+            url,
+            params={"ref": ref},
+            headers={"Accept-Encoding": "identity", **(headers or {})},
+            stream=True,
+            allow_redirects=False,
+        )
+        if response.status_code == 404:
+            response.close()
+            raise GitFileNotFound(path)
+        if response.status_code != 416 and _is_failure_status(response.status_code):
+            detail = _failure_detail(response)
+            response.close()
+            raise ForgejoAPIError("GET", url, response.status_code, detail)
+        return response
 
     def commit_files(
         self,
@@ -273,6 +319,7 @@ class ForgejoClient(GitClient):
 
         Content is either UTF-8 (for text files) or base64 (for binary files).
         To detect if a blob is binary, check for a NULL byte or a failed UTF-8 decode.
+        Blobs too large to read carry too_large=True and no content.
         """
         tree = self.get_files_tree(repo_name, ref, org_slug=org_slug)
         nodes: list[dict] = []
@@ -288,13 +335,32 @@ class ForgejoClient(GitClient):
                         "type": "directory",
                         "content": None,
                         "encoding": None,
+                        "size": None,
+                        "too_large": False,
                     }
                 )
                 continue
             if entry_type != "blob":
                 continue
 
-            raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
+            size = entry.get("size") or 0
+            too_large_node = {
+                "path": path,
+                "type": "file",
+                "content": None,
+                "encoding": None,
+                "size": size,
+                "too_large": True,
+            }
+            if size >= MAX_INLINE_BLOB_SIZE:
+                nodes.append(too_large_node)
+                continue
+
+            try:
+                raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
+            except GitFileTooLarge as e:
+                nodes.append({**too_large_node, "size": e.size})
+                continue
             content: str
             encoding: FileEncoding
             if b"\x00" not in raw:
@@ -309,7 +375,14 @@ class ForgejoClient(GitClient):
                 encoding = FileEncoding.BASE64
 
             nodes.append(
-                {"path": path, "type": "file", "content": content, "encoding": encoding}
+                {
+                    "path": path,
+                    "type": "file",
+                    "content": content,
+                    "encoding": encoding,
+                    "size": size,
+                    "too_large": False,
+                }
             )
 
         return nodes
