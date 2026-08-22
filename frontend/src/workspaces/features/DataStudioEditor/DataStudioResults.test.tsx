@@ -8,7 +8,7 @@ import DataStudioResults from "./DataStudioResults";
 // provides. Choosing the map and handing it the right features is this
 // component's job; drawing it is the map's, so the map is stubbed down to what
 // it was asked to render.
-jest.mock("./ResultsMap", () => ({
+jest.mock("./widgets/ResultsMap", () => ({
   __esModule: true,
   default: ({ features }: { features: unknown[] }) => (
     <div data-testid="results-map">{features.length}</div>

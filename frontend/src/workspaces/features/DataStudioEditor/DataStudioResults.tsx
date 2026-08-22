@@ -10,12 +10,15 @@ import { ExecuteSqlError } from "graphql/types";
 import dynamic from "next/dynamic";
 import { useTranslation } from "next-i18next";
 import { memo, useState } from "react";
-import { detectChart } from "./chart";
 import { ExecuteWorkspaceSqlQuery } from "./DataStudioEditor.generated";
-import { detectMap, toFeatures } from "./map";
-import ResultsChart from "./ResultsChart";
-import ResultsTable from "./ResultsTable";
-import WidgetHint from "./WidgetHint";
+import {
+  detectChart,
+  detectMap,
+  ResultsChart,
+  ResultsTable,
+  toFeatures,
+  WidgetHint,
+} from "./widgets";
 
 // MapLibre reads `window` while its module initialises, which a server render
 // cannot provide, and the whole mapping stack is dead weight for the queries
@@ -23,7 +26,7 @@ import WidgetHint from "./WidgetHint";
 // heavier than the chart library, so loading it only when a map is actually
 // shown keeps it out of the editor's bundle, which charts (bundled normally) do
 // not need to pay for.
-const ResultsMap = dynamic(() => import("./ResultsMap"), {
+const ResultsMap = dynamic(() => import("./widgets/ResultsMap"), {
   ssr: false,
   loading: () => (
     <div className="flex h-full items-center justify-center">
