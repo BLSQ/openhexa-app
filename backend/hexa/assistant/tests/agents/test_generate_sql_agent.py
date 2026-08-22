@@ -37,7 +37,10 @@ class GenerateSqlAgentTestCase(TestCase):
             "generate-sql-test@example.com", "password", is_superuser=True
         )
         cls.workspace = create_workspace(
-            cls.user, name="Generate SQL Test Workspace", description=""
+            cls.user,
+            name="Generate SQL Test Workspace",
+            description="",
+            real_database=cls,
         )
 
     def _make_agent(self, built_model=None) -> GenerateSqlAgent:

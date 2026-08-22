@@ -651,6 +651,8 @@ class SavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
 class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
     """The endpoint web apps use: run a stored query without ever seeing its SQL."""
 
+    REAL_WORKSPACE_DATABASE = True
+
     EXECUTE_QUERY = """
         query ($input: ExecuteSavedQueryInput!) {
             executeSavedQuery(input: $input) {

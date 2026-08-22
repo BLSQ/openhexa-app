@@ -802,16 +802,12 @@ class GraphQLProxyWorkspaceScopingTest(TestCase):
             "multi@test.com", "password", is_superuser=True
         )
         cls.ORGANIZATION = Organization.objects.create(name="Proxy Scoping Org")
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            cls.WORKSPACE_A = create_workspace(
-                cls.USER, name="WS A", organization=cls.ORGANIZATION
-            )
-            cls.WORKSPACE_B = create_workspace(
-                cls.USER, name="WS B", organization=cls.ORGANIZATION
-            )
+        cls.WORKSPACE_A = create_workspace(
+            cls.USER, name="WS A", organization=cls.ORGANIZATION
+        )
+        cls.WORKSPACE_B = create_workspace(
+            cls.USER, name="WS B", organization=cls.ORGANIZATION
+        )
         cls.USER.is_superuser = False
         cls.USER.save()
         cls.WEBAPP_A = Webapp.objects.create(

@@ -117,6 +117,7 @@ class DatabaseUtilsTest(TestCase):
             name="Test Workspace",
             description="Test workspace",
             countries=[],
+            real_database=cls,
         )
 
     @mock.patch("psycopg2.connect")
