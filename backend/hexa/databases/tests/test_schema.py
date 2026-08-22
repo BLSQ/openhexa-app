@@ -4,6 +4,7 @@ from unittest import mock
 from django.conf import settings
 
 from hexa.core.test import GraphQLTestCase
+from hexa.databases.tests.helpers import provision_workspace_database
 from hexa.databases.utils import TableRowsPage
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
@@ -380,6 +381,8 @@ class DatabaseTest(GraphQLTestCase):
         )
 
     def test_generate_workspace_database_new_password(self):
+        # The mutation rotates the password on the database server itself.
+        provision_workspace_database(self, self.WORKSPACE)
         self.client.force_login(self.USER_JULIA)
         r = self.run_query(
             """

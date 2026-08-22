@@ -55,6 +55,7 @@ class DownloadQueryCsvViewTest(TestCase):
             name="Test Workspace",
             description="Test workspace",
             countries=[],
+            real_database=cls,
         )
         setattr(cls.WORKSPACE, "database", cls.DB1)
         WorkspaceMembership.objects.create(

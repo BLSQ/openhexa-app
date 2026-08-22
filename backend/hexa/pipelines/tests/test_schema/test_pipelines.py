@@ -68,20 +68,16 @@ class PipelinesV2Test(GraphQLTestCase):
             "standardpassword",
         )
 
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            cls.WS1 = create_workspace(
-                cls.USER_ROOT,
-                name="WS1",
-                description="Workspace 1",
-            )
-            cls.WS2 = create_workspace(
-                cls.USER_ROOT,
-                name="WS2",
-                description="Workspace 2",
-            )
+        cls.WS1 = create_workspace(
+            cls.USER_ROOT,
+            name="WS1",
+            description="Workspace 1",
+        )
+        cls.WS2 = create_workspace(
+            cls.USER_ROOT,
+            name="WS2",
+            description="Workspace 2",
+        )
         cls.WORKSPACE2_MEMBERSHIP_1 = WorkspaceMembership.objects.create(
             workspace=cls.WS2,
             user=cls.USER_NOOB,

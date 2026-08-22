@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from hexa.core.test import GraphQLTestCase
 from hexa.pipeline_templates.models import PipelineTemplate
 from hexa.pipelines.models import Pipeline
@@ -10,7 +8,7 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
     User,
 )
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class WorkspaceTagsTest(GraphQLTestCase):
@@ -42,34 +40,30 @@ class WorkspaceTagsTest(GraphQLTestCase):
             role=OrganizationMembershipRole.ADMIN,
         )
 
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            cls.WS1_ORG1 = Workspace.objects.create_if_has_perm(
-                cls.USER_ADMIN,
-                name="Workspace 1 Org 1",
-                description="First workspace in org 1",
-                organization=cls.ORG1,
-            )
-            cls.WS2_ORG1 = Workspace.objects.create_if_has_perm(
-                cls.USER_ADMIN,
-                name="Workspace 2 Org 1",
-                description="Second workspace in org 1",
-                organization=cls.ORG1,
-            )
-            cls.WS1_ORG2 = Workspace.objects.create_if_has_perm(
-                cls.USER_ADMIN,
-                name="Workspace 1 Org 2",
-                description="First workspace in org 2",
-                organization=cls.ORG2,
-            )
-            cls.WS_STANDALONE = Workspace.objects.create_if_has_perm(
-                cls.USER_ADMIN,
-                name="Standalone Workspace",
-                description="Only workspace in org 3",
-                organization=cls.ORG3,
-            )
+        cls.WS1_ORG1 = create_workspace(
+            cls.USER_ADMIN,
+            name="Workspace 1 Org 1",
+            description="First workspace in org 1",
+            organization=cls.ORG1,
+        )
+        cls.WS2_ORG1 = create_workspace(
+            cls.USER_ADMIN,
+            name="Workspace 2 Org 1",
+            description="Second workspace in org 1",
+            organization=cls.ORG1,
+        )
+        cls.WS1_ORG2 = create_workspace(
+            cls.USER_ADMIN,
+            name="Workspace 1 Org 2",
+            description="First workspace in org 2",
+            organization=cls.ORG2,
+        )
+        cls.WS_STANDALONE = create_workspace(
+            cls.USER_ADMIN,
+            name="Standalone Workspace",
+            description="Only workspace in org 3",
+            organization=cls.ORG3,
+        )
 
     def test_workspace_pipeline_tags_scoped_to_workspace(self):
         """Verify pipelineTags only returns tags from pipelines in the specific workspace"""

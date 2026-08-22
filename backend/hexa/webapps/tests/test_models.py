@@ -415,14 +415,14 @@ class WebappOrganizationAdminOwnerPermissionsTest(TestCase):
             role=OrganizationMembershipRole.MEMBER,
         )
 
-        cls.WORKSPACE_1 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_1 = create_workspace(
             cls.WORKSPACE_ADMIN,
             name="Workspace 1",
             description="First workspace in organization",
             organization=cls.ORGANIZATION,
         )
 
-        cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_2 = create_workspace(
             cls.WORKSPACE_ADMIN,
             name="Workspace 2",
             description="Second workspace in organization",
