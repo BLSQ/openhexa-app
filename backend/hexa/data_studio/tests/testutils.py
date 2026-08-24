@@ -17,10 +17,6 @@ class SavedQueryTestMixin:
     - WORKSPACE_2: a second workspace USER_ADMIN belongs to (isolation checks)
     """
 
-    # Only the tests that actually run a stored query need WORKSPACE backed by a
-    # real Postgres database.
-    REAL_WORKSPACE_DATABASE = False
-
     @classmethod
     def setUpTestData(cls):
         cls.USER_ADMIN = User.objects.create_user(
@@ -40,7 +36,6 @@ class SavedQueryTestMixin:
             cls.USER_ADMIN,
             name="My Workspace",
             description="Test workspace",
-            provision_db_on=cls if cls.REAL_WORKSPACE_DATABASE else None,
         )
         cls.WORKSPACE_2 = create_workspace(
             cls.USER_ADMIN, name="My Workspace 2", description="Test workspace 2"
