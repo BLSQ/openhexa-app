@@ -3,8 +3,9 @@ import Button from "core/components/Button";
 import Card from "core/components/Card";
 import { useTranslation } from "next-i18next";
 import { GearIcon } from "@radix-ui/react-icons";
-import { TrashIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
+import { TrashIcon, GlobeAltIcon, TagIcon } from "@heroicons/react/24/outline";
 import Flag from "react-world-flags";
+import Tag from "core/features/Tag";
 import { OrganizationWorkspace_WorkspaceFragment } from "organizations/graphql/queries.generated";
 import { ArchiveWorkspace_WorkspaceFragment } from "workspaces/features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated";
 import router from "next/router";
@@ -18,6 +19,9 @@ type WorkspacesCardViewProps = {
   totalPages: number;
   totalItems: number;
   onArchiveClick: (workspace: ArchiveWorkspace_WorkspaceFragment) => void;
+  onManageTagsClick: (
+    workspace: OrganizationWorkspace_WorkspaceFragment,
+  ) => void;
 };
 
 const WorkspacesCardView = ({
@@ -28,6 +32,7 @@ const WorkspacesCardView = ({
   totalPages,
   totalItems,
   onArchiveClick,
+  onManageTagsClick,
 }: WorkspacesCardViewProps) => {
   const { t } = useTranslation();
 
@@ -58,36 +63,55 @@ const WorkspacesCardView = ({
             }
           >
             <Card.Content>
-              <div className="flex gap-2 justify-end">
-                <Button
-                  variant="outlined"
-                  className="static"
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    await router.push({
-                      pathname: `/workspaces/[workspaceSlug]/settings`,
-                      query: { workspaceSlug: ws.slug },
-                    });
-                  }}
-                  leadingIcon={<GearIcon className="w-4" />}
-                  disabled={!ws.permissions.manageMembers}
-                >
-                  {t("Settings")}
-                </Button>
-                <Button
-                  variant="outlined"
-                  className="static"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onArchiveClick(ws);
-                  }}
-                  leadingIcon={<TrashIcon className="w-4" />}
-                  disabled={!ws.permissions.delete}
-                >
-                  {t("Archive")}
-                </Button>
-              </div>
+              {ws.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {ws.tags.map((tag) => (
+                    <Tag key={tag.id} tag={tag} />
+                  ))}
+                </div>
+              )}
             </Card.Content>
+            <Card.Actions>
+              <Button
+                variant="outlined"
+                className="static"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onManageTagsClick(ws);
+                }}
+                leadingIcon={<TagIcon className="w-4" />}
+                disabled={!ws.permissions.manageTags}
+              >
+                {t("Tags")}
+              </Button>
+              <Button
+                variant="outlined"
+                className="static"
+                onClick={async (e) => {
+                  e.preventDefault();
+                  await router.push({
+                    pathname: `/workspaces/[workspaceSlug]/settings`,
+                    query: { workspaceSlug: ws.slug },
+                  });
+                }}
+                leadingIcon={<GearIcon className="w-4" />}
+                disabled={!ws.permissions.manageMembers}
+              >
+                {t("Settings")}
+              </Button>
+              <Button
+                variant="outlined"
+                className="static"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onArchiveClick(ws);
+                }}
+                leadingIcon={<TrashIcon className="w-4" />}
+                disabled={!ws.permissions.delete}
+              >
+                {t("Archive")}
+              </Button>
+            </Card.Actions>
           </Card>
         ))}
       </div>

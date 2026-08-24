@@ -3428,6 +3428,11 @@ type Organization {
   """Current resource usage counts."""
   usage: ResourceCounts!
 
+  """
+  The tags assigned to the workspaces of the organization, used to filter them.
+  """
+  workspaceTags: [String!]!
+
   """The workspaces associated with the organization."""
   workspaces(page: Int, perPage: Int): WorkspacePage!
 }
@@ -4260,7 +4265,7 @@ type Query {
   webapp(slug: String!, workspaceSlug: String!): Webapp
   webapps(favorite: Boolean, page: Int, perPage: Int, workspaceSlug: String): WebappsPage!
   workspace(slug: String!): Workspace
-  workspaces(organizationId: UUID, page: Int, perPage: Int, query: String): WorkspacePage!
+  workspaces(organizationId: UUID, page: Int, perPage: Int, query: String, tags: [String!]): WorkspacePage!
 }
 
 enum ReadFileContentError {
@@ -5715,6 +5720,7 @@ input UpdateWebappSourceInput @oneOf {
 Enum representing the possible errors that can occur when updating a workspace.
 """
 enum UpdateWorkspaceError {
+  INVALID_TAG
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -5727,6 +5733,7 @@ input UpdateWorkspaceInput {
   dockerImage: String
   name: String
   slug: String!
+  tags: [String!]
 }
 
 """
@@ -6021,6 +6028,7 @@ type Workspace {
   savedQueries(orderBy: SavedQueryOrderBy! = UPDATED_AT_DESC, page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
   shortcuts: [ShortcutItem!]!
   slug: String!
+  tags: [Tag!]!
   updatedAt: DateTime
   webappsEnabled: Boolean!
 }
@@ -6138,6 +6146,7 @@ type WorkspacePermissions {
   generateToken: Boolean!
   launchNotebookServer: Boolean!
   manageMembers: Boolean!
+  manageTags: Boolean!
   update: Boolean!
 }
 

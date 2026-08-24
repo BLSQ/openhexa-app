@@ -1,5 +1,6 @@
 import React from "react";
 import SearchInput from "core/features/SearchInput";
+import TagFilter from "core/components/TagFilter";
 import ViewToggleButton from "core/components/ViewToggleButton";
 import { useTranslation } from "react-i18next";
 
@@ -8,6 +9,9 @@ type WorkspacesHeaderProps = {
   setSearchQuery: (query: string) => void;
   view: "grid" | "card";
   setView: (view: "grid" | "card") => void;
+  availableTags?: string[] | null;
+  tagsFilter: string[];
+  setTagsFilter: (tags: string[]) => void;
 };
 
 const WorkspacesHeader = ({
@@ -15,6 +19,9 @@ const WorkspacesHeader = ({
   setSearchQuery,
   view,
   setView,
+  availableTags,
+  tagsFilter,
+  setTagsFilter,
 }: WorkspacesHeaderProps) => {
   const { t } = useTranslation();
   return (
@@ -27,7 +34,12 @@ const WorkspacesHeader = ({
         placeholder={t("Search workspaces...")}
       />
 
-      <div className="flex gap-5">
+      <div className="flex items-center gap-5">
+        <TagFilter
+          tags={availableTags}
+          value={tagsFilter}
+          onChange={setTagsFilter}
+        />
         <ViewToggleButton view={view} setView={setView} />
       </div>
     </div>

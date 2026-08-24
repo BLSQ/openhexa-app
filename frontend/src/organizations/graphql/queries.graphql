@@ -12,6 +12,7 @@ fragment Organization_organization on Organization {
   workspaces {
     totalItems
   }
+  workspaceTags
   permissions {
     createWorkspace {
       isAllowed
@@ -164,8 +165,12 @@ fragment OrganizationWorkspace_workspace on Workspace {
   members {
     totalItems
   }
+  tags {
+    ...Tag_tag
+  }
   permissions {
     manageMembers
+    manageTags
     delete
   }
 }
@@ -175,6 +180,7 @@ query OrganizationWorkspaces(
   $page: Int = 1
   $perPage: Int = 10
   $query: String
+  $tags: [String!]
 ) {
   organization(id: $organizationId) {
     ...Organization_organization
@@ -184,6 +190,7 @@ query OrganizationWorkspaces(
     page: $page
     perPage: $perPage
     query: $query
+    tags: $tags
   ) {
     totalItems
     pageNumber

@@ -34,7 +34,7 @@ from hexa.pipelines.models import (
     PipelineType,
     PipelineVersion,
 )
-from hexa.tags.models import Tag
+from hexa.tags.models import InvalidTag, Tag
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
@@ -182,12 +182,7 @@ def resolve_create_pipeline(_, info, **kwargs):
 
             tags = None
             if "tags" in input:
-                tags, has_error = Tag.validate_and_get_or_create(input["tags"])
-                if has_error:
-                    return {
-                        "success": False,
-                        "errors": ["INVALID_CONFIG"],
-                    }
+                tags = Tag.objects.get_or_create_from_names(input["tags"])
 
             pipeline = Pipeline.objects.create_if_has_perm(
                 principal=request.user, workspace=workspace, name=input["name"], **data
@@ -216,6 +211,11 @@ def resolve_create_pipeline(_, info, **kwargs):
                 event_properties,
             )
 
+    except InvalidTag:
+        return {
+            "success": False,
+            "errors": ["INVALID_CONFIG"],
+        }
     except storage.exceptions.NotFound:
         return {"success": False, "errors": ["FILE_NOT_FOUND"]}
     except PipelineCodeParsingError as e:
@@ -277,16 +277,15 @@ def resolve_update_pipeline(_, info, **kwargs):
         )
 
         if "tags" in input:
-            tags, has_error = Tag.validate_and_get_or_create(input["tags"])
-            if has_error:
-                return {
-                    "success": False,
-                    "errors": ["INVALID_CONFIG"],
-                }
-            input["tags"] = tags
+            input["tags"] = Tag.objects.get_or_create_from_names(input["tags"])
 
         pipeline.update_if_has_perm(request.user, **input)
         return {"pipeline": pipeline, "success": True, "errors": []}
+    except InvalidTag:
+        return {
+            "success": False,
+            "errors": ["INVALID_CONFIG"],
+        }
     except PermissionDenied:
         return {
             "success": False,
@@ -525,13 +524,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
         )
 
         if "tags" in input:
-            tags, has_error = Tag.validate_and_get_or_create(input["tags"])
-            if has_error:
-                return {
-                    "success": False,
-                    "errors": ["INVALID_CONFIG"],
-                }
-            pipeline.tags.set(tags)
+            pipeline.tags.set(Tag.objects.get_or_create_from_names(input["tags"]))
 
         if "functional_type" in input:
             pipeline.functional_type = input["functional_type"]
@@ -542,6 +535,11 @@ def resolve_upload_pipeline(_, info, **kwargs):
             "success": True,
             "errors": [],
             "pipeline_version": version,
+        }
+    except InvalidTag:
+        return {
+            "success": False,
+            "errors": ["INVALID_CONFIG"],
         }
     except PipelineDoesNotSupportParametersError:
         return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}

@@ -47,6 +47,9 @@ type Workspace {
     # The connections associated with the workspace.
     connections: [Connection!]!
 
+    # The tags assigned to this workspace by its organization administrators.
+    tags: [Tag!]!
+
     # Pipeline tags used within this workspace's organization.
     pipelineTags: [String!]!
 
@@ -131,6 +134,9 @@ type WorkspacePermissions {
     # Indicates whether the workspace members can be managed.
     manageMembers: Boolean!
 
+    # Indicates whether the tags of the workspace can be managed.
+    manageTags: Boolean!
+
     # Indicates whether a connection can be created in the workspace.
     createConnection: Boolean!
 
@@ -210,7 +216,8 @@ extend type Query {
     # Returns a workspace by its unique identifier.
     workspace(slug: String!): Workspace @loginRequired
     # Returns a page of workspaces.
-    workspaces(query: String, organizationId: UUID, page: Int, perPage: Int): WorkspacePage! @loginRequired
+    workspaces(query: String, organizationId: UUID, tags: [String!], page: Int, perPage: Int): WorkspacePage!
+        @loginRequired
     # Returns the invitations to workspaces of the current user.
     pendingWorkspaceInvitations(page: Int! = 1, perPage: Int = 10): WorkspaceInvitationPage!
 
@@ -234,6 +241,7 @@ Enum representing the possible errors that can occur when updating a workspace.
 enum UpdateWorkspaceError {
     PERMISSION_DENIED
     NOT_FOUND
+    INVALID_TAG
 }
 
 """
@@ -414,6 +422,10 @@ input UpdateWorkspaceInput {
 
     # The new configuration properties for the workspace.
     configuration: JSON
+
+    # The tag names to assign, replacing the current ones. Names are slugified.
+    # Restricted to organization admins and owners.
+    tags: [String!]
 }
 
 """

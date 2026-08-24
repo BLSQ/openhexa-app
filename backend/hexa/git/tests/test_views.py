@@ -120,10 +120,15 @@ class GitAuthorizeViewTest(GitAuthMixin, TestCase):
         response = self._get(token=token, uri=self._read_uri())
         self.assertEqual(response.status_code, 401)
 
-    def test_wrong_scope_returns_403(self):
+    def test_wrong_scope_returns_401(self):
+        """401 so the proxy re-challenges: a wrongly scoped token is unusable,
+        and only the 401 path carries `WWW-Authenticate: Basic realm="Gitea"`,
+        which is what makes a credential helper fetch a git-scoped token instead
+        of prompting for a password.
+        """
         token = self._token(self.viewer, scope="openhexa:mcp")
         response = self._get(token=token, uri=self._read_uri())
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
     def test_viewer_can_read(self):
         response = self._get(token=self._token(self.viewer), uri=self._read_uri())
