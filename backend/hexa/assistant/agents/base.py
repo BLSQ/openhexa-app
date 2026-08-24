@@ -162,7 +162,7 @@ class BaseAgent:
     instruction_set = InstructionSet.GENERAL
     tools: list = []
     max_tokens: int = 32768
-    max_requests: int = 10
+    max_requests: int = 30
     output_retries: int | None = None
     history_strip_tools: set[str] = set()
 
