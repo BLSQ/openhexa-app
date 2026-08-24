@@ -1,0 +1,811 @@
+<title>Scoped Workspace Tokens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --ground: #F6F8F7;
+    --surface: #FFFFFF;
+    --surface-sunk: #EDF1F0;
+    --ink: #13201E;
+    --ink-soft: #3C4E4B;
+    --muted: #63736F;
+    --rule: #DBE3E1;
+    --rule-strong: #C3CFCC;
+    --accent: #0E6B5E;
+    --accent-soft: #E2EFEC;
+    --warn: #8C5A0E;
+    --warn-soft: #F6EEDD;
+    --crit: #A8382A;
+    --crit-soft: #F8E9E6;
+    --shadow: 0 1px 2px rgba(19, 32, 30, .05), 0 8px 24px -16px rgba(19, 32, 30, .18);
+
+    --serif: "Spectral", "Iowan Old Style", Georgia, serif;
+    --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0D1312;
+      --surface: #141C1A;
+      --surface-sunk: #101817;
+      --ink: #E7EEEB;
+      --ink-soft: #C0CDC9;
+      --muted: #8C9E9A;
+      --rule: #253130;
+      --rule-strong: #374745;
+      --accent: #52C3AC;
+      --accent-soft: #12302B;
+      --warn: #D9A757;
+      --warn-soft: #2C2415;
+      --crit: #E58273;
+      --crit-soft: #331E1A;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px -18px rgba(0, 0, 0, .7);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0D1312;
+    --surface: #141C1A;
+    --surface-sunk: #101817;
+    --ink: #E7EEEB;
+    --ink-soft: #C0CDC9;
+    --muted: #8C9E9A;
+    --rule: #253130;
+    --rule-strong: #374745;
+    --accent: #52C3AC;
+    --accent-soft: #12302B;
+    --warn: #D9A757;
+    --warn-soft: #2C2415;
+    --crit: #E58273;
+    --crit-soft: #331E1A;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px -18px rgba(0, 0, 0, .7);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    display: grid;
+    grid-template-columns: 15.5rem minmax(0, 1fr);
+    gap: 4rem;
+    max-width: 76rem;
+    margin: 0 auto;
+    padding: 3.5rem 2rem 6rem;
+    align-items: start;
+  }
+
+  /* ---------- rail ---------- */
+
+  .rail { position: sticky; top: 3.5rem; display: flex; flex-direction: column; gap: 2rem; }
+
+  .stamp {
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .meta { display: grid; gap: .5rem; font-family: var(--mono); font-size: .74rem; color: var(--muted); }
+  .meta div { display: grid; grid-template-columns: 5.2rem 1fr; gap: .5rem; }
+  .meta span:last-child { color: var(--ink-soft); }
+
+  nav ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .1rem; counter-reset: toc; }
+  nav a {
+    display: grid;
+    grid-template-columns: 1.6rem 1fr;
+    gap: .35rem;
+    padding: .3rem .4rem .3rem 0;
+    text-decoration: none;
+    color: var(--ink-soft);
+    font-size: .86rem;
+    border-radius: 3px;
+  }
+  nav a .n { font-family: var(--mono); font-size: .72rem; color: var(--muted); padding-top: .12rem; }
+  nav a:hover { color: var(--accent); }
+  nav a:hover .n { color: var(--accent); }
+  nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- article ---------- */
+
+  article { min-width: 0; }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(2.1rem, 4.4vw, 3rem);
+    line-height: 1.08;
+    letter-spacing: -.02em;
+    margin: .4rem 0 .8rem;
+    text-wrap: balance;
+  }
+
+  .standfirst {
+    font-family: var(--serif);
+    font-size: 1.22rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    max-width: 34em;
+    margin: 0 0 2.75rem;
+  }
+  .standfirst em { color: var(--ink); font-style: italic; }
+
+  section { margin-top: 3.5rem; max-width: 66ch; }
+  section.wide { max-width: none; }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: .7rem;
+  }
+  .eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+
+  h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.62rem;
+    line-height: 1.2;
+    letter-spacing: -.01em;
+    margin: 0 0 1rem;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: .005em;
+    margin: 2.2rem 0 .6rem;
+  }
+
+  p { margin: 0 0 1.05rem; }
+  strong { font-weight: 600; }
+  a { color: var(--accent); }
+
+  code, .mono { font-family: var(--mono); font-size: .86em; }
+  p code, li code, td code, .lede code {
+    background: var(--surface-sunk);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: .06em .3em;
+  }
+
+  ul, ol { margin: 0 0 1.05rem; padding-left: 1.25rem; }
+  li { margin-bottom: .45rem; }
+  li::marker { color: var(--muted); }
+
+  .lede {
+    border-left: 2px solid var(--accent);
+    padding: .1rem 0 .1rem 1.1rem;
+    margin: 0 0 1.6rem;
+    font-family: var(--serif);
+    font-size: 1.08rem;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- tables ---------- */
+
+  .scroll { overflow-x: auto; margin: 1.4rem 0 1.8rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+    min-width: 34rem;
+  }
+  caption {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-bottom: .6rem;
+  }
+  th {
+    text-align: left;
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: .7rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--rule-strong);
+    padding: 0 1rem .5rem 0;
+    vertical-align: bottom;
+  }
+  td {
+    padding: .7rem 1rem .7rem 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+    color: var(--ink-soft);
+  }
+  td:first-child { color: var(--ink); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.num, th.num { font-variant-numeric: tabular-nums; }
+  td .where { display: block; font-family: var(--mono); font-size: .76rem; color: var(--muted); margin-top: .2rem; }
+
+  .chip {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .12rem .42rem;
+    border-radius: 2px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .chip.hi { color: var(--crit); border-color: var(--crit); background: var(--crit-soft); }
+  .chip.mid { color: var(--warn); border-color: var(--warn); background: var(--warn-soft); }
+  .chip.lo { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+  /* ---------- figure ---------- */
+
+  figure { margin: 2rem 0 2.2rem; }
+  figure svg { display: block; width: 100%; max-width: 60rem; height: auto; color: var(--ink-soft); }
+  figcaption {
+    font-size: .84rem;
+    color: var(--muted);
+    max-width: 52ch;
+    margin-top: .9rem;
+    padding-left: .1rem;
+  }
+
+  /* ---------- layer cards ---------- */
+
+  .layers { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; margin: 1.5rem 0 1.8rem; }
+  .layer { background: var(--surface); padding: 1rem 1.15rem; display: grid; grid-template-columns: 8.5rem 1fr; gap: 1.2rem; }
+  .layer .k { font-family: var(--mono); font-size: .78rem; color: var(--accent); letter-spacing: .04em; }
+  .layer .q { font-family: var(--serif); font-style: italic; color: var(--ink); margin: 0 0 .25rem; }
+  .layer .d { margin: 0; font-size: .88rem; color: var(--ink-soft); }
+
+  /* ---------- phases ---------- */
+
+  .phases { list-style: none; margin: 1.8rem 0 0; padding: 0; display: grid; gap: 0; }
+  .phase {
+    display: grid;
+    grid-template-columns: 3.4rem 1fr;
+    gap: 1.4rem;
+    padding: 0 0 1.9rem;
+    position: relative;
+    margin: 0;
+  }
+  .phase::before {
+    content: "";
+    position: absolute;
+    left: 1.05rem;
+    top: 1.9rem;
+    bottom: 0;
+    width: 1px;
+    background: var(--rule-strong);
+  }
+  .phase:last-child::before { display: none; }
+  .phase .num {
+    font-family: var(--mono);
+    font-size: .78rem;
+    width: 2.1rem;
+    height: 2.1rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--surface);
+    color: var(--accent);
+    position: relative;
+    z-index: 1;
+  }
+  .phase h4 { font-family: var(--sans); font-size: .98rem; font-weight: 600; margin: .25rem 0 .35rem; }
+  .phase p { margin: 0 0 .5rem; font-size: .92rem; color: var(--ink-soft); }
+  .gate {
+    font-size: .84rem;
+    color: var(--ink-soft);
+    background: var(--surface-sunk);
+    border-left: 2px solid var(--accent);
+    padding: .5rem .75rem;
+    border-radius: 0 3px 3px 0;
+  }
+  .gate b { font-family: var(--mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+
+  /* ---------- schema block ---------- */
+
+  pre {
+    background: var(--surface-sunk);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 1rem 1.1rem;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: .8rem;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    margin: 1.4rem 0 1.8rem;
+  }
+  pre b { color: var(--ink); font-weight: 500; }
+  pre i { color: var(--accent); font-style: normal; }
+
+  /* ---------- callout ---------- */
+
+  .callout {
+    border: 1px solid var(--rule);
+    border-top: 2px solid var(--accent);
+    background: var(--surface);
+    border-radius: 0 0 4px 4px;
+    padding: 1.15rem 1.3rem;
+    box-shadow: var(--shadow);
+    margin: 1.8rem 0;
+  }
+  .callout .t {
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: .5rem;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* ---------- steps ---------- */
+
+  ol.checks { list-style: none; padding: 0; counter-reset: chk; }
+  ol.checks li {
+    counter-increment: chk;
+    display: grid;
+    grid-template-columns: 1.9rem 1fr;
+    gap: .7rem;
+    margin-bottom: .8rem;
+  }
+  ol.checks li::before {
+    content: counter(chk, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: .74rem;
+    color: var(--muted);
+    padding-top: .18rem;
+  }
+
+  footer {
+    margin-top: 4.5rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: .74rem;
+    color: var(--muted);
+    max-width: 66ch;
+  }
+
+  @media (max-width: 62rem) {
+    .page { grid-template-columns: 1fr; gap: 2.5rem; padding: 2.5rem 1.35rem 4rem; }
+    .rail { position: static; }
+    nav ol { grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); display: grid; }
+    .layer { grid-template-columns: 1fr; gap: .35rem; }
+  }
+</style>
+
+<div class="page">
+  <aside class="rail">
+    <div>
+      <div class="stamp">RFC · HEXA-1775</div>
+      <div class="meta" style="margin-top:.9rem">
+        <div><span>status</span><span>Draft — for discussion</span></div>
+        <div><span>owner</span><span>@mrivar</span></div>
+        <div><span>branch</span><span>HEXA-1775</span></div>
+        <div><span>updated</span><span>2026-08-21</span></div>
+      </div>
+    </div>
+    <nav aria-label="Contents">
+      <ol>
+        <li><a href="#today"><span class="n">01</span><span>Where we are today</span></a></li>
+        <li><a href="#semantics"><span class="n">02</span><span>What “scoped” must mean</span></a></li>
+        <li><a href="#design"><span class="n">03</span><span>The choke point</span></a></li>
+        <li><a href="#review"><span class="n">04</span><span>Review of the WIP</span></a></li>
+        <li><a href="#storage"><span class="n">05</span><span>First-class tokens</span></a></li>
+        <li><a href="#errors"><span class="n">06</span><span>Error semantics</span></a></li>
+        <li><a href="#rollout"><span class="n">07</span><span>Rollout</span></a></li>
+        <li><a href="#product"><span class="n">08</span><span>User’s side</span></a></li>
+        <li><a href="#risks"><span class="n">09</span><span>Risk register</span></a></li>
+        <li><a href="#open"><span class="n">10</span><span>Open questions</span></a></li>
+        <li><a href="#alts"><span class="n">11</span><span>Alternatives</span></a></li>
+        <li><a href="#next"><span class="n">12</span><span>What I’d do next</span></a></li>
+      </ol>
+    </nav>
+  </aside>
+
+  <article>
+    <h1>Workspace tokens that stop at the workspace</h1>
+    <p class="standfirst">A workspace token today authenticates <em>the person</em>, not <em>the workspace</em>. Holding a token for one workspace grants its owner’s full account — every workspace, every organisation, 2FA bypassed. Here is how we close that, and how we do it without anyone finding out from a broken pipeline.</p>
+
+    <div class="callout">
+      <div class="t">The shape of the answer</div>
+      <p>Enforce scoping at a <strong>single choke point</strong> — the principal the auth middleware builds — so there is one switch and one rollback. Give tokens a <strong>real table</strong> so they can be named, listed, revoked and measured. Ship the behaviour change through a <strong>measured deprecation</strong>: observe, dry-run, opt-in, default, cutoff.</p>
+      <p>The fact that makes this tractable: every token ever issued was issued <em>for a workspace</em>. Cutoff means legacy tokens start being <strong>scoped</strong>, not <strong>rejected</strong> — so single-workspace users, almost certainly the majority, notice nothing.</p>
+    </div>
+
+    <section id="today">
+      <div class="eyebrow">01 · Where we are today</div>
+      <h2>The token is an account credential wearing a project credential’s clothes</h2>
+      <div class="scroll">
+        <table>
+          <caption>Current behaviour, as built</caption>
+          <thead><tr><th>What happens</th><th>Consequence</th></tr></thead>
+          <tbody>
+            <tr><td>A token is <code>WorkspaceMembership.access_token</code>, signed with Django’s <code>Signer</code><span class="where">workspaces/authentication.py:68</span></td><td>The secret is stored in plaintext in the DB and is recoverable from a dump</td></tr>
+            <tr><td>The middleware sets <code>request.user = token.user</code><span class="where">workspaces/middlewares.py:26</span></td><td>The request runs with the owner’s <em>entire</em> authority — this is the whole bug</td></tr>
+            <tr><td>It also sets <code>request.workspace</code></td><td>Nothing reads it. One grep, one hit: the assignment itself</td></tr>
+            <tr><td>It sets <code>bypass_two_factor = True</code></td><td>A leaked token also defeats 2FA on that account</td></tr>
+            <tr><td>Membership tokens never expire, have no name, no <code>last_used_at</code></td><td>We cannot answer “which tokens exist and is anyone using them?”</td></tr>
+            <tr><td>The only revocation is regenerating the membership’s <code>access_token</code></td><td>Incident response is “break every other integration that person had”</td></tr>
+            <tr><td>Users with implicit access get a short-lived <code>IdentityToken</code><span class="where">workspaces/authentication.py:85</span></td><td>Already workspace-bound and expiring — the good precedent to build on</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Consumers, in rough order of volume: the <strong>CLI/SDK</strong> (<code>workspaces add</code>, <code>pipelines push</code>, pipeline runtime), <strong>notebooks</strong> (the Jupyter launcher mints one per user-and-workspace session), the <strong>MCP server</strong>, and <strong>users’ own automation</strong> — CI jobs, cron, laptops. That last group is invisible to us today, which is the single most important thing to fix before choosing a cutoff date.</p>
+    </section>
+
+    <section id="semantics">
+      <div class="eyebrow">02 · What “scoped” must mean</div>
+      <h2>Scope is a reach, not a column</h2>
+      <p class="lede">A scoped token may reach exactly what a member of that workspace reaches <em>through</em> that workspace — no more, no less.</p>
+      <p>The naïve reading — “only rows whose <code>workspace_id</code> matches” — is wrong, and shipping it would quietly break real features. Things that are <strong>in scope even though the row belongs elsewhere</strong>:</p>
+      <ul>
+        <li><strong>Datasets shared organisation-wide.</strong> <code>DatasetQuerySet.filter_for_user</code> admits <code>shared_with_organization</code> datasets from any workspace in an org you belong to. A token scoped to <code>workspace-b</code> must still see them: <code>workspace-b</code> can reach them, so the token can.</li>
+        <li><strong>Linked datasets.</strong> <code>DatasetLink</code> <em>is</em> the cross-workspace mechanism. Scoping must respect links, not undo them.</li>
+        <li><strong>The organisation</strong>, as the boundary those shares are evaluated against — but only the one the scoped workspace belongs to.</li>
+        <li><strong>Pipeline templates</strong> from other workspaces, exactly as far as a member of the scoped workspace already sees them.</li>
+      </ul>
+      <p>Out of scope, always: other workspaces, their memberships, connections, pipelines, webapps and saved queries; every account-level mutation (profile, 2FA, org membership, creating workspaces, accepting invitations); and <strong>the superuser shortcut</strong> — a superuser’s token must be no wider than anyone else’s.</p>
+      <p>This is why scoping belongs on the <em>principal</em>. The WIP branch gets the shape right: <code>_scoped()</code> is applied <strong>after</strong> every branch of <code>filter_for_user</code>, including the <code>self.all()</code> shortcuts, and <code>Organization.filter_for_user</code> narrows through the relation (<code>workspaces__id=user.workspace_id</code>) so org-shared reach survives.</p>
+    </section>
+
+    <section id="design" class="wide">
+      <div class="eyebrow">03 · The choke point</div>
+      <h2>One line turns it on, one setting turns it off</h2>
+      <figure>
+        <svg viewBox="0 0 900 470" role="img" aria-label="Today a bearer token becomes the full account user and reaches every workspace its owner can; with scoping the middleware builds a workspace-scoped principal, three enforcement layers narrow the reach, and out-of-scope requests are refused with TOKEN_SCOPE_EXCEEDED.">
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+            </marker>
+            <marker id="ar-crit" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--crit)"/>
+            </marker>
+            <marker id="ar-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--accent)"/>
+            </marker>
+          </defs>
+
+          <!-- ROW LABELS -->
+          <text x="0" y="20" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="1.6" fill="var(--muted)">TODAY</text>
+          <line x1="52" y1="16" x2="900" y2="16" stroke="var(--rule)"/>
+
+          <!-- TODAY -->
+          <rect x="0" y="70" width="118" height="46" rx="3" fill="none" stroke="currentColor"/>
+          <text x="59" y="90" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="currentColor">Bearer token</text>
+          <text x="59" y="105" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--muted)">ws: malaria-2026</text>
+
+          <line x1="118" y1="93" x2="176" y2="93" stroke="currentColor" marker-end="url(#ar)"/>
+
+          <rect x="176" y="70" width="112" height="46" rx="3" fill="none" stroke="currentColor"/>
+          <text x="232" y="97" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="currentColor">middleware</text>
+
+          <line x1="288" y1="93" x2="404" y2="93" stroke="currentColor" marker-end="url(#ar)"/>
+          <text x="346" y="84" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">request.user =</text>
+          <text x="346" y="110" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">token.user</text>
+
+          <rect x="404" y="66" width="126" height="54" rx="3" fill="none" stroke="var(--crit)"/>
+          <text x="467" y="88" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--crit)">User</text>
+          <text x="467" y="104" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--crit)">full account</text>
+
+          <line x1="530" y1="88" x2="640" y2="52" stroke="var(--accent)" marker-end="url(#ar-ok)"/>
+          <line x1="530" y1="93" x2="640" y2="95" stroke="var(--crit)" marker-end="url(#ar-crit)"/>
+          <line x1="530" y1="99" x2="640" y2="138" stroke="var(--crit)" marker-end="url(#ar-crit)"/>
+
+          <rect x="644" y="34" width="180" height="34" rx="3" fill="none" stroke="var(--accent)"/>
+          <text x="656" y="56" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--accent)">malaria-2026</text>
+          <rect x="644" y="78" width="180" height="34" rx="3" fill="none" stroke="var(--crit)"/>
+          <text x="656" y="100" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--crit)">tb-surveillance</text>
+          <rect x="644" y="122" width="180" height="34" rx="3" fill="none" stroke="var(--crit)"/>
+          <text x="656" y="144" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--crit)">org admin · all workspaces</text>
+
+          <text x="836" y="100" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--crit)" transform="rotate(90 836 100)" text-anchor="middle">no boundary</text>
+
+          <!-- ROW LABEL 2 -->
+          <text x="0" y="222" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="1.6" fill="var(--accent)">PROPOSED</text>
+          <line x1="78" y1="218" x2="900" y2="218" stroke="var(--rule)"/>
+
+          <!-- PROPOSED -->
+          <rect x="0" y="272" width="118" height="46" rx="3" fill="none" stroke="currentColor"/>
+          <text x="59" y="292" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="currentColor">Bearer token</text>
+          <text x="59" y="307" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--muted)">ws: malaria-2026</text>
+
+          <line x1="118" y1="295" x2="176" y2="295" stroke="currentColor" marker-end="url(#ar)"/>
+
+          <rect x="176" y="272" width="112" height="46" rx="3" fill="none" stroke="currentColor"/>
+          <text x="232" y="299" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="currentColor">middleware</text>
+
+          <line x1="288" y1="295" x2="404" y2="295" stroke="var(--accent)" marker-end="url(#ar-ok)"/>
+          <text x="346" y="286" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--accent)">request.user =</text>
+          <text x="346" y="312" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--accent)">WorkspaceTokenUser</text>
+
+          <rect x="404" y="256" width="126" height="78" rx="3" fill="none" stroke="var(--accent)"/>
+          <text x="467" y="280" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--accent)">scoped</text>
+          <text x="467" y="295" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--accent)">principal</text>
+          <text x="467" y="316" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">workspace_id</text>
+
+          <line x1="530" y1="295" x2="586" y2="295" stroke="var(--accent)" marker-end="url(#ar-ok)"/>
+
+          <rect x="586" y="252" width="150" height="86" rx="3" fill="none" stroke="var(--rule-strong)" stroke-dasharray="3 3"/>
+          <text x="661" y="270" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" letter-spacing="1" fill="var(--muted)">3 LAYERS</text>
+          <text x="598" y="288" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">filter_for_user</text>
+          <text x="598" y="304" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">has_role</text>
+          <text x="598" y="320" font-family="IBM Plex Mono, monospace" font-size="10" fill="currentColor">has_perm</text>
+
+          <line x1="736" y1="286" x2="790" y2="264" stroke="var(--accent)" marker-end="url(#ar-ok)"/>
+          <rect x="794" y="246" width="106" height="34" rx="3" fill="none" stroke="var(--accent)"/>
+          <text x="806" y="268" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--accent)">malaria-2026</text>
+
+          <line x1="736" y1="306" x2="782" y2="330" stroke="var(--crit)" stroke-dasharray="4 3"/>
+          <line x1="784" y1="324" x2="796" y2="338" stroke="var(--crit)" stroke-width="1.4"/>
+          <line x1="796" y1="324" x2="784" y2="338" stroke="var(--crit)" stroke-width="1.4"/>
+          <text x="806" y="335" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--crit)">everything else</text>
+
+          <text x="586" y="374" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--crit)">→ TOKEN_SCOPE_EXCEEDED</text>
+          <text x="586" y="390" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">named, actionable, logged</text>
+
+          <line x1="0" y1="424" x2="900" y2="424" stroke="var(--rule)"/>
+          <text x="0" y="446" font-family="IBM Plex Mono, monospace" font-size="10.5" fill="var(--muted)">The difference is one assignment in the middleware — which is also the one place to roll back.</text>
+        </svg>
+        <figcaption>The only structural change is which principal the middleware installs. Every resolver, queryset and permission function stays as written; they simply receive a principal that reaches less.</figcaption>
+      </figure>
+
+      <div class="layers">
+        <div class="layer">
+          <div class="k">visibility</div>
+          <div>
+            <p class="q">What rows exist for me?</p>
+            <p class="d"><code>WorkspaceQuerySet._scoped()</code>, applied last so it also clamps the <code>self.all()</code> superuser shortcuts. Cascades to every model whose <code>filter_for_user</code> funnels through <code>Workspace.objects.filter_for_user</code>.</p>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="k">authority</div>
+          <div>
+            <p class="q">May I act on this row?</p>
+            <p class="d"><code>Workspace.get_membership()</code> returns <code>None</code> off-scope, so every permission derived from <code>has_role()</code> collapses to <code>False</code> — about thirty checks, all through one method.</p>
+          </div>
+        </div>
+        <div class="layer">
+          <div class="k">guard</div>
+          <div>
+            <p class="q">Did something reach an object out of band?</p>
+            <p class="d"><code>WorkspaceTokenUser.has_perm()</code> refuses objects whose workspace isn’t the scope. Redundant by design — it catches the check somebody writes by hand next quarter.</p>
+          </div>
+        </div>
+      </div>
+
+      <p>The <code>has_role()</code> refactor already on the branch matters more than it looks. It converts roughly thirty hand-rolled <code>workspacemembership_set.filter(user=…, role__in=[…]).exists()</code> calls into one method — and that method is where scoping is enforced for the entire permission layer. Without it, scoping would need thirty correct edits, and would regress the first time someone wrote the thirty-first check by hand.</p>
+
+      <h3>The principles this leans on, named honestly</h3>
+      <ul>
+        <li><strong>One place decides reach.</strong> Everything else asks. That is what makes the change reviewable and the rollback a single setting.</li>
+        <li><strong>Open/closed.</strong> <code>WorkspaceToken</code> is already an ABC with two strategies; a new token format arrives as a subclass, not as edits to the dispatch.</li>
+        <li><strong>Liskov, via a Django proxy.</strong> <code>WorkspaceTokenUser</code> <em>is</em> a <code>User</code>, so every call site keeps working and just sees less. This is the decorator pattern wearing a proxy model, and it is why no resolver needs touching.</li>
+        <li><strong>Fail closed.</strong> <code>filter_for_user</code> raising <code>NotImplementedError</code> for unknown principal types means a future principal class cannot silently inherit “sees everything”.</li>
+      </ul>
+    </section>
+
+    <section id="review">
+      <div class="eyebrow">04 · Review of the WIP branch</div>
+      <h2>Keep four things, fix six</h2>
+      <p><strong>Keep:</strong> the <code>WorkspaceScopedPrincipal</code> marker with <code>ServicePrincipal</code> inheriting from it — “not a person” and “confined to one workspace” were conflated and the split is right; <code>_scoped()</code> as a post-filter; the superuser carve-out in <code>BaseQuerySet</code>; and <code>test_visibility_scoping.py</code>, an executable invariant over an explicit model list, run twice (member holder and superuser holder). That test file is the highest-value artefact on the branch.</p>
+      <p><strong>Fix before merge:</strong></p>
+      <ol class="checks">
+        <li><code>WorkspaceTokenUser.workspace = None</code> as a class attribute mutated per instance is fragile: a missed <code>from_token()</code> yields a principal whose <code>workspace_id</code> raises <code>AttributeError</code>. Make the scope a required constructor argument, or fail with a domain error that says what went wrong.</li>
+        <li><code>core/models/base.py</code> now imports <code>user_management</code> models for an <code>isinstance</code> check — a layering inversion. Ask the principal instead (an <code>is_scoped</code> property on <code>UserInterface</code>), so core depends on the interface.</li>
+        <li>The <code>if/elif</code> on payload shape in <code>authenticate()</code> won’t survive a third format. Put an explicit <code>version</code> discriminator on every payload, dispatch through a registry, treat unknown as invalid.</li>
+        <li><code>SCOPED_MODELS</code> is hand-maintained. Add a guard test that enumerates every model with a <code>filter_for_user</code> and fails when one is in neither <code>SCOPED_MODELS</code> nor an explicit <code>INTENTIONALLY_UNSCOPED</code> list — otherwise the matrix silently stops being a matrix.</li>
+        <li>Reconsider <code>bypass_two_factor</code> for tokens. At minimum a token must not perform account-level mutations (2FA settings, email change).</li>
+        <li>Nothing touches the middleware yet. The wire-up is one line and belongs behind the flag in §07, not as a bare behavioural change.</li>
+      </ol>
+      <p>And add the test cases most likely to be quietly wrong: an org-shared dataset from another workspace <em>must stay visible</em>, and a linked dataset <em>must stay visible</em>, asserted in both directions.</p>
+    </section>
+
+    <section id="storage">
+      <div class="eyebrow">05 · First-class token records</div>
+      <h2><code>membership.access_token</code> cannot carry this change</h2>
+      <p>One token per member per workspace, no name, no usage record, and revocation that breaks every copy. The migration, the UI and the measurement all need a real record:</p>
+      <pre><b>WorkspaceAccessToken</b>
+  workspace      FK → Workspace     <i>the scope, immutable</i>
+  user           FK → User          <i>the identity it acts as</i>
+  name           str                "CI — nightly refresh"
+  prefix         str  indexed       <i>first 8 chars; shown in UI, greppable in logs</i>
+  token_hash     str                <i>sha256 — the secret is shown once, never stored</i>
+  scope_version  int                <i>1 = legacy/unscoped, 2 = scoped</i>
+  expires_at     dt   null          <i>optional for now, cheap to add later</i>
+  last_used_at   dt   null          <i>throttled write, once per N minutes</i>
+  last_used_ip   str  null
+  revoked_at     dt   null
+  revoked_by     FK → User null</pre>
+      <ul>
+        <li><strong>Store a hash, not the token.</strong> Today the secret is recoverable from the database. Hashing means a DB dump is not a token dump.</li>
+        <li><strong>Prefix the string</strong> (<code>ohx_ws_…</code>) so GitHub and GitLab secret scanning can spot leaks, and so support can identify a token from a log line without ever seeing it.</li>
+        <li><strong><code>scope_version</code> on the record</strong>, not inferred from payload shape, is what makes the rollout measurable and reversible per token.</li>
+        <li><code>MembershipToken</code> keeps working untouched for the whole grandfather period; the old field is dropped only after cutoff. <code>IdentityToken</code> needs nothing — it is already short-lived and workspace-bound.</li>
+      </ul>
+    </section>
+
+    <section id="errors">
+      <div class="eyebrow">06 · Error semantics</div>
+      <h2>The cheapest thing we can build is a good error message</h2>
+      <p>Used out of scope, the architecture as it stands answers <code>WORKSPACE_NOT_FOUND</code>, an empty list, or a bare <code>PERMISSION_DENIED</code>. To a user that reads as “the platform lost my workspace” or “someone removed my permissions”, and it becomes a ticket. Return a distinct signal instead:</p>
+      <div class="callout">
+        <div class="t">TOKEN_SCOPE_EXCEEDED</div>
+        <p>“This token is scoped to workspace <code>malaria-2026</code> and cannot access <code>tb-surveillance</code>. Create a token for that workspace in Account settings → Tokens.”</p>
+      </div>
+      <p>The SDK and CLI surface that message verbatim and link the migration page. Every occurrence is logged with the token prefix, which is what lets the admin report in §07 say “three of your tokens hit scope errors this week”.</p>
+      <p>Disclosing “this exists but you can’t have it” is fine here: the holder already knows their own workspace list, so we reveal nothing they couldn’t learn by logging in. Silent emptiness trades a negligible security gain for a large support cost.</p>
+    </section>
+
+    <section id="rollout" class="wide">
+      <div class="eyebrow">07 · Rollout</div>
+      <h2>No user learns about this from a broken pipeline</h2>
+      <p style="max-width:66ch">Each phase has an entry gate, an exit gate and a rollback. Because enforcement lives in the principal, every phase up to and including cutoff is one setting away from <code>off</code>.</p>
+      <ol class="phases">
+        <li class="phase">
+          <div class="num">00</div>
+          <div>
+            <h4>Instrument — no behaviour change</h4>
+            <p>Land the token table, backfill one record per existing <code>access_token</code> at <code>scope_version = 1</code>, and record <code>last_used_at</code> / IP / user agent on every token request. Then add <strong>shadow evaluation</strong>: on each request, compute whether a scoped principal would have answered differently and log <code>{token_prefix, workspace, operation, would_deny}</code>.</p>
+            <div class="gate"><b>Exit</b> — two weeks of data. We can then answer, per organisation: how many tokens are live, how many are used at all, and how many ever act outside their workspace.</div>
+            <p style="margin-top:.6rem"><em>Non-negotiable.</em> Every estimate of “how much will this break” is currently a guess, and the fix is two weeks of logging.</p>
+          </div>
+        </li>
+        <li class="phase">
+          <div class="num">01</div>
+          <div>
+            <h4>Dry-run enforcement</h4>
+            <p>Wire the middleware to build a <code>WorkspaceTokenUser</code>, behind a three-state setting: <code>off</code> / <code>log</code> / <code>enforce</code>, defaulting to <code>log</code>. In <code>log</code> the request proceeds unscoped and every would-be denial is recorded and attributed.</p>
+            <div class="gate"><b>Exit</b> — the would-deny rate is understood and each remaining pattern has an owner: either the scope semantics are wrong (probably org-shared datasets) or a user integration needs migrating, and we know whose.</div>
+          </div>
+        </li>
+        <li class="phase">
+          <div class="num">02</div>
+          <div>
+            <h4>Scoped tokens available, opt-in</h4>
+            <p>Account settings → Tokens gains named, per-workspace token creation at <code>scope_version = 2</code>. Existing tokens display as <em>Legacy — full account access</em> with a “Replace with a scoped token” action. Ship an SDK/CLI that understands the new prefix and warns on a legacy token; publish the minimum version. Docs, changelog, migration guide.</p>
+            <div class="gate"><b>Exit</b> — create / rotate / revoke works end to end, docs are live, SDK released.</div>
+          </div>
+        </li>
+        <li class="phase">
+          <div class="num">03</div>
+          <div>
+            <h4>Scoped by default</h4>
+            <p><code>generateWorkspaceToken</code> mints scoped tokens; legacy tokens still work. Banner for users holding a legacy token <strong>used in the last 30 days</strong> — don’t nag people whose tokens are dormant, nag them at revocation time instead. Add an org-admin view: holder, workspace, last used, scoped or legacy. That view is what lets an admin drive their own migration instead of waiting for us.</p>
+            <div class="gate"><b>Exit</b> — legacy usage trending down, and the remaining holders are known by name.</div>
+          </div>
+        </li>
+        <li class="phase">
+          <div class="num">04</div>
+          <div>
+            <h4>Nudge, with dates</h4>
+            <p>Email the holders of legacy tokens <em>in use</em> — token name, workspace, last-used date, cutoff date. Then two announced <strong>brownouts</strong>: one hour of enforcement on day X and day Y. A brownout converts “I ignored the email” into a survivable 60-minute incident instead of a surprise outage. Pick the slot against the actual pipeline schedule data, not against our timezone.</p>
+            <div class="gate"><b>Exit</b> — brownouts produce no unexplained failures.</div>
+          </div>
+        </li>
+        <li class="phase">
+          <div class="num">05</div>
+          <div>
+            <h4>Cutoff</h4>
+            <p>All tokens enforce their scope. Legacy tokens are <strong>scoped, not rejected</strong> — a <code>MembershipToken</code> already names its workspace, so it starts behaving as a token for that workspace rather than dying. Genuinely cross-workspace automation needs one token per workspace, which the CLI config already models per workspace. Offer a per-organisation grace extension, once, with a hard expiry, so one unlucky team can’t hold the platform.</p>
+            <div class="gate"><b>Then</b> — drop <code>membership.access_token</code>, remove the flag, delete the dry-run code.</div>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section id="product">
+      <div class="eyebrow">08 · The user’s side</div>
+      <h2>Seven ways to find out, in descending order of preference</h2>
+      <ol>
+        <li>They read the changelog. (Few.)</li>
+        <li>The token list marks theirs <em>Legacy — full account access</em>.</li>
+        <li>A banner, because a token of theirs was used recently.</li>
+        <li>Their org admin tells them, from the org token report.</li>
+        <li>An email naming the token and the cutoff date.</li>
+        <li>A brownout fails a run — with an error that names the problem and the fix.</li>
+        <li>Cutoff day. <em>Nobody should reach here.</em></li>
+      </ol>
+      <h3>What the token UI has to show</h3>
+      <p>Name, workspace, scoped-or-legacy badge, created date, <strong>last used</strong>, revoke. “Last used” is what lets someone delete a token fearlessly — and fearless deletion is where the security benefit actually comes from.</p>
+      <h3>The honest cost, and how we pay it down</h3>
+      <p>Someone automating three workspaces now needs three tokens. Mitigations in order: the CLI already stores tokens per workspace; make creating one two clicks from the workspace page as well as from account settings; allow creating several at once for the workspaces you pick; and <strong>never silently invalidate</strong> — creating a new token must not kill the old one, which today it does, and which is a bug worth fixing early regardless.</p>
+      <h3>There is a real benefit — say it</h3>
+      <p>Scoped, named, revocable tokens with last-used dates mean you can hand a token to a CI job or a collaborator without handing over your account, rotate one integration without breaking the others, and let an admin see and revoke what exists. Put that in the changelog, not “tokens are now restricted”.</p>
+    </section>
+
+    <section id="risks" class="wide">
+      <div class="eyebrow">09 · Risk register</div>
+      <h2>What can go wrong, and how we’d know</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation</th><th>Detection</th></tr></thead>
+          <tbody>
+            <tr><td>Org-shared or linked datasets cut off by over-eager scoping</td><td><span class="chip hi">high</span></td><td><span class="chip hi">high</span></td><td>“Reach, not rows” semantics (§02); explicit tests in both directions</td><td><code>test_visibility_scoping</code> asserts presence <em>and</em> absence</td></tr>
+            <tr><td>Cross-workspace automation breaks at cutoff</td><td><span class="chip mid">medium</span></td><td><span class="chip hi">high</span></td><td>Phase 0 identifies exactly who; direct contact; brownouts</td><td>Shadow logs, scope-error metric</td></tr>
+            <tr><td>A permission check bypasses <code>has_role()</code> and stays unscoped</td><td><span class="chip mid">medium</span></td><td><span class="chip hi">high</span></td><td>The guard layer catches it; grep for remaining <code>workspacemembership_set</code> role queries</td><td>Test asserting no role query outside the choke point</td></tr>
+            <tr><td>A new model is added later without scoping</td><td><span class="chip hi">high over time</span></td><td><span class="chip mid">medium</span></td><td><code>SCOPED_MODELS</code> guard test</td><td>CI</td></tr>
+            <tr><td>MCP server breaks (it may enumerate workspaces)</td><td><span class="chip mid">medium</span></td><td><span class="chip mid">medium</span></td><td>Audit the operations it calls before Phase 3</td><td>Shadow logs filtered by user agent</td></tr>
+            <tr><td>Internal support / ops scripts using superuser tokens break</td><td><span class="chip mid">medium</span></td><td><span class="chip mid">medium</span></td><td>Superuser scoping is intentional — give ops an audited path instead of a wide token</td><td>Ask the support team during Phase 1</td></tr>
+            <tr><td>Notebooks break</td><td><span class="chip lo">low</span></td><td><span class="chip hi">high</span></td><td>Notebook tokens are already per user-and-workspace; assert it</td><td>Notebook launch smoke test</td></tr>
+            <tr><td>Rollout stalls at “legacy still in use” forever</td><td><span class="chip mid">medium</span></td><td><span class="chip mid">medium</span></td><td>Announced dates, brownouts, one-shot grace extension</td><td>Legacy-usage dashboard</td></tr>
+            <tr><td>Scoping regresses the web frontend</td><td><span class="chip lo">low</span></td><td><span class="chip hi">high</span></td><td>Scoping keys off the principal; session users are never scoped principals</td><td>Existing suite</td></tr>
+            <tr><td>Users hoard tokens because deleting feels risky</td><td><span class="chip mid">medium</span></td><td><span class="chip lo">low</span></td><td>Last-used column; revoke with an undo window</td><td>Tokens per user</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="open">
+      <div class="eyebrow">10 · Open questions</div>
+      <h2>What I need from you</h2>
+      <ol>
+        <li><strong>What does the SDK/CLI actually query?</strong> The blast radius hinges on whether it ever calls <code>workspaces</code> or <code>me { workspaces }</code> with a token. My assumption is that config is per workspace, so the damage is small — worth a pass over <code>openhexa-cli</code>, because it changes the whole risk picture.</li>
+        <li><strong>Should a token be able to act as <em>less</em> than its owner</strong> (read-only, role cap)? Out of scope by decision, but a nullable <code>max_role</code> column costs nothing now and buys the option.</li>
+        <li><strong>A workspace bot identity?</strong> Letting an admin mint a token for a service identity in their workspace, rather than for themselves, is arguably the real answer for CI — it removes “my token, my account” entirely. Bigger change; flag as follow-up.</li>
+        <li><strong>Maximum lifetime</strong> on scoped tokens from day one — e.g. one year? Much cheaper to introduce now than later.</li>
+        <li><strong><code>bypass_two_factor</code></strong> — keep, restrict, or drop for tokens?</li>
+        <li><strong>Who owns the cutoff date and the comms?</strong> Needs product sign-off before Phase 3, not after.</li>
+        <li><strong>Do internal tools depend on a wide token today?</strong> If yes, they need an alternative before Phase 5.</li>
+      </ol>
+    </section>
+
+    <section id="alts">
+      <div class="eyebrow">11 · Alternatives considered</div>
+      <h2>And why not</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Option</th><th>Why not</th></tr></thead>
+          <tbody>
+            <tr><td>Per-request workspace header — token stays wide, client declares intent</td><td>Client-declared scope isn’t a security boundary; a leaked token just omits the header</td></tr>
+            <tr><td>JWT with claims instead of signed opaque payloads</td><td>Real benefits, bigger change, and no revocation without a denylist. The signed-payload strategy already in place is adequate once the token table gives us revocation</td></tr>
+            <tr><td>Capability tokens now (read-only, pipeline-only)</td><td>Doubles the permission surface while the primary hole is still open. Ship workspace scoping; keep the extension point</td></tr>
+            <tr><td>Enforce in each resolver</td><td>~200 resolvers, every one a chance to forget, unreviewable, and no single rollback switch</td></tr>
+            <tr><td>Hard cut in one release</td><td>Fastest to a clean codebase, and the one option guaranteed to break users without warning</td></tr>
+            <tr><td>Do nothing, document the risk</td><td>The token is an account credential in a place users treat as a project credential. That gap doesn’t stay theoretical</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="next">
+      <div class="eyebrow">12 · What I’d do next</div>
+      <h2>Concretely, in this order</h2>
+      <ol class="checks">
+        <li>Finish the branch’s enforcement wiring behind the three-state flag, defaulting to <code>off</code>.</li>
+        <li>Land <code>WorkspaceAccessToken</code> + backfill + <code>last_used_at</code>. It blocks every measurement and every UI decision downstream.</li>
+        <li>Add shadow-evaluation logging and let it run for two weeks.</li>
+        <li>In parallel, fix the six review items and add the org-shared / linked dataset tests — the places most likely to be quietly wrong.</li>
+        <li>Bring the Phase 0 numbers to product, and only then pick a cutoff date.</li>
+      </ol>
+    </section>
+
+    <footer>
+      Draft for discussion — HEXA-1775 · source of truth: <code>rfcs/HEXA-1775-workspace-scoped-tokens.md</code>
+    </footer>
+  </article>
+</div>
