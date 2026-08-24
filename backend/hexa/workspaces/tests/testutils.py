@@ -11,7 +11,7 @@ def create_workspace(
     *,
     name: str = "Test Workspace",
     organization: Organization | None = None,
-    real_database=None,
+    provision_db_on=None,
     **kwargs,
 ) -> Workspace:
     """Create a Workspace (and, if needed, its Organization) for tests.
@@ -23,9 +23,9 @@ def create_workspace(
     ``create_if_has_perm`` provisions the workspace database, which is a CREATE
     DATABASE that no test rollback can undo, so that part is mocked out by
     default. Tests that actually query the workspace database pass
-    ``real_database``: the TestCase class from ``setUpTestData``, or the instance
-    from ``setUp`` or a test method. They then get a real database, dropped again
-    on cleanup.
+    ``provision_db_on``: the TestCase class from ``setUpTestData``, or the
+    instance from ``setUp`` or a test method. They then get a real database,
+    dropped again on cleanup.
     """
     if organization is None:
         organization = Organization.objects.create(name=f"{name} Organization")
@@ -40,8 +40,8 @@ def create_workspace(
             principal, name=name, organization=organization, **kwargs
         )
 
-    if real_database is not None:
-        provision_workspace_database(real_database, workspace)
+    if provision_db_on is not None:
+        provision_workspace_database(provision_db_on, workspace)
         if kwargs.get("load_sample_data"):
             load_database_sample_data(workspace.db_name, workspace.db_password)
 

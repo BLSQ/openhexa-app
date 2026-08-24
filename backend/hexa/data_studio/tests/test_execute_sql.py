@@ -49,7 +49,7 @@ class ExecuteSqlTest(GraphQLTestCase):
             name="Test Workspace",
             description="Test workspace",
             countries=[],
-            real_database=cls,
+            provision_db_on=cls,
         )
         setattr(cls.WORKSPACE, "database", cls.DB1)
         WorkspaceMembership.objects.create(

@@ -40,7 +40,7 @@ class GenerateSqlAgentTestCase(TestCase):
             cls.user,
             name="Generate SQL Test Workspace",
             description="",
-            real_database=cls,
+            provision_db_on=cls,
         )
 
     def _make_agent(self, built_model=None) -> GenerateSqlAgent:

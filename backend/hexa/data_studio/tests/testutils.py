@@ -40,7 +40,7 @@ class SavedQueryTestMixin:
             cls.USER_ADMIN,
             name="My Workspace",
             description="Test workspace",
-            real_database=cls if cls.REAL_WORKSPACE_DATABASE else None,
+            provision_db_on=cls if cls.REAL_WORKSPACE_DATABASE else None,
         )
         cls.WORKSPACE_2 = create_workspace(
             cls.USER_ADMIN, name="My Workspace 2", description="Test workspace 2"

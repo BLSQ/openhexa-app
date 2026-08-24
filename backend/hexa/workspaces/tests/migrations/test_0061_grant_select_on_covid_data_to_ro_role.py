@@ -37,7 +37,7 @@ class Migration0061Test(TransactionTestCase):
                 name="Covid WS",
                 description="",
                 load_sample_data=True,
-                real_database=self,
+                provision_db_on=self,
             )
         # Revoke the auto-granted SELECT to reproduce a pre-fix workspace where
         # the read-only role cannot read the tutorial covid_data table.

@@ -27,7 +27,7 @@ class DatabaseToolsTestCase(TestCase):
             cls.USER_ADMIN,
             name="Test Workspace",
             description="A test workspace",
-            real_database=cls,
+            provision_db_on=cls,
         )
 
         WorkspaceMembership.objects.create(
