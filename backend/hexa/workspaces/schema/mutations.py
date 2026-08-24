@@ -94,8 +94,8 @@ def resolve_update_workspace(_, info, **kwargs):
 
         with transaction.atomic():
             if "tags" in input:
-                args["tags"] = Tag.objects.get_or_create_if_has_perm(
-                    request.user, workspace=workspace, names=input["tags"]
+                args["tags"] = Tag.objects.get_or_create_from_names(
+                    input["tags"], slugify_names=True
                 )
             workspace.update_if_has_perm(principal=request.user, **args)
 

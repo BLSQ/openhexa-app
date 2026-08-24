@@ -1,14 +1,39 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db import models
+from slugify import slugify
 
 from hexa.core.models import Base
+from hexa.core.models.base import BaseQuerySet
 
 
 class InvalidTag(Exception):
     """Raised when tag validation fails or tags don't exist."""
 
     pass
+
+
+class TagQuerySet(BaseQuerySet):
+    def get_or_create_from_names(
+        self, names: list[str], *, slugify_names: bool = False
+    ) -> list["Tag"]:
+        tags = []
+        for name in names:
+            if slugify_names:
+                resolved = slugify(name)
+                if not resolved:
+                    raise InvalidTag(f"'{name}' cannot be converted to a valid tag")
+            else:
+                resolved = name.strip() if isinstance(name, str) else ""
+
+            try:
+                tag, _ = self.get_or_create(name=resolved)
+            except ValidationError as e:
+                raise InvalidTag(f"'{name}' is not a valid tag name") from e
+
+            if tag not in tags:
+                tags.append(tag)
+        return tags
 
 
 class Tag(Base):
@@ -27,6 +52,8 @@ class Tag(Base):
         ],
         help_text="Lowercase alphanumeric characters and hyphens only",
     )
+
+    objects = TagQuerySet.as_manager()
 
     class Meta:
         ordering = ["name"]
@@ -79,35 +106,3 @@ class Tag(Base):
             raise InvalidTag(f"Tags not found: {', '.join(sorted(missing_names))}")
 
         return tags
-
-    @classmethod
-    def validate_and_get_or_create(
-        cls, tag_names: list[str]
-    ) -> tuple[list["Tag"], bool]:
-        """
-        Validate tag names and get or create Tag instances.
-
-        Args:
-            tag_names: List of tag name strings
-
-        Returns
-        -------
-            tuple: (list of Tag instances, has_error boolean)
-                   has_error is True if validation failed
-        """
-        if not tag_names:
-            return [], False
-
-        tags = []
-        try:
-            for name in tag_names:
-                if not isinstance(name, str):
-                    return [], True
-                name = name.strip()
-                if not name:
-                    return [], True
-                tag, created = cls.objects.get_or_create(name=name)
-                tags.append(tag)
-            return tags, False
-        except Exception:
-            return [], True
