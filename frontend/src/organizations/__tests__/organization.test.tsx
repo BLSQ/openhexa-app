@@ -23,6 +23,7 @@ const organization = {
   members: {
     totalItems: 0,
   },
+  workspaceTags: ["malaria", "project-x"],
   workspaces: {
     totalItems: 2,
     items: [
@@ -49,6 +50,7 @@ const mocks = [
         page: 1,
         perPage: 15,
         query: "",
+        tags: [],
       },
     },
     result: {
@@ -73,6 +75,7 @@ const mocks = [
             __typename: "OrganizationMembershipPage",
             totalItems: 0,
           },
+          workspaceTags: ["malaria", "project-x"],
           workspaces: {
             __typename: "WorkspacePage",
             totalItems: 2,
@@ -114,9 +117,11 @@ const mocks = [
                 __typename: "WorkspaceMembershipPage",
                 totalItems: 0,
               },
+              tags: [{ __typename: "Tag", id: "tag-1", name: "malaria" }],
               permissions: {
                 __typename: "WorkspacePermissions",
                 manageMembers: true,
+                manageTags: true,
                 delete: true,
               },
             },
@@ -136,9 +141,11 @@ const mocks = [
                 __typename: "WorkspaceMembershipPage",
                 totalItems: 0,
               },
+              tags: [],
               permissions: {
                 __typename: "WorkspacePermissions",
                 manageMembers: true,
+                manageTags: false,
                 delete: true,
               },
             },
@@ -218,6 +225,58 @@ describe("OrganizationPage", () => {
 
     await waitFor(() =>
       expect(screen.getByText(/You're about to archive/)).toBeInTheDocument(),
+    );
+  });
+
+  it("renders the tags assigned to a workspace", async () => {
+    render(
+      <TestApp>
+        <MockedProvider mocks={mocks}>
+          <OrganizationPage organization={organization} />
+        </MockedProvider>
+      </TestApp>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("malaria")).toBeInTheDocument();
+    });
+  });
+
+  it("disables the tags button for a workspace the user cannot tag", async () => {
+    render(
+      <TestApp>
+        <MockedProvider mocks={mocks}>
+          <OrganizationPage organization={organization} />
+        </MockedProvider>
+      </TestApp>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Workspace 1")).toBeInTheDocument();
+    });
+
+    const tagButtons = screen.getAllByRole("button", { name: "Tags" });
+    expect(tagButtons[0]).toBeEnabled();
+    expect(tagButtons[1]).toBeDisabled();
+  });
+
+  it("opens the manage tags dialog when the 'Tags' button is clicked", async () => {
+    render(
+      <TestApp>
+        <MockedProvider mocks={mocks}>
+          <OrganizationPage organization={organization} />
+        </MockedProvider>
+      </TestApp>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Workspace 1")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Tags" })[0]);
+
+    await waitFor(() =>
+      expect(screen.getByText("Manage tags")).toBeInTheDocument(),
     );
   });
 

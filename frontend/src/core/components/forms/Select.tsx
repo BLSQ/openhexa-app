@@ -30,6 +30,7 @@ export type SelectProps<O> = {
   | "className"
   | "by"
   | "loading"
+  | "withPortal"
 >;
 
 const DEFAULT_FILTER_OPTIONS = (options: SelectOption[], query: string) => {
@@ -57,6 +58,7 @@ function Select<O>(props: SelectProps<O>) {
     getOptionDisabled,
     required,
     loading,
+    withPortal = false,
   } = props;
   const [query, setQuery] = useState<string>("");
   const [__resetKey__, setResetKey] = useState("");
@@ -92,7 +94,7 @@ function Select<O>(props: SelectProps<O>) {
       displayValue={displayValue as any}
       by={by as any /* Otherwise typescript is not happy */}
       loading={loading}
-      withPortal={false}
+      withPortal={withPortal}
       className={className}
     >
       {onCreate && query.length > 0 && (

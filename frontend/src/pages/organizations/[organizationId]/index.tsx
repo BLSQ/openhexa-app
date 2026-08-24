@@ -9,8 +9,10 @@ import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import {
   OrganizationDocument,
   OrganizationQuery,
+  OrganizationWorkspace_WorkspaceFragment,
   useOrganizationWorkspacesQuery,
 } from "organizations/graphql/queries.generated";
+import ManageWorkspaceTagsDialog from "organizations/features/ManageWorkspaceTagsDialog";
 import { CreateWorkspacePermissionReason } from "graphql/types";
 import CreateWorkspaceDialog from "workspaces/features/CreateWorkspaceDialog";
 import ArchiveWorkspaceDialog from "workspaces/features/ArchiveWorkspaceDialog";
@@ -39,6 +41,9 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   const [view, setView] = useWorkspacesView();
   const [page, setPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [tagsFilter, setTagsFilter] = useState<string[]>([]);
+  const [taggedWorkspace, setTaggedWorkspace] =
+    useState<OrganizationWorkspace_WorkspaceFragment | null>(null);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const perPage = 15;
 
@@ -48,6 +53,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
       page,
       perPage,
       query: debouncedSearchQuery,
+      tags: tagsFilter,
     },
     fetchPolicy: "cache-and-network",
   });
@@ -62,7 +68,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchQuery]);
+  }, [debouncedSearchQuery, tagsFilter]);
 
   const organization = (!loading && data?.organization) || SRROrganization;
 
@@ -96,7 +102,9 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
             isLimitReached={organization.permissions.createWorkspace.reasons.includes(
               CreateWorkspacePermissionReason.WorkspacesLimitReached,
             )}
-            title={t("You have reached the maximum number of workspaces for your plan.")}
+            title={t(
+              "You have reached the maximum number of workspaces for your plan.",
+            )}
           >
             <Button
               variant="primary"
@@ -114,6 +122,9 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
           setSearchQuery={setSearchQuery}
           view={view}
           setView={setView}
+          availableTags={organization.workspaceTags}
+          tagsFilter={tagsFilter}
+          setTagsFilter={setTagsFilter}
         />
 
         <div className="relative min-h-[200px]">
@@ -131,6 +142,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
               totalPages={data?.workspaces?.totalPages || 0}
               totalItems={data?.workspaces?.totalItems || 0}
               onArchiveClick={handleArchiveClick}
+              onManageTagsClick={setTaggedWorkspace}
             />
           ) : (
             <WorkspacesListView
@@ -141,6 +153,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
               totalPages={data?.workspaces?.totalPages || 0}
               totalItems={data?.workspaces?.totalItems || 0}
               onArchiveClick={handleArchiveClick}
+              onManageTagsClick={setTaggedWorkspace}
               canManageMembers={organization.permissions.manageMembers}
             />
           )}
@@ -152,6 +165,16 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
         open={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
       />
+
+      {taggedWorkspace && (
+        <ManageWorkspaceTagsDialog
+          open
+          workspace={taggedWorkspace}
+          organizationId={organization.id}
+          availableTags={organization.workspaceTags}
+          onClose={() => setTaggedWorkspace(null)}
+        />
+      )}
 
       {selectedWorkspace && (
         <ArchiveWorkspaceDialog

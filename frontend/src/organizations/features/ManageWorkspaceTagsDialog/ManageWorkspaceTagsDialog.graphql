@@ -1,0 +1,12 @@
+mutation UpdateWorkspaceTags($input: UpdateWorkspaceInput!) {
+  updateWorkspace(input: $input) {
+    success
+    errors
+    workspace {
+      slug
+      tags {
+        ...Tag_tag
+      }
+    }
+  }
+}

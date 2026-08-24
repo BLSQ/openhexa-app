@@ -313,6 +313,18 @@ def resolve_workspaces(organization: Organization, info, **kwargs):
     )
 
 
+@organization_object.field("workspaceTags")
+def resolve_organization_workspace_tags(organization: Organization, info, **kwargs):
+    request = info.context["request"]
+    return list(
+        Tag.objects.filter(
+            workspaces__in=organization.filter_workspaces_for_user(user=request.user)
+        )
+        .distinct()
+        .values_list("name", flat=True)
+    )
+
+
 @organization_object.field("permissions")
 def resolve_organization_permissions(organization: Organization, info):
     return organization

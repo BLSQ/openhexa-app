@@ -200,6 +200,19 @@ class WorkspaceQuerySet(BaseQuerySet):
             )
         return qs if include_archived else qs.filter(archived=False)
 
+    def filter_by_tags(self, tags) -> models.QuerySet:
+        if not tags:
+            return self.none()
+        return self.filter(tags__in=tags).distinct()
+
+    def filter_by_query(self, query: str) -> models.QuerySet:
+        """Match the free-text search against the workspace name and its tag names."""
+        if not query:
+            return self
+        return self.filter(
+            Q(name__icontains=query) | Q(tags__name__icontains=query)
+        ).distinct()
+
     def filter_for_workspace_slugs(
         self,
         user: AnonymousUser | UserInterface,
@@ -261,6 +274,7 @@ class Workspace(Base):
         blank=True,
         help_text="Custom configuration properties for the workspace as key-value pairs",
     )
+    tags = models.ManyToManyField("tags.Tag", blank=True, related_name="workspaces")
 
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
@@ -357,6 +371,11 @@ class Workspace(Base):
         ]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
+
+        if "tags" in kwargs:
+            if not principal.has_perm("workspaces.manage_tags", self):
+                raise PermissionDenied
+            self.tags.set(kwargs["tags"])
 
         return self.save()
 
