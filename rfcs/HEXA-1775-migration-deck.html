@@ -1,0 +1,1170 @@
+<title>Scoped Tokens Migration</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+  :root {
+    --ground: #F6F8F7;
+    --surface: #FFFFFF;
+    --sunk: #EDF1F0;
+    --ink: #13201E;
+    --ink-soft: #3C4E4B;
+    --muted: #6B7B77;
+    --faint: #9BAAA6;
+    --rule: #DBE3E1;
+    --rule-strong: #C3CFCC;
+    --accent: #0E6B5E;
+    --accent-soft: #E2EFEC;
+    --warn: #8C5A0E;
+    --warn-soft: #F7EFDF;
+    --crit: #A8382A;
+    --crit-soft: #F8E9E6;
+
+    --serif: "Spectral", "Iowan Old Style", Georgia, serif;
+    --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0C1211;
+      --surface: #141C1A;
+      --sunk: #101817;
+      --ink: #E7EEEB;
+      --ink-soft: #C0CDC9;
+      --muted: #8C9E9A;
+      --faint: #6B7C78;
+      --rule: #253130;
+      --rule-strong: #3A4A47;
+      --accent: #52C3AC;
+      --accent-soft: #12302B;
+      --warn: #D9A757;
+      --warn-soft: #2A2314;
+      --crit: #E58273;
+      --crit-soft: #331E1A;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0C1211;
+    --surface: #141C1A;
+    --sunk: #101817;
+    --ink: #E7EEEB;
+    --ink-soft: #C0CDC9;
+    --muted: #8C9E9A;
+    --faint: #6B7C78;
+    --rule: #253130;
+    --rule-strong: #3A4A47;
+    --accent: #52C3AC;
+    --accent-soft: #12302B;
+    --warn: #D9A757;
+    --warn-soft: #2A2314;
+    --crit: #E58273;
+    --crit-soft: #331E1A;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    height: 100vh;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+  }
+
+  .stage {
+    position: relative;
+    width: min(100vw, 177.78vh);
+    height: min(100vh, 56.25vw);
+    container-type: size;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 6cqh 7cqw 9cqh;
+    display: none;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 0;
+  }
+  .slide.is-on { display: grid; }
+
+  .anim .slide.is-on { animation: rise .28s ease-out both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(.9cqh); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .anim .slide.is-on { animation: none; } }
+
+  /* ---- slide type ---- */
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 1.25cqw;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 1.4cqw;
+    min-height: 2.4cqh;
+  }
+  .eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--rule); }
+  .eyebrow .dim { color: var(--faint); letter-spacing: .14em; }
+
+  h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 4.1cqw;
+    line-height: 1.08;
+    letter-spacing: -.015em;
+    margin: 1.6cqh 0 0;
+    text-wrap: balance;
+    max-width: 22em;
+  }
+
+  .art { display: grid; place-items: center; min-height: 0; overflow: hidden; padding: 3cqh 0 1.4cqh; }
+  .art svg { width: 100%; height: 100%; min-height: 0; max-height: 100%; color: var(--ink-soft); }
+
+  .caption {
+    font-family: var(--serif);
+    font-size: 2cqw;
+    line-height: 1.4;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 40em;
+    text-wrap: pretty;
+  }
+  .caption em { font-style: italic; color: var(--ink); }
+  .caption code { font-family: var(--mono); font-size: .82em; color: var(--accent); }
+
+  /* ---- title slide ---- */
+
+  .slide.title { grid-template-rows: 1fr auto auto; align-content: center; padding-bottom: 12cqh; }
+  .slide.title h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 6.4cqw;
+    line-height: 1.02;
+    letter-spacing: -.025em;
+    margin: 0;
+    max-width: 17em;
+    text-wrap: balance;
+    align-self: end;
+  }
+  .slide.title .sub {
+    font-family: var(--mono);
+    font-size: 1.5cqw;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 3cqh 0 0;
+    display: flex;
+    gap: 2.5cqw;
+    flex-wrap: wrap;
+  }
+  .slide.title .sub b { color: var(--accent); font-weight: 500; }
+  .slide.title .keys {
+    font-family: var(--mono);
+    font-size: 1.15cqw;
+    color: var(--faint);
+    margin: 4cqh 0 0;
+  }
+  .slide.title .keys kbd {
+    font-family: var(--mono);
+    border: 1px solid var(--rule-strong);
+    border-radius: 2px;
+    padding: .1em .4em;
+    color: var(--muted);
+  }
+
+  /* ---- appendix markers ---- */
+
+  .jumps { display: flex; gap: .8cqw; margin-top: 1.6cqh; flex-wrap: wrap; }
+  .jump {
+    font-family: var(--mono);
+    font-size: 1.1cqw;
+    letter-spacing: .06em;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: .25cqh .7cqw;
+    cursor: pointer;
+    transition: color .15s, border-color .15s;
+  }
+  .jump:hover { color: var(--accent); border-color: var(--accent); }
+  .jump:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ---- appendix slides ---- */
+
+  .slide.appx { grid-template-rows: auto auto 1fr; }
+  .slide.appx .eyebrow { color: var(--warn); }
+  .slide.appx h2 { font-size: 3.1cqw; }
+  .slide.appx .body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2cqh 3cqw;
+    align-content: start;
+    padding-top: 2.4cqh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .slide.appx .body.two { grid-template-columns: 1fr 1fr; }
+  .slide.appx p { font-size: 1.55cqw; line-height: 1.5; color: var(--ink-soft); margin: 0 0 1cqh; max-width: 44em; }
+  .slide.appx ul { margin: 0; padding-left: 1.4em; }
+  .slide.appx li { font-size: 1.5cqw; line-height: 1.45; color: var(--ink-soft); margin-bottom: .8cqh; }
+  .slide.appx li::marker { color: var(--faint); }
+  .slide.appx code { font-family: var(--mono); font-size: .85em; color: var(--accent); }
+  .slide.appx b { color: var(--ink); font-weight: 600; }
+
+  table.appx-t { width: 100%; border-collapse: collapse; font-size: 1.35cqw; }
+  table.appx-t th {
+    text-align: left;
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 1.05cqw;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--rule-strong);
+    padding: 0 1.4cqw .6cqh 0;
+  }
+  table.appx-t td {
+    padding: .75cqh 1.4cqw .75cqh 0;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-soft);
+    vertical-align: top;
+  }
+  table.appx-t td:first-child { color: var(--ink); }
+  .pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: .95cqw;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .1em .45em;
+    border: 1px solid;
+    border-radius: 2px;
+  }
+  .pill.hi { color: var(--crit); border-color: var(--crit); background: var(--crit-soft); }
+  .pill.mid { color: var(--warn); border-color: var(--warn); background: var(--warn-soft); }
+  .pill.lo { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+
+  pre.code {
+    font-family: var(--mono);
+    font-size: 1.25cqw;
+    line-height: 1.6;
+    background: var(--sunk);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 1.6cqh 1.6cqw;
+    margin: 0;
+    color: var(--ink-soft);
+    overflow: hidden;
+  }
+  pre.code b { color: var(--ink); font-weight: 500; }
+  pre.code i { color: var(--accent); font-style: normal; }
+
+  /* ---- hud ---- */
+
+  .hud {
+    position: absolute;
+    left: 7cqw;
+    right: 7cqw;
+    bottom: 3.4cqh;
+    display: flex;
+    align-items: center;
+    gap: 2cqw;
+    font-family: var(--mono);
+    font-size: 1.1cqw;
+    color: var(--faint);
+    letter-spacing: .1em;
+  }
+  .hud .bar { flex: 1; height: 2px; background: var(--rule); position: relative; }
+  .hud .bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent); transition: width .25s ease; }
+  body.in-appx .hud .bar i { background: var(--warn); }
+  .hud .act { text-transform: uppercase; }
+  body.in-appx .hud .act { color: var(--warn); }
+  .hud .count { font-variant-numeric: tabular-nums; color: var(--muted); }
+  .hud .hint { color: var(--faint); }
+
+  .help {
+    position: absolute;
+    inset: 0;
+    background: var(--ground);
+    background: color-mix(in srgb, var(--ground) 94%, transparent);
+    display: none;
+    place-items: center;
+    z-index: 5;
+  }
+  .help.is-on { display: grid; }
+  .help dl {
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 1.4cqh 2cqw;
+    font-family: var(--mono);
+    font-size: 1.5cqw;
+    margin: 0;
+  }
+  .help dt { color: var(--accent); text-align: right; }
+  .help dd { color: var(--ink-soft); margin: 0; }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+    </marker>
+    <marker id="ar-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/>
+    </marker>
+    <marker id="ar-c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--crit)"/>
+    </marker>
+    <marker id="ar-w" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="var(--warn)"/>
+    </marker>
+    <symbol id="key" viewBox="0 0 60 24">
+      <circle cx="11" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="11" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <line x1="19.5" y1="12" x2="56" y2="12" stroke="currentColor" stroke-width="1.6"/>
+      <line x1="44" y1="12" x2="44" y2="19" stroke="currentColor" stroke-width="1.6"/>
+      <line x1="50" y1="12" x2="50" y2="19" stroke="currentColor" stroke-width="1.6"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="stage anim" id="stage">
+
+<!-- ============ 1 ============ -->
+<section class="slide title" data-role="main" data-act="Opening">
+  <h1>Workspace tokens that stop at&nbsp;the workspace</h1>
+  <p class="sub"><span><b>HEXA-1775</b></span><span>Migration plan</span><span>Draft — for discussion</span></p>
+  <p class="keys"><kbd>→</kbd> advance · <kbd>A</kbd> appendix, and back · <kbd>?</kbd> keys</p>
+</section>
+
+<!-- ============ 2 ============ -->
+<section class="slide" data-role="main" data-act="What we have">
+  <div class="eyebrow">What we have <span class="dim">· 01</span></div>
+  <h2>A token is issued <em>for</em> a workspace. It isn’t limited <em>to</em> one.</h2>
+  <div class="art">
+    <svg viewBox="0 0 900 380" role="img" aria-label="A token feeds into the owner's whole account, which reaches the workspace it was issued for and every other workspace and organisation that person can access.">
+      <use href="#key" x="10" y="168" width="150" height="60" style="color: var(--warn)"/>
+      <text x="18" y="252" font-family="IBM Plex Mono, monospace" font-size="15" fill="var(--warn)">token for malaria-2026</text>
+
+      <line x1="172" y1="198" x2="236" y2="198" stroke="currentColor" marker-end="url(#ar)"/>
+
+      <rect x="240" y="166" width="170" height="66" rx="3" fill="none" stroke="var(--crit)" stroke-width="1.4"/>
+      <text x="325" y="196" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="16" fill="var(--crit)">the owner’s</text>
+      <text x="325" y="216" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="16" fill="var(--crit)">whole account</text>
+
+      <line x1="410" y1="192" x2="516" y2="60" stroke="var(--accent)" marker-end="url(#ar-a)"/>
+      <line x1="410" y1="196" x2="516" y2="136" stroke="var(--crit)" marker-end="url(#ar-c)"/>
+      <line x1="410" y1="200" x2="516" y2="204" stroke="var(--crit)" marker-end="url(#ar-c)"/>
+      <line x1="410" y1="204" x2="516" y2="272" stroke="var(--crit)" marker-end="url(#ar-c)"/>
+      <line x1="410" y1="208" x2="516" y2="340" stroke="var(--crit)" marker-end="url(#ar-c)"/>
+
+      <rect x="520" y="38" width="300" height="44" rx="3" fill="none" stroke="var(--accent)"/>
+      <text x="536" y="66" font-family="IBM Plex Mono, monospace" font-size="16" fill="var(--accent)">malaria-2026</text>
+      <text x="836" y="66" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--faint)">intended</text>
+
+      <rect x="520" y="114" width="300" height="44" rx="3" fill="none" stroke="var(--crit)"/>
+      <text x="536" y="142" font-family="IBM Plex Mono, monospace" font-size="16" fill="var(--crit)">tb-surveillance</text>
+      <rect x="520" y="182" width="300" height="44" rx="3" fill="none" stroke="var(--crit)"/>
+      <text x="536" y="210" font-family="IBM Plex Mono, monospace" font-size="16" fill="var(--crit)">hiv-cascade</text>
+      <rect x="520" y="250" width="300" height="44" rx="3" fill="none" stroke="var(--crit)"/>
+      <text x="536" y="278" font-family="IBM Plex Mono, monospace" font-size="16" fill="var(--crit)">every workspace joined later</text>
+      <rect x="520" y="318" width="300" height="44" rx="3" fill="none" stroke="var(--crit)"/>
+      <text x="536" y="346" font-family="IBM Plex Mono, monospace" font-size="16" fill="var(--crit)">org admin → all of them</text>
+    </svg>
+  </div>
+  <p class="caption">One key, every door its owner can open — including doors opened after the key was cut.</p>
+</section>
+
+<!-- ============ 3 ============ -->
+<section class="slide" data-role="main" data-act="What we have">
+  <div class="eyebrow">What we have <span class="dim">· 02</span></div>
+  <h2>Three things we cannot do today</h2>
+  <div class="art">
+    <svg viewBox="0 0 900 330" role="img" aria-label="Three limitations: we cannot limit a token's reach, we cannot revoke one token without breaking the others, and we cannot tell whether a token is used.">
+      <!-- panel 1 -->
+      <circle cx="140" cy="130" r="62" fill="none" stroke="var(--rule-strong)" stroke-width="1.4" stroke-dasharray="5 5"/>
+      <use href="#key" x="60" y="112" width="170" height="40" style="color: var(--crit)"/>
+      <text x="140" y="248" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="17" fill="var(--ink)">Limit it</text>
+      <text x="140" y="274" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--muted)">the boundary isn’t enforced</text>
+
+      <line x1="300" y1="60" x2="300" y2="290" stroke="var(--rule)"/>
+
+      <!-- panel 2 -->
+      <circle cx="450" cy="82" r="19" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <g stroke="currentColor" stroke-width="1.4" fill="none">
+        <line x1="444" y1="98" x2="406" y2="112"/><line x1="450" y1="101" x2="450" y2="120"/><line x1="456" y1="98" x2="494" y2="112"/>
+      </g>
+      <g stroke="currentColor" stroke-width="1.6" fill="none">
+        <circle cx="404" cy="122" r="9"/><line x1="404" y1="131" x2="404" y2="184"/><line x1="404" y1="166" x2="412" y2="166"/><line x1="404" y1="176" x2="412" y2="176"/>
+        <circle cx="450" cy="130" r="9"/><line x1="450" y1="139" x2="450" y2="192"/><line x1="450" y1="174" x2="458" y2="174"/><line x1="450" y1="184" x2="458" y2="184"/>
+        <circle cx="496" cy="122" r="9"/><line x1="496" y1="131" x2="496" y2="184"/><line x1="496" y1="166" x2="504" y2="166"/><line x1="496" y1="176" x2="504" y2="176"/>
+      </g>
+      <line x1="428" y1="60" x2="472" y2="104" stroke="var(--crit)" stroke-width="2.2"/>
+      <line x1="472" y1="60" x2="428" y2="104" stroke="var(--crit)" stroke-width="2.2"/>
+      <text x="450" y="248" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="17" fill="var(--ink)">Revoke one</text>
+      <text x="450" y="274" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--muted)">rotating breaks every copy</text>
+
+      <line x1="600" y1="60" x2="600" y2="290" stroke="var(--rule)"/>
+
+      <!-- panel 3 -->
+      <rect x="672" y="76" width="156" height="108" rx="3" fill="none" stroke="var(--rule-strong)"/>
+      <line x1="692" y1="106" x2="770" y2="106" stroke="var(--rule-strong)"/>
+      <line x1="692" y1="130" x2="808" y2="130" stroke="var(--rule-strong)"/>
+      <line x1="692" y1="154" x2="748" y2="154" stroke="var(--rule-strong)"/>
+      <text x="750" y="146" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="58" fill="var(--crit)">?</text>
+      <text x="750" y="248" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="17" fill="var(--ink)">See usage</text>
+      <text x="750" y="274" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--muted)">no name, no last-used, no owner</text>
+    </svg>
+  </div>
+  <p class="caption">Also true today: a token bypasses 2FA, and its secret is stored in the database in plaintext.</p>
+</section>
+
+<!-- ============ 4 ============ -->
+<section class="slide" data-role="main" data-act="What scope means">
+  <div class="eyebrow">What scope means <span class="dim">· 03</span></div>
+  <h2>Scope is a ring drawn around one workspace</h2>
+  <div class="art">
+    <svg viewBox="0 0 900 390" role="img" aria-label="A ring around one workspace contains its pipelines, datasets, files and connections; other workspaces, organisation administration and account settings sit outside and are refused.">
+      <circle cx="290" cy="195" r="158" fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+      <text x="290" y="22" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="16" fill="var(--accent)">malaria-2026</text>
+      <rect x="176" y="120" width="112" height="42" rx="3" fill="none" stroke="currentColor"/>
+      <text x="232" y="147" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="currentColor">pipelines</text>
+      <rect x="300" y="120" width="112" height="42" rx="3" fill="none" stroke="currentColor"/>
+      <text x="356" y="147" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="currentColor">datasets</text>
+      <rect x="176" y="176" width="112" height="42" rx="3" fill="none" stroke="currentColor"/>
+      <text x="232" y="203" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="currentColor">files</text>
+      <rect x="300" y="176" width="112" height="42" rx="3" fill="none" stroke="currentColor"/>
+      <text x="356" y="203" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="currentColor">connections</text>
+      <rect x="238" y="232" width="112" height="42" rx="3" fill="none" stroke="currentColor"/>
+      <text x="294" y="259" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="currentColor">webapps</text>
+
+      <line x1="452" y1="130" x2="556" y2="86" stroke="var(--crit)" stroke-dasharray="5 4"/>
+      <line x1="536" y1="76" x2="556" y2="96" stroke="var(--crit)" stroke-width="1.8"/>
+      <line x1="556" y1="76" x2="536" y2="96" stroke="var(--crit)" stroke-width="1.8"/>
+      <line x1="452" y1="195" x2="556" y2="195" stroke="var(--crit)" stroke-dasharray="5 4"/>
+      <line x1="536" y1="185" x2="556" y2="205" stroke="var(--crit)" stroke-width="1.8"/>
+      <line x1="556" y1="185" x2="536" y2="205" stroke="var(--crit)" stroke-width="1.8"/>
+      <line x1="452" y1="260" x2="556" y2="304" stroke="var(--crit)" stroke-dasharray="5 4"/>
+      <line x1="536" y1="294" x2="556" y2="314" stroke="var(--crit)" stroke-width="1.8"/>
+      <line x1="556" y1="294" x2="536" y2="314" stroke="var(--crit)" stroke-width="1.8"/>
+
+      <rect x="586" y="64" width="290" height="44" rx="3" fill="none" stroke="var(--rule-strong)" stroke-dasharray="4 4"/>
+      <text x="602" y="92" font-family="IBM Plex Mono, monospace" font-size="15" fill="var(--muted)">other workspaces</text>
+      <rect x="586" y="173" width="290" height="44" rx="3" fill="none" stroke="var(--rule-strong)" stroke-dasharray="4 4"/>
+      <text x="602" y="201" font-family="IBM Plex Mono, monospace" font-size="15" fill="var(--muted)">organisation administration</text>
+      <rect x="586" y="282" width="290" height="44" rx="3" fill="none" stroke="var(--rule-strong)" stroke-dasharray="4 4"/>
+      <text x="602" y="310" font-family="IBM Plex Mono, monospace" font-size="15" fill="var(--muted)">account settings · 2FA · profile</text>
+    </svg>
+  </div>
+  <p class="caption">A token acts as its owner, but only inside the ring. Superusers included — no wider than anyone else.</p>
+</section>
+
+<!-- ============ 5 ============ -->
+<section class="slide" data-role="main" data-act="What scope means">
+  <div class="eyebrow">What scope means <span class="dim">· 04</span></div>
+  <h2>The ring is a <em>reach</em>, not a column</h2>
+  <div class="art">
+    <svg viewBox="0 0 900 380" role="img" aria-label="A dataset owned by workspace A but shared with the organisation stays inside workspace B's ring, because B can reach it; A's pipelines do not.">
+      <circle cx="268" cy="196" r="150" fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+      <text x="268" y="30" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="16" fill="var(--accent)">scope · workspace B</text>
+      <rect x="184" y="150" width="168" height="42" rx="3" fill="none" stroke="currentColor"/>
+      <text x="268" y="177" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="currentColor">B’s own assets</text>
+      <rect x="184" y="212" width="168" height="46" rx="3" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="268" y="234" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13.5" fill="var(--accent)">dataset owned by A</text>
+      <text x="268" y="250" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13.5" fill="var(--accent)">— still in reach</text>
+
+      <path d="M 418 236 C 500 236 520 200 596 200" fill="none" stroke="var(--accent)" stroke-width="1.6" marker-start="url(#ar-a)"/>
+      <text x="506" y="254" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13.5" fill="var(--accent)">shared with org</text>
+      <text x="506" y="276" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13.5" fill="var(--accent)">· DatasetLink</text>
+
+      <circle cx="716" cy="180" r="128" fill="none" stroke="var(--rule-strong)" stroke-width="1.4" stroke-dasharray="5 5"/>
+      <text x="716" y="34" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" fill="var(--muted)">workspace A · out of scope</text>
+      <rect x="632" y="178" width="168" height="42" rx="3" fill="none" stroke="var(--accent)"/>
+      <text x="716" y="205" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--accent)">that dataset</text>
+      <rect x="632" y="238" width="168" height="42" rx="3" fill="none" stroke="var(--rule-strong)" stroke-dasharray="4 4"/>
+      <text x="716" y="265" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--muted)">A’s pipelines</text>
+    </svg>
+  </div>
+  <p class="caption">A token for B reaches what <em>B</em> reaches. Get this wrong and we break sharing, not just tokens.</p>
+  <div class="jumps"><button class="jump" data-appx="A2">↳ A2 · the full sharing map</button></div>
+</section>
+
+<!-- ============ 6 ============ -->
+<section class="slide" data-role="main" data-act="How it works">
+  <div class="eyebrow">How it works <span class="dim">· 05</span></div>
+  <h2>One assignment turns it on</h2>
+  <div class="art">
+    <svg viewBox="0 0 900 350" role="img" aria-label="Today the middleware installs the full account user; the change installs a workspace-scoped principal instead, and three existing enforcement layers narrow every query and permission check.">
+      <text x="0" y="16" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="1.8" fill="var(--muted)">TODAY</text>
+      <line x1="66" y1="12" x2="900" y2="12" stroke="var(--rule)"/>
+      <use href="#key" x="0" y="52" width="112" height="45" style="color: var(--warn)"/>
+      <line x1="124" y1="74" x2="176" y2="74" stroke="currentColor" marker-end="url(#ar)"/>
+      <rect x="180" y="50" width="132" height="48" rx="3" fill="none" stroke="currentColor"/>
+      <text x="246" y="79" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" fill="currentColor">middleware</text>
+      <line x1="312" y1="74" x2="470" y2="74" stroke="currentColor" marker-end="url(#ar)"/>
+      <text x="391" y="48" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13.5" fill="var(--muted)">request.user = token.user</text>
+      <rect x="474" y="50" width="150" height="48" rx="3" fill="none" stroke="var(--crit)"/>
+      <text x="549" y="79" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" fill="var(--crit)">full account</text>
+      <line x1="624" y1="74" x2="700" y2="74" stroke="var(--crit)" marker-end="url(#ar-c)"/>
+      <text x="712" y="70" font-family="IBM Plex Mono, monospace" font-size="15" fill="var(--crit)">everything</text>
+      <text x="712" y="88" font-family="IBM Plex Mono, monospace" font-size="15" fill="var(--crit)">they can reach</text>
+
+      <text x="0" y="176" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="1.8" fill="var(--accent)">SCOPED</text>
+      <line x1="76" y1="172" x2="900" y2="172" stroke="var(--rule)"/>
+      <use href="#key" x="0" y="212" width="112" height="45" style="color: var(--accent)"/>
+      <line x1="124" y1="234" x2="176" y2="234" stroke="currentColor" marker-end="url(#ar)"/>
+      <rect x="180" y="210" width="132" height="48" rx="3" fill="none" stroke="currentColor"/>
+      <text x="246" y="239" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" fill="currentColor">middleware</text>
+      <line x1="312" y1="234" x2="470" y2="234" stroke="var(--accent)" marker-end="url(#ar-a)"/>
+      <text x="391" y="224" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13.5" fill="var(--accent)">request.user =</text>
+      <text x="391" y="256" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13.5" fill="var(--accent)">WorkspaceTokenUser</text>
+      <rect x="474" y="204" width="150" height="60" rx="3" fill="none" stroke="var(--accent)"/>
+      <text x="549" y="229" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" fill="var(--accent)">scoped</text>
+      <text x="549" y="248" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" fill="var(--accent)">principal</text>
+      <line x1="624" y1="234" x2="672" y2="234" stroke="var(--accent)" marker-end="url(#ar-a)"/>
+      <rect x="676" y="196" width="224" height="76" rx="3" fill="none" stroke="var(--rule-strong)" stroke-dasharray="4 4"/>
+      <text x="690" y="216" font-family="IBM Plex Mono, monospace" font-size="11.5" letter-spacing="1" fill="var(--muted)">3 LAYERS · ALREADY BUILT</text>
+      <text x="690" y="238" font-family="IBM Plex Mono, monospace" font-size="13" fill="currentColor">filter_for_user</text>
+      <text x="690" y="258" font-family="IBM Plex Mono, monospace" font-size="13" fill="currentColor">has_role · has_perm</text>
+
+      <line x1="0" y1="308" x2="900" y2="308" stroke="var(--rule)"/>
+      <text x="0" y="334" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--muted)">570 call sites unchanged · one line to roll back</text>
+    </svg>
+  </div>
+  <p class="caption">Every queryset already asks the principal. We hand it a narrower one.</p>
+  <div class="jumps">
+    <button class="jump" data-appx="A1">↳ A1 · the three layers</button>
+    <button class="jump" data-appx="A3">↳ A3 · why not request.workspace</button>
+    <button class="jump" data-appx="A7">↳ A7 · alternatives</button>
+  </div>
+</section>
+
+<!-- ============ 7 ============ -->
+<section class="slide" data-role="main" data-act="How it works">
+  <div class="eyebrow">How it works <span class="dim">· 06</span></div>
+  <h2>A token becomes a thing you can see</h2>
+  <div class="art">
+    <svg viewBox="0 0 900 340" role="img" aria-label="A token card showing name, workspace, prefix, last used and a revoke action, with a legacy unscoped token card behind it.">
+      <rect x="440" y="10" width="460" height="98" rx="4" fill="var(--warn-soft)" stroke="var(--warn)"/>
+      <text x="464" y="42" font-family="IBM Plex Sans, sans-serif" font-size="17" font-weight="600" fill="var(--warn)">Legacy token</text>
+      <text x="464" y="68" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--warn)">full account access · no name · unknown usage</text>
+      <text x="464" y="92" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--warn)">→ replace with a scoped token</text>
+
+      <rect x="40" y="120" width="620" height="190" rx="4" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.6"/>
+      <text x="68" y="164" font-family="IBM Plex Sans, sans-serif" font-size="21" font-weight="600" fill="var(--ink)">CI — nightly refresh</text>
+      <rect x="68" y="182" width="176" height="30" rx="15" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="156" y="203" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--accent)">malaria-2026</text>
+      <text x="68" y="248" font-family="IBM Plex Mono, monospace" font-size="15" fill="var(--muted)">ohx_ws_7f3a…</text>
+      <text x="68" y="278" font-family="IBM Plex Mono, monospace" font-size="15" fill="var(--muted)">last used 2 hours ago · 41.74.x.x</text>
+      <rect x="520" y="252" width="112" height="36" rx="3" fill="none" stroke="var(--crit)"/>
+      <text x="576" y="276" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--crit)">Revoke</text>
+      <text x="520" y="164" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--faint)">scope_version 2</text>
+    </svg>
+  </div>
+  <p class="caption">Named, per-workspace, hashed, individually revocable — and it tells you if anything still uses it.</p>
+  <div class="jumps"><button class="jump" data-appx="A4">↳ A4 · the record</button></div>
+</section>
+
+<!-- ============ 8 ============ -->
+<section class="slide" data-role="main" data-act="How it works">
+  <div class="eyebrow">How it works <span class="dim">· 07</span></div>
+  <h2>And a switch with three positions</h2>
+  <div class="art">
+    <svg viewBox="0 0 900 330" role="img" aria-label="A three-position dial: off, log, enforce. The needle sits on log during the rollout.">
+      <path d="M 300 250 A 150 150 0 0 1 600 250" fill="none" stroke="var(--rule-strong)" stroke-width="2"/>
+      <path d="M 300 250 A 150 150 0 0 1 450 100" fill="none" stroke="var(--accent)" stroke-width="3"/>
+      <circle cx="450" cy="250" r="7" fill="var(--accent)"/>
+      <line x1="450" y1="250" x2="450" y2="116" stroke="var(--accent)" stroke-width="3"/>
+      <circle cx="300" cy="250" r="5" fill="var(--muted)"/>
+      <circle cx="450" cy="100" r="5" fill="var(--accent)"/>
+      <circle cx="600" cy="250" r="5" fill="var(--muted)"/>
+      <text x="300" y="288" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="17" fill="var(--muted)">off</text>
+      <text x="450" y="76" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="17" fill="var(--accent)">log</text>
+      <text x="600" y="288" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="17" fill="var(--muted)">enforce</text>
+      <text x="300" y="312" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="var(--faint)">code shipped, dormant</text>
+      <text x="450" y="52" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="var(--faint)">measure, don’t block</text>
+      <text x="600" y="312" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="14" fill="var(--faint)">scope is real</text>
+    </svg>
+  </div>
+  <p class="caption">The plan that follows is mostly this dial, turned one notch at a time — and reversible at every notch.</p>
+</section>
+
+<!-- ============ 9 ============ -->
+<section class="slide" data-role="main" data-act="The migration">
+  <div class="eyebrow">The migration <span class="dim">· 08</span></div>
+  <h2>Six notches, and nobody finds out from a broken pipeline</h2>
+  <div class="art">
+    <svg viewBox="0 0 900 320" role="img" aria-label="Six phases: instrument, dry run, offer, default, warn, cutoff. The first two are invisible to users, the middle two give them options, the fifth warns them, and the last enforces the scope.">
+      <rect x="18" y="24" width="300" height="26" rx="13" fill="var(--sunk)" stroke="var(--rule)"/>
+      <text x="168" y="42" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--muted)">users see nothing</text>
+      <rect x="332" y="24" width="300" height="26" rx="13" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="482" y="42" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--accent)">users get options</text>
+      <rect x="646" y="24" width="140" height="26" rx="13" fill="var(--warn-soft)" stroke="var(--warn)"/>
+      <text x="716" y="42" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--warn)">warned</text>
+      <rect x="798" y="24" width="88" height="26" rx="13" fill="none" stroke="var(--rule-strong)"/>
+      <text x="842" y="42" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--ink-soft)">real</text>
+
+      <line x1="52" y1="150" x2="842" y2="150" stroke="var(--rule-strong)" stroke-width="2"/>
+
+      <circle cx="52" cy="150" r="17" fill="var(--ground)" stroke="var(--muted)" stroke-width="1.6"/>
+      <text x="52" y="156" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--muted)">0</text>
+      <text x="52" y="112" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="16" font-weight="600" fill="var(--ink)">instrument</text>
+      <text x="52" y="192" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--faint)">2 weeks</text>
+
+      <circle cx="210" cy="150" r="17" fill="var(--ground)" stroke="var(--muted)" stroke-width="1.6"/>
+      <text x="210" y="156" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--muted)">1</text>
+      <text x="210" y="112" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="16" font-weight="600" fill="var(--ink)">dry run</text>
+      <text x="210" y="192" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--faint)">1 sprint</text>
+
+      <circle cx="368" cy="150" r="17" fill="var(--ground)" stroke="var(--accent)" stroke-width="1.6"/>
+      <text x="368" y="156" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--accent)">2</text>
+      <text x="368" y="112" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="16" font-weight="600" fill="var(--ink)">offer</text>
+      <text x="368" y="192" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--faint)">1 release + SDK</text>
+
+      <circle cx="526" cy="150" r="17" fill="var(--ground)" stroke="var(--accent)" stroke-width="1.6"/>
+      <text x="526" y="156" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--accent)">3</text>
+      <text x="526" y="112" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="16" font-weight="600" fill="var(--ink)">default</text>
+      <text x="526" y="192" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--faint)">30 days min</text>
+
+      <circle cx="684" cy="150" r="17" fill="var(--ground)" stroke="var(--warn)" stroke-width="1.6"/>
+      <text x="684" y="156" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--warn)">4</text>
+      <text x="684" y="112" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="16" font-weight="600" fill="var(--ink)">warn</text>
+      <text x="684" y="192" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--faint)">2 brownouts</text>
+
+      <circle cx="842" cy="150" r="17" fill="var(--accent)" stroke="var(--accent)" stroke-width="1.6"/>
+      <text x="842" y="156" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--ground)">5</text>
+      <text x="842" y="112" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="16" font-weight="600" fill="var(--accent)">cutoff</text>
+      <text x="842" y="192" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--faint)">date from data</text>
+
+      <line x1="18" y1="242" x2="882" y2="242" stroke="var(--rule)"/>
+      <text x="18" y="272" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--muted)">Every phase has an exit gate. Every phase is one notch back to safety.</text>
+      <text x="18" y="298" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--accent)">The code ships in phase 0 — dormant. The behaviour ships last.</text>
+    </svg>
+  </div>
+  <p class="caption">Durations are relative on purpose: phase 0’s data is what sets the cutoff date.</p>
+  <div class="jumps"><button class="jump" data-appx="A6">↳ A6 · risk register</button></div>
+</section>
+
+<!-- ============ 10 ============ -->
+<section class="slide" data-role="main" data-act="The migration">
+  <div class="eyebrow">Phase 0 – 1 <span class="dim">· 09</span></div>
+  <h2>First we watch. Nothing changes for anyone.</h2>
+  <div class="art">
+    <svg viewBox="0 0 900 340" role="img" aria-label="Shadow logging records, for each token request, whether a scoped principal would have denied it — while every request still succeeds.">
+      <rect x="0" y="20" width="560" height="230" rx="4" fill="var(--sunk)" stroke="var(--rule)"/>
+      <text x="24" y="52" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="1.6" fill="var(--muted)">SHADOW LOG</text>
+      <text x="24" y="90" font-family="IBM Plex Mono, monospace" font-size="14.5" fill="var(--ink-soft)">ohx_7f3a  malaria-2026  pipelines.push</text>
+      <text x="452" y="90" font-family="IBM Plex Mono, monospace" font-size="14.5" fill="var(--accent)">ok</text>
+      <text x="24" y="122" font-family="IBM Plex Mono, monospace" font-size="14.5" fill="var(--ink-soft)">ohx_7f3a  malaria-2026  datasets.get</text>
+      <text x="452" y="122" font-family="IBM Plex Mono, monospace" font-size="14.5" fill="var(--accent)">ok</text>
+      <text x="24" y="154" font-family="IBM Plex Mono, monospace" font-size="14.5" fill="var(--ink-soft)">ohx_2b91  tb-surv       workspaces.list</text>
+      <text x="452" y="154" font-family="IBM Plex Mono, monospace" font-size="14.5" fill="var(--crit)">would deny</text>
+      <text x="24" y="186" font-family="IBM Plex Mono, monospace" font-size="14.5" fill="var(--ink-soft)">ohx_7f3a  malaria-2026  files.upload</text>
+      <text x="452" y="186" font-family="IBM Plex Mono, monospace" font-size="14.5" fill="var(--accent)">ok</text>
+      <text x="24" y="218" font-family="IBM Plex Mono, monospace" font-size="14.5" fill="var(--faint)">…</text>
+
+      <rect x="612" y="20" width="288" height="106" rx="4" fill="none" stroke="var(--rule)"/>
+      <text x="636" y="52" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="1.6" fill="var(--muted)">WHAT WE LEARN</text>
+      <text x="636" y="80" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--ink-soft)">which tokens are alive</text>
+      <text x="636" y="104" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--ink-soft)">who ever crosses the ring</text>
+
+      <rect x="612" y="144" width="288" height="106" rx="4" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="636" y="176" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="1.6" fill="var(--accent)">USER IMPACT</text>
+      <text x="636" y="212" font-family="IBM Plex Sans, sans-serif" font-size="21" font-weight="600" fill="var(--accent)">none</text>
+
+      <line x1="0" y1="288" x2="900" y2="288" stroke="var(--rule)"/>
+      <text x="0" y="318" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--muted)">Dial at <tspan fill="var(--accent)">log</tspan>. Requests still succeed. We are buying facts, not shipping a change.</text>
+    </svg>
+  </div>
+  <p class="caption">Two weeks of this replaces every guess about how much breakage there is.</p>
+</section>
+
+<!-- ============ 11 ============ -->
+<section class="slide" data-role="main" data-act="The migration">
+  <div class="eyebrow">Phase 2 – 3 <span class="dim">· 10</span></div>
+  <h2>Then we offer — and only later make it the default</h2>
+  <div class="art">
+    <svg viewBox="0 0 900 330" role="img" aria-label="The token list shows a legacy token marked as having full account access alongside a new scoped token, with an action to create one.">
+      <text x="0" y="26" font-family="IBM Plex Sans, sans-serif" font-size="20" font-weight="600" fill="var(--ink)">Tokens</text>
+      <rect x="742" y="4" width="158" height="34" rx="3" fill="var(--accent)"/>
+      <text x="821" y="27" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="15" font-weight="600" fill="var(--ground)">New token</text>
+
+      <rect x="0" y="62" width="900" height="92" rx="4" fill="var(--warn-soft)" stroke="var(--warn)"/>
+      <text x="26" y="98" font-family="IBM Plex Sans, sans-serif" font-size="17" font-weight="600" fill="var(--ink)">(unnamed)</text>
+      <rect x="26" y="112" width="250" height="26" rx="13" fill="none" stroke="var(--warn)"/>
+      <text x="151" y="130" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--warn)">legacy · full account access</text>
+      <text x="420" y="118" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--muted)">last used 3 days ago</text>
+      <text x="700" y="118" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--warn)">Replace →</text>
+
+      <rect x="0" y="170" width="900" height="92" rx="4" fill="none" stroke="var(--accent)"/>
+      <text x="26" y="206" font-family="IBM Plex Sans, sans-serif" font-size="17" font-weight="600" fill="var(--ink)">CI — nightly refresh</text>
+      <rect x="26" y="220" width="182" height="26" rx="13" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="117" y="238" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13" fill="var(--accent)">scoped · malaria-2026</text>
+      <text x="420" y="226" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--muted)">last used 2 hours ago</text>
+      <text x="700" y="226" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--crit)">Revoke</text>
+
+      <text x="0" y="308" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--muted)">Phase 3 adds: banner only if the legacy token was used recently · org-admin report</text>
+    </svg>
+  </div>
+  <p class="caption">Creating a scoped token never invalidates the old one. Migration happens one integration at a time.</p>
+</section>
+
+<!-- ============ 12 ============ -->
+<section class="slide" data-role="main" data-act="The migration">
+  <div class="eyebrow">Phase 4 <span class="dim">· 11</span></div>
+  <h2>Then we warn, twice, with the lights on</h2>
+  <div class="art">
+    <svg viewBox="0 0 900 300" role="img" aria-label="A calendar strip with two one-hour brownout windows before the cutoff day, each preceded by an email to the holders of legacy tokens still in use.">
+      <text x="0" y="24" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="1.6" fill="var(--muted)">THE RUN-UP</text>
+      <g>
+        <rect x="0" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="32" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="64" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="96" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="128" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/>
+        <rect x="160" y="52" width="26" height="26" rx="2" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.6"/>
+        <rect x="192" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="224" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="256" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="288" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="320" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="352" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/>
+        <rect x="384" y="52" width="26" height="26" rx="2" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.6"/>
+        <rect x="416" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="448" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="480" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="512" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="544" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="576" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="608" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="640" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="672" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/><rect x="704" y="52" width="26" height="26" rx="2" fill="none" stroke="var(--rule)"/>
+        <rect x="736" y="52" width="26" height="26" rx="2" fill="var(--accent)" stroke="var(--accent)"/>
+      </g>
+      <line x1="173" y1="86" x2="173" y2="112" stroke="var(--warn)"/>
+      <text x="173" y="132" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--warn)">brownout · 1h</text>
+      <line x1="397" y1="86" x2="397" y2="112" stroke="var(--warn)"/>
+      <text x="397" y="132" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--warn)">brownout · 1h</text>
+      <line x1="749" y1="86" x2="749" y2="112" stroke="var(--accent)"/>
+      <text x="749" y="132" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--accent)">cutoff</text>
+
+      <rect x="0" y="176" width="430" height="94" rx="4" fill="none" stroke="var(--rule)"/>
+      <text x="24" y="208" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="1.6" fill="var(--muted)">EMAIL, BEFORE EACH</text>
+      <text x="24" y="238" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--ink-soft)">only holders of legacy tokens still in use</text>
+      <text x="24" y="260" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--ink-soft)">token name · workspace · last used · date</text>
+
+      <rect x="470" y="176" width="430" height="94" rx="4" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="494" y="208" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="1.6" fill="var(--accent)">WHY A BROWNOUT</text>
+      <text x="494" y="240" font-family="IBM Plex Sans, sans-serif" font-size="16" fill="var(--ink)">An hour of enforcement, announced,</text>
+      <text x="494" y="262" font-family="IBM Plex Sans, sans-serif" font-size="16" fill="var(--ink)">beats a surprise outage on cutoff day.</text>
+    </svg>
+  </div>
+  <p class="caption">Windows are picked against the real pipeline schedule — not against our timezone.</p>
+  <div class="jumps"><button class="jump" data-appx="A5">↳ A5 · what the error says</button></div>
+</section>
+
+<!-- ============ 13 ============ -->
+<section class="slide" data-role="main" data-act="The migration">
+  <div class="eyebrow">Phase 5 <span class="dim">· 12</span></div>
+  <h2>At cutoff, old keys are <em>bounded</em> — not broken</h2>
+  <div class="art">
+    <svg viewBox="0 0 900 340" role="img" aria-label="A legacy token is not rejected at cutoff: because it already names a workspace, it starts behaving as a token scoped to that workspace. Only cross-workspace automation needs a second token.">
+      <use href="#key" x="0" y="120" width="230" height="92" style="color: var(--warn)"/>
+      <text x="0" y="240" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--warn)">legacy token</text>
+      <text x="0" y="262" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--faint)">already names a workspace</text>
+
+      <line x1="248" y1="166" x2="336" y2="166" stroke="var(--accent)" marker-end="url(#ar-a)"/>
+      <text x="292" y="150" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13.5" fill="var(--accent)">scoped,</text>
+      <text x="292" y="192" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="13.5" fill="var(--accent)">not rejected</text>
+
+      <circle cx="470" cy="166" r="104" fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+      <use href="#key" x="400" y="150" width="140" height="34" style="color: var(--accent)"/>
+      <text x="470" y="42" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="15" fill="var(--accent)">the workspace it was always for</text>
+
+      <line x1="612" y1="166" x2="612" y2="166" stroke="none"/>
+      <rect x="632" y="60" width="268" height="98" rx="4" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="656" y="92" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="1.4" fill="var(--accent)">MOST USERS</text>
+      <text x="656" y="126" font-family="IBM Plex Sans, sans-serif" font-size="19" font-weight="600" fill="var(--ink)">notice nothing</text>
+
+      <rect x="632" y="180" width="268" height="120" rx="4" fill="none" stroke="var(--rule-strong)"/>
+      <text x="656" y="212" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="1.4" fill="var(--muted)">CROSS-WORKSPACE JOBS</text>
+      <text x="656" y="244" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--ink-soft)">one token per workspace —</text>
+      <text x="656" y="266" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--ink-soft)">which the CLI config already</text>
+      <text x="656" y="288" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--ink-soft)">stores that way</text>
+    </svg>
+  </div>
+  <p class="caption">Plus a one-shot grace extension per organisation, with a hard expiry, so nobody is trapped.</p>
+</section>
+
+<!-- ============ 14 ============ -->
+<section class="slide" data-role="main" data-act="Closing">
+  <div class="eyebrow">The user’s side <span class="dim">· 13</span></div>
+  <h2>Seven ways to find out. We want the top of the list.</h2>
+  <div class="art">
+    <svg viewBox="0 0 900 340" role="img" aria-label="A ladder of seven ways a user could learn about the change, from reading the changelog at the top to discovering it on cutoff day at the bottom.">
+      <line x1="14" y1="24" x2="14" y2="300" stroke="var(--rule-strong)"/>
+      <text x="34" y="18" font-family="IBM Plex Mono, monospace" font-size="12.5" letter-spacing="1.4" fill="var(--accent)">BEST</text>
+      <text x="34" y="330" font-family="IBM Plex Mono, monospace" font-size="12.5" letter-spacing="1.4" fill="var(--crit)">WORST</text>
+
+      <circle cx="14" cy="46" r="4" fill="var(--accent)"/>
+      <text x="46" y="52" font-family="IBM Plex Sans, sans-serif" font-size="17" fill="var(--ink)">They read the changelog</text>
+      <circle cx="14" cy="86" r="4" fill="var(--accent)"/>
+      <text x="46" y="92" font-family="IBM Plex Sans, sans-serif" font-size="17" fill="var(--ink)">The token list marks theirs <tspan font-family="IBM Plex Mono, monospace" font-size="15" fill="var(--warn)">legacy</tspan></text>
+      <circle cx="14" cy="126" r="4" fill="var(--accent)"/>
+      <text x="46" y="132" font-family="IBM Plex Sans, sans-serif" font-size="17" fill="var(--ink)">A banner — because it was used recently</text>
+      <circle cx="14" cy="166" r="4" fill="var(--accent)"/>
+      <text x="46" y="172" font-family="IBM Plex Sans, sans-serif" font-size="17" fill="var(--ink)">Their org admin tells them</text>
+      <circle cx="14" cy="206" r="4" fill="var(--warn)"/>
+      <text x="46" y="212" font-family="IBM Plex Sans, sans-serif" font-size="17" fill="var(--ink-soft)">An email naming the token and the date</text>
+      <circle cx="14" cy="246" r="4" fill="var(--warn)"/>
+      <text x="46" y="252" font-family="IBM Plex Sans, sans-serif" font-size="17" fill="var(--ink-soft)">A brownout fails a run — with a named error</text>
+      <circle cx="14" cy="286" r="4" fill="var(--crit)"/>
+      <text x="46" y="292" font-family="IBM Plex Sans, sans-serif" font-size="17" fill="var(--crit)">Cutoff day</text>
+      <text x="252" y="292" font-family="IBM Plex Mono, monospace" font-size="14" fill="var(--faint)">— nobody should reach here</text>
+    </svg>
+  </div>
+  <p class="caption">Every rung above the last one is cheaper than the support ticket it prevents.</p>
+</section>
+
+<!-- ============ 15 ============ -->
+<section class="slide" data-role="main" data-act="Closing">
+  <div class="eyebrow">Closing <span class="dim">· 14</span></div>
+  <h2>What we need to decide</h2>
+  <div class="art">
+    <svg viewBox="0 0 900 320" role="img" aria-label="Three decisions: the cutoff date after phase zero data, the minimum SDK version, and who owns the communications. Workspace bot identities are explicitly out of scope for now.">
+      <rect x="0" y="20" width="286" height="150" rx="4" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+      <text x="26" y="56" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="1.4" fill="var(--accent)">01</text>
+      <text x="26" y="92" font-family="IBM Plex Sans, sans-serif" font-size="20" font-weight="600" fill="var(--ink)">The cutoff date</text>
+      <text x="26" y="124" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--ink-soft)">after phase 0 gives us</text>
+      <text x="26" y="146" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--ink-soft)">two weeks of numbers</text>
+
+      <rect x="307" y="20" width="286" height="150" rx="4" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+      <text x="333" y="56" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="1.4" fill="var(--accent)">02</text>
+      <text x="333" y="92" font-family="IBM Plex Sans, sans-serif" font-size="20" font-weight="600" fill="var(--ink)">Minimum SDK</text>
+      <text x="333" y="124" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--ink-soft)">which CLI version we</text>
+      <text x="333" y="146" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--ink-soft)">require, and from when</text>
+
+      <rect x="614" y="20" width="286" height="150" rx="4" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+      <text x="640" y="56" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="1.4" fill="var(--accent)">03</text>
+      <text x="640" y="92" font-family="IBM Plex Sans, sans-serif" font-size="20" font-weight="600" fill="var(--ink)">Who tells users</text>
+      <text x="640" y="124" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--ink-soft)">owner for banners,</text>
+      <text x="640" y="146" font-family="IBM Plex Sans, sans-serif" font-size="15" fill="var(--ink-soft)">emails, docs, changelog</text>
+
+      <rect x="0" y="204" width="900" height="86" rx="4" fill="none" stroke="var(--rule)" stroke-dasharray="5 4"/>
+      <text x="26" y="238" font-family="IBM Plex Mono, monospace" font-size="13" letter-spacing="1.4" fill="var(--faint)">NOT NOW</text>
+      <text x="26" y="270" font-family="IBM Plex Sans, sans-serif" font-size="16" fill="var(--muted)">Workspace bot identities · capability-scoped tokens (read-only, pipeline-only) · token expiry policy</text>
+    </svg>
+  </div>
+  <p class="caption">The one open unknown: what the CLI and SDK actually query with a token. That check comes first.</p>
+  <div class="jumps"><button class="jump" data-appx="A8">↳ A8 · where the branch stands</button></div>
+</section>
+
+<!-- ================= APPENDICES ================= -->
+
+<section class="slide appx" data-role="appx" id="A1">
+  <div class="eyebrow">Appendix A1 <span class="dim">· from slide 05</span></div>
+  <h2>Three layers, three different questions</h2>
+  <div class="body">
+    <table class="appx-t">
+      <thead><tr><th>Layer</th><th>Question</th><th>Mechanism</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>visibility</td>
+          <td>What rows exist for me?</td>
+          <td><code>WorkspaceQuerySet._scoped()</code>, applied <b>after</b> every branch — so it also clamps the <code>self.all()</code> superuser shortcuts. Cascades to every model whose <code>filter_for_user</code> funnels through <code>Workspace.objects.filter_for_user</code>.</td>
+        </tr>
+        <tr>
+          <td>authority</td>
+          <td>May I act on this row?</td>
+          <td><code>Workspace.get_membership()</code> returns <code>None</code> off-scope, so every permission built on <code>has_role()</code> collapses to <code>False</code> — about thirty checks, one method.</td>
+        </tr>
+        <tr>
+          <td>guard</td>
+          <td>Did something reach an object out of band?</td>
+          <td><code>WorkspaceTokenUser.has_perm()</code> refuses objects outside the scope. Redundant on purpose — it catches the check somebody writes by hand next quarter.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>The <code>has_role()</code> refactor is what makes this possible: it replaced ~30 hand-rolled <code>workspacemembership_set.filter(user=…, role__in=[…]).exists()</code> calls with one method. Without it, scoping would need thirty correct edits and would regress on the thirty-first.</p>
+  </div>
+</section>
+
+<section class="slide appx" data-role="appx" id="A2">
+  <div class="eyebrow">Appendix A2 <span class="dim">· from slide 04</span></div>
+  <h2>Reach, not rows — the full map</h2>
+  <div class="body two">
+    <div>
+      <p><b>In scope</b>, even when the row belongs to another workspace:</p>
+      <ul>
+        <li><b>Datasets shared organisation-wide.</b> <code>DatasetQuerySet.filter_for_user</code> admits <code>shared_with_organization</code> datasets from any workspace in an org you belong to.</li>
+        <li><b>Linked datasets.</b> <code>DatasetLink</code> <i>is</i> the cross-workspace mechanism — scoping must respect links, not undo them.</li>
+        <li><b>The organisation</b>, as the boundary those shares are evaluated against — but only the one the scoped workspace belongs to.</li>
+        <li><b>Pipeline templates</b> from other workspaces, exactly as far as a member of the scoped workspace already sees them.</li>
+      </ul>
+    </div>
+    <div>
+      <p><b>Out of scope, always:</b></p>
+      <ul>
+        <li>Other workspaces and their memberships, connections, pipelines, webapps, saved queries.</li>
+        <li>Every account-level mutation — profile, 2FA, org membership, creating workspaces, accepting invitations.</li>
+        <li>The superuser shortcut. A superuser’s token is no wider than anyone else’s.</li>
+      </ul>
+      <p>The implementation detail that keeps this honest: <code>Organization.filter_for_user</code> narrows through the relation (<code>workspaces__id=user.workspace_id</code>), not by dereferencing the workspace — so org-shared reach survives while org administration doesn’t.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide appx" data-role="appx" id="A3">
+  <div class="eyebrow">Appendix A3 <span class="dim">· from slide 05</span></div>
+  <h2>Why the principal, and not <code>request.workspace</code></h2>
+  <div class="body two">
+    <div>
+      <p>The authorization API has two shapes, and neither takes a request:</p>
+      <pre class="code"><b>Model.objects.filter_for_user(user)</b>   <i>210 sites</i>
+<b>user.has_perm(perm, obj)</b>             <i>363 sites</i></pre>
+      <p><code>has_perm</code> routes through Django’s auth backend, whose signature is fixed at <code>(user_obj, perm, obj)</code>. The request is not in scope there and never will be.</p>
+      <p>So a request-based scope means either threading an argument through ~570 call sites, or ambient thread-local state the model layer reads implicitly.</p>
+    </div>
+    <div>
+      <p><b>And it wouldn’t cover everything.</b> <code>filter_for_user</code> is also called with no request at all — <code>data_studio/query_runner.py</code>, <code>workspace_copier/</code>, <code>core/search.py</code>, the connector credential modules. A request-based scope is silently <i>absent</i> there, and absent means unscoped.</p>
+      <p><b>What we keep <code>request.workspace</code> for:</b> telemetry. It’s the natural key for the shadow log and the scope-error metric, and it makes the scope visible in traces. It just isn’t the enforcement mechanism.</p>
+      <p><b>The cost:</b> <code>request.user</code> is no longer plainly a <code>User</code>. Proxy identity shows up in audit logs and anything asserting the concrete class, and per-user caches need the scope in their key.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide appx" data-role="appx" id="A4">
+  <div class="eyebrow">Appendix A4 <span class="dim">· from slide 06</span></div>
+  <h2>The token record</h2>
+  <div class="body two">
+    <div>
+      <pre class="code"><b>WorkspaceAccessToken</b>
+  workspace      FK → Workspace   <i>the scope, immutable</i>
+  user           FK → User        <i>the identity it acts as</i>
+  name           str              <i>"CI — nightly refresh"</i>
+  prefix         str  indexed     <i>shown in UI, greppable</i>
+  token_hash     str              <i>sha256, shown once</i>
+  scope_version  int              <i>1 legacy · 2 scoped</i>
+  expires_at     dt   null
+  last_used_at   dt   null        <i>throttled write</i>
+  last_used_ip   str  null
+  revoked_at     dt   null
+  revoked_by     FK → User null</pre>
+    </div>
+    <div>
+      <p><b>Why not keep <code>membership.access_token</code>:</b> one token per member per workspace, no name, no usage record, and revocation that breaks every copy. It can’t carry the migration, the UI, or the measurement.</p>
+      <p><b>Hash, don’t store.</b> Today the secret is recoverable from the database. Hashing means a DB dump is not a token dump.</p>
+      <p><b>Prefix the string</b> (<code>ohx_ws_…</code>) so GitHub and GitLab secret scanning spot leaks, and so support can identify a token from a log line without ever seeing it.</p>
+      <p><b><code>scope_version</code> on the record</b>, not inferred from payload shape, is what makes the rollout measurable and reversible per token.</p>
+    </div>
+  </div>
+</section>
+
+<section class="slide appx" data-role="appx" id="A5">
+  <div class="eyebrow">Appendix A5 <span class="dim">· from slide 11</span></div>
+  <h2>The error is part of the migration</h2>
+  <div class="body">
+    <p>Out of scope today gives <code>WORKSPACE_NOT_FOUND</code>, an empty list, or a bare <code>PERMISSION_DENIED</code>. To a user that reads as “the platform lost my workspace” — and becomes a ticket. What we return instead:</p>
+    <pre class="code"><b>TOKEN_SCOPE_EXCEEDED</b>
+This token is scoped to workspace <i>malaria-2026</i> and cannot access
+<i>tb-surveillance</i>. Create a token for that workspace in
+Account settings → Tokens.</pre>
+    <p>The SDK and CLI surface it verbatim and link the migration page. Every occurrence is logged with the token prefix — which is what lets the org-admin report say “three of your tokens hit scope errors this week”.</p>
+    <p><b>On disclosure:</b> saying “this exists but you can’t have it” is fine here. The holder already knows their own workspace list, so we reveal nothing they couldn’t learn by logging in. Silent emptiness trades a negligible security gain for a large support cost.</p>
+  </div>
+</section>
+
+<section class="slide appx" data-role="appx" id="A6">
+  <div class="eyebrow">Appendix A6 <span class="dim">· from slide 08</span></div>
+  <h2>Risk register</h2>
+  <div class="body">
+    <table class="appx-t">
+      <thead><tr><th>Risk</th><th>Likelihood</th><th>Impact</th><th>Mitigation · detection</th></tr></thead>
+      <tbody>
+        <tr><td>Org-shared or linked datasets cut off by over-eager scoping</td><td><span class="pill hi">high</span></td><td><span class="pill hi">high</span></td><td>“Reach, not rows” semantics · tests assert presence <b>and</b> absence</td></tr>
+        <tr><td>Cross-workspace automation breaks at cutoff</td><td><span class="pill mid">medium</span></td><td><span class="pill hi">high</span></td><td>Phase 0 names who · brownouts · shadow logs</td></tr>
+        <tr><td>A permission check bypasses <code>has_role()</code></td><td><span class="pill mid">medium</span></td><td><span class="pill hi">high</span></td><td>Guard layer catches it · test forbidding role queries outside the choke point</td></tr>
+        <tr><td>A new model is added later without scoping</td><td><span class="pill hi">over time</span></td><td><span class="pill mid">medium</span></td><td><code>SCOPED_MODELS</code> guard test in CI</td></tr>
+        <tr><td>MCP server enumerates workspaces</td><td><span class="pill mid">medium</span></td><td><span class="pill mid">medium</span></td><td>Audit its operations before phase 3 · shadow logs by user agent</td></tr>
+        <tr><td>Ops scripts using superuser tokens break</td><td><span class="pill mid">medium</span></td><td><span class="pill mid">medium</span></td><td>Intentional — give ops an audited path, not a wide token</td></tr>
+        <tr><td>Rollout stalls at “legacy still in use” forever</td><td><span class="pill mid">medium</span></td><td><span class="pill mid">medium</span></td><td>Announced dates · brownouts · one-shot grace extension</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="slide appx" data-role="appx" id="A7">
+  <div class="eyebrow">Appendix A7 <span class="dim">· from slide 05</span></div>
+  <h2>Alternatives, and why not</h2>
+  <div class="body">
+    <table class="appx-t">
+      <thead><tr><th>Option</th><th>Why not</th></tr></thead>
+      <tbody>
+        <tr><td>Per-request workspace header — token stays wide, client declares intent</td><td>Client-declared scope isn’t a security boundary; a leaked token just omits the header</td></tr>
+        <tr><td>JWT with claims instead of signed opaque payloads</td><td>Real benefits, bigger change, and no revocation without a denylist. The signed-payload strategy is adequate once the token table gives us revocation</td></tr>
+        <tr><td>Capability tokens now (read-only, pipeline-only)</td><td>Doubles the permission surface while the primary hole is still open. Ship workspace scoping; keep the extension point</td></tr>
+        <tr><td>Enforce in each resolver</td><td>~200 resolvers, every one a chance to forget, unreviewable, and no single rollback switch</td></tr>
+        <tr><td>Hard cut in one release</td><td>Fastest to a clean codebase, and the one option guaranteed to break users without warning</td></tr>
+        <tr><td>Do nothing, document the risk</td><td>The token is an account credential in a place users treat as a project credential. That gap doesn’t stay theoretical</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="slide appx" data-role="appx" id="A8">
+  <div class="eyebrow">Appendix A8 <span class="dim">· from slide 14</span></div>
+  <h2>Where the branch stands</h2>
+  <div class="body two">
+    <div>
+      <p><b>Built</b></p>
+      <ul>
+        <li><code>WorkspaceScopedPrincipal</code> marker, with <code>ServicePrincipal</code> inheriting from it</li>
+        <li><code>WorkspaceTokenUser</code> — the <code>User</code> proxy narrowed to one workspace</li>
+        <li><code>Workspace.has_role()</code>, replacing ~30 hand-rolled membership queries</li>
+        <li><code>_scoped()</code> post-filter on the workspace queryset, including the superuser shortcuts</li>
+        <li><code>test_visibility_scoping.py</code> — the scoping matrix, run for both a member and a superuser holder</li>
+      </ul>
+    </div>
+    <div>
+      <p><b>Left to do</b></p>
+      <ul>
+        <li>Wire the middleware (one line) behind the three-state flag</li>
+        <li>Scope as a constructor argument, not a mutated class attribute</li>
+        <li>Ask the principal, not <code>isinstance</code>, from <code>core/models/base.py</code></li>
+        <li>Registry dispatch on a payload <code>version</code>, replacing the <code>if/elif</code></li>
+        <li>Guard test so a new model can’t skip <code>SCOPED_MODELS</code></li>
+        <li>Decide <code>bypass_two_factor</code> for tokens</li>
+        <li>Tests for org-shared and linked datasets — the likeliest quiet break</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+  <div class="hud">
+    <span class="act" id="hud-act">Opening</span>
+    <span class="bar"><i id="hud-bar" style="width:0"></i></span>
+    <span class="count" id="hud-count">01 / 15</span>
+    <span class="hint" id="hud-hint">? keys</span>
+  </div>
+
+  <div class="help" id="help">
+    <dl>
+      <dt>→ space</dt><dd>next slide</dd>
+      <dt>←</dt><dd>previous slide</dd>
+      <dt>A</dt><dd>this slide’s appendix — press again to come back</dd>
+      <dt>Esc ⌫</dt><dd>also comes back</dd>
+      <dt>1 – 9</dt><dd>jump to slide</dd>
+      <dt>Home End</dt><dd>first · last</dd>
+      <dt>?</dt><dd>close this</dd>
+    </dl>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var mains = Array.prototype.slice.call(document.querySelectorAll('[data-role="main"]'));
+    var appxs = Array.prototype.slice.call(document.querySelectorAll('[data-role="appx"]'));
+    var hudAct = document.getElementById('hud-act');
+    var hudBar = document.getElementById('hud-bar');
+    var hudCount = document.getElementById('hud-count');
+    var hudHint = document.getElementById('hud-hint');
+    var help = document.getElementById('help');
+
+    var mode = 'main';
+    var mainAt = 0;
+    var appxAt = 0;
+    var returnTo = 0;
+
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+    function linkedAppx(el) {
+      var b = el ? el.querySelector('.jump') : null;
+      return b ? b.getAttribute('data-appx') : null;
+    }
+
+    function setHash(h) {
+      try { history.replaceState(null, '', '#' + h); }
+      catch (err) { /* file:// origins can refuse replaceState — navigation must not depend on it */ }
+    }
+
+    function render() {
+      var list = mode === 'main' ? mains : appxs;
+      var at = mode === 'main' ? mainAt : appxAt;
+      var i;
+      for (i = 0; i < mains.length; i++) { mains[i].classList.remove('is-on'); }
+      for (i = 0; i < appxs.length; i++) { appxs[i].classList.remove('is-on'); }
+      var el = list[at];
+      el.classList.add('is-on');
+      document.body.classList.toggle('in-appx', mode === 'appx');
+
+      if (mode === 'main') {
+        hudAct.textContent = el.getAttribute('data-act') || '';
+        hudCount.textContent = pad(at + 1) + ' / ' + pad(mains.length);
+        var id = linkedAppx(el);
+        hudHint.textContent = id ? 'A → ' + id : 'A → appendix';
+        setHash(String(at + 1));
+      } else {
+        hudAct.textContent = 'Appendix';
+        hudCount.textContent = el.id + ' / ' + appxs[appxs.length - 1].id;
+        hudHint.textContent = 'A · Esc → back to ' + pad(returnTo + 1);
+        setHash(el.id);
+      }
+      hudBar.style.width = ((at + 1) / list.length * 100) + '%';
+    }
+
+    function goMain(i) {
+      mode = 'main';
+      mainAt = Math.max(0, Math.min(mains.length - 1, i));
+      render();
+    }
+
+    function goAppx(id) {
+      var i = -1, k;
+      for (k = 0; k < appxs.length; k++) { if (appxs[k].id === id) { i = k; } }
+      if (i < 0) { return; }
+      if (mode === 'main') { returnTo = mainAt; }
+      mode = 'appx';
+      appxAt = i;
+      render();
+    }
+
+    function toAppendix() {
+      // A is a toggle: into this slide's appendix, and back out of it.
+      if (mode === 'main') { goAppx(linkedAppx(mains[mainAt]) || appxs[0].id); }
+      else { goMain(returnTo); }
+    }
+
+    function step(d) {
+      if (mode === 'main') { goMain(mainAt + d); return; }
+      var next = appxAt + d;
+      if (next < 0 || next >= appxs.length) { goMain(returnTo); }
+      else { appxAt = next; render(); }
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.metaKey || e.ctrlKey || e.altKey) { return; }
+      var k = e.key;
+
+      if (k === '?' || (k === '/' && e.shiftKey)) { help.classList.toggle('is-on'); e.preventDefault(); return; }
+      if (help.classList.contains('is-on')) { help.classList.remove('is-on'); e.preventDefault(); return; }
+
+      if (k === 'ArrowRight' || k === ' ' || k === 'Spacebar' || k === 'PageDown' || k === 'n') { step(1); e.preventDefault(); }
+      else if (k === 'ArrowLeft' || k === 'PageUp' || k === 'p') { step(-1); e.preventDefault(); }
+      else if (k === 'Home') { goMain(0); e.preventDefault(); }
+      else if (k === 'End') { goMain(mains.length - 1); e.preventDefault(); }
+      else if (k === 'Escape' || k === 'Backspace') { if (mode === 'appx') { goMain(returnTo); e.preventDefault(); } }
+      else if (k === 'a' || k === 'A') { toAppendix(); e.preventDefault(); }
+      else if (k >= '1' && k <= '9') { goMain(parseInt(k, 10) - 1); }
+    });
+
+    document.addEventListener('click', function (e) {
+      var t = e.target;
+      var jump = t && t.closest ? t.closest('.jump') : null;
+      if (jump) { goAppx(jump.getAttribute('data-appx')); return; }
+      if (help.classList.contains('is-on')) { help.classList.remove('is-on'); return; }
+      if (t && t.closest && (t.closest('.jumps') || t.closest('.hud'))) { return; }
+      step(1);
+    });
+
+    hudHint.style.cursor = 'pointer';
+    hudHint.addEventListener('click', function (e) { e.stopPropagation(); toAppendix(); });
+
+    var h = (location.hash || '').replace('#', '');
+    if (/^A\d+$/.test(h)) { goAppx(h); }
+    else if (/^\d+$/.test(h)) { goMain(parseInt(h, 10) - 1); }
+    else { render(); }
+  })();
+</script>
