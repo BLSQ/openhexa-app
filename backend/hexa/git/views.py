@@ -105,7 +105,7 @@ def authorize(request: HttpRequest) -> HttpResponse:
         return HttpResponse(status=401)
 
     if GIT_SCOPE not in access_token.scope.split():
-        return HttpResponse(status=403)
+        return HttpResponse(status=401)
 
     user = access_token.user
 
