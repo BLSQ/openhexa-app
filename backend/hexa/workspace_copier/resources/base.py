@@ -21,6 +21,9 @@ class ResourceCopier(ABC):
     label: str
     """Human label for the admin checkbox."""
 
+    help_text: str = ""
+    """What this copier skips or assumes, shown under its admin checkbox."""
+
     mandatory: bool = False
     """Workspace metadata sets this True (it creates the target every run)."""
 

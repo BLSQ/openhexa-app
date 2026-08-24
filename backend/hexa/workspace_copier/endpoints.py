@@ -8,7 +8,8 @@ lives inside each resource copier (it reads from ``source``, writes to
   the source ``Workspace`` instance (source) or the created target workspace
   (set by the workspace-metadata copier).
 - ``REMOTE`` — another server, reached over GraphQL through ``transport.py``.
-  ``client`` is an authenticated SDK ``Client`` and ``slug`` the workspace slug.
+  ``client`` is an authenticated SDK ``Client`` and ``slug`` the workspace slug;
+  ``workspace`` caches whatever :meth:`Endpoint.get_workspace` last read.
 
 ``workspace_name`` is a target-only override: when set, the target workspace is
 created with this name instead of the source workspace's name.
@@ -21,6 +22,8 @@ from enum import Enum
 from typing import Any
 
 from openhexa.graphql.graphql_client.client import Client
+
+from hexa.workspace_copier.transport import GraphQLError
 
 
 class EndpointMode(str, Enum):
@@ -60,6 +63,7 @@ class Endpoint:
         client: Client,
         slug: str | None = None,
         *,
+        workspace: Any = None,
         organization_id: str | None = None,
         workspace_name: str | None = None,
     ) -> Endpoint:
@@ -67,9 +71,24 @@ class Endpoint:
             EndpointMode.REMOTE,
             slug=slug,
             client=client,
+            workspace=workspace,
             organization_id=organization_id,
             workspace_name=workspace_name,
         )
+
+    def get_workspace(self, side: str) -> Any:
+        """Return this endpoint's workspace, reading a remote one at most once.
+
+        The result is cached on ``workspace``, so a slug already resolved during
+        pre-flight (the ``--target-workspace-slug`` flow, which stores what it
+        verified) costs no second round trip. ``side`` only labels the error.
+        """
+        if self.workspace is None and self.is_remote:
+            ws = self.client.workspace(slug=self.slug)
+            if ws is None:
+                raise GraphQLError(f"{side} workspace '{self.slug}' not found")
+            self.workspace = ws
+        return self.workspace
 
     @property
     def is_local(self) -> bool:

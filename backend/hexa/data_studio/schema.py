@@ -20,7 +20,7 @@ from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
 from .models import QueryLog, SavedQuery
-from .query_runner import run_and_log_database_query
+from .query_runner import run_and_log_database_query, run_saved_query
 
 data_studio_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -51,7 +51,7 @@ execute_sql_origin_enum = EnumType(
     {
         origin.name: origin
         for origin in QueryLog.Origin
-        if origin != QueryLog.Origin.DATA_STUDIO_EXPORT
+        if origin not in (QueryLog.Origin.DATA_STUDIO_EXPORT, QueryLog.Origin.WEBAPP)
     },
 )
 
@@ -175,17 +175,76 @@ def resolve_workspace_permissions_create_saved_query(
     )
 
 
+def _visible_saved_queries(request: HttpRequest):
+    return SavedQuery.objects.filter_for_user(request.user).select_related(
+        "created_by", "workspace", "workspace__organization"
+    )
+
+
 @data_studio_queries.field("savedQuery")
 def resolve_saved_query(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
+    queryset = _visible_saved_queries(request)
+    # workspaceSlug is optional to keep the field's existing id-only contract;
+    # when supplied it scopes the lookup to that workspace, matching where
+    # saved queries live (mirrors pipelineByCode).
+    workspace_slug = kwargs.get("workspace_slug")
+    if workspace_slug is not None:
+        queryset = queryset.filter(workspace__slug=workspace_slug)
     try:
-        return (
-            SavedQuery.objects.filter_for_user(request.user)
-            .select_related("created_by", "workspace", "workspace__organization")
-            .get(id=kwargs["id"])
-        )
+        return queryset.get(id=kwargs["id"])
     except SavedQuery.DoesNotExist:
         return None
+
+
+@data_studio_queries.field("savedQueryBySlug")
+def resolve_saved_query_by_slug(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    try:
+        return _visible_saved_queries(request).get(slug=kwargs["slug"])
+    except SavedQuery.DoesNotExist:
+        return None
+
+
+@data_studio_queries.field("executeSavedQuery")
+def resolve_execute_saved_query(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    query_input = kwargs["input"]
+
+    try:
+        # No workspace to match on: the slug is unique across workspaces, and
+        # `filter_for_user` already confines a web app to the single workspace
+        # its token was issued for.
+        saved_query = _visible_saved_queries(request).get(slug=query_input["slug"])
+        result = run_saved_query(
+            request, saved_query, max_rows=query_input.get("max_rows")
+        )
+        return {"success": True, "errors": [], **result}
+    except SavedQuery.DoesNotExist:
+        # A query that does not exist and one the caller cannot see are reported
+        # the same way, so that this endpoint cannot be used to discover what
+        # exists elsewhere.
+        return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
+    except PermissionDenied:
+        return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except MultipleStatementsError as e:
+        return {
+            "success": False,
+            "errors": ["MULTIPLE_STATEMENTS"],
+            "error_message": str(e),
+        }
+    except QueryCanceled as e:
+        return {
+            "success": False,
+            "errors": ["QUERY_TIMEOUT"],
+            "error_message": str(e).strip(),
+        }
+    except Psycopg2Error as e:
+        return {
+            "success": False,
+            "errors": ["QUERY_ERROR"],
+            "error_message": str(e).strip(),
+        }
 
 
 @data_studio_mutations.field("createSavedQuery")

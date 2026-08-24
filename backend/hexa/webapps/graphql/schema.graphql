@@ -8,6 +8,7 @@ enum WebappOperationScope {
   DATASETS_READ
   DATASETS_WRITE
   USER_READ
+  DATABASE_READ
 }
 
 """

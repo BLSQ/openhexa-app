@@ -2402,6 +2402,9 @@ enum ExecuteSQLError {
 
   """The query was cancelled because it exceeded the statement timeout."""
   QUERY_TIMEOUT
+
+  """No saved query with this slug, or it is not visible to the caller."""
+  SAVED_QUERY_NOT_FOUND
 }
 
 """
@@ -2446,6 +2449,15 @@ type ExecuteSQLResult {
   Whether the result was truncated because it exceeded the maximum number of rows.
   """
   truncated: Boolean
+}
+
+"""Input for executing a saved query."""
+input ExecuteSavedQueryInput {
+  """
+  Caps the number of returned rows; defaults to 50 and is itself capped to a server-side hard limit.
+  """
+  maxRows: Int
+  slug: String!
 }
 
 """
@@ -4175,6 +4187,11 @@ type Query {
   """Search datasets."""
   datasets(page: Int = 1, perPage: Int = 15, query: String): DatasetPage!
 
+  """
+  Runs a saved query against the workspace database and returns its result, without exposing the SQL.
+  """
+  executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSQLResult!
+
   """Get a file by its path within a workspace."""
   getFileByPath(path: String!, workspaceSlug: String!): BucketObject
 
@@ -4222,8 +4239,15 @@ type Query {
   readFileContent(endLine: Int, filePath: String!, startLine: Int, workspaceSlug: String!): ReadFileContentResult!
   readWebappFile(endLine: Int, path: String!, startLine: Int, webappSlug: String!, workspaceSlug: String!): ReadWebappFileResult!
 
-  """Retrieves a saved query by its id."""
-  savedQuery(id: ID!): SavedQuery
+  """
+  Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace.
+  """
+  savedQuery(id: ID!, workspaceSlug: String): SavedQuery
+
+  """
+  Retrieves a saved query by its slug, which is unique across workspaces.
+  """
+  savedQueryBySlug(slug: String!): SavedQuery
   searchDatabaseTables(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatabaseTableResultPage!
   searchDatasets(organizationId: UUID, page: Int = 1, perPage: Int = 15, query: String!, workspaceSlugs: [String]): DatasetResultPage!
   searchFiles(organizationId: UUID, page: Int = 1, perPage: Int = 15, prefix: String, query: String!, workspaceSlugs: [String]): FileResultPage!
@@ -4582,6 +4606,11 @@ type SavedQuery {
   id: ID!
   name: String!
   permissions: SavedQueryPermissions!
+
+  """
+  Stable identifier, unique within the workspace. Generated from the name and left unchanged when the query is renamed.
+  """
+  slug: String!
   updatedAt: DateTime!
   visibility: SavedQueryVisibility!
   workspace: Workspace!
@@ -5911,6 +5940,7 @@ input WebappFileInput {
 }
 
 enum WebappOperationScope {
+  DATABASE_READ
   DATASETS_READ
   DATASETS_WRITE
   FILES_READ

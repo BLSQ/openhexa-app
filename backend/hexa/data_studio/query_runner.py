@@ -44,7 +44,11 @@ def _log_executed_query(
 
 
 def ensure_can_run_query(
-    request: HttpRequest, workspace: Workspace, query: str, origin: str
+    request: HttpRequest,
+    workspace: Workspace,
+    query: str,
+    origin: str,
+    saved_query=None,
 ) -> None:
     """Check the permission both SQL paths share, recording a DENIED entry when it fails.
 
@@ -55,8 +59,29 @@ def ensure_can_run_query(
     The permission is ``databases.run_query``: whether a user may run SQL against a
     workspace database is a property of the database, not of the Data Studio.
     """
+    # A webapp may only run SQL the workspace already stored, never SQL of its own
+    # (``saved_query is None`` is exactly the caller-supplied case): the GraphQL proxy
+    # validates top-level fields only, so the `workspace` field that `USER_READ` grants
+    # would otherwise reach executeSQL through `workspace { database { executeSQL } }`
+    # and turn the narrowest scope into an unrestricted read of the whole database.
+    if saved_query is None and getattr(request, "webapp", None) is not None:
+        _log_executed_query(
+            request,
+            workspace,
+            query,
+            origin,
+            QueryLog.Status.DENIED,
+        )
+        raise PermissionDenied
     if not request.user.has_perm("databases.run_query", workspace):
-        _log_executed_query(request, workspace, query, origin, QueryLog.Status.DENIED)
+        _log_executed_query(
+            request,
+            workspace,
+            query,
+            origin,
+            QueryLog.Status.DENIED,
+            saved_query=saved_query,
+        )
         raise PermissionDenied
 
 
@@ -66,6 +91,7 @@ def log_rejected_query(
     query: str,
     origin: str,
     error_message: str,
+    saved_query=None,
 ) -> None:
     """Record a query the server refused to run before it reached the database."""
     _log_executed_query(
@@ -75,6 +101,7 @@ def log_rejected_query(
         origin,
         QueryLog.Status.REJECTED,
         error_message=error_message,
+        saved_query=saved_query,
     )
 
 
@@ -84,6 +111,7 @@ def run_and_log_database_query(
     query: str,
     origin: str,
     max_rows: int | None = None,
+    saved_query=None,
 ):
     """Single point of entry for executing SQL on behalf of an API request.
 
@@ -91,13 +119,15 @@ def run_and_log_database_query(
     and records a ``QueryLog`` entry for every outcome, re-raising errors so that
     callers only have to translate them into API responses.
     """
-    ensure_can_run_query(request, workspace, query, origin)
+    ensure_can_run_query(request, workspace, query, origin, saved_query=saved_query)
     max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
     started_at = time.perf_counter()
     try:
         result = execute_database_query(workspace, query, **max_rows_kwarg)
     except MultipleStatementsError as e:
-        log_rejected_query(request, workspace, query, origin, str(e))
+        log_rejected_query(
+            request, workspace, query, origin, str(e), saved_query=saved_query
+        )
         raise
     except psycopg2.Error as e:
         # QueryCanceled (statement timeout) is a psycopg2.Error subclass and
@@ -111,6 +141,7 @@ def run_and_log_database_query(
             result_code=e.pgcode,
             error_message=str(e).strip(),
             duration_ms=elapsed_ms(started_at),
+            saved_query=saved_query,
         )
         raise
     _log_executed_query(
@@ -123,8 +154,35 @@ def run_and_log_database_query(
         duration_ms=result["duration_ms"],
         row_count=result["row_count"],
         truncated=result["truncated"],
+        saved_query=saved_query,
     )
     return result
+
+
+def run_saved_query(request: HttpRequest, saved_query, max_rows: int | None = None):
+    """Execute a stored query on behalf of an API request.
+
+    Unlike the interactive path this is reachable from a web app: the SQL was written
+    and vetted by a workspace member when the query was saved, not supplied by the
+    caller, which is the whole point of the endpoint. The permission checked is still
+    the workspace-database one, so a web app cannot reach a database its viewer could
+    not query directly.
+    """
+    # Derived from the request rather than accepted as an argument: a client that
+    # could name its own origin could disown the queries it ran.
+    origin = (
+        QueryLog.Origin.WEBAPP
+        if getattr(request, "webapp", None) is not None
+        else QueryLog.Origin.OTHER
+    )
+    return run_and_log_database_query(
+        request,
+        saved_query.workspace,
+        saved_query.content,
+        origin,
+        max_rows=max_rows,
+        saved_query=saved_query,
+    )
 
 
 class QueryExportAudit:

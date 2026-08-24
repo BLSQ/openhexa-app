@@ -20,11 +20,15 @@ const InputSearch = ({ onClick }: InputSearchProps) => {
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-2 w-full px-3 py-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors cursor-pointer"
+      aria-label={t("Search...")}
+      title={t("Search...")}
+      className="flex items-center justify-center gap-2 w-full px-3 py-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors cursor-pointer xl:justify-start"
     >
-      <MagnifyingGlassIcon className="h-4 w-4 text-gray-500" />
-      <span className="flex-1 text-left text-gray-500">{t("Search...")}</span>
-      <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded">
+      <MagnifyingGlassIcon className="h-4 w-4 shrink-0 text-gray-500" />
+      <span className="hidden flex-1 truncate text-left text-gray-500 xl:block">
+        {t("Search...")}
+      </span>
+      <kbd className="hidden xl:inline-flex items-center gap-0.5 px-1.5 py-0.5 font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded">
         {getIsMac() ? (
           <>
             <span className="text-sm">⌘</span>

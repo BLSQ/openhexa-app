@@ -7,6 +7,24 @@ views render that aggregate via :func:`format_summary`.
 
 from dataclasses import dataclass, field
 
+BYTE_UNITS = ("B", "KiB", "MiB", "GiB", "TiB", "PiB")
+
+
+def format_bytes(size: int) -> str:
+    """Render a byte count for humans, e.g. 1437567641 -> '1.3 GiB'.
+
+    Binary units, to match the storage backends' own limits (S3's single-part
+    ceiling is 5 GiB, not 5 GB).
+    """
+    if size < 1024:
+        return f"{size} B"
+    value = float(size)
+    for unit in BYTE_UNITS[1:]:
+        value /= 1024
+        if value < 1024:
+            break
+    return f"{value:.1f} {unit}"
+
 
 @dataclass
 class FilesResult:
@@ -14,6 +32,13 @@ class FilesResult:
 
     copied: list[tuple[str, int]] = field(default_factory=list)
     """(object_key, byte_size) for each file copied to target."""
+
+    skipped: int = 0
+    """Files already on target with the same key and size (re-run flow).
+
+    A count rather than a list: on a re-run this is most of the bucket, and
+    thousands of paths would drown the summary.
+    """
 
     failed: list[tuple[str, str]] = field(default_factory=list)
     """(object_key, reason) whose download or upload failed; user must handle manually."""
@@ -124,7 +149,13 @@ def format_summary(result: CopyResult) -> str:
 
     if result.files is not None:
         total_bytes = sum(b for _, b in result.files.copied)
-        lines.append(f"Files copied: {len(result.files.copied)} ({total_bytes} bytes)")
+        lines.append(
+            f"Files copied: {len(result.files.copied)} ({format_bytes(total_bytes)})"
+        )
+        if result.files.skipped:
+            lines.append(
+                f"Files skipped (already on target, same size): {result.files.skipped}"
+            )
         if result.files.failed:
             lines.append(
                 f"Files that could NOT be copied "
@@ -214,8 +245,7 @@ def format_templates_summary(result: TemplatesResult) -> str:
 
     if result.skipped_unchanged:
         lines.append(
-            f"Templates already up to date (skipped): "
-            f"{len(result.skipped_unchanged)}"
+            f"Templates already up to date (skipped): {len(result.skipped_unchanged)}"
         )
         lines.extend(f"  * {name}" for name in result.skipped_unchanged)
 
