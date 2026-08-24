@@ -102,10 +102,26 @@ _NAMING_INSTRUCTIONS = (
 )
 
 
-def _parse_conversation_title(text: str) -> str:
+_TITLE_MAX_WORDS = 8
+_TITLE_MAX_CHARS = 50
+
+
+def _validate_conversation_title(text: str) -> str:
     title = text.strip()
-    if len(title.split()) > 5:
-        raise ModelRetry("Title must be at most 5 words.")
+    words = title.split()
+    if len(words) > _TITLE_MAX_WORDS or len(title) > _TITLE_MAX_CHARS:
+        raise ModelRetry(
+            f"Title is {len(words)} words and {len(title)} characters; it must be at "
+            f"most {_TITLE_MAX_WORDS} words and {_TITLE_MAX_CHARS} characters. "
+            "Drop qualifiers, keep the subject."
+        )
+    return title
+
+
+def _trim_conversation_title(text: str) -> str:
+    title = " ".join(text.split()[:_TITLE_MAX_WORDS])
+    if len(title) > _TITLE_MAX_CHARS:
+        title = title[:_TITLE_MAX_CHARS].rsplit(" ", 1)[0] or title[:_TITLE_MAX_CHARS]
     return title
 
 
@@ -525,6 +541,15 @@ class BaseAgent:
         self, user_input: str
     ) -> tuple[str, RunUsage]:
         # TODO: Use smaller, cheaper models for these small "utility agents"
+        # Keep the last candidate so an exhausted run can fall back to the model's own
+        # title.
+        last_candidate = ""
+
+        def _parse_conversation_title(text: str) -> str:
+            nonlocal last_candidate
+            last_candidate = text.strip()
+            return _validate_conversation_title(text)
+
         naming_agent = Agent(
             model=self._model,
             instructions=_NAMING_INSTRUCTIONS,
@@ -538,14 +563,13 @@ class BaseAgent:
         )
         try:
             result = await naming_agent.run(prompt)
-            return result.output.strip()[:50], result.usage()
+            return result.output.strip()[:_TITLE_MAX_CHARS], result.usage()
         except Exception:
             logger.warning(
                 "agent.run: conversation naming failed, falling back to truncation"
             )
-            text = " ".join(user_input.split())
-            truncated = text[:50].rsplit(" ", 1)[0]
-            return truncated or text[:50], RunUsage()
+            fallback = last_candidate or user_input
+            return _trim_conversation_title(fallback), RunUsage()
 
     def _get_cost(self, usage: RunUsage) -> Decimal | None:
         cost: Decimal | None = None
