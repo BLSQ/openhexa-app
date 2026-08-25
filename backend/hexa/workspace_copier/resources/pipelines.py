@@ -10,6 +10,7 @@ rather than relying on the files copier having run.
 """
 
 import base64
+import tempfile
 from typing import Any
 
 import httpx
@@ -22,7 +23,7 @@ from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import ProgressReporter
 from hexa.workspace_copier.resources.base import ResourceCopier
 from hexa.workspace_copier.resources.files import download, upload
-from hexa.workspace_copier.results import CopyResult, PipelinesResult
+from hexa.workspace_copier.results import CopyResult, PipelinesResult, format_bytes
 from hexa.workspace_copier.transport import GraphQLError, gql
 
 PIPELINES_PAGE_SIZE = 50
@@ -304,9 +305,11 @@ def _copy_notebook_file(
     reporter: ProgressReporter,
 ) -> None:
     """Transfer a notebook pipeline's ``.ipynb`` to the target bucket."""
-    content = download(source.client, source.slug, notebook_path, http_client)
-    upload(target.client, target.slug, notebook_path, content, http_client)
-    reporter.info(f"   copied notebook {notebook_path} ({len(content)} bytes)")
+    with tempfile.TemporaryFile() as buffer:
+        size = download(source.client, source.slug, notebook_path, http_client, buffer)
+        buffer.seek(0)
+        upload(target.client, target.slug, notebook_path, buffer, http_client)
+    reporter.info(f"   copied notebook {notebook_path} ({format_bytes(size)})")
 
 
 def _create_on_target(
