@@ -105,10 +105,10 @@ You can build a webapp on your own machine — your editor, your live reload, yo
 ### 1. Add the script to your page
 
 ```html
-<script src="https://app.openhexa.org/webapps/dev.js"></script>
+<script src="https://api.openhexa.org/webapps/dev.js"></script>
 ```
 
-Point it at whichever OpenHEXA install you use — `http://localhost:8000/webapps/dev.js` for a local backend.
+Point it at the OpenHEXA **backend** (API) host, not the app host — `https://api.openhexa.org/webapps/dev.js` on OpenHEXA Cloud, `http://localhost:8000/webapps/dev.js` for a local backend.
 
 New webapps created from the default template already include this tag. It is inert once deployed (it only activates on `file://` and `localhost` pages), so you can leave it in your `index.html`.
 
@@ -137,7 +137,7 @@ The window closes and your page reloads, connected. `window.OPENHEXA` is populat
 Name the workspace and webapp up front and the list is reduced to that single, preselected entry — you still confirm with **Approve**:
 
 ```html
-<script src="https://app.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
+<script src="https://api.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
 ```
 
 ### Good to know
