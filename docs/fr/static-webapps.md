@@ -346,7 +346,7 @@ Charge la liste des pipelines à l'ouverture de la page, vous laisse en choisir 
           { id: runId },
         );
         status.textContent = "Statut : " + pipelineRun.status;
-        if (["success", "failed", "stopped"].includes(pipelineRun.status)) break;
+        if (["success", "failed", "stopped", "skipped"].includes(pipelineRun.status)) break;
       }
     }
   </script>

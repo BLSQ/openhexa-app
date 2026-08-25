@@ -486,7 +486,7 @@ union PipelineRunOutput = BucketObject | GenericOutput | DatabaseTable
           { id: runId },
         );
         status.textContent = "Status: " + pipelineRun.status;
-        if (["success", "failed", "stopped"].includes(pipelineRun.status)) break;
+        if (["success", "failed", "stopped", "skipped"].includes(pipelineRun.status)) break;
       }
     }
   </script>
