@@ -1,6 +1,7 @@
 import React from "react";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
+import TagColumn from "core/components/DataGrid/TagColumn";
 import Block from "core/components/Block";
 import Button from "core/components/Button";
 import Link from "core/components/Link";
@@ -10,6 +11,7 @@ import {
   TrashIcon,
   GlobeAltIcon,
   UsersIcon,
+  TagIcon,
 } from "@heroicons/react/24/outline";
 import Flag from "react-world-flags";
 import { OrganizationWorkspace_WorkspaceFragment } from "organizations/graphql/queries.generated";
@@ -25,6 +27,9 @@ type WorkspacesListViewProps = {
   totalPages: number;
   totalItems: number;
   onArchiveClick: (workspace: ArchiveWorkspace_WorkspaceFragment) => void;
+  onManageTagsClick: (
+    workspace: OrganizationWorkspace_WorkspaceFragment,
+  ) => void;
   canManageMembers?: boolean;
 };
 
@@ -35,6 +40,7 @@ const WorkspacesListView = ({
   perPage,
   totalItems,
   onArchiveClick,
+  onManageTagsClick,
   canManageMembers = false,
 }: WorkspacesListViewProps) => {
   const { t } = useTranslation();
@@ -84,6 +90,7 @@ const WorkspacesListView = ({
             )}
           </BaseColumn>
         )}
+        <TagColumn accessor="tags" label={t("Tags")} max={3} />
         <BaseColumn id="createdBy" label={t("Created by")}>
           {(workspace) => (
             <div className={"flex space-x-1"}>
@@ -110,6 +117,18 @@ const WorkspacesListView = ({
                 disabled={!workspace.permissions.manageMembers}
               >
                 {t("Settings")}
+              </Button>
+              <Button
+                variant="outlined"
+                size="sm"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onManageTagsClick(workspace);
+                }}
+                leadingIcon={<TagIcon className="h-4 w-4" />}
+                disabled={!workspace.permissions.manageTags}
+              >
+                {t("Tags")}
               </Button>
               <Button
                 variant="outlined"
