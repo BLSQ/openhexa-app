@@ -97,7 +97,7 @@ def resolve_create_dataset_version(_, info, **kwargs):
     mutation_input = kwargs["input"]
 
     try:
-        dataset = Dataset.objects.filter_for_user(request.user).get(
+        dataset: Dataset = Dataset.objects.filter_for_user(request.user).get(
             id=mutation_input["dataset_id"]
         )
 

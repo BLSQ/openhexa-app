@@ -87,45 +87,38 @@ class UserInterface:
         return False
 
 
-class ServicePrincipal:
+class WorkspaceScopedPrincipal:
+    """Marker mixin for principals whose access is confined to one workspace.
+
+    Access control reads this in two places, and nowhere else: querysets narrow
+    their result to `workspace_id` as a final step, and the principal's own
+    `has_perm` refuses objects outside the scope. Because that narrowing is the
+    last thing to happen, it applies to shortcuts too — a superuser's scoped
+    principal is no wider than anyone else's.
+    """
+
+    @property
+    def workspace(self):
+        raise NotImplementedError
+
+    @property
+    def workspace_id(self):
+        raise NotImplementedError
+
+
+class ServicePrincipal(WorkspaceScopedPrincipal):
     """Marker mixin for principals that impersonate a workspace rather than
     a real user account (PipelineRunUser, WebappUser, ...). Used as
     `isinstance(user, ServicePrincipal)` to short-circuit user-membership
     queries that wouldn't make sense for service principals.
+
+    Being confined to one workspace is the part it shares with a workspace
+    token, and it inherits that from `WorkspaceScopedPrincipal`; what it adds is
+    that there is no person behind it.
     """
 
     @property
     def real_user(self) -> User | None:
-        raise NotImplementedError
-
-    @property
-    def workspace(self):
-        raise NotImplementedError
-
-    @property
-    def workspace_id(self):
-        raise NotImplementedError
-
-
-class WorkspaceScopedPrincipal:
-    """Marker mixin for principals whose access is confined to one workspace.
-
-    Where `ServicePrincipal` says "this is not a person", this says "whatever
-    this principal is, it may only reach `workspace`". The two are orthogonal:
-    `WebappUser` is both, a workspace token is only the latter (it acts as a
-    real person, but through one workspace).
-
-    Access control reads this in two places, and nowhere else: querysets
-    narrow their result to `workspace_id` as a final step, and the principal's
-    own `has_perm` refuses objects outside the scope.
-    """
-
-    @property
-    def workspace(self):
-        raise NotImplementedError
-
-    @property
-    def workspace_id(self):
         raise NotImplementedError
 
 
@@ -309,21 +302,30 @@ class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
         *,
         direct_membership_only: bool = False,
     ) -> models.QuerySet:
-        from hexa.workspaces.models import Workspace
-
         if not user.is_authenticated:
             return self.none()
-        if isinstance(user, ServicePrincipal):
-            return self.filter(workspaces__in=Workspace.objects.filter_for_user(user))
-        if user.is_superuser or user.has_perm(
-            "user_management.manage_all_organizations"
+        if (
+            # No person behind a service principal, so the membership filters
+            # below do not apply to it.
+            isinstance(user, ServicePrincipal)
+            or user.is_superuser
+            or user.has_perm("user_management.manage_all_organizations")
         ):
-            return self.all()
-        if direct_membership_only:
-            return self.filter(organizationmembership__user=user).distinct()
-        return self.filter(
-            Q(organizationmembership__user=user) | Q(workspaces__members=user)
-        ).distinct()
+            qs = self.all()
+        elif direct_membership_only:
+            qs = self.filter(organizationmembership__user=user).distinct()
+        else:
+            qs = self.filter(
+                Q(organizationmembership__user=user) | Q(workspaces__members=user)
+            ).distinct()
+
+        if isinstance(user, WorkspaceScopedPrincipal):
+            # An organization stays reachable as the boundary its workspace shares
+            # datasets across, but only the one that workspace belongs to. Matched
+            # through the relation rather than by dereferencing the workspace, so
+            # that `workspace_id` is all a scoped principal has to provide.
+            qs = qs.filter(workspaces__id=user.workspace_id)
+        return qs
 
 
 class Organization(Base, SoftDeletedModel):

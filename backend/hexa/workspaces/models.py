@@ -161,23 +161,30 @@ class WorkspaceManager(models.Manager):
 
 
 class WorkspaceQuerySet(BaseQuerySet):
+    @staticmethod
+    def _scoped(qs: models.QuerySet, user: AnonymousUser | UserInterface):
+        """Narrow `qs` to the one workspace a scoped principal may reach.
+
+        Applied after every branch below, so it holds for the shortcuts as well:
+        whatever a principal would otherwise see, a scoped one sees at most its
+        own workspace.
+        """
+        if isinstance(user, WorkspaceScopedPrincipal):
+            return qs.filter(pk=user.workspace_id)
+        return qs
+
     def filter_for_user(
         self,
         user: AnonymousUser | UserInterface,
         *,
         include_archived: bool = False,
     ) -> models.QuerySet:
-        from hexa.webapps.models import WebappUser
-
         if not user.is_authenticated:
             return self.none()
 
-        # WebappUser subclasses both User and ServicePrincipal, so it is
-        # excluded here to fall through to the User branch below, where it is
-        # further scoped to its webapp's workspace.
-        if isinstance(user, ServicePrincipal) and not isinstance(user, WebappUser):
-            qs = self.filter(pk=user.workspace_id)
-        elif isinstance(user, User):
+        # Checked before ServicePrincipal because WebappUser is both, and it is a
+        # real person whose own memberships decide what it reaches.
+        if isinstance(user, User):
             qs = (
                 self.all()
                 if user.is_superuser
@@ -192,13 +199,17 @@ class WorkspaceQuerySet(BaseQuerySet):
                     )
                 ).distinct()
             )
-            if isinstance(user, WebappUser):
-                qs = qs.filter(pk=user.workspace_id)
+        elif isinstance(user, ServicePrincipal):
+            # No person behind it, so no memberships to consult: its workspace is
+            # the whole of its reach, which _scoped is what actually says.
+            qs = self.all()
         else:
             raise NotImplementedError(
                 f"WorkspaceQuerySet.filter_for_user has no dispatch for principal "
                 f"type {type(user).__name__}"
             )
+
+        qs = self._scoped(qs, user)
         return qs if include_archived else qs.filter(archived=False)
 
     def filter_for_workspace_slugs(
@@ -210,12 +221,14 @@ class WorkspaceQuerySet(BaseQuerySet):
             return self.none()
 
         if user.is_superuser:
-            return self.filter(slug__in=workspace_slugs)
+            qs = self.filter(slug__in=workspace_slugs)
+        else:
+            qs = self.filter(
+                Q(workspacemembership__user=user, slug__in=workspace_slugs),
+                Q(archived=False),
+            )
 
-        return self.filter(
-            Q(workspacemembership__user=user, slug__in=workspace_slugs),
-            Q(archived=False),
-        )
+        return self._scoped(qs, user)
 
 
 class Workspace(Base):
@@ -327,8 +340,15 @@ class Workspace(Base):
         (anonymous users, service principals): their access, when they have any, is
         implicit. `preload_memberships` turns repeated calls over a page of workspaces
         into a single query.
+
+        A principal confined to another workspace holds no membership here either:
+        this is the single place the permission layer reads memberships from, so
+        answering None here is what scopes every role check built on it.
         """
         if not isinstance(user, User) or not user.is_authenticated:
+            return None
+
+        if isinstance(user, WorkspaceScopedPrincipal) and user.workspace_id != self.id:
             return None
 
         preloaded_for_user_id, membership = getattr(
@@ -343,6 +363,20 @@ class Workspace(Base):
             .defer("access_token")
             .first()
         )
+
+    def has_role(
+        self, user: AnonymousUser | UserInterface, *roles: "WorkspaceMembershipRole"
+    ) -> bool:
+        """Whether `user` is a member of this workspace holding one of `roles`.
+
+        With no roles given, any membership will do. This is the only way the
+        permission layer asks about memberships, so the scoping in
+        `get_membership` reaches all of it.
+        """
+        membership = self.get_membership(user)
+        if membership is None:
+            return False
+        return not roles or membership.role in roles
 
     def update_if_has_perm(self, *, principal: User, **kwargs):
         if not principal.has_perm("workspaces.update_workspace", self):

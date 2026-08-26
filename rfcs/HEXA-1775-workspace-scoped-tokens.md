@@ -177,7 +177,7 @@ Things to fix before merge:
 4. **`SCOPED_MODELS` is hand-maintained.** Add a guard test that enumerates models with a
    `filter_for_user` and fails when one is neither in `SCOPED_MODELS` nor in an explicit
    `INTENTIONALLY_UNSCOPED` list. Otherwise the matrix silently stops being a matrix.
-5. **`bypass_two_factor`** should be reconsidered for scoped tokens; at minimum it must
+6. **`bypass_two_factor`** should be reconsidered for scoped tokens; at minimum it must
    not let a token perform account-level mutations (2FA settings, email change).
 6. **Nothing yet touches the middleware.** Wire-up is one line and should land behind the
    flag described in §5 rather than as a bare behavioural change.
@@ -232,6 +232,12 @@ ticket. We should return a **distinct, specific signal**:
 - The SDK/CLI surfaces that message verbatim and links to the doc page.
 - Every such event is logged with the token prefix, so the org admin report in §5 can
   show "3 tokens hit scope errors this week".
+
+**It must not carry `extensions.code = "UNAUTHENTICATED"`.** The CLI collapses any error
+with that code into `InvalidTokenError` (`cli/api.py:213-215`), so the user would be told
+their token is invalid and would regenerate it — the wrong fix, applied confidently. Any
+other error is passed through as `GraphQLError(data["errors"])`, so the message text does
+reach the terminal (as a raw list, until a CLI release prettifies it).
 
 Security note: leaking "this exists but you can't have it" is acceptable here because the
 token holder already knows their own workspace list; we are not disclosing anything they
@@ -296,7 +302,14 @@ guess, and the fix is two weeks of logging.
 - Email the holders of legacy tokens *in use*, with the token name, workspace, last-used
   date and the cutoff date.
 - Two announced **brownouts**: on day X and day Y, legacy tokens are enforced for one
-  hour. Brownouts convert "I ignored the email" into a survivable 60-minute incident
+  hour. Mechanically this is nearly free: `Feature` / `FeatureFlag`
+  (`user_management/models.py:840-865`) already exists, and `force_activate` is a global
+  switch editable in Django admin — no deploy, no restart. Two caveats:
+  `has_feature_flag` is an uncached query per call, so memoise it before putting it in the
+  auth path; and a boolean cannot express `off/log/enforce`, so prefer a small model with
+  a mode plus an `enforce_from`/`enforce_until` window, which also makes brownouts
+  self-driving. There is no scheduler in `config/settings/base.py`, so a timed flip means
+  a CronJob or a person. Brownouts convert "I ignored the email" into a survivable 60-minute incident
   instead of a surprise outage on cutoff day. (Do them outside the timezones where our
   users run nightly pipelines — check the run schedule data before picking a slot.)
 - **Exit gate:** brownouts produce no unexplained failures.
@@ -358,7 +371,7 @@ that in the changelog, not just "tokens are now restricted".
 | # | Risk | Likelihood | Impact | Mitigation | Detection |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Cross-workspace automation breaks at cutoff | Medium | High | Phase 0 data identifies exactly who; direct contact; brownouts | Shadow logs; scope-error metric |
-| 2 | Org-shared / linked datasets accidentally cut off by over-eager scoping | **High** (easy mistake) | High | "Reach, not rows" semantics (§3); explicit tests for org-shared + linked datasets in both directions | `test_visibility_scoping.py` asserts both presence and absence |
+| 2 | Org-shared / linked datasets accidentally cut off by over-eager scoping | **High** (easy mistake) | High | "Reach, not rows" semantics (§3). There is a live caller: `workspace.get_dataset(…, source_workspace_slug=…)` resolves `datasetLinkBySlug` against the *source* workspace (`datasets/schema/queries.py:72-78`). The scoping fixture currently builds only a *private* link in the other workspace (`testutils.py:154`), so nothing protects this path yet — add an org-shared dataset plus its link, asserted still visible | `test_visibility_scoping.py` asserts both presence and absence |
 | 3 | Notebooks break | Low | High | Notebook tokens are already per (user, workspace); assert in tests | Notebook launch smoke test |
 | 4 | MCP server breaks | Medium | Medium | Audit which operations it calls; it may enumerate workspaces | Shadow logs filtered by user agent |
 | 5 | Internal support/ops scripts using superuser tokens break | Medium | Medium | Superuser scoping is intentional; provide a separate, audited admin path instead of a wide token | Ask the support team in Phase 1 |
@@ -372,28 +385,63 @@ that in the changelog, not just "tokens are now restricted".
 
 ## 8. Open questions
 
-1. **Do we know the SDK/CLI's actual query set?** The blast radius depends on whether the
-   CLI ever calls `workspaces` (list) or `me { workspaces }` with a token. Needs a pass
-   over `openhexa-cli` / `openhexa-sdk`. My assumption: config is per workspace, so the
-   damage is small — worth verifying, it changes the whole risk picture.
-2. **Should a token be able to act as *less* than its owner** (role cap, read-only)? Out
+1. ~~**Do we know the SDK/CLI's actual query set?**~~ **Answered** — checked against
+   `openhexa-sdk-python` (2026-08-25). See §11 for the evidence. Summary: config is already
+   one token per workspace (`cli/settings.py:82,117`), `workspaces list/activate/rm` are
+   local-only, `workspaces add` validates with the singular `getWorkspace(slug)`, and
+   nothing in `cli/` or `sdk/` calls `me`, the plural `workspaces`, or `organizations`.
+   The blast radius is therefore small, and the cutoff story on §5 Phase 5 holds.
+   Two consequences replace this question: the error code must not be `UNAUTHENTICATED`
+   (§4.4), and the `get_dataset(source_workspace_slug=…)` path needs a test (§7 risk 2).
+2. **Do we ship a CLI release at all?** Not needed for the token *format* — there is no
+   token-format validation anywhere (`cli/api.py:193`), so `ohx_ws_…` works on every
+   installed client. It buys readable scope errors (today `cli/api.py:216` prints the raw
+   GraphQL errors list) and a legacy-token warning. Optional, but if we do it, it must
+   land before the brownouts.
+
+3. **Should a token be able to act as *less* than its owner** (role cap, read-only)? Out
    of scope here by decision, but the token table should not make it hard later. A nullable
    `max_role` column costs nothing now.
-3. **`created_by` vs `user`:** should an admin be able to mint a token for a service
+4. **`created_by` vs `user`:** should an admin be able to mint a token for a service
    identity in their workspace (a "workspace bot") rather than for themselves? That is
    arguably the real answer for CI, and it would remove the "my token, my account" problem
    entirely. Bigger change; flag as a follow-up.
-4. **Expiry defaults.** Do we want a maximum lifetime (e.g. 1 year) on `scope_version = 2`
+5. **Expiry defaults.** Do we want a maximum lifetime (e.g. 1 year) on `scope_version = 2`
    tokens from the start? Cheaper to introduce now than later.
-5. **`bypass_two_factor`** — keep, restrict, or drop for tokens?
-6. **What is the cutoff date**, and who owns the comms? Needs product sign-off before
+6. **`bypass_two_factor`** — keep, restrict, or drop for tokens?
+7. **What is the cutoff date**, and who owns the comms? Needs product sign-off before
    Phase 3, not after.
-7. **Superuser tokens** — do internal tools depend on a wide token today? If yes, they
+8. **Superuser tokens** — do internal tools depend on a wide token today? If yes, they
    need an alternative before Phase 5.
 
 ---
 
-## 9. Alternatives considered
+## 9. What the CLI and SDK actually do (checked 2026-08-25)
+
+Read against `../openhexa-sdk-python`.
+
+| Finding | Where |
+| --- | --- |
+| Config is already one token per workspace: `~/.openhexa.ini` `[workspaces]` maps slug → token, and `access_token` returns the *current* workspace's | `cli/settings.py:82`, `:97`, `:117` |
+| `workspaces list` / `activate` / `rm` are local only — no API call | `cli/cli.py:141-160` |
+| `workspaces add <slug> --token` validates via the singular `getWorkspace(slug)` — the token's own workspace | `cli/api.py:225` |
+| Nothing in `cli/` or `sdk/` calls `me`, the plural `workspaces`, or `organizations` (they exist in the generated client, unused) | `graphql_client/client.py:648`, `:918` |
+| Every runtime call names its workspace explicitly (`workspace(slug=self.slug)`, `pipelines(workspaceSlug=…)`, `get_connection(workspace_slug=…)`) | `sdk/workspaces/current_workspace.py:69,83,255,604` |
+| User-Agent is versioned: `openhexa-cli/{version}`, `openhexa-sdk/{version}` — Phase 0 gets the client version distribution for free | `cli/api.py:194`, `graphql/base_openhexa_client.py:24` |
+| No token-format validation anywhere; the token is an opaque string in a Bearer header, so `ohx_ws_…` works on every installed client | `cli/api.py:193` |
+| `HEXA_TOKEN` env var overrides the config file (pipeline runtime path) | `cli/settings.py:117` |
+
+**The one cross-workspace API:** `workspace.get_dataset(identifier, source_workspace_slug=…)`
+(`sdk/workspaces/current_workspace.py:530`) — documented, and its error message tells users
+to pass `source_workspace_slug` for a dataset shared from another workspace. It resolves
+`datasetLinkBySlug`, whose first branch matches `dataset__workspace__slug=<source>`. Under
+"reach, not rows" it keeps working; see §7 risk 2 for the missing test.
+
+**One migration edge:** today you can store workspace A's token under slug B and it works.
+Those configs break at cutoff, and they are detectable in the Phase 0 shadow log as
+"token workspace ≠ requested slug".
+
+## 10. Alternatives considered
 
 | Option | Why not |
 | --- | --- |
@@ -406,7 +454,7 @@ that in the changelog, not just "tokens are now restricted".
 
 ---
 
-## 10. What I would do next (concrete)
+## 11. What I would do next (concrete)
 
 1. Finish the branch's enforcement wiring behind the three-state flag, default `off`.
 2. Land the `WorkspaceAccessToken` table + backfill + `last_used_at` (Phase 0), since it

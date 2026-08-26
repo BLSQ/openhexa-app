@@ -14,9 +14,9 @@ def _is_author(principal: User, saved_query: SavedQuery) -> bool:
 
 def create_saved_query(principal: User, workspace: Workspace):
     """Any workspace member can save a query (consistent with running queries)."""
-    return workspace.workspacemembership_set.filter(
-        user=principal
-    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
+    return workspace.has_role(principal) or principal.is_organization_admin_or_owner(
+        workspace.organization
+    )
 
 
 def update_saved_query(principal: User, saved_query: SavedQuery):
@@ -27,12 +27,9 @@ def update_saved_query(principal: User, saved_query: SavedQuery):
         # A private query is the author's alone: no workspace or organization role
         # grants access to it.
         return False
-    return saved_query.workspace.workspacemembership_set.filter(
-        user=principal,
-        role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-    ).exists() or principal.is_organization_admin_or_owner(
-        saved_query.workspace.organization
-    )
+    return saved_query.workspace.has_role(
+        principal, WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR
+    ) or principal.is_organization_admin_or_owner(saved_query.workspace.organization)
 
 
 def update_saved_query_visibility(principal: User, saved_query: SavedQuery):

@@ -9,16 +9,14 @@ from hexa.user_management.models import (
 )
 from hexa.workspaces.models import (
     Workspace,
-    WorkspaceMembership,
     WorkspaceMembershipRole,
 )
 
 
 def create_dataset(principal: User, workspace: Workspace):
-    return workspace.workspacemembership_set.filter(
-        user=principal,
-        role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-    ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
+    return workspace.has_role(
+        principal, WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR
+    ) or principal.is_organization_admin_or_owner(workspace.organization)
 
 
 def update_dataset(principal: User, dataset: Dataset):
@@ -60,10 +58,9 @@ def download_dataset_version(principal: User, version: DatasetVersion):
 def view_dataset(principal: User, dataset: Dataset):
     return (
         dataset.links.filter(workspace__in=principal.workspace_set.all()).exists()
-        or dataset.workspace.workspacemembership_set.filter(
-            user=principal,
-            role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-        ).exists()
+        or dataset.workspace.has_role(
+            principal, WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR
+        )
         or (
             dataset.shared_with_organization
             and dataset.workspace.organization
@@ -76,27 +73,29 @@ def view_dataset(principal: User, dataset: Dataset):
 def link_dataset(principal: User, dataset_and_workspace):
     dataset, workspace = dataset_and_workspace
     return (
-        workspace.workspacemembership_set.filter(
-            user=principal,
-            role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-        ).exists()
+        workspace.has_role(
+            principal, WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR
+        )
         or principal.is_organization_admin_or_owner(workspace.organization)
     ) and principal.has_perm("datasets.view_dataset", dataset)
 
 
 def delete_dataset_link(principal: User, link: DatasetLink):
-    return WorkspaceMembership.objects.filter(
-        workspace__in=[link.dataset.workspace, link.workspace],
-        user=principal,
-        role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-    ).exists() or principal.is_organization_admin_or_owner(link.workspace.organization)
+    # A link joins two workspaces, and a role in either one is enough to undo it.
+    return any(
+        workspace.has_role(
+            principal,
+            WorkspaceMembershipRole.ADMIN,
+            WorkspaceMembershipRole.EDITOR,
+        )
+        for workspace in (link.dataset.workspace, link.workspace)
+    ) or principal.is_organization_admin_or_owner(link.workspace.organization)
 
 
 def pin_dataset(principal: User, link: DatasetLink):
-    return link.workspace.workspacemembership_set.filter(
-        user=principal,
-        role__in=[WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR],
-    ).exists() or principal.is_organization_admin_or_owner(link.workspace.organization)
+    return link.workspace.has_role(
+        principal, WorkspaceMembershipRole.ADMIN, WorkspaceMembershipRole.EDITOR
+    ) or principal.is_organization_admin_or_owner(link.workspace.organization)
 
 
 def create_dataset_version_file(principal: User, dataset_version: DatasetVersion):

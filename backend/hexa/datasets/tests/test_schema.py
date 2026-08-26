@@ -1389,7 +1389,7 @@ class DatasetLinkBySlugTest(GraphQLTestCase, DatasetTestMixin):
             role=WorkspaceMembershipRole.VIEWER,
         )
 
-        cls.dataset = Dataset.objects.create_if_has_perm(
+        cls.dataset: Dataset = Dataset.objects.create_if_has_perm(
             cls.org_admin,
             cls.source_workspace,
             name="Test Dataset",

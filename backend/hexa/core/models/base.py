@@ -87,7 +87,13 @@ class BaseQuerySet(models.QuerySet):
         """
         if not user.is_authenticated:
             return self.none()
-        elif return_all_if_superuser and user.is_superuser:
+        elif (
+            return_all_if_superuser
+            and user.is_superuser
+            # A scoped principal takes no shortcut: it has to go through
+            # query_object, which is what routes it via filter_for_user.
+            and not isinstance(user, user_management_models.WorkspaceScopedPrincipal)
+        ):
             return self.all()
 
         if return_all_if_organization_admin_or_owner and user.is_authenticated:
