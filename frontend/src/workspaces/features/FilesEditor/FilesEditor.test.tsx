@@ -522,6 +522,7 @@ describe("FilesEditor", () => {
           files={mockFiles}
           isEditable={true}
           proposedFiles={proposedFiles}
+          proposedDeletedPaths={["/root/file1.py"]}
           onSave={mockOnSave}
         />
       </TestApp>,
@@ -588,6 +589,47 @@ describe("FilesEditor", () => {
     expect(mockOnSave.mock.calls[0][2]).toEqual([
       "/root/subdirectory/logo.png",
     ]);
+  });
+
+  it("never infers deletion from a file's absence in the proposal", async () => {
+    const mockOnSave = jest.fn().mockResolvedValue({ success: true });
+    const filesWithUninlinable: FilesEditor_FileFragment[] = [
+      ...mockFiles,
+      {
+        id: "6",
+        name: "vendor.js",
+        path: "/root/vendor.js",
+        type: FileType.File,
+        content: null,
+        encoding: null,
+        tooLarge: true,
+        parentId: "1",
+        autoSelect: false,
+        language: null,
+        lineCount: null,
+      },
+    ];
+    const proposedFiles = [{ name: "/root/file1.py", content: "# changed" }];
+
+    render(
+      <TestApp>
+        <FilesEditor
+          name="Test Project"
+          files={filesWithUninlinable}
+          isEditable={true}
+          proposedFiles={proposedFiles}
+          onSave={mockOnSave}
+        />
+      </TestApp>,
+    );
+
+    fireEvent.click(screen.getByText("root"));
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalled();
+    });
+    expect(mockOnSave.mock.calls[0][2]).toEqual([]);
   });
 
   it("does not offer deletion when the editor does not allow it", () => {
