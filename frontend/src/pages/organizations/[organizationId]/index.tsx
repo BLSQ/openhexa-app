@@ -44,6 +44,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
   const [tagsFilter, setTagsFilter] = useState<string[]>([]);
   const [taggedWorkspace, setTaggedWorkspace] =
     useState<OrganizationWorkspace_WorkspaceFragment | null>(null);
+  const [isTagsDialogOpen, setIsTagsDialogOpen] = useState(false);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const perPage = 15;
 
@@ -76,6 +77,13 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
     return null;
   }
   const totalWorkspaces = organization.workspaces?.totalItems ?? 0;
+
+  const handleManageTagsClick = (
+    workspace: OrganizationWorkspace_WorkspaceFragment,
+  ) => {
+    setTaggedWorkspace(workspace);
+    setIsTagsDialogOpen(true);
+  };
 
   const handleArchiveClick = (
     workspace: ArchiveWorkspace_WorkspaceFragment,
@@ -142,7 +150,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
               totalPages={data?.workspaces?.totalPages || 0}
               totalItems={data?.workspaces?.totalItems || 0}
               onArchiveClick={handleArchiveClick}
-              onManageTagsClick={setTaggedWorkspace}
+              onManageTagsClick={handleManageTagsClick}
             />
           ) : (
             <WorkspacesListView
@@ -153,7 +161,7 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
               totalPages={data?.workspaces?.totalPages || 0}
               totalItems={data?.workspaces?.totalItems || 0}
               onArchiveClick={handleArchiveClick}
-              onManageTagsClick={setTaggedWorkspace}
+              onManageTagsClick={handleManageTagsClick}
               canManageMembers={organization.permissions.manageMembers}
             />
           )}
@@ -166,15 +174,15 @@ const OrganizationPage: NextPageWithLayout<Props> = ({
         onClose={() => setIsCreateDialogOpen(false)}
       />
 
-      {taggedWorkspace && (
-        <ManageWorkspaceTagsDialog
-          open
-          workspace={taggedWorkspace}
-          organizationId={organization.id}
-          availableTags={organization.workspaceTags}
-          onClose={() => setTaggedWorkspace(null)}
-        />
-      )}
+      {/* `taggedWorkspace` is kept on close so the panel still has a name to
+          render while the leave transition plays. */}
+      <ManageWorkspaceTagsDialog
+        open={isTagsDialogOpen}
+        workspace={taggedWorkspace}
+        organizationId={organization.id}
+        availableTags={organization.workspaceTags}
+        onClose={() => setIsTagsDialogOpen(false)}
+      />
 
       {selectedWorkspace && (
         <ArchiveWorkspaceDialog
