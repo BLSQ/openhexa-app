@@ -125,6 +125,15 @@ class ProposeWebappChangesToolTest(TestCase):
         self.assertIn("error", result)
         self.assertIn("nope/", result["error"])
 
+    def test_every_unknown_path_is_reported_at_once(self):
+        webapp = _make_webapp_stub([_make_file_entry("index.html", "<h1>Home</h1>")])
+        result = propose_webapp_version(
+            webapp, deleted_files=["gone.js", "index.html", "missing/"]
+        )
+        self.assertIn("gone.js", result["error"])
+        self.assertIn("missing/", result["error"])
+        self.assertNotIn("index.html", result["error"])
+
     def test_empty_call_returns_error(self):
         webapp = _make_webapp_stub()
         result = propose_webapp_version(webapp)
