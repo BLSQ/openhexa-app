@@ -15,6 +15,7 @@ interface FilesEditorProps {
   isEditable?: boolean;
   allowDelete?: boolean;
   proposedFiles?: ProposedFile[];
+  proposedDeletedPaths?: string[];
   headerActions?: ReactNode;
   onSave?: (
     modifiedFiles: Map<string, string>,
@@ -29,6 +30,7 @@ export const FilesEditor = ({
   isEditable = false,
   allowDelete = false,
   proposedFiles,
+  proposedDeletedPaths,
   headerActions,
   onSave,
 }: FilesEditorProps) => {
@@ -52,7 +54,13 @@ export const FilesEditor = ({
     handleSave,
     markDeleted,
     restoreDeleted,
-  } = useFilesEditorState({ flatFiles, isEditable, proposedFiles, onSave });
+  } = useFilesEditorState({
+    flatFiles,
+    isEditable,
+    proposedFiles,
+    proposedDeletedPaths,
+    onSave,
+  });
 
   return (
     <div className="relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[60vh] h-full max-w-full">
