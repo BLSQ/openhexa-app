@@ -989,7 +989,6 @@ type Query {
 }
 
 input ExecuteSavedQueryInput {
-  workspaceSlug: String!
   slug: String!
   maxRows: Int
 }
@@ -1020,8 +1019,8 @@ enum ExecuteSQLError {
 </details>
 
 Find the slug in the Data Studio: it is the last segment of the saved query's
-URL. `SAVED_QUERY_NOT_FOUND` covers both an unknown slug and a workspace you
-cannot see, so it does not reveal what exists.
+URL. Note that the query must be shared with the workspace, a private one fails
+with `SAVED_QUERY_NOT_FOUND`.
 
 ```html
 <!DOCTYPE html>
@@ -1041,7 +1040,6 @@ cannot see, so it does not reveal what exists.
   <div id="out">Loading…</div>
 
   <script>
-    const { workspaceSlug } = window.OPENHEXA;
     const SAVED_QUERY_SLUG = "my-saved-query";
 
     async function gql(query, variables) {
@@ -1064,7 +1062,7 @@ cannot see, so it does not reveal what exists.
             success errors columns rows rowCount truncated
           }
         }
-      `, { input: { workspaceSlug, slug: SAVED_QUERY_SLUG, maxRows: 100 } });
+      `, { input: { slug: SAVED_QUERY_SLUG, maxRows: 100 } });
 
       if (!result.success) {
         out.textContent = "Error: " + result.errors.join(", ");
