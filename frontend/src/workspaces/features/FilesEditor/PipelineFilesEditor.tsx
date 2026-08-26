@@ -116,6 +116,7 @@ export const PipelineFilesEditor = ({
       name={name}
       files={files}
       isEditable={isEditable}
+      allowDelete
       proposedFiles={proposedFiles}
       proposedDeletedPaths={proposedDeletedPaths}
       onSave={handleSave}
