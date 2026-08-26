@@ -10,6 +10,7 @@ interface UseFilesEditorStateParams {
   flatFiles: FilesEditor_FileFragment[];
   isEditable: boolean;
   proposedFiles?: ProposedFile[];
+  proposedDeletedPaths?: string[];
   onSave?: (
     modifiedFiles: Map<string, string>,
     allFiles: FilesEditor_FileFragment[],
@@ -21,6 +22,7 @@ export const useFilesEditorState = ({
   flatFiles,
   isEditable,
   proposedFiles,
+  proposedDeletedPaths,
   onSave,
 }: UseFilesEditorStateParams) => {
   const [isPanelOpen, setIsPanelOpen] = useFilesEditorPanelOpen();
@@ -118,21 +120,25 @@ export const useFilesEditorState = ({
     [files],
   );
 
-  // Files present in the current version but absent from the proposal — the agent wants them deleted.
+  // Files the agent wants deleted: the paths it listed explicitly, plus text files present
+  // in the current version but absent from its proposal. Binary files are never part of a
+  // proposal's content, so absence alone must not mark them deleted — only an explicit path.
   const proposedDeletions = useMemo<Set<string>>(() => {
     if (!proposedFiles) return new Set();
     const proposedNames = new Set(proposedFiles.map((f) => f.name));
+    const explicit = new Set(proposedDeletedPaths ?? []);
     return new Set(
       flatFiles
         .filter(
           (f) =>
             f.type === FileType.File &&
-            !proposedNames.has(f.path) &&
-            f.encoding !== FileEncoding.Base64,
+            (explicit.has(f.path) ||
+              (!proposedNames.has(f.path) &&
+                f.encoding !== FileEncoding.Base64)),
         )
         .map((f) => f.path),
     );
-  }, [proposedFiles, flatFiles]);
+  }, [proposedFiles, proposedDeletedPaths, flatFiles]);
 
   // Maps file path → proposed content, but only for files that differ from the current version.
   // Unchanged files are excluded so they don't trigger diff highlighting or amber dots.
@@ -146,6 +152,9 @@ export const useFilesEditorState = ({
       }
     }
     for (const path of Array.from(proposedDeletions)) {
+      const existing = flatFiles.find((f) => f.path === path);
+      // Binary files have no text diff to render; the tree strikethrough is enough.
+      if (existing?.encoding === FileEncoding.Base64) continue;
       if (!restoredPaths.has(path)) map.set(path, "");
     }
     return map;
@@ -263,7 +272,11 @@ export const useFilesEditorState = ({
       // lines removed. handleContentChange will overwrite this if the user edits.
       for (const path of Array.from(proposedDeletions)) {
         const existing = flatFiles.find((f) => f.path === path);
-        if (existing && !next.has(existing.id)) {
+        if (
+          existing &&
+          existing.encoding !== FileEncoding.Base64 &&
+          !next.has(existing.id)
+        ) {
           next.set(existing.id, "");
         }
       }
