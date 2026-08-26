@@ -100,10 +100,10 @@ Vous pouvez développer une webapp sur votre machine — votre éditeur, votre r
 ### 1. Ajoutez le script à votre page
 
 ```html
-<script src="https://app.openhexa.org/webapps/dev.js"></script>
+<script src="https://api.openhexa.org/webapps/dev.js"></script>
 ```
 
-Pointez-le vers l'installation OpenHEXA que vous utilisez — `http://localhost:8000/webapps/dev.js` pour un backend local.
+Pointez-le vers l'hôte du **backend** OpenHEXA (l'API), pas celui de l'application — `https://api.openhexa.org/webapps/dev.js` sur OpenHEXA Cloud, `http://localhost:8000/webapps/dev.js` pour un backend local.
 
 Les webapps créées à partir du template par défaut incluent déjà cette balise. Elle est inerte une fois déployée (elle ne s'active que sur les pages `file://` et `localhost`), vous pouvez donc la laisser dans votre `index.html`.
 
@@ -132,7 +132,7 @@ La fenêtre se ferme et votre page se recharge, connectée. `window.OPENHEXA` es
 Indiquez le workspace et la webapp directement : la liste se réduit à cette seule entrée, présélectionnée — vous confirmez toujours avec **Approve** :
 
 ```html
-<script src="https://app.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
+<script src="https://api.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
 ```
 
 ### Bon à savoir
@@ -346,7 +346,7 @@ Charge la liste des pipelines à l'ouverture de la page, vous laisse en choisir 
           { id: runId },
         );
         status.textContent = "Statut : " + pipelineRun.status;
-        if (["SUCCESS", "FAILED", "STOPPED"].includes(pipelineRun.status)) break;
+        if (["success", "failed", "stopped", "skipped"].includes(pipelineRun.status)) break;
       }
     }
   </script>
