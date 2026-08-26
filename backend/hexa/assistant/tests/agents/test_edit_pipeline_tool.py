@@ -27,8 +27,26 @@ class ProposePipelineVersionToolTest(TestCase):
         )
         self.assertEqual(
             result,
-            {"files": [{"name": "pipeline.py", "content": "print('hello')"}]},
+            {
+                "files": [{"name": "pipeline.py", "content": "print('hello')"}],
+                "deleted_paths": [],
+                "all_paths": ["pipeline.py"],
+            },
         )
+
+    def test_deletes_binary_file_by_explicit_path(self):
+        zip_data = _make_zipfile(
+            ("pipeline.py", "# main"), ("assets/logo.png", "\x00\xff binary")
+        )
+        pipeline = _make_pipeline_stub(zipfile_data=zip_data)
+        result = propose_pipeline_version(pipeline, deleted_files=["assets/logo.png"])
+        self.assertEqual(result["deleted_paths"], ["assets/logo.png"])
+
+    def test_deleting_unknown_path_returns_error(self):
+        zip_data = _make_zipfile(("pipeline.py", "# main"))
+        pipeline = _make_pipeline_stub(zipfile_data=zip_data)
+        result = propose_pipeline_version(pipeline, deleted_files=["nope.py"])
+        self.assertIn("error", result)
 
     def test_merges_modified_file_into_existing_zip(self):
         zip_data = _make_zipfile(
@@ -76,7 +94,11 @@ class ProposePipelineVersionToolTest(TestCase):
         result = propose_pipeline_version(pipeline, modified_files=[])
         self.assertEqual(
             result,
-            {"files": [{"name": "pipeline.py", "content": "# main"}]},
+            {
+                "files": [{"name": "pipeline.py", "content": "# main"}],
+                "deleted_paths": [],
+                "all_paths": ["pipeline.py"],
+            },
         )
 
     def test_no_pipeline_returns_only_modified_files(self):
@@ -86,5 +108,9 @@ class ProposePipelineVersionToolTest(TestCase):
         )
         self.assertEqual(
             result,
-            {"files": [{"name": "pipeline.py", "content": "# new"}]},
+            {
+                "files": [{"name": "pipeline.py", "content": "# new"}],
+                "deleted_paths": [],
+                "all_paths": ["pipeline.py"],
+            },
         )
