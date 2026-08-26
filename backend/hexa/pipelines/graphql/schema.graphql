@@ -188,6 +188,8 @@ type FileNode {
   autoSelect: Boolean!  # Whether this file should be auto-selected in the UI.
   language: String  # The detected programming language of the file.
   lineCount: Int  # The number of lines in the file.
+  size: Int  # Size of the file in bytes (null for directories).
+  tooLarge: Boolean  # Whether the file is too large to read, so `content` is null.
 }
 
 """

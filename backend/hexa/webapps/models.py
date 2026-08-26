@@ -17,7 +17,7 @@ from hexa.core.models.soft_delete import (
     SoftDeleteQuerySet,
 )
 from hexa.git.enums import FileEncoding
-from hexa.git.exceptions import GitFileNotFound
+from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
@@ -49,6 +49,10 @@ class WebappFileStringNotUniqueError(WebappFileEditError):
 
 class WebappFileNoChangeError(WebappFileEditError):
     """old_string and new_string are identical; there is nothing to change."""
+
+
+class WebappFileTooLargeError(WebappFileEditError):
+    """The file exists but is too large to be read back through the git API."""
 
 
 def create_webapp_slug(name: str, workspace: Workspace):
@@ -276,6 +280,7 @@ class GitWebapp(Webapp, GitRepoMixin):
         ".r": "r",
         ".sql": "sql",
     }
+    DEFAULT_LANGUAGE = "text"
 
     def get_files(self, ref=None, include_binary_content=True):
         ref = ref or "main"
@@ -304,7 +309,11 @@ class GitWebapp(Webapp, GitRepoMixin):
                     "encoding": encoding,
                     "parent_id": parent,
                     "auto_select": path == "index.html",
-                    "language": self.LANGUAGE_MAP.get(extension) if is_text else None,
+                    "size": entry.get("size"),
+                    "too_large": entry.get("too_large", False),
+                    "language": self.LANGUAGE_MAP.get(extension, self.DEFAULT_LANGUAGE)
+                    if is_text
+                    else None,
                     "line_count": content.count("\n") + 1 if is_text else None,
                 }
             )
@@ -374,6 +383,8 @@ class GitWebapp(Webapp, GitRepoMixin):
             )
         except GitFileNotFound:
             raise WebappFilePathNotFoundError(path)
+        except GitFileTooLarge:
+            raise WebappFileTooLargeError(path)
 
         try:
             content = raw.decode("utf-8")
