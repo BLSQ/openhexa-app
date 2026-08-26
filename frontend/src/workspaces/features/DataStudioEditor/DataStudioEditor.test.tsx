@@ -2,6 +2,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SavedQueryVisibility } from "graphql/types";
 import { ComponentProps } from "react";
+import { Cookies, CookiesProvider } from "react-cookie";
+import { clearCookies } from "core/helpers/testutils";
 import DataStudioEditor from "./DataStudioEditor";
 import { downloadQueryCsv } from "./downloadQueryCsv";
 
@@ -213,7 +215,9 @@ const renderEditor = (
   props: Partial<ComponentProps<typeof DataStudioEditor>> = {},
 ) =>
   render(
-    <DataStudioEditor workspaceSlug="ws-1" canCreate={false} {...props} />,
+    <CookiesProvider>
+      <DataStudioEditor workspaceSlug="ws-1" canCreate={false} {...props} />
+    </CookiesProvider>,
   );
 
 beforeEach(() => {
@@ -651,46 +655,75 @@ describe("DataStudioEditor", () => {
   });
 
   describe("resizable panels", () => {
-    beforeEach(() => window.localStorage.clear());
+    beforeEach(clearCookies);
 
-    it("offers a separator for the table list and one for the results panel", () => {
+    it("offers a separator for the table list and one for the results", () => {
       renderEditor();
-      const separators = screen.getAllByRole("separator");
-      expect(separators).toHaveLength(2);
+      expect(screen.getAllByRole("separator")).toHaveLength(2);
       expect(
-        screen.getByRole("separator", { name: "Resize the table list" }),
+        screen.getByRole("separator", { name: "Table list" }),
       ).toHaveAttribute("aria-orientation", "vertical");
       expect(
-        screen.getByRole("separator", { name: "Resize the results panel" }),
+        screen.getByRole("separator", { name: "Results" }),
       ).toHaveAttribute("aria-orientation", "horizontal");
     });
 
     it("applies the remembered sizes so a layout survives a reload", () => {
-      window.localStorage.setItem("datastudio.sidebarWidth", "380");
-      window.localStorage.setItem("datastudio.editorHeight", "420");
+      const cookies = new Cookies();
+      cookies.set("panel___left", { size: 380, collapsed: false });
+      cookies.set("panel___bottom", { size: 420, collapsed: false });
       renderEditor();
 
       expect(
-        screen.getByRole("separator", { name: "Resize the table list" }),
+        screen.getByRole("separator", { name: "Table list" }),
       ).toHaveAttribute("aria-valuenow", "380");
       expect(
-        screen.getByRole("separator", { name: "Resize the results panel" }),
+        screen.getByRole("separator", { name: "Results" }),
       ).toHaveAttribute("aria-valuenow", "420");
     });
 
     it("widens the table list on ArrowRight, for long table names", async () => {
       renderEditor();
-      const separator = screen.getByRole("separator", {
-        name: "Resize the table list",
-      });
+      const separator = screen.getByRole("separator", { name: "Table list" });
 
       separator.focus();
       await userEvent.keyboard("{ArrowRight}");
 
       expect(separator).toHaveAttribute("aria-valuenow", "264");
-      expect(window.localStorage.getItem("datastudio.sidebarWidth")).toBe(
-        "264",
-      );
+      expect(new Cookies().get("panel___left")).toEqual({
+        size: 264,
+        collapsed: false,
+      });
+    });
+
+    it("closes the results panel to give the editor the whole pane", async () => {
+      renderEditor();
+      await userEvent.click(screen.getByRole("button", { name: "Results" }));
+
+      expect(
+        screen.getByRole("separator", { name: "Results" }),
+      ).toHaveAttribute("aria-valuenow", "0");
+      expect(new Cookies().get("panel___bottom")).toEqual({
+        size: 300,
+        collapsed: true,
+      });
+    });
+
+    it("hides the table list entirely, and brings it back", async () => {
+      renderEditor();
+      await userEvent.click(screen.getByRole("button", { name: "Table list" }));
+
+      expect(
+        screen.getByRole("separator", { name: "Table list" }),
+      ).toHaveAttribute("aria-valuenow", "0");
+      expect(
+        screen.getByRole("button", { name: "Table list" }),
+      ).toHaveAttribute("aria-expanded", "false");
+
+      await userEvent.click(screen.getByRole("button", { name: "Table list" }));
+      expect(
+        screen.getByRole("separator", { name: "Table list" }),
+      ).toHaveAttribute("aria-valuenow", "240");
     });
   });
 });
