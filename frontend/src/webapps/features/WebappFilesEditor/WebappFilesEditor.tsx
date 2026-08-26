@@ -110,6 +110,7 @@ const WebappFilesEditor = ({
   const handleSave = async (
     modifiedFiles: Map<string, string>,
     allFiles: FilesEditor_FileFragment[],
+    deletedPaths: string[],
   ) => {
     const fileInputs = Array.from(modifiedFiles.entries()).map(
       ([fileId, content]) => {
@@ -130,6 +131,7 @@ const WebappFilesEditor = ({
           input: {
             id: webappId,
             files: fileInputs,
+            filesToDelete: deletedPaths,
           },
         },
         refetchQueries: ["WebappVersions"],
@@ -235,6 +237,7 @@ const WebappFilesEditor = ({
           name={t("Web app")}
           files={files}
           isEditable={isEditable}
+          allowDelete
           proposedFiles={proposedFiles?.map((f) => ({
             name: f.path,
             content: f.content,
