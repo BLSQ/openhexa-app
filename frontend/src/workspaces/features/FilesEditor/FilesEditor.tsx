@@ -13,11 +13,13 @@ interface FilesEditorProps {
   name: string;
   files: FilesEditor_FileFragment[];
   isEditable?: boolean;
+  allowDelete?: boolean;
   proposedFiles?: ProposedFile[];
   headerActions?: ReactNode;
   onSave?: (
     modifiedFiles: Map<string, string>,
     allFiles: FilesEditor_FileFragment[],
+    deletedPaths: string[],
   ) => Promise<SaveResult>;
 }
 
@@ -25,6 +27,7 @@ export const FilesEditor = ({
   name,
   files: flatFiles,
   isEditable = false,
+  allowDelete = false,
   proposedFiles,
   headerActions,
   onSave,
@@ -43,9 +46,12 @@ export const FilesEditor = ({
     effectivelyDeletedPaths,
     effectivelyDeletedFolderPaths,
     currentFileIsModified,
+    hasPendingChanges,
     numberOfFiles,
     handleContentChange,
     handleSave,
+    markDeleted,
+    restoreDeleted,
   } = useFilesEditorState({ flatFiles, isEditable, proposedFiles, onSave });
 
   return (
@@ -61,6 +67,9 @@ export const FilesEditor = ({
           proposedByKey={proposedByKey}
           deletedFilePaths={effectivelyDeletedPaths}
           deletedFolderPaths={effectivelyDeletedFolderPaths}
+          canDelete={isEditable && allowDelete}
+          onDelete={markDeleted}
+          onRestore={restoreDeleted}
           onClose={() => setIsPanelOpen(false)}
         />
       )}
@@ -84,6 +93,7 @@ export const FilesEditor = ({
           currentFileContent={currentFileContent}
           isEditable={isEditable}
           currentFileIsModified={currentFileIsModified}
+          hasPendingChanges={hasPendingChanges}
           isSaving={isSaving}
           saveError={saveError}
           proposedByKey={proposedByKey}
@@ -91,6 +101,8 @@ export const FilesEditor = ({
           headerActions={headerActions}
           onContentChange={handleContentChange}
           onSave={handleSave}
+          canDelete={isEditable && allowDelete}
+          onRestore={restoreDeleted}
           hasSaveHandler={!!onSave}
         />
       </div>
