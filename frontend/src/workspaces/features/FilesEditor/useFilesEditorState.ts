@@ -120,25 +120,13 @@ export const useFilesEditorState = ({
     [files],
   );
 
-  // Files the agent wants deleted: the paths it listed explicitly, plus text files present
-  // in the current version but absent from its proposal. Binary files are never part of a
-  // proposal's content, so absence alone must not mark them deleted — only an explicit path.
-  const proposedDeletions = useMemo<Set<string>>(() => {
-    if (!proposedFiles) return new Set();
-    const proposedNames = new Set(proposedFiles.map((f) => f.name));
-    const explicit = new Set(proposedDeletedPaths ?? []);
-    return new Set(
-      flatFiles
-        .filter(
-          (f) =>
-            f.type === FileType.File &&
-            (explicit.has(f.path) ||
-              (!proposedNames.has(f.path) &&
-                f.encoding !== FileEncoding.Base64)),
-        )
-        .map((f) => f.path),
-    );
-  }, [proposedFiles, proposedDeletedPaths, flatFiles]);
+  // Deletions the agent asked for, by path. Never inferred from a file's absence in the
+  // proposal: the proposal only ever carries inlined text, so absence also describes every
+  // binary file and every file too large to inline.
+  const proposedDeletions = useMemo<Set<string>>(
+    () => new Set(proposedDeletedPaths ?? []),
+    [proposedDeletedPaths],
+  );
 
   // Maps file path → proposed content, but only for files that differ from the current version.
   // Unchanged files are excluded so they don't trigger diff highlighting or amber dots.
@@ -153,8 +141,10 @@ export const useFilesEditorState = ({
     }
     for (const path of Array.from(proposedDeletions)) {
       const existing = flatFiles.find((f) => f.path === path);
-      // Binary files have no text diff to render; the tree strikethrough is enough.
-      if (existing?.encoding === FileEncoding.Base64) continue;
+      // Binary and too-large files have no inlined text to diff; the tree strikethrough
+      // is the only affordance they need.
+      if (existing?.encoding !== FileEncoding.Text || existing.tooLarge)
+        continue;
       if (!restoredPaths.has(path)) map.set(path, "");
     }
     return map;
@@ -274,7 +264,8 @@ export const useFilesEditorState = ({
         const existing = flatFiles.find((f) => f.path === path);
         if (
           existing &&
-          existing.encoding !== FileEncoding.Base64 &&
+          existing.encoding === FileEncoding.Text &&
+          !existing.tooLarge &&
           !next.has(existing.id)
         ) {
           next.set(existing.id, "");
