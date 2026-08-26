@@ -406,6 +406,157 @@ describe("FilesEditor", () => {
     });
   });
 
+  it("marks a file for deletion and reports it to onSave", async () => {
+    const mockOnSave = jest.fn().mockResolvedValue({ success: true });
+
+    render(
+      <TestApp>
+        <FilesEditor
+          name="Test Project"
+          files={mockFiles}
+          isEditable={true}
+          allowDelete
+          onSave={mockOnSave}
+        />
+      </TestApp>,
+    );
+
+    fireEvent.click(screen.getByText("root"));
+
+    const fileRow = screen.getByText("file1.py").closest("div")!;
+    fireEvent.click(fileRow.querySelector("button")!);
+
+    await waitFor(() => {
+      expect(screen.getByText("This file will be deleted")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalled();
+    });
+    const [modifiedFiles, allFiles, deletedPaths] = mockOnSave.mock.calls[0];
+    expect(deletedPaths).toEqual(["/root/file1.py"]);
+    expect(modifiedFiles.size).toBe(0);
+    expect(allFiles.map((f: FilesEditor_FileFragment) => f.path)).not.toContain(
+      "/root/file1.py",
+    );
+  });
+
+  it("undoes a deletion and clears the pending change", async () => {
+    render(
+      <TestApp>
+        <FilesEditor
+          name="Test Project"
+          files={mockFiles}
+          isEditable={true}
+          allowDelete
+          onSave={jest.fn()}
+        />
+      </TestApp>,
+    );
+
+    fireEvent.click(screen.getByText("root"));
+
+    const fileRow = screen.getByText("file1.py").closest("div")!;
+    fireEvent.click(fileRow.querySelector("button")!);
+
+    await waitFor(() => {
+      expect(screen.getByText("This file will be deleted")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Undo delete"));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText("This file will be deleted"),
+      ).not.toBeInTheDocument();
+    });
+    expect(screen.queryByText("Save")).not.toBeInTheDocument();
+  });
+
+  it("deletes every file under a folder when the folder is deleted", async () => {
+    const mockOnSave = jest.fn().mockResolvedValue({ success: true });
+
+    render(
+      <TestApp>
+        <FilesEditor
+          name="Test Project"
+          files={mockFiles}
+          isEditable={true}
+          allowDelete
+          onSave={mockOnSave}
+        />
+      </TestApp>,
+    );
+
+    fireEvent.click(screen.getByText("root"));
+
+    const folderRow = screen.getByText("subdirectory").closest("div")!;
+    fireEvent.click(folderRow.querySelector("button")!);
+
+    await waitFor(() => {
+      expect(screen.getByText("This file will be deleted")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalled();
+    });
+    expect(mockOnSave.mock.calls[0][2]).toEqual([
+      "/root/subdirectory/file2.json",
+    ]);
+  });
+
+  it("reports agent-proposed deletions as deleted paths instead of empty content", async () => {
+    const mockOnSave = jest.fn().mockResolvedValue({ success: true });
+    const proposedFiles = [
+      { name: "/root/subdirectory/file2.json", content: '{"key": "value"}' },
+    ];
+
+    render(
+      <TestApp>
+        <FilesEditor
+          name="Test Project"
+          files={mockFiles}
+          isEditable={true}
+          proposedFiles={proposedFiles}
+          onSave={mockOnSave}
+        />
+      </TestApp>,
+    );
+
+    fireEvent.click(screen.getByText("root"));
+    fireEvent.click(screen.getByText("file1.py"));
+
+    await waitFor(() => {
+      expect(screen.getByText("This file will be deleted")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalled();
+    });
+    const [modifiedFiles, , deletedPaths] = mockOnSave.mock.calls[0];
+    expect(deletedPaths).toEqual(["/root/file1.py"]);
+    expect(modifiedFiles.has("2")).toBe(false);
+  });
+
+  it("does not offer deletion when the editor does not allow it", () => {
+    render(
+      <TestApp>
+        <FilesEditor name="Test Project" files={mockFiles} isEditable={true} />
+      </TestApp>,
+    );
+
+    fireEvent.click(screen.getByText("root"));
+
+    const fileRow = screen.getByText("file1.py").closest("div")!;
+    expect(fileRow.querySelector("button")).toBeNull();
+  });
+
   it("handles nested directory structure", () => {
     render(
       <TestApp>
