@@ -5,6 +5,8 @@ import { EditorView } from "@codemirror/view";
 import { DocumentIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import CodeMirrorClient from "core/components/CodeMirrorClient/CodeMirrorClient";
+import { filesize } from "filesize";
+import { FileEncoding } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { ReactNode, useMemo } from "react";
 import { r } from "codemirror-lang-r";
@@ -68,6 +70,25 @@ const FileEditorPane = ({
     </button>
   ) : null;
 
+  const isTooLarge = selectedFile?.tooLarge === true;
+
+  const fileTypeLabel =
+    selectedFile?.language ??
+    (selectedFile?.encoding === FileEncoding.Base64 ? t("Binary") : null);
+
+  const lineCount = selectedFile?.lineCount;
+  const size = selectedFile?.size;
+
+  const metaParts = [
+    fileTypeLabel,
+    lineCount != null
+      ? `${lineCount} ${lineCount > 1 ? t("lines") : t("line")}`
+      : size != null
+        ? filesize(size)
+        : null,
+    currentFileIsModified ? t("Modified") : null,
+  ].filter(Boolean);
+
   const extensions = useMemo(
     () => [
       python(),
@@ -130,12 +151,8 @@ const FileEditorPane = ({
               />
             )}
           </div>
-          <div className="text-xs text-gray-500 mt-1">
-            {selectedFile.language}
-            {" • "}
-            {selectedFile.lineCount}
-            {` ${(selectedFile.lineCount ?? 0) > 1 ? t("lines") : t("line")}`}
-            {currentFileIsModified && ` • ${t("Modified")}`}
+          <div className="text-xs text-gray-500 mt-1 min-h-4">
+            {metaParts.join(" • ")}
             {saveError && (
               <>
                 {" • "}
@@ -166,19 +183,33 @@ const FileEditorPane = ({
           )}
         </div>
       )}
-      <div className="flex-1 relative overflow-hidden h-full">
-        <div className="absolute inset-0">
-          <CodeMirrorClient
-            key={selectedFile.id + (isDiffMode ? "-diff" : "")}
-            value={currentFileContent}
-            readOnly={!isEditable}
-            onChange={onContentChange}
-            extensions={extensions}
-            height="100%"
-            style={{ width: "100%", height: "100%" }}
-          />
+      {isTooLarge ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+          <DocumentIcon className="w-12 h-12 text-gray-400 mb-4" />
+          <div className="text-gray-500 text-lg mb-2">
+            {t("This file is too large to display")}
+          </div>
+          <div className="text-gray-400 text-sm">
+            {t(
+              "It is served by the web app but cannot be opened in the editor.",
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="flex-1 relative overflow-hidden h-full">
+          <div className="absolute inset-0">
+            <CodeMirrorClient
+              key={selectedFile.id + (isDiffMode ? "-diff" : "")}
+              value={currentFileContent}
+              readOnly={!isEditable}
+              onChange={onContentChange}
+              extensions={extensions}
+              height="100%"
+              style={{ width: "100%", height: "100%" }}
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 };

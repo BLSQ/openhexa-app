@@ -131,6 +131,8 @@ FilesEditor.fragment = {
       autoSelect
       language
       lineCount
+      size
+      tooLarge
     }
   `,
 };

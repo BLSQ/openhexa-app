@@ -8,3 +8,14 @@ class GitError(Exception):
 
 class GitFileNotFound(GitError):
     """A requested file path does not exist in the repository."""
+
+
+class GitFileTooLarge(GitError):
+    """A blob exists but the backend refused to return its content."""
+
+    def __init__(self, path: str, size: int):
+        self.path = path
+        self.size = size
+        super().__init__(
+            f"{path} is too large to read through the git API ({size} bytes)"
+        )

@@ -20,6 +20,8 @@ server {
         auth_request /_git_authorize;
         error_page 401 = @forgejo_challenge;
 
+        client_max_body_size 0;
+
         set $forgejo_upstream ${FORGEJO_UPSTREAM};
         proxy_pass http://$forgejo_upstream$request_uri;
         # Forwarded as the non-admin proxy service account; OpenHEXA already
