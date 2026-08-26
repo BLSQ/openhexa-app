@@ -21,6 +21,7 @@ type WebappFilesEditorProps = {
   versionPicker?: ReactNode;
   repositoryUrl?: string | null;
   proposedFiles?: { path: string; content: string }[];
+  proposedDeletedPaths?: string[];
   onSaveSuccess?: () => void;
   onBusyChange?: (busy: boolean) => void;
 };
@@ -34,6 +35,7 @@ const WebappFilesEditor = ({
   versionPicker,
   repositoryUrl,
   proposedFiles,
+  proposedDeletedPaths,
   onSaveSuccess,
   onBusyChange,
 }: WebappFilesEditorProps) => {
@@ -242,6 +244,7 @@ const WebappFilesEditor = ({
             name: f.path,
             content: f.content,
           }))}
+          proposedDeletedPaths={proposedDeletedPaths}
           headerActions={uploadActions}
           onSave={handleSave}
         />
