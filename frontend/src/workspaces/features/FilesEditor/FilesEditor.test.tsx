@@ -7,7 +7,7 @@ import {
 } from "@testing-library/react";
 import { FilesEditor } from "./FilesEditor";
 import { FilesEditor_FileFragment } from "./FilesEditor.generated";
-import { FileType } from "graphql/types";
+import { FileEncoding, FileType } from "graphql/types";
 import { NavigationAbortedError } from "core/hooks/useNavigationWarning";
 import mockRouter from "next-router-mock";
 import { TestApp } from "core/helpers/testutils";
@@ -542,6 +542,52 @@ describe("FilesEditor", () => {
     const [modifiedFiles, , deletedPaths] = mockOnSave.mock.calls[0];
     expect(deletedPaths).toEqual(["/root/file1.py"]);
     expect(modifiedFiles.has("2")).toBe(false);
+  });
+
+  it("marks explicitly proposed deletions, including binary files", async () => {
+    const mockOnSave = jest.fn().mockResolvedValue({ success: true });
+    const filesWithBinary: FilesEditor_FileFragment[] = [
+      ...mockFiles,
+      {
+        id: "5",
+        name: "logo.png",
+        path: "/root/subdirectory/logo.png",
+        type: FileType.File,
+        content: "binarydata",
+        encoding: FileEncoding.Base64,
+        parentId: "3",
+        autoSelect: false,
+        language: null,
+        lineCount: null,
+      },
+    ];
+    const proposedFiles = [
+      { name: "/root/file1.py", content: "print('hello world')" },
+      { name: "/root/subdirectory/file2.json", content: '{"key": "value"}' },
+    ];
+
+    render(
+      <TestApp>
+        <FilesEditor
+          name="Test Project"
+          files={filesWithBinary}
+          isEditable={true}
+          proposedFiles={proposedFiles}
+          proposedDeletedPaths={["/root/subdirectory/logo.png"]}
+          onSave={mockOnSave}
+        />
+      </TestApp>,
+    );
+
+    fireEvent.click(screen.getByText("root"));
+    fireEvent.click(screen.getByText("Save"));
+
+    await waitFor(() => {
+      expect(mockOnSave).toHaveBeenCalled();
+    });
+    expect(mockOnSave.mock.calls[0][2]).toEqual([
+      "/root/subdirectory/logo.png",
+    ]);
   });
 
   it("does not offer deletion when the editor does not allow it", () => {
