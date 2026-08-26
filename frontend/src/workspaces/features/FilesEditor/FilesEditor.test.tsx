@@ -67,6 +67,9 @@ jest.mock("react-i18next", () => ({
   }),
 }));
 
+const deletedPathsPassedToSave = (mockOnSave: jest.Mock): string[] =>
+  mockOnSave.mock.calls[0][2];
+
 const mockOnChange = jest.fn();
 jest.mock("core/components/CodeMirrorClient/CodeMirrorClient", () => {
   return function MockCodeMirror({ value, onChange, readOnly }: any) {
@@ -504,7 +507,7 @@ describe("FilesEditor", () => {
     await waitFor(() => {
       expect(mockOnSave).toHaveBeenCalled();
     });
-    expect(mockOnSave.mock.calls[0][2]).toEqual([
+    expect(deletedPathsPassedToSave(mockOnSave)).toEqual([
       "/root/subdirectory/file2.json",
     ]);
   });
@@ -586,7 +589,7 @@ describe("FilesEditor", () => {
     await waitFor(() => {
       expect(mockOnSave).toHaveBeenCalled();
     });
-    expect(mockOnSave.mock.calls[0][2]).toEqual([
+    expect(deletedPathsPassedToSave(mockOnSave)).toEqual([
       "/root/subdirectory/logo.png",
     ]);
   });
@@ -629,7 +632,7 @@ describe("FilesEditor", () => {
     await waitFor(() => {
       expect(mockOnSave).toHaveBeenCalled();
     });
-    expect(mockOnSave.mock.calls[0][2]).toEqual([]);
+    expect(deletedPathsPassedToSave(mockOnSave)).toEqual([]);
   });
 
   it("does not offer deletion when the editor does not allow it", () => {
