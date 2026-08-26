@@ -15,6 +15,7 @@ type FileEditorPaneProps = {
   currentFileContent: string;
   isEditable: boolean;
   currentFileIsModified: boolean;
+  hasPendingChanges: boolean;
   isSaving: boolean;
   saveError: string | null;
   proposedByKey: Map<string, string>;
@@ -22,6 +23,8 @@ type FileEditorPaneProps = {
   headerActions?: ReactNode;
   onContentChange: (content: string) => void;
   onSave: () => void;
+  canDelete: boolean;
+  onRestore: (node: FileNode) => void;
   hasSaveHandler: boolean;
 };
 
@@ -30,6 +33,7 @@ const FileEditorPane = ({
   currentFileContent,
   isEditable,
   currentFileIsModified,
+  hasPendingChanges,
   isSaving,
   saveError,
   proposedByKey,
@@ -37,6 +41,8 @@ const FileEditorPane = ({
   headerActions,
   onContentChange,
   onSave,
+  canDelete,
+  onRestore,
   hasSaveHandler,
 }: FileEditorPaneProps) => {
   const { t } = useTranslation();
@@ -45,6 +51,22 @@ const FileEditorPane = ({
     selectedFile !== null && deletedFilePaths.has(selectedFile.path);
   const isDiffMode =
     selectedFile !== null && proposedByKey.has(selectedFile.path);
+  const canSave = isEditable && hasPendingChanges && hasSaveHandler;
+
+  const saveButton = canSave ? (
+    <button
+      onClick={onSave}
+      disabled={isSaving}
+      className={clsx(
+        "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+        isSaving
+          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+          : "bg-blue-600 text-white hover:bg-blue-700",
+      )}
+    >
+      {isSaving ? t("Saving...") : t("Save")}
+    </button>
+  ) : null;
 
   const extensions = useMemo(
     () => [
@@ -76,9 +98,10 @@ const FileEditorPane = ({
   if (!selectedFile) {
     return (
       <div className="relative flex items-center justify-center flex-1 min-h-[300px]">
-        {headerActions && (
+        {(headerActions || saveButton) && (
           <div className="absolute top-3 right-3 flex items-center gap-2">
             {headerActions}
+            {saveButton}
           </div>
         )}
         <div className="text-center">
@@ -125,27 +148,22 @@ const FileEditorPane = ({
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {headerActions}
-          {isEditable && currentFileIsModified && hasSaveHandler && (
-            <button
-              onClick={onSave}
-              disabled={isSaving}
-              className={clsx(
-                "px-3 py-1 text-xs font-medium rounded-md transition-colors",
-                isSaving
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700",
-              )}
-            >
-              {isSaving ? t("Saving...") : t("Save")}
-            </button>
-          )}
+          {saveButton}
         </div>
       </div>
       {isEffectivelyDeleted && (
-        <div className="shrink-0 flex items-center border-b border-red-200 bg-red-50 px-3 py-2 text-sm">
+        <div className="shrink-0 flex items-center justify-between gap-2 border-b border-red-200 bg-red-50 px-3 py-2 text-sm">
           <span className="font-medium text-red-700">
             {t("This file will be deleted")}
           </span>
+          {canDelete && (
+            <button
+              onClick={() => onRestore(selectedFile)}
+              className="rounded-md border border-red-300 bg-white px-2 py-0.5 text-xs font-medium text-red-700 hover:bg-red-100"
+            >
+              {t("Undo delete")}
+            </button>
+          )}
         </div>
       )}
       <div className="flex-1 relative overflow-hidden h-full">
