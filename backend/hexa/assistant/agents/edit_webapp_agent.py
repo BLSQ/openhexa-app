@@ -3,6 +3,10 @@ import json
 from pydantic import BaseModel
 
 from hexa.assistant.agents.base import BaseAgent
+from hexa.assistant.agents.proposals import (
+    nothing_to_delete_error,
+    resolve_deleted_paths,
+)
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, ToolInvocation
 from hexa.git.enums import FileEncoding
@@ -47,7 +51,9 @@ def propose_webapp_version(
       Prefer this over modified_files when changing a few lines of a large file — you
       only need to read and reproduce the lines that actually change.
 
-    List any files to remove in deleted_files.
+    List any files to remove in deleted_files. A directory path removes everything under it.
+    Deletions cover binary files (images, fonts) too, even though their content is never
+    inlined here.
     Unchanged files are preserved automatically.
     You can mix modified_files and file_patches in the same call.
     """
@@ -70,6 +76,7 @@ def propose_webapp_version(
         }
 
     current_files: dict[str, str] = {}
+    deleted_paths: set[str] = set()
 
     pending = None
     if conversation is not None:
@@ -84,11 +91,14 @@ def propose_webapp_version(
             .first()
         )
 
+    repo_files = None
     if pending and pending.tool_output:
         for f in pending.tool_output.get("files", []):
             current_files[f["path"]] = f["content"]
+        deleted_paths.update(pending.tool_output.get("deleted_paths", []))
     else:
-        for f in webapp.get_files():
+        repo_files = webapp.get_files(include_binary_content=False)
+        for f in repo_files:
             if f.get("encoding") == FileEncoding.TEXT and f.get("content") is not None:
                 current_files[f["path"]] = f["content"]
 
@@ -111,10 +121,27 @@ def propose_webapp_version(
 
     for f in modified_files or []:
         current_files[f.path] = f.content
-    for path in deleted_files or []:
-        current_files.pop(path, None)
+        deleted_paths.discard(f.path)
 
-    return {"files": [{"path": k, "content": v} for k, v in current_files.items()]}
+    if deleted_files:
+        if repo_files is None:
+            repo_files = webapp.get_files(include_binary_content=False)
+        known_paths = (
+            {f["path"] for f in repo_files if f.get("type") == "file"}
+            | set(current_files)
+            | deleted_paths
+        )
+        resolved, unmatched = resolve_deleted_paths(deleted_files, known_paths)
+        if unmatched:
+            return nothing_to_delete_error(unmatched)
+        deleted_paths |= resolved
+        for path in resolved:
+            current_files.pop(path, None)
+
+    return {
+        "files": [{"path": k, "content": v} for k, v in current_files.items()],
+        "deleted_paths": sorted(deleted_paths),
+    }
 
 
 class EditWebappAgent(BaseAgent):
@@ -189,6 +216,16 @@ class EditWebappAgent(BaseAgent):
 
         if pending and pending.tool_output:
             proposed_files = pending.tool_output.get("files", [])
+            pending_deletions = pending.tool_output.get("deleted_paths", [])
+            if pending_deletions:
+                lines.append("")
+                lines.append(
+                    "### Files Already Marked For Deletion (Pending)\n"
+                    "Do not list these again in `deleted_files`; they are already removed "
+                    "by the pending proposal."
+                )
+                for path in pending_deletions:
+                    lines.append(f"- `{path}`")
             if proposed_files:
                 lines.append("")
                 lines.append(
