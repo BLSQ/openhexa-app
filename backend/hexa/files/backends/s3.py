@@ -15,6 +15,7 @@ from .base import (
     ObjectsPage,
     Storage,
     StorageObject,
+    SupportsBucketCors,
     load_bucket_sample_data_with,
 )
 
@@ -55,7 +56,7 @@ def _prefix_to_storage_obj(prefix: str, bucket_name: str) -> StorageObject:
     )
 
 
-class S3Storage(Storage):
+class S3Storage(Storage, SupportsBucketCors):
     storage_type = "s3"
 
     def __init__(
@@ -138,14 +139,11 @@ class S3Storage(Storage):
                 )
             raise
 
-        self._apply_bucket_config(lambda: self._set_bucket_cors(bucket_name))
+        self._apply_bucket_config(lambda: self.set_bucket_cors(bucket_name))
         self._apply_bucket_config(lambda: self._set_bucket_versioning(bucket_name))
         self._apply_bucket_config(lambda: self._set_bucket_lifecycle(bucket_name))
         self._apply_bucket_config(lambda: self._set_bucket_tags(bucket_name, labels))
         return bucket_name
-
-    def set_bucket_cors(self, bucket_name: str) -> None:
-        self._apply_bucket_config(lambda: self._set_bucket_cors(bucket_name))
 
     def _apply_bucket_config(self, step: Callable[[], None]) -> None:
         """Apply a post-creation bucket configuration step.
@@ -164,7 +162,7 @@ class S3Storage(Storage):
             else:
                 raise
 
-    def _set_bucket_cors(self, bucket_name: str) -> None:
+    def set_bucket_cors(self, bucket_name: str) -> None:
         # Uploads/downloads are made by the browser straight to the bucket via
         # presigned URLs, so cross-origin requests must be allowed. The wildcard
         # origin is safe: access control comes from the presigned signature.

@@ -14,7 +14,13 @@ from google.cloud.storage.blob import Blob
 from google.oauth2 import service_account
 from google.protobuf import duration_pb2
 
-from .base import ObjectsPage, Storage, StorageObject, load_bucket_sample_data_with
+from .base import (
+    ObjectsPage,
+    Storage,
+    StorageObject,
+    SupportsBucketCors,
+    load_bucket_sample_data_with,
+)
 
 
 def get_credentials(service_account_key: str):
@@ -89,7 +95,7 @@ def ensure_is_folder(object_key: str):
     return object_key
 
 
-class GoogleCloudStorage(Storage):
+class GoogleCloudStorage(Storage, SupportsBucketCors):
     storage_type = "gcp"
     _client = None
 
