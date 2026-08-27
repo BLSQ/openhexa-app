@@ -144,6 +144,9 @@ class S3Storage(Storage):
         self._apply_bucket_config(lambda: self._set_bucket_tags(bucket_name, labels))
         return bucket_name
 
+    def set_bucket_cors(self, bucket_name: str) -> None:
+        self._apply_bucket_config(lambda: self._set_bucket_cors(bucket_name))
+
     def _apply_bucket_config(self, step: Callable[[], None]) -> None:
         """Apply a post-creation bucket configuration step.
 
