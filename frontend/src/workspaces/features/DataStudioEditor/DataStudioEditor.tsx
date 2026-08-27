@@ -14,6 +14,9 @@ import CodeEditor, {
 import Spinner from "core/components/Spinner";
 import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import useIsMac from "core/hooks/useIsMac";
+import ResizablePanel, {
+  ResizablePanelHandle,
+} from "core/components/ResizablePanel";
 import useSaveShortcut from "core/hooks/useSaveShortcut";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -40,6 +43,22 @@ type DataStudioEditorProps = {
 
 const MAX_ROWS_OPTIONS = [50, 100, 500, 1000, 10_000];
 
+// Schema browser bounds. The floor keeps the tree usable rather than letting it
+// be dragged shut; the ceiling leaves room for the editor on a laptop screen.
+const SIDEBAR_DEFAULT_WIDTH = 240;
+const SIDEBAR_MIN_WIDTH = 160;
+const SIDEBAR_MAX_WIDTH = 640;
+// What the toolbar needs to lay out its controls: past this the Run button and
+// the export controls would be cut off by the panel below them.
+const EDITOR_MIN_WIDTH = 560;
+
+// Results panel bounds. Dragging the separator sizes the results, the editor
+// above takes whatever is left, and the reserve is what keeps the editor from
+// being squeezed out.
+const RESULTS_DEFAULT_HEIGHT = 300;
+const RESULTS_MIN_HEIGHT = 140;
+const EDITOR_MIN_HEIGHT = 120;
+
 const DataStudioEditor = ({
   workspaceSlug,
   savedQuery,
@@ -53,8 +72,8 @@ const DataStudioEditor = ({
   const [query, setQuery] = useState(savedQuery?.content ?? "");
   const [maxRows, setMaxRows] = useState(MAX_ROWS_OPTIONS[0]);
   const editorRef = useRef<CodeEditorHandle>(null);
+  const resultsPanelRef = useRef<ResizablePanelHandle>(null);
   const [generateBarOpen, setGenerateBarOpen] = useState(false);
-
   const handleGenerated = useCallback((sql: string) => {
     setQuery(sql);
     setGenerateBarOpen(false);
@@ -119,8 +138,11 @@ const DataStudioEditor = ({
 
   const canRun = !loading && Boolean(query.trim());
 
+  // Reopening the results is part of running: with the panel closed, a run
+  // would otherwise leave the page looking untouched.
   const runSelection = () => {
     const selected = editorRef.current?.getSelectedText() ?? "";
+    resultsPanelRef.current?.expand();
     run(selected.trim() || query, maxRows);
   };
 
@@ -152,11 +174,20 @@ const DataStudioEditor = ({
   return (
     <>
       <div className="flex h-full overflow-hidden rounded-md border bg-white shadow-xs">
-        <DataStudioSchemaBrowser
-          workspaceSlug={workspaceSlug}
-          className="w-[240px] shrink-0 border-r border-gray-200"
-          onInsert={insertIntoEditor}
-        />
+        <ResizablePanel
+          side="left"
+          label={t("Table list")}
+          defaultSize={SIDEBAR_DEFAULT_WIDTH}
+          minSize={SIDEBAR_MIN_WIDTH}
+          maxSize={SIDEBAR_MAX_WIDTH}
+          reserve={EDITOR_MIN_WIDTH}
+        >
+          <DataStudioSchemaBrowser
+            workspaceSlug={workspaceSlug}
+            className="h-full w-full border-r border-gray-200"
+            onInsert={insertIntoEditor}
+          />
+        </ResizablePanel>
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Toolbar: controls right-aligned, Run at the far right. */}
           <div className="flex h-11 shrink-0 items-center gap-2 border-b border-gray-200 px-3">
@@ -286,9 +317,10 @@ const DataStudioEditor = ({
             />
           )}
 
-          {/* Editor + results split: editor on top, results fill the rest. */}
+          {/* Editor + results split: the results panel is sized and can be
+              closed altogether, the editor takes the remaining height. */}
           <div className="flex min-h-0 flex-1 flex-col">
-            <div className="h-[38%] min-h-[140px] shrink-0 border-b border-gray-200">
+            <div className="min-h-0 flex-1">
               <CodeEditor
                 ref={editorRef}
                 lang="sql"
@@ -306,14 +338,21 @@ const DataStudioEditor = ({
                 className="h-full !rounded-none"
               />
             </div>
-            <div className="min-h-0 flex-1">
+            <ResizablePanel
+              handleRef={resultsPanelRef}
+              side="bottom"
+              label={t("Results")}
+              defaultSize={RESULTS_DEFAULT_HEIGHT}
+              minSize={RESULTS_MIN_HEIGHT}
+              reserve={EDITOR_MIN_HEIGHT}
+            >
               <DataStudioResults
                 loading={loading}
                 result={result}
                 error={error}
                 onRetry={retry}
               />
-            </div>
+            </ResizablePanel>
           </div>
         </div>
       </div>
