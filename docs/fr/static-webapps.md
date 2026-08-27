@@ -682,7 +682,6 @@ type Query {
 }
 
 input ExecuteSavedQueryInput {
-  workspaceSlug: String!
   slug: String!
   maxRows: Int
 }
@@ -713,9 +712,8 @@ enum ExecuteSQLError {
 </details>
 
 Le slug se lit dans le Data Studio : c'est le dernier segment de l'URL de la
-requête enregistrée. `SAVED_QUERY_NOT_FOUND` couvre à la fois un slug inconnu et
-un workspace que vous ne pouvez pas voir, afin de ne rien révéler de ce qui
-existe.
+requête enregistrée. Notez que la requête doit être partagée avec le workspace ;
+une requête privée échoue avec `SAVED_QUERY_NOT_FOUND`.
 
 ```html
 <!DOCTYPE html>
@@ -735,7 +733,6 @@ existe.
   <div id="out">Chargement…</div>
 
   <script>
-    const { workspaceSlug } = window.OPENHEXA;
     const SAVED_QUERY_SLUG = "ma-requete-enregistree";
 
     async function gql(query, variables) {
@@ -758,7 +755,7 @@ existe.
             success errors columns rows rowCount truncated
           }
         }
-      `, { input: { workspaceSlug, slug: SAVED_QUERY_SLUG, maxRows: 100 } });
+      `, { input: { slug: SAVED_QUERY_SLUG, maxRows: 100 } });
 
       if (!result.success) {
         out.textContent = "Erreur : " + result.errors.join(", ");
