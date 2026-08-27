@@ -194,6 +194,15 @@ class WorkspaceTest(GraphQLTestCase):
             status=WorkspaceInvitationStatus.ACCEPTED,
         )
 
+    def setUp(self):
+        super().setUp()
+        # The createWorkspace mutation provisions a workspace database, and a
+        # CREATE DATABASE is not rolled back with the test transaction. No test
+        # here queries that database, so it never needs to exist.
+        patcher = patch("hexa.workspaces.models.create_database")
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_create_workspace_denied(self):
         self.client.force_login(self.USER_SABRINA)
         r = self.run_query(
@@ -709,8 +718,6 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["deleteWorkspace"],
         )
 
-    # @patch("hexa.workspaces.models.delete_database")
-    # def test_delete_workspace(self, mock_delete_database):
     def test_delete_workspace(self):
         previous_db_password = self.WORKSPACE.db_password
         previous_db_ro_password = self.WORKSPACE.db_ro_password
@@ -732,7 +739,6 @@ class WorkspaceTest(GraphQLTestCase):
                     }
                 },
             )
-        # self.assertTrue(mock_delete_database.called)
         self.assertEqual(
             {
                 "success": True,
