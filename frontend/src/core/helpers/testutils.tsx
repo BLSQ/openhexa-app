@@ -3,7 +3,7 @@ import { faker } from "@faker-js/faker";
 import { ByRoleOptions, screen } from "@testing-library/react";
 import { MeProvider } from "identity/hooks/useMe";
 import { ReactNode } from "react";
-import { CookiesProvider } from "react-cookie";
+import { Cookies, CookiesProvider } from "react-cookie";
 
 type TestAppProps = {
   children: ReactNode;
@@ -42,6 +42,14 @@ export const LOGGED_IN_USER = {
     color: "red",
   },
 };
+
+/** Empties the cookie jar tests share through jsdom's single document. */
+export function clearCookies() {
+  const cookies = new Cookies();
+  Object.keys(cookies.getAll()).forEach((name) =>
+    cookies.remove(name, { path: "/" }),
+  );
+}
 
 export async function waitForDialog(options?: ByRoleOptions) {
   const dialog = await screen.findByRole("dialog", options);

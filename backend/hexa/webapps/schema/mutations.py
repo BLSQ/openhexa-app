@@ -20,6 +20,7 @@ from hexa.webapps.models import (
     WebappFilePathNotFoundError,
     WebappFileStringNotFoundError,
     WebappFileStringNotUniqueError,
+    WebappFileTooLargeError,
     validate_subdomain,
 )
 from hexa.workspaces.models import Workspace
@@ -285,6 +286,8 @@ def resolve_edit_webapp_file(_, info, **kwargs):
         return {"success": False, "errors": ["PATH_NOT_FOUND"], "webapp": None}
     except WebappFileBinaryError:
         return {"success": False, "errors": ["BINARY_FILE"], "webapp": None}
+    except WebappFileTooLargeError:
+        return {"success": False, "errors": ["FILE_TOO_LARGE"], "webapp": None}
     except WebappFileStringNotFoundError:
         return {"success": False, "errors": ["STRING_NOT_FOUND"], "webapp": None}
     except WebappFileStringNotUniqueError:

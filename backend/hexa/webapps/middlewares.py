@@ -53,6 +53,12 @@ def _set_csp_frame_ancestors(response):
     response["Referrer-Policy"] = "no-referrer"
 
 
+def _cache_control(webapp):
+    """Revalidate on every request; the ETag decides whether a body comes back."""
+    scope = "public" if webapp.is_public else "private"
+    return f"{scope}, no-cache"
+
+
 def _serve_static_webapp(webapp, request):
     try:
         git_webapp = GitWebapp.objects.get(pk=webapp.pk)
@@ -66,13 +72,15 @@ def _serve_static_webapp(webapp, request):
     # round-trip when the content hasn't changed.
     etag = f'W/"{git_webapp.published_commit}"' if git_webapp.published_commit else None
     if etag and request.META.get("HTTP_IF_NONE_MATCH") == etag:
-        return HttpResponseNotModified()
+        not_modified = HttpResponseNotModified()
+        not_modified["ETag"] = etag
+        not_modified["Cache-Control"] = _cache_control(webapp)
+        return not_modified
 
     path = request.path.lstrip("/") or "index.html"
     response = serve_webapp(request, git_webapp, path)
     if etag:
-        cache_scope = "public" if webapp.is_public else "private"
-        response["Cache-Control"] = f"{cache_scope}, no-cache"
+        response["Cache-Control"] = _cache_control(webapp)
         response["ETag"] = etag
     return response
 

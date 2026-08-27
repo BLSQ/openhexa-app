@@ -5,7 +5,7 @@ from django.contrib.sessions.backends.db import SessionStore
 from django.test import override_settings
 
 from hexa.core.test import GraphQLTestCase
-from hexa.git.exceptions import GitFileNotFound
+from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.user_management.models import User
 from hexa.webapps.models import GitWebapp, Webapp
@@ -612,6 +612,18 @@ class GitWebappEditFileTest(GraphQLTestCase):
 
         self.assertFalse(result["success"])
         self.assertIn("PATH_NOT_FOUND", result["errors"])
+        mock_client.commit_files.assert_not_called()
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_edit_file_too_large(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_file.side_effect = GitFileTooLarge("data.csv", 108570598)
+        mock_get_client.return_value = mock_client
+
+        result = self._run({"path": "data.csv", "oldString": "x", "newString": "y"})
+
+        self.assertFalse(result["success"])
+        self.assertIn("FILE_TOO_LARGE", result["errors"])
         mock_client.commit_files.assert_not_called()
 
     @patch("hexa.git.mixins.get_forgejo_client")
@@ -1456,6 +1468,26 @@ class ReadWebappFileTest(GraphQLTestCase):
         result = response["data"]["readWebappFile"]
         self.assertFalse(result["success"])
         self.assertEqual(result["errors"], ["BINARY_FILE"])
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_read_webapp_file_too_large(self, mock_get_client):
+        mock_get_client.return_value.get_file.side_effect = GitFileTooLarge(
+            "data.csv", 108570598
+        )
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            READ_WEBAPP_FILE_QUERY,
+            {
+                "workspaceSlug": self.WS.slug,
+                "webappSlug": "read-file-app",
+                "path": "data.csv",
+            },
+        )
+
+        result = response["data"]["readWebappFile"]
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["FILE_TOO_LARGE"])
 
     def test_read_webapp_file_no_access(self):
         self.client.force_login(self.OUTSIDER)

@@ -1,5 +1,40 @@
 # Changelog
 
+## [5.16.1](https://github.com/BLSQ/openhexa-app/compare/5.16.0...5.16.1) (2026-08-27)
+
+
+### Bug Fixes
+
+* Flicker on workspace tags modal + small mistake on documentation ([#2030](https://github.com/BLSQ/openhexa-app/issues/2030)) ([c2c8b04](https://github.com/BLSQ/openhexa-app/commit/c2c8b04422876e7a789737bc7b197f92fb589600))
+* improve webapps for big files (HEXA-1745) ([#2007](https://github.com/BLSQ/openhexa-app/issues/2007)) ([7268117](https://github.com/BLSQ/openhexa-app/commit/72681179c930f0a14e49847ec2c90ae8f685efd8))
+
+## [5.16.0](https://github.com/BLSQ/openhexa-app/compare/5.15.0...5.16.0) (2026-08-25)
+
+
+### Features
+
+* account settings - add workspace tokens (HEXA-1754) ([#2000](https://github.com/BLSQ/openhexa-app/issues/2000)) ([ee76d48](https://github.com/BLSQ/openhexa-app/commit/ee76d4863a6cfd2bd370db29b86bb71550151d80))
+* add tags to workspace by admins(HEXA-1726) ([#1989](https://github.com/BLSQ/openhexa-app/issues/1989)) ([8e4be5c](https://github.com/BLSQ/openhexa-app/commit/8e4be5c2090b99502c5c9b6bc3d580f420036b81))
+* add the copying of datasets to the duplication script (HEXA-1715) ([#2001](https://github.com/BLSQ/openhexa-app/issues/2001)) ([e358bb5](https://github.com/BLSQ/openhexa-app/commit/e358bb529381a140f2ae0cb50520c6a9cf257ae1))
+* data studio csv download (HEXA-1712) ([#1918](https://github.com/BLSQ/openhexa-app/issues/1918)) ([5b4e205](https://github.com/BLSQ/openhexa-app/commit/5b4e205c746381289d31a8660fb28d59ef5dce2c))
+* Graphql endpoint that allows execution ofsaved queries(HEXA-1763) ([#1998](https://github.com/BLSQ/openhexa-app/issues/1998)) ([86fbb6b](https://github.com/BLSQ/openhexa-app/commit/86fbb6b2413503ed4bbe52c4db91cea529ac6fcd))
+* instrument "powered by openhexa" banner (HEXA-1759) ([#1967](https://github.com/BLSQ/openhexa-app/issues/1967)) ([5a35e56](https://github.com/BLSQ/openhexa-app/commit/5a35e568e2a16cc6de69064afd502ceb4f293d8a))
+* Make workspace copy script idempotent + file copy improvements (HEXA-1755) ([#1937](https://github.com/BLSQ/openhexa-app/issues/1937)) ([b506ce4](https://github.com/BLSQ/openhexa-app/commit/b506ce484906c936a65ed82e07413e75c963c3e3))
+* saved query can only be retrieved by workspace ([#1979](https://github.com/BLSQ/openhexa-app/issues/1979)) ([00c6137](https://github.com/BLSQ/openhexa-app/commit/00c6137b9f8139f165c4aa8b7a32248969b9531a))
+* saved query on delete policy (HEXA-1749) ([#2003](https://github.com/BLSQ/openhexa-app/issues/2003)) ([4d51d35](https://github.com/BLSQ/openhexa-app/commit/4d51d357fc24ba51754801e0ccb2f4b69f0b736a))
+* saved query visibility (HEXA-1749) ([#1986](https://github.com/BLSQ/openhexa-app/issues/1986)) ([24346b6](https://github.com/BLSQ/openhexa-app/commit/24346b6e88a35b0e3bd3886eef46e4d1a4529280))
+* sql editor render widgets when columns adhere to specific format ([#1985](https://github.com/BLSQ/openhexa-app/issues/1985)) ([2607172](https://github.com/BLSQ/openhexa-app/commit/260717223c63f046de9d33b58685646f3dad768b))
+
+
+### Bug Fixes
+
+* documentation for webapps ([#2021](https://github.com/BLSQ/openhexa-app/issues/2021)) ([f7bbf1a](https://github.com/BLSQ/openhexa-app/commit/f7bbf1a537e9e4d666dede95f5e91f9509c39b6e))
+* git webapp clone sometimes directing users to Github (HEXA-1745) ([#2008](https://github.com/BLSQ/openhexa-app/issues/2008)) ([3790e22](https://github.com/BLSQ/openhexa-app/commit/3790e22d8e939410922fa943eae73553fcb5b331))
+* organization id lookup failing ([31845e5](https://github.com/BLSQ/openhexa-app/commit/31845e548a2d054116a3fc0bf8e557d094ec5ec0))
+* Pipeline run states in webapps documentation ([#2017](https://github.com/BLSQ/openhexa-app/issues/2017)) ([3d9e532](https://github.com/BLSQ/openhexa-app/commit/3d9e53222aaa805500a58c2c6719c4a6dbf8a9df))
+* Set tool limit to 30, 10 was too low ([#2015](https://github.com/BLSQ/openhexa-app/issues/2015)) ([ce3361f](https://github.com/BLSQ/openhexa-app/commit/ce3361f6ebd3a2479a319c5e515691358d9f9217))
+* UI of navbar with limited width (HEXA-1750) ([#2011](https://github.com/BLSQ/openhexa-app/issues/2011)) ([88f10ad](https://github.com/BLSQ/openhexa-app/commit/88f10ada63a7abf77a8fada7633b7b579f4d68a5))
+
 ## [5.15.0](https://github.com/BLSQ/openhexa-app/compare/5.14.0...5.15.0) (2026-08-11)
 
 

@@ -105,10 +105,10 @@ You can build a webapp on your own machine — your editor, your live reload, yo
 ### 1. Add the script to your page
 
 ```html
-<script src="https://app.openhexa.org/webapps/dev.js"></script>
+<script src="https://api.openhexa.org/webapps/dev.js"></script>
 ```
 
-Point it at whichever OpenHEXA install you use — `http://localhost:8000/webapps/dev.js` for a local backend.
+Point it at the OpenHEXA **backend** (API) host, not the app host — `https://api.openhexa.org/webapps/dev.js` on OpenHEXA Cloud, `http://localhost:8000/webapps/dev.js` for a local backend.
 
 New webapps created from the default template already include this tag. It is inert once deployed (it only activates on `file://` and `localhost` pages), so you can leave it in your `index.html`.
 
@@ -137,7 +137,7 @@ The window closes and your page reloads, connected. `window.OPENHEXA` is populat
 Name the workspace and webapp up front and the list is reduced to that single, preselected entry — you still confirm with **Approve**:
 
 ```html
-<script src="https://app.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
+<script src="https://api.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
 ```
 
 ### Good to know
@@ -486,7 +486,7 @@ union PipelineRunOutput = BucketObject | GenericOutput | DatabaseTable
           { id: runId },
         );
         status.textContent = "Status: " + pipelineRun.status;
-        if (["SUCCESS", "FAILED", "STOPPED"].includes(pipelineRun.status)) break;
+        if (["success", "failed", "stopped", "skipped"].includes(pipelineRun.status)) break;
       }
     }
   </script>
@@ -989,7 +989,6 @@ type Query {
 }
 
 input ExecuteSavedQueryInput {
-  workspaceSlug: String!
   slug: String!
   maxRows: Int
 }
@@ -1020,8 +1019,8 @@ enum ExecuteSQLError {
 </details>
 
 Find the slug in the Data Studio: it is the last segment of the saved query's
-URL. `SAVED_QUERY_NOT_FOUND` covers both an unknown slug and a workspace you
-cannot see, so it does not reveal what exists.
+URL. Note that the query must be shared with the workspace, a private one fails
+with `SAVED_QUERY_NOT_FOUND`.
 
 ```html
 <!DOCTYPE html>
@@ -1041,7 +1040,6 @@ cannot see, so it does not reveal what exists.
   <div id="out">Loading…</div>
 
   <script>
-    const { workspaceSlug } = window.OPENHEXA;
     const SAVED_QUERY_SLUG = "my-saved-query";
 
     async function gql(query, variables) {
@@ -1064,7 +1062,7 @@ cannot see, so it does not reveal what exists.
             success errors columns rows rowCount truncated
           }
         }
-      `, { input: { workspaceSlug, slug: SAVED_QUERY_SLUG, maxRows: 100 } });
+      `, { input: { slug: SAVED_QUERY_SLUG, maxRows: 100 } });
 
       if (!result.success) {
         out.textContent = "Error: " + result.errors.join(", ");

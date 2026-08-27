@@ -7,6 +7,7 @@ import useCacheKey from "core/hooks/useCacheKey";
 import useForm from "core/hooks/useForm";
 import { UpdateWorkspaceError } from "graphql/types";
 import { useTranslation } from "next-i18next";
+import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useUpdateWorkspaceTagsMutation } from "./ManageWorkspaceTagsDialog.generated";
 
@@ -19,7 +20,7 @@ type WorkspaceForDialog = {
 type ManageWorkspaceTagsDialogProps = {
   open: boolean;
   onClose(): void;
-  workspace: WorkspaceForDialog;
+  workspace: WorkspaceForDialog | null;
   organizationId: string;
   availableTags: string[];
 };
@@ -43,6 +44,7 @@ const ManageWorkspaceTagsDialog = ({
 
   const form = useForm<Form>({
     onSubmit: async (values) => {
+      if (!workspace) return;
       const result = await updateWorkspaceTags({
         variables: { input: { slug: workspace.slug, tags: values.tags } },
       });
@@ -67,8 +69,18 @@ const ManageWorkspaceTagsDialog = ({
       clearCache();
       onClose();
     },
-    initialState: { tags: workspace.tags.map((tag) => tag.name) },
+    getInitialState: () => ({
+      tags: workspace?.tags.map((tag) => tag.name) ?? [],
+    }),
   });
+
+  // The dialog stays mounted between opens (so its transitions can run), so the
+  // form has to be re-seeded from the current workspace each time it opens.
+  useEffect(() => {
+    if (open) {
+      form.resetForm();
+    }
+  }, [open]);
 
   return (
     <Dialog
@@ -83,7 +95,7 @@ const ManageWorkspaceTagsDialog = ({
           {t(
             "Tag {{name}} to organize and filter the workspaces of your organization.",
             {
-              name: workspace.name,
+              name: workspace?.name ?? "",
             },
           )}
         </p>
