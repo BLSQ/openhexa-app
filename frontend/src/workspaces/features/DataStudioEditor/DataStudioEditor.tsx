@@ -14,7 +14,9 @@ import CodeEditor, {
 import Spinner from "core/components/Spinner";
 import SubscriptionLimitTooltip from "core/components/SubscriptionLimitTooltip";
 import useIsMac from "core/hooks/useIsMac";
-import ResizablePanel from "core/components/ResizablePanel";
+import ResizablePanel, {
+  ResizablePanelHandle,
+} from "core/components/ResizablePanel";
 import useSaveShortcut from "core/hooks/useSaveShortcut";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -70,6 +72,7 @@ const DataStudioEditor = ({
   const [query, setQuery] = useState(savedQuery?.content ?? "");
   const [maxRows, setMaxRows] = useState(MAX_ROWS_OPTIONS[0]);
   const editorRef = useRef<CodeEditorHandle>(null);
+  const resultsPanelRef = useRef<ResizablePanelHandle>(null);
   const [generateBarOpen, setGenerateBarOpen] = useState(false);
   const handleGenerated = useCallback((sql: string) => {
     setQuery(sql);
@@ -135,8 +138,11 @@ const DataStudioEditor = ({
 
   const canRun = !loading && Boolean(query.trim());
 
+  // Reopening the results is part of running: with the panel closed, a run
+  // would otherwise leave the page looking untouched.
   const runSelection = () => {
     const selected = editorRef.current?.getSelectedText() ?? "";
+    resultsPanelRef.current?.expand();
     run(selected.trim() || query, maxRows);
   };
 
@@ -333,6 +339,7 @@ const DataStudioEditor = ({
               />
             </div>
             <ResizablePanel
+              handleRef={resultsPanelRef}
               side="bottom"
               label={t("Results")}
               defaultSize={RESULTS_DEFAULT_HEIGHT}

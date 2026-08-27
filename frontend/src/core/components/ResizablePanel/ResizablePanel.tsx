@@ -16,12 +16,14 @@ import {
 import {
   useCallback,
   useEffect,
+  useImperativeHandle,
   useLayoutEffect,
   useRef,
   useState,
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
+  type Ref,
 } from "react";
 
 type Side = "left" | "right" | "top" | "bottom";
@@ -41,8 +43,19 @@ type ResizablePanelProps = {
   label: string;
   /** Only needed to tell apart two panels on the same side of the same page. */
   id?: string;
+  /**
+   * Filled with a handle for driving the panel from its owner. A plain prop
+   * rather than a `ref`: nothing here forwards to a DOM node, so there is no
+   * reason to wrap the component in `forwardRef` for it.
+   */
+  handleRef?: Ref<ResizablePanelHandle>;
   className?: string;
   children: ReactNode;
+};
+
+export type ResizablePanelHandle = {
+  /** Reopen the panel if it is closed; a no-op when it is already open. */
+  expand(): void;
 };
 
 /** Pixels a single arrow-key press moves the separator. */
@@ -119,6 +132,7 @@ const ResizablePanel = ({
   collapsible = true,
   label,
   id,
+  handleRef,
   className,
   children,
 }: ResizablePanelProps) => {
@@ -195,6 +209,18 @@ const ResizablePanel = ({
   const toggleCollapsed = useCallback(() => {
     commit(Math.max(sizeRef.current, minSize), !collapsed);
   }, [commit, collapsed, minSize]);
+
+  useImperativeHandle(
+    handleRef,
+    () => ({
+      expand() {
+        if (collapsed) {
+          commit(Math.max(sizeRef.current, minSize), false);
+        }
+      },
+    }),
+    [handleRef, collapsed, commit, minSize],
+  );
 
   const startResize = useCallback(
     (event: ReactPointerEvent) => {

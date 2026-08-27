@@ -2,8 +2,8 @@ import { render, screen } from "@testing-library/react";
 import { Cookies, CookiesProvider } from "react-cookie";
 import { clearCookies } from "core/helpers/testutils";
 import userEvent from "@testing-library/user-event";
-import { act } from "react";
-import ResizablePanel from "./ResizablePanel";
+import { act, createRef } from "react";
+import ResizablePanel, { type ResizablePanelHandle } from "./ResizablePanel";
 
 const renderPanel = (
   props: Partial<React.ComponentProps<typeof ResizablePanel>> = {},
@@ -88,6 +88,26 @@ describe("ResizablePanel", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Table list" }));
     expect(sizeOf(panel())).toBe("240px");
+  });
+
+  it("reopens a closed panel when its owner calls expand", () => {
+    const ref = createRef<ResizablePanelHandle>();
+    renderPanel({ handleRef: ref });
+    drag(500, 300);
+    expect(sizeOf(panel())).toBe("0px");
+
+    act(() => ref.current?.expand());
+    expect(sizeOf(panel())).toBe("240px");
+  });
+
+  it("leaves an open panel at its size when expand is called", () => {
+    const ref = createRef<ResizablePanelHandle>();
+    renderPanel({ handleRef: ref });
+    drag(500, 560);
+    expect(sizeOf(panel())).toBe("300px");
+
+    act(() => ref.current?.expand());
+    expect(sizeOf(panel())).toBe("300px");
   });
 
   it("does not collapse a panel that forbids it", () => {

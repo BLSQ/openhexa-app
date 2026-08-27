@@ -709,6 +709,55 @@ describe("DataStudioEditor", () => {
       });
     });
 
+    it("reopens a closed results panel when the query is run", async () => {
+      renderEditor();
+      await userEvent.click(screen.getByRole("button", { name: "Results" }));
+      expect(
+        screen.getByRole("separator", { name: "Results" }),
+      ).toHaveAttribute("aria-valuenow", "0");
+      await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
+
+      await userEvent.click(screen.getByRole("button", { name: "Run" }));
+
+      expect(
+        screen.getByRole("separator", { name: "Results" }),
+      ).toHaveAttribute("aria-valuenow", "300");
+      expect(mockExecute).toHaveBeenCalled();
+    });
+
+    it("reopens the results panel from the keyboard shortcut too", async () => {
+      renderEditor();
+      await userEvent.click(screen.getByRole("button", { name: "Results" }));
+      expect(
+        screen.getByRole("separator", { name: "Results" }),
+      ).toHaveAttribute("aria-valuenow", "0");
+      await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
+
+      fireEvent.keyDown(screen.getByTestId("editor"), {
+        key: "Enter",
+        ctrlKey: true,
+      });
+
+      expect(
+        screen.getByRole("separator", { name: "Results" }),
+      ).toHaveAttribute("aria-valuenow", "300");
+    });
+
+    it("leaves the table list closed when the query is run", async () => {
+      renderEditor();
+      await userEvent.click(screen.getByRole("button", { name: "Table list" }));
+      expect(
+        screen.getByRole("separator", { name: "Table list" }),
+      ).toHaveAttribute("aria-valuenow", "0");
+      await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
+
+      await userEvent.click(screen.getByRole("button", { name: "Run" }));
+
+      expect(
+        screen.getByRole("separator", { name: "Table list" }),
+      ).toHaveAttribute("aria-valuenow", "0");
+    });
+
     it("hides the table list entirely, and brings it back", async () => {
       renderEditor();
       await userEvent.click(screen.getByRole("button", { name: "Table list" }));
