@@ -68,6 +68,19 @@ class GitClient(ABC):
         ...
 
     @abstractmethod
+    def stream_file(
+        self,
+        repo_name: str,
+        path: str,
+        ref: str = "main",
+        *,
+        org_slug: str | None = None,
+        headers: dict[str, str] | None = None,
+    ):
+        """Open a streaming read of a file."""
+        ...
+
+    @abstractmethod
     def commit_files(
         self,
         repo_name: str,

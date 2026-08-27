@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.16.1](https://github.com/BLSQ/openhexa-app/compare/5.16.0...5.16.1) (2026-08-27)
+
+
+### Bug Fixes
+
+* Flicker on workspace tags modal + small mistake on documentation ([#2030](https://github.com/BLSQ/openhexa-app/issues/2030)) ([c2c8b04](https://github.com/BLSQ/openhexa-app/commit/c2c8b04422876e7a789737bc7b197f92fb589600))
+* improve webapps for big files (HEXA-1745) ([#2007](https://github.com/BLSQ/openhexa-app/issues/2007)) ([7268117](https://github.com/BLSQ/openhexa-app/commit/72681179c930f0a14e49847ec2c90ae8f685efd8))
+
 ## [5.16.0](https://github.com/BLSQ/openhexa-app/compare/5.15.0...5.16.0) (2026-08-25)
 
 

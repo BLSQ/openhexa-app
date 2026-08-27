@@ -41,7 +41,7 @@ export type WebappFilesQueryVariables = Types.Exact<{
 }>;
 
 
-export type WebappFilesQuery = { __typename?: 'Query', webapp?: { __typename?: 'Webapp', id: string, files?: Array<{ __typename?: 'FileNode', id: string, name: string, path: string, type: Types.FileType, content?: string | null, encoding?: Types.FileEncoding | null, parentId?: string | null, autoSelect: boolean, language?: string | null, lineCount?: number | null }> | null } | null };
+export type WebappFilesQuery = { __typename?: 'Query', webapp?: { __typename?: 'Webapp', id: string, files?: Array<{ __typename?: 'FileNode', id: string, name: string, path: string, type: Types.FileType, content?: string | null, encoding?: Types.FileEncoding | null, parentId?: string | null, autoSelect: boolean, language?: string | null, lineCount?: number | null, size?: number | null, tooLarge?: boolean | null }> | null } | null };
 
 export type WebappCommitDiffQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
