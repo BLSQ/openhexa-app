@@ -12,7 +12,7 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
     User,
 )
-from hexa.workspaces.models import Workspace
+from hexa.workspaces.tests.testutils import create_workspace
 
 from .testutils import SavedQueryTestMixin
 
@@ -129,7 +129,7 @@ class SavedQueryOrganizationPermissionsTest(TestCase):
             role=OrganizationMembershipRole.MEMBER,
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_WS_CREATOR,
             name="Org Workspace",
             description="Test workspace",

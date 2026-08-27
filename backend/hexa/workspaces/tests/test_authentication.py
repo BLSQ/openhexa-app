@@ -17,10 +17,10 @@ from hexa.workspaces.authentication import (
     WorkspaceToken,
 )
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class WorkspaceTokenAuthenticationTest(TestCase):
@@ -37,15 +37,11 @@ class WorkspaceTokenAuthenticationTest(TestCase):
             user=cls.ORG_ADMIN,
             role=OrganizationMembershipRole.ADMIN,
         )
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-                cls.ORG_ADMIN,
-                name="Auth Workspace",
-                organization=cls.ORG,
-            )
+        cls.WORKSPACE = create_workspace(
+            cls.ORG_ADMIN,
+            name="Auth Workspace",
+            organization=cls.ORG,
+        )
         WorkspaceMembership.objects.filter(
             workspace=cls.WORKSPACE, user=cls.ORG_ADMIN
         ).delete()

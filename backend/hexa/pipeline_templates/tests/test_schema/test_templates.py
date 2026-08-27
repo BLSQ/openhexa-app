@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from hexa.core.test import GraphQLTestCase
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.pipelines.models import (
@@ -26,22 +24,18 @@ class PipelineTemplatesTest(GraphQLTestCase):
             is_superuser=True,
         )
         cls.ORGANIZATION = Organization.objects.create(name="Templates Schema Org")
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            cls.WS1 = create_workspace(
-                cls.USER_ROOT,
-                name="WS1",
-                description="Workspace 1",
-                organization=cls.ORGANIZATION,
-            )
-            cls.WS2 = create_workspace(
-                cls.USER_ROOT,
-                name="WS2",
-                description="Workspace 2",
-                organization=cls.ORGANIZATION,
-            )
+        cls.WS1 = create_workspace(
+            cls.USER_ROOT,
+            name="WS1",
+            description="Workspace 1",
+            organization=cls.ORGANIZATION,
+        )
+        cls.WS2 = create_workspace(
+            cls.USER_ROOT,
+            name="WS2",
+            description="Workspace 2",
+            organization=cls.ORGANIZATION,
+        )
         cls.PIPELINE1 = Pipeline.objects.create(
             name="Test Pipeline", code="Test Pipeline", workspace=cls.WS1
         )
@@ -511,22 +505,18 @@ class PipelineTemplatesTest(GraphQLTestCase):
 
         org = Organization.objects.create(name="Test Org")
 
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            ws_org_1 = create_workspace(
-                self.USER_ROOT,
-                name="Org WS 1",
-                description="First workspace in org",
-                organization=org,
-            )
-            ws_org_2 = create_workspace(
-                self.USER_ROOT,
-                name="Org WS 2",
-                description="Second workspace in org",
-                organization=org,
-            )
+        ws_org_1 = create_workspace(
+            self.USER_ROOT,
+            name="Org WS 1",
+            description="First workspace in org",
+            organization=org,
+        )
+        ws_org_2 = create_workspace(
+            self.USER_ROOT,
+            name="Org WS 2",
+            description="Second workspace in org",
+            organization=org,
+        )
 
         pipeline_in_ws1 = Pipeline.objects.create(
             name="Pipeline in WS1", code="pipeline-ws1", workspace=ws_org_1
@@ -976,16 +966,12 @@ class PipelineTemplatesTest(GraphQLTestCase):
             short_name="TEST",
         )
 
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            ws = create_workspace(
-                self.USER_ROOT,
-                name="Test Workspace",
-                description="Test workspace",
-                organization=org,
-            )
+        ws = create_workspace(
+            self.USER_ROOT,
+            name="Test Workspace",
+            description="Test workspace",
+            organization=org,
+        )
 
         pipeline1 = Pipeline.objects.create(
             name="Validated Pipeline",

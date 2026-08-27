@@ -18,7 +18,6 @@ from hexa.workspaces.authentication import (
     WorkspaceToken,
 )
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
     build_notebooks_server_hash,
@@ -214,7 +213,7 @@ class ViewsTest(TestCase):
             user=org_admin,
             role=OrganizationMembershipRole.ADMIN,
         )
-        workspace = Workspace.objects.create_if_has_perm(
+        workspace = create_workspace(
             self.USER_JULIA,
             name="Test Workspace",
             description="Test workspace for org admin",

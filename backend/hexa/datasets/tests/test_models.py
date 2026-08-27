@@ -22,7 +22,6 @@ from hexa.user_management.models import (
     User,
 )
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
@@ -715,7 +714,7 @@ class DatasetOrganizationAdminOwnerPermissionsTest(BaseTestMixin, TestCase):
         cls.WORKSPACE.organization = cls.ORGANIZATION
         cls.WORKSPACE.save()
 
-        cls.WORKSPACE_3 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_3 = create_workspace(
             cls.ORG_OWNER_USER,
             name="Workspace 3",
             description="Another workspace in same org",
@@ -862,7 +861,7 @@ class DatasetLinkPipelineRunUserTest(BaseTestMixin, TestCase):
         cls.WORKSPACE_2.organization = cls.ORGANIZATION_2
         cls.WORKSPACE_2.save()
 
-        cls.WORKSPACE_3 = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE_3 = create_workspace(
             cls.USER_ADMIN,
             name="Workspace 3",
             description="Another workspace in same org",

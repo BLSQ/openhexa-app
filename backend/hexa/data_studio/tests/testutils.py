@@ -33,7 +33,9 @@ class SavedQueryTestMixin:
         )
 
         cls.WORKSPACE = create_workspace(
-            cls.USER_ADMIN, name="My Workspace", description="Test workspace"
+            cls.USER_ADMIN,
+            name="My Workspace",
+            description="Test workspace",
         )
         cls.WORKSPACE_2 = create_workspace(
             cls.USER_ADMIN, name="My Workspace 2", description="Test workspace 2"
