@@ -9,6 +9,11 @@ import { PlusIcon } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import Time from "core/components/Time/Time";
 
+const extractDeletedPaths = (output: unknown): string[] | undefined => {
+  const paths = (output as { deleted_paths?: unknown })?.deleted_paths;
+  return Array.isArray(paths) ? (paths as string[]) : undefined;
+};
+
 type Message = NonNullable<
   AssistantConversationMessagesQuery["assistantConversation"]
 >["messages"]["items"][0];
@@ -31,7 +36,11 @@ type Props = {
   workspaceSlug: string;
   proposalToolName: string;
   monthlyLimitExceeded: boolean;
-  onProposedFiles: (files: unknown[] | null, toolInvocationId?: string) => void;
+  onProposedFiles: (
+    files: unknown[] | null,
+    toolInvocationId?: string,
+    deletedPaths?: string[],
+  ) => void;
   conversations: AssistantConversation[];
   activeConversationId: string | null;
   onConversationChange: (id: string) => void;
@@ -119,7 +128,7 @@ export default function EditObjectChatPanel({
       if (toolName !== proposalToolName || !success) return;
       const files = (output as { files?: unknown[] })?.files;
       if (Array.isArray(files)) {
-        onProposedFiles(files);
+        onProposedFiles(files, undefined, extractDeletedPaths(output));
       }
     },
     [proposalToolName, onProposedFiles],
@@ -140,7 +149,11 @@ export default function EditObjectChatPanel({
         if (proposal?.toolOutput) {
           const files = (proposal.toolOutput as { files: unknown[] })?.files;
           if (Array.isArray(files)) {
-            onProposedFiles(files, proposal.id ?? undefined);
+            onProposedFiles(
+              files,
+              proposal.id ?? undefined,
+              extractDeletedPaths(proposal.toolOutput),
+            );
             return;
           }
         }

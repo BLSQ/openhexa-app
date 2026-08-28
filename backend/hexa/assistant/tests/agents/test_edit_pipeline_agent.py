@@ -1,8 +1,11 @@
+import io
+import zipfile
+
 from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
 from hexa.assistant.instructions import InstructionSet
-from hexa.assistant.models import Conversation, ToolInvocation
+from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.pipelines.models import Pipeline, PipelineVersion
 
 from ._helpers import _make_tool_call_model, _make_zipfile, make_built_model, run_agent
@@ -94,6 +97,51 @@ class EditPipelineAgentExtraInstructionsTest(AgentTestCase):
         instructions = agent._extra_instructions()
         self.assertIn("pipeline.py", instructions)
         self.assertIn("utils.py", instructions)
+
+    def test_binary_file_is_listed_so_it_can_be_deleted(self):
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as zf:
+            zf.writestr("pipeline.py", "# main")
+            zf.writestr("assets/logo.png", b"\x00\xff\xfe")
+        pipeline = Pipeline.objects.create(
+            code="binary-pipeline", name="Binary Pipeline", workspace=self.workspace
+        )
+        PipelineVersion.objects.create(
+            pipeline=pipeline, user=self.user, zipfile=buf.getvalue()
+        )
+        agent = self._make_agent(pipeline=pipeline)
+        instructions = agent._extra_instructions()
+        self.assertIn("assets/logo.png", instructions)
+        self.assertIn("(binary)", instructions)
+
+    def test_pending_deletions_are_listed(self):
+        pipeline = Pipeline.objects.create(
+            code="pending-del", name="Pending Del", workspace=self.workspace
+        )
+        PipelineVersion.objects.create(
+            pipeline=pipeline, user=self.user, zipfile=_make_zipfile(("a.py", "# a"))
+        )
+        agent = self._make_agent(pipeline=pipeline)
+        message = Message.objects.create(
+            conversation=agent.conversation,
+            role=Message.Role.ASSISTANT,
+            content=[],
+        )
+        ToolInvocation.objects.create(
+            message=message,
+            tool_name="propose_pipeline_version",
+            tool_call_id="call-pending-del",
+            tool_input={},
+            success=True,
+            proposal_pending=True,
+            tool_output={
+                "files": [{"name": "a.py", "content": "# a"}],
+                "deleted_paths": ["assets/logo.png"],
+            },
+        )
+        instructions = agent._extra_instructions()
+        self.assertIn("Staged For Deletion", instructions)
+        self.assertIn("assets/logo.png", instructions)
 
     def test_pipeline_is_injected_into_context(self):
         pipeline = Pipeline.objects.create(
