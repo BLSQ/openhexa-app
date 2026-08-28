@@ -15,6 +15,7 @@ from hexa.databases.utils import (
     validate_query,
 )
 from hexa.mcp.tools.databases import get_db_schema, get_db_table_schema
+from hexa.mcp.tools.workspaces import get_workspace
 
 logger = logging.getLogger(__name__)
 
@@ -60,9 +61,10 @@ class GenerateSqlAgent(BaseAgent):
     """
 
     instruction_set = InstructionSet.GENERATE_SQL
-    # Schema-only tools: the agent inspects table/column metadata but is never
-    # given access to the actual row data in the workspace database.
-    tools = [get_db_schema, get_db_table_schema]
+    # Schema-only tools plus workspace metadata: the agent inspects
+    # table/column metadata but is never given access to the actual row data
+    # in the workspace database.
+    tools = [get_workspace, get_db_schema, get_db_table_schema]
     max_requests = 6
     output_retries = 3
 
