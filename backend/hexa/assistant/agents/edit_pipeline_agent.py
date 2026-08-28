@@ -38,7 +38,7 @@ def propose_pipeline_version(
     """
     current_files: dict[str, str] = {}
     deleted_paths: set[str] = set()
-    archived_paths: set[str] = set()
+    all_paths: set[str] = set()
 
     # If there's a pending (unresolved) proposal, use it as the base so chained
     # edits accumulate correctly instead of being rebased onto the saved version.
@@ -59,7 +59,7 @@ def propose_pipeline_version(
         for f in pending.tool_output.get("files", []):
             current_files[f["name"]] = f["content"]
         deleted_paths.update(pending.tool_output.get("deleted_paths", []))
-        archived_paths.update(pending.tool_output.get("all_paths", []))
+        all_paths.update(pending.tool_output.get("all_paths", []))
     else:
         current_version = pipeline.last_version if pipeline is not None else None
         if current_version and current_version.zipfile:
@@ -67,7 +67,7 @@ def propose_pipeline_version(
                 for name in zf.namelist():
                     if name.endswith("/"):
                         continue
-                    archived_paths.add(name)
+                    all_paths.add(name)
                     try:
                         current_files[name] = zf.read(name).decode("utf-8")
                     except UnicodeDecodeError:
@@ -76,11 +76,11 @@ def propose_pipeline_version(
     for f in modified_files or []:
         current_files[f.name] = f.content
         deleted_paths.discard(f.name)
-        archived_paths.add(f.name)
+        all_paths.add(f.name)
 
     if deleted_files:
-        known_paths = archived_paths | set(current_files) | deleted_paths
-        resolved, unmatched = resolve_deleted_paths(deleted_files, known_paths)
+        deletable_paths = all_paths | set(current_files) | deleted_paths
+        resolved, unmatched = resolve_deleted_paths(deleted_files, deletable_paths)
         if unmatched:
             return nothing_to_delete_error(unmatched)
         deleted_paths |= resolved
@@ -90,7 +90,7 @@ def propose_pipeline_version(
     return {
         "files": [{"name": k, "content": v} for k, v in current_files.items()],
         "deleted_paths": sorted(deleted_paths),
-        "all_paths": sorted(archived_paths),
+        "all_paths": sorted(all_paths),
     }
 
 
