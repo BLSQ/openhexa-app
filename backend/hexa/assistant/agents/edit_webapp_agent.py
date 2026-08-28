@@ -220,9 +220,12 @@ class EditWebappAgent(BaseAgent):
             if pending_deletions:
                 lines.append("")
                 lines.append(
-                    "### Files Already Marked For Deletion (Pending)\n"
-                    "Do not list these again in `deleted_files`; they are already removed "
-                    "by the pending proposal."
+                    "### Files Staged For Deletion (Pending)\n"
+                    "The pending proposal drops these. The user can still restore any of "
+                    "them in the editor without the proposal being resolved, so this is "
+                    "the proposal's state, not their final intent: if they ask for one "
+                    "back, re-add it with `modified_files` rather than telling them it is "
+                    "gone. Re-listing an already-staged path in `deleted_files` is harmless."
                 )
                 for path in pending_deletions:
                     lines.append(f"- `{path}`")

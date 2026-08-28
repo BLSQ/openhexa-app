@@ -140,7 +140,7 @@ class EditPipelineAgentExtraInstructionsTest(AgentTestCase):
             },
         )
         instructions = agent._extra_instructions()
-        self.assertIn("Already Marked For Deletion", instructions)
+        self.assertIn("Staged For Deletion", instructions)
         self.assertIn("assets/logo.png", instructions)
 
     def test_pipeline_is_injected_into_context(self):
