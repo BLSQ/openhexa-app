@@ -34,6 +34,7 @@ export function getToolLabels(t: TFunction): Record<string, string> {
     [TOOL.ProposeWebappVersion]: t("Proposing web app changes"),
     [TOOL.GetDbSchema]: t("Reading database schema"),
     [TOOL.GetDbTableSchema]: t("Reading table schema"),
+    [TOOL.GetWorkspace]: t("Reading workspace"),
   };
 }
 
