@@ -167,7 +167,9 @@ def _strip_proposal_outputs(
 
 class BaseAgent:
     instruction_set = InstructionSet.GENERAL
-    tools: list = [get_workspace]
+    # Tools every agent gets, regardless of instruction set.
+    common_tools: list = [get_workspace]
+    tools: list = []
     max_tokens: int = 32768
     max_requests: int = 30
     output_retries: int | None = None
@@ -278,7 +280,9 @@ class BaseAgent:
 
     @property
     def _tools_with_context(self) -> list:
-        return [bind_context(func, self._context) for func in self.tools]
+        return [
+            bind_context(func, self._context) for func in self.common_tools + self.tools
+        ]
 
     @property
     def _context(self) -> dict:

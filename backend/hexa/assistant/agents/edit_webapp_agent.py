@@ -16,7 +16,6 @@ from hexa.mcp.tools.files import list_files, read_file
 from hexa.mcp.tools.help import get_help_or_doc
 from hexa.mcp.tools.pipelines import get_pipeline, list_pipelines
 from hexa.mcp.tools.webapps import get_static_webapp_file
-from hexa.mcp.tools.workspaces import get_workspace
 from hexa.webapps.models import GitWebapp
 
 _MAX_INLINE_LINES = 300
@@ -149,7 +148,6 @@ class EditWebappAgent(BaseAgent):
     instruction_set = InstructionSet.EDIT_WEBAPP
     history_strip_tools = {"propose_webapp_version"}
     tools = [
-        get_workspace,
         get_help_or_doc,
         get_static_webapp_file,
         list_datasets,

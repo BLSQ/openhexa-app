@@ -1,7 +1,7 @@
 from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.base import (
-    _WORKSPACE_DESCRIPTION_MAX_CHARS,
+    WORKSPACE_DESCRIPTION_MAX_CHARS,
     BaseAgent,
 )
 from hexa.assistant.instructions import InstructionSet
@@ -76,7 +76,7 @@ class WorkspaceInstructionsTest(AgentTestCase):
         self.assertNotIn("truncated", instructions)
 
     def test_long_description_is_truncated(self):
-        head = "x" * _WORKSPACE_DESCRIPTION_MAX_CHARS
+        head = "x" * WORKSPACE_DESCRIPTION_MAX_CHARS
         self._set_description(head + "TAIL MARKER")
         agent = self._make_agent()
         block = agent._workspace_instructions()

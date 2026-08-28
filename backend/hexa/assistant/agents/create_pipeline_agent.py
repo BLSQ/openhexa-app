@@ -8,14 +8,12 @@ from hexa.mcp.tools.datasets import get_dataset, list_datasets, preview_dataset_
 from hexa.mcp.tools.files import list_files, read_file
 from hexa.mcp.tools.help import get_help_or_doc
 from hexa.mcp.tools.pipelines import create_pipeline
-from hexa.mcp.tools.workspaces import get_workspace
 from hexa.pipelines.models import Pipeline
 
 
 class CreatePipelineAgent(BaseAgent):
     instruction_set = InstructionSet.CREATE_PIPELINE
     tools = [
-        get_workspace,
         get_help_or_doc,
         list_datasets,
         get_dataset,
