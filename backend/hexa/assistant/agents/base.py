@@ -50,16 +50,8 @@ from hexa.workspaces.models import DEFAULT_WORKSPACE_DESCRIPTION
 
 logger = logging.getLogger(__name__)
 
-# Above this size the workspace description costs more context than it is
-# worth; inline only the head and point the model at get_workspace for the
-# rest (same spirit as GenerateSqlAgent._SCHEMA_MAX_CHARS and
-# EditWebappAgent._MAX_INLINE_LINES).
-_WORKSPACE_DESCRIPTION_MAX_CHARS = 10_000
-
-# A placeholder-free sentence from DEFAULT_WORKSPACE_DESCRIPTION: detects
-# untouched boilerplate even when the workspace was renamed after creation,
-# which would defeat an exact comparison against the formatted template.
-_DEFAULT_DESCRIPTION_SENTINEL = (
+WORKSPACE_DESCRIPTION_MAX_CHARS = 10_000  # truncate if description greater than this
+DEFAULT_WORKSPACE_DESCRIPTION_SENTINEL = (
     "You are currently viewing the homepage of your workspace."
 )
 
@@ -230,11 +222,11 @@ class BaseAgent:
         if not description or self._is_default_description(workspace, description):
             return ""
         truncation_note = ""
-        if len(description) > _WORKSPACE_DESCRIPTION_MAX_CHARS:
-            description = description[:_WORKSPACE_DESCRIPTION_MAX_CHARS]
+        if len(description) > WORKSPACE_DESCRIPTION_MAX_CHARS:
+            description = description[:WORKSPACE_DESCRIPTION_MAX_CHARS]
             truncation_note = (
                 "\n[Note: the description was truncated at "
-                f"{_WORKSPACE_DESCRIPTION_MAX_CHARS:,} characters. If the missing "
+                f"{WORKSPACE_DESCRIPTION_MAX_CHARS:,} characters. If the missing "
                 "part seems relevant, fetch the full description with the "
                 f'`get_workspace` tool (slug: "{workspace.slug}").]'
             )
@@ -254,7 +246,7 @@ class BaseAgent:
 
     @staticmethod
     def _is_default_description(workspace, description: str) -> bool:
-        if _DEFAULT_DESCRIPTION_SENTINEL in description:
+        if DEFAULT_WORKSPACE_DESCRIPTION_SENTINEL in description:
             return True
         return (
             description
