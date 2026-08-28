@@ -16,10 +16,10 @@ from hexa.user_management.models import (
     User,
 )
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 from ...metadata.models import MetadataAttribute
 from ..models import (
@@ -1160,13 +1160,13 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
             defaults={"role": OrganizationMembershipRole.ADMIN},
         )
 
-        cls.workspace = Workspace.objects.create_if_has_perm(
+        cls.workspace = create_workspace(
             principal=cls.org_admin,
             name="Test Workspace",
             description="Test workspace",
             organization=cls.organization,
         )
-        cls.workspace2 = Workspace.objects.create_if_has_perm(
+        cls.workspace2 = create_workspace(
             principal=cls.org_admin,
             name="Test Workspace2",
             description="Test workspace2",
@@ -1369,14 +1369,14 @@ class DatasetLinkBySlugTest(GraphQLTestCase, DatasetTestMixin):
             role=OrganizationMembershipRole.MEMBER,
         )
 
-        cls.source_workspace = Workspace.objects.create_if_has_perm(
+        cls.source_workspace = create_workspace(
             principal=cls.org_admin,
             name="Source Workspace",
             description="Source workspace",
             organization=cls.organization,
         )
 
-        cls.target_workspace = Workspace.objects.create_if_has_perm(
+        cls.target_workspace = create_workspace(
             principal=cls.org_admin,
             name="Target Workspace",
             description="Target workspace",

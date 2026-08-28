@@ -8,7 +8,6 @@ from psycopg2.errors import (
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 from hexa.core.test.migrator import Migrator
-from hexa.databases.api import delete_database
 from hexa.databases.utils import (
     get_workspace_database_connection,
     get_workspace_database_ro_connection,
@@ -34,7 +33,11 @@ class Migration0061Test(TransactionTestCase):
         # part of the tutorial load is what matters here.
         with patch("hexa.workspaces.models.load_bucket_sample_data"):
             self.workspace = create_workspace(
-                self.user, name="Covid WS", description="", load_sample_data=True
+                self.user,
+                name="Covid WS",
+                description="",
+                load_sample_data=True,
+                provision_db_on=self,
             )
         # Revoke the auto-granted SELECT to reproduce a pre-fix workspace where
         # the read-only role cannot read the tutorial covid_data table.
@@ -47,9 +50,6 @@ class Migration0061Test(TransactionTestCase):
                 )
             )
         conn.close()
-
-    def tearDown(self):
-        delete_database(self.workspace.db_name)
 
     def _count_covid_data_as_ro(self):
         conn = get_workspace_database_ro_connection(self.workspace)

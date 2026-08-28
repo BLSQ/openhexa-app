@@ -45,18 +45,23 @@ const AVAILABLE_TAGS = ["analytics", "covid", "malaria"];
 const useUpdateWorkspaceTagsMutationMock =
   useUpdateWorkspaceTagsMutation as unknown as jest.Mock;
 
-const renderDialog = (onClose: jest.Mock) =>
-  render(
-    <TestApp mocks={[]}>
-      <ManageWorkspaceTagsDialog
-        open={true}
-        onClose={onClose}
-        workspace={WORKSPACE}
-        organizationId={ORGANIZATION_ID}
-        availableTags={AVAILABLE_TAGS}
-      />
-    </TestApp>,
-  );
+const dialog = (
+  onClose: jest.Mock,
+  open: boolean = true,
+  workspace: typeof WORKSPACE | null = WORKSPACE,
+) => (
+  <TestApp mocks={[]}>
+    <ManageWorkspaceTagsDialog
+      open={open}
+      onClose={onClose}
+      workspace={workspace}
+      organizationId={ORGANIZATION_ID}
+      availableTags={AVAILABLE_TAGS}
+    />
+  </TestApp>
+);
+
+const renderDialog = (onClose: jest.Mock) => render(dialog(onClose));
 
 const mockMutationResult = (result: any) => {
   const mutate = jest.fn().mockResolvedValue(result);
@@ -258,6 +263,37 @@ describe("ManageWorkspaceTagsDialog", () => {
     });
 
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  // The dialog is mounted by the page even when closed - a mount guard would
+  // make the panel skip its enter transition and flash in - so it has to cope
+  // with not having a workspace yet.
+  it("renders while closed without a workspace", () => {
+    expect(() => render(dialog(onClose, false, null))).not.toThrow();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("picks up the tags of the workspace it is reopened for", async () => {
+    const other = {
+      slug: "other-workspace",
+      name: "Other Workspace",
+      tags: [{ name: "malaria" }],
+    };
+
+    const { rerender } = render(dialog(onClose, false, null));
+
+    rerender(dialog(onClose, true, WORKSPACE));
+    await waitFor(() => {
+      expect(screen.getByText("covid")).toBeInTheDocument();
+    });
+
+    rerender(dialog(onClose, false, WORKSPACE));
+    rerender(dialog(onClose, true, other));
+
+    await waitFor(() => {
+      expect(screen.getByText("malaria")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("covid")).not.toBeInTheDocument();
   });
 
   it("closes without saving when cancelled", async () => {

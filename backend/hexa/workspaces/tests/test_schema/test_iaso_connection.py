@@ -28,14 +28,10 @@ class ConnectiontTest(GraphQLTestCase):
         cls.USER_ADMIN = User.objects.create_user(
             "admin@bluesquarehub.com", "admin", is_superuser=True
         )
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            cls.WORKSPACE = create_workspace(
-                cls.USER_ADMIN,
-                name="Workspace's title",
-            )
+        cls.WORKSPACE = create_workspace(
+            cls.USER_ADMIN,
+            name="Workspace's title",
+        )
 
         WorkspaceMembership.objects.create(
             user=cls.USER_JIM,

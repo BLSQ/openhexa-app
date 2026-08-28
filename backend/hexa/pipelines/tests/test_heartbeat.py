@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from django.core.signing import Signer
 
 from hexa.core.test import GraphQLTestCase
@@ -23,15 +21,11 @@ class UpdatePipelineHeartbeatTest(GraphQLTestCase):
             "standardpassword",
             is_superuser=True,
         )
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            cls.WS1 = create_workspace(
-                cls.USER_ROOT,
-                name="WS1",
-                description="Workspace 1",
-            )
+        cls.WS1 = create_workspace(
+            cls.USER_ROOT,
+            name="WS1",
+            description="Workspace 1",
+        )
 
         cls.PIPELINE = Pipeline.objects.create(
             workspace=cls.WS1,

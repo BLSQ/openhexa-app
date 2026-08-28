@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import jwt
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
@@ -18,7 +16,8 @@ from hexa.workspaces.jwt_utils import (
     generate_workspace_jwt,
     load_private_key,
 )
-from hexa.workspaces.models import Workspace, WorkspaceMembership
+from hexa.workspaces.models import WorkspaceMembership
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 def generate_test_key_pair():
@@ -191,16 +190,12 @@ class IssueWorkspaceTokenMutationTest(GraphQLTestCase):
             role=OrganizationMembershipRole.ADMIN,
         )
 
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-                cls.USER_ALICE,
-                name="Test Workspace",
-                description="Test workspace for JWT",
-                organization=cls.ORG,
-            )
+        cls.WORKSPACE = create_workspace(
+            cls.USER_ALICE,
+            name="Test Workspace",
+            description="Test workspace for JWT",
+            organization=cls.ORG,
+        )
 
         cls.MEMBERSHIP_ALICE = WorkspaceMembership.objects.get(
             user=cls.USER_ALICE, workspace=cls.WORKSPACE
