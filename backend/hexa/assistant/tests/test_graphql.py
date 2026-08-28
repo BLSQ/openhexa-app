@@ -268,3 +268,28 @@ class WebappAssistantConversationsQueryTest(GraphQLTestCase):
         result = self._query()
         ids = [c["id"] for c in result["data"]["webapp"]["assistantConversations"]]
         self.assertEqual(ids, [])
+
+
+ME_ASSISTANT_COSTS_QUERY = """
+  query MeAssistantCosts {
+    me {
+      assistantMonthlyLimitExceeded
+      assistantMonthlyCost
+      assistantTotalCost
+    }
+  }
+"""
+
+
+class MeAssistantCostsQueryTest(GraphQLTestCase):
+    def test_anonymous_user(self):
+        result = self.run_query(ME_ASSISTANT_COSTS_QUERY)
+
+        self.assertEqual(
+            {
+                "assistantMonthlyLimitExceeded": False,
+                "assistantMonthlyCost": 0,
+                "assistantTotalCost": 0,
+            },
+            result["data"]["me"],
+        )
