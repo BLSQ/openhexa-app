@@ -46,14 +46,11 @@ from hexa.assistant.tool_binding import bind_context
 from hexa.assistant.types import TextSegment, ToolSegment
 from hexa.core.sse import format_sse
 from hexa.mcp.tools.workspaces import get_workspace
-from hexa.workspaces.models import DEFAULT_WORKSPACE_DESCRIPTION
+from hexa.workspaces.models import is_default_workspace_description
 
 logger = logging.getLogger(__name__)
 
 WORKSPACE_DESCRIPTION_MAX_CHARS = 10_000  # truncate if description greater than this
-DEFAULT_WORKSPACE_DESCRIPTION_SENTINEL = (
-    "You are currently viewing the homepage of your workspace."
-)
 
 
 def _json_default(obj):
@@ -221,7 +218,7 @@ class BaseAgent:
     def _workspace_instructions(self) -> str:
         workspace = self.conversation.workspace
         description = (workspace.description or "").strip()
-        if not description or self._is_default_description(workspace, description):
+        if not description or is_default_workspace_description(description):
             return ""
         truncation_note = ""
         if len(description) > WORKSPACE_DESCRIPTION_MAX_CHARS:
@@ -244,17 +241,6 @@ class BaseAgent:
             f"{description}\n"
             "</workspace_description>"
             f"{truncation_note}"
-        )
-
-    @staticmethod
-    def _is_default_description(workspace, description: str) -> bool:
-        if DEFAULT_WORKSPACE_DESCRIPTION_SENTINEL in description:
-            return True
-        return (
-            description
-            == DEFAULT_WORKSPACE_DESCRIPTION.format(
-                workspace_name=workspace.name, workspace_slug=workspace.slug
-            ).strip()
         )
 
     def _extra_instructions(self) -> str:

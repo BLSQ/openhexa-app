@@ -1,4 +1,5 @@
 import hashlib
+import re
 import secrets
 import string
 import typing
@@ -814,6 +815,24 @@ Now that your workspace has been created, you can (depending on your privileges)
 - Create and run code [notebooks](/workspaces/{workspace_slug}/notebooks)
 - Monitor and launch [data pipelines](/workspaces/{workspace_slug}/pipelines)
 - Manage users and permissions [notebooks](/workspaces/{workspace_slug}/settings)"""
+
+_DEFAULT_WORKSPACE_DESCRIPTION_RE = re.compile(
+    re.escape(DEFAULT_WORKSPACE_DESCRIPTION.strip())
+    .replace(re.escape("{workspace_name}"), ".+")
+    .replace(re.escape("{workspace_slug}"), ".+")
+)
+
+
+def is_default_workspace_description(description: str | None) -> bool:
+    """Whether a description is still the untouched boilerplate created with the workspace.
+
+    The placeholders are matched as wildcards so that a workspace renamed after its
+    creation is still recognized, while any edit to the surrounding text makes the
+    description count as authored by the workspace admins.
+    """
+    return bool(
+        _DEFAULT_WORKSPACE_DESCRIPTION_RE.fullmatch((description or "").strip())
+    )
 
 
 class OrganizationWorkspaceInvitation(Base):

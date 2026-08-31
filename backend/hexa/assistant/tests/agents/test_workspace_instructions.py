@@ -63,6 +63,17 @@ class WorkspaceInstructionsTest(AgentTestCase):
         agent = self._make_agent()
         self.assertEqual(agent._workspace_instructions(), "")
 
+    def test_edited_boilerplate_is_injected(self):
+        self._set_description(
+            DEFAULT_WORKSPACE_DESCRIPTION.format(
+                workspace_name=self.workspace.name,
+                workspace_slug=self.workspace.slug,
+            )
+            + "\n\nAlways use ISO country codes."
+        )
+        agent = self._make_agent()
+        self.assertIn("Always use ISO country codes.", agent._workspace_instructions())
+
     def test_custom_description_is_injected(self):
         self._set_description("Always use ISO country codes.")
         agent = self._make_agent()
