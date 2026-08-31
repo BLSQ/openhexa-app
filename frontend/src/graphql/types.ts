@@ -4232,7 +4232,6 @@ export type Pipeline = {
   functionalType?: Maybe<PipelineFunctionalType>;
   hasNewTemplateVersions: Scalars['Boolean']['output'];
   id: Scalars['UUID']['output'];
-  missingScheduleParameters: Array<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
   newTemplateVersions: Array<PipelineTemplateVersion>;
   notebookPath?: Maybe<Scalars['String']['output']>;

@@ -3637,7 +3637,6 @@ type Pipeline {
   functionalType: PipelineFunctionalType
   hasNewTemplateVersions: Boolean!
   id: UUID!
-  missingScheduleParameters: [String!]!
   name: String
   newTemplateVersions: [PipelineTemplateVersion!]!
   notebookPath: String
