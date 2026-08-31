@@ -77,9 +77,17 @@ class InvalidTimeoutValueError(Exception):
 
 
 class MissingPipelineConfiguration(Exception):
-    """The pipeline configuration is missing. This exception should be raised when trying to schedule a pipeline without a configuration for the required parameters."""
+    """Raised when scheduling a pipeline whose required parameters have no value.
 
-    pass
+    Carries the offending parameter codes so callers can name them to the user.
+    """
+
+    def __init__(self, missing: list[str]):
+        self.missing = missing
+        super().__init__(
+            "Missing values for the scheduled pipeline parameters: "
+            + ", ".join(missing)
+        )
 
 
 class PipelineRunsLimitReached(Exception):
@@ -652,14 +660,20 @@ class Pipeline(SoftDeletedModel):
             scheduled_version = self.scheduled_pipeline_version
 
         # When enabling a schedule, check that the resolved version is schedulable.
+        touches_scheduling = (
+            "schedule" in kwargs or "scheduled_pipeline_version_id" in kwargs
+        )
+        resulting_schedule = kwargs.get("schedule", self.schedule)
         version_for_check = scheduled_version or self.last_version
         if (
-            version_for_check
-            and version_for_check.is_schedulable is False
-            and not self.schedule
-            and kwargs.get("schedule")
+            touches_scheduling
+            and resulting_schedule
+            and self.type == PipelineType.ZIPFILE
+            and version_for_check
         ):
-            raise MissingPipelineConfiguration
+            missing = version_for_check.get_missing_required_parameters()
+            if missing:
+                raise MissingPipelineConfiguration(missing)
 
         for key in ["name", "description", "config", "functional_type"]:
             if key in kwargs:
