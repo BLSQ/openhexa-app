@@ -1,5 +1,4 @@
 import time as time_module
-from dataclasses import dataclass
 from datetime import datetime
 from logging import getLogger
 from time import sleep
@@ -15,40 +14,9 @@ from hexa.pipelines.models import (
     PipelineRunState,
     PipelineRunTrigger,
 )
-from hexa.pipelines.utils import mail_skipped_run_recipients
+from hexa.pipelines.utils import get_skip_reason, mail_skipped_run_recipients
 
 logger = getLogger(__name__)
-
-
-@dataclass
-class SkipReason:
-    message: str
-    priority: str
-    missing_parameters: list[str] | None = None
-
-
-def get_skip_reason(pipeline, pipeline_version) -> SkipReason | None:
-    if pipeline.is_schedulable is False:
-        missing = pipeline_version.get_missing_required_parameters()
-        return SkipReason(
-            message="Scheduled run skipped: the required parameters "
-            + ", ".join(missing)
-            + " have no value. Set a default value for them in the pipeline configuration to let "
-            "the pipeline run unattended.",
-            priority="ERROR",
-            missing_parameters=missing,
-        )
-
-    if PipelineRun.objects.filter(
-        pipeline=pipeline,
-        state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING],
-    ).exists():
-        return SkipReason(
-            message="Scheduled run skipped: a previous run is already queued or running.",
-            priority="WARNING",
-        )
-
-    return None
 
 
 def create_skipped_run(pipeline, pipeline_version, exec_time):
@@ -113,11 +81,7 @@ class Command(BaseCommand):
                     )
                     run = create_skipped_run(pipeline, pipeline_version, exec_time)
                     run.log_message(skip_reason.priority, skip_reason.message)
-                    mail_skipped_run_recipients(
-                        pipeline,
-                        exec_time,
-                        missing_parameters=skip_reason.missing_parameters,
-                    )
+                    mail_skipped_run_recipients(pipeline, exec_time, skip_reason)
                     continue
 
                 pipeline.run(

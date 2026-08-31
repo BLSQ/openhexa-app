@@ -1,7 +1,9 @@
 import datetime
 import os
+from dataclasses import dataclass
 
 from django.conf import settings
+from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy, override
 
 from hexa.core.utils import send_mail
@@ -9,6 +11,7 @@ from hexa.core.utils import send_mail
 from .models import (
     PipelineNotificationLevel,
     PipelineRun,
+    PipelineRunLogLevel,
     PipelineRunState,
 )
 
@@ -57,7 +60,65 @@ def mail_run_recipients(run: PipelineRun):
             )
 
 
-def mail_skipped_run_recipients(pipeline, scheduled_time):
+@dataclass(frozen=True)
+class SkipReason:
+    priority: str
+    reason: str
+    advice: str
+
+    @classmethod
+    def run_already_in_progress(cls) -> "SkipReason":
+        return cls(
+            priority=PipelineRunLogLevel.WARNING.name,
+            reason=gettext_lazy("A pipeline run is already queued or running"),
+            advice=gettext_lazy(
+                "The next scheduled execution will proceed as normal if no run is in progress at "
+                "that time. If this happens regularly, we advise you to check if your scheduling "
+                "interval is configured too tight, or if your pipeline has started to run slower "
+                "over time."
+            ),
+        )
+
+    @classmethod
+    def missing_required_parameters(cls, parameters: list[str]) -> "SkipReason":
+        return cls(
+            priority=PipelineRunLogLevel.ERROR.name,
+            reason=format_lazy(
+                gettext_lazy("The required parameters {parameters} have no value"),
+                parameters=", ".join(parameters),
+            ),
+            advice=gettext_lazy(
+                "The pipeline cannot run unattended until every required parameter has a value. "
+                "Set a default value for the missing parameters in the pipeline configuration, "
+                "or disable the schedule."
+            ),
+        )
+
+    @property
+    def message(self) -> str:
+        """The reason and its advice as a single line, for logs and the run's own messages."""
+        return f"Scheduled run skipped. {self.reason} {self.advice}"
+
+
+def get_skip_reason(pipeline, pipeline_version) -> SkipReason | None:
+    """Return why this pipeline cannot start a scheduled run now, or None if it can."""
+    # A pipeline may have a schedule but no longer be schedulable, because the parameters or the
+    # config of the version to run changed.
+    if pipeline.is_schedulable is False:
+        return SkipReason.missing_required_parameters(
+            pipeline_version.get_missing_required_parameters()
+        )
+
+    if PipelineRun.objects.filter(
+        pipeline=pipeline,
+        state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING],
+    ).exists():
+        return SkipReason.run_already_in_progress()
+
+    return None
+
+
+def mail_skipped_run_recipients(pipeline, scheduled_time, reason: SkipReason):
     workspace_slug = pipeline.workspace.slug
     for recipient in pipeline.pipelinerecipient_set.all():
         with override(recipient.user.language):
@@ -69,6 +130,8 @@ def mail_skipped_run_recipients(pipeline, scheduled_time):
                 template_variables={
                     "pipeline_code": pipeline.code,
                     "scheduled_time": scheduled_time,
+                    "reason": reason.reason,
+                    "advice": reason.advice,
                     "pipeline_url": f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{workspace_slug}/pipelines/{pipeline.code}",
                 },
                 recipient_list=[recipient.user.email],
