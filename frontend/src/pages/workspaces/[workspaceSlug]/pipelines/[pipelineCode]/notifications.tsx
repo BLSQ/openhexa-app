@@ -107,11 +107,7 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
               )}
             </>
           }
-          onSave={
-            pipeline.permissions.update && pipeline.permissions.schedule
-              ? onSaveScheduling
-              : undefined
-          }
+          onSave={pipeline.permissions.update ? onSaveScheduling : undefined}
           collapsible={false}
         >
           <SwitchProperty
