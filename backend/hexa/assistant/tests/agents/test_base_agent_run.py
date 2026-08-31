@@ -35,8 +35,11 @@ class BaseAgentRunTest(AgentTestCase):
         )
 
     def test_run_saves_assistant_message(self):
+        # call_tools=[] keeps TestModel from auto-calling the agent's tools,
+        # which would prepend tool segments to the asserted content.
         agent = BaseAgent(
-            self.conversation, make_built_model(TestModel(custom_output_text="Hello!"))
+            self.conversation,
+            make_built_model(TestModel(custom_output_text="Hello!", call_tools=[])),
         )
         run_agent(agent, "What can you do?")
         assistant_messages = self.conversation.messages.filter(
