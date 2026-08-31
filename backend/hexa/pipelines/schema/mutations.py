@@ -296,10 +296,11 @@ def resolve_update_pipeline(_, info, **kwargs):
             "success": False,
             "errors": ["INVALID_CONFIG"],
         }
-    except MissingPipelineConfiguration:
+    except MissingPipelineConfiguration as e:
         return {
             "success": False,
             "errors": ["MISSING_VERSION_CONFIG"],
+            "details": ", ".join(e.missing),
         }
     except PipelineVersion.DoesNotExist:
         return {
