@@ -361,9 +361,7 @@ class ScheduledPipelineVersionTest(TestCase):
             self._run_scheduler_once()
 
         mock_mail.assert_called_once()
-        self.assertEqual(
-            mock_mail.call_args.kwargs["missing_parameters"], ["required_param"]
-        )
+        self.assertIn("required_param", mock_mail.call_args.args[2].message)
 
         run = (
             PipelineRun.objects.filter(
