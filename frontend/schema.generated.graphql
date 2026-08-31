@@ -5491,6 +5491,7 @@ type UpdatePipelineRecipientResult {
 
 """Represents the result of updating a pipeline."""
 type UpdatePipelineResult {
+  details: String
   errors: [UpdatePipelineError!]!
   pipeline: Pipeline
   success: Boolean!

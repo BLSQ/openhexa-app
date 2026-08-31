@@ -576,6 +576,7 @@ Represents the result of updating a pipeline.
 type UpdatePipelineResult {
   success: Boolean!  # Indicates if the pipeline was updated successfully.
   errors: [UpdatePipelineError!]!  # The list of errors that occurred during the update of the pipeline.
+  details: String
   pipeline: Pipeline  # The updated pipeline.
 }
 

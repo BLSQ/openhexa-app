@@ -6318,6 +6318,7 @@ export type UpdatePipelineRecipientResult = {
 /** Represents the result of updating a pipeline. */
 export type UpdatePipelineResult = {
   __typename?: 'UpdatePipelineResult';
+  details?: Maybe<Scalars['String']['output']>;
   errors: Array<UpdatePipelineError>;
   pipeline?: Maybe<Pipeline>;
   success: Scalars['Boolean']['output'];
