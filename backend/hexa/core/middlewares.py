@@ -38,6 +38,7 @@ PRECOMPRESSED_EXTENSIONS = (
 
 
 UNCOMPRESSIBLE_CONTENT_TYPES = frozenset({"text/event-stream"})
+BODYLESS_STATUS_CODES = frozenset({204, 304})
 
 
 def response_content_type(response) -> str:
@@ -55,6 +56,13 @@ def is_precompressed(content_type: str, path: str) -> bool:
     return path.lower().endswith(PRECOMPRESSED_EXTENSIONS)
 
 
+def is_bodyless(response) -> bool:
+    return (
+        response.status_code in BODYLESS_STATUS_CODES
+        or 100 <= response.status_code < 200
+    )
+
+
 def is_partial(response) -> bool:
     return response.status_code == 206 or response.has_header("Content-Range")
 
@@ -62,6 +70,8 @@ def is_partial(response) -> bool:
 def should_skip_compression(request, response) -> bool:
     """Whether gzipping this response would break it or gain nothing."""
     content_type = response_content_type(response)
+    if is_bodyless(response):
+        return True
     if content_type in UNCOMPRESSIBLE_CONTENT_TYPES:
         return True
     if is_partial(response):

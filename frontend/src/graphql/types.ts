@@ -528,6 +528,7 @@ export enum AssistantToolName {
   GetHelpOrDoc = 'get_help_or_doc',
   GetPipeline = 'get_pipeline',
   GetStaticWebappFile = 'get_static_webapp_file',
+  GetWorkspace = 'get_workspace',
   ListConnections = 'list_connections',
   ListDatasets = 'list_datasets',
   ListFiles = 'list_files',
