@@ -7,7 +7,6 @@ import Tooltip from "core/components/Tooltip";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { PipelineType } from "graphql/types";
-import { useMemo } from "react";
 import { useTranslation } from "next-i18next";
 import CronProperty from "workspaces/features/CronProperty";
 import PipelineRecipients from "workspaces/features/PipelineRecipients";
@@ -38,28 +37,22 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
     },
   });
 
-  const hasMissingConfiguration = useMemo(() => {
-    if (!data?.pipeline) return false;
-    const { pipeline } = data;
-    if (pipeline.type !== PipelineType.ZipFile || !pipeline.schedule)
-      return false;
-
-    if (pipeline.scheduledPipelineVersion) {
-      const v = pipeline.scheduledPipelineVersion;
-      return v.parameters.some((p) => p.required && !v.config?.[p.code]);
-    }
-
-    if (!pipeline.currentVersion) return false;
-    return pipeline.currentVersion.parameters.some(
-      (p) => p.required && !pipeline.currentVersion!.config?.[p.code],
-    );
-  }, [data]);
-
   if (!data?.workspace || !data?.pipeline) {
     return null;
   }
 
   const { workspace, pipeline } = data;
+
+  // The scheduler runs the pinned version, or the latest one when nothing is pinned.
+  const versionToRun =
+    pipeline.scheduledPipelineVersion ?? pipeline.currentVersion;
+
+  // Only a scheduled zipfile pipeline is at risk: notebooks take no parameters, and a manual run
+  // still prompts the user for the missing values.
+  const missingScheduleParameters =
+    pipeline.schedule && pipeline.type === PipelineType.ZipFile
+      ? (versionToRun?.missingScheduleParameters ?? [])
+      : [];
 
   const versionItems = pipeline.versions?.items ?? [];
   const pinned = pipeline.scheduledPipelineVersion;
@@ -95,16 +88,18 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
           title={
             <>
               <h4 className="font-medium">{t("Scheduling")}</h4>
-              {pipeline.permissions.update && hasMissingConfiguration && (
-                <Tooltip
-                  className="flex items-center"
-                  label={t(
-                    "Missing configuration: set default parameters to fix the problem.",
-                  )}
-                >
-                  <ExclamationCircleIcon className="inline-block w-6 h-6 text-yellow-500 ml-1.5" />
-                </Tooltip>
-              )}
+              {pipeline.permissions.update &&
+                missingScheduleParameters.length > 0 && (
+                  <Tooltip
+                    className="flex items-center"
+                    label={t(
+                      "Scheduled runs are being skipped: the required parameters {{parameters}} have no value. Set their default values to fix the problem.",
+                      { parameters: missingScheduleParameters.join(", ") },
+                    )}
+                  >
+                    <ExclamationCircleIcon className="inline-block w-6 h-6 text-yellow-500 ml-1.5" />
+                  </Tooltip>
+                )}
             </>
           }
           onSave={pipeline.permissions.update ? onSaveScheduling : undefined}
@@ -139,7 +134,13 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
               options={versionOptions}
               nullable
               defaultValue={t("Latest version")}
-              getOptionLabel={(v) => v.versionName}
+              getOptionLabel={(v) =>
+                v.missingScheduleParameters.length > 0
+                  ? t("{{version}} (missing parameter values)", {
+                      version: v.versionName,
+                    })
+                  : v.versionName
+              }
               visible={(_, __, values) =>
                 Boolean(values.enableScheduling || pipeline.schedule)
               }

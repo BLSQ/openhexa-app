@@ -21,6 +21,7 @@
   "{{value}}h": "{{value}}h",
   "{{value}}m": "{{value}}m",
   "{{value}}s": "{{value}}s",
+  "{{version}} (missing parameter values)": "{{version}} (missing parameter values)",
   "# if not installed": "# if not installed",
   "# Rows": "# Rows",
   "← Back to history": "← Back to history",

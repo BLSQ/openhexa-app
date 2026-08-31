@@ -29,6 +29,7 @@
   "{{value}}h": "{{value}}h",
   "{{value}}m": "{{value}}m",
   "{{value}}s": "{{value}}s",
+  "{{version}} (missing parameter values)": "",
   "# if not installed": "# s'il n'est pas installé",
   "# Rows": "# Lignes",
   "← Back to history": "← Retour à l'historique",
