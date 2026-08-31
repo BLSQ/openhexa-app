@@ -1,10 +1,24 @@
 import uuid
 from unittest.mock import MagicMock
 
+from django.core import mail
+from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from hexa.core.test import TestCase
-from hexa.pipelines.utils import generate_pipeline_container_name
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineNotificationLevel,
+    PipelineRecipient,
+    PipelineType,
+)
+from hexa.pipelines.utils import (
+    SkipReason,
+    generate_pipeline_container_name,
+    mail_skipped_run_recipients,
+)
+from hexa.user_management.models import User
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class PipelineUtilsTest(TestCase):
@@ -89,3 +103,42 @@ class PipelineUtilsTest(TestCase):
         self.assertEqual(
             container_name, container_name.lower(), "Name should be lowercase"
         )
+
+
+class MailSkippedRunRecipientsTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user(
+            "skipped_mail@bluesquarehub.com", "pwd", is_superuser=True
+        )
+        cls.WORKSPACE = create_workspace(cls.USER, name="SkippedMailWS", description="")
+        cls.PIPELINE = Pipeline.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Skipped Mail Pipeline",
+            code="skipped_mail_pipeline",
+            schedule="*/5 * * * *",
+            type=PipelineType.ZIPFILE,
+        )
+        PipelineRecipient.objects.create(
+            pipeline=cls.PIPELINE,
+            user=cls.USER,
+            notification_level=PipelineNotificationLevel.ALL,
+        )
+
+    def test_mail_reports_a_run_already_in_progress(self):
+        mail_skipped_run_recipients(
+            self.PIPELINE, timezone.now(), SkipReason.run_already_in_progress()
+        )
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("already queued or running", mail.outbox[0].body)
+
+    def test_mail_names_the_parameters_without_a_value(self):
+        mail_skipped_run_recipients(
+            self.PIPELINE,
+            timezone.now(),
+            SkipReason.missing_required_parameters(["country", "year"]),
+        )
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("country, year", mail.outbox[0].body)
