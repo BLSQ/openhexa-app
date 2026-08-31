@@ -3987,6 +3987,7 @@ type PipelineVersion {
   files: [FileNode!]!
   id: UUID!
   isLatestVersion: Boolean!
+  missingScheduleParameters: [String!]!
   name: String
   number: Int @deprecated(reason: "Use 'versionNumber' instead")
   parameters: [PipelineParameter!]!

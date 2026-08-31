@@ -4620,6 +4620,7 @@ export type PipelineVersion = {
   files: Array<FileNode>;
   id: Scalars['UUID']['output'];
   isLatestVersion: Scalars['Boolean']['output'];
+  missingScheduleParameters: Array<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
   /** @deprecated Use 'versionNumber' instead */
   number?: Maybe<Scalars['Int']['output']>;
