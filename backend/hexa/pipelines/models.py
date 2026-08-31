@@ -653,16 +653,20 @@ class Pipeline(SoftDeletedModel):
         if not principal.has_perm("pipelines.update_pipeline", self):
             raise PermissionDenied
 
+        touches_scheduling = (
+            "schedule" in kwargs or "scheduled_pipeline_version_id" in kwargs
+        )
+
         if "scheduled_pipeline_version_id" in kwargs:
             version_id = kwargs.pop("scheduled_pipeline_version_id")
             scheduled_version = self.versions.get(id=version_id) if version_id else None
         else:
             scheduled_version = self.scheduled_pipeline_version
 
-        # When enabling a schedule, check that the resolved version is schedulable.
-        touches_scheduling = (
-            "schedule" in kwargs or "scheduled_pipeline_version_id" in kwargs
-        )
+        # Any update that leaves the pipeline scheduled must resolve to a runnable version, whether
+        # it enables the schedule, edits the cron of an already-scheduled one, or re-pins it. An
+        # update that touches neither stays allowed, so a broken pipeline can still be renamed or
+        # switched off.
         resulting_schedule = kwargs.get("schedule", self.schedule)
         version_for_check = scheduled_version or self.last_version
         if (
