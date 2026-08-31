@@ -50,7 +50,8 @@ from hexa.workspaces.models import is_default_workspace_description
 
 logger = logging.getLogger(__name__)
 
-WORKSPACE_DESCRIPTION_MAX_CHARS = 10_000  # truncate if description greater than this
+# ~5000 tokens, truncate if description greater than this
+WORKSPACE_DESCRIPTION_MAX_CHARS = 20_000
 
 
 def _json_default(obj):
