@@ -283,16 +283,20 @@ class PipelineVersion(models.Model):
                     "Cannot push an unschedulable new version for a scheduled pipeline."
                 )
 
+    def get_missing_required_parameters(self) -> list[str]:
+        disabled = self.get_disabled_parameter_codes(self.config)
+        return [
+            parameter["code"]
+            for parameter in self.parameters
+            if parameter.get("required")
+            and parameter["code"] not in disabled
+            and parameter.get("default") is None
+            and self.config.get(parameter["code"]) is None
+        ]
+
     @property
     def is_schedulable(self):
-        disabled = self.get_disabled_parameter_codes(self.config)
-        return all(
-            parameter["code"] in disabled
-            or parameter.get("required") is False
-            or parameter.get("default") is not None
-            or self.config.get(parameter["code"]) is not None
-            for parameter in self.parameters
-        )
+        return not self.get_missing_required_parameters()
 
     @property
     def is_latest_version(self):
