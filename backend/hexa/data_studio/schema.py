@@ -141,45 +141,6 @@ def resolve_saved_query_permissions_update_visibility(
     )
 
 
-@saved_query_object.field("currentVersion")
-def resolve_saved_query_current_version(saved_query: SavedQuery, info, **kwargs):
-    return saved_query.last_commit
-
-
-# History is the one part of a saved query that lives on the git server rather than in
-# the database, so it is the one part that can be unavailable on its own. These three
-# fields report that as "no history" instead of failing the whole query they were asked
-# for alongside — mirroring how a static web app's versions resolve (see
-# hexa.webapps.schema.types).
-@saved_query_object.field("versions")
-def resolve_saved_query_versions(saved_query: SavedQuery, info, **kwargs):
-    page = kwargs.get("page", 1)
-    try:
-        return saved_query.get_versions(page=page, per_page=kwargs.get("per_page", 20))
-    except (ForgejoAPIError, GitError):
-        return {"items": [], "page": page}
-
-
-@saved_query_object.field("versionContent")
-def resolve_saved_query_version_content(saved_query: SavedQuery, info, **kwargs):
-    if not saved_query.has_history:
-        return None
-    try:
-        return saved_query.get_version_content(ref=kwargs["ref"])
-    except (ForgejoAPIError, GitError):
-        return None
-
-
-@saved_query_object.field("versionDiff")
-def resolve_saved_query_version_diff(saved_query: SavedQuery, info, **kwargs):
-    if not saved_query.has_history:
-        return None
-    try:
-        return saved_query.get_commit_diff(kwargs["ref"])
-    except (ForgejoAPIError, GitError):
-        return None
-
-
 @workspace_object.field("savedQueries")
 def resolve_workspace_saved_queries(workspace: Workspace, info, query=None, **kwargs):
     request: HttpRequest = info.context["request"]

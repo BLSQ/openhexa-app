@@ -107,38 +107,6 @@ enum SavedQueryVisibility {
 }
 
 """
-One recorded state of a saved query's SQL. Versions are the commits of the query's
-own git repository, so they are identified by a sha and ordered newest first.
-"""
-type SavedQueryVersion {
-  id: String!
-  message: String!
-  authorName: String!
-  authorEmail: String!
-  date: DateTime!
-}
-
-"""
-A page of saved query versions.
-"""
-type SavedQueryVersionPage {
-  items: [SavedQueryVersion!]!
-  page: Int!
-}
-
-"""
-A version together with the change it introduced, as a unified diff.
-"""
-type SavedQueryVersionDiff {
-  id: String!
-  message: String!
-  authorName: String!
-  authorEmail: String!
-  date: DateTime!
-  rawDiff: String!
-}
-
-"""
 A SQL query saved by a user in the Data Studio. Saved queries belong to a
 workspace; their visibility decides which of its members can reach them.
 """
@@ -155,15 +123,12 @@ type SavedQuery {
   workspace: Workspace!
   visibility: SavedQueryVisibility!
   permissions: SavedQueryPermissions!
-  "The version `content` currently holds. Null on a query whose history was never recorded."
-  currentVersion: String
-  "The history of the query's SQL, newest first. Empty when the history cannot be read."
-  versions(page: Int = 1, perPage: Int = 20): SavedQueryVersionPage!
-  "The SQL as of a given version. Null if that version does not exist."
-  versionContent(ref: String!): String
-  "A version and the change it introduced. Null if that version does not exist."
-  versionDiff(ref: String!): SavedQueryVersionDiff
 }
+
+# Saved queries record a version of their SQL on every save (see the app README), but
+# nothing here exposes that history yet: the fields to read it land with the UI that
+# browses it, so their shape can be settled by what that UI actually needs. The model
+# already answers `get_versions`, `get_version_content` and `get_commit_diff`.
 
 """
 Permissions of a saved query.
