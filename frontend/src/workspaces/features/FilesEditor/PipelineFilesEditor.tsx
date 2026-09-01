@@ -95,6 +95,21 @@ export const PipelineFilesEditor = ({
               details: result.data?.uploadPipeline.details,
             }),
           };
+        } else if (
+          result.data?.uploadPipeline.errors.includes(
+            PipelineError.PipelineDoesNotSupportParameters,
+          )
+        ) {
+          const missing = result.data.uploadPipeline.details
+            ? result.data.uploadPipeline.details.split(", ")
+            : [];
+          return {
+            success: false,
+            error: t(
+              "This pipeline is scheduled, so the required parameter {{parameters}} needs a default value. Give it one, or turn off the schedule before saving.",
+              { count: missing.length, parameters: missing.join(", ") },
+            ),
+          };
         } else {
           const errors = result.data?.uploadPipeline.errors || [
             t("Unknown error"),

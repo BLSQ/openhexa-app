@@ -69,7 +69,17 @@ class PipelineAlreadyExistsError(Exception):
 
 
 class PipelineDoesNotSupportParametersError(Exception):
-    pass
+    """Raised when a new version would leave a scheduled pipeline unable to run unattended.
+
+    Carries the offending parameter codes so callers can name them to the user.
+    """
+
+    def __init__(self, missing: list[str]):
+        self.missing = missing
+        super().__init__(
+            "Cannot push an unschedulable new version for a scheduled pipeline. "
+            "Parameters without a value: " + ", ".join(missing)
+        )
 
 
 class InvalidTimeoutValueError(Exception):
@@ -287,9 +297,7 @@ class PipelineVersion(models.Model):
                 and parameter.get("default") is None
                 and self.config.get(parameter.get("code"))
             ) and new_config.get(parameter.get("code")) is None:
-                raise PipelineDoesNotSupportParametersError(
-                    "Cannot push an unschedulable new version for a scheduled pipeline."
-                )
+                raise PipelineDoesNotSupportParametersError([parameter["code"]])
 
     def get_missing_required_parameters(self) -> list[str]:
         disabled = self.get_disabled_parameter_codes(self.config)
@@ -642,10 +650,10 @@ class Pipeline(SoftDeletedModel):
             timeout=timeout,
         )
 
-        if self.last_version and self.schedule and not version.is_schedulable:
-            raise PipelineDoesNotSupportParametersError(
-                "Cannot push an unschedulable new version for a scheduled pipeline."
-            )
+        if self.last_version and self.schedule:
+            missing = version.get_missing_required_parameters()
+            if missing:
+                raise PipelineDoesNotSupportParametersError(missing)
         version.save()
         return version
 

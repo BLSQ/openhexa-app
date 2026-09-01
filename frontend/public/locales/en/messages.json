@@ -1012,6 +1012,8 @@
   "This pipeline has no parameters.": "This pipeline has no parameters.",
   "This pipeline has not been uploaded yet": "This pipeline has not been uploaded yet",
   "This pipeline has required parameters that have not been set. Edit the default parameters to fix this issue.": "This pipeline has required parameters that have not been set. Edit the default parameters to fix this issue.",
+  "This pipeline is scheduled, so the required parameter {{parameters}} needs a default value. Give it one, or turn off the schedule before saving.___one": "This pipeline is scheduled, so the required parameter {{parameters}} needs a default value. Give it one, or turn off the schedule before saving.",
+  "This pipeline is scheduled, so the required parameter {{parameters}} needs a default value. Give it one, or turn off the schedule before saving.___other": "This pipeline is scheduled, so the required parameters {{parameters}} need a default value. Give them one, or turn off the schedule before saving.",
   "This run completed with errors or warnings in the logs": "This run completed with errors or warnings in the logs",
   "This subdomain is already taken": "This subdomain is already taken",
   "This subdomain is reserved": "This subdomain is reserved",
