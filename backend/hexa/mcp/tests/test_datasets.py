@@ -107,6 +107,13 @@ class PreviewDatasetFileTest(MCPTestCase):
             status=DatasetFileSample.STATUS_FINISHED,
         )
 
+    def set_properties(self):
+        self.DATASET_FILE.properties = {
+            "columns": self.COLUMN_HASHES,
+            "column_order": list(self.COLUMN_HASHES),
+        }
+        self.DATASET_FILE.save()
+
     def preview(self):
         return preview_dataset_file(
             user=self.USER_ADMIN, file_id=str(self.DATASET_FILE.id)
@@ -139,23 +146,45 @@ class PreviewDatasetFileTest(MCPTestCase):
         self.assertEqual(len(file_sample["sample"]), 2)
         self.assertEqual(file_sample["sampleRowsAvailable"], 2)
 
-    def test_preview_dataset_file_replaces_properties_with_columns(self):
+    def test_preview_dataset_file_orders_sample_by_column_order(self):
         self.create_sample(2)
-        self.DATASET_FILE.properties = {
-            "columns": self.COLUMN_HASHES,
-            "column_order": list(self.COLUMN_HASHES),
-        }
-        self.DATASET_FILE.save()
+        self.set_properties()
+
+        file_sample = self.preview()["fileSample"]
+        # jsonb sorts the stored keys by length, so "cases" comes back before "country"
+        self.assertEqual(list(file_sample["sample"][0]), ["country", "cases"])
+
+    def test_preview_dataset_file_keeps_unprofiled_columns(self):
+        DatasetFileSample.objects.create(
+            dataset_version_file=self.DATASET_FILE,
+            sample=[{"country": "c0", "cases": 0, "notes": "n0"}],
+            status=DatasetFileSample.STATUS_FINISHED,
+        )
+        self.set_properties()
+
+        file_sample = self.preview()["fileSample"]
+        self.assertEqual(list(file_sample["sample"][0]), ["country", "cases", "notes"])
+
+    def test_preview_dataset_file_drops_properties_and_columns(self):
+        self.create_sample(2)
+        self.set_properties()
+
+        result = self.preview()
+        self.assertNotIn("properties", result)
+        # the sample rows already name every column
+        self.assertNotIn("columns", result)
+
+    def test_preview_dataset_file_returns_columns_without_sample_rows(self):
+        DatasetFileSample.objects.create(
+            dataset_version_file=self.DATASET_FILE,
+            sample=[],
+            status=DatasetFileSample.STATUS_FINISHED,
+        )
+        self.set_properties()
 
         result = self.preview()
         self.assertEqual(result["columns"], ["country", "cases"])
-        self.assertNotIn("properties", result)
-
-    def test_preview_dataset_file_columns_fall_back_to_sample_keys(self):
-        self.create_sample(2)
-        result = self.preview()
-        # jsonb does not preserve key order, so the fallback only guarantees the names
-        self.assertEqual(set(result["columns"]), {"country", "cases"})
+        self.assertEqual(result["fileSample"]["sampleRowsAvailable"], 0)
 
     def test_preview_dataset_file_without_sample(self):
         result = self.preview()

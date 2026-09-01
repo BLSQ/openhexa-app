@@ -6,7 +6,7 @@ from ._graphql import execute_graphql
 
 # LLM callers only need enough rows to infer the schema and value shapes; the stored
 # sample (WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE rows) is sized for the UI table.
-PREVIEW_SAMPLE_ROWS = 5
+PREVIEW_SAMPLE_ROWS = 3
 
 
 @tool
@@ -66,37 +66,33 @@ def _sample_rows(file_data: dict) -> list:
     return file_sample.get("sample") or []
 
 
-def _truncate_sample(file_data: dict) -> None:
-    file_sample = file_data.get("fileSample")
-    if not file_sample:
-        return
-    rows = _sample_rows(file_data)
-    file_sample["sample"] = rows[:PREVIEW_SAMPLE_ROWS]
-    file_sample["sampleRowsAvailable"] = len(rows)
-
-
 def _column_names(file_data: dict) -> list:
     """Turn the stored profiling properties into a plain ordered list of column names.
 
     `properties` maps md5 hashes to column names for the web UI; the hashes are
-    meaningless to a model, so only the names in file order are kept. Without
-    profiling we fall back to the sample keys, which jsonb returns unordered.
+    meaningless to a model, so only the names in file order are kept.
     """
     properties = file_data.pop("properties", None) or {}
     columns = properties.get("columns") or {}
     column_order = properties.get("column_order") or []
     names = [columns[key] for key in column_order if key in columns]
-    if names:
-        return names
-    if columns:
-        return list(columns.values())
-    rows = _sample_rows(file_data)
-    return list(rows[0].keys()) if rows else []
+    return names or list(columns.values())
+
+
+def _ordered_row(row: dict, columns: list) -> dict:
+    """Restore the file's column order, which jsonb does not preserve in the sample.
+
+    Columns the profiling could not handle are missing from `columns`; they are kept
+    at the end so the sample never loses data.
+    """
+    ordered = {name: row[name] for name in columns if name in row}
+    ordered.update({key: value for key, value in row.items() if key not in ordered})
+    return ordered
 
 
 @tool
 def preview_dataset_file(user, file_id: str) -> dict:
-    """Preview the content of a dataset file by its ID (from get_dataset's file list). Returns file metadata, the ordered 'columns' of the file, and for tabular files (CSV, Parquet, etc.) the first few rows of the stored sample. This is a preview only: 'rows' is the row count of the whole file and 'fileSample.sampleRowsAvailable' the size of the stored sample, both usually larger than the number of rows returned here. The sample status can be PROCESSING (still generating), FINISHED (sample ready), or FAILED."""
+    """Preview the content of a dataset file by its ID (from get_dataset's file list). Returns file metadata and, for tabular files (CSV, Parquet, etc.), the first few rows of the stored sample, with the columns of each row in the order they appear in the file. When no sample row is available, the ordered 'columns' of the file are returned instead. This is a preview only: 'rows' is the row count of the whole file and 'fileSample.sampleRowsAvailable' the size of the stored sample, both usually larger than the number of rows returned here. The sample status can be PROCESSING (still generating), FINISHED (sample ready), or FAILED."""
     data = execute_graphql(user, "PreviewDatasetFile", {"id": file_id})
     if "errors" in data:
         return data
@@ -105,9 +101,16 @@ def preview_dataset_file(user, file_id: str) -> dict:
         return {"error": "Dataset file not found"}
 
     columns = _column_names(file_data)
-    if columns:
+    rows = _sample_rows(file_data)
+    file_sample = file_data.get("fileSample")
+    if file_sample:
+        file_sample["sample"] = [
+            _ordered_row(row, columns) for row in rows[:PREVIEW_SAMPLE_ROWS]
+        ]
+        file_sample["sampleRowsAvailable"] = len(rows)
+    # The sample rows already name every column, so `columns` would only repeat them.
+    if not rows and columns:
         file_data["columns"] = columns
-    _truncate_sample(file_data)
     return file_data
 
 
