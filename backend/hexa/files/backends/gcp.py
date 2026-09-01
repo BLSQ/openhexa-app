@@ -14,7 +14,13 @@ from google.cloud.storage.blob import Blob
 from google.oauth2 import service_account
 from google.protobuf import duration_pb2
 
-from .base import ObjectsPage, Storage, StorageObject, load_bucket_sample_data_with
+from .base import (
+    ObjectsPage,
+    Storage,
+    StorageObject,
+    SupportsBucketCors,
+    load_bucket_sample_data_with,
+)
 
 
 def get_credentials(service_account_key: str):
@@ -89,9 +95,18 @@ def ensure_is_folder(object_key: str):
     return object_key
 
 
-class GoogleCloudStorage(Storage):
+class GoogleCloudStorage(Storage, SupportsBucketCors):
     storage_type = "gcp"
     _client = None
+
+    CORS_RULES = [
+        {
+            "origin": ["*"],
+            "method": ["*"],
+            "maxAgeSeconds": 3600,
+            "responseHeader": ["*"],
+        }
+    ]
 
     def __init__(self, service_account_key: str, region: str, enable_versioning=False):
         super().__init__()
@@ -161,19 +176,19 @@ class GoogleCloudStorage(Storage):
 
             bucket.labels = labels
 
-            bucket.cors = [
-                {
-                    "origin": ["*"],
-                    "method": ["*"],
-                    "maxAgeSeconds": 3600,
-                    "responseHeader": ["*"],
-                }
-            ]
+            bucket.cors = self.CORS_RULES
             bucket.patch()
 
             return bucket.name
         except Conflict:
             raise ValidationError(f"GCS: Bucket {bucket_name} already exists!")
+
+    def set_bucket_cors(self, bucket_name: str) -> None:
+        bucket = self.client.get_bucket(bucket_name)
+        if bucket.cors == self.CORS_RULES:
+            return
+        bucket.cors = self.CORS_RULES
+        bucket.patch()
 
     def save_object(self, bucket_name: str, file_path: str, file: io.BufferedReader):
         bucket = self.client.bucket(bucket_name)
