@@ -11,7 +11,7 @@ from slugify import slugify
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.databases.query_text import sanitize_sql
 from hexa.git.enums import FileEncoding
-from hexa.git.mixins import GitOrg, GitRepoMixin
+from hexa.git.mixins import WorkspaceGitRepoMixin
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.workspaces.models import Workspace
 
@@ -159,7 +159,7 @@ def saved_queries_on_author_deleted(collector, field, sub_objs, using):
         policy(collector, field, saved_queries, using)
 
 
-class SavedQuery(Base, GitRepoMixin):
+class SavedQuery(Base, WorkspaceGitRepoMixin):
     """A SQL query saved by a user in the Data Studio.
 
     A saved query belongs to a workspace, but its `visibility` decides who within
@@ -282,13 +282,6 @@ class SavedQuery(Base, GitRepoMixin):
         """
         return f"{self.workspace.slug}-query-{self.id}"
 
-    @property
-    def git_org(self) -> GitOrg:
-        return GitOrg(
-            slug=self.workspace.organization.slug,
-            display_name=self.workspace.organization.name,
-        )
-
     def record_version(self, user: User, message: str = "Update query") -> str:
         """Commit the current content as a new version and return its sha.
 
@@ -328,18 +321,9 @@ class SavedQuery(Base, GitRepoMixin):
 
     @property
     def has_history(self) -> bool:
-        """Whether this query's repository holds anything to read."""
+        # A saved query is named a repository by `save` and given one by
+        # `record_version`, so unlike a web app it has a state in between.
         return bool(self.last_commit)
-
-    def get_versions(self, page: int = 1, per_page: int = 20) -> dict:
-        if not self.has_history:
-            return {"items": [], "page": page}
-        return {
-            "items": self.client.get_commits(
-                self.git_org.slug, self.repository, page=page, limit=per_page
-            ),
-            "page": page,
-        }
 
     def get_version_content(self, ref: str = "main") -> str:
         """Return the SQL as of `ref`. Raises GitFileNotFound for an unknown ref."""
@@ -347,21 +331,6 @@ class SavedQuery(Base, GitRepoMixin):
             self.repository, QUERY_FILE_PATH, ref=ref, org_slug=self.git_org.slug
         )
         return raw.decode("utf-8")
-
-    def get_version_diff(self, ref: str) -> dict:
-        raw = self.client.get_commit(self.git_org.slug, self.repository, ref)
-        commit = raw.get("commit") or {}
-        author = commit.get("author") or {}
-        return {
-            "id": raw.get("sha", ref),
-            "message": (commit.get("message") or "").strip(),
-            "author_name": author.get("name", ""),
-            "author_email": author.get("email", ""),
-            "date": author.get("date", ""),
-            "raw_diff": self.client.get_commit_diff(
-                self.git_org.slug, self.repository, ref
-            ),
-        }
 
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("data_studio.update_saved_query", self):

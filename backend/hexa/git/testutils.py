@@ -35,6 +35,13 @@ def make_git_client_mock(sha: str = FAKE_COMMIT_SHA) -> NonCallableMagicMock:
             "date": "2020-01-01T00:00:00Z",
         }
     ]
+    client.get_commit.return_value = {
+        "id": sha,
+        "message": "Initial content",
+        "author_name": "Test",
+        "author_email": "test@openhexa.org",
+        "date": "2020-01-01T00:00:00Z",
+    }
     client.commit_exists.return_value = True
     client.get_file.return_value = b""
     client.get_repository_files.return_value = []

@@ -175,7 +175,7 @@ def resolve_saved_query_version_diff(saved_query: SavedQuery, info, **kwargs):
     if not saved_query.has_history:
         return None
     try:
-        return saved_query.get_version_diff(kwargs["ref"])
+        return saved_query.get_commit_diff(kwargs["ref"])
     except (ForgejoAPIError, GitError):
         return None
 

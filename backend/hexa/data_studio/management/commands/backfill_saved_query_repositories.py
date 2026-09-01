@@ -55,7 +55,9 @@ class Command(BaseCommand):
                 continue
             saved_query.save(update_fields=["repository", "last_commit"])
             recorded += 1
-            self.stdout.write(f"recorded {saved_query.slug} @ {saved_query.last_commit}")
+            self.stdout.write(
+                f"recorded {saved_query.slug} @ {saved_query.last_commit}"
+            )
 
         style = self.style.SUCCESS if not failed else self.style.WARNING
         self.stdout.write(
@@ -77,13 +79,13 @@ class Command(BaseCommand):
                 head = saved_query.get_version_content()
             except (ForgejoAPIError, GitError) as e:
                 unreadable += 1
-                self.stderr.write(self.style.ERROR(f"unreadable {saved_query.slug}: {e}"))
+                self.stderr.write(
+                    self.style.ERROR(f"unreadable {saved_query.slug}: {e}")
+                )
                 continue
             if head != saved_query.content:
                 drifted += 1
-                self.stdout.write(
-                    self.style.WARNING(f"drifted: {saved_query.slug}")
-                )
+                self.stdout.write(self.style.WARNING(f"drifted: {saved_query.slug}"))
 
         style = (
             self.style.SUCCESS
@@ -91,5 +93,7 @@ class Command(BaseCommand):
             else self.style.WARNING
         )
         self.stdout.write(
-            style(f"Checked. missing={missing} drifted={drifted} unreadable={unreadable}")
+            style(
+                f"Checked. missing={missing} drifted={drifted} unreadable={unreadable}"
+            )
         )

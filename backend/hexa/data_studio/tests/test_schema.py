@@ -867,15 +867,11 @@ class SavedQueryVersionsSchemaTest(SavedQueryTestMixin, GraphQLTestCase):
     def test_version_content_and_diff_are_exposed(self):
         self.client_mock.get_file.return_value = b"SELECT 1"
         self.client_mock.get_commit.return_value = {
-            "sha": SHA,
-            "commit": {
-                "message": "Update My query",
-                "author": {
-                    "name": "Ada",
-                    "email": "ada@openhexa.org",
-                    "date": "2026-01-01T00:00:00Z",
-                },
-            },
+            "id": SHA,
+            "message": "Update My query",
+            "author_name": "Ada",
+            "author_email": "ada@openhexa.org",
+            "date": "2026-01-01T00:00:00Z",
         }
         self.client_mock.get_commit_diff.return_value = "--- a\n+++ b\n"
         self.client.force_login(self.USER_EDITOR)

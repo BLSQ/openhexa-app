@@ -136,7 +136,9 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
 
         saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 2")
 
-        committed = self.client_mock.commit_files.call_args.kwargs["files"][0]["content"]
+        committed = self.client_mock.commit_files.call_args.kwargs["files"][0][
+            "content"
+        ]
         self.assertEqual(SavedQuery.objects.get(pk=saved_query.pk).content, committed)
 
     def test_update_rolls_back_when_the_version_cannot_be_recorded(self):
@@ -242,21 +244,17 @@ class SavedQueryHistoryReadTest(SavedQueryTestMixin, TestCase):
         with self.assertRaises(GitFileNotFound):
             self.saved_query.get_version_content(ref="nope")
 
-    def test_get_version_diff_describes_the_change(self):
+    def test_get_commit_diff_describes_the_change(self):
         self.client_mock.get_commit.return_value = {
-            "sha": SHA_INITIAL,
-            "commit": {
-                "message": "Update Monthly report\n",
-                "author": {
-                    "name": "Ada",
-                    "email": "ada@openhexa.org",
-                    "date": "2026-01-01T00:00:00Z",
-                },
-            },
+            "id": SHA_INITIAL,
+            "message": "Update Monthly report",
+            "author_name": "Ada",
+            "author_email": "ada@openhexa.org",
+            "date": "2026-01-01T00:00:00Z",
         }
         self.client_mock.get_commit_diff.return_value = "--- a\n+++ b\n"
 
-        diff = self.saved_query.get_version_diff(SHA_INITIAL)
+        diff = self.saved_query.get_commit_diff(SHA_INITIAL)
 
         self.assertEqual(
             {
@@ -330,9 +328,7 @@ class BackfillSavedQueryRepositoriesTest(SavedQueryTestMixin, TestCase):
 
         first.refresh_from_db()
         second.refresh_from_db()
-        self.assertEqual(
-            {None, SHA_INITIAL}, {first.last_commit, second.last_commit}
-        )
+        self.assertEqual({None, SHA_INITIAL}, {first.last_commit, second.last_commit})
 
     def test_an_authorless_query_is_credited_to_the_instance(self):
         saved_query = self._query_without_history()
