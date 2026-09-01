@@ -1,7 +1,11 @@
+import logging
+
 from django.db import migrations
 
 from hexa.files import storage
 from hexa.files.backends.base import SupportsBucketCors
+
+logger = logging.getLogger(__name__)
 
 
 def backfill_bucket_cors(apps, schema_editor):
@@ -31,13 +35,19 @@ def backfill_bucket_cors(apps, schema_editor):
             storage.set_bucket_cors(bucket_name)
         except Exception as exc:
             failed.append(bucket_name)
-            print(f"[0064] Skipping {bucket_name}: {exc}")
+            logger.warning("[0064] Skipping %s: %s", bucket_name, exc)
 
-    if len(failed) == len(bucket_names):
-        raise RuntimeError(
-            f"[0064] CORS backfill failed for all {len(bucket_names)} buckets. "
-            "Check the storage credentials and that the role is allowed to "
-            "update bucket configuration."
+    # A CORS policy is not a schema invariant, so a failure must never block the
+    # upgrade: deployments where the storage credentials cannot update bucket
+    # configuration, or where the buckets live in another environment, would
+    # otherwise be unable to migrate at all.
+    if failed:
+        logger.warning(
+            "[0064] CORS backfill failed for %s/%s buckets. Check the storage "
+            "credentials and that the role is allowed to update bucket "
+            "configuration.",
+            len(failed),
+            len(bucket_names),
         )
 
 
