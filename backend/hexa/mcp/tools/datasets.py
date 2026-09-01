@@ -4,6 +4,10 @@ from hexa.mcp.protocol import tool
 
 from ._graphql import execute_graphql
 
+# LLM callers only need enough rows to infer the schema and value shapes; the stored
+# sample (WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE rows) is sized for the UI table.
+PREVIEW_SAMPLE_ROWS = 5
+
 
 @tool
 def list_datasets(user, workspace_slug: str, page: int = 1, per_page: int = 10) -> dict:
@@ -55,15 +59,55 @@ def get_dataset(
     return link["dataset"]
 
 
+def _sample_rows(file_data: dict) -> list:
+    file_sample = file_data.get("fileSample")
+    if not file_sample:
+        return []
+    return file_sample.get("sample") or []
+
+
+def _truncate_sample(file_data: dict) -> None:
+    file_sample = file_data.get("fileSample")
+    if not file_sample:
+        return
+    rows = _sample_rows(file_data)
+    file_sample["sample"] = rows[:PREVIEW_SAMPLE_ROWS]
+    file_sample["sampleRowsAvailable"] = len(rows)
+
+
+def _column_names(file_data: dict) -> list:
+    """Turn the stored profiling properties into a plain ordered list of column names.
+
+    `properties` maps md5 hashes to column names for the web UI; the hashes are
+    meaningless to a model, so only the names in file order are kept. Without
+    profiling we fall back to the sample keys, which jsonb returns unordered.
+    """
+    properties = file_data.pop("properties", None) or {}
+    columns = properties.get("columns") or {}
+    column_order = properties.get("column_order") or []
+    names = [columns[key] for key in column_order if key in columns]
+    if names:
+        return names
+    if columns:
+        return list(columns.values())
+    rows = _sample_rows(file_data)
+    return list(rows[0].keys()) if rows else []
+
+
 @tool
 def preview_dataset_file(user, file_id: str) -> dict:
-    """Preview the content of a dataset file by its ID (from get_dataset's file list). Returns a sample of the data for tabular files (CSV, Parquet, etc.), file properties, and metadata. The sample status can be PROCESSING (still generating), FINISHED (sample ready), or FAILED."""
+    """Preview the content of a dataset file by its ID (from get_dataset's file list). Returns file metadata, the ordered 'columns' of the file, and for tabular files (CSV, Parquet, etc.) the first few rows of the stored sample. This is a preview only: 'rows' is the row count of the whole file and 'fileSample.sampleRowsAvailable' the size of the stored sample, both usually larger than the number of rows returned here. The sample status can be PROCESSING (still generating), FINISHED (sample ready), or FAILED."""
     data = execute_graphql(user, "PreviewDatasetFile", {"id": file_id})
     if "errors" in data:
         return data
     file_data = data.get("datasetVersionFile")
     if file_data is None:
         return {"error": "Dataset file not found"}
+
+    columns = _column_names(file_data)
+    if columns:
+        file_data["columns"] = columns
+    _truncate_sample(file_data)
     return file_data
 
 
