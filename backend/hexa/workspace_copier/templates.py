@@ -30,6 +30,7 @@ back template versions, and emits all progress through a
 import time
 from typing import Any
 
+from django.utils import timezone
 from openhexa.graphql.graphql_client.client import Client
 from openhexa.graphql.graphql_client.input_types import (
     CreatePipelineInput,
@@ -165,7 +166,7 @@ def copy_templates(
     pipelines" host workspace is created under when it doesn't already exist on
     the target.
     """
-    result = TemplatesResult()
+    result = TemplatesResult(started_at=timezone.localtime())
 
     reporter.info(f"=> Ensuring '{HOST_WORKSPACE_NAME}' workspace exists on target ...")
     host_ws_slug = _ensure_host_workspace(target, target_organization_id)
@@ -201,6 +202,7 @@ def copy_templates(
             result.warnings.append(msg)
             reporter.error(f"     FAILED: {msg}")
 
+    result.finished_at = timezone.localtime()
     return result
 
 
