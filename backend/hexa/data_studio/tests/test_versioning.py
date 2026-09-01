@@ -5,7 +5,11 @@ from django.core.exceptions import PermissionDenied
 from django.core.management import call_command
 
 from hexa.core.test import TestCase
-from hexa.data_studio.models import QUERY_FILE_PATH, SavedQuery
+from hexa.data_studio.models import (
+    QUERY_FILE_PATH,
+    SavedQuery,
+    SavedQueryVersionConflict,
+)
 from hexa.git.exceptions import GitFileNotFound
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.git.testutils import make_git_client_mock
@@ -190,6 +194,92 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
             saved_query.delete_if_has_perm(self.USER_EDITOR)
 
         self.assertTrue(SavedQuery.objects.filter(pk=pk).exists())
+
+
+class SavedQueryConcurrentEditTest(SavedQueryTestMixin, TestCase):
+    """Editing against a version the query has moved on from."""
+
+    def setUp(self):
+        super().setUp()
+        self.client_mock = make_git_client_mock(SHA_INITIAL)
+        patcher = patch(
+            "hexa.git.mixins.get_forgejo_client", return_value=self.client_mock
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.saved_query = self.create_saved_query(content="SELECT 1")
+
+    def _someone_else_saves(self, content="SELECT 99"):
+        """A second editor's save, landing between our load and our own save."""
+        other = SavedQuery.objects.get(pk=self.saved_query.pk)
+        self.client_mock.commit_files.return_value = SHA_SECOND
+        other.update_if_has_perm(self.USER_ADMIN, content=content)
+        self.client_mock.commit_files.reset_mock()
+
+    def test_editing_the_version_you_read_succeeds(self):
+        self.saved_query.update_if_has_perm(
+            self.USER_EDITOR, content="SELECT 2", expected_version=SHA_INITIAL
+        )
+
+        self.assertEqual(
+            "SELECT 2", SavedQuery.objects.get(pk=self.saved_query.pk).content
+        )
+
+    def test_editing_a_version_someone_else_replaced_is_refused(self):
+        self._someone_else_saves()
+
+        with self.assertRaises(SavedQueryVersionConflict) as raised:
+            self.saved_query.update_if_has_perm(
+                self.USER_EDITOR, content="SELECT 2", expected_version=SHA_INITIAL
+            )
+
+        # The version it actually collided with, so a caller can say what happened.
+        self.assertEqual(SHA_SECOND, raised.exception.current_version)
+
+    def test_a_refused_edit_writes_nothing(self):
+        self._someone_else_saves(content="SELECT 99")
+
+        with self.assertRaises(SavedQueryVersionConflict):
+            self.saved_query.update_if_has_perm(
+                self.USER_EDITOR, content="SELECT 2", expected_version=SHA_INITIAL
+            )
+
+        reloaded = SavedQuery.objects.get(pk=self.saved_query.pk)
+        self.assertEqual("SELECT 99", reloaded.content)
+        self.assertEqual(SHA_SECOND, reloaded.last_commit)
+        self.client_mock.commit_files.assert_not_called()
+
+    def test_a_rename_against_a_stale_version_is_refused_too(self):
+        # The precondition is about the query, not only its SQL: a caller that sends a
+        # version is asserting it read the current one.
+        self._someone_else_saves()
+
+        with self.assertRaises(SavedQueryVersionConflict):
+            self.saved_query.update_if_has_perm(
+                self.USER_EDITOR, name="New name", expected_version=SHA_INITIAL
+            )
+
+    def test_omitting_the_version_still_overwrites(self):
+        # What a client that never read a version gets: the previous behaviour.
+        self._someone_else_saves()
+
+        self.saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 2")
+
+        self.assertEqual(
+            "SELECT 2", SavedQuery.objects.get(pk=self.saved_query.pk).content
+        )
+
+    def test_writing_back_a_stale_copy_records_the_revert(self):
+        # Without a version to check, a client saving what it loaded reverts the other
+        # edit. That is a change to the query, so it has to be recorded as one rather
+        # than passing for "nothing changed" because `self` still holds the old content.
+        self._someone_else_saves(content="SELECT 99")
+
+        self.saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 1")
+
+        reloaded = SavedQuery.objects.get(pk=self.saved_query.pk)
+        self.assertEqual("SELECT 1", reloaded.content)
+        self.client_mock.commit_files.assert_called_once()
 
 
 class SavedQueryHistoryReadTest(SavedQueryTestMixin, TestCase):

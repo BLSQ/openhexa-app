@@ -6354,13 +6354,25 @@ export enum UpdateSavedQueryError {
   PermissionDenied = 'PERMISSION_DENIED',
   SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND',
   /** The new version could not be recorded, so no change was saved. Retrying is safe. */
-  VersioningUnavailable = 'VERSIONING_UNAVAILABLE'
+  VersioningUnavailable = 'VERSIONING_UNAVAILABLE',
+  /**
+   * Someone else saved the query after the version this edit was made against, so
+   * nothing was written. Retrying as-is would overwrite their change: reload first.
+   */
+  VersionConflict = 'VERSION_CONFLICT'
 }
 
 /** Input for updating a saved query. */
 export type UpdateSavedQueryInput = {
   content?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
+  /**
+   * The version this edit was made against. When given, the edit is refused with
+   * VERSION_CONFLICT if someone else has saved the query since. Omit it to overwrite
+   * whatever is there, which is all a client that never read a version can honestly ask
+   * for.
+   */
+  expectedVersion?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
   /** Only the author may change this; PERMISSION_DENIED otherwise. */

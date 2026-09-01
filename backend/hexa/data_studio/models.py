@@ -42,6 +42,18 @@ def generate_saved_query_slug(name: str) -> str:
     )
 
 
+class SavedQueryVersionConflict(Exception):
+    """A saved query was edited against a version it has since moved on from.
+
+    Carries the version the query is actually on, so a caller can say what the edit
+    collided with rather than only that it did.
+    """
+
+    def __init__(self, current_version: str | None):
+        self.current_version = current_version
+        super().__init__(f"The saved query has moved on to version {current_version!r}")
+
+
 class SavedQueryVisibility(models.TextChoices):
     PRIVATE = "PRIVATE", _("Private")
     WORKSPACE = "WORKSPACE", _("Workspace")
@@ -332,7 +344,16 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
         )
         return raw.decode("utf-8")
 
-    def update_if_has_perm(self, principal: User, **kwargs):
+    def update_if_has_perm(
+        self, principal: User, *, expected_version: str | None = None, **kwargs
+    ):
+        """Apply an edit, recording a version when the SQL changed.
+
+        `expected_version` is the version the caller edited: when given, the edit is
+        refused if the query has moved on since. Omitting it keeps the older
+        last-write-wins behaviour, which is what a client that never read a version can
+        honestly ask for.
+        """
         if not principal.has_perm("data_studio.update_saved_query", self):
             raise PermissionDenied
 
@@ -352,11 +373,26 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
         # too: content differing only by the characters sanitizing drops would otherwise
         # commit a version whose diff is empty.
         new_content = sanitize_sql(content) if content is not None else None
-        content_changed = new_content is not None and new_content != self.content
 
         # Only the SQL is versioned, so renaming a query or resharing it records
         # nothing — there is no new version of the query to browse.
         with transaction.atomic():
+            # Locked, and re-read through the lock, so that two people saving the same
+            # query serialize instead of interleaving: `self` was loaded before this
+            # transaction and may already describe a version someone else replaced.
+            # Comparing against the stored row is also what stops a client that reloaded
+            # nothing from writing its stale copy back as "no change" — an edit that
+            # would otherwise revert the query while recording no version of the revert.
+            stored_version, stored_content = (
+                SavedQuery.objects.select_for_update()
+                .values_list("last_commit", "content")
+                .get(pk=self.pk)
+            )
+            if expected_version is not None and stored_version != expected_version:
+                raise SavedQueryVersionConflict(stored_version)
+
+            content_changed = new_content is not None and new_content != stored_content
+
             if content_changed:
                 # Seeded with the content as stored, so a query older than versioning
                 # keeps the version it had rather than starting its history at whichever

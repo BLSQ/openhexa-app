@@ -241,6 +241,13 @@ input UpdateSavedQueryInput {
   description: String
   "Only the author may change this; PERMISSION_DENIED otherwise."
   visibility: SavedQueryVisibility
+  """
+  The version this edit was made against. When given, the edit is refused with
+  VERSION_CONFLICT if someone else has saved the query since. Omit it to overwrite
+  whatever is there, which is all a client that never read a version can honestly ask
+  for.
+  """
+  expectedVersion: String
 }
 
 """
@@ -251,6 +258,11 @@ enum UpdateSavedQueryError {
   PERMISSION_DENIED
   "The new version could not be recorded, so no change was saved. Retrying is safe."
   VERSIONING_UNAVAILABLE
+  """
+  Someone else saved the query after the version this edit was made against, so
+  nothing was written. Retrying as-is would overwrite their change: reload first.
+  """
+  VERSION_CONFLICT
 }
 
 """

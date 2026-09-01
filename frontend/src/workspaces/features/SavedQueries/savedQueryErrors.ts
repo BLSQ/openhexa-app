@@ -44,6 +44,11 @@ export const updateSavedQueryErrorMessage = (
   if (errors?.includes(UpdateSavedQueryError.VersioningUnavailable)) {
     return VERSIONING_UNAVAILABLE_MESSAGE(t);
   }
+  if (errors?.includes(UpdateSavedQueryError.VersionConflict)) {
+    return t(
+      "Someone else saved this query while you were editing. Reload it and reapply your changes.",
+    );
+  }
   console.error("Unhandled updateSavedQuery error", errors);
   return t("Unknown error");
 };

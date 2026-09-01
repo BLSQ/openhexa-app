@@ -895,6 +895,7 @@
   "Skipped": "Skipped",
   "Skipped on": "Skipped on",
   "someone": "someone",
+  "Someone else saved this query while you were editing. Reload it and reapply your changes.": "Someone else saved this query while you were editing. Reload it and reapply your changes.",
   "Something went wrong while running your query. Please try again.": "Something went wrong while running your query. Please try again.",
   "Source": "Source",
   "Source Files": "Source Files",

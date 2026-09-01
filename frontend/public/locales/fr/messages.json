@@ -909,6 +909,7 @@
   "Skipped": "Ignoré",
   "Skipped on": "Ignoré le",
   "someone": "quelqu'un",
+  "Someone else saved this query while you were editing. Reload it and reapply your changes.": "Quelqu'un d'autre a enregistré cette requête pendant votre modification. Rechargez-la et réappliquez vos changements.",
   "Something went wrong while running your query. Please try again.": "Une erreur s'est produite lors de l'exécution de votre requête. Veuillez réessayer.",
   "Source": "Source",
   "Source Files": "Fichiers source",
