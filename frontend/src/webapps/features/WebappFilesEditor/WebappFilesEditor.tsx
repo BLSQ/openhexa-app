@@ -21,6 +21,7 @@ type WebappFilesEditorProps = {
   versionPicker?: ReactNode;
   repositoryUrl?: string | null;
   proposedFiles?: { path: string; content: string }[];
+  proposedDeletedPaths?: string[];
   onSaveSuccess?: () => void;
   onBusyChange?: (busy: boolean) => void;
 };
@@ -34,6 +35,7 @@ const WebappFilesEditor = ({
   versionPicker,
   repositoryUrl,
   proposedFiles,
+  proposedDeletedPaths,
   onSaveSuccess,
   onBusyChange,
 }: WebappFilesEditorProps) => {
@@ -110,6 +112,7 @@ const WebappFilesEditor = ({
   const handleSave = async (
     modifiedFiles: Map<string, string>,
     allFiles: FilesEditor_FileFragment[],
+    deletedPaths: string[],
   ) => {
     const fileInputs = Array.from(modifiedFiles.entries()).map(
       ([fileId, content]) => {
@@ -130,6 +133,7 @@ const WebappFilesEditor = ({
           input: {
             id: webappId,
             files: fileInputs,
+            filesToDelete: deletedPaths,
           },
         },
         refetchQueries: ["WebappVersions"],
@@ -235,10 +239,12 @@ const WebappFilesEditor = ({
           name={t("Web app")}
           files={files}
           isEditable={isEditable}
+          allowDelete
           proposedFiles={proposedFiles?.map((f) => ({
             name: f.path,
             content: f.content,
           }))}
+          proposedDeletedPaths={proposedDeletedPaths}
           headerActions={uploadActions}
           onSave={handleSave}
         />

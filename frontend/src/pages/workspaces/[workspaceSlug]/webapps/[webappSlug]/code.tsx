@@ -59,10 +59,18 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
   const [proposedToolInvocationId, setProposedToolInvocationId] = useState<
     string | null
   >(null);
+  const [proposedDeletedPaths, setProposedDeletedPaths] = useState<
+    string[] | null
+  >(null);
 
   const handleProposedFiles = useCallback(
-    (files: WebappProposedFile[] | null, toolInvocationId?: string) => {
+    (
+      files: WebappProposedFile[] | null,
+      toolInvocationId?: string,
+      deletedPaths?: string[],
+    ) => {
       setProposedFiles(files);
+      setProposedDeletedPaths(deletedPaths ?? null);
       if (toolInvocationId !== undefined) {
         setProposedToolInvocationId(toolInvocationId);
       } else if (files !== null) {
@@ -74,6 +82,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
 
   const handleDismiss = useCallback(async () => {
     setProposedFiles(null);
+    setProposedDeletedPaths(null);
     const idToDismiss = proposedToolInvocationId;
     setProposedToolInvocationId(null);
     if (idToDismiss) {
@@ -87,6 +96,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
     refetch().then();
     const idToResolve = proposedToolInvocationId;
     setProposedFiles(null);
+    setProposedDeletedPaths(null);
     setProposedToolInvocationId(null);
     if (idToResolve) {
       resolveProposal({ variables: { toolInvocationId: idToResolve } });
@@ -237,6 +247,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
                 isEditable={webapp.permissions.update}
                 versionRef={selectedVersion?.id}
                 proposedFiles={proposedFiles ?? undefined}
+                proposedDeletedPaths={proposedDeletedPaths ?? undefined}
                 onSaveSuccess={handleSaveSuccess}
                 onBusyChange={setIsEditorBusy}
               />

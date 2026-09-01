@@ -42,5 +42,7 @@ def all_agent_tool_names() -> frozenset[str]:
     enforces this).
     """
     return frozenset(
-        func.__name__ for cls in _AGENT_REGISTRY.values() for func in cls.tools
+        func.__name__
+        for cls in _AGENT_REGISTRY.values()
+        for func in cls.common_tools + cls.tools
     )

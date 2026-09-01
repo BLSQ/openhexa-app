@@ -81,6 +81,7 @@ enum AssistantToolName {
   get_help_or_doc
   get_pipeline
   get_static_webapp_file
+  get_workspace
   list_connections
   list_datasets
   list_files

@@ -1,5 +1,21 @@
 # Changelog
 
+## [5.17.0](https://github.com/BLSQ/openhexa-app/compare/5.16.1...5.17.0) (2026-08-31)
+
+
+### Features
+
+* Add the workspace description to the agent's base context (HEXA-1795) ([#2036](https://github.com/BLSQ/openhexa-app/issues/2036)) ([29b4264](https://github.com/BLSQ/openhexa-app/commit/29b42643cc7173b15c1f4ae2da8ac3d0d37ecb18))
+* allow data studio left and bottom panels to be adjustable(HEXA-1778) ([#2012](https://github.com/BLSQ/openhexa-app/issues/2012)) ([2ab3d94](https://github.com/BLSQ/openhexa-app/commit/2ab3d94fd5cd0514a7aa62b615d0e8493d411fbd))
+
+
+### Bug Fixes
+
+* attribute issue for unauthenticated error ([#2035](https://github.com/BLSQ/openhexa-app/issues/2035)) ([dcdea38](https://github.com/BLSQ/openhexa-app/commit/dcdea38d1aef0c64b35c6738a6036ca15d1fed68))
+* make it possible to delete webapp/pipeline files from UI and webassistant (HEXA-1774) ([#2027](https://github.com/BLSQ/openhexa-app/issues/2027)) ([af42ce1](https://github.com/BLSQ/openhexa-app/commit/af42ce1237146ede1010fe765369fa332db0cb33))
+* too much data for declared Content-Length ([#2033](https://github.com/BLSQ/openhexa-app/issues/2033)) ([6491ecb](https://github.com/BLSQ/openhexa-app/commit/6491ecbec2a0bc58cdc341603e69ed56c46bed98))
+* unit tests leak database tables (HEXA-1785) ([#2014](https://github.com/BLSQ/openhexa-app/issues/2014)) ([76b172f](https://github.com/BLSQ/openhexa-app/commit/76b172f7f1f12307409b8deed1744a53e491cfac))
+
 ## [5.16.1](https://github.com/BLSQ/openhexa-app/compare/5.16.0...5.16.1) (2026-08-27)
 
 

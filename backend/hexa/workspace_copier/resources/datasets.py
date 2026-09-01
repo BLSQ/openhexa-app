@@ -26,7 +26,7 @@ from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import ProgressReporter
 from hexa.workspace_copier.resources.base import ResourceCopier
-from hexa.workspace_copier.results import CopyResult, DatasetsResult
+from hexa.workspace_copier.results import CopyResult, DatasetsResult, format_bytes
 from hexa.workspace_copier.transport import GraphQLError, gql
 
 DATASETS_PAGE_SIZE = 50
@@ -644,7 +644,7 @@ def _copy_versions(
                 ) from exc
             ds_result.files_copied += 1
             ds_result.bytes_copied += size
-            reporter.info(f"      copied {uri} ({size} bytes)")
+            reporter.info(f"      copied {uri} ({format_bytes(size)})")
 
         copied.append(version["name"])
     return copied

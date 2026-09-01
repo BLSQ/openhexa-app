@@ -13,11 +13,14 @@ interface FilesEditorProps {
   name: string;
   files: FilesEditor_FileFragment[];
   isEditable?: boolean;
+  allowDelete?: boolean;
   proposedFiles?: ProposedFile[];
+  proposedDeletedPaths?: string[];
   headerActions?: ReactNode;
   onSave?: (
     modifiedFiles: Map<string, string>,
     allFiles: FilesEditor_FileFragment[],
+    deletedPaths: string[],
   ) => Promise<SaveResult>;
 }
 
@@ -25,7 +28,9 @@ export const FilesEditor = ({
   name,
   files: flatFiles,
   isEditable = false,
+  allowDelete = false,
   proposedFiles,
+  proposedDeletedPaths,
   headerActions,
   onSave,
 }: FilesEditorProps) => {
@@ -43,10 +48,19 @@ export const FilesEditor = ({
     effectivelyDeletedPaths,
     effectivelyDeletedFolderPaths,
     currentFileIsModified,
+    hasPendingChanges,
     numberOfFiles,
     handleContentChange,
     handleSave,
-  } = useFilesEditorState({ flatFiles, isEditable, proposedFiles, onSave });
+    markDeleted,
+    restoreDeleted,
+  } = useFilesEditorState({
+    flatFiles,
+    isEditable,
+    proposedFiles,
+    proposedDeletedPaths,
+    onSave,
+  });
 
   return (
     <div className="relative flex border border-gray-200 rounded-lg overflow-hidden min-h-[60vh] h-full max-w-full">
@@ -61,6 +75,9 @@ export const FilesEditor = ({
           proposedByKey={proposedByKey}
           deletedFilePaths={effectivelyDeletedPaths}
           deletedFolderPaths={effectivelyDeletedFolderPaths}
+          canDelete={isEditable && allowDelete}
+          onDelete={markDeleted}
+          onRestore={restoreDeleted}
           onClose={() => setIsPanelOpen(false)}
         />
       )}
@@ -84,6 +101,7 @@ export const FilesEditor = ({
           currentFileContent={currentFileContent}
           isEditable={isEditable}
           currentFileIsModified={currentFileIsModified}
+          hasPendingChanges={hasPendingChanges}
           isSaving={isSaving}
           saveError={saveError}
           proposedByKey={proposedByKey}
@@ -91,6 +109,8 @@ export const FilesEditor = ({
           headerActions={headerActions}
           onContentChange={handleContentChange}
           onSave={handleSave}
+          canDelete={isEditable && allowDelete}
+          onRestore={restoreDeleted}
           hasSaveHandler={!!onSave}
         />
       </div>

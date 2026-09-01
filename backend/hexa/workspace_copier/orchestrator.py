@@ -2,12 +2,14 @@
 
 Owns the ordered registry of resource copiers and runs the selected ones in
 dependency order: workspace metadata first (it creates the target and yields its
-handle), files before pipelines (notebook pipelines need their .ipynb present
-first). The medium (ORM vs GraphQL) is decided per endpoint inside each copier,
-so this orchestration is written once and shared by every flow (CLI + admin).
+handle), then the rest. The medium (ORM vs GraphQL) is decided per endpoint
+inside each copier, so this orchestration is written once and shared by every
+flow (CLI + admin).
 """
 
 from collections.abc import Iterable
+
+from django.utils import timezone
 
 from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.options import CopyOptions
@@ -23,7 +25,7 @@ from hexa.workspace_copier.results import CopyResult
 
 WORKSPACE_COPIERS: list[ResourceCopier] = [
     WorkspaceMetadataCopier(),  # Mandatory first step
-    FilesCopier(),  # Before pipelines, needed for .ipynb files (notebook pipelines)
+    FilesCopier(),
     DatabaseCopier(),  # LOCAL→LOCAL: native pg; else skip + warning
     ConnectionsCopier(),
     PipelinesCopier(),
@@ -64,7 +66,7 @@ def copy_workspace(
     """
     selected = _resolve_selection(WORKSPACE_COPIERS, resources)
     selected_names = {c.name for c in selected}
-    result = CopyResult()
+    result = CopyResult(started_at=timezone.localtime())
     for copier in selected:
         for dep in copier.depends_on:
             if dep not in selected_names:
@@ -73,4 +75,9 @@ def copy_workspace(
                 reporter.warning(message)
         reporter.info(f"=> Copying {copier.name} ...")
         copier.copy(source, target, result, reporter, options=options)
+        # Every line is timestamped, so bracketing each copier with a start and
+        # a finish line is what makes "how long did files take" answerable —
+        # including for the last copier, which has no successor line.
+        reporter.info(f"   {copier.name} finished")
+    result.finished_at = timezone.localtime()
     return result

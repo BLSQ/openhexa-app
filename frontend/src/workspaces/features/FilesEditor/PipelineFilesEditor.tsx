@@ -14,6 +14,7 @@ interface PipelineFilesEditorProps {
   files: FilesEditor_FileFragment[];
   isEditable?: boolean;
   proposedFiles?: ProposedFile[];
+  proposedDeletedPaths?: string[];
   workspaceSlug: string;
   pipelineCode: string;
   pipelineId: string;
@@ -25,6 +26,7 @@ export const PipelineFilesEditor = ({
   files,
   isEditable = false,
   proposedFiles,
+  proposedDeletedPaths,
   workspaceSlug,
   pipelineCode,
   pipelineId,
@@ -114,7 +116,9 @@ export const PipelineFilesEditor = ({
       name={name}
       files={files}
       isEditable={isEditable}
+      allowDelete
       proposedFiles={proposedFiles}
+      proposedDeletedPaths={proposedDeletedPaths}
       onSave={handleSave}
     />
   );

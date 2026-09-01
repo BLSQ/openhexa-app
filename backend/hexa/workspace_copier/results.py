@@ -6,8 +6,11 @@ views render that aggregate via :func:`format_summary`.
 """
 
 from dataclasses import dataclass, field
+from datetime import datetime
 
 BYTE_UNITS = ("B", "KiB", "MiB", "GiB", "TiB", "PiB")
+
+TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S %Z"
 
 
 def format_bytes(size: int) -> str:
@@ -119,6 +122,9 @@ class TemplatesResult:
     warnings: list[str] = field(default_factory=list)
     """Human-readable warnings to print in the summary."""
 
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+
 
 @dataclass
 class CopyResult:
@@ -136,8 +142,23 @@ class CopyResult:
     datasets: DatasetsResult | None = None
     warnings: list[str] = field(default_factory=list)
 
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+
     def warn(self, message: str) -> None:
         self.warnings.append(message)
+
+
+def _format_run_window(
+    started_at: datetime | None, finished_at: datetime | None
+) -> list[str]:
+    """Render the "started / finished" header lines, if the run was timed."""
+    if started_at is None or finished_at is None:
+        return []
+    return [
+        f"Started:  {started_at.strftime(TIMESTAMP_FORMAT)}",
+        f"Finished: {finished_at.strftime(TIMESTAMP_FORMAT)}",
+    ]
 
 
 def format_summary(result: CopyResult) -> str:
@@ -146,6 +167,7 @@ def format_summary(result: CopyResult) -> str:
     lines.append(
         f"Workspace: {result.workspace_name!r} -> slug '{result.workspace_slug}'"
     )
+    lines.extend(_format_run_window(result.started_at, result.finished_at))
 
     if result.files is not None:
         total_bytes = sum(b for _, b in result.files.copied)
@@ -233,6 +255,7 @@ def format_summary(result: CopyResult) -> str:
 def format_templates_summary(result: TemplatesResult) -> str:
     """Render a human-readable summary of a template copy run."""
     lines: list[str] = ["=== Template copy summary ==="]
+    lines.extend(_format_run_window(result.started_at, result.finished_at))
     lines.append(f"Templates created on target: {len(result.created)}")
     lines.extend(f"  * {name}" for name in result.created)
 
