@@ -1,3 +1,4 @@
+import logging
 import pathlib
 
 from ariadne import (
@@ -16,11 +17,15 @@ from psycopg2.errors import QueryCanceled
 from hexa.core.graphql import result_page
 from hexa.databases.query_text import MultipleStatementsError
 from hexa.databases.schema import database_object
+from hexa.git.exceptions import GitError
+from hexa.git.forgejo import ForgejoAPIError
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
 from .models import QueryLog, SavedQuery
 from .query_runner import run_and_log_database_query, run_saved_query
+
+logger = logging.getLogger(__name__)
 
 data_studio_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -134,6 +139,45 @@ def resolve_saved_query_permissions_update_visibility(
         if request.user.is_authenticated
         else False
     )
+
+
+@saved_query_object.field("currentVersion")
+def resolve_saved_query_current_version(saved_query: SavedQuery, info, **kwargs):
+    return saved_query.last_commit
+
+
+# History is the one part of a saved query that lives on the git server rather than in
+# the database, so it is the one part that can be unavailable on its own. These three
+# fields report that as "no history" instead of failing the whole query they were asked
+# for alongside — mirroring how a static web app's versions resolve (see
+# hexa.webapps.schema.types).
+@saved_query_object.field("versions")
+def resolve_saved_query_versions(saved_query: SavedQuery, info, **kwargs):
+    page = kwargs.get("page", 1)
+    try:
+        return saved_query.get_versions(page=page, per_page=kwargs.get("per_page", 20))
+    except (ForgejoAPIError, GitError):
+        return {"items": [], "page": page}
+
+
+@saved_query_object.field("versionContent")
+def resolve_saved_query_version_content(saved_query: SavedQuery, info, **kwargs):
+    if not saved_query.has_history:
+        return None
+    try:
+        return saved_query.get_version_content(ref=kwargs["ref"])
+    except (ForgejoAPIError, GitError):
+        return None
+
+
+@saved_query_object.field("versionDiff")
+def resolve_saved_query_version_diff(saved_query: SavedQuery, info, **kwargs):
+    if not saved_query.has_history:
+        return None
+    try:
+        return saved_query.get_version_diff(kwargs["ref"])
+    except (ForgejoAPIError, GitError):
+        return None
 
 
 @workspace_object.field("savedQueries")
@@ -269,6 +313,12 @@ def resolve_create_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    # Recording the first version is part of creating the query, so a git failure
+    # leaves nothing behind (the transaction rolls back) and is reported as such,
+    # rather than as a saved query with no history.
+    except (ForgejoAPIError, GitError):
+        logger.exception("Could not record the first version of a saved query")
+        return {"success": False, "errors": ["VERSIONING_UNAVAILABLE"]}
 
 
 @data_studio_mutations.field("updateSavedQuery")
@@ -286,6 +336,12 @@ def resolve_update_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    # The alternative to failing the edit would be keeping the new content with a hole
+    # in its history, which nothing afterwards could tell apart from a query nobody
+    # edited. Rolled back instead, so a retry records both the change and its version.
+    except (ForgejoAPIError, GitError):
+        logger.exception("Could not record a new version of a saved query")
+        return {"success": False, "errors": ["VERSIONING_UNAVAILABLE"]}
 
 
 @data_studio_mutations.field("deleteSavedQuery")
@@ -303,6 +359,9 @@ def resolve_delete_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except (ForgejoAPIError, GitError):
+        logger.exception("Could not archive the history of a saved query")
+        return {"success": False, "errors": ["VERSIONING_UNAVAILABLE"]}
 
 
 data_studio_bindables = [

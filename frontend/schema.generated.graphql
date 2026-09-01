@@ -1174,6 +1174,11 @@ input CreatePipelineVersionInput {
 """Errors that can occur when creating a saved query."""
 enum CreateSavedQueryError {
   PERMISSION_DENIED
+
+  """
+  The query's history could not be recorded, so nothing was saved. Retrying is safe.
+  """
+  VERSIONING_UNAVAILABLE
   WORKSPACE_NOT_FOUND
 }
 
@@ -2136,6 +2141,11 @@ type DeletePipelineVersionResult {
 enum DeleteSavedQueryError {
   PERMISSION_DENIED
   SAVED_QUERY_NOT_FOUND
+
+  """
+  The query's history could not be archived, so the query was not deleted. Retrying is safe.
+  """
+  VERSIONING_UNAVAILABLE
 }
 
 """Input for deleting a saved query."""
@@ -4606,6 +4616,11 @@ type SavedQuery {
   content: String!
   createdAt: DateTime!
   createdBy: User
+
+  """
+  The version `content` currently holds. Null on a query whose history was never recorded.
+  """
+  currentVersion: String
   description: String
   id: ID!
   name: String!
@@ -4616,6 +4631,19 @@ type SavedQuery {
   """
   slug: String!
   updatedAt: DateTime!
+
+  """The SQL as of a given version. Null if that version does not exist."""
+  versionContent(ref: String!): String
+
+  """
+  A version and the change it introduced. Null if that version does not exist.
+  """
+  versionDiff(ref: String!): SavedQueryVersionDiff
+
+  """
+  The history of the query's SQL, newest first. Empty when the history cannot be read.
+  """
+  versions(page: Int = 1, perPage: Int = 20): SavedQueryVersionPage!
   visibility: SavedQueryVisibility!
   workspace: Workspace!
 }
@@ -4646,6 +4674,34 @@ type SavedQueryPermissions {
 
   """Permission to share or unshare the saved query."""
   updateVisibility: Boolean!
+}
+
+"""
+One recorded state of a saved query's SQL. Versions are the commits of the query's
+own git repository, so they are identified by a sha and ordered newest first.
+"""
+type SavedQueryVersion {
+  authorEmail: String!
+  authorName: String!
+  date: DateTime!
+  id: String!
+  message: String!
+}
+
+"""A version together with the change it introduced, as a unified diff."""
+type SavedQueryVersionDiff {
+  authorEmail: String!
+  authorName: String!
+  date: DateTime!
+  id: String!
+  message: String!
+  rawDiff: String!
+}
+
+"""A page of saved query versions."""
+type SavedQueryVersionPage {
+  items: [SavedQueryVersion!]!
+  page: Int!
 }
 
 """Who a saved query is visible to within its workspace."""
@@ -5523,6 +5579,11 @@ type UpdatePipelineVersionResult {
 enum UpdateSavedQueryError {
   PERMISSION_DENIED
   SAVED_QUERY_NOT_FOUND
+
+  """
+  The new version could not be recorded, so no change was saved. Retrying is safe.
+  """
+  VERSIONING_UNAVAILABLE
 }
 
 """Input for updating a saved query."""

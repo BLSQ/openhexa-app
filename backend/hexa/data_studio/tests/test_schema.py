@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.core.exceptions import PermissionDenied
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
@@ -9,6 +11,9 @@ from hexa.databases.tests.helpers import (
     provision_workspace_database,
     seed_demo_table,
 )
+from hexa.git.exceptions import GitFileNotFound
+from hexa.git.forgejo import ForgejoAPIError
+from hexa.git.testutils import make_git_client_mock
 
 from .testutils import SavedQueryTestMixin
 
@@ -792,3 +797,129 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         log = QueryLog.objects.get()
         self.assertEqual(QueryLog.Status.DENIED, log.status)
         self.assertEqual(saved_query, log.saved_query)
+
+
+SHA = "a" * 40
+
+UPDATE_SAVED_QUERY_MUTATION = """
+    mutation ($input: UpdateSavedQueryInput!) {
+        updateSavedQuery(input: $input) { success errors }
+    }
+"""
+
+
+class SavedQueryVersionsSchemaTest(SavedQueryTestMixin, GraphQLTestCase):
+    """The history fields on the SavedQuery type."""
+
+    VERSIONS_QUERY = """
+        query savedQuery($id: ID!) {
+            savedQuery(id: $id) {
+                currentVersion
+                versions {
+                    page
+                    items { id message authorName authorEmail date }
+                }
+            }
+        }
+    """
+
+    DIFF_QUERY = """
+        query savedQuery($id: ID!, $ref: String!) {
+            savedQuery(id: $id) {
+                versionContent(ref: $ref)
+                versionDiff(ref: $ref) { id message rawDiff }
+            }
+        }
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.client_mock = make_git_client_mock(SHA)
+        patcher = patch(
+            "hexa.git.mixins.get_forgejo_client", return_value=self.client_mock
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.saved_query = self.create_saved_query(content="SELECT 1")
+
+    def test_versions_are_exposed(self):
+        self.client.force_login(self.USER_EDITOR)
+        r = self.run_query(self.VERSIONS_QUERY, {"id": str(self.saved_query.id)})
+
+        self.assertEqual(SHA, r["data"]["savedQuery"]["currentVersion"])
+        self.assertEqual(
+            [SHA], [item["id"] for item in r["data"]["savedQuery"]["versions"]["items"]]
+        )
+
+    def test_an_unreachable_git_server_leaves_the_query_readable(self):
+        # History is the one part of a saved query that lives elsewhere, so it is the
+        # one part that can be missing on its own. It must not take the query with it.
+        self.client_mock.get_commits.side_effect = ForgejoAPIError(
+            "GET", "/repos/x/y/commits", 500
+        )
+        self.client.force_login(self.USER_EDITOR)
+
+        r = self.run_query(self.VERSIONS_QUERY, {"id": str(self.saved_query.id)})
+
+        self.assertIsNone(r.get("errors"))
+        self.assertEqual([], r["data"]["savedQuery"]["versions"]["items"])
+
+    def test_version_content_and_diff_are_exposed(self):
+        self.client_mock.get_file.return_value = b"SELECT 1"
+        self.client_mock.get_commit.return_value = {
+            "sha": SHA,
+            "commit": {
+                "message": "Update My query",
+                "author": {
+                    "name": "Ada",
+                    "email": "ada@openhexa.org",
+                    "date": "2026-01-01T00:00:00Z",
+                },
+            },
+        }
+        self.client_mock.get_commit_diff.return_value = "--- a\n+++ b\n"
+        self.client.force_login(self.USER_EDITOR)
+
+        r = self.run_query(
+            self.DIFF_QUERY, {"id": str(self.saved_query.id), "ref": SHA}
+        )
+
+        self.assertEqual("SELECT 1", r["data"]["savedQuery"]["versionContent"])
+        self.assertEqual(
+            {"id": SHA, "message": "Update My query", "rawDiff": "--- a\n+++ b\n"},
+            r["data"]["savedQuery"]["versionDiff"],
+        )
+
+    def test_an_unknown_ref_is_null_rather_than_an_error(self):
+        self.client_mock.get_file.side_effect = GitFileNotFound("query.sql")
+        self.client_mock.get_commit.side_effect = ForgejoAPIError(
+            "GET", "/repos/x/y/git/commits/nope", 404
+        )
+        self.client.force_login(self.USER_EDITOR)
+
+        r = self.run_query(
+            self.DIFF_QUERY, {"id": str(self.saved_query.id), "ref": "nope"}
+        )
+
+        self.assertIsNone(r.get("errors"))
+        self.assertIsNone(r["data"]["savedQuery"]["versionContent"])
+        self.assertIsNone(r["data"]["savedQuery"]["versionDiff"])
+
+    def test_a_failed_update_reports_versioning_unavailable(self):
+        self.client_mock.commit_files.side_effect = ForgejoAPIError(
+            "POST", "/repos/x/y/contents", 500
+        )
+        self.client.force_login(self.USER_EDITOR)
+
+        r = self.run_query(
+            UPDATE_SAVED_QUERY_MUTATION,
+            {"input": {"id": str(self.saved_query.id), "content": "SELECT 2"}},
+        )
+
+        self.assertFalse(r["data"]["updateSavedQuery"]["success"])
+        self.assertEqual(
+            ["VERSIONING_UNAVAILABLE"], r["data"]["updateSavedQuery"]["errors"]
+        )
+        # Reported as a failure *because* nothing was kept.
+        self.saved_query.refresh_from_db()
+        self.assertEqual("SELECT 1", self.saved_query.content)

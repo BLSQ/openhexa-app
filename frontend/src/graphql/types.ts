@@ -1177,6 +1177,8 @@ export type CreatePipelineVersionInput = {
 /** Errors that can occur when creating a saved query. */
 export enum CreateSavedQueryError {
   PermissionDenied = 'PERMISSION_DENIED',
+  /** The query's history could not be recorded, so nothing was saved. Retrying is safe. */
+  VersioningUnavailable = 'VERSIONING_UNAVAILABLE',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
@@ -2169,7 +2171,9 @@ export type DeletePipelineVersionResult = {
 /** Errors that can occur when deleting a saved query. */
 export enum DeleteSavedQueryError {
   PermissionDenied = 'PERMISSION_DENIED',
-  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND'
+  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND',
+  /** The query's history could not be archived, so the query was not deleted. Retrying is safe. */
+  VersioningUnavailable = 'VERSIONING_UNAVAILABLE'
 }
 
 /** Input for deleting a saved query. */
@@ -5550,6 +5554,8 @@ export type SavedQuery = {
   content: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   createdBy?: Maybe<User>;
+  /** The version `content` currently holds. Null on a query whose history was never recorded. */
+  currentVersion?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
@@ -5557,8 +5563,42 @@ export type SavedQuery = {
   /** Stable identifier, unique within the workspace. Generated from the name and left unchanged when the query is renamed. */
   slug: Scalars['String']['output'];
   updatedAt: Scalars['DateTime']['output'];
+  /** The SQL as of a given version. Null if that version does not exist. */
+  versionContent?: Maybe<Scalars['String']['output']>;
+  /** A version and the change it introduced. Null if that version does not exist. */
+  versionDiff?: Maybe<SavedQueryVersionDiff>;
+  /** The history of the query's SQL, newest first. Empty when the history cannot be read. */
+  versions: SavedQueryVersionPage;
   visibility: SavedQueryVisibility;
   workspace: Workspace;
+};
+
+
+/**
+ * A SQL query saved by a user in the Data Studio. Saved queries belong to a
+ * workspace; their visibility decides which of its members can reach them.
+ */
+export type SavedQueryVersionContentArgs = {
+  ref: Scalars['String']['input'];
+};
+
+
+/**
+ * A SQL query saved by a user in the Data Studio. Saved queries belong to a
+ * workspace; their visibility decides which of its members can reach them.
+ */
+export type SavedQueryVersionDiffArgs = {
+  ref: Scalars['String']['input'];
+};
+
+
+/**
+ * A SQL query saved by a user in the Data Studio. Saved queries belong to a
+ * workspace; their visibility decides which of its members can reach them.
+ */
+export type SavedQueryVersionsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
 /** Enum representing the possible orderings for saved queries. */
@@ -5587,6 +5627,37 @@ export type SavedQueryPermissions = {
   update: Scalars['Boolean']['output'];
   /** Permission to share or unshare the saved query. */
   updateVisibility: Scalars['Boolean']['output'];
+};
+
+/**
+ * One recorded state of a saved query's SQL. Versions are the commits of the query's
+ * own git repository, so they are identified by a sha and ordered newest first.
+ */
+export type SavedQueryVersion = {
+  __typename?: 'SavedQueryVersion';
+  authorEmail: Scalars['String']['output'];
+  authorName: Scalars['String']['output'];
+  date: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+};
+
+/** A version together with the change it introduced, as a unified diff. */
+export type SavedQueryVersionDiff = {
+  __typename?: 'SavedQueryVersionDiff';
+  authorEmail: Scalars['String']['output'];
+  authorName: Scalars['String']['output'];
+  date: Scalars['DateTime']['output'];
+  id: Scalars['String']['output'];
+  message: Scalars['String']['output'];
+  rawDiff: Scalars['String']['output'];
+};
+
+/** A page of saved query versions. */
+export type SavedQueryVersionPage = {
+  __typename?: 'SavedQueryVersionPage';
+  items: Array<SavedQueryVersion>;
+  page: Scalars['Int']['output'];
 };
 
 /** Who a saved query is visible to within its workspace. */
@@ -6348,7 +6419,9 @@ export type UpdatePipelineVersionResult = {
 /** Errors that can occur when updating a saved query. */
 export enum UpdateSavedQueryError {
   PermissionDenied = 'PERMISSION_DENIED',
-  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND'
+  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND',
+  /** The new version could not be recorded, so no change was saved. Retrying is safe. */
+  VersioningUnavailable = 'VERSIONING_UNAVAILABLE'
 }
 
 /** Input for updating a saved query. */
