@@ -3,7 +3,6 @@ import DataCard from "core/components/DataCard";
 import SelectProperty from "core/components/DataCard/SelectProperty";
 import SwitchProperty from "core/components/DataCard/SwitchProperty";
 import Page from "core/components/Page";
-import Tooltip from "core/components/Tooltip";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { PipelineType } from "graphql/types";
@@ -47,12 +46,20 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
   const versionToRun =
     pipeline.scheduledPipelineVersion ?? pipeline.currentVersion;
 
-  // Only a scheduled zipfile pipeline is at risk: notebooks take no parameters, and a manual run
-  // still prompts the user for the missing values.
+  // Not gated on the pipeline already being scheduled: the point is to say up front that this
+  // pipeline cannot run unattended as it stands, rather than to reject the cron on save. Notebooks
+  // take no parameters, and a manual run still prompts the user for the missing values.
   const missingScheduleParameters =
-    pipeline.schedule && pipeline.type === PipelineType.ZipFile
+    pipeline.type === PipelineType.ZipFile
       ? (versionToRun?.missingScheduleParameters ?? [])
       : [];
+
+  const showMissingParametersWarning =
+    pipeline.permissions.update && missingScheduleParameters.length > 0;
+
+  const canEditScheduling =
+    pipeline.permissions.update &&
+    (Boolean(pipeline.schedule) || missingScheduleParameters.length === 0);
 
   const versionItems = pipeline.versions?.items ?? [];
   const pinned = pipeline.scheduledPipelineVersion;
@@ -85,26 +92,24 @@ const WorkspacePipelineNotificationsPage: NextPageWithLayout = (
         ]}
       >
         <DataCard.FormSection
-          title={
-            <>
-              <h4 className="font-medium">{t("Scheduling")}</h4>
-              {pipeline.permissions.update &&
-                missingScheduleParameters.length > 0 && (
-                  <Tooltip
-                    className="flex items-center"
-                    label={t(
-                      "Scheduled runs are being skipped: the required parameters {{parameters}} have no value. Set their default values to fix the problem.",
-                      { parameters: missingScheduleParameters.join(", ") },
-                    )}
-                  >
-                    <ExclamationCircleIcon className="inline-block w-6 h-6 text-yellow-500 ml-1.5" />
-                  </Tooltip>
-                )}
-            </>
-          }
-          onSave={pipeline.permissions.update ? onSaveScheduling : undefined}
+          title={t("Scheduling")}
+          onSave={canEditScheduling ? onSaveScheduling : undefined}
           collapsible={false}
         >
+          {showMissingParametersWarning && (
+            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              <ExclamationCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+              <span>
+                {t(
+                  "The required parameter {{parameters}} has no value, so this pipeline cannot run on a schedule. Set a default value to fix this.",
+                  {
+                    count: missingScheduleParameters.length,
+                    parameters: missingScheduleParameters.join(", "),
+                  },
+                )}
+              </span>
+            </div>
+          )}
           <SwitchProperty
             id="enableScheduling"
             label={t("Enabled")}
