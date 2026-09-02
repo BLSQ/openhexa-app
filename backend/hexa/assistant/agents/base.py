@@ -597,7 +597,6 @@ class BaseAgent:
     async def _generate_conversation_name(
         self, user_input: str
     ) -> tuple[str, RunUsage]:
-        # TODO: Use smaller, cheaper models for these small "utility agents"
         # Keep the last candidate so an exhausted run can fall back to the model's own
         # title.
         last_candidate = ""
