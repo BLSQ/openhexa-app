@@ -6354,8 +6354,8 @@ export enum UpdateSavedQueryError {
   /** The new version could not be recorded, so no change was saved. Retrying is safe. */
   VersioningUnavailable = 'VERSIONING_UNAVAILABLE',
   /**
-   * Someone else saved the query after the version this edit was made against, so
-   * nothing was written. Retrying as-is would overwrite their change: reload first.
+   * The SQL changed after the version this edit was made against, so nothing was
+   * written. Retrying as-is would overwrite it: reload first.
    */
   VersionConflict = 'VERSION_CONFLICT'
 }
@@ -6366,9 +6366,8 @@ export type UpdateSavedQueryInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   /**
    * The version this edit was made against. When given, the edit is refused with
-   * VERSION_CONFLICT if someone else has saved the query since. Omit it to overwrite
-   * whatever is there, which is all a client that never read a version can honestly ask
-   * for.
+   * VERSION_CONFLICT if the SQL has changed since. Omit it to overwrite whatever is
+   * there.
    */
   expectedVersion?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];

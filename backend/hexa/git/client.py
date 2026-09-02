@@ -131,11 +131,9 @@ class GitClient(ABC):
         repo_name: str,
         sha: str,
     ) -> dict:
-        """Return one commit in the same shape as `get_commits` returns each of its own.
+        """Return one commit in the shape `get_commits` returns each of its own.
 
-        Normalized here rather than by each caller: the backend's payload layout is
-        this layer's business, and returning it raw is what had every consumer
-        reimplementing the same unwrapping.
+        Normalized here because the backend's payload layout is this layer's business.
         """
         ...
 

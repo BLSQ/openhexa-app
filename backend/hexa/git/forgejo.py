@@ -17,8 +17,7 @@ def _commit_summary(payload: dict, *, fallback_id: str = "") -> dict:
     author = commit.get("author") or {}
     return {
         "id": payload.get("sha") or fallback_id,
-        # A trailing newline is an artefact of how the message was written, not part
-        # of it, and no consumer wants to strip it itself.
+        # A trailing newline is an artefact of how the message was written.
         "message": (commit.get("message") or "").strip(),
         "author_name": author.get("name", ""),
         "author_email": author.get("email", ""),
@@ -29,9 +28,8 @@ def _commit_summary(payload: dict, *, fallback_id: str = "") -> dict:
 class ForgejoAPIError(GitError):
     """A Forgejo call came back with an unexpected status.
 
-    A `GitError` like the rest, so a caller that only needs "git is not answering"
-    can say so without importing this backend; the status code is here for the few
-    that act on a specific one.
+    A `GitError`, so a caller needing only "git is not answering" need not import this
+    backend; the status code is here for the few that act on a specific one.
     """
 
     def __init__(self, method: str, url: str, status_code: int, detail: str = ""):

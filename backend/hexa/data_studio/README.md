@@ -28,25 +28,21 @@ short "why" comments that point here.
 
 ## Saved query history
 
-A saved query's SQL is versioned in a git repository of its own, holding a single
-`query.sql` — the same mechanism static web apps use, described in `hexa.git`. Only the SQL
-is versioned: name, description and visibility are current-state attributes of the query,
-so renaming one or resharing it records nothing.
+A saved query's SQL is versioned in a git repository of its own holding a single
+`query.sql`, the mechanism `hexa/git` describes. Only the SQL: renaming a query or
+resharing it records nothing.
 
-`content` stays the source of truth. Running a query, exporting it, serving it to a web app
-and listing it all read that column and never the git server, which is what keeps the Data
-Studio working when the server is not reachable. A new version is committed on the way in,
-inside the same transaction as the row, so a git failure fails the save
-(`VERSIONING_UNAVAILABLE`) rather than keeping a change with no history — see the trade-off
-in `hexa.git`. Deleting is the exception: archiving happens after the commit and cannot fail
-the deletion, so there is no `VERSIONING_UNAVAILABLE` on that path.
+`content` stays the source of truth — running, exporting, listing a query and serving it to
+a web app all read that column, never the git server. A version is committed inside the
+same transaction as the row, so a git failure fails the save (`VERSIONING_UNAVAILABLE`)
+rather than keeping a change with no history. Deleting is the exception: archiving happens
+after the commit and cannot fail the deletion.
 
-There is no published version: the current version is the one that runs. `last_commit` says
-which commit `content` matches, so a drift between the two can be found rather than guessed
-at (`manage.py backfill_saved_query_repositories --check`), and it is also what says the
-repository exists — the migration that introduced versioning named one for every query that
-already existed without creating any. That same command creates them and records their first
-version; anything it misses heals on the query's next save through `ensure_repo`.
+There is no published version; the current one runs. `last_commit` says which commit
+`content` matches, so drift can be found (`manage.py backfill_saved_query_repositories
+--check`), and it is also what says the repository exists — migration 0010 named one for
+every existing query without creating any. That command creates them; anything it misses
+heals on the query's next save through `ensure_repo`.
 
 ## Why the export streams (rather than buffers)
 

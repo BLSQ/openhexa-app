@@ -14,20 +14,12 @@ class DiscoverRunner(BaseDiscoverRunner):
     def setup_test_environment(self, **kwargs):
         super().setup_test_environment(**kwargs)
 
-        # Two call sites, both reached by ordinary fixture setup: creating an
-        # organization provisions a git org, and creating a saved query or a static web
-        # app commits to a repository. Neither may reach a real git server from a test,
-        # so both are stubbed for the whole suite; tests that assert on git calls patch
-        # `hexa.git.mixins.get_forgejo_client` themselves and override this.
-        #
-        # Patched where the name is used, not where it is defined: every caller does
-        # `from hexa.git.forgejo import get_forgejo_client`, which binds the function in
-        # the importing module at import time, so replacing the attribute on
-        # `hexa.git.forgejo` would leave all of them pointing at the original. Nor is the
-        # cached `forgejo._forgejo_client` singleton a shortcut worth taking: it looks
-        # like one patch covering every caller, but `git.tests.test_forgejo` assigns that
-        # global directly to exercise the caching and leaves it None, after which later
-        # tests build a real client and reach the network.
+        # Ordinary fixture setup reaches the git server twice over — an organization
+        # provisions a git org, a saved query or web app commits — so both call sites
+        # are stubbed suite-wide. Patched where the name is used, not where it is
+        # defined: callers bind it at import time. Patching the cached
+        # `forgejo._forgejo_client` instead is not a shortcut — `test_forgejo` assigns
+        # that global directly and leaves it None.
         self._forgejo_patchers = [
             patch(target, return_value=make_git_client_mock())
             for target in (

@@ -2,14 +2,11 @@ from django.db import migrations, models
 
 
 def set_repository_names(apps, schema_editor):
-    """Name the repository of every existing saved query.
+    """Name the repository of every existing saved query, without creating any.
 
-    Only the name: the repository itself is created, and the query's first version
-    committed, by the `backfill_saved_query_repositories` command. A migration that
-    reached out to the git server would fail a deploy wherever that server is not up
-    yet, and could not be retried without editing history — while `last_commit` staying
-    null here is exactly how the command finds the queries left to do (and how
-    `SavedQuery.ensure_repo` heals the ones it misses on their next save).
+    Creating them is the `backfill_saved_query_repositories` command's job: a migration
+    reaching the git server would fail a deploy wherever it is not up yet. `last_commit`
+    staying null is how that command finds the queries left to do.
     """
     SavedQuery = apps.get_model("data_studio", "SavedQuery")
     for saved_query in SavedQuery.objects.select_related("workspace").iterator():
@@ -29,8 +26,8 @@ class Migration(migrations.Migration):
             name="last_commit",
             field=models.CharField(blank=True, max_length=64, null=True),
         ),
-        # Added nullable, filled, then tightened: the column is unique and not null in
-        # the end, which no single default could satisfy for rows that already exist.
+        # Added nullable, filled, then tightened: the column ends up unique and not
+        # null, which no single default could satisfy for existing rows.
         migrations.AddField(
             model_name="savedquery",
             name="repository",

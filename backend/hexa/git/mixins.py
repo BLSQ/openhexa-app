@@ -16,11 +16,9 @@ GitOrg = namedtuple("GitOrg", ["slug", "display_name"])
 class GitRepoMixin(models.Model):
     """A model whose history lives in a git repository of its own.
 
-    What is declared here is what this class calls itself — `git_org`, and `has_history`
-    for reading — following the template-method shape: a subclass answers those and
-    inherits the reading side. Writing is deliberately *not* declared: committing means
-    something different for each artifact (one file or a tree, a publishing pointer or a
-    drift marker), and a signature covering both would fit neither. See `hexa/git`.
+    A subclass answers `git_org` and `has_history` and inherits the reading side.
+    Writing is deliberately not declared: committing one file and committing a tree
+    have too little in common for one signature. See `hexa/git` README.
     """
 
     repository = models.CharField(max_length=255, unique=True)
@@ -40,9 +38,8 @@ class GitRepoMixin(models.Model):
     def has_history(self) -> bool:
         """Whether the repository exists on the server and holds something to read.
 
-        True by default, for the models that create the repository as they are created.
-        A model that names a repository before creating one (as a migration introducing
-        versioning leaves it) says so by overriding this.
+        True by default, for models created with their repository. One that can name a
+        repository before creating it overrides this.
         """
         return True
 
@@ -101,12 +98,7 @@ class GitRepoMixin(models.Model):
 
 
 class WorkspaceGitRepoMixin(GitRepoMixin):
-    """A git-backed artifact belonging to a workspace.
-
-    Every such artifact keeps its repository in the git organization of the workspace's
-    organization, so the one thing `GitRepoMixin` asks of a subclass has a single
-    answer worth writing once.
-    """
+    """A git-backed artifact keeping its repository in its workspace's git org."""
 
     class Meta:
         abstract = True

@@ -1150,9 +1150,8 @@ class ForgejoClientGetCommitTest(TestCase):
         client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
         result = client.get_commit("ws-myworkspace", "my-repo", sha)
 
-        # Flattened to the shape `get_commits` returns, so that callers do not each
-        # reimplement the unwrapping. Anything no caller reads (`parents`) is dropped
-        # rather than passed through half-normalized.
+        # Flattened to the shape `get_commits` returns. What no caller reads
+        # (`parents`) is dropped rather than passed through half-normalized.
         self.assertEqual(
             {
                 "id": sha,

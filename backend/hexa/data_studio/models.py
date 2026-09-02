@@ -22,9 +22,8 @@ logger = logging.getLogger(__name__)
 SLUG_MAX_LENGTH = 255
 SLUG_COLLISION_ATTEMPTS = 8
 
-# The single file each saved query repository holds. Only the SQL is versioned:
-# name, description and visibility are current-state attributes of the query, so a
-# rename is not a new version of what the query *does*.
+# The single file each repository holds: only the SQL is versioned, not the name,
+# description or visibility.
 QUERY_FILE_PATH = "query.sql"
 
 
@@ -96,9 +95,8 @@ class SavedQueryManager(models.Manager):
         if not principal.has_perm("data_studio.create_saved_query", workspace):
             raise PermissionDenied
 
-        # The commit is inside the transaction on purpose: a saved query that exists
-        # without the repository holding its first version has no history to browse and
-        # no way to notice it is missing one, so a git failure takes the row with it.
+        # Inside the transaction: a git failure must take the row with it, or the
+        # query exists with no history and no way to notice (see hexa/git README).
         with transaction.atomic():
             saved_query = self.create(
                 workspace=workspace,
@@ -187,11 +185,10 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
     are added again, while deleting the account itself takes them for good (see
     `saved_queries_on_author_deleted`).
 
-    Its history lives in a git repository of its own (one file, `query.sql`), the same
-    way a static web app's does — see `hexa.git` for what that buys and what it costs.
-    `content` here stays the source of truth: running a query, exporting it and listing
-    it must not depend on the git server being reachable, so git is written through on
-    save and only read when someone asks for history.
+    Its history lives in a git repository of its own, one `query.sql` per query, as a
+    static web app's does. `content` stays the source of truth — running, exporting and
+    listing a query must not need the git server — so git is written through on save and
+    read only for history. See `hexa/git` README for the trade-offs.
     """
 
     workspace = models.ForeignKey(
@@ -217,11 +214,8 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
         choices=SavedQueryVisibility.choices,
         default=SavedQueryVisibility.PRIVATE,
     )
-    # The sha of the version holding `content`. Not a published pointer (there is no
-    # publishing here — the current version is what runs): it says which commit the
-    # column matches, so a drift between the two can be found rather than guessed at.
-    # Null on a query whose repository was never created, which is what
-    # `backfill_saved_query_repositories` looks for.
+    # Which commit `content` matches, so drift can be found. Not a published pointer.
+    # Null until the repository exists (see hexa/git README).
     last_commit = models.CharField(max_length=64, blank=True, null=True)
 
     objects = SavedQueryManager.from_queryset(SavedQueryQuerySet)()
@@ -279,40 +273,32 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
         # otherwise hit the not-null column with nothing in it.
         if not self.slug:
             self.slug = generate_saved_query_slug(self.name)
-        # Same reason, and the column is unique too, so leaving it empty would let the
-        # first admin-created query through and collide on the second. Naming the
-        # repository costs nothing and reaches nothing; creating it is a separate step
-        # (`record_version`), which is why a query can exist before its history does.
+        # Same reason, and the column is unique, so an empty one collides on the
+        # second admin-created query. Creating the repository is a separate step.
         if not self.repository:
             self.repository = self.default_repository_name()
         return super().save(*args, **kwargs)
 
     def default_repository_name(self) -> str:
-        """The repository this query's history lives in.
-
-        Named after the pk rather than the slug: a deleted query releases its slug, and
-        reusing one would land on the archived repository that query left behind — which
-        `create_repo` reports as "already exists, reusing it" before the commit fails on
-        a repository that is read-only. The migration that introduced versioning derives
-        the same name.
+        """Keyed on the pk, not the slug: a deleted query releases its slug, and reusing
+        one lands on the archived repository it left behind. Migration 0010 derives the
+        same name.
         """
         return f"{self.workspace.slug}-query-{self.id}"
 
     def record_version(self, user: User, message: str = "Update query") -> str:
         """Commit the current content as a new version and return its sha.
 
-        Creates the repository on the way when this query has none, which is what makes
-        the write path self-healing for queries that predate versioning (the ones
-        `backfill_saved_query_repositories` exists to catch).
+        Creates the repository if this query has none, which is what makes the write
+        path self-healing for queries that predate versioning.
         """
         file = {
             "path": QUERY_FILE_PATH,
             "content": self.content,
             "encoding": FileEncoding.TEXT,
         }
-        # `last_commit`, not `repository`, is what says the repository exists on the
-        # server: the migration that introduced versioning named the repository of every
-        # query that already existed without creating a single one.
+        # `last_commit`, not `repository`, is what says the repository exists:
+        # migration 0010 named one for every pre-existing query without creating any.
         if not self.last_commit:
             if not self.repository:
                 self.repository = self.default_repository_name()
@@ -337,8 +323,8 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
 
     @property
     def has_history(self) -> bool:
-        # A saved query is named a repository by `save` and given one by
-        # `record_version`, so unlike a web app it has a state in between.
+        # Named by `save`, created by `record_version`: unlike a web app, a saved
+        # query has a state in between.
         return bool(self.last_commit)
 
     def get_version_content(self, ref: str = "main") -> str:
@@ -354,28 +340,21 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
         """Apply an edit, recording a version when the SQL changed.
 
         `expected_version` is the version the caller edited: when given, the edit is
-        refused if the query has moved on since. Omitting it keeps the older
-        last-write-wins behaviour, which is what a client that never read a version can
-        honestly ask for.
+        refused if the SQL has moved on since. Omitting it is last-write-wins, all a
+        client that never read a version can ask for.
         """
         if not principal.has_perm("data_studio.update_saved_query", self):
             raise PermissionDenied
 
         content = kwargs.get("content")
-        # Compared in the form `save` stores, since that is what the repository holds
-        # too: content differing only by the characters sanitizing drops would otherwise
-        # commit a version whose diff is empty.
+        # Compared as `save` stores it, which is also what the repository holds:
+        # otherwise a change only in characters sanitizing drops commits an empty diff.
         new_content = sanitize_sql(content) if content is not None else None
 
-        # Only the SQL is versioned, so renaming a query or resharing it records
-        # nothing — there is no new version of the query to browse.
         with transaction.atomic():
-            # Locked, and re-read in full rather than only the columns this edit
-            # compares: `self` was loaded before this transaction, and `save` writes
-            # every column back from that copy, so a rename would revert an edit that
-            # landed in between — and record no version of the revert. Re-reading is
-            # also what stops a client that reloaded nothing from writing its stale
-            # content back as "no change".
+            # Locked, and re-read in full: `self` predates this transaction and `save`
+            # writes every column from it, so a partial edit would revert whatever
+            # landed in between and record no version of the revert.
             self.refresh_from_db(
                 from_queryset=SavedQuery.objects.select_for_update().select_related(
                     "workspace__organization"
@@ -385,9 +364,8 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
             if expected_version is not None and self.last_commit != expected_version:
                 raise SavedQueryVersionConflict(self.last_commit)
 
-            # Sharing is gated separately from the rest of the attributes, and only
-            # when it actually changes: a client echoing back the current visibility
-            # must not need the stricter permission.
+            # Gated separately, and only when it actually changes: a client echoing
+            # back the current visibility must not need the stricter permission.
             visibility = kwargs.get("visibility")
             if visibility is not None and visibility != self.visibility:
                 if not principal.has_perm(
@@ -399,9 +377,8 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
             content_changed = new_content is not None and new_content != self.content
 
             if content_changed:
-                # Seeded with the content as stored, so a query older than versioning
-                # keeps the version it had rather than starting its history at whichever
-                # edit happened to come next.
+                # Seeded with the stored content, so a query older than versioning
+                # keeps it rather than starting its history at the next edit.
                 self.ensure_repo(principal)
 
             if kwargs.get("name") is not None:
@@ -424,20 +401,16 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
         with transaction.atomic():
             result = self.delete()
             if self.has_history:
-                # Archived rather than deleted: the history outlives the query. After
-                # the commit, because archiving cannot be undone — inside the
-                # transaction it could leave a read-only repository on a query the
-                # commit kept, which no later save could recover from.
+                # Archived rather than deleted, and after the commit because it
+                # cannot be undone (see hexa/git README).
                 transaction.on_commit(self._archive_repo_quietly)
             return result
 
     def _archive_repo_quietly(self):
         """Archive the repository, leaving it be if the git server refuses.
 
-        The query is already gone by the time this runs, so there is no one to report
-        the failure to. What it leaves behind is an unarchived repository — the state
-        a cascading workspace or author deletion leaves too, with the same backstop
-        (see `hexa.git`).
+        The query is already gone by the time this runs, so there is no one to report a
+        failure to; it leaves an unarchived repository behind (see `hexa/git` README).
         """
         try:
             self.archive_repo()

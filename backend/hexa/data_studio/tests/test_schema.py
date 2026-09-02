@@ -810,8 +810,8 @@ UPDATE_SAVED_QUERY_MUTATION = """
 class SavedQueryVersioningErrorTest(SavedQueryTestMixin, GraphQLTestCase):
     """What a client is told when a version cannot be recorded, or collides.
 
-    The history itself is not exposed by the API yet — see the note in schema.graphql —
-    but this error is, because it can reach a client saving a query today.
+    The history itself is not exposed by the API yet, but these errors are: they can
+    reach a client saving a query today.
     """
 
     def setUp(self):

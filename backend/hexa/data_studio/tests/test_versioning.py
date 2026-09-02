@@ -60,8 +60,7 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
         with self.assertRaises(ForgejoAPIError):
             self.create_saved_query()
 
-        # A saved query with no history could not be told apart from one nobody
-        # ever versioned, so it must not survive the failure.
+        # A query with no history is indistinguishable from one nobody versioned.
         self.assertEqual(0, SavedQuery.objects.count())
 
     def test_editing_the_content_records_a_version(self):
@@ -104,7 +103,6 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
 
         saved_query.update_if_has_perm(self.USER_EDITOR, name="New name")
 
-        # Only the SQL is versioned: a rename leaves the history alone.
         self.client_mock.commit_files.assert_not_called()
         self.assertEqual(SHA_INITIAL, saved_query.last_commit)
 
@@ -128,8 +126,8 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
         saved_query = self.create_saved_query(content="SELECT 1")
         self.client_mock.commit_files.reset_mock()
 
-        # A non-breaking space becomes a plain one on the way in, so this is the
-        # content already stored: a version of it would carry an empty diff.
+        # A non-breaking space becomes a plain one on the way in, so this is what is
+        # already stored: a version of it would carry an empty diff.
         saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT\u00a01")
 
         self.client_mock.commit_files.assert_not_called()
@@ -154,7 +152,6 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
         with self.assertRaises(ForgejoAPIError):
             saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 2")
 
-        # Keeping the edit would leave a change with no version to show for it.
         reloaded = SavedQuery.objects.get(pk=saved_query.pk)
         self.assertEqual("SELECT 1", reloaded.content)
         self.assertEqual(SHA_INITIAL, reloaded.last_commit)
@@ -178,7 +175,6 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
         with self.captureOnCommitCallbacks(execute=True):
             saved_query.delete_if_has_perm(self.USER_EDITOR)
 
-        # Archived, not deleted: the history outlives the query.
         self.client_mock.archive_repository.assert_called_once_with(
             self.WORKSPACE.organization.slug, repository
         )
@@ -186,9 +182,8 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
     def test_nothing_is_archived_before_the_deletion_is_committed(self):
         saved_query = self.create_saved_query()
 
-        # An archived repository is read-only and cannot be un-archived, so doing it
-        # while the deletion could still roll back would strand the query with a
-        # history it can no longer add to.
+        # Archiving is irreversible, so doing it while the deletion could still roll
+        # back would strand the query with a history it can no longer add to.
         saved_query.delete_if_has_perm(self.USER_EDITOR)
 
         self.client_mock.archive_repository.assert_not_called()
@@ -203,9 +198,7 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
         with self.captureOnCommitCallbacks(execute=True):
             saved_query.delete_if_has_perm(self.USER_EDITOR)
 
-        # The query is gone either way: by the time archiving runs there is no one
-        # left to report the failure to, and an unarchived repository is the state a
-        # cascading deletion leaves too.
+        # By the time archiving runs there is no one left to report a failure to.
         self.assertFalse(SavedQuery.objects.filter(pk=pk).exists())
 
 
@@ -263,8 +256,7 @@ class SavedQueryConcurrentEditTest(SavedQueryTestMixin, TestCase):
         self.client_mock.commit_files.assert_not_called()
 
     def test_a_rename_against_a_stale_version_is_refused_too(self):
-        # The precondition is about the query, not only its SQL: a caller that sends a
-        # version is asserting it read the current one.
+        # The check applies to any edit, not only one that changes the SQL.
         self._someone_else_saves()
 
         with self.assertRaises(SavedQueryVersionConflict):
@@ -283,9 +275,8 @@ class SavedQueryConcurrentEditTest(SavedQueryTestMixin, TestCase):
         )
 
     def test_writing_back_a_stale_copy_records_the_revert(self):
-        # Without a version to check, a client saving what it loaded reverts the other
-        # edit. That is a change to the query, so it has to be recorded as one rather
-        # than passing for "nothing changed" because `self` still holds the old content.
+        # Without a version to check, saving what you loaded reverts the other edit —
+        # a change, so it must be recorded rather than pass for "nothing changed".
         self._someone_else_saves(content="SELECT 99")
 
         self.saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 1")
@@ -295,10 +286,8 @@ class SavedQueryConcurrentEditTest(SavedQueryTestMixin, TestCase):
         self.client_mock.commit_files.assert_called_once()
 
     def test_an_edit_leaves_the_fields_it_does_not_touch_alone(self):
-        # An edit sending only some of the fields must not carry the rest along from
-        # the copy it was working on: that would revert someone else's change without
-        # recording a version of the revert, which is the one thing the version this
-        # query is on could not then be trusted about.
+        # A partial edit must not carry the other fields along from the copy it was
+        # working on: that reverts someone else's change, recording no version of it.
         self._someone_else_saves(content="SELECT 99")
 
         self.saved_query.update_if_has_perm(self.USER_EDITOR, name="New name")
@@ -312,8 +301,7 @@ class SavedQueryConcurrentEditTest(SavedQueryTestMixin, TestCase):
     def test_resharing_a_query_someone_else_edited_leaves_their_edit_alone(self):
         self._someone_else_saves(content="SELECT 99")
 
-        # Unsharing goes through the same save, and the editor authored this query so
-        # the stricter permission is theirs.
+        # The editor authored this query, so the stricter permission is theirs.
         self.saved_query.update_if_has_perm(self.USER_EDITOR, visibility="PRIVATE")
 
         reloaded = SavedQuery.objects.get(pk=self.saved_query.pk)

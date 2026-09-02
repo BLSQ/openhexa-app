@@ -273,8 +273,7 @@ def resolve_create_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
-    # Recording the first version is part of creating the query, so a git failure
-    # leaves nothing behind (the transaction rolls back) and is reported as such,
+    # The transaction rolled back, so nothing was created: reported as a failure
     # rather than as a saved query with no history.
     except GitError:
         logger.exception("Could not record the first version of a saved query")
@@ -298,9 +297,8 @@ def resolve_update_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
     except SavedQueryVersionConflict:
         return {"success": False, "errors": ["VERSION_CONFLICT"]}
-    # The alternative to failing the edit would be keeping the new content with a hole
-    # in its history, which nothing afterwards could tell apart from a query nobody
-    # edited. Rolled back instead, so a retry records both the change and its version.
+    # Rolled back rather than kept with a hole in its history, so a retry records
+    # both the change and its version.
     except GitError:
         logger.exception("Could not record a new version of a saved query")
         return {"success": False, "errors": ["VERSIONING_UNAVAILABLE"]}

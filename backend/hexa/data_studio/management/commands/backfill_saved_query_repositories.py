@@ -5,10 +5,8 @@ from django.core.management.base import BaseCommand
 from hexa.data_studio.models import SavedQuery
 from hexa.git.exceptions import GitError
 
-# Queries whose author's account was deleted have no user to credit the initial commit
-# to. Only `display_name` and `email` are read from it (see GitRepoMixin.create_repo),
-# so a stand-in is enough — and naming the instance is more honest than crediting the
-# admin who happened to run the command.
+# For queries whose author's account was deleted. `create_repo` reads only
+# `display_name` and `email`, and naming the instance beats crediting whoever ran this.
 SYSTEM_AUTHOR = SimpleNamespace(display_name="OpenHEXA", email="noreply@openhexa.org")
 
 
@@ -40,8 +38,7 @@ class Command(BaseCommand):
         recorded = 0
         skipped = 0
         failed = 0
-        # Only the queries with no version are touched, so a run interrupted halfway
-        # picks up where it stopped and a re-run is free.
+        # Only queries with no version are touched, so a re-run is free.
         for saved_query in queryset.iterator():
             if saved_query.has_history:
                 skipped += 1
