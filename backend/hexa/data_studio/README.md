@@ -38,7 +38,8 @@ and listing it all read that column and never the git server, which is what keep
 Studio working when the server is not reachable. A new version is committed on the way in,
 inside the same transaction as the row, so a git failure fails the save
 (`VERSIONING_UNAVAILABLE`) rather than keeping a change with no history — see the trade-off
-in `hexa.git`.
+in `hexa.git`. Deleting is the exception: archiving happens after the commit and cannot fail
+the deletion, so there is no `VERSIONING_UNAVAILABLE` on that path.
 
 There is no published version: the current version is the one that runs. `last_commit` says
 which commit `content` matches, so a drift between the two can be found rather than guessed

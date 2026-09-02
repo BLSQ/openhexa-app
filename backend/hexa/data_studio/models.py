@@ -1,3 +1,4 @@
+import logging
 import secrets
 from collections import defaultdict
 
@@ -11,9 +12,12 @@ from slugify import slugify
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.databases.query_text import sanitize_sql
 from hexa.git.enums import FileEncoding
+from hexa.git.exceptions import GitError
 from hexa.git.mixins import WorkspaceGitRepoMixin
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.workspaces.models import Workspace
+
+logger = logging.getLogger(__name__)
 
 SLUG_MAX_LENGTH = 255
 SLUG_COLLISION_ATTEMPTS = 8
@@ -357,17 +361,6 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
         if not principal.has_perm("data_studio.update_saved_query", self):
             raise PermissionDenied
 
-        # Sharing is gated separately from the rest of the attributes, and only when
-        # it actually changes: a client echoing back the current visibility must not
-        # need the stricter permission.
-        visibility = kwargs.get("visibility")
-        if visibility is not None and visibility != self.visibility:
-            if not principal.has_perm(
-                "data_studio.update_saved_query_visibility", self
-            ):
-                raise PermissionDenied
-            self.visibility = visibility
-
         content = kwargs.get("content")
         # Compared in the form `save` stores, since that is what the repository holds
         # too: content differing only by the characters sanitizing drops would otherwise
@@ -377,21 +370,33 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
         # Only the SQL is versioned, so renaming a query or resharing it records
         # nothing — there is no new version of the query to browse.
         with transaction.atomic():
-            # Locked, and re-read through the lock, so that two people saving the same
-            # query serialize instead of interleaving: `self` was loaded before this
-            # transaction and may already describe a version someone else replaced.
-            # Comparing against the stored row is also what stops a client that reloaded
-            # nothing from writing its stale copy back as "no change" — an edit that
-            # would otherwise revert the query while recording no version of the revert.
-            stored_version, stored_content = (
-                SavedQuery.objects.select_for_update()
-                .values_list("last_commit", "content")
-                .get(pk=self.pk)
+            # Locked, and re-read in full rather than only the columns this edit
+            # compares: `self` was loaded before this transaction, and `save` writes
+            # every column back from that copy, so a rename would revert an edit that
+            # landed in between — and record no version of the revert. Re-reading is
+            # also what stops a client that reloaded nothing from writing its stale
+            # content back as "no change".
+            self.refresh_from_db(
+                from_queryset=SavedQuery.objects.select_for_update().select_related(
+                    "workspace__organization"
+                )
             )
-            if expected_version is not None and stored_version != expected_version:
-                raise SavedQueryVersionConflict(stored_version)
 
-            content_changed = new_content is not None and new_content != stored_content
+            if expected_version is not None and self.last_commit != expected_version:
+                raise SavedQueryVersionConflict(self.last_commit)
+
+            # Sharing is gated separately from the rest of the attributes, and only
+            # when it actually changes: a client echoing back the current visibility
+            # must not need the stricter permission.
+            visibility = kwargs.get("visibility")
+            if visibility is not None and visibility != self.visibility:
+                if not principal.has_perm(
+                    "data_studio.update_saved_query_visibility", self
+                ):
+                    raise PermissionDenied
+                self.visibility = visibility
+
+            content_changed = new_content is not None and new_content != self.content
 
             if content_changed:
                 # Seeded with the content as stored, so a query older than versioning
@@ -419,12 +424,27 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
         with transaction.atomic():
             result = self.delete()
             if self.has_history:
-                # Archived rather than deleted: the history outlives the query, as it
-                # does for web apps. Deletions that bypass this method (a workspace or
-                # an author going away) leave the repository behind — see the
-                # organization-level archiving in `hexa.user_management`.
-                self.archive_repo()
+                # Archived rather than deleted: the history outlives the query. After
+                # the commit, because archiving cannot be undone — inside the
+                # transaction it could leave a read-only repository on a query the
+                # commit kept, which no later save could recover from.
+                transaction.on_commit(self._archive_repo_quietly)
             return result
+
+    def _archive_repo_quietly(self):
+        """Archive the repository, leaving it be if the git server refuses.
+
+        The query is already gone by the time this runs, so there is no one to report
+        the failure to. What it leaves behind is an unarchived repository — the state
+        a cascading workspace or author deletion leaves too, with the same backstop
+        (see `hexa.git`).
+        """
+        try:
+            self.archive_repo()
+        except GitError:
+            logger.exception(
+                "Could not archive the history of deleted saved query %s", self.slug
+            )
 
 
 class QueryLogQuerySet(BaseQuerySet):

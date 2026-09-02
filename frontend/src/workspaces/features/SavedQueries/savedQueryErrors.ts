@@ -63,9 +63,6 @@ export const deleteSavedQueryErrorMessage = (
   if (errors?.includes(DeleteSavedQueryError.SavedQueryNotFound)) {
     return t("Saved query not found");
   }
-  if (errors?.includes(DeleteSavedQueryError.VersioningUnavailable)) {
-    return VERSIONING_UNAVAILABLE_MESSAGE(t);
-  }
   console.error("Unhandled deleteSavedQuery error", errors);
   return t("Unknown error");
 };

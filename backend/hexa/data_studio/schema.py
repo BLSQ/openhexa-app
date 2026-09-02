@@ -321,9 +321,6 @@ def resolve_delete_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
-    except GitError:
-        logger.exception("Could not archive the history of a saved query")
-        return {"success": False, "errors": ["VERSIONING_UNAVAILABLE"]}
 
 
 data_studio_bindables = [

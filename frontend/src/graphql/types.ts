@@ -2171,9 +2171,7 @@ export type DeletePipelineVersionResult = {
 /** Errors that can occur when deleting a saved query. */
 export enum DeleteSavedQueryError {
   PermissionDenied = 'PERMISSION_DENIED',
-  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND',
-  /** The query's history could not be archived, so the query was not deleted. Retrying is safe. */
-  VersioningUnavailable = 'VERSIONING_UNAVAILABLE'
+  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND'
 }
 
 /** Input for deleting a saved query. */

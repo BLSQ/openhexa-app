@@ -54,8 +54,14 @@ described to a user: it removes what the app stores, not what git recorded.
 ## Deletions that bypass the model
 
 Each model archives its repository in its own `delete_if_has_perm`, so history survives an
-ordinary deletion. Bulk paths do not go through it — a cascading workspace or author
-deletion leaves an unarchived repository behind. The backstop is organization deletion,
+ordinary deletion. Saved queries archive on `transaction.on_commit` rather than inline,
+because archiving cannot be undone: done inside the transaction, a commit that failed
+afterwards would leave a read-only repository on a query that still exists, which no later
+save could recover from. The price is that the archiving itself is best-effort — a failure
+is logged and leaves the repository behind, since the query is already gone by then.
+
+Bulk paths do not go through `delete_if_has_perm` at all — a cascading workspace or author
+deletion leaves an unarchived repository behind, the same state. The backstop is organization deletion,
 which archives every repository in the org (`user_management.Organization._archive_git_org`).
 At current volumes this is accepted rather than solved; the fix, if it ever matters, is a
 sweep command, not a `post_delete` signal doing HTTP inside a cascade.

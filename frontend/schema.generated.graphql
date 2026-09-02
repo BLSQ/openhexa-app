@@ -2141,11 +2141,6 @@ type DeletePipelineVersionResult {
 enum DeleteSavedQueryError {
   PERMISSION_DENIED
   SAVED_QUERY_NOT_FOUND
-
-  """
-  The query's history could not be archived, so the query was not deleted. Retrying is safe.
-  """
-  VERSIONING_UNAVAILABLE
 }
 
 """Input for deleting a saved query."""

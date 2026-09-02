@@ -293,8 +293,6 @@ Errors that can occur when deleting a saved query.
 enum DeleteSavedQueryError {
   SAVED_QUERY_NOT_FOUND
   PERMISSION_DENIED
-  "The query's history could not be archived, so the query was not deleted. Retrying is safe."
-  VERSIONING_UNAVAILABLE
 }
 
 """

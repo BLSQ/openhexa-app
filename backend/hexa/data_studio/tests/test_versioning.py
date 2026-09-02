@@ -174,26 +174,39 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
         saved_query = self.create_saved_query()
         repository = saved_query.repository
 
-        saved_query.delete_if_has_perm(self.USER_EDITOR)
+        # Archiving is deferred to the commit, which a TestCase never reaches.
+        with self.captureOnCommitCallbacks(execute=True):
+            saved_query.delete_if_has_perm(self.USER_EDITOR)
 
         # Archived, not deleted: the history outlives the query.
         self.client_mock.archive_repository.assert_called_once_with(
             self.WORKSPACE.organization.slug, repository
         )
 
-    def test_delete_rolls_back_when_the_history_cannot_be_archived(self):
+    def test_nothing_is_archived_before_the_deletion_is_committed(self):
         saved_query = self.create_saved_query()
-        # Read before deleting: Django clears the pk of a deleted instance, and the
-        # rollback this test is about does not put it back.
+
+        # An archived repository is read-only and cannot be un-archived, so doing it
+        # while the deletion could still roll back would strand the query with a
+        # history it can no longer add to.
+        saved_query.delete_if_has_perm(self.USER_EDITOR)
+
+        self.client_mock.archive_repository.assert_not_called()
+
+    def test_a_history_that_cannot_be_archived_is_left_behind(self):
+        saved_query = self.create_saved_query()
         pk = saved_query.pk
         self.client_mock.archive_repository.side_effect = ForgejoAPIError(
             "POST", "/repos/x/y", 500
         )
 
-        with self.assertRaises(ForgejoAPIError):
+        with self.captureOnCommitCallbacks(execute=True):
             saved_query.delete_if_has_perm(self.USER_EDITOR)
 
-        self.assertTrue(SavedQuery.objects.filter(pk=pk).exists())
+        # The query is gone either way: by the time archiving runs there is no one
+        # left to report the failure to, and an unarchived repository is the state a
+        # cascading deletion leaves too.
+        self.assertFalse(SavedQuery.objects.filter(pk=pk).exists())
 
 
 class SavedQueryConcurrentEditTest(SavedQueryTestMixin, TestCase):
