@@ -114,6 +114,10 @@ _TITLE_MAX_CHARS = CONVERSATION_NAME_MAX_LENGTH
 
 def _validate_conversation_title(text: str) -> str:
     title = text.strip()
+    if not title:
+        raise ModelRetry(
+            "Title is empty; return a few words summarizing the topic of the message."
+        )
     words = title.split()
     if len(words) > _TITLE_MAX_WORDS or len(title) > _TITLE_MAX_CHARS:
         raise ModelRetry(

@@ -172,6 +172,11 @@ class ConversationTitleValidationTest(SimpleTestCase):
             _validate_conversation_title("a" * 51)
         self.assertIn("51 characters", str(ctx.exception))
 
+    def test_rejects_empty_title(self):
+        with self.assertRaises(ModelRetry) as ctx:
+            _validate_conversation_title("   ")
+        self.assertIn("empty", str(ctx.exception))
+
     def test_trim_cuts_to_word_budget(self):
         self.assertEqual(
             _trim_conversation_title("one two three four five six seven eight nine"),
@@ -229,4 +234,23 @@ class ConversationNamingTest(AgentTestCase):
         self.conversation.refresh_from_db()
         self.assertEqual(
             self.conversation.name, "one two three four five six seven eight"
+        )
+
+    def test_empty_title_retries_and_uses_second_attempt(self):
+        agent = BaseAgent(
+            self.conversation,
+            make_built_model(_make_naming_model("", "Tableau de bord alertes")),
+        )
+        run_agent(agent, "Améliore ce tableau de bord")
+        self.conversation.refresh_from_db()
+        self.assertEqual(self.conversation.name, "Tableau de bord alertes")
+
+    def test_empty_titles_fall_back_to_user_input_never_empty_name(self):
+        agent = BaseAgent(
+            self.conversation, make_built_model(_make_naming_model("   "))
+        )
+        run_agent(agent, "Améliore ce tableau de bord pour que les données soient lues")
+        self.conversation.refresh_from_db()
+        self.assertEqual(
+            self.conversation.name, "Améliore ce tableau de bord pour que les"
         )
