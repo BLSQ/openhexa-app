@@ -31,7 +31,12 @@ from pydantic_ai.output import TextOutput
 
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.model_builder import AiModelBuilder, BuiltModel
-from hexa.assistant.models import Conversation, Message, ToolInvocation
+from hexa.assistant.models import (
+    CONVERSATION_NAME_MAX_LENGTH,
+    Conversation,
+    Message,
+    ToolInvocation,
+)
 from hexa.assistant.sse_types import (
     ConversationNamePayload,
     DonePayload,
@@ -103,7 +108,8 @@ _NAMING_INSTRUCTIONS = (
 
 
 _TITLE_MAX_WORDS = 8
-_TITLE_MAX_CHARS = 50
+# Bound by the Conversation.name column, so a generated title always fits.
+_TITLE_MAX_CHARS = CONVERSATION_NAME_MAX_LENGTH
 
 
 def _validate_conversation_title(text: str) -> str:
