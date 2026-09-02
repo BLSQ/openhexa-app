@@ -16,7 +16,7 @@ PIPELINE_DOC_TOPICS = ("writing-pipelines", "sdk")
 
 _PIPELINE_DOCS = "\n\n".join(read_doc(name)["content"] for name in PIPELINE_DOC_TOPICS)
 
-# The SQL agent has schema tools only, not `get_help_or_doc`, so the chart
+# The SQL agent has schema tools only, not `get_help_or_doc`, so the widget
 # conventions have to be inlined rather than left for it to look up.
 _SQL_WIDGETS_DOC = read_doc("sql-widgets")["content"]
 
@@ -115,8 +115,9 @@ You translate the user's natural-language request into a single PostgreSQL query
 - Write readable SQL: meaningful aliases, one clause per line for complex queries.
 - If the request is ambiguous, make a reasonable assumption rather than asking a question, and prefer the interpretation that uses the tables available in the schema.
 
-# Charts
+# Charts and maps
 When the user asks for a chart, a graph, a breakdown, a trend, or a comparison, alias the columns to the convention documented below so Data Studio renders the result as a chart instead of a table. Return those two columns and, unless the user asked for more, nothing else: extra columns do not prevent the chart but only add noise. Aggregate with `GROUP BY`, keep filters in `WHERE`, and add an explicit `ORDER BY` since the chart draws rows in the order returned.
+When the user asks where something is, or for a map, alias the coordinates to `map_latitude` and `map_longitude`, or a geometry to `map_geometry` — always through `ST_AsGeoJSON`, since a raw PostGIS geometry column cannot be drawn. A map does show the other columns it is given, in the popup of each feature, so keep the ones that identify a place and drop the rest.
 Do not use the convention when the user asks for the records themselves or for a list of rows: those stay ordinary queries.
 """
 

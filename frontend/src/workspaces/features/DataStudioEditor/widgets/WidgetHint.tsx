@@ -3,17 +3,41 @@ import Tooltip from "core/components/Tooltip";
 import { useTranslation } from "next-i18next";
 import { SQL_WIDGETS_DOCS_URL } from "workspaces/helpers/dataStudio";
 import { ChartKind, CHART_CONVENTIONS } from "./chart";
+import { MAP_CONVENTIONS } from "./map";
 
-const ChartHint = () => {
+type MapKind = (typeof MAP_CONVENTIONS)[number]["kind"];
+
+const WidgetHint = () => {
   const { t } = useTranslation();
 
-  // The same keys the charts use for their own accessible names, so a chart type
-  // is not named two different ways in two places.
+  // The same keys the widgets use for their own accessible names, so a widget
+  // type is not named two different ways in two places.
   const kindLabels: Record<ChartKind, string> = {
     bar: t("Bar chart"),
     line: t("Line chart"),
     pie: t("Pie chart"),
   };
+
+  const mapLabels: Record<MapKind, string> = {
+    latlon: t("Point map"),
+    geometry: t("Shape map"),
+  };
+
+  // Charts and maps are one convention family to the reader — both are "name
+  // your columns this way and the result is drawn" — so they share one list,
+  // in the order the detection tries them.
+  const conventions = [
+    ...CHART_CONVENTIONS.map((convention) => ({
+      key: convention.kind as string,
+      columns: [convention.label, convention.value],
+      label: kindLabels[convention.kind],
+    })),
+    ...MAP_CONVENTIONS.map((convention) => ({
+      key: convention.kind as string,
+      columns: convention.columns,
+      label: mapLabels[convention.kind],
+    })),
+  ];
 
   return (
     <Tooltip
@@ -21,25 +45,23 @@ const ChartHint = () => {
       label={
         <div className="break-normal">
           <p className="mb-1.5 font-medium text-gray-700">
-            {t("Turn a result into a chart")}
+            {t("Turn a result into a chart or a map")}
           </p>
           <p className="mb-1.5">
             {t(
-              "Alias two columns to one of these pairs and the result is drawn as a chart, with the table one tab away:",
+              "Alias your columns to one of these sets and the result is drawn, with the table one tab away:",
             )}
           </p>
           <ul className="space-y-0.5">
-            {CHART_CONVENTIONS.map((convention) => (
+            {conventions.map((convention) => (
               <li
-                key={convention.kind}
+                key={convention.key}
                 className="flex items-baseline justify-between gap-4 whitespace-nowrap"
               >
                 <span className="font-mono text-gray-700">
-                  {convention.label}, {convention.value}
+                  {convention.columns.join(", ")}
                 </span>
-                <span className="text-gray-400">
-                  {kindLabels[convention.kind]}
-                </span>
+                <span className="text-gray-400">{convention.label}</span>
               </li>
             ))}
           </ul>
@@ -59,7 +81,7 @@ const ChartHint = () => {
             className="flex items-center gap-1 text-blue-600 hover:text-blue-500"
           >
             <ChartBarIcon className="h-3.5 w-3.5 shrink-0" />
-            {t("Chart this result")}
+            {t("Visualize this result")}
           </a>
         </span>
       )}
@@ -67,4 +89,4 @@ const ChartHint = () => {
   );
 };
 
-export default ChartHint;
+export default WidgetHint;
