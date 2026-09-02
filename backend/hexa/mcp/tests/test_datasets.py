@@ -144,50 +144,18 @@ class PreviewDatasetFileTest(MCPTestCase):
         file_sample = self.preview()["fileSample"]
         self.assertEqual(len(file_sample["sample"]), 2)
 
-    def test_preview_dataset_file_orders_sample_by_column_order(self):
+    def test_preview_dataset_file_returns_columns_without_properties(self):
         self.create_sample(2)
-        self.set_properties()
-
-        file_sample = self.preview()["fileSample"]
-        # jsonb sorts the stored keys by length, so "cases" comes back before "country"
-        self.assertEqual(list(file_sample["sample"][0]), ["country", "cases"])
-
-    def test_preview_dataset_file_keeps_unprofiled_columns(self):
-        DatasetFileSample.objects.create(
-            dataset_version_file=self.DATASET_FILE,
-            sample=[{"country": "c0", "cases": 0, "notes": "n0"}],
-            status=DatasetFileSample.STATUS_FINISHED,
-        )
-        self.set_properties()
-
-        file_sample = self.preview()["fileSample"]
-        self.assertEqual(list(file_sample["sample"][0]), ["country", "cases", "notes"])
-
-    def test_preview_dataset_file_drops_properties_and_columns(self):
-        self.create_sample(2)
-        self.set_properties()
-
-        result = self.preview()
-        self.assertNotIn("properties", result)
-        # the sample rows already name every column
-        self.assertNotIn("columns", result)
-
-    def test_preview_dataset_file_returns_columns_without_sample_rows(self):
-        DatasetFileSample.objects.create(
-            dataset_version_file=self.DATASET_FILE,
-            sample=[],
-            status=DatasetFileSample.STATUS_FINISHED,
-        )
         self.set_properties()
 
         result = self.preview()
         self.assertEqual(result["columns"], ["country", "cases"])
+        self.assertNotIn("properties", result)
 
     def test_preview_dataset_file_without_sample(self):
         result = self.preview()
         self.assertIsNone(result["fileSample"])
-        self.assertNotIn("columns", result)
-        self.assertNotIn("properties", result)
+        self.assertIsNone(result["columns"])
 
 
 class CreateDatasetTest(MCPTestCase):
