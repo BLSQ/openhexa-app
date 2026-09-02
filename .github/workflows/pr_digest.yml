@@ -1,0 +1,82 @@
+name: PR digest
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: pr-digest-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  digest:
+    name: Summarise the pull request
+    # Forked pull requests get no secrets and a read-only token.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          track_progress: true
+          use_sticky_comment: true
+          claude_args: |
+            --model claude-opus-5
+            --allowedTools "Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(printf:*),Bash(sha256sum:*)"
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Digest this pull request so the reviewer can go straight to what matters.
+            The branch is checked out: read the diff with `gh pr diff`, and open the
+            surrounding files — what matters is usually only visible against the code
+            that was already there. Rank everything by what breaks if it is wrong, not
+            by size or by the order files appear in the diff.
+
+            Every `path:line` you cite must be a link straight to that line of the diff:
+
+                [path:line](${{ github.event.pull_request.html_url }}/files#diff-<hash>R<line>)
+
+            where `<hash>` is the SHA-256 of the file path, from
+            `printf '%s' 'backend/hexa/…/models.py' | sha256sum`. `R` is the new side of
+            the diff; use `L<line>` when you cite a line the PR deleted. If the hash
+            command is unavailable, link to
+            `${{ github.server_url }}/${{ github.repository }}/blob/${{ github.event.pull_request.head.sha }}/path#L<line>`
+            instead — never leave a bare `path:line` unlinked.
+
+            **Start here** — up to 3 numbered pointers, each citing `path:line` and one
+            line on what to check there. This is the section that saves the reviewer's
+            time, so spend your judgment here: the riskiest line in the diff goes
+            first. Migrations that rewrite data or change grants, anything filtering
+            rows per user, permission and auth logic, and contracts both tiers assert
+            against outrank everything else.
+
+            **Key changes** — one bullet each, only when the diff has them: dependency
+            choices, model changes, DB migrations, new tools or services.
+
+            **Decisions** — the judgment calls behind the diff, and be demanding here:
+            this is the section a reviewer cannot reconstruct on their own. A decision
+            is a fork in the road where a competent engineer could have gone the other
+            way, so name the road not taken and what it would have cost. "Added a
+            field" is not a decision; "widened the existing model instead of a
+            separate table, so every existing row now carries the column" is. Look for
+            state put in a new place, a constraint enforced in one layer rather than
+            another, a dependency added where the repo already had something close, a
+            migration that backfills instead of defaulting, an abstraction introduced
+            before the second caller exists, error handling that swallows rather than
+            propagates. Say which choices look wrong and why. If the diff genuinely
+            made no interesting choice, write one line saying so — a padded list is
+            worse than an empty one.
+
+            **File map** — table of the files that matter: file, what changed, and
+            🔴 critical / 🟡 worth a look / ⚪ routine. Collapse the routine files into
+            one row, and leave out generated files (`requirements.txt`,
+            `*.generated.tsx`, `schema.generated.graphql`, lockfiles, snapshots).
+
+            Judge the choices, not the style. Under 400 words, and drop any section
+            with nothing genuine in it. Change no files.
