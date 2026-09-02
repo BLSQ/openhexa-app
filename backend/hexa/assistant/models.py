@@ -21,6 +21,8 @@ from hexa.core.models.soft_delete import (
 from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
+CONVERSATION_NAME_MAX_LENGTH = 50
+
 
 class ConversationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     def filter_for_user(self, user: User):
@@ -65,7 +67,9 @@ class Conversation(SoftDeletedModel, Base):
     )
     linked_object_id = models.UUIDField(null=True, blank=True)
     linked_object = GenericForeignKey("linked_object_content_type", "linked_object_id")
-    name = models.CharField(max_length=50, null=True, blank=True)
+    name = models.CharField(
+        max_length=CONVERSATION_NAME_MAX_LENGTH, null=True, blank=True
+    )
     instruction_set = models.CharField(
         max_length=50,
         choices=InstructionSet.choices,

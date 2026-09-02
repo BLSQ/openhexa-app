@@ -96,3 +96,22 @@ def _make_zipfile(*files: tuple[str, str]) -> bytes:
         for name, content in files:
             zf.writestr(name, content)
     return buf.getvalue()
+
+
+def _make_naming_model(*titles: str) -> FunctionModel:
+    """Model whose non-streamed calls return `titles` in order, repeating the last one.
+
+    Only the naming agent issues non-streamed requests, so the counter tracks its
+    attempts alone; the main agent is served by `stream_function`.
+    """
+    calls = []
+
+    def func(messages: list, agent_info: AgentInfo) -> ModelResponse:
+        index = min(len(calls), len(titles) - 1)
+        calls.append(1)
+        return ModelResponse(parts=[TextPart(content=titles[index])])
+
+    async def stream_func(messages, agent_info):
+        yield "Reply"
+
+    return FunctionModel(func, stream_function=stream_func)
