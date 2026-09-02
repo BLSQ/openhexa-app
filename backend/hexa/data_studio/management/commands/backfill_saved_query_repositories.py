@@ -4,7 +4,6 @@ from django.core.management.base import BaseCommand
 
 from hexa.data_studio.models import SavedQuery
 from hexa.git.exceptions import GitError
-from hexa.git.forgejo import ForgejoAPIError
 
 # Queries whose author's account was deleted have no user to credit the initial commit
 # to. Only `display_name` and `email` are read from it (see GitRepoMixin.create_repo),
@@ -49,7 +48,7 @@ class Command(BaseCommand):
                 continue
             try:
                 saved_query.ensure_repo(saved_query.created_by or SYSTEM_AUTHOR)
-            except (ForgejoAPIError, GitError) as e:
+            except GitError as e:
                 failed += 1
                 self.stderr.write(self.style.ERROR(f"failed {saved_query.slug}: {e}"))
                 continue
@@ -77,7 +76,7 @@ class Command(BaseCommand):
                 continue
             try:
                 head = saved_query.get_version_content()
-            except (ForgejoAPIError, GitError) as e:
+            except GitError as e:
                 unreadable += 1
                 self.stderr.write(
                     self.style.ERROR(f"unreadable {saved_query.slug}: {e}")

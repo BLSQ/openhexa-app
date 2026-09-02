@@ -18,7 +18,6 @@ from hexa.core.graphql import result_page
 from hexa.databases.query_text import MultipleStatementsError
 from hexa.databases.schema import database_object
 from hexa.git.exceptions import GitError
-from hexa.git.forgejo import ForgejoAPIError
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
@@ -277,7 +276,7 @@ def resolve_create_saved_query(_, info, **kwargs):
     # Recording the first version is part of creating the query, so a git failure
     # leaves nothing behind (the transaction rolls back) and is reported as such,
     # rather than as a saved query with no history.
-    except (ForgejoAPIError, GitError):
+    except GitError:
         logger.exception("Could not record the first version of a saved query")
         return {"success": False, "errors": ["VERSIONING_UNAVAILABLE"]}
 
@@ -302,7 +301,7 @@ def resolve_update_saved_query(_, info, **kwargs):
     # The alternative to failing the edit would be keeping the new content with a hole
     # in its history, which nothing afterwards could tell apart from a query nobody
     # edited. Rolled back instead, so a retry records both the change and its version.
-    except (ForgejoAPIError, GitError):
+    except GitError:
         logger.exception("Could not record a new version of a saved query")
         return {"success": False, "errors": ["VERSIONING_UNAVAILABLE"]}
 
@@ -322,7 +321,7 @@ def resolve_delete_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
-    except (ForgejoAPIError, GitError):
+    except GitError:
         logger.exception("Could not archive the history of a saved query")
         return {"success": False, "errors": ["VERSIONING_UNAVAILABLE"]}
 

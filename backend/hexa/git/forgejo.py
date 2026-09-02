@@ -6,7 +6,7 @@ from django.conf import settings
 
 from hexa.git.client import GitClient
 from hexa.git.enums import FileEncoding
-from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
+from hexa.git.exceptions import GitError, GitFileNotFound, GitFileTooLarge
 
 MAX_INLINE_BLOB_SIZE = 10 * 1024 * 1024
 
@@ -26,7 +26,14 @@ def _commit_summary(payload: dict, *, fallback_id: str = "") -> dict:
     }
 
 
-class ForgejoAPIError(Exception):
+class ForgejoAPIError(GitError):
+    """A Forgejo call came back with an unexpected status.
+
+    A `GitError` like the rest, so a caller that only needs "git is not answering"
+    can say so without importing this backend; the status code is here for the few
+    that act on a specific one.
+    """
+
     def __init__(self, method: str, url: str, status_code: int, detail: str = ""):
         self.method = method
         self.url = url

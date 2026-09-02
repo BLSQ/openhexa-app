@@ -281,6 +281,33 @@ class SavedQueryConcurrentEditTest(SavedQueryTestMixin, TestCase):
         self.assertEqual("SELECT 1", reloaded.content)
         self.client_mock.commit_files.assert_called_once()
 
+    def test_an_edit_leaves_the_fields_it_does_not_touch_alone(self):
+        # An edit sending only some of the fields must not carry the rest along from
+        # the copy it was working on: that would revert someone else's change without
+        # recording a version of the revert, which is the one thing the version this
+        # query is on could not then be trusted about.
+        self._someone_else_saves(content="SELECT 99")
+
+        self.saved_query.update_if_has_perm(self.USER_EDITOR, name="New name")
+
+        reloaded = SavedQuery.objects.get(pk=self.saved_query.pk)
+        self.assertEqual("New name", reloaded.name)
+        self.assertEqual("SELECT 99", reloaded.content)
+        self.assertEqual(SHA_SECOND, reloaded.last_commit)
+        self.client_mock.commit_files.assert_not_called()
+
+    def test_resharing_a_query_someone_else_edited_leaves_their_edit_alone(self):
+        self._someone_else_saves(content="SELECT 99")
+
+        # Unsharing goes through the same save, and the editor authored this query so
+        # the stricter permission is theirs.
+        self.saved_query.update_if_has_perm(self.USER_EDITOR, visibility="PRIVATE")
+
+        reloaded = SavedQuery.objects.get(pk=self.saved_query.pk)
+        self.assertEqual("PRIVATE", reloaded.visibility)
+        self.assertEqual("SELECT 99", reloaded.content)
+        self.assertEqual(SHA_SECOND, reloaded.last_commit)
+
 
 class SavedQueryHistoryReadTest(SavedQueryTestMixin, TestCase):
     def setUp(self):

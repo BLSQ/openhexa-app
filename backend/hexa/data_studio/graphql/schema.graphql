@@ -129,6 +129,12 @@ type SavedQuery {
 # nothing here exposes that history yet: the fields to read it land with the UI that
 # browses it, so their shape can be settled by what that UI actually needs. The model
 # already answers `get_versions`, `get_version_content` and `get_commit_diff`.
+#
+# One consequence to know about: nothing here yet reports which version a query is on,
+# so `UpdateSavedQueryInput.expectedVersion` has no value a client could send and
+# VERSION_CONFLICT is unreachable until the field to read it lands with that UI. The
+# backend half is here and tested because the two belong in one place; omitting the
+# argument is the supported behaviour meanwhile, not a fallback.
 
 """
 Permissions of a saved query.
