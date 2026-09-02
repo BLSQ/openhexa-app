@@ -1,9 +1,10 @@
-from asgiref.sync import async_to_sync
 from decimal import Decimal
+from unittest.mock import MagicMock, patch
+
+from asgiref.sync import async_to_sync
 from django.test import SimpleTestCase
 from pydantic_ai import ModelRetry
 from pydantic_ai.models.test import TestModel
-from unittest.mock import MagicMock, patch
 
 from hexa.assistant.agents.base import (
     BaseAgent,
