@@ -577,11 +577,14 @@ class BaseAgent:
         try:
             result = await naming_agent.run(prompt, usage=usage)
             return result.output.strip()[:_TITLE_MAX_CHARS], usage
-        except Exception:
-            logger.warning(
-                "agent.run: conversation naming failed, falling back to truncation"
-            )
+        except Exception as exc:
             fallback = last_candidate or user_input
+            fallback_source = "model candidate" if last_candidate else "user input"
+            logger.warning(
+                "agent.run: conversation naming failed (%s), falling back to trimmed %s",
+                type(exc).__name__,
+                fallback_source,
+            )
             return _trim_conversation_title(fallback), usage
 
     def _get_cost(self, usage: RunUsage) -> Decimal | None:
