@@ -627,8 +627,10 @@ VERTEX_REGION = os.environ.get("VERTEX_REGION", "europe-west1")
 
 # Logical model (an AiSettings.Model value) for small "utility agents" such as
 # conversation naming, which do not need the organization's main model. Blank
-# keeps them on the main model.
-ASSISTANT_UTILITY_MODEL = os.environ.get("ASSISTANT_UTILITY_MODEL", "")
+# keeps them on the main model. Haiku named every prompt in
+# `benchmark_conversation_naming` on the first attempt at ~20% of Opus's cost;
+# re-run that command before changing this.
+ASSISTANT_UTILITY_MODEL = os.environ.get("ASSISTANT_UTILITY_MODEL", "haiku")
 
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"
