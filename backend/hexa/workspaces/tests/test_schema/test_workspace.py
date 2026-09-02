@@ -28,6 +28,7 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class WorkspaceTest(GraphQLTestCase):
@@ -125,24 +126,20 @@ class WorkspaceTest(GraphQLTestCase):
             role=OrganizationMembershipRole.ADMIN,
         )
 
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            cls.WORKSPACE = Workspace.objects.create_if_has_perm(
-                cls.USER_JULIA,
-                name="Senegal Workspace",
-                description="This is a workspace for Senegal",
-                countries=[{"code": "AL"}],
-                organization=cls.ORGANIZATION,
-            )
-            cls.WORKSPACE_2 = Workspace.objects.create_if_has_perm(
-                cls.USER_JULIA,
-                name="Burundi Workspace",
-                description="This is a workspace for Burundi",
-                countries=[{"code": "AD"}],
-                organization=cls.ORGANIZATION_2,
-            )
+        cls.WORKSPACE = create_workspace(
+            cls.USER_JULIA,
+            name="Senegal Workspace",
+            description="This is a workspace for Senegal",
+            countries=[{"code": "AL"}],
+            organization=cls.ORGANIZATION,
+        )
+        cls.WORKSPACE_2 = create_workspace(
+            cls.USER_JULIA,
+            name="Burundi Workspace",
+            description="This is a workspace for Burundi",
+            countries=[{"code": "AD"}],
+            organization=cls.ORGANIZATION_2,
+        )
 
         cls.WORKSPACE_MEMBERSHIP = WorkspaceMembership.objects.create(
             user=cls.USER_REBECCA,
@@ -196,6 +193,15 @@ class WorkspaceTest(GraphQLTestCase):
             role=WorkspaceMembershipRole.VIEWER,
             status=WorkspaceInvitationStatus.ACCEPTED,
         )
+
+    def setUp(self):
+        super().setUp()
+        # The createWorkspace mutation provisions a workspace database, and a
+        # CREATE DATABASE is not rolled back with the test transaction. No test
+        # here queries that database, so it never needs to exist.
+        patcher = patch("hexa.workspaces.models.create_database")
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def test_create_workspace_denied(self):
         self.client.force_login(self.USER_SABRINA)
@@ -262,83 +268,75 @@ class WorkspaceTest(GraphQLTestCase):
 
     def test_create_workspace_as_workspace_admin(self):
         """Test that a workspace admin (not org admin) can create workspaces"""
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
-            r = self.run_query(
-                """
-                mutation createWorkspace($input:CreateWorkspaceInput!) {
-                    createWorkspace(input: $input) {
-                        success
-                        workspace {
-                            name
-                            description
-                        }
-                        errors
+        self.client.force_login(self.USER_WORKSPACE_ADMIN_ONLY)
+        r = self.run_query(
+            """
+            mutation createWorkspace($input:CreateWorkspaceInput!) {
+                createWorkspace(input: $input) {
+                    success
+                    workspace {
+                        name
+                        description
                     }
+                    errors
                 }
-                """,
-                {
-                    "input": {
-                        "name": "New Workspace by WS Admin",
-                        "description": "Created by workspace admin",
-                        "organizationId": str(self.ORGANIZATION.id),
-                    }
+            }
+            """,
+            {
+                "input": {
+                    "name": "New Workspace by WS Admin",
+                    "description": "Created by workspace admin",
+                    "organizationId": str(self.ORGANIZATION.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "workspace": {
+                    "name": "New Workspace by WS Admin",
+                    "description": "Created by workspace admin",
                 },
-            )
-            self.assertEqual(
-                {
-                    "success": True,
-                    "workspace": {
-                        "name": "New Workspace by WS Admin",
-                        "description": "Created by workspace admin",
-                    },
-                    "errors": [],
-                },
-                r["data"]["createWorkspace"],
-            )
+                "errors": [],
+            },
+            r["data"]["createWorkspace"],
+        )
 
     def test_create_workspace_as_org_member(self):
         """Test that any organization member can create workspaces"""
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
-            r = self.run_query(
-                """
-                mutation createWorkspace($input:CreateWorkspaceInput!) {
-                    createWorkspace(input: $input) {
-                        success
-                        workspace {
-                            name
-                            description
-                        }
-                        errors
+        self.client.force_login(self.USER_WORKSPACE_EDITOR_ONLY)
+        r = self.run_query(
+            """
+            mutation createWorkspace($input:CreateWorkspaceInput!) {
+                createWorkspace(input: $input) {
+                    success
+                    workspace {
+                        name
+                        description
                     }
+                    errors
                 }
-                """,
-                {
-                    "input": {
-                        "name": "New Workspace by Org Member",
-                        "description": "Created by org member",
-                        "organizationId": str(self.ORGANIZATION.id),
-                    }
+            }
+            """,
+            {
+                "input": {
+                    "name": "New Workspace by Org Member",
+                    "description": "Created by org member",
+                    "organizationId": str(self.ORGANIZATION.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspace": {
+                    "name": "New Workspace by Org Member",
+                    "description": "Created by org member",
                 },
-            )
-            self.assertEqual(
-                {
-                    "success": True,
-                    "errors": [],
-                    "workspace": {
-                        "name": "New Workspace by Org Member",
-                        "description": "Created by org member",
-                    },
-                },
-                r["data"]["createWorkspace"],
-            )
+            },
+            r["data"]["createWorkspace"],
+        )
 
     def test_create_workspace_prevent_create(self):
         FeatureFlag.objects.create(
@@ -403,7 +401,6 @@ class WorkspaceTest(GraphQLTestCase):
 
     def test_create_workspace_with_demo_data(self):
         with (
-            patch("hexa.workspaces.models.create_database"),
             patch(
                 "hexa.workspaces.models.load_database_sample_data"
             ) as mocked_load_database_sample,
@@ -454,7 +451,6 @@ class WorkspaceTest(GraphQLTestCase):
 
     def test_create_workspace_without_demo_data(self):
         with (
-            patch("hexa.workspaces.models.create_database"),
             patch(
                 "hexa.workspaces.models.load_database_sample_data"
             ) as mocked_load_database_sample,
@@ -503,49 +499,45 @@ class WorkspaceTest(GraphQLTestCase):
             self.assertFalse(mocked_load_database_sample.called)
 
     def test_create_workspace_with_country(self):
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            self.client.force_login(self.USER_JULIA)
-            r = self.run_query(
-                """
-            mutation createWorkspace($input:CreateWorkspaceInput!) {
-                createWorkspace(input: $input) {
-                    success
-                    workspace {
-                        name
-                        description
-                        countries {
-                          code
-                        }
+        self.client.force_login(self.USER_JULIA)
+        r = self.run_query(
+            """
+        mutation createWorkspace($input:CreateWorkspaceInput!) {
+            createWorkspace(input: $input) {
+                success
+                workspace {
+                    name
+                    description
+                    countries {
+                      code
                     }
-
-                    errors
                 }
+
+                errors
             }
-            """,
-                {
-                    "input": {
-                        "name": "Cameroon workspace",
-                        "description": "Description",
-                        "countries": [{"code": "AD"}],
-                        "organizationId": str(self.ORGANIZATION.id),
-                    }
+        }
+        """,
+            {
+                "input": {
+                    "name": "Cameroon workspace",
+                    "description": "Description",
+                    "countries": [{"code": "AD"}],
+                    "organizationId": str(self.ORGANIZATION.id),
+                }
+            },
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "workspace": {
+                    "name": "Cameroon workspace",
+                    "description": "Description",
+                    "countries": [{"code": "AD"}],
                 },
-            )
-            self.assertEqual(
-                {
-                    "success": True,
-                    "errors": [],
-                    "workspace": {
-                        "name": "Cameroon workspace",
-                        "description": "Description",
-                        "countries": [{"code": "AD"}],
-                    },
-                },
-                r["data"]["createWorkspace"],
-            )
+            },
+            r["data"]["createWorkspace"],
+        )
 
     def test_get_workspace_not_member(self):
         self.client.force_login(self.USER_SABRINA)
@@ -726,8 +718,6 @@ class WorkspaceTest(GraphQLTestCase):
             r["data"]["deleteWorkspace"],
         )
 
-    # @patch("hexa.workspaces.models.delete_database")
-    # def test_delete_workspace(self, mock_delete_database):
     def test_delete_workspace(self):
         previous_db_password = self.WORKSPACE.db_password
         previous_db_ro_password = self.WORKSPACE.db_ro_password
@@ -749,7 +739,6 @@ class WorkspaceTest(GraphQLTestCase):
                     }
                 },
             )
-        # self.assertTrue(mock_delete_database.called)
         self.assertEqual(
             {
                 "success": True,
@@ -1358,16 +1347,12 @@ class WorkspaceTest(GraphQLTestCase):
                 )
 
     def test_workspaces_list_membership_queries_do_not_grow_with_page(self):
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            for i in range(3):
-                Workspace.objects.create_if_has_perm(
-                    self.USER_JULIA,
-                    name=f"Extra Workspace {i}",
-                    organization=self.ORGANIZATION,
-                )
+        for i in range(3):
+            create_workspace(
+                self.USER_JULIA,
+                name=f"Extra Workspace {i}",
+                organization=self.ORGANIZATION,
+            )
 
         self.client.force_login(self.USER_JULIA)
         with CaptureQueriesContext(connection) as captured:

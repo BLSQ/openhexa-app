@@ -13,9 +13,7 @@ from hexa.user_management.models import (
     OrganizationMembershipRole,
     User,
 )
-from hexa.workspaces.models import (
-    Workspace,
-)
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class DatasetsOrganizationPermissionsTest(TestCase):
@@ -59,7 +57,7 @@ class DatasetsOrganizationPermissionsTest(TestCase):
             role=OrganizationMembershipRole.MEMBER,
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_WORKSPACE_ADMIN,
             name="Test Workspace",
             description="Test workspace for datasets permissions",

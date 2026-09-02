@@ -121,12 +121,13 @@ class PipelinesCopierRemoteTest(SimpleTestCase):
             any("notebookPath" in w for w in self.result.pipelines.warnings)
         )
 
+    @patch("hexa.workspace_copier.resources.pipelines._copy_notebook_file")
     @patch("hexa.workspace_copier.resources.pipelines._list_target_codes")
     @patch("hexa.workspace_copier.resources.pipelines._create_on_target")
     @patch("hexa.workspace_copier.resources.pipelines._fetch_source_detail")
     @patch("hexa.workspace_copier.resources.pipelines._list_source_pipelines")
     def test_failed_pipeline_is_recorded_and_does_not_abort(
-        self, mock_list, mock_detail, mock_create, mock_target_codes
+        self, mock_list, mock_detail, mock_create, mock_target_codes, mock_notebook
     ):
         mock_list.return_value = [
             ("pid-1", "bad-one", "bad-one"),

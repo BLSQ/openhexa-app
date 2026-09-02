@@ -8,10 +8,10 @@ from hexa.user_management.models import (
 from hexa.webapps.models import Webapp
 from hexa.webapps.permissions import create_webapp, delete_webapp, update_webapp
 from hexa.workspaces.models import (
-    Workspace,
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import create_workspace
 
 
 class WebappsOrganizationPermissionsTest(TestCase):
@@ -58,7 +58,7 @@ class WebappsOrganizationPermissionsTest(TestCase):
             role=OrganizationMembershipRole.MEMBER,
         )
 
-        cls.WORKSPACE = Workspace.objects.create_if_has_perm(
+        cls.WORKSPACE = create_workspace(
             cls.USER_WORKSPACE_ADMIN,
             name="Test Workspace",
             description="Test workspace for webapps permissions",

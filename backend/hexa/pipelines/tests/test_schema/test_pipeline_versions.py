@@ -1,7 +1,6 @@
 import base64
 import io
 import zipfile
-from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
 from hexa.pipelines.models import Pipeline, PipelineVersion
@@ -39,15 +38,11 @@ class PipelineVersionsTest(GraphQLTestCase):
             "standardpassword",
         )
 
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            cls.WORKSPACE = create_workspace(
-                cls.USER_ROOT,
-                name="WS1",
-                description="Workspace 1",
-            )
+        cls.WORKSPACE = create_workspace(
+            cls.USER_ROOT,
+            name="WS1",
+            description="Workspace 1",
+        )
         cls.WORKSPACE_MEMBERSHIP_1 = WorkspaceMembership.objects.create(
             workspace=cls.WORKSPACE,
             user=cls.USER_ADMIN,
@@ -657,15 +652,11 @@ class UploadPipelineFilesInputTest(GraphQLTestCase):
             "admin-files@bluesquarehub.com",
             "standardpassword",
         )
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            cls.WORKSPACE = create_workspace(
-                cls.USER_ROOT,
-                name="WS Files",
-                description="Files-input workspace",
-            )
+        cls.WORKSPACE = create_workspace(
+            cls.USER_ROOT,
+            name="WS Files",
+            description="Files-input workspace",
+        )
         WorkspaceMembership.objects.create(
             workspace=cls.WORKSPACE,
             user=cls.USER_ADMIN,

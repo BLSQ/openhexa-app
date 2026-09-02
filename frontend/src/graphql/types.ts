@@ -528,6 +528,7 @@ export enum AssistantToolName {
   GetHelpOrDoc = 'get_help_or_doc',
   GetPipeline = 'get_pipeline',
   GetStaticWebappFile = 'get_static_webapp_file',
+  GetWorkspace = 'get_workspace',
   ListConnections = 'list_connections',
   ListDatasets = 'list_datasets',
   ListFiles = 'list_files',
@@ -2351,6 +2352,7 @@ export type DisableTwoFactorResult = {
 /** Represents the error message for a web app file edit. */
 export enum EditWebappFileError {
   BinaryFile = 'BINARY_FILE',
+  FileTooLarge = 'FILE_TOO_LARGE',
   NoChange = 'NO_CHANGE',
   PathNotFound = 'PATH_NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED',
@@ -2513,6 +2515,8 @@ export type FileNode = {
   name: Scalars['String']['output'];
   parentId?: Maybe<Scalars['String']['output']>;
   path: Scalars['String']['output'];
+  size?: Maybe<Scalars['Int']['output']>;
+  tooLarge?: Maybe<Scalars['Boolean']['output']>;
   type: FileType;
 };
 
@@ -3973,6 +3977,8 @@ export type Organization = {
   url: Scalars['String']['output'];
   /** Current resource usage counts. */
   usage: ResourceCounts;
+  /** The tags assigned to the workspaces of the organization, used to filter them. */
+  workspaceTags: Array<Scalars['String']['output']>;
   /** The workspaces associated with the organization. */
   workspaces: WorkspacePage;
 };
@@ -5224,6 +5230,7 @@ export type QueryWorkspacesArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export enum ReadFileContentError {
@@ -5246,6 +5253,7 @@ export type ReadFileContentResult = {
 /** Represents the error message for reading a web app file. */
 export enum ReadWebappFileError {
   BinaryFile = 'BINARY_FILE',
+  FileTooLarge = 'FILE_TOO_LARGE',
   PathNotFound = 'PATH_NOT_FOUND',
   WebappsNotConfigured = 'WEBAPPS_NOT_CONFIGURED',
   WebappNotFound = 'WEBAPP_NOT_FOUND'
@@ -6517,6 +6525,7 @@ export type UpdateWebappSourceInput =
 
 /** Enum representing the possible errors that can occur when updating a workspace. */
 export enum UpdateWorkspaceError {
+  InvalidTag = 'INVALID_TAG',
   NotFound = 'NOT_FOUND',
   PermissionDenied = 'PERMISSION_DENIED'
 }
@@ -6529,6 +6538,7 @@ export type UpdateWorkspaceInput = {
   dockerImage?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   slug: Scalars['String']['input'];
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 /** Enum representing the possible errors that can occur when updating a workspace member. */
@@ -6829,6 +6839,7 @@ export type Workspace = {
   savedQueries: SavedQueryPage;
   shortcuts: Array<ShortcutItem>;
   slug: Scalars['String']['output'];
+  tags: Array<Tag>;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   webappsEnabled: Scalars['Boolean']['output'];
 };
@@ -6971,6 +6982,7 @@ export type WorkspacePermissions = {
   generateToken: Scalars['Boolean']['output'];
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
+  manageTags: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 

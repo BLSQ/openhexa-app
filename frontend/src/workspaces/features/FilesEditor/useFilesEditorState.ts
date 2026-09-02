@@ -10,9 +10,11 @@ interface UseFilesEditorStateParams {
   flatFiles: FilesEditor_FileFragment[];
   isEditable: boolean;
   proposedFiles?: ProposedFile[];
+  proposedDeletedPaths?: string[];
   onSave?: (
     modifiedFiles: Map<string, string>,
     allFiles: FilesEditor_FileFragment[],
+    deletedPaths: string[],
   ) => Promise<SaveResult>;
 }
 
@@ -20,6 +22,7 @@ export const useFilesEditorState = ({
   flatFiles,
   isEditable,
   proposedFiles,
+  proposedDeletedPaths,
   onSave,
 }: UseFilesEditorStateParams) => {
   const [isPanelOpen, setIsPanelOpen] = useFilesEditorPanelOpen();
@@ -27,6 +30,10 @@ export const useFilesEditorState = ({
   const [modifiedFiles, setModifiedFiles] = useState<Map<string, string>>(
     new Map(),
   );
+  const [userDeletedPaths, setUserDeletedPaths] = useState<Set<string>>(
+    new Set(),
+  );
+  const [restoredPaths, setRestoredPaths] = useState<Set<string>>(new Set());
   const [currentFileContent, setCurrentFileContent] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -113,21 +120,13 @@ export const useFilesEditorState = ({
     [files],
   );
 
-  // Files present in the current version but absent from the proposal — the agent wants them deleted.
-  const proposedDeletions = useMemo<Set<string>>(() => {
-    if (!proposedFiles) return new Set();
-    const proposedNames = new Set(proposedFiles.map((f) => f.name));
-    return new Set(
-      flatFiles
-        .filter(
-          (f) =>
-            f.type === FileType.File &&
-            !proposedNames.has(f.path) &&
-            f.encoding !== FileEncoding.Base64,
-        )
-        .map((f) => f.path),
-    );
-  }, [proposedFiles, flatFiles]);
+  // Deletions the agent asked for, by path. Never inferred from a file's absence in the
+  // proposal: the proposal only ever carries inlined text, so absence also describes every
+  // binary file and every file too large to inline.
+  const proposedDeletions = useMemo<Set<string>>(
+    () => new Set(proposedDeletedPaths ?? []),
+    [proposedDeletedPaths],
+  );
 
   // Maps file path → proposed content, but only for files that differ from the current version.
   // Unchanged files are excluded so they don't trigger diff highlighting or amber dots.
@@ -141,12 +140,19 @@ export const useFilesEditorState = ({
       }
     }
     for (const path of Array.from(proposedDeletions)) {
-      map.set(path, "");
+      const existing = flatFiles.find((f) => f.path === path);
+      // Binary and too-large files have no inlined text to diff; the tree strikethrough
+      // is the only affordance they need.
+      if (existing?.encoding !== FileEncoding.Text || existing.tooLarge)
+        continue;
+      if (!restoredPaths.has(path)) map.set(path, "");
     }
     return map;
-  }, [proposedFiles, flatFiles, proposedDeletions]);
+  }, [proposedFiles, flatFiles, proposedDeletions, restoredPaths]);
 
-  // Subset of proposedDeletions where the user hasn't overridden the deletion by editing.
+  // Deletions that are still pending: files the agent dropped from its proposal (unless the
+  // user overrode the deletion by editing them) plus files the user removed from the tree,
+  // minus the ones the user explicitly restored.
   const effectivelyDeletedPaths = useMemo<Set<string>>(() => {
     const result = new Set<string>();
     for (const path of Array.from(proposedDeletions)) {
@@ -155,8 +161,20 @@ export const useFilesEditorState = ({
         result.add(path);
       }
     }
+    for (const path of Array.from(userDeletedPaths)) {
+      result.add(path);
+    }
+    for (const path of Array.from(restoredPaths)) {
+      result.delete(path);
+    }
     return result;
-  }, [proposedDeletions, modifiedFiles, flatFiles]);
+  }, [
+    proposedDeletions,
+    modifiedFiles,
+    flatFiles,
+    userDeletedPaths,
+    restoredPaths,
+  ]);
 
   // Folders where every file descendant is effectively deleted.
   const effectivelyDeletedFolderPaths = useMemo<Set<string>>(() => {
@@ -198,6 +216,8 @@ export const useFilesEditorState = ({
 
   useEffect(() => {
     setModifiedFiles(new Map());
+    setUserDeletedPaths(new Set());
+    setRestoredPaths(new Set());
   }, [flatFiles]);
 
   const prevProposedFilesRef = useRef<ProposedFile[] | undefined>(undefined);
@@ -207,6 +227,7 @@ export const useFilesEditorState = ({
 
     if (prev && !proposedFiles) {
       setModifiedFiles(new Map());
+      setRestoredPaths(new Set());
       return;
     }
     if (!proposedFiles) return;
@@ -241,7 +262,12 @@ export const useFilesEditorState = ({
       // lines removed. handleContentChange will overwrite this if the user edits.
       for (const path of Array.from(proposedDeletions)) {
         const existing = flatFiles.find((f) => f.path === path);
-        if (existing && !next.has(existing.id)) {
+        if (
+          existing &&
+          existing.encoding === FileEncoding.Text &&
+          !existing.tooLarge &&
+          !next.has(existing.id)
+        ) {
           next.set(existing.id, "");
         }
       }
@@ -256,9 +282,77 @@ export const useFilesEditorState = ({
     }
   }, [selectedFile, modifiedFiles]);
 
+  const pendingModifiedFiles = useMemo(() => {
+    const next = new Map(modifiedFiles);
+    for (const path of Array.from(effectivelyDeletedPaths)) {
+      const file = flatFiles.find((f) => f.path === path);
+      next.delete(file ? file.id : path);
+    }
+    return next;
+  }, [modifiedFiles, effectivelyDeletedPaths, flatFiles]);
+
+  const hasPendingChanges =
+    pendingModifiedFiles.size > 0 || effectivelyDeletedPaths.size > 0;
+
   useNavigationWarning({
-    enabled: isEditable && modifiedFiles.size > 0,
+    enabled: isEditable && hasPendingChanges,
   });
+
+  const collectDeletablePaths = (node: FileNode): string[] => {
+    if (node.type === FileType.File) return [node.path];
+    return augmentedFlatFiles
+      .filter(
+        (f) => f.type === FileType.File && f.path.startsWith(node.path + "/"),
+      )
+      .map((f) => f.path);
+  };
+
+  const markDeleted = (node: FileNode) => {
+    if (!isEditable) return;
+    const paths = collectDeletablePaths(node);
+    if (paths.length === 0) return;
+    setRestoredPaths((prev) => {
+      const next = new Set(prev);
+      paths.forEach((path) => next.delete(path));
+      return next;
+    });
+    setUserDeletedPaths((prev) => {
+      const next = new Set(prev);
+      paths.forEach((path) => next.add(path));
+      return next;
+    });
+    // Select a deleted file so the pane shows the deletion notice and the save button.
+    const target =
+      node.type === FileType.File
+        ? node
+        : (files.find((f) => f.path === paths[0]) ?? null);
+    if (target) setSelectedFile(target);
+  };
+
+  const restoreDeleted = (node: FileNode) => {
+    const paths = collectDeletablePaths(node);
+    if (paths.length === 0) return;
+    setUserDeletedPaths((prev) => {
+      const next = new Set(prev);
+      paths.forEach((path) => next.delete(path));
+      return next;
+    });
+    setRestoredPaths((prev) => {
+      const next = new Set(prev);
+      paths.forEach((path) => next.add(path));
+      return next;
+    });
+    setModifiedFiles((prev) => {
+      const next = new Map(prev);
+      for (const path of paths) {
+        const file = flatFiles.find((f) => f.path === path);
+        // Drop the "" marker seeded for an agent-proposed deletion, otherwise restoring
+        // the file would save it empty.
+        if (file && next.get(file.id) === "") next.delete(file.id);
+      }
+      return next;
+    });
+  };
 
   const handleContentChange = (content: string) => {
     if (selectedFile && isEditable) {
@@ -281,8 +375,7 @@ export const useFilesEditorState = ({
   };
 
   const handleSave = async () => {
-    if (!selectedFile || !isEditable || !onSave || modifiedFiles.size === 0)
-      return;
+    if (!isEditable || !onSave || !hasPendingChanges) return;
 
     setIsSaving(true);
     setSaveError(null);
@@ -291,7 +384,11 @@ export const useFilesEditorState = ({
       const filesToSave = augmentedFlatFiles.filter(
         (f) => !effectivelyDeletedPaths.has(f.path),
       );
-      const result = await onSave(modifiedFiles, filesToSave);
+      const result = await onSave(
+        pendingModifiedFiles,
+        filesToSave,
+        Array.from(effectivelyDeletedPaths),
+      );
       if (!result.success) {
         setSaveError(result.error || "Save failed");
       }
@@ -317,10 +414,13 @@ export const useFilesEditorState = ({
     effectivelyDeletedPaths,
     effectivelyDeletedFolderPaths,
     currentFileIsModified: selectedFile
-      ? modifiedFiles.has(selectedFile.id)
+      ? pendingModifiedFiles.has(selectedFile.id)
       : false,
+    hasPendingChanges,
     numberOfFiles: files.filter((f) => f.type === FileType.File).length,
     handleContentChange,
     handleSave,
+    markDeleted,
+    restoreDeleted,
   };
 };

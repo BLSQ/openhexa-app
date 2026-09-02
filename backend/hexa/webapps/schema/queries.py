@@ -3,7 +3,7 @@ from django.conf import settings
 from django.http import HttpRequest
 
 from hexa.core.graphql import result_page
-from hexa.git.exceptions import GitFileNotFound
+from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 from hexa.superset.models import SupersetInstance
 from hexa.webapps.models import GitWebapp, Webapp, WebappFileBinaryError
 from hexa.workspaces.models import Workspace
@@ -81,6 +81,8 @@ def resolve_read_webapp_file(_, info, **kwargs):
         content = webapp.get_file_content(path)
     except GitFileNotFound:
         return {"success": False, "errors": ["PATH_NOT_FOUND"]}
+    except GitFileTooLarge:
+        return {"success": False, "errors": ["FILE_TOO_LARGE"]}
     except WebappFileBinaryError:
         return {"success": False, "errors": ["BINARY_FILE"]}
 

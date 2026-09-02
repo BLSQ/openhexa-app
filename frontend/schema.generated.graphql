@@ -482,6 +482,7 @@ enum AssistantToolName {
   get_help_or_doc
   get_pipeline
   get_static_webapp_file
+  get_workspace
   list_connections
   list_datasets
   list_files
@@ -2325,6 +2326,7 @@ type DisableTwoFactorResult {
 """Represents the error message for a web app file edit."""
 enum EditWebappFileError {
   BINARY_FILE
+  FILE_TOO_LARGE
   NO_CHANGE
   PATH_NOT_FOUND
   PERMISSION_DENIED
@@ -2516,6 +2518,8 @@ type FileNode {
   name: String!
   parentId: String
   path: String!
+  size: Int
+  tooLarge: Boolean
   type: FileType!
 }
 
@@ -3428,6 +3432,11 @@ type Organization {
   """Current resource usage counts."""
   usage: ResourceCounts!
 
+  """
+  The tags assigned to the workspaces of the organization, used to filter them.
+  """
+  workspaceTags: [String!]!
+
   """The workspaces associated with the organization."""
   workspaces(page: Int, perPage: Int): WorkspacePage!
 }
@@ -4260,7 +4269,7 @@ type Query {
   webapp(slug: String!, workspaceSlug: String!): Webapp
   webapps(favorite: Boolean, page: Int, perPage: Int, workspaceSlug: String): WebappsPage!
   workspace(slug: String!): Workspace
-  workspaces(organizationId: UUID, page: Int, perPage: Int, query: String): WorkspacePage!
+  workspaces(organizationId: UUID, page: Int, perPage: Int, query: String, tags: [String!]): WorkspacePage!
 }
 
 enum ReadFileContentError {
@@ -4282,6 +4291,7 @@ type ReadFileContentResult {
 """Represents the error message for reading a web app file."""
 enum ReadWebappFileError {
   BINARY_FILE
+  FILE_TOO_LARGE
   PATH_NOT_FOUND
   WEBAPPS_NOT_CONFIGURED
   WEBAPP_NOT_FOUND
@@ -5715,6 +5725,7 @@ input UpdateWebappSourceInput @oneOf {
 Enum representing the possible errors that can occur when updating a workspace.
 """
 enum UpdateWorkspaceError {
+  INVALID_TAG
   NOT_FOUND
   PERMISSION_DENIED
 }
@@ -5727,6 +5738,7 @@ input UpdateWorkspaceInput {
   dockerImage: String
   name: String
   slug: String!
+  tags: [String!]
 }
 
 """
@@ -6021,6 +6033,7 @@ type Workspace {
   savedQueries(orderBy: SavedQueryOrderBy! = UPDATED_AT_DESC, page: Int = 1, perPage: Int = 15, query: String): SavedQueryPage!
   shortcuts: [ShortcutItem!]!
   slug: String!
+  tags: [Tag!]!
   updatedAt: DateTime
   webappsEnabled: Boolean!
 }
@@ -6138,6 +6151,7 @@ type WorkspacePermissions {
   generateToken: Boolean!
   launchNotebookServer: Boolean!
   manageMembers: Boolean!
+  manageTags: Boolean!
   update: Boolean!
 }
 

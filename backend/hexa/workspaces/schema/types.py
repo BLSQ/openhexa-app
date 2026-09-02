@@ -113,6 +113,16 @@ def resolve_workspace_permission_manage(workspace: Workspace, info):
     )
 
 
+@workspace_permissions.field("manageTags")
+def resolve_workspace_permission_manage_tags(workspace: Workspace, info):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("workspaces.manage_tags", workspace)
+        if request.user.is_authenticated
+        else False
+    )
+
+
 @workspace_permissions.field("launchNotebookServer")
 def resolve_workspace_permission_launch_notebooks(workspace: Workspace, info):
     request: HttpRequest = info.context["request"]
@@ -215,6 +225,11 @@ def resolve_workspace_shortcuts(workspace: Workspace, info, **kwargs):
 @workspace_object.field("connections")
 def resolve_workspace_connections(workspace: Workspace, info, **kwargs):
     return workspace.connections.all()
+
+
+@workspace_object.field("tags")
+def resolve_workspace_tags(workspace: Workspace, info, **kwargs):
+    return workspace.tags.all()
 
 
 @workspace_object.field("pipelineTags")

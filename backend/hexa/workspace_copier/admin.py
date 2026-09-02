@@ -51,13 +51,14 @@ def copy_workspace_view(request):
                     reporter=reporter,
                 )
                 summary = format_summary(result)
-                log = reporter.render()
                 messages.success(request, "Workspace copy finished.")
             except CredentialError as exc:
                 for err in exc.errors:
                     messages.error(request, err)
             except (GraphQLError, NotImplementedError) as exc:
                 messages.error(request, f"Copy failed: {exc}")
+            finally:
+                log = reporter.render()
     else:
         form = CopyWorkspaceForm()
 
@@ -94,13 +95,14 @@ def copy_templates_view(request):
                     reporter=reporter,
                 )
                 summary = format_templates_summary(result)
-                log = reporter.render()
                 messages.success(request, "Template copy finished.")
             except CredentialError as exc:
                 for err in exc.errors:
                     messages.error(request, err)
             except GraphQLError as exc:
                 messages.error(request, f"Copy failed: {exc}")
+            finally:
+                log = reporter.render()
     else:
         form = CopyTemplatesForm()
 

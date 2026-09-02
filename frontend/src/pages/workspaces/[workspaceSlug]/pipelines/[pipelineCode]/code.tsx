@@ -42,12 +42,20 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const [proposedToolInvocationId, setProposedToolInvocationId] = useState<
     string | null
   >(null);
+  const [proposedDeletedPaths, setProposedDeletedPaths] = useState<
+    string[] | null
+  >(null);
 
   const [resolveProposal] = useResolveAssistantProposalMutation();
 
   const handleProposedFiles = useCallback(
-    (files: ProposedFile[] | null, toolInvocationId?: string) => {
+    (
+      files: ProposedFile[] | null,
+      toolInvocationId?: string,
+      deletedPaths?: string[],
+    ) => {
       setProposedFiles(files);
+      setProposedDeletedPaths(deletedPaths ?? null);
       if (toolInvocationId !== undefined) {
         setProposedToolInvocationId(toolInvocationId);
       } else if (files !== null) {
@@ -60,6 +68,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
 
   const handleDismiss = useCallback(async () => {
     setProposedFiles(null);
+    setProposedDeletedPaths(null);
     const idToDismiss = proposedToolInvocationId;
     setProposedToolInvocationId(null);
     if (idToDismiss) {
@@ -224,6 +233,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                   files={versionToShow.files}
                   isEditable={pipeline.permissions.createVersion}
                   proposedFiles={proposedFiles ?? undefined}
+                  proposedDeletedPaths={proposedDeletedPaths ?? undefined}
                   workspaceSlug={workspaceSlug}
                   pipelineCode={pipelineCode}
                   pipelineId={pipeline.id}

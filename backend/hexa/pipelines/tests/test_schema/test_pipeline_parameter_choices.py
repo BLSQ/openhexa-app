@@ -49,15 +49,11 @@ class PipelineParameterChoicesTest(GraphQLTestCase):
         )
         cls.OUTSIDER = User.objects.create_user("outsider@example.com", "password")
 
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            cls.WORKSPACE = create_workspace(
-                cls.USER,
-                name="Test Workspace",
-                description="",
-            )
+        cls.WORKSPACE = create_workspace(
+            cls.USER,
+            name="Test Workspace",
+            description="",
+        )
 
         WorkspaceMembership.objects.get_or_create(
             workspace=cls.WORKSPACE,

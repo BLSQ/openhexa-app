@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from django.test import TestCase
 
 from hexa.pipelines.models import Pipeline
@@ -14,15 +12,11 @@ class PipelineTagsTest(TestCase):
         cls.user = User.objects.create_user(
             email="test@example.com", password="password", is_superuser=True
         )
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            cls.workspace = create_workspace(
-                cls.user,
-                name="Test Workspace",
-                description="A test workspace",
-            )
+        cls.workspace = create_workspace(
+            cls.user,
+            name="Test Workspace",
+            description="A test workspace",
+        )
         cls.pipeline = Pipeline.objects.create_if_has_perm(
             principal=cls.user, workspace=cls.workspace, name="Test Pipeline"
         )

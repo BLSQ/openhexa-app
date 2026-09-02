@@ -1,3 +1,4 @@
+import logging
 import mimetypes
 from urllib.parse import parse_qs, quote, urlencode, urlparse, urlunparse
 
@@ -8,17 +9,21 @@ from django.http import (
     HttpResponseBadRequest,
     HttpResponseNotFound,
     HttpResponseRedirect,
+    HttpResponseServerError,
+    StreamingHttpResponse,
 )
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
 from django.views.decorators.http import require_GET, require_http_methods
 
 from hexa.files.utils import is_safe_path
-from hexa.git.exceptions import GitFileNotFound
+from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 from hexa.git.forgejo import get_forgejo_client
 from hexa.user_management.utils import has_configured_two_factor
 from hexa.webapps.models import Webapp
 from hexa.webapps.utils import extract_webapp_subdomain, is_local_dev_origin
+
+logger = logging.getLogger(__name__)
 
 
 def _needs_login(user):
@@ -92,6 +97,46 @@ def auth_token(request, webapp_id):
     return HttpResponseRedirect(redirect_url)
 
 
+STREAM_CHUNK_SIZE = 64 * 1024
+FORWARDED_REQUEST_HEADERS = ("Range",)
+FORWARDED_RESPONSE_HEADERS = ("Content-Length", "Content-Range", "Content-Encoding")
+
+
+def _forwarded_request_headers(request):
+    return {
+        header: request.headers[header]
+        for header in FORWARDED_REQUEST_HEADERS
+        if header in request.headers
+    }
+
+
+def _guess_content_type(path):
+    content_type, _ = mimetypes.guess_type(path)
+    return content_type or "application/octet-stream"
+
+
+def _drain_upstream(upstream):
+    """Yield the upstream body, releasing the connection once it is exhausted."""
+    try:
+        yield from upstream.raw.stream(STREAM_CHUNK_SIZE, decode_content=False)
+    finally:
+        upstream.close()
+
+
+def _serve_stream(upstream, content_type):
+    """Forward the upstream body, preserving 206 and its range headers."""
+    response = StreamingHttpResponse(
+        _drain_upstream(upstream),
+        status=upstream.status_code,
+        content_type=content_type,
+    )
+    response["Accept-Ranges"] = "bytes"
+    for header in FORWARDED_RESPONSE_HEADERS:
+        if header in upstream.headers:
+            response[header] = upstream.headers[header]
+    return response
+
+
 def serve_webapp(request, git_webapp, path="index.html"):
     if not is_safe_path(path):
         return HttpResponseBadRequest("Invalid path")
@@ -99,25 +144,39 @@ def serve_webapp(request, git_webapp, path="index.html"):
     if not git_webapp.published_commit:
         return HttpResponseNotFound("No published version")
 
+    content_type = _guess_content_type(path)
     client = get_forgejo_client()
 
     try:
-        content = client.get_file(
+        if "text/html" in content_type:
+            content = client.get_file(
+                git_webapp.repository,
+                path,
+                git_webapp.published_commit,
+                org_slug=git_webapp.git_org.slug,
+            )
+            return HttpResponse(content, content_type=content_type)
+
+        upstream = client.stream_file(
             git_webapp.repository,
             path,
             git_webapp.published_commit,
             org_slug=git_webapp.git_org.slug,
+            headers=_forwarded_request_headers(request),
         )
+        return _serve_stream(upstream, content_type)
     except GitFileNotFound:
         if path == "index.html":
             return HttpResponseNotFound("No index.html found")
         return HttpResponseNotFound("File not found")
-
-    content_type, _ = mimetypes.guess_type(path)
-    if not content_type:
-        content_type = "application/octet-stream"
-
-    return HttpResponse(content, content_type=content_type)
+    except GitFileTooLarge as e:
+        logger.error(
+            "Webapp %s cannot serve %s: %s bytes exceeds the git API blob limit",
+            git_webapp.pk,
+            path,
+            e.size,
+        )
+        return HttpResponseServerError("File too large to be served")
 
 
 @require_GET

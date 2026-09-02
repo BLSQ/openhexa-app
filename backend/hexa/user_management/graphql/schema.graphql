@@ -1133,6 +1133,11 @@ type Organization {
     workspaces(page: Int, perPage: Int): WorkspacePage!
 
     """
+    The tags assigned to the workspaces of the organization, used to filter them.
+    """
+    workspaceTags: [String!]!
+
+    """
     The permissions the current user has in the organization.
     """
     permissions: OrganizationPermissions!

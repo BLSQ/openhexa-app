@@ -11,17 +11,79 @@ logger = logging.getLogger(__name__)
 security_logger = logging.getLogger("django.security.RequestDataTooBig")
 
 
-class SSEAwareGZipMiddleware(GZipMiddleware):
-    """GZipMiddleware that leaves Server-Sent Events responses uncompressed.
+PRECOMPRESSED_CONTENT_TYPES = frozenset(
+    {
+        "application/gzip",
+        "application/pdf",
+        "application/x-7z-compressed",
+        "application/x-bzip2",
+        "application/x-xz",
+        "application/zip",
+        "application/zstd",
+        "font/woff",
+        "font/woff2",
+    }
+)
+PRECOMPRESSED_CONTENT_TYPE_PREFIXES = ("audio/", "image/", "video/")
+COMPRESSIBLE_EXCEPTIONS = frozenset({"image/svg+xml"})
+PRECOMPRESSED_EXTENSIONS = (
+    ".br",
+    ".fgb",
+    ".gz",
+    ".mbtiles",
+    ".parquet",
+    ".pmtiles",
+    ".zst",
+)
 
-    GZipMiddleware compresses each chunk of an async streaming response as a
-    separate gzip member, which browsers can't reliably stream-decode, and it
-    reintroduces the buffering that SSE responses explicitly disable
-    (X-Accel-Buffering: no) — events would arrive late or not at all.
-    """
+
+UNCOMPRESSIBLE_CONTENT_TYPES = frozenset({"text/event-stream"})
+BODYLESS_STATUS_CODES = frozenset({204, 304})
+
+
+def response_content_type(response) -> str:
+    return response.get("Content-Type", "").split(";")[0].strip().lower()
+
+
+def is_precompressed(content_type: str, path: str) -> bool:
+    """Whether the body is already compressed, so gzip would only cost CPU."""
+    if content_type in COMPRESSIBLE_EXCEPTIONS:
+        return False
+    if content_type in PRECOMPRESSED_CONTENT_TYPES:
+        return True
+    if content_type.startswith(PRECOMPRESSED_CONTENT_TYPE_PREFIXES):
+        return True
+    return path.lower().endswith(PRECOMPRESSED_EXTENSIONS)
+
+
+def is_bodyless(response) -> bool:
+    return (
+        response.status_code in BODYLESS_STATUS_CODES
+        or 100 <= response.status_code < 200
+    )
+
+
+def is_partial(response) -> bool:
+    return response.status_code == 206 or response.has_header("Content-Range")
+
+
+def should_skip_compression(request, response) -> bool:
+    """Whether gzipping this response would break it or gain nothing."""
+    content_type = response_content_type(response)
+    if is_bodyless(response):
+        return True
+    if content_type in UNCOMPRESSIBLE_CONTENT_TYPES:
+        return True
+    if is_partial(response):
+        return True
+    return is_precompressed(content_type, request.path)
+
+
+class SSEAwareGZipMiddleware(GZipMiddleware):
+    """GZipMiddleware that leaves a response alone when compressing it would hurt."""
 
     def process_response(self, request, response):
-        if response.get("Content-Type", "").startswith("text/event-stream"):
+        if should_skip_compression(request, response):
             return response
         # An async streaming response is gzipped one gzip member per chunk
         # (django/middleware/gzip.py compresses each chunk via compress_string),

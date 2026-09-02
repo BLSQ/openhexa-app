@@ -21,6 +21,9 @@ from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
 )
+from hexa.workspaces.tests.testutils import (
+    create_workspace as create_test_workspace,
+)
 
 
 class OrganizationModelTests(TestCase):
@@ -217,20 +220,16 @@ class OrganizationFilterForUserDispatchTest(TestCase):
             role=OrganizationMembershipRole.MEMBER,
         )
 
-        with (
-            patch("hexa.workspaces.models.create_database"),
-            patch("hexa.workspaces.models.load_database_sample_data"),
-        ):
-            cls.org_workspace = Workspace.objects.create_if_has_perm(
-                principal=cls.superuser,
-                name="Org Workspace",
-                organization=cls.org,
-            )
-            cls.other_org_workspace = Workspace.objects.create_if_has_perm(
-                principal=cls.superuser,
-                name="Other Org WS",
-                organization=cls.other_org,
-            )
+        cls.org_workspace = create_test_workspace(
+            principal=cls.superuser,
+            name="Org Workspace",
+            organization=cls.org,
+        )
+        cls.other_org_workspace = create_test_workspace(
+            principal=cls.superuser,
+            name="Other Org WS",
+            organization=cls.other_org,
+        )
         WorkspaceMembership.objects.create(
             workspace=cls.org_workspace,
             user=cls.workspace_only_user,
