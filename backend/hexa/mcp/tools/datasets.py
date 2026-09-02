@@ -92,7 +92,7 @@ def _ordered_row(row: dict, columns: list) -> dict:
 
 @tool
 def preview_dataset_file(user, file_id: str) -> dict:
-    """Preview the content of a dataset file by its ID (from get_dataset's file list). Returns file metadata and, for tabular files (CSV, Parquet, etc.), the first few rows of the stored sample, with the columns of each row in the order they appear in the file. When no sample row is available, the ordered 'columns' of the file are returned instead. This is a preview only: 'rows' is the row count of the whole file and 'fileSample.sampleRowsAvailable' the size of the stored sample, both usually larger than the number of rows returned here. The sample status can be PROCESSING (still generating), FINISHED (sample ready), or FAILED."""
+    """Preview the content of a dataset file by its ID (from get_dataset's file list). Returns file metadata and, for tabular files (CSV, Parquet, etc.), the first few rows of the stored sample, with the columns of each row in the order they appear in the file. When no sample row is available, the ordered 'columns' of the file are returned instead. This is a preview only: 'rows' is the row count of the whole file, usually larger than the number of rows returned here. The sample status can be PROCESSING (still generating), FINISHED (sample ready), or FAILED."""
     data = execute_graphql(user, "PreviewDatasetFile", {"id": file_id})
     if "errors" in data:
         return data
@@ -107,7 +107,6 @@ def preview_dataset_file(user, file_id: str) -> dict:
         file_sample["sample"] = [
             _ordered_row(row, columns) for row in rows[:PREVIEW_SAMPLE_ROWS]
         ]
-        file_sample["sampleRowsAvailable"] = len(rows)
     # The sample rows already name every column, so `columns` would only repeat them.
     if not rows and columns:
         file_data["columns"] = columns

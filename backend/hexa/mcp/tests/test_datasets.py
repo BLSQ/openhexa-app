@@ -136,7 +136,6 @@ class PreviewDatasetFileTest(MCPTestCase):
         self.create_sample(12)
         file_sample = self.preview()["fileSample"]
         self.assertEqual(len(file_sample["sample"]), PREVIEW_SAMPLE_ROWS)
-        self.assertEqual(file_sample["sampleRowsAvailable"], 12)
         self.assertEqual(file_sample["sample"][0], {"country": "c0", "cases": 0})
         self.assertEqual(file_sample["status"], DatasetFileSample.STATUS_FINISHED)
 
@@ -144,7 +143,6 @@ class PreviewDatasetFileTest(MCPTestCase):
         self.create_sample(2)
         file_sample = self.preview()["fileSample"]
         self.assertEqual(len(file_sample["sample"]), 2)
-        self.assertEqual(file_sample["sampleRowsAvailable"], 2)
 
     def test_preview_dataset_file_orders_sample_by_column_order(self):
         self.create_sample(2)
@@ -184,7 +182,6 @@ class PreviewDatasetFileTest(MCPTestCase):
 
         result = self.preview()
         self.assertEqual(result["columns"], ["country", "cases"])
-        self.assertEqual(result["fileSample"]["sampleRowsAvailable"], 0)
 
     def test_preview_dataset_file_without_sample(self):
         result = self.preview()
