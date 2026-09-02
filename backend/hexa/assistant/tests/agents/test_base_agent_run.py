@@ -1,3 +1,6 @@
+from decimal import Decimal
+from unittest.mock import MagicMock, patch
+
 from asgiref.sync import async_to_sync
 from django.test import SimpleTestCase
 from pydantic_ai import ModelRetry
@@ -236,6 +239,20 @@ class ConversationNamingTest(AgentTestCase):
         self.assertEqual(
             self.conversation.name, "one two three four five six seven eight"
         )
+
+    def test_naming_usage_is_priced_with_the_utility_model(self):
+        naming_model = _make_naming_model("Tableau de bord alertes")
+        agent = BaseAgent(
+            self.conversation,
+            make_built_model(naming_model, api_name="main-model"),
+            make_built_model(naming_model, api_name="utility-model"),
+        )
+        with patch("hexa.assistant.agents.base.genai_prices.calc_price") as calc_price:
+            calc_price.return_value = MagicMock(total_price=Decimal("0"))
+            run_agent(agent, "Améliore ce tableau de bord")
+        priced_models = [call.args[1] for call in calc_price.call_args_list]
+        self.assertIn("utility-model", priced_models)
+        self.assertIn("main-model", priced_models)
 
     def test_retry_exhaustion_still_reports_usage(self):
         agent = BaseAgent(

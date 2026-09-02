@@ -1,3 +1,4 @@
+import logging
 from collections.abc import Callable
 from typing import NamedTuple
 
@@ -11,6 +12,8 @@ from hexa.assistant.exceptions import AssistantException
 from hexa.assistant.models import Conversation
 from hexa.user_management.models import AiSettings
 
+logger = logging.getLogger(__name__)
+
 # The managed provider runs Claude through Google Vertex AI and is configured by
 # us, not the organization. Managed orgs only toggle the assistant on/off and
 # never pick a model, so they always run on this default; any model stored on
@@ -20,8 +23,9 @@ MANAGED_DEFAULT_MODEL = AiSettings.Model.OPUS
 
 # Vertex exposes Claude under bare model ids, whereas the direct Anthropic API
 # expects dated ids. Keep one map per provider so the same logical model resolves
-# to the right id for each backend. The managed (Vertex) map only needs
-# MANAGED_DEFAULT_MODEL, since that is the only model managed orgs ever run.
+# to the right id for each backend. The managed (Vertex) map needs
+# MANAGED_DEFAULT_MODEL, the only model managed orgs run their conversations on,
+# plus any model reachable as a utility model (see build_utility).
 _DIRECT_ANTHROPIC_MODEL_IDS: dict[str, str] = {
     AiSettings.Model.HAIKU.value: "claude-haiku-4-5-20251001",
     AiSettings.Model.OPUS.value: "claude-opus-4-6",
@@ -29,6 +33,7 @@ _DIRECT_ANTHROPIC_MODEL_IDS: dict[str, str] = {
 }
 
 _VERTEX_ANTHROPIC_MODEL_IDS: dict[str, str] = {
+    AiSettings.Model.HAIKU.value: "claude-haiku-4-5",
     AiSettings.Model.OPUS.value: "claude-opus-4-6",
 }
 
@@ -116,11 +121,11 @@ class AiModelBuilder:
     def provider_id(self) -> str | None:
         return self._ai_settings.provider
 
-    def build(self) -> BuiltModel:
+    def _build(self, model_api_name: str) -> BuiltModel:
         factory = _PROVIDER_FACTORIES.get(self._ai_settings.provider)
         if not factory:
             raise ValueError(f"Unsupported AI provider: {self._ai_settings.provider!r}")
-        model = factory(self._ai_settings, self._model_api_name)
+        model = factory(self._ai_settings, model_api_name)
         # The managed provider runs Claude through Google Vertex AI, so genai_prices
         # must price it as "google-vertex" rather than our internal "managed" value.
         if self._ai_settings.provider == AiSettings.Provider.MANAGED:
@@ -129,6 +134,37 @@ class AiModelBuilder:
             provider_id = self._ai_settings.provider
         return BuiltModel(
             model=model,
-            api_name=self._model_api_name,
+            api_name=model_api_name,
             provider_id=provider_id,
         )
+
+    def build(self) -> BuiltModel:
+        return self._build(self._model_api_name)
+
+    def build_utility(self, model: str | None = None) -> BuiltModel:
+        """Cheap model for small utility agents such as conversation naming.
+
+        Returns the organization's main model when the optimization is disabled
+        or when the provider exposes no id for the utility model, so enabling it
+        for a provider later is a one-line addition to that provider's id map.
+
+        `model` overrides ASSISTANT_UTILITY_MODEL for a single build, which lets
+        callers compare models without changing the deployed setting.
+        """
+        utility_model = model or settings.ASSISTANT_UTILITY_MODEL
+        if not utility_model:
+            return self.build()
+        if utility_model not in AiSettings.Model.values:
+            # A typo would otherwise be indistinguishable from a model that is
+            # legitimately unmapped for this provider.
+            logger.warning(
+                "ASSISTANT_UTILITY_MODEL=%r is not a known model; "
+                "utility agents will run on the main model",
+                utility_model,
+            )
+            return self.build()
+        try:
+            model_api_name = get_api_name(self._ai_settings.provider, utility_model)
+        except AssistantException:
+            return self.build()
+        return self._build(model_api_name)

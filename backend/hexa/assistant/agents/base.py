@@ -193,16 +193,21 @@ class BaseAgent:
     history_strip_tools: set[str] = set()
 
     def __init__(
-        self, conversation: Conversation, built_model: BuiltModel | None = None
+        self,
+        conversation: Conversation,
+        built_model: BuiltModel | None = None,
+        utility_model: BuiltModel | None = None,
     ):
         self.conversation = conversation
 
-        built_model = (
-            built_model or AiModelBuilder.from_conversation(conversation).build()
-        )
-        self._model_api_name = built_model.api_name
-        self._provider_id = built_model.provider_id
-        self._model = built_model.model
+        if built_model is None:
+            builder = AiModelBuilder.from_conversation(conversation)
+            built_model = builder.build()
+            utility_model = utility_model or builder.build_utility()
+        self._built_model = built_model
+        # Small utility agents run on a cheaper model where the provider offers
+        # one; an injected model keeps every agent on that single model.
+        self._utility_model = utility_model or built_model
 
         instructions = get_instructions(self.instruction_set)
         extra = self._extra_instructions()
@@ -210,7 +215,7 @@ class BaseAgent:
             instructions += "\n\n" + extra
 
         self.agent = Agent(
-            model=self._model,
+            model=self._built_model.model,
             instructions=instructions,
             tools=self._tools_with_context,
             output_type=self._output_type(),
@@ -493,7 +498,7 @@ class BaseAgent:
     ) -> Message:
         input_tok = usage.input_tokens or 0
         output_tok = usage.output_tokens or 0
-        cost = self._get_cost(usage)
+        cost = self._get_cost(usage, self._built_model)
         logger.info(
             "agent.run_stream: done input_tokens=%d output_tokens=%d cost=%s",
             input_tok,
@@ -530,7 +535,7 @@ class BaseAgent:
         ]
         if is_first_message and precomputed_naming is not None:
             _, naming_usage = precomputed_naming
-            naming_cost = self._get_cost(naming_usage)
+            naming_cost = self._get_cost(naming_usage, self._utility_model)
             if naming_cost is not None:
                 self.conversation.cost += naming_cost
             update_fields.append("name")
@@ -561,7 +566,7 @@ class BaseAgent:
             return _validate_conversation_title(text)
 
         naming_agent = Agent(
-            model=self._model,
+            model=self._utility_model.model,
             instructions=_NAMING_INSTRUCTIONS,
             output_type=TextOutput(_parse_conversation_title),
             output_retries=1,
@@ -587,17 +592,22 @@ class BaseAgent:
             )
             return _trim_conversation_title(fallback), usage
 
-    def _get_cost(self, usage: RunUsage) -> Decimal | None:
+    def _get_cost(self, usage: RunUsage, model: BuiltModel) -> Decimal | None:
+        """Price `usage` with the model that produced it.
+
+        Utility agents may run on a different model than the main agent, so the
+        caller says which one to price against.
+        """
         cost: Decimal | None = None
         try:
             price_calc = genai_prices.calc_price(
-                usage, self._model_api_name, provider_id=self._provider_id
+                usage, model.api_name, provider_id=model.provider_id
             )
             cost = price_calc.total_price
         except Exception:
             logger.warning(
                 "agent.run: cost calculation failed for model=%s provider=%s",
-                self._model_api_name,
-                self._provider_id,
+                model.api_name,
+                model.provider_id,
             )
         return cost

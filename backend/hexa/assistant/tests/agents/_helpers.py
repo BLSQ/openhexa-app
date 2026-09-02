@@ -69,8 +69,8 @@ def _make_tool_call_model(tool_name: str, tool_args: dict) -> FunctionModel:
     return FunctionModel(func, stream_function=stream_func)
 
 
-def make_built_model(test_model) -> BuiltModel:
-    return BuiltModel(model=test_model, api_name="test", provider_id="test")
+def make_built_model(test_model, api_name: str = "test") -> BuiltModel:
+    return BuiltModel(model=test_model, api_name=api_name, provider_id="test")
 
 
 def _make_truncated_tool_call_model(tool_name: str) -> FunctionModel:
