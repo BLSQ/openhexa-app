@@ -1,3 +1,4 @@
+from asgiref.sync import async_to_sync
 from django.test import SimpleTestCase
 from pydantic_ai import ModelRetry
 from pydantic_ai.models.test import TestModel
@@ -235,6 +236,18 @@ class ConversationNamingTest(AgentTestCase):
         self.assertEqual(
             self.conversation.name, "one two three four five six seven eight"
         )
+
+    def test_retry_exhaustion_still_reports_usage(self):
+        agent = BaseAgent(
+            self.conversation,
+            make_built_model(
+                _make_naming_model("one two three four five six seven eight nine ten")
+            ),
+        )
+        _, usage = async_to_sync(agent._generate_conversation_name)("Améliore ce bord")
+        self.assertEqual(usage.requests, 2)
+        self.assertGreater(usage.input_tokens, 0)
+        self.assertGreater(usage.output_tokens, 0)
 
     def test_empty_title_retries_and_uses_second_attempt(self):
         agent = BaseAgent(
