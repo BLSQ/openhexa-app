@@ -1,82 +1,92 @@
-name: PR digest
+name: pr_digest
+run-name: Digest PR #${{ github.event.pull_request.number }}
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "Pull request number to digest"
+        required: true
+      model:
+        description: "Claude model override (default: the CLAUDE_MODEL repo variable)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write # required for the GCP Workload Identity Federation OIDC exchange
 
 concurrency:
-  group: pr-digest-${{ github.event.pull_request.number }}
+  group: pr-digest-${{ github.event.pull_request.number || inputs.pr }}
   cancel-in-progress: true
 
 jobs:
   digest:
-    name: Summarise the pull request
-    # Forked pull requests get no secrets and a read-only token.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    name: Digest the pull request
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-      id-token: write
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
-      - uses: anthropics/claude-code-action@v1
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Run the pr-digest skill
+        uses: anthropics/claude-code-action@v1
+        env:
+          ANTHROPIC_VERTEX_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          CLOUD_ML_REGION: europe-west1
+          # So `gh` inside Claude's Bash tool acts as blsqbot.
+          GH_TOKEN: ${{ secrets.BLSQBOT_TOKEN }}
+          # Telemetry -> Logfire (events + metrics + traces over OTLP; token is
+          # a Logfire write token, passed bare with no Bearer prefix).
+          CLAUDE_CODE_ENABLE_TELEMETRY: "1"
+          # Tracing is beta: span trees per interaction (llm_request spans carry
+          # model, tokens, stop_reason, ttft) — the schema may shift between
+          # claude-code-action versions.
+          CLAUDE_CODE_ENHANCED_TELEMETRY_BETA: "1"
+          OTEL_METRICS_EXPORTER: otlp
+          OTEL_LOGS_EXPORTER: otlp
+          OTEL_TRACES_EXPORTER: otlp
+          OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+          OTEL_EXPORTER_OTLP_ENDPOINT: https://logfire-eu.pydantic.dev
+          OTEL_EXPORTER_OTLP_HEADERS: Authorization=${{ secrets.LOGFIRE_WRITE_TOKEN }}
+          OTEL_SERVICE_NAME: pr-digest
+          OTEL_RESOURCE_ATTRIBUTES: gh.run_id=${{ github.run_id }},gh.pr=${{ github.event.pull_request.number || inputs.pr }},gh.model=${{ inputs.model || vars.CLAUDE_MODEL || 'claude-opus-4-6' }}
+          OTEL_METRIC_EXPORT_INTERVAL: "10000"
+          # Prompts and responses carry this repository's source; left redacted.
+          # Set these to "1" to see full content in Logfire.
+          OTEL_LOG_TOOL_DETAILS: "0"
+          OTEL_LOG_USER_PROMPTS: "0"
+          OTEL_LOG_ASSISTANT_RESPONSES: "0"
+        with:
+          use_vertex: "true"
+          github_token: ${{ secrets.BLSQBOT_TOKEN }}
           track_progress: true
           use_sticky_comment: true
-          claude_args: |
-            --model claude-opus-5
+          claude_args: >-
+            --model ${{ inputs.model || vars.CLAUDE_MODEL || 'claude-opus-4-6' }}
             --allowedTools "Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(printf:*),Bash(sha256sum:*)"
           prompt: |
-            REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
+            Digest pull request #${{ github.event.pull_request.number || inputs.pr }}
+            so a reviewer can go straight to what matters.
 
-            Digest this pull request so the reviewer can go straight to what matters.
-            The branch is checked out: read the diff with `gh pr diff`, and open the
-            surrounding files — what matters is usually only visible against the code
-            that was already there. Rank everything by what breaks if it is wrong, not
-            by size or by the order files appear in the diff.
+            Follow .claude/skills/pr-digest/SKILL.md exactly, including its
+            "Running in CI" section. Your final message becomes the comment.
 
-            Every `path:line` you cite must be a link straight to that line of the diff:
-
-                [path:line](${{ github.event.pull_request.html_url }}/files#diff-<hash>R<line>)
-
-            where `<hash>` is the SHA-256 of the file path, from
-            `printf '%s' 'backend/hexa/…/models.py' | sha256sum`. `R` is the new side of
-            the diff; use `L<line>` when you cite a line the PR deleted. If the hash
-            command is unavailable, link to
-            `${{ github.server_url }}/${{ github.repository }}/blob/${{ github.event.pull_request.head.sha }}/path#L<line>`
-            instead — never leave a bare `path:line` unlinked.
-
-            **Start here** — up to 3 numbered pointers, each citing `path:line` and one
-            line on what to check there. This is the section that saves the reviewer's
-            time, so spend your judgment here: the riskiest line in the diff goes
-            first. Migrations that rewrite data or change grants, anything filtering
-            rows per user, permission and auth logic, and contracts both tiers assert
-            against outrank everything else.
-
-            **Key changes** — one bullet each, only when the diff has them: dependency
-            choices, model changes, DB migrations, new tools or services.
-
-            **Decisions** — the judgment calls behind the diff, and be demanding here:
-            this is the section a reviewer cannot reconstruct on their own. A decision
-            is a fork in the road where a competent engineer could have gone the other
-            way, so name the road not taken and what it would have cost. "Added a
-            field" is not a decision; "widened the existing model instead of a
-            separate table, so every existing row now carries the column" is. Look for
-            state put in a new place, a constraint enforced in one layer rather than
-            another, a dependency added where the repo already had something close, a
-            migration that backfills instead of defaulting, an abstraction introduced
-            before the second caller exists, error handling that swallows rather than
-            propagates. Say which choices look wrong and why. If the diff genuinely
-            made no interesting choice, write one line saying so — a padded list is
-            worse than an empty one.
-
-            **File map** — table of the files that matter: file, what changed, and
-            🔴 critical / 🟡 worth a look / ⚪ routine. Collapse the routine files into
-            one row, and leave out generated files (`requirements.txt`,
-            `*.generated.tsx`, `schema.generated.graphql`, lockfiles, snapshots).
-
-            Judge the choices, not the style. Under 400 words, and drop any section
-            with nothing genuine in it. Change no files.
+            Context already established — do not spend turns re-verifying it:
+            - REPO: ${{ github.repository }}
+            - PR NUMBER: ${{ github.event.pull_request.number || inputs.pr }}
+            - PR URL, for the diff links: ${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number || inputs.pr }}
+            - Head SHA, for the fallback links: ${{ github.event.pull_request.head.sha }}
+            - The PR head is checked out in the working directory.
