@@ -1,0 +1,92 @@
+name: pr_digest
+run-name: Digest PR #${{ github.event.pull_request.number }}
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: "Pull request number to digest"
+        required: true
+      model:
+        description: "Claude model override (default: the CLAUDE_MODEL repo variable)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  pull-requests: write
+  id-token: write # required for the GCP Workload Identity Federation OIDC exchange
+
+concurrency:
+  group: pr-digest-${{ github.event.pull_request.number || inputs.pr }}
+  cancel-in-progress: true
+
+jobs:
+  digest:
+    name: Digest the pull request
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Run the pr-digest skill
+        uses: anthropics/claude-code-action@v1
+        env:
+          ANTHROPIC_VERTEX_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+          CLOUD_ML_REGION: europe-west1
+          # So `gh` inside Claude's Bash tool acts as blsqbot.
+          GH_TOKEN: ${{ secrets.BLSQBOT_TOKEN }}
+          # Telemetry -> Logfire (events + metrics + traces over OTLP; token is
+          # a Logfire write token, passed bare with no Bearer prefix).
+          CLAUDE_CODE_ENABLE_TELEMETRY: "1"
+          # Tracing is beta: span trees per interaction (llm_request spans carry
+          # model, tokens, stop_reason, ttft) — the schema may shift between
+          # claude-code-action versions.
+          CLAUDE_CODE_ENHANCED_TELEMETRY_BETA: "1"
+          OTEL_METRICS_EXPORTER: otlp
+          OTEL_LOGS_EXPORTER: otlp
+          OTEL_TRACES_EXPORTER: otlp
+          OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+          OTEL_EXPORTER_OTLP_ENDPOINT: https://logfire-eu.pydantic.dev
+          OTEL_EXPORTER_OTLP_HEADERS: Authorization=${{ secrets.LOGFIRE_WRITE_TOKEN }}
+          OTEL_SERVICE_NAME: pr-digest
+          OTEL_RESOURCE_ATTRIBUTES: gh.run_id=${{ github.run_id }},gh.pr=${{ github.event.pull_request.number || inputs.pr }},gh.model=${{ inputs.model || vars.CLAUDE_MODEL || 'claude-opus-4-6' }}
+          OTEL_METRIC_EXPORT_INTERVAL: "10000"
+          # Prompts and responses carry this repository's source; left redacted.
+          # Set these to "1" to see full content in Logfire.
+          OTEL_LOG_TOOL_DETAILS: "0"
+          OTEL_LOG_USER_PROMPTS: "0"
+          OTEL_LOG_ASSISTANT_RESPONSES: "0"
+        with:
+          use_vertex: "true"
+          github_token: ${{ secrets.BLSQBOT_TOKEN }}
+          track_progress: true
+          use_sticky_comment: true
+          claude_args: >-
+            --model ${{ inputs.model || vars.CLAUDE_MODEL || 'claude-opus-4-6' }}
+            --allowedTools "Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(printf:*),Bash(sha256sum:*)"
+          prompt: |
+            Digest pull request #${{ github.event.pull_request.number || inputs.pr }}
+            so a reviewer can go straight to what matters.
+
+            Follow .claude/skills/pr-digest/SKILL.md exactly, including its
+            "Running in CI" section. Your final message becomes the comment.
+
+            Context already established — do not spend turns re-verifying it:
+            - REPO: ${{ github.repository }}
+            - PR NUMBER: ${{ github.event.pull_request.number || inputs.pr }}
+            - PR URL, for the diff links: ${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number || inputs.pr }}
+            - Head SHA, for the fallback links: ${{ github.event.pull_request.head.sha }}
+            - The PR head is checked out in the working directory.
