@@ -75,7 +75,8 @@ def make_built_model(test_model, api_name: str = "test") -> BuiltModel:
 
 def make_models(test_model, api_name: str = "test") -> AgentModels:
     """Run the main agent and its utility agents on one test model."""
-    return AgentModels.single(make_built_model(test_model, api_name))
+    built = make_built_model(test_model, api_name)
+    return AgentModels(main=built, utility=built)
 
 
 def _make_truncated_tool_call_model(tool_name: str) -> FunctionModel:

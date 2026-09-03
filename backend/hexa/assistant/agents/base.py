@@ -73,11 +73,6 @@ class AgentModels(NamedTuple):
         builder = AiModelBuilder.from_conversation(conversation)
         return cls(main=builder.build(), utility=builder.build_utility())
 
-    @classmethod
-    def single(cls, built_model: BuiltModel) -> "AgentModels":
-        """Run every agent on one model, whatever the provider offers."""
-        return cls(main=built_model, utility=built_model)
-
 
 def _json_default(obj):
     if hasattr(obj, "isoformat"):
