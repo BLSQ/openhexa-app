@@ -6,7 +6,7 @@ from asgiref.sync import async_to_sync
 from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 
-from hexa.assistant.agents.base import BaseAgent
+from hexa.assistant.agents.base import AgentModels, BaseAgent
 from hexa.assistant.model_builder import BuiltModel
 
 
@@ -71,6 +71,11 @@ def _make_tool_call_model(tool_name: str, tool_args: dict) -> FunctionModel:
 
 def make_built_model(test_model, api_name: str = "test") -> BuiltModel:
     return BuiltModel(model=test_model, api_name=api_name, provider_id="test")
+
+
+def make_models(test_model, api_name: str = "test") -> AgentModels:
+    """Run the main agent and its utility agents on one test model."""
+    return AgentModels.single(make_built_model(test_model, api_name))
 
 
 def _make_truncated_tool_call_model(tool_name: str) -> FunctionModel:

@@ -14,18 +14,16 @@ from hexa.user_management.models import AiSettings
 
 logger = logging.getLogger(__name__)
 
-# The managed provider runs Claude through Google Vertex AI and is configured by
-# us, not the organization. Managed orgs only toggle the assistant on/off and
-# never pick a model, so they always run on this default; any model stored on
-# their AiSettings (e.g. left over from a previous bring-your-own-key provider)
-# is ignored.
-MANAGED_DEFAULT_MODEL = AiSettings.Model.OPUS
+# Small "utility agents" such as conversation naming do not need the
+# organization's main model, so they run on this cheaper one. Every provider map
+# below must expose it (a unit test enforces this).
+UTILITY_MODEL = AiSettings.Model.HAIKU
 
 # Vertex exposes Claude under bare model ids, whereas the direct Anthropic API
 # expects dated ids. Keep one map per provider so the same logical model resolves
-# to the right id for each backend. The managed (Vertex) map needs
-# MANAGED_DEFAULT_MODEL, the only model managed orgs run their conversations on,
-# plus any model reachable as a utility model (see build_utility).
+# to the right id for each backend. The managed (Vertex) map only needs
+# AiSettings.MANAGED_MODEL, the model managed orgs run their conversations on,
+# plus UTILITY_MODEL.
 _DIRECT_ANTHROPIC_MODEL_IDS: dict[str, str] = {
     AiSettings.Model.HAIKU.value: "claude-haiku-4-5-20251001",
     AiSettings.Model.OPUS.value: "claude-opus-4-6",
@@ -40,6 +38,12 @@ _VERTEX_ANTHROPIC_MODEL_IDS: dict[str, str] = {
 _MODEL_IDS_BY_PROVIDER: dict[str, dict[str, str]] = {
     AiSettings.Provider.ANTHROPIC.value: _DIRECT_ANTHROPIC_MODEL_IDS,
     AiSettings.Provider.MANAGED.value: _VERTEX_ANTHROPIC_MODEL_IDS,
+}
+
+# genai_prices knows the managed provider as the Google Vertex backend it really
+# runs on, not by our internal "managed" value.
+_PRICING_PROVIDER_IDS: dict[str, str] = {
+    AiSettings.Provider.MANAGED.value: "google-vertex",
 }
 
 
@@ -61,6 +65,24 @@ def get_api_name(provider: str, model: str) -> str:
             f"Accepted models are {[*model_to_api]}"
         )
     return model_api_name
+
+
+def utility_model_for(ai_settings: AiSettings) -> str:
+    """Logical model utility agents run on for this organization.
+
+    Falls back to the organization's main model when the provider exposes no id
+    for UTILITY_MODEL: that is a bug in the maps above rather than a
+    misconfiguration, and losing the cost saving beats breaking the assistant.
+    """
+    if UTILITY_MODEL in _MODEL_IDS_BY_PROVIDER.get(ai_settings.provider, {}):
+        return UTILITY_MODEL
+    logger.error(
+        "Provider %r exposes no id for the utility model %r; "
+        "utility agents will run on the main model",
+        ai_settings.provider,
+        UTILITY_MODEL.value,
+    )
+    return ai_settings.effective_model
 
 
 def _build_anthropic(ai_settings: AiSettings, model_api_name: str) -> PydanticModel:
@@ -94,12 +116,6 @@ _PROVIDER_FACTORIES: dict[str, Callable[[AiSettings, str], PydanticModel]] = {
 class AiModelBuilder:
     def __init__(self, ai_settings: AiSettings):
         self._ai_settings = ai_settings
-        if ai_settings.provider == AiSettings.Provider.MANAGED:
-            # We control the model for managed orgs; ignore any stored value.
-            model = MANAGED_DEFAULT_MODEL
-        else:
-            model = ai_settings.model
-        self._model_api_name = get_api_name(ai_settings.provider, model)
 
     @classmethod
     def from_conversation(cls, conversation: Conversation) -> "AiModelBuilder":
@@ -113,58 +129,21 @@ class AiModelBuilder:
             raise AssistantException("AI settings are not enabled")
         return cls(ai_settings)
 
-    @property
-    def model_api_name(self) -> str | None:
-        return self._model_api_name
-
-    @property
-    def provider_id(self) -> str | None:
-        return self._ai_settings.provider
-
-    def _build(self, model_api_name: str) -> BuiltModel:
-        factory = _PROVIDER_FACTORIES.get(self._ai_settings.provider)
+    def build(self, model: str | None = None) -> BuiltModel:
+        """Build `model` (an AiSettings.Model value), defaulting to the org's own."""
+        provider = self._ai_settings.provider
+        factory = _PROVIDER_FACTORIES.get(provider)
         if not factory:
-            raise ValueError(f"Unsupported AI provider: {self._ai_settings.provider!r}")
-        model = factory(self._ai_settings, model_api_name)
-        # The managed provider runs Claude through Google Vertex AI, so genai_prices
-        # must price it as "google-vertex" rather than our internal "managed" value.
-        if self._ai_settings.provider == AiSettings.Provider.MANAGED:
-            provider_id = "google-vertex"
-        else:
-            provider_id = self._ai_settings.provider
+            raise AssistantException(f"Unsupported AI provider: {provider!r}")
+
+        model_api_name = get_api_name(
+            provider, model or self._ai_settings.effective_model
+        )
         return BuiltModel(
-            model=model,
+            model=factory(self._ai_settings, model_api_name),
             api_name=model_api_name,
-            provider_id=provider_id,
+            provider_id=_PRICING_PROVIDER_IDS.get(provider, provider),
         )
 
-    def build(self) -> BuiltModel:
-        return self._build(self._model_api_name)
-
-    def build_utility(self, model: str | None = None) -> BuiltModel:
-        """Cheap model for small utility agents such as conversation naming.
-
-        Returns the organization's main model when the optimization is disabled
-        or when the provider exposes no id for the utility model, so enabling it
-        for a provider later is a one-line addition to that provider's id map.
-
-        `model` overrides ASSISTANT_UTILITY_MODEL for a single build, which lets
-        callers compare models without changing the deployed setting.
-        """
-        utility_model = model or settings.ASSISTANT_UTILITY_MODEL
-        if not utility_model:
-            return self.build()
-        if utility_model not in AiSettings.Model.values:
-            # A typo would otherwise be indistinguishable from a model that is
-            # legitimately unmapped for this provider.
-            logger.warning(
-                "ASSISTANT_UTILITY_MODEL=%r is not a known model; "
-                "utility agents will run on the main model",
-                utility_model,
-            )
-            return self.build()
-        try:
-            model_api_name = get_api_name(self._ai_settings.provider, utility_model)
-        except AssistantException:
-            return self.build()
-        return self._build(model_api_name)
+    def build_utility(self) -> BuiltModel:
+        return self.build(utility_model_for(self._ai_settings))

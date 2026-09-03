@@ -3,17 +3,19 @@ from unittest.mock import MagicMock, patch
 from django.test import SimpleTestCase, TestCase, override_settings
 
 from hexa.assistant.exceptions import AssistantException
-from hexa.assistant.model_builder import AiModelBuilder, BuiltModel, get_api_name
+from hexa.assistant.model_builder import (
+    _MODEL_IDS_BY_PROVIDER,
+    UTILITY_MODEL,
+    AiModelBuilder,
+    BuiltModel,
+    get_api_name,
+    utility_model_for,
+)
 from hexa.user_management.models import AiSettings
 
 
 def _make_ai_settings(provider, model, api_key: str | None = "test-key"):
-    ai_settings = MagicMock(spec=AiSettings)
-    ai_settings.provider = provider
-    ai_settings.model = model
-    ai_settings.api_key = api_key
-    ai_settings.enabled = True
-    return ai_settings
+    return AiSettings(provider=provider, model=model, api_key=api_key, enabled=True)
 
 
 class GetApiNameTest(SimpleTestCase):
@@ -37,7 +39,7 @@ class GetApiNameTest(SimpleTestCase):
 
     def test_managed_maps_default_model_to_vertex_id(self):
         self.assertEqual(
-            get_api_name(AiSettings.Provider.MANAGED, AiSettings.Model.OPUS),
+            get_api_name(AiSettings.Provider.MANAGED, AiSettings.MANAGED_MODEL),
             "claude-opus-4-6",
         )
 
@@ -60,14 +62,48 @@ class GetApiNameTest(SimpleTestCase):
             get_api_name(AiSettings.Provider.ANTHROPIC, "no-such-model")
 
 
-class AiModelBuilderTest(TestCase):
-    def test_properties_reflect_ai_settings(self):
-        builder = AiModelBuilder(
-            _make_ai_settings(AiSettings.Provider.ANTHROPIC, AiSettings.Model.HAIKU)
+class EffectiveModelTest(SimpleTestCase):
+    def test_returns_stored_model_for_bring_your_own_key_provider(self):
+        ai_settings = _make_ai_settings(
+            AiSettings.Provider.ANTHROPIC, AiSettings.Model.SONNET
         )
-        self.assertEqual(builder.model_api_name, "claude-haiku-4-5-20251001")
-        self.assertEqual(builder.provider_id, AiSettings.Provider.ANTHROPIC)
+        self.assertEqual(ai_settings.effective_model, AiSettings.Model.SONNET)
 
+    def test_managed_ignores_stored_model(self):
+        ai_settings = _make_ai_settings(
+            AiSettings.Provider.MANAGED, AiSettings.Model.SONNET, api_key=None
+        )
+        self.assertEqual(ai_settings.effective_model, AiSettings.MANAGED_MODEL)
+
+
+class UtilityModelForTest(SimpleTestCase):
+    def test_every_provider_exposes_the_utility_model(self):
+        """A provider whose map lacks it silently loses the cost saving, so catch
+        it here rather than in production logs.
+        """
+        for provider, model_ids in _MODEL_IDS_BY_PROVIDER.items():
+            with self.subTest(provider=provider):
+                self.assertIn(UTILITY_MODEL, model_ids)
+
+    def test_returns_utility_model(self):
+        ai_settings = _make_ai_settings(
+            AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS
+        )
+        self.assertEqual(utility_model_for(ai_settings), UTILITY_MODEL)
+
+    def test_falls_back_to_main_model_when_provider_lacks_it(self):
+        ai_settings = _make_ai_settings(
+            AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS
+        )
+        maps = {AiSettings.Provider.ANTHROPIC.value: {AiSettings.Model.OPUS.value: "x"}}
+        with (
+            patch.dict(_MODEL_IDS_BY_PROVIDER, maps, clear=True),
+            self.assertLogs("hexa.assistant.model_builder", level="ERROR"),
+        ):
+            self.assertEqual(utility_model_for(ai_settings), AiSettings.Model.OPUS)
+
+
+class AiModelBuilderTest(TestCase):
     def test_build_returns_built_model_for_anthropic(self):
         builder = AiModelBuilder(
             _make_ai_settings(AiSettings.Provider.ANTHROPIC, AiSettings.Model.HAIKU)
@@ -76,6 +112,14 @@ class AiModelBuilderTest(TestCase):
         self.assertIsInstance(result, BuiltModel)
         self.assertEqual(result.api_name, "claude-haiku-4-5-20251001")
         self.assertEqual(result.provider_id, AiSettings.Provider.ANTHROPIC)
+
+    def test_build_with_explicit_model_overrides_the_stored_one(self):
+        builder = AiModelBuilder(
+            _make_ai_settings(AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS)
+        )
+        self.assertEqual(
+            builder.build(AiSettings.Model.SONNET).api_name, "claude-sonnet-4-6"
+        )
 
     @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_REGION="europe-west1")
     @patch("hexa.assistant.model_builder.AsyncAnthropicVertex")
@@ -95,16 +139,6 @@ class AiModelBuilderTest(TestCase):
             project_id="test-project", region="europe-west1"
         )
 
-    def test_managed_ignores_stored_model_and_uses_default(self):
-        builder = AiModelBuilder(
-            _make_ai_settings(
-                AiSettings.Provider.MANAGED,
-                AiSettings.Model.SONNET,
-                api_key=None,
-            )
-        )
-        self.assertEqual(builder.model_api_name, "claude-opus-4-6")
-
     @override_settings(VERTEX_PROJECT_ID=None)
     def test_build_managed_without_project_raises(self):
         builder = AiModelBuilder(
@@ -118,12 +152,10 @@ class AiModelBuilderTest(TestCase):
             builder.build()
 
     def test_build_unsupported_provider_raises(self):
-        ai_settings = _make_ai_settings(
-            AiSettings.Provider.ANTHROPIC, AiSettings.Model.HAIKU
+        builder = AiModelBuilder(
+            _make_ai_settings("unsupported", AiSettings.Model.HAIKU)
         )
-        builder = AiModelBuilder(ai_settings)
-        builder._ai_settings.provider = "unsupported"
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AssistantException):
             builder.build()
 
     def test_from_conversation_raises_when_workspace_has_no_organization(self):
@@ -140,37 +172,18 @@ class AiModelBuilderTest(TestCase):
 
 
 class BuildUtilityModelTest(TestCase):
-    def _builder(self, provider, model):
-        return AiModelBuilder(_make_ai_settings(provider, model))
-
-    @override_settings(ASSISTANT_UTILITY_MODEL="haiku")
     def test_uses_utility_model_for_anthropic(self):
-        builder = self._builder(AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS)
+        builder = AiModelBuilder(
+            _make_ai_settings(AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS)
+        )
         self.assertEqual(builder.build_utility().api_name, "claude-haiku-4-5-20251001")
 
-    @override_settings(ASSISTANT_UTILITY_MODEL="haiku")
-    def test_uses_utility_model_for_managed(self):
-        with override_settings(VERTEX_PROJECT_ID="test-project"):
-            builder = self._builder(AiSettings.Provider.MANAGED, AiSettings.Model.OPUS)
-            built = builder.build_utility()
+    @override_settings(VERTEX_PROJECT_ID="test-project")
+    @patch("hexa.assistant.model_builder.AsyncAnthropicVertex")
+    def test_uses_utility_model_for_managed(self, mock_vertex_client):
+        builder = AiModelBuilder(
+            _make_ai_settings(AiSettings.Provider.MANAGED, model=None, api_key=None)
+        )
+        built = builder.build_utility()
         self.assertEqual(built.api_name, "claude-haiku-4-5")
         self.assertEqual(built.provider_id, "google-vertex")
-
-    @override_settings(ASSISTANT_UTILITY_MODEL="")
-    def test_blank_setting_keeps_main_model(self):
-        builder = self._builder(AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS)
-        self.assertEqual(builder.build_utility().api_name, "claude-opus-4-6")
-
-    @override_settings(ASSISTANT_UTILITY_MODEL="sonnet")
-    def test_falls_back_when_provider_has_no_id_for_utility_model(self):
-        with override_settings(VERTEX_PROJECT_ID="test-project"):
-            builder = self._builder(AiSettings.Provider.MANAGED, AiSettings.Model.OPUS)
-            built = builder.build_utility()
-        self.assertEqual(built.api_name, "claude-opus-4-6")
-
-    @override_settings(ASSISTANT_UTILITY_MODEL="hauku")
-    def test_unknown_setting_warns_and_keeps_main_model(self):
-        builder = self._builder(AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS)
-        with self.assertLogs("hexa.assistant.model_builder", level="WARNING"):
-            built = builder.build_utility()
-        self.assertEqual(built.api_name, "claude-opus-4-6")

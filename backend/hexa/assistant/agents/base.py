@@ -4,6 +4,7 @@ import logging
 from collections.abc import AsyncGenerator
 from dataclasses import replace
 from decimal import Decimal
+from typing import NamedTuple
 
 import genai_prices
 from pydantic_ai import Agent, ModelRetry, ModelSettings, RunUsage, UsageLimits
@@ -57,6 +58,25 @@ logger = logging.getLogger(__name__)
 
 # ~5000 tokens, truncate if description greater than this
 WORKSPACE_DESCRIPTION_MAX_CHARS = 20_000
+
+
+class AgentModels(NamedTuple):
+    """The models one agent runs on: its main model, plus the cheaper one its
+    small utility agents (conversation naming) use.
+    """
+
+    main: BuiltModel
+    utility: BuiltModel
+
+    @classmethod
+    def from_conversation(cls, conversation: Conversation) -> "AgentModels":
+        builder = AiModelBuilder.from_conversation(conversation)
+        return cls(main=builder.build(), utility=builder.build_utility())
+
+    @classmethod
+    def single(cls, built_model: BuiltModel) -> "AgentModels":
+        """Run every agent on one model, whatever the provider offers."""
+        return cls(main=built_model, utility=built_model)
 
 
 def _json_default(obj):
@@ -199,25 +219,12 @@ class BaseAgent:
     output_retries: int | None = None
     history_strip_tools: set[str] = set()
 
-    def __init__(
-        self,
-        conversation: Conversation,
-        built_model: BuiltModel | None = None,
-        utility_model: BuiltModel | None = None,
-    ):
+    def __init__(self, conversation: Conversation, models: AgentModels | None = None):
         self.conversation = conversation
-
-        if built_model is None:
-            builder = AiModelBuilder.from_conversation(conversation)
-            built_model = builder.build()
-            utility_model = utility_model or builder.build_utility()
-        self._built_model = built_model
-        # Small utility agents run on a cheaper model where the provider offers
-        # one; an injected model keeps every agent on that single model.
-        self._utility_model = utility_model or built_model
+        self._models = models or AgentModels.from_conversation(conversation)
 
         self.agent = Agent(
-            model=self._built_model.model,
+            model=self._models.main.model,
             instructions=self._build_instructions(),
             tools=self._tools_with_context,
             output_type=self._output_type(),
@@ -540,7 +547,7 @@ class BaseAgent:
     ) -> Message:
         input_tok = usage.input_tokens or 0
         output_tok = usage.output_tokens or 0
-        cost = self._get_cost(usage, self._built_model)
+        cost = self._get_cost(usage, self._models.main)
         logger.info(
             "agent.run_stream: done input_tokens=%d output_tokens=%d cost=%s",
             input_tok,
@@ -577,7 +584,7 @@ class BaseAgent:
         ]
         if is_first_message and precomputed_naming is not None:
             _, naming_usage = precomputed_naming
-            naming_cost = self._get_cost(naming_usage, self._utility_model)
+            naming_cost = self._get_cost(naming_usage, self._models.utility)
             if naming_cost is not None:
                 self.conversation.cost += naming_cost
             update_fields.append("name")
@@ -607,7 +614,7 @@ class BaseAgent:
             return _validate_conversation_title(text)
 
         naming_agent = Agent(
-            model=self._utility_model.model,
+            model=self._models.utility.model,
             instructions=_NAMING_INSTRUCTIONS,
             output_type=TextOutput(_parse_conversation_title),
             output_retries=1,
