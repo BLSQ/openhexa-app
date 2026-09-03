@@ -91,6 +91,13 @@ class UtilityModelForTest(SimpleTestCase):
         )
         self.assertEqual(utility_model_for(ai_settings), UTILITY_MODEL)
 
+    @override_settings(ASSISTANT_UTILITY_MODEL_ENABLED=False)
+    def test_falls_back_to_main_model_when_disabled(self):
+        ai_settings = _make_ai_settings(
+            AiSettings.Provider.ANTHROPIC, AiSettings.Model.SONNET
+        )
+        self.assertEqual(utility_model_for(ai_settings), AiSettings.Model.SONNET)
+
     def test_falls_back_to_main_model_when_provider_lacks_it(self):
         ai_settings = _make_ai_settings(
             AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS

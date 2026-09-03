@@ -624,6 +624,12 @@ ASSISTANT_MANAGED = os.environ.get("ASSISTANT_MANAGED", "false") == "true"
 # europe-west1 keeps data in the EU for GDPR.
 VERTEX_PROJECT_ID = os.environ.get("VERTEX_PROJECT_ID")
 VERTEX_REGION = os.environ.get("VERTEX_REGION", "europe-west1")
+# Kill switch for the cheaper model small "utility agents" (conversation naming)
+# run on. Set to false to put them back on the organization's main model without
+# a deploy — e.g. if the provider turns out not to serve the utility model.
+ASSISTANT_UTILITY_MODEL_ENABLED = (
+    os.environ.get("ASSISTANT_UTILITY_MODEL_ENABLED", "true") == "true"
+)
 
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"

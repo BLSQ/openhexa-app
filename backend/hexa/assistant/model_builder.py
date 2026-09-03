@@ -70,10 +70,13 @@ def get_api_name(provider: str, model: str) -> str:
 def utility_model_for(ai_settings: AiSettings) -> str:
     """Logical model utility agents run on for this organization.
 
-    Falls back to the organization's main model when the provider exposes no id
-    for UTILITY_MODEL: that is a bug in the maps above rather than a
-    misconfiguration, and losing the cost saving beats breaking the assistant.
+    Falls back to the organization's main model when the optimization is turned
+    off, or when the provider exposes no id for UTILITY_MODEL: the latter is a
+    bug in the maps above rather than a misconfiguration, and losing the cost
+    saving beats breaking the assistant.
     """
+    if not settings.ASSISTANT_UTILITY_MODEL_ENABLED:
+        return ai_settings.effective_model
     if UTILITY_MODEL in _MODEL_IDS_BY_PROVIDER.get(ai_settings.provider, {}):
         return UTILITY_MODEL
     logger.error(
