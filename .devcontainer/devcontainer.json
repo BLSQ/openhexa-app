@@ -45,6 +45,13 @@
         "GH_TOKEN": "${localEnv:OPENHEXA_RO_GH_TOKEN}",
         // Refuse the host's forwarded SSH agent, so no key is reachable here.
         "SSH_AUTH_SOCK": "",
+        // Same for the host git credentials the dev containers extension
+        // forwards: git prefers askpass over the terminal prompt, so
+        // GIT_TERMINAL_PROMPT below does not close this on its own.
+        "GIT_ASKPASS": "",
+        "VSCODE_GIT_ASKPASS_MAIN": "",
+        "VSCODE_GIT_ASKPASS_NODE": "",
+        "VSCODE_GIT_IPC_HANDLE": "",
         // Fail instead of hanging on a credential prompt during unattended runs.
         "GIT_TERMINAL_PROMPT": "0"
     },

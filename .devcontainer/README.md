@@ -61,7 +61,11 @@ branch. Three layers, only the first of which is a real boundary:
 3. **No other credential.** `post-create.sh` clears every inherited git
    credential helper and installs one that returns `GH_TOKEN` and nothing else,
    with `GIT_TERMINAL_PROMPT=0` so an HTTPS push fails immediately rather than
-   prompting. The SSH `origin` is rewritten to HTTPS so fetches still work.
+   prompting. `GIT_ASKPASS` and the `VSCODE_GIT_ASKPASS_*` / `VSCODE_GIT_IPC_HANDLE`
+   variables are blanked too, since the dev containers extension otherwise
+   forwards your host credentials over that path and git prefers askpass over
+   the terminal prompt. The SSH `origin` is rewritten to HTTPS so fetches still
+   work.
 
 So `gh pr view`, `gh pr list`, `gh api`, `git fetch` and `git pull` work;
 `gh pr create`, `gh issue comment` and `git push` fail — the first two with a
