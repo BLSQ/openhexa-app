@@ -14,7 +14,7 @@ from hexa.databases.tests.helpers import seed_demo_table
 from hexa.user_management.models import User
 from hexa.workspaces.tests.testutils import create_workspace
 
-from ._helpers import make_built_model
+from ._helpers import FakeModelBuilder
 
 
 def _collect_stream(agent, user_input: str) -> list[dict]:
@@ -43,15 +43,13 @@ class GenerateSqlAgentTestCase(TestCase):
             provision_db_on=cls,
         )
 
-    def _make_agent(self, built_model=None) -> GenerateSqlAgent:
+    def _make_agent(self, models=None) -> GenerateSqlAgent:
         conversation = Conversation.objects.create(
             user=self.user,
             workspace=self.workspace,
             instruction_set=InstructionSet.GENERATE_SQL,
         )
-        return GenerateSqlAgent(
-            conversation, built_model or make_built_model(TestModel())
-        )
+        return GenerateSqlAgent(conversation, models or FakeModelBuilder(TestModel()))
 
 
 class GenerateSqlAgentRegistryTest(GenerateSqlAgentTestCase):
@@ -62,7 +60,7 @@ class GenerateSqlAgentRegistryTest(GenerateSqlAgentTestCase):
             instruction_set=InstructionSet.GENERATE_SQL,
         )
         self.assertIsInstance(
-            create_agent(conversation, make_built_model(TestModel())),
+            create_agent(conversation, FakeModelBuilder(TestModel())),
             GenerateSqlAgent,
         )
 
@@ -141,7 +139,7 @@ class GenerateSqlAgentStreamTest(GenerateSqlAgentTestCase):
     def test_done_event_carries_validated_sql_as_output(self):
         seed_demo_table(self.workspace, [(1, "a")])
         agent = self._make_agent(
-            make_built_model(
+            FakeModelBuilder(
                 TestModel(custom_output_text="SELECT id FROM demo ORDER BY id")
             )
         )

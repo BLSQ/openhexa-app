@@ -1,8 +1,12 @@
+import logging
 from collections.abc import Callable
+from decimal import Decimal
 from typing import NamedTuple
 
+import genai_prices
 from anthropic.lib.vertex import AsyncAnthropicVertex
 from django.conf import settings
+from pydantic_ai import RunUsage
 from pydantic_ai.models import Model as PydanticModel
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.providers.anthropic import AnthropicProvider
@@ -11,17 +15,12 @@ from hexa.assistant.exceptions import AssistantException
 from hexa.assistant.models import Conversation
 from hexa.user_management.models import AiSettings
 
-# The managed provider runs Claude through Google Vertex AI and is configured by
-# us, not the organization. Managed orgs only toggle the assistant on/off and
-# never pick a model, so they always run on this default; any model stored on
-# their AiSettings (e.g. left over from a previous bring-your-own-key provider)
-# is ignored.
-MANAGED_DEFAULT_MODEL = AiSettings.Model.OPUS
+logger = logging.getLogger(__name__)
 
 # Vertex exposes Claude under bare model ids, whereas the direct Anthropic API
 # expects dated ids. Keep one map per provider so the same logical model resolves
-# to the right id for each backend. The managed (Vertex) map only needs
-# MANAGED_DEFAULT_MODEL, since that is the only model managed orgs ever run.
+# to the right id for each backend. The managed (Vertex) map only needs the
+# models we actually run managed organizations on.
 _DIRECT_ANTHROPIC_MODEL_IDS: dict[str, str] = {
     AiSettings.Model.HAIKU.value: "claude-haiku-4-5-20251001",
     AiSettings.Model.OPUS.value: "claude-opus-4-6",
@@ -29,12 +28,19 @@ _DIRECT_ANTHROPIC_MODEL_IDS: dict[str, str] = {
 }
 
 _VERTEX_ANTHROPIC_MODEL_IDS: dict[str, str] = {
+    AiSettings.Model.HAIKU.value: "claude-haiku-4-5",
     AiSettings.Model.OPUS.value: "claude-opus-4-6",
 }
 
 _MODEL_IDS_BY_PROVIDER: dict[str, dict[str, str]] = {
     AiSettings.Provider.ANTHROPIC.value: _DIRECT_ANTHROPIC_MODEL_IDS,
     AiSettings.Provider.MANAGED.value: _VERTEX_ANTHROPIC_MODEL_IDS,
+}
+
+# genai_prices knows the managed provider as the Google Vertex backend it really
+# runs on, not by our internal "managed" value.
+_PRICING_PROVIDER_IDS: dict[str, str] = {
+    AiSettings.Provider.MANAGED.value: "google-vertex",
 }
 
 
@@ -56,6 +62,30 @@ def get_api_name(provider: str, model: str) -> str:
             f"Accepted models are {[*model_to_api]}"
         )
     return model_api_name
+
+
+def supports(provider: str, model: str) -> bool:
+    """Whether `provider` exposes an api name for the logical `model`."""
+    return model in _MODEL_IDS_BY_PROVIDER.get(provider, {})
+
+
+def calculate_cost(usage: RunUsage, model: BuiltModel) -> Decimal | None:
+    """Price `usage` with the model that produced it.
+
+    Agents in one conversation may run on different models, so the caller says
+    which one to price against.
+    """
+    try:
+        return genai_prices.calc_price(
+            usage, model.api_name, provider_id=model.provider_id
+        ).total_price
+    except Exception:
+        logger.warning(
+            "cost calculation failed for model=%s provider=%s",
+            model.api_name,
+            model.provider_id,
+        )
+        return None
 
 
 def _build_anthropic(ai_settings: AiSettings, model_api_name: str) -> PydanticModel:
@@ -87,14 +117,14 @@ _PROVIDER_FACTORIES: dict[str, Callable[[AiSettings, str], PydanticModel]] = {
 
 
 class AiModelBuilder:
+    """Builds the models an organization's AI settings allow.
+
+    It knows how to turn a logical model into a usable client, and nothing about
+    who wants which model: that decision lives in `model_selection`.
+    """
+
     def __init__(self, ai_settings: AiSettings):
         self._ai_settings = ai_settings
-        if ai_settings.provider == AiSettings.Provider.MANAGED:
-            # We control the model for managed orgs; ignore any stored value.
-            model = MANAGED_DEFAULT_MODEL
-        else:
-            model = ai_settings.model
-        self._model_api_name = get_api_name(ai_settings.provider, model)
 
     @classmethod
     def from_conversation(cls, conversation: Conversation) -> "AiModelBuilder":
@@ -109,26 +139,21 @@ class AiModelBuilder:
         return cls(ai_settings)
 
     @property
-    def model_api_name(self) -> str | None:
-        return self._model_api_name
+    def ai_settings(self) -> AiSettings:
+        return self._ai_settings
 
-    @property
-    def provider_id(self) -> str | None:
-        return self._ai_settings.provider
-
-    def build(self) -> BuiltModel:
-        factory = _PROVIDER_FACTORIES.get(self._ai_settings.provider)
+    def build(self, model: str | None = None) -> BuiltModel:
+        """Build `model` (an AiSettings.Model value), defaulting to the org's own."""
+        provider = self._ai_settings.provider
+        factory = _PROVIDER_FACTORIES.get(provider)
         if not factory:
-            raise ValueError(f"Unsupported AI provider: {self._ai_settings.provider!r}")
-        model = factory(self._ai_settings, self._model_api_name)
-        # The managed provider runs Claude through Google Vertex AI, so genai_prices
-        # must price it as "google-vertex" rather than our internal "managed" value.
-        if self._ai_settings.provider == AiSettings.Provider.MANAGED:
-            provider_id = "google-vertex"
-        else:
-            provider_id = self._ai_settings.provider
+            raise AssistantException(f"Unsupported AI provider: {provider!r}")
+
+        model_api_name = get_api_name(
+            provider, model or self._ai_settings.effective_model
+        )
         return BuiltModel(
-            model=model,
-            api_name=self._model_api_name,
-            provider_id=provider_id,
+            model=factory(self._ai_settings, model_api_name),
+            api_name=model_api_name,
+            provider_id=_PRICING_PROVIDER_IDS.get(provider, provider),
         )

@@ -8,6 +8,7 @@ from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.model_builder import BuiltModel
+from hexa.user_management.models import AiSettings
 
 
 def run_agent(agent: BaseAgent, message: str) -> None:
@@ -69,8 +70,30 @@ def _make_tool_call_model(tool_name: str, tool_args: dict) -> FunctionModel:
     return FunctionModel(func, stream_function=stream_func)
 
 
-def make_built_model(test_model) -> BuiltModel:
-    return BuiltModel(model=test_model, api_name="test", provider_id="test")
+def make_built_model(test_model, api_name: str = "test") -> BuiltModel:
+    return BuiltModel(model=test_model, api_name=api_name, provider_id="test")
+
+
+class FakeModelBuilder:
+    """Serves one test model whatever is asked of it.
+
+    Injected in place of AiModelBuilder so an agent and the naming agent it
+    spawns both run on the test model, while model *selection* still goes
+    through the real code: the api name reported back is the logical model that
+    was resolved, so tests can tell the two apart when pricing.
+    """
+
+    def __init__(self, test_model, ai_settings: AiSettings | None = None):
+        self._test_model = test_model
+        self.ai_settings = ai_settings or AiSettings(
+            provider=AiSettings.Provider.ANTHROPIC,
+            model=AiSettings.Model.OPUS,
+            api_key="test-key",
+            enabled=True,
+        )
+
+    def build(self, model: str | None = None) -> BuiltModel:
+        return make_built_model(self._test_model, api_name=str(model))
 
 
 def _make_truncated_tool_call_model(tool_name: str) -> FunctionModel:
