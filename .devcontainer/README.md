@@ -109,6 +109,10 @@ arg and rebuild the container.
 - **Allowlisting by DNS is approximate.** Registries behind CDNs rotate IPs, so
   a pull that worked yesterday may fail today. Re-running
   `sudo /usr/local/bin/init-firewall.sh` re-resolves everything.
+- **DNS is a side channel.** Queries are restricted to the container's own
+  resolvers, but those resolve recursively, so data can still be smuggled out a
+  few bytes at a time in crafted hostnames. Closing that would mean running a
+  resolver that only answers for the allowlist.
 - **`.env` is mounted.** `SECRET_KEY`, `ENCRYPTION_KEY` and the JWT private key
   are readable inside. The firewall and the read-only token together close the
   obvious exfiltration routes — there is no allowlisted host that accepts a
