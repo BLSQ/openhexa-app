@@ -45,7 +45,13 @@ fi
 # bind path on the Docker host, which here is this container. Creating the same
 # path keeps compose self-consistent without editing .env.
 STORAGE_DIR=$(sed -n 's/^WORKSPACE_STORAGE_LOCATION=//p' .env | tail -1 | tr -d "\"'")
-STORAGE_DIR=${STORAGE_DIR:-/data/openhexa}
+# .env.dist ships the unexpanded placeholder `$WORKSPACE_STORAGE_LOCATION`, and
+# compose interpolates that to empty and falls back to its own default. Anything
+# that is not an absolute path has to fall back to the same value here.
+case "$STORAGE_DIR" in
+    /*) ;;
+    *) STORAGE_DIR=/data/openhexa ;;
+esac
 echo "==> Creating workspace storage at $STORAGE_DIR"
 sudo mkdir -p "$STORAGE_DIR"
 sudo chown -R node:node "$STORAGE_DIR"
