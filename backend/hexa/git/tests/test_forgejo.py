@@ -1150,10 +1150,18 @@ class ForgejoClientGetCommitTest(TestCase):
         client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
         result = client.get_commit("ws-myworkspace", "my-repo", sha)
 
-        self.assertEqual(result["sha"], sha)
-        self.assertEqual(result["commit"]["message"], "Fix typo\n")
-        self.assertEqual(result["commit"]["author"]["name"], "Test User")
-        self.assertEqual(result["parents"][0]["sha"], "parentsha")
+        # Flattened to the shape `get_commits` returns. What no caller reads
+        # (`parents`) is dropped rather than passed through half-normalized.
+        self.assertEqual(
+            {
+                "id": sha,
+                "message": "Fix typo",
+                "author_name": "Test User",
+                "author_email": "test@example.com",
+                "date": "2024-01-01T00:00:00Z",
+            },
+            result,
+        )
         get_call = responses.calls[0]
         self.assertIn(f"/git/commits/{sha}", get_call.request.url)
 

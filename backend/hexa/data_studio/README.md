@@ -26,6 +26,24 @@ calls it separately so it can refuse a request before reserving a concurrency sl
 The rest of this file is the design-decision home for the CSV export; the code carries
 short "why" comments that point here.
 
+## Saved query history
+
+A saved query's SQL is versioned in a git repository of its own holding a single
+`query.sql`, the mechanism `hexa/git` describes. Only the SQL: renaming a query or
+resharing it records nothing.
+
+`content` stays the source of truth — running, exporting, listing a query and serving it to
+a web app all read that column, never the git server. A version is committed inside the
+same transaction as the row, so a git failure fails the save (`VERSIONING_UNAVAILABLE`)
+rather than keeping a change with no history. Deleting is the exception: archiving happens
+after the commit and cannot fail the deletion.
+
+There is no published version; the current one runs. `last_commit` says which commit
+`content` matches, so drift can be found (`manage.py backfill_saved_query_repositories
+--check`), and it is also what says the repository exists — migration 0010 named one for
+every existing query without creating any. That command creates them; anything it misses
+heals on the query's next save through `ensure_repo`.
+
 ## Why the export streams (rather than buffers)
 
 The full result is streamed batch by batch (`hexa.core.csv.async_streaming_csv_response`)

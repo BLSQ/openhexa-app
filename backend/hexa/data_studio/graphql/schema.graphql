@@ -125,6 +125,10 @@ type SavedQuery {
   permissions: SavedQueryPermissions!
 }
 
+# Saved queries record a version of their SQL on every save, but nothing here exposes
+# that history yet: the fields to read it land with the UI that browses it. Until they
+# do, no client can obtain an `expectedVersion`, so VERSION_CONFLICT is unreachable.
+
 """
 Permissions of a saved query.
 """
@@ -213,6 +217,8 @@ Errors that can occur when creating a saved query.
 enum CreateSavedQueryError {
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
+  "The query's history could not be recorded, so nothing was saved. Retrying is safe."
+  VERSIONING_UNAVAILABLE
 }
 
 """
@@ -234,6 +240,12 @@ input UpdateSavedQueryInput {
   description: String
   "Only the author may change this; PERMISSION_DENIED otherwise."
   visibility: SavedQueryVisibility
+  """
+  The version this edit was made against. When given, the edit is refused with
+  VERSION_CONFLICT if the SQL has changed since. Omit it to overwrite whatever is
+  there.
+  """
+  expectedVersion: String
 }
 
 """
@@ -242,6 +254,13 @@ Errors that can occur when updating a saved query.
 enum UpdateSavedQueryError {
   SAVED_QUERY_NOT_FOUND
   PERMISSION_DENIED
+  "The new version could not be recorded, so no change was saved. Retrying is safe."
+  VERSIONING_UNAVAILABLE
+  """
+  The SQL changed after the version this edit was made against, so nothing was
+  written. Retrying as-is would overwrite it: reload first.
+  """
+  VERSION_CONFLICT
 }
 
 """

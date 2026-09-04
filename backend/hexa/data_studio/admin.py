@@ -33,7 +33,7 @@ class SavedQueryAdmin(admin.ModelAdmin):
     )
     list_filter = ("visibility", "workspace__organization")
     list_select_related = ("workspace__organization", "created_by")
-    readonly_fields = ("slug",)
+    readonly_fields = ("slug", "repository", "last_commit")
     search_fields = (
         "id",
         "name",
@@ -52,6 +52,9 @@ class SavedQueryAdmin(admin.ModelAdmin):
         "created_by",
         "visibility",
         "content",
+        # Read-only: history is recorded by saving a query, never by editing these.
+        "repository",
+        "last_commit",
     )
 
     @admin.display(ordering="workspace__organization")

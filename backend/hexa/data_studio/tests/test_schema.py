@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.core.exceptions import PermissionDenied
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
@@ -9,6 +11,8 @@ from hexa.databases.tests.helpers import (
     provision_workspace_database,
     seed_demo_table,
 )
+from hexa.git.forgejo import ForgejoAPIError
+from hexa.git.testutils import make_git_client_mock
 
 from .testutils import SavedQueryTestMixin
 
@@ -792,3 +796,87 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         log = QueryLog.objects.get()
         self.assertEqual(QueryLog.Status.DENIED, log.status)
         self.assertEqual(saved_query, log.saved_query)
+
+
+SHA = "a" * 40
+
+UPDATE_SAVED_QUERY_MUTATION = """
+    mutation ($input: UpdateSavedQueryInput!) {
+        updateSavedQuery(input: $input) { success errors }
+    }
+"""
+
+
+class SavedQueryVersioningErrorTest(SavedQueryTestMixin, GraphQLTestCase):
+    """What a client is told when a version cannot be recorded, or collides.
+
+    The history itself is not exposed by the API yet, but these errors are: they can
+    reach a client saving a query today.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.client_mock = make_git_client_mock(SHA)
+        patcher = patch(
+            "hexa.git.mixins.get_forgejo_client", return_value=self.client_mock
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.saved_query = self.create_saved_query(content="SELECT 1")
+
+    def test_a_failed_update_reports_versioning_unavailable(self):
+        self.client_mock.commit_files.side_effect = ForgejoAPIError(
+            "POST", "/repos/x/y/contents", 500
+        )
+        self.client.force_login(self.USER_EDITOR)
+
+        r = self.run_query(
+            UPDATE_SAVED_QUERY_MUTATION,
+            {"input": {"id": str(self.saved_query.id), "content": "SELECT 2"}},
+        )
+
+        self.assertFalse(r["data"]["updateSavedQuery"]["success"])
+        self.assertEqual(
+            ["VERSIONING_UNAVAILABLE"], r["data"]["updateSavedQuery"]["errors"]
+        )
+        # Reported as a failure *because* nothing was kept.
+        self.saved_query.refresh_from_db()
+        self.assertEqual("SELECT 1", self.saved_query.content)
+
+    def test_editing_a_version_someone_else_replaced_reports_a_conflict(self):
+        other = SavedQuery.objects.get(pk=self.saved_query.pk)
+        self.client_mock.commit_files.return_value = "b" * 40
+        other.update_if_has_perm(self.USER_ADMIN, content="SELECT 99")
+        self.client.force_login(self.USER_EDITOR)
+
+        r = self.run_query(
+            UPDATE_SAVED_QUERY_MUTATION,
+            {
+                "input": {
+                    "id": str(self.saved_query.id),
+                    "content": "SELECT 2",
+                    "expectedVersion": SHA,
+                }
+            },
+        )
+
+        self.assertFalse(r["data"]["updateSavedQuery"]["success"])
+        self.assertEqual(["VERSION_CONFLICT"], r["data"]["updateSavedQuery"]["errors"])
+        self.saved_query.refresh_from_db()
+        self.assertEqual("SELECT 99", self.saved_query.content)
+
+    def test_editing_the_current_version_succeeds(self):
+        self.client.force_login(self.USER_EDITOR)
+
+        r = self.run_query(
+            UPDATE_SAVED_QUERY_MUTATION,
+            {
+                "input": {
+                    "id": str(self.saved_query.id),
+                    "content": "SELECT 2",
+                    "expectedVersion": SHA,
+                }
+            },
+        )
+
+        self.assertTrue(r["data"]["updateSavedQuery"]["success"])
