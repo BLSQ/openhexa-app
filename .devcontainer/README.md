@@ -85,9 +85,10 @@ It runs `--headless` (there is no display) and `--isolated` (the browser profile
 is kept in memory). Chromium keeps its own sandbox — the privileged container
 does not need `--no-sandbox`.
 
-What it can reach is what the firewall allows: `127.0.0.0/8` and `172.16/12` are
-accepted, so `http://localhost:3000` (frontend) and `http://localhost:8000`
-(backend) work once `docker compose up -d` has published them. The wider web
+What it can reach is what the firewall allows: `127.0.0.0/8` and `172.16/12`
+are accepted, minus the outer bridge subnet the container hangs off (the Docker
+host and its other containers), so `http://localhost:3000` (frontend) and
+`http://localhost:8000` (backend) work once the stack has published them. The wider web
 does not, beyond the allowlist. This is for driving the local stack, not for
 browsing.
 

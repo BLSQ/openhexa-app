@@ -40,7 +40,8 @@ ALLOWED_DOMAINS=(
 )
 
 # Private ranges the inner containers live on. Docker's default address pool
-# (172.17-172.31) sits inside 172.16/12; the host LAN stays unreachable.
+# (172.17-172.31) sits inside 172.16/12, and so does the outer bridge this
+# container itself hangs off, which is why OUTER_NET below is carved back out.
 readonly PRIVATE_NETS=("127.0.0.0/8" "172.16.0.0/12")
 
 detach_chain() {
@@ -140,6 +141,16 @@ done
 # No SSH to anywhere. This is what stops `git push` over git@github.com, and it
 # comes before the allowlist so it covers GitHub too.
 iptables -A "$CHAIN" -p tcp --dport 22 -j REJECT --reject-with tcp-reset
+# Our default route leads to the outer Docker bridge: that gateway is the Docker
+# host and the rest of the subnet is whatever else it runs. Both sit inside the
+# private range accepted below, so reject them first.
+OUTER_IF=$(ip -o route show default | awk '{for (i = 1; i < NF; i++) if ($i == "dev") print $(i + 1); exit}')
+OUTER_NET=$(ip -o -f inet route show dev "${OUTER_IF:-lo}" scope link | awk '{print $1; exit}')
+if [ -z "$OUTER_NET" ]; then
+    echo "ERROR: could not determine the subnet facing the Docker host" >&2
+    exit 1
+fi
+iptables -A "$CHAIN" -d "$OUTER_NET" -j REJECT --reject-with icmp-port-unreachable
 for net in "${PRIVATE_NETS[@]}"; do
     iptables -A "$CHAIN" -d "$net" -j ACCEPT
 done
