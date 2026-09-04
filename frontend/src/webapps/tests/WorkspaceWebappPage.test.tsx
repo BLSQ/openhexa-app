@@ -165,7 +165,6 @@ describe("WorkspaceWebappPage", () => {
                   id: "1",
                   name: "Updated Webapp",
                   icon: "",
-                  isPublic: false,
                   source: {
                     iframe: {
                       url: "https://updated-url.com",
@@ -357,10 +356,10 @@ describe("WorkspaceWebappPage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Web app Details")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Settings" })).toBeVisible();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
 
     const nameParent = screen
       .getByText("Name")
@@ -414,7 +413,7 @@ describe("WorkspaceWebappPage", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Web app Details")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Delete" })).toBeVisible();
     });
 
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));

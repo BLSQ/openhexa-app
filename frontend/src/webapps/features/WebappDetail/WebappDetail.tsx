@@ -3,9 +3,9 @@ import {
   ArrowUturnLeftIcon,
   ClockIcon,
   CodeBracketIcon,
+  Cog6ToothIcon,
   EyeIcon,
   GlobeAltIcon,
-  PencilIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
 import AssistantProposalBanner from "assistant/features/AssistantProposalBanner";
@@ -35,6 +35,7 @@ import { toast } from "react-toastify";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
 import { useWebappVersionsQuery } from "webapps/graphql/queries.generated";
 import CommitDiff from "webapps/features/CommitDiff/CommitDiff";
+import WebappApiAccess from "webapps/features/WebappApiAccess";
 import WebappFilesEditor from "webapps/features/WebappFilesEditor/WebappFilesEditor";
 import WebappHistory from "webapps/features/WebappHistory/WebappHistory";
 import WebappIframe from "webapps/features/WebappIframe";
@@ -50,7 +51,7 @@ const MAX_ASSISTANT_WIDTH = 720;
 const clampAssistantWidth = (width: number) =>
   Math.min(MAX_ASSISTANT_WIDTH, Math.max(MIN_ASSISTANT_WIDTH, width));
 
-type View = "preview" | "code" | "history";
+type View = "preview" | "code" | "history" | "settings";
 
 type WebappDetailProps = {
   workspaceSlug: string;
@@ -87,7 +88,6 @@ const WebappDetail = ({
   const canEdit = Boolean(webapp.permissions?.update);
 
   const [view, setView] = useState<View>(isStatic ? "code" : "preview");
-  const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [versionRef, setVersionRef] = useState<string | null>(null);
   const [diffCommitId, setDiffCommitId] = useState<string | null>(null);
@@ -191,7 +191,6 @@ const WebappDetail = ({
       toast.success(t("Web app updated successfully"));
       clearCache();
       onRefetch();
-      setIsEditing(false);
     } catch (error) {
       if (isRequestTooLargeError(error)) {
         toast.error(t("Web app is too large to save."));
@@ -208,8 +207,14 @@ const WebappDetail = ({
     setSubdomain(webapp.subdomain ?? "");
     setSourceUrl(webapp.url ?? "");
     setIcon(webapp.icon ?? null);
-    setIsEditing(false);
   };
+
+  const isDirty =
+    name !== (webapp.name ?? "") ||
+    icon !== (webapp.icon ?? null) ||
+    (isStatic
+      ? subdomain !== (webapp.subdomain ?? "")
+      : sourceUrl !== (webapp.url ?? ""));
 
   // ---- assistant / proposals ----
   const [resolveProposal] = useResolveAssistantProposalMutation();
@@ -336,6 +341,7 @@ const WebappDetail = ({
           { id: "history", label: t("History"), icon: ClockIcon },
         ] as { id: View; label: string; icon: typeof EyeIcon }[])
       : []),
+    { id: "settings", label: t("Settings"), icon: Cog6ToothIcon },
   ];
 
   const previewUrl =
@@ -348,161 +354,58 @@ const WebappDetail = ({
     <div ref={containerRef} className="flex h-full min-h-0 bg-white">
       {/* ---------------- left column ---------------- */}
       <div className="flex min-w-0 flex-1 flex-col">
-        {isEditing ? (
-          <div className="border-b border-gray-100 bg-[#fbfcfe] px-5 pb-4 pt-4">
-            <h4 className="mb-3.5 text-sm font-semibold text-gray-900">
-              {t("Edit web app details")}
-            </h4>
-            <div className="flex items-start gap-6">
-              <div className="flex w-22 flex-none flex-col items-center gap-2">
-                <img
-                  src={icon || PLACEHOLDER_ICON}
-                  alt=""
-                  className="h-14 w-14 rounded-[10px] border border-gray-100 object-cover"
-                />
-                <label
-                  htmlFor="webapp-icon-upload"
-                  className="cursor-pointer text-xs font-medium text-indigo-600 underline hover:text-indigo-500"
-                >
-                  <input
-                    id="webapp-icon-upload"
-                    type="file"
-                    accept="image/png,image/jpeg,image/jpg"
-                    className="sr-only"
-                    onChange={handleIconChange}
-                  />
-                  {t("Change icon")}
-                </label>
-              </div>
-              <div className="grid flex-1 grid-cols-2 gap-x-5 gap-y-3.5">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-medium text-gray-700">
-                    {t("Name")}
-                  </label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-md border border-gray-300 px-2.5 py-2 text-[13px] text-gray-900 outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-                  />
-                </div>
-
-                {isStatic ? (
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-gray-700">
-                      {t("Published URL")}
-                    </label>
-                    <div className="flex items-center overflow-hidden rounded-md border border-gray-300 text-[13px] focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600">
-                      <span className="py-2 pl-2.5 text-gray-400">
-                        {urlParts?.prefix ?? "https://"}
-                      </span>
-                      <input
-                        type="text"
-                        value={subdomain}
-                        onChange={(e) => setSubdomain(e.target.value)}
-                        className="min-w-0 flex-1 border-none px-1 py-2 font-mono text-[13px] text-gray-900 outline-hidden"
-                      />
-                      <span className="whitespace-nowrap py-2 pr-2.5 text-gray-400">
-                        {urlParts?.suffix ?? ""}
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-gray-700">
-                      {t("Source URL")}
-                    </label>
-                    <input
-                      type="text"
-                      value={sourceUrl}
-                      onChange={(e) => setSourceUrl(e.target.value)}
-                      className="w-full rounded-md border border-gray-300 px-2.5 py-2 text-[13px] text-gray-900 outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="inline-flex items-center gap-1.5 rounded border-none bg-blue-600 px-3.5 py-2 text-[13px] font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-              >
-                {isSaving && <Spinner size="xs" />}
-                {t("Save")}
-              </button>
-              <button
-                onClick={handleCancel}
-                className="rounded border border-gray-300 bg-white px-3.5 py-2 text-[13px] font-medium text-gray-800 hover:bg-gray-50"
-              >
-                {t("Cancel")}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3.5 border-b border-gray-100 px-5 py-4">
-            <img
-              src={icon || PLACEHOLDER_ICON}
-              alt=""
-              className="h-11 w-11 flex-none rounded-lg border border-gray-100 object-cover"
-            />
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <div className="flex items-center gap-2.5">
-                <h2 className="truncate text-[19px] font-bold tracking-tight text-gray-900">
-                  {webapp.name}
-                </h2>
-                <span className="inline-flex h-5 flex-none items-center rounded-md bg-indigo-100 px-2 text-[11px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/15">
-                  {t("{{type}} app", {
-                    type: getWebappTypeLabel(webapp.type),
-                  })}
+        <div className="flex items-center gap-3.5 border-b border-gray-100 px-5 py-4">
+          <img
+            src={webapp.icon || PLACEHOLDER_ICON}
+            alt=""
+            className="h-11 w-11 flex-none rounded-lg border border-gray-100 object-cover"
+          />
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <div className="flex items-center gap-2.5">
+              <h2 className="truncate text-[19px] font-bold tracking-tight text-gray-900">
+                {webapp.name}
+              </h2>
+              <span className="inline-flex h-5 flex-none items-center rounded-md bg-indigo-100 px-2 text-[11px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/15">
+                {t("{{type}} app", {
+                  type: getWebappTypeLabel(webapp.type),
+                })}
+              </span>
+              {webapp.isPublic && (
+                <span className="inline-flex h-5 flex-none items-center gap-1 rounded-md bg-emerald-100 px-2 text-[11px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-700/15">
+                  <GlobeAltIcon className="h-3 w-3" />
+                  {t("Public")}
                 </span>
-                {webapp.isPublic && (
-                  <span className="inline-flex h-5 flex-none items-center gap-1 rounded-md bg-emerald-100 px-2 text-[11px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-700/15">
-                    <GlobeAltIcon className="h-3 w-3" />
-                    {t("Public")}
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px]">
-                {displayUrl && (
-                  <span className="inline-flex items-center gap-1.5 text-gray-500">
-                    <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
-                    <a
-                      href={webapp.serveUrl ?? webapp.url ?? "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-700"
-                    >
-                      {displayUrl}
-                    </a>
-                  </span>
-                )}
-                {latestVersion && (
-                  <>
-                    <span className="h-3.5 w-px bg-gray-200" />
-                    <span className="text-gray-500">
-                      {t("Latest")}{" "}
-                      <code className="font-mono text-gray-700">
-                        {latestVersion.id.substring(0, 7)}
-                      </code>{" "}
-                      &middot;{" "}
-                      {DateTime.fromISO(latestVersion.date).toRelative()}
-                    </span>
-                  </>
-                )}
-              </div>
+              )}
             </div>
-            {canEdit && (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="inline-flex flex-none items-center gap-1.5 text-[13px] text-blue-600 hover:text-blue-700"
-              >
-                {t("Edit")}
-                <PencilIcon className="h-3.5 w-3.5" />
-              </button>
-            )}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px]">
+              {displayUrl && (
+                <span className="inline-flex items-center gap-1.5 text-gray-500">
+                  <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+                  <a
+                    href={webapp.serveUrl ?? webapp.url ?? "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    {displayUrl}
+                  </a>
+                </span>
+              )}
+              {latestVersion && (
+                <>
+                  <span className="h-3.5 w-px bg-gray-200" />
+                  <span className="text-gray-500">
+                    {t("Latest")}{" "}
+                    <code className="font-mono text-gray-700">
+                      {latestVersion.id.substring(0, 7)}
+                    </code>{" "}
+                    &middot; {DateTime.fromISO(latestVersion.date).toRelative()}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
-        )}
+        </div>
 
         {/* slim toggle row */}
         <div className="flex flex-none items-center gap-3 border-b border-gray-100 px-5 py-2">
@@ -643,6 +546,114 @@ const WebappDetail = ({
                 onBrowseCommit={browseCommit}
               />
             )}
+          </div>
+        )}
+        {view === "settings" && (
+          <div className="min-h-0 flex-1 overflow-auto bg-gray-50 px-5 py-4">
+            <div className="mx-auto max-w-4xl space-y-4">
+              <div className="rounded-[10px] border border-gray-200 bg-white px-5 py-4">
+                <h3 className="mb-3.5 text-sm font-semibold text-gray-900">
+                  {t("Details")}
+                </h3>
+                <div className="flex items-start gap-6">
+                  <div className="flex w-22 flex-none flex-col items-center gap-2">
+                    <img
+                      src={icon || PLACEHOLDER_ICON}
+                      alt=""
+                      className="h-14 w-14 rounded-[10px] border border-gray-100 object-cover"
+                    />
+                    {canEdit && (
+                      <label
+                        htmlFor="webapp-icon-upload"
+                        className="cursor-pointer text-xs font-medium text-indigo-600 underline hover:text-indigo-500"
+                      >
+                        <input
+                          id="webapp-icon-upload"
+                          type="file"
+                          accept="image/png,image/jpeg,image/jpg"
+                          className="sr-only"
+                          onChange={handleIconChange}
+                        />
+                        {t("Change icon")}
+                      </label>
+                    )}
+                  </div>
+                  <div className="grid flex-1 grid-cols-2 gap-x-5 gap-y-3.5">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-medium text-gray-700">
+                        {t("Name")}
+                      </label>
+                      <input
+                        type="text"
+                        value={name}
+                        disabled={!canEdit}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full rounded-md border border-gray-300 px-2.5 py-2 text-[13px] text-gray-900 outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500"
+                      />
+                    </div>
+
+                    {isStatic ? (
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-medium text-gray-700">
+                          {t("Published URL")}
+                        </label>
+                        <div className="flex items-center overflow-hidden rounded-md border border-gray-300 text-[13px] focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600">
+                          <span className="py-2 pl-2.5 text-gray-400">
+                            {urlParts?.prefix ?? "https://"}
+                          </span>
+                          <input
+                            type="text"
+                            value={subdomain}
+                            disabled={!canEdit}
+                            onChange={(e) => setSubdomain(e.target.value)}
+                            className="min-w-0 flex-1 border-none px-1 py-2 font-mono text-[13px] text-gray-900 outline-hidden disabled:text-gray-500"
+                          />
+                          <span className="whitespace-nowrap py-2 pr-2.5 text-gray-400">
+                            {urlParts?.suffix ?? ""}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-medium text-gray-700">
+                          {t("Source URL")}
+                        </label>
+                        <input
+                          type="text"
+                          value={sourceUrl}
+                          disabled={!canEdit}
+                          onChange={(e) => setSourceUrl(e.target.value)}
+                          className="w-full rounded-md border border-gray-300 px-2.5 py-2 text-[13px] text-gray-900 outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {canEdit && (
+                  <div className="mt-4 flex justify-end gap-2">
+                    <button
+                      onClick={handleCancel}
+                      disabled={!isDirty || isSaving}
+                      className="rounded border border-gray-300 bg-white px-3.5 py-2 text-[13px] font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-60"
+                    >
+                      {t("Cancel")}
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      disabled={!isDirty || isSaving}
+                      className="inline-flex items-center gap-1.5 rounded border-none bg-blue-600 px-3.5 py-2 text-[13px] font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                    >
+                      {isSaving && <Spinner size="xs" />}
+                      {t("Save")}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {isStatic && !webapp.isPublic && (
+                <WebappApiAccess webapp={webapp} />
+              )}
+            </div>
           </div>
         )}
       </div>
