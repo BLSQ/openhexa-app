@@ -125,8 +125,18 @@ echo "==> Installing rules"
 iptables -N "$CHAIN"
 iptables -A "$CHAIN" -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 iptables -A "$CHAIN" -o lo -j ACCEPT
-iptables -A "$CHAIN" -p udp --dport 53 -j ACCEPT
-iptables -A "$CHAIN" -p tcp --dport 53 -j ACCEPT
+# DNS to the container's own resolvers only. Accepting port 53 to any address
+# would hand anything running here a ready-made channel to a resolver of its
+# choosing.
+mapfile -t RESOLVERS < <(awk '/^nameserver[[:space:]]+[0-9.]+$/ {print $2}' /etc/resolv.conf)
+if [ ${#RESOLVERS[@]} -eq 0 ]; then
+    echo "ERROR: no IPv4 nameserver found in /etc/resolv.conf" >&2
+    exit 1
+fi
+for ns in "${RESOLVERS[@]}"; do
+    iptables -A "$CHAIN" -p udp -d "$ns" --dport 53 -j ACCEPT
+    iptables -A "$CHAIN" -p tcp -d "$ns" --dport 53 -j ACCEPT
+done
 # No SSH to anywhere. This is what stops `git push` over git@github.com, and it
 # comes before the allowlist so it covers GitHub too.
 iptables -A "$CHAIN" -p tcp --dport 22 -j REJECT --reject-with tcp-reset
