@@ -214,6 +214,7 @@ type PipelineVersion {
   permissions: PipelineVersionPermissions!  # The permissions for the pipeline version.
   config: JSON  # The default configuration to set on newly created pipeline runs
   templateVersion: PipelineTemplateVersion  # The template version associated with the pipeline version.
+  missingScheduleParameters: [String!]!  # The codes of the required parameters that have neither a default nor a configured value, and so stop this version running unattended.
 }
 
 """
@@ -575,6 +576,7 @@ Represents the result of updating a pipeline.
 type UpdatePipelineResult {
   success: Boolean!  # Indicates if the pipeline was updated successfully.
   errors: [UpdatePipelineError!]!  # The list of errors that occurred during the update of the pipeline.
+  details: String
   pipeline: Pipeline  # The updated pipeline.
 }
 

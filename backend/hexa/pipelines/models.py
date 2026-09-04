@@ -69,7 +69,17 @@ class PipelineAlreadyExistsError(Exception):
 
 
 class PipelineDoesNotSupportParametersError(Exception):
-    pass
+    """Raised when a new version would leave a scheduled pipeline unable to run unattended.
+
+    Carries the offending parameter codes so callers can name them to the user.
+    """
+
+    def __init__(self, missing: list[str]):
+        self.missing = missing
+        super().__init__(
+            "Cannot push an unschedulable new version for a scheduled pipeline. "
+            "Parameters without a value: " + ", ".join(missing)
+        )
 
 
 class InvalidTimeoutValueError(Exception):
@@ -77,9 +87,17 @@ class InvalidTimeoutValueError(Exception):
 
 
 class MissingPipelineConfiguration(Exception):
-    """The pipeline configuration is missing. This exception should be raised when trying to schedule a pipeline without a configuration for the required parameters."""
+    """Raised when scheduling a pipeline whose required parameters have no value.
 
-    pass
+    Carries the offending parameter codes so callers can name them to the user.
+    """
+
+    def __init__(self, missing: list[str]):
+        self.missing = missing
+        super().__init__(
+            "Missing values for the scheduled pipeline parameters: "
+            + ", ".join(missing)
+        )
 
 
 class PipelineRunsLimitReached(Exception):
@@ -279,20 +297,22 @@ class PipelineVersion(models.Model):
                 and parameter.get("default") is None
                 and self.config.get(parameter.get("code"))
             ) and new_config.get(parameter.get("code")) is None:
-                raise PipelineDoesNotSupportParametersError(
-                    "Cannot push an unschedulable new version for a scheduled pipeline."
-                )
+                raise PipelineDoesNotSupportParametersError([parameter["code"]])
+
+    def get_missing_required_parameters(self) -> list[str]:
+        disabled = self.get_disabled_parameter_codes(self.config)
+        return [
+            parameter["code"]
+            for parameter in self.parameters
+            if parameter.get("required")
+            and parameter["code"] not in disabled
+            and parameter.get("default") is None
+            and self.config.get(parameter["code"]) is None
+        ]
 
     @property
     def is_schedulable(self):
-        disabled = self.get_disabled_parameter_codes(self.config)
-        return all(
-            parameter["code"] in disabled
-            or parameter.get("required") is False
-            or parameter.get("default") is not None
-            or self.config.get(parameter["code"]) is not None
-            for parameter in self.parameters
-        )
+        return not self.get_missing_required_parameters()
 
     @property
     def is_latest_version(self):
@@ -630,10 +650,10 @@ class Pipeline(SoftDeletedModel):
             timeout=timeout,
         )
 
-        if self.last_version and self.schedule and not version.is_schedulable:
-            raise PipelineDoesNotSupportParametersError(
-                "Cannot push an unschedulable new version for a scheduled pipeline."
-            )
+        if self.last_version and self.schedule:
+            missing = version.get_missing_required_parameters()
+            if missing:
+                raise PipelineDoesNotSupportParametersError(missing)
         version.save()
         return version
 
@@ -641,21 +661,31 @@ class Pipeline(SoftDeletedModel):
         if not principal.has_perm("pipelines.update_pipeline", self):
             raise PermissionDenied
 
+        touches_scheduling = (
+            "schedule" in kwargs or "scheduled_pipeline_version_id" in kwargs
+        )
+
         if "scheduled_pipeline_version_id" in kwargs:
             version_id = kwargs.pop("scheduled_pipeline_version_id")
             scheduled_version = self.versions.get(id=version_id) if version_id else None
         else:
             scheduled_version = self.scheduled_pipeline_version
 
-        # When enabling a schedule, check that the resolved version is schedulable.
+        # Any update that leaves the pipeline scheduled must resolve to a runnable version, whether
+        # it enables the schedule, edits the cron of an already-scheduled one, or re-pins it. An
+        # update that touches neither stays allowed, so a broken pipeline can still be renamed or
+        # switched off.
+        resulting_schedule = kwargs.get("schedule", self.schedule)
         version_for_check = scheduled_version or self.last_version
         if (
-            version_for_check
-            and version_for_check.is_schedulable is False
-            and not self.schedule
-            and kwargs.get("schedule")
+            touches_scheduling
+            and resulting_schedule
+            and self.type == PipelineType.ZIPFILE
+            and version_for_check
         ):
-            raise MissingPipelineConfiguration
+            missing = version_for_check.get_missing_required_parameters()
+            if missing:
+                raise MissingPipelineConfiguration(missing)
 
         for key in ["name", "description", "config", "functional_type"]:
             if key in kwargs:

@@ -14,9 +14,27 @@ from hexa.pipelines.models import (
     PipelineRunState,
     PipelineRunTrigger,
 )
-from hexa.pipelines.utils import mail_skipped_run_recipients
+from hexa.pipelines.utils import get_skip_reason, mail_skipped_run_recipients
 
 logger = getLogger(__name__)
+
+
+def create_skipped_run(pipeline, pipeline_version, exec_time):
+    return PipelineRun.objects.create(
+        user=None,
+        pipeline=pipeline,
+        pipeline_version=pipeline_version,
+        run_id=str(PipelineRunTrigger.SCHEDULED.value) + "__" + str(time_module.time()),
+        trigger_mode=PipelineRunTrigger.SCHEDULED,
+        execution_date=exec_time,
+        state=PipelineRunState.SKIPPED,
+        config=(
+            pipeline.merge_pipeline_config({}, pipeline_version.config)
+            if pipeline_version
+            else {}
+        ),
+        send_mail_notifications=False,
+    )
 
 
 class Command(BaseCommand):
@@ -32,11 +50,6 @@ class Command(BaseCommand):
                 if not croniter.is_valid(pipeline.schedule):
                     logger.error("pipeline %s invalid schedule", pipeline.id)
                     continue
-                if pipeline.is_schedulable is False:
-                    # A pipeline may have a schedule but not be schedulable because the configuration of the version has changed
-                    logger.warning("pipeline %s not schedulable", pipeline.id)
-                    continue
-
                 if pipeline.last_run:
                     last_exec = pipeline.last_run.execution_date
                 else:
@@ -58,35 +71,17 @@ class Command(BaseCommand):
                     sleep(real_delay)
 
                 pipeline_version = pipeline.version_to_run
-                if PipelineRun.objects.filter(
-                    pipeline=pipeline,
-                    state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING],
-                ).exists():
+                skip_reason = get_skip_reason(pipeline, pipeline_version)
+                if skip_reason:
                     logger.warning(
-                        "Pipeline %s (%s) already has a run in progress, skipping scheduled execution",
+                        "Pipeline %s (%s): %s",
                         pipeline.code,
                         pipeline.id,
+                        skip_reason.message,
                     )
-
-                    PipelineRun.objects.create(
-                        user=None,
-                        pipeline=pipeline,
-                        pipeline_version=pipeline_version,
-                        run_id=str(PipelineRunTrigger.SCHEDULED.value)
-                        + "__"
-                        + str(time_module.time()),
-                        trigger_mode=PipelineRunTrigger.SCHEDULED,
-                        execution_date=exec_time,
-                        state=PipelineRunState.SKIPPED,
-                        config=(
-                            pipeline.merge_pipeline_config({}, pipeline_version.config)
-                            if pipeline_version
-                            else {}
-                        ),
-                        send_mail_notifications=False,
-                    )
-
-                    mail_skipped_run_recipients(pipeline, exec_time)
+                    run = create_skipped_run(pipeline, pipeline_version, exec_time)
+                    run.log_message(skip_reason.priority, skip_reason.message)
+                    mail_skipped_run_recipients(pipeline, exec_time, skip_reason)
                     continue
 
                 pipeline.run(
