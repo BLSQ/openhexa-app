@@ -60,6 +60,9 @@ echo "==> Creating the openhexa docker network"
 docker network create openhexa 2>/dev/null || true
 
 echo "==> Pulling and building images (this is the slow part)"
+# The frontend and the pipelines services sit behind compose profiles, and this
+# is the only moment at which their images can still be fetched and built.
+export COMPOSE_PROFILES=frontend,pipelines,dataset_worker
 docker compose pull --ignore-buildable || echo "WARNING: some images could not be pulled"
 docker compose build
 
@@ -75,9 +78,9 @@ cat <<'EOF'
 
 Ready.
 
-  1. claude                                   # log in once, the volume keeps it
-  2. docker compose up -d                     # start the stack
-  3. docker compose run app fixtures          # seed the database
+  1. claude                                        # log in once, the volume keeps it
+  2. docker compose --profile frontend up -d       # start the stack
+  3. docker compose run app fixtures               # seed the database
 
 Then, for unattended runs:
 

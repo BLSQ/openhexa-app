@@ -28,6 +28,8 @@ ALLOWED_DOMAINS=(
     "files.pythonhosted.org"
     "deb.debian.org"
     "security.debian.org"
+    # The frontend image is Alpine-based and installs build tools on rebuild.
+    "dl-cdn.alpinelinux.org"
     # Container registries for the images in docker-compose.yaml
     "registry-1.docker.io"
     "index.docker.io"
