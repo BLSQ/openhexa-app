@@ -4,6 +4,17 @@ import userEvent from "@testing-library/user-event";
 import { ExecuteSqlError } from "graphql/types";
 import DataStudioResults from "./DataStudioResults";
 
+// MapLibre needs a WebGL context and real layout, neither of which jsdom
+// provides. Choosing the map and handing it the right features is this
+// component's job; drawing it is the map's, so the map is stubbed down to what
+// it was asked to render.
+jest.mock("./widgets/ResultsMap", () => ({
+  __esModule: true,
+  default: ({ features }: { features: unknown[] }) => (
+    <div data-testid="results-map">{features.length}</div>
+  ),
+}));
+
 // `useTranslation` is globally mocked to echo the key, so assertions target raw
 // key strings and rendered structure rather than interpolated/pluralised text.
 
@@ -317,7 +328,7 @@ describe("DataStudioResults", () => {
 
     describe("discoverability hint", () => {
       const hint = () =>
-        screen.queryByRole("link", { name: "Chart this result" });
+        screen.queryByRole("link", { name: "Visualize this result" });
 
       it("points a plain result at the widget guide", () => {
         render(<DataStudioResults loading={false} result={successResult()} />);
@@ -327,7 +338,7 @@ describe("DataStudioResults", () => {
         );
       });
 
-      it("names the column pairs of every chart on hover", async () => {
+      it("names the columns of every widget on hover", async () => {
         render(<DataStudioResults loading={false} result={successResult()} />);
 
         await userEvent.hover(hint()!);
@@ -335,10 +346,28 @@ describe("DataStudioResults", () => {
         expect(screen.getByText("bar_label, bar_quantity")).toBeInTheDocument();
         expect(screen.getByText("line_x, line_y")).toBeInTheDocument();
         expect(screen.getByText("pie_label, pie_quantity")).toBeInTheDocument();
+        expect(
+          screen.getByText("map_latitude, map_longitude"),
+        ).toBeInTheDocument();
+        expect(screen.getByText("map_geometry")).toBeInTheDocument();
       });
 
       it("is not offered on a result that is already charted", () => {
         render(<DataStudioResults loading={false} result={barResult()} />);
+        expect(hint()).not.toBeInTheDocument();
+      });
+
+      it("is not offered on a result that is already mapped", () => {
+        render(
+          <DataStudioResults
+            loading={false}
+            result={successResult({
+              columns: ["map_latitude", "map_longitude"],
+              rows: [{ map_latitude: 5.34, map_longitude: -4.02 }],
+              rowCount: 1,
+            })}
+          />,
+        );
         expect(hint()).not.toBeInTheDocument();
       });
 
@@ -379,5 +408,91 @@ describe("DataStudioResults", () => {
         "Showing the first {{count}} rows — export for the full result.",
       ),
     ).toBeInTheDocument();
+  });
+
+  describe("map view", () => {
+    const located = (overrides: Partial<Result> = {}) =>
+      successResult({
+        columns: ["name", "map_latitude", "map_longitude"],
+        rows: [
+          { name: "Diogo", map_latitude: 5.34, map_longitude: -4.02 },
+          { name: "Boundiali", map_latitude: 9.52, map_longitude: -6.48 },
+        ],
+        rowCount: 2,
+        ...overrides,
+      });
+
+    it("shows a located result on a map rather than as a table", async () => {
+      render(<DataStudioResults loading={false} result={located()} />);
+
+      expect(await screen.findByTestId("results-map")).toHaveTextContent("2");
+      expect(screen.queryByRole("table")).not.toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: "Map" })).toBeInTheDocument();
+    });
+
+    it("maps only a result that opted in through the column names", () => {
+      render(
+        <DataStudioResults
+          loading={false}
+          result={successResult({
+            columns: ["name", "latitude", "longitude"],
+            rows: [{ name: "Diogo", latitude: 5.34, longitude: -4.02 }],
+            rowCount: 1,
+          })}
+        />,
+      );
+      expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+    });
+
+    it("keeps the full result reachable through the table tab", async () => {
+      render(<DataStudioResults loading={false} result={located()} />);
+
+      await userEvent.click(screen.getByRole("tab", { name: "Table" }));
+
+      expect(screen.getByRole("table")).toBeInTheDocument();
+      expect(screen.getByText("Diogo")).toBeInTheDocument();
+    });
+
+    it("offers no map for a result that has no geography", () => {
+      render(<DataStudioResults loading={false} result={successResult()} />);
+      expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+    });
+
+    it("says how to convert a geometry column it cannot draw", async () => {
+      render(
+        <DataStudioResults
+          loading={false}
+          result={successResult({
+            columns: ["map_geometry"],
+            rows: [
+              {
+                map_geometry:
+                  "0101000020E6100000B81E85EB51101040295C8FC2F5A81440",
+              },
+            ],
+            rowCount: 1,
+          })}
+        />,
+      );
+
+      expect(
+        await screen.findByText(/ST_AsGeoJSON\(map_geometry\)/),
+      ).toBeInTheDocument();
+      expect(screen.queryByTestId("results-map")).not.toBeInTheDocument();
+    });
+
+    it("never maps an EXPLAIN plan, whose single column is not a geography", () => {
+      render(
+        <DataStudioResults
+          loading={false}
+          result={successResult({
+            columns: ["QUERY PLAN"],
+            rows: [{ "QUERY PLAN": "Seq Scan on cases" }],
+            rowCount: 1,
+          })}
+        />,
+      );
+      expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+    });
   });
 });

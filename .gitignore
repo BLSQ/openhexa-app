@@ -44,6 +44,9 @@ frontend/out/
 # production
 frontend/build
 
+# copied from node_modules by frontend/scripts/copy-maplibre-worker.mjs
+frontend/public/maplibre/
+
 # misc
 *.pem
 
