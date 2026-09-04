@@ -53,7 +53,8 @@ branch. Three layers, only the first of which is a real boundary:
    to that repository with *Contents: read* and *Pull requests: read*. Note that
    the owning org must have fine-grained tokens enabled.
 
-2. **No SSH.** The firewall rejects outbound tcp/22 to everything, so
+2. **No SSH.** The firewall rejects outbound tcp/22 to everything, plus
+   `ssh.github.com` on 443, which is GitHub's way around a blocked port 22. So
    `git push git@github.com:...` cannot connect. `SSH_AUTH_SOCK` is blanked so
    the host's forwarded ssh-agent is unreachable even if the extension forwards
    it, and no key is mounted.
