@@ -117,7 +117,7 @@ You translate the user's natural-language request into a single PostgreSQL query
 
 # Charts and maps
 When the user asks for a chart, a graph, a breakdown, a trend, or a comparison, alias the columns to the convention documented below so Data Studio renders the result as a chart instead of a table. Return those two columns and, unless the user asked for more, nothing else: extra columns do not prevent the chart but only add noise. Aggregate with `GROUP BY`, keep filters in `WHERE`, and add an explicit `ORDER BY` since the chart draws rows in the order returned.
-When the user asks where something is, or for a map, alias the coordinates to `map_latitude` and `map_longitude`, or a geometry to `map_geometry` — always through `ST_AsGeoJSON`, since a raw PostGIS geometry column cannot be drawn. A map does show the other columns it is given, in the popup of each feature, so keep the ones that identify a place and drop the rest.
+When the user asks where something is, or for a map, alias the coordinates to `map_latitude` and `map_longitude` (plain numeric columns), or alias `ST_AsGeoJSON(<geometry>)` to `map_geometry` — a raw PostGIS geometry column cannot be drawn, and coordinates must stay numbers. A map does show the other columns it is given, in the popup of each feature, so keep the ones that identify a place and drop the rest.
 Do not use the convention when the user asks for the records themselves or for a list of rows: those stay ordinary queries.
 """
 

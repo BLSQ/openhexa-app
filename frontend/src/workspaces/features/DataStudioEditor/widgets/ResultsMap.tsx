@@ -211,17 +211,6 @@ const ResultsMap = ({ features }: ResultsMapProps) => {
     (source as GeoJSONSource | undefined)?.setData(data);
   }, [data]);
 
-  // Framing the data rather than holding a fixed centre and zoom: a result is
-  // only useful if its rows are on screen, and successive queries land on
-  // different continents.
-  //
-  // Keyed on the extent's values, not on the array holding them: the features
-  // are rebuilt on every parent render, so framing on identity would haul the
-  // map back to the data whenever an unrelated piece of state changed, undoing
-  // whatever the user had panned to. The open popup goes with a genuine change,
-  // since the row it is showing is no longer in the result.
-  const boundsKey = String(bounds);
-
   // The map is created inside a panel the user can drag, and it can be measured
   // at zero height before that panel settles — a fit computed against a zero-size
   // viewport leaves the camera nowhere near the data. Framing again on every
@@ -230,6 +219,16 @@ const ResultsMap = ({ features }: ResultsMapProps) => {
   // A new result resets that, since it is being framed from scratch anyway.
   const userMoved = useRef(false);
 
+  // Framing the data rather than holding a fixed centre and zoom: a result is
+  // only useful if its rows are on screen, and successive queries land on
+  // different continents. The open popup goes with it, since the row it is
+  // showing belongs to the result being replaced.
+  //
+  // Keyed on the features themselves rather than on the extent they cover: two
+  // results can share an extent — the same rows with a column added — and the
+  // popup would then keep showing the previous row's values. The parent hands
+  // down one array per result, so this identity changes exactly when a query
+  // has returned.
   useEffect(() => {
     setSelection(null);
     userMoved.current = false;
@@ -237,7 +236,7 @@ const ResultsMap = ({ features }: ResultsMapProps) => {
     if (map) {
       frame(map);
     }
-  }, [boundsKey, frame]);
+  }, [features, frame]);
 
   const handleLoad = useCallback(
     (event: MapEvent) => {
@@ -270,7 +269,12 @@ const ResultsMap = ({ features }: ResultsMapProps) => {
     (event: MapLayerMouseEvent) => {
       const index = event.features?.[0]?.properties?.[FEATURE_INDEX];
       const feature = typeof index === "number" ? features[index] : undefined;
+      // Clicking away from the data closes the popup. MapLibre's own
+      // `closeOnClick` would do it, but it fires before the click that opened
+      // the popup is handled, so the popup never survives its own opening
+      // gesture; dismissing it here happens in the right order.
       if (!feature) {
+        setSelection(null);
         return;
       }
       setSelection({
