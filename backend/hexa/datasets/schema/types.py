@@ -23,6 +23,7 @@ dataset_permissions = ObjectType("DatasetPermissions")
 dataset_version_object = ObjectType("DatasetVersion")
 dataset_version_permissions = ObjectType("DatasetVersionPermissions")
 dataset_version_file_object = ObjectType("DatasetVersionFile")
+dataset_file_sample_object = ObjectType("DatasetFileSample")
 dataset_version_file_result_object = ObjectType("CreateDatasetVersionFileResult")
 dataset_link_object = ObjectType("DatasetLink")
 dataset_link_permissions = ObjectType("DatasetLinkPermissions")
@@ -245,6 +246,16 @@ def resolve_version_file_metadata(obj: DatasetVersionFile, info, **kwargs):
         return None
 
 
+@dataset_version_file_object.field("columns")
+def resolve_version_file_columns(obj: DatasetVersionFile, info, **kwargs):
+    return obj.column_names
+
+
+@dataset_file_sample_object.field("sample")
+def resolve_file_sample_rows(obj: DatasetFileSample, info, **kwargs):
+    return obj.ordered_sample
+
+
 @dataset_version_file_object.field("downloadUrl")
 def resolve_version_file_download_url(
     obj: DatasetVersionFile, info, attachment: bool = True, **kwargs
@@ -261,6 +272,7 @@ bindables = [
     dataset_version_permissions,
     dataset_link_permissions,
     dataset_version_file_object,
+    dataset_file_sample_object,
     dataset_version_file_result_object,
     dataset_link_object,
 ]

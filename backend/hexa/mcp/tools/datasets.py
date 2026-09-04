@@ -4,6 +4,10 @@ from hexa.mcp.protocol import tool
 
 from ._graphql import execute_graphql
 
+# LLM callers only need enough rows to infer the schema and value shapes; the stored
+# sample (WORKSPACE_DATASETS_FILE_SNAPSHOT_SIZE rows) is sized for the UI table.
+PREVIEW_SAMPLE_ROWS = 3
+
 
 @tool
 def list_datasets(user, workspace_slug: str, page: int = 1, per_page: int = 10) -> dict:
@@ -57,13 +61,17 @@ def get_dataset(
 
 @tool
 def preview_dataset_file(user, file_id: str) -> dict:
-    """Preview the content of a dataset file by its ID (from get_dataset's file list). Returns a sample of the data for tabular files (CSV, Parquet, etc.), file properties, and metadata. The sample status can be PROCESSING (still generating), FINISHED (sample ready), or FAILED."""
+    """Preview the content of a dataset file by its ID (from get_dataset's file list). Returns file metadata and, for tabular files (CSV, Parquet, etc.), the ordered 'columns' of the file and the first few rows of the stored sample. This is a preview only: 'rows' is the row count of the whole file, usually larger than the number of rows returned here. The sample status can be PROCESSING (still generating), FINISHED (sample ready), or FAILED."""
     data = execute_graphql(user, "PreviewDatasetFile", {"id": file_id})
     if "errors" in data:
         return data
     file_data = data.get("datasetVersionFile")
     if file_data is None:
         return {"error": "Dataset file not found"}
+
+    file_sample = file_data.get("fileSample")
+    if file_sample and file_sample.get("sample"):
+        file_sample["sample"] = file_sample["sample"][:PREVIEW_SAMPLE_ROWS]
     return file_data
 
 

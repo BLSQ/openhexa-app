@@ -1750,6 +1750,8 @@ export type DatasetVersionFilesArgs = {
 export type DatasetVersionFile = MetadataObject & {
   __typename?: 'DatasetVersionFile';
   attributes: Array<MetadataAttribute>;
+  /** Column names in file order, when profiling succeeded. */
+  columns?: Maybe<Array<Scalars['String']['output']>>;
   contentType: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   createdBy?: Maybe<User>;
