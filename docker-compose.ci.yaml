@@ -1,0 +1,9 @@
+# CI-only overrides, layered on top of docker-compose.yaml via COMPOSE_FILE.
+services:
+  db:
+    # Trade crash-durability for speed. Only safe on a throwaway database: with
+    # fsync off, a killed container can leave data pages ahead of the WAL and
+    # corrupt the cluster, so never use this on a local dev database. To get the
+    # same speedup for a local test run:
+    #   COMPOSE_FILE=docker-compose.yaml:docker-compose.ci.yaml docker compose run app test ...
+    command: postgres -c fsync=off -c synchronous_commit=off -c full_page_writes=off

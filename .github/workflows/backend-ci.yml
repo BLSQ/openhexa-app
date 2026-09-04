@@ -36,6 +36,8 @@ jobs:
   test:
     name: Build & Test
     runs-on: ubuntu-latest
+    env:
+      COMPOSE_FILE: docker-compose.yaml:docker-compose.ci.yaml
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
