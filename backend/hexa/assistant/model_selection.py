@@ -96,6 +96,4 @@ def resolve_model(
 def build_agent_model(
     builder: AiModelBuilder, agent_key: str | None, default_model: str | None
 ) -> BuiltModel:
-    return builder.build(
-        resolve_model(builder.ai_settings, agent_key, default_model)
-    )
+    return builder.build(resolve_model(builder.ai_settings, agent_key, default_model))

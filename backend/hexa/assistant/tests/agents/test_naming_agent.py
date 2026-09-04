@@ -78,7 +78,9 @@ class NamingAgentRunTest(AgentTestCase):
 
     def test_six_word_title_is_accepted_without_retry(self):
         title = "Tableau de bord lecture dynamique CSV"
-        agent = BaseAgent(self.conversation, FakeModelBuilder(_make_naming_model(title)))
+        agent = BaseAgent(
+            self.conversation, FakeModelBuilder(_make_naming_model(title))
+        )
         run_agent(agent, "Améliore ce tableau de bord")
         self.conversation.refresh_from_db()
         self.assertEqual(self.conversation.name, title)
