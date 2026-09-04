@@ -141,6 +141,17 @@ done
 # No SSH to anywhere. This is what stops `git push` over git@github.com, and it
 # comes before the allowlist so it covers GitHub too.
 iptables -A "$CHAIN" -p tcp --dport 22 -j REJECT --reject-with tcp-reset
+# ssh.github.com answers on 443 as well, and its address sits inside the GitHub
+# ranges added to the allowlist, so the 80/443 rule below would otherwise carry
+# a push straight past the rule above.
+ssh_alt_ips=$(dig +short A ssh.github.com | grep -E '^[0-9.]+$' || true)
+if [ -z "$ssh_alt_ips" ]; then
+    echo "ERROR: could not resolve ssh.github.com" >&2
+    exit 1
+fi
+while read -r ip; do
+    iptables -A "$CHAIN" -p tcp -d "$ip" --dport 443 -j REJECT --reject-with tcp-reset
+done <<< "$ssh_alt_ips"
 # Our default route leads to the outer Docker bridge: that gateway is the Docker
 # host and the rest of the subnet is whatever else it runs. Both sit inside the
 # private range accepted below, so reject them first.
@@ -173,6 +184,10 @@ if ! curl -s --max-time 15 https://api.github.com/zen >/dev/null 2>&1; then
 fi
 if timeout 5 bash -c 'exec 3<>/dev/tcp/github.com/22' 2>/dev/null; then
     echo "ERROR: ssh to github.com is reachable, pushes over SSH are not blocked" >&2
+    exit 1
+fi
+if timeout 5 bash -c 'exec 3<>/dev/tcp/ssh.github.com/443' 2>/dev/null; then
+    echo "ERROR: ssh.github.com:443 is reachable, pushes over SSH are not blocked" >&2
     exit 1
 fi
 trap - EXIT
