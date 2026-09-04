@@ -10,7 +10,7 @@ from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.webapps.models import GitWebapp, Webapp
 
-from ._helpers import _make_tool_call_model, make_models, run_agent
+from ._helpers import FakeModelBuilder, _make_tool_call_model, run_agent
 from ._testcase import AgentTestCase
 
 
@@ -70,7 +70,7 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
         if webapp is not None:
             conversation.linked_object = webapp
         conversation.save()
-        return EditWebappAgent(conversation, make_models(TestModel()))
+        return EditWebappAgent(conversation, FakeModelBuilder(TestModel()))
 
     def _make_pending_invocation(self, conversation, files):
         message = Message.objects.create(
@@ -233,7 +233,7 @@ class EditWebappAgentToolCallTest(AgentTestCase):
         )
         conversation.linked_object = self.webapp
         conversation.save()
-        agent = EditWebappAgent(conversation, make_models(model))
+        agent = EditWebappAgent(conversation, FakeModelBuilder(model))
         run_agent(agent, "Update the web app")
         invocation = self.first_tool_invocation(conversation)
         self.assertEqual(invocation.tool_name, "propose_webapp_version")
@@ -276,7 +276,7 @@ class EditWebappAgentProposalPendingTest(AgentTestCase):
             model = _make_capturing_tool_call_model(
                 "propose_webapp_version", tool_args, captured_requests
             )
-        agent = EditWebappAgent(self.conversation, make_models(model))
+        agent = EditWebappAgent(self.conversation, FakeModelBuilder(model))
         run_agent(agent, "Update the web app")
 
     def test_successful_proposal_is_marked_pending(self):

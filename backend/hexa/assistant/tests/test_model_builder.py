@@ -1,15 +1,15 @@
 from unittest.mock import MagicMock, patch
 
 from django.test import SimpleTestCase, TestCase, override_settings
+from pydantic_ai import RunUsage
 
 from hexa.assistant.exceptions import AssistantException
 from hexa.assistant.model_builder import (
-    _MODEL_IDS_BY_PROVIDER,
-    UTILITY_MODEL,
     AiModelBuilder,
     BuiltModel,
+    calculate_cost,
     get_api_name,
-    utility_model_for,
+    supports,
 )
 from hexa.user_management.models import AiSettings
 
@@ -43,7 +43,7 @@ class GetApiNameTest(SimpleTestCase):
             "claude-opus-4-6",
         )
 
-    def test_managed_maps_utility_model_to_vertex_id(self):
+    def test_managed_maps_haiku_to_vertex_id(self):
         self.assertEqual(
             get_api_name(AiSettings.Provider.MANAGED, AiSettings.Model.HAIKU),
             "claude-haiku-4-5",
@@ -74,40 +74,6 @@ class EffectiveModelTest(SimpleTestCase):
             AiSettings.Provider.MANAGED, AiSettings.Model.SONNET, api_key=None
         )
         self.assertEqual(ai_settings.effective_model, AiSettings.MANAGED_MODEL)
-
-
-class UtilityModelForTest(SimpleTestCase):
-    def test_every_provider_exposes_the_utility_model(self):
-        """A provider whose map lacks it silently loses the cost saving, so catch
-        it here rather than in production logs.
-        """
-        for provider, model_ids in _MODEL_IDS_BY_PROVIDER.items():
-            with self.subTest(provider=provider):
-                self.assertIn(UTILITY_MODEL, model_ids)
-
-    def test_returns_utility_model(self):
-        ai_settings = _make_ai_settings(
-            AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS
-        )
-        self.assertEqual(utility_model_for(ai_settings), UTILITY_MODEL)
-
-    @override_settings(ASSISTANT_UTILITY_MODEL_ENABLED=False)
-    def test_falls_back_to_main_model_when_disabled(self):
-        ai_settings = _make_ai_settings(
-            AiSettings.Provider.ANTHROPIC, AiSettings.Model.SONNET
-        )
-        self.assertEqual(utility_model_for(ai_settings), AiSettings.Model.SONNET)
-
-    def test_falls_back_to_main_model_when_provider_lacks_it(self):
-        ai_settings = _make_ai_settings(
-            AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS
-        )
-        maps = {AiSettings.Provider.ANTHROPIC.value: {AiSettings.Model.OPUS.value: "x"}}
-        with (
-            patch.dict(_MODEL_IDS_BY_PROVIDER, maps, clear=True),
-            self.assertLogs("hexa.assistant.model_builder", level="ERROR"),
-        ):
-            self.assertEqual(utility_model_for(ai_settings), AiSettings.Model.OPUS)
 
 
 class AiModelBuilderTest(TestCase):
@@ -178,19 +144,19 @@ class AiModelBuilderTest(TestCase):
             AiModelBuilder.from_conversation(mock_conversation)
 
 
-class BuildUtilityModelTest(TestCase):
-    def test_uses_utility_model_for_anthropic(self):
-        builder = AiModelBuilder(
-            _make_ai_settings(AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS)
-        )
-        self.assertEqual(builder.build_utility().api_name, "claude-haiku-4-5-20251001")
+class SupportsTest(SimpleTestCase):
+    def test_true_when_the_provider_exposes_the_model(self):
+        self.assertTrue(supports(AiSettings.Provider.MANAGED, AiSettings.Model.HAIKU))
 
-    @override_settings(VERTEX_PROJECT_ID="test-project")
-    @patch("hexa.assistant.model_builder.AsyncAnthropicVertex")
-    def test_uses_utility_model_for_managed(self, mock_vertex_client):
-        builder = AiModelBuilder(
-            _make_ai_settings(AiSettings.Provider.MANAGED, model=None, api_key=None)
-        )
-        built = builder.build_utility()
-        self.assertEqual(built.api_name, "claude-haiku-4-5")
-        self.assertEqual(built.provider_id, "google-vertex")
+    def test_false_when_the_provider_lacks_the_model(self):
+        self.assertFalse(supports(AiSettings.Provider.MANAGED, AiSettings.Model.SONNET))
+
+    def test_false_for_an_unknown_provider(self):
+        self.assertFalse(supports("no-such-provider", AiSettings.Model.HAIKU))
+
+
+class CalculateCostTest(SimpleTestCase):
+    def test_returns_none_when_pricing_fails(self):
+        built = BuiltModel(model=MagicMock(), api_name="?", provider_id="?")
+        with self.assertLogs("hexa.assistant.model_builder", level="WARNING"):
+            self.assertIsNone(calculate_cost(RunUsage(), built))

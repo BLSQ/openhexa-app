@@ -14,7 +14,7 @@ from hexa.databases.tests.helpers import seed_demo_table
 from hexa.user_management.models import User
 from hexa.workspaces.tests.testutils import create_workspace
 
-from ._helpers import make_models
+from ._helpers import FakeModelBuilder
 
 
 def _collect_stream(agent, user_input: str) -> list[dict]:
@@ -49,7 +49,7 @@ class GenerateSqlAgentTestCase(TestCase):
             workspace=self.workspace,
             instruction_set=InstructionSet.GENERATE_SQL,
         )
-        return GenerateSqlAgent(conversation, models or make_models(TestModel()))
+        return GenerateSqlAgent(conversation, models or FakeModelBuilder(TestModel()))
 
 
 class GenerateSqlAgentRegistryTest(GenerateSqlAgentTestCase):
@@ -60,7 +60,7 @@ class GenerateSqlAgentRegistryTest(GenerateSqlAgentTestCase):
             instruction_set=InstructionSet.GENERATE_SQL,
         )
         self.assertIsInstance(
-            create_agent(conversation, make_models(TestModel())),
+            create_agent(conversation, FakeModelBuilder(TestModel())),
             GenerateSqlAgent,
         )
 
@@ -139,7 +139,9 @@ class GenerateSqlAgentStreamTest(GenerateSqlAgentTestCase):
     def test_done_event_carries_validated_sql_as_output(self):
         seed_demo_table(self.workspace, [(1, "a")])
         agent = self._make_agent(
-            make_models(TestModel(custom_output_text="SELECT id FROM demo ORDER BY id"))
+            FakeModelBuilder(
+                TestModel(custom_output_text="SELECT id FROM demo ORDER BY id")
+            )
         )
         events = _collect_stream(agent, "List the ids in the demo table")
         done = next(e for e in events if e["event"] == "done")

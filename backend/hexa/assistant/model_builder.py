@@ -1,9 +1,12 @@
 import logging
 from collections.abc import Callable
+from decimal import Decimal
 from typing import NamedTuple
 
+import genai_prices
 from anthropic.lib.vertex import AsyncAnthropicVertex
 from django.conf import settings
+from pydantic_ai import RunUsage
 from pydantic_ai.models import Model as PydanticModel
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.providers.anthropic import AnthropicProvider
@@ -14,16 +17,10 @@ from hexa.user_management.models import AiSettings
 
 logger = logging.getLogger(__name__)
 
-# Small "utility agents" such as conversation naming do not need the
-# organization's main model, so they run on this cheaper one. Every provider map
-# below must expose it (a unit test enforces this).
-UTILITY_MODEL = AiSettings.Model.HAIKU
-
 # Vertex exposes Claude under bare model ids, whereas the direct Anthropic API
 # expects dated ids. Keep one map per provider so the same logical model resolves
-# to the right id for each backend. The managed (Vertex) map only needs
-# AiSettings.MANAGED_MODEL, the model managed orgs run their conversations on,
-# plus UTILITY_MODEL.
+# to the right id for each backend. The managed (Vertex) map only needs the
+# models we actually run managed organizations on.
 _DIRECT_ANTHROPIC_MODEL_IDS: dict[str, str] = {
     AiSettings.Model.HAIKU.value: "claude-haiku-4-5-20251001",
     AiSettings.Model.OPUS.value: "claude-opus-4-6",
@@ -67,25 +64,28 @@ def get_api_name(provider: str, model: str) -> str:
     return model_api_name
 
 
-def utility_model_for(ai_settings: AiSettings) -> str:
-    """Logical model utility agents run on for this organization.
+def supports(provider: str, model: str) -> bool:
+    """Whether `provider` exposes an api name for the logical `model`."""
+    return model in _MODEL_IDS_BY_PROVIDER.get(provider, {})
 
-    Falls back to the organization's main model when the optimization is turned
-    off, or when the provider exposes no id for UTILITY_MODEL: the latter is a
-    bug in the maps above rather than a misconfiguration, and losing the cost
-    saving beats breaking the assistant.
+
+def calculate_cost(usage: RunUsage, model: BuiltModel) -> Decimal | None:
+    """Price `usage` with the model that produced it.
+
+    Agents in one conversation may run on different models, so the caller says
+    which one to price against.
     """
-    if not settings.ASSISTANT_UTILITY_MODEL_ENABLED:
-        return ai_settings.effective_model
-    if UTILITY_MODEL in _MODEL_IDS_BY_PROVIDER.get(ai_settings.provider, {}):
-        return UTILITY_MODEL
-    logger.error(
-        "Provider %r exposes no id for the utility model %r; "
-        "utility agents will run on the main model",
-        ai_settings.provider,
-        UTILITY_MODEL.value,
-    )
-    return ai_settings.effective_model
+    try:
+        return genai_prices.calc_price(
+            usage, model.api_name, provider_id=model.provider_id
+        ).total_price
+    except Exception:
+        logger.warning(
+            "cost calculation failed for model=%s provider=%s",
+            model.api_name,
+            model.provider_id,
+        )
+        return None
 
 
 def _build_anthropic(ai_settings: AiSettings, model_api_name: str) -> PydanticModel:
@@ -117,6 +117,12 @@ _PROVIDER_FACTORIES: dict[str, Callable[[AiSettings, str], PydanticModel]] = {
 
 
 class AiModelBuilder:
+    """Builds the models an organization's AI settings allow.
+
+    It knows how to turn a logical model into a usable client, and nothing about
+    who wants which model: that decision lives in `model_selection`.
+    """
+
     def __init__(self, ai_settings: AiSettings):
         self._ai_settings = ai_settings
 
@@ -131,6 +137,10 @@ class AiModelBuilder:
         if not ai_settings.enabled:
             raise AssistantException("AI settings are not enabled")
         return cls(ai_settings)
+
+    @property
+    def ai_settings(self) -> AiSettings:
+        return self._ai_settings
 
     def build(self, model: str | None = None) -> BuiltModel:
         """Build `model` (an AiSettings.Model value), defaulting to the org's own."""
@@ -147,6 +157,3 @@ class AiModelBuilder:
             api_name=model_api_name,
             provider_id=_PRICING_PROVIDER_IDS.get(provider, provider),
         )
-
-    def build_utility(self) -> BuiltModel:
-        return self.build(utility_model_for(self._ai_settings))

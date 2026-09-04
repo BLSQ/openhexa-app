@@ -8,7 +8,7 @@ from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 from hexa.workspaces.models import DEFAULT_WORKSPACE_DESCRIPTION
 
-from ._helpers import make_models
+from ._helpers import FakeModelBuilder
 from ._testcase import AgentTestCase
 
 
@@ -27,7 +27,7 @@ class WorkspaceInstructionsTest(AgentTestCase):
         )
 
     def _make_agent(self, agent_class=BaseAgent) -> BaseAgent:
-        return agent_class(self.conversation, make_models(TestModel()))
+        return agent_class(self.conversation, FakeModelBuilder(TestModel()))
 
     def _set_description(self, description: str) -> None:
         self.workspace.description = description

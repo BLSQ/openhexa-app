@@ -624,12 +624,12 @@ ASSISTANT_MANAGED = os.environ.get("ASSISTANT_MANAGED", "false") == "true"
 # europe-west1 keeps data in the EU for GDPR.
 VERTEX_PROJECT_ID = os.environ.get("VERTEX_PROJECT_ID")
 VERTEX_REGION = os.environ.get("VERTEX_REGION", "europe-west1")
-# Kill switch for the cheaper model small "utility agents" (conversation naming)
-# run on. Set to false to put them back on the organization's main model without
-# a deploy — e.g. if the provider turns out not to serve the utility model.
-ASSISTANT_UTILITY_MODEL_ENABLED = (
-    os.environ.get("ASSISTANT_UTILITY_MODEL_ENABLED", "true") == "true"
-)
+# Pins individual assistant agents to a model, as a JSON object mapping agent key
+# to model, e.g. {"naming": "haiku", "generate_sql": "sonnet"}. Only agents that
+# opted in can be pinned (see hexa.assistant.agents.pinnable_agent_keys); the
+# others always run on the model the organization configured. Entries here
+# override the agent's own default, so emptying one reverts it without a deploy.
+ASSISTANT_AGENT_MODELS = os.environ.get("ASSISTANT_AGENT_MODELS", "")
 
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"
