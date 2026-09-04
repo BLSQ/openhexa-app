@@ -1,5 +1,20 @@
 # Changelog
 
+## [5.18.0](https://github.com/BLSQ/openhexa-app/compare/5.17.0...5.18.0) (2026-09-04)
+
+
+### Features
+
+* map widget for Data Studio (HEXA-1779) ([#2049](https://github.com/BLSQ/openhexa-app/issues/2049)) ([593310b](https://github.com/BLSQ/openhexa-app/commit/593310bf70728b3b5024797432534ced732b65d0))
+
+
+### Bug Fixes
+
+* ensure all buckets have the same cors rules (HEXA-1794) ([#2034](https://github.com/BLSQ/openhexa-app/issues/2034)) ([16739d3](https://github.com/BLSQ/openhexa-app/commit/16739d300bda79943edb1a9e0dcb7b74d818bff2))
+* improve release notes skill ([#2037](https://github.com/BLSQ/openhexa-app/issues/2037)) ([aec328d](https://github.com/BLSQ/openhexa-app/commit/aec328df295dfa07afd1929c66c3369f813b3262))
+* naming agent too strict ([#2016](https://github.com/BLSQ/openhexa-app/issues/2016)) ([da08e62](https://github.com/BLSQ/openhexa-app/commit/da08e62dede2498c92df8e94f7f8e975aaa43b2d))
+* Workspace copier small improvements (HEXA-1756) ([#2010](https://github.com/BLSQ/openhexa-app/issues/2010)) ([1354416](https://github.com/BLSQ/openhexa-app/commit/1354416148a5136cc7d25760977b0deb933bea52))
+
 ## [5.17.0](https://github.com/BLSQ/openhexa-app/compare/5.16.1...5.17.0) (2026-08-31)
 
 
