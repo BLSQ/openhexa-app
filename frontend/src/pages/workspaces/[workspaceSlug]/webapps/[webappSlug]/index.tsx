@@ -105,9 +105,9 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
                 disabled={isTogglingVisibility}
                 leadingIcon={
                   webapp.isPublic ? (
-                    <LockClosedIcon className="h-4 w-4 text-gray-500" />
+                    <LockClosedIcon className="h-4 w-4" />
                   ) : (
-                    <GlobeAltIcon className="h-4 w-4 text-gray-500" />
+                    <GlobeAltIcon className="h-4 w-4" />
                   )
                 }
               >
@@ -124,10 +124,9 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
             </Link>
             {webapp.permissions.delete && (
               <Button
-                variant="white"
+                variant="danger"
                 onClick={() => setIsDeleteDialogOpen(true)}
-                className="text-red-600"
-                leadingIcon={<TrashIcon className="h-4 w-4 text-red-500" />}
+                leadingIcon={<TrashIcon className="h-4 w-4" />}
               >
                 {t("Delete")}
               </Button>

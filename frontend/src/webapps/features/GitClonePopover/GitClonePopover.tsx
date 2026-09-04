@@ -1,4 +1,6 @@
 import { CodeBracketIcon } from "@heroicons/react/24/outline";
+import clsx from "clsx";
+import { Classes as ButtonClasses } from "core/components/Button";
 import Clipboard from "core/components/Clipboard";
 import Popover from "core/components/Popover";
 import Tabs from "core/components/Tabs";
@@ -40,10 +42,15 @@ const GitClonePopover = ({ repositoryUrl }: GitClonePopoverProps) => {
   return (
     <Popover
       placement="bottom-end"
-      buttonClassName="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+      buttonClassName={clsx(
+        ButtonClasses.base,
+        ButtonClasses.md,
+        ButtonClasses.white,
+        "rounded-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2",
+      )}
       trigger={
         <>
-          <CodeBracketIcon className="h-4 w-4 text-gray-500" />
+          <CodeBracketIcon className="-ml-1 mr-1.5 h-4 w-4" />
           {t("Clone")}
         </>
       }
