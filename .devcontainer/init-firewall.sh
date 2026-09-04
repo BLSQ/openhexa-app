@@ -103,7 +103,9 @@ echo "==> Building allowlist"
 ipset create "$SET" hash:net
 
 # GitHub publishes its ranges; resolving github.com alone is not enough.
-gh_ranges=$(curl -s --max-time 20 https://api.github.com/meta)
+# The fallback matters: under `set -e` a failing curl would abort the script
+# here, before the message below ever prints.
+gh_ranges=$(curl -s --max-time 20 https://api.github.com/meta) || gh_ranges=""
 if ! echo "$gh_ranges" | jq -e '.web and .api and .git' >/dev/null 2>&1; then
     echo "ERROR: could not fetch GitHub IP ranges" >&2
     exit 1
