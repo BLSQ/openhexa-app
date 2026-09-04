@@ -43,10 +43,53 @@ ALLOWED_DOMAINS=(
 # (172.17-172.31) sits inside 172.16/12; the host LAN stays unreachable.
 readonly PRIVATE_NETS=("127.0.0.0/8" "172.16.0.0/12")
 
+detach_chain() {
+    while iptables -C OUTPUT -j "$CHAIN" 2>/dev/null; do iptables -D OUTPUT -j "$CHAIN"; done
+    while iptables -C DOCKER-USER -j "$CHAIN" 2>/dev/null; do iptables -D DOCKER-USER -j "$CHAIN"; done
+}
+
+attach_chain() {
+    # OUTPUT is the traffic originating in this container; DOCKER-USER the
+    # traffic routed out of the inner containers, and is the chain Docker
+    # reserves for user rules and never rewrites.
+    iptables -I OUTPUT 1 -j "$CHAIN"
+    iptables -N DOCKER-USER 2>/dev/null || true
+    iptables -C FORWARD -j DOCKER-USER 2>/dev/null || iptables -I FORWARD 1 -j DOCKER-USER
+    iptables -I DOCKER-USER 1 -j "$CHAIN"
+}
+
+# No IPv6 allowlist is maintained, so close IPv6 rather than leave a bypass.
+close_ipv6() {
+    if command -v ip6tables >/dev/null 2>&1; then
+        ip6tables -F OUTPUT 2>/dev/null || true
+        ip6tables -A OUTPUT -o lo -j ACCEPT 2>/dev/null || true
+        ip6tables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || true
+        ip6tables -A OUTPUT -j REJECT 2>/dev/null || true
+    fi
+}
+
+# Between the teardown below and the final rules there is no egress restriction
+# at all, so every failure in between has to land on deny-all instead of on an
+# open network.
+lockdown() {
+    local rc=$?
+    trap - EXIT
+    if [ "$rc" -eq 0 ]; then return 0; fi
+    set +e
+    echo "ERROR: firewall setup failed, falling back to deny-all egress" >&2
+    detach_chain
+    iptables -N "$CHAIN" 2>/dev/null || iptables -F "$CHAIN"
+    iptables -A "$CHAIN" -o lo -j ACCEPT
+    iptables -A "$CHAIN" -j REJECT --reject-with icmp-port-unreachable
+    attach_chain
+    close_ipv6
+    exit "$rc"
+}
+trap lockdown EXIT
+
 echo "==> Tearing down previous rules"
 # Detach before destroying, otherwise the ipset is still referenced.
-while iptables -C OUTPUT -j "$CHAIN" 2>/dev/null; do iptables -D OUTPUT -j "$CHAIN"; done
-while iptables -C DOCKER-USER -j "$CHAIN" 2>/dev/null; do iptables -D DOCKER-USER -j "$CHAIN"; done
+detach_chain
 if iptables -L "$CHAIN" -n >/dev/null 2>&1; then
     iptables -F "$CHAIN"
     iptables -X "$CHAIN"
@@ -95,22 +138,8 @@ done
 iptables -A "$CHAIN" -p tcp -m multiport --dports 80,443 -m set --match-set "$SET" dst -j ACCEPT
 iptables -A "$CHAIN" -j REJECT --reject-with icmp-port-unreachable
 
-# Traffic originating in this container.
-iptables -I OUTPUT 1 -j "$CHAIN"
-
-# Traffic routed out of the inner containers. DOCKER-USER is the chain Docker
-# reserves for user rules and never rewrites.
-iptables -N DOCKER-USER 2>/dev/null || true
-iptables -C FORWARD -j DOCKER-USER 2>/dev/null || iptables -I FORWARD 1 -j DOCKER-USER
-iptables -I DOCKER-USER 1 -j "$CHAIN"
-
-# No IPv6 allowlist is maintained, so close IPv6 rather than leave a bypass.
-if command -v ip6tables >/dev/null 2>&1; then
-    ip6tables -F OUTPUT 2>/dev/null || true
-    ip6tables -A OUTPUT -o lo -j ACCEPT 2>/dev/null || true
-    ip6tables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || true
-    ip6tables -A OUTPUT -j REJECT 2>/dev/null || true
-fi
+attach_chain
+close_ipv6
 
 echo "==> Verifying"
 if curl -s --max-time 5 https://example.com >/dev/null 2>&1; then
@@ -125,4 +154,5 @@ if timeout 5 bash -c 'exec 3<>/dev/tcp/github.com/22' 2>/dev/null; then
     echo "ERROR: ssh to github.com is reachable, pushes over SSH are not blocked" >&2
     exit 1
 fi
+trap - EXIT
 echo "Firewall active: $(ipset list "$SET" | grep -c '^[0-9]') entries allowed."
