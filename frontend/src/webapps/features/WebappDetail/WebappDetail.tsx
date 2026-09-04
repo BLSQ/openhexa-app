@@ -59,6 +59,7 @@ type WebappDetailProps = {
   webapp: any;
   showAssistant: boolean;
   monthlyLimitExceeded: boolean;
+  isReviewing?: boolean;
   onRefetch: () => void;
 };
 
@@ -81,6 +82,7 @@ const WebappDetail = ({
   webapp,
   showAssistant,
   monthlyLimitExceeded,
+  isReviewing = false,
   onRefetch,
 }: WebappDetailProps) => {
   const { t } = useTranslation();
@@ -376,6 +378,12 @@ const WebappDetail = ({
                   {t("Public")}
                 </span>
               )}
+              {isReviewing && (
+                <span className="inline-flex h-5 flex-none items-center gap-1.5 rounded-md bg-amber-100 px-2 text-[11px] font-semibold text-amber-800 ring-1 ring-inset ring-amber-700/15">
+                  <Spinner size="xs" />
+                  {t("Security review in progress")}
+                </span>
+              )}
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px]">
               {displayUrl && (
@@ -650,9 +658,7 @@ const WebappDetail = ({
                 )}
               </div>
 
-              {isStatic && !webapp.isPublic && (
-                <WebappApiAccess webapp={webapp} />
-              )}
+              {isStatic && <WebappApiAccess webapp={webapp} />}
             </div>
           </div>
         )}

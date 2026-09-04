@@ -7,14 +7,16 @@ import {
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import Page from "core/components/Page";
+import Spinner from "core/components/Spinner";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import useCacheKey from "core/hooks/useCacheKey";
 import { WebappType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import MakeWebappPublicDialog from "webapps/features/MakeWebappPublicDialog";
 import WebappDetail from "webapps/features/WebappDetail/WebappDetail";
 import GitClonePopover from "webapps/features/GitClonePopover/GitClonePopover";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
@@ -33,12 +35,27 @@ type Props = {
   workspaceSlug: string;
 };
 
+// Frontend-only stand-in: the real review will be driven by the backend, which
+// will report its own progress and outcome. Until then the page fakes the wait
+// so the surrounding flow can be evaluated.
+const MOCK_REVIEW_DURATION = 3000;
+
 const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
   const { webappSlug, workspaceSlug } = props;
   const { t } = useTranslation();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
+  const [isPublicDialogOpen, setIsPublicDialogOpen] = useState(false);
+  const [isReviewing, setIsReviewing] = useState(false);
+  const reviewTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [updateWebapp] = useUpdateWebappMutation();
+
+  useEffect(
+    () => () => {
+      if (reviewTimeout.current) clearTimeout(reviewTimeout.current);
+    },
+    [],
+  );
 
   const { data, refetch } = useWorkspaceWebappPageQuery({
     variables: { workspaceSlug, webappSlug },
@@ -55,20 +72,43 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
     source?.__typename === "GitSource" ? source.repositoryUrl : null;
   const showAssistant = workspace.organization?.aiSettings?.enabled ?? false;
 
-  const handleToggleVisibility = async () => {
+  const setVisibility = async (isPublic: boolean) => {
     setIsTogglingVisibility(true);
     try {
       const { data: updated } = await updateWebapp({
-        variables: { input: { id: webapp.id, isPublic: !webapp.isPublic } },
+        variables: { input: { id: webapp.id, isPublic } },
       });
       if (updated?.updateWebapp?.errors?.length) {
         toast.error(t("An error occurred while updating the web app"));
-        return;
+        return false;
       }
       refetch().then();
+      return true;
     } finally {
       setIsTogglingVisibility(false);
     }
+  };
+
+  const handleToggleVisibility = () => {
+    if (webapp.isPublic) {
+      setVisibility(false).then();
+    } else if (webapp.type === WebappType.Static) {
+      setIsPublicDialogOpen(true);
+    } else {
+      setVisibility(true).then();
+    }
+  };
+
+  const handleConfirmPublic = () => {
+    setIsPublicDialogOpen(false);
+    setIsReviewing(true);
+    reviewTimeout.current = setTimeout(async () => {
+      const published = await setVisibility(true);
+      setIsReviewing(false);
+      if (published) {
+        toast.success(t("Security review passed. This web app is now public."));
+      }
+    }, MOCK_REVIEW_DURATION);
   };
 
   return (
@@ -102,16 +142,22 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
               <Button
                 variant="white"
                 onClick={handleToggleVisibility}
-                disabled={isTogglingVisibility}
+                disabled={isTogglingVisibility || isReviewing}
                 leadingIcon={
-                  webapp.isPublic ? (
+                  isReviewing ? (
+                    <Spinner size="xs" />
+                  ) : webapp.isPublic ? (
                     <LockClosedIcon className="h-4 w-4" />
                   ) : (
                     <GlobeAltIcon className="h-4 w-4" />
                   )
                 }
               >
-                {webapp.isPublic ? t("Make private") : t("Make public")}
+                {isReviewing
+                  ? t("Reviewing...")
+                  : webapp.isPublic
+                    ? t("Make private")
+                    : t("Make public")}
               </Button>
             )}
             <Link href={webapp.serveUrl ?? webapp.url ?? "#"} target="_blank">
@@ -143,12 +189,19 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
             monthlyLimitExceeded={
               data?.me?.assistantMonthlyLimitExceeded ?? false
             }
+            isReviewing={isReviewing}
             onRefetch={() => {
               refetch().then();
             }}
           />
         </div>
       </WorkspaceLayout>
+      <MakeWebappPublicDialog
+        open={isPublicDialogOpen}
+        onClose={() => setIsPublicDialogOpen(false)}
+        onConfirm={handleConfirmPublic}
+        webapp={webapp}
+      />
       <DeleteWebappDialog
         open={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
