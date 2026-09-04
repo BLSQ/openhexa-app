@@ -11,7 +11,7 @@ against this repository without giving it your host machine.
    First build takes a while: it builds the whole compose stack inside the container.
 2. Run `claude` once and log in. The credentials live in a named volume and
    survive rebuilds.
-3. `docker compose up -d && docker compose run app fixtures`.
+3. `docker compose --profile frontend up -d && docker compose run app fixtures`.
 4. From then on, `claude --dangerously-skip-permissions`.
 
 ## How the isolation works
