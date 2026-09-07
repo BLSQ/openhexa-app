@@ -224,38 +224,36 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
               </div>
             )}
           </div>
+          {proposedFiles && (
+            <AssistantProposalBanner
+              label={t("Proposed version from AI assistant")}
+              message={proposedCommitMessage ?? undefined}
+              messagePlaceholder={t("Version description")}
+              onMessageChange={setProposedCommitMessage}
+              onDismiss={handleDismiss}
+              className="-my-2"
+            />
+          )}
           <div className="flex gap-4 min-h-[60vh] max-h-[65vh] overflow-hidden">
-            <div className="relative flex-1 min-w-0 flex flex-col">
-              {proposedFiles && (
-                <AssistantProposalBanner
-                  label={t("Proposed version from AI assistant")}
-                  message={proposedCommitMessage ?? undefined}
-                  messagePlaceholder={t("Version description")}
-                  onMessageChange={setProposedCommitMessage}
-                  onDismiss={handleDismiss}
-                  className="mb-2"
-                />
+            <div className="relative flex-1 min-w-0">
+              {(loading || versionLoading) && (
+                <div className="absolute inset-0 backdrop-blur-xs flex justify-center items-center z-10">
+                  <Spinner size="md" />
+                </div>
               )}
-              <div className="relative flex-1 min-h-0">
-                {(loading || versionLoading) && (
-                  <div className="absolute inset-0 backdrop-blur-xs flex justify-center items-center z-10">
-                    <Spinner size="md" />
-                  </div>
-                )}
-                <PipelineFilesEditor
-                  key={versionToShow.id}
-                  name={versionToShow.versionName}
-                  files={versionToShow.files}
-                  isEditable={pipeline.permissions.createVersion}
-                  proposedFiles={proposedFiles ?? undefined}
-                  proposedDeletedPaths={proposedDeletedPaths ?? undefined}
-                  proposedCommitMessage={proposedCommitMessage ?? undefined}
-                  workspaceSlug={workspaceSlug}
-                  pipelineCode={pipelineCode}
-                  pipelineId={pipeline.id}
-                  onVersionCreated={handleVersionCreated}
-                />
-              </div>
+              <PipelineFilesEditor
+                key={versionToShow.id}
+                name={versionToShow.versionName}
+                files={versionToShow.files}
+                isEditable={pipeline.permissions.createVersion}
+                proposedFiles={proposedFiles ?? undefined}
+                proposedDeletedPaths={proposedDeletedPaths ?? undefined}
+                proposedCommitMessage={proposedCommitMessage ?? undefined}
+                workspaceSlug={workspaceSlug}
+                pipelineCode={pipelineCode}
+                pipelineId={pipeline.id}
+                onVersionCreated={handleVersionCreated}
+              />
             </div>
             {chatOpen && aiEnabled && canEditCode && (
               <div className="w-[440px] shrink-0">
