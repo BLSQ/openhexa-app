@@ -223,7 +223,7 @@ def resolve_update_webapp(_, info, **kwargs):
             try:
                 git_webapp.save_files(
                     files,
-                    "Update webapp content",
+                    (input.get("message") or "").strip() or "Update webapp content",
                     user,
                     delete_paths=input.get("files_to_delete"),
                 )
