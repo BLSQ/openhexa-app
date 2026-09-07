@@ -22,6 +22,7 @@ type WebappFilesEditorProps = {
   repositoryUrl?: string | null;
   proposedFiles?: { path: string; content: string }[];
   proposedDeletedPaths?: string[];
+  proposedCommitMessage?: string;
   onSaveSuccess?: () => void;
   onBusyChange?: (busy: boolean) => void;
 };
@@ -36,6 +37,7 @@ const WebappFilesEditor = ({
   repositoryUrl,
   proposedFiles,
   proposedDeletedPaths,
+  proposedCommitMessage,
   onSaveSuccess,
   onBusyChange,
 }: WebappFilesEditorProps) => {
@@ -134,6 +136,7 @@ const WebappFilesEditor = ({
             id: webappId,
             files: fileInputs,
             filesToDelete: deletedPaths,
+            message: proposedCommitMessage?.trim() || undefined,
           },
         },
         refetchQueries: ["WebappVersions"],

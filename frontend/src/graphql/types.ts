@@ -6506,6 +6506,7 @@ export type UpdateWebappInput = {
   icon?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['UUID']['input'];
   isPublic?: InputMaybe<Scalars['Boolean']['input']>;
+  message?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   publishedVersionId?: InputMaybe<Scalars['String']['input']>;
   source?: InputMaybe<UpdateWebappSourceInput>;

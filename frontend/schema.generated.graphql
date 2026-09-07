@@ -5705,6 +5705,7 @@ input UpdateWebappInput {
   icon: String
   id: UUID!
   isPublic: Boolean
+  message: String
   name: String
   publishedVersionId: String
   source: UpdateWebappSourceInput
