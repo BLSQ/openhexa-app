@@ -1,10 +1,15 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from hexa.assistant.agents.edit_pipeline_agent import (
     ProposedFile,
     propose_pipeline_version,
 )
+from hexa.assistant.agents.proposals import MAX_COMMIT_MESSAGE_LENGTH
+from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import TestCase
+from hexa.user_management.models import User
+from hexa.workspaces.tests.testutils import create_workspace
 
 from ._helpers import _make_zipfile
 
@@ -113,4 +118,107 @@ class ProposePipelineVersionToolTest(TestCase):
                 "deleted_paths": [],
                 "all_paths": ["pipeline.py"],
             },
+        )
+
+
+class ProposePipelineVersionCommitMessageTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(
+            "pipeline-tool-test@example.com", "password", is_superuser=True
+        )
+        with patch("hexa.workspaces.models.create_database"):
+            cls.workspace = create_workspace(
+                cls.user, name="Pipeline Tool Test Workspace", description=""
+            )
+
+    def _make_conversation(self):
+        return Conversation.objects.create(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.EDIT_PIPELINE,
+        )
+
+    def _make_pending_invocation(self, conversation, tool_output):
+        message = Message.objects.create(
+            conversation=conversation,
+            role=Message.Role.ASSISTANT,
+            content=[],
+        )
+        return ToolInvocation.objects.create(
+            message=message,
+            tool_name="propose_pipeline_version",
+            tool_call_id="call-pending-001",
+            tool_input={},
+            success=True,
+            proposal_pending=True,
+            tool_output=tool_output,
+        )
+
+    def test_commit_message_is_returned_with_the_proposal(self):
+        result = propose_pipeline_version(
+            _make_pipeline_stub(),
+            [ProposedFile(name="pipeline.py", content="# new")],
+            commit_message="  Add retry logic to the extract task  ",
+        )
+        self.assertEqual(
+            result["commit_message"], "Add retry logic to the extract task"
+        )
+
+    def test_no_commit_message_leaves_the_key_out(self):
+        result = propose_pipeline_version(
+            _make_pipeline_stub(),
+            [ProposedFile(name="pipeline.py", content="# new")],
+            commit_message="   ",
+        )
+        self.assertNotIn("commit_message", result)
+
+    def test_too_long_commit_message_returns_error(self):
+        result = propose_pipeline_version(
+            _make_pipeline_stub(),
+            [ProposedFile(name="pipeline.py", content="# new")],
+            commit_message="x" * (MAX_COMMIT_MESSAGE_LENGTH + 1),
+        )
+        self.assertIn("error", result)
+        self.assertNotIn("files", result)
+
+    def test_pending_commit_message_carries_over_when_not_restated(self):
+        conversation = self._make_conversation()
+        self._make_pending_invocation(
+            conversation,
+            {
+                "files": [{"name": "pipeline.py", "content": "# pending"}],
+                "deleted_paths": [],
+                "all_paths": ["pipeline.py"],
+                "commit_message": "Add retry logic to the extract task",
+            },
+        )
+        result = propose_pipeline_version(
+            _make_pipeline_stub(),
+            [ProposedFile(name="pipeline.py", content="# updated")],
+            conversation=conversation,
+        )
+        self.assertEqual(
+            result["commit_message"], "Add retry logic to the extract task"
+        )
+
+    def test_new_commit_message_replaces_the_pending_one(self):
+        conversation = self._make_conversation()
+        self._make_pending_invocation(
+            conversation,
+            {
+                "files": [{"name": "pipeline.py", "content": "# pending"}],
+                "deleted_paths": [],
+                "all_paths": ["pipeline.py"],
+                "commit_message": "Add retry logic to the extract task",
+            },
+        )
+        result = propose_pipeline_version(
+            _make_pipeline_stub(),
+            [ProposedFile(name="pipeline.py", content="# updated")],
+            commit_message="Add retry logic and lower the batch size",
+            conversation=conversation,
+        )
+        self.assertEqual(
+            result["commit_message"], "Add retry logic and lower the batch size"
         )

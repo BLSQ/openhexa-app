@@ -5,6 +5,7 @@ from hexa.assistant.agents.edit_webapp_agent import (
     ProposedFile,
     propose_webapp_version,
 )
+from hexa.assistant.agents.proposals import MAX_COMMIT_MESSAGE_LENGTH
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import TestCase
@@ -250,7 +251,9 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
             instruction_set=InstructionSet.EDIT_WEBAPP,
         )
 
-    def _make_pending_invocation(self, conversation, files, deleted_paths=None):
+    def _make_pending_invocation(
+        self, conversation, files, deleted_paths=None, commit_message=None
+    ):
         message = Message.objects.create(
             conversation=conversation,
             role=Message.Role.ASSISTANT,
@@ -263,7 +266,11 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
             tool_input={},
             success=True,
             proposal_pending=True,
-            tool_output={"files": files, "deleted_paths": deleted_paths or []},
+            tool_output={
+                "files": files,
+                "deleted_paths": deleted_paths or [],
+                **({"commit_message": commit_message} if commit_message else {}),
+            },
         )
 
     def test_pending_proposal_is_used_as_base_instead_of_live_files(self):
@@ -317,3 +324,66 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
         files = {f["path"] for f in result["files"]}
         self.assertIn("index.html", files)
         webapp.get_files.assert_called_once()
+
+    def test_commit_message_is_returned_with_the_proposal(self):
+        webapp = _make_webapp_stub()
+        result = propose_webapp_version(
+            webapp,
+            [ProposedFile(path="index.html", content="<h1>Hello</h1>")],
+            commit_message="  Add a dark theme toggle  ",
+        )
+        self.assertEqual(result["commit_message"], "Add a dark theme toggle")
+
+    def test_no_commit_message_leaves_the_key_out(self):
+        webapp = _make_webapp_stub()
+        result = propose_webapp_version(
+            webapp,
+            [ProposedFile(path="index.html", content="<h1>Hello</h1>")],
+            commit_message="   ",
+        )
+        self.assertNotIn("commit_message", result)
+
+    def test_too_long_commit_message_returns_error(self):
+        webapp = _make_webapp_stub()
+        result = propose_webapp_version(
+            webapp,
+            [ProposedFile(path="index.html", content="<h1>Hello</h1>")],
+            commit_message="x" * (MAX_COMMIT_MESSAGE_LENGTH + 1),
+        )
+        self.assertIn("error", result)
+        self.assertNotIn("files", result)
+
+    def test_pending_commit_message_carries_over_when_not_restated(self):
+        conversation = self._make_conversation()
+        self._make_pending_invocation(
+            conversation,
+            [{"path": "index.html", "content": "<h1>Pending</h1>"}],
+            commit_message="Add a dark theme toggle",
+        )
+
+        webapp = _make_webapp_stub()
+        result = propose_webapp_version(
+            webapp,
+            [ProposedFile(path="index.html", content="<h1>Updated</h1>")],
+            conversation=conversation,
+        )
+        self.assertEqual(result["commit_message"], "Add a dark theme toggle")
+
+    def test_new_commit_message_replaces_the_pending_one(self):
+        conversation = self._make_conversation()
+        self._make_pending_invocation(
+            conversation,
+            [{"path": "index.html", "content": "<h1>Pending</h1>"}],
+            commit_message="Add a dark theme toggle",
+        )
+
+        webapp = _make_webapp_stub()
+        result = propose_webapp_version(
+            webapp,
+            [ProposedFile(path="index.html", content="<h1>Updated</h1>")],
+            commit_message="Add a dark theme toggle and persist the choice",
+            conversation=conversation,
+        )
+        self.assertEqual(
+            result["commit_message"], "Add a dark theme toggle and persist the choice"
+        )
