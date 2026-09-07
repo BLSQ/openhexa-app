@@ -4,7 +4,9 @@ from pydantic import BaseModel
 
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.agents.proposals import (
+    commit_message_error,
     nothing_to_delete_error,
+    resolve_commit_message,
     resolve_deleted_paths,
 )
 from hexa.assistant.instructions import InstructionSet
@@ -38,6 +40,7 @@ def propose_webapp_version(
     modified_files: list[ProposedFile] | None = None,
     file_patches: list[FilePatch] | str | None = None,
     deleted_files: list[str] | None = None,
+    commit_message: str | None = None,
     conversation: Conversation | None = None,
 ) -> dict:
     """Propose changes to the web app files.
@@ -56,7 +59,13 @@ def propose_webapp_version(
     inlined here.
     Unchanged files are preserved automatically.
     You can mix modified_files and file_patches in the same call.
+    Pass commit_message to describe the change in one line, like a git commit subject.
+    It becomes the commit message if the user accepts the proposal.
     """
+    message_error = commit_message_error(commit_message)
+    if message_error:
+        return message_error
+
     if isinstance(file_patches, str):
         try:
             raw = json.loads(file_patches)
@@ -138,10 +147,16 @@ def propose_webapp_version(
         for path in resolved:
             current_files.pop(path, None)
 
-    return {
+    output = {
         "files": [{"path": k, "content": v} for k, v in current_files.items()],
         "deleted_paths": sorted(deleted_paths),
     }
+    message = resolve_commit_message(
+        commit_message, pending.tool_output if pending else None
+    )
+    if message:
+        output["commit_message"] = message
+    return output
 
 
 class EditWebappAgent(BaseAgent):
