@@ -44,7 +44,7 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
           </div>
           {pipeline.currentVersion?.versionName && (
             <span className="text-sm text-gray-500">
-              v{pipeline.currentVersion.versionName}
+              {pipeline.currentVersion.versionName}
             </span>
           )}
         </div>

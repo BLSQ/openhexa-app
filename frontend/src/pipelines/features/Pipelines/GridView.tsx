@@ -69,12 +69,13 @@ const GridView = ({
               >
                 {pipeline.name}
               </Link>
-              <span className="text-sm text-gray-500">{pipeline.code}</span>
+              <span className="text-sm text-gray-500">
+                {pipeline.code}
+                {pipeline.currentVersion?.versionName &&
+                  ` · ${pipeline.currentVersion.versionName}`}
+              </span>
             </div>
           )}
-        </BaseColumn>
-        <BaseColumn id="version" label={t("Version")} disableSortBy={true}>
-          {(pipeline) => <span>{pipeline.currentVersion?.versionName}</span>}
         </BaseColumn>
         <BaseColumn id="source" label={t("Source")} disableSortBy={true}>
           {(pipeline) => <Badge>{formatPipelineSource(pipeline.type, !!pipeline.sourceTemplate)}</Badge>}
