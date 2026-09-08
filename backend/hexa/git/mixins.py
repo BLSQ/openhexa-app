@@ -97,17 +97,3 @@ class GitRepoMixin(models.Model):
 
     def archive_repo(self):
         self.client.archive_repository(self.git_org.slug, self.repository)
-
-
-class WorkspaceGitRepoMixin(GitRepoMixin):
-    """A git-backed artifact keeping its repository in its workspace's git org."""
-
-    class Meta:
-        abstract = True
-
-    @property
-    def git_org(self) -> GitOrg:
-        return GitOrg(
-            slug=self.workspace.organization.slug,
-            display_name=self.workspace.organization.name,
-        )

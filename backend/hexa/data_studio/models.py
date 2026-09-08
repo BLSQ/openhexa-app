@@ -13,7 +13,7 @@ from hexa.core.models.base import Base, BaseQuerySet
 from hexa.databases.query_text import sanitize_sql
 from hexa.git.enums import FileEncoding
 from hexa.git.exceptions import GitError
-from hexa.git.mixins import WorkspaceGitRepoMixin
+from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.workspaces.models import Workspace
 
@@ -161,7 +161,7 @@ def saved_queries_on_author_deleted(collector, field, sub_objs, using):
         policy(collector, field, saved_queries, using)
 
 
-class SavedQuery(Base, WorkspaceGitRepoMixin):
+class SavedQuery(Base, GitRepoMixin):
     """A SQL query saved by a user in the Data Studio.
 
     A saved query belongs to a workspace, but its `visibility` decides who within
@@ -251,6 +251,13 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def git_org(self) -> GitOrg:
+        return GitOrg(
+            slug=self.workspace.organization.slug,
+            display_name=self.workspace.organization.name,
+        )
 
     def save(self, *args, **kwargs):
         # SQL pasted from a chat, a document or a PDF carries blanks PostgreSQL
