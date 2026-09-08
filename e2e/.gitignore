@@ -1,0 +1,7 @@
+node_modules/
+# Storage state produced by the auth setup project: contains a live session cookie.
+.auth/
+.env
+playwright-report/
+blob-report/
+test-results/
