@@ -37,7 +37,9 @@ jobs:
     name: Build & Test
     runs-on: ubuntu-latest
     env:
-      COMPOSE_FILE: docker-compose.yaml:docker-compose.ci.yaml
+      # Layer the throwaway-DB overrides over the base compose file for every
+      # `docker compose` in this job.
+      COMPOSE_FILE: docker-compose.yaml:docker-compose.test.yaml
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
