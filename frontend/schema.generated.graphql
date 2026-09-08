@@ -1175,6 +1175,11 @@ input CreatePipelineVersionInput {
 """Errors that can occur when creating a saved query."""
 enum CreateSavedQueryError {
   PERMISSION_DENIED
+
+  """
+  The query's history could not be recorded, so nothing was saved. Retrying is safe.
+  """
+  VERSIONING_UNAVAILABLE
   WORKSPACE_NOT_FOUND
 }
 
@@ -5527,6 +5532,11 @@ type UpdatePipelineVersionResult {
 enum UpdateSavedQueryError {
   PERMISSION_DENIED
   SAVED_QUERY_NOT_FOUND
+
+  """
+  The new version could not be recorded, so no change was saved. Retrying is safe.
+  """
+  VERSIONING_UNAVAILABLE
 }
 
 """Input for updating a saved query."""

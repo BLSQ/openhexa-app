@@ -1,3 +1,4 @@
+import logging
 import pathlib
 
 from ariadne import (
@@ -16,11 +17,14 @@ from psycopg2.errors import QueryCanceled
 from hexa.core.graphql import result_page
 from hexa.databases.query_text import MultipleStatementsError
 from hexa.databases.schema import database_object
+from hexa.git.exceptions import GitError
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
 from .models import QueryLog, SavedQuery
 from .query_runner import run_and_log_database_query, run_saved_query
+
+logger = logging.getLogger(__name__)
 
 data_studio_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -269,6 +273,14 @@ def resolve_create_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    # The transaction rolled back, so nothing was created: reported as a failure
+    # rather than as a saved query with no history.
+    except GitError:
+        logger.exception(
+            "Saved query versioning unavailable, creation rolled back (workspace %s)",
+            mutation_input["workspace_slug"],
+        )
+        return {"success": False, "errors": ["VERSIONING_UNAVAILABLE"]}
 
 
 @data_studio_mutations.field("updateSavedQuery")
@@ -286,6 +298,14 @@ def resolve_update_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    # Rolled back rather than kept with a hole in its history, so a retry records
+    # both the change and its version.
+    except GitError:
+        logger.exception(
+            "Saved query versioning unavailable, update rolled back (query %s)",
+            mutation_input["id"],
+        )
+        return {"success": False, "errors": ["VERSIONING_UNAVAILABLE"]}
 
 
 @data_studio_mutations.field("deleteSavedQuery")

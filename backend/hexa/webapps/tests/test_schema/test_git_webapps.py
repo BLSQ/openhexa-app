@@ -1210,16 +1210,11 @@ class GitWebappCommitDiffTest(GraphQLTestCase):
     def test_commit_diff_success(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.get_commit.return_value = {
-            "sha": "abc123",
-            "commit": {
-                "message": "Update homepage\n",
-                "author": {
-                    "name": "Test User",
-                    "email": "test@example.com",
-                    "date": "2024-01-02T00:00:00Z",
-                },
-            },
-            "parents": [{"sha": "def456"}],
+            "id": "abc123",
+            "message": "Update homepage",
+            "author_name": "Test User",
+            "author_email": "test@example.com",
+            "date": "2024-01-02T00:00:00Z",
         }
         mock_client.get_commit_diff.return_value = (
             "diff --git a/index.html b/index.html\n"
@@ -1251,16 +1246,11 @@ class GitWebappCommitDiffTest(GraphQLTestCase):
     def test_commit_diff_initial_commit_all_added(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.get_commit.return_value = {
-            "sha": "firstsha",
-            "commit": {
-                "message": "Initial commit",
-                "author": {
-                    "name": "Test User",
-                    "email": "test@example.com",
-                    "date": "2024-01-01T00:00:00Z",
-                },
-            },
-            "parents": [],
+            "id": "firstsha",
+            "message": "Initial commit",
+            "author_name": "Test User",
+            "author_email": "test@example.com",
+            "date": "2024-01-01T00:00:00Z",
         }
         mock_client.get_commit_diff.return_value = (
             "diff --git a/index.html b/index.html\n"
