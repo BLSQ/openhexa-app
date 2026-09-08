@@ -1,7 +1,7 @@
 import { createContext, ReactNode, RefObject, useContext, useRef } from "react";
 
 type DetailShellContextValue = {
-  containerRef: RefObject<HTMLDivElement | null>;
+  containerRef: RefObject<HTMLDivElement>;
 };
 
 const DetailShellContext = createContext<DetailShellContextValue | null>(null);
@@ -23,10 +23,20 @@ const DetailShell = ({ children }: DetailShellProps) => {
 
   return (
     <DetailShellContext.Provider value={{ containerRef }}>
-      <div ref={containerRef} className="flex h-full min-h-0 bg-white">
-        {children}
-      </div>
+      <div className="flex h-full min-h-0 flex-col bg-white">{children}</div>
     </DetailShellContext.Provider>
+  );
+};
+
+// Holds the side-by-side panes below the header; it is the reference the
+// assistant dock resizes against.
+const Body = ({ children }: { children: ReactNode }) => {
+  const { containerRef } = useDetailShell();
+
+  return (
+    <div ref={containerRef} className="flex min-h-0 flex-1">
+      {children}
+    </div>
   );
 };
 
@@ -34,6 +44,7 @@ const Main = ({ children }: { children: ReactNode }) => (
   <div className="flex min-w-0 flex-1 flex-col">{children}</div>
 );
 
+DetailShell.Body = Body;
 DetailShell.Main = Main;
 
 export default DetailShell;

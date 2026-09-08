@@ -305,321 +305,323 @@ const WebappDetail = ({
 
   return (
     <DetailShell>
-      <DetailShell.Main>
-        <DetailHeader
-          icon={
-            <img
-              src={webapp.icon || PLACEHOLDER_ICON}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          }
-          title={webapp.name}
-          badges={
-            <>
-              <DetailBadge color="indigo">
-                {t("{{type}} app", { type: getWebappTypeLabel(webapp.type) })}
-              </DetailBadge>
-              {webapp.isPublic && (
-                <DetailBadge
-                  color="emerald"
-                  icon={<GlobeAltIcon className="h-3 w-3" />}
-                >
-                  {t("Public")}
-                </DetailBadge>
-              )}
-              {isReviewing && (
-                <DetailBadge color="amber" icon={<Spinner size="xs" />}>
-                  {t("Security review in progress")}
-                </DetailBadge>
-              )}
-            </>
-          }
-          meta={[
-            displayUrl && (
-              <span className="inline-flex items-center gap-1.5 text-gray-500">
-                <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
-                <a
-                  href={webapp.serveUrl ?? webapp.url ?? "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-700"
-                >
-                  {displayUrl}
-                </a>
-              </span>
-            ),
-            latestVersion && (
-              <span className="text-gray-500">
-                {t("Latest")}{" "}
-                <code className="font-mono text-gray-700">
-                  {latestVersion.id.substring(0, 7)}
-                </code>{" "}
-                &middot; {DateTime.fromISO(latestVersion.date).toRelative()}
-              </span>
-            ),
-          ]}
-        />
-
-        <SegmentedViewSwitcher
-          segments={segments}
-          value={view}
-          onChange={setView}
-          actions={
-            <>
-              {view === "preview" && (
-                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
-                  <span className="h-[7px] w-[7px] rounded-full bg-emerald-500" />
-                  {t("Live")}
-                </span>
-              )}
-              {assistantAvailable && !isAssistantOpen && (
-                <div className="ml-auto flex-none">
-                  <Button
-                    onClick={toggleAssistant}
-                    variant="secondary"
-                    size="md"
-                    leadingIcon={<SparklesIcon className="h-4 w-4" />}
-                  >
-                    {t("AI Assistant")}
-                  </Button>
-                </div>
-              )}
-            </>
-          }
-        />
-
-        {view === "code" && isStatic && (
-          <div className="flex min-h-0 flex-1 flex-col">
-            {versionRef && (
-              <BrowsingVersionBanner
-                label={
-                  <>
-                    {t("Browsing")}{" "}
-                    <code className="font-mono text-amber-900">
-                      {versionRef.substring(0, 7)}
-                    </code>{" "}
-                    &middot; {t("read-only")}
-                  </>
-                }
-                actions={
-                  canEdit &&
-                  versionRef !== publishedVersionId && (
-                    <button
-                      onClick={handlePublishVersion}
-                      disabled={isPublishing}
-                      className="inline-flex items-center gap-1.5 rounded border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-50 disabled:opacity-60"
-                    >
-                      {isPublishing && <Spinner size="xs" />}
-                      {isPublishing ? t("Publishing...") : t("Publish")}
-                    </button>
-                  )
-                }
-                onBack={() => setVersionRef(null)}
-              />
-            )}
-            {proposedFiles && (
-              <AssistantProposalBanner
-                label={t("Proposed changes from AI assistant")}
-                onDismiss={handleDismiss}
-                className="mx-5 mt-4"
-              />
-            )}
-            <div className="min-h-0 flex-1 p-5">
-              <div className="h-full min-h-0 overflow-hidden rounded-[10px] border border-gray-200">
-                <WebappFilesEditor
-                  key={versionRef ?? "latest"}
-                  webappId={webapp.id}
-                  workspaceSlug={workspaceSlug}
-                  webappSlug={webappSlug}
-                  isEditable={canEdit && !versionRef}
-                  versionRef={versionRef ?? undefined}
-                  proposedFiles={proposedFiles ?? undefined}
-                  flush
-                  onSaveSuccess={handleSaveSuccess}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {view === "preview" && (
-          <DetailViewPane className="bg-gray-100 p-5">
-            <div className="mx-auto h-full max-w-[900px] overflow-hidden rounded-[10px] border border-gray-200 bg-white shadow-sm">
-              <WebappIframe
-                url={previewUrl}
-                type={webapp.type}
-                style={{ height: "100%" }}
-              />
-            </div>
-          </DetailViewPane>
-        )}
-
-        {view === "history" && isStatic && (
-          <DetailViewPane className="px-5 py-4">
-            {diffCommitId ? (
-              <div className="space-y-4">
-                <button
-                  onClick={() => setDiffCommitId(null)}
-                  className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 hover:underline"
-                >
-                  <ArrowUturnLeftIcon className="h-3.5 w-3.5" />
-                  {t("Back to history")}
-                </button>
-                <CommitDiff
-                  workspaceSlug={workspaceSlug}
-                  webappSlug={webappSlug}
-                  commitId={diffCommitId}
-                  onBrowse={browseCommit}
-                />
-              </div>
-            ) : (
-              <WebappHistory
-                workspaceSlug={workspaceSlug}
-                webappSlug={webappSlug}
-                onSelectCommit={setDiffCommitId}
-                onBrowseCommit={browseCommit}
-              />
-            )}
-          </DetailViewPane>
-        )}
-
-        {view === "settings" && (
-          <DetailViewPane className="bg-gray-50 px-5 py-4">
-            <div className="mx-auto max-w-4xl space-y-4">
-              <SettingsCard
-                title={t("Details")}
-                footer={
-                  canEdit && (
-                    <>
-                      <button
-                        onClick={handleCancel}
-                        disabled={!isDirty || isSaving}
-                        className="rounded border border-gray-300 bg-white px-3.5 py-2 text-[13px] font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-60"
-                      >
-                        {t("Cancel")}
-                      </button>
-                      <button
-                        onClick={handleSave}
-                        disabled={!isDirty || isSaving}
-                        className="inline-flex items-center gap-1.5 rounded border-none bg-blue-600 px-3.5 py-2 text-[13px] font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-                      >
-                        {isSaving && <Spinner size="xs" />}
-                        {t("Save")}
-                      </button>
-                    </>
-                  )
-                }
+      <DetailHeader
+        icon={
+          <img
+            src={webapp.icon || PLACEHOLDER_ICON}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        }
+        title={webapp.name}
+        badges={
+          <>
+            <DetailBadge color="indigo">
+              {t("{{type}} app", { type: getWebappTypeLabel(webapp.type) })}
+            </DetailBadge>
+            {webapp.isPublic && (
+              <DetailBadge
+                color="emerald"
+                icon={<GlobeAltIcon className="h-3 w-3" />}
               >
-                <div className="flex items-start gap-6">
-                  <div className="flex w-22 flex-none flex-col items-center gap-2">
-                    <img
-                      src={icon || PLACEHOLDER_ICON}
-                      alt=""
-                      className="h-14 w-14 rounded-[10px] border border-gray-100 object-cover"
-                    />
-                    {canEdit && (
-                      <label
-                        htmlFor="webapp-icon-upload"
-                        className="cursor-pointer text-xs font-medium text-indigo-600 underline hover:text-indigo-500"
-                      >
-                        <input
-                          id="webapp-icon-upload"
-                          type="file"
-                          accept="image/png,image/jpeg,image/jpg"
-                          className="sr-only"
-                          onChange={handleIconChange}
-                        />
-                        {t("Change icon")}
-                      </label>
-                    )}
-                  </div>
-                  <div className="grid flex-1 grid-cols-2 gap-x-5 gap-y-3.5">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-medium text-gray-700">
-                        {t("Name")}
-                      </label>
-                      <input
-                        type="text"
-                        value={name}
-                        disabled={!canEdit}
-                        onChange={(e) => setName(e.target.value)}
-                        className="w-full rounded-md border border-gray-300 px-2.5 py-2 text-[13px] text-gray-900 outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500"
-                      />
-                    </div>
+                {t("Public")}
+              </DetailBadge>
+            )}
+            {isReviewing && (
+              <DetailBadge color="amber" icon={<Spinner size="xs" />}>
+                {t("Security review in progress")}
+              </DetailBadge>
+            )}
+          </>
+        }
+        meta={[
+          displayUrl && (
+            <span className="inline-flex items-center gap-1.5 text-gray-500">
+              <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+              <a
+                href={webapp.serveUrl ?? webapp.url ?? "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-700"
+              >
+                {displayUrl}
+              </a>
+            </span>
+          ),
+          latestVersion && (
+            <span className="text-gray-500">
+              {t("Latest")}{" "}
+              <code className="font-mono text-gray-700">
+                {latestVersion.id.substring(0, 7)}
+              </code>{" "}
+              &middot; {DateTime.fromISO(latestVersion.date).toRelative()}
+            </span>
+          ),
+        ]}
+      />
 
-                    {isStatic ? (
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-medium text-gray-700">
-                          {t("Published URL")}
-                        </label>
-                        <div className="flex items-center overflow-hidden rounded-md border border-gray-300 text-[13px] focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600">
-                          <span className="py-2 pl-2.5 text-gray-400">
-                            {urlParts?.prefix ?? "https://"}
-                          </span>
+      <DetailShell.Body>
+        <DetailShell.Main>
+          <SegmentedViewSwitcher
+            segments={segments}
+            value={view}
+            onChange={setView}
+            actions={
+              <>
+                {view === "preview" && (
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
+                    <span className="h-[7px] w-[7px] rounded-full bg-emerald-500" />
+                    {t("Live")}
+                  </span>
+                )}
+                {assistantAvailable && !isAssistantOpen && (
+                  <div className="ml-auto flex-none">
+                    <Button
+                      onClick={toggleAssistant}
+                      variant="secondary"
+                      size="md"
+                      leadingIcon={<SparklesIcon className="h-4 w-4" />}
+                    >
+                      {t("AI Assistant")}
+                    </Button>
+                  </div>
+                )}
+              </>
+            }
+          />
+
+          {view === "code" && isStatic && (
+            <div className="flex min-h-0 flex-1 flex-col">
+              {versionRef && (
+                <BrowsingVersionBanner
+                  label={
+                    <>
+                      {t("Browsing")}{" "}
+                      <code className="font-mono text-amber-900">
+                        {versionRef.substring(0, 7)}
+                      </code>{" "}
+                      &middot; {t("read-only")}
+                    </>
+                  }
+                  actions={
+                    canEdit &&
+                    versionRef !== publishedVersionId && (
+                      <button
+                        onClick={handlePublishVersion}
+                        disabled={isPublishing}
+                        className="inline-flex items-center gap-1.5 rounded border border-amber-300 bg-white px-2.5 py-1 text-xs font-medium text-amber-900 hover:bg-amber-50 disabled:opacity-60"
+                      >
+                        {isPublishing && <Spinner size="xs" />}
+                        {isPublishing ? t("Publishing...") : t("Publish")}
+                      </button>
+                    )
+                  }
+                  onBack={() => setVersionRef(null)}
+                />
+              )}
+              {proposedFiles && (
+                <AssistantProposalBanner
+                  label={t("Proposed changes from AI assistant")}
+                  onDismiss={handleDismiss}
+                  className="mx-5 mt-4"
+                />
+              )}
+              <div className="min-h-0 flex-1 p-5">
+                <div className="h-full min-h-0 overflow-hidden rounded-[10px] border border-gray-200">
+                  <WebappFilesEditor
+                    key={versionRef ?? "latest"}
+                    webappId={webapp.id}
+                    workspaceSlug={workspaceSlug}
+                    webappSlug={webappSlug}
+                    isEditable={canEdit && !versionRef}
+                    versionRef={versionRef ?? undefined}
+                    proposedFiles={proposedFiles ?? undefined}
+                    flush
+                    onSaveSuccess={handleSaveSuccess}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {view === "preview" && (
+            <DetailViewPane className="bg-gray-100 p-5">
+              <div className="mx-auto h-full max-w-[900px] overflow-hidden rounded-[10px] border border-gray-200 bg-white shadow-sm">
+                <WebappIframe
+                  url={previewUrl}
+                  type={webapp.type}
+                  style={{ height: "100%" }}
+                />
+              </div>
+            </DetailViewPane>
+          )}
+
+          {view === "history" && isStatic && (
+            <DetailViewPane className="px-5 py-4">
+              {diffCommitId ? (
+                <div className="space-y-4">
+                  <button
+                    onClick={() => setDiffCommitId(null)}
+                    className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 hover:underline"
+                  >
+                    <ArrowUturnLeftIcon className="h-3.5 w-3.5" />
+                    {t("Back to history")}
+                  </button>
+                  <CommitDiff
+                    workspaceSlug={workspaceSlug}
+                    webappSlug={webappSlug}
+                    commitId={diffCommitId}
+                    onBrowse={browseCommit}
+                  />
+                </div>
+              ) : (
+                <WebappHistory
+                  workspaceSlug={workspaceSlug}
+                  webappSlug={webappSlug}
+                  onSelectCommit={setDiffCommitId}
+                  onBrowseCommit={browseCommit}
+                />
+              )}
+            </DetailViewPane>
+          )}
+
+          {view === "settings" && (
+            <DetailViewPane className="bg-gray-50 px-5 py-4">
+              <div className="mx-auto max-w-4xl space-y-4">
+                <SettingsCard
+                  title={t("Details")}
+                  footer={
+                    canEdit && (
+                      <>
+                        <button
+                          onClick={handleCancel}
+                          disabled={!isDirty || isSaving}
+                          className="rounded border border-gray-300 bg-white px-3.5 py-2 text-[13px] font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-60"
+                        >
+                          {t("Cancel")}
+                        </button>
+                        <button
+                          onClick={handleSave}
+                          disabled={!isDirty || isSaving}
+                          className="inline-flex items-center gap-1.5 rounded border-none bg-blue-600 px-3.5 py-2 text-[13px] font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                        >
+                          {isSaving && <Spinner size="xs" />}
+                          {t("Save")}
+                        </button>
+                      </>
+                    )
+                  }
+                >
+                  <div className="flex items-start gap-6">
+                    <div className="flex w-22 flex-none flex-col items-center gap-2">
+                      <img
+                        src={icon || PLACEHOLDER_ICON}
+                        alt=""
+                        className="h-14 w-14 rounded-[10px] border border-gray-100 object-cover"
+                      />
+                      {canEdit && (
+                        <label
+                          htmlFor="webapp-icon-upload"
+                          className="cursor-pointer text-xs font-medium text-indigo-600 underline hover:text-indigo-500"
+                        >
                           <input
-                            type="text"
-                            value={subdomain}
-                            disabled={!canEdit}
-                            onChange={(e) => setSubdomain(e.target.value)}
-                            className="min-w-0 flex-1 border-none px-1 py-2 font-mono text-[13px] text-gray-900 outline-hidden disabled:text-gray-500"
+                            id="webapp-icon-upload"
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg"
+                            className="sr-only"
+                            onChange={handleIconChange}
                           />
-                          <span className="whitespace-nowrap py-2 pr-2.5 text-gray-400">
-                            {urlParts?.suffix ?? ""}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
+                          {t("Change icon")}
+                        </label>
+                      )}
+                    </div>
+                    <div className="grid flex-1 grid-cols-2 gap-x-5 gap-y-3.5">
                       <div className="flex flex-col gap-1.5">
                         <label className="text-xs font-medium text-gray-700">
-                          {t("Source URL")}
+                          {t("Name")}
                         </label>
                         <input
                           type="text"
-                          value={sourceUrl}
+                          value={name}
                           disabled={!canEdit}
-                          onChange={(e) => setSourceUrl(e.target.value)}
+                          onChange={(e) => setName(e.target.value)}
                           className="w-full rounded-md border border-gray-300 px-2.5 py-2 text-[13px] text-gray-900 outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500"
                         />
                       </div>
-                    )}
+
+                      {isStatic ? (
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-medium text-gray-700">
+                            {t("Published URL")}
+                          </label>
+                          <div className="flex items-center overflow-hidden rounded-md border border-gray-300 text-[13px] focus-within:border-blue-600 focus-within:ring-1 focus-within:ring-blue-600">
+                            <span className="py-2 pl-2.5 text-gray-400">
+                              {urlParts?.prefix ?? "https://"}
+                            </span>
+                            <input
+                              type="text"
+                              value={subdomain}
+                              disabled={!canEdit}
+                              onChange={(e) => setSubdomain(e.target.value)}
+                              className="min-w-0 flex-1 border-none px-1 py-2 font-mono text-[13px] text-gray-900 outline-hidden disabled:text-gray-500"
+                            />
+                            <span className="whitespace-nowrap py-2 pr-2.5 text-gray-400">
+                              {urlParts?.suffix ?? ""}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-medium text-gray-700">
+                            {t("Source URL")}
+                          </label>
+                          <input
+                            type="text"
+                            value={sourceUrl}
+                            disabled={!canEdit}
+                            onChange={(e) => setSourceUrl(e.target.value)}
+                            className="w-full rounded-md border border-gray-300 px-2.5 py-2 text-[13px] text-gray-900 outline-hidden focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </SettingsCard>
+                </SettingsCard>
 
-              {isStatic && <WebappApiAccess webapp={webapp} />}
-            </div>
-          </DetailViewPane>
+                {isStatic && <WebappApiAccess webapp={webapp} />}
+              </div>
+            </DetailViewPane>
+          )}
+        </DetailShell.Main>
+
+        {assistantAvailable && isAssistantOpen && (
+          <AssistantDock storageKey={ASSISTANT_STORAGE_KEY}>
+            <WebappEditChatPanel
+              webappId={webapp.id}
+              workspaceSlug={workspaceSlug}
+              monthlyLimitExceeded={monthlyLimitExceeded}
+              onProposedFiles={handleProposedFiles}
+              conversations={conversations}
+              activeConversationId={activeConversationId}
+              onConversationChange={setActiveConversationId}
+              onNewConversation={() => setActiveConversationId(null)}
+              onConversationCreated={(conversation) => {
+                setConversations((prev) => [conversation, ...prev]);
+                setActiveConversationId(conversation.id);
+              }}
+              onConversationNameChange={(id, conversationName) =>
+                setConversations((prev) =>
+                  prev.map((c) =>
+                    c.id === id ? { ...c, name: conversationName } : c,
+                  ),
+                )
+              }
+              flush
+              onClose={toggleAssistant}
+            />
+          </AssistantDock>
         )}
-      </DetailShell.Main>
-
-      {assistantAvailable && isAssistantOpen && (
-        <AssistantDock storageKey={ASSISTANT_STORAGE_KEY}>
-          <WebappEditChatPanel
-            webappId={webapp.id}
-            workspaceSlug={workspaceSlug}
-            monthlyLimitExceeded={monthlyLimitExceeded}
-            onProposedFiles={handleProposedFiles}
-            conversations={conversations}
-            activeConversationId={activeConversationId}
-            onConversationChange={setActiveConversationId}
-            onNewConversation={() => setActiveConversationId(null)}
-            onConversationCreated={(conversation) => {
-              setConversations((prev) => [conversation, ...prev]);
-              setActiveConversationId(conversation.id);
-            }}
-            onConversationNameChange={(id, conversationName) =>
-              setConversations((prev) =>
-                prev.map((c) =>
-                  c.id === id ? { ...c, name: conversationName } : c,
-                ),
-              )
-            }
-            flush
-            onClose={toggleAssistant}
-          />
-        </AssistantDock>
-      )}
+      </DetailShell.Body>
     </DetailShell>
   );
 };

@@ -316,641 +316,640 @@ const PipelineDetail = ({
 
   return (
     <DetailShell>
-      <DetailShell.Main>
-        <DetailHeader
-          icon={
-            pipeline.type === PipelineType.Notebook ? (
-              <BookOpenIcon className="h-6 w-6 text-gray-400" />
-            ) : (
-              <CommandLineIcon className="h-6 w-6 text-gray-400" />
-            )
-          }
-          title={pipeline.name ?? t("Pipeline")}
-          badges={
-            <>
-              <DetailBadge color="gray">
-                {formatPipelineSource(pipeline.type, !!pipeline.sourceTemplate)}
+      <DetailHeader
+        icon={
+          pipeline.type === PipelineType.Notebook ? (
+            <BookOpenIcon className="h-6 w-6 text-gray-400" />
+          ) : (
+            <CommandLineIcon className="h-6 w-6 text-gray-400" />
+          )
+        }
+        title={pipeline.name ?? t("Pipeline")}
+        badges={
+          <>
+            <DetailBadge color="gray">
+              {formatPipelineSource(pipeline.type, !!pipeline.sourceTemplate)}
+            </DetailBadge>
+            {pipeline.functionalType && (
+              <DetailBadge color="indigo">
+                {formatPipelineFunctionalType(pipeline.functionalType)}
               </DetailBadge>
-              {pipeline.functionalType && (
-                <DetailBadge color="indigo">
-                  {formatPipelineFunctionalType(pipeline.functionalType)}
-                </DetailBadge>
-              )}
-              {pipeline.schedule && (
-                <DetailBadge
-                  color="blue"
-                  icon={<ClockIcon className="h-3 w-3" />}
-                >
-                  {t("Scheduled")}
-                </DetailBadge>
-              )}
-            </>
-          }
-          meta={[
-            <span
-              key="code"
-              className="inline-flex items-center gap-1.5 text-gray-500"
-            >
-              <Clipboard value={pipeline.code}>
-                <code className="font-mono text-gray-700">{pipeline.code}</code>
-              </Clipboard>
-            </span>,
-            pipeline.currentVersion && (
-              <span className="text-gray-500">
-                {t("Latest")}{" "}
-                <code className="font-mono text-gray-700">
-                  {pipeline.currentVersion.versionName}
-                </code>{" "}
-                &middot;{" "}
-                {DateTime.fromISO(
-                  pipeline.currentVersion.createdAt,
-                ).toRelative()}
-              </span>
-            ),
-            nextRun && (
-              <span className="text-gray-500">
-                {t("Next run")} {nextRun.formatted}
-              </span>
-            ),
-          ]}
-        />
-
-        <SegmentedViewSwitcher
-          segments={segments}
-          value={view}
-          onChange={setView}
-          actions={
-            assistantAvailable &&
-            !isAssistantOpen &&
-            view === "code" && (
-              <div className="ml-auto flex-none">
-                <SubscriptionLimitTooltip
-                  isLimitReached={aiBudgetLimitReached}
-                  title={t("Monthly AI budget reached")}
-                >
-                  <Button
-                    onClick={toggleAssistant}
-                    variant="secondary"
-                    size="md"
-                    leadingIcon={<SparklesIcon className="h-4 w-4" />}
-                  >
-                    {t("AI Assistant")}
-                  </Button>
-                </SubscriptionLimitTooltip>
-              </div>
-            )
-          }
-        />
-
-        {view === "overview" && (
-          <DetailViewPane className="bg-gray-50 px-5 py-4">
-            <div className="mx-auto max-w-4xl space-y-4">
-              <SettingsCard title={t("Description")}>
-                {pipeline.description ? (
-                  <MarkdownViewer sm markdown={pipeline.description} />
-                ) : (
-                  <p className="text-sm italic text-gray-500">
-                    {t("This pipeline has no description.")}
-                  </p>
-                )}
-              </SettingsCard>
-            </div>
-          </DetailViewPane>
-        )}
-
-        {view === "runs" && (
-          <DetailViewPane className="px-5 py-4">
-            <PipelineRuns
-              workspaceSlug={workspaceSlug}
-              pipelineCode={pipelineCode}
-            />
-          </DetailViewPane>
-        )}
-
-        {view === "code" && isZipFile && pipeline.currentVersion && (
-          <div className="flex min-h-0 flex-1 flex-col">
-            {versionRef && (
-              <BrowsingVersionBanner
-                label={
-                  <>
-                    {t("Browsing")}{" "}
-                    <code className="font-mono text-amber-900">
-                      {versionRef.versionName}
-                    </code>{" "}
-                    &middot; {t("read-only")}
-                  </>
-                }
-                onBack={() => setVersionRef(null)}
-              />
             )}
-            {proposedFiles && (
-              <AssistantProposalBanner
-                label={t("Proposed version from AI assistant")}
-                onDismiss={handleDismiss}
-                className="mx-5 mt-4"
-              />
+            {pipeline.schedule && (
+              <DetailBadge
+                color="blue"
+                icon={<ClockIcon className="h-3 w-3" />}
+              >
+                {t("Scheduled")}
+              </DetailBadge>
             )}
-            <div className="min-h-0 flex-1 p-5">
-              <div className="relative h-full min-h-0 overflow-hidden rounded-[10px] border border-gray-200">
-                {filesLoading && (
-                  <div className="absolute inset-0 z-10 flex items-center justify-center backdrop-blur-xs">
-                    <Spinner size="md" />
-                  </div>
-                )}
-                {versionToShow && (
-                  <PipelineFilesEditor
-                    key={versionToShow.id}
-                    name={versionToShow.versionName}
-                    files={versionToShow.files}
-                    isEditable={canEditCode && !versionRef}
-                    proposedFiles={proposedFiles ?? undefined}
-                    proposedDeletedPaths={proposedDeletedPaths ?? undefined}
-                    workspaceSlug={workspaceSlug}
-                    pipelineCode={pipelineCode}
-                    pipelineId={pipeline.id}
-                    flush
-                    onVersionCreated={handleVersionCreated}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+          </>
+        }
+        meta={[
+          <span
+            key="code"
+            className="inline-flex items-center gap-1.5 text-gray-500"
+          >
+            <Clipboard value={pipeline.code}>
+              <code className="font-mono text-gray-700">{pipeline.code}</code>
+            </Clipboard>
+          </span>,
+          pipeline.currentVersion && (
+            <span className="text-gray-500">
+              {t("Latest")}{" "}
+              <code className="font-mono text-gray-700">
+                {pipeline.currentVersion.versionName}
+              </code>{" "}
+              &middot;{" "}
+              {DateTime.fromISO(pipeline.currentVersion.createdAt).toRelative()}
+            </span>
+          ),
+          nextRun && (
+            <span className="text-gray-500">
+              {t("Next run")} {nextRun.formatted}
+            </span>
+          ),
+        ]}
+      />
 
-        {view === "history" && isZipFile && (
-          <DetailViewPane className="px-5 py-4">
-            {selectedVersion ? (
-              <div className="space-y-4">
-                <button
-                  onClick={() => setSelectedVersion(null)}
-                  className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 hover:underline"
-                >
-                  <ArrowUturnLeftIcon className="h-3.5 w-3.5" />
-                  {t("Back to history")}
-                </button>
-                <PipelineVersionCard version={selectedVersion} />
-              </div>
-            ) : (
-              <PipelineHistory
-                workspaceSlug={workspaceSlug}
-                pipelineCode={pipelineCode}
-                onSelectVersion={setSelectedVersion}
-                onBrowseVersion={browseVersion}
-              />
-            )}
-          </DetailViewPane>
-        )}
-
-        {view === "settings" && (
-          <DetailViewPane className="bg-gray-50 px-5 py-4">
-            <div className="mx-auto max-w-4xl space-y-4">
-              <DataCard item={pipeline}>
-                <DataCard.FormSection
-                  title={t("Information")}
-                  onSave={
-                    pipeline.permissions.update ? onSavePipeline : undefined
-                  }
-                  collapsible={false}
-                >
-                  <TextProperty
-                    id="name"
-                    accessor="name"
-                    label={t("Name")}
-                    visible={(value, isEditing) => isEditing}
-                  />
-                  <MarkdownProperty
-                    id="description"
-                    label={t("Description")}
-                    accessor="description"
-                  />
-                  <TextProperty
-                    id="code"
-                    accessor="code"
-                    label={t("Code")}
-                    help={t(
-                      "This is the code used to identify this pipeline using the cli.",
-                    )}
-                    readonly
-                  />
-                  <RenderProperty
-                    id="source"
-                    label={t("Source")}
-                    accessor="type"
+      <DetailShell.Body>
+        <DetailShell.Main>
+          <SegmentedViewSwitcher
+            segments={segments}
+            value={view}
+            onChange={setView}
+            actions={
+              assistantAvailable &&
+              !isAssistantOpen && (
+                <div className="ml-auto flex-none">
+                  <SubscriptionLimitTooltip
+                    isLimitReached={aiBudgetLimitReached}
+                    title={t("Monthly AI budget reached")}
                   >
-                    {(property) => (
-                      <Badge className="bg-gray-50 ring-gray-500/20">
-                        {formatPipelineSource(
-                          property.displayValue,
-                          !!pipeline.sourceTemplate,
-                        )}
-                      </Badge>
-                    )}
-                  </RenderProperty>
-                  <TagProperty
-                    id="tags"
-                    accessor="tags"
-                    label={t("Tags")}
-                    defaultValue={t("Not set")}
-                  />
-                  <RenderProperty
-                    id="functionalType"
-                    accessor="functionalType"
-                    label={t("Type")}
-                    help={t("The functional purpose of this pipeline")}
-                  >
-                    {(property, section) =>
-                      section.isEdited ? (
-                        <div className="w-50">
-                          <Listbox
-                            value={
-                              pipelineFunctionalTypeOptions.find(
-                                (opt) => opt.value === property.formValue,
-                              ) || pipelineFunctionalTypeOptions[0]
-                            }
-                            options={pipelineFunctionalTypeOptions}
-                            onChange={(option) =>
-                              property.setValue(option.value)
-                            }
-                            getOptionLabel={(opt) => opt.label}
-                            by="value"
-                          />
-                        </div>
-                      ) : (
-                        <span>
-                          {property.displayValue
-                            ? formatPipelineFunctionalType(
-                                property.displayValue,
-                              )
-                            : t("Not set")}
-                        </span>
-                      )
-                    }
-                  </RenderProperty>
-                  {pipeline.type === PipelineType.Notebook && (
-                    <RenderProperty
-                      id="notebookPath"
-                      accessor="notebookPath"
-                      label={t("Notebook path")}
-                      readonly
+                    <Button
+                      onClick={toggleAssistant}
+                      variant="secondary"
+                      size="md"
+                      leadingIcon={<SparklesIcon className="h-4 w-4" />}
                     >
-                      {(property) => (
-                        <div className="flex items-center gap-1.5 text-xs">
-                          <Clipboard value={property.displayValue}>
-                            <Link
-                              customStyle="hover:opacity-80"
-                              href={`/workspaces/${encodeURIComponent(
-                                workspaceSlug,
-                              )}/files/${property.displayValue
-                                .split("/")
-                                .slice(0, -1)
-                                .join("/")}`}
-                            >
-                              <code>{property.displayValue}</code>
-                            </Link>
-                          </Clipboard>
-                        </div>
-                      )}
-                    </RenderProperty>
-                  )}
-                </DataCard.FormSection>
-              </DataCard>
+                      {t("AI Assistant")}
+                    </Button>
+                  </SubscriptionLimitTooltip>
+                </div>
+              )
+            }
+          />
 
-              {isZipFile && pipeline.currentVersion && (
-                <SettingsCard
-                  title={t("Parameters")}
-                  actions={
-                    pipeline.permissions.update &&
-                    pipeline.currentVersion.parameters.length > 0 && (
-                      <Button
-                        variant="white"
-                        size="sm"
-                        onClick={() => setVersionConfigDialogOpen(true)}
-                      >
-                        {t("Set default values")}
-                      </Button>
-                    )
-                  }
-                >
-                  {pipeline.currentVersion.parameters.length > 0 ? (
-                    <>
-                      <div className="overflow-hidden rounded-md border border-gray-100">
-                        <PipelineVersionParametersTable
-                          version={pipeline.currentVersion}
-                        />
-                      </div>
-                      <PipelineVersionConfigDialog
-                        version={pipeline.currentVersion}
-                        open={isVersionConfigDialogOpen}
-                        onClose={() => setVersionConfigDialogOpen(false)}
-                      />
-                    </>
+          {view === "overview" && (
+            <DetailViewPane className="bg-gray-50 px-5 py-4">
+              <div className="mx-auto max-w-4xl space-y-4">
+                <SettingsCard title={t("Description")}>
+                  {pipeline.description ? (
+                    <MarkdownViewer sm markdown={pipeline.description} />
                   ) : (
-                    <div className="text-sm italic text-gray-500">
-                      {t("This pipeline has no parameters.")}
-                    </div>
+                    <p className="text-sm italic text-gray-500">
+                      {t("This pipeline has no description.")}
+                    </p>
                   )}
                 </SettingsCard>
-              )}
+              </div>
+            </DetailViewPane>
+          )}
 
-              <DataCard item={pipeline}>
-                <DataCard.FormSection
-                  title={
-                    <div className="flex items-center">
-                      {t("Scheduling")}
-                      {pipeline.permissions.update &&
-                        hasMissingConfiguration && (
-                          <Tooltip
-                            className="flex items-center"
-                            label={t(
-                              "Missing configuration: set default parameters to fix the problem.",
-                            )}
-                          >
-                            <ExclamationCircleIcon className="ml-1.5 inline-block h-5 w-5 text-yellow-500" />
-                          </Tooltip>
-                        )}
+          {view === "runs" && (
+            <DetailViewPane className="px-5 py-4">
+              <PipelineRuns
+                workspaceSlug={workspaceSlug}
+                pipelineCode={pipelineCode}
+              />
+            </DetailViewPane>
+          )}
+
+          {view === "code" && isZipFile && pipeline.currentVersion && (
+            <div className="flex min-h-0 flex-1 flex-col">
+              {versionRef && (
+                <BrowsingVersionBanner
+                  label={
+                    <>
+                      {t("Browsing")}{" "}
+                      <code className="font-mono text-amber-900">
+                        {versionRef.versionName}
+                      </code>{" "}
+                      &middot; {t("read-only")}
+                    </>
+                  }
+                  onBack={() => setVersionRef(null)}
+                />
+              )}
+              {proposedFiles && (
+                <AssistantProposalBanner
+                  label={t("Proposed version from AI assistant")}
+                  onDismiss={handleDismiss}
+                  className="mx-5 mt-4"
+                />
+              )}
+              <div className="min-h-0 flex-1 p-5">
+                <div className="relative h-full min-h-0 overflow-hidden rounded-[10px] border border-gray-200">
+                  {filesLoading && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center backdrop-blur-xs">
+                      <Spinner size="md" />
                     </div>
-                  }
-                  onSave={
-                    pipeline.permissions.update && pipeline.permissions.schedule
-                      ? onSaveScheduling
-                      : undefined
-                  }
-                  collapsible={false}
-                >
-                  <SwitchProperty
-                    id="enableScheduling"
-                    label={t("Enabled")}
-                    accessor={(item) => Boolean(item.schedule)}
-                  />
-                  <CronProperty
-                    id="schedule"
-                    accessor="schedule"
-                    label={t("Schedule")}
-                    help={t(
-                      "The schedule value should follow the CRON syntax.",
-                    )}
-                    placeholder="0 15 * * *"
-                    visible={(_, __, values) =>
-                      Boolean(values.enableScheduling || pipeline.schedule)
-                    }
-                    required={(_, __, values) =>
-                      Boolean(values.enableScheduling)
-                    }
-                  />
-                  {isZipFile && (
-                    <SelectProperty
-                      id="scheduledPipelineVersion"
-                      accessor="scheduledPipelineVersion"
-                      label={t("Version")}
-                      help={t(
-                        "Choose which version to run on schedule. Leave empty to always run the latest version.",
-                      )}
-                      options={versionOptions}
-                      nullable
-                      defaultValue={t("Latest version")}
-                      getOptionLabel={(v: any) => v.versionName}
-                      visible={(_, __, values) =>
-                        Boolean(values.enableScheduling || pipeline.schedule)
-                      }
+                  )}
+                  {versionToShow && (
+                    <PipelineFilesEditor
+                      key={versionToShow.id}
+                      name={versionToShow.versionName}
+                      files={versionToShow.files}
+                      isEditable={canEditCode && !versionRef}
+                      proposedFiles={proposedFiles ?? undefined}
+                      proposedDeletedPaths={proposedDeletedPaths ?? undefined}
+                      workspaceSlug={workspaceSlug}
+                      pipelineCode={pipelineCode}
+                      pipelineId={pipeline.id}
+                      flush
+                      onVersionCreated={handleVersionCreated}
                     />
                   )}
-                </DataCard.FormSection>
-              </DataCard>
+                </div>
+              </div>
+            </div>
+          )}
 
-              <SettingsCard title={t("Notifications")}>
-                <PipelineRecipients className="w-full" pipeline={pipeline} />
-              </SettingsCard>
-
-              <DataCard item={pipeline}>
-                <DataCard.FormSection
-                  title={
-                    <div className="flex items-center">
-                      {t("Webhook")}
-                      <Tooltip
-                        placement="top"
-                        renderTrigger={(ref) => (
-                          <span ref={ref} data-testid="help">
-                            <InformationCircleIcon className="ml-1 h-3 w-3 cursor-pointer" />
-                          </span>
-                        )}
-                        label={t(
-                          "You can use a webhook to trigger this pipeline from an external system using a POST request.",
-                        )}
-                      />
-                    </div>
-                  }
-                  onSave={
-                    pipeline.permissions.update ? onSaveWebhook : undefined
-                  }
-                  collapsible={false}
-                >
-                  <RenderProperty
-                    label={t("Enabled")}
-                    id="webhookEnabled"
-                    accessor="webhookEnabled"
+          {view === "history" && isZipFile && (
+            <DetailViewPane className="px-5 py-4">
+              {selectedVersion ? (
+                <div className="space-y-4">
+                  <button
+                    onClick={() => setSelectedVersion(null)}
+                    className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 hover:underline"
                   >
-                    {(property, section) => (
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={
-                            section.isEdited
-                              ? property.formValue
-                              : property.displayValue
-                          }
-                          onChange={property.setValue}
-                          disabled={!section.isEdited}
-                        />
-                        {section.isEdited && (
-                          <span className="text-xs text-gray-500">
-                            {t(
-                              "Anyone with the URL will be able to trigger this pipeline",
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </RenderProperty>
-                  <RenderProperty
-                    visible={() => Boolean(pipeline.webhookUrl)}
-                    readonly
-                    id="webhookUrl"
-                    label={t("URL")}
-                    accessor="webhookUrl"
-                  >
-                    {(property, section) => (
-                      <div className="flex items-center gap-2">
-                        <code className="max-w-[100ch] overflow-x-hidden text-ellipsis text-xs">
-                          {property.displayValue}
-                        </code>
-                        {!section.isEdited && (
-                          <Clipboard value={property.displayValue} />
-                        )}
-                        {section.isEdited && (
-                          <>
-                            <Button
-                              className="whitespace-nowrap"
-                              variant="secondary"
-                              size="sm"
-                              onClick={() =>
-                                setIsGenerateWebhookUrlDialogOpen(true)
-                              }
-                            >
-                              {t("Generate a new URL")}
-                            </Button>
-                            <GeneratePipelineWebhookUrlDialog
-                              onClose={() =>
-                                setIsGenerateWebhookUrlDialogOpen(false)
-                              }
-                              pipeline={pipeline}
-                              open={isGenerateWebhookUrlDialogOpen}
-                            />
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </RenderProperty>
-                </DataCard.FormSection>
-              </DataCard>
+                    <ArrowUturnLeftIcon className="h-3.5 w-3.5" />
+                    {t("Back to history")}
+                  </button>
+                  <PipelineVersionCard version={selectedVersion} />
+                </div>
+              ) : (
+                <PipelineHistory
+                  workspaceSlug={workspaceSlug}
+                  pipelineCode={pipelineCode}
+                  onSelectVersion={setSelectedVersion}
+                  onBrowseVersion={browseVersion}
+                />
+              )}
+            </DetailViewPane>
+          )}
 
-              {(pipeline.template || pipeline.sourceTemplate) && (
+          {view === "settings" && (
+            <DetailViewPane className="bg-gray-50 px-5 py-4">
+              <div className="mx-auto max-w-4xl space-y-4">
                 <DataCard item={pipeline}>
                   <DataCard.FormSection
-                    title={t("Template Settings")}
+                    title={t("Information")}
                     onSave={
-                      pipeline.permissions.update && pipeline.sourceTemplate
-                        ? onSaveAutoUpdate
-                        : undefined
+                      pipeline.permissions.update ? onSavePipeline : undefined
                     }
                     collapsible={false}
                   >
-                    {pipeline.template && (
-                      <RenderProperty
-                        id="template"
-                        accessor="template.name"
-                        label={t("Template")}
-                        readonly
-                      >
-                        {(templateName) => (
-                          <Link
-                            href={`/workspaces/${encodeURIComponent(
-                              workspaceSlug,
-                            )}/templates/${pipeline.template?.code}`}
-                          >
-                            {templateName.displayValue}
-                          </Link>
-                        )}
-                      </RenderProperty>
-                    )}
-                    {pipeline.sourceTemplate && (
-                      <RenderProperty
-                        id="source_template"
-                        accessor="sourceTemplate.name"
-                        label={t("Source Template")}
-                        readonly
-                      >
-                        {(sourceTemplateName) => (
-                          <div className="flex items-center gap-2">
-                            <Link
-                              href={`/workspaces/${encodeURIComponent(
-                                workspaceSlug,
-                              )}/templates/${pipeline.sourceTemplate?.code}`}
-                            >
-                              {sourceTemplateName.displayValue}
-                            </Link>
-                            {pipeline.hasNewTemplateVersions &&
-                              pipeline.permissions.createVersion && (
-                                <Button
-                                  variant="secondary"
-                                  size="sm"
-                                  onClick={() =>
-                                    setUpgradeFromTemplateDialogOpen(true)
-                                  }
-                                >
-                                  {t("Upgrade to latest version")}
-                                </Button>
-                              )}
-                          </div>
-                        )}
-                      </RenderProperty>
-                    )}
-                    {pipeline.sourceTemplate && (
-                      <RenderProperty
-                        label={t("Auto-update from template")}
-                        id="autoUpdateFromTemplate"
-                        accessor="autoUpdateFromTemplate"
-                      >
-                        {(property, section) => (
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={
-                                section.isEdited
-                                  ? property.formValue
-                                  : property.displayValue
+                    <TextProperty
+                      id="name"
+                      accessor="name"
+                      label={t("Name")}
+                      visible={(value, isEditing) => isEditing}
+                    />
+                    <MarkdownProperty
+                      id="description"
+                      label={t("Description")}
+                      accessor="description"
+                    />
+                    <TextProperty
+                      id="code"
+                      accessor="code"
+                      label={t("Code")}
+                      help={t(
+                        "This is the code used to identify this pipeline using the cli.",
+                      )}
+                      readonly
+                    />
+                    <RenderProperty
+                      id="source"
+                      label={t("Source")}
+                      accessor="type"
+                    >
+                      {(property) => (
+                        <Badge className="bg-gray-50 ring-gray-500/20">
+                          {formatPipelineSource(
+                            property.displayValue,
+                            !!pipeline.sourceTemplate,
+                          )}
+                        </Badge>
+                      )}
+                    </RenderProperty>
+                    <TagProperty
+                      id="tags"
+                      accessor="tags"
+                      label={t("Tags")}
+                      defaultValue={t("Not set")}
+                    />
+                    <RenderProperty
+                      id="functionalType"
+                      accessor="functionalType"
+                      label={t("Type")}
+                      help={t("The functional purpose of this pipeline")}
+                    >
+                      {(property, section) =>
+                        section.isEdited ? (
+                          <div className="w-50">
+                            <Listbox
+                              value={
+                                pipelineFunctionalTypeOptions.find(
+                                  (opt) => opt.value === property.formValue,
+                                ) || pipelineFunctionalTypeOptions[0]
                               }
-                              onChange={property.setValue}
-                              disabled={!section.isEdited}
+                              options={pipelineFunctionalTypeOptions}
+                              onChange={(option) =>
+                                property.setValue(option.value)
+                              }
+                              getOptionLabel={(opt) => opt.label}
+                              by="value"
                             />
-                            {section.isEdited && (
-                              <span className="text-xs text-gray-500">
-                                {t(
-                                  "When enabled, this pipeline will be automatically updated when new template versions are released",
-                                )}
-                              </span>
-                            )}
                           </div>
-                        )}
-                      </RenderProperty>
-                    )}
-                    {pipeline.sourceTemplate && !pipeline.template && (
+                        ) : (
+                          <span>
+                            {property.displayValue
+                              ? formatPipelineFunctionalType(
+                                  property.displayValue,
+                                )
+                              : t("Not set")}
+                          </span>
+                        )
+                      }
+                    </RenderProperty>
+                    {pipeline.type === PipelineType.Notebook && (
                       <RenderProperty
-                        id="documentation"
-                        accessor="sourceTemplate.documentation"
-                        label={t("Template Documentation")}
+                        id="notebookPath"
+                        accessor="notebookPath"
+                        label={t("Notebook path")}
                         readonly
                       >
                         {(property) => (
-                          <CollapsibleMarkdown
-                            content={property.displayValue}
-                          />
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <Clipboard value={property.displayValue}>
+                              <Link
+                                customStyle="hover:opacity-80"
+                                href={`/workspaces/${encodeURIComponent(
+                                  workspaceSlug,
+                                )}/files/${property.displayValue
+                                  .split("/")
+                                  .slice(0, -1)
+                                  .join("/")}`}
+                              >
+                                <code>{property.displayValue}</code>
+                              </Link>
+                            </Clipboard>
+                          </div>
                         )}
                       </RenderProperty>
                     )}
                   </DataCard.FormSection>
                 </DataCard>
-              )}
-            </div>
-          </DetailViewPane>
+
+                {isZipFile && pipeline.currentVersion && (
+                  <SettingsCard
+                    title={t("Parameters")}
+                    actions={
+                      pipeline.permissions.update &&
+                      pipeline.currentVersion.parameters.length > 0 && (
+                        <Button
+                          variant="white"
+                          size="sm"
+                          onClick={() => setVersionConfigDialogOpen(true)}
+                        >
+                          {t("Set default values")}
+                        </Button>
+                      )
+                    }
+                  >
+                    {pipeline.currentVersion.parameters.length > 0 ? (
+                      <>
+                        <div className="overflow-hidden rounded-md border border-gray-100">
+                          <PipelineVersionParametersTable
+                            version={pipeline.currentVersion}
+                          />
+                        </div>
+                        <PipelineVersionConfigDialog
+                          version={pipeline.currentVersion}
+                          open={isVersionConfigDialogOpen}
+                          onClose={() => setVersionConfigDialogOpen(false)}
+                        />
+                      </>
+                    ) : (
+                      <div className="text-sm italic text-gray-500">
+                        {t("This pipeline has no parameters.")}
+                      </div>
+                    )}
+                  </SettingsCard>
+                )}
+
+                <DataCard item={pipeline}>
+                  <DataCard.FormSection
+                    title={
+                      <div className="flex items-center">
+                        {t("Scheduling")}
+                        {pipeline.permissions.update &&
+                          hasMissingConfiguration && (
+                            <Tooltip
+                              className="flex items-center"
+                              label={t(
+                                "Missing configuration: set default parameters to fix the problem.",
+                              )}
+                            >
+                              <ExclamationCircleIcon className="ml-1.5 inline-block h-5 w-5 text-yellow-500" />
+                            </Tooltip>
+                          )}
+                      </div>
+                    }
+                    onSave={
+                      pipeline.permissions.update &&
+                      pipeline.permissions.schedule
+                        ? onSaveScheduling
+                        : undefined
+                    }
+                    collapsible={false}
+                  >
+                    <SwitchProperty
+                      id="enableScheduling"
+                      label={t("Enabled")}
+                      accessor={(item) => Boolean(item.schedule)}
+                    />
+                    <CronProperty
+                      id="schedule"
+                      accessor="schedule"
+                      label={t("Schedule")}
+                      help={t(
+                        "The schedule value should follow the CRON syntax.",
+                      )}
+                      placeholder="0 15 * * *"
+                      visible={(_, __, values) =>
+                        Boolean(values.enableScheduling || pipeline.schedule)
+                      }
+                      required={(_, __, values) =>
+                        Boolean(values.enableScheduling)
+                      }
+                    />
+                    {isZipFile && (
+                      <SelectProperty
+                        id="scheduledPipelineVersion"
+                        accessor="scheduledPipelineVersion"
+                        label={t("Version")}
+                        help={t(
+                          "Choose which version to run on schedule. Leave empty to always run the latest version.",
+                        )}
+                        options={versionOptions}
+                        nullable
+                        defaultValue={t("Latest version")}
+                        getOptionLabel={(v: any) => v.versionName}
+                        visible={(_, __, values) =>
+                          Boolean(values.enableScheduling || pipeline.schedule)
+                        }
+                      />
+                    )}
+                  </DataCard.FormSection>
+                </DataCard>
+
+                <SettingsCard title={t("Notifications")}>
+                  <PipelineRecipients className="w-full" pipeline={pipeline} />
+                </SettingsCard>
+
+                <DataCard item={pipeline}>
+                  <DataCard.FormSection
+                    title={
+                      <div className="flex items-center">
+                        {t("Webhook")}
+                        <Tooltip
+                          placement="top"
+                          renderTrigger={(ref) => (
+                            <span ref={ref} data-testid="help">
+                              <InformationCircleIcon className="ml-1 h-3 w-3 cursor-pointer" />
+                            </span>
+                          )}
+                          label={t(
+                            "You can use a webhook to trigger this pipeline from an external system using a POST request.",
+                          )}
+                        />
+                      </div>
+                    }
+                    onSave={
+                      pipeline.permissions.update ? onSaveWebhook : undefined
+                    }
+                    collapsible={false}
+                  >
+                    <RenderProperty
+                      label={t("Enabled")}
+                      id="webhookEnabled"
+                      accessor="webhookEnabled"
+                    >
+                      {(property, section) => (
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={
+                              section.isEdited
+                                ? property.formValue
+                                : property.displayValue
+                            }
+                            onChange={property.setValue}
+                            disabled={!section.isEdited}
+                          />
+                          {section.isEdited && (
+                            <span className="text-xs text-gray-500">
+                              {t(
+                                "Anyone with the URL will be able to trigger this pipeline",
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </RenderProperty>
+                    <RenderProperty
+                      visible={() => Boolean(pipeline.webhookUrl)}
+                      readonly
+                      id="webhookUrl"
+                      label={t("URL")}
+                      accessor="webhookUrl"
+                    >
+                      {(property, section) => (
+                        <div className="flex items-center gap-2">
+                          <code className="max-w-[100ch] overflow-x-hidden text-ellipsis text-xs">
+                            {property.displayValue}
+                          </code>
+                          {!section.isEdited && (
+                            <Clipboard value={property.displayValue} />
+                          )}
+                          {section.isEdited && (
+                            <>
+                              <Button
+                                className="whitespace-nowrap"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() =>
+                                  setIsGenerateWebhookUrlDialogOpen(true)
+                                }
+                              >
+                                {t("Generate a new URL")}
+                              </Button>
+                              <GeneratePipelineWebhookUrlDialog
+                                onClose={() =>
+                                  setIsGenerateWebhookUrlDialogOpen(false)
+                                }
+                                pipeline={pipeline}
+                                open={isGenerateWebhookUrlDialogOpen}
+                              />
+                            </>
+                          )}
+                        </div>
+                      )}
+                    </RenderProperty>
+                  </DataCard.FormSection>
+                </DataCard>
+
+                {(pipeline.template || pipeline.sourceTemplate) && (
+                  <DataCard item={pipeline}>
+                    <DataCard.FormSection
+                      title={t("Template Settings")}
+                      onSave={
+                        pipeline.permissions.update && pipeline.sourceTemplate
+                          ? onSaveAutoUpdate
+                          : undefined
+                      }
+                      collapsible={false}
+                    >
+                      {pipeline.template && (
+                        <RenderProperty
+                          id="template"
+                          accessor="template.name"
+                          label={t("Template")}
+                          readonly
+                        >
+                          {(templateName) => (
+                            <Link
+                              href={`/workspaces/${encodeURIComponent(
+                                workspaceSlug,
+                              )}/templates/${pipeline.template?.code}`}
+                            >
+                              {templateName.displayValue}
+                            </Link>
+                          )}
+                        </RenderProperty>
+                      )}
+                      {pipeline.sourceTemplate && (
+                        <RenderProperty
+                          id="source_template"
+                          accessor="sourceTemplate.name"
+                          label={t("Source Template")}
+                          readonly
+                        >
+                          {(sourceTemplateName) => (
+                            <div className="flex items-center gap-2">
+                              <Link
+                                href={`/workspaces/${encodeURIComponent(
+                                  workspaceSlug,
+                                )}/templates/${pipeline.sourceTemplate?.code}`}
+                              >
+                                {sourceTemplateName.displayValue}
+                              </Link>
+                              {pipeline.hasNewTemplateVersions &&
+                                pipeline.permissions.createVersion && (
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={() =>
+                                      setUpgradeFromTemplateDialogOpen(true)
+                                    }
+                                  >
+                                    {t("Upgrade to latest version")}
+                                  </Button>
+                                )}
+                            </div>
+                          )}
+                        </RenderProperty>
+                      )}
+                      {pipeline.sourceTemplate && (
+                        <RenderProperty
+                          label={t("Auto-update from template")}
+                          id="autoUpdateFromTemplate"
+                          accessor="autoUpdateFromTemplate"
+                        >
+                          {(property, section) => (
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={
+                                  section.isEdited
+                                    ? property.formValue
+                                    : property.displayValue
+                                }
+                                onChange={property.setValue}
+                                disabled={!section.isEdited}
+                              />
+                              {section.isEdited && (
+                                <span className="text-xs text-gray-500">
+                                  {t(
+                                    "When enabled, this pipeline will be automatically updated when new template versions are released",
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </RenderProperty>
+                      )}
+                      {pipeline.sourceTemplate && !pipeline.template && (
+                        <RenderProperty
+                          id="documentation"
+                          accessor="sourceTemplate.documentation"
+                          label={t("Template Documentation")}
+                          readonly
+                        >
+                          {(property) => (
+                            <CollapsibleMarkdown
+                              content={property.displayValue}
+                            />
+                          )}
+                        </RenderProperty>
+                      )}
+                    </DataCard.FormSection>
+                  </DataCard>
+                )}
+              </div>
+            </DetailViewPane>
+          )}
+        </DetailShell.Main>
+
+        {assistantAvailable && isAssistantOpen && (
+          <AssistantDock storageKey={ASSISTANT_STORAGE_KEY}>
+            <PipelineEditChatPanel
+              pipelineId={pipeline.id}
+              workspaceSlug={workspaceSlug}
+              monthlyLimitExceeded={monthlyLimitExceeded}
+              onProposedFiles={handleProposedFiles}
+              conversations={conversations}
+              activeConversationId={activeConversationId}
+              onConversationChange={setActiveConversationId}
+              onNewConversation={() => setActiveConversationId(null)}
+              onConversationCreated={(conversation) => {
+                setConversations((prev) => [conversation, ...prev]);
+                setActiveConversationId(conversation.id);
+              }}
+              onConversationNameChange={(id, conversationName) =>
+                setConversations((prev) =>
+                  prev.map((c) =>
+                    c.id === id ? { ...c, name: conversationName } : c,
+                  ),
+                )
+              }
+              flush
+              onClose={toggleAssistant}
+            />
+          </AssistantDock>
         )}
-      </DetailShell.Main>
-
-      {assistantAvailable && isAssistantOpen && view === "code" && (
-        <AssistantDock storageKey={ASSISTANT_STORAGE_KEY}>
-          <PipelineEditChatPanel
-            pipelineId={pipeline.id}
-            workspaceSlug={workspaceSlug}
-            monthlyLimitExceeded={monthlyLimitExceeded}
-            onProposedFiles={handleProposedFiles}
-            conversations={conversations}
-            activeConversationId={activeConversationId}
-            onConversationChange={setActiveConversationId}
-            onNewConversation={() => setActiveConversationId(null)}
-            onConversationCreated={(conversation) => {
-              setConversations((prev) => [conversation, ...prev]);
-              setActiveConversationId(conversation.id);
-            }}
-            onConversationNameChange={(id, conversationName) =>
-              setConversations((prev) =>
-                prev.map((c) =>
-                  c.id === id ? { ...c, name: conversationName } : c,
-                ),
-              )
-            }
-            flush
-            onClose={toggleAssistant}
-          />
-        </AssistantDock>
-      )}
-
+      </DetailShell.Body>
       <UpgradePipelineFromTemplateDialog
         pipeline={pipeline}
         open={isUpgradeFromTemplateDialogOpen}
