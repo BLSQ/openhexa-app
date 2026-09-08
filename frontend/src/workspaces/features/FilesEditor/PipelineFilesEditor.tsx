@@ -18,6 +18,7 @@ interface PipelineFilesEditorProps {
   workspaceSlug: string;
   pipelineCode: string;
   pipelineId: string;
+  flush?: boolean;
   onVersionCreated?: (version: PipelineVersionPicker_VersionFragment) => void;
 }
 
@@ -30,10 +31,11 @@ export const PipelineFilesEditor = ({
   workspaceSlug,
   pipelineCode,
   pipelineId,
+  flush = false,
   onVersionCreated,
 }: PipelineFilesEditorProps) => {
   const [uploadPipeline] = useUploadPipelineMutation({
-    refetchQueries: ["WorkspacePipelineCodePage"],
+    refetchQueries: ["WorkspacePipelineDetailPage"],
     awaitRefetchQueries: true,
   });
   const { t } = useTranslation();
@@ -119,6 +121,7 @@ export const PipelineFilesEditor = ({
       allowDelete
       proposedFiles={proposedFiles}
       proposedDeletedPaths={proposedDeletedPaths}
+      flush={flush}
       onSave={handleSave}
     />
   );

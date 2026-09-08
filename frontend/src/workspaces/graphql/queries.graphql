@@ -148,72 +148,7 @@ query WorkspaceSavedQuerySlugById($workspaceSlug: String!, $id: ID!) {
   }
 }
 
-query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    ...PipelineLayout_workspace
-  }
-  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
-    ...RunPipelineDialog_pipeline
-    ...PipelineLayout_pipeline
-    permissions {
-      run
-      update
-      schedule
-      delete
-      createVersion
-      createTemplateVersion {
-        isAllowed
-      }
-    }
-    webhookUrl
-    webhookEnabled
-    id
-    createdAt
-    code
-    name
-    description
-    schedule
-    type
-    functionalType
-    notebookPath
-    tags {
-      ...Tag_tag
-    }
-    sourceTemplate {
-      id
-      code
-      name
-      documentation
-    }
-    autoUpdateFromTemplate
-    hasNewTemplateVersions
-    newTemplateVersions {
-      id
-      changelog
-      versionNumber
-      createdAt
-    }
-    currentVersion {
-      id
-      versionName
-      description
-      config
-      externalLink
-      ...PipelineVersionParametersTable_version
-      ...PipelineVersionConfigDialog_version
-    }
-    recipients {
-      user {
-        id
-        displayName
-      }
-    }
-  }
-}
-
-query WorkspacePipelineCodePage(
+query WorkspacePipelineDetailPage(
   $workspaceSlug: String!
   $pipelineCode: String!
 ) {
@@ -227,22 +162,97 @@ query WorkspacePipelineCodePage(
       }
       aiBudgetLimitReached
     }
-    ...PipelineLayout_workspace
+    ...WorkspaceLayout_workspace
+    ...PipelinePublish_workspace
+    ...PipelineDelete_workspace
   }
   pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
-    ...PipelineLayout_pipeline
+    ...RunPipelineDialog_pipeline
+    ...PipelineRecipients_pipeline
+    ...PipelinePublish_pipeline
+    ...PipelineDelete_pipeline
+    ...UpgradePipelineFromTemplateDialog_pipeline
+    ...GeneratePipelineWebhookUrlDialog_pipeline
     id
     code
     name
+    description
     type
+    functionalType
+    notebookPath
+    schedule
+    createdAt
+    webhookEnabled
+    webhookUrl
+    autoUpdateFromTemplate
+    hasNewTemplateVersions
     permissions {
+      run
+      update
+      schedule
+      delete
       createVersion
+      stopPipeline
+      createTemplateVersion {
+        isAllowed
+        reasons
+      }
+    }
+    tags {
+      ...Tag_tag
+    }
+    template {
+      id
+      name
+      code
+    }
+    sourceTemplate {
+      id
+      code
+      name
+      documentation
+    }
+    newTemplateVersions {
+      id
+      changelog
+      versionNumber
+      createdAt
     }
     currentVersion {
       id
+      name
       versionName
+      description
+      config
+      externalLink
+      createdAt
+      templateVersion {
+        id
+      }
       files {
         ...FilesEditor_file
+      }
+      ...PipelineVersionPicker_version
+      ...DownloadPipelineVersion_version
+      ...PipelineVersionParametersTable_version
+      ...PipelineVersionConfigDialog_version
+    }
+    scheduledPipelineVersion {
+      id
+      versionNumber
+      versionName
+      parameters {
+        code
+        required
+      }
+      config
+    }
+    versions(perPage: 10) {
+      items {
+        id
+        versionNumber
+        versionName
+        isLatestVersion
       }
     }
     assistantConversations {
@@ -257,29 +267,42 @@ query WorkspacePipelineCodePage(
   }
 }
 
-query GetPipelineVersionFiles($versionId: UUID!) {
-  pipelineVersion(id: $versionId) {
+query WorkspacePipelineHistory(
+  $workspaceSlug: String!
+  $pipelineCode: String!
+  $page: Int!
+  $perPage: Int!
+) {
+  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
     id
-    versionName
-    files {
-      ...FilesEditor_file
+    scheduledPipelineVersion {
+      id
+    }
+    versions(page: $page, perPage: $perPage) {
+      items {
+        id
+        versionName
+        versionNumber
+        createdAt
+        isLatestVersion
+        user {
+          ...User_user
+        }
+        ...PipelineVersionCard_version
+      }
+      totalItems
+      totalPages
     }
   }
 }
 
-query WorkspacePipelineRunsPage(
+query WorkspacePipelineRuns(
   $workspaceSlug: String!
   $pipelineCode: String!
-  $page: Int = 1
-  $perPage: Int = 10
+  $page: Int!
+  $perPage: Int!
 ) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    ...PipelineLayout_workspace
-  }
   pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
-    ...PipelineLayout_pipeline
     id
     type
     runs(page: $page, perPage: $perPage) {
@@ -303,7 +326,6 @@ query WorkspacePipelineRunsPage(
         executionDate
         duration
         triggerMode
-
         user {
           ...UserColumn_user
         }
@@ -316,77 +338,12 @@ query WorkspacePipelineRunsPage(
   }
 }
 
-query WorkspacePipelineNotificationsPage(
-  $workspaceSlug: String!
-  $pipelineCode: String!
-) {
-  workspace(slug: $workspaceSlug) {
-    ...PipelineLayout_workspace
-  }
-  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
-    ...PipelineLayout_pipeline
-    ...PipelineRecipients_pipeline
+query GetPipelineVersionFiles($versionId: UUID!) {
+  pipelineVersion(id: $versionId) {
     id
-    code
-    type
-    schedule
-    scheduledPipelineVersion {
-      id
-      versionNumber
-      versionName
-      parameters {
-        code
-        required
-      }
-      config
-    }
-    versions(perPage: 10) {
-      items {
-        id
-        versionNumber
-        versionName
-        isLatestVersion
-      }
-    }
-    currentVersion {
-      parameters {
-        code
-        required
-      }
-      config
-    }
-    permissions {
-      schedule
-      update
-    }
-  }
-}
-
-query WorkspacePipelineVersionsPage(
-  $workspaceSlug: String!
-  $pipelineCode: String!
-  $page: Int!
-  $perPage: Int!
-) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    ...WorkspaceLayout_workspace
-  }
-  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
-    id
-    code
-    name
-    currentVersion {
-      id
-    }
-    versions(page: $page, perPage: $perPage) {
-      items {
-        ...PipelineVersionCard_version
-        id
-      }
-      totalItems
-      totalPages
+    versionName
+    files {
+      ...FilesEditor_file
     }
   }
 }
@@ -830,7 +787,7 @@ query WorkspaceTemplatePage($workspaceSlug: String!, $templateCode: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
-    ...PipelineLayout_workspace
+    ...TabLayout_workspace
   }
   template: templateByCode(code: $templateCode) {
     ...TemplateLayout_template

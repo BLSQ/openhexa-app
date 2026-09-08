@@ -11,14 +11,18 @@ import { User_UserFragmentDoc } from '../../core/features/User/User.generated';
 import { PipelineRunStatusBadge_RunFragmentDoc } from '../../pipelines/features/PipelineRunStatusBadge.generated';
 import { SavedQueryListItem_SavedQueryFragmentDoc, SavedQuery_SavedQueryFragmentDoc } from '../features/SavedQueries/SavedQueries.generated';
 import { UserColumn_UserFragmentDoc } from '../../core/components/DataGrid/UserColumn.generated';
-import { PipelineLayout_WorkspaceFragmentDoc, PipelineLayout_PipelineFragmentDoc } from '../layouts/PipelineLayout/PipelineLayout.generated';
+import { PipelinePublish_WorkspaceFragmentDoc, PipelinePublish_PipelineFragmentDoc } from '../../pipelines/features/PublishPipelineDialog/PublishPipelineDialog.generated';
+import { PipelineDelete_WorkspaceFragmentDoc, PipelineDelete_PipelineFragmentDoc } from '../features/DeletePipelineDialog/DeletePipelineDialog.generated';
 import { RunPipelineDialog_PipelineFragmentDoc, RunPipelineDialog_RunFragmentDoc } from '../features/RunPipelineDialog/RunPipelineDialog.generated';
 import { ParameterField_ParameterFragmentDoc } from '../features/RunPipelineDialog/ParameterField.generated';
+import { PipelineRecipients_PipelineFragmentDoc } from '../features/PipelineRecipients/PipelineRecipients.generated';
+import { UpgradePipelineFromTemplateDialog_PipelineFragmentDoc } from '../../pipelines/features/UpgradePipelineFromTemplateDialog/UpgradePipelineFromTemplateDialog.generated';
+import { GeneratePipelineWebhookUrlDialog_PipelineFragmentDoc } from '../features/GeneratePipelineWebhookUrlDialog/GeneratePipelineWebhookUrlDialog.generated';
+import { FilesEditor_FileFragmentDoc } from '../features/FilesEditor/FilesEditor.generated';
 import { PipelineVersionPicker_VersionFragmentDoc } from '../features/PipelineVersionPicker/PipelineVersionPicker.generated';
+import { DownloadPipelineVersion_VersionFragmentDoc } from '../../pipelines/features/DownloadPipelineVersion/DownloadPipelineVersion.generated';
 import { PipelineVersionParametersTable_VersionFragmentDoc } from '../../pipelines/features/PipelineVersionParametersTable/PipelineVersionParametersTable.generated';
 import { PipelineVersionConfigDialog_VersionFragmentDoc } from '../features/PipelineVersionConfigDialog/PipelineVersionConfigDialog.generated';
-import { FilesEditor_FileFragmentDoc } from '../features/FilesEditor/FilesEditor.generated';
-import { PipelineRecipients_PipelineFragmentDoc } from '../features/PipelineRecipients/PipelineRecipients.generated';
 import { PipelineVersionCard_VersionFragmentDoc } from '../../pipelines/features/PipelineVersionCard/PipelineVersionCard.generated';
 import { RunOutputsTable_WorkspaceFragmentDoc, RunOutputsTable_RunFragmentDoc } from '../features/RunOutputsTable/RunOutputsTable.generated';
 import { RunMessages_RunFragmentDoc } from '../../pipelines/features/RunMessages/RunMessages.generated';
@@ -38,6 +42,7 @@ import { DatabaseTableDataGrid_TableFragmentDoc, DatabaseTableDataGrid_Workspace
 import { CreateConnectionDialog_WorkspaceFragmentDoc } from '../features/CreateConnectionDialog/CreateConnectionDialog.generated';
 import { ConnectionFieldsSection_ConnectionFragmentDoc } from '../features/ConnectionFieldsSection/ConnectionFieldsSection.generated';
 import { TemplateCard_TemplateFragmentDoc } from '../features/TemplateCard/TemplateCard.generated';
+import { TabLayout_WorkspaceFragmentDoc } from '../layouts/TabLayout/TabLayout.generated';
 import { TemplateLayout_TemplateFragmentDoc } from '../layouts/TemplateLayout/TemplateLayout.generated';
 import { TemplateVersionCard_VersionFragmentDoc } from '../../pipelines/features/TemplateVersionCard/TemplateVersionCard.generated';
 import { CreateWebappDialog_WorkspaceFragmentDoc } from '../../webapps/features/CreateWebappDialog/CreateWebappDialog.generated';
@@ -117,48 +122,15 @@ export type WorkspaceSavedQuerySlugByIdQueryVariables = Types.Exact<{
 
 export type WorkspaceSavedQuerySlugByIdQuery = { __typename?: 'Query', savedQuery?: { __typename?: 'SavedQuery', id: string, slug: string } | null };
 
-export type WorkspacePipelinePageQueryVariables = Types.Exact<{
+export type WorkspacePipelineDetailPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
   pipelineCode: Types.Scalars['String']['input'];
 }>;
 
 
-export type WorkspacePipelinePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipeline?: { __typename?: 'Pipeline', webhookUrl?: string | null, webhookEnabled: boolean, id: string, createdAt: any, code: string, name?: string | null, description?: string | null, schedule?: string | null, type: Types.PipelineType, functionalType?: Types.PipelineFunctionalType | null, notebookPath?: string | null, autoUpdateFromTemplate: boolean, hasNewTemplateVersions: boolean, permissions: { __typename?: 'PipelinePermissions', run: boolean, update: boolean, schedule: boolean, delete: boolean, createVersion: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<Types.CreateTemplateVersionPermissionReason> } }, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, code: string, name: string, documentation?: string | null } | null, newTemplateVersions: Array<{ __typename?: 'PipelineTemplateVersion', id: string, changelog?: string | null, versionNumber: number, createdAt: any }>, currentVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, description?: string | null, config?: any | null, externalLink?: any | null, createdAt: any, name?: string | null, isLatestVersion: boolean, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }>, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, pipeline: { __typename?: 'Pipeline', id: string, schedule?: string | null, code: string, workspace: { __typename?: 'Workspace', slug: string } } } | null, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: string, displayName: string } }>, workspace: { __typename?: 'Workspace', slug: string }, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null } | null };
+export type WorkspacePipelineDetailPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, aiBudgetLimitReached: boolean, name: string, shortName?: string | null, logo?: string | null, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null } | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipeline?: { __typename?: 'Pipeline', id: string, code: string, name?: string | null, description?: string | null, type: Types.PipelineType, functionalType?: Types.PipelineFunctionalType | null, notebookPath?: string | null, schedule?: string | null, createdAt: any, webhookEnabled: boolean, webhookUrl?: string | null, autoUpdateFromTemplate: boolean, hasNewTemplateVersions: boolean, permissions: { __typename?: 'PipelinePermissions', run: boolean, update: boolean, schedule: boolean, delete: boolean, createVersion: boolean, stopPipeline: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<Types.CreateTemplateVersionPermissionReason> } }, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, code: string, name: string, documentation?: string | null } | null, newTemplateVersions: Array<{ __typename?: 'PipelineTemplateVersion', id: string, changelog?: string | null, versionNumber: number, createdAt: any }>, currentVersion?: { __typename?: 'PipelineVersion', id: string, name?: string | null, versionName: string, description?: string | null, config?: any | null, externalLink?: any | null, createdAt: any, isLatestVersion: boolean, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, files: Array<{ __typename?: 'FileNode', id: string, name: string, path: string, type: Types.FileType, content?: string | null, encoding?: Types.FileEncoding | null, parentId?: string | null, autoSelect: boolean, language?: string | null, lineCount?: number | null, size?: number | null, tooLarge?: boolean | null }>, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }>, pipeline: { __typename?: 'Pipeline', id: string, code: string, schedule?: string | null, workspace: { __typename?: 'Workspace', slug: string } } } | null, scheduledPipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, required: boolean }> } | null, versions: { __typename?: 'PipelineVersionPage', items: Array<{ __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, isLatestVersion: boolean }> }, assistantConversations: Array<{ __typename?: 'AssistantConversation', id: string, name?: string | null, createdAt: any, updatedAt: any }>, workspace: { __typename?: 'Workspace', slug: string } } | null, me: { __typename?: 'Me', assistantMonthlyLimitExceeded: boolean } };
 
-export type WorkspacePipelineCodePageQueryVariables = Types.Exact<{
-  workspaceSlug: Types.Scalars['String']['input'];
-  pipelineCode: Types.Scalars['String']['input'];
-}>;
-
-
-export type WorkspacePipelineCodePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, aiBudgetLimitReached: boolean, name: string, shortName?: string | null, logo?: string | null, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null } | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipeline?: { __typename?: 'Pipeline', id: string, code: string, name?: string | null, type: Types.PipelineType, permissions: { __typename?: 'PipelinePermissions', createVersion: boolean, run: boolean, delete: boolean, update: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<Types.CreateTemplateVersionPermissionReason> } }, currentVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, name?: string | null, description?: string | null, config?: any | null, externalLink?: any | null, createdAt: any, files: Array<{ __typename?: 'FileNode', id: string, name: string, path: string, type: Types.FileType, content?: string | null, encoding?: Types.FileEncoding | null, parentId?: string | null, autoSelect: boolean, language?: string | null, lineCount?: number | null, size?: number | null, tooLarge?: boolean | null }>, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }>, pipeline: { __typename?: 'Pipeline', id: string, code: string } } | null, assistantConversations: Array<{ __typename?: 'AssistantConversation', id: string, name?: string | null, createdAt: any, updatedAt: any }>, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null, workspace: { __typename?: 'Workspace', slug: string } } | null, me: { __typename?: 'Me', assistantMonthlyLimitExceeded: boolean } };
-
-export type GetPipelineVersionFilesQueryVariables = Types.Exact<{
-  versionId: Types.Scalars['UUID']['input'];
-}>;
-
-
-export type GetPipelineVersionFilesQuery = { __typename?: 'Query', pipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, files: Array<{ __typename?: 'FileNode', id: string, name: string, path: string, type: Types.FileType, content?: string | null, encoding?: Types.FileEncoding | null, parentId?: string | null, autoSelect: boolean, language?: string | null, lineCount?: number | null, size?: number | null, tooLarge?: boolean | null }> } | null };
-
-export type WorkspacePipelineRunsPageQueryVariables = Types.Exact<{
-  workspaceSlug: Types.Scalars['String']['input'];
-  pipelineCode: Types.Scalars['String']['input'];
-  page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-  perPage?: Types.InputMaybe<Types.Scalars['Int']['input']>;
-}>;
-
-
-export type WorkspacePipelineRunsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipeline?: { __typename?: 'Pipeline', id: string, type: Types.PipelineType, code: string, name?: string | null, runs: { __typename?: 'PipelineRunPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<{ __typename?: 'PipelineRun', id: string, config: any, executionDate?: any | null, duration?: number | null, triggerMode?: Types.PipelineRunTrigger | null, status: Types.PipelineRunStatus, hasErrorMessages: boolean, version?: { __typename?: 'PipelineVersion', versionName: string, isLatestVersion: boolean, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, type: Types.ParameterType, multiple: boolean }> } | null, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }> }, permissions: { __typename?: 'PipelinePermissions', run: boolean, delete: boolean, update: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<Types.CreateTemplateVersionPermissionReason> } }, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null, currentVersion?: { __typename?: 'PipelineVersion', id: string, name?: string | null, description?: string | null, config?: any | null, externalLink?: any | null, versionName: string, createdAt: any, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }>, pipeline: { __typename?: 'Pipeline', id: string, code: string } } | null, workspace: { __typename?: 'Workspace', slug: string } } | null };
-
-export type WorkspacePipelineNotificationsPageQueryVariables = Types.Exact<{
-  workspaceSlug: Types.Scalars['String']['input'];
-  pipelineCode: Types.Scalars['String']['input'];
-}>;
-
-
-export type WorkspacePipelineNotificationsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', name: string, slug: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipeline?: { __typename?: 'Pipeline', id: string, code: string, type: Types.PipelineType, schedule?: string | null, name?: string | null, scheduledPipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, required: boolean }> } | null, versions: { __typename?: 'PipelineVersionPage', items: Array<{ __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, isLatestVersion: boolean }> }, currentVersion?: { __typename?: 'PipelineVersion', id: string, name?: string | null, description?: string | null, config?: any | null, externalLink?: any | null, versionName: string, createdAt: any, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }>, pipeline: { __typename?: 'Pipeline', id: string, code: string } } | null, permissions: { __typename?: 'PipelinePermissions', schedule: boolean, update: boolean, run: boolean, delete: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<Types.CreateTemplateVersionPermissionReason> } }, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null, workspace: { __typename?: 'Workspace', slug: string } } | null };
-
-export type WorkspacePipelineVersionsPageQueryVariables = Types.Exact<{
+export type WorkspacePipelineHistoryQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
   pipelineCode: Types.Scalars['String']['input'];
   page: Types.Scalars['Int']['input'];
@@ -166,7 +138,24 @@ export type WorkspacePipelineVersionsPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspacePipelineVersionsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipeline?: { __typename?: 'Pipeline', id: string, code: string, name?: string | null, currentVersion?: { __typename?: 'PipelineVersion', id: string } | null, versions: { __typename?: 'PipelineVersionPage', totalItems: number, totalPages: number, items: Array<{ __typename?: 'PipelineVersion', id: string, versionName: string, name?: string | null, description?: string | null, externalLink?: any | null, isLatestVersion: boolean, createdAt: any, user?: { __typename?: 'User', displayName: string } | null, permissions: { __typename?: 'PipelineVersionPermissions', update: boolean, delete: boolean }, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }>, pipeline: { __typename?: 'Pipeline', id: string, code: string }, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, template: { __typename?: 'PipelineTemplate', id: string, name: string } } | null }> } } | null };
+export type WorkspacePipelineHistoryQuery = { __typename?: 'Query', pipeline?: { __typename?: 'Pipeline', id: string, scheduledPipelineVersion?: { __typename?: 'PipelineVersion', id: string } | null, versions: { __typename?: 'PipelineVersionPage', totalItems: number, totalPages: number, items: Array<{ __typename?: 'PipelineVersion', id: string, versionName: string, versionNumber: number, createdAt: any, isLatestVersion: boolean, name?: string | null, description?: string | null, externalLink?: any | null, user?: { __typename?: 'User', displayName: string, id: string, email: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, permissions: { __typename?: 'PipelineVersionPermissions', update: boolean, delete: boolean }, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }>, pipeline: { __typename?: 'Pipeline', id: string, code: string }, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, template: { __typename?: 'PipelineTemplate', id: string, name: string } } | null }> } } | null };
+
+export type WorkspacePipelineRunsQueryVariables = Types.Exact<{
+  workspaceSlug: Types.Scalars['String']['input'];
+  pipelineCode: Types.Scalars['String']['input'];
+  page: Types.Scalars['Int']['input'];
+  perPage: Types.Scalars['Int']['input'];
+}>;
+
+
+export type WorkspacePipelineRunsQuery = { __typename?: 'Query', pipeline?: { __typename?: 'Pipeline', id: string, type: Types.PipelineType, runs: { __typename?: 'PipelineRunPage', totalItems: number, totalPages: number, pageNumber: number, items: Array<{ __typename?: 'PipelineRun', id: string, config: any, executionDate?: any | null, duration?: number | null, triggerMode?: Types.PipelineRunTrigger | null, status: Types.PipelineRunStatus, hasErrorMessages: boolean, version?: { __typename?: 'PipelineVersion', versionName: string, isLatestVersion: boolean, createdAt: any, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, type: Types.ParameterType, multiple: boolean }> } | null, user?: { __typename?: 'User', id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } } | null }> } } | null };
+
+export type GetPipelineVersionFilesQueryVariables = Types.Exact<{
+  versionId: Types.Scalars['UUID']['input'];
+}>;
+
+
+export type GetPipelineVersionFilesQuery = { __typename?: 'Query', pipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, files: Array<{ __typename?: 'FileNode', id: string, name: string, path: string, type: Types.FileType, content?: string | null, encoding?: Types.FileEncoding | null, parentId?: string | null, autoSelect: boolean, language?: string | null, lineCount?: number | null, size?: number | null, tooLarge?: boolean | null }> } | null };
 
 export type WorkspacePipelineStartPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -773,113 +762,8 @@ export type WorkspaceSavedQuerySlugByIdQueryHookResult = ReturnType<typeof useWo
 export type WorkspaceSavedQuerySlugByIdLazyQueryHookResult = ReturnType<typeof useWorkspaceSavedQuerySlugByIdLazyQuery>;
 export type WorkspaceSavedQuerySlugByIdSuspenseQueryHookResult = ReturnType<typeof useWorkspaceSavedQuerySlugByIdSuspenseQuery>;
 export type WorkspaceSavedQuerySlugByIdQueryResult = Apollo.QueryResult<WorkspaceSavedQuerySlugByIdQuery, WorkspaceSavedQuerySlugByIdQueryVariables>;
-export const WorkspacePipelinePageDocument = gql`
-    query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    ...PipelineLayout_workspace
-  }
-  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
-    ...RunPipelineDialog_pipeline
-    ...PipelineLayout_pipeline
-    permissions {
-      run
-      update
-      schedule
-      delete
-      createVersion
-      createTemplateVersion {
-        isAllowed
-      }
-    }
-    webhookUrl
-    webhookEnabled
-    id
-    createdAt
-    code
-    name
-    description
-    schedule
-    type
-    functionalType
-    notebookPath
-    tags {
-      ...Tag_tag
-    }
-    sourceTemplate {
-      id
-      code
-      name
-      documentation
-    }
-    autoUpdateFromTemplate
-    hasNewTemplateVersions
-    newTemplateVersions {
-      id
-      changelog
-      versionNumber
-      createdAt
-    }
-    currentVersion {
-      id
-      versionName
-      description
-      config
-      externalLink
-      ...PipelineVersionParametersTable_version
-      ...PipelineVersionConfigDialog_version
-    }
-    recipients {
-      user {
-        id
-        displayName
-      }
-    }
-  }
-}
-    ${PipelineLayout_WorkspaceFragmentDoc}
-${RunPipelineDialog_PipelineFragmentDoc}
-${PipelineLayout_PipelineFragmentDoc}
-${Tag_TagFragmentDoc}
-${PipelineVersionParametersTable_VersionFragmentDoc}
-${PipelineVersionConfigDialog_VersionFragmentDoc}`;
-
-/**
- * __useWorkspacePipelinePageQuery__
- *
- * To run a query within a React component, call `useWorkspacePipelinePageQuery` and pass it any options that fit your needs.
- * When your component renders, `useWorkspacePipelinePageQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useWorkspacePipelinePageQuery({
- *   variables: {
- *      workspaceSlug: // value for 'workspaceSlug'
- *      pipelineCode: // value for 'pipelineCode'
- *   },
- * });
- */
-export function useWorkspacePipelinePageQuery(baseOptions: Apollo.QueryHookOptions<WorkspacePipelinePageQuery, WorkspacePipelinePageQueryVariables> & ({ variables: WorkspacePipelinePageQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<WorkspacePipelinePageQuery, WorkspacePipelinePageQueryVariables>(WorkspacePipelinePageDocument, options);
-      }
-export function useWorkspacePipelinePageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspacePipelinePageQuery, WorkspacePipelinePageQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<WorkspacePipelinePageQuery, WorkspacePipelinePageQueryVariables>(WorkspacePipelinePageDocument, options);
-        }
-export function useWorkspacePipelinePageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkspacePipelinePageQuery, WorkspacePipelinePageQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<WorkspacePipelinePageQuery, WorkspacePipelinePageQueryVariables>(WorkspacePipelinePageDocument, options);
-        }
-export type WorkspacePipelinePageQueryHookResult = ReturnType<typeof useWorkspacePipelinePageQuery>;
-export type WorkspacePipelinePageLazyQueryHookResult = ReturnType<typeof useWorkspacePipelinePageLazyQuery>;
-export type WorkspacePipelinePageSuspenseQueryHookResult = ReturnType<typeof useWorkspacePipelinePageSuspenseQuery>;
-export type WorkspacePipelinePageQueryResult = Apollo.QueryResult<WorkspacePipelinePageQuery, WorkspacePipelinePageQueryVariables>;
-export const WorkspacePipelineCodePageDocument = gql`
-    query WorkspacePipelineCodePage($workspaceSlug: String!, $pipelineCode: String!) {
+export const WorkspacePipelineDetailPageDocument = gql`
+    query WorkspacePipelineDetailPage($workspaceSlug: String!, $pipelineCode: String!) {
   workspace(slug: $workspaceSlug) {
     slug
     name
@@ -890,22 +774,97 @@ export const WorkspacePipelineCodePageDocument = gql`
       }
       aiBudgetLimitReached
     }
-    ...PipelineLayout_workspace
+    ...WorkspaceLayout_workspace
+    ...PipelinePublish_workspace
+    ...PipelineDelete_workspace
   }
   pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
-    ...PipelineLayout_pipeline
+    ...RunPipelineDialog_pipeline
+    ...PipelineRecipients_pipeline
+    ...PipelinePublish_pipeline
+    ...PipelineDelete_pipeline
+    ...UpgradePipelineFromTemplateDialog_pipeline
+    ...GeneratePipelineWebhookUrlDialog_pipeline
     id
     code
     name
+    description
     type
+    functionalType
+    notebookPath
+    schedule
+    createdAt
+    webhookEnabled
+    webhookUrl
+    autoUpdateFromTemplate
+    hasNewTemplateVersions
     permissions {
+      run
+      update
+      schedule
+      delete
       createVersion
+      stopPipeline
+      createTemplateVersion {
+        isAllowed
+        reasons
+      }
+    }
+    tags {
+      ...Tag_tag
+    }
+    template {
+      id
+      name
+      code
+    }
+    sourceTemplate {
+      id
+      code
+      name
+      documentation
+    }
+    newTemplateVersions {
+      id
+      changelog
+      versionNumber
+      createdAt
     }
     currentVersion {
       id
+      name
       versionName
+      description
+      config
+      externalLink
+      createdAt
+      templateVersion {
+        id
+      }
       files {
         ...FilesEditor_file
+      }
+      ...PipelineVersionPicker_version
+      ...DownloadPipelineVersion_version
+      ...PipelineVersionParametersTable_version
+      ...PipelineVersionConfigDialog_version
+    }
+    scheduledPipelineVersion {
+      id
+      versionNumber
+      versionName
+      parameters {
+        code
+        required
+      }
+      config
+    }
+    versions(perPage: 10) {
+      items {
+        id
+        versionNumber
+        versionName
+        isLatestVersion
       }
     }
     assistantConversations {
@@ -919,43 +878,193 @@ export const WorkspacePipelineCodePageDocument = gql`
     assistantMonthlyLimitExceeded
   }
 }
-    ${PipelineLayout_WorkspaceFragmentDoc}
-${PipelineLayout_PipelineFragmentDoc}
-${FilesEditor_FileFragmentDoc}`;
+    ${WorkspaceLayout_WorkspaceFragmentDoc}
+${PipelinePublish_WorkspaceFragmentDoc}
+${PipelineDelete_WorkspaceFragmentDoc}
+${RunPipelineDialog_PipelineFragmentDoc}
+${PipelineRecipients_PipelineFragmentDoc}
+${PipelinePublish_PipelineFragmentDoc}
+${PipelineDelete_PipelineFragmentDoc}
+${UpgradePipelineFromTemplateDialog_PipelineFragmentDoc}
+${GeneratePipelineWebhookUrlDialog_PipelineFragmentDoc}
+${Tag_TagFragmentDoc}
+${FilesEditor_FileFragmentDoc}
+${PipelineVersionPicker_VersionFragmentDoc}
+${DownloadPipelineVersion_VersionFragmentDoc}
+${PipelineVersionParametersTable_VersionFragmentDoc}
+${PipelineVersionConfigDialog_VersionFragmentDoc}`;
 
 /**
- * __useWorkspacePipelineCodePageQuery__
+ * __useWorkspacePipelineDetailPageQuery__
  *
- * To run a query within a React component, call `useWorkspacePipelineCodePageQuery` and pass it any options that fit your needs.
- * When your component renders, `useWorkspacePipelineCodePageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useWorkspacePipelineDetailPageQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWorkspacePipelineDetailPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useWorkspacePipelineCodePageQuery({
+ * const { data, loading, error } = useWorkspacePipelineDetailPageQuery({
  *   variables: {
  *      workspaceSlug: // value for 'workspaceSlug'
  *      pipelineCode: // value for 'pipelineCode'
  *   },
  * });
  */
-export function useWorkspacePipelineCodePageQuery(baseOptions: Apollo.QueryHookOptions<WorkspacePipelineCodePageQuery, WorkspacePipelineCodePageQueryVariables> & ({ variables: WorkspacePipelineCodePageQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useWorkspacePipelineDetailPageQuery(baseOptions: Apollo.QueryHookOptions<WorkspacePipelineDetailPageQuery, WorkspacePipelineDetailPageQueryVariables> & ({ variables: WorkspacePipelineDetailPageQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<WorkspacePipelineCodePageQuery, WorkspacePipelineCodePageQueryVariables>(WorkspacePipelineCodePageDocument, options);
+        return Apollo.useQuery<WorkspacePipelineDetailPageQuery, WorkspacePipelineDetailPageQueryVariables>(WorkspacePipelineDetailPageDocument, options);
       }
-export function useWorkspacePipelineCodePageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspacePipelineCodePageQuery, WorkspacePipelineCodePageQueryVariables>) {
+export function useWorkspacePipelineDetailPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspacePipelineDetailPageQuery, WorkspacePipelineDetailPageQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<WorkspacePipelineCodePageQuery, WorkspacePipelineCodePageQueryVariables>(WorkspacePipelineCodePageDocument, options);
+          return Apollo.useLazyQuery<WorkspacePipelineDetailPageQuery, WorkspacePipelineDetailPageQueryVariables>(WorkspacePipelineDetailPageDocument, options);
         }
-export function useWorkspacePipelineCodePageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkspacePipelineCodePageQuery, WorkspacePipelineCodePageQueryVariables>) {
+export function useWorkspacePipelineDetailPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkspacePipelineDetailPageQuery, WorkspacePipelineDetailPageQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<WorkspacePipelineCodePageQuery, WorkspacePipelineCodePageQueryVariables>(WorkspacePipelineCodePageDocument, options);
+          return Apollo.useSuspenseQuery<WorkspacePipelineDetailPageQuery, WorkspacePipelineDetailPageQueryVariables>(WorkspacePipelineDetailPageDocument, options);
         }
-export type WorkspacePipelineCodePageQueryHookResult = ReturnType<typeof useWorkspacePipelineCodePageQuery>;
-export type WorkspacePipelineCodePageLazyQueryHookResult = ReturnType<typeof useWorkspacePipelineCodePageLazyQuery>;
-export type WorkspacePipelineCodePageSuspenseQueryHookResult = ReturnType<typeof useWorkspacePipelineCodePageSuspenseQuery>;
-export type WorkspacePipelineCodePageQueryResult = Apollo.QueryResult<WorkspacePipelineCodePageQuery, WorkspacePipelineCodePageQueryVariables>;
+export type WorkspacePipelineDetailPageQueryHookResult = ReturnType<typeof useWorkspacePipelineDetailPageQuery>;
+export type WorkspacePipelineDetailPageLazyQueryHookResult = ReturnType<typeof useWorkspacePipelineDetailPageLazyQuery>;
+export type WorkspacePipelineDetailPageSuspenseQueryHookResult = ReturnType<typeof useWorkspacePipelineDetailPageSuspenseQuery>;
+export type WorkspacePipelineDetailPageQueryResult = Apollo.QueryResult<WorkspacePipelineDetailPageQuery, WorkspacePipelineDetailPageQueryVariables>;
+export const WorkspacePipelineHistoryDocument = gql`
+    query WorkspacePipelineHistory($workspaceSlug: String!, $pipelineCode: String!, $page: Int!, $perPage: Int!) {
+  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
+    id
+    scheduledPipelineVersion {
+      id
+    }
+    versions(page: $page, perPage: $perPage) {
+      items {
+        id
+        versionName
+        versionNumber
+        createdAt
+        isLatestVersion
+        user {
+          ...User_user
+        }
+        ...PipelineVersionCard_version
+      }
+      totalItems
+      totalPages
+    }
+  }
+}
+    ${User_UserFragmentDoc}
+${PipelineVersionCard_VersionFragmentDoc}`;
+
+/**
+ * __useWorkspacePipelineHistoryQuery__
+ *
+ * To run a query within a React component, call `useWorkspacePipelineHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWorkspacePipelineHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorkspacePipelineHistoryQuery({
+ *   variables: {
+ *      workspaceSlug: // value for 'workspaceSlug'
+ *      pipelineCode: // value for 'pipelineCode'
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
+ *   },
+ * });
+ */
+export function useWorkspacePipelineHistoryQuery(baseOptions: Apollo.QueryHookOptions<WorkspacePipelineHistoryQuery, WorkspacePipelineHistoryQueryVariables> & ({ variables: WorkspacePipelineHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WorkspacePipelineHistoryQuery, WorkspacePipelineHistoryQueryVariables>(WorkspacePipelineHistoryDocument, options);
+      }
+export function useWorkspacePipelineHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspacePipelineHistoryQuery, WorkspacePipelineHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WorkspacePipelineHistoryQuery, WorkspacePipelineHistoryQueryVariables>(WorkspacePipelineHistoryDocument, options);
+        }
+export function useWorkspacePipelineHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkspacePipelineHistoryQuery, WorkspacePipelineHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WorkspacePipelineHistoryQuery, WorkspacePipelineHistoryQueryVariables>(WorkspacePipelineHistoryDocument, options);
+        }
+export type WorkspacePipelineHistoryQueryHookResult = ReturnType<typeof useWorkspacePipelineHistoryQuery>;
+export type WorkspacePipelineHistoryLazyQueryHookResult = ReturnType<typeof useWorkspacePipelineHistoryLazyQuery>;
+export type WorkspacePipelineHistorySuspenseQueryHookResult = ReturnType<typeof useWorkspacePipelineHistorySuspenseQuery>;
+export type WorkspacePipelineHistoryQueryResult = Apollo.QueryResult<WorkspacePipelineHistoryQuery, WorkspacePipelineHistoryQueryVariables>;
+export const WorkspacePipelineRunsDocument = gql`
+    query WorkspacePipelineRuns($workspaceSlug: String!, $pipelineCode: String!, $page: Int!, $perPage: Int!) {
+  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
+    id
+    type
+    runs(page: $page, perPage: $perPage) {
+      items {
+        id
+        config
+        version {
+          versionName
+          isLatestVersion
+          createdAt
+          user {
+            ...User_user
+          }
+          parameters {
+            code
+            name
+            type
+            multiple
+          }
+        }
+        executionDate
+        duration
+        triggerMode
+        user {
+          ...UserColumn_user
+        }
+        ...PipelineRunStatusBadge_run
+      }
+      totalItems
+      totalPages
+      pageNumber
+    }
+  }
+}
+    ${User_UserFragmentDoc}
+${UserColumn_UserFragmentDoc}
+${PipelineRunStatusBadge_RunFragmentDoc}`;
+
+/**
+ * __useWorkspacePipelineRunsQuery__
+ *
+ * To run a query within a React component, call `useWorkspacePipelineRunsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useWorkspacePipelineRunsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useWorkspacePipelineRunsQuery({
+ *   variables: {
+ *      workspaceSlug: // value for 'workspaceSlug'
+ *      pipelineCode: // value for 'pipelineCode'
+ *      page: // value for 'page'
+ *      perPage: // value for 'perPage'
+ *   },
+ * });
+ */
+export function useWorkspacePipelineRunsQuery(baseOptions: Apollo.QueryHookOptions<WorkspacePipelineRunsQuery, WorkspacePipelineRunsQueryVariables> & ({ variables: WorkspacePipelineRunsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<WorkspacePipelineRunsQuery, WorkspacePipelineRunsQueryVariables>(WorkspacePipelineRunsDocument, options);
+      }
+export function useWorkspacePipelineRunsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspacePipelineRunsQuery, WorkspacePipelineRunsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<WorkspacePipelineRunsQuery, WorkspacePipelineRunsQueryVariables>(WorkspacePipelineRunsDocument, options);
+        }
+export function useWorkspacePipelineRunsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkspacePipelineRunsQuery, WorkspacePipelineRunsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<WorkspacePipelineRunsQuery, WorkspacePipelineRunsQueryVariables>(WorkspacePipelineRunsDocument, options);
+        }
+export type WorkspacePipelineRunsQueryHookResult = ReturnType<typeof useWorkspacePipelineRunsQuery>;
+export type WorkspacePipelineRunsLazyQueryHookResult = ReturnType<typeof useWorkspacePipelineRunsLazyQuery>;
+export type WorkspacePipelineRunsSuspenseQueryHookResult = ReturnType<typeof useWorkspacePipelineRunsSuspenseQuery>;
+export type WorkspacePipelineRunsQueryResult = Apollo.QueryResult<WorkspacePipelineRunsQuery, WorkspacePipelineRunsQueryVariables>;
 export const GetPipelineVersionFilesDocument = gql`
     query GetPipelineVersionFiles($versionId: UUID!) {
   pipelineVersion(id: $versionId) {
@@ -1000,232 +1109,6 @@ export type GetPipelineVersionFilesQueryHookResult = ReturnType<typeof useGetPip
 export type GetPipelineVersionFilesLazyQueryHookResult = ReturnType<typeof useGetPipelineVersionFilesLazyQuery>;
 export type GetPipelineVersionFilesSuspenseQueryHookResult = ReturnType<typeof useGetPipelineVersionFilesSuspenseQuery>;
 export type GetPipelineVersionFilesQueryResult = Apollo.QueryResult<GetPipelineVersionFilesQuery, GetPipelineVersionFilesQueryVariables>;
-export const WorkspacePipelineRunsPageDocument = gql`
-    query WorkspacePipelineRunsPage($workspaceSlug: String!, $pipelineCode: String!, $page: Int = 1, $perPage: Int = 10) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    ...PipelineLayout_workspace
-  }
-  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
-    ...PipelineLayout_pipeline
-    id
-    type
-    runs(page: $page, perPage: $perPage) {
-      items {
-        id
-        config
-        version {
-          versionName
-          isLatestVersion
-          createdAt
-          user {
-            ...User_user
-          }
-          parameters {
-            code
-            name
-            type
-            multiple
-          }
-        }
-        executionDate
-        duration
-        triggerMode
-        user {
-          ...UserColumn_user
-        }
-        ...PipelineRunStatusBadge_run
-      }
-      totalItems
-      totalPages
-      pageNumber
-    }
-  }
-}
-    ${PipelineLayout_WorkspaceFragmentDoc}
-${PipelineLayout_PipelineFragmentDoc}
-${User_UserFragmentDoc}
-${UserColumn_UserFragmentDoc}
-${PipelineRunStatusBadge_RunFragmentDoc}`;
-
-/**
- * __useWorkspacePipelineRunsPageQuery__
- *
- * To run a query within a React component, call `useWorkspacePipelineRunsPageQuery` and pass it any options that fit your needs.
- * When your component renders, `useWorkspacePipelineRunsPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useWorkspacePipelineRunsPageQuery({
- *   variables: {
- *      workspaceSlug: // value for 'workspaceSlug'
- *      pipelineCode: // value for 'pipelineCode'
- *      page: // value for 'page'
- *      perPage: // value for 'perPage'
- *   },
- * });
- */
-export function useWorkspacePipelineRunsPageQuery(baseOptions: Apollo.QueryHookOptions<WorkspacePipelineRunsPageQuery, WorkspacePipelineRunsPageQueryVariables> & ({ variables: WorkspacePipelineRunsPageQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<WorkspacePipelineRunsPageQuery, WorkspacePipelineRunsPageQueryVariables>(WorkspacePipelineRunsPageDocument, options);
-      }
-export function useWorkspacePipelineRunsPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspacePipelineRunsPageQuery, WorkspacePipelineRunsPageQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<WorkspacePipelineRunsPageQuery, WorkspacePipelineRunsPageQueryVariables>(WorkspacePipelineRunsPageDocument, options);
-        }
-export function useWorkspacePipelineRunsPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkspacePipelineRunsPageQuery, WorkspacePipelineRunsPageQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<WorkspacePipelineRunsPageQuery, WorkspacePipelineRunsPageQueryVariables>(WorkspacePipelineRunsPageDocument, options);
-        }
-export type WorkspacePipelineRunsPageQueryHookResult = ReturnType<typeof useWorkspacePipelineRunsPageQuery>;
-export type WorkspacePipelineRunsPageLazyQueryHookResult = ReturnType<typeof useWorkspacePipelineRunsPageLazyQuery>;
-export type WorkspacePipelineRunsPageSuspenseQueryHookResult = ReturnType<typeof useWorkspacePipelineRunsPageSuspenseQuery>;
-export type WorkspacePipelineRunsPageQueryResult = Apollo.QueryResult<WorkspacePipelineRunsPageQuery, WorkspacePipelineRunsPageQueryVariables>;
-export const WorkspacePipelineNotificationsPageDocument = gql`
-    query WorkspacePipelineNotificationsPage($workspaceSlug: String!, $pipelineCode: String!) {
-  workspace(slug: $workspaceSlug) {
-    ...PipelineLayout_workspace
-  }
-  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
-    ...PipelineLayout_pipeline
-    ...PipelineRecipients_pipeline
-    id
-    code
-    type
-    schedule
-    scheduledPipelineVersion {
-      id
-      versionNumber
-      versionName
-      parameters {
-        code
-        required
-      }
-      config
-    }
-    versions(perPage: 10) {
-      items {
-        id
-        versionNumber
-        versionName
-        isLatestVersion
-      }
-    }
-    currentVersion {
-      parameters {
-        code
-        required
-      }
-      config
-    }
-    permissions {
-      schedule
-      update
-    }
-  }
-}
-    ${PipelineLayout_WorkspaceFragmentDoc}
-${PipelineLayout_PipelineFragmentDoc}
-${PipelineRecipients_PipelineFragmentDoc}`;
-
-/**
- * __useWorkspacePipelineNotificationsPageQuery__
- *
- * To run a query within a React component, call `useWorkspacePipelineNotificationsPageQuery` and pass it any options that fit your needs.
- * When your component renders, `useWorkspacePipelineNotificationsPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useWorkspacePipelineNotificationsPageQuery({
- *   variables: {
- *      workspaceSlug: // value for 'workspaceSlug'
- *      pipelineCode: // value for 'pipelineCode'
- *   },
- * });
- */
-export function useWorkspacePipelineNotificationsPageQuery(baseOptions: Apollo.QueryHookOptions<WorkspacePipelineNotificationsPageQuery, WorkspacePipelineNotificationsPageQueryVariables> & ({ variables: WorkspacePipelineNotificationsPageQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<WorkspacePipelineNotificationsPageQuery, WorkspacePipelineNotificationsPageQueryVariables>(WorkspacePipelineNotificationsPageDocument, options);
-      }
-export function useWorkspacePipelineNotificationsPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspacePipelineNotificationsPageQuery, WorkspacePipelineNotificationsPageQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<WorkspacePipelineNotificationsPageQuery, WorkspacePipelineNotificationsPageQueryVariables>(WorkspacePipelineNotificationsPageDocument, options);
-        }
-export function useWorkspacePipelineNotificationsPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkspacePipelineNotificationsPageQuery, WorkspacePipelineNotificationsPageQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<WorkspacePipelineNotificationsPageQuery, WorkspacePipelineNotificationsPageQueryVariables>(WorkspacePipelineNotificationsPageDocument, options);
-        }
-export type WorkspacePipelineNotificationsPageQueryHookResult = ReturnType<typeof useWorkspacePipelineNotificationsPageQuery>;
-export type WorkspacePipelineNotificationsPageLazyQueryHookResult = ReturnType<typeof useWorkspacePipelineNotificationsPageLazyQuery>;
-export type WorkspacePipelineNotificationsPageSuspenseQueryHookResult = ReturnType<typeof useWorkspacePipelineNotificationsPageSuspenseQuery>;
-export type WorkspacePipelineNotificationsPageQueryResult = Apollo.QueryResult<WorkspacePipelineNotificationsPageQuery, WorkspacePipelineNotificationsPageQueryVariables>;
-export const WorkspacePipelineVersionsPageDocument = gql`
-    query WorkspacePipelineVersionsPage($workspaceSlug: String!, $pipelineCode: String!, $page: Int!, $perPage: Int!) {
-  workspace(slug: $workspaceSlug) {
-    slug
-    name
-    ...WorkspaceLayout_workspace
-  }
-  pipeline: pipelineByCode(workspaceSlug: $workspaceSlug, code: $pipelineCode) {
-    id
-    code
-    name
-    currentVersion {
-      id
-    }
-    versions(page: $page, perPage: $perPage) {
-      items {
-        ...PipelineVersionCard_version
-        id
-      }
-      totalItems
-      totalPages
-    }
-  }
-}
-    ${WorkspaceLayout_WorkspaceFragmentDoc}
-${PipelineVersionCard_VersionFragmentDoc}`;
-
-/**
- * __useWorkspacePipelineVersionsPageQuery__
- *
- * To run a query within a React component, call `useWorkspacePipelineVersionsPageQuery` and pass it any options that fit your needs.
- * When your component renders, `useWorkspacePipelineVersionsPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useWorkspacePipelineVersionsPageQuery({
- *   variables: {
- *      workspaceSlug: // value for 'workspaceSlug'
- *      pipelineCode: // value for 'pipelineCode'
- *      page: // value for 'page'
- *      perPage: // value for 'perPage'
- *   },
- * });
- */
-export function useWorkspacePipelineVersionsPageQuery(baseOptions: Apollo.QueryHookOptions<WorkspacePipelineVersionsPageQuery, WorkspacePipelineVersionsPageQueryVariables> & ({ variables: WorkspacePipelineVersionsPageQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<WorkspacePipelineVersionsPageQuery, WorkspacePipelineVersionsPageQueryVariables>(WorkspacePipelineVersionsPageDocument, options);
-      }
-export function useWorkspacePipelineVersionsPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<WorkspacePipelineVersionsPageQuery, WorkspacePipelineVersionsPageQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<WorkspacePipelineVersionsPageQuery, WorkspacePipelineVersionsPageQueryVariables>(WorkspacePipelineVersionsPageDocument, options);
-        }
-export function useWorkspacePipelineVersionsPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<WorkspacePipelineVersionsPageQuery, WorkspacePipelineVersionsPageQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<WorkspacePipelineVersionsPageQuery, WorkspacePipelineVersionsPageQueryVariables>(WorkspacePipelineVersionsPageDocument, options);
-        }
-export type WorkspacePipelineVersionsPageQueryHookResult = ReturnType<typeof useWorkspacePipelineVersionsPageQuery>;
-export type WorkspacePipelineVersionsPageLazyQueryHookResult = ReturnType<typeof useWorkspacePipelineVersionsPageLazyQuery>;
-export type WorkspacePipelineVersionsPageSuspenseQueryHookResult = ReturnType<typeof useWorkspacePipelineVersionsPageSuspenseQuery>;
-export type WorkspacePipelineVersionsPageQueryResult = Apollo.QueryResult<WorkspacePipelineVersionsPageQuery, WorkspacePipelineVersionsPageQueryVariables>;
 export const WorkspacePipelineStartPageDocument = gql`
     query WorkspacePipelineStartPage($workspaceSlug: String!) {
   workspace(slug: $workspaceSlug) {
@@ -2119,7 +2002,7 @@ export const WorkspaceTemplatePageDocument = gql`
   workspace(slug: $workspaceSlug) {
     slug
     name
-    ...PipelineLayout_workspace
+    ...TabLayout_workspace
   }
   template: templateByCode(code: $templateCode) {
     ...TemplateLayout_template
@@ -2153,7 +2036,7 @@ export const WorkspaceTemplatePageDocument = gql`
     }
   }
 }
-    ${PipelineLayout_WorkspaceFragmentDoc}
+    ${TabLayout_WorkspaceFragmentDoc}
 ${TemplateLayout_TemplateFragmentDoc}
 ${Tag_TagFragmentDoc}
 ${FilesEditor_FileFragmentDoc}`;

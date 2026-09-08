@@ -14,8 +14,18 @@ import WebappEditChatPanel, {
   WebappProposedFile,
 } from "assistant/features/WebappEditChatPanel";
 import { useResolveAssistantProposalMutation } from "assistant/graphql/mutations.generated";
-import clsx from "clsx";
 import Button from "core/components/Button";
+import DetailShell, {
+  AssistantDock,
+  BrowsingVersionBanner,
+  DetailBadge,
+  DetailHeader,
+  DetailViewPane,
+  Segment,
+  SegmentedViewSwitcher,
+  SettingsCard,
+  useAssistantDock,
+} from "core/components/DetailShell";
 import Spinner from "core/components/Spinner";
 import { resizeImage } from "core/helpers/image";
 import { isRequestTooLargeError } from "core/helpers/errors";
@@ -42,14 +52,7 @@ import WebappIframe from "webapps/features/WebappIframe";
 import { getWebappTypeLabel } from "webapps/helpers";
 
 const PLACEHOLDER_ICON = "/images/placeholder.svg";
-const ASSISTANT_WIDTH_KEY = "webapp-assistant-width";
-const ASSISTANT_HIDDEN_KEY = "webapp-assistant-hidden";
-const DEFAULT_ASSISTANT_WIDTH = 440;
-const MIN_ASSISTANT_WIDTH = 280;
-const MAX_ASSISTANT_WIDTH = 720;
-
-const clampAssistantWidth = (width: number) =>
-  Math.min(MAX_ASSISTANT_WIDTH, Math.max(MIN_ASSISTANT_WIDTH, width));
+const ASSISTANT_STORAGE_KEY = "webapp-assistant";
 
 type View = "preview" | "code" | "history" | "settings";
 
@@ -278,70 +281,18 @@ const WebappDetail = ({
     setActiveConversationId(convs[0]?.id ?? null);
   }, [webapp?.id]);
 
-  // ---- resizable assistant panel ----
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [assistantWidth, setAssistantWidth] = useState(DEFAULT_ASSISTANT_WIDTH);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isAssistantOpen, setIsAssistantOpen] = useState(true);
-
+  const { isOpen: isAssistantOpen, toggle: toggleAssistant } = useAssistantDock(
+    ASSISTANT_STORAGE_KEY,
+  );
   const assistantAvailable = showAssistant && isStatic;
 
-  const toggleAssistant = useCallback(() => {
-    const next = !isAssistantOpen;
-    setIsAssistantOpen(next);
-    window.localStorage.setItem(ASSISTANT_HIDDEN_KEY, String(!next));
-  }, [isAssistantOpen]);
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem(ASSISTANT_WIDTH_KEY);
-    if (stored) {
-      const parsed = Number(stored);
-      if (!Number.isNaN(parsed)) {
-        setAssistantWidth(clampAssistantWidth(parsed));
-      }
-    }
-    setIsAssistantOpen(
-      window.localStorage.getItem(ASSISTANT_HIDDEN_KEY) !== "true",
-    );
-  }, []);
-
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleMove = (event: MouseEvent) => {
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      setAssistantWidth(clampAssistantWidth(rect.right - event.clientX));
-    };
-    const handleUp = () => setIsDragging(false);
-
-    document.addEventListener("mousemove", handleMove);
-    document.addEventListener("mouseup", handleUp);
-    // Keep the cursor consistent even when the pointer outruns the handle.
-    const previousUserSelect = document.body.style.userSelect;
-    document.body.style.userSelect = "none";
-    document.body.style.cursor = "col-resize";
-
-    return () => {
-      document.removeEventListener("mousemove", handleMove);
-      document.removeEventListener("mouseup", handleUp);
-      document.body.style.userSelect = previousUserSelect;
-      document.body.style.cursor = "";
-    };
-  }, [isDragging]);
-
-  useEffect(() => {
-    if (isDragging) return;
-    window.localStorage.setItem(ASSISTANT_WIDTH_KEY, String(assistantWidth));
-  }, [isDragging, assistantWidth]);
-
-  const segments: { id: View; label: string; icon: typeof EyeIcon }[] = [
+  const segments: Segment<View>[] = [
     { id: "preview", label: t("Preview"), icon: EyeIcon },
     ...(isStatic
-      ? ([
-          { id: "code", label: t("Code"), icon: CodeBracketIcon },
-          { id: "history", label: t("History"), icon: ClockIcon },
-        ] as { id: View; label: string; icon: typeof EyeIcon }[])
+      ? [
+          { id: "code" as const, label: t("Code"), icon: CodeBracketIcon },
+          { id: "history" as const, label: t("History"), icon: ClockIcon },
+        ]
       : []),
     { id: "settings", label: t("Settings"), icon: Cog6ToothIcon },
   ];
@@ -353,125 +304,107 @@ const WebappDetail = ({
     "";
 
   return (
-    <div ref={containerRef} className="flex h-full min-h-0 bg-white">
-      {/* ---------------- left column ---------------- */}
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center gap-3.5 border-b border-gray-100 px-5 py-4">
-          <img
-            src={webapp.icon || PLACEHOLDER_ICON}
-            alt=""
-            className="h-11 w-11 flex-none rounded-lg border border-gray-100 object-cover"
-          />
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <div className="flex items-center gap-2.5">
-              <h2 className="truncate text-[19px] font-bold tracking-tight text-gray-900">
-                {webapp.name}
-              </h2>
-              <span className="inline-flex h-5 flex-none items-center rounded-md bg-indigo-100 px-2 text-[11px] font-semibold text-indigo-700 ring-1 ring-inset ring-indigo-700/15">
-                {t("{{type}} app", {
-                  type: getWebappTypeLabel(webapp.type),
-                })}
-              </span>
+    <DetailShell>
+      <DetailShell.Main>
+        <DetailHeader
+          icon={
+            <img
+              src={webapp.icon || PLACEHOLDER_ICON}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          }
+          title={webapp.name}
+          badges={
+            <>
+              <DetailBadge color="indigo">
+                {t("{{type}} app", { type: getWebappTypeLabel(webapp.type) })}
+              </DetailBadge>
               {webapp.isPublic && (
-                <span className="inline-flex h-5 flex-none items-center gap-1 rounded-md bg-emerald-100 px-2 text-[11px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-700/15">
-                  <GlobeAltIcon className="h-3 w-3" />
+                <DetailBadge
+                  color="emerald"
+                  icon={<GlobeAltIcon className="h-3 w-3" />}
+                >
                   {t("Public")}
-                </span>
+                </DetailBadge>
               )}
               {isReviewing && (
-                <span className="inline-flex h-5 flex-none items-center gap-1.5 rounded-md bg-amber-100 px-2 text-[11px] font-semibold text-amber-800 ring-1 ring-inset ring-amber-700/15">
-                  <Spinner size="xs" />
+                <DetailBadge color="amber" icon={<Spinner size="xs" />}>
                   {t("Security review in progress")}
-                </span>
+                </DetailBadge>
               )}
-            </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px]">
-              {displayUrl && (
-                <span className="inline-flex items-center gap-1.5 text-gray-500">
-                  <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
-                  <a
-                    href={webapp.serveUrl ?? webapp.url ?? "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-700"
-                  >
-                    {displayUrl}
-                  </a>
-                </span>
-              )}
-              {latestVersion && (
-                <>
-                  <span className="h-3.5 w-px bg-gray-200" />
-                  <span className="text-gray-500">
-                    {t("Latest")}{" "}
-                    <code className="font-mono text-gray-700">
-                      {latestVersion.id.substring(0, 7)}
-                    </code>{" "}
-                    &middot; {DateTime.fromISO(latestVersion.date).toRelative()}
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* slim toggle row */}
-        <div className="flex flex-none items-center gap-3 border-b border-gray-100 px-5 py-2">
-          <div className="inline-flex rounded-[7px] bg-gray-100 p-[3px]">
-            {segments.map((segment) => {
-              const Icon = segment.icon;
-              const active = view === segment.id;
-              return (
-                <button
-                  key={segment.id}
-                  onClick={() => setView(segment.id)}
-                  className={clsx(
-                    "inline-flex items-center gap-1.5 rounded-[5px] px-3 py-1 text-xs transition-colors",
-                    active
-                      ? "bg-white font-semibold text-gray-900 shadow-sm"
-                      : "font-medium text-gray-500 hover:text-gray-700",
-                  )}
+            </>
+          }
+          meta={[
+            displayUrl && (
+              <span className="inline-flex items-center gap-1.5 text-gray-500">
+                <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5" />
+                <a
+                  href={webapp.serveUrl ?? webapp.url ?? "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-700"
                 >
-                  <Icon className="h-3.5 w-3.5" />
-                  {segment.label}
-                </button>
-              );
-            })}
-          </div>
-          {view === "preview" && (
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
-              <span className="h-[7px] w-[7px] rounded-full bg-emerald-500" />
-              {t("Live")}
-            </span>
-          )}
-          {assistantAvailable && !isAssistantOpen && (
-            <div className="ml-auto flex-none">
-              <Button
-                onClick={toggleAssistant}
-                variant="secondary"
-                size="md"
-                leadingIcon={<SparklesIcon className="h-4 w-4" />}
-              >
-                {t("AI Assistant")}
-              </Button>
-            </div>
-          )}
-        </div>
+                  {displayUrl}
+                </a>
+              </span>
+            ),
+            latestVersion && (
+              <span className="text-gray-500">
+                {t("Latest")}{" "}
+                <code className="font-mono text-gray-700">
+                  {latestVersion.id.substring(0, 7)}
+                </code>{" "}
+                &middot; {DateTime.fromISO(latestVersion.date).toRelative()}
+              </span>
+            ),
+          ]}
+        />
 
-        {/* views */}
+        <SegmentedViewSwitcher
+          segments={segments}
+          value={view}
+          onChange={setView}
+          actions={
+            <>
+              {view === "preview" && (
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600">
+                  <span className="h-[7px] w-[7px] rounded-full bg-emerald-500" />
+                  {t("Live")}
+                </span>
+              )}
+              {assistantAvailable && !isAssistantOpen && (
+                <div className="ml-auto flex-none">
+                  <Button
+                    onClick={toggleAssistant}
+                    variant="secondary"
+                    size="md"
+                    leadingIcon={<SparklesIcon className="h-4 w-4" />}
+                  >
+                    {t("AI Assistant")}
+                  </Button>
+                </div>
+              )}
+            </>
+          }
+        />
+
         {view === "code" && isStatic && (
           <div className="flex min-h-0 flex-1 flex-col">
             {versionRef && (
-              <div className="flex flex-none items-center gap-3 border-b border-amber-100 bg-amber-50 px-5 py-2 text-[13px]">
-                <span className="text-amber-800">
-                  {t("Browsing")}{" "}
-                  <code className="font-mono text-amber-900">
-                    {versionRef.substring(0, 7)}
-                  </code>{" "}
-                  &middot; {t("read-only")}
-                </span>
-                <div className="ml-auto flex items-center gap-3">
-                  {canEdit && versionRef !== publishedVersionId && (
+              <BrowsingVersionBanner
+                label={
+                  <>
+                    {t("Browsing")}{" "}
+                    <code className="font-mono text-amber-900">
+                      {versionRef.substring(0, 7)}
+                    </code>{" "}
+                    &middot; {t("read-only")}
+                  </>
+                }
+                actions={
+                  canEdit &&
+                  versionRef !== publishedVersionId && (
                     <button
                       onClick={handlePublishVersion}
                       disabled={isPublishing}
@@ -480,16 +413,10 @@ const WebappDetail = ({
                       {isPublishing && <Spinner size="xs" />}
                       {isPublishing ? t("Publishing...") : t("Publish")}
                     </button>
-                  )}
-                  <button
-                    onClick={() => setVersionRef(null)}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-800 hover:text-amber-900"
-                  >
-                    <ArrowUturnLeftIcon className="h-3.5 w-3.5" />
-                    {t("Back to latest")}
-                  </button>
-                </div>
-              </div>
+                  )
+                }
+                onBack={() => setVersionRef(null)}
+              />
             )}
             {proposedFiles && (
               <AssistantProposalBanner
@@ -517,7 +444,7 @@ const WebappDetail = ({
         )}
 
         {view === "preview" && (
-          <div className="min-h-0 flex-1 overflow-auto bg-gray-100 p-5">
+          <DetailViewPane className="bg-gray-100 p-5">
             <div className="mx-auto h-full max-w-[900px] overflow-hidden rounded-[10px] border border-gray-200 bg-white shadow-sm">
               <WebappIframe
                 url={previewUrl}
@@ -525,11 +452,11 @@ const WebappDetail = ({
                 style={{ height: "100%" }}
               />
             </div>
-          </div>
+          </DetailViewPane>
         )}
 
         {view === "history" && isStatic && (
-          <div className="min-h-0 flex-1 overflow-auto px-5 py-4">
+          <DetailViewPane className="px-5 py-4">
             {diffCommitId ? (
               <div className="space-y-4">
                 <button
@@ -554,15 +481,36 @@ const WebappDetail = ({
                 onBrowseCommit={browseCommit}
               />
             )}
-          </div>
+          </DetailViewPane>
         )}
+
         {view === "settings" && (
-          <div className="min-h-0 flex-1 overflow-auto bg-gray-50 px-5 py-4">
+          <DetailViewPane className="bg-gray-50 px-5 py-4">
             <div className="mx-auto max-w-4xl space-y-4">
-              <div className="rounded-[10px] border border-gray-200 bg-white px-5 py-4">
-                <h3 className="mb-3.5 text-sm font-semibold text-gray-900">
-                  {t("Details")}
-                </h3>
+              <SettingsCard
+                title={t("Details")}
+                footer={
+                  canEdit && (
+                    <>
+                      <button
+                        onClick={handleCancel}
+                        disabled={!isDirty || isSaving}
+                        className="rounded border border-gray-300 bg-white px-3.5 py-2 text-[13px] font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-60"
+                      >
+                        {t("Cancel")}
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        disabled={!isDirty || isSaving}
+                        className="inline-flex items-center gap-1.5 rounded border-none bg-blue-600 px-3.5 py-2 text-[13px] font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                      >
+                        {isSaving && <Spinner size="xs" />}
+                        {t("Save")}
+                      </button>
+                    </>
+                  )
+                }
+              >
                 <div className="flex items-start gap-6">
                   <div className="flex w-22 flex-none flex-col items-center gap-2">
                     <img
@@ -637,82 +585,42 @@ const WebappDetail = ({
                     )}
                   </div>
                 </div>
-                {canEdit && (
-                  <div className="mt-4 flex justify-end gap-2">
-                    <button
-                      onClick={handleCancel}
-                      disabled={!isDirty || isSaving}
-                      className="rounded border border-gray-300 bg-white px-3.5 py-2 text-[13px] font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-60"
-                    >
-                      {t("Cancel")}
-                    </button>
-                    <button
-                      onClick={handleSave}
-                      disabled={!isDirty || isSaving}
-                      className="inline-flex items-center gap-1.5 rounded border-none bg-blue-600 px-3.5 py-2 text-[13px] font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-                    >
-                      {isSaving && <Spinner size="xs" />}
-                      {t("Save")}
-                    </button>
-                  </div>
-                )}
-              </div>
+              </SettingsCard>
 
               {isStatic && <WebappApiAccess webapp={webapp} />}
             </div>
-          </div>
+          </DetailViewPane>
         )}
-      </div>
+      </DetailShell.Main>
 
-      {/* ---------------- right: assistant ---------------- */}
       {assistantAvailable && isAssistantOpen && (
-        <>
-          <div
-            role="separator"
-            aria-orientation="vertical"
-            onMouseDown={(event) => {
-              event.preventDefault();
-              setIsDragging(true);
+        <AssistantDock storageKey={ASSISTANT_STORAGE_KEY}>
+          <WebappEditChatPanel
+            webappId={webapp.id}
+            workspaceSlug={workspaceSlug}
+            monthlyLimitExceeded={monthlyLimitExceeded}
+            onProposedFiles={handleProposedFiles}
+            conversations={conversations}
+            activeConversationId={activeConversationId}
+            onConversationChange={setActiveConversationId}
+            onNewConversation={() => setActiveConversationId(null)}
+            onConversationCreated={(conversation) => {
+              setConversations((prev) => [conversation, ...prev]);
+              setActiveConversationId(conversation.id);
             }}
-            onDoubleClick={() => setAssistantWidth(DEFAULT_ASSISTANT_WIDTH)}
-            className={clsx(
-              "relative w-1 flex-none cursor-col-resize transition-colors",
-              isDragging ? "bg-blue-500" : "bg-transparent hover:bg-blue-400",
-            )}
-          >
-            <span className="absolute inset-y-0 -left-1 -right-1 block" />
-          </div>
-          <div
-            className="flex flex-none flex-col"
-            style={{ width: assistantWidth }}
-          >
-            <WebappEditChatPanel
-              webappId={webapp.id}
-              workspaceSlug={workspaceSlug}
-              monthlyLimitExceeded={monthlyLimitExceeded}
-              onProposedFiles={handleProposedFiles}
-              conversations={conversations}
-              activeConversationId={activeConversationId}
-              onConversationChange={setActiveConversationId}
-              onNewConversation={() => setActiveConversationId(null)}
-              onConversationCreated={(conversation) => {
-                setConversations((prev) => [conversation, ...prev]);
-                setActiveConversationId(conversation.id);
-              }}
-              onConversationNameChange={(id, conversationName) =>
-                setConversations((prev) =>
-                  prev.map((c) =>
-                    c.id === id ? { ...c, name: conversationName } : c,
-                  ),
-                )
-              }
-              flush
-              onClose={toggleAssistant}
-            />
-          </div>
-        </>
+            onConversationNameChange={(id, conversationName) =>
+              setConversations((prev) =>
+                prev.map((c) =>
+                  c.id === id ? { ...c, name: conversationName } : c,
+                ),
+              )
+            }
+            flush
+            onClose={toggleAssistant}
+          />
+        </AssistantDock>
       )}
-    </div>
+    </DetailShell>
   );
 };
 

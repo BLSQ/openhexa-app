@@ -1,0 +1,10 @@
+export { default, useDetailShell } from "./DetailShell";
+export { default as DetailHeader } from "./DetailHeader";
+export { default as DetailBadge } from "./DetailBadge";
+export type { DetailBadgeColor } from "./DetailBadge";
+export { default as SegmentedViewSwitcher } from "./SegmentedViewSwitcher";
+export type { Segment } from "./SegmentedViewSwitcher";
+export { default as AssistantDock, useAssistantDock } from "./AssistantDock";
+export { default as BrowsingVersionBanner } from "./BrowsingVersionBanner";
+export { default as SettingsCard } from "./SettingsCard";
+export { default as DetailViewPane } from "./DetailViewPane";
