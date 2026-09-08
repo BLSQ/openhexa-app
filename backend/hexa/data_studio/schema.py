@@ -276,7 +276,10 @@ def resolve_create_saved_query(_, info, **kwargs):
     # The transaction rolled back, so nothing was created: reported as a failure
     # rather than as a saved query with no history.
     except GitError:
-        logger.exception("Could not record the first version of a saved query")
+        logger.exception(
+            "Saved query versioning unavailable, creation rolled back (workspace %s)",
+            mutation_input["workspace_slug"],
+        )
         return {"success": False, "errors": ["VERSIONING_UNAVAILABLE"]}
 
 
@@ -298,7 +301,10 @@ def resolve_update_saved_query(_, info, **kwargs):
     # Rolled back rather than kept with a hole in its history, so a retry records
     # both the change and its version.
     except GitError:
-        logger.exception("Could not record a new version of a saved query")
+        logger.exception(
+            "Saved query versioning unavailable, update rolled back (query %s)",
+            mutation_input["id"],
+        )
         return {"success": False, "errors": ["VERSIONING_UNAVAILABLE"]}
 
 
