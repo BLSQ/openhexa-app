@@ -16,6 +16,7 @@ import PipelineEditChatPanel, {
   PipelineConversation,
 } from "assistant/features/PipelineEditChatPanel";
 import { useResolveAssistantProposalMutation } from "assistant/graphql/mutations.generated";
+import clsx from "clsx";
 import Badge from "core/components/Badge";
 import Button from "core/components/Button";
 import Clipboard from "core/components/Clipboard";
@@ -51,6 +52,7 @@ import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
 import PipelineHistory from "pipelines/features/PipelineHistory";
+import PipelineRunDetail from "pipelines/features/PipelineRunDetail";
 import PipelineRuns from "pipelines/features/PipelineRuns";
 import PipelineVersionCard from "pipelines/features/PipelineVersionCard";
 import PipelineVersionParametersTable from "pipelines/features/PipelineVersionParametersTable";
@@ -91,6 +93,7 @@ type PipelineDetailProps = {
   workspaceSlug: string;
   pipelineCode: string;
   pipeline: any;
+  runId?: string;
   showAssistant: boolean;
   aiBudgetLimitReached: boolean;
   monthlyLimitExceeded: boolean;
@@ -101,6 +104,7 @@ const PipelineDetail = ({
   workspaceSlug,
   pipelineCode,
   pipeline,
+  runId,
   showAssistant,
   aiBudgetLimitReached,
   monthlyLimitExceeded,
@@ -138,20 +142,28 @@ const PipelineDetail = ({
     [t, isZipFile, pipeline.currentVersion],
   );
 
-  const requestedView = router.query.tab as View | undefined;
+  const requestedView = (runId ? "runs" : router.query.tab) as View | undefined;
   const view = segments.some((segment) => segment.id === requestedView)
     ? requestedView!
     : "overview";
 
   const setView = useCallback(
     (next: View) => {
+      if (runId) {
+        // Leave the run route behind, otherwise the run would stay open.
+        router.push({
+          pathname: "/workspaces/[workspaceSlug]/pipelines/[pipelineCode]",
+          query: { workspaceSlug, pipelineCode, tab: next },
+        });
+        return;
+      }
       router.push(
         { pathname: router.pathname, query: { ...router.query, tab: next } },
         undefined,
         { shallow: true },
       );
     },
-    [router],
+    [router, runId, workspaceSlug, pipelineCode],
   );
 
   // ---- version browsing ----
@@ -417,11 +429,33 @@ const PipelineDetail = ({
           )}
 
           {view === "runs" && (
-            <DetailViewPane className="px-5 py-4">
-              <PipelineRuns
-                workspaceSlug={workspaceSlug}
-                pipelineCode={pipelineCode}
-              />
+            <DetailViewPane
+              className={clsx("px-5 py-4", runId && "bg-gray-50")}
+            >
+              {runId ? (
+                <div className="mx-auto max-w-4xl space-y-4">
+                  <Link
+                    href={{
+                      pathname:
+                        "/workspaces/[workspaceSlug]/pipelines/[pipelineCode]",
+                      query: { workspaceSlug, pipelineCode, tab: "runs" },
+                    }}
+                    customStyle="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 hover:underline"
+                  >
+                    <ArrowUturnLeftIcon className="h-3.5 w-3.5" />
+                    {t("Back to runs")}
+                  </Link>
+                  <PipelineRunDetail
+                    workspaceSlug={workspaceSlug}
+                    runId={runId}
+                  />
+                </div>
+              ) : (
+                <PipelineRuns
+                  workspaceSlug={workspaceSlug}
+                  pipelineCode={pipelineCode}
+                />
+              )}
             </DetailViewPane>
           )}
 

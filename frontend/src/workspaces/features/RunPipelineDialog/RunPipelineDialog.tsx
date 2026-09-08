@@ -64,7 +64,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
         router.push(
           `/workspaces/${encodeURIComponent(
             pipeline.workspace!.slug,
-          )}/pipelines/${encodeURIComponent(pipeline.id)}/runs/${encodeURIComponent(
+          )}/pipelines/${encodeURIComponent(pipeline.code)}/runs/${encodeURIComponent(
             run.id,
           )}`,
         );
@@ -96,7 +96,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
         `/workspaces/${encodeURIComponent(
           pipeline.workspace!.slug,
         )}/pipelines/${encodeURIComponent(
-          pipeline.id,
+          pipeline.code,
         )}/runs/${encodeURIComponent(run.id)}`,
       );
       clearCache();
