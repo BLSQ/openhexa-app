@@ -4,11 +4,13 @@ import DateColumn from "core/components/DataGrid/DateColumn";
 import Block from "core/components/Block";
 import { useTranslation } from "next-i18next";
 import Link from "core/components/Link";
-import { formatPipelineSource } from "workspaces/helpers/pipelines";
+import {
+  formatPipelineSource,
+  getCronExpressionDescription,
+} from "workspaces/helpers/pipelines";
 import Badge from "core/components/Badge";
 import PipelineRunStatusBadge from "../PipelineRunStatusBadge";
 import { TagsCell, FunctionalTypeCell } from "../PipelineMetadataGrid";
-import User from "core/features/User";
 import { PipelineOrderBy } from "graphql/types";
 import { SortingRule } from "react-table";
 import { pipelineSorting } from "pipelines/config/sorting";
@@ -111,20 +113,21 @@ const GridView = ({
           accessor="lastRuns.items.0.executionDate"
           label={t("Last Run Date")}
         />
-        <BaseColumn label={t("Created By")} id="createdBy" disableSortBy={true}>
-          {(pipeline) => {
-            if (pipeline.currentVersion?.user) {
-              return <User user={pipeline.currentVersion.user} />;
-            }
-            return <span className="text-gray-500 italic">{t("Unknown")}</span>;
-          }}
-        </BaseColumn>
-        <BaseColumn id="description" label={t("Description")} disableSortBy={true}>
-          {(pipeline) => (
-            <span className="block max-w-xs truncate" title={pipeline.description}>
-              {pipeline.description}
-            </span>
-          )}
+        <BaseColumn id="schedule" label={t("Schedule")} disableSortBy={true}>
+          {(pipeline) =>
+            pipeline.schedule ? (
+              <span
+                className="font-mono text-sm"
+                title={
+                  getCronExpressionDescription(pipeline.schedule) ?? undefined
+                }
+              >
+                {pipeline.schedule}
+              </span>
+            ) : (
+              <span className="text-gray-400">&mdash;</span>
+            )
+          }
         </BaseColumn>
         <DateColumn
           id="createdAt"

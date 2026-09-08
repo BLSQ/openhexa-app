@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { ClockIcon } from "@heroicons/react/24/outline";
 import Card from "core/components/Card";
 import Tooltip from "core/components/Tooltip";
 import Badge from "core/components/Badge";
@@ -7,7 +8,10 @@ import User from "core/features/User";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
-import { formatPipelineSource } from "workspaces/helpers/pipelines";
+import {
+  formatPipelineSource,
+  getCronExpressionDescription,
+} from "workspaces/helpers/pipelines";
 import PipelineMetadataDisplay from "pipelines/features/PipelineMetadataDisplay";
 import {
   PipelineCard_PipelineFragment,
@@ -76,7 +80,18 @@ const PipelineCard = ({ pipeline, workspace }: PipelineCardProps) => {
           </div>
 
           <div className="flex items-center justify-between">
-            <span className="text-xs text-gray-500"></span>
+            {pipeline.schedule ? (
+              <Tooltip
+                label={getCronExpressionDescription(pipeline.schedule) ?? ""}
+              >
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <ClockIcon className="h-3.5 w-3.5" />
+                  <span className="font-mono">{pipeline.schedule}</span>
+                </div>
+              </Tooltip>
+            ) : (
+              <span className="text-xs text-gray-500"></span>
+            )}
             {pipeline.currentVersion?.user && (
               <Tooltip
                 label={t("Last version uploaded on {{date}} by {{name}}", {
