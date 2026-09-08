@@ -417,6 +417,18 @@ Use the following command to run the backend tests:
 docker compose --profile test run app test
 ```
 
+Layering `docker-compose.test.yaml` runs the tests against a throwaway in-memory
+database, which is roughly 30% faster on the full suite:
+
+```bash
+docker compose -p openhexa-test -f docker-compose.yaml -f docker-compose.test.yaml --profile test run app test
+```
+
+That database is a tmpfs: it lives in RAM and is discarded with the container, so it never
+touches your local `pgdata` volume. The `-p openhexa-test` project name keeps it in its own
+set of containers — without it, compose recreates your development `db` container with these
+settings, which makes your local database unavailable until you bring the stack back up.
+
 Some tests call external resources (such as the public DHIS2 API) and will slow down the suite. You can exclude them
 when running the test suite for unrelated parts of the codebase:
 

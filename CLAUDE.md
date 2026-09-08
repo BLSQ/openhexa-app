@@ -16,6 +16,7 @@ Follow these guidelines when writing code:
 -   **Run tests**: `docker compose run app test --settings=config.settings.test`
 -   **Run specific test**: `docker compose run app test hexa.core.tests.CoreTest.test_ready_200 --settings=config.settings.test`
 -   **Exclude external tests**: `docker compose run app test --exclude-tag=external --settings=config.settings.test`
+-   **Run tests faster** (throwaway in-memory DB, ~30% quicker; the `-p` keeps it from recreating your dev `db` container): `docker compose -p openhexa-test -f docker-compose.yaml -f docker-compose.test.yaml run app test --settings=config.settings.test`
 -   **Run migrations**: `docker compose run app migrate`
 -   **Create fixtures**: `docker compose run app fixtures`
 -   **Lint code**: `pre-commit run --all` (uses ruff for Python)
