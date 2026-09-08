@@ -15,6 +15,7 @@ interface PipelineFilesEditorProps {
   isEditable?: boolean;
   proposedFiles?: ProposedFile[];
   proposedDeletedPaths?: string[];
+  proposedCommitMessage?: string;
   workspaceSlug: string;
   pipelineCode: string;
   pipelineId: string;
@@ -27,6 +28,7 @@ export const PipelineFilesEditor = ({
   isEditable = false,
   proposedFiles,
   proposedDeletedPaths,
+  proposedCommitMessage,
   workspaceSlug,
   pipelineCode,
   pipelineId,
@@ -71,6 +73,7 @@ export const PipelineFilesEditor = ({
               workspaceSlug: workspaceSlug,
               pipelineCode: pipelineCode,
               zipfile: zipBase64,
+              description: proposedCommitMessage?.trim() || undefined,
             },
           },
         });
@@ -108,7 +111,14 @@ export const PipelineFilesEditor = ({
         };
       }
     },
-    [workspaceSlug, pipelineCode, uploadPipeline, clearCache, onVersionCreated],
+    [
+      workspaceSlug,
+      pipelineCode,
+      proposedCommitMessage,
+      uploadPipeline,
+      clearCache,
+      onVersionCreated,
+    ],
   );
 
   return (

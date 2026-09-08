@@ -188,6 +188,7 @@ input UpdateWebappInput {
   source: UpdateWebappSourceInput
   files: [WebappFileInput!]
   filesToDelete: [String!]
+  message: String  # Commit message for the files change. Defaults to a generic message.
   publishedVersionId: String
 }
 

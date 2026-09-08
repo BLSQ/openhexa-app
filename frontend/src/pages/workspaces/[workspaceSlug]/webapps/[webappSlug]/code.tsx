@@ -5,6 +5,7 @@ import WebappEditChatPanel, {
   WebappProposedFile,
 } from "assistant/features/WebappEditChatPanel";
 import { useResolveAssistantProposalMutation } from "assistant/graphql/mutations.generated";
+import useProposalCommitMessage from "assistant/hooks/useProposalCommitMessage";
 import Button from "core/components/Button";
 import DataCard from "core/components/DataCard";
 import Page from "core/components/Page";
@@ -62,27 +63,36 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
   const [proposedDeletedPaths, setProposedDeletedPaths] = useState<
     string[] | null
   >(null);
+  const {
+    commitMessage: proposedCommitMessage,
+    setCommitMessage: setProposedCommitMessage,
+    receiveCommitMessage,
+    resetCommitMessage,
+  } = useProposalCommitMessage();
 
   const handleProposedFiles = useCallback(
     (
       files: WebappProposedFile[] | null,
       toolInvocationId?: string,
       deletedPaths?: string[],
+      commitMessage?: string,
     ) => {
       setProposedFiles(files);
       setProposedDeletedPaths(deletedPaths ?? null);
+      receiveCommitMessage(commitMessage);
       if (toolInvocationId !== undefined) {
         setProposedToolInvocationId(toolInvocationId);
       } else if (files !== null) {
         setProposedToolInvocationId(null);
       }
     },
-    [],
+    [receiveCommitMessage],
   );
 
   const handleDismiss = useCallback(async () => {
     setProposedFiles(null);
     setProposedDeletedPaths(null);
+    resetCommitMessage();
     const idToDismiss = proposedToolInvocationId;
     setProposedToolInvocationId(null);
     if (idToDismiss) {
@@ -90,18 +100,19 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
         variables: { toolInvocationId: idToDismiss },
       });
     }
-  }, [proposedToolInvocationId, resolveProposal]);
+  }, [proposedToolInvocationId, resolveProposal, resetCommitMessage]);
 
   const handleSaveSuccess = useCallback(() => {
     refetch().then();
     const idToResolve = proposedToolInvocationId;
     setProposedFiles(null);
     setProposedDeletedPaths(null);
+    resetCommitMessage();
     setProposedToolInvocationId(null);
     if (idToResolve) {
       resolveProposal({ variables: { toolInvocationId: idToResolve } });
     }
-  }, [proposedToolInvocationId, resolveProposal, refetch]);
+  }, [proposedToolInvocationId, resolveProposal, refetch, resetCommitMessage]);
 
   const showAssistant =
     data?.workspace?.organization?.aiSettings?.enabled ?? false;
@@ -234,6 +245,9 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
           {proposedFiles && (
             <AssistantProposalBanner
               label={t("Proposed changes from AI assistant")}
+              message={proposedCommitMessage ?? undefined}
+              messagePlaceholder={t("Commit message")}
+              onMessageChange={setProposedCommitMessage}
               onDismiss={handleDismiss}
               className="-my-2"
             />
@@ -248,6 +262,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
                 versionRef={selectedVersion?.id}
                 proposedFiles={proposedFiles ?? undefined}
                 proposedDeletedPaths={proposedDeletedPaths ?? undefined}
+                proposedCommitMessage={proposedCommitMessage ?? undefined}
                 onSaveSuccess={handleSaveSuccess}
                 onBusyChange={setIsEditorBusy}
               />
