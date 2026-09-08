@@ -1,6 +1,6 @@
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { StopIcon } from "@heroicons/react/24/solid";
 import Button from "core/components/Button";
+import Clipboard from "core/components/Clipboard";
 import { DetailBadge, SettingsCard } from "core/components/DetailShell";
 import Link from "core/components/Link";
 import Spinner from "core/components/Spinner";
@@ -25,7 +25,6 @@ import usePipelineRunMessages from "pipelines/hooks/usePipelineRunMessages/usePi
 import usePipelineRunPoller from "pipelines/hooks/usePipelineRunPoller";
 import { ReactNode, useEffect, useMemo, useState } from "react";
 import RunOutputsTable from "workspaces/features/RunOutputsTable";
-import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
 import StopPipelineDialog from "workspaces/features/StopPipelineDialog";
 import { useWorkspacePipelineRunPageQuery } from "workspaces/graphql/queries.generated";
 import {
@@ -178,20 +177,6 @@ const PipelineRunDetail = ({
             <div title={run.executionDate} suppressHydrationWarning>
               <PipelineRunStatusBadge run={run} />
             </div>
-            {isFinished && (
-              <RunPipelineDialog pipeline={run.pipeline} run={run}>
-                {(onClick) => (
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    leadingIcon={<ArrowPathIcon className="h-4 w-4" />}
-                    onClick={onClick}
-                  >
-                    {t("Run again")}
-                  </Button>
-                )}
-              </RunPipelineDialog>
-            )}
             {!isFinished && run.pipeline.permissions.stopPipeline && (
               <Button
                 variant="danger"
@@ -297,12 +282,17 @@ const PipelineRunDetail = ({
       <SettingsCard
         title={t("Logs")}
         actions={
-          <button
-            onClick={() => setLogsVisible((visible) => !visible)}
-            className="text-xs font-medium text-gray-500 hover:text-gray-700"
-          >
-            {areLogsVisible ? t("Hide") : t("Show")}
-          </button>
+          <div className="flex items-center gap-3">
+            {run.logs && (
+              <Clipboard value={run.logs} iconClassName="h-3.5 w-3.5" />
+            )}
+            <button
+              onClick={() => setLogsVisible((visible) => !visible)}
+              className="text-xs font-medium text-gray-500 hover:text-gray-700"
+            >
+              {areLogsVisible ? t("Hide") : t("Show")}
+            </button>
+          </div>
         }
       >
         {areLogsVisible && <RunLogs run={run} />}

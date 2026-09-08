@@ -25,12 +25,14 @@ const RunLogs = (props: RunLogsProps) => {
     );
   }
 
+  if (!run.logs) {
+    return <p className="text-sm italic text-gray-500">{t("No logs")}</p>;
+  }
+
   return (
-    <code>
-      <pre className="max-h-96 overflow-y-auto whitespace-pre-line break-all text-xs">
-        {run.logs}
-      </pre>
-    </code>
+    <pre className="max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-md bg-gray-900 px-3.5 py-3 font-mono text-xs leading-relaxed text-gray-100">
+      <code>{run.logs}</code>
+    </pre>
   );
 };
 
