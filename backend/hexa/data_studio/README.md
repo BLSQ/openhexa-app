@@ -41,8 +41,8 @@ after the commit and cannot fail the deletion.
 There is no published version; the current one runs, so no sha is stored. `repository` is
 null until the repository exists — migration 0010 creates none, because a migration
 reaching the git server would fail a deploy wherever it is not up yet. `manage.py
-backfill_saved_query_repositories` creates them (with `--check` to report what is missing
-or has drifted from the stored SQL); anything it misses heals on the query's next save
+backfill_saved_query_repositories` creates them (with `--dry-run` to report what is
+missing or has drifted from the stored SQL); anything it misses heals on the query's next save
 through `ensure_repo`.
 
 ## Why the export streams (rather than buffers)

@@ -408,29 +408,29 @@ class BackfillSavedQueryRepositoriesTest(SavedQueryTestMixin, TestCase):
             "OpenHEXA", self.client_mock.commit_files.call_args.kwargs["author_name"]
         )
 
-    def test_check_records_nothing(self):
+    def test_a_dry_run_writes_nothing(self):
         self._query_without_history()
 
-        call_command("backfill_saved_query_repositories", "--check")
+        call_command("backfill_saved_query_repositories", "--dry-run")
 
         self.client_mock.create_org_repository.assert_not_called()
         self.client_mock.commit_files.assert_not_called()
 
-    def test_check_reports_content_that_no_longer_matches_its_version(self):
+    def test_a_dry_run_reports_content_that_no_longer_matches_its_version(self):
         saved_query = self.create_saved_query(content="SELECT 1")
         self.client_mock.get_file.return_value = b"SELECT 2"
         out = StringIO()
 
-        call_command("backfill_saved_query_repositories", "--check", stdout=out)
+        call_command("backfill_saved_query_repositories", "--dry-run", stdout=out)
 
         self.assertIn("drifted", out.getvalue())
         self.assertIn(saved_query.slug, out.getvalue())
 
-    def test_check_reports_a_query_with_no_version(self):
+    def test_a_dry_run_reports_a_query_with_no_repository(self):
         saved_query = self._query_without_history()
         out = StringIO()
 
-        call_command("backfill_saved_query_repositories", "--check", stdout=out)
+        call_command("backfill_saved_query_repositories", "--dry-run", stdout=out)
 
-        self.assertIn("no version", out.getvalue())
+        self.assertIn("no repository", out.getvalue())
         self.assertIn(saved_query.slug, out.getvalue())
