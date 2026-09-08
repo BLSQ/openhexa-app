@@ -49,11 +49,9 @@ class Command(BaseCommand):
                 failed += 1
                 self.stderr.write(self.style.ERROR(f"failed {saved_query.slug}: {e}"))
                 continue
-            saved_query.save(update_fields=["repository", "last_commit"])
+            saved_query.save(update_fields=["repository"])
             recorded += 1
-            self.stdout.write(
-                f"recorded {saved_query.slug} @ {saved_query.last_commit}"
-            )
+            self.stdout.write(f"recorded {saved_query.slug} @ {saved_query.repository}")
 
         style = self.style.SUCCESS if not failed else self.style.WARNING
         self.stdout.write(

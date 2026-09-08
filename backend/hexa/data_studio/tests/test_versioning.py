@@ -31,14 +31,12 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
     def test_create_records_the_first_version(self):
         saved_query = self.create_saved_query(content="SELECT 1")
 
-        self.assertEqual(SHA_INITIAL, saved_query.last_commit)
-        self.assertEqual(
-            f"{self.WORKSPACE.slug}-query-{saved_query.id}", saved_query.repository
-        )
+        repository = f"{self.WORKSPACE.slug}-query-{saved_query.id}"
+        self.assertEqual(repository, saved_query.repository)
         self.client_mock.create_org_repository.assert_called_once()
-        # Reloaded, because a version nobody can find again is not recorded.
+        # Reloaded, because a repository nobody can find again is not recorded.
         self.assertEqual(
-            SHA_INITIAL, SavedQuery.objects.get(pk=saved_query.pk).last_commit
+            repository, SavedQuery.objects.get(pk=saved_query.pk).repository
         )
 
     def test_create_commits_the_query_as_its_only_file(self):
@@ -61,14 +59,14 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
 
     def test_editing_the_content_records_a_version(self):
         saved_query = self.create_saved_query(content="SELECT 1")
-        self.client_mock.commit_files.return_value = SHA_SECOND
+        self.client_mock.reset_mock()
 
         saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 2")
 
-        self.assertEqual(SHA_SECOND, saved_query.last_commit)
-        self.assertEqual(
-            SHA_SECOND, SavedQuery.objects.get(pk=saved_query.pk).last_commit
-        )
+        files = self.client_mock.commit_files.call_args.kwargs["files"]
+        self.assertEqual("SELECT 2", files[0]["content"])
+        # Committed to the repository the query already had, not a new one.
+        self.client_mock.create_org_repository.assert_not_called()
 
     def test_the_commit_message_names_the_query(self):
         saved_query = self.create_saved_query(name="Monthly report")
@@ -100,7 +98,6 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
         saved_query.update_if_has_perm(self.USER_EDITOR, name="New name")
 
         self.client_mock.commit_files.assert_not_called()
-        self.assertEqual(SHA_INITIAL, saved_query.last_commit)
 
     def test_changing_the_description_records_nothing(self):
         saved_query = self.create_saved_query()
@@ -150,7 +147,6 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
 
         reloaded = SavedQuery.objects.get(pk=saved_query.pk)
         self.assertEqual("SELECT 1", reloaded.content)
-        self.assertEqual(SHA_INITIAL, reloaded.last_commit)
 
     def test_a_refused_edit_records_nothing(self):
         saved_query = self.create_saved_query(
@@ -248,7 +244,6 @@ class SavedQueryConcurrentEditTest(SavedQueryTestMixin, TestCase):
         reloaded = SavedQuery.objects.get(pk=self.saved_query.pk)
         self.assertEqual("New name", reloaded.name)
         self.assertEqual("SELECT 99", reloaded.content)
-        self.assertEqual(SHA_SECOND, reloaded.last_commit)
         self.client_mock.commit_files.assert_not_called()
 
     def test_resharing_a_query_someone_else_edited_leaves_their_edit_alone(self):
@@ -260,7 +255,6 @@ class SavedQueryConcurrentEditTest(SavedQueryTestMixin, TestCase):
         reloaded = SavedQuery.objects.get(pk=self.saved_query.pk)
         self.assertEqual("PRIVATE", reloaded.visibility)
         self.assertEqual("SELECT 99", reloaded.content)
-        self.assertEqual(SHA_SECOND, reloaded.last_commit)
 
 
 class SavedQueryHistoryReadTest(SavedQueryTestMixin, TestCase):
@@ -288,7 +282,7 @@ class SavedQueryHistoryReadTest(SavedQueryTestMixin, TestCase):
 
     def test_a_query_with_no_history_has_no_versions(self):
         # The state every query is in between the migration and the backfill.
-        SavedQuery.objects.filter(pk=self.saved_query.pk).update(last_commit=None)
+        SavedQuery.objects.filter(pk=self.saved_query.pk).update(repository=None)
         self.saved_query.refresh_from_db()
 
         self.assertEqual(
@@ -353,7 +347,7 @@ class BackfillSavedQueryRepositoriesTest(SavedQueryTestMixin, TestCase):
     def _query_without_history(self, **kwargs):
         """A saved query in the state the migration leaves existing ones in."""
         saved_query = self.create_saved_query(**kwargs)
-        SavedQuery.objects.filter(pk=saved_query.pk).update(last_commit=None)
+        SavedQuery.objects.filter(pk=saved_query.pk).update(repository=None)
         self.client_mock.reset_mock()
         return SavedQuery.objects.get(pk=saved_query.pk)
 
@@ -363,18 +357,19 @@ class BackfillSavedQueryRepositoriesTest(SavedQueryTestMixin, TestCase):
         call_command("backfill_saved_query_repositories")
 
         saved_query.refresh_from_db()
-        self.assertEqual(SHA_INITIAL, saved_query.last_commit)
+        self.assertIsNotNone(saved_query.repository)
         files = self.client_mock.commit_files.call_args.kwargs["files"]
         self.assertEqual("SELECT 1", files[0]["content"])
 
-    def test_keeps_the_repository_name_the_migration_assigned(self):
+    def test_names_the_repository_after_the_query(self):
         saved_query = self._query_without_history()
-        expected = saved_query.repository
 
         call_command("backfill_saved_query_repositories")
 
         saved_query.refresh_from_db()
-        self.assertEqual(expected, saved_query.repository)
+        self.assertEqual(
+            f"{self.WORKSPACE.slug}-query-{saved_query.id}", saved_query.repository
+        )
 
     def test_re_running_records_nothing_more(self):
         self._query_without_history()
@@ -399,7 +394,9 @@ class BackfillSavedQueryRepositoriesTest(SavedQueryTestMixin, TestCase):
 
         first.refresh_from_db()
         second.refresh_from_db()
-        self.assertEqual({None, SHA_INITIAL}, {first.last_commit, second.last_commit})
+        self.assertEqual(
+            [None], [q.repository for q in (first, second) if q.repository is None]
+        )
 
     def test_an_authorless_query_is_credited_to_the_instance(self):
         saved_query = self._query_without_history()
@@ -408,7 +405,7 @@ class BackfillSavedQueryRepositoriesTest(SavedQueryTestMixin, TestCase):
         call_command("backfill_saved_query_repositories")
 
         self.assertEqual(
-            SHA_INITIAL, SavedQuery.objects.get(pk=saved_query.pk).last_commit
+            "OpenHEXA", self.client_mock.commit_files.call_args.kwargs["author_name"]
         )
 
     def test_check_records_nothing(self):

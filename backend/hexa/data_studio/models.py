@@ -95,7 +95,7 @@ class SavedQueryManager(models.Manager):
                 visibility=visibility or SavedQueryVisibility.PRIVATE,
             )
             saved_query.record_version(principal)
-            saved_query.save(update_fields=["repository", "last_commit"])
+            saved_query.save(update_fields=["repository"])
 
         return saved_query
 
@@ -202,9 +202,10 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
         choices=SavedQueryVisibility.choices,
         default=SavedQueryVisibility.PRIVATE,
     )
-    # Which commit `content` matches, so drift can be found. Not a published pointer.
-    # Null until the repository exists (see hexa/git README).
-    last_commit = models.CharField(max_length=64, blank=True, null=True)
+    # Nullable, unlike the mixin's: a saved query exists before its repository does
+    # (see hexa/git README), and null is what says so. Named when the repository is
+    # actually created, never before.
+    repository = models.CharField(max_length=255, unique=True, null=True)
 
     objects = SavedQueryManager.from_queryset(SavedQueryQuerySet)()
 
@@ -261,16 +262,11 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
         # otherwise hit the not-null column with nothing in it.
         if not self.slug:
             self.slug = generate_saved_query_slug(self.name)
-        # Same reason, and the column is unique, so an empty one collides on the
-        # second admin-created query. Creating the repository is a separate step.
-        if not self.repository:
-            self.repository = self.default_repository_name()
         return super().save(*args, **kwargs)
 
     def default_repository_name(self) -> str:
         """Keyed on the pk, not the slug: a deleted query releases its slug, and reusing
-        one lands on the archived repository it left behind. Migration 0010 derives the
-        same name.
+        one lands on the archived repository it left behind.
         """
         return f"{self.workspace.slug}-query-{self.id}"
 
@@ -285,35 +281,32 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
             "content": self.content,
             "encoding": FileEncoding.TEXT,
         }
-        # `last_commit`, not `repository`, is what says the repository exists:
-        # migration 0010 named one for every pre-existing query without creating any.
-        if not self.last_commit:
-            if not self.repository:
-                self.repository = self.default_repository_name()
-            sha = self.create_repo(files=[file], user=user)
-        else:
-            sha = self.client.commit_files(
-                repo_name=self.repository,
-                files=[file],
-                message=message,
-                author_name=user.display_name or user.email,
-                author_email=user.email,
-                org_slug=self.git_org.slug,
-            )
-        self.last_commit = sha
-        return sha
+        # Named only here, so the column stays null for as long as the repository
+        # it would name does not exist.
+        if not self.repository:
+            self.repository = self.default_repository_name()
+            return self.create_repo(files=[file], user=user)
+
+        return self.client.commit_files(
+            repo_name=self.repository,
+            files=[file],
+            message=message,
+            author_name=user.display_name or user.email,
+            author_email=user.email,
+            org_slug=self.git_org.slug,
+        )
 
     def ensure_repo(self, user: User) -> str | None:
         """Create the repository, holding the content as stored, unless there is one."""
-        if self.last_commit:
+        if self.repository:
             return None
         return self.record_version(user)
 
     @property
     def has_history(self) -> bool:
-        # Named by `save`, created by `record_version`: unlike a web app, a saved
-        # query has a state in between.
-        return bool(self.last_commit)
+        # Created by `record_version`, which is also what names it: unlike a web app,
+        # a saved query exists before its repository does.
+        return bool(self.repository)
 
     def get_version_content(self, ref: str = "main") -> str:
         """Return the SQL as of `ref`. Raises GitFileNotFound for an unknown ref."""

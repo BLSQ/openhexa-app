@@ -25,17 +25,19 @@ saved query's SQL is read to run, export and list it, so it lives in the column 
 written through on save; only history is read back. A model reading its content from git
 per request would make the git server a dependency of every page showing it.
 
-Each model keeps the sha it last wrote (`SavedQuery.last_commit`,
-`GitWebapp.published_commit`). For saved queries that is a drift detector rather than a
-publishing pointer, and it doubles as the "repository exists on the server" marker — not
-the same thing as having a repository *name*.
+`GitWebapp` keeps the sha it published (`published_commit`), because which version is
+served is a decision the app makes. A saved query has no such decision — the current
+version runs — so it stores no sha: history is read from the git server, and nothing has
+to be kept in step with it.
 
-## A repository is named before it exists
+## A model can exist before its repository does
 
-Naming is free and offline; creating is an HTTP call that can fail. So they are separate
-steps, and a row can carry a name for a repository that was never created — the state a
-migration introducing versioning leaves existing rows in. Anything asking "does this have
-history?" must test the sha, not the name.
+Creating a repository is an HTTP call that can fail, and a migration introducing
+versioning cannot make it at all — the git server may not be up wherever the deploy lands.
+So a row can exist with no repository, and `repository` is null for exactly as long as
+that is true: `has_history` tests it, and the name is assigned only where the repository
+is really created. Models created with their repository (`GitWebapp`) keep the mixin's
+non-null column and inherit `has_history` returning True.
 
 Names derive from the primary key, not the slug, because a deleted row releases its slug:
 reusing one lands on the archived repository that row left behind, which `create_repo`

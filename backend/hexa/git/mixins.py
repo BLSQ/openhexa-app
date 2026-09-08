@@ -21,6 +21,8 @@ class GitRepoMixin(models.Model):
     have too little in common for one signature. See `hexa/git` README.
     """
 
+    # Not null, for a model created with its repository. One that can exist before its
+    # repository does overrides this nullable, and `has_history` with it.
     repository = models.CharField(max_length=255, unique=True)
 
     class Meta:
