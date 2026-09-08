@@ -808,10 +808,10 @@ UPDATE_SAVED_QUERY_MUTATION = """
 
 
 class SavedQueryVersioningErrorTest(SavedQueryTestMixin, GraphQLTestCase):
-    """What a client is told when a version cannot be recorded, or collides.
+    """What a client is told when a version cannot be recorded.
 
-    The history itself is not exposed by the API yet, but these errors are: they can
-    reach a client saving a query today.
+    The history itself is not exposed by the API yet, but this error is: it can reach
+    a client saving a query today.
     """
 
     def setUp(self):
@@ -843,40 +843,12 @@ class SavedQueryVersioningErrorTest(SavedQueryTestMixin, GraphQLTestCase):
         self.saved_query.refresh_from_db()
         self.assertEqual("SELECT 1", self.saved_query.content)
 
-    def test_editing_a_version_someone_else_replaced_reports_a_conflict(self):
-        other = SavedQuery.objects.get(pk=self.saved_query.pk)
-        self.client_mock.commit_files.return_value = "b" * 40
-        other.update_if_has_perm(self.USER_ADMIN, content="SELECT 99")
+    def test_editing_succeeds(self):
         self.client.force_login(self.USER_EDITOR)
 
         r = self.run_query(
             UPDATE_SAVED_QUERY_MUTATION,
-            {
-                "input": {
-                    "id": str(self.saved_query.id),
-                    "content": "SELECT 2",
-                    "expectedVersion": SHA,
-                }
-            },
-        )
-
-        self.assertFalse(r["data"]["updateSavedQuery"]["success"])
-        self.assertEqual(["VERSION_CONFLICT"], r["data"]["updateSavedQuery"]["errors"])
-        self.saved_query.refresh_from_db()
-        self.assertEqual("SELECT 99", self.saved_query.content)
-
-    def test_editing_the_current_version_succeeds(self):
-        self.client.force_login(self.USER_EDITOR)
-
-        r = self.run_query(
-            UPDATE_SAVED_QUERY_MUTATION,
-            {
-                "input": {
-                    "id": str(self.saved_query.id),
-                    "content": "SELECT 2",
-                    "expectedVersion": SHA,
-                }
-            },
+            {"input": {"id": str(self.saved_query.id), "content": "SELECT 2"}},
         )
 
         self.assertTrue(r["data"]["updateSavedQuery"]["success"])

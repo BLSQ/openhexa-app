@@ -21,7 +21,7 @@ from hexa.git.exceptions import GitError
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
-from .models import QueryLog, SavedQuery, SavedQueryVersionConflict
+from .models import QueryLog, SavedQuery
 from .query_runner import run_and_log_database_query, run_saved_query
 
 logger = logging.getLogger(__name__)
@@ -295,8 +295,6 @@ def resolve_update_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
-    except SavedQueryVersionConflict:
-        return {"success": False, "errors": ["VERSION_CONFLICT"]}
     # Rolled back rather than kept with a hole in its history, so a retry records
     # both the change and its version.
     except GitError:

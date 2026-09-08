@@ -45,18 +45,6 @@ def generate_saved_query_slug(name: str) -> str:
     )
 
 
-class SavedQueryVersionConflict(Exception):
-    """A saved query was edited against a version it has since moved on from.
-
-    Carries the version the query is actually on, so a caller can say what the edit
-    collided with rather than only that it did.
-    """
-
-    def __init__(self, current_version: str | None):
-        self.current_version = current_version
-        super().__init__(f"The saved query has moved on to version {current_version!r}")
-
-
 class SavedQueryVisibility(models.TextChoices):
     PRIVATE = "PRIVATE", _("Private")
     WORKSPACE = "WORKSPACE", _("Workspace")
@@ -334,15 +322,8 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
         )
         return raw.decode("utf-8")
 
-    def update_if_has_perm(
-        self, principal: User, *, expected_version: str | None = None, **kwargs
-    ):
-        """Apply an edit, recording a version when the SQL changed.
-
-        `expected_version` is the version the caller edited: when given, the edit is
-        refused if the SQL has moved on since. Omitting it is last-write-wins, all a
-        client that never read a version can ask for.
-        """
+    def update_if_has_perm(self, principal: User, **kwargs):
+        """Apply an edit, recording a version when the SQL changed."""
         if not principal.has_perm("data_studio.update_saved_query", self):
             raise PermissionDenied
 
@@ -360,9 +341,6 @@ class SavedQuery(Base, WorkspaceGitRepoMixin):
                     "workspace__organization"
                 )
             )
-
-            if expected_version is not None and self.last_commit != expected_version:
-                raise SavedQueryVersionConflict(self.last_commit)
 
             # Gated separately, and only when it actually changes: a client echoing
             # back the current visibility must not need the stricter permission.

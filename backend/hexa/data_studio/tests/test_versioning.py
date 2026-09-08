@@ -5,11 +5,7 @@ from django.core.exceptions import PermissionDenied
 from django.core.management import call_command
 
 from hexa.core.test import TestCase
-from hexa.data_studio.models import (
-    QUERY_FILE_PATH,
-    SavedQuery,
-    SavedQueryVersionConflict,
-)
+from hexa.data_studio.models import QUERY_FILE_PATH, SavedQuery
 from hexa.git.exceptions import GitFileNotFound
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.git.testutils import make_git_client_mock
@@ -203,7 +199,7 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
 
 
 class SavedQueryConcurrentEditTest(SavedQueryTestMixin, TestCase):
-    """Editing against a version the query has moved on from."""
+    """Concurrent edits: the last save wins and is recorded as a version of its own."""
 
     def setUp(self):
         super().setUp()
@@ -222,50 +218,7 @@ class SavedQueryConcurrentEditTest(SavedQueryTestMixin, TestCase):
         other.update_if_has_perm(self.USER_ADMIN, content=content)
         self.client_mock.commit_files.reset_mock()
 
-    def test_editing_the_version_you_read_succeeds(self):
-        self.saved_query.update_if_has_perm(
-            self.USER_EDITOR, content="SELECT 2", expected_version=SHA_INITIAL
-        )
-
-        self.assertEqual(
-            "SELECT 2", SavedQuery.objects.get(pk=self.saved_query.pk).content
-        )
-
-    def test_editing_a_version_someone_else_replaced_is_refused(self):
-        self._someone_else_saves()
-
-        with self.assertRaises(SavedQueryVersionConflict) as raised:
-            self.saved_query.update_if_has_perm(
-                self.USER_EDITOR, content="SELECT 2", expected_version=SHA_INITIAL
-            )
-
-        # The version it actually collided with, so a caller can say what happened.
-        self.assertEqual(SHA_SECOND, raised.exception.current_version)
-
-    def test_a_refused_edit_writes_nothing(self):
-        self._someone_else_saves(content="SELECT 99")
-
-        with self.assertRaises(SavedQueryVersionConflict):
-            self.saved_query.update_if_has_perm(
-                self.USER_EDITOR, content="SELECT 2", expected_version=SHA_INITIAL
-            )
-
-        reloaded = SavedQuery.objects.get(pk=self.saved_query.pk)
-        self.assertEqual("SELECT 99", reloaded.content)
-        self.assertEqual(SHA_SECOND, reloaded.last_commit)
-        self.client_mock.commit_files.assert_not_called()
-
-    def test_a_rename_against_a_stale_version_is_refused_too(self):
-        # The check applies to any edit, not only one that changes the SQL.
-        self._someone_else_saves()
-
-        with self.assertRaises(SavedQueryVersionConflict):
-            self.saved_query.update_if_has_perm(
-                self.USER_EDITOR, name="New name", expected_version=SHA_INITIAL
-            )
-
-    def test_omitting_the_version_still_overwrites(self):
-        # What a client that never read a version gets: the previous behaviour.
+    def test_a_later_edit_overwrites_an_earlier_one(self):
         self._someone_else_saves()
 
         self.saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 2")
@@ -275,8 +228,8 @@ class SavedQueryConcurrentEditTest(SavedQueryTestMixin, TestCase):
         )
 
     def test_writing_back_a_stale_copy_records_the_revert(self):
-        # Without a version to check, saving what you loaded reverts the other edit —
-        # a change, so it must be recorded rather than pass for "nothing changed".
+        # Saving what you loaded reverts the other edit — a change, so it must be
+        # recorded rather than pass for "nothing changed".
         self._someone_else_saves(content="SELECT 99")
 
         self.saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 1")
