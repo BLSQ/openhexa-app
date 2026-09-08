@@ -8,6 +8,7 @@ from hexa.core.test import TestCase
 from hexa.data_studio.models import QUERY_FILE_PATH, SavedQuery
 from hexa.git.exceptions import GitFileNotFound
 from hexa.git.forgejo import ForgejoAPIError
+from hexa.git.naming import REPO_NAME_MAX_LENGTH
 from hexa.git.testutils import make_git_client_mock
 
 from .testutils import SavedQueryTestMixin
@@ -31,13 +32,32 @@ class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
     def test_create_records_the_first_version(self):
         saved_query = self.create_saved_query(content="SELECT 1")
 
-        repository = f"{self.WORKSPACE.slug}-query-{saved_query.id}"
+        repository = (
+            f"{self.WORKSPACE.slug}-query-{saved_query.slug}-{saved_query.id.hex[:8]}"
+        )
         self.assertEqual(repository, saved_query.repository)
         self.client_mock.create_org_repository.assert_called_once()
         # Reloaded, because a repository nobody can find again is not recorded.
         self.assertEqual(
             repository, SavedQuery.objects.get(pk=saved_query.pk).repository
         )
+
+    def test_a_reused_slug_gets_a_repository_of_its_own(self):
+        first = self.create_saved_query(name="Monthly report")
+        # Hard-deleted, so the slug is free again - the case the pk tail exists for.
+        slug = first.slug
+        first.delete()
+
+        second = self.create_saved_query(name="Monthly report")
+
+        self.assertEqual(slug, second.slug)
+        self.assertNotEqual(first.repository, second.repository)
+
+    def test_a_long_name_still_fits_the_git_server(self):
+        saved_query = self.create_saved_query(name="Monthly report " * 16)
+
+        self.assertLessEqual(len(saved_query.repository), REPO_NAME_MAX_LENGTH)
+        self.assertTrue(saved_query.repository.endswith(saved_query.id.hex[:8]))
 
     def test_create_commits_the_query_as_its_only_file(self):
         self.create_saved_query(content="SELECT 1")
@@ -368,7 +388,8 @@ class BackfillSavedQueryRepositoriesTest(SavedQueryTestMixin, TestCase):
 
         saved_query.refresh_from_db()
         self.assertEqual(
-            f"{self.WORKSPACE.slug}-query-{saved_query.id}", saved_query.repository
+            f"{self.WORKSPACE.slug}-query-{saved_query.slug}-{saved_query.id.hex[:8]}",
+            saved_query.repository,
         )
 
     def test_re_running_records_nothing_more(self):

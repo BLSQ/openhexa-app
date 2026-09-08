@@ -14,6 +14,7 @@ from hexa.databases.query_text import sanitize_sql
 from hexa.git.enums import FileEncoding
 from hexa.git.exceptions import GitError
 from hexa.git.mixins import GitOrg, GitRepoMixin
+from hexa.git.naming import build_repo_name
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.workspaces.models import Workspace
 
@@ -273,10 +274,16 @@ class SavedQuery(Base, GitRepoMixin):
         return super().save(*args, **kwargs)
 
     def default_repository_name(self) -> str:
-        """Keyed on the pk, not the slug: a deleted query releases its slug, and reusing
-        one lands on the archived repository it left behind.
+        """Named after the slug, as a web app's is, with a short pk tail.
+
+        The tail is not decoration: deleting a query releases its slug, and a name built
+        from the slug alone would land the next query taking it on the repository the
+        deleted one left behind — unarchived, since a cascade never reaches
+        `delete_if_has_perm`, so the two histories would silently merge.
         """
-        return f"{self.workspace.slug}-query-{self.id}"
+        return build_repo_name(
+            f"{self.workspace.slug}-query-{self.slug}", unique=self.id.hex[:8]
+        )
 
     def _query_file(self) -> dict:
         return {

@@ -39,10 +39,23 @@ that is true: `has_history` tests it, and the name is assigned only where the re
 is really created. Models created with their repository (`GitWebapp`) keep the mixin's
 non-null column and inherit `has_history` returning True.
 
-Names derive from the primary key, not the slug, because a deleted row releases its slug:
-reusing one lands on the archived repository that row left behind, which `create_repo`
-reports as "already exists, reusing it" before the next commit fails on a read-only
-repository.
+## Repository names are readable, but not only readable
+
+Both models name a repository after the row's slug (`{workspace}-webapp-{slug}`,
+`{workspace}-query-{slug}`) so the repository list reads like the product does. A saved
+query appends a short tail of its primary key, through `naming.build_repo_name`, which is
+load-bearing twice over.
+
+Hard-deleting a query releases its slug, so a name built from the slug alone would land the
+next query taking it on the repository the deleted one left behind — which `create_repo`
+reports as "already exists, reusing it" before committing the two histories into one. And
+Forgejo rejects a name over 100 characters, so the readable part has to be cut to fit;
+cutting it is only safe because what survives the cut is the part that distinguishes two
+names.
+
+`GitWebapp` needs neither today — its slugs are soft-deleted rather than released, and
+`create_webapp_slug` checks `all_objects` — but its names can still overflow 100 characters,
+so it is the obvious next caller for `build_repo_name`.
 
 ## Commit metadata outlives the account
 

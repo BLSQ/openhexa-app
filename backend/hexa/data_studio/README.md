@@ -38,12 +38,36 @@ same transaction as the row, so a git failure fails the save (`VERSIONING_UNAVAI
 rather than keeping a change with no history. Deleting is the exception: archiving happens
 after the commit and cannot fail the deletion.
 
-There is no published version; the current one runs, so no sha is stored. `repository` is
-null until the repository exists — migration 0010 creates none, because a migration
-reaching the git server would fail a deploy wherever it is not up yet. `manage.py
-backfill_saved_query_repositories` creates them (with `--dry-run` to report what is
-missing or has drifted from the stored SQL); anything it misses heals on the query's next save
-through `initialize_repository`.
+There is no published version; the current one runs, so no sha is stored.
+
+### Rolling versioning out over existing queries
+
+`repository` is null until the repository exists, and migration 0010 leaves it null for
+every existing query: a migration reaching the git server would fail a deploy wherever it
+is not up yet. So the rollout is:
+
+1. **Deploy.** Every pre-existing query has `repository` null; new ones get a repository at
+   creation.
+2. **`manage.py backfill_saved_query_repositories`** creates the missing ones, committing
+   the SQL each query already has as its first version. `--dry-run` first reports what is
+   missing, and what has drifted from the version on record. It is idempotent.
+3. **Whatever step 2 misses heals itself.** The first edit that changes the SQL calls
+   `initialize_repository` *before* applying the change, so the history still starts at the
+   query's pre-edit SQL rather than at that edit.
+
+Running the command is therefore an accelerator, not a prerequisite — which is what makes
+this safe on self-hosted instances nobody can make run it.
+
+The one branch this leaves in the code is `has_history` (`repository IS NULL`), read in two
+places: `get_versions` returns an empty page, and `update_if_has_perm` provisions the
+repository. It is not migration-era scaffolding to be removed later — it is also the honest
+answer for a query whose repository the git server never accepted.
+
+`content` deliberately stays the source of truth rather than becoming a cache the git server
+backs: it is read to run a query, to export it, to list queries and to serve one to a web
+app, so reading git first would put an HTTP round trip on all of those, and "fall back to
+the database" would silently serve a stale query whenever the two disagree. Git is written
+through on save and read only for history.
 
 ## Why the export streams (rather than buffers)
 
