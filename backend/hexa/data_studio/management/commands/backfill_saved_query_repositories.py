@@ -52,7 +52,7 @@ class Command(BaseCommand):
             self.stdout.write(f"no repository: {saved_query.slug}")
             return
         try:
-            saved_query.ensure_repo(saved_query.created_by or SYSTEM_AUTHOR)
+            saved_query.initialize_repository(saved_query.created_by or SYSTEM_AUTHOR)
         except GitError as e:
             tally["failed"] += 1
             self.stderr.write(self.style.ERROR(f"failed {saved_query.slug}: {e}"))

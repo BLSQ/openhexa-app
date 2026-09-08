@@ -43,7 +43,7 @@ null until the repository exists — migration 0010 creates none, because a migr
 reaching the git server would fail a deploy wherever it is not up yet. `manage.py
 backfill_saved_query_repositories` creates them (with `--dry-run` to report what is
 missing or has drifted from the stored SQL); anything it misses heals on the query's next save
-through `ensure_repo`.
+through `initialize_repository`.
 
 ## Why the export streams (rather than buffers)
 

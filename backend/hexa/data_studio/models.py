@@ -94,7 +94,8 @@ class SavedQueryManager(models.Manager):
                 description=description,
                 visibility=visibility or SavedQueryVisibility.PRIVATE,
             )
-            saved_query.record_version(principal)
+            saved_query.initialize_repository(principal)
+            # Saved on its own: `initialize_repository` is what names the repository.
             saved_query.save(update_fields=["repository"])
 
         return saved_query
@@ -277,42 +278,37 @@ class SavedQuery(Base, GitRepoMixin):
         """
         return f"{self.workspace.slug}-query-{self.id}"
 
-    def record_version(self, user: User, message: str = "Update query") -> str:
-        """Commit the current content as a new version and return its sha.
-
-        Creates the repository if this query has none, which is what makes the write
-        path self-healing for queries that predate versioning.
-        """
-        file = {
+    def _query_file(self) -> dict:
+        return {
             "path": QUERY_FILE_PATH,
             "content": self.content,
             "encoding": FileEncoding.TEXT,
         }
-        # Named only here, so the column stays null for as long as the repository
-        # it would name does not exist.
-        if not self.repository:
-            self.repository = self.default_repository_name()
-            return self.create_repo(files=[file], user=user)
 
+    def initialize_repository(self, user: User) -> str:
+        """Create the repository, its first commit holding the SQL as currently stored.
+
+        `repository` is assigned here and nowhere else, so the column stays null for
+        exactly as long as the repository it names does not exist. Callers persist it.
+        """
+        self.repository = self.default_repository_name()
+        return self.create_repo(files=[self._query_file()], user=user)
+
+    def commit_version(self, user: User, message: str) -> str:
+        """Commit the current content as a new version and return its sha."""
         return self.client.commit_files(
             repo_name=self.repository,
-            files=[file],
+            files=[self._query_file()],
             message=message,
             author_name=user.display_name or user.email,
             author_email=user.email,
             org_slug=self.git_org.slug,
         )
 
-    def ensure_repo(self, user: User) -> str | None:
-        """Create the repository, holding the content as stored, unless there is one."""
-        if self.repository:
-            return None
-        return self.record_version(user)
-
     @property
     def has_history(self) -> bool:
-        # Created by `record_version`, which is also what names it: unlike a web app,
-        # a saved query exists before its repository does.
+        # Created by `initialize_repository`, which is also what names it: unlike a
+        # web app, a saved query exists before its repository does.
         return bool(self.repository)
 
     def get_version_content(self, ref: str = "main") -> str:
@@ -354,10 +350,10 @@ class SavedQuery(Base, GitRepoMixin):
 
             content_changed = new_content is not None and new_content != self.content
 
-            if content_changed:
-                # Seeded with the stored content, so a query older than versioning
-                # keeps it rather than starting its history at the next edit.
-                self.ensure_repo(principal)
+            # Before the new content is applied, so a query older than versioning
+            # starts its history at the SQL it already had rather than at this edit.
+            if content_changed and not self.has_history:
+                self.initialize_repository(principal)
 
             if kwargs.get("name") is not None:
                 self.name = kwargs["name"]
@@ -368,7 +364,7 @@ class SavedQuery(Base, GitRepoMixin):
                 self.description = kwargs["description"] or ""
 
             if content_changed:
-                self.record_version(principal, f"Update {self.name}")
+                self.commit_version(principal, f"Update {self.name}")
 
             return self.save()
 
