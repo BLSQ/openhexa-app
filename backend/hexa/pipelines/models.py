@@ -572,11 +572,23 @@ class Pipeline(SoftDeletedModel):
         return self.scheduled_pipeline_version or self.last_version
 
     @property
-    def is_schedulable(self):
+    def is_schedulable(self) -> bool:
         if self.type == PipelineType.NOTEBOOK:
             return True
-        elif self.type == PipelineType.ZIPFILE:
-            return self.version_to_run and self.version_to_run.is_schedulable
+        if self.type == PipelineType.ZIPFILE:
+            return bool(self.version_to_run and self.version_to_run.is_schedulable)
+        # A type we do not know how to check cannot be trusted to run unattended.
+        return False
+
+    def get_missing_required_parameters(self) -> list[str]:
+        """The parameter codes that keep this pipeline from being schedulable, if that is the cause.
+
+        Only explains unschedulability, it does not decide it: `is_schedulable` remains the
+        authority, and may say no for a reason this list cannot name.
+        """
+        if self.type != PipelineType.ZIPFILE or not self.version_to_run:
+            return []
+        return self.version_to_run.get_missing_required_parameters()
 
     def get_config_from_previous_version(self, new_parameters: list[dict]):
         """

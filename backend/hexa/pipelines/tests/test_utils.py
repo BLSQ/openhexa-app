@@ -1,5 +1,5 @@
 import uuid
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, PropertyMock, patch
 
 from django.core import mail
 from django.utils import timezone
@@ -10,11 +10,16 @@ from hexa.pipelines.models import (
     Pipeline,
     PipelineNotificationLevel,
     PipelineRecipient,
+    PipelineRun,
+    PipelineRunState,
+    PipelineRunTrigger,
     PipelineType,
+    PipelineVersion,
 )
 from hexa.pipelines.utils import (
     SkipReason,
     generate_pipeline_container_name,
+    get_skip_reason,
     mail_skipped_run_recipients,
 )
 from hexa.user_management.models import User
@@ -142,3 +147,70 @@ class MailSkippedRunRecipientsTest(TestCase):
 
         self.assertEqual(len(mail.outbox), 1)
         self.assertIn("country, year", mail.outbox[0].body)
+
+
+class GetSkipReasonTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user(
+            "skip_reason@bluesquarehub.com", "pwd", is_superuser=True
+        )
+        cls.WORKSPACE = create_workspace(cls.USER, name="SkipReasonWS", description="")
+        cls.PIPELINE = Pipeline.objects.create(
+            workspace=cls.WORKSPACE,
+            name="Skip Reason Pipeline",
+            code="skip_reason_pipeline",
+            schedule="*/5 * * * *",
+            type=PipelineType.ZIPFILE,
+        )
+        cls.VERSION = PipelineVersion.objects.create(
+            pipeline=cls.PIPELINE,
+            user=cls.USER,
+            name="v1",
+            parameters=[],
+        )
+
+    def _add_required_parameter(self, code: str):
+        self.VERSION.parameters = self.VERSION.parameters + [
+            {"code": code, "name": code, "type": "str", "required": True}
+        ]
+        self.VERSION.save()
+
+    def test_no_reason_when_the_pipeline_can_run(self):
+        self.assertIsNone(get_skip_reason(self.PIPELINE))
+
+    def test_names_the_parameters_without_a_value(self):
+        self._add_required_parameter("country")
+        self._add_required_parameter("year")
+
+        reason = get_skip_reason(self.PIPELINE)
+
+        self.assertIn("country, year", str(reason.reason))
+
+    def test_falls_back_to_a_generic_reason_when_the_cause_cannot_be_named(self):
+        """An unschedulable pipeline with no missing parameter still has to skip the run.
+
+        Guards against a future cause of unschedulability being reported as an empty list of
+        missing parameters, or going unnoticed altogether.
+        """
+        with patch.object(
+            Pipeline, "is_schedulable", new_callable=PropertyMock, return_value=False
+        ):
+            reason = get_skip_reason(self.PIPELINE)
+
+        self.assertEqual(reason, SkipReason.not_schedulable())
+
+    def test_reports_a_run_already_in_progress(self):
+        PipelineRun.objects.create(
+            user=None,
+            pipeline=self.PIPELINE,
+            pipeline_version=self.VERSION,
+            run_id="in_progress",
+            trigger_mode=PipelineRunTrigger.SCHEDULED,
+            execution_date=timezone.now(),
+            state=PipelineRunState.RUNNING,
+        )
+
+        reason = get_skip_reason(self.PIPELINE)
+
+        self.assertEqual(reason, SkipReason.run_already_in_progress())

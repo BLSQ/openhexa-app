@@ -71,7 +71,7 @@ class Command(BaseCommand):
                     sleep(real_delay)
 
                 pipeline_version = pipeline.version_to_run
-                skip_reason = get_skip_reason(pipeline, pipeline_version)
+                skip_reason = get_skip_reason(pipeline)
                 if skip_reason:
                     logger.warning(
                         "Pipeline %s (%s): %s",

@@ -94,19 +94,34 @@ class SkipReason:
             ),
         )
 
+    @classmethod
+    def not_schedulable(cls) -> "SkipReason":
+        return cls(
+            priority=PipelineRunLogLevel.ERROR.name,
+            reason=gettext_lazy("The pipeline can no longer run unattended"),
+            advice=gettext_lazy(
+                "Open the pipeline and check its configuration and the version it is scheduled to "
+                "run, or disable the schedule."
+            ),
+        )
+
     @property
     def message(self) -> str:
         """The reason and its advice as a single line, for logs and the run's own messages."""
         return f"Scheduled run skipped. {self.reason} {self.advice}"
 
 
-def get_skip_reason(pipeline, pipeline_version) -> SkipReason | None:
+def get_skip_reason(pipeline) -> SkipReason | None:
     """Return why this pipeline cannot start a scheduled run now, or None if it can."""
     # A pipeline may have a schedule but no longer be schedulable, because the parameters or the
-    # config of the version to run changed.
-    if pipeline.is_schedulable is False:
-        return SkipReason.missing_required_parameters(
-            pipeline_version.get_missing_required_parameters()
+    # config of the version to run changed. Missing parameters are the only cause we can name
+    # today; anything else still has to skip the run rather than go unnoticed.
+    if not pipeline.is_schedulable:
+        missing = pipeline.get_missing_required_parameters()
+        return (
+            SkipReason.missing_required_parameters(missing)
+            if missing
+            else SkipReason.not_schedulable()
         )
 
     if PipelineRun.objects.filter(
