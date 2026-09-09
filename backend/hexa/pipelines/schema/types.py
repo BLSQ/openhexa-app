@@ -373,6 +373,13 @@ def resolve_pipeline_version_is_latest(version: PipelineVersion, info, **kwargs)
     return version.is_latest_version
 
 
+@pipeline_version_object.field("missingScheduleParameters")
+def resolve_pipeline_version_missing_schedule_parameters(
+    version: PipelineVersion, info, **kwargs
+):
+    return version.get_missing_required_parameters()
+
+
 @pipeline_version_object.field("zipfile")
 def resolve_pipeline_version_zipfile(version: PipelineVersion, info, **kwargs):
     return base64.b64encode(version.zipfile).decode("ascii")

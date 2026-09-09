@@ -3500,6 +3500,47 @@ def test_pipeline(input_file, threshold, enable_debug):
         self.assertIsNotNone(pipeline_data)
         self.assertEqual(pipeline_data["functionalType"], "loading")
 
+    def test_version_reports_its_own_missing_schedule_parameters(self):
+        pipeline = Pipeline.objects.create_if_has_perm(
+            principal=self.USER_ROOT,
+            workspace=self.WS1,
+            name="Version Missing Params Pipeline",
+            type=PipelineType.ZIPFILE,
+        )
+        PipelineVersion.objects.create(
+            pipeline=pipeline,
+            name="v1",
+            parameters=[{"code": "country", "type": "str", "required": True}],
+        )
+        PipelineVersion.objects.create(
+            pipeline=pipeline,
+            name="v2",
+            parameters=[{"code": "country", "type": "str", "required": True}],
+            config={"country": "BE"},
+        )
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            """
+            query pipelineByCode($code: String!, $workspaceSlug: String!) {
+                pipelineByCode(code: $code, workspaceSlug: $workspaceSlug) {
+                    versions {
+                        items { versionNumber missingScheduleParameters }
+                    }
+                }
+            }
+            """,
+            {"code": pipeline.code, "workspaceSlug": self.WS1.slug},
+        )
+
+        by_number = {
+            v["versionNumber"]: v["missingScheduleParameters"]
+            for v in r["data"]["pipelineByCode"]["versions"]["items"]
+        }
+        # Same required parameter in both: v2 supplies a value for it, v1 does not.
+        self.assertEqual(by_number[1], ["country"])
+        self.assertEqual(by_number[2], [])
+
     def test_update_pipeline_cron_valid(self):
         """Test updating pipeline functional type via GraphQL"""
         pipeline = self.test_create_pipeline()

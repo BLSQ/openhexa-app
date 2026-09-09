@@ -233,7 +233,8 @@ def test_pipeline(input_file, threshold, enable_debug):
             },
         )
         self.assertEqual(
-            "Cannot push an unschedulable new version for a scheduled pipeline.",
+            "Cannot push an unschedulable new version for a scheduled pipeline. "
+            "Parameters without a value: param_example",
             r["errors"][0]["message"],
         )
 

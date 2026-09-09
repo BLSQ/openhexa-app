@@ -1089,6 +1089,79 @@ class ScheduledPipelineVersionModelTest(TestCase):
                 scheduled_pipeline_version_id=str(unschedulable_version.id),
             )
 
+    def _unschedulable_version(self, name):
+        return PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            name=name,
+            parameters=[
+                {
+                    "code": "required_param",
+                    "name": "Required",
+                    "type": "str",
+                    "required": True,
+                }
+            ],
+        )
+
+    def test_repinning_scheduled_pipeline_to_unschedulable_version_raises(self):
+        self.PIPELINE.schedule = "0 12 * * *"
+        self.PIPELINE.save()
+        broken = self._unschedulable_version(name="repin_broken")
+
+        with self.assertRaises(MissingPipelineConfiguration) as ctx:
+            self.PIPELINE.update_if_has_perm(
+                self.USER, scheduled_pipeline_version_id=str(broken.id)
+            )
+        self.assertEqual(ctx.exception.missing, ["required_param"])
+
+    def test_editing_cron_of_unschedulable_scheduled_pipeline_raises(self):
+        broken = self._unschedulable_version(name="cron_broken")
+        self.PIPELINE.schedule = "0 12 * * *"
+        self.PIPELINE.scheduled_pipeline_version = broken
+        self.PIPELINE.save()
+
+        with self.assertRaises(MissingPipelineConfiguration):
+            self.PIPELINE.update_if_has_perm(self.USER, schedule="0 6 * * *")
+
+    def test_renaming_unschedulable_scheduled_pipeline_is_allowed(self):
+        broken = self._unschedulable_version("rename_broken")
+        self.PIPELINE.schedule = "0 12 * * *"
+        self.PIPELINE.scheduled_pipeline_version = broken
+        self.PIPELINE.save()
+
+        self.PIPELINE.update_if_has_perm(self.USER, name="Still Editable")
+
+        self.PIPELINE.refresh_from_db()
+        self.assertEqual(self.PIPELINE.name, "Still Editable")
+
+    def test_disabling_schedule_of_unschedulable_pipeline_succeeds(self):
+        """A pipeline whose pinned version lost its parameter values must stay switchable-off.
+
+        The scheduling form relies on this: it is the user's way out of a schedule that can only
+        ever be skipped.
+        """
+        unschedulable_version = PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            name="unschedulable_off",
+            parameters=[
+                {
+                    "code": "required_param",
+                    "name": "Required",
+                    "type": "str",
+                    "required": True,
+                }
+            ],
+        )
+        self.PIPELINE.schedule = "0 12 * * *"
+        self.PIPELINE.scheduled_pipeline_version = unschedulable_version
+        self.PIPELINE.save()
+        self.assertFalse(self.PIPELINE.is_schedulable)
+
+        self.PIPELINE.update_if_has_perm(self.USER, schedule=None)
+
+        self.PIPELINE.refresh_from_db()
+        self.assertIsNone(self.PIPELINE.schedule)
+
     def test_enabling_schedule_with_schedulable_pinned_version_succeeds(self):
         self.PIPELINE.update_if_has_perm(
             self.USER,
