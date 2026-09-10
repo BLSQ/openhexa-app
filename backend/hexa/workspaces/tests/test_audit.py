@@ -1,6 +1,9 @@
 from io import StringIO
 
 from django.core.management import call_command
+from django.db import connection
+from django.test import TestCase
+from django_sql_dashboard.models import Dashboard
 
 from hexa.core.test import GraphQLTestCase
 from hexa.datasets.models import Dataset, DatasetLink
@@ -148,3 +151,31 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
         self.assertIn("active tokens              1", report)
         self.assertIn("would break if scoped      1 (100.0%)", report)
         self.assertIn("out-of-scope requests      1 (50.0%)", report)
+
+
+class TokenScopeDashboardTest(TestCase):
+    """The dashboard is seeded by migration, so its SQL is only checked at runtime."""
+
+    def test_every_dashboard_query_runs_against_the_current_schema(self):
+        dashboard = Dashboard.objects.get(slug="workspace-token-scope")
+        self.assertEqual(dashboard.view_policy, "superuser")
+
+        widgets = []
+        with connection.cursor() as cursor:
+            for query in dashboard.queries.all():
+                cursor.execute(query.sql)
+                widgets.append("-".join(sorted(c.name for c in cursor.description)))
+
+        # django-sql-dashboard picks a widget template from the column names, so
+        # a renamed column silently downgrades a chart to a plain table.
+        self.assertEqual(
+            widgets[:6],
+            [
+                "markdown",
+                "big_number-label",
+                "big_number-label",
+                "completed_count-total_count",
+                "bar_label-bar_quantity",
+                "bar_label-bar_quantity",
+            ],
+        )
