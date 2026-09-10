@@ -872,3 +872,47 @@ class OrganizationWorkspaceInvitation(Base):
                 )
             except Workspace.DoesNotExist:
                 continue
+
+
+class TokenScopeVerdict(models.TextChoices):
+    """How far a token-authenticated request reached, relative to the token's workspace.
+
+    ``CROSS_REACHABLE`` is deliberately distinct from ``OUT_OF_SCOPE``: an
+    org-shared dataset or a dataset link is reachable *through* the token's own
+    workspace and will keep working once tokens are scoped, so counting it as
+    misuse would badly overstate the migration risk (see the HEXA-1775 RFC, §3).
+    """
+
+    IN_SCOPE = "IN_SCOPE", _("In scope")
+    CROSS_REACHABLE = "CROSS_REACHABLE", _("Reachable from the token's workspace")
+    OUT_OF_SCOPE = "OUT_OF_SCOPE", _("Out of scope")
+
+
+class WorkspaceTokenUsage(Base):
+    """One row per workspace-token-authenticated GraphQL request.
+
+    Temporary instrumentation for HEXA-1775 phase 0: it exists to answer "how
+    many tokens would break if we scoped them?" and is dropped once that
+    question is answered. Append-only on purpose — no counters to race on, and
+    the evidence is kept next to the verdict so the classification can be
+    revised without losing history.
+    """
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["created_at", "verdict"]),
+            models.Index(fields=["token_fingerprint"]),
+        ]
+
+    token_fingerprint = models.CharField(max_length=32)
+    token_type = models.CharField(max_length=20)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name="+")
+    verdict = models.CharField(max_length=20, choices=TokenScopeVerdict.choices)
+    root_fields = models.JSONField(default=list)
+    foreign_workspaces = models.JSONField(default=dict)
+    client = models.TextField(blank=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.token_fingerprint} {self.verdict}"

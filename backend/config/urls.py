@@ -32,6 +32,7 @@ from hexa.user_management.sso.sso_views import (
     make_compat_login_view,
 )
 from hexa.user_management.views import LogoutView
+from hexa.workspaces.audit import WorkspaceScopeAudit
 
 from .schema import schema
 
@@ -74,7 +75,11 @@ urlpatterns = [
     re_path(
         r"^graphql/([\w+\/]*?)?$",
         GraphQLView.as_view(
-            schema=schema, playground_options={"request.credentials": "include"}
+            schema=schema,
+            playground_options={"request.credentials": "include"},
+            # HEXA-1775 phase 0: observe how workspace tokens are used. Remove
+            # together with hexa.workspaces.audit once tokens are scoped.
+            extensions=[WorkspaceScopeAudit],
         ),
         name="graphql",
     ),

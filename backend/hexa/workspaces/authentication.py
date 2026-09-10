@@ -1,5 +1,7 @@
 import abc
 import binascii
+import hashlib
+import json
 import time
 from logging import getLogger
 
@@ -14,6 +16,8 @@ logger = getLogger(__name__)
 
 class WorkspaceToken(abc.ABC):
     """A signed bearer token granting a user access to a single workspace."""
+
+    TYPE: str
 
     def __init__(self, user: User, workspace: Workspace):
         self.user = user
@@ -30,6 +34,20 @@ class WorkspaceToken(abc.ABC):
 
     def sign(self) -> str:
         return Signer().sign_object(self.payload())
+
+    @property
+    def fingerprint(self) -> str:
+        """A stable, non-reversible identifier for this token.
+
+        Lets us count and group tokens without ever storing the secret. Two
+        tokens with the same payload are the same token: a membership token is
+        stable for the life of the membership, while every identity token mint
+        gets its own fingerprint (they carry an issue timestamp).
+        """
+        payload = self.payload()
+        if not isinstance(payload, str):
+            payload = json.dumps(payload, sort_keys=True)
+        return hashlib.sha256(payload.encode()).hexdigest()[:32]
 
     @classmethod
     def issue(
@@ -66,6 +84,8 @@ class WorkspaceToken(abc.ABC):
 
 
 class MembershipToken(WorkspaceToken):
+    TYPE = "membership"
+
     def __init__(self, membership: WorkspaceMembership):
         self.membership = membership
         super().__init__(membership.user, membership.workspace)
