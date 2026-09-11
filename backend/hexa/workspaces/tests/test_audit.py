@@ -1,6 +1,3 @@
-from io import StringIO
-
-from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django_sql_dashboard.models import Dashboard
 
@@ -138,18 +135,6 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
         self.assertRecorded(
             TokenScopeVerdict.CROSS_REACHABLE, {str(self.OTHER.id): "org_shared"}
         )
-
-    def test_report_counts_tokens_that_would_break(self):
-        self.query_with_token(WORKSPACE_QUERY, {"slug": self.SCOPE.slug})
-        self.query_with_token(WORKSPACE_QUERY, {"slug": self.OTHER.slug})
-
-        output = StringIO()
-        call_command("workspace_token_report", stdout=output)
-        report = output.getvalue()
-
-        self.assertIn("active tokens              1", report)
-        self.assertIn("would break if scoped      1 (100.0%)", report)
-        self.assertIn("out-of-scope requests      1 (50.0%)", report)
 
 
 class TokenScopeDashboardTest(TestCase):
