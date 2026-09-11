@@ -118,7 +118,7 @@ class PreparedQuery:
         )
 
 
-def to_psycopg2(rendered) -> tuple[str, list]:
+def to_psycopg2(rendered) -> tuple[str, list | None]:
     """Convert a `data_studio.templating.RenderedQuery` to psycopg2's paramstyle.
 
         in : SELECT * FROM t WHERE n LIKE '%foo%' AND id = <TOKEN>    params [7]
@@ -128,7 +128,8 @@ def to_psycopg2(rendered) -> tuple[str, list]:
     once it receives parameters.
     """
     if not rendered.params:
-        return rendered.sql, []
+        return rendered.sql, None
+
     # Double first, then swap, or the `%s` just written would be doubled too.
     sql = rendered.sql.replace("%", "%%").replace(rendered.token, "%s")
     return sql, rendered.params

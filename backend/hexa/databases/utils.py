@@ -114,6 +114,7 @@ def execute_database_query(
     query: str,
     timeout_ms: int = 10_000,
     max_rows: int = 50,
+    params: list | None = None,
 ):
     """Execute a SQL query against the workspace database using the read-only role.
 
@@ -141,7 +142,7 @@ def execute_database_query(
                 )
             )
             started_at = time.perf_counter()
-            cursor.execute(prepared.sql)
+            cursor.execute(prepared.sql, params)
             # cursor.description is None for statements that do not return rows
             columns = (
                 [column.name for column in cursor.description]

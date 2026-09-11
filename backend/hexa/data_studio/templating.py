@@ -63,11 +63,13 @@ class RenderedQuery:
     * `sql`: the statement, carrying `token` wherever a bound value belongs.
     * `params`: the bound values, in the order their tokens appear in `sql`.
     * `token`: the placeholder marker, regenerated on every render.
+    * `values`: the same values keyed by parameter name, defaults resolved.
     """
 
     sql: str
     params: list
     token: str
+    values: dict
 
 
 def build_environment(
@@ -319,7 +321,7 @@ def render_saved_query(saved_query, values: Any = None) -> RenderedQuery:
 
     bound = bind_values(parameters, values)
     if not parameters:
-        return RenderedQuery(saved_query.content, [], token)
+        return RenderedQuery(saved_query.content, [], token, bound)
 
     params: list = []
 
@@ -356,4 +358,4 @@ def render_saved_query(saved_query, values: Any = None) -> RenderedQuery:
             " that captures output, such as {% set %} ... {% endset %}."
         )
 
-    return RenderedQuery(sql, params, token)
+    return RenderedQuery(sql, params, token, bound)

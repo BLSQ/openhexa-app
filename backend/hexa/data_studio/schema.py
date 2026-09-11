@@ -21,6 +21,11 @@ from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
 from .models import QueryLog, SavedQuery
 from .query_runner import run_and_log_database_query, run_saved_query
+from .templating import (
+    InvalidParametersError,
+    InvalidTemplateError,
+    TemplateRenderError,
+)
 
 data_studio_type_defs = load_schema_from_path(
     f"{pathlib.Path(__file__).parent.resolve()}/graphql/schema.graphql"
@@ -217,7 +222,10 @@ def resolve_execute_saved_query(_, info, **kwargs):
         # its token was issued for.
         saved_query = _visible_saved_queries(request).get(slug=query_input["slug"])
         result = run_saved_query(
-            request, saved_query, max_rows=query_input.get("max_rows")
+            request,
+            saved_query,
+            max_rows=query_input.get("max_rows"),
+            parameters=query_input.get("parameters"),
         )
         return {"success": True, "errors": [], **result}
     except SavedQuery.DoesNotExist:
@@ -227,6 +235,18 @@ def resolve_execute_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except InvalidParametersError as e:
+        return {
+            "success": False,
+            "errors": ["INVALID_PARAMETERS"],
+            "error_message": str(e),
+        }
+    except TemplateRenderError as e:
+        return {
+            "success": False,
+            "errors": ["TEMPLATE_ERROR"],
+            "error_message": str(e),
+        }
     except MultipleStatementsError as e:
         return {
             "success": False,
@@ -263,12 +283,17 @@ def resolve_create_saved_query(_, info, **kwargs):
             content=mutation_input["content"],
             description=mutation_input.get("description") or "",
             visibility=mutation_input.get("visibility"),
+            parameters=mutation_input.get("parameters"),
         )
         return {"success": True, "errors": [], "saved_query": saved_query}
     except Workspace.DoesNotExist:
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except InvalidTemplateError:
+        return {"success": False, "errors": ["INVALID_TEMPLATE"]}
+    except InvalidParametersError:
+        return {"success": False, "errors": ["INVALID_PARAMETERS"]}
 
 
 @data_studio_mutations.field("updateSavedQuery")
@@ -286,6 +311,10 @@ def resolve_update_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except InvalidTemplateError:
+        return {"success": False, "errors": ["INVALID_TEMPLATE"]}
+    except InvalidParametersError:
+        return {"success": False, "errors": ["INVALID_PARAMETERS"]}
 
 
 @data_studio_mutations.field("deleteSavedQuery")

@@ -6,7 +6,7 @@ import psycopg2
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 
-from hexa.databases.query_text import MultipleStatementsError
+from hexa.databases.query_text import MultipleStatementsError, to_psycopg2
 from hexa.databases.utils import (
     elapsed_ms,
     execute_database_query,
@@ -16,6 +16,11 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 from .models import QueryLog
+from .templating import (
+    InvalidParametersError,
+    TemplateRenderError,
+    render_saved_query,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +97,7 @@ def log_rejected_query(
     origin: str,
     error_message: str,
     saved_query=None,
+    parameters=None,
 ) -> None:
     """Record a query the server refused to run before it reached the database."""
     _log_executed_query(
@@ -102,6 +108,7 @@ def log_rejected_query(
         QueryLog.Status.REJECTED,
         error_message=error_message,
         saved_query=saved_query,
+        parameters=parameters,
     )
 
 
@@ -112,21 +119,34 @@ def run_and_log_database_query(
     origin: str,
     max_rows: int | None = None,
     saved_query=None,
+    params: list | None = None,
+    parameters: dict | None = None,
 ):
     """Single point of entry for executing SQL on behalf of an API request.
 
     Checks the permission, delegates to ``hexa.databases.utils.execute_database_query``
     and records a ``QueryLog`` entry for every outcome, re-raising errors so that
     callers only have to translate them into API responses.
+
+    ``params`` are the values psycopg2 binds, positional per placeholder; ``parameters``
+    is the same set keyed by parameter name, recorded on the audit entry.
     """
     ensure_can_run_query(request, workspace, query, origin, saved_query=saved_query)
     max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
     started_at = time.perf_counter()
     try:
-        result = execute_database_query(workspace, query, **max_rows_kwarg)
+        result = execute_database_query(
+            workspace, query, params=params, **max_rows_kwarg
+        )
     except MultipleStatementsError as e:
         log_rejected_query(
-            request, workspace, query, origin, str(e), saved_query=saved_query
+            request,
+            workspace,
+            query,
+            origin,
+            str(e),
+            saved_query=saved_query,
+            parameters=parameters,
         )
         raise
     except psycopg2.Error as e:
@@ -142,6 +162,7 @@ def run_and_log_database_query(
             error_message=str(e).strip(),
             duration_ms=elapsed_ms(started_at),
             saved_query=saved_query,
+            parameters=parameters,
         )
         raise
     _log_executed_query(
@@ -155,11 +176,14 @@ def run_and_log_database_query(
         row_count=result["row_count"],
         truncated=result["truncated"],
         saved_query=saved_query,
+        parameters=parameters,
     )
     return result
 
 
-def run_saved_query(request: HttpRequest, saved_query, max_rows: int | None = None):
+def run_saved_query(
+    request: HttpRequest, saved_query, max_rows: int | None = None, parameters=None
+):
     """Execute a stored query on behalf of an API request.
 
     Unlike the interactive path this is reachable from a web app: the SQL was written
@@ -175,13 +199,36 @@ def run_saved_query(request: HttpRequest, saved_query, max_rows: int | None = No
         if getattr(request, "webapp", None) is not None
         else QueryLog.Origin.OTHER
     )
+    # Before rendering: a denied caller must get PERMISSION_DENIED and a DENIED entry,
+    # not INVALID_PARAMETERS and a REJECTED one.
+    ensure_can_run_query(
+        request, saved_query.workspace, saved_query.content, origin, saved_query
+    )
+
+    try:
+        rendered = render_saved_query(saved_query, parameters)
+    except (InvalidParametersError, TemplateRenderError) as e:
+        log_rejected_query(
+            request,
+            saved_query.workspace,
+            saved_query.content,
+            origin,
+            str(e),
+            saved_query=saved_query,
+            parameters=parameters,
+        )
+        raise
+
+    sql, params = to_psycopg2(rendered)
     return run_and_log_database_query(
         request,
         saved_query.workspace,
-        saved_query.content,
+        sql,
         origin,
         max_rows=max_rows,
         saved_query=saved_query,
+        params=params,
+        parameters=rendered.values or None,
     )
 
 
