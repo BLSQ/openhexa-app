@@ -4268,6 +4268,34 @@ export type PipelineVersionsArgs = {
   perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
+/**
+ * The task graph of a pipeline version, extracted statically from its code.
+ *
+ * OpenHEXA does not persist the graph the SDK builds at runtime, so this is derived by parsing
+ * the version's `pipeline.py`. It is a lower bound on the real graph: it never invents a
+ * dependency, but it cannot see through loops, conditionals, or undecorated helper functions.
+ * Notebook versions, and code that cannot be parsed, yield an empty graph.
+ */
+export type PipelineDag = {
+  __typename?: 'PipelineDag';
+  edges: Array<PipelineDagEdge>;
+  tasks: Array<PipelineDagTask>;
+};
+
+/** A dependency in a pipeline version's task graph. */
+export type PipelineDagEdge = {
+  __typename?: 'PipelineDagEdge';
+  source: Scalars['String']['output'];
+  target: Scalars['String']['output'];
+};
+
+/** A single task in a pipeline version's task graph. */
+export type PipelineDagTask = {
+  __typename?: 'PipelineDagTask';
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+};
+
 export enum PipelineError {
   CannotUpdateNotebookPipeline = 'CANNOT_UPDATE_NOTEBOOK_PIPELINE',
   DuplicatePipelineVersionName = 'DUPLICATE_PIPELINE_VERSION_NAME',
@@ -4616,6 +4644,7 @@ export type PipelineVersion = {
   __typename?: 'PipelineVersion';
   config?: Maybe<Scalars['JSON']['output']>;
   createdAt: Scalars['DateTime']['output'];
+  dag: PipelineDag;
   description?: Maybe<Scalars['String']['output']>;
   externalLink?: Maybe<Scalars['URL']['output']>;
   files: Array<FileNode>;

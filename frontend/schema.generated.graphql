@@ -3659,6 +3659,31 @@ type Pipeline {
   workspace: Workspace!
 }
 
+"""
+The task graph of a pipeline version, extracted statically from its code.
+
+OpenHEXA does not persist the graph the SDK builds at runtime, so this is derived by parsing
+the version's `pipeline.py`. It is a lower bound on the real graph: it never invents a
+dependency, but it cannot see through loops, conditionals, or undecorated helper functions.
+Notebook versions, and code that cannot be parsed, yield an empty graph.
+"""
+type PipelineDag {
+  edges: [PipelineDagEdge!]!
+  tasks: [PipelineDagTask!]!
+}
+
+"""A dependency in a pipeline version's task graph."""
+type PipelineDagEdge {
+  source: String!
+  target: String!
+}
+
+"""A single task in a pipeline version's task graph."""
+type PipelineDagTask {
+  id: String!
+  name: String!
+}
+
 enum PipelineError {
   CANNOT_UPDATE_NOTEBOOK_PIPELINE
   DUPLICATE_PIPELINE_VERSION_NAME
@@ -3984,6 +4009,7 @@ enum PipelineType {
 type PipelineVersion {
   config: JSON
   createdAt: DateTime!
+  dag: PipelineDag!
   description: String
   externalLink: URL
   files: [FileNode!]!
