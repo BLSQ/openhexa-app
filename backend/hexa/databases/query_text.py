@@ -349,3 +349,29 @@ def count_statement(prepared: PreparedQuery) -> PreparedQuery:
         body="",
         params=params,
     )
+
+
+def to_psycopg2(rendered) -> PreparedQuery:
+    """Prepare a `data_studio.templating.RenderedQuery` for psycopg2.
+
+        in : SELECT * FROM t WHERE n LIKE '%foo%' AND id = <TOKEN>    params [7]
+        out: SELECT * FROM t WHERE n LIKE '%%foo%%' AND id = %s       params [7]
+
+    Goes through ``PreparedQuery.from_text``, so a rendered text holding more than
+    one statement raises ``MultipleStatementsError``. Literal `%` is doubled first
+    because psycopg2 %-formats the whole statement once it receives parameters.
+    """
+    prepared = PreparedQuery.from_text(rendered.sql)
+    if not rendered.params:
+        return prepared
+
+    def convert(text: str) -> str:
+        # Double first, then swap, or the `%s` just written would be doubled too.
+        return text.replace("%", "%%").replace(rendered.token, "%s")
+
+    return replace(
+        prepared,
+        sql=convert(prepared.sql),
+        body=convert(prepared.body),
+        params=list(rendered.params),
+    )
