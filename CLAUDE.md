@@ -19,6 +19,7 @@ Leave these uncommented:
 -   A name that already says it — `search_fields` gaining a field, a `parameters` column next to `query`.
 -   A framework or stdlib option doing its documented job, e.g. `encoder=DjangoJSONEncoder`.
 -   A line that does the same thing as the ones around it.
+-   A GraphQL schema member whose name already states its meaning — error enum values such as `PERMISSION_DENIED` or `INVALID_PARAMETERS` need no description, and neither does a field like `name: String!`.
 -   The reasoning behind a design decision. That belongs in the app README or the ticket; the code gets a pointer at most.
 
 Keep whatever survives to a line or two. A comment longer than the code beneath it means the explanation belongs elsewhere, or the code should be clearer.
