@@ -214,6 +214,36 @@ type PipelineVersion {
   permissions: PipelineVersionPermissions!  # The permissions for the pipeline version.
   config: JSON  # The default configuration to set on newly created pipeline runs
   templateVersion: PipelineTemplateVersion  # The template version associated with the pipeline version.
+  dag: PipelineDag!  # The task graph, derived from the version's code. Parsing one version is cheap, but selecting this over a list of versions parses one archive per version.
+}
+
+"""
+The task graph of a pipeline version, extracted statically from its code.
+
+OpenHEXA does not persist the graph the SDK builds at runtime, so this is derived by parsing
+the version's `pipeline.py`. It is a lower bound on the real graph: it never invents a
+dependency, but it cannot see through loops, conditionals, or undecorated helper functions.
+Notebook versions, and code that cannot be parsed, yield an empty graph.
+"""
+type PipelineDag {
+  tasks: [PipelineDagTask!]!  # The tasks declared by the version, in declaration order, which carries no execution meaning.
+  edges: [PipelineDagEdge!]!  # The dependencies between parameters and tasks, and between tasks.
+}
+
+"""
+A single task in a pipeline version's task graph.
+"""
+type PipelineDagTask {
+  id: String!  # The task's function name, unique within the version.
+  name: String!  # The task's display name.
+}
+
+"""
+A dependency in a pipeline version's task graph.
+"""
+type PipelineDagEdge {
+  source: String!  # A task id, or a parameter code when the dependency is an input of the pipeline.
+  target: String!  # The id of the task that consumes it.
 }
 
 """
