@@ -12,6 +12,7 @@ django-postgres-queue
 django-storages[google]
 django_otp
 geopandas
+jinja2
 markdown
 pandas
 psycopg2-binary
