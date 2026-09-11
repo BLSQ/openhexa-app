@@ -116,3 +116,19 @@ class PreparedQuery:
             sql=sql,
             is_explain=bool(statements) and _starts_with_explain(statements[0]),
         )
+
+
+def to_psycopg2(rendered) -> tuple[str, list]:
+    """Convert a `data_studio.templating.RenderedQuery` to psycopg2's paramstyle.
+
+        in : SELECT * FROM t WHERE n LIKE '%foo%' AND id = <TOKEN>    params [7]
+        out: SELECT * FROM t WHERE n LIKE '%%foo%%' AND id = %s       params [7]
+
+    Literal `%` is doubled first because psycopg2 %-formats the whole statement
+    once it receives parameters.
+    """
+    if not rendered.params:
+        return rendered.sql, []
+    # Double first, then swap, or the `%s` just written would be doubled too.
+    sql = rendered.sql.replace("%", "%%").replace(rendered.token, "%s")
+    return sql, rendered.params
