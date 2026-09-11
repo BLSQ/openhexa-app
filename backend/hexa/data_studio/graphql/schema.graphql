@@ -107,6 +107,43 @@ enum SavedQueryVisibility {
 }
 
 """
+Type of a saved query parameter. Mirrors the pipeline parameter types: INTEGER and FLOAT
+are separate so a decimal cannot reach a clause like LIMIT, which PostgreSQL rejects.
+"""
+enum SavedQueryParameterType {
+  STRING
+  INTEGER
+  FLOAT
+  BOOLEAN
+  DATE
+}
+
+"""
+A parameter a saved query declares. Values are bound at execution, never inlined into the SQL.
+"""
+type SavedQueryParameter {
+  name: String!
+  type: SavedQueryParameterType!
+  "When true the value is a JSON array of `type`, bound as a PostgreSQL array."
+  multiple: Boolean!
+  required: Boolean!
+  default: Generic
+  help: String
+}
+
+"""
+A parameter declaration. Everything but `name` and `type` is optional and defaults on the way in.
+"""
+input SavedQueryParameterInput {
+  name: String!
+  type: SavedQueryParameterType!
+  multiple: Boolean
+  required: Boolean
+  default: Generic
+  help: String
+}
+
+"""
 A SQL query saved by a user in the Data Studio. Saved queries belong to a
 workspace; their visibility decides which of its members can reach them.
 """
@@ -122,6 +159,7 @@ type SavedQuery {
   createdBy: User
   workspace: Workspace!
   visibility: SavedQueryVisibility!
+  parameters: [SavedQueryParameter!]!
   permissions: SavedQueryPermissions!
 }
 
@@ -183,6 +221,8 @@ input ExecuteSavedQueryInput {
   slug: String!
   "Caps the number of returned rows; defaults to 50 and is itself capped to a server-side hard limit."
   maxRows: Int
+  "Values for the parameters the saved query declares, as a name -> value map."
+  parameters: JSON
 }
 
 # executeSavedQuery returns the same payload as executeSQL -- the two differ in
@@ -191,8 +231,9 @@ input ExecuteSavedQueryInput {
 # failure the shared enum did not cover; it is named for its endpoint since
 # executeSQL can never return it.
 extend enum ExecuteSQLError {
-  "No saved query with this slug, or it is not visible to the caller."
   SAVED_QUERY_NOT_FOUND
+  INVALID_PARAMETERS
+  TEMPLATE_ERROR
 }
 
 """
@@ -205,6 +246,7 @@ input CreateSavedQueryInput {
   description: String
   "Defaults to PRIVATE when omitted."
   visibility: SavedQueryVisibility
+  parameters: [SavedQueryParameterInput!]
 }
 
 """
@@ -213,6 +255,8 @@ Errors that can occur when creating a saved query.
 enum CreateSavedQueryError {
   WORKSPACE_NOT_FOUND
   PERMISSION_DENIED
+  INVALID_TEMPLATE
+  INVALID_PARAMETERS
 }
 
 """
@@ -234,6 +278,8 @@ input UpdateSavedQueryInput {
   description: String
   "Only the author may change this; PERMISSION_DENIED otherwise."
   visibility: SavedQueryVisibility
+  "Omitted or null leaves the stored declaration alone; [] clears it."
+  parameters: [SavedQueryParameterInput!]
 }
 
 """
@@ -242,6 +288,8 @@ Errors that can occur when updating a saved query.
 enum UpdateSavedQueryError {
   SAVED_QUERY_NOT_FOUND
   PERMISSION_DENIED
+  INVALID_TEMPLATE
+  INVALID_PARAMETERS
 }
 
 """

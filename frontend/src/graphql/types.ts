@@ -1177,6 +1177,8 @@ export type CreatePipelineVersionInput = {
 
 /** Errors that can occur when creating a saved query. */
 export enum CreateSavedQueryError {
+  InvalidParameters = 'INVALID_PARAMETERS',
+  InvalidTemplate = 'INVALID_TEMPLATE',
   PermissionDenied = 'PERMISSION_DENIED',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
@@ -1186,6 +1188,7 @@ export type CreateSavedQueryInput = {
   content: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
+  parameters?: InputMaybe<Array<SavedQueryParameterInput>>;
   /** Defaults to PRIVATE when omitted. */
   visibility?: InputMaybe<SavedQueryVisibility>;
   workspaceSlug: Scalars['String']['input'];
@@ -2409,6 +2412,7 @@ export type EnableTwoFactorResult = {
 
 /** Possible errors when executing a SQL query against the workspace database. */
 export enum ExecuteSqlError {
+  InvalidParameters = 'INVALID_PARAMETERS',
   /** More than one SQL statement was submitted; only a single statement is allowed. */
   MultipleStatements = 'MULTIPLE_STATEMENTS',
   /** The user is not allowed to run queries against this workspace database. */
@@ -2417,8 +2421,8 @@ export enum ExecuteSqlError {
   QueryError = 'QUERY_ERROR',
   /** The query was cancelled because it exceeded the statement timeout. */
   QueryTimeout = 'QUERY_TIMEOUT',
-  /** No saved query with this slug, or it is not visible to the caller. */
-  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND'
+  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND',
+  TemplateError = 'TEMPLATE_ERROR'
 }
 
 /** The origin of a SQL query, recorded for auditing and to build a per-user query history. */
@@ -2454,6 +2458,8 @@ export type ExecuteSqlResult = {
 export type ExecuteSavedQueryInput = {
   /** Caps the number of returned rows; defaults to 50 and is itself capped to a server-side hard limit. */
   maxRows?: InputMaybe<Scalars['Int']['input']>;
+  /** Values for the parameters the saved query declares, as a name -> value map. */
+  parameters?: InputMaybe<Scalars['JSON']['input']>;
   slug: Scalars['String']['input'];
 };
 
@@ -5556,6 +5562,7 @@ export type SavedQuery = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  parameters: Array<SavedQueryParameter>;
   permissions: SavedQueryPermissions;
   /** Stable identifier, unique within the workspace. Generated from the name and left unchanged when the query is renamed. */
   slug: Scalars['String']['output'];
@@ -5580,6 +5587,40 @@ export type SavedQueryPage = {
   totalItems: Scalars['Int']['output'];
   totalPages: Scalars['Int']['output'];
 };
+
+/** A parameter a saved query declares. Values are bound at execution, never inlined into the SQL. */
+export type SavedQueryParameter = {
+  __typename?: 'SavedQueryParameter';
+  default?: Maybe<Scalars['Generic']['output']>;
+  help?: Maybe<Scalars['String']['output']>;
+  /** When true the value is a JSON array of `type`, bound as a PostgreSQL array. */
+  multiple: Scalars['Boolean']['output'];
+  name: Scalars['String']['output'];
+  required: Scalars['Boolean']['output'];
+  type: SavedQueryParameterType;
+};
+
+/** A parameter declaration. Everything but `name` and `type` is optional and defaults on the way in. */
+export type SavedQueryParameterInput = {
+  default?: InputMaybe<Scalars['Generic']['input']>;
+  help?: InputMaybe<Scalars['String']['input']>;
+  multiple?: InputMaybe<Scalars['Boolean']['input']>;
+  name: Scalars['String']['input'];
+  required?: InputMaybe<Scalars['Boolean']['input']>;
+  type: SavedQueryParameterType;
+};
+
+/**
+ * Type of a saved query parameter. Mirrors the pipeline parameter types: INTEGER and FLOAT
+ * are separate so a decimal cannot reach a clause like LIMIT, which PostgreSQL rejects.
+ */
+export enum SavedQueryParameterType {
+  Boolean = 'BOOLEAN',
+  Date = 'DATE',
+  Float = 'FLOAT',
+  Integer = 'INTEGER',
+  String = 'STRING'
+}
 
 /** Permissions of a saved query. */
 export type SavedQueryPermissions = {
@@ -6350,6 +6391,8 @@ export type UpdatePipelineVersionResult = {
 
 /** Errors that can occur when updating a saved query. */
 export enum UpdateSavedQueryError {
+  InvalidParameters = 'INVALID_PARAMETERS',
+  InvalidTemplate = 'INVALID_TEMPLATE',
   PermissionDenied = 'PERMISSION_DENIED',
   SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND'
 }
@@ -6360,6 +6403,8 @@ export type UpdateSavedQueryInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
+  /** Omitted or null leaves the stored declaration alone; [] clears it. */
+  parameters?: InputMaybe<Array<SavedQueryParameterInput>>;
   /** Only the author may change this; PERMISSION_DENIED otherwise. */
   visibility?: InputMaybe<SavedQueryVisibility>;
 };
