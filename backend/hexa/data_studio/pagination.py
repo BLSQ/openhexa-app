@@ -4,10 +4,12 @@ This module decides *what* to page from and validates the request; every stateme
 is written by ``hexa.databases.query_text`` and the cursor by ``.cursor``.
 """
 
+import json
 import math
 from dataclasses import dataclass
 
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 
 from hexa.databases.query_text import OrderBy, PreparedQuery
 
@@ -83,6 +85,18 @@ def resolve_per_page(per_page: int | None, max_rows: int | None) -> int:
     return min(value, settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS)
 
 
+def statement_text(prepared: PreparedQuery) -> str:
+    """The text a cursor is fingerprinted on.
+
+    A templated statement carries placeholders where its values go, so the values
+    are appended: a cursor cut under one set of parameters is refused under another,
+    as it would be for a different query.
+    """
+    if prepared.params is None:
+        return prepared.body
+    return prepared.body + "\0" + json.dumps(prepared.params, cls=DjangoJSONEncoder)
+
+
 def build_page_request(
     prepared: PreparedQuery,
     *,
@@ -115,7 +129,9 @@ def build_page_request(
         if include_total_items:
             raise InvalidPagination("includeTotalItems is not available with a cursor.")
         try:
-            keyset = cursor_codec.decode_cursor(cursor, prepared.body, order_by)
+            keyset = cursor_codec.decode_cursor(
+                cursor, statement_text(prepared), order_by
+            )
         except cursor_codec.InvalidCursor as e:
             raise InvalidCursor(str(e))
         return CursorPage(

@@ -28,6 +28,11 @@ from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 from .models import QueryLog, SavedQuery
 from .pagination import PaginationError
 from .query_runner import run_and_log_database_query, run_saved_query
+from .templating import (
+    InvalidParametersError,
+    InvalidTemplateError,
+    TemplateRenderError,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -257,6 +262,7 @@ def resolve_execute_saved_query(_, info, **kwargs):
             after=query_input.get("after"),
             before=query_input.get("before"),
             include_total_items=query_input.get("include_total_items"),
+            parameters=query_input.get("parameters"),
         )
         return {"success": True, "errors": [], **result}
     except SavedQuery.DoesNotExist:
@@ -266,6 +272,18 @@ def resolve_execute_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except InvalidParametersError as e:
+        return {
+            "success": False,
+            "errors": ["INVALID_PARAMETERS"],
+            "error_message": str(e),
+        }
+    except TemplateRenderError as e:
+        return {
+            "success": False,
+            "errors": ["TEMPLATE_ERROR"],
+            "error_message": str(e),
+        }
     except MultipleStatementsError as e:
         return {
             "success": False,
@@ -301,12 +319,17 @@ def resolve_create_saved_query(_, info, **kwargs):
             content=mutation_input["content"],
             description=mutation_input.get("description") or "",
             visibility=mutation_input.get("visibility"),
+            parameters=mutation_input.get("parameters"),
         )
         return {"success": True, "errors": [], "saved_query": saved_query}
     except Workspace.DoesNotExist:
         return {"success": False, "errors": ["WORKSPACE_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except InvalidTemplateError:
+        return {"success": False, "errors": ["INVALID_TEMPLATE"]}
+    except InvalidParametersError:
+        return {"success": False, "errors": ["INVALID_PARAMETERS"]}
     # The transaction rolled back, so nothing was created: reported as a failure
     # rather than as a saved query with no history.
     except GitError:
@@ -332,6 +355,10 @@ def resolve_update_saved_query(_, info, **kwargs):
         return {"success": False, "errors": ["SAVED_QUERY_NOT_FOUND"]}
     except PermissionDenied:
         return {"success": False, "errors": ["PERMISSION_DENIED"]}
+    except InvalidTemplateError:
+        return {"success": False, "errors": ["INVALID_TEMPLATE"]}
+    except InvalidParametersError:
+        return {"success": False, "errors": ["INVALID_PARAMETERS"]}
     # Rolled back rather than kept with a hole in its history, so a retry records
     # both the change and its version.
     except GitError:
