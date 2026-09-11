@@ -12,6 +12,7 @@ visualization and information.
 """
 
 from logging import getLogger
+from typing import NamedTuple
 from uuid import UUID
 
 from ariadne.types import Extension, Resolver
@@ -32,14 +33,33 @@ from hexa.workspaces.models import (
 
 logger = getLogger(__name__)
 
-# Models that do not carry a workspace_id of their own. Their workspace is
-# resolved once in bulk at the end of the request, so a page of
-# dataset files costs one query instead of one per row.
+
+class IndirectOwner(NamedTuple):
+    """How to reach the workspace of a model that has no workspace_id of its own.
+
+    ``fk`` is read off the observed object, so a page of files collapses to the few
+    parents it hangs from; those parents are then resolved in one query at the end of
+    the request through ``workspace_path`` and ``dataset_path``.
+    """
+
+    fk: str
+    parent: type[Model]
+    workspace_path: str
+    dataset_path: str
+
+
 INDIRECT_OWNERS = {
-    DatasetVersion: ("dataset__workspace_id", "dataset_id"),
-    DatasetVersionFile: (
-        "dataset_version__dataset__workspace_id",
-        "dataset_version__dataset_id",
+    DatasetVersion: IndirectOwner(
+        fk="dataset_id",
+        parent=Dataset,
+        workspace_path="workspace_id",
+        dataset_path="id",
+    ),
+    DatasetVersionFile: IndirectOwner(
+        fk="dataset_version_id",
+        parent=DatasetVersion,
+        workspace_path="dataset__workspace_id",
+        dataset_path="dataset_id",
     ),
 }
 
@@ -47,9 +67,10 @@ INDIRECT_OWNERS = {
 # templates are published across workspaces.
 TEMPLATE_MODELS = frozenset({"PipelineTemplate", "PipelineTemplateVersion"})
 
-# A request touching more distinct objects than this stops recording. Bounds the
-# size of a row; the verdict is unaffected because it only needs one witness per
-# workspace.
+# Past this many distinct objects a request stops remembering which ones it has
+# already seen, so the per-object bookkeeping cannot grow with the response. The
+# verdict is deliberately not capped: attribution keeps running past the cap, or a
+# long request would look in scope merely because it was long.
 MAX_TRACKED_OBJECTS = 200
 
 
@@ -92,6 +113,18 @@ def reachable_datasets(workspace: Workspace, dataset_ids: set) -> dict:
     return reasons
 
 
+def audit_extensions(request, context) -> list:
+    """Install the audit only on requests that carry a workspace token.
+
+    Ariadne turns an extension into GraphQL middleware for the whole request, so
+    an unconditional one would add a frame to every field resolution of every
+    session-authenticated request as well, for nothing.
+    """
+    if getattr(request, "workspace_token", None) is None:
+        return []
+    return [WorkspaceScopeAudit]
+
+
 class WorkspaceScopeAudit(Extension):
     """Records how far each workspace-token-authenticated request reached."""
 
@@ -120,19 +153,21 @@ class WorkspaceScopeAudit(Extension):
             logger.exception("workspace token audit failed")
 
     def _observe(self, obj, info: GraphQLResolveInfo) -> None:
-        if len(info.path.as_list()) == 1 and info.field_name not in self.root_fields:
+        if info.path.prev is None and info.field_name not in self.root_fields:
             self.root_fields.append(info.field_name)
 
         if not isinstance(obj, Model):
             return
         key = (type(obj).__name__, obj.pk)
-        if key in self.seen or len(self.seen) >= MAX_TRACKED_OBJECTS:
+        if key in self.seen:
             return
-        self.seen.add(key)
+        if len(self.seen) < MAX_TRACKED_OBJECTS:
+            self.seen.add(key)
 
-        for model in self.pending:
+        for model, owner in INDIRECT_OWNERS.items():
             if isinstance(obj, model):
-                self.pending[model].add(obj.pk)
+                if (parent_id := getattr(obj, owner.fk, None)) is not None:
+                    self.pending[model].add(parent_id)
                 return
 
         workspace_id = workspace_id_of(obj)
@@ -147,13 +182,13 @@ class WorkspaceScopeAudit(Extension):
             self.dataset_ids.add(dataset_id)
 
     def _resolve_pending(self) -> None:
-        for model, (workspace_path, dataset_path) in INDIRECT_OWNERS.items():
-            pks = self.pending[model]
-            if not pks:
+        for model, owner in INDIRECT_OWNERS.items():
+            parent_ids = self.pending[model]
+            if not parent_ids:
                 continue
-            for workspace_id, dataset_id in model._base_manager.filter(
-                pk__in=pks
-            ).values_list(workspace_path, dataset_path):
+            for workspace_id, dataset_id in owner.parent._base_manager.filter(
+                pk__in=parent_ids
+            ).values_list(owner.workspace_path, owner.dataset_path):
                 if workspace_id is None:
                     continue
                 self.models_by_workspace.setdefault(workspace_id, set()).add(

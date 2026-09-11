@@ -1,7 +1,6 @@
 import abc
 import binascii
 import hashlib
-import json
 import time
 from logging import getLogger
 
@@ -22,6 +21,8 @@ class WorkspaceToken(abc.ABC):
     def __init__(self, user: User, workspace: Workspace):
         self.user = user
         self.workspace = workspace
+        # The signed string this instance stands for
+        self.raw: str | None = None
 
     @abc.abstractmethod
     def payload(self) -> str | dict:
@@ -33,20 +34,14 @@ class WorkspaceToken(abc.ABC):
         """Rebuild a token from its payload, or ``None`` if it no longer grants access."""
 
     def sign(self) -> str:
-        return Signer().sign_object(self.payload())
+        if self.raw is None:
+            self.raw = Signer().sign_object(self.payload())
+        return self.raw
 
     @property
     def fingerprint(self) -> str:
-        """Token hash.
-
-        Lets us count/group tokens without storing secrets.
-        Membership token fingerprints are stable, while identity tokens
-        might change as they depend on issued_at timestamp.
-        """
-        payload = self.payload()
-        if not isinstance(payload, str):
-            payload = json.dumps(payload, sort_keys=True)
-        return hashlib.sha256(payload.encode()).hexdigest()[:32]
+        """Hash of the signed token, to count and group tokens without storing secrets."""
+        return hashlib.sha256(self.sign().encode()).hexdigest()[:32]
 
     @classmethod
     def issue(
@@ -79,7 +74,11 @@ class WorkspaceToken(abc.ABC):
             token = IdentityToken.from_payload(payload)
         else:
             return None
-        return token if token and token.user.is_active else None
+
+        if token is None or not token.user.is_active:
+            return None
+        token.raw = raw_token
+        return token
 
 
 class MembershipToken(WorkspaceToken):

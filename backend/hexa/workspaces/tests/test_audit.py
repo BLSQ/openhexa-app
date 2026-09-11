@@ -1,9 +1,17 @@
-from django.test import TestCase, override_settings
+from unittest.mock import patch
+
+from django.test import RequestFactory, TestCase, override_settings
 from django_sql_dashboard.models import Dashboard
 
 from hexa.core.test import GraphQLTestCase
-from hexa.datasets.models import Dataset, DatasetLink
+from hexa.datasets.models import (
+    Dataset,
+    DatasetLink,
+    DatasetVersion,
+    DatasetVersionFile,
+)
 from hexa.user_management.models import Organization, User
+from hexa.workspaces.audit import WorkspaceScopeAudit, audit_extensions
 from hexa.workspaces.authentication import WorkspaceToken
 from hexa.workspaces.models import (
     TokenScopeVerdict,
@@ -21,6 +29,12 @@ WORKSPACE_QUERY = """
 DATASET_QUERY = """
     query ($id: ID!) {
         dataset(id: $id) { id }
+    }
+"""
+
+DATASET_VERSION_FILE_QUERY = """
+    query ($id: ID!) {
+        datasetVersionFile(id: $id) { id }
     }
 """
 
@@ -93,6 +107,16 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
         self.run_query(WORKSPACE_QUERY, {"slug": self.OTHER.slug})
         self.assertFalse(WorkspaceTokenUsage.objects.exists())
 
+    def test_the_extension_is_only_installed_for_token_requests(self):
+        """It is GraphQL middleware, so it must not be attached to untokened traffic."""
+        request = RequestFactory().post("/graphql/")
+        self.assertEqual([], audit_extensions(request, None))
+
+        request.workspace_token = WorkspaceToken.issue(
+            user=self.USER, workspace=self.SCOPE, membership=self.MEMBERSHIP
+        )
+        self.assertEqual([WorkspaceScopeAudit], audit_extensions(request, None))
+
     def test_request_within_the_token_workspace_is_in_scope(self):
         response = self.query_with_token(WORKSPACE_QUERY, {"slug": self.SCOPE.slug})
         self.assertEqual(response["data"]["workspace"]["slug"], self.SCOPE.slug)
@@ -122,6 +146,30 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
 
     def test_dataset_of_another_workspace_is_out_of_scope(self):
         self.query_with_token(DATASET_QUERY, {"id": str(self.PRIVATE_DATASET.id)})
+        self.assertRecorded(
+            TokenScopeVerdict.OUT_OF_SCOPE, {str(self.OTHER.id): "none"}
+        )
+
+    def test_out_of_scope_is_recorded_even_when_tracking_is_truncated(self):
+        """Past the tracking cap a request must not look in scope just for being long."""
+        with patch("hexa.workspaces.audit.MAX_TRACKED_OBJECTS", 0):
+            self.query_with_token(DATASET_QUERY, {"id": str(self.PRIVATE_DATASET.id)})
+        self.assertRecorded(
+            TokenScopeVerdict.OUT_OF_SCOPE, {str(self.OTHER.id): "none"}
+        )
+
+    def test_dataset_version_file_is_attributed_to_the_dataset_workspace(self):
+        """A file carries no workspace of its own, so it is resolved through its version."""
+        version = DatasetVersion.objects.create(
+            dataset=self.PRIVATE_DATASET, name="v1", created_by=self.USER
+        )
+        file = DatasetVersionFile.objects.create(
+            dataset_version=version, uri="s3://private/v1/data.csv", content_type="csv"
+        )
+
+        with patch("hexa.workspaces.audit.MAX_TRACKED_OBJECTS", 0):
+            self.query_with_token(DATASET_VERSION_FILE_QUERY, {"id": str(file.id)})
+
         self.assertRecorded(
             TokenScopeVerdict.OUT_OF_SCOPE, {str(self.OTHER.id): "none"}
         )
