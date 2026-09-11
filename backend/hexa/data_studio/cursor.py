@@ -2,9 +2,9 @@
 
 Tied to the statement text and the ordering it was built for, so a changed sort or
 query is refused rather than answered with the wrong rows. The statement text
-rather than the saved query's identity: once templating lands, different
-parameters render different text and invalidate the cursor for free. The page
-size is deliberately left out; changing it mid-walk is harmless for a keyset.
+rather than the saved query's identity, with the values a template bound (see
+``pagination.statement_text``), so other parameters invalidate the cursor too. The
+page size is deliberately left out; changing it mid-walk is harmless for a keyset.
 """
 
 import datetime
