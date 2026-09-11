@@ -60,6 +60,7 @@ class SavedQueryAdmin(GlobalObjectsModelAdmin):
         "created_by",
         "visibility",
         "content",
+        "parameters",
         # Read-only: history is recorded by saving a query, never by editing these.
         "repository",
     )

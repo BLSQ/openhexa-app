@@ -17,6 +17,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
+from hexa.data_studio.templating import validate_saved_query_template
 from hexa.databases.query_text import sanitize_sql
 from hexa.git.enums import FileEncoding
 from hexa.git.exceptions import GitError
@@ -93,9 +94,12 @@ class SavedQueryManager(DefaultSoftDeletedManager.from_queryset(SavedQueryQueryS
         # None means "unspecified" and lands on the default: a brand-new query is
         # private until its author decides to share it.
         visibility: str | None = None,
+        parameters: list | None = None,
     ):
         if not principal.has_perm("data_studio.create_saved_query", workspace):
             raise PermissionDenied
+
+        parameters = validate_saved_query_template(content, parameters)
 
         # Inside the transaction: a git failure must take the row with it, or the
         # query exists with no history and no way to notice (see hexa/git README).
@@ -107,6 +111,7 @@ class SavedQueryManager(DefaultSoftDeletedManager.from_queryset(SavedQueryQueryS
                 content=content,
                 description=description,
                 visibility=visibility or SavedQueryVisibility.PRIVATE,
+                parameters=parameters,
             )
             saved_query.initialize_repository(principal)
             # Saved on its own: `initialize_repository` is what names the repository.
@@ -168,6 +173,7 @@ class SavedQuery(Base, SoftDeletedModel, GitRepoMixin):
         choices=SavedQueryVisibility.choices,
         default=SavedQueryVisibility.PRIVATE,
     )
+    parameters = models.JSONField(blank=True, default=list)
     # Nullable, unlike the mixin's: a saved query exists before its repository does.
     # Named when the repository is created, never before.
     repository = models.CharField(max_length=255, unique=True, null=True)
@@ -292,6 +298,15 @@ class SavedQuery(Base, SoftDeletedModel, GitRepoMixin):
 
             content_changed = new_content is not None and new_content != self.content
 
+            parameters = kwargs.get("parameters")
+            if parameters is None:
+                parameters = self.parameters
+            # Validated before the repository is touched: a refused edit must not leave
+            # a repository behind for a change that never happened.
+            parameters = validate_saved_query_template(
+                self.content if new_content is None else new_content, parameters
+            )
+
             # Initializing the repo before the new content is applied, so an old query
             # starts its history with the SQL it already had rather than at this edit.
             if content_changed and not self.has_history:
@@ -304,6 +319,7 @@ class SavedQuery(Base, SoftDeletedModel, GitRepoMixin):
             # description is optional/blankable: an explicit null clears it, mirroring create.
             if "description" in kwargs:
                 self.description = kwargs["description"] or ""
+            self.parameters = parameters
 
             if content_changed:
                 self.commit_version(principal, f"Update {self.name}")
