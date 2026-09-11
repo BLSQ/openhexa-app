@@ -6,6 +6,7 @@ Follow these guidelines when writing code:
 
 -   **Comments**: Do not write comments that merely restate what the code does. Only add comments when explaining _why_ something is done a certain way, not _what_ it does. See "Writing comments" below.
 -   **Imports**: Place imports at the top of the file. Do not use inline/dynamic imports inside functions or methods unless strictly necessary (e.g., to break a circular import or to defer an optional/expensive dependency).
+-   **Django admin**: An administrator is trusted to know what they are doing. Never add code to a model — a `clean()`, a validator, a guard — whose only purpose is to stop the admin doing something wrong; that noise reaches every other caller for the benefit of one trusted one. Where something genuinely is needed, it belongs in `admin.py`: a custom `ModelForm`, `readonly_fields`, or a `has_*_permission` returning `False`.
 -   **Docstrings**: Write for a human skimming the file for the first time. See "Writing docstrings" below.
 -   **Documentation**: The docs are maintained in English (`docs/en/`) and French (`docs/fr/`). Any change to a page in one language must be applied to its counterpart in the other in the same change — never update only one side.
 
