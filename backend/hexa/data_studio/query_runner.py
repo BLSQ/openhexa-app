@@ -12,6 +12,7 @@ from hexa.databases.query_text import (
     PreparedQuery,
     paginate_cursor,
     paginate_offset,
+    to_psycopg2,
 )
 from hexa.databases.utils import (
     count_database_rows,
@@ -31,6 +32,12 @@ from .pagination import (
     build_page_info,
     build_page_request,
     resolve_per_page,
+    statement_text,
+)
+from .templating import (
+    InvalidParametersError,
+    TemplateRenderError,
+    render_saved_query,
 )
 
 logger = logging.getLogger(__name__)
@@ -108,6 +115,7 @@ def log_rejected_query(
     origin: str,
     error_message: str,
     saved_query=None,
+    parameters=None,
 ) -> None:
     """Record a query the server refused to run before it reached the database."""
     _log_executed_query(
@@ -118,6 +126,7 @@ def log_rejected_query(
         QueryLog.Status.REJECTED,
         error_message=error_message,
         saved_query=saved_query,
+        parameters=parameters,
     )
 
 
@@ -131,13 +140,15 @@ def _execute_and_log(
     saved_query=None,
     max_rows: int | None = None,
     statement_to_count: PreparedQuery | None = None,
+    parameters: dict | None = None,
 ) -> tuple[dict, int | None]:
     """Run ``statement`` and record the outcome, re-raising errors for the caller.
 
     ``statement_to_count`` is counted first when given: a failing count then
     reaches the log as the one ERROR entry of the request, rather than following
     a SUCCESS entry.
-    ``query`` is the text logged, raw, for every outcome.
+    ``query`` is the text logged, raw, for every outcome; ``parameters`` are the
+    values a template bound, recorded beside it.
     """
     max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
     started_at = time.perf_counter()
@@ -161,6 +172,7 @@ def _execute_and_log(
             error_message=str(e).strip(),
             duration_ms=elapsed_ms(started_at),
             saved_query=saved_query,
+            parameters=parameters,
         )
         raise
     _log_executed_query(
@@ -174,6 +186,7 @@ def _execute_and_log(
         row_count=result["row_count"],
         truncated=result["truncated"],
         saved_query=saved_query,
+        parameters=parameters,
     )
     return result, total_items
 
@@ -260,6 +273,7 @@ def run_saved_query(
     after: str | None = None,
     before: str | None = None,
     include_total_items: bool | None = None,
+    parameters=None,
 ):
     """Execute a stored query on behalf of an API request, sorted and paged as asked.
 
@@ -273,6 +287,10 @@ def run_saved_query(
     text unwrapped, exactly as before those arguments existed. Otherwise the text is
     wrapped in a sorted, limited subquery and ``page_info`` describes the page. Raises
     ``PaginationError`` (logged as REJECTED) for arguments that cannot be honoured.
+
+    ``parameters`` are the values for the parameters the query declares. The text is
+    rendered with them bound through the driver (see ``templating``), and both the
+    stored text and the bound values go on the audit entry.
     """
     # Derived from the request rather than accepted as an argument: a client that
     # could name its own origin could disown the queries it ran.
@@ -283,10 +301,16 @@ def run_saved_query(
     )
     workspace = saved_query.workspace
     query = saved_query.content
+    # Before rendering: a denied caller must get PERMISSION_DENIED and a DENIED entry,
+    # not INVALID_PARAMETERS and a REJECTED one.
     ensure_can_run_query(request, workspace, query, origin, saved_query=saved_query)
+    # Until the values are bound, a rejected call records what the caller sent.
+    values = parameters
     try:
         per_page = resolve_per_page(per_page, max_rows)
-        prepared = PreparedQuery.from_text(query)
+        rendered = render_saved_query(saved_query, parameters)
+        values = rendered.values or None
+        prepared = to_psycopg2(rendered)
         page_request = build_page_request(
             prepared,
             order_by=order_by,
@@ -296,9 +320,20 @@ def run_saved_query(
             before=before,
             include_total_items=include_total_items,
         )
-    except (MultipleStatementsError, PaginationError) as e:
+    except (
+        InvalidParametersError,
+        TemplateRenderError,
+        MultipleStatementsError,
+        PaginationError,
+    ) as e:
         log_rejected_query(
-            request, workspace, query, origin, str(e), saved_query=saved_query
+            request,
+            workspace,
+            query,
+            origin,
+            str(e),
+            saved_query=saved_query,
+            parameters=values,
         )
         raise
     wants_total = isinstance(page_request, OffsetPage) and page_request.include_total
@@ -311,6 +346,7 @@ def run_saved_query(
         saved_query=saved_query,
         max_rows=per_page,
         statement_to_count=prepared if wants_total else None,
+        parameters=values,
     )
     _restore_order(result, page_request)
     result["page_info"] = build_page_info(
@@ -318,7 +354,7 @@ def run_saved_query(
         first_row=result["first_row"],
         last_row=result["last_row"],
         truncated=result["truncated"],
-        sql_text=prepared.body,
+        sql_text=statement_text(prepared),
         total_items=total_items,
     )
     # The deprecated field promises the same value as hasNextPage; on a backward
