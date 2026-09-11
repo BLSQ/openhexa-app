@@ -6,7 +6,25 @@ Follow these guidelines when writing code:
 
 -   **Comments**: Do not write comments that merely restate what the code does. Only add comments when explaining _why_ something is done a certain way, not _what_ it does.
 -   **Imports**: Place imports at the top of the file. Do not use inline/dynamic imports inside functions or methods unless strictly necessary (e.g., to break a circular import or to defer an optional/expensive dependency).
+-   **Docstrings**: Write for a human skimming the file for the first time. See "Writing docstrings" below.
 -   **Documentation**: The docs are maintained in English (`docs/en/`) and French (`docs/fr/`). Any change to a page in one language must be applied to its counterpart in the other in the same change — never update only one side.
+
+### Writing docstrings
+
+State what the code does, as briefly as possible. Add the _why_ only where it is not obvious from the code.
+
+Scale the form to what is being documented:
+
+-   **One-liner** for a function. This is the default; most functions need nothing more.
+-   **Summary + one or two sentences** when a caller needs a rule that is not visible in the signature (a fallback order, a rejected input, which layer takes over next).
+-   **Structured sections** only for a module docstring. Use `*` bullets, a numbered pipeline when data passes through a chain of transformations, and a short list of the exceptions callers handle. `backend/hexa/data_studio/templating.py` is the reference example.
+
+What to leave out:
+
+-   Alternatives that were considered and not taken, and what the code deliberately does _not_ do. If a reader must know it, it belongs in a comment at the line that would otherwise be "fixed", not in the docstring.
+-   Justification for a decision the code already makes plain.
+-   Anything the signature says. No `Args:` block that just renames the parameters.
+-   Emphasis on how important a piece of code is. Describe the behaviour and let it speak.
 
 ## Common Development Commands
 
