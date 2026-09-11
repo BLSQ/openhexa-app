@@ -4,10 +4,23 @@
 
 Follow these guidelines when writing code:
 
--   **Comments**: Do not write comments that merely restate what the code does. Only add comments when explaining _why_ something is done a certain way, not _what_ it does.
+-   **Comments**: Do not write comments that merely restate what the code does. Only add comments when explaining _why_ something is done a certain way, not _what_ it does. See "Writing comments" below.
 -   **Imports**: Place imports at the top of the file. Do not use inline/dynamic imports inside functions or methods unless strictly necessary (e.g., to break a circular import or to defer an optional/expensive dependency).
 -   **Docstrings**: Write for a human skimming the file for the first time. See "Writing docstrings" below.
 -   **Documentation**: The docs are maintained in English (`docs/en/`) and French (`docs/fr/`). Any change to a page in one language must be applied to its counterpart in the other in the same change — never update only one side.
+
+### Writing comments
+
+The bar is surprise: comment only where a reader who knows this codebase would otherwise be puzzled, or would "fix" correct code and break it. A _why_ that nobody would have questioned is still noise.
+
+Leave these uncommented:
+
+-   A name that already says it — `search_fields` gaining a field, a `parameters` column next to `query`.
+-   A framework or stdlib option doing its documented job, e.g. `encoder=DjangoJSONEncoder`.
+-   A line that does the same thing as the ones around it.
+-   The reasoning behind a design decision. That belongs in the app README or the ticket; the code gets a pointer at most.
+
+Keep whatever survives to a line or two. A comment longer than the code beneath it means the explanation belongs elsewhere, or the code should be clearer.
 
 ### Writing docstrings
 

@@ -3,6 +3,7 @@ import secrets
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
+from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import validate_slug
 from django.db import models, transaction
 from django.utils import timezone
@@ -391,6 +392,7 @@ class QueryLog(Base):
         related_name="query_logs",
     )
     query = models.TextField()
+    parameters = models.JSONField(null=True, blank=True, encoder=DjangoJSONEncoder)
     # Set when the SQL came from a stored query rather than from the caller, so
     # the audit trail answers "which saved query ran" and not only "what SQL ran".
     saved_query = models.ForeignKey(
