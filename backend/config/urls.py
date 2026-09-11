@@ -77,8 +77,7 @@ urlpatterns = [
         GraphQLView.as_view(
             schema=schema,
             playground_options={"request.credentials": "include"},
-            # HEXA-1775 phase 0: observe how workspace tokens are used. Remove
-            # together with hexa.workspaces.audit once tokens are scoped.
+            # TODO (HEXA-1775): Remove once tokens are scoped
             extensions=[WorkspaceScopeAudit],
         ),
         name="graphql",

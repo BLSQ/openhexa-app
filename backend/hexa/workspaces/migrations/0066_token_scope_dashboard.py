@@ -1,7 +1,4 @@
 """Ship a django-sql-dashboard view of the workspace token scope audit.
-
-The audit answers a question people need to watch over weeks, not read once out
-of a management command, so it gets a dashboard at /dashboard/workspace-token-scope/.
 Superuser-only: the rows carry user emails and IPs.
 
 Seeded as data so it exists on deploy without anyone assembling it by hand.
@@ -38,7 +35,7 @@ QUERIES = [
 select '## Workspace token scope audit
 
 How far workspace-token-authenticated requests reach, relative to the workspace
-their token was issued for. Instrumentation for HEXA-1775; every panel covers the
+their token was issued for. Instrumentation for HEXA-1775 — every panel covers the
 last 30 days.
 
 - **out of scope** — reached another workspace with no route from the token''s own.
@@ -56,7 +53,7 @@ from tokens
     f"""
 {ACTIVE_TOKENS}
 select coalesce(round(100.0 * count(*) filter (where breaks) / nullif(count(*), 0)), 0) as big_number,
-       '% of active tokens reach outside their workspace' as label
+       '%% of active tokens reach outside their workspace' as label
 from tokens
 """,
     f"""

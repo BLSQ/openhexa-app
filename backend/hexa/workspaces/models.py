@@ -875,12 +875,13 @@ class OrganizationWorkspaceInvitation(Base):
 
 
 class TokenScopeVerdict(models.TextChoices):
-    """How far a token-authenticated request reached, relative to the token's workspace.
+    """Scope reached by a token-authenticated request.
 
-    ``CROSS_REACHABLE`` is deliberately distinct from ``OUT_OF_SCOPE``: an
-    org-shared dataset or a dataset link is reachable *through* the token's own
-    workspace and will keep working once tokens are scoped, so counting it as
-    misuse would badly overstate the migration risk (see the HEXA-1775 RFC, §3).
+    ``CROSS_REACHABLE`` is distinct from ``OUT_OF_SCOPE``: an org-shared dataset or
+    a dataset link is reachable *through* the token's workspace even if outside it.
+    This will keep working once tokens are scoped, but it gives as extra visibility
+    on how the tokens are used.
+    TODO (HEXA-1775): Remove once the analysis has been done
     """
 
     IN_SCOPE = "IN_SCOPE", _("In scope")
@@ -889,13 +890,10 @@ class TokenScopeVerdict(models.TextChoices):
 
 
 class WorkspaceTokenUsage(Base):
-    """One row per workspace-token-authenticated GraphQL request.
+    """One row per workspace-token GraphQL request.
 
-    Temporary instrumentation for HEXA-1775 phase 0: it exists to answer "how
-    many tokens would break if we scoped them?" and is dropped once that
-    question is answered. Append-only on purpose — no counters to race on, and
-    the evidence is kept next to the verdict so the classification can be
-    revised without losing history.
+    Answers: "how many tokens would break if we scoped them?"
+    TODO (HEXA-1775): Remove once the analysis has been done
     """
 
     class Meta:

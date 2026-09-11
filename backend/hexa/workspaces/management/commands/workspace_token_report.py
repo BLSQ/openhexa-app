@@ -1,7 +1,7 @@
 """Report on how workspace tokens are being used (HEXA-1775 phase 0).
 
-Answers the question the migration hinges on: of the tokens actually in use,
-how many ever reach outside the workspace they were issued for?
+Answers the question: of the tokens actually in use,
+how many ever reach out of scope?
 """
 
 from collections import Counter, defaultdict
@@ -18,7 +18,7 @@ def token_key(row: dict) -> tuple:
     """Identity of the token a usage row belongs to.
 
     Membership tokens are stable, so their fingerprint is the token. Identity
-    tokens are minted fresh per notebook session, so counting fingerprints would
+    tokens are change per notebook session, so counting fingerprints would
     count sessions; they are grouped by the (user, workspace) pair they stand for.
     """
     if row["token_type"] == "membership":

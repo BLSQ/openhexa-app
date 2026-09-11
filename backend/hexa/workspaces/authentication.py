@@ -37,12 +37,11 @@ class WorkspaceToken(abc.ABC):
 
     @property
     def fingerprint(self) -> str:
-        """A stable, non-reversible identifier for this token.
+        """Token hash.
 
-        Lets us count and group tokens without ever storing the secret. Two
-        tokens with the same payload are the same token: a membership token is
-        stable for the life of the membership, while every identity token mint
-        gets its own fingerprint (they carry an issue timestamp).
+        Lets us count/group tokens without storing secrets.
+        Membership token fingerprints are stable, while identity tokens
+        might change as they depend on issued_at timestamp.
         """
         payload = self.payload()
         if not isinstance(payload, str):

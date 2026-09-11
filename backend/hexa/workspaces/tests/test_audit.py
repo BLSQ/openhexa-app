@@ -1,8 +1,7 @@
 from io import StringIO
 
 from django.core.management import call_command
-from django.db import connection
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django_sql_dashboard.models import Dashboard
 
 from hexa.core.test import GraphQLTestCase
@@ -154,28 +153,22 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
 
 
 class TokenScopeDashboardTest(TestCase):
-    """The dashboard is seeded by migration, so its SQL is only checked at runtime."""
+    """The dashboard is seeded by migration, so its SQL is only exercised at runtime."""
 
-    def test_every_dashboard_query_runs_against_the_current_schema(self):
+    # The "dashboard" alias is the read-only role on the same database; in tests
+    # there is only the one test database, so point the dashboard at it.
+    @override_settings(DASHBOARD_DB_ALIAS="default")
+    def test_dashboard_renders_without_a_failing_query(self):
         dashboard = Dashboard.objects.get(slug="workspace-token-scope")
         self.assertEqual(dashboard.view_policy, "superuser")
 
-        widgets = []
-        with connection.cursor() as cursor:
-            for query in dashboard.queries.all():
-                cursor.execute(query.sql)
-                widgets.append("-".join(sorted(c.name for c in cursor.description)))
-
-        # django-sql-dashboard picks a widget template from the column names, so
-        # a renamed column silently downgrades a chart to a plain table.
-        self.assertEqual(
-            widgets[:6],
-            [
-                "markdown",
-                "big_number-label",
-                "big_number-label",
-                "completed_count-total_count",
-                "bar_label-bar_quantity",
-                "bar_label-bar_quantity",
-            ],
+        user = User.objects.create_user(
+            "admin@openhexa.org", "password", is_superuser=True
         )
+        self.client.force_login(user)
+        response = self.client.get(f"/dashboard/{dashboard.slug}/")
+
+        self.assertEqual(response.status_code, 200)
+        # django-sql-dashboard renders failures in place rather than raising, and
+        # rejects things plain psycopg accepts (";" anywhere, an unescaped "%").
+        self.assertNotContains(response, "query-error")

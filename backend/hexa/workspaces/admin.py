@@ -139,7 +139,7 @@ class WorkspaceInvitationAdmin(admin.ModelAdmin):
 
 @admin.register(WorkspaceTokenUsage)
 class WorkspaceTokenUsageAdmin(admin.ModelAdmin):
-    """Read-only view on the HEXA-1775 phase 0 token scope audit."""
+    """Read-only view on the HEXA-1775 workspace-scoped token audit."""
 
     list_display = (
         "created_at",

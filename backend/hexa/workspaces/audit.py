@@ -1,16 +1,14 @@
-"""Phase 0 instrumentation for workspace-scoped tokens (HEXA-1775).
+"""Phase 0 analysis for workspace-scoped tokens (HEXA-1775).
 
-A workspace token today authenticates the *person*, not the workspace, so a
+A workspace token today authenticates the *user*, not the workspace, so a
 token issued for workspace A can reach everything its owner can reach. Before
 changing that we need to know how much traffic would actually break, which is
-what this module measures: it observes token-authenticated GraphQL requests and
+what this measures: it observes token-authenticated GraphQL requests and
 records, for each one, whether it stayed inside the token's workspace.
 
-It deliberately lives outside the permission layer. Nothing here narrows a
-queryset or refuses a permission — an Ariadne extension only watches objects
-flow past — so turning the measurement on cannot change what anyone can access.
-The whole module, its model and its registration in ``config/urls.py`` are meant
-to be deleted once enforcement lands.
+Developed as an Ariadne extension, it only watches objects flow past.
+It deliberately doesn't interact with them, it just saves what happens for
+visualization and information.
 """
 
 from logging import getLogger
@@ -34,8 +32,8 @@ from hexa.workspaces.models import (
 
 logger = getLogger(__name__)
 
-# Models that do not carry a workspace_id of their own. Their owning workspace is
-# resolved in bulk at the end of the request rather than per object, so a page of
+# Models that do not carry a workspace_id of their own. Their workspace is
+# resolved once in bulk at the end of the request, so a page of
 # dataset files costs one query instead of one per row.
 INDIRECT_OWNERS = {
     DatasetVersion: ("dataset__workspace_id", "dataset_id"),
@@ -46,7 +44,7 @@ INDIRECT_OWNERS = {
 }
 
 # Reaching another workspace *only* through these is legitimate by design:
-# templates are published across workspaces on purpose.
+# templates are published across workspaces.
 TEMPLATE_MODELS = frozenset({"PipelineTemplate", "PipelineTemplateVersion"})
 
 # A request touching more distinct objects than this stops recording. Bounds the
@@ -56,18 +54,17 @@ MAX_TRACKED_OBJECTS = 200
 
 
 def workspace_id_of(obj: Model) -> UUID | None:
-    """The workspace an object belongs to, or None if it belongs to none."""
+    """The workspace an object belongs to"""
     if isinstance(obj, Workspace):
         return obj.id
     return getattr(obj, "workspace_id", None)
 
 
 def reachable_datasets(workspace: Workspace, dataset_ids: set) -> dict:
-    """Foreign datasets that a member of ``workspace`` legitimately reaches.
+    """External datasets that a member of ``workspace`` legitimately reaches.
 
-    Org-shared datasets and dataset links are the two documented ways to reach
-    across a workspace boundary; both survive scoping, so a request using them
-    is not misuse.
+    Org-shared datasets and dataset links are reachable for workspace-scoped tokens;
+    both survive scoping, so a request using them is not misuse.
     """
     if not dataset_ids:
         return {}
@@ -205,8 +202,8 @@ class WorkspaceScopeAudit(Extension):
         )
 
         if verdict == TokenScopeVerdict.OUT_OF_SCOPE:
-            # Kept below Sentry's ERROR threshold on purpose: during phase 0 this
-            # is expected traffic, and paging on it would only teach us to ignore it.
+            # Kept below Sentry's ERROR threshold on purpose: this is expected traffic,
+            # but it's good to keep it documented and in mind
             logger.warning(
                 "workspace token used outside its workspace",
                 extra={
