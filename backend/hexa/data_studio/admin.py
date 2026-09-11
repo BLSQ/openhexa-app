@@ -58,6 +58,7 @@ class SavedQueryAdmin(admin.ModelAdmin):
         "created_by",
         "visibility",
         "content",
+        "parameters",
     )
 
     @admin.display(ordering="workspace__organization")

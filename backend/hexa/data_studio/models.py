@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
+from hexa.data_studio.templating import validate_saved_query_template
 from hexa.databases.query_text import sanitize_sql
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.workspaces.models import Workspace
@@ -70,6 +71,7 @@ class SavedQueryManager(models.Manager):
         # None means "unspecified" and lands on the default: a brand-new query is
         # private until its author decides to share it.
         visibility: str | None = None,
+        parameters: list | None = None,
     ):
         if not principal.has_perm("data_studio.create_saved_query", workspace):
             raise PermissionDenied
@@ -81,6 +83,7 @@ class SavedQueryManager(models.Manager):
             content=content,
             description=description,
             visibility=visibility or SavedQueryVisibility.PRIVATE,
+            parameters=validate_saved_query_template(content, parameters),
         )
 
 
@@ -181,6 +184,7 @@ class SavedQuery(Base):
         choices=SavedQueryVisibility.choices,
         default=SavedQueryVisibility.PRIVATE,
     )
+    parameters = models.JSONField(blank=True, default=list)
 
     objects = SavedQueryManager.from_queryset(SavedQueryQuerySet)()
 
@@ -261,6 +265,11 @@ class SavedQuery(Base):
         # description is optional/blankable: an explicit null clears it, mirroring create.
         if "description" in kwargs:
             self.description = kwargs["description"] or ""
+
+        if kwargs.get("parameters") is not None:
+            self.parameters = kwargs["parameters"]
+
+        self.parameters = validate_saved_query_template(self.content, self.parameters)
 
         return self.save()
 
