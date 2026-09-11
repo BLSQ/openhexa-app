@@ -203,6 +203,7 @@ query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
       externalLink
       ...PipelineVersionParametersTable_version
       ...PipelineVersionConfigDialog_version
+      ...PipelineDagView_version
     }
     recipients {
       user {
