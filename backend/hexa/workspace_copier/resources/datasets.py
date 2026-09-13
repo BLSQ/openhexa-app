@@ -15,8 +15,10 @@ what this needs: ``create_dataset`` doesn't select the new dataset's ``id``
 ``sharedWithOrganization``, and there are no version/file mutations at all.
 """
 
+import base64
 import tempfile
-from typing import Any
+from typing import IO, Any
+from urllib.parse import quote
 
 import httpx
 from openhexa.graphql.graphql_client.client import Client
@@ -36,6 +38,9 @@ FILES_PAGE_SIZE = 50
 FILE_TRANSFER_TIMEOUT = 300
 SPOOL_MAX_SIZE = 32 * 1024 * 1024
 """Bytes a file transfer may hold in memory before spilling to a temp file."""
+
+AZURE_MAX_SINGLE_PUT_SIZE = 5000 * 1024 * 1024  # 5 GiB
+AZURE_BLOCK_SIZE = 64 * 1024 * 1024  # 64 MiB to keep memory low
 
 
 LIST_DATASETS_QUERY = """
@@ -146,8 +151,7 @@ class DatasetsCopier(ResourceCopier):
             self._copy_remote(source, target, result, reporter, options)
         else:
             raise NotImplementedError(
-                "LOCAL datasets copy (native ORM clone) is implemented in a "
-                "later phase"
+                "LOCAL datasets copy (native ORM clone) is implemented in a later phase"
             )
 
     def _copy_remote(
@@ -547,6 +551,54 @@ def _register_uploaded_file(
         )
 
 
+def _azure_upload_by_blocks(
+    target: Endpoint,
+    target_version_id: str,
+    uri: str,
+    content_type: str,
+    upload_url: str,
+    buffer: IO[bytes],
+    http_client: httpx.Client,
+) -> None:
+    """Stage ``buffer`` on Azure Blob Storage block by block, then commit the blob."""
+
+    def put(query: str, content: bytes, headers: dict[str, str] | None = None) -> None:
+        nonlocal upload_url
+        response = http_client.put(
+            f"{upload_url}&{query}", content=content, headers=headers or {}
+        )
+        if response.status_code in (401, 403):
+            # Signed URLs expire after an hour, which a multi-gigabyte upload can
+            # outlive. A fresh URL points at the same blob, so the blocks staged
+            # so far stay valid and only this request has to be replayed.
+            upload_url, _ = _prepare_upload(
+                target.client, target_version_id, uri, content_type
+            )
+            response = http_client.put(
+                f"{upload_url}&{query}", content=content, headers=headers or {}
+            )
+        if not response.is_success:
+            raise GraphQLError(
+                f"upload of '{uri}' ({query}) returned HTTP "
+                f"{response.status_code}: {response.text[:500]}"
+            )
+
+    block_ids: list[str] = []
+    while block := buffer.read(AZURE_BLOCK_SIZE):
+        # Block ids must be unique within the blob and all decode to the same length.
+        block_id = base64.b64encode(f"{len(block_ids):032d}".encode()).decode()
+        put(f"comp=block&blockid={quote(block_id, safe='')}", block)
+        block_ids.append(block_id)
+
+    blocks = "".join(f"<Latest>{block_id}</Latest>" for block_id in block_ids)
+    put(
+        "comp=blocklist",
+        f'<?xml version="1.0" encoding="utf-8"?><BlockList>{blocks}</BlockList>'.encode(),
+        # The content type of the blob itself, not of this request.
+        {"x-ms-blob-content-type": content_type},
+    )
+
+
 def _transfer_file(
     target: Endpoint,
     file: dict[str, Any],
@@ -580,12 +632,24 @@ def _transfer_file(
             target.client, target_version_id, uri, content_type
         )
         buffer.seek(0)
-        response = http_client.put(upload_url, content=buffer, headers=headers)
-        if not response.is_success:
-            raise GraphQLError(
-                f"upload of '{uri}' returned HTTP {response.status_code}: "
-                f"{response.text[:500]}"
+        # upload block by block for very large files (>5GiB) when on Azure
+        if headers.get("x-ms-blob-type") and size > AZURE_MAX_SINGLE_PUT_SIZE:
+            _azure_upload_by_blocks(
+                target,
+                target_version_id,
+                uri,
+                content_type,
+                upload_url,
+                buffer,
+                http_client,
             )
+        else:
+            response = http_client.put(upload_url, content=buffer, headers=headers)
+            if not response.is_success:
+                raise GraphQLError(
+                    f"upload of '{uri}' returned HTTP {response.status_code}: "
+                    f"{response.text[:500]}"
+                )
 
     _register_uploaded_file(target.client, target_version_id, uri, content_type)
     return size
