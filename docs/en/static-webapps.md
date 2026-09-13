@@ -784,6 +784,7 @@ input ExecuteSavedQueryInput {
   after: String                # the previous page's endCursor
   before: String               # the next page's startCursor
   includeTotalItems: Boolean
+  parameters: JSON             # name -> value, for a query that declares parameters
 }
 
 input QueryResultOrderBy {
@@ -822,6 +823,8 @@ enum ExecuteSQLError {
   INVALID_ORDER_BY
   INVALID_CURSOR
   INVALID_PAGINATION
+  INVALID_PARAMETERS
+  TEMPLATE_ERROR
 }
 ```
 
@@ -860,6 +863,75 @@ for another query or ordering, and `INVALID_PAGINATION` for arguments that
 contradict each other, such as `page` together with a cursor, or `after` with
 `before`.
 
+#### Query templating
+
+A saved query can declare parameters, so the web app can filter the same query
+without the SQL leaving the Data Studio. The author writes the placeholders in
+the SQL and declares each one with a name and a type:
+
+```sql
+SELECT district, period, cases
+FROM malaria_indicators
+WHERE district = ANY({{ districts }})
+  AND period >= {{ start_date }}
+```
+
+```json
+[
+  { "name": "districts",  "type": "STRING", "multiple": true, "required": true },
+  { "name": "start_date", "type": "DATE",   "default": "2026-01-01" }
+]
+```
+
+The web app then sends the values it knows about, by name, next to the sorting
+and pagination arguments described above:
+
+```js
+{ input: { slug: "malaria-by-district", parameters: { districts: ["Dakar", "Thiès"] }, orderBy: [{ column: "period", direction: "DESC" }], perPage: 50 } }
+```
+
+Anything not sent falls back to its default, so `start_date` above resolves to
+`2026-01-01`. Types are `STRING`, `INTEGER`, `FLOAT`, `BOOLEAN` and `DATE` (an
+ISO `YYYY-MM-DD` string), each optionally `multiple`. A value of the wrong type,
+a missing required one, or a name the query does not declare all come back as
+`INVALID_PARAMETERS` — including a numeric string such as `"10"` for an
+`INTEGER`, which is rejected rather than guessed at. `TEMPLATE_ERROR` means the
+template itself could not be rendered with those values.
+
+**Values never become SQL.** They are bound by the database driver, so a value
+can change which rows come back but never what the query reads. Four
+consequences are worth knowing before you write one:
+
+- **Filtering on a list is `= ANY`, and excluding one is `<> ALL`:**
+
+    ```sql
+    WHERE district = ANY({{ districts }})     -- keep these districts
+    WHERE district <> ALL({{ districts }})    -- exclude these districts
+    ```
+
+    This *is* `IN` — PostgreSQL compiles `IN (…)` to `= ANY(…)` before planning —
+    and `= ANY` is the spelling that accepts a parameter. An empty list is
+    allowed and simply matches nothing, so a web app never has to special-case a
+    multi-select the user emptied. Writing `IN ({{ districts }})` out of habit
+    fails loudly with `operator does not exist: text = text[]`.
+
+- **A column name can never be a parameter.** `ORDER BY {{ sort }}` sorts by a
+    constant and silently does nothing. Sorting and paging are not the template's
+    job: `orderBy`, `perPage`, `page` and the cursors apply to a templated query
+    like to any other, so leave `ORDER BY`, `LIMIT` and `OFFSET` out of it.
+
+- **A placeholder must not sit inside a quoted literal.**
+    `WHERE name LIKE '{{ q }}%'` does not work. Write `WHERE name LIKE {{ q }}`
+    and put the `%` in the value the web app sends (`q: "dak%"`).
+
+- **A web app cannot discover a query's parameters.** `savedQuery` and
+    `savedQueryBySlug` are not available under `DATABASE_READ`, so names and
+    types travel out of band, the same way the slug does.
+
+A cursor is cut for one set of parameter values: paging on with other values
+returns `INVALID_CURSOR`, as it would for another query.
+
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -880,6 +952,8 @@ contradict each other, such as `page` together with a cursor, or `after` with
 
   <script>
     const SAVED_QUERY_SLUG = "my-saved-query";
+    // Omit, or send {}, for a query that declares no parameters.
+    const QUERY_PARAMETERS = {};
 
     async function gql(query, variables) {
       const res = await fetch("/graphql/", {
@@ -902,7 +976,7 @@ contradict each other, such as `page` together with a cursor, or `after` with
             pageInfo { hasNextPage }
           }
         }
-      `, { input: { slug: SAVED_QUERY_SLUG, perPage: 100 } });
+      `, { input: { slug: SAVED_QUERY_SLUG, perPage: 100, parameters: QUERY_PARAMETERS } });
 
       if (!result.success) {
         out.textContent = "Error: " + result.errors.join(", ");

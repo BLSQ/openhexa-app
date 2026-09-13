@@ -557,6 +557,7 @@ input ExecuteSavedQueryInput {
   after: String                # le endCursor de la page précédente
   before: String               # le startCursor de la page suivante
   includeTotalItems: Boolean
+  parameters: JSON             # nom -> valeur, pour une requête qui déclare des paramètres
 }
 
 input QueryResultOrderBy {
@@ -595,6 +596,8 @@ enum ExecuteSQLError {
   INVALID_ORDER_BY
   INVALID_CURSOR
   INVALID_PAGINATION
+  INVALID_PARAMETERS
+  TEMPLATE_ERROR
 }
 ```
 
@@ -635,6 +638,81 @@ deux fois : donnez un alias aux colonnes dans la requête enregistrée),
 tri, et `INVALID_PAGINATION` pour des arguments contradictoires, comme `page`
 avec un curseur, ou `after` avec `before`.
 
+#### Requêtes paramétrées
+
+Une requête enregistrée peut déclarer des paramètres, ce qui permet à la webapp
+de filtrer la même requête sans que le SQL ne quitte le Data Studio. L'auteur
+écrit les emplacements dans le SQL et déclare chacun d'eux avec un nom et un
+type :
+
+```sql
+SELECT district, period, cases
+FROM malaria_indicators
+WHERE district = ANY({{ districts }})
+  AND period >= {{ start_date }}
+```
+
+```json
+[
+  { "name": "districts",  "type": "STRING", "multiple": true, "required": true },
+  { "name": "start_date", "type": "DATE",   "default": "2026-01-01" }
+]
+```
+
+La webapp envoie ensuite les valeurs qu'elle connaît, par nom, à côté des
+arguments de tri et de pagination décrits plus haut :
+
+```js
+{ input: { slug: "malaria-by-district", parameters: { districts: ["Dakar", "Thiès"] }, orderBy: [{ column: "period", direction: "DESC" }], perPage: 50 } }
+```
+
+Toute valeur non envoyée retombe sur sa valeur par défaut : ci-dessus,
+`start_date` vaut donc `2026-01-01`. Les types sont `STRING`, `INTEGER`,
+`FLOAT`, `BOOLEAN` et `DATE` (une chaîne ISO `AAAA-MM-JJ`), chacun pouvant être
+`multiple`. Une valeur du mauvais type, un paramètre obligatoire manquant ou un
+nom que la requête ne déclare pas renvoient tous `INVALID_PARAMETERS` — y
+compris une chaîne numérique comme `"10"` pour un `INTEGER`, qui est refusée
+plutôt que devinée. `TEMPLATE_ERROR` signifie que le modèle lui-même n'a pas pu
+être rendu avec ces valeurs.
+
+**Les valeurs ne deviennent jamais du SQL.** Elles sont liées par le pilote de
+la base de données : une valeur peut donc changer les lignes renvoyées, jamais
+ce que la requête lit. Quatre conséquences à connaître avant d'en écrire une :
+
+- **Filtrer sur une liste s'écrit `= ANY`, et exclure une liste `<> ALL` :**
+
+    ```sql
+    WHERE district = ANY({{ districts }})     -- garder ces districts
+    WHERE district <> ALL({{ districts }})    -- exclure ces districts
+    ```
+
+    Il s'agit bien du `IN` habituel — PostgreSQL traduit `IN (…)` en `= ANY(…)`
+    avant la planification — et `= ANY` est l'écriture qui accepte un paramètre.
+    Une liste vide est autorisée et ne correspond simplement à rien : une webapp
+    n'a donc jamais à traiter à part un multi-select que l'utilisateur a vidé.
+    Écrire `IN ({{ districts }})` par habitude échoue explicitement avec
+    `operator does not exist: text = text[]`.
+
+- **Un nom de colonne ne peut jamais être un paramètre.** `ORDER BY {{ sort }}`
+    trie selon une constante et ne fait donc rien. Le tri et la pagination ne
+    sont pas l'affaire du modèle : `orderBy`, `perPage`, `page` et les curseurs
+    s'appliquent à une requête paramétrée comme à toute autre, laissez donc
+    `ORDER BY`, `LIMIT` et `OFFSET` en dehors.
+
+- **Un emplacement ne doit pas se trouver dans une chaîne entre quotes.**
+    `WHERE name LIKE '{{ q }}%'` ne fonctionne pas. Écrivez
+    `WHERE name LIKE {{ q }}` et placez le `%` dans la valeur envoyée par la
+    webapp (`q: "dak%"`).
+
+- **Une webapp ne peut pas découvrir les paramètres d'une requête.**
+    `savedQuery` et `savedQueryBySlug` ne sont pas accessibles sous
+    `DATABASE_READ` : les noms et les types circulent hors bande, comme le slug.
+
+Un curseur est construit pour un jeu de valeurs de paramètres : poursuivre la
+pagination avec d'autres valeurs renvoie `INVALID_CURSOR`, comme pour une autre
+requête.
+
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -655,6 +733,8 @@ avec un curseur, ou `after` avec `before`.
 
   <script>
     const SAVED_QUERY_SLUG = "ma-requete-enregistree";
+    // Omettre, ou envoyer {}, pour une requête sans paramètre déclaré.
+    const QUERY_PARAMETERS = {};
 
     async function gql(query, variables) {
       const res = await fetch("/graphql/", {
@@ -677,7 +757,7 @@ avec un curseur, ou `after` avec `before`.
             pageInfo { hasNextPage }
           }
         }
-      `, { input: { slug: SAVED_QUERY_SLUG, perPage: 100 } });
+      `, { input: { slug: SAVED_QUERY_SLUG, perPage: 100, parameters: QUERY_PARAMETERS } });
 
       if (!result.success) {
         out.textContent = "Erreur : " + result.errors.join(", ");
