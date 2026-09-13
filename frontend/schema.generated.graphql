@@ -5699,6 +5699,7 @@ enum UpdateWebappError {
 """Represents the input for updating a web app."""
 input UpdateWebappInput {
   allowedOperations: [WebappOperationScope!]
+  commitMessage: String
   description: String
   files: [WebappFileInput!]
   filesToDelete: [String!]
