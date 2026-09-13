@@ -1,5 +1,5 @@
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import Input from "core/components/forms/Input";
+import Textarea from "core/components/forms/Textarea";
 import { useTranslation } from "next-i18next";
 
 type Props = {
@@ -33,17 +33,21 @@ export default function AssistantProposalBanner({
         <span className="font-medium text-blue-700">{label}</span>
         {onMessageChange ? (
           <div className="mt-1">
-            <Input
+            <Textarea
               name="commitMessage"
               value={message ?? ""}
               onChange={(event) => onMessageChange(event.target.value)}
               placeholder={messagePlaceholder}
-              fullWidth
+              rows={3}
+              className="text-xs"
             />
           </div>
         ) : (
           message && (
-            <p className="truncate text-xs text-blue-600" title={message}>
+            <p
+              className="line-clamp-3 whitespace-pre-line text-xs text-blue-600"
+              title={message}
+            >
               {message}
             </p>
           )

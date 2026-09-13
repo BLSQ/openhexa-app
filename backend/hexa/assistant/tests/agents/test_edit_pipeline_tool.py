@@ -4,7 +4,6 @@ from hexa.assistant.agents.edit_pipeline_agent import (
     ProposedFile,
     propose_pipeline_version,
 )
-from hexa.assistant.agents.proposals import MAX_COMMIT_MESSAGE_LENGTH
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import TestCase
@@ -173,14 +172,18 @@ class ProposePipelineVersionCommitMessageTest(TestCase):
         )
         self.assertNotIn("commit_message", result)
 
-    def test_too_long_commit_message_returns_error(self):
+    def test_multi_line_commit_message_is_kept_whole(self):
+        message = (
+            "feat(extract): add retry logic to the extract task\n"
+            "\n"
+            "The upstream API returns 503 under load, which aborted the whole run."
+        )
         result = propose_pipeline_version(
             _make_pipeline_stub(),
             [ProposedFile(name="pipeline.py", content="# new")],
-            commit_message="x" * (MAX_COMMIT_MESSAGE_LENGTH + 1),
+            commit_message=message,
         )
-        self.assertIn("error", result)
-        self.assertNotIn("files", result)
+        self.assertEqual(result["commit_message"], message)
 
     def test_pending_commit_message_carries_over_when_not_restated(self):
         conversation = self._make_conversation()

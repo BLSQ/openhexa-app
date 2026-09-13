@@ -136,7 +136,7 @@ const WebappFilesEditor = ({
             id: webappId,
             files: fileInputs,
             filesToDelete: deletedPaths,
-            message: proposedCommitMessage?.trim() || undefined,
+            commitMessage: proposedCommitMessage?.trim() || undefined,
           },
         },
         refetchQueries: ["WebappVersions"],

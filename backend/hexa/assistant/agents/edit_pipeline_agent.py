@@ -5,7 +5,6 @@ from pydantic import BaseModel
 
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.agents.proposals import (
-    commit_message_error,
     nothing_to_delete_error,
     resolve_commit_message,
     resolve_deleted_paths,
@@ -38,13 +37,11 @@ def propose_pipeline_version(
     List any files to remove in deleted_files. A directory path removes everything under it.
     Deletions cover binary files too, even though their content is never inlined here.
     Unchanged files are preserved automatically.
-    Pass commit_message to describe the change in one line, like a git commit subject.
+    Pass commit_message to describe the change as a Conventional Commit: a
+    `type(scope): summary` subject line, optionally followed by a blank line and a
+    short body explaining why.
     It becomes the description of the version if the user accepts the proposal.
     """
-    message_error = commit_message_error(commit_message)
-    if message_error:
-        return message_error
-
     current_files: dict[str, str] = {}
     deleted_paths: set[str] = set()
     all_paths: set[str] = set()

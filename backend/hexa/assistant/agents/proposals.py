@@ -1,7 +1,5 @@
 """Helpers shared by the tools that stage file changes for the user to review."""
 
-MAX_COMMIT_MESSAGE_LENGTH = 500
-
 
 def resolve_deleted_paths(
     requested: list[str], known_paths: set[str]
@@ -37,19 +35,6 @@ def resolve_commit_message(
     if cleaned:
         return cleaned
     return (pending_output or {}).get("commit_message")
-
-
-def commit_message_error(requested: str | None) -> dict | None:
-    """Reject a message too long to be the one-line summary the tools ask for."""
-    length = len((requested or "").strip())
-    if length <= MAX_COMMIT_MESSAGE_LENGTH:
-        return None
-    return {
-        "error": (
-            f"commit_message is {length} characters, the limit is "
-            f"{MAX_COMMIT_MESSAGE_LENGTH}. Summarize the change in one line."
-        )
-    }
 
 
 def nothing_to_delete_error(paths: list[str]) -> dict:

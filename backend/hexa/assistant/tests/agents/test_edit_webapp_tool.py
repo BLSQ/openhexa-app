@@ -5,7 +5,6 @@ from hexa.assistant.agents.edit_webapp_agent import (
     ProposedFile,
     propose_webapp_version,
 )
-from hexa.assistant.agents.proposals import MAX_COMMIT_MESSAGE_LENGTH
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.core.test import TestCase
@@ -343,15 +342,19 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
         )
         self.assertNotIn("commit_message", result)
 
-    def test_too_long_commit_message_returns_error(self):
+    def test_multi_line_commit_message_is_kept_whole(self):
         webapp = _make_webapp_stub()
+        message = (
+            "feat(ui): add a dark theme toggle\n"
+            "\n"
+            "Users reported the dashboard being unreadable in low light."
+        )
         result = propose_webapp_version(
             webapp,
             [ProposedFile(path="index.html", content="<h1>Hello</h1>")],
-            commit_message="x" * (MAX_COMMIT_MESSAGE_LENGTH + 1),
+            commit_message=message,
         )
-        self.assertIn("error", result)
-        self.assertNotIn("files", result)
+        self.assertEqual(result["commit_message"], message)
 
     def test_pending_commit_message_carries_over_when_not_restated(self):
         conversation = self._make_conversation()

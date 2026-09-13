@@ -5699,13 +5699,13 @@ enum UpdateWebappError {
 """Represents the input for updating a web app."""
 input UpdateWebappInput {
   allowedOperations: [WebappOperationScope!]
+  commitMessage: String
   description: String
   files: [WebappFileInput!]
   filesToDelete: [String!]
   icon: String
   id: UUID!
   isPublic: Boolean
-  message: String
   name: String
   publishedVersionId: String
   source: UpdateWebappSourceInput

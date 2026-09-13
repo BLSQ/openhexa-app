@@ -52,6 +52,29 @@ You are tasked with creating a new pipeline for the user.
   - Source code: provide a minimal `openhexa.sdk` pipeline skeleton in Python using `@pipeline` and `@task` decorators that reflects the user's requirements.
 """
 
+
+def _proposal_rules(commit_message_target: str) -> str:
+    """The rules closing every propose-a-version flow.
+
+    Shared verbatim by the pipeline and web app editing prompts so the two cannot
+    drift; only the sentence naming where the commit message ends up differs.
+    """
+    return f"""
+## Commit message
+Always pass a `commit_message` in the Conventional Commits format:
+- A subject line `type(optional scope): summary`, where type is one of `feat`, `fix`, `refactor`, `perf`, `docs`, `style`, `test`, `build` or `chore`. Imperative mood, no trailing period, under 72 characters.
+- Optionally a blank line and a body of one or two short sentences, only when the subject alone does not explain *why* the change was made. Never restate the diff — the user can already see it.
+{commit_message_target}
+When you revise a pending proposal, restate the whole message so it still describes the entire change rather than only the latest revision.
+
+## Before and after the call
+- Before using the tool, do not send any messages.
+- After using the tool, briefly explain what you changed and why:
+  - Keep your explanation short but structured.
+  - List only the 2 or 3 most relevant key points.
+"""
+
+
 _EDIT_PIPELINE = """
 # Your task
 You are helping the user modify an existing OpenHEXA pipeline.
@@ -59,16 +82,13 @@ You are helping the user modify an existing OpenHEXA pipeline.
 - When the user asks for changes:
   1. Analyze the existing code carefully.
   2. Call the `propose_pipeline_version` tool—pass only the files you modified or created in `modified_files`, and list files to delete in `deleted_files` (a directory path removes everything under it; binary files are deletable by path even though their content is never shown to you). Unchanged files are preserved automatically.
-  3. Always pass a one-line `commit_message` summarizing the change, written like a git commit subject (imperative, no trailing period). It becomes the description of the version if the user accepts the proposal. When you revise a pending proposal, restate it so it still describes the whole change.
-  4. Before using the tool, do not send any messages.
-  5. After using the tool, briefly explain what you changed and why:
-      - Keep your explanation short but structured.
-      - List only the 2 or 3 most relevant key points.
 
 If a pending proposed version exists (shown under "Pending Proposed Version"), the user is reviewing it but has not yet accepted it. For any follow-up change, you MUST call `propose_pipeline_version` again — build upon the pending proposed files, not the saved version.
 
 Never respond with only text when a code change is requested.
-"""
+""" + _proposal_rules(
+    "It becomes the description of the version if the user accepts the proposal."
+)
 
 _WEBAPPS = """
 # Your task
@@ -89,21 +109,23 @@ You are helping the user modify an existing OpenHEXA static web app (HTML/CSS/Ja
      - For **targeted edits to existing files** (a few lines in a large file): use `file_patches` with `{path, old_string, new_string}`. This avoids sending the whole file — only pass the lines that change. `old_string` must match the current file exactly.
      - Use `deleted_files` to remove files. Pass a directory path to remove everything under it, and pass binary files (images, fonts) by path even though their content is never shown to you.
      - You can mix `modified_files` and `file_patches` in the same call.
-  4. Always pass a one-line `commit_message` summarizing the change, written like a git commit subject (imperative, no trailing period). It becomes the commit message if the user accepts the proposal. When you revise a pending proposal, restate it so it still describes the whole change.
-  5. Before using the tool, do not send any messages.
-  6. After using the tool, briefly explain what you changed and why:
-      - Keep your explanation short but structured.
-      - List only the 2 or 3 most relevant key points.
 
 If a pending proposed version exists (shown under "Pending Proposed Version"), the user is reviewing it but has not yet accepted it. For any follow-up change, you MUST call `propose_webapp_version` again — build upon the pending proposed files, not the saved version. Read large pending files with `get_static_webapp_file` if their content is not shown inline.
 
 Never respond with only text when a code change is requested.
+"""
 
+_WEBAPP_FILES_DOC = """
 # Web app files
 Static web apps consist of HTML, CSS, and JavaScript files served as-is. An `index.html` file at the root is required.
 The web app may also call OpenHEXA's GraphQL API via a same-origin proxy at POST /graphql/ — no auth token needed, the user's session handles it.
 If you need the full API reference (available scopes, GraphQL schema, example queries), call `get_help_or_doc(topic="static-webapps")`.
 """
+
+_EDIT_WEBAPP += (
+    _proposal_rules("It becomes the commit message if the user accepts the proposal.")
+    + _WEBAPP_FILES_DOC
+)
 
 _GENERATE_SQL = """
 # Your task

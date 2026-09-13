@@ -330,9 +330,7 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
         )
 
     @patch("hexa.git.mixins.get_forgejo_client")
-    def test_update_files_uses_provided_message_as_commit_message(
-        self, mock_get_client
-    ):
+    def test_update_files_uses_provided_commit_message(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.commit_files.return_value = "sha-msg"
         mock_get_client.return_value = mock_client
@@ -344,7 +342,7 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
                 "input": {
                     "id": str(self.GIT_WEBAPP.id),
                     "files": [{"path": "index.html", "content": "<h1>Hello</h1>"}],
-                    "message": "Add a dark theme toggle",
+                    "commitMessage": "Add a dark theme toggle",
                 }
             },
         )
@@ -355,7 +353,9 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
         )
 
     @patch("hexa.git.mixins.get_forgejo_client")
-    def test_update_files_blank_message_falls_back_to_default(self, mock_get_client):
+    def test_update_files_blank_commit_message_falls_back_to_default(
+        self, mock_get_client
+    ):
         mock_client = MagicMock()
         mock_client.commit_files.return_value = "sha-blank"
         mock_get_client.return_value = mock_client
@@ -367,7 +367,7 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
                 "input": {
                     "id": str(self.GIT_WEBAPP.id),
                     "files": [{"path": "index.html", "content": "<h1>Hello</h1>"}],
-                    "message": "   ",
+                    "commitMessage": "   ",
                 }
             },
         )
