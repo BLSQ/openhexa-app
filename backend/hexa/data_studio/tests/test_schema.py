@@ -667,11 +667,13 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         super().setUpTestData()
         provision_workspace_database(cls, cls.WORKSPACE)
 
-    def _execute(self, user, slug, max_rows=None):
+    def _execute(self, user, slug, max_rows=None, parameters=None):
         self.client.force_login(user)
         payload = {"slug": slug}
         if max_rows is not None:
             payload["maxRows"] = max_rows
+        if parameters is not None:
+            payload["parameters"] = parameters
         return self.run_query(self.EXECUTE_QUERY, {"input": payload})["data"][
             "executeSavedQuery"
         ]
@@ -792,3 +794,347 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         log = QueryLog.objects.get()
         self.assertEqual(QueryLog.Status.DENIED, log.status)
         self.assertEqual(saved_query, log.saved_query)
+
+
+class ExecuteSavedQueryWithParametersTest(SavedQueryTestMixin, GraphQLTestCase):
+    """Running a template: values bound, errors mapped, audit entry written."""
+
+    EXECUTE_QUERY = ExecuteSavedQueryTest.EXECUTE_QUERY
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        provision_workspace_database(cls, cls.WORKSPACE)
+
+    def setUp(self):
+        super().setUp()
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
+
+    def _execute(self, slug, parameters=None, user=None):
+        self.client.force_login(user or self.USER_VIEWER)
+        payload = {"slug": slug}
+        if parameters is not None:
+            payload["parameters"] = parameters
+        return self.run_query(self.EXECUTE_QUERY, {"input": payload})["data"][
+            "executeSavedQuery"
+        ]
+
+    def _limit_query(self):
+        return self.create_saved_query(
+            content="SELECT id FROM demo ORDER BY id LIMIT {{ limit }} OFFSET {{ offset }}",
+            parameters=[
+                {"name": "limit", "type": "INTEGER", "required": True},
+                {"name": "offset", "type": "INTEGER", "default": 0},
+            ],
+        )
+
+    def _in_query(self, operator="= ANY"):
+        return self.create_saved_query(
+            name=f"in-{operator}",
+            content=f"SELECT id FROM demo WHERE label {operator}({{{{ labels }}}}) ORDER BY id",
+            parameters=[{"name": "labels", "type": "STRING", "multiple": True}],
+        )
+
+    def test_values_move_the_rows(self):
+        saved_query = self._limit_query()
+
+        self.assertEqual(
+            [{"id": 1}, {"id": 2}],
+            self._execute(saved_query.slug, {"limit": 2})["rows"],
+        )
+        self.assertEqual(
+            [{"id": 2}, {"id": 3}],
+            self._execute(saved_query.slug, {"limit": 2, "offset": 1})["rows"],
+        )
+
+    def test_an_omitted_value_falls_back_to_its_default(self):
+        saved_query = self._limit_query()
+        result = self._execute(saved_query.slug, {"limit": 1})
+        self.assertEqual([{"id": 1}], result["rows"])
+
+    def test_any_binds_a_list_as_a_postgresql_array(self):
+        saved_query = self._in_query()
+        self.assertEqual(
+            [{"id": 1}, {"id": 3}],
+            self._execute(saved_query.slug, {"labels": ["a", "c"]})["rows"],
+        )
+
+    def test_an_empty_list_matches_nothing_rather_than_failing(self):
+        """The reason `= ANY` is used instead of expanding an IN clause.
+
+        A web app whose multi-select the user emptied cannot branch around the
+        clause -- it never holds the SQL -- so the empty set has to be legal.
+        """
+        result = self._execute(self._in_query().slug, {"labels": []})
+        self.assertTrue(result["success"])
+        self.assertEqual([], result["rows"])
+
+    def test_an_empty_list_under_all_matches_everything(self):
+        result = self._execute(self._in_query("<> ALL").slug, {"labels": []})
+        self.assertEqual([{"id": 1}, {"id": 2}, {"id": 3}], result["rows"])
+
+    def test_injection_is_bound_as_a_value(self):
+        saved_query = self.create_saved_query(
+            content="SELECT id FROM demo WHERE label = {{ label }}",
+            parameters=[{"name": "label", "type": "STRING"}],
+        )
+        result = self._execute(saved_query.slug, {"label": "a'; DROP TABLE demo; --"})
+
+        self.assertTrue(result["success"])
+        self.assertEqual([], result["rows"])
+        # The table is still there, which is the whole point.
+        self.assertEqual(
+            [{"id": 1}, {"id": 2}, {"id": 3}],
+            self._execute(self._in_query().slug, {"labels": ["a", "b", "c"]})["rows"],
+        )
+
+    def _sort_query(self, content, parameter_type):
+        seed_demo_table(self.WORKSPACE, [(1, "c"), (2, "a"), (3, "b")])
+        return self.create_saved_query(
+            content=content,
+            parameters=[{"name": "sort", "type": parameter_type}],
+        )
+
+    def test_a_string_in_place_of_a_column_name_fails(self):
+        saved_query = self._sort_query(
+            "SELECT id FROM demo ORDER BY {{ sort }}", "STRING"
+        )
+        result = self._execute(saved_query.slug, {"sort": "label"})
+        self.assertEqual(["QUERY_ERROR"], result["errors"])
+
+    def test_an_integer_in_place_of_a_column_name_sorts_by_position(self):
+        """psycopg2 inlines the bound value client-side, so `ORDER BY 2` is positional."""
+        saved_query = self._sort_query(
+            "SELECT id, label FROM demo ORDER BY {{ sort }}", "INTEGER"
+        )
+        result = self._execute(saved_query.slug, {"sort": 2})
+        self.assertEqual([2, 3, 1], [row["id"] for row in result["rows"]])
+
+    def test_sorting_through_a_whitelist_in_the_template(self):
+        seed_demo_table(self.WORKSPACE, [(1, "c"), (2, "a"), (3, "b")])
+        saved_query = self.create_saved_query(
+            content=(
+                "SELECT id FROM demo ORDER BY "
+                "{% if sort == 'label' %}label{% else %}id{% endif %} "
+                "{% if direction == 'desc' %}DESC{% else %}ASC{% endif %}"
+            ),
+            parameters=[
+                {"name": "sort", "type": "STRING", "default": "id"},
+                {"name": "direction", "type": "STRING", "default": "asc"},
+            ],
+        )
+        for parameters, expected in (
+            ({}, [1, 2, 3]),
+            ({"sort": "label"}, [2, 3, 1]),
+            ({"sort": "label", "direction": "desc"}, [1, 3, 2]),
+            ({"sort": "id; DROP TABLE demo"}, [1, 2, 3]),
+        ):
+            with self.subTest(parameters=parameters):
+                result = self._execute(saved_query.slug, parameters)
+                self.assertEqual(expected, [row["id"] for row in result["rows"]])
+
+    def test_a_literal_percent_still_works_alongside_a_value(self):
+        saved_query = self.create_saved_query(
+            content="SELECT id FROM demo WHERE label LIKE '%a%' AND id = {{ id }}",
+            parameters=[{"name": "id", "type": "INTEGER"}],
+        )
+        self.assertEqual(
+            [{"id": 1}], self._execute(saved_query.slug, {"id": 1})["rows"]
+        )
+
+    def test_a_query_without_parameters_is_unaffected(self):
+        saved_query = self.create_saved_query(
+            content="SELECT id FROM demo WHERE label LIKE '%a%'"
+        )
+        result = self._execute(saved_query.slug)
+        self.assertEqual([{"id": 1}], result["rows"])
+
+    def test_rejected_values(self):
+        saved_query = self._limit_query()
+        for label, parameters in (
+            ("unknown name", {"limit": 1, "lim": 2}),
+            ("missing required", {}),
+            ("wrong type", {"limit": "2"}),
+            ("a decimal for an INTEGER", {"limit": 2.5}),
+            ("injection as an INTEGER", {"limit": "1; DROP TABLE demo"}),
+        ):
+            with self.subTest(label):
+                result = self._execute(saved_query.slug, parameters)
+                self.assertEqual(["INVALID_PARAMETERS"], result["errors"])
+                self.assertFalse(result["success"])
+
+    def test_a_rejected_value_is_not_echoed_back(self):
+        result = self._execute(self._limit_query().slug, {"limit": "<script>"})
+        self.assertNotIn("script", result["errorMessage"])
+
+    def test_a_camel_case_parameter_name_survives_ariadne(self):
+        """`convert_names_case=True` must not recurse into the JSON scalar.
+
+        It converts input-object field names (`maxRows` -> `max_rows`); a parameter
+        name silently arriving as `min_id` would fail to bind.
+        """
+        saved_query = self.create_saved_query(
+            content="SELECT id FROM demo WHERE id >= {{ minId }} ORDER BY id",
+            parameters=[{"name": "minId", "type": "INTEGER"}],
+        )
+        result = self._execute(saved_query.slug, {"minId": 3})
+        self.assertTrue(result["success"], result["errorMessage"])
+        self.assertEqual([{"id": 3}], result["rows"])
+
+    def test_the_audit_entry_holds_the_statement_and_its_values(self):
+        saved_query = self._limit_query()
+
+        self._execute(saved_query.slug, {"limit": 1})
+
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.SUCCESS, log.status)
+        # Placeholders, with the values beside them rather than inlined.
+        self.assertIn("%s", log.query)
+        self.assertEqual({"limit": 1, "offset": 0}, log.parameters)
+
+    def test_a_query_without_parameters_records_none(self):
+        saved_query = self.create_saved_query(content="SELECT id FROM demo")
+        self._execute(saved_query.slug)
+        self.assertIsNone(QueryLog.objects.get().parameters)
+
+    def test_a_rejected_call_is_still_audited(self):
+        saved_query = self._limit_query()
+
+        self._execute(saved_query.slug, {"limit": "nope"})
+
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.REJECTED, log.status)
+        # No rendered statement exists, so the template text is the honest thing to keep.
+        self.assertIn("{{ limit }}", log.query)
+        self.assertEqual(saved_query, log.saved_query)
+
+    def test_a_denied_caller_is_refused_before_rendering(self):
+        saved_query = self._limit_query()
+
+        result = self._execute(saved_query.slug, {"limit": "nope"}, self.USER_OUTSIDER)
+
+        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
+        # An outsider cannot even see the query, so nothing is executed or logged.
+        self.assertEqual(0, QueryLog.objects.count())
+
+
+class SavedQueryParametersSchemaTest(SavedQueryTestMixin, GraphQLTestCase):
+    """Declaring parameters through the mutations, and reading them back."""
+
+    CREATE = """
+        mutation ($input: CreateSavedQueryInput!) {
+            createSavedQuery(input: $input) {
+                success errors
+                savedQuery { slug parameters { name type multiple required default help } }
+            }
+        }
+    """
+    UPDATE = """
+        mutation ($input: UpdateSavedQueryInput!) {
+            updateSavedQuery(input: $input) {
+                success errors savedQuery { parameters { name type } }
+            }
+        }
+    """
+
+    def _create(self, content, parameters=None, name="Templated"):
+        self.client.force_login(self.USER_EDITOR)
+        payload = {
+            "workspaceSlug": self.WORKSPACE.slug,
+            "name": name,
+            "content": content,
+        }
+        if parameters is not None:
+            payload["parameters"] = parameters
+        return self.run_query(self.CREATE, {"input": payload})["data"][
+            "createSavedQuery"
+        ]
+
+    def test_create_with_parameters_reads_every_field_back(self):
+        """Without normalization this query errors on a null `required` and `multiple`."""
+        result = self._create("SELECT {{ a }}", [{"name": "a", "type": "INTEGER"}])
+
+        self.assertTrue(result["success"])
+        self.assertEqual(
+            [
+                {
+                    "name": "a",
+                    "type": "INTEGER",
+                    "multiple": False,
+                    "required": False,
+                    "default": None,
+                    "help": "",
+                }
+            ],
+            result["savedQuery"]["parameters"],
+        )
+
+    def test_create_carries_every_declared_attribute(self):
+        result = self._create(
+            "SELECT {{ d }}",
+            [
+                {
+                    "name": "d",
+                    "type": "DATE",
+                    "multiple": True,
+                    "required": True,
+                    "default": ["2026-01-01"],
+                    "help": "Reporting periods",
+                }
+            ],
+        )
+        self.assertEqual(
+            {
+                "name": "d",
+                "type": "DATE",
+                "multiple": True,
+                "required": True,
+                "default": ["2026-01-01"],
+                "help": "Reporting periods",
+            },
+            result["savedQuery"]["parameters"][0],
+        )
+
+    def test_create_rejects_an_undeclared_variable(self):
+        result = self._create("SELECT {{ ghost }}", [])
+        self.assertEqual(["INVALID_TEMPLATE"], result["errors"])
+        self.assertFalse(result["success"])
+
+    def test_create_rejects_an_invalid_spec(self):
+        result = self._create("SELECT 1", [{"name": "1bad", "type": "INTEGER"}])
+        self.assertEqual(["INVALID_PARAMETERS"], result["errors"])
+
+    def test_update_replaces_the_declaration(self):
+        saved_query = self.create_saved_query(
+            content="SELECT {{ a }}", parameters=[{"name": "a", "type": "INTEGER"}]
+        )
+        self.client.force_login(self.USER_EDITOR)
+
+        result = self.run_query(
+            self.UPDATE,
+            {
+                "input": {
+                    "id": str(saved_query.id),
+                    "content": "SELECT {{ b }}",
+                    "parameters": [{"name": "b", "type": "STRING"}],
+                }
+            },
+        )["data"]["updateSavedQuery"]
+
+        self.assertTrue(result["success"])
+        self.assertEqual(
+            [{"name": "b", "type": "STRING"}], result["savedQuery"]["parameters"]
+        )
+
+    def test_update_rejects_a_content_that_no_longer_matches(self):
+        saved_query = self.create_saved_query(
+            content="SELECT {{ a }}", parameters=[{"name": "a", "type": "INTEGER"}]
+        )
+        self.client.force_login(self.USER_EDITOR)
+
+        result = self.run_query(
+            self.UPDATE,
+            {"input": {"id": str(saved_query.id), "content": "SELECT {{ b }}"}},
+        )["data"]["updateSavedQuery"]
+
+        self.assertEqual(["INVALID_TEMPLATE"], result["errors"])

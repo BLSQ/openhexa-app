@@ -684,6 +684,8 @@ type Query {
 input ExecuteSavedQueryInput {
   slug: String!
   maxRows: Int
+  "Valeurs des paramètres déclarés par la requête, sous forme de dictionnaire nom -> valeur."
+  parameters: JSON
 }
 
 # Same payload as executeSQL.
@@ -704,6 +706,8 @@ enum ExecuteSQLError {
   QUERY_TIMEOUT
   QUERY_ERROR
   MULTIPLE_STATEMENTS
+  INVALID_PARAMETERS
+  TEMPLATE_ERROR
 }
 ```
 
@@ -714,6 +718,92 @@ enum ExecuteSQLError {
 Le slug se lit dans le Data Studio : c'est le dernier segment de l'URL de la
 requête enregistrée. Notez que la requête doit être partagée avec le workspace ;
 une requête privée échoue avec `SAVED_QUERY_NOT_FOUND`.
+
+#### Requêtes paramétrées
+
+Une requête enregistrée peut déclarer des paramètres, ce qui permet de la
+paginer, la filtrer ou la trier depuis la webapp. L'auteur écrit les
+emplacements dans le SQL et déclare chacun d'eux avec un nom et un type :
+
+```sql
+SELECT district, period, cases
+FROM malaria_indicators
+WHERE district = ANY({{ districts }})
+  AND period >= {{ start_date }}
+ORDER BY period DESC
+LIMIT {{ limit }}
+```
+
+```json
+[
+  { "name": "districts",  "type": "STRING",  "multiple": true, "required": true },
+  { "name": "start_date", "type": "DATE",    "default": "2026-01-01" },
+  { "name": "limit",      "type": "INTEGER", "default": 100 }
+]
+```
+
+La webapp envoie ensuite les valeurs qu'elle connaît, par nom :
+
+```js
+{ input: { slug: "malaria-by-district", parameters: { districts: ["Dakar", "Thiès"], limit: 50 } } }
+```
+
+Toute valeur non envoyée retombe sur sa valeur par défaut : ci-dessus,
+`start_date` vaut donc `2026-01-01`. Les types sont `STRING`, `INTEGER`,
+`FLOAT`, `BOOLEAN` et `DATE` (une chaîne ISO `AAAA-MM-JJ`), chacun pouvant être
+`multiple`. Une valeur du mauvais type, un paramètre obligatoire manquant ou un
+nom que la requête ne déclare pas renvoient tous `INVALID_PARAMETERS` — y
+compris une chaîne numérique comme `"10"` pour un `INTEGER`, qui est refusée
+plutôt que devinée.
+
+Pour garantir une stricte isolation des requêtes et empêcher toute injection
+SQL, les valeurs ne deviennent jamais du SQL exécutable. Elles sont liées de
+manière sûre par le pilote de la base de données : une valeur fournie par
+l'utilisateur peut changer les lignes renvoyées, mais jamais la façon dont la
+requête s'exécute.
+
+Gardez à l'esprit les limitations suivantes :
+
+- **Filtrer sur une liste s'écrit `= ANY`, et exclure une liste `<> ALL` :**
+
+    ```sql
+    WHERE district = ANY({{ districts }})     -- garder ces districts
+    WHERE district <> ALL({{ districts }})    -- exclure ces districts
+    ```
+
+    Il s'agit bien du `IN` habituel — PostgreSQL traduit `IN (…)` en `= ANY(…)`
+    avant la planification — et `= ANY` est l'écriture qui accepte un paramètre.
+    Une liste vide est autorisée et ne correspond simplement à rien : une webapp
+    n'a donc jamais à traiter à part un multi-select que l'utilisateur a vidé.
+    Écrire `IN ({{ districts }})` par habitude échoue explicitement avec
+    `operator does not exist: text = text[]`.
+
+- **Un paramètre ne peut pas remplacer un nom de colonne.** `ORDER BY {{ sort }}`
+    échoue lorsque `sort` est un texte.
+
+    Le tri par position de colonne fonctionne en revanche : déclarez `sort` comme
+    `INTEGER`, et `sort: 2` trie selon la deuxième colonne du `SELECT`.
+
+    Pour trier par nom de colonne, listez les colonnes autorisées dans la
+    requête :
+
+    ```sql
+    ORDER BY
+      {% if sort == 'period' %}period
+      {% elif sort == 'cases' %}cases
+      {% else %}district{% endif %}
+      {% if direction == 'desc' %}DESC{% else %}ASC{% endif %}
+    ```
+
+    Déclarez `sort` et `direction` comme paramètres `STRING`, avec des valeurs
+    par défaut comme `"district"` et `"asc"`, puis envoyez
+    `parameters: { sort: "cases", direction: "desc" }`. Une valeur absente de la
+    liste retombe sur la branche `else`.
+
+- **Un emplacement ne doit pas se trouver dans une chaîne entre quotes.**
+    `WHERE name LIKE '{{ q }}%'` ne fonctionne pas. Écrivez
+    `WHERE name LIKE {{ q }}` et placez le `%` dans la valeur envoyée par la
+    webapp (`q: "dak%"`).
 
 ```html
 <!DOCTYPE html>
@@ -734,6 +824,8 @@ une requête privée échoue avec `SAVED_QUERY_NOT_FOUND`.
 
   <script>
     const SAVED_QUERY_SLUG = "ma-requete-enregistree";
+    // Omettre, ou envoyer {}, pour une requête sans paramètre déclaré.
+    const QUERY_PARAMETERS = {};
 
     async function gql(query, variables) {
       const res = await fetch("/graphql/", {
@@ -755,7 +847,7 @@ une requête privée échoue avec `SAVED_QUERY_NOT_FOUND`.
             success errors columns rows rowCount truncated
           }
         }
-      `, { input: { slug: SAVED_QUERY_SLUG, maxRows: 100 } });
+      `, { input: { slug: SAVED_QUERY_SLUG, maxRows: 100, parameters: QUERY_PARAMETERS } });
 
       if (!result.success) {
         out.textContent = "Erreur : " + result.errors.join(", ");

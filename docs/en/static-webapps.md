@@ -991,6 +991,8 @@ type Query {
 input ExecuteSavedQueryInput {
   slug: String!
   maxRows: Int
+  "Values for the parameters the saved query declares, as a name -> value map."
+  parameters: JSON
 }
 
 # Same payload as executeSQL.
@@ -1011,6 +1013,8 @@ enum ExecuteSQLError {
   QUERY_TIMEOUT
   QUERY_ERROR
   MULTIPLE_STATEMENTS
+  INVALID_PARAMETERS
+  TEMPLATE_ERROR
 }
 ```
 
@@ -1021,6 +1025,88 @@ enum ExecuteSQLError {
 Find the slug in the Data Studio: it is the last segment of the saved query's
 URL. Note that the query must be shared with the workspace, a private one fails
 with `SAVED_QUERY_NOT_FOUND`.
+
+#### Query templating
+
+A saved query can declare parameters, so the same query can be paginated,
+filtered or sorted from the web app. The author writes the placeholders in the
+SQL and declares each one with a name and a type:
+
+```sql
+SELECT district, period, cases
+FROM malaria_indicators
+WHERE district = ANY({{ districts }})
+  AND period >= {{ start_date }}
+ORDER BY period DESC
+LIMIT {{ limit }}
+```
+
+```json
+[
+  { "name": "districts",  "type": "STRING",  "multiple": true, "required": true },
+  { "name": "start_date", "type": "DATE",    "default": "2026-01-01" },
+  { "name": "limit",      "type": "INTEGER", "default": 100 }
+]
+```
+
+The web app then sends the values it knows about, by name:
+
+```js
+{ input: { slug: "malaria-by-district", parameters: { districts: ["Dakar", "Thiès"], limit: 50 } } }
+```
+
+Anything not sent falls back to its default, so `start_date` above resolves to
+`2026-01-01`. Types are `STRING`, `INTEGER`, `FLOAT`, `BOOLEAN` and `DATE` (an
+ISO `YYYY-MM-DD` string), each optionally `multiple`. A value of the wrong type,
+a missing required one, or a name the query does not declare all come back as
+`INVALID_PARAMETERS` — including a numeric string such as `"10"` for an
+`INTEGER`, which is rejected rather than guessed at.
+
+To enforce strict query isolation and prevent SQL injection, values never become 
+executable SQL. They are safely bound by the database driver, ensuring a user-supplied 
+value can change which rows are returned, but never how the query executes.
+
+Keep in mind these limitations:
+
+- **Filtering on a list is `= ANY`, and excluding one is `<> ALL`:**
+
+    ```sql
+    WHERE district = ANY({{ districts }})     -- keep these districts
+    WHERE district <> ALL({{ districts }})    -- exclude these districts
+    ```
+
+    This *is* `IN` — PostgreSQL compiles `IN (…)` to `= ANY(…)` before planning —
+    and `= ANY` is the spelling that accepts a parameter. An empty list is
+    allowed and simply matches nothing, so a web app never has to special-case a
+    multi-select the user emptied. Writing `IN ({{ districts }})` out of habit
+    fails loudly with `operator does not exist: text = text[]`.
+
+- **A parameter cannot stand for a column name.** `ORDER BY {{ sort }}` fails
+    when `sort` is text.
+
+    Sorting by column position does work: declare `sort` as an `INTEGER`, and
+    `sort: 2` sorts by the second column of the `SELECT`.
+
+    To sort by column name, list the allowed columns in the query:
+
+    ```sql
+    ORDER BY
+      {% if sort == 'period' %}period
+      {% elif sort == 'cases' %}cases
+      {% else %}district{% endif %}
+      {% if direction == 'desc' %}DESC{% else %}ASC{% endif %}
+    ```
+
+    Declare `sort` and `direction` as `STRING` parameters, with defaults such as
+    `"district"` and `"asc"`, then send
+    `parameters: { sort: "cases", direction: "desc" }`. A value that is not in the
+    list falls back to the `else` branch.
+
+- **A placeholder must not sit inside a quoted literal.**
+    `WHERE name LIKE '{{ q }}%'` does not work. Write `WHERE name LIKE {{ q }}`
+    and put the `%` in the value the web app sends (`q: "dak%"`).
+
+
 
 ```html
 <!DOCTYPE html>
@@ -1041,6 +1127,8 @@ with `SAVED_QUERY_NOT_FOUND`.
 
   <script>
     const SAVED_QUERY_SLUG = "my-saved-query";
+    // Omit, or send {}, for a query that declares no parameters.
+    const QUERY_PARAMETERS = {};
 
     async function gql(query, variables) {
       const res = await fetch("/graphql/", {
@@ -1062,7 +1150,7 @@ with `SAVED_QUERY_NOT_FOUND`.
             success errors columns rows rowCount truncated
           }
         }
-      `, { input: { slug: SAVED_QUERY_SLUG, maxRows: 100 } });
+      `, { input: { slug: SAVED_QUERY_SLUG, maxRows: 100, parameters: QUERY_PARAMETERS } });
 
       if (!result.success) {
         out.textContent = "Error: " + result.errors.join(", ");

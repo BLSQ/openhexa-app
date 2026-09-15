@@ -12,6 +12,10 @@ from hexa.data_studio.models import (
     SavedQuery,
     SavedQueryVisibility,
 )
+from hexa.data_studio.templating import (
+    InvalidParametersError,
+    InvalidTemplateError,
+)
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.user_management.models import User
@@ -22,6 +26,86 @@ from hexa.workspaces.models import (
 from hexa.workspaces.tests.testutils import create_workspace
 
 from .testutils import SavedQueryTestMixin
+
+
+class SavedQueryParametersTest(SavedQueryTestMixin, TestCase):
+    """Declared parameters: validation on the two API paths, and partial-update semantics."""
+
+    def test_create_stores_a_normalized_spec(self):
+        saved_query = self.create_saved_query(
+            content="SELECT {{ a }}", parameters=[{"name": "a", "type": "integer"}]
+        )
+        self.assertEqual(
+            [
+                {
+                    "name": "a",
+                    "type": "INTEGER",
+                    "multiple": False,
+                    "required": False,
+                    "default": None,
+                    "help": "",
+                }
+            ],
+            saved_query.parameters,
+        )
+
+    def test_create_defaults_to_no_parameters(self):
+        self.assertEqual([], self.create_saved_query().parameters)
+
+    def test_create_rejects_an_undeclared_variable(self):
+        with self.assertRaises(InvalidTemplateError):
+            self.create_saved_query(content="SELECT {{ ghost }}")
+
+    def test_create_rejects_an_invalid_spec(self):
+        with self.assertRaises(InvalidParametersError):
+            self.create_saved_query(
+                content="SELECT 1", parameters=[{"name": "1bad", "type": "INTEGER"}]
+            )
+
+    def test_sanitize_sql_leaves_template_syntax_intact(self):
+        # save() cleans blanks PostgreSQL cannot parse; it must not touch the delimiters.
+        content = "SELECT {{ a }} {% if a %}x{% endif %}{# note #}"
+        saved_query = self.create_saved_query(
+            content=content, parameters=[{"name": "a", "type": "INTEGER"}]
+        )
+        saved_query.refresh_from_db()
+        self.assertEqual(content, saved_query.content)
+
+    def test_an_update_that_omits_parameters_keeps_them(self):
+        """A client PATCHing only `name` must not drop the declaration."""
+        saved_query = self.create_saved_query(
+            content="SELECT {{ a }}", parameters=[{"name": "a", "type": "INTEGER"}]
+        )
+        saved_query.update_if_has_perm(self.USER_EDITOR, name="Renamed")
+        saved_query.refresh_from_db()
+        self.assertEqual("Renamed", saved_query.name)
+        self.assertEqual(["a"], [p["name"] for p in saved_query.parameters])
+
+    def test_an_explicit_null_keeps_them(self):
+        saved_query = self.create_saved_query(
+            content="SELECT {{ a }}", parameters=[{"name": "a", "type": "INTEGER"}]
+        )
+        saved_query.update_if_has_perm(self.USER_EDITOR, parameters=None)
+        saved_query.refresh_from_db()
+        self.assertEqual(["a"], [p["name"] for p in saved_query.parameters])
+
+    def test_an_empty_list_clears_them(self):
+        saved_query = self.create_saved_query(
+            content="SELECT {{ a }}", parameters=[{"name": "a", "type": "INTEGER"}]
+        )
+        saved_query.update_if_has_perm(
+            self.USER_EDITOR, content="SELECT 1", parameters=[]
+        )
+        saved_query.refresh_from_db()
+        self.assertEqual([], saved_query.parameters)
+
+    def test_an_update_validates_the_resulting_pair(self):
+        """Changing only the content must not leave it disagreeing with the spec."""
+        saved_query = self.create_saved_query(
+            content="SELECT {{ a }}", parameters=[{"name": "a", "type": "INTEGER"}]
+        )
+        with self.assertRaises(InvalidTemplateError):
+            saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT {{ b }}")
 
 
 class SavedQueryModelTest(SavedQueryTestMixin, TestCase):

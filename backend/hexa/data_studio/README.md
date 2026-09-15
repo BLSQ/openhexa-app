@@ -101,6 +101,38 @@ the third by `views`:
   concurrent exports per worker; excess callers get an immediate **429** rather than queueing.
   It is per process, not a global cap (that is the per-role Postgres `CONNECTION LIMIT`).
 
+## Query Templating
+
+Saved queries (`SavedQuery.parameters`) act as SQL templates rendered by `templating.py` prior to execution. 
+
+### Core Architecture & Trust Model
+
+* **Trust Boundary**: Templates are trusted (authored by workspace members), while input values are untrusted (received directly from web applications).
+* **Safe Parameter Binding**: `templating.py` never injects values directly into SQL strings. It replaces values with placeholder tokens and extracts the raw values into a separate list.
+* **Driver Decoupling**: Database-specific formatting is completely separated from template rendering. For example, `hexa.databases.query_text.to_psycopg2` converts placeholders into `%s` tokens (with required `%`-doubling). Replacing the database backend (e.g., with DuckDB) only requires swapping this converter module.
+
+### Key Design Decisions
+
+* **No SQL Injection Hatches**: Features like a `sqlsafe` filter or `Markup` pass-through are intentionally omitted. Input values can never alter the SQL grammar.
+* **Array Binding over `IN` Expansion**: `multiple` parameters bind as PostgreSQL arrays using `= ANY(...)` rather than expanding into `IN (...)` clauses.
+  * Ensures one parameter always maps to exactly one placeholder token.
+  * Safely handles empty lists (`= ANY` evaluates to false, whereas an empty `IN ()` produces a SQL syntax error).
+
+### Implementation Safeguards (`render_saved_query`)
+
+* **Strict `Undefined` Handling**: The `finalize` function must explicitly fail on Jinja `Undefined` objects (such as `StrictUndefined` or sandbox restrictions). Handled before stringification, this prevents unhandled template errors from surfacing later as cryptic database driver errors.
+* **Preventing Desynchronization**: Applying `@pass_context` to `finalize` prevents Jinja from constant-folding output nodes at compile time, ensuring parameter values remain perfectly synchronized with their placeholders.
+
+### Validation & Normalization
+
+* **API-Level Enforcement**: Validation runs in API handlers (`create_if_has_perm`, `update_if_has_perm`) rather than in `SavedQuery.save()`. This prevents database migrations and test fixtures from becoming brittle.
+* **Spec Normalization**: Validation returns a normalized spec with all optional keys explicitly set (e.g., `multiple`, `required`). This is required for GraphQL, which expects non-null fields when reading directly from the `JSONField`.
+
+### Snippets & Imports
+
+* `{% include %}` and `{% import %}` tags are currently **blocked at save time**.
+* In future iterations, snippet features will use `build_environment` loaders to allow static included SQL to safely bypass `finalize` and render verbatim.
+
 ## Resource lifecycle
 
 The slot and connection outlive the view call — the response keeps consuming rows after the
