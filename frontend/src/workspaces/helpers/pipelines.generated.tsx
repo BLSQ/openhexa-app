@@ -9,7 +9,7 @@ export type UpdateWorkspacePipelineMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateWorkspacePipelineMutation = { __typename?: 'Mutation', updatePipeline: { __typename?: 'UpdatePipelineResult', success: boolean, errors: Array<Types.UpdatePipelineError>, pipeline?: { __typename?: 'Pipeline', id: string, name?: string | null, description?: string | null, schedule?: string | null, config: any, functionalType?: Types.PipelineFunctionalType | null, updatedAt?: any | null, webhookEnabled: boolean, webhookUrl?: string | null, autoUpdateFromTemplate: boolean, scheduledPipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, required: boolean }> } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: string, displayName: string } }> } | null } };
+export type UpdateWorkspacePipelineMutation = { __typename?: 'Mutation', updatePipeline: { __typename?: 'UpdatePipelineResult', success: boolean, errors: Array<Types.UpdatePipelineError>, details?: string | null, pipeline?: { __typename?: 'Pipeline', id: string, name?: string | null, description?: string | null, schedule?: string | null, config: any, functionalType?: Types.PipelineFunctionalType | null, updatedAt?: any | null, webhookEnabled: boolean, webhookUrl?: string | null, autoUpdateFromTemplate: boolean, scheduledPipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, required: boolean }> } | null, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: string, displayName: string } }> } | null } };
 
 export type RunWorkspacePipelineMutationVariables = Types.Exact<{
   input: Types.RunPipelineInput;
@@ -58,6 +58,7 @@ export const UpdateWorkspacePipelineDocument = gql`
   updatePipeline(input: $input) {
     success
     errors
+    details
     pipeline {
       id
       name

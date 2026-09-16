@@ -334,11 +334,11 @@ query WorkspacePipelineNotificationsPage(
       id
       versionNumber
       versionName
-      parameters {
-        code
-        required
-      }
-      config
+      missingScheduleParameters
+    }
+    currentVersion {
+      id
+      missingScheduleParameters
     }
     versions(perPage: 10) {
       items {
@@ -346,14 +346,8 @@ query WorkspacePipelineNotificationsPage(
         versionNumber
         versionName
         isLatestVersion
+        missingScheduleParameters
       }
-    }
-    currentVersion {
-      parameters {
-        code
-        required
-      }
-      config
     }
     permissions {
       schedule

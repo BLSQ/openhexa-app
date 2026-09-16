@@ -224,8 +224,12 @@ def resolve_create_pipeline(_, info, **kwargs):
             "errors": ["PIPELINE_CODE_PARSING_ERROR"],
             "details": str(e),
         }
-    except PipelineDoesNotSupportParametersError:
-        return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
+    except PipelineDoesNotSupportParametersError as e:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"],
+            "details": ", ".join(e.missing),
+        }
     except InvalidTimeoutValueError:
         return {"success": False, "errors": ["INVALID_TIMEOUT_VALUE"]}
     except InvalidVersionFilesError as e:
@@ -296,10 +300,11 @@ def resolve_update_pipeline(_, info, **kwargs):
             "success": False,
             "errors": ["INVALID_CONFIG"],
         }
-    except MissingPipelineConfiguration:
+    except MissingPipelineConfiguration as e:
         return {
             "success": False,
             "errors": ["MISSING_VERSION_CONFIG"],
+            "details": ", ".join(e.missing),
         }
     except PipelineVersion.DoesNotExist:
         return {
@@ -541,8 +546,12 @@ def resolve_upload_pipeline(_, info, **kwargs):
             "success": False,
             "errors": ["INVALID_CONFIG"],
         }
-    except PipelineDoesNotSupportParametersError:
-        return {"success": False, "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"]}
+    except PipelineDoesNotSupportParametersError as e:
+        return {
+            "success": False,
+            "errors": ["PIPELINE_DOES_NOT_SUPPORT_PARAMETERS"],
+            "details": ", ".join(e.missing),
+        }
     except PipelineCodeParsingError as e:
         return {
             "success": False,
