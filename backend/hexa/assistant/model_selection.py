@@ -23,28 +23,31 @@ logger = logging.getLogger(__name__)
 def _overrides() -> dict[str, str]:
     """Agent key -> logical model, parsed from ASSISTANT_AGENT_MODELS.
 
-    A misconfiguration must never take the assistant down, so an unusable
-    setting is dropped whole and the code defaults apply. Dropped whole rather
-    than entry by entry: a typo that reverts every agent is noticed, one that
-    silently ignores a single line looks exactly like a working configuration.
+    A misconfiguration must never take the assistant down, so anything we cannot
+    make sense of is dropped with an error and the code defaults apply. Entries
+    are dropped one by one: a typo should not undo the pins set alongside it,
+    which may be the deliberate ones. Unparseable JSON leaves nothing to salvage.
     """
     raw = settings.ASSISTANT_AGENT_MODELS
     if not raw:
         return {}
     try:
-        return {
-            AgentKey(key).value: AiSettings.Model(model).value
-            for key, model in json.loads(raw).items()
-        }
+        entries = json.loads(raw).items()
     except Exception:
         logger.error(
-            "ASSISTANT_AGENT_MODELS is not a JSON object mapping an agent key (%s) "
-            "to a model (%s); ignoring it: %r",
-            sorted(AgentKey.values),
-            sorted(AiSettings.Model.values),
-            raw,
+            "ASSISTANT_AGENT_MODELS is not a JSON object; ignoring it: %r", raw
         )
         return {}
+
+    overrides = {}
+    for key, model in entries:
+        try:
+            overrides[AgentKey(key).value] = AiSettings.Model(model).value
+        except Exception as exc:
+            logger.error(
+                "ASSISTANT_AGENT_MODELS: ignoring entry %r -> %r (%s)", key, model, exc
+            )
+    return overrides
 
 
 def resolve_model(

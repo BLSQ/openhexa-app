@@ -56,36 +56,44 @@ class ResolveModelTest(SimpleTestCase):
 
 
 class OverridesParsingTest(SimpleTestCase):
-    """An unusable setting is dropped whole, so every agent falls back to its
-    own default rather than half the configuration silently applying.
+    """A bad entry is dropped on its own, so the pins set alongside it — which
+    may be the deliberate ones — still apply.
     """
 
-    def _assert_ignored(self):
+    def _assert_entry_ignored(self):
         with self.assertLogs(_LOGGER, level="ERROR"):
             resolved = resolve_model(
                 _ai_settings(), AgentKey.NAMING, AiSettings.Model.HAIKU
             )
         self.assertEqual(resolved, AiSettings.Model.HAIKU)
 
-    @override_settings(ASSISTANT_AGENT_MODELS="not json")
-    def test_invalid_json_is_ignored(self):
-        self._assert_ignored()
-
-    @override_settings(ASSISTANT_AGENT_MODELS='["naming"]')
-    def test_json_that_is_not_an_object_is_ignored(self):
-        self._assert_ignored()
+    @override_settings(ASSISTANT_AGENT_MODELS='{"naming": "gpt-9"}')
+    def test_unknown_model_is_ignored(self):
+        self._assert_entry_ignored()
 
     @override_settings(ASSISTANT_AGENT_MODELS='{"naming": ["haiku"]}')
     def test_a_model_that_is_not_a_string_is_ignored(self):
-        self._assert_ignored()
-
-    @override_settings(ASSISTANT_AGENT_MODELS='{"naming": "gpt-9"}')
-    def test_unknown_model_is_ignored(self):
-        self._assert_ignored()
+        self._assert_entry_ignored()
 
     @override_settings(ASSISTANT_AGENT_MODELS='{"nmaing": "sonnet"}')
     def test_unknown_agent_key_is_ignored(self):
-        self._assert_ignored()
+        self._assert_entry_ignored()
+
+    @override_settings(
+        ASSISTANT_AGENT_MODELS='{"nmaing": "sonnet", "generate_sql": "haiku"}'
+    )
+    def test_a_bad_entry_leaves_the_others_applied(self):
+        with self.assertLogs(_LOGGER, level="ERROR"):
+            resolved = resolve_model(_ai_settings(), AgentKey.GENERATE_SQL, None)
+        self.assertEqual(resolved, AiSettings.Model.HAIKU)
+
+    @override_settings(ASSISTANT_AGENT_MODELS="not json")
+    def test_invalid_json_is_ignored(self):
+        self._assert_entry_ignored()
+
+    @override_settings(ASSISTANT_AGENT_MODELS='["naming"]')
+    def test_json_that_is_not_an_object_is_ignored(self):
+        self._assert_entry_ignored()
 
     @override_settings(ASSISTANT_AGENT_MODELS="")
     def test_an_empty_setting_leaves_the_defaults_alone(self):
