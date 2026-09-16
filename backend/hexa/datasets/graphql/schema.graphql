@@ -128,6 +128,10 @@ type DatasetVersionFile implements MetadataObject{
   size: BigInt!
   rows: Int
   fileSample: DatasetFileSample
+  """
+  Column names in file order, when profiling succeeded.
+  """
+  columns: [String!]
   properties: JSON
   attributes: [MetadataAttribute!]!
   targetId: OpaqueID!

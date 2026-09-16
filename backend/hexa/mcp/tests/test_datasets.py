@@ -2,9 +2,15 @@ import json
 
 from django.conf import settings
 
-from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
+from hexa.datasets.models import (
+    Dataset,
+    DatasetFileSample,
+    DatasetVersion,
+    DatasetVersionFile,
+)
 from hexa.files import storage
 from hexa.mcp.tools.datasets import (
+    PREVIEW_SAMPLE_ROWS,
     create_dataset,
     create_dataset_version,
     get_dataset,
@@ -89,10 +95,32 @@ class GetDatasetTest(MCPTestCase):
 
 
 class PreviewDatasetFileTest(MCPTestCase):
-    def test_preview_dataset_file(self):
-        result = preview_dataset_file(
+    COLUMN_HASHES = {
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa": "country",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb": "cases",
+    }
+
+    def create_sample(self, rows):
+        return DatasetFileSample.objects.create(
+            dataset_version_file=self.DATASET_FILE,
+            sample=[{"country": f"c{i}", "cases": i} for i in range(rows)],
+            status=DatasetFileSample.STATUS_FINISHED,
+        )
+
+    def set_properties(self):
+        self.DATASET_FILE.properties = {
+            "columns": self.COLUMN_HASHES,
+            "column_order": list(self.COLUMN_HASHES),
+        }
+        self.DATASET_FILE.save()
+
+    def preview(self):
+        return preview_dataset_file(
             user=self.USER_ADMIN, file_id=str(self.DATASET_FILE.id)
         )
+
+    def test_preview_dataset_file(self):
+        result = self.preview()
         self.assertEqual(result["filename"], "test-file.csv")
         self.assertEqual(result["contentType"], "text/csv")
         self.assertIn("fileSample", result)
@@ -103,6 +131,31 @@ class PreviewDatasetFileTest(MCPTestCase):
             file_id="00000000-0000-0000-0000-000000000000",
         )
         self.assertEqual(result, {"error": "Dataset file not found"})
+
+    def test_preview_dataset_file_truncates_sample(self):
+        self.create_sample(12)
+        file_sample = self.preview()["fileSample"]
+        self.assertEqual(len(file_sample["sample"]), PREVIEW_SAMPLE_ROWS)
+        self.assertEqual(file_sample["sample"][0], {"country": "c0", "cases": 0})
+        self.assertEqual(file_sample["status"], DatasetFileSample.STATUS_FINISHED)
+
+    def test_preview_dataset_file_keeps_short_sample(self):
+        self.create_sample(2)
+        file_sample = self.preview()["fileSample"]
+        self.assertEqual(len(file_sample["sample"]), 2)
+
+    def test_preview_dataset_file_returns_columns_without_properties(self):
+        self.create_sample(2)
+        self.set_properties()
+
+        result = self.preview()
+        self.assertEqual(result["columns"], ["country", "cases"])
+        self.assertNotIn("properties", result)
+
+    def test_preview_dataset_file_without_sample(self):
+        result = self.preview()
+        self.assertIsNone(result["fileSample"])
+        self.assertIsNone(result["columns"])
 
 
 class CreateDatasetTest(MCPTestCase):

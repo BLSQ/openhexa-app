@@ -164,7 +164,7 @@ const GET_DATASET_VERSION_FILE_SAMPLE = gql`
     datasetVersionFile(id: $id) {
       id
       rows
-      properties
+      columns
       fileSample {
         sample
         status
@@ -210,18 +210,8 @@ export const DatasetVersionFileSample: ApolloComponent<
         (row: Record<string, unknown>) => mapValues(row, stringifyIfObject),
       );
       const rows = data.datasetVersionFile.rows;
-      const properties = data.datasetVersionFile.properties ?? {};
-      const columnOrder: string[] | undefined = properties.column_order;
-      const colsMapping: Record<string, string> = properties.columns ?? {};
-
-      let columns: string[];
-      if (columnOrder && colsMapping) {
-        columns = columnOrder.map((key: string) => colsMapping[key]);
-      } else if (sample.length > 0) {
-        columns = Object.keys(sample[0]);
-      } else {
-        columns = [];
-      }
+      const columns: string[] =
+        data.datasetVersionFile.columns ?? Object.keys(sample[0] ?? {});
 
       return {
         sample,

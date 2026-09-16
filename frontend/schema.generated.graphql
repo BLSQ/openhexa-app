@@ -1676,6 +1676,9 @@ type DatasetVersion implements MetadataObject {
 """A file in a dataset version."""
 type DatasetVersionFile implements MetadataObject {
   attributes: [MetadataAttribute!]!
+
+  """Column names in file order, when profiling succeeded."""
+  columns: [String!]
   contentType: String!
   createdAt: DateTime!
   createdBy: User

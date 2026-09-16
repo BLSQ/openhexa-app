@@ -91,9 +91,7 @@ describe("GenerateSqlBar", () => {
     expect(
       screen.getByPlaceholderText(/describe what you'd like to query/i),
     ).toBeDisabled();
-    expect(
-      screen.getByRole("button", { name: "Generating…" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Generating…" })).toBeDisabled();
   });
 
   it("shows the error message with a retry action", async () => {

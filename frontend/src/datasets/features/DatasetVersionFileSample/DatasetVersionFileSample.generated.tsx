@@ -8,7 +8,7 @@ export type GetDatasetVersionFileSampleQueryVariables = Types.Exact<{
 }>;
 
 
-export type GetDatasetVersionFileSampleQuery = { __typename?: 'Query', datasetVersionFile?: { __typename?: 'DatasetVersionFile', id: string, rows?: number | null, properties?: any | null, fileSample?: { __typename?: 'DatasetFileSample', sample?: any | null, status: Types.FileSampleStatus, statusReason?: string | null } | null } | null };
+export type GetDatasetVersionFileSampleQuery = { __typename?: 'Query', datasetVersionFile?: { __typename?: 'DatasetVersionFile', id: string, rows?: number | null, columns?: Array<string> | null, fileSample?: { __typename?: 'DatasetFileSample', sample?: any | null, status: Types.FileSampleStatus, statusReason?: string | null } | null } | null };
 
 export type DatasetVersionFileSample_FileFragment = { __typename?: 'DatasetVersionFile', id: string, filename: string, contentType: string, size: any, downloadUrl?: string | null };
 
@@ -39,7 +39,7 @@ export const GetDatasetVersionFileSampleDocument = gql`
   datasetVersionFile(id: $id) {
     id
     rows
-    properties
+    columns
     fileSample {
       sample
       status

@@ -867,6 +867,71 @@ class DatasetVersionTest(GraphQLTestCase, DatasetTestMixin):
             r["data"],
         )
 
+    COLUMN_HASHES = {
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa": "country",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb": "cases",
+    }
+    COLUMNS_AND_SAMPLE_QUERY = """
+        query GetDatasetVersionFile($id: ID!) {
+          datasetVersionFile(id: $id) {
+            columns
+            fileSample {
+              sample
+            }
+          }
+        }
+    """
+
+    def create_profiled_file(self, sample, properties=None):
+        self.test_create_dataset_version()
+        superuser = User.objects.get(email="superuser@blsq.com")
+        dataset = Dataset.objects.get(name="Dataset")
+        self.client.force_login(superuser)
+        file = DatasetVersionFile.objects.create(
+            dataset_version=dataset.latest_version,
+            uri=dataset.latest_version.get_full_uri("file.csv"),
+            created_by=superuser,
+            properties=properties or {},
+        )
+        DatasetFileSample.objects.create(
+            dataset_version_file=file,
+            sample=sample,
+            status=DatasetFileSample.STATUS_FINISHED,
+        )
+        return file
+
+    def test_get_file_columns_and_ordered_sample(self):
+        file = self.create_profiled_file(
+            # keys stored in jsonb order, not file order, plus an unprofiled column
+            sample=[{"cases": 0, "country": "c0", "notes": "n0"}],
+            properties={
+                "columns": self.COLUMN_HASHES,
+                "column_order": list(self.COLUMN_HASHES),
+            },
+        )
+        r = self.run_query(self.COLUMNS_AND_SAMPLE_QUERY, {"id": str(file.id)})
+        data = r["data"]["datasetVersionFile"]
+        self.assertEqual(data["columns"], ["country", "cases"])
+        self.assertEqual(
+            list(data["fileSample"]["sample"][0]), ["country", "cases", "notes"]
+        )
+
+    def test_get_file_columns_falls_back_to_columns_map(self):
+        file = self.create_profiled_file(
+            sample=[], properties={"columns": self.COLUMN_HASHES}
+        )
+        r = self.run_query(self.COLUMNS_AND_SAMPLE_QUERY, {"id": str(file.id)})
+        data = r["data"]["datasetVersionFile"]
+        self.assertEqual(data["columns"], ["country", "cases"])
+        self.assertEqual(data["fileSample"]["sample"], [])
+
+    def test_get_file_columns_without_properties(self):
+        file = self.create_profiled_file(sample=[{"cases": 0, "country": "c0"}])
+        r = self.run_query(self.COLUMNS_AND_SAMPLE_QUERY, {"id": str(file.id)})
+        data = r["data"]["datasetVersionFile"]
+        self.assertIsNone(data["columns"])
+        self.assertEqual(data["fileSample"]["sample"], [{"cases": 0, "country": "c0"}])
+
     def test_prepare_version_file_download(self):
         serena = self.create_user("sereba@blsq.org", is_superuser=True)
         workspace = self.create_workspace(

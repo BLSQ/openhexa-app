@@ -417,6 +417,20 @@ class DatasetVersionFile(MetadataMixin, Base):
     def full_uri(self):
         return self.dataset_version.get_full_uri(self.uri)
 
+    @property
+    def column_names(self) -> list[str] | None:
+        """Column names in file order.
+
+        `properties` keys columns by md5 hash because the hashes prefix the column
+        metadata attribute keys; most callers only need the names.
+        """
+        columns = self.properties.get("columns") or {}
+        if not columns:
+            return None
+        column_order = self.properties.get("column_order") or []
+        names = [columns[key] for key in column_order if key in columns]
+        return names or list(columns.values())
+
     @cached_property
     def size(self):
         blob = get_blob(self.uri)
@@ -503,6 +517,28 @@ class DatasetFileSample(Base):
         on_delete=models.CASCADE,
         related_name="sample_entry",
     )
+
+    @property
+    def ordered_sample(self):
+        """Sample rows with their keys in file order.
+
+        jsonb does not preserve key order, so stored rows come back with keys sorted
+        by Postgres. Columns the profiling could not handle are kept at the end so
+        the sample never loses data.
+        """
+        columns = self.dataset_version_file.column_names
+        if not columns or not isinstance(self.sample, list):
+            return self.sample
+        return [
+            self._order_row(row, columns) if isinstance(row, dict) else row
+            for row in self.sample
+        ]
+
+    @staticmethod
+    def _order_row(row: dict, columns: list[str]) -> dict:
+        ordered = {name: row[name] for name in columns if name in row}
+        ordered.update({key: value for key, value in row.items() if key not in ordered})
+        return ordered
 
 
 class DatasetLinkQuerySet(BaseQuerySet):
