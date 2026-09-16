@@ -29,8 +29,6 @@ logger = logging.getLogger(__name__)
 
 _PROVIDER_SEPARATOR = ":"
 
-# genai_prices calculates managed models prices by Google Vertex,
-# not by the provider that defines them.
 _MANAGED_PRICING_PROVIDER = "google-vertex"
 
 
@@ -38,6 +36,27 @@ class BuiltModel(NamedTuple):
     model: PydanticModel
     api_name: str
     provider_id: str
+
+    def calculate_cost(self, usage: RunUsage) -> Decimal | None:
+        """Price `usage`, or None if this model has no known price.
+
+        Agents in one conversation may run on different models, so each prices
+        its own usage. Unpriced usage is dropped rather than guessed, which also
+        drops it from the spend a workspace is capped on: hence the error, since
+        a model id we cannot price is a configuration problem to fix.
+        """
+        try:
+            return genai_prices.calc_price(
+                usage, self.api_name, provider_id=self.provider_id
+            ).total_price
+        except Exception:
+            logger.error(
+                "cost calculation failed for model=%s provider=%s; "
+                "its usage will not count towards any spend limit",
+                self.api_name,
+                self.provider_id,
+            )
+            return None
 
 
 def provider_of(model_id: str) -> str:
@@ -64,6 +83,22 @@ def _opted_in_providers() -> frozenset[str]:
     )
 
 
+def pricing_provider_id(ai_settings: AiSettings, model_id: str) -> str:
+    """The provider genai_prices knows this model by.
+
+    It prices managed models by the Google Vertex backend they really run on,
+    rather than by the provider that defines them. Providers we only opted into
+    are billed to us directly, so they keep their own name.
+    """
+    provider = provider_of(model_id)
+    if (
+        ai_settings.provider == AiSettings.Provider.MANAGED
+        and provider in _MANAGED_PROVIDERS
+    ):
+        return _MANAGED_PRICING_PROVIDER
+    return provider
+
+
 def supports(ai_settings: AiSettings, model_id: str) -> bool:
     """Whether we support `model_id`'s provider.
     BYOK providers are fixed to the AiSettings providers,
@@ -73,25 +108,6 @@ def supports(ai_settings: AiSettings, model_id: str) -> bool:
     if ai_settings.provider == AiSettings.Provider.MANAGED:
         return provider in _MANAGED_PROVIDERS or provider in _opted_in_providers()
     return provider == ai_settings.provider
-
-
-def calculate_cost(usage: RunUsage, model: BuiltModel) -> Decimal | None:
-    """Price `usage` with the model that produced it.
-
-    Agents in one conversation may run on different models, so the caller says
-    which one to price against.
-    """
-    try:
-        return genai_prices.calc_price(
-            usage, model.api_name, provider_id=model.provider_id
-        ).total_price
-    except Exception:
-        logger.warning(
-            "cost calculation failed for model=%s provider=%s",
-            model.api_name,
-            model.provider_id,
-        )
-        return None
 
 
 def _vertex_anthropic() -> Provider:
@@ -194,12 +210,5 @@ class AiModelBuilder:
         return BuiltModel(
             model=model,
             api_name=model.model_name,
-            provider_id=self._pricing_provider_id(provider_of(model_id)),
+            provider_id=pricing_provider_id(self._ai_settings, model_id),
         )
-
-    def _pricing_provider_id(self, provider: str) -> str:
-        managed_on_vertex = (
-            self._ai_settings.provider == AiSettings.Provider.MANAGED
-            and provider in _MANAGED_PROVIDERS
-        )
-        return _MANAGED_PRICING_PROVIDER if managed_on_vertex else provider

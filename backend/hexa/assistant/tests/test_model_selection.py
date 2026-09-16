@@ -1,8 +1,10 @@
 from django.test import SimpleTestCase, override_settings
+from pydantic_ai import RunUsage
 
 from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.agents.naming_agent import NamingAgent
 from hexa.assistant.exceptions import AssistantException
+from hexa.assistant.model_builder import BuiltModel, pricing_provider_id
 from hexa.assistant.model_selection import (
     _DEFAULT_MODELS,
     organization_model_id,
@@ -208,6 +210,31 @@ class PinsParsingTest(SimpleTestCase):
                 _ai_settings(), AgentKey.NAMING, AiSettings.Model.HAIKU
             )
         self.assertEqual(resolved, _HAIKU_ID)
+
+
+class CatalogPricingTest(SimpleTestCase):
+    """Every model we ship has to be priceable.
+
+    An unpriceable model costs nothing as far as we can tell, so its usage never
+    counts towards ASSISTANT_MONTHLY_LIMIT and the cap silently stops applying.
+    That is invisible in production, so catch a bad default here.
+    """
+
+    def test_every_default_model_can_be_priced(self):
+        usage = RunUsage(input_tokens=1000, output_tokens=1000)
+        for provider, ids in _DEFAULT_MODELS.items():
+            ai_settings = _ai_settings(provider=provider)
+            for model, model_id in ids.items():
+                with self.subTest(provider=provider, model=model):
+                    built = BuiltModel(
+                        model=None,
+                        api_name=model_id.split(":", 1)[1],
+                        provider_id=pricing_provider_id(ai_settings, model_id),
+                    )
+                    self.assertIsNotNone(
+                        built.calculate_cost(usage),
+                        f"genai_prices does not know {model_id!r}",
+                    )
 
 
 class AgentDefaultsTest(SimpleTestCase):

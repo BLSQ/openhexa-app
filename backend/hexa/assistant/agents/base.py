@@ -29,7 +29,7 @@ from pydantic_ai.messages import (
 from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.agents.naming_agent import NamingAgent, NamingResult
 from hexa.assistant.instructions import InstructionSet, get_instructions
-from hexa.assistant.model_builder import AiModelBuilder, BuiltModel, calculate_cost
+from hexa.assistant.model_builder import AiModelBuilder, BuiltModel
 from hexa.assistant.model_selection import build_agent_model
 from hexa.assistant.models import (
     Conversation,
@@ -497,7 +497,7 @@ class BaseAgent:
     ) -> Message:
         input_tok = usage.input_tokens or 0
         output_tok = usage.output_tokens or 0
-        cost = calculate_cost(usage, self._built_model)
+        cost = self._built_model.calculate_cost(usage)
         logger.info(
             "agent.run_stream: done input_tokens=%d output_tokens=%d cost=%s",
             input_tok,
