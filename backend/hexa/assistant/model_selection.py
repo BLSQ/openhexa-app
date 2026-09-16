@@ -1,16 +1,16 @@
 """Decides which model each agent runs on.
 
-Models are named by their pydantic-ai id, "<provider>:<model>". ASSISTANT_MODELS
-maps each provider's logical models (the ones organizations pick from) to such an
-id, so moving everyone from one model — or one provider — to another is an env
-change rather than a release.
+Models are named by their pydantic-ai id, "<provider>:<model>".
+ASSISTANT_MANAGED_MODELS maps the logical models managed organizations run on
+(the ones agents ask for) to such an id, so moving them from one model — or one
+provider — to another is an env change rather than a release.
 
 Every agent declares an `AgentKey` and, optionally, a `default_model`; the model
 it actually runs on is, in order of precedence: the entry for its key in the
 ASSISTANT_AGENT_MODELS setting, its own default, then the model the organization
-configured. An entry is either a logical model (e.g. "haiku"), resolved through
-ASSISTANT_MODELS for the organization's provider, or a model id of its own
-(e.g. "google-cloud:gemini-3-pro"), which is the only way to put one agent on a
+configured. An entry is either a logical model (e.g. "haiku"), resolved for the
+organization's provider, or a model id of its own (e.g.
+"google-cloud:gemini-3-pro-preview"), which is the only way to put one agent on a
 different provider than the rest.
 """
 
@@ -31,13 +31,15 @@ from hexa.user_management.models import AiSettings
 
 logger = logging.getLogger(__name__)
 
-# Model ids per provider, overridden entry by entry from ASSISTANT_MODELS. The
-# managed map only needs the models we actually run managed organizations on.
-_DEFAULT_MODELS: dict[str, dict[str, str]] = {
-    AiSettings.Provider.MANAGED.value: {
-        AiSettings.Model.HAIKU.value: "anthropic:claude-haiku-4-5",
-        AiSettings.Model.OPUS.value: "anthropic:claude-opus-4-6",
-    },
+# What our own Vertex project runs managed organizations on, overridden entry by
+# entry from ASSISTANT_MANAGED_MODELS. It only needs the models agents ask for.
+_MANAGED_DEFAULTS: dict[str, str] = {
+    AiSettings.Model.HAIKU.value: "anthropic:claude-haiku-4-5",
+    AiSettings.Model.OPUS.value: "anthropic:claude-opus-4-6",
+}
+
+# BYOK organizations pick their own model, so these are not ours to switch.
+_BYOK_MODELS: dict[str, dict[str, str]] = {
     AiSettings.Provider.ANTHROPIC.value: {
         AiSettings.Model.HAIKU.value: "anthropic:claude-haiku-4-5",
         AiSettings.Model.OPUS.value: "anthropic:claude-opus-4-6",
@@ -64,35 +66,34 @@ def _json_object(raw: str, name: str) -> dict:
     return value
 
 
-def _models() -> dict[str, dict[str, str]]:
-    """Provider -> logical model -> model id, ASSISTANT_MODELS over the defaults.
+def _valid_model_id(value) -> str:
+    if not isinstance(value, str) or not is_model_id(value):
+        raise ValueError(f"{value!r} is not a '<provider>:<model>' id")
+    return value
 
-    Entries are merged one by one: a typo should not undo the models set
-    alongside it, nor the defaults for everything left out.
+
+def _logical_models(ai_settings: AiSettings) -> dict[str, str]:
+    """Logical model -> model id, for this organization's provider.
+
+    Managed entries are merged one by one over the defaults: a typo should not
+    undo the models set alongside it, nor the defaults for everything left out.
     """
-    models = {provider: dict(ids) for provider, ids in _DEFAULT_MODELS.items()}
-    configured = _json_object(settings.ASSISTANT_MODELS, "ASSISTANT_MODELS")
-    for provider, ids in configured.items():
+    if ai_settings.provider != AiSettings.Provider.MANAGED:
+        return _BYOK_MODELS.get(ai_settings.provider, {})
+
+    models = dict(_MANAGED_DEFAULTS)
+    for model, model_id in _json_object(
+        settings.ASSISTANT_MANAGED_MODELS, "ASSISTANT_MANAGED_MODELS"
+    ).items():
         try:
-            known_provider = AiSettings.Provider(provider).value
-            if not isinstance(ids, dict):
-                raise ValueError(f"{ids!r} is not an object of models")
+            models[AiSettings.Model(model).value] = _valid_model_id(model_id)
         except Exception as exc:
-            logger.error("ASSISTANT_MODELS: ignoring %r (%s)", provider, exc)
-            continue
-        for model, model_id in ids.items():
-            try:
-                if not isinstance(model_id, str) or not is_model_id(model_id):
-                    raise ValueError(f"{model_id!r} is not a '<provider>:<model>' id")
-                models[known_provider][AiSettings.Model(model).value] = model_id
-            except Exception as exc:
-                logger.error(
-                    "ASSISTANT_MODELS: ignoring entry %r -> %r -> %r (%s)",
-                    provider,
-                    model,
-                    model_id,
-                    exc,
-                )
+            logger.error(
+                "ASSISTANT_MANAGED_MODELS: ignoring entry %r -> %r (%s)",
+                model,
+                model_id,
+                exc,
+            )
     return models
 
 
@@ -122,7 +123,7 @@ def _map_of_agent_to_models() -> dict[str, str]:
 
 def organization_model_id(ai_settings: AiSettings) -> str:
     """Model id the organization's own conversations run on."""
-    model_id = _models().get(ai_settings.provider, {}).get(ai_settings.effective_model)
+    model_id = _logical_models(ai_settings).get(ai_settings.effective_model)
     if model_id is None:
         raise AssistantException(
             f"No model id configured for {ai_settings.effective_model!r} on provider "
@@ -145,7 +146,7 @@ def resolve_model_id(
         model_id = (
             requested
             if is_model_id(requested)
-            else _models().get(ai_settings.provider, {}).get(requested)
+            else _logical_models(ai_settings).get(requested)
         )
         if model_id is None:
             logger.error(

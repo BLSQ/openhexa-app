@@ -7,7 +7,6 @@ from hexa.assistant.exceptions import AssistantException
 from hexa.assistant.model_builder import (
     AiModelBuilder,
     BuiltModel,
-    _managed_provider,
     is_model_id,
     provider_of,
     supports,
@@ -39,29 +38,41 @@ class SupportsTest(SimpleTestCase):
         self.assertTrue(supports(ai_settings, "anthropic:claude-opus-4-6"))
         self.assertFalse(supports(ai_settings, "openai:gpt-5"))
 
-    def test_managed_runs_what_our_vertex_project_serves(self):
+    @override_settings(ASSISTANT_MANAGED_PROVIDERS="")
+    def test_managed_runs_everything_we_know_how_to_serve_from_vertex(self):
         ai_settings = _make_ai_settings(
             AiSettings.Provider.MANAGED, model=None, api_key=None
         )
         self.assertTrue(supports(ai_settings, "anthropic:claude-opus-4-6"))
-        self.assertTrue(supports(ai_settings, "google-cloud:gemini-3-pro"))
+        self.assertTrue(supports(ai_settings, "google-cloud:gemini-3-pro-preview"))
         self.assertFalse(supports(ai_settings, "mistral:mistral-large"))
 
-    @override_settings(ASSISTANT_MANAGED_PROVIDERS="mistral, groq")
-    def test_managed_also_runs_the_providers_opted_into(self):
+    @override_settings(ASSISTANT_MANAGED_PROVIDERS="anthropic")
+    def test_the_setting_narrows_managed_to_what_the_project_has_enabled(self):
         ai_settings = _make_ai_settings(
             AiSettings.Provider.MANAGED, model=None, api_key=None
         )
-        self.assertTrue(supports(ai_settings, "mistral:mistral-large"))
-        self.assertTrue(supports(ai_settings, "groq:llama-3.3"))
-        self.assertFalse(supports(ai_settings, "openai:gpt-5"))
+        self.assertTrue(supports(ai_settings, "anthropic:claude-opus-4-6"))
+        self.assertFalse(supports(ai_settings, "google-cloud:gemini-3-pro-preview"))
 
-    @override_settings(ASSISTANT_MANAGED_PROVIDERS="mistral")
-    def test_opting_a_provider_in_leaves_bring_your_own_key_alone(self):
+    @override_settings(ASSISTANT_MANAGED_PROVIDERS="anthropic, mistral")
+    def test_the_setting_cannot_add_a_provider_we_have_no_wiring_for(self):
+        """It only ever narrows the registry, so naming something absent from it
+        does not conjure credentials for that provider.
+        """
+        ai_settings = _make_ai_settings(
+            AiSettings.Provider.MANAGED, model=None, api_key=None
+        )
+        self.assertTrue(supports(ai_settings, "anthropic:claude-opus-4-6"))
+        self.assertFalse(supports(ai_settings, "mistral:mistral-large"))
+
+    @override_settings(ASSISTANT_MANAGED_PROVIDERS="anthropic")
+    def test_the_setting_leaves_bring_your_own_key_alone(self):
         ai_settings = _make_ai_settings(
             AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS
         )
-        self.assertFalse(supports(ai_settings, "mistral:mistral-large"))
+        self.assertTrue(supports(ai_settings, "anthropic:claude-opus-4-6"))
+        self.assertFalse(supports(ai_settings, "google-cloud:gemini-3-pro-preview"))
 
 
 class EffectiveModelTest(SimpleTestCase):
@@ -108,38 +119,31 @@ class AiModelBuilderTest(TestCase):
             _make_ai_settings(AiSettings.Provider.MANAGED, model=None, api_key=None)
         )
         with patch("hexa.assistant.model_builder.GoogleCloudProvider") as mock_provider:
-            builder.build("google-cloud:gemini-3-pro")
+            builder.build("google-cloud:gemini-3-pro-preview")
         mock_provider.assert_called_once_with(
             project="test-project", location="europe-west1"
         )
 
-    @override_settings(ASSISTANT_MANAGED_PROVIDERS="mistral", VERTEX_PROJECT_ID=None)
-    def test_an_opted_in_provider_authenticates_on_its_own(self):
-        """It reads its key from its own environment variable, so it needs
-        neither our Vertex project nor a key from the organization.
-        """
-        with patch("hexa.assistant.model_builder.infer_provider") as mock_infer:
-            _managed_provider("mistral")
-        mock_infer.assert_called_once_with("mistral")
-
-    @override_settings(ASSISTANT_MANAGED_PROVIDERS="mistral")
-    def test_an_opted_in_provider_is_not_priced_as_vertex(self):
-        builder = AiModelBuilder(
-            _make_ai_settings(AiSettings.Provider.MANAGED, model=None, api_key=None)
-        )
-        with patch("hexa.assistant.model_builder.infer_model") as mock_infer_model:
-            mock_infer_model.return_value = MagicMock(model_name="mistral-large")
-            result = builder.build("mistral:mistral-large")
-        self.assertEqual(result.provider_id, "mistral")
-
-    @override_settings(ASSISTANT_MANAGED_PROVIDERS="mistral")
-    def test_build_a_provider_whose_dependency_is_missing_raises(self):
-        """Opting a provider in does not install it, so the gap surfaces here."""
+    @override_settings(ASSISTANT_MANAGED_PROVIDERS="anthropic")
+    def test_build_a_provider_the_project_has_not_enabled_raises(self):
         builder = AiModelBuilder(
             _make_ai_settings(AiSettings.Provider.MANAGED, model=None, api_key=None)
         )
         with self.assertRaises(AssistantException):
-            builder.build("mistral:mistral-large")
+            builder.build("google-cloud:gemini-3-pro-preview")
+
+    @override_settings(VERTEX_PROJECT_ID="test-project")
+    @patch("hexa.assistant.model_builder.AsyncAnthropicVertex")
+    def test_build_a_model_we_cannot_price_raises(self, mock_vertex_client):
+        """Usage we cannot price never reaches the organization's budget, so a
+        model id genai_prices does not know would run uncapped.
+        """
+        builder = AiModelBuilder(
+            _make_ai_settings(AiSettings.Provider.MANAGED, model=None, api_key=None)
+        )
+        with self.assertLogs("hexa.assistant.model_builder", level="ERROR"):
+            with self.assertRaises(AssistantException):
+                builder.build("anthropic:no-such-claude")
 
     @override_settings(VERTEX_PROJECT_ID=None)
     def test_build_managed_without_project_raises(self):
@@ -187,8 +191,9 @@ class CalculateCostTest(SimpleTestCase):
         self.assertGreater(cost, 0)
 
     def test_returns_none_when_pricing_fails(self):
-        """Unpriced usage never reaches a spend limit, so it is logged as an
-        error rather than passed over quietly.
+        """`build` turns these away, so reaching this means the price data
+        changed under a model we already accepted: log it rather than pass over
+        usage that escapes the organization's budget.
         """
         built = BuiltModel(model=MagicMock(), api_name="?", provider_id="?")
         with self.assertLogs("hexa.assistant.model_builder", level="ERROR"):

@@ -2,8 +2,9 @@
 
 Models are named by their pydantic-ai id, "<provider>:<model>", which is all
 pydantic-ai needs to pick the right client. We only supply the credentials the id
-cannot carry, so reaching for another provider is a configuration change rather
-than a code one — as long as its optional dependency is installed.
+cannot carry, so reaching for another model is a configuration change rather than
+a code one, and reaching for another provider costs one entry in the registry
+below.
 """
 
 import logging
@@ -17,7 +18,7 @@ from django.conf import settings
 from pydantic_ai import RunUsage
 from pydantic_ai.models import Model as PydanticModel
 from pydantic_ai.models import infer_model
-from pydantic_ai.providers import Provider, infer_provider, infer_provider_class
+from pydantic_ai.providers import Provider, infer_provider_class
 from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.providers.google_cloud import GoogleCloudProvider
 
@@ -41,9 +42,9 @@ class BuiltModel(NamedTuple):
         """Price `usage`, or None if this model has no known price.
 
         Agents in one conversation may run on different models, so each prices
-        its own usage. Unpriced usage is dropped rather than guessed, which also
-        drops it from the spend a workspace is capped on: hence the error, since
-        a model id we cannot price is a configuration problem to fix.
+        its own usage. `AiModelBuilder.build` prices an empty usage to turn away
+        models we cannot meter, so a None here means the price data changed under
+        a model we already accepted, and that usage escapes the monthly budget.
         """
         try:
             return genai_prices.calc_price(
@@ -68,45 +69,26 @@ def is_model_id(value: str) -> bool:
     return _PROVIDER_SEPARATOR in value
 
 
-def _opted_in_providers() -> frozenset[str]:
-    """Providers managed organizations may use besides our own Vertex project.
-
-    They authenticate from their own standard environment variable, so naming one
-    here and installing its optional dependency is all it takes. It also sends
-    traffic to a third party we bill directly, outside the Vertex project and the
-    region it is pinned to, which is why it is an explicit opt-in.
-    """
-    return frozenset(
-        name.strip()
-        for name in settings.ASSISTANT_MANAGED_PROVIDERS.split(",")
-        if name.strip()
-    )
-
-
 def pricing_provider_id(ai_settings: AiSettings, model_id: str) -> str:
     """The provider genai_prices knows this model by.
 
     It prices managed models by the Google Vertex backend they really run on,
-    rather than by the provider that defines them. Providers we only opted into
-    are billed to us directly, so they keep their own name.
+    rather than by the provider that defines them.
     """
-    provider = provider_of(model_id)
-    if (
-        ai_settings.provider == AiSettings.Provider.MANAGED
-        and provider in _MANAGED_PROVIDERS
-    ):
+    if ai_settings.provider == AiSettings.Provider.MANAGED:
         return _MANAGED_PRICING_PROVIDER
-    return provider
+    return provider_of(model_id)
 
 
 def supports(ai_settings: AiSettings, model_id: str) -> bool:
-    """Whether we support `model_id`'s provider.
-    BYOK providers are fixed to the AiSettings providers,
-    while managed providers depend on our Vertex backend.
+    """Whether we hold credentials for `model_id`'s provider.
+
+    Managed organizations run on whatever our Vertex project serves, while
+    BYOK ones are fixed to the single provider they brought a key for.
     """
     provider = provider_of(model_id)
     if ai_settings.provider == AiSettings.Provider.MANAGED:
-        return provider in _MANAGED_PROVIDERS or provider in _opted_in_providers()
+        return provider in _managed_providers()
     return provider == ai_settings.provider
 
 
@@ -127,25 +109,26 @@ def _vertex_google() -> Provider:
     )
 
 
-# What our own Vertex project serves. Providers name their credentials
-# differently, so each gets an entry rather than one call that happens to fit.
+# What we know how to serve from our own Vertex project. Providers name their
+# credentials differently, so each gets an entry rather than one call that
+# happens to fit: this registry is what adding a provider costs.
 _MANAGED_PROVIDERS: dict[str, Callable[[], Provider]] = {
     "anthropic": _vertex_anthropic,
     "google-cloud": _vertex_google,
 }
 
 
-def _managed_provider(provider: str) -> Provider:
-    build = _MANAGED_PROVIDERS.get(provider)
-    if build is None:
-        # Opted into through ASSISTANT_MANAGED_PROVIDERS: pydantic-ai reads the
-        # key from the provider's own environment variable.
-        return infer_provider(provider)
-    if not settings.VERTEX_PROJECT_ID:
-        raise AssistantException(
-            "VERTEX_PROJECT_ID is not configured; cannot use the managed provider."
-        )
-    return build()
+def _managed_providers() -> dict[str, Callable[[], Provider]]:
+    """The entries of the registry this deployment may actually use.
+
+    A publisher has to be enabled on a Vertex project before it answers, which
+    staging and production do not agree on, so ASSISTANT_MANAGED_PROVIDERS
+    narrows what we know how to build down to what is really there. Empty means
+    all of it.
+    """
+    configured = settings.ASSISTANT_MANAGED_PROVIDERS.replace(" ", "").split(",")
+    enabled = set(filter(None, configured)) or set(_MANAGED_PROVIDERS)
+    return {p: build for p, build in _MANAGED_PROVIDERS.items() if p in enabled}
 
 
 def _provider_factory(ai_settings: AiSettings) -> Callable[[str], Provider]:
@@ -161,9 +144,13 @@ def _provider_factory(ai_settings: AiSettings) -> Callable[[str], Provider]:
                 f"Provider {provider!r} cannot run with the credentials of "
                 f"{ai_settings.provider!r} organizations"
             )
-        if ai_settings.provider == AiSettings.Provider.MANAGED:
-            return _managed_provider(provider)
-        return infer_provider_class(provider)(api_key=ai_settings.api_key)
+        if ai_settings.provider != AiSettings.Provider.MANAGED:
+            return infer_provider_class(provider)(api_key=ai_settings.api_key)
+        if not settings.VERTEX_PROJECT_ID:
+            raise AssistantException(
+                "VERTEX_PROJECT_ID is not configured; cannot use the managed provider."
+            )
+        return _managed_providers()[provider]()
 
     return factory
 
@@ -207,8 +194,17 @@ class AiModelBuilder:
             # whose optional dependency is not installed, only shows up here.
             raise AssistantException(f"Cannot build model {model_id!r}: {exc}") from exc
 
-        return BuiltModel(
+        built = BuiltModel(
             model=model,
             api_name=model.model_name,
             provider_id=pricing_provider_id(self._ai_settings, model_id),
         )
+        # Usage we cannot price never counts towards the organization's budget,
+        # so an unpriceable model would run uncapped. Refuse it while the only
+        # thing at stake is a configuration error.
+        if built.calculate_cost(RunUsage()) is None:
+            raise AssistantException(
+                f"No known price for {model_id!r}; refusing to run a model whose "
+                f"spend cannot be capped"
+            )
+        return built
