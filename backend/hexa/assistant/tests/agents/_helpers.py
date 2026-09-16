@@ -79,8 +79,8 @@ class FakeModelBuilder:
 
     Injected instead of AiModelBuilder so an agent and the naming agent it
     spawns both run on the test model, while model *selection* still goes
-    through the real code: the api name reported back is the logical model that
-    was resolved, so tests can tell the two apart when pricing.
+    through the real code: the api name reported back is the model id that was
+    resolved, so tests can tell the two apart when pricing.
     """
 
     def __init__(self, test_model, ai_settings: AiSettings | None = None):
@@ -92,8 +92,8 @@ class FakeModelBuilder:
             enabled=True,
         )
 
-    def build(self, model: str | None = None) -> BuiltModel:
-        return make_built_model(self._test_model, api_name=str(model))
+    def build(self, model_id: str) -> BuiltModel:
+        return make_built_model(self._test_model, api_name=model_id)
 
 
 def _make_truncated_tool_call_model(tool_name: str) -> FunctionModel:

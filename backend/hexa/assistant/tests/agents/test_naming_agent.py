@@ -57,14 +57,14 @@ class NamingAgentModelTest(SimpleTestCase):
         builder = FakeModelBuilder(_make_naming_model("Title"))
         self.assertEqual(builder.ai_settings.effective_model, AiSettings.Model.OPUS)
         self.assertEqual(
-            NamingAgent(builder).built_model.api_name, AiSettings.Model.HAIKU
+            NamingAgent(builder).built_model.api_name, "anthropic:claude-haiku-4-5"
         )
 
     @override_settings(ASSISTANT_AGENT_MODELS='{"naming": "sonnet"}')
     def test_environment_override_wins_over_the_default(self):
         builder = FakeModelBuilder(_make_naming_model("Title"))
         self.assertEqual(
-            NamingAgent(builder).built_model.api_name, AiSettings.Model.SONNET
+            NamingAgent(builder).built_model.api_name, "anthropic:claude-sonnet-4-6"
         )
 
 
@@ -153,5 +153,5 @@ class NamingAgentRunTest(AgentTestCase):
             calc_price.return_value = MagicMock(total_price=Decimal("0"))
             run_agent(agent, "Améliore ce tableau de bord")
         priced_models = [call.args[1] for call in calc_price.call_args_list]
-        self.assertIn(AiSettings.Model.HAIKU, priced_models)
-        self.assertIn(AiSettings.Model.OPUS, priced_models)
+        self.assertIn("anthropic:claude-haiku-4-5", priced_models)
+        self.assertIn("anthropic:claude-opus-4-6", priced_models)

@@ -1,3 +1,11 @@
+"""Turns a model id into a client an organization can run.
+
+Models are named by their pydantic-ai id, "<provider>:<model>", which is all
+pydantic-ai needs to pick the right client. We only supply the credentials the id
+cannot carry, so reaching for another provider is a configuration change rather
+than a code one — as long as its optional dependency is installed.
+"""
+
 import logging
 from collections.abc import Callable
 from decimal import Decimal
@@ -8,8 +16,10 @@ from anthropic.lib.vertex import AsyncAnthropicVertex
 from django.conf import settings
 from pydantic_ai import RunUsage
 from pydantic_ai.models import Model as PydanticModel
-from pydantic_ai.models.anthropic import AnthropicModel
+from pydantic_ai.models import infer_model
+from pydantic_ai.providers import Provider, infer_provider, infer_provider_class
 from pydantic_ai.providers.anthropic import AnthropicProvider
+from pydantic_ai.providers.google_cloud import GoogleCloudProvider
 
 from hexa.assistant.exceptions import AssistantException
 from hexa.assistant.models import Conversation
@@ -17,31 +27,11 @@ from hexa.user_management.models import AiSettings
 
 logger = logging.getLogger(__name__)
 
-# Vertex exposes Claude under bare model ids, whereas the direct Anthropic API
-# expects dated ids. Keep one map per provider so the same logical model resolves
-# to the right id for each backend. The managed (Vertex) map only needs the
-# models we actually run managed organizations on.
-_DIRECT_ANTHROPIC_MODEL_IDS: dict[str, str] = {
-    AiSettings.Model.HAIKU.value: "claude-haiku-4-5-20251001",
-    AiSettings.Model.OPUS.value: "claude-opus-4-6",
-    AiSettings.Model.SONNET.value: "claude-sonnet-4-6",
-}
+_PROVIDER_SEPARATOR = ":"
 
-_VERTEX_ANTHROPIC_MODEL_IDS: dict[str, str] = {
-    AiSettings.Model.HAIKU.value: "claude-haiku-4-5",
-    AiSettings.Model.OPUS.value: "claude-opus-4-6",
-}
-
-_MODEL_IDS_BY_PROVIDER: dict[str, dict[str, str]] = {
-    AiSettings.Provider.ANTHROPIC.value: _DIRECT_ANTHROPIC_MODEL_IDS,
-    AiSettings.Provider.MANAGED.value: _VERTEX_ANTHROPIC_MODEL_IDS,
-}
-
-# genai_prices knows the managed provider as the Google Vertex backend it really
-# runs on, not by our internal "managed" value.
-_PRICING_PROVIDER_IDS: dict[str, str] = {
-    AiSettings.Provider.MANAGED.value: "google-vertex",
-}
+# genai_prices calculates managed models prices by Google Vertex,
+# not by the provider that defines them.
+_MANAGED_PRICING_PROVIDER = "google-vertex"
 
 
 class BuiltModel(NamedTuple):
@@ -50,23 +40,39 @@ class BuiltModel(NamedTuple):
     provider_id: str
 
 
-def get_api_name(provider: str, model: str) -> str:
-    model_to_api = _MODEL_IDS_BY_PROVIDER.get(provider)
-    if model_to_api is None:
-        raise AssistantException(f"Unsupported AI provider: {provider!r}")
-
-    model_api_name = model_to_api.get(model)
-    if model_api_name is None:
-        raise AssistantException(
-            f"Model {model} is not known for provider {provider}. "
-            f"Accepted models are {[*model_to_api]}"
-        )
-    return model_api_name
+def provider_of(model_id: str) -> str:
+    """The provider part of a "<provider>:<model>" id."""
+    return model_id.split(_PROVIDER_SEPARATOR, 1)[0]
 
 
-def supports(provider: str, model: str) -> bool:
-    """Whether `provider` exposes an api name for the logical `model`."""
-    return model in _MODEL_IDS_BY_PROVIDER.get(provider, {})
+def is_model_id(value: str) -> bool:
+    return _PROVIDER_SEPARATOR in value
+
+
+def _opted_in_providers() -> frozenset[str]:
+    """Providers managed organizations may use besides our own Vertex project.
+
+    They authenticate from their own standard environment variable, so naming one
+    here and installing its optional dependency is all it takes. It also sends
+    traffic to a third party we bill directly, outside the Vertex project and the
+    region it is pinned to, which is why it is an explicit opt-in.
+    """
+    return frozenset(
+        name.strip()
+        for name in settings.ASSISTANT_MANAGED_PROVIDERS.split(",")
+        if name.strip()
+    )
+
+
+def supports(ai_settings: AiSettings, model_id: str) -> bool:
+    """Whether we support `model_id`'s provider.
+    BYOK providers are fixed to the AiSettings providers,
+    while managed providers depend on our Vertex backend.
+    """
+    provider = provider_of(model_id)
+    if ai_settings.provider == AiSettings.Provider.MANAGED:
+        return provider in _MANAGED_PROVIDERS or provider in _opted_in_providers()
+    return provider == ai_settings.provider
 
 
 def calculate_cost(usage: RunUsage, model: BuiltModel) -> Decimal | None:
@@ -88,39 +94,69 @@ def calculate_cost(usage: RunUsage, model: BuiltModel) -> Decimal | None:
         return None
 
 
-def _build_anthropic(ai_settings: AiSettings, model_api_name: str) -> PydanticModel:
-    return AnthropicModel(
-        model_api_name, provider=AnthropicProvider(api_key=ai_settings.api_key)
+def _vertex_anthropic() -> Provider:
+    # pydantic-ai has no Anthropic-on-Vertex provider of its own: Claude on
+    # Vertex is the Anthropic provider wrapped around Google's client.
+    return AnthropicProvider(
+        anthropic_client=AsyncAnthropicVertex(
+            project_id=settings.VERTEX_PROJECT_ID,
+            region=settings.VERTEX_REGION,
+        )
     )
 
 
-def _build_managed(ai_settings: AiSettings, model_api_name: str) -> PydanticModel:
+def _vertex_google() -> Provider:
+    return GoogleCloudProvider(
+        project=settings.VERTEX_PROJECT_ID, location=settings.VERTEX_REGION
+    )
+
+
+# What our own Vertex project serves. Providers name their credentials
+# differently, so each gets an entry rather than one call that happens to fit.
+_MANAGED_PROVIDERS: dict[str, Callable[[], Provider]] = {
+    "anthropic": _vertex_anthropic,
+    "google-cloud": _vertex_google,
+}
+
+
+def _managed_provider(provider: str) -> Provider:
+    build = _MANAGED_PROVIDERS.get(provider)
+    if build is None:
+        # Opted into through ASSISTANT_MANAGED_PROVIDERS: pydantic-ai reads the
+        # key from the provider's own environment variable.
+        return infer_provider(provider)
     if not settings.VERTEX_PROJECT_ID:
         raise AssistantException(
             "VERTEX_PROJECT_ID is not configured; cannot use the managed provider."
         )
-    client = AsyncAnthropicVertex(
-        project_id=settings.VERTEX_PROJECT_ID,
-        region=settings.VERTEX_REGION,
-    )
-    return AnthropicModel(
-        model_api_name, provider=AnthropicProvider(anthropic_client=client)
-    )
+    return build()
 
 
-# Maps each AiSettings.Provider value to a callable (ai_settings, model_api_name) -> Model.
-# Register new providers here.
-_PROVIDER_FACTORIES: dict[str, Callable[[AiSettings, str], PydanticModel]] = {
-    AiSettings.Provider.ANTHROPIC.value: _build_anthropic,
-    AiSettings.Provider.MANAGED.value: _build_managed,
-}
+def _provider_factory(ai_settings: AiSettings) -> Callable[[str], Provider]:
+    """Credentials for whichever provider a model id names.
+
+    Managed organizations run on our own Vertex project;
+    everyone else brings the key for the provider they configured.
+    """
+
+    def factory(provider: str) -> Provider:
+        if not supports(ai_settings, provider):
+            raise AssistantException(
+                f"Provider {provider!r} cannot run with the credentials of "
+                f"{ai_settings.provider!r} organizations"
+            )
+        if ai_settings.provider == AiSettings.Provider.MANAGED:
+            return _managed_provider(provider)
+        return infer_provider_class(provider)(api_key=ai_settings.api_key)
+
+    return factory
 
 
 class AiModelBuilder:
     """Builds the models an organization's AI settings allow.
 
-    It knows how to turn a logical model into a usable client, and nothing about
-    who wants which model: that decision lives in `model_selection`.
+    It knows how to turn a model id into a usable client, and nothing about who
+    wants which model: that decision lives in `model_selection`.
     """
 
     def __init__(self, ai_settings: AiSettings):
@@ -142,18 +178,28 @@ class AiModelBuilder:
     def ai_settings(self) -> AiSettings:
         return self._ai_settings
 
-    def build(self, model: str | None = None) -> BuiltModel:
-        """Build `model` (an AiSettings.Model value), defaulting to the org's own."""
-        provider = self._ai_settings.provider
-        factory = _PROVIDER_FACTORIES.get(provider)
-        if not factory:
-            raise AssistantException(f"Unsupported AI provider: {provider!r}")
+    def build(self, model_id: str) -> BuiltModel:
+        """Build the "<provider>:<model>" id, with this organization's credentials."""
+        try:
+            model = infer_model(
+                model_id, provider_factory=_provider_factory(self._ai_settings)
+            )
+        except AssistantException:
+            raise
+        except Exception as exc:
+            # Model ids are free-form configuration: an unknown provider, or one
+            # whose optional dependency is not installed, only shows up here.
+            raise AssistantException(f"Cannot build model {model_id!r}: {exc}") from exc
 
-        model_api_name = get_api_name(
-            provider, model or self._ai_settings.effective_model
-        )
         return BuiltModel(
-            model=factory(self._ai_settings, model_api_name),
-            api_name=model_api_name,
-            provider_id=_PRICING_PROVIDER_IDS.get(provider, provider),
+            model=model,
+            api_name=model.model_name,
+            provider_id=self._pricing_provider_id(provider_of(model_id)),
         )
+
+    def _pricing_provider_id(self, provider: str) -> str:
+        managed_on_vertex = (
+            self._ai_settings.provider == AiSettings.Provider.MANAGED
+            and provider in _MANAGED_PROVIDERS
+        )
+        return _MANAGED_PRICING_PROVIDER if managed_on_vertex else provider

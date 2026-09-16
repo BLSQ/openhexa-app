@@ -7,8 +7,10 @@ from hexa.assistant.exceptions import AssistantException
 from hexa.assistant.model_builder import (
     AiModelBuilder,
     BuiltModel,
+    _managed_provider,
     calculate_cost,
-    get_api_name,
+    is_model_id,
+    provider_of,
     supports,
 )
 from hexa.user_management.models import AiSettings
@@ -18,48 +20,49 @@ def _make_ai_settings(provider, model, api_key: str | None = "test-key"):
     return AiSettings(provider=provider, model=model, api_key=api_key, enabled=True)
 
 
-class GetApiNameTest(SimpleTestCase):
-    def test_anthropic_haiku_maps_to_correct_api_name(self):
-        self.assertEqual(
-            get_api_name(AiSettings.Provider.ANTHROPIC, AiSettings.Model.HAIKU),
-            "claude-haiku-4-5-20251001",
+class ModelIdTest(SimpleTestCase):
+    def test_provider_of_reads_the_prefix(self):
+        self.assertEqual(provider_of("anthropic:claude-opus-4-6"), "anthropic")
+
+    def test_provider_of_a_bare_name_is_the_name_itself(self):
+        self.assertEqual(provider_of("claude-opus-4-6"), "claude-opus-4-6")
+
+    def test_is_model_id_requires_a_provider_prefix(self):
+        self.assertTrue(is_model_id("anthropic:claude-opus-4-6"))
+        self.assertFalse(is_model_id("opus"))
+
+
+class SupportsTest(SimpleTestCase):
+    def test_bring_your_own_key_runs_the_provider_it_holds_a_key_for(self):
+        ai_settings = _make_ai_settings(
+            AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS
         )
+        self.assertTrue(supports(ai_settings, "anthropic:claude-opus-4-6"))
+        self.assertFalse(supports(ai_settings, "openai:gpt-5"))
 
-    def test_anthropic_sonnet_maps_to_correct_api_name(self):
-        self.assertEqual(
-            get_api_name(AiSettings.Provider.ANTHROPIC, AiSettings.Model.SONNET),
-            "claude-sonnet-4-6",
+    def test_managed_runs_what_our_vertex_project_serves(self):
+        ai_settings = _make_ai_settings(
+            AiSettings.Provider.MANAGED, model=None, api_key=None
         )
+        self.assertTrue(supports(ai_settings, "anthropic:claude-opus-4-6"))
+        self.assertTrue(supports(ai_settings, "google-cloud:gemini-3-pro"))
+        self.assertFalse(supports(ai_settings, "mistral:mistral-large"))
 
-    def test_anthropic_opus_maps_to_correct_api_name(self):
-        self.assertEqual(
-            get_api_name(AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS),
-            "claude-opus-4-6",
+    @override_settings(ASSISTANT_MANAGED_PROVIDERS="mistral, groq")
+    def test_managed_also_runs_the_providers_opted_into(self):
+        ai_settings = _make_ai_settings(
+            AiSettings.Provider.MANAGED, model=None, api_key=None
         )
+        self.assertTrue(supports(ai_settings, "mistral:mistral-large"))
+        self.assertTrue(supports(ai_settings, "groq:llama-3.3"))
+        self.assertFalse(supports(ai_settings, "openai:gpt-5"))
 
-    def test_managed_maps_default_model_to_vertex_id(self):
-        self.assertEqual(
-            get_api_name(AiSettings.Provider.MANAGED, AiSettings.MANAGED_MODEL),
-            "claude-opus-4-6",
+    @override_settings(ASSISTANT_MANAGED_PROVIDERS="mistral")
+    def test_opting_a_provider_in_leaves_bring_your_own_key_alone(self):
+        ai_settings = _make_ai_settings(
+            AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS
         )
-
-    def test_managed_maps_haiku_to_vertex_id(self):
-        self.assertEqual(
-            get_api_name(AiSettings.Provider.MANAGED, AiSettings.Model.HAIKU),
-            "claude-haiku-4-5",
-        )
-
-    def test_managed_does_not_map_unused_models(self):
-        with self.assertRaises(AssistantException):
-            get_api_name(AiSettings.Provider.MANAGED, AiSettings.Model.SONNET)
-
-    def test_unknown_provider_raises_assistant_exception(self):
-        with self.assertRaises(AssistantException):
-            get_api_name("no-such-provider", AiSettings.Model.HAIKU)
-
-    def test_unknown_model_raises_assistant_exception(self):
-        with self.assertRaises(AssistantException):
-            get_api_name(AiSettings.Provider.ANTHROPIC, "no-such-model")
+        self.assertFalse(supports(ai_settings, "mistral:mistral-large"))
 
 
 class EffectiveModelTest(SimpleTestCase):
@@ -81,30 +84,18 @@ class AiModelBuilderTest(TestCase):
         builder = AiModelBuilder(
             _make_ai_settings(AiSettings.Provider.ANTHROPIC, AiSettings.Model.HAIKU)
         )
-        result = builder.build()
+        result = builder.build("anthropic:claude-haiku-4-5")
         self.assertIsInstance(result, BuiltModel)
-        self.assertEqual(result.api_name, "claude-haiku-4-5-20251001")
+        self.assertEqual(result.api_name, "claude-haiku-4-5")
         self.assertEqual(result.provider_id, AiSettings.Provider.ANTHROPIC)
-
-    def test_build_with_explicit_model_overrides_the_stored_one(self):
-        builder = AiModelBuilder(
-            _make_ai_settings(AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS)
-        )
-        self.assertEqual(
-            builder.build(AiSettings.Model.SONNET).api_name, "claude-sonnet-4-6"
-        )
 
     @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_REGION="europe-west1")
     @patch("hexa.assistant.model_builder.AsyncAnthropicVertex")
     def test_build_returns_built_model_for_managed(self, mock_vertex_client):
         builder = AiModelBuilder(
-            _make_ai_settings(
-                AiSettings.Provider.MANAGED,
-                model=None,
-                api_key=None,
-            )
+            _make_ai_settings(AiSettings.Provider.MANAGED, model=None, api_key=None)
         )
-        result = builder.build()
+        result = builder.build("anthropic:claude-opus-4-6")
         self.assertIsInstance(result, BuiltModel)
         self.assertEqual(result.api_name, "claude-opus-4-6")
         self.assertEqual(result.provider_id, "google-vertex")
@@ -112,24 +103,67 @@ class AiModelBuilderTest(TestCase):
             project_id="test-project", region="europe-west1"
         )
 
+    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_REGION="europe-west1")
+    def test_build_sends_a_managed_google_model_to_our_vertex_project(self):
+        builder = AiModelBuilder(
+            _make_ai_settings(AiSettings.Provider.MANAGED, model=None, api_key=None)
+        )
+        with patch("hexa.assistant.model_builder.GoogleCloudProvider") as mock_provider:
+            builder.build("google-cloud:gemini-3-pro")
+        mock_provider.assert_called_once_with(
+            project="test-project", location="europe-west1"
+        )
+
+    @override_settings(ASSISTANT_MANAGED_PROVIDERS="mistral", VERTEX_PROJECT_ID=None)
+    def test_an_opted_in_provider_authenticates_on_its_own(self):
+        """It reads its key from its own environment variable, so it needs
+        neither our Vertex project nor a key from the organization.
+        """
+        with patch("hexa.assistant.model_builder.infer_provider") as mock_infer:
+            _managed_provider("mistral")
+        mock_infer.assert_called_once_with("mistral")
+
+    @override_settings(ASSISTANT_MANAGED_PROVIDERS="mistral")
+    def test_an_opted_in_provider_is_not_priced_as_vertex(self):
+        builder = AiModelBuilder(
+            _make_ai_settings(AiSettings.Provider.MANAGED, model=None, api_key=None)
+        )
+        with patch("hexa.assistant.model_builder.infer_model") as mock_infer_model:
+            mock_infer_model.return_value = MagicMock(model_name="mistral-large")
+            result = builder.build("mistral:mistral-large")
+        self.assertEqual(result.provider_id, "mistral")
+
+    @override_settings(ASSISTANT_MANAGED_PROVIDERS="mistral")
+    def test_build_a_provider_whose_dependency_is_missing_raises(self):
+        """Opting a provider in does not install it, so the gap surfaces here."""
+        builder = AiModelBuilder(
+            _make_ai_settings(AiSettings.Provider.MANAGED, model=None, api_key=None)
+        )
+        with self.assertRaises(AssistantException):
+            builder.build("mistral:mistral-large")
+
     @override_settings(VERTEX_PROJECT_ID=None)
     def test_build_managed_without_project_raises(self):
         builder = AiModelBuilder(
-            _make_ai_settings(
-                AiSettings.Provider.MANAGED,
-                AiSettings.Model.HAIKU,
-                api_key=None,
-            )
+            _make_ai_settings(AiSettings.Provider.MANAGED, None, api_key=None)
         )
         with self.assertRaises(AssistantException):
-            builder.build()
+            builder.build("anthropic:claude-haiku-4-5")
 
-    def test_build_unsupported_provider_raises(self):
+    def test_build_a_provider_we_hold_no_credentials_for_raises(self):
         builder = AiModelBuilder(
-            _make_ai_settings("unsupported", AiSettings.Model.HAIKU)
+            _make_ai_settings(AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS)
         )
         with self.assertRaises(AssistantException):
-            builder.build()
+            builder.build("openai:gpt-5")
+
+    def test_build_an_unknown_provider_raises(self):
+        """Model ids are free-form config, so an unknown one only surfaces here."""
+        builder = AiModelBuilder(
+            _make_ai_settings("no-such-provider", AiSettings.Model.OPUS)
+        )
+        with self.assertRaises(AssistantException):
+            builder.build("no-such-provider:whatever")
 
     def test_from_conversation_raises_when_workspace_has_no_organization(self):
         mock_conversation = MagicMock()
@@ -142,17 +176,6 @@ class AiModelBuilderTest(TestCase):
         mock_conversation.workspace.organization.ai_settings_safe.enabled = False
         with self.assertRaises(AssistantException):
             AiModelBuilder.from_conversation(mock_conversation)
-
-
-class SupportsTest(SimpleTestCase):
-    def test_true_when_the_provider_exposes_the_model(self):
-        self.assertTrue(supports(AiSettings.Provider.MANAGED, AiSettings.Model.HAIKU))
-
-    def test_false_when_the_provider_lacks_the_model(self):
-        self.assertFalse(supports(AiSettings.Provider.MANAGED, AiSettings.Model.SONNET))
-
-    def test_false_for_an_unknown_provider(self):
-        self.assertFalse(supports("no-such-provider", AiSettings.Model.HAIKU))
 
 
 class CalculateCostTest(SimpleTestCase):
