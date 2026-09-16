@@ -15,6 +15,7 @@ type Props = {
     files: WebappProposedFile[] | null,
     toolInvocationId?: string,
     deletedPaths?: string[],
+    commitMessage?: string,
   ) => void;
   conversations: WebappConversation[];
   activeConversationId: string | null;
@@ -34,11 +35,13 @@ export default function WebappEditChatPanel({
       files: unknown[] | null,
       toolInvocationId?: string,
       deletedPaths?: string[],
+      commitMessage?: string,
     ) => {
       onProposedFiles(
         files as WebappProposedFile[] | null,
         toolInvocationId,
         deletedPaths,
+        commitMessage,
       );
     },
     [onProposedFiles],

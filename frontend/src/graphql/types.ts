@@ -6502,6 +6502,7 @@ export enum UpdateWebappError {
 /** Represents the input for updating a web app. */
 export type UpdateWebappInput = {
   allowedOperations?: InputMaybe<Array<WebappOperationScope>>;
+  commitMessage?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   files?: InputMaybe<Array<WebappFileInput>>;
   filesToDelete?: InputMaybe<Array<Scalars['String']['input']>>;
