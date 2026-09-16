@@ -624,11 +624,9 @@ ASSISTANT_MANAGED = os.environ.get("ASSISTANT_MANAGED", "false") == "true"
 # europe-west1 keeps data in the EU for GDPR.
 VERTEX_PROJECT_ID = os.environ.get("VERTEX_PROJECT_ID")
 VERTEX_REGION = os.environ.get("VERTEX_REGION", "europe-west1")
-# Pins assistant agents to a model, as a JSON object mapping agent key (see
-# hexa.assistant.agents.keys.AgentKey) to model, e.g.
-# {"naming": "haiku", "generate_sql": "sonnet"}. An entry overrides the agent's
-# own default, so emptying one reverts it without a deploy; agents left out run
-# on the model the organization configured.
+# Pins assistant agents to a model, as a JSON map of agents (see AgentKey enum)
+# to model, e.g. {"naming": "haiku", "generate_sql": "sonnet"}.
+# The overriding order is, if set: env > agent default > organization configured model
 ASSISTANT_AGENT_MODELS = os.environ.get("ASSISTANT_AGENT_MODELS", "")
 
 # Two Factor Authentication

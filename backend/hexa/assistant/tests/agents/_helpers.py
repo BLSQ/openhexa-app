@@ -77,7 +77,7 @@ def make_built_model(test_model, api_name: str = "test") -> BuiltModel:
 class FakeModelBuilder:
     """Serves one test model whatever is asked of it.
 
-    Injected in place of AiModelBuilder so an agent and the naming agent it
+    Injected instead of AiModelBuilder so an agent and the naming agent it
     spawns both run on the test model, while model *selection* still goes
     through the real code: the api name reported back is the logical model that
     was resolved, so tests can tell the two apart when pricing.

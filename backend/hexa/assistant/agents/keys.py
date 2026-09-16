@@ -1,17 +1,12 @@
-from django.db.models import TextChoices
+from enum import StrEnum
 
 
-class AgentKey(TextChoices):
-    """Identifies an agent in ASSISTANT_AGENT_MODELS.
+class AgentKey(StrEnum):
+    """Identifies an agent (e.g.: used in ASSISTANT_AGENT_MODELS env var)"""
 
-    Kept apart from the agent classes so the setting can be validated without
-    importing them, and apart from InstructionSet so renaming a prompt set never
-    silently changes what a deployed environment variable means.
-    """
-
-    GENERAL = "general", "General"
-    CREATE_PIPELINE = "create_pipeline", "Create Pipeline"
-    EDIT_PIPELINE = "edit_pipeline", "Edit Pipeline"
-    EDIT_WEBAPP = "edit_webapp", "Edit Web App"
-    GENERATE_SQL = "generate_sql", "Generate SQL"
-    NAMING = "naming", "Naming"
+    GENERAL = "general"
+    CREATE_PIPELINE = "create_pipeline"
+    EDIT_PIPELINE = "edit_pipeline"
+    EDIT_WEBAPP = "edit_webapp"
+    GENERATE_SQL = "generate_sql"
+    NAMING = "naming"

@@ -162,7 +162,7 @@ class BaseAgent:
     history_strip_tools: set[str] = set()
     # Identifies the agent in ASSISTANT_AGENT_MODELS. `default_model` is the
     # model the agent asks for when the setting says nothing, None meaning the
-    # organization's own.
+    # organization's selected model.
     agent_key: str = AgentKey.GENERAL
     default_model: str | None = None
 

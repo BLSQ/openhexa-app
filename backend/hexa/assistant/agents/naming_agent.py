@@ -65,9 +65,8 @@ class NamingAgent:
     """Names a conversation from its first message.
 
     Deliberately not a `BaseAgent`: it is a stateless one-shot with no tools, no
-    history and nothing to persist, so it shares the model plumbing and nothing
-    else. Naming is cheap, repetitive work that does not need the organization's
-    main model, hence the Haiku default.
+    history and nothing to persist. Naming is cheap, repetitive work that does not
+    need the organization's main model, hence the Haiku default.
     """
 
     agent_key = AgentKey.NAMING

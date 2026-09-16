@@ -65,4 +65,4 @@ class AgentKeysTest(AgentTestCase):
         agents = [*_AGENT_REGISTRY.values(), NamingAgent]
         keys = [agent.agent_key for agent in agents]
         self.assertCountEqual(keys, set(keys))
-        self.assertLessEqual(set(keys), set(AgentKey.values))
+        self.assertLessEqual(set(keys), {key.value for key in AgentKey})
