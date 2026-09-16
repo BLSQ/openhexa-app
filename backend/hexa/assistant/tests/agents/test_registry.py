@@ -1,13 +1,15 @@
 from pydantic_ai.models.test import TestModel
 
-from hexa.assistant.agents import create_agent
+from hexa.assistant.agents import _AGENT_REGISTRY, create_agent
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.agents.create_pipeline_agent import CreatePipelineAgent
 from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
+from hexa.assistant.agents.keys import AgentKey
+from hexa.assistant.agents.naming_agent import NamingAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 
-from ._helpers import make_built_model
+from ._helpers import FakeModelBuilder
 from ._testcase import AgentTestCase
 
 
@@ -19,7 +21,7 @@ class AgentRegistryTest(AgentTestCase):
             instruction_set=InstructionSet.CREATE_PIPELINE,
         )
         self.assertIsInstance(
-            create_agent(conversation, make_built_model(TestModel())),
+            create_agent(conversation, FakeModelBuilder(TestModel())),
             CreatePipelineAgent,
         )
 
@@ -29,7 +31,7 @@ class AgentRegistryTest(AgentTestCase):
             workspace=self.workspace,
             instruction_set=InstructionSet.GENERAL,
         )
-        agent = create_agent(conversation, make_built_model(TestModel()))
+        agent = create_agent(conversation, FakeModelBuilder(TestModel()))
         self.assertIsInstance(agent, BaseAgent)
         self.assertNotIsInstance(agent, CreatePipelineAgent)
 
@@ -41,7 +43,7 @@ class AgentRegistryTest(AgentTestCase):
             instruction_set=InstructionSet.CREATE_WEBAPPS,
         )
         self.assertIsInstance(
-            create_agent(conversation, make_built_model(TestModel())), BaseAgent
+            create_agent(conversation, FakeModelBuilder(TestModel())), BaseAgent
         )
 
     def test_edit_pipeline_instruction_set_returns_edit_pipeline_agent(self):
@@ -51,5 +53,16 @@ class AgentRegistryTest(AgentTestCase):
             instruction_set=InstructionSet.EDIT_PIPELINE,
         )
         self.assertIsInstance(
-            create_agent(conversation, make_built_model(TestModel())), EditPipelineAgent
+            create_agent(conversation, FakeModelBuilder(TestModel())), EditPipelineAgent
         )
+
+
+class AgentKeysTest(AgentTestCase):
+    def test_every_agent_declares_its_own_key(self):
+        """Two agents sharing a key would make one of them impossible to retune
+        through ASSISTANT_AGENT_MODELS without moving the other with it.
+        """
+        agents = [*_AGENT_REGISTRY.values(), NamingAgent]
+        keys = [agent.agent_key for agent in agents]
+        self.assertCountEqual(keys, set(keys))
+        self.assertLessEqual(set(keys), {key.value for key in AgentKey})

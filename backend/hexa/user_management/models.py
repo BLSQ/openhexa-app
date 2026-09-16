@@ -209,6 +209,11 @@ class AiSettings(models.Model):
         OPUS = "opus", "Claude Opus 4.6"
         SONNET = "sonnet", "Claude Sonnet 4.6"
 
+    # The managed provider is configured by us, not the organization. Managed
+    # orgs only toggle the assistant on/off and never pick a model, so they
+    # always run on this one.
+    MANAGED_MODEL = Model.OPUS
+
     organization = models.OneToOneField(
         "Organization",
         primary_key=True,
@@ -231,6 +236,17 @@ class AiSettings(models.Model):
     @property
     def has_api_key(self) -> bool:
         return bool(self.api_key)
+
+    @property
+    def effective_model(self) -> str:
+        """Logical model this organization's conversations run on.
+
+        Any model stored for a managed org (e.g. left over from a previous
+        bring-your-own-key provider) is ignored.
+        """
+        if self.provider == AiSettings.Provider.MANAGED:
+            return AiSettings.MANAGED_MODEL
+        return self.model
 
     @staticmethod
     def provider_choices() -> list[dict[str, str]]:
