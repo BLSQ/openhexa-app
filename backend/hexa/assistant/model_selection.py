@@ -96,7 +96,7 @@ def _models() -> dict[str, dict[str, str]]:
     return models
 
 
-def _pins() -> dict[str, str]:
+def _map_of_agent_to_models() -> dict[str, str]:
     """Agent key -> logical model or model id, parsed from ASSISTANT_AGENT_MODELS.
 
     Entries are dropped one by one: a typo should not undo the pins set alongside
@@ -140,7 +140,7 @@ def resolve_model_id(
     bad pin rather than a user misconfiguration, so we fall back to the
     organization's model: losing the intended model beats breaking the assistant.
     """
-    requested = _pins().get(agent_key, default_model)
+    requested = _map_of_agent_to_models().get(agent_key, default_model)
     if requested is not None:
         model_id = (
             requested
