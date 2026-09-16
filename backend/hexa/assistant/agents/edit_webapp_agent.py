@@ -3,6 +3,7 @@ import json
 from pydantic import BaseModel
 
 from hexa.assistant.agents.base import BaseAgent
+from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.agents.proposals import (
     nothing_to_delete_error,
     resolve_deleted_paths,
@@ -146,6 +147,7 @@ def propose_webapp_version(
 
 class EditWebappAgent(BaseAgent):
     instruction_set = InstructionSet.EDIT_WEBAPP
+    agent_key = AgentKey.EDIT_WEBAPP
     history_strip_tools = {"propose_webapp_version"}
     tools = [
         get_help_or_doc,

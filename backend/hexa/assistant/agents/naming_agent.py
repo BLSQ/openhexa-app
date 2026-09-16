@@ -5,6 +5,7 @@ from typing import NamedTuple
 from pydantic_ai import Agent, ModelRetry, RunUsage
 from pydantic_ai.output import TextOutput
 
+from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.model_builder import AiModelBuilder, calculate_cost
 from hexa.assistant.model_selection import build_agent_model
 from hexa.assistant.models import CONVERSATION_NAME_MAX_LENGTH
@@ -69,7 +70,7 @@ class NamingAgent:
     main model, hence the Haiku default.
     """
 
-    agent_key = "naming"
+    agent_key = AgentKey.NAMING
     default_model = AiSettings.Model.HAIKU
     output_retries = 1
 

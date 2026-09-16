@@ -1,9 +1,11 @@
 from pydantic_ai.models.test import TestModel
 
-from hexa.assistant.agents import create_agent
+from hexa.assistant.agents import _AGENT_REGISTRY, create_agent
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.agents.create_pipeline_agent import CreatePipelineAgent
 from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
+from hexa.assistant.agents.keys import AgentKey
+from hexa.assistant.agents.naming_agent import NamingAgent
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 
@@ -53,3 +55,14 @@ class AgentRegistryTest(AgentTestCase):
         self.assertIsInstance(
             create_agent(conversation, FakeModelBuilder(TestModel())), EditPipelineAgent
         )
+
+
+class AgentKeysTest(AgentTestCase):
+    def test_every_agent_declares_its_own_key(self):
+        """Two agents sharing a key would make one of them impossible to retune
+        through ASSISTANT_AGENT_MODELS without moving the other with it.
+        """
+        agents = [*_AGENT_REGISTRY.values(), NamingAgent]
+        keys = [agent.agent_key for agent in agents]
+        self.assertCountEqual(keys, set(keys))
+        self.assertLessEqual(set(keys), set(AgentKey.values))

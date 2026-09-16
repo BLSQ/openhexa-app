@@ -26,6 +26,7 @@ from pydantic_ai.messages import (
     ToolReturnPart,
 )
 
+from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.agents.naming_agent import NamingAgent, NamingResult
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.model_builder import AiModelBuilder, BuiltModel, calculate_cost
@@ -159,12 +160,10 @@ class BaseAgent:
     max_requests: int = 30
     output_retries: int | None = None
     history_strip_tools: set[str] = set()
-    # Agents that leave `agent_key` unset always run on the model the
-    # organization chose; only those that opt in with a key can be pinned to a
-    # model through ASSISTANT_AGENT_MODELS. `default_model` is the model the
-    # agent asks for when the environment says nothing, None meaning the
+    # Identifies the agent in ASSISTANT_AGENT_MODELS. `default_model` is the
+    # model the agent asks for when the setting says nothing, None meaning the
     # organization's own.
-    agent_key: str | None = None
+    agent_key: str = AgentKey.GENERAL
     default_model: str | None = None
 
     def __init__(

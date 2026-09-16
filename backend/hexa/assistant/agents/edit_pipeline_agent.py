@@ -4,6 +4,7 @@ import zipfile
 from pydantic import BaseModel
 
 from hexa.assistant.agents.base import BaseAgent
+from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.agents.proposals import (
     nothing_to_delete_error,
     resolve_deleted_paths,
@@ -96,6 +97,7 @@ def propose_pipeline_version(
 
 class EditPipelineAgent(BaseAgent):
     instruction_set = InstructionSet.EDIT_PIPELINE
+    agent_key = AgentKey.EDIT_PIPELINE
     tools = [
         get_help_or_doc,
         list_datasets,

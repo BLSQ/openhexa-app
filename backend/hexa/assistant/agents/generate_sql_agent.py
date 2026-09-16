@@ -8,6 +8,7 @@ from pydantic_ai import ModelRetry
 from pydantic_ai.output import TextOutput
 
 from hexa.assistant.agents.base import BaseAgent
+from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.instructions import InstructionSet
 from hexa.databases.query_text import MultipleStatementsError
 from hexa.databases.utils import (
@@ -60,10 +61,7 @@ class GenerateSqlAgent(BaseAgent):
     """
 
     instruction_set = InstructionSet.GENERATE_SQL
-    # Opted into ASSISTANT_AGENT_MODELS: writing SQL is a self-contained task
-    # whose model we may want to tune independently. Left unpinned by default,
-    # so it runs on the organization's model unless the setting says otherwise.
-    agent_key = "generate_sql"
+    agent_key = AgentKey.GENERATE_SQL
     # Schema-only tools: the agent inspects table/column metadata but is never
     # given access to the actual row data in the workspace database.
     tools = [get_db_schema, get_db_table_schema]
