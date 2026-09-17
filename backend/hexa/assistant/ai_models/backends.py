@@ -10,13 +10,16 @@ assistant never has to ask which kind of organization it is holding.
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from functools import cached_property
+from functools import cache, cached_property
 
+import google.auth
 from anthropic.lib.vertex import AsyncAnthropicVertex
 from django.conf import settings
+from google.auth.transport.requests import Request as GoogleAuthRequest
 from pydantic_ai.providers import Provider, infer_provider_class
 from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.providers.google_cloud import GoogleCloudProvider
+from pydantic_ai.providers.openai import OpenAIProvider
 
 from hexa.assistant.ai_models.config import enabled_managed_providers, managed_model_ids
 from hexa.assistant.ai_models.ids import ModelId
@@ -80,6 +83,41 @@ def _vertex_google() -> Provider:
     )
 
 
+@cache
+def _google_credentials():
+    """Our service account, read once and refreshed in place as it expires."""
+    credentials, _ = google.auth.default(
+        scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    )
+    return credentials
+
+
+def _vertex_openai() -> Provider:
+    """Vertex's OpenAI-compatible endpoint, which serves every Model Garden
+    publisher that is neither Gemini nor Claude: Qwen, Kimi, DeepSeek, Llama, gpt-oss.
+    Example: "openai-chat:qwen/qwen3-coder-480b-a35b-instruct-maas"
+
+    It authenticates with a bearer token rather than a key,
+    which is why it builds its own client
+    """
+    credentials = _google_credentials()
+    if not credentials.valid:
+        credentials.refresh(GoogleAuthRequest())
+    region = settings.VERTEX_MAAS_REGION
+    host = (
+        "aiplatform.googleapis.com"
+        if region == "global"
+        else f"{region}-aiplatform.googleapis.com"
+    )
+    return OpenAIProvider(
+        base_url=(
+            f"https://{host}/v1/projects/{settings.VERTEX_PROJECT_ID}"
+            f"/locations/{region}/endpoints/openapi"
+        ),
+        api_key=credentials.token,
+    )
+
+
 class ManagedBackend(ProviderBackend):
     """Models served from our own Vertex project, on our own account."""
 
@@ -96,6 +134,7 @@ class ManagedBackend(ProviderBackend):
     PROVIDERS: dict[str, Callable[[], Provider]] = {
         "anthropic": _vertex_anthropic,
         "google-cloud": _vertex_google,
+        "openai-chat": _vertex_openai,
     }
 
     # genai_prices prices managed models by the Vertex backend they really run

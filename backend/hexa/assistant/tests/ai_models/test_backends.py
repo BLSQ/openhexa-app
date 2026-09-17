@@ -103,6 +103,45 @@ class ManagedModelIdsTest(SimpleTestCase):
         )
 
 
+class VertexOpenAiTest(SimpleTestCase):
+    """One entry serves every Model Garden publisher that is not Gemini or Claude.
+
+    They all speak Vertex's OpenAI-compatible endpoint and differ only by the
+    model name, so adding Qwen or Kimi is a model id, not a code change.
+    """
+
+    def _base_url(self) -> str:
+        with patch(
+            "hexa.assistant.ai_models.backends._google_credentials"
+        ) as credentials:
+            credentials.return_value.valid = True
+            credentials.return_value.token = "ya29.token"
+            return str(_managed_backend().provider_for("openai-chat").base_url)
+
+    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_MAAS_REGION="us-south1")
+    def test_a_region_is_addressed_on_its_own_host(self):
+        self.assertEqual(
+            self._base_url(),
+            "https://us-south1-aiplatform.googleapis.com/v1/projects/test-project"
+            "/locations/us-south1/endpoints/openapi/",
+        )
+
+    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_MAAS_REGION="global")
+    def test_the_global_endpoint_drops_the_region_from_the_host(self):
+        self.assertEqual(
+            self._base_url(),
+            "https://aiplatform.googleapis.com/v1/projects/test-project"
+            "/locations/global/endpoints/openapi/",
+        )
+
+    @override_settings(
+        VERTEX_PROJECT_ID="test-project", ASSISTANT_MANAGED_PROVIDERS="anthropic"
+    )
+    def test_it_narrows_like_any_other_provider(self):
+        with self.assertRaises(AssistantException):
+            _managed_backend().provider_for("openai-chat")
+
+
 class PricingProviderTest(SimpleTestCase):
     def test_managed_models_are_priced_as_the_vertex_backend_they_run_on(self):
         self.assertEqual(
