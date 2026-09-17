@@ -1,36 +1,29 @@
 """Turns a model id into a client an organization can run.
 
 Models are named by their pydantic-ai id, "<provider>:<model>", which is all
-pydantic-ai needs to pick the right client. We only supply the credentials the id
-cannot carry, so reaching for another model is a configuration change rather than
-a code one, and reaching for another provider costs one entry in the registry
-below.
+pydantic-ai needs to pick the right client; the organization's `ProviderBackend`
+supplies the credentials the id cannot carry. Reaching for another model is
+therefore a configuration change rather than a code one, and reaching for
+another provider costs one entry in that backend's registry.
 """
 
 import logging
-from collections.abc import Callable
 from decimal import Decimal
 from typing import NamedTuple
 
 import genai_prices
-from anthropic.lib.vertex import AsyncAnthropicVertex
-from django.conf import settings
 from pydantic_ai import RunUsage
 from pydantic_ai.models import Model as PydanticModel
 from pydantic_ai.models import infer_model
-from pydantic_ai.providers import Provider, infer_provider_class
-from pydantic_ai.providers.anthropic import AnthropicProvider
-from pydantic_ai.providers.google_cloud import GoogleCloudProvider
 
 from hexa.assistant.exceptions import AssistantException
+from hexa.assistant.model_backend import backend_for
+from hexa.assistant.model_id import ModelId, ModelRequest
+from hexa.assistant.model_selection import ModelSelector
 from hexa.assistant.models import Conversation
 from hexa.user_management.models import AiSettings
 
 logger = logging.getLogger(__name__)
-
-_PROVIDER_SEPARATOR = ":"
-
-_MANAGED_PRICING_PROVIDER = "google-vertex"
 
 
 class BuiltModel(NamedTuple):
@@ -60,110 +53,18 @@ class BuiltModel(NamedTuple):
             return None
 
 
-def provider_of(model_id: str) -> str:
-    """The provider part of a "<provider>:<model>" id."""
-    return model_id.split(_PROVIDER_SEPARATOR, 1)[0]
-
-
-def is_model_id(value: str) -> bool:
-    return _PROVIDER_SEPARATOR in value
-
-
-def pricing_provider_id(ai_settings: AiSettings, model_id: str) -> str:
-    """The provider genai_prices knows this model by.
-
-    It prices managed models by the Google Vertex backend they really run on,
-    rather than by the provider that defines them.
-    """
-    if ai_settings.provider == AiSettings.Provider.MANAGED:
-        return _MANAGED_PRICING_PROVIDER
-    return provider_of(model_id)
-
-
-def supports(ai_settings: AiSettings, model_id: str) -> bool:
-    """Whether we hold credentials for `model_id`'s provider.
-
-    Managed organizations run on whatever our Vertex project serves, while
-    BYOK ones are fixed to the single provider they brought a key for.
-    """
-    provider = provider_of(model_id)
-    if ai_settings.provider == AiSettings.Provider.MANAGED:
-        return provider in _managed_providers()
-    return provider == ai_settings.provider
-
-
-def _vertex_anthropic() -> Provider:
-    # pydantic-ai has no Anthropic-on-Vertex provider of its own: Claude on
-    # Vertex is the Anthropic provider wrapped around Google's client.
-    return AnthropicProvider(
-        anthropic_client=AsyncAnthropicVertex(
-            project_id=settings.VERTEX_PROJECT_ID,
-            region=settings.VERTEX_REGION,
-        )
-    )
-
-
-def _vertex_google() -> Provider:
-    return GoogleCloudProvider(
-        project=settings.VERTEX_PROJECT_ID, location=settings.VERTEX_REGION
-    )
-
-
-# What we know how to serve from our own Vertex project. Providers name their
-# credentials differently, so each gets an entry rather than one call that
-# happens to fit: this registry is what adding a provider costs.
-_MANAGED_PROVIDERS: dict[str, Callable[[], Provider]] = {
-    "anthropic": _vertex_anthropic,
-    "google-cloud": _vertex_google,
-}
-
-
-def _managed_providers() -> dict[str, Callable[[], Provider]]:
-    """The entries of the registry this deployment may actually use.
-
-    A publisher has to be enabled on a Vertex project before it answers, which
-    staging and production do not agree on, so ASSISTANT_MANAGED_PROVIDERS
-    narrows what we know how to build down to what is really there. Empty means
-    all of it.
-    """
-    configured = settings.ASSISTANT_MANAGED_PROVIDERS.replace(" ", "").split(",")
-    enabled = set(filter(None, configured)) or set(_MANAGED_PROVIDERS)
-    return {p: build for p, build in _MANAGED_PROVIDERS.items() if p in enabled}
-
-
-def _provider_factory(ai_settings: AiSettings) -> Callable[[str], Provider]:
-    """Credentials for whichever provider a model id names.
-
-    Managed organizations run on our own Vertex project;
-    everyone else brings the key for the provider they configured.
-    """
-
-    def factory(provider: str) -> Provider:
-        if not supports(ai_settings, provider):
-            raise AssistantException(
-                f"Provider {provider!r} cannot run with the credentials of "
-                f"{ai_settings.provider!r} organizations"
-            )
-        if ai_settings.provider != AiSettings.Provider.MANAGED:
-            return infer_provider_class(provider)(api_key=ai_settings.api_key)
-        if not settings.VERTEX_PROJECT_ID:
-            raise AssistantException(
-                "VERTEX_PROJECT_ID is not configured; cannot use the managed provider."
-            )
-        return _managed_providers()[provider]()
-
-    return factory
-
-
 class AiModelBuilder:
     """Builds the models an organization's AI settings allow.
 
-    It knows how to turn a model id into a usable client, and nothing about who
-    wants which model: that decision lives in `model_selection`.
+    It knows how to turn a model id into a usable client, and delegates the two
+    questions around that: which models exist and what pays for them to the
+    organization's `ProviderBackend`, and who gets which model to `ModelSelector`.
     """
 
     def __init__(self, ai_settings: AiSettings):
         self._ai_settings = ai_settings
+        self._backend = backend_for(ai_settings)
+        self._selector = ModelSelector(self._backend)
 
     @classmethod
     def from_conversation(cls, conversation: Conversation) -> "AiModelBuilder":
@@ -181,30 +82,35 @@ class AiModelBuilder:
     def ai_settings(self) -> AiSettings:
         return self._ai_settings
 
-    def build(self, model_id: str) -> BuiltModel:
-        """Build the "<provider>:<model>" id, with this organization's credentials."""
+    def build_for_agent(
+        self, agent_key: str, default_model: ModelRequest | None
+    ) -> BuiltModel:
+        """The model an agent runs on, selected and then built."""
+        return self.build(self._selector.for_agent(agent_key, default_model))
+
+    def build(self, model_id: ModelId) -> BuiltModel:
+        """Build `model_id` with this organization's credentials."""
+        name = str(model_id)
         try:
-            model = infer_model(
-                model_id, provider_factory=_provider_factory(self._ai_settings)
-            )
+            model = infer_model(name, provider_factory=self._backend.provider_for)
         except AssistantException:
             raise
         except Exception as exc:
             # Model ids are free-form configuration: an unknown provider, or one
             # whose optional dependency is not installed, only shows up here.
-            raise AssistantException(f"Cannot build model {model_id!r}: {exc}") from exc
+            raise AssistantException(f"Cannot build model {name!r}: {exc}") from exc
 
         built = BuiltModel(
             model=model,
             api_name=model.model_name,
-            provider_id=pricing_provider_id(self._ai_settings, model_id),
+            provider_id=self._backend.pricing_provider(model_id),
         )
         # Usage we cannot price never counts towards the organization's budget,
         # so an unpriceable model would run uncapped. Refuse it while the only
         # thing at stake is a configuration error.
         if built.calculate_cost(RunUsage()) is None:
             raise AssistantException(
-                f"No known price for {model_id!r}; refusing to run a model whose "
+                f"No known price for {name!r}; refusing to run a model whose "
                 f"spend cannot be capped"
             )
         return built

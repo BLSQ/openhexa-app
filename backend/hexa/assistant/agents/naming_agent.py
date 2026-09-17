@@ -7,7 +7,6 @@ from pydantic_ai.output import TextOutput
 
 from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.model_builder import AiModelBuilder
-from hexa.assistant.model_selection import build_agent_model
 from hexa.assistant.models import CONVERSATION_NAME_MAX_LENGTH
 from hexa.user_management.models import AiSettings
 
@@ -74,9 +73,7 @@ class NamingAgent:
     output_retries = 1
 
     def __init__(self, builder: AiModelBuilder):
-        self.built_model = build_agent_model(
-            builder, self.agent_key, self.default_model
-        )
+        self.built_model = builder.build_for_agent(self.agent_key, self.default_model)
 
     async def run(self, user_input: str) -> NamingResult:
         # Keep the last candidate so an exhausted run can fall back to the model's

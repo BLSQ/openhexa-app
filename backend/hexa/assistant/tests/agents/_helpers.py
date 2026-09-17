@@ -7,7 +7,8 @@ from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 
 from hexa.assistant.agents.base import BaseAgent
-from hexa.assistant.model_builder import BuiltModel
+from hexa.assistant.model_builder import AiModelBuilder, BuiltModel
+from hexa.assistant.model_id import ModelId
 from hexa.user_management.models import AiSettings
 
 
@@ -74,26 +75,29 @@ def make_built_model(test_model, api_name: str = "test") -> BuiltModel:
     return BuiltModel(model=test_model, api_name=api_name, provider_id="test")
 
 
-class FakeModelBuilder:
+class FakeModelBuilder(AiModelBuilder):
     """Serves one test model whatever is asked of it.
 
-    Injected instead of AiModelBuilder so an agent and the naming agent it
-    spawns both run on the test model, while model *selection* still goes
-    through the real code: the api name reported back is the model id that was
-    resolved, so tests can tell the two apart when pricing.
+    Only `build` is faked, so an agent and the naming agent it spawns both run on
+    the test model while model *selection* still goes through the real code: the
+    api name reported back is the model id that was resolved, so tests can tell
+    the two apart when pricing.
     """
 
     def __init__(self, test_model, ai_settings: AiSettings | None = None):
-        self._test_model = test_model
-        self.ai_settings = ai_settings or AiSettings(
-            provider=AiSettings.Provider.ANTHROPIC,
-            model=AiSettings.Model.OPUS,
-            api_key="test-key",
-            enabled=True,
+        super().__init__(
+            ai_settings
+            or AiSettings(
+                provider=AiSettings.Provider.ANTHROPIC,
+                model=AiSettings.Model.OPUS,
+                api_key="test-key",
+                enabled=True,
+            )
         )
+        self._test_model = test_model
 
-    def build(self, model_id: str) -> BuiltModel:
-        return make_built_model(self._test_model, api_name=model_id)
+    def build(self, model_id: ModelId) -> BuiltModel:
+        return make_built_model(self._test_model, api_name=str(model_id))
 
 
 def _make_truncated_tool_call_model(tool_name: str) -> FunctionModel:

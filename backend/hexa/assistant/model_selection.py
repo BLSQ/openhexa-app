@@ -1,152 +1,65 @@
 """Decides which model each agent runs on.
 
-Models are named by their pydantic-ai id, "<provider>:<model>".
-ASSISTANT_MANAGED_MODELS maps the logical models managed organizations run on
-(the ones agents ask for) to such an id, so moving them from one model — or one
-provider — to another is an env change rather than a release.
-
 Every agent declares an `AgentKey` and, optionally, a `default_model`; the model
 it actually runs on is, in order of precedence: the entry for its key in the
 ASSISTANT_AGENT_MODELS setting, its own default, then the model the organization
-configured. An entry is either a logical model (e.g. "haiku"), resolved for the
-organization's provider, or a model id of its own (e.g.
-"google-cloud:gemini-3-pro-preview"), which is the only way to put one agent on a
-different provider than the rest.
+configured. A logical model (e.g. "haiku") is resolved by the organization's
+backend, while a model id (e.g. "google-cloud:gemini-3-pro-preview") is taken as
+it stands — the only way to put one agent on a different provider than the rest.
 """
 
-import json
 import logging
+from functools import cached_property
 
-from django.conf import settings
-
-from hexa.assistant.agents.keys import AgentKey
+from hexa.assistant import model_config
 from hexa.assistant.exceptions import AssistantException
-from hexa.assistant.model_builder import (
-    AiModelBuilder,
-    BuiltModel,
-    is_model_id,
-    supports,
-)
-from hexa.user_management.models import AiSettings
+from hexa.assistant.model_backend import ProviderBackend
+from hexa.assistant.model_id import ModelId, ModelRequest
 
 logger = logging.getLogger(__name__)
 
-# What our own Vertex project runs managed organizations on, overridden entry by
-# entry from ASSISTANT_MANAGED_MODELS. It only needs the models agents ask for.
-_MANAGED_DEFAULTS: dict[str, str] = {
-    AiSettings.Model.HAIKU.value: "anthropic:claude-haiku-4-5",
-    AiSettings.Model.OPUS.value: "anthropic:claude-opus-4-6",
-}
 
-# BYOK organizations pick their own model, so these are not ours to switch.
-_BYOK_MODELS: dict[str, dict[str, str]] = {
-    AiSettings.Provider.ANTHROPIC.value: {
-        AiSettings.Model.HAIKU.value: "anthropic:claude-haiku-4-5",
-        AiSettings.Model.OPUS.value: "anthropic:claude-opus-4-6",
-        AiSettings.Model.SONNET.value: "anthropic:claude-sonnet-4-6",
-    },
-}
+class ModelSelector:
+    """Picks model ids for one organization; building them is the builder's job."""
 
+    def __init__(self, backend: ProviderBackend):
+        self._backend = backend
 
-def _json_object(raw: str, name: str) -> dict:
-    """The JSON object in `raw`, or an empty one if it cannot be read.
+    @cached_property
+    def _pins(self) -> dict[str, ModelRequest]:
+        return model_config.agent_model_requests()
 
-    A misconfiguration must never take the assistant down, so anything we cannot
-    make sense of is dropped with an error and the code defaults apply.
-    """
-    if not raw:
-        return {}
-    try:
-        value = json.loads(raw)
-    except Exception:
-        value = None
-    if not isinstance(value, dict):
-        logger.error("%s is not a JSON object; ignoring it: %r", name, raw)
-        return {}
-    return value
-
-
-def _valid_model_id(value) -> str:
-    if not isinstance(value, str) or not is_model_id(value):
-        raise ValueError(f"{value!r} is not a '<provider>:<model>' id")
-    return value
-
-
-def _logical_models(ai_settings: AiSettings) -> dict[str, str]:
-    """Logical model -> model id, for this organization's provider.
-
-    Managed entries are merged one by one over the defaults: a typo should not
-    undo the models set alongside it, nor the defaults for everything left out.
-    """
-    if ai_settings.provider != AiSettings.Provider.MANAGED:
-        return _BYOK_MODELS.get(ai_settings.provider, {})
-
-    models = dict(_MANAGED_DEFAULTS)
-    for model, model_id in _json_object(
-        settings.ASSISTANT_MANAGED_MODELS, "ASSISTANT_MANAGED_MODELS"
-    ).items():
-        try:
-            models[AiSettings.Model(model).value] = _valid_model_id(model_id)
-        except Exception as exc:
-            logger.error(
-                "ASSISTANT_MANAGED_MODELS: ignoring entry %r -> %r (%s)",
-                model,
-                model_id,
-                exc,
+    def for_organization(self) -> ModelId:
+        """Model id the organization's own conversations run on."""
+        ai_settings = self._backend.ai_settings
+        model_id = self._backend.model_ids.get(ai_settings.effective_model)
+        if model_id is None:
+            raise AssistantException(
+                f"No model id configured for {ai_settings.effective_model!r} on "
+                f"provider {ai_settings.provider!r}"
             )
-    return models
+        return model_id
 
+    def for_agent(self, agent_key: str, default_model: ModelRequest | None) -> ModelId:
+        """Model id `agent_key` runs on for this organization.
 
-def _map_of_agent_to_models() -> dict[str, str]:
-    """Agent key -> logical model or model id, parsed from ASSISTANT_AGENT_MODELS.
+        A model the organization cannot run is a gap in our own configuration or
+        a bad pin rather than a user misconfiguration, so we fall back to the
+        organization's model: losing the intended model beats breaking the
+        assistant.
+        """
+        requested = self._pins.get(agent_key, default_model)
+        if requested is None:
+            return self.for_organization()
+        return self._runnable(requested, agent_key) or self.for_organization()
 
-    Entries are dropped one by one: a typo should not undo the pins set alongside
-    it, which may be the deliberate ones.
-    """
-    pins = {}
-    for key, model in _json_object(
-        settings.ASSISTANT_AGENT_MODELS, "ASSISTANT_AGENT_MODELS"
-    ).items():
-        try:
-            agent = AgentKey(key).value
-            pins[agent] = (
-                model
-                if isinstance(model, str) and is_model_id(model)
-                else AiSettings.Model(model).value
-            )
-        except Exception as exc:
-            logger.error(
-                "ASSISTANT_AGENT_MODELS: ignoring entry %r -> %r (%s)", key, model, exc
-            )
-    return pins
-
-
-def organization_model_id(ai_settings: AiSettings) -> str:
-    """Model id the organization's own conversations run on."""
-    model_id = _logical_models(ai_settings).get(ai_settings.effective_model)
-    if model_id is None:
-        raise AssistantException(
-            f"No model id configured for {ai_settings.effective_model!r} on provider "
-            f"{ai_settings.provider!r}"
-        )
-    return model_id
-
-
-def resolve_model_id(
-    ai_settings: AiSettings, agent_key: str, default_model: str | None
-) -> str:
-    """Model id an agent runs on for this organization.
-
-    A model the organization cannot run is a gap in our own configuration or a
-    bad pin rather than a user misconfiguration, so we fall back to the
-    organization's model: losing the intended model beats breaking the assistant.
-    """
-    requested = _map_of_agent_to_models().get(agent_key, default_model)
-    if requested is not None:
+    def _runnable(self, requested: ModelRequest, agent_key: str) -> ModelId | None:
+        """`requested` as a model id this organization can run, or None with a reason."""
+        ai_settings = self._backend.ai_settings
         model_id = (
             requested
-            if is_model_id(requested)
-            else _logical_models(ai_settings).get(requested)
+            if isinstance(requested, ModelId)
+            else self._backend.model_ids.get(requested)
         )
         if model_id is None:
             logger.error(
@@ -156,22 +69,14 @@ def resolve_model_id(
                 requested,
                 agent_key,
             )
-        elif not supports(ai_settings, model_id):
+            return None
+        if not self._backend.supports(model_id.provider):
             logger.error(
                 "Agent %r requested %r, which %r organizations hold no credentials "
                 "for; falling back to the organization's model",
                 agent_key,
-                model_id,
+                str(model_id),
                 ai_settings.provider,
             )
-        else:
-            return model_id
-    return organization_model_id(ai_settings)
-
-
-def build_agent_model(
-    builder: AiModelBuilder, agent_key: str, default_model: str | None
-) -> BuiltModel:
-    return builder.build(
-        resolve_model_id(builder.ai_settings, agent_key, default_model)
-    )
+            return None
+        return model_id

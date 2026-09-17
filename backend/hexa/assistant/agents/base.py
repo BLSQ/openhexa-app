@@ -30,7 +30,6 @@ from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.agents.naming_agent import NamingAgent, NamingResult
 from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.model_builder import AiModelBuilder, BuiltModel
-from hexa.assistant.model_selection import build_agent_model
 from hexa.assistant.models import (
     Conversation,
     Message,
@@ -171,8 +170,8 @@ class BaseAgent:
     ):
         self.conversation = conversation
         self._builder = builder or AiModelBuilder.from_conversation(conversation)
-        self._built_model: BuiltModel = build_agent_model(
-            self._builder, self.agent_key, self.default_model
+        self._built_model: BuiltModel = self._builder.build_for_agent(
+            self.agent_key, self.default_model
         )
 
         self.agent = Agent(
