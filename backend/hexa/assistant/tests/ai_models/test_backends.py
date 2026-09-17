@@ -2,13 +2,13 @@ from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
 
-from hexa.assistant.exceptions import AssistantException
-from hexa.assistant.model_backend import (
+from hexa.assistant.ai_models.backends import (
     BringYourOwnKeyBackend,
     ManagedBackend,
     backend_for,
 )
-from hexa.assistant.model_id import ModelId
+from hexa.assistant.ai_models.ids import ModelId
+from hexa.assistant.exceptions import AssistantException
 from hexa.user_management.models import AiSettings
 
 
@@ -72,7 +72,9 @@ class SupportsTest(SimpleTestCase):
 class PricingProviderTest(SimpleTestCase):
     def test_managed_models_are_priced_as_the_vertex_backend_they_run_on(self):
         self.assertEqual(
-            _managed_backend().pricing_provider(ModelId("anthropic", "claude-opus-4-6")),
+            _managed_backend().pricing_provider(
+                ModelId("anthropic", "claude-opus-4-6")
+            ),
             ManagedBackend.PRICING_PROVIDER,
         )
 
@@ -85,7 +87,7 @@ class PricingProviderTest(SimpleTestCase):
 
 class ProviderForTest(SimpleTestCase):
     @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_REGION="europe-west1")
-    @patch("hexa.assistant.model_backend.AsyncAnthropicVertex")
+    @patch("hexa.assistant.ai_models.backends.AsyncAnthropicVertex")
     def test_managed_anthropic_goes_through_our_vertex_project(self, mock_client):
         _managed_backend().provider_for("anthropic")
         mock_client.assert_called_once_with(
@@ -93,7 +95,7 @@ class ProviderForTest(SimpleTestCase):
         )
 
     @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_REGION="europe-west1")
-    @patch("hexa.assistant.model_backend.GoogleCloudProvider")
+    @patch("hexa.assistant.ai_models.backends.GoogleCloudProvider")
     def test_managed_google_goes_through_our_vertex_project(self, mock_provider):
         _managed_backend().provider_for("google-cloud")
         mock_provider.assert_called_once_with(

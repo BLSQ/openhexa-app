@@ -18,9 +18,9 @@ from pydantic_ai.providers import Provider, infer_provider_class
 from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.providers.google_cloud import GoogleCloudProvider
 
-from hexa.assistant import model_config
+from hexa.assistant.ai_models.config import enabled_managed_providers, managed_model_ids
+from hexa.assistant.ai_models.ids import ModelId
 from hexa.assistant.exceptions import AssistantException
-from hexa.assistant.model_id import ModelId
 from hexa.user_management.models import AiSettings
 
 logger = logging.getLogger(__name__)
@@ -104,7 +104,7 @@ class ManagedBackend(ProviderBackend):
 
     @cached_property
     def model_ids(self) -> dict[str, ModelId]:
-        return {**self.DEFAULT_MODEL_IDS, **model_config.managed_model_ids()}
+        return {**self.DEFAULT_MODEL_IDS, **managed_model_ids()}
 
     @cached_property
     def _enabled_providers(self) -> dict[str, Callable[[], Provider]]:
@@ -115,7 +115,7 @@ class ManagedBackend(ProviderBackend):
         we know how to build down to what is really there. It only ever narrows:
         naming a provider we have no wiring for does not conjure credentials.
         """
-        enabled = model_config.enabled_managed_providers() or set(self.PROVIDERS)
+        enabled = enabled_managed_providers() or set(self.PROVIDERS)
         return {p: build for p, build in self.PROVIDERS.items() if p in enabled}
 
     def supports(self, provider: str) -> bool:

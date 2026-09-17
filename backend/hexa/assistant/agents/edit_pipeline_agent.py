@@ -4,12 +4,12 @@ import zipfile
 from pydantic import BaseModel
 
 from hexa.assistant.agents.base import BaseAgent
-from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.agents.proposals import (
     nothing_to_delete_error,
     resolve_deleted_paths,
 )
 from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.keys import AgentKey
 from hexa.assistant.models import Conversation, ToolInvocation
 from hexa.mcp.tools.connections import list_connections
 from hexa.mcp.tools.datasets import get_dataset, list_datasets, preview_dataset_file

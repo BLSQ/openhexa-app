@@ -11,10 +11,10 @@ it stands — the only way to put one agent on a different provider than the res
 import logging
 from functools import cached_property
 
-from hexa.assistant import model_config
+from hexa.assistant.ai_models.backends import ProviderBackend
+from hexa.assistant.ai_models.config import agent_model_requests
+from hexa.assistant.ai_models.ids import ModelId, ModelRequest
 from hexa.assistant.exceptions import AssistantException
-from hexa.assistant.model_backend import ProviderBackend
-from hexa.assistant.model_id import ModelId, ModelRequest
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class ModelSelector:
 
     @cached_property
     def _pins(self) -> dict[str, ModelRequest]:
-        return model_config.agent_model_requests()
+        return agent_model_requests()
 
     def for_organization(self) -> ModelId:
         """Model id the organization's own conversations run on."""

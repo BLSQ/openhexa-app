@@ -11,8 +11,8 @@ import logging
 
 from django.conf import settings
 
-from hexa.assistant.agents.keys import AgentKey
-from hexa.assistant.model_id import ModelId, ModelRequest
+from hexa.assistant.ai_models.ids import ModelId, ModelRequest
+from hexa.assistant.keys import AgentKey
 from hexa.user_management.models import AiSettings
 
 logger = logging.getLogger(__name__)

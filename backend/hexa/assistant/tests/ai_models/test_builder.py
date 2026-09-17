@@ -1,20 +1,20 @@
 from unittest.mock import MagicMock, patch
 
-from django.test import SimpleTestCase, TestCase, override_settings
-from pydantic_ai import RunUsage
+from django.test import TestCase, override_settings
 
+from hexa.assistant.ai_models.builder import AiModelBuilder
+from hexa.assistant.ai_models.built_model import BuiltModel
+from hexa.assistant.ai_models.ids import ModelId
 from hexa.assistant.exceptions import AssistantException
-from hexa.assistant.model_builder import AiModelBuilder, BuiltModel
-from hexa.assistant.model_id import ModelId
 from hexa.user_management.models import AiSettings
 
-
-def _make_ai_settings(provider, model, api_key: str | None = "test-key"):
-    return AiSettings(provider=provider, model=model, api_key=api_key, enabled=True)
+_PRICING_LOGGER = "hexa.assistant.ai_models.built_model"
 
 
 def _builder(provider, model, api_key: str | None = "test-key") -> AiModelBuilder:
-    return AiModelBuilder(_make_ai_settings(provider, model, api_key))
+    return AiModelBuilder(
+        AiSettings(provider=provider, model=model, api_key=api_key, enabled=True)
+    )
 
 
 def _id(value: str) -> ModelId:
@@ -30,7 +30,7 @@ class AiModelBuilderTest(TestCase):
         self.assertEqual(result.provider_id, AiSettings.Provider.ANTHROPIC)
 
     @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_REGION="europe-west1")
-    @patch("hexa.assistant.model_backend.AsyncAnthropicVertex")
+    @patch("hexa.assistant.ai_models.backends.AsyncAnthropicVertex")
     def test_build_returns_built_model_for_managed(self, mock_vertex_client):
         builder = _builder(AiSettings.Provider.MANAGED, model=None, api_key=None)
         result = builder.build(_id("anthropic:claude-opus-4-6"))
@@ -42,13 +42,13 @@ class AiModelBuilderTest(TestCase):
         )
 
     @override_settings(VERTEX_PROJECT_ID="test-project")
-    @patch("hexa.assistant.model_backend.AsyncAnthropicVertex")
+    @patch("hexa.assistant.ai_models.backends.AsyncAnthropicVertex")
     def test_build_a_model_we_cannot_price_raises(self, mock_vertex_client):
         """Usage we cannot price never reaches the organization's budget, so a
         model id genai_prices does not know would run uncapped.
         """
         builder = _builder(AiSettings.Provider.MANAGED, model=None, api_key=None)
-        with self.assertLogs("hexa.assistant.model_builder", level="ERROR"):
+        with self.assertLogs(_PRICING_LOGGER, level="ERROR"):
             with self.assertRaises(AssistantException):
                 builder.build(_id("anthropic:no-such-claude"))
 
@@ -79,22 +79,3 @@ class AiModelBuilderTest(TestCase):
         mock_conversation.workspace.organization.ai_settings_safe.enabled = False
         with self.assertRaises(AssistantException):
             AiModelBuilder.from_conversation(mock_conversation)
-
-
-class CalculateCostTest(SimpleTestCase):
-    def test_prices_usage_with_the_model_that_produced_it(self):
-        built = BuiltModel(
-            model=MagicMock(), api_name="claude-opus-4-6", provider_id="anthropic"
-        )
-        cost = built.calculate_cost(RunUsage(input_tokens=1000, output_tokens=1000))
-        self.assertIsNotNone(cost)
-        self.assertGreater(cost, 0)
-
-    def test_returns_none_when_pricing_fails(self):
-        """`build` turns these away, so reaching this means the price data
-        changed under a model we already accepted: log it rather than pass over
-        usage that escapes the organization's budget.
-        """
-        built = BuiltModel(model=MagicMock(), api_name="?", provider_id="?")
-        with self.assertLogs("hexa.assistant.model_builder", level="ERROR"):
-            self.assertIsNone(built.calculate_cost(RunUsage()))

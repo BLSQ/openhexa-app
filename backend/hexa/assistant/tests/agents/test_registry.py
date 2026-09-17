@@ -4,9 +4,9 @@ from hexa.assistant.agents import _AGENT_REGISTRY, create_agent
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.agents.create_pipeline_agent import CreatePipelineAgent
 from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
-from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.agents.naming_agent import NamingAgent
 from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.keys import AgentKey
 from hexa.assistant.models import Conversation
 
 from ._helpers import FakeModelBuilder

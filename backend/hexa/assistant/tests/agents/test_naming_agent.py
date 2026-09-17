@@ -148,7 +148,7 @@ class NamingAgentRunTest(AgentTestCase):
             FakeModelBuilder(_make_naming_model("Tableau de bord alertes")),
         )
         with patch(
-            "hexa.assistant.model_builder.genai_prices.calc_price"
+            "hexa.assistant.ai_models.built_model.genai_prices.calc_price"
         ) as calc_price:
             calc_price.return_value = MagicMock(total_price=Decimal("0"))
             run_agent(agent, "Améliore ce tableau de bord")

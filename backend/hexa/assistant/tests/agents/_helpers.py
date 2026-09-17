@@ -7,8 +7,7 @@ from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 
 from hexa.assistant.agents.base import BaseAgent
-from hexa.assistant.model_builder import AiModelBuilder, BuiltModel
-from hexa.assistant.model_id import ModelId
+from hexa.assistant.ai_models import AiModelBuilder, BuiltModel, ModelId
 from hexa.user_management.models import AiSettings
 
 

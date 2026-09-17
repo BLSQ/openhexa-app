@@ -5,8 +5,8 @@ from typing import NamedTuple
 from pydantic_ai import Agent, ModelRetry, RunUsage
 from pydantic_ai.output import TextOutput
 
-from hexa.assistant.agents.keys import AgentKey
-from hexa.assistant.model_builder import AiModelBuilder
+from hexa.assistant.ai_models import AiModelBuilder
+from hexa.assistant.keys import AgentKey
 from hexa.assistant.models import CONVERSATION_NAME_MAX_LENGTH
 from hexa.user_management.models import AiSettings
 

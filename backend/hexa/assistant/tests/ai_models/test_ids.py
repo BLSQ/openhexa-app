@@ -1,6 +1,6 @@
 from django.test import SimpleTestCase
 
-from hexa.assistant.model_id import ModelId
+from hexa.assistant.ai_models.ids import ModelId
 
 
 class ModelIdTest(SimpleTestCase):

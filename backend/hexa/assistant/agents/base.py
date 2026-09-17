@@ -26,10 +26,10 @@ from pydantic_ai.messages import (
     ToolReturnPart,
 )
 
-from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.agents.naming_agent import NamingAgent, NamingResult
+from hexa.assistant.ai_models import AiModelBuilder, BuiltModel
 from hexa.assistant.instructions import InstructionSet, get_instructions
-from hexa.assistant.model_builder import AiModelBuilder, BuiltModel
+from hexa.assistant.keys import AgentKey
 from hexa.assistant.models import (
     Conversation,
     Message,

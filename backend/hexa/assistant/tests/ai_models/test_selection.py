@@ -1,21 +1,21 @@
 from django.test import SimpleTestCase, override_settings
 from pydantic_ai import RunUsage
 
-from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.agents.naming_agent import NamingAgent
-from hexa.assistant.exceptions import AssistantException
-from hexa.assistant.model_backend import (
+from hexa.assistant.ai_models.backends import (
     BringYourOwnKeyBackend,
     ManagedBackend,
     backend_for,
 )
-from hexa.assistant.model_builder import BuiltModel
-from hexa.assistant.model_selection import ModelSelector
+from hexa.assistant.ai_models.built_model import BuiltModel
+from hexa.assistant.ai_models.selection import ModelSelector
+from hexa.assistant.exceptions import AssistantException
+from hexa.assistant.keys import AgentKey
 from hexa.user_management.models import AiSettings
 
-# Parsing errors are reported by model_config and selection ones by
-# model_selection; tests care that the entry was rejected, not by which module.
-_LOGGER = "hexa.assistant"
+# Parsing errors are reported by ai_models.config and selection ones by
+# ai_models.selection; tests care that the entry was rejected, not by which module.
+_LOGGER = "hexa.assistant.ai_models"
 
 _HAIKU_ID = "anthropic:claude-haiku-4-5"
 _OPUS_ID = "anthropic:claude-opus-4-6"

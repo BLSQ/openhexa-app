@@ -8,49 +8,19 @@ another provider costs one entry in that backend's registry.
 """
 
 import logging
-from decimal import Decimal
-from typing import NamedTuple
 
-import genai_prices
 from pydantic_ai import RunUsage
-from pydantic_ai.models import Model as PydanticModel
 from pydantic_ai.models import infer_model
 
+from hexa.assistant.ai_models.backends import backend_for
+from hexa.assistant.ai_models.built_model import BuiltModel
+from hexa.assistant.ai_models.ids import ModelId, ModelRequest
+from hexa.assistant.ai_models.selection import ModelSelector
 from hexa.assistant.exceptions import AssistantException
-from hexa.assistant.model_backend import backend_for
-from hexa.assistant.model_id import ModelId, ModelRequest
-from hexa.assistant.model_selection import ModelSelector
 from hexa.assistant.models import Conversation
 from hexa.user_management.models import AiSettings
 
 logger = logging.getLogger(__name__)
-
-
-class BuiltModel(NamedTuple):
-    model: PydanticModel
-    api_name: str
-    provider_id: str
-
-    def calculate_cost(self, usage: RunUsage) -> Decimal | None:
-        """Price `usage`, or None if this model has no known price.
-
-        Agents in one conversation may run on different models, so each prices
-        its own usage. `AiModelBuilder.build` prices an empty usage to turn away
-        models we cannot meter, so a None here means the price data changed under
-        a model we already accepted, and that usage escapes the monthly budget.
-        """
-        try:
-            return genai_prices.calc_price(
-                usage, self.api_name, provider_id=self.provider_id
-            ).total_price
-        except Exception:
-            logger.error(
-                "cost calculation failed for model=%s provider=%s; "
-                "its usage will not count towards any spend limit",
-                self.api_name,
-                self.provider_id,
-            )
-            return None
 
 
 class AiModelBuilder:
