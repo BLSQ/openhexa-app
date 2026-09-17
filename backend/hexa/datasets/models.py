@@ -4,6 +4,7 @@ import math
 import secrets
 from functools import cached_property
 
+import numpy as np
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
@@ -469,7 +470,13 @@ class DataframeJsonEncoder(DjangoJSONEncoder):
         def custom_encoding(item):
             SKIPPED_FIELD = "<SKIPPED_BYTES>"
 
-            if isinstance(item, float) and math.isnan(item):
+            if isinstance(item, np.ndarray):
+                # Parquet list/array columns land here as numpy arrays, which the
+                # JSON encoder cannot handle; tolist() also unwraps nested scalars
+                return [custom_encoding(element) for element in item.tolist()]
+            elif isinstance(item, np.generic):
+                return custom_encoding(item.item())
+            elif isinstance(item, float) and math.isnan(item):
                 return None
             elif isinstance(item, dict):
                 return {key: custom_encoding(value) for key, value in item.items()}
