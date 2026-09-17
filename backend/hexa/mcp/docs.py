@@ -3,6 +3,8 @@ import re
 from functools import lru_cache
 from pathlib import Path
 
+from django.conf import settings
+
 
 def _resolve_docs_dir() -> Path:
     override = os.environ.get("OPENHEXA_DOCS_DIR")
@@ -20,6 +22,7 @@ def _resolve_docs_dir() -> Path:
 
 
 DOCS_DIR = _resolve_docs_dir()
+DOCS_VARIABLE_RE = re.compile(r"\[\[\s*([A-Z][A-Z0-9_]*)\s*\]\]")
 
 _ALLOWED_SLUGS = frozenset(
     {
@@ -100,12 +103,24 @@ def get_index() -> list[dict]:
     ]
 
 
+def _interpolate(content: str) -> str:
+    def replace(match: re.Match) -> str:
+        value = getattr(settings, match.group(1), None)
+        return str(value) if value else match.group(0)
+
+    return DOCS_VARIABLE_RE.sub(replace, content)
+
+
 def read_doc(name: str) -> dict | None:
     """Return {name, title, content} for the given doc, or None if unknown."""
     doc = _load().get(name)
     if doc is None:
         return None
-    return {"name": doc["name"], "title": doc["title"], "content": doc["content"]}
+    return {
+        "name": doc["name"],
+        "title": doc["title"],
+        "content": _interpolate(doc["content"]),
+    }
 
 
 def available_doc_names() -> list[str]:
