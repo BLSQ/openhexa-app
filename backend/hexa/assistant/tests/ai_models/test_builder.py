@@ -66,6 +66,7 @@ class AiModelBuilderTest(TestCase):
     @override_settings(
         VERTEX_PROJECT_ID="test-project",
         VERTEX_MAAS_REGION="global",
+        ASSISTANT_MANAGED_PROVIDERS="",
         ASSISTANT_MANAGED_MODELS=(
             '{"opus": "openai-chat:qwen/qwen3-coder-480b-a35b-instruct-maas"}'
         ),

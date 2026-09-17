@@ -118,7 +118,11 @@ class VertexOpenAiTest(SimpleTestCase):
             credentials.return_value.token = "ya29.token"
             return str(_managed_backend().provider_for("openai-chat").base_url)
 
-    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_MAAS_REGION="us-south1")
+    @override_settings(
+        VERTEX_PROJECT_ID="test-project",
+        VERTEX_MAAS_REGION="us-south1",
+        ASSISTANT_MANAGED_PROVIDERS="",
+    )
     def test_a_region_is_addressed_on_its_own_host(self):
         self.assertEqual(
             self._base_url(),
@@ -126,7 +130,11 @@ class VertexOpenAiTest(SimpleTestCase):
             "/locations/us-south1/endpoints/openapi/",
         )
 
-    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_MAAS_REGION="global")
+    @override_settings(
+        VERTEX_PROJECT_ID="test-project",
+        VERTEX_MAAS_REGION="global",
+        ASSISTANT_MANAGED_PROVIDERS="",
+    )
     def test_the_global_endpoint_drops_the_region_from_the_host(self):
         self.assertEqual(
             self._base_url(),
