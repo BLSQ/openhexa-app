@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 from django.test import TestCase, override_settings
+from pydantic_ai import RunUsage
 
 from hexa.assistant.ai_models.builder import AiModelBuilder
 from hexa.assistant.ai_models.built_model import BuiltModel
@@ -8,7 +9,7 @@ from hexa.assistant.ai_models.ids import ModelId
 from hexa.assistant.exceptions import AssistantException
 from hexa.user_management.models import AiSettings
 
-_PRICING_LOGGER = "hexa.assistant.ai_models.built_model"
+_LOGGER = "hexa.assistant.ai_models.builder"
 
 
 def _builder(provider, model, api_key: str | None = "test-key") -> AiModelBuilder:
@@ -43,14 +44,24 @@ class AiModelBuilderTest(TestCase):
 
     @override_settings(VERTEX_PROJECT_ID="test-project")
     @patch("hexa.assistant.ai_models.backends.AsyncAnthropicVertex")
-    def test_build_a_model_we_cannot_price_raises(self, mock_vertex_client):
-        """Usage we cannot price never reaches the organization's budget, so a
-        model id genai_prices does not know would run uncapped.
+    def test_a_model_we_cannot_price_still_builds(self, mock_vertex_client):
+        """Reaching for a new model must not wait on genai_prices catching up, so
+        an unknown price costs its usage a place in the budget, not the run. The
+        log names the configured id, which is what an operator has to fix.
         """
         builder = _builder(AiSettings.Provider.MANAGED, model=None, api_key=None)
-        with self.assertLogs(_PRICING_LOGGER, level="ERROR"):
-            with self.assertRaises(AssistantException):
-                builder.build(_id("anthropic:no-such-claude"))
+        with self.assertLogs(_LOGGER, level="ERROR") as logs:
+            built = builder.build(_id("anthropic:no-such-claude"))
+        self.assertEqual(built.api_name, "no-such-claude")
+        self.assertIn("anthropic:no-such-claude", logs.output[0])
+        self.assertIsNone(built.calculate_cost(RunUsage(input_tokens=1000)))
+
+    @override_settings(VERTEX_PROJECT_ID="test-project")
+    @patch("hexa.assistant.ai_models.backends.AsyncAnthropicVertex")
+    def test_a_priced_model_builds_quietly(self, mock_vertex_client):
+        builder = _builder(AiSettings.Provider.MANAGED, model=None, api_key=None)
+        with self.assertNoLogs(_LOGGER, level="ERROR"):
+            builder.build(_id("anthropic:claude-opus-4-6"))
 
     def test_build_a_provider_we_hold_no_credentials_for_raises(self):
         builder = _builder(AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS)

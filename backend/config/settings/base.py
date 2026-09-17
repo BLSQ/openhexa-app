@@ -624,7 +624,7 @@ ASSISTANT_MANAGED = os.environ.get("ASSISTANT_MANAGED", "false") == "true"
 # europe-west1 keeps data in the EU for GDPR.
 VERTEX_PROJECT_ID = os.environ.get("VERTEX_PROJECT_ID")
 VERTEX_REGION = os.environ.get("VERTEX_REGION", "europe-west1")
-# Which of the providers we know how to serve from Vertex (see _MANAGED_PROVIDERS)
+# Which of the providers we know how to serve from Vertex (see ManagedBackend.PROVIDERS)
 # this deployment's project has actually enabled, comma separated. Empty means all.
 ASSISTANT_MANAGED_PROVIDERS = os.environ.get("ASSISTANT_MANAGED_PROVIDERS", "")
 # Maps the logical models managed organizations run on (see AiSettings.Model) to a

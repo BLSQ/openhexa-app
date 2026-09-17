@@ -69,6 +69,40 @@ class SupportsTest(SimpleTestCase):
         self.assertFalse(backend.supports("google-cloud"))
 
 
+class ManagedModelIdsTest(SimpleTestCase):
+    @override_settings(
+        ASSISTANT_MANAGED_PROVIDERS="anthropic",
+        ASSISTANT_MANAGED_MODELS='{"opus": "google-cloud:gemini-3-pro-preview"}',
+    )
+    def test_a_model_on_a_provider_the_deployment_disabled_is_dropped(self):
+        """The two settings can contradict each other; the narrower one wins and
+        the organization keeps a model it can actually run.
+        """
+        with self.assertLogs("hexa.assistant.ai_models.backends", level="ERROR"):
+            model_ids = _managed_backend().model_ids
+        self.assertEqual(
+            model_ids[AiSettings.Model.OPUS], ModelId("anthropic", "claude-opus-4-6")
+        )
+
+    @override_settings(ASSISTANT_MANAGED_PROVIDERS="google-cloud")
+    def test_disabling_every_provider_the_defaults_use_leaves_nothing(self):
+        """Honest emptiness: `ModelSelector` then says no model is configured,
+        rather than the backend claiming credentials it was told not to use.
+        """
+        with self.assertLogs("hexa.assistant.ai_models.backends", level="ERROR"):
+            self.assertEqual(_managed_backend().model_ids, {})
+
+    @override_settings(
+        ASSISTANT_MANAGED_PROVIDERS="anthropic, google-cloud",
+        ASSISTANT_MANAGED_MODELS='{"opus": "google-cloud:gemini-3-pro-preview"}',
+    )
+    def test_an_override_on_an_enabled_provider_is_kept(self):
+        self.assertEqual(
+            _managed_backend().model_ids[AiSettings.Model.OPUS],
+            ModelId("google-cloud", "gemini-3-pro-preview"),
+        )
+
+
 class PricingProviderTest(SimpleTestCase):
     def test_managed_models_are_priced_as_the_vertex_backend_they_run_on(self):
         self.assertEqual(

@@ -75,12 +75,13 @@ class AiModelBuilder:
             api_name=model.model_name,
             provider_id=self._backend.pricing_provider(model_id),
         )
-        # Usage we cannot price never counts towards the organization's budget,
-        # so an unpriceable model would run uncapped. Refuse it while the only
-        # thing at stake is a configuration error.
+        # Reaching for a new model does not fail on missing cost calculation,
+        # in case we need to change models quickly so service is not down;
+        # ideally pricing would be added shortly after
         if built.calculate_cost(RunUsage()) is None:
-            raise AssistantException(
-                f"No known price for {name!r}; refusing to run a model whose "
-                f"spend cannot be capped"
+            logger.error(
+                "No known price for %r; its usage will not count towards the "
+                "organization's monthly AI budget. Plan to add the pricing for this model.",
+                name,
             )
         return built

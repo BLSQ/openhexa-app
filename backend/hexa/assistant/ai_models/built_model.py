@@ -25,9 +25,8 @@ class BuiltModel(NamedTuple):
         """Price `usage`, or None if this model has no known price.
 
         Agents in one conversation may run on different models, so each prices
-        its own usage. `AiModelBuilder.build` prices an empty usage to turn away
-        models we cannot meter, so a None here means the price data changed under
-        a model we already accepted, and that usage escapes the monthly budget.
+        its own usage. Unpriced usage is caught by Sentry so we know we need
+        to add a new pricing ASAP.
         """
         try:
             return genai_prices.calc_price(

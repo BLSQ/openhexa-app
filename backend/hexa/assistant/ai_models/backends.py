@@ -104,7 +104,31 @@ class ManagedBackend(ProviderBackend):
 
     @cached_property
     def model_ids(self) -> dict[str, ModelId]:
-        return {**self.DEFAULT_MODEL_IDS, **managed_model_ids()}
+        # Each map is filtered before the merge, so an override we cannot reach
+        # falls back to the default rather than taking it down with it.
+        return {
+            **self._reachable(self.DEFAULT_MODEL_IDS),
+            **self._reachable(managed_model_ids()),
+        }
+
+    def _reachable(self, model_ids: dict[str, ModelId]) -> dict[str, ModelId]:
+        """`model_ids` without the entries this deployment cannot reach.
+
+        Check if a model provider's is accepted by our VERTEX backend
+        (env var ASSISTANT_MANAGED_PROVIDERS contains our accepted providers)
+        """
+        reachable = {}
+        for model, model_id in model_ids.items():
+            if self.supports(model_id.provider):
+                reachable[model] = model_id
+            else:
+                logger.error(
+                    "Model %r is served by %r, which ASSISTANT_MANAGED_PROVIDERS "
+                    "does not enable on this deployment; ignoring it",
+                    model,
+                    model_id.provider,
+                )
+        return reachable
 
     @cached_property
     def _enabled_providers(self) -> dict[str, Callable[[], Provider]]:
