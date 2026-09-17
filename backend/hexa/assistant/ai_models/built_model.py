@@ -1,8 +1,7 @@
 """A model that is ready to run, and what its usage costs.
 
-The output of `AiModelBuilder.build`: the pydantic-ai client an agent runs on,
-carrying the two names genai_prices needs to put a price on what that run
-consumed.
+The output of `AiModelBuilder.build`: the pydantic-ai client an agent runs on.
+Carries the logic of calculation the cost of its usage.
 """
 
 import logging

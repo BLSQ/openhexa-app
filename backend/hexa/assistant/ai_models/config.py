@@ -2,8 +2,7 @@
 
 These settings are free-form text an operator edits, so nothing here raises: an
 entry we cannot make sense of is dropped with an error and the code defaults
-apply. A typo must never take the assistant down, nor undo the entries set
-alongside it — which may well be the deliberate ones.
+apply. A typo must never take the assistant down.
 """
 
 import json
@@ -38,11 +37,7 @@ def _logical_model(value: object) -> str:
 
 
 def managed_model_ids() -> dict[str, ModelId]:
-    """Logical model -> model id, from ASSISTANT_MANAGED_MODELS.
-
-    Only the entries the setting names: the managed backend merges them over its
-    own defaults, so anything left out keeps the model it ships with.
-    """
+    """Logical model -> model id, from ASSISTANT_MANAGED_MODELS."""
     overrides: dict[str, ModelId] = {}
     for model, value in _json_object(
         settings.ASSISTANT_MANAGED_MODELS, "ASSISTANT_MANAGED_MODELS"
@@ -67,9 +62,8 @@ def managed_model_ids() -> dict[str, ModelId]:
 def agent_model_requests() -> dict[str, ModelRequest]:
     """Agent key -> the model it is pinned to, from ASSISTANT_AGENT_MODELS.
 
-    A pin is either a logical model, resolved for the organization's provider, or
-    a model id of its own — the only way to put one agent on a different provider
-    than the rest.
+    A pinned model is either a logical model, resolved for the organization's provider,
+    or a model id.
     """
     pins: dict[str, ModelRequest] = {}
     for key, value in _json_object(
@@ -87,9 +81,7 @@ def agent_model_requests() -> dict[str, ModelRequest]:
 
 def enabled_managed_providers() -> set[str]:
     """Providers ASSISTANT_MANAGED_PROVIDERS narrows the managed backend to.
-
-    Empty means no narrowing: the backend then serves everything it knows how to
-    build.
+    Empty means the backend serves everything.
     """
     configured = settings.ASSISTANT_MANAGED_PROVIDERS.replace(" ", "").split(",")
     return set(filter(None, configured))

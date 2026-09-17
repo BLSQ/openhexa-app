@@ -1,10 +1,9 @@
 """The "<provider>:<model>" ids models are named by.
 
 Agents and settings name a model in one of two ways: a logical name ("haiku"),
-which only means something once a provider backend resolves it, or such an id,
-which pydantic-ai can act on as is. Parsing is what tells the two apart, so it
-happens once, here, rather than through `":" in value` checks spread over the
-call sites.
+which only means something once a provider backend resolves it; or an id,
+which pydantic-ai can act on as is. Parsing is what tells the two apart,
+so it happens once, here.
 """
 
 from dataclasses import dataclass
@@ -19,10 +18,10 @@ class ModelId:
 
     @classmethod
     def parse(cls, value: object) -> "ModelId | None":
-        """The id `value` spells out, or None if it is not one.
+        """The model id in `value`, or None if it is not one.
 
-        Takes an `object` because the values it is handed come from JSON an
-        operator wrote: "not an id" and "not even a string" are the same answer.
+        Takes an `object` because the values come from a JSON
+        and could be something other than a string.
         """
         if not isinstance(value, str):
             return None

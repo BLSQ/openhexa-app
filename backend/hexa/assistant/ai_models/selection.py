@@ -1,11 +1,12 @@
 """Decides which model each agent runs on.
 
-Every agent declares an `AgentKey` and, optionally, a `default_model`; the model
-it actually runs on is, in order of precedence: the entry for its key in the
-ASSISTANT_AGENT_MODELS setting, its own default, then the model the organization
-configured. A logical model (e.g. "haiku") is resolved by the organization's
-backend, while a model id (e.g. "google-cloud:gemini-3-pro-preview") is taken as
-it stands — the only way to put one agent on a different provider than the rest.
+Every agent declares an `AgentKey` and, optionally, a `default_model`;
+the model it runs on is, in order of precedence:
+- the entry for its key in the ASSISTANT_AGENT_MODELS config
+- its own default
+- the model the organization configured
+A logical model (e.g. "haiku") is resolved by the organization's backend,
+while a model id (e.g. "google-cloud:gemini-3-pro-preview") is taken as it comes.
 """
 
 import logging
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class ModelSelector:
-    """Picks model ids for one organization; building them is the builder's job."""
+    """Picks model ids for an organization; then builder builds them."""
 
     def __init__(self, backend: ProviderBackend):
         self._backend = backend
@@ -43,10 +44,9 @@ class ModelSelector:
     def for_agent(self, agent_key: str, default_model: ModelRequest | None) -> ModelId:
         """Model id `agent_key` runs on for this organization.
 
-        A model the organization cannot run is a gap in our own configuration or
-        a bad pin rather than a user misconfiguration, so we fall back to the
-        organization's model: losing the intended model beats breaking the
-        assistant.
+        An agent model we cannot run is a gap in our config or a bad pin,
+        so we fall back to the organization's model: we rather use the
+        wrong model than breaking the assistant.
         """
         requested = self._pins.get(agent_key, default_model)
         if requested is None:
@@ -54,7 +54,7 @@ class ModelSelector:
         return self._runnable(requested, agent_key) or self.for_organization()
 
     def _runnable(self, requested: ModelRequest, agent_key: str) -> ModelId | None:
-        """`requested` as a model id this organization can run, or None with a reason."""
+        """`requested`: model id this organization can run, or None with a reason."""
         ai_settings = self._backend.ai_settings
         model_id = (
             requested

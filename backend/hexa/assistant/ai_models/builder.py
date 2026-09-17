@@ -2,9 +2,8 @@
 
 Models are named by their pydantic-ai id, "<provider>:<model>", which is all
 pydantic-ai needs to pick the right client; the organization's `ProviderBackend`
-supplies the credentials the id cannot carry. Reaching for another model is
-therefore a configuration change rather than a code one, and reaching for
-another provider costs one entry in that backend's registry.
+supplies the credentials. Reaching for another model is a configuration change,
+not a code one. Reaching another provider costs one entry in the backend's registry.
 """
 
 import logging
@@ -24,12 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class AiModelBuilder:
-    """Builds the models an organization's AI settings allow.
-
-    It knows how to turn a model id into a usable client, and delegates the two
-    questions around that: which models exist and what pays for them to the
-    organization's `ProviderBackend`, and who gets which model to `ModelSelector`.
-    """
+    """Builds the models an organization's AI settings allow."""
 
     def __init__(self, ai_settings: AiSettings):
         self._ai_settings = ai_settings

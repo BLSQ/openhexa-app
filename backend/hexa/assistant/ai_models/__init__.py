@@ -1,9 +1,10 @@
 """Which model an organization runs, and how to reach it.
 
-`AiModelBuilder` is the way in: it hands an agent the model it should run on,
-built with credentials that organization can use. Behind it, `selection` decides
-which model that is, `backends` supplies the credentials and `config` reads what
-the deployment set in its environment.
+- `builder` is the way in: it hands an agent the model it to run on. Built with credentials from the organization.
+- `selection` decides which model to pick
+- `backends` supplies the credentials
+- `config` reads what the deployment set in its environment
+- `built_model` and `ids` are dataclasses to manage models information
 """
 
 from hexa.assistant.ai_models.builder import AiModelBuilder

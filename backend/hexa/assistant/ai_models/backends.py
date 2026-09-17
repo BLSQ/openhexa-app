@@ -1,10 +1,5 @@
 """Where an organization's models come from: our own Vertex project, or its key.
-
-Managed organizations run on models we serve and pay for; everyone else brings a
-key for the single provider they configured. Everything that differs between the
-two — which logical models exist, which providers are reachable, how credentials
-are built, how usage is priced — lives in one subclass each, so the rest of the
-assistant never has to ask which kind of organization it is holding.
+Each subclass has the logic specific to the provider backend (managed or BYOK)
 """
 
 import logging
@@ -32,8 +27,7 @@ logger = logging.getLogger(__name__)
 class ProviderBackend(ABC):
     """The models an organization can run, and the credentials to run them.
 
-    Instances are cheap and short-lived — one per `AiModelBuilder`, so per
-    request — which is what lets them cache the environment they read.
+    Instances are cheap and short-lived — one per `AiModelBuilder`, so per request
     """
 
     def __init__(self, ai_settings: AiSettings):
@@ -50,14 +44,14 @@ class ProviderBackend(ABC):
 
     @abstractmethod
     def pricing_provider(self, model_id: ModelId) -> str:
-        """The provider genai_prices knows this model by."""
+        """The genai_prices provider for the model in this backend."""
 
     @abstractmethod
     def _build_provider(self, provider: str) -> Provider:
-        """Credentials for `provider`, which `supports` has already allowed."""
+        """Build `provider` pydantic-ai class."""
 
     def provider_for(self, provider: str) -> Provider:
-        """Credentials for `provider`, as pydantic-ai's `provider_factory`."""
+        """Build `provider` pydantic-ai class if supported."""
         if not self.supports(provider):
             raise AssistantException(
                 f"Provider {provider!r} cannot run with the credentials of "
@@ -143,17 +137,13 @@ class ManagedBackend(ProviderBackend):
 
     @cached_property
     def model_ids(self) -> dict[str, ModelId]:
-        # Each map is filtered before the merge, so an override we cannot reach
-        # falls back to the default rather than taking it down with it.
         return {
             **self._reachable(self.DEFAULT_MODEL_IDS),
             **self._reachable(managed_model_ids()),
         }
 
     def _reachable(self, model_ids: dict[str, ModelId]) -> dict[str, ModelId]:
-        """`model_ids` without the entries this deployment cannot reach.
-
-        Check if a model provider's is accepted by our VERTEX backend
+        """Filters out models with non-supported providers
         (env var ASSISTANT_MANAGED_PROVIDERS contains our accepted providers)
         """
         reachable = {}
@@ -171,13 +161,7 @@ class ManagedBackend(ProviderBackend):
 
     @cached_property
     def _enabled_providers(self) -> dict[str, Callable[[], Provider]]:
-        """The entries of the registry this deployment may actually use.
-
-        A publisher has to be enabled on a Vertex project before it answers,
-        which staging and production do not agree on, so the setting narrows what
-        we know how to build down to what is really there. It only ever narrows:
-        naming a provider we have no wiring for does not conjure credentials.
-        """
+        """Provider factory filtering only the ones actually enabled in our managed backend."""
         enabled = enabled_managed_providers() or set(self.PROVIDERS)
         return {p: build for p, build in self.PROVIDERS.items() if p in enabled}
 
@@ -196,7 +180,7 @@ class ManagedBackend(ProviderBackend):
 
 
 class BringYourOwnKeyBackend(ProviderBackend):
-    """Models the organization runs on the key it brought, for its one provider."""
+    """Models for the BYOK configured key for an organization."""
 
     # BYOK organizations pick their own model, so these are not ours to switch
     # from the environment the way managed ones are.
