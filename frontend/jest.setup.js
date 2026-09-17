@@ -33,6 +33,14 @@ globalThis.resizeObserverMock = mockResizeObserver();
 
 mockAnimationsApi();
 
+// jsdom does not expose structuredClone even though the Node running Jest has it, and
+// libraries that deep-copy with it (dagre, in the pipeline DAG layout) throw a bare
+// ReferenceError. Bridge Node's implementation rather than shipping a partial polyfill.
+if (typeof globalThis.structuredClone !== "function") {
+  const v8 = require("node:v8");
+  globalThis.structuredClone = (value) => v8.deserialize(v8.serialize(value));
+}
+
 beforeEach(() => {
   // Set seed for faker
   faker.seed(1);
