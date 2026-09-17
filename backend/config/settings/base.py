@@ -626,7 +626,7 @@ VERTEX_PROJECT_ID = os.environ.get("VERTEX_PROJECT_ID")
 VERTEX_REGION = os.environ.get("VERTEX_REGION", "europe-west1")
 # Region for Vertex's OpenAI-compatible endpoint, most of them in global or us-* regions
 VERTEX_MAAS_REGION = os.environ.get("VERTEX_MAAS_REGION", VERTEX_REGION)
-# The providers enabled in Vertex (see ManagedBackend.PROVIDERS), comma separated.
+# The providers enabled in Vertex (see ai_models/vertex.py PROVIDERS), comma separated.
 ASSISTANT_MANAGED_PROVIDERS = os.environ.get("ASSISTANT_MANAGED_PROVIDERS", "")
 # Maps the logical models managed organizations run on (see AiSettings.Model) to a
 # pydantic-ai model id "<provider>:<model>", as JSON.

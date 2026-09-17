@@ -112,7 +112,7 @@ class VertexOpenAiTest(SimpleTestCase):
 
     def _base_url(self) -> str:
         with patch(
-            "hexa.assistant.ai_models.backends._google_credentials"
+            "hexa.assistant.ai_models.vertex._google_credentials"
         ) as credentials:
             credentials.return_value.valid = True
             credentials.return_value.token = "ya29.token"
@@ -168,7 +168,7 @@ class PricingProviderTest(SimpleTestCase):
 
 class ProviderForTest(SimpleTestCase):
     @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_REGION="europe-west1")
-    @patch("hexa.assistant.ai_models.backends.AsyncAnthropicVertex")
+    @patch("hexa.assistant.ai_models.vertex.AsyncAnthropicVertex")
     def test_managed_anthropic_goes_through_our_vertex_project(self, mock_client):
         _managed_backend().provider_for("anthropic")
         mock_client.assert_called_once_with(
@@ -176,7 +176,7 @@ class ProviderForTest(SimpleTestCase):
         )
 
     @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_REGION="europe-west1")
-    @patch("hexa.assistant.ai_models.backends.GoogleCloudProvider")
+    @patch("hexa.assistant.ai_models.vertex.GoogleCloudProvider")
     def test_managed_google_goes_through_our_vertex_project(self, mock_provider):
         _managed_backend().provider_for("google-cloud")
         mock_provider.assert_called_once_with(

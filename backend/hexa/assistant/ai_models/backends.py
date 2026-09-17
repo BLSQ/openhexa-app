@@ -5,19 +5,14 @@ Each subclass has the logic specific to the provider backend (managed or BYOK)
 import logging
 from abc import ABC, abstractmethod
 from collections.abc import Callable
-from functools import cache, cached_property
+from functools import cached_property
 
-import google.auth
-from anthropic.lib.vertex import AsyncAnthropicVertex
 from django.conf import settings
-from google.auth.transport.requests import Request as GoogleAuthRequest
 from pydantic_ai.providers import Provider, infer_provider_class
-from pydantic_ai.providers.anthropic import AnthropicProvider
-from pydantic_ai.providers.google_cloud import GoogleCloudProvider
-from pydantic_ai.providers.openai import OpenAIProvider
 
 from hexa.assistant.ai_models.config import enabled_managed_providers, managed_model_ids
 from hexa.assistant.ai_models.ids import ModelId
+from hexa.assistant.ai_models.vertex import PROVIDERS
 from hexa.assistant.exceptions import AssistantException
 from hexa.user_management.models import AiSettings
 
@@ -60,58 +55,6 @@ class ProviderBackend(ABC):
         return self._build_provider(provider)
 
 
-def _vertex_anthropic() -> Provider:
-    # pydantic-ai has no Anthropic-on-Vertex provider of its own: Claude on
-    # Vertex is the Anthropic provider wrapped around Google's client.
-    return AnthropicProvider(
-        anthropic_client=AsyncAnthropicVertex(
-            project_id=settings.VERTEX_PROJECT_ID,
-            region=settings.VERTEX_REGION,
-        )
-    )
-
-
-def _vertex_google() -> Provider:
-    return GoogleCloudProvider(
-        project=settings.VERTEX_PROJECT_ID, location=settings.VERTEX_REGION
-    )
-
-
-@cache
-def _google_credentials():
-    """Our service account, read once and refreshed in place as it expires."""
-    credentials, _ = google.auth.default(
-        scopes=["https://www.googleapis.com/auth/cloud-platform"]
-    )
-    return credentials
-
-
-def _vertex_openai() -> Provider:
-    """Vertex's OpenAI-compatible endpoint, which serves every Model Garden
-    publisher that is neither Gemini nor Claude: Qwen, Kimi, DeepSeek, Llama, gpt-oss.
-    Example: "openai-chat:qwen/qwen3-coder-480b-a35b-instruct-maas"
-
-    It authenticates with a bearer token rather than a key,
-    which is why it builds its own client
-    """
-    credentials = _google_credentials()
-    if not credentials.valid:
-        credentials.refresh(GoogleAuthRequest())
-    region = settings.VERTEX_MAAS_REGION
-    host = (
-        "aiplatform.googleapis.com"
-        if region == "global"
-        else f"{region}-aiplatform.googleapis.com"
-    )
-    return OpenAIProvider(
-        base_url=(
-            f"https://{host}/v1/projects/{settings.VERTEX_PROJECT_ID}"
-            f"/locations/{region}/endpoints/openapi"
-        ),
-        api_key=credentials.token,
-    )
-
-
 class ManagedBackend(ProviderBackend):
     """Models served from our own Vertex project, on our own account."""
 
@@ -120,15 +63,6 @@ class ManagedBackend(ProviderBackend):
     DEFAULT_MODEL_IDS: dict[str, ModelId] = {
         AiSettings.Model.HAIKU.value: ModelId("anthropic", "claude-haiku-4-5"),
         AiSettings.Model.OPUS.value: ModelId("anthropic", "claude-opus-4-6"),
-    }
-
-    # What we know how to serve from Vertex. Providers name their credentials
-    # differently, so each gets an entry rather than one call that happens to
-    # fit: this registry is what adding a provider costs.
-    PROVIDERS: dict[str, Callable[[], Provider]] = {
-        "anthropic": _vertex_anthropic,
-        "google-cloud": _vertex_google,
-        "openai-chat": _vertex_openai,
     }
 
     # genai_prices prices managed models by the Vertex backend they really run
@@ -162,8 +96,8 @@ class ManagedBackend(ProviderBackend):
     @cached_property
     def _enabled_providers(self) -> dict[str, Callable[[], Provider]]:
         """Provider factory filtering only the ones actually enabled in our managed backend."""
-        enabled = enabled_managed_providers() or set(self.PROVIDERS)
-        return {p: build for p, build in self.PROVIDERS.items() if p in enabled}
+        enabled = enabled_managed_providers() or set(PROVIDERS)
+        return {p: build for p, build in PROVIDERS.items() if p in enabled}
 
     def supports(self, provider: str) -> bool:
         return provider in self._enabled_providers
