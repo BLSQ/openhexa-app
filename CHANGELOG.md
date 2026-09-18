@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.19.0](https://github.com/BLSQ/openhexa-app/compare/5.18.0...5.19.0) (2026-09-18)
+
+
+### Features
+
+* naming agent simpler model (HEXA-1806) ([#2052](https://github.com/BLSQ/openhexa-app/issues/2052)) ([8785e7b](https://github.com/BLSQ/openhexa-app/commit/8785e7b5fc56490f7a41a8c236d4055e1cdd0199))
+
+
+### Bug Fixes
+
+* handling of scheduling pipeline without default params (HEXA- 1788) ([#2038](https://github.com/BLSQ/openhexa-app/issues/2038)) ([0d94a6c](https://github.com/BLSQ/openhexa-app/commit/0d94a6c1d1e8fe99f71c5db044e24642b1795e77))
+* type error on Parquet arrays datasets ([#2068](https://github.com/BLSQ/openhexa-app/issues/2068)) ([c8c02e2](https://github.com/BLSQ/openhexa-app/commit/c8c02e2d5f14e11e562db7b46850ec1d24a1cad7))
+
 ## [5.18.0](https://github.com/BLSQ/openhexa-app/compare/5.17.0...5.18.0) (2026-09-08)
 
 
