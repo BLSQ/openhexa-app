@@ -14,6 +14,15 @@ GitOrg = namedtuple("GitOrg", ["slug", "display_name"])
 
 
 class GitRepoMixin(models.Model):
+    """A model whose history lives in a git repository of its own.
+
+    A subclass answers `git_org` and `has_history` and inherits the reading side.
+    Writing is deliberately not declared: committing one file and committing a tree
+    have too little in common for one signature. See `hexa/git` README.
+    """
+
+    # Not null, for a model created with its repository. One that can exist before its
+    # repository does overrides this nullable, and `has_history` with it.
     repository = models.CharField(max_length=255, unique=True)
 
     class Meta:
@@ -26,6 +35,33 @@ class GitRepoMixin(models.Model):
     @property
     def client(self) -> GitClient:
         return get_forgejo_client()
+
+    @property
+    def has_history(self) -> bool:
+        """Whether the repository exists on the server and holds something to read.
+
+        True by default, for models created with their repository. One that can name a
+        repository before creating it overrides this.
+        """
+        return True
+
+    def get_versions(self, page: int = 1, per_page: int = 20) -> dict:
+        if not self.has_history:
+            return {"items": [], "page": page}
+        return {
+            "items": self.client.get_commits(
+                self.git_org.slug, self.repository, page=page, limit=per_page
+            ),
+            "page": page,
+        }
+
+    def get_commit_diff(self, sha: str) -> dict:
+        return {
+            **self.client.get_commit(self.git_org.slug, self.repository, sha),
+            "raw_diff": self.client.get_commit_diff(
+                self.git_org.slug, self.repository, sha
+            ),
+        }
 
     def create_repo(self, *, files: list[dict] | None = None, user: User) -> str:
         try:

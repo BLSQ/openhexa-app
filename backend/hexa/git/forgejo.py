@@ -6,12 +6,32 @@ from django.conf import settings
 
 from hexa.git.client import GitClient
 from hexa.git.enums import FileEncoding
-from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
+from hexa.git.exceptions import GitError, GitFileNotFound, GitFileTooLarge
 
 MAX_INLINE_BLOB_SIZE = 10 * 1024 * 1024
 
 
-class ForgejoAPIError(Exception):
+def _commit_summary(payload: dict, *, fallback_id: str = "") -> dict:
+    """Flatten a Forgejo commit payload into the shape every caller actually wants."""
+    commit = payload.get("commit") or {}
+    author = commit.get("author") or {}
+    return {
+        "id": payload.get("sha") or fallback_id,
+        # A trailing newline is an artefact of how the message was written.
+        "message": (commit.get("message") or "").strip(),
+        "author_name": author.get("name", ""),
+        "author_email": author.get("email", ""),
+        "date": author.get("date", ""),
+    }
+
+
+class ForgejoAPIError(GitError):
+    """A Forgejo call came back with an unexpected status.
+
+    A `GitError`, so a caller needing only "git is not answering" need not import this
+    backend; the status code is here for the few that act on a specific one.
+    """
+
     def __init__(self, method: str, url: str, status_code: int, detail: str = ""):
         self.method = method
         self.url = url
@@ -391,7 +411,7 @@ class ForgejoClient(GitClient):
         response = self._request(
             "GET", f"/repos/{org_slug}/{repo_name}/git/commits/{sha}"
         )
-        return response.json()
+        return _commit_summary(response.json(), fallback_id=sha)
 
     def get_commit_diff(self, org_slug: str, repo_name: str, sha: str) -> str:
         response = self._request(
@@ -426,16 +446,7 @@ class ForgejoClient(GitClient):
             if e.status_code == 409:
                 return []
             raise
-        return [
-            {
-                "id": c["sha"],
-                "message": c["commit"]["message"],
-                "author_name": c["commit"]["author"]["name"],
-                "author_email": c["commit"]["author"]["email"],
-                "date": c["commit"]["author"]["date"],
-            }
-            for c in response.json()
-        ]
+        return [_commit_summary(commit) for commit in response.json()]
 
 
 _forgejo_client: ForgejoClient | None = None

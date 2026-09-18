@@ -1,20 +1,31 @@
+import logging
 import secrets
 from collections import defaultdict
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.core.validators import validate_slug
-from django.db import models
+from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
 from hexa.databases.query_text import sanitize_sql
+from hexa.git.enums import FileEncoding
+from hexa.git.exceptions import GitError
+from hexa.git.mixins import GitOrg, GitRepoMixin
+from hexa.git.naming import build_repo_name
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.workspaces.models import Workspace
 
+logger = logging.getLogger(__name__)
+
 SLUG_MAX_LENGTH = 255
 SLUG_COLLISION_ATTEMPTS = 8
+
+# The single file each repository holds: only the SQL is versioned, not the name,
+# description or visibility.
+QUERY_FILE_PATH = "query.sql"
 
 
 def generate_saved_query_slug(name: str) -> str:
@@ -73,14 +84,22 @@ class SavedQueryManager(models.Manager):
         if not principal.has_perm("data_studio.create_saved_query", workspace):
             raise PermissionDenied
 
-        return self.create(
-            workspace=workspace,
-            created_by=principal,
-            name=name,
-            content=content,
-            description=description,
-            visibility=visibility or SavedQueryVisibility.PRIVATE,
-        )
+        # Inside the transaction: a git failure must take the row with it, or the
+        # query exists with no history and no way to notice (see hexa/git README).
+        with transaction.atomic():
+            saved_query = self.create(
+                workspace=workspace,
+                created_by=principal,
+                name=name,
+                content=content,
+                description=description,
+                visibility=visibility or SavedQueryVisibility.PRIVATE,
+            )
+            saved_query.initialize_repository(principal)
+            # Saved on its own: `initialize_repository` is what names the repository.
+            saved_query.save(update_fields=["repository"])
+
+        return saved_query
 
 
 # Every SavedQueryVisibility must appear here: a new visibility has to state whether
@@ -144,7 +163,7 @@ def saved_queries_on_author_deleted(collector, field, sub_objs, using):
         policy(collector, field, saved_queries, using)
 
 
-class SavedQuery(Base):
+class SavedQuery(Base, GitRepoMixin):
     """A SQL query saved by a user in the Data Studio.
 
     A saved query belongs to a workspace, but its `visibility` decides who within
@@ -155,6 +174,11 @@ class SavedQuery(Base):
     from the workspace stops seeing their private queries but gets them back if they
     are added again, while deleting the account itself takes them for good (see
     `saved_queries_on_author_deleted`).
+
+    Its history lives in a git repository of its own, one `query.sql` per query, as a
+    static web app's does. `content` stays the source of truth — running, exporting and
+    listing a query must not need the git server — so git is written through on save and
+    read only for history. See `hexa/git` README for the trade-offs.
     """
 
     workspace = models.ForeignKey(
@@ -180,6 +204,10 @@ class SavedQuery(Base):
         choices=SavedQueryVisibility.choices,
         default=SavedQueryVisibility.PRIVATE,
     )
+    # Nullable, unlike the mixin's: a saved query exists before its repository does
+    # (see hexa/git README), and null is what says so. Named when the repository is
+    # actually created, never before.
+    repository = models.CharField(max_length=255, unique=True, null=True)
 
     objects = SavedQueryManager.from_queryset(SavedQueryQuerySet)()
 
@@ -226,6 +254,13 @@ class SavedQuery(Base):
     def __str__(self) -> str:
         return self.name
 
+    @property
+    def git_org(self) -> GitOrg:
+        return GitOrg(
+            slug=self.workspace.organization.slug,
+            display_name=self.workspace.organization.name,
+        )
+
     def save(self, *args, **kwargs):
         # SQL pasted from a chat, a document or a PDF carries blanks PostgreSQL
         # rejects; cleaning them here means a query is stored runnable whichever
@@ -238,36 +273,132 @@ class SavedQuery(Base):
             self.slug = generate_saved_query_slug(self.name)
         return super().save(*args, **kwargs)
 
+    def default_repository_name(self) -> str:
+        """Named after the slug, as a web app's is, with a short pk tail.
+
+        The tail is not decoration: deleting a query releases its slug, and a name built
+        from the slug alone would land the next query taking it on the repository the
+        deleted one left behind — unarchived, since a cascade never reaches
+        `delete_if_has_perm`, so the two histories would silently merge.
+        """
+        return build_repo_name(
+            f"{self.workspace.slug}-query-{self.slug}", unique=self.id.hex[:8]
+        )
+
+    def _query_file(self) -> dict:
+        return {
+            "path": QUERY_FILE_PATH,
+            "content": self.content,
+            "encoding": FileEncoding.TEXT,
+        }
+
+    def initialize_repository(self, user: User) -> str:
+        """Create the repository, its first commit holding the SQL as currently stored.
+
+        `repository` is assigned here and nowhere else, so the column stays null for
+        exactly as long as the repository it names does not exist. Callers persist it.
+        """
+        self.repository = self.default_repository_name()
+        return self.create_repo(files=[self._query_file()], user=user)
+
+    def commit_version(self, user: User, message: str) -> str:
+        """Commit the current content as a new version and return its sha."""
+        return self.client.commit_files(
+            repo_name=self.repository,
+            files=[self._query_file()],
+            message=message,
+            author_name=user.display_name or user.email,
+            author_email=user.email,
+            org_slug=self.git_org.slug,
+        )
+
+    @property
+    def has_history(self) -> bool:
+        # Created by `initialize_repository`, which is also what names it: unlike a
+        # web app, a saved query exists before its repository does.
+        return bool(self.repository)
+
+    def get_version_content(self, ref: str = "main") -> str:
+        """Return the SQL as of `ref`. Raises GitFileNotFound for an unknown ref."""
+        raw = self.client.get_file(
+            self.repository, QUERY_FILE_PATH, ref=ref, org_slug=self.git_org.slug
+        )
+        return raw.decode("utf-8")
+
     def update_if_has_perm(self, principal: User, **kwargs):
+        """Apply an edit, recording a version when the SQL changed."""
         if not principal.has_perm("data_studio.update_saved_query", self):
             raise PermissionDenied
 
-        # Sharing is gated separately from the rest of the attributes, and only when
-        # it actually changes: a client echoing back the current visibility must not
-        # need the stricter permission.
-        visibility = kwargs.get("visibility")
-        if visibility is not None and visibility != self.visibility:
-            if not principal.has_perm(
-                "data_studio.update_saved_query_visibility", self
-            ):
-                raise PermissionDenied
-            self.visibility = visibility
+        content = kwargs.get("content")
+        # Compared as `save` stores it, which is also what the repository holds:
+        # otherwise a change only in characters sanitizing drops commits an empty diff.
+        new_content = sanitize_sql(content) if content is not None else None
 
-        for key in ["name", "content"]:
-            if kwargs.get(key) is not None:
-                setattr(self, key, kwargs[key])
+        with transaction.atomic():
+            # Locked, and re-read in full: `self` predates this transaction and `save`
+            # writes every column from it, so a partial edit would revert whatever
+            # landed in between and record no version of the revert.
+            self.refresh_from_db(
+                from_queryset=SavedQuery.objects.select_for_update().select_related(
+                    "workspace__organization"
+                )
+            )
 
-        # description is optional/blankable: an explicit null clears it, mirroring create.
-        if "description" in kwargs:
-            self.description = kwargs["description"] or ""
+            # Gated separately, and only when it actually changes: a client echoing
+            # back the current visibility must not need the stricter permission.
+            visibility = kwargs.get("visibility")
+            if visibility is not None and visibility != self.visibility:
+                if not principal.has_perm(
+                    "data_studio.update_saved_query_visibility", self
+                ):
+                    raise PermissionDenied
+                self.visibility = visibility
 
-        return self.save()
+            content_changed = new_content is not None and new_content != self.content
+
+            # Before the new content is applied, so a query older than versioning
+            # starts its history at the SQL it already had rather than at this edit.
+            if content_changed and not self.has_history:
+                self.initialize_repository(principal)
+
+            if kwargs.get("name") is not None:
+                self.name = kwargs["name"]
+            if new_content is not None:
+                self.content = new_content
+            # description is optional/blankable: an explicit null clears it, mirroring create.
+            if "description" in kwargs:
+                self.description = kwargs["description"] or ""
+
+            if content_changed:
+                self.commit_version(principal, f"Update {self.name}")
+
+            return self.save()
 
     def delete_if_has_perm(self, principal: User):
         if not principal.has_perm("data_studio.delete_saved_query", self):
             raise PermissionDenied
 
-        return self.delete()
+        with transaction.atomic():
+            result = self.delete()
+            if self.has_history:
+                # Archived rather than deleted, and after the commit because it
+                # cannot be undone (see hexa/git README).
+                transaction.on_commit(self._archive_repo_quietly)
+            return result
+
+    def _archive_repo_quietly(self):
+        """Archive the repository, leaving it be if the git server refuses.
+
+        The query is already gone by the time this runs, so there is no one to report a
+        failure to; it leaves an unarchived repository behind (see `hexa/git` README).
+        """
+        try:
+            self.archive_repo()
+        except GitError:
+            logger.exception(
+                "Could not archive the history of deleted saved query %s", self.slug
+            )
 
 
 class QueryLogQuerySet(BaseQuerySet):

@@ -1,0 +1,457 @@
+from io import StringIO
+from unittest.mock import patch
+
+from django.core.exceptions import PermissionDenied
+from django.core.management import call_command
+
+from hexa.core.test import TestCase
+from hexa.data_studio.models import QUERY_FILE_PATH, SavedQuery
+from hexa.git.exceptions import GitFileNotFound
+from hexa.git.forgejo import ForgejoAPIError
+from hexa.git.naming import REPO_NAME_MAX_LENGTH
+from hexa.git.testutils import make_git_client_mock
+
+from .testutils import SavedQueryTestMixin
+
+SHA_INITIAL = "a" * 40
+SHA_SECOND = "b" * 40
+
+
+class SavedQueryVersioningTest(SavedQueryTestMixin, TestCase):
+    """The git side of a saved query: what records a version and what does not."""
+
+    def setUp(self):
+        super().setUp()
+        self.client_mock = make_git_client_mock(SHA_INITIAL)
+        patcher = patch(
+            "hexa.git.mixins.get_forgejo_client", return_value=self.client_mock
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_create_records_the_first_version(self):
+        saved_query = self.create_saved_query(content="SELECT 1")
+
+        repository = (
+            f"{self.WORKSPACE.slug}-query-{saved_query.slug}-{saved_query.id.hex[:8]}"
+        )
+        self.assertEqual(repository, saved_query.repository)
+        self.client_mock.create_org_repository.assert_called_once()
+        # Reloaded, because a repository nobody can find again is not recorded.
+        self.assertEqual(
+            repository, SavedQuery.objects.get(pk=saved_query.pk).repository
+        )
+
+    def test_a_reused_slug_gets_a_repository_of_its_own(self):
+        first = self.create_saved_query(name="Monthly report")
+        # Hard-deleted, so the slug is free again - the case the pk tail exists for.
+        slug = first.slug
+        first.delete()
+
+        second = self.create_saved_query(name="Monthly report")
+
+        self.assertEqual(slug, second.slug)
+        self.assertNotEqual(first.repository, second.repository)
+
+    def test_a_long_name_still_fits_the_git_server(self):
+        saved_query = self.create_saved_query(name="Monthly report " * 16)
+
+        self.assertLessEqual(len(saved_query.repository), REPO_NAME_MAX_LENGTH)
+        self.assertTrue(saved_query.repository.endswith(saved_query.id.hex[:8]))
+
+    def test_create_commits_the_query_as_its_only_file(self):
+        self.create_saved_query(content="SELECT 1")
+
+        files = self.client_mock.commit_files.call_args.kwargs["files"]
+        self.assertEqual([QUERY_FILE_PATH], [file["path"] for file in files])
+        self.assertEqual("SELECT 1", files[0]["content"])
+
+    def test_create_rolls_back_when_the_version_cannot_be_recorded(self):
+        self.client_mock.create_org_repository.side_effect = ForgejoAPIError(
+            "POST", "/orgs/x/repos", 500
+        )
+
+        with self.assertRaises(ForgejoAPIError):
+            self.create_saved_query()
+
+        # A query with no history is indistinguishable from one nobody versioned.
+        self.assertEqual(0, SavedQuery.objects.count())
+
+    def test_editing_the_content_records_a_version(self):
+        saved_query = self.create_saved_query(content="SELECT 1")
+        self.client_mock.reset_mock()
+
+        saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 2")
+
+        files = self.client_mock.commit_files.call_args.kwargs["files"]
+        self.assertEqual("SELECT 2", files[0]["content"])
+        # Committed to the repository the query already had, not a new one.
+        self.client_mock.create_org_repository.assert_not_called()
+
+    def test_the_commit_message_names_the_query(self):
+        saved_query = self.create_saved_query(name="Monthly report")
+        self.client_mock.commit_files.reset_mock()
+
+        saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 2")
+
+        self.assertEqual(
+            "Update Monthly report",
+            self.client_mock.commit_files.call_args.kwargs["message"],
+        )
+
+    def test_the_commit_is_credited_to_whoever_saved(self):
+        saved_query = self.create_saved_query(user=self.USER_EDITOR)
+        self.client_mock.commit_files.reset_mock()
+
+        # An admin editing a colleague's shared query is credited for that version.
+        saved_query.update_if_has_perm(self.USER_ADMIN, content="SELECT 2")
+
+        self.assertEqual(
+            self.USER_ADMIN.email,
+            self.client_mock.commit_files.call_args.kwargs["author_email"],
+        )
+
+    def test_renaming_records_nothing(self):
+        saved_query = self.create_saved_query()
+        self.client_mock.commit_files.reset_mock()
+
+        saved_query.update_if_has_perm(self.USER_EDITOR, name="New name")
+
+        self.client_mock.commit_files.assert_not_called()
+
+    def test_changing_the_description_records_nothing(self):
+        saved_query = self.create_saved_query()
+        self.client_mock.commit_files.reset_mock()
+
+        saved_query.update_if_has_perm(self.USER_EDITOR, description="Now documented")
+
+        self.client_mock.commit_files.assert_not_called()
+
+    def test_resaving_identical_content_records_nothing(self):
+        saved_query = self.create_saved_query(content="SELECT 1")
+        self.client_mock.commit_files.reset_mock()
+
+        saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 1")
+
+        self.client_mock.commit_files.assert_not_called()
+
+    def test_content_differing_only_by_sanitized_characters_records_nothing(self):
+        saved_query = self.create_saved_query(content="SELECT 1")
+        self.client_mock.commit_files.reset_mock()
+
+        # A non-breaking space becomes a plain one on the way in, so this is what is
+        # already stored: a version of it would carry an empty diff.
+        saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT\u00a01")
+
+        self.client_mock.commit_files.assert_not_called()
+
+    def test_the_recorded_version_matches_what_is_stored(self):
+        saved_query = self.create_saved_query(content="SELECT 1")
+        self.client_mock.commit_files.reset_mock()
+
+        saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 2")
+
+        committed = self.client_mock.commit_files.call_args.kwargs["files"][0][
+            "content"
+        ]
+        self.assertEqual(SavedQuery.objects.get(pk=saved_query.pk).content, committed)
+
+    def test_update_rolls_back_when_the_version_cannot_be_recorded(self):
+        saved_query = self.create_saved_query(content="SELECT 1")
+        self.client_mock.commit_files.side_effect = ForgejoAPIError(
+            "POST", "/repos/x/y/contents", 500
+        )
+
+        with self.assertRaises(ForgejoAPIError):
+            saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 2")
+
+        reloaded = SavedQuery.objects.get(pk=saved_query.pk)
+        self.assertEqual("SELECT 1", reloaded.content)
+
+    def test_a_refused_edit_records_nothing(self):
+        saved_query = self.create_saved_query(
+            user=self.USER_EDITOR, visibility="PRIVATE"
+        )
+        self.client_mock.commit_files.reset_mock()
+
+        with self.assertRaises(PermissionDenied):
+            saved_query.update_if_has_perm(self.USER_VIEWER, content="SELECT 2")
+
+        self.client_mock.commit_files.assert_not_called()
+
+    def test_deleting_archives_the_history(self):
+        saved_query = self.create_saved_query()
+        repository = saved_query.repository
+
+        # Archiving is deferred to the commit, which a TestCase never reaches.
+        with self.captureOnCommitCallbacks(execute=True):
+            saved_query.delete_if_has_perm(self.USER_EDITOR)
+
+        self.client_mock.archive_repository.assert_called_once_with(
+            self.WORKSPACE.organization.slug, repository
+        )
+
+    def test_nothing_is_archived_before_the_deletion_is_committed(self):
+        saved_query = self.create_saved_query()
+
+        # Archiving is irreversible, so doing it while the deletion could still roll
+        # back would strand the query with a history it can no longer add to.
+        saved_query.delete_if_has_perm(self.USER_EDITOR)
+
+        self.client_mock.archive_repository.assert_not_called()
+
+    def test_a_history_that_cannot_be_archived_is_left_behind(self):
+        saved_query = self.create_saved_query()
+        pk = saved_query.pk
+        self.client_mock.archive_repository.side_effect = ForgejoAPIError(
+            "POST", "/repos/x/y", 500
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            saved_query.delete_if_has_perm(self.USER_EDITOR)
+
+        # By the time archiving runs there is no one left to report a failure to.
+        self.assertFalse(SavedQuery.objects.filter(pk=pk).exists())
+
+
+class SavedQueryConcurrentEditTest(SavedQueryTestMixin, TestCase):
+    """Concurrent edits: the last save wins and is recorded as a version of its own."""
+
+    def setUp(self):
+        super().setUp()
+        self.client_mock = make_git_client_mock(SHA_INITIAL)
+        patcher = patch(
+            "hexa.git.mixins.get_forgejo_client", return_value=self.client_mock
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.saved_query = self.create_saved_query(content="SELECT 1")
+
+    def _someone_else_saves(self, content="SELECT 99"):
+        """A second editor's save, landing between our load and our own save."""
+        other = SavedQuery.objects.get(pk=self.saved_query.pk)
+        self.client_mock.commit_files.return_value = SHA_SECOND
+        other.update_if_has_perm(self.USER_ADMIN, content=content)
+        self.client_mock.commit_files.reset_mock()
+
+    def test_a_later_edit_overwrites_an_earlier_one(self):
+        self._someone_else_saves()
+
+        self.saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 2")
+
+        self.assertEqual(
+            "SELECT 2", SavedQuery.objects.get(pk=self.saved_query.pk).content
+        )
+
+    def test_writing_back_a_stale_copy_records_the_revert(self):
+        # Saving what you loaded reverts the other edit — a change, so it must be
+        # recorded rather than pass for "nothing changed".
+        self._someone_else_saves(content="SELECT 99")
+
+        self.saved_query.update_if_has_perm(self.USER_EDITOR, content="SELECT 1")
+
+        reloaded = SavedQuery.objects.get(pk=self.saved_query.pk)
+        self.assertEqual("SELECT 1", reloaded.content)
+        self.client_mock.commit_files.assert_called_once()
+
+    def test_an_edit_leaves_the_fields_it_does_not_touch_alone(self):
+        # A partial edit must not carry the other fields along from the copy it was
+        # working on: that reverts someone else's change, recording no version of it.
+        self._someone_else_saves(content="SELECT 99")
+
+        self.saved_query.update_if_has_perm(self.USER_EDITOR, name="New name")
+
+        reloaded = SavedQuery.objects.get(pk=self.saved_query.pk)
+        self.assertEqual("New name", reloaded.name)
+        self.assertEqual("SELECT 99", reloaded.content)
+        self.client_mock.commit_files.assert_not_called()
+
+    def test_resharing_a_query_someone_else_edited_leaves_their_edit_alone(self):
+        self._someone_else_saves(content="SELECT 99")
+
+        # The editor authored this query, so the stricter permission is theirs.
+        self.saved_query.update_if_has_perm(self.USER_EDITOR, visibility="PRIVATE")
+
+        reloaded = SavedQuery.objects.get(pk=self.saved_query.pk)
+        self.assertEqual("PRIVATE", reloaded.visibility)
+        self.assertEqual("SELECT 99", reloaded.content)
+
+
+class SavedQueryHistoryReadTest(SavedQueryTestMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.client_mock = make_git_client_mock(SHA_INITIAL)
+        patcher = patch(
+            "hexa.git.mixins.get_forgejo_client", return_value=self.client_mock
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.saved_query = self.create_saved_query(content="SELECT 1")
+
+    def test_get_versions_reads_the_repository_log(self):
+        page = self.saved_query.get_versions(page=2, per_page=5)
+
+        self.client_mock.get_commits.assert_called_with(
+            self.WORKSPACE.organization.slug,
+            self.saved_query.repository,
+            page=2,
+            limit=5,
+        )
+        self.assertEqual(2, page["page"])
+        self.assertEqual([SHA_INITIAL], [item["id"] for item in page["items"]])
+
+    def test_a_query_with_no_history_has_no_versions(self):
+        # The state every query is in between the migration and the backfill.
+        SavedQuery.objects.filter(pk=self.saved_query.pk).update(repository=None)
+        self.saved_query.refresh_from_db()
+
+        self.assertEqual(
+            {"items": [], "page": 1}, self.saved_query.get_versions(page=1)
+        )
+        self.client_mock.get_commits.assert_not_called()
+
+    def test_get_version_content_reads_the_query_file(self):
+        self.client_mock.get_file.return_value = b"SELECT 1"
+
+        self.assertEqual(
+            "SELECT 1", self.saved_query.get_version_content(ref=SHA_INITIAL)
+        )
+        self.client_mock.get_file.assert_called_with(
+            self.saved_query.repository,
+            QUERY_FILE_PATH,
+            ref=SHA_INITIAL,
+            org_slug=self.WORKSPACE.organization.slug,
+        )
+
+    def test_get_version_content_propagates_an_unknown_ref(self):
+        self.client_mock.get_file.side_effect = GitFileNotFound(QUERY_FILE_PATH)
+
+        with self.assertRaises(GitFileNotFound):
+            self.saved_query.get_version_content(ref="nope")
+
+    def test_get_commit_diff_describes_the_change(self):
+        self.client_mock.get_commit.return_value = {
+            "id": SHA_INITIAL,
+            "message": "Update Monthly report",
+            "author_name": "Ada",
+            "author_email": "ada@openhexa.org",
+            "date": "2026-01-01T00:00:00Z",
+        }
+        self.client_mock.get_commit_diff.return_value = "--- a\n+++ b\n"
+
+        diff = self.saved_query.get_commit_diff(SHA_INITIAL)
+
+        self.assertEqual(
+            {
+                "id": SHA_INITIAL,
+                "message": "Update Monthly report",
+                "author_name": "Ada",
+                "author_email": "ada@openhexa.org",
+                "date": "2026-01-01T00:00:00Z",
+                "raw_diff": "--- a\n+++ b\n",
+            },
+            diff,
+        )
+
+
+class BackfillSavedQueryRepositoriesTest(SavedQueryTestMixin, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.client_mock = make_git_client_mock(SHA_INITIAL)
+        patcher = patch(
+            "hexa.git.mixins.get_forgejo_client", return_value=self.client_mock
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def _query_without_history(self, **kwargs):
+        """A saved query in the state the migration leaves existing ones in."""
+        saved_query = self.create_saved_query(**kwargs)
+        SavedQuery.objects.filter(pk=saved_query.pk).update(repository=None)
+        self.client_mock.reset_mock()
+        return SavedQuery.objects.get(pk=saved_query.pk)
+
+    def test_records_a_first_version_for_a_query_that_has_none(self):
+        saved_query = self._query_without_history(content="SELECT 1")
+
+        call_command("backfill_saved_query_repositories")
+
+        saved_query.refresh_from_db()
+        self.assertIsNotNone(saved_query.repository)
+        files = self.client_mock.commit_files.call_args.kwargs["files"]
+        self.assertEqual("SELECT 1", files[0]["content"])
+
+    def test_names_the_repository_after_the_query(self):
+        saved_query = self._query_without_history()
+
+        call_command("backfill_saved_query_repositories")
+
+        saved_query.refresh_from_db()
+        self.assertEqual(
+            f"{self.WORKSPACE.slug}-query-{saved_query.slug}-{saved_query.id.hex[:8]}",
+            saved_query.repository,
+        )
+
+    def test_re_running_records_nothing_more(self):
+        self._query_without_history()
+        call_command("backfill_saved_query_repositories")
+        self.client_mock.reset_mock()
+
+        call_command("backfill_saved_query_repositories")
+
+        self.client_mock.create_org_repository.assert_not_called()
+        self.client_mock.commit_files.assert_not_called()
+
+    def test_a_failure_leaves_the_other_queries_to_be_done(self):
+        first = self._query_without_history(name="First")
+        second = self._query_without_history(name="Second")
+        # Whichever comes first fails; the run must not stop there.
+        self.client_mock.create_org_repository.side_effect = [
+            ForgejoAPIError("POST", "/orgs/x/repos", 500),
+            {},
+        ]
+
+        call_command("backfill_saved_query_repositories")
+
+        first.refresh_from_db()
+        second.refresh_from_db()
+        self.assertEqual(
+            [None], [q.repository for q in (first, second) if q.repository is None]
+        )
+
+    def test_an_authorless_query_is_credited_to_the_instance(self):
+        saved_query = self._query_without_history()
+        SavedQuery.objects.filter(pk=saved_query.pk).update(created_by=None)
+
+        call_command("backfill_saved_query_repositories")
+
+        self.assertEqual(
+            "OpenHEXA", self.client_mock.commit_files.call_args.kwargs["author_name"]
+        )
+
+    def test_a_dry_run_writes_nothing(self):
+        self._query_without_history()
+
+        call_command("backfill_saved_query_repositories", "--dry-run")
+
+        self.client_mock.create_org_repository.assert_not_called()
+        self.client_mock.commit_files.assert_not_called()
+
+    def test_a_dry_run_reports_content_that_no_longer_matches_its_version(self):
+        saved_query = self.create_saved_query(content="SELECT 1")
+        self.client_mock.get_file.return_value = b"SELECT 2"
+        out = StringIO()
+
+        call_command("backfill_saved_query_repositories", "--dry-run", stdout=out)
+
+        self.assertIn("drifted", out.getvalue())
+        self.assertIn(saved_query.slug, out.getvalue())
+
+    def test_a_dry_run_reports_a_query_with_no_repository(self):
+        saved_query = self._query_without_history()
+        out = StringIO()
+
+        call_command("backfill_saved_query_repositories", "--dry-run", stdout=out)
+
+        self.assertIn("no repository", out.getvalue())
+        self.assertIn(saved_query.slug, out.getvalue())
