@@ -872,3 +872,45 @@ class OrganizationWorkspaceInvitation(Base):
                 )
             except Workspace.DoesNotExist:
                 continue
+
+
+class TokenScopeVerdict(models.TextChoices):
+    """Scope reached by a token-authenticated request.
+
+    ``CROSS_REACHABLE`` is distinct from ``OUT_OF_SCOPE``: an org-shared dataset or
+    a dataset link is reachable *through* the token's workspace even if outside it.
+    This will keep working once tokens are scoped, but it gives as extra visibility
+    on how the tokens are used.
+    TODO (HEXA-1775): Remove once the analysis has been done
+    """
+
+    IN_SCOPE = "IN_SCOPE", _("In scope")
+    CROSS_REACHABLE = "CROSS_REACHABLE", _("Reachable from the token's workspace")
+    OUT_OF_SCOPE = "OUT_OF_SCOPE", _("Out of scope")
+
+
+class WorkspaceTokenUsage(Base):
+    """One row per workspace-token GraphQL request.
+
+    Answers: "how many tokens would break if we scoped them?"
+    TODO (HEXA-1775): Remove once the analysis has been done
+    """
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["created_at", "verdict"]),
+            models.Index(fields=["token_fingerprint"]),
+        ]
+
+    token_fingerprint = models.CharField(max_length=32)
+    token_type = models.CharField(max_length=20)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name="+")
+    verdict = models.CharField(max_length=20, choices=TokenScopeVerdict.choices)
+    root_fields = models.JSONField(default=list)
+    foreign_workspaces = models.JSONField(default=dict)
+    client = models.TextField(blank=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.token_fingerprint} {self.verdict}"
