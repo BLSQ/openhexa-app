@@ -124,6 +124,15 @@ plugins:
             Architecture: Architecture
             Legacy: Version héritée
   - awesome-pages
+  - macros:
+      j2_variable_start_string: "[["
+      j2_variable_end_string: "]]"
+      j2_block_start_string: "[%"
+      j2_block_end_string: "%]"
+      j2_comment_start_string: "[#"
+      j2_comment_end_string: "#]"
+      on_undefined: strict
+      on_error_fail: true
   - glightbox
   - mermaid2:
       arguments:
@@ -143,6 +152,7 @@ hooks:
 
 # Additional configuration
 extra:
+  BASE_URL: https://api.openhexa.org
   status:
     new: Recently added
     deprecated: Deprecated

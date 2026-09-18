@@ -105,10 +105,8 @@ You can build a webapp on your own machine — your editor, your live reload, yo
 ### 1. Add the script to your page
 
 ```html
-<script src="https://api.openhexa.org/webapps/dev.js"></script>
+<script src="[[ BASE_URL ]]/webapps/dev.js"></script>
 ```
-
-Point it at the OpenHEXA **backend** (API) host, not the app host — `https://api.openhexa.org/webapps/dev.js` on OpenHEXA Cloud, `http://localhost:8000/webapps/dev.js` for a local backend.
 
 New webapps created from the default template already include this tag. It is inert once deployed (it only activates on `file://` and `localhost` pages), so you can leave it in your `index.html`.
 
@@ -137,7 +135,7 @@ The window closes and your page reloads, connected. `window.OPENHEXA` is populat
 Name the workspace and webapp up front and the list is reduced to that single, preselected entry — you still confirm with **Approve**:
 
 ```html
-<script src="https://api.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
+<script src="[[ BASE_URL ]]/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
 ```
 
 ### Good to know
@@ -202,6 +200,7 @@ type Workspace {
 <head>
   <meta charset="utf-8">
   <title>Who am I?</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
     pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; }
@@ -289,6 +288,7 @@ type Pipeline {
 <head>
   <meta charset="utf-8">
   <title>Pipelines</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
     li { margin-bottom: 0.75rem; }
@@ -399,6 +399,7 @@ union PipelineRunOutput = BucketObject | GenericOutput | DatabaseTable
 <head>
   <meta charset="utf-8">
   <title>Run a pipeline</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
     label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
@@ -555,6 +556,7 @@ type PrepareObjectDownloadResult {
 <head>
   <meta charset="utf-8">
   <title>Preview CSV</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
     label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
@@ -707,6 +709,7 @@ type CreateBucketFolderResult { success: Boolean!, errors: [CreateBucketFolderEr
 <head>
   <meta charset="utf-8">
   <title>Upload a file</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 560px; margin: 2rem auto; padding: 0 1rem; }
     input { width: 100%; padding: 0.4rem; box-sizing: border-box; }
@@ -810,6 +813,7 @@ type Dataset {
 <head>
   <meta charset="utf-8">
   <title>Datasets</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
     li { margin-bottom: 0.75rem; }
@@ -916,6 +920,7 @@ type UpdateDatasetVersionResult { version: DatasetVersion, success: Boolean!, er
 <head>
   <meta charset="utf-8">
   <title>Create a dataset</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 560px; margin: 2rem auto; padding: 0 1rem; }
     label { display: block; margin: 0.5rem 0 0.25rem; }
@@ -1028,6 +1033,7 @@ with `SAVED_QUERY_NOT_FOUND`.
 <head>
   <meta charset="utf-8">
   <title>Saved query</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
     table { border-collapse: collapse; width: 100%; }

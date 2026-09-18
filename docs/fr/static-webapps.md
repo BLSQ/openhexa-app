@@ -100,10 +100,8 @@ Vous pouvez développer une webapp sur votre machine — votre éditeur, votre r
 ### 1. Ajoutez le script à votre page
 
 ```html
-<script src="https://api.openhexa.org/webapps/dev.js"></script>
+<script src="[[ BASE_URL ]]/webapps/dev.js"></script>
 ```
-
-Pointez-le vers l'hôte du **backend** OpenHEXA (l'API), pas celui de l'application — `https://api.openhexa.org/webapps/dev.js` sur OpenHEXA Cloud, `http://localhost:8000/webapps/dev.js` pour un backend local.
 
 Les webapps créées à partir du template par défaut incluent déjà cette balise. Elle est inerte une fois déployée (elle ne s'active que sur les pages `file://` et `localhost`), vous pouvez donc la laisser dans votre `index.html`.
 
@@ -132,7 +130,7 @@ La fenêtre se ferme et votre page se recharge, connectée. `window.OPENHEXA` es
 Indiquez le workspace et la webapp directement : la liste se réduit à cette seule entrée, présélectionnée — vous confirmez toujours avec **Approve** :
 
 ```html
-<script src="https://api.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
+<script src="[[ BASE_URL ]]/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
 ```
 
 ### Bon à savoir
@@ -156,6 +154,7 @@ Affiche l'utilisateur courant et le workspace au chargement.
 <head>
   <meta charset="utf-8">
   <title>Qui suis-je ?</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
     pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; }
@@ -203,6 +202,7 @@ Liste tous les pipelines du workspace.
 <head>
   <meta charset="utf-8">
   <title>Pipelines</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
     li { margin-bottom: 0.75rem; }
@@ -259,6 +259,7 @@ Charge la liste des pipelines à l'ouverture de la page, vous laisse en choisir 
 <head>
   <meta charset="utf-8">
   <title>Lancer un pipeline</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
     label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
@@ -364,6 +365,7 @@ Liste les fichiers CSV du bucket au chargement de la page, vous laisse en choisi
 <head>
   <meta charset="utf-8">
   <title>Aperçu CSV</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
     label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
@@ -476,6 +478,7 @@ Sélectionnez un fichier, téléversez-le via une URL présignée.
 <head>
   <meta charset="utf-8">
   <title>Téléverser un fichier</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 560px; margin: 2rem auto; padding: 0 1rem; }
     input { width: 100%; padding: 0.4rem; box-sizing: border-box; }
@@ -542,6 +545,7 @@ Liste les jeux de données visibles depuis le workspace, avec leur dernière ver
 <head>
   <meta charset="utf-8">
   <title>Jeux de données</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
     li { margin-bottom: 0.75rem; }
@@ -607,6 +611,7 @@ Petit formulaire qui crée un jeu de données et affiche le nouvel id/slug.
 <head>
   <meta charset="utf-8">
   <title>Créer un jeu de données</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 560px; margin: 2rem auto; padding: 0 1rem; }
     label { display: block; margin: 0.5rem 0 0.25rem; }
@@ -721,6 +726,7 @@ une requête privée échoue avec `SAVED_QUERY_NOT_FOUND`.
 <head>
   <meta charset="utf-8">
   <title>Requête enregistrée</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
     table { border-collapse: collapse; width: 100%; }
