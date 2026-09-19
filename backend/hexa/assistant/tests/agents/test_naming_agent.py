@@ -11,6 +11,7 @@ from hexa.assistant.agents.naming_agent import (
     trim_title,
     validate_title,
 )
+from hexa.assistant.ai_models.backends import ManagedBackend
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 from hexa.user_management.models import AiSettings
@@ -61,7 +62,7 @@ def _managed_settings() -> AiSettings:
 class NamingAgentModelTest(SimpleTestCase):
     def test_managed_runs_on_haiku_rather_than_the_organization_model(self):
         builder = FakeModelBuilder(_make_naming_model("Title"), _managed_settings())
-        self.assertEqual(builder.ai_settings.effective_model, AiSettings.Model.OPUS)
+        self.assertEqual(ManagedBackend.DEFAULT_MODEL, AiSettings.Model.OPUS)
         self.assertEqual(
             NamingAgent(builder).built_model.api_name, "anthropic:claude-haiku-4-5"
         )
@@ -69,7 +70,7 @@ class NamingAgentModelTest(SimpleTestCase):
     def test_bring_your_own_key_runs_on_the_model_the_organization_chose(self):
         """Their key, their choice: we do not quietly downgrade it to save cost."""
         builder = FakeModelBuilder(_make_naming_model("Title"))
-        self.assertEqual(builder.ai_settings.effective_model, AiSettings.Model.OPUS)
+        self.assertEqual(builder.ai_settings.model, AiSettings.Model.OPUS)
         self.assertEqual(
             NamingAgent(builder).built_model.api_name, "anthropic:claude-opus-4-6"
         )

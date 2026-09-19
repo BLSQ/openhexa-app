@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 from django.test import SimpleTestCase, override_settings
 from pydantic_ai import RunUsage
 
@@ -44,6 +46,19 @@ def _selector(ai_settings: AiSettings) -> ModelSelector:
     return ModelSelector(backend_for(ai_settings))
 
 
+@contextmanager
+def _assert_single_warning(test: SimpleTestCase):
+    """Recovering from an unrunnable candidate warns, exactly once.
+
+    The level is pinned on purpose: ERROR would page, since config/sentry.py
+    forwards ERROR logs as events, and this is a case we recovered from; INFO
+    would be invisible in production, hiding a model that silently did not apply.
+    """
+    with test.assertLogs(_LOGGER, level="WARNING") as logs:
+        yield
+    test.assertEqual([record.levelname for record in logs.records], ["WARNING"])
+
+
 def _for_agent(ai_settings, agent_key, default_model=None) -> str:
     return str(_selector(ai_settings).for_agent(agent_key, default_model))
 
@@ -86,7 +101,7 @@ class ForAgentTest(SimpleTestCase):
 
     @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"generate_sql": "sonnet"}')
     def test_falls_back_when_the_provider_has_no_id_for_the_model(self):
-        with self.assertLogs(_LOGGER, level="ERROR"):
+        with _assert_single_warning(self):
             resolved = _for_agent(_managed_settings(), AgentKey.GENERATE_SQL)
         self.assertEqual(resolved, _OPUS_ID)
 
@@ -119,7 +134,7 @@ class LiteralOverrideTest(SimpleTestCase):
         ASSISTANT_MANAGED_AGENT_MODELS='{"generate_sql": "mistral:mistral-large"}'
     )
     def test_falls_back_when_vertex_does_not_serve_the_provider(self):
-        with self.assertLogs(_LOGGER, level="ERROR"):
+        with _assert_single_warning(self):
             resolved = _for_agent(_managed_settings(), AgentKey.GENERATE_SQL)
         self.assertEqual(resolved, _OPUS_ID)
 
@@ -182,7 +197,7 @@ class DefaultOverrideTest(SimpleTestCase):
         ASSISTANT_MANAGED_AGENT_MODELS='{"default": "mistral:mistral-large"}'
     )
     def test_a_default_we_cannot_run_falls_back_to_the_generic_default(self):
-        with self.assertLogs(_LOGGER, level="ERROR"):
+        with _assert_single_warning(self):
             resolved = _for_agent(_managed_settings(), AgentKey.GENERAL)
         self.assertEqual(resolved, _OPUS_ID)
 
@@ -200,9 +215,7 @@ class NoRunnableCandidateTest(SimpleTestCase):
         """
         ai_settings = _ai_settings()
         ai_settings.provider = "no-such-provider"
-        with self.assertLogs(_LOGGER, level="ERROR"), self.assertRaises(
-            AssistantException
-        ):
+        with _assert_single_warning(self), self.assertRaises(AssistantException):
             _for_agent(ai_settings, AgentKey.GENERAL)
 
 

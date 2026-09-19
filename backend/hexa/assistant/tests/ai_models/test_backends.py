@@ -55,7 +55,7 @@ class ModelCandidatesTest(SimpleTestCase):
     def test_managed_reads_the_setting_before_the_code(self):
         self.assertEqual(
             _managed_backend().model_candidates("naming", AiSettings.Model.SONNET),
-            ["haiku", None, AiSettings.Model.SONNET, AiSettings.MANAGED_MODEL],
+            ["haiku", None, AiSettings.Model.SONNET, ManagedBackend.DEFAULT_MODEL],
         )
 
     @override_settings(
@@ -68,7 +68,7 @@ class ModelCandidatesTest(SimpleTestCase):
                 None,
                 ModelId("google-cloud", "gemini-3-pro-preview"),
                 AiSettings.Model.HAIKU,
-                AiSettings.MANAGED_MODEL,
+                ManagedBackend.DEFAULT_MODEL,
             ],
         )
 
@@ -161,12 +161,19 @@ class ProviderForTest(SimpleTestCase):
             _byok_backend().provider_for("openai")
 
 
-class EffectiveModelTest(SimpleTestCase):
-    def test_returns_stored_model_for_bring_your_own_key_provider(self):
-        ai_settings = _byok_backend(model=AiSettings.Model.SONNET).ai_settings
-        self.assertEqual(ai_settings.effective_model, AiSettings.Model.SONNET)
+class StoredModelTest(SimpleTestCase):
+    def test_bring_your_own_key_runs_the_model_it_stored(self):
+        backend = _byok_backend(model=AiSettings.Model.SONNET)
+        self.assertEqual(
+            backend.model_candidates("naming", None), [AiSettings.Model.SONNET, None]
+        )
 
-    def test_managed_ignores_stored_model(self):
-        ai_settings = _managed_backend().ai_settings
-        ai_settings.model = AiSettings.Model.SONNET
-        self.assertEqual(ai_settings.effective_model, AiSettings.MANAGED_MODEL)
+    def test_managed_ignores_a_stored_model(self):
+        """Managed organizations never pick a model, so a value left on their
+        settings by a previous bring-your-own-key provider is not theirs to run.
+        """
+        backend = _managed_backend()
+        backend.ai_settings.model = AiSettings.Model.SONNET
+        self.assertNotIn(
+            AiSettings.Model.SONNET, backend.model_candidates("naming", None)
+        )

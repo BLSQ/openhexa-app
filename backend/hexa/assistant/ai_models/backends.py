@@ -59,6 +59,11 @@ class ProviderBackend(ABC):
 class ManagedBackend(ProviderBackend):
     """Models served from our own Vertex project, on our own account."""
 
+    # Managed provider default model. If unset in env config and agent
+    # doesn't have default, it fallbacks to this one.
+    # Logical rather than a model id, later selected by DEFAULT_MODEL_IDS.
+    DEFAULT_MODEL = AiSettings.Model.OPUS
+
     # Default models to run for preset AI settings model.
     # Right now based on our Vertex available models.
     DEFAULT_MODEL_IDS: dict[str, ModelId] = {
@@ -86,7 +91,7 @@ class ManagedBackend(ProviderBackend):
             configured.get(agent_key),
             configured.get(DEFAULT_KEY),
             default_model,
-            self.ai_settings.effective_model,
+            self.DEFAULT_MODEL,
         ]
 
     def supports(self, provider: str) -> bool:
@@ -124,7 +129,7 @@ class BringYourOwnKeyBackend(ProviderBackend):
         """The model the organization chose in the UI comes first: it is theirs,
         and it runs on their key.
         """
-        return [self.ai_settings.effective_model, default_model]
+        return [self.ai_settings.model, default_model]
 
     def supports(self, provider: str) -> bool:
         return provider == self.ai_settings.provider
