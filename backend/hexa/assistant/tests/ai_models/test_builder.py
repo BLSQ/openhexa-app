@@ -93,9 +93,12 @@ class AiModelBuilderTest(TestCase):
             builder.build(_id("no-such-provider:whatever"))
 
     def test_build_for_agent_builds_the_model_selection_picked(self):
+        """Selection, not the default handed in: this organization chose opus, which
+        on its own key outranks the haiku the naming agent asks for.
+        """
         builder = _builder(AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS)
         result = builder.build_for_agent("naming", AiSettings.Model.HAIKU)
-        self.assertEqual(result.api_name, "claude-haiku-4-5")
+        self.assertEqual(result.api_name, "claude-opus-4-6")
 
     def test_from_conversation_raises_when_workspace_has_no_organization(self):
         mock_conversation = MagicMock()

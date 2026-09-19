@@ -48,20 +48,38 @@ class SupportsTest(SimpleTestCase):
         self.assertFalse(backend.supports("mistral"))
 
 
-class ConfiguredAgentModelsTest(SimpleTestCase):
-    """Only managed organizations take their models from our configuration: the
-    ones running on a key of their own picked theirs, and it is not ours to move.
-    """
+class ModelCandidatesTest(SimpleTestCase):
+    """Each backend sets its own precedence, most specific first."""
 
     @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"naming": "haiku"}')
-    def test_managed_reads_them_from_the_setting(self):
+    def test_managed_reads_the_setting_before_the_code(self):
         self.assertEqual(
-            _managed_backend().configured_agent_models(), {"naming": "haiku"}
+            _managed_backend().model_candidates("naming", AiSettings.Model.SONNET),
+            ["haiku", None, AiSettings.Model.SONNET, AiSettings.MANAGED_MODEL],
+        )
+
+    @override_settings(
+        ASSISTANT_MANAGED_AGENT_MODELS='{"default": "google-cloud:gemini-3-pro-preview"}'
+    )
+    def test_managed_falls_to_the_default_entry_for_an_agent_it_does_not_name(self):
+        self.assertEqual(
+            _managed_backend().model_candidates("naming", AiSettings.Model.HAIKU),
+            [
+                None,
+                ModelId("google-cloud", "gemini-3-pro-preview"),
+                AiSettings.Model.HAIKU,
+                AiSettings.MANAGED_MODEL,
+            ],
         )
 
     @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"naming": "haiku"}')
-    def test_bring_your_own_key_ignores_the_setting(self):
-        self.assertEqual(_byok_backend().configured_agent_models(), {})
+    def test_bring_your_own_key_puts_the_ui_choice_first_and_ignores_the_setting(self):
+        self.assertEqual(
+            _byok_backend(model=AiSettings.Model.SONNET).model_candidates(
+                "naming", AiSettings.Model.HAIKU
+            ),
+            [AiSettings.Model.SONNET, AiSettings.Model.HAIKU],
+        )
 
 
 class VertexOpenAiTest(SimpleTestCase):

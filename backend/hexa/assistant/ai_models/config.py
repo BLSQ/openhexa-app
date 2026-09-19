@@ -40,7 +40,7 @@ def _logical_model(value: object) -> str:
 
 
 def _override_key(value: str) -> str:
-    """config key for `value`. It can be an agent key or the default key."""
+    """Config key for `value`. It can be an agent key or the default key."""
     return DEFAULT_KEY if value == DEFAULT_KEY else AgentKey(value).value
 
 

@@ -52,12 +52,26 @@ class TitleValidationTest(SimpleTestCase):
         )
 
 
+def _managed_settings() -> AiSettings:
+    return AiSettings(
+        provider=AiSettings.Provider.MANAGED, model=None, api_key=None, enabled=True
+    )
+
+
 class NamingAgentModelTest(SimpleTestCase):
-    def test_runs_on_haiku_rather_than_the_organization_model(self):
-        builder = FakeModelBuilder(_make_naming_model("Title"))
+    def test_managed_runs_on_haiku_rather_than_the_organization_model(self):
+        builder = FakeModelBuilder(_make_naming_model("Title"), _managed_settings())
         self.assertEqual(builder.ai_settings.effective_model, AiSettings.Model.OPUS)
         self.assertEqual(
             NamingAgent(builder).built_model.api_name, "anthropic:claude-haiku-4-5"
+        )
+
+    def test_bring_your_own_key_runs_on_the_model_the_organization_chose(self):
+        """Their key, their choice: we do not quietly downgrade it to save cost."""
+        builder = FakeModelBuilder(_make_naming_model("Title"))
+        self.assertEqual(builder.ai_settings.effective_model, AiSettings.Model.OPUS)
+        self.assertEqual(
+            NamingAgent(builder).built_model.api_name, "anthropic:claude-opus-4-6"
         )
 
     @override_settings(
@@ -67,15 +81,7 @@ class NamingAgentModelTest(SimpleTestCase):
         """Sonnet is neither the agent default nor the managed organization model,
         so only the override can have put it there.
         """
-        builder = FakeModelBuilder(
-            _make_naming_model("Title"),
-            AiSettings(
-                provider=AiSettings.Provider.MANAGED,
-                model=None,
-                api_key=None,
-                enabled=True,
-            ),
-        )
+        builder = FakeModelBuilder(_make_naming_model("Title"), _managed_settings())
         self.assertEqual(
             NamingAgent(builder).built_model.api_name, "anthropic:claude-sonnet-4-6"
         )
@@ -156,9 +162,14 @@ class NamingAgentRunTest(AgentTestCase):
         self.assertGreater(result.usage.output_tokens, 0)
 
     def test_naming_usage_is_priced_apart_from_the_main_model(self):
+        """Managed keeps the naming agent on its own default, so the two agents in
+        one conversation really do price against different models.
+        """
         agent = BaseAgent(
             self.conversation,
-            FakeModelBuilder(_make_naming_model("Tableau de bord alertes")),
+            FakeModelBuilder(
+                _make_naming_model("Tableau de bord alertes"), _managed_settings()
+            ),
         )
         with patch(
             "hexa.assistant.ai_models.built_model.genai_prices.calc_price"

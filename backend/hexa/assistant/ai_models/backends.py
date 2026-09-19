@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from django.conf import settings
 from pydantic_ai.providers import Provider, infer_provider_class
 
-from hexa.assistant.ai_models.config import managed_agent_models
+from hexa.assistant.ai_models.config import DEFAULT_KEY, managed_agent_models
 from hexa.assistant.ai_models.ids import ModelId, ModelRequest
 from hexa.assistant.ai_models.vertex import PROVIDERS
 from hexa.assistant.exceptions import AssistantException
@@ -40,11 +40,11 @@ class ProviderBackend(ABC):
     def _build_provider(self, provider: str) -> Provider:
         """Build `provider` pydantic-ai class."""
 
-    def configured_agent_models(self) -> dict[str, ModelRequest]:
-        """Environment configuration of agents -> model
-        Only relevant for managed backends. BYOK organizations choose their models via UI.
-        """
-        return {}
+    @abstractmethod
+    def model_candidates(
+        self, agent_key: str, default_model: ModelRequest | None
+    ) -> list[ModelRequest | None]:
+        """Models to try for `agent_key`, in order of precedence."""
 
     def provider_for(self, provider: str) -> Provider:
         """Build `provider` pydantic-ai class if supported."""
@@ -75,7 +75,19 @@ class ManagedBackend(ProviderBackend):
         return self.DEFAULT_MODEL_IDS
 
     def configured_agent_models(self) -> dict[str, ModelRequest]:
+        """Environment configuration of agents -> model."""
         return managed_agent_models()
+
+    def model_candidates(
+        self, agent_key: str, default_model: ModelRequest | None
+    ) -> list[ModelRequest | None]:
+        configured = self.configured_agent_models()
+        return [
+            configured.get(agent_key),
+            configured.get(DEFAULT_KEY),
+            default_model,
+            self.ai_settings.effective_model,
+        ]
 
     def supports(self, provider: str) -> bool:
         return provider in PROVIDERS
@@ -105,6 +117,14 @@ class BringYourOwnKeyBackend(ProviderBackend):
     @property
     def model_ids(self) -> dict[str, ModelId]:
         return self.MODEL_IDS.get(self.ai_settings.provider, {})
+
+    def model_candidates(
+        self, agent_key: str, default_model: ModelRequest | None
+    ) -> list[ModelRequest | None]:
+        """The model the organization chose in the UI comes first: it is theirs,
+        and it runs on their key.
+        """
+        return [self.ai_settings.effective_model, default_model]
 
     def supports(self, provider: str) -> bool:
         return provider == self.ai_settings.provider

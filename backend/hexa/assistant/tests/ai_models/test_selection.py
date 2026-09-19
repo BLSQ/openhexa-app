@@ -48,18 +48,23 @@ def _for_agent(ai_settings, agent_key, default_model=None) -> str:
     return str(_selector(ai_settings).for_agent(agent_key, default_model))
 
 
-def _for_organization(ai_settings) -> str:
-    return str(_selector(ai_settings).for_organization())
-
-
 class ForAgentTest(SimpleTestCase):
     def test_agent_without_a_default_runs_on_the_organization_model(self):
         self.assertEqual(_for_agent(_ai_settings(), AgentKey.GENERAL), _OPUS_ID)
 
-    def test_agent_default_wins_over_the_organization_model(self):
+    def test_agent_default_wins_over_the_generic_default_when_managed(self):
+        self.assertEqual(
+            _for_agent(_managed_settings(), AgentKey.NAMING, AiSettings.Model.HAIKU),
+            _HAIKU_ID,
+        )
+
+    def test_the_ui_choice_wins_over_the_agent_default_when_byok(self):
+        """They chose that model and it runs on their key, so it outranks the
+        cost saving we would otherwise take on their behalf.
+        """
         self.assertEqual(
             _for_agent(_ai_settings(), AgentKey.NAMING, AiSettings.Model.HAIKU),
-            _HAIKU_ID,
+            _OPUS_ID,
         )
 
     @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"naming": "opus"}')
@@ -138,7 +143,7 @@ class DefaultOverrideTest(SimpleTestCase):
     )
     def test_it_replaces_the_organization_model(self):
         self.assertEqual(
-            _for_organization(_managed_settings()), "anthropic:claude-opus-5"
+            _for_agent(_managed_settings(), AgentKey.GENERAL), "anthropic:claude-opus-5"
         )
 
     @override_settings(
@@ -156,10 +161,13 @@ class DefaultOverrideTest(SimpleTestCase):
             '{"default": "google-cloud:gemini-3-pro-preview"}'
         )
     )
-    def test_an_agent_with_its_own_default_keeps_it(self):
+    def test_it_moves_agents_with_their_own_default_too(self):
+        """What the deployment configures outranks the code, so one entry really
+        does leave nothing behind on the provider we are escaping.
+        """
         self.assertEqual(
             _for_agent(_managed_settings(), AgentKey.NAMING, AiSettings.Model.HAIKU),
-            _HAIKU_ID,
+            _GEMINI_ID,
         )
 
     @override_settings(
@@ -167,33 +175,35 @@ class DefaultOverrideTest(SimpleTestCase):
             '{"default": "anthropic:claude-opus-5", "naming": "haiku"}'
         )
     )
-    def test_an_agent_pin_wins_over_it(self):
+    def test_an_agent_entry_wins_over_it(self):
         self.assertEqual(_for_agent(_managed_settings(), AgentKey.NAMING), _HAIKU_ID)
 
     @override_settings(
         ASSISTANT_MANAGED_AGENT_MODELS='{"default": "mistral:mistral-large"}'
     )
-    def test_a_default_we_cannot_run_falls_back_to_the_configured_model(self):
+    def test_a_default_we_cannot_run_falls_back_to_the_generic_default(self):
         with self.assertLogs(_LOGGER, level="ERROR"):
-            resolved = _for_organization(_managed_settings())
+            resolved = _for_agent(_managed_settings(), AgentKey.GENERAL)
         self.assertEqual(resolved, _OPUS_ID)
 
     @override_settings(
         ASSISTANT_MANAGED_AGENT_MODELS='{"default": "anthropic:claude-opus-5"}'
     )
     def test_organizations_on_their_own_key_are_left_alone(self):
-        self.assertEqual(_for_organization(_ai_settings()), _OPUS_ID)
+        self.assertEqual(_for_agent(_ai_settings(), AgentKey.GENERAL), _OPUS_ID)
 
 
-class ForOrganizationTest(SimpleTestCase):
-    def test_raises_when_no_id_is_configured_for_the_organization(self):
+class NoRunnableCandidateTest(SimpleTestCase):
+    def test_raises_when_every_candidate_is_exhausted(self):
         """Every model in the enum maps to an id, so only a provider we know
         nothing about can leave an organization without one.
         """
         ai_settings = _ai_settings()
         ai_settings.provider = "no-such-provider"
-        with self.assertRaises(AssistantException):
-            _for_organization(ai_settings)
+        with self.assertLogs(_LOGGER, level="ERROR"), self.assertRaises(
+            AssistantException
+        ):
+            _for_agent(ai_settings, AgentKey.GENERAL)
 
 
 class OverridesParsingTest(SimpleTestCase):
@@ -274,13 +284,8 @@ class CatalogPricingTest(SimpleTestCase):
 
 
 class AgentDefaultsTest(SimpleTestCase):
-    def test_every_provider_maps_the_naming_default(self):
-        """A provider whose map lacks it silently loses the cost saving, so catch
-        it here rather than in production logs.
+    def test_managed_maps_the_naming_default(self):
+        """Managed is where the agent default still decides, so a map lacking it
+        silently loses the cost saving; catch it here rather than in production logs.
         """
-        for provider, ids in [
-            (AiSettings.Provider.MANAGED, ManagedBackend.DEFAULT_MODEL_IDS),
-            *BringYourOwnKeyBackend.MODEL_IDS.items(),
-        ]:
-            with self.subTest(provider=provider):
-                self.assertIn(NamingAgent.default_model, ids)
+        self.assertIn(NamingAgent.default_model, ManagedBackend.DEFAULT_MODEL_IDS)
