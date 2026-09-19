@@ -11,6 +11,7 @@ from hexa.assistant.agents.naming_agent import (
     trim_title,
     validate_title,
 )
+from hexa.assistant.ai_models.backends import ManagedBackend
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation
 from hexa.user_management.models import AiSettings
@@ -52,19 +53,38 @@ class TitleValidationTest(SimpleTestCase):
         )
 
 
+def _managed_settings() -> AiSettings:
+    return AiSettings(
+        provider=AiSettings.Provider.MANAGED, model=None, api_key=None, enabled=True
+    )
+
+
 class NamingAgentModelTest(SimpleTestCase):
-    def test_runs_on_haiku_rather_than_the_organization_model(self):
-        builder = FakeModelBuilder(_make_naming_model("Title"))
-        self.assertEqual(builder.ai_settings.effective_model, AiSettings.Model.OPUS)
+    def test_managed_runs_on_haiku_rather_than_the_organization_model(self):
+        builder = FakeModelBuilder(_make_naming_model("Title"), _managed_settings())
+        self.assertEqual(ManagedBackend.DEFAULT_MODEL, AiSettings.Model.OPUS)
         self.assertEqual(
-            NamingAgent(builder).built_model.api_name, AiSettings.Model.HAIKU
+            NamingAgent(builder).built_model.api_name, "anthropic:claude-haiku-4-5"
         )
 
-    @override_settings(ASSISTANT_AGENT_MODELS='{"naming": "sonnet"}')
-    def test_environment_override_wins_over_the_default(self):
+    def test_bring_your_own_key_runs_on_the_model_the_organization_chose(self):
+        """Their key, their choice: we do not quietly downgrade it to save cost."""
         builder = FakeModelBuilder(_make_naming_model("Title"))
+        self.assertEqual(builder.ai_settings.model, AiSettings.Model.OPUS)
         self.assertEqual(
-            NamingAgent(builder).built_model.api_name, AiSettings.Model.SONNET
+            NamingAgent(builder).built_model.api_name, "anthropic:claude-opus-4-6"
+        )
+
+    @override_settings(
+        ASSISTANT_MANAGED_AGENT_MODELS='{"naming": "anthropic:claude-sonnet-4-6"}'
+    )
+    def test_environment_override_wins_over_the_default(self):
+        """Sonnet is neither the agent default nor the managed organization model,
+        so only the override can have put it there.
+        """
+        builder = FakeModelBuilder(_make_naming_model("Title"), _managed_settings())
+        self.assertEqual(
+            NamingAgent(builder).built_model.api_name, "anthropic:claude-sonnet-4-6"
         )
 
 
@@ -143,15 +163,20 @@ class NamingAgentRunTest(AgentTestCase):
         self.assertGreater(result.usage.output_tokens, 0)
 
     def test_naming_usage_is_priced_apart_from_the_main_model(self):
+        """Managed keeps the naming agent on its own default, so the two agents in
+        one conversation really do price against different models.
+        """
         agent = BaseAgent(
             self.conversation,
-            FakeModelBuilder(_make_naming_model("Tableau de bord alertes")),
+            FakeModelBuilder(
+                _make_naming_model("Tableau de bord alertes"), _managed_settings()
+            ),
         )
         with patch(
-            "hexa.assistant.model_builder.genai_prices.calc_price"
+            "hexa.assistant.ai_models.built_model.genai_prices.calc_price"
         ) as calc_price:
             calc_price.return_value = MagicMock(total_price=Decimal("0"))
             run_agent(agent, "Améliore ce tableau de bord")
         priced_models = [call.args[1] for call in calc_price.call_args_list]
-        self.assertIn(AiSettings.Model.HAIKU, priced_models)
-        self.assertIn(AiSettings.Model.OPUS, priced_models)
+        self.assertIn("anthropic:claude-haiku-4-5", priced_models)
+        self.assertIn("anthropic:claude-opus-4-6", priced_models)

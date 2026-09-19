@@ -2,8 +2,8 @@ from asgiref.sync import sync_to_async
 from django.contrib.contenttypes.models import ContentType
 
 from hexa.assistant.agents.base import BaseAgent
-from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.keys import AgentKey
 from hexa.mcp.tools.connections import list_connections
 from hexa.mcp.tools.datasets import get_dataset, list_datasets, preview_dataset_file
 from hexa.mcp.tools.files import list_files, read_file

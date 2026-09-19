@@ -26,11 +26,10 @@ from pydantic_ai.messages import (
     ToolReturnPart,
 )
 
-from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.agents.naming_agent import NamingAgent, NamingResult
+from hexa.assistant.ai_models import AiModelBuilder, BuiltModel
 from hexa.assistant.instructions import InstructionSet, get_instructions
-from hexa.assistant.model_builder import AiModelBuilder, BuiltModel, calculate_cost
-from hexa.assistant.model_selection import build_agent_model
+from hexa.assistant.keys import AgentKey
 from hexa.assistant.models import (
     Conversation,
     Message,
@@ -160,7 +159,7 @@ class BaseAgent:
     max_requests: int = 30
     output_retries: int | None = None
     history_strip_tools: set[str] = set()
-    # Identifies the agent in ASSISTANT_AGENT_MODELS. `default_model` is the
+    # Identifies the agent in ASSISTANT_MANAGED_AGENT_MODELS. `default_model` is the
     # model the agent asks for when the setting says nothing, None meaning the
     # organization's selected model.
     agent_key: str = AgentKey.GENERAL
@@ -171,8 +170,8 @@ class BaseAgent:
     ):
         self.conversation = conversation
         self._builder = builder or AiModelBuilder.from_conversation(conversation)
-        self._built_model: BuiltModel = build_agent_model(
-            self._builder, self.agent_key, self.default_model
+        self._built_model: BuiltModel = self._builder.build_for_agent(
+            self.agent_key, self.default_model
         )
 
         self.agent = Agent(
@@ -497,7 +496,7 @@ class BaseAgent:
     ) -> Message:
         input_tok = usage.input_tokens or 0
         output_tok = usage.output_tokens or 0
-        cost = calculate_cost(usage, self._built_model)
+        cost = self._built_model.calculate_cost(usage)
         logger.info(
             "agent.run_stream: done input_tokens=%d output_tokens=%d cost=%s",
             input_tok,
