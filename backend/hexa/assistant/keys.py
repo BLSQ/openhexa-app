@@ -2,7 +2,7 @@ from enum import StrEnum
 
 
 class AgentKey(StrEnum):
-    """Identifies an agent (e.g.: used in ASSISTANT_AGENT_MODELS env var)"""
+    """Identifies an agent."""
 
     GENERAL = "general"
     CREATE_PIPELINE = "create_pipeline"

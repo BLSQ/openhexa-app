@@ -60,9 +60,22 @@ class NamingAgentModelTest(SimpleTestCase):
             NamingAgent(builder).built_model.api_name, "anthropic:claude-haiku-4-5"
         )
 
-    @override_settings(ASSISTANT_AGENT_MODELS='{"naming": "sonnet"}')
+    @override_settings(
+        ASSISTANT_MANAGED_AGENT_MODELS='{"naming": "anthropic:claude-sonnet-4-6"}'
+    )
     def test_environment_override_wins_over_the_default(self):
-        builder = FakeModelBuilder(_make_naming_model("Title"))
+        """Sonnet is neither the agent default nor the managed organization model,
+        so only the override can have put it there.
+        """
+        builder = FakeModelBuilder(
+            _make_naming_model("Title"),
+            AiSettings(
+                provider=AiSettings.Provider.MANAGED,
+                model=None,
+                api_key=None,
+                enabled=True,
+            ),
+        )
         self.assertEqual(
             NamingAgent(builder).built_model.api_name, "anthropic:claude-sonnet-4-6"
         )

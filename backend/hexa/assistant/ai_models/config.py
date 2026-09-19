@@ -16,6 +16,9 @@ from hexa.user_management.models import AiSettings
 
 logger = logging.getLogger(__name__)
 
+# Default key for config agent models. If unset, fallbacks to the model in the default key
+DEFAULT_KEY = "default"
+
 
 def _json_object(raw: str, name: str) -> dict:
     """The JSON object in `raw`, or an empty one if it cannot be read."""
@@ -36,52 +39,26 @@ def _logical_model(value: object) -> str:
     return AiSettings.Model(value).value
 
 
-def managed_model_ids() -> dict[str, ModelId]:
-    """Logical model -> model id, from ASSISTANT_MANAGED_MODELS."""
-    overrides: dict[str, ModelId] = {}
-    for model, value in _json_object(
-        settings.ASSISTANT_MANAGED_MODELS, "ASSISTANT_MANAGED_MODELS"
-    ).items():
-        try:
-            logical = _logical_model(model)
-            model_id = ModelId.parse(value)
-            if model_id is None:
-                raise ValueError(f"{value!r} is not a '<provider>:<model>' id")
-        except Exception as exc:
-            logger.error(
-                "ASSISTANT_MANAGED_MODELS: ignoring entry %r -> %r (%s)",
-                model,
-                value,
-                exc,
-            )
-            continue
-        overrides[logical] = model_id
-    return overrides
+def _override_key(value: str) -> str:
+    """config key for `value`. It can be an agent key or the default key."""
+    return DEFAULT_KEY if value == DEFAULT_KEY else AgentKey(value).value
 
 
-def agent_model_requests() -> dict[str, ModelRequest]:
-    """Agent key -> the model it is pinned to, from ASSISTANT_AGENT_MODELS.
+def managed_agent_models() -> dict[str, ModelRequest]:
+    """Agent key -> model set via env config.
 
-    A pinned model is either a logical model, resolved for the organization's provider,
-    or a model id.
+    The model is either a logical model (from the available ones in AI settings),
+    or a `ModelId`.
     """
-    pins: dict[str, ModelRequest] = {}
+    overrides: dict[str, ModelRequest] = {}
+    setting = "ASSISTANT_MANAGED_AGENT_MODELS"
     for key, value in _json_object(
-        settings.ASSISTANT_AGENT_MODELS, "ASSISTANT_AGENT_MODELS"
+        settings.ASSISTANT_MANAGED_AGENT_MODELS, setting
     ).items():
         try:
-            agent = AgentKey(key).value
-            pins[agent] = ModelId.parse(value) or _logical_model(value)
-        except Exception as exc:
-            logger.error(
-                "ASSISTANT_AGENT_MODELS: ignoring entry %r -> %r (%s)", key, value, exc
+            overrides[_override_key(key)] = ModelId.parse(value) or _logical_model(
+                value
             )
-    return pins
-
-
-def enabled_managed_providers() -> set[str]:
-    """Providers ASSISTANT_MANAGED_PROVIDERS narrows the managed backend to.
-    Empty means the backend serves everything.
-    """
-    configured = settings.ASSISTANT_MANAGED_PROVIDERS.replace(" ", "").split(",")
-    return set(filter(None, configured))
+        except Exception as exc:
+            logger.error("%s: ignoring entry %r -> %r (%s)", setting, key, value, exc)
+    return overrides

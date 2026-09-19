@@ -626,18 +626,9 @@ VERTEX_PROJECT_ID = os.environ.get("VERTEX_PROJECT_ID")
 VERTEX_REGION = os.environ.get("VERTEX_REGION", "europe-west1")
 # Region for Vertex's OpenAI-compatible endpoint, most of them in global or us-* regions
 VERTEX_MAAS_REGION = os.environ.get("VERTEX_MAAS_REGION", VERTEX_REGION)
-# The providers enabled in Vertex (see ai_models/vertex.py PROVIDERS), comma separated.
-ASSISTANT_MANAGED_PROVIDERS = os.environ.get("ASSISTANT_MANAGED_PROVIDERS", "")
-# Maps the logical models managed organizations run on (see AiSettings.Model) to a
-# pydantic-ai model id "<provider>:<model>", as JSON.
-# Example: {"opus": "anthropic:claude-opus-5"}.
-# Overrides the code defaults; anything left out keeps its default.
-ASSISTANT_MANAGED_MODELS = os.environ.get("ASSISTANT_MANAGED_MODELS", "")
-# Pins assistant agents to models, as a JSON map of agents (see AgentKey enum)
-# to either a logical model or a model id.
-# Example: {"naming": "haiku", "generate_sql": "google-cloud:gemini-3-pro-preview"}
-# The overriding order is, if set: env > agent default > organization configured model
-ASSISTANT_AGENT_MODELS = os.environ.get("ASSISTANT_AGENT_MODELS", "")
+# JSON map of agents to models, including a reserved "default" key.
+# Example: {"default": "google-cloud:gemini-3-pro-preview", "naming": "haiku"}
+ASSISTANT_MANAGED_AGENT_MODELS = os.environ.get("ASSISTANT_MANAGED_AGENT_MODELS", "")
 
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"

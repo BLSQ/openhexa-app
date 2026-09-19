@@ -159,7 +159,7 @@ class BaseAgent:
     max_requests: int = 30
     output_retries: int | None = None
     history_strip_tools: set[str] = set()
-    # Identifies the agent in ASSISTANT_AGENT_MODELS. `default_model` is the
+    # Identifies the agent in ASSISTANT_MANAGED_AGENT_MODELS. `default_model` is the
     # model the agent asks for when the setting says nothing, None meaning the
     # organization's selected model.
     agent_key: str = AgentKey.GENERAL

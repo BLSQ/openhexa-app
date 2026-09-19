@@ -1,11 +1,16 @@
 """Decides which model each agent runs on.
 
 Every agent declares an `AgentKey` and, optionally, a `default_model`;
-the model it runs on is, in order of precedence:
-- the entry for its key in the ASSISTANT_AGENT_MODELS config
-- its own default
-- the model the organization configured
-A logical model (e.g. "haiku") is resolved by the organization's backend,
+the model it runs on is, in order of precedence for managed backends:
+- env configured agent key
+- env configured default
+- agent default in code
+- generic default in code
+And for BYOK backends:
+- UI choice
+- agent default in code
+- generic default in code
+A logical model (e.g. "haiku") is resolved by the provider backend,
 while a model id (e.g. "google-cloud:gemini-3-pro-preview") is taken as it comes.
 """
 
@@ -13,7 +18,7 @@ import logging
 from functools import cached_property
 
 from hexa.assistant.ai_models.backends import ProviderBackend
-from hexa.assistant.ai_models.config import agent_model_requests
+from hexa.assistant.ai_models.config import DEFAULT_KEY
 from hexa.assistant.ai_models.ids import ModelId, ModelRequest
 from hexa.assistant.exceptions import AssistantException
 
@@ -27,11 +32,29 @@ class ModelSelector:
         self._backend = backend
 
     @cached_property
-    def _pins(self) -> dict[str, ModelRequest]:
-        return agent_model_requests()
+    def _overrides(self) -> dict[str, ModelRequest]:
+        return self._backend.configured_agent_models()
 
     def for_organization(self) -> ModelId:
-        """Model id the organization's own conversations run on."""
+        """Default model id for the organization's agent conversations."""
+        requested = self._overrides.get(DEFAULT_KEY)
+        overridden = self._runnable(requested, DEFAULT_KEY) if requested else None
+        return overridden or self._default_model()
+
+    def for_agent(self, agent_key: str, default_model: ModelRequest | None) -> ModelId:
+        """Model id for each `agent_key`.
+
+        An agent model we cannot run is a gap in our config or a bad override,
+        so we fall back to the organization's default model: we rather use the
+        wrong model than breaking the assistant.
+        """
+        requested = self._overrides.get(agent_key, default_model)
+        if requested is None:
+            return self.for_organization()
+        return self._runnable(requested, agent_key) or self.for_organization()
+
+    def _default_model(self) -> ModelId:
+        """Model id for the logical model default."""
         ai_settings = self._backend.ai_settings
         model_id = self._backend.model_ids.get(ai_settings.effective_model)
         if model_id is None:
@@ -40,18 +63,6 @@ class ModelSelector:
                 f"provider {ai_settings.provider!r}"
             )
         return model_id
-
-    def for_agent(self, agent_key: str, default_model: ModelRequest | None) -> ModelId:
-        """Model id `agent_key` runs on for this organization.
-
-        An agent model we cannot run is a gap in our config or a bad pin,
-        so we fall back to the organization's model: we rather use the
-        wrong model than breaking the assistant.
-        """
-        requested = self._pins.get(agent_key, default_model)
-        if requested is None:
-            return self.for_organization()
-        return self._runnable(requested, agent_key) or self.for_organization()
 
     def _runnable(self, requested: ModelRequest, agent_key: str) -> ModelId | None:
         """`requested`: model id this organization can run, or None with a reason."""

@@ -63,18 +63,11 @@ class AiModelBuilderTest(TestCase):
         with self.assertNoLogs(_LOGGER, level="ERROR"):
             builder.build(_id("anthropic:claude-opus-4-6"))
 
-    @override_settings(
-        VERTEX_PROJECT_ID="test-project",
-        VERTEX_MAAS_REGION="global",
-        ASSISTANT_MANAGED_PROVIDERS="",
-        ASSISTANT_MANAGED_MODELS=(
-            '{"opus": "openai-chat:qwen/qwen3-coder-480b-a35b-instruct-maas"}'
-        ),
-    )
+    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_MAAS_REGION="global")
     @patch("hexa.assistant.ai_models.vertex._google_credentials")
-    def test_a_model_garden_model_takes_only_a_setting(self, credentials):
+    def test_a_model_garden_model_needs_no_code_of_its_own(self, credentials):
         """The point of the openai-chat entry: Qwen, Kimi and the rest arrive as
-        configuration, with no code of their own.
+        a configured model id, with no code of their own.
         """
         credentials.return_value.valid = True
         credentials.return_value.token = "ya29.token"

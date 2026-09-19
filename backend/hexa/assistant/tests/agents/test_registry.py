@@ -60,7 +60,7 @@ class AgentRegistryTest(AgentTestCase):
 class AgentKeysTest(AgentTestCase):
     def test_every_agent_declares_its_own_key(self):
         """Two agents sharing a key would make one of them impossible to retune
-        through ASSISTANT_AGENT_MODELS without moving the other with it.
+        through ASSISTANT_MANAGED_AGENT_MODELS without moving the other with it.
         """
         agents = [*_AGENT_REGISTRY.values(), NamingAgent]
         keys = [agent.agent_key for agent in agents]

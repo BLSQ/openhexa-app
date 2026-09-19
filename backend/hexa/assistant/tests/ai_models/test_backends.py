@@ -40,67 +40,28 @@ class SupportsTest(SimpleTestCase):
         self.assertTrue(backend.supports("anthropic"))
         self.assertFalse(backend.supports("openai"))
 
-    @override_settings(ASSISTANT_MANAGED_PROVIDERS="")
     def test_managed_runs_everything_we_know_how_to_serve_from_vertex(self):
         backend = _managed_backend()
         self.assertTrue(backend.supports("anthropic"))
         self.assertTrue(backend.supports("google-cloud"))
+        self.assertTrue(backend.supports("openai-chat"))
         self.assertFalse(backend.supports("mistral"))
 
-    @override_settings(ASSISTANT_MANAGED_PROVIDERS="anthropic")
-    def test_the_setting_narrows_managed_to_what_the_project_has_enabled(self):
-        backend = _managed_backend()
-        self.assertTrue(backend.supports("anthropic"))
-        self.assertFalse(backend.supports("google-cloud"))
 
-    @override_settings(ASSISTANT_MANAGED_PROVIDERS="anthropic, mistral")
-    def test_the_setting_cannot_add_a_provider_we_have_no_wiring_for(self):
-        """It only ever narrows the registry, so naming something absent from it
-        does not conjure credentials for that provider.
-        """
-        backend = _managed_backend()
-        self.assertTrue(backend.supports("anthropic"))
-        self.assertFalse(backend.supports("mistral"))
+class ConfiguredAgentModelsTest(SimpleTestCase):
+    """Only managed organizations take their models from our configuration: the
+    ones running on a key of their own picked theirs, and it is not ours to move.
+    """
 
-    @override_settings(ASSISTANT_MANAGED_PROVIDERS="anthropic")
-    def test_the_setting_leaves_bring_your_own_key_alone(self):
-        backend = _byok_backend()
-        self.assertTrue(backend.supports("anthropic"))
-        self.assertFalse(backend.supports("google-cloud"))
-
-
-class ManagedModelIdsTest(SimpleTestCase):
-    @override_settings(
-        ASSISTANT_MANAGED_PROVIDERS="anthropic",
-        ASSISTANT_MANAGED_MODELS='{"opus": "google-cloud:gemini-3-pro-preview"}',
-    )
-    def test_a_model_on_a_provider_the_deployment_disabled_is_dropped(self):
-        """The two settings can contradict each other; the narrower one wins and
-        the organization keeps a model it can actually run.
-        """
-        with self.assertLogs("hexa.assistant.ai_models.backends", level="ERROR"):
-            model_ids = _managed_backend().model_ids
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"naming": "haiku"}')
+    def test_managed_reads_them_from_the_setting(self):
         self.assertEqual(
-            model_ids[AiSettings.Model.OPUS], ModelId("anthropic", "claude-opus-4-6")
+            _managed_backend().configured_agent_models(), {"naming": "haiku"}
         )
 
-    @override_settings(ASSISTANT_MANAGED_PROVIDERS="google-cloud")
-    def test_disabling_every_provider_the_defaults_use_leaves_nothing(self):
-        """Honest emptiness: `ModelSelector` then says no model is configured,
-        rather than the backend claiming credentials it was told not to use.
-        """
-        with self.assertLogs("hexa.assistant.ai_models.backends", level="ERROR"):
-            self.assertEqual(_managed_backend().model_ids, {})
-
-    @override_settings(
-        ASSISTANT_MANAGED_PROVIDERS="anthropic, google-cloud",
-        ASSISTANT_MANAGED_MODELS='{"opus": "google-cloud:gemini-3-pro-preview"}',
-    )
-    def test_an_override_on_an_enabled_provider_is_kept(self):
-        self.assertEqual(
-            _managed_backend().model_ids[AiSettings.Model.OPUS],
-            ModelId("google-cloud", "gemini-3-pro-preview"),
-        )
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"naming": "haiku"}')
+    def test_bring_your_own_key_ignores_the_setting(self):
+        self.assertEqual(_byok_backend().configured_agent_models(), {})
 
 
 class VertexOpenAiTest(SimpleTestCase):
@@ -118,11 +79,7 @@ class VertexOpenAiTest(SimpleTestCase):
             credentials.return_value.token = "ya29.token"
             return str(_managed_backend().provider_for("openai-chat").base_url)
 
-    @override_settings(
-        VERTEX_PROJECT_ID="test-project",
-        VERTEX_MAAS_REGION="us-south1",
-        ASSISTANT_MANAGED_PROVIDERS="",
-    )
+    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_MAAS_REGION="us-south1")
     def test_a_region_is_addressed_on_its_own_host(self):
         self.assertEqual(
             self._base_url(),
@@ -130,24 +87,13 @@ class VertexOpenAiTest(SimpleTestCase):
             "/locations/us-south1/endpoints/openapi/",
         )
 
-    @override_settings(
-        VERTEX_PROJECT_ID="test-project",
-        VERTEX_MAAS_REGION="global",
-        ASSISTANT_MANAGED_PROVIDERS="",
-    )
+    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_MAAS_REGION="global")
     def test_the_global_endpoint_drops_the_region_from_the_host(self):
         self.assertEqual(
             self._base_url(),
             "https://aiplatform.googleapis.com/v1/projects/test-project"
             "/locations/global/endpoints/openapi/",
         )
-
-    @override_settings(
-        VERTEX_PROJECT_ID="test-project", ASSISTANT_MANAGED_PROVIDERS="anthropic"
-    )
-    def test_it_narrows_like_any_other_provider(self):
-        with self.assertRaises(AssistantException):
-            _managed_backend().provider_for("openai-chat")
 
 
 class PricingProviderTest(SimpleTestCase):
@@ -188,10 +134,9 @@ class ProviderForTest(SimpleTestCase):
         with self.assertRaises(AssistantException):
             _managed_backend().provider_for("anthropic")
 
-    @override_settings(ASSISTANT_MANAGED_PROVIDERS="anthropic")
-    def test_a_provider_the_project_has_not_enabled_raises(self):
+    def test_a_provider_vertex_does_not_serve_raises(self):
         with self.assertRaises(AssistantException):
-            _managed_backend().provider_for("google-cloud")
+            _managed_backend().provider_for("mistral")
 
     def test_a_provider_we_hold_no_credentials_for_raises(self):
         with self.assertRaises(AssistantException):

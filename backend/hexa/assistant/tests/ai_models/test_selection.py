@@ -19,7 +19,6 @@ _LOGGER = "hexa.assistant.ai_models"
 
 _HAIKU_ID = "anthropic:claude-haiku-4-5"
 _OPUS_ID = "anthropic:claude-opus-4-6"
-_SONNET_ID = "anthropic:claude-sonnet-4-6"
 _GEMINI_ID = "google-cloud:gemini-3-pro-preview"
 
 # Every logical model we ship, as (provider, logical model, model id).
@@ -63,35 +62,48 @@ class ForAgentTest(SimpleTestCase):
             _HAIKU_ID,
         )
 
-    @override_settings(ASSISTANT_AGENT_MODELS='{"naming": "sonnet"}')
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"naming": "opus"}')
     def test_environment_wins_over_the_agent_default(self):
         self.assertEqual(
-            _for_agent(_ai_settings(), AgentKey.NAMING, AiSettings.Model.HAIKU),
-            _SONNET_ID,
+            _for_agent(_managed_settings(), AgentKey.NAMING, AiSettings.Model.HAIKU),
+            _OPUS_ID,
         )
 
-    @override_settings(ASSISTANT_AGENT_MODELS='{"general": "haiku"}')
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"general": "haiku"}')
     def test_every_agent_can_be_pinned(self):
-        self.assertEqual(_for_agent(_ai_settings(), AgentKey.GENERAL), _HAIKU_ID)
+        self.assertEqual(_for_agent(_managed_settings(), AgentKey.GENERAL), _HAIKU_ID)
 
-    @override_settings(ASSISTANT_AGENT_MODELS='{"naming": "haiku"}')
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"naming": "haiku"}')
     def test_an_entry_leaves_the_other_agents_alone(self):
-        self.assertEqual(_for_agent(_ai_settings(), AgentKey.GENERATE_SQL), _OPUS_ID)
+        self.assertEqual(
+            _for_agent(_managed_settings(), AgentKey.GENERATE_SQL), _OPUS_ID
+        )
 
-    @override_settings(ASSISTANT_AGENT_MODELS='{"generate_sql": "sonnet"}')
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"generate_sql": "sonnet"}')
     def test_falls_back_when_the_provider_has_no_id_for_the_model(self):
         with self.assertLogs(_LOGGER, level="ERROR"):
             resolved = _for_agent(_managed_settings(), AgentKey.GENERATE_SQL)
         self.assertEqual(resolved, _OPUS_ID)
 
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"generate_sql": "haiku"}')
+    def test_organizations_on_their_own_key_are_left_alone(self):
+        """They picked their model themselves, so our environment never moves it
+        and never complains about an override that was never meant for them.
+        """
+        with self.assertNoLogs(_LOGGER, level="ERROR"):
+            resolved = _for_agent(_ai_settings(), AgentKey.GENERATE_SQL)
+        self.assertEqual(resolved, _OPUS_ID)
 
-class LiteralPinTest(SimpleTestCase):
-    """A pin may name a model id outright, which is the only way to put one agent
-    on a different provider than the rest.
+
+class LiteralOverrideTest(SimpleTestCase):
+    """An override may name a model id outright, which is the only way to put one
+    agent on a different provider than the rest.
     """
 
     @override_settings(
-        ASSISTANT_AGENT_MODELS='{"generate_sql": "google-cloud:gemini-3-pro-preview"}'
+        ASSISTANT_MANAGED_AGENT_MODELS=(
+            '{"generate_sql": "google-cloud:gemini-3-pro-preview"}'
+        )
     )
     def test_a_model_id_pin_is_used_as_is(self):
         self.assertEqual(
@@ -99,77 +111,78 @@ class LiteralPinTest(SimpleTestCase):
         )
 
     @override_settings(
-        ASSISTANT_AGENT_MODELS='{"generate_sql": "google-cloud:gemini-3-pro-preview"}'
+        ASSISTANT_MANAGED_AGENT_MODELS='{"generate_sql": "mistral:mistral-large"}'
     )
-    def test_falls_back_when_the_organization_holds_no_credentials_for_it(self):
+    def test_falls_back_when_vertex_does_not_serve_the_provider(self):
         with self.assertLogs(_LOGGER, level="ERROR"):
-            resolved = _for_agent(_ai_settings(), AgentKey.GENERATE_SQL)
+            resolved = _for_agent(_managed_settings(), AgentKey.GENERATE_SQL)
         self.assertEqual(resolved, _OPUS_ID)
 
-    @override_settings(ASSISTANT_AGENT_MODELS='{"naming": "anthropic:some-new-model"}')
+    @override_settings(
+        ASSISTANT_MANAGED_AGENT_MODELS='{"naming": "anthropic:some-new-model"}'
+    )
     def test_an_unreleased_model_needs_no_catalog_entry(self):
         self.assertEqual(
-            _for_agent(_ai_settings(), AgentKey.NAMING, AiSettings.Model.HAIKU),
+            _for_agent(_managed_settings(), AgentKey.NAMING, AiSettings.Model.HAIKU),
             "anthropic:some-new-model",
         )
 
 
-class ManagedModelsSettingTest(SimpleTestCase):
-    """ASSISTANT_MANAGED_MODELS moves managed organizations onto another model.
-
-    BYOK organizations pick their own model, so the setting must leave them alone.
+class DefaultOverrideTest(SimpleTestCase):
+    """The reserved "default" key moves every agent that asks for nothing in
+    particular, so one entry reaches another model — or another provider.
     """
 
-    @override_settings(ASSISTANT_MANAGED_MODELS='{"opus": "anthropic:claude-opus-5"}')
-    def test_an_entry_overrides_the_default_id(self):
+    @override_settings(
+        ASSISTANT_MANAGED_AGENT_MODELS='{"default": "anthropic:claude-opus-5"}'
+    )
+    def test_it_replaces_the_organization_model(self):
         self.assertEqual(
             _for_organization(_managed_settings()), "anthropic:claude-opus-5"
         )
 
     @override_settings(
-        ASSISTANT_MANAGED_MODELS='{"opus": "google-cloud:gemini-3-pro-preview"}'
+        ASSISTANT_MANAGED_AGENT_MODELS=(
+            '{"default": "google-cloud:gemini-3-pro-preview"}'
+        )
     )
-    def test_managed_can_be_moved_to_another_provider_entirely(self):
-        self.assertEqual(_for_organization(_managed_settings()), _GEMINI_ID)
+    def test_it_carries_the_agents_that_asked_for_nothing_with_it(self):
+        self.assertEqual(
+            _for_agent(_managed_settings(), AgentKey.GENERATE_SQL), _GEMINI_ID
+        )
 
-    @override_settings(ASSISTANT_MANAGED_MODELS='{"opus": "anthropic:claude-opus-5"}')
-    def test_models_left_out_keep_their_default(self):
+    @override_settings(
+        ASSISTANT_MANAGED_AGENT_MODELS=(
+            '{"default": "google-cloud:gemini-3-pro-preview"}'
+        )
+    )
+    def test_an_agent_with_its_own_default_keeps_it(self):
         self.assertEqual(
             _for_agent(_managed_settings(), AgentKey.NAMING, AiSettings.Model.HAIKU),
             _HAIKU_ID,
         )
 
-    @override_settings(ASSISTANT_MANAGED_MODELS='{"opus": "anthropic:claude-opus-5"}')
-    def test_bring_your_own_key_organizations_are_left_alone(self):
-        self.assertEqual(_for_organization(_ai_settings()), _OPUS_ID)
-
-    @override_settings(ASSISTANT_MANAGED_MODELS='{"opus": "claude-opus-5"}')
-    def test_an_id_without_a_provider_prefix_is_ignored(self):
-        with self.assertLogs(_LOGGER, level="ERROR"):
-            self.assertEqual(_for_organization(_managed_settings()), _OPUS_ID)
-
-    @override_settings(ASSISTANT_MANAGED_MODELS='{"gpt": "x:y"}')
-    def test_an_unknown_model_is_ignored(self):
-        with self.assertLogs(_LOGGER, level="ERROR"):
-            self.assertEqual(_for_organization(_managed_settings()), _OPUS_ID)
+    @override_settings(
+        ASSISTANT_MANAGED_AGENT_MODELS=(
+            '{"default": "anthropic:claude-opus-5", "naming": "haiku"}'
+        )
+    )
+    def test_an_agent_pin_wins_over_it(self):
+        self.assertEqual(_for_agent(_managed_settings(), AgentKey.NAMING), _HAIKU_ID)
 
     @override_settings(
-        ASSISTANT_MANAGED_MODELS='{"gpt": "x:y", "opus": "anthropic:claude-opus-5"}'
+        ASSISTANT_MANAGED_AGENT_MODELS='{"default": "mistral:mistral-large"}'
     )
-    def test_a_bad_entry_leaves_the_others_applied(self):
+    def test_a_default_we_cannot_run_falls_back_to_the_configured_model(self):
         with self.assertLogs(_LOGGER, level="ERROR"):
             resolved = _for_organization(_managed_settings())
-        self.assertEqual(resolved, "anthropic:claude-opus-5")
+        self.assertEqual(resolved, _OPUS_ID)
 
-    @override_settings(ASSISTANT_MANAGED_MODELS="not json")
-    def test_invalid_json_leaves_the_defaults_alone(self):
-        with self.assertLogs(_LOGGER, level="ERROR"):
-            self.assertEqual(_for_organization(_managed_settings()), _OPUS_ID)
-
-    @override_settings(ASSISTANT_MANAGED_MODELS="")
-    def test_an_empty_setting_leaves_the_defaults_alone(self):
-        with self.assertNoLogs(_LOGGER, level="ERROR"):
-            self.assertEqual(_for_organization(_managed_settings()), _OPUS_ID)
+    @override_settings(
+        ASSISTANT_MANAGED_AGENT_MODELS='{"default": "anthropic:claude-opus-5"}'
+    )
+    def test_organizations_on_their_own_key_are_left_alone(self):
+        self.assertEqual(_for_organization(_ai_settings()), _OPUS_ID)
 
 
 class ForOrganizationTest(SimpleTestCase):
@@ -183,51 +196,55 @@ class ForOrganizationTest(SimpleTestCase):
             _for_organization(ai_settings)
 
 
-class PinsParsingTest(SimpleTestCase):
-    """A bad entry is dropped on its own, so the pins set alongside it — which
-    may be the deliberate ones — still apply.
+class OverridesParsingTest(SimpleTestCase):
+    """A bad entry is dropped on its own, so the overrides set alongside it —
+    which may be the deliberate ones — still apply.
     """
 
     def _assert_entry_ignored(self):
         with self.assertLogs(_LOGGER, level="ERROR"):
             resolved = _for_agent(
-                _ai_settings(), AgentKey.NAMING, AiSettings.Model.HAIKU
+                _managed_settings(), AgentKey.NAMING, AiSettings.Model.HAIKU
             )
         self.assertEqual(resolved, _HAIKU_ID)
 
-    @override_settings(ASSISTANT_AGENT_MODELS='{"naming": "gpt-9"}')
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"naming": "gpt-9"}')
     def test_unknown_model_is_ignored(self):
         self._assert_entry_ignored()
 
-    @override_settings(ASSISTANT_AGENT_MODELS='{"naming": ["haiku"]}')
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"naming": ["haiku"]}')
     def test_a_model_that_is_not_a_string_is_ignored(self):
         self._assert_entry_ignored()
 
-    @override_settings(ASSISTANT_AGENT_MODELS='{"nmaing": "sonnet"}')
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"nmaing": "opus"}')
     def test_unknown_agent_key_is_ignored(self):
         self._assert_entry_ignored()
 
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"defualt": "opus"}')
+    def test_a_misspelled_default_key_is_ignored(self):
+        self._assert_entry_ignored()
+
     @override_settings(
-        ASSISTANT_AGENT_MODELS='{"nmaing": "sonnet", "generate_sql": "haiku"}'
+        ASSISTANT_MANAGED_AGENT_MODELS='{"nmaing": "opus", "generate_sql": "haiku"}'
     )
     def test_a_bad_entry_leaves_the_others_applied(self):
         with self.assertLogs(_LOGGER, level="ERROR"):
-            resolved = _for_agent(_ai_settings(), AgentKey.GENERATE_SQL)
+            resolved = _for_agent(_managed_settings(), AgentKey.GENERATE_SQL)
         self.assertEqual(resolved, _HAIKU_ID)
 
-    @override_settings(ASSISTANT_AGENT_MODELS="not json")
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS="not json")
     def test_invalid_json_is_ignored(self):
         self._assert_entry_ignored()
 
-    @override_settings(ASSISTANT_AGENT_MODELS='["naming"]')
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='["naming"]')
     def test_json_that_is_not_an_object_is_ignored(self):
         self._assert_entry_ignored()
 
-    @override_settings(ASSISTANT_AGENT_MODELS="")
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS="")
     def test_an_empty_setting_leaves_the_defaults_alone(self):
         with self.assertNoLogs(_LOGGER, level="ERROR"):
             resolved = _for_agent(
-                _ai_settings(), AgentKey.NAMING, AiSettings.Model.HAIKU
+                _managed_settings(), AgentKey.NAMING, AiSettings.Model.HAIKU
             )
         self.assertEqual(resolved, _HAIKU_ID)
 
