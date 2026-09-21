@@ -6,7 +6,7 @@ import psycopg2
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 
-from hexa.databases.query_text import MultipleStatementsError
+from hexa.databases.query_text import MultipleStatementsError, PreparedQuery
 from hexa.databases.utils import (
     elapsed_ms,
     execute_database_query,
@@ -123,7 +123,8 @@ def run_and_log_database_query(
     max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
     started_at = time.perf_counter()
     try:
-        result = execute_database_query(workspace, query, **max_rows_kwarg)
+        prepared = PreparedQuery.from_text(query)
+        result = execute_database_query(workspace, prepared, **max_rows_kwarg)
     except MultipleStatementsError as e:
         log_rejected_query(
             request, workspace, query, origin, str(e), saved_query=saved_query
