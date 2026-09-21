@@ -152,7 +152,7 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
 
     def test_out_of_scope_is_recorded_even_when_tracking_is_truncated(self):
         """Past the tracking cap a request must not look in scope just for being long."""
-        with patch("hexa.workspaces.audit.MAX_TRACKED_OBJECTS", 0):
+        with patch("hexa.workspaces.audit.extension.MAX_TRACKED_OBJECTS", 0):
             self.query_with_token(DATASET_QUERY, {"id": str(self.PRIVATE_DATASET.id)})
         self.assertRecorded(
             TokenScopeVerdict.OUT_OF_SCOPE, {str(self.OTHER.id): "none"}
@@ -167,7 +167,7 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
             dataset_version=version, uri="s3://private/v1/data.csv", content_type="csv"
         )
 
-        with patch("hexa.workspaces.audit.MAX_TRACKED_OBJECTS", 0):
+        with patch("hexa.workspaces.audit.extension.MAX_TRACKED_OBJECTS", 0):
             self.query_with_token(DATASET_VERSION_FILE_QUERY, {"id": str(file.id)})
 
         self.assertRecorded(
