@@ -14,6 +14,13 @@ const extractDeletedPaths = (output: unknown): string[] | undefined => {
   return Array.isArray(paths) ? (paths as string[]) : undefined;
 };
 
+const extractCommitMessage = (output: unknown): string | undefined => {
+  const message = (output as { commit_message?: unknown })?.commit_message;
+  return typeof message === "string" && message.length > 0
+    ? message
+    : undefined;
+};
+
 type Message = NonNullable<
   AssistantConversationMessagesQuery["assistantConversation"]
 >["messages"]["items"][0];
@@ -40,6 +47,7 @@ type Props = {
     files: unknown[] | null,
     toolInvocationId?: string,
     deletedPaths?: string[],
+    commitMessage?: string,
   ) => void;
   conversations: AssistantConversation[];
   activeConversationId: string | null;
@@ -128,7 +136,12 @@ export default function EditObjectChatPanel({
       if (toolName !== proposalToolName || !success) return;
       const files = (output as { files?: unknown[] })?.files;
       if (Array.isArray(files)) {
-        onProposedFiles(files, undefined, extractDeletedPaths(output));
+        onProposedFiles(
+          files,
+          undefined,
+          extractDeletedPaths(output),
+          extractCommitMessage(output),
+        );
       }
     },
     [proposalToolName, onProposedFiles],
@@ -153,6 +166,7 @@ export default function EditObjectChatPanel({
               files,
               proposal.id ?? undefined,
               extractDeletedPaths(proposal.toolOutput),
+              extractCommitMessage(proposal.toolOutput),
             );
             return;
           }

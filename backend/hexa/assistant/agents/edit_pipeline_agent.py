@@ -7,6 +7,7 @@ from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.agents.keys import AgentKey
 from hexa.assistant.agents.proposals import (
     nothing_to_delete_error,
+    resolve_commit_message,
     resolve_deleted_paths,
 )
 from hexa.assistant.instructions import InstructionSet
@@ -27,6 +28,7 @@ def propose_pipeline_version(
     pipeline: Pipeline,
     modified_files: list[ProposedFile] | None = None,
     deleted_files: list[str] | None = None,
+    commit_message: str | None = None,
     conversation: Conversation | None = None,
 ) -> dict:
     """Propose a new version of the pipeline.
@@ -36,6 +38,10 @@ def propose_pipeline_version(
     List any files to remove in deleted_files. A directory path removes everything under it.
     Deletions cover binary files too, even though their content is never inlined here.
     Unchanged files are preserved automatically.
+    Pass commit_message to describe the change as a Conventional Commit: a
+    `type(scope): summary` subject line, optionally followed by a blank line and a
+    short body explaining why.
+    It becomes the description of the version if the user accepts the proposal.
     """
     current_files: dict[str, str] = {}
     deleted_paths: set[str] = set()
@@ -88,11 +94,17 @@ def propose_pipeline_version(
         for name in resolved:
             current_files.pop(name, None)
 
-    return {
+    output = {
         "files": [{"name": k, "content": v} for k, v in current_files.items()],
         "deleted_paths": sorted(deleted_paths),
         "all_paths": sorted(all_paths),
     }
+    message = resolve_commit_message(
+        commit_message, pending.tool_output if pending else None
+    )
+    if message:
+        output["commit_message"] = message
+    return output
 
 
 class EditPipelineAgent(BaseAgent):
