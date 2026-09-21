@@ -12,7 +12,8 @@ from hexa.databases.query_text import (
     OrderByDirectionEnum,
     PreparedQuery,
     count_statement,
-    paginate,
+    paginate_cursor,
+    paginate_offset,
     sanitize_sql,
 )
 
@@ -258,7 +259,7 @@ class PaginateTest(unittest.TestCase):
             return cursor.mogrify(prepared.sql, prepared.params).decode()
 
     def test_offset_mode(self):
-        wrapped = paginate(
+        wrapped = paginate_offset(
             PreparedQuery.from_text("SELECT id, name FROM t;"),
             order_by=[
                 OrderBy(column="name"),
@@ -276,19 +277,21 @@ class PaginateTest(unittest.TestCase):
     def test_limit_is_one_more_than_the_page(self):
         # The executing side fetches max_rows + 1 to detect a further page: a
         # LIMIT of exactly per_page would make hasNextPage always false.
-        wrapped = paginate(
+        wrapped = paginate_offset(
             PreparedQuery.from_text("SELECT 1"), order_by=None, per_page=50
         )
         self.assertEqual(wrapped.params, [51, 0])
 
     def test_offset_mode_without_order_by(self):
-        wrapped = paginate(PreparedQuery.from_text("SELECT 1"), order_by=[], per_page=5)
+        wrapped = paginate_offset(
+            PreparedQuery.from_text("SELECT 1"), order_by=[], per_page=5
+        )
         self.assertEqual(
             self._render(wrapped), "SELECT * FROM (\nSELECT 1\n) AS q LIMIT 6 OFFSET 0"
         )
 
     def test_cursor_mode_with_mixed_directions(self):
-        wrapped = paginate(
+        wrapped = paginate_cursor(
             PreparedQuery.from_text("SELECT a, b, c FROM t"),
             order_by=[
                 OrderBy(column="a"),
@@ -309,32 +312,26 @@ class PaginateTest(unittest.TestCase):
     def test_cursor_mode_needs_an_order_by_and_one_value_per_key(self):
         prepared = PreparedQuery.from_text("SELECT a FROM t")
         with self.assertRaises(ValueError):
-            paginate(prepared, order_by=[], per_page=10, keyset=[1])
+            paginate_cursor(prepared, order_by=[], per_page=10, keyset=[1])
         with self.assertRaises(ValueError):
-            paginate(prepared, order_by=[OrderBy(column="a")], per_page=10, keyset=[])
-
-    def test_refuses_offset_and_keyset_together(self):
-        with self.assertRaises(ValueError):
-            paginate(
-                PreparedQuery.from_text("SELECT a FROM t"),
-                order_by=[OrderBy(column="a")],
-                per_page=10,
-                offset=0,
-                keyset=[1],
+            paginate_cursor(
+                prepared, order_by=[OrderBy(column="a")], per_page=10, keyset=[]
             )
 
     def test_refuses_an_empty_page(self):
         with self.assertRaises(ValueError):
-            paginate(PreparedQuery.from_text("SELECT 1"), order_by=None, per_page=0)
+            paginate_offset(
+                PreparedQuery.from_text("SELECT 1"), order_by=None, per_page=0
+            )
 
     def test_refuses_an_unwrappable_statement(self):
         with self.assertRaises(ValueError):
-            paginate(
+            paginate_offset(
                 PreparedQuery.from_text("EXPLAIN SELECT 1"), order_by=None, per_page=1
             )
 
     def test_quotes_a_column_name_as_an_identifier(self):
-        wrapped = paginate(
+        wrapped = paginate_offset(
             PreparedQuery.from_text("SELECT 1"),
             order_by=[OrderBy(column='x"; DROP TABLE t; --')],
             per_page=1,
@@ -343,7 +340,7 @@ class PaginateTest(unittest.TestCase):
 
     def test_doubles_percent_in_raw_text(self):
         # Raw text (params None) is about to be %-formatted for the first time.
-        wrapped = paginate(
+        wrapped = paginate_offset(
             PreparedQuery.from_text("SELECT * FROM t WHERE n LIKE '%foo%'"),
             order_by=None,
             per_page=1,
@@ -361,7 +358,7 @@ class PaginateTest(unittest.TestCase):
             body="SELECT * FROM t WHERE n LIKE '%%foo%%' AND id > %s",
             params=[7],
         )
-        wrapped = paginate(
+        wrapped = paginate_cursor(
             prepared, order_by=[OrderBy(column="id")], per_page=10, keyset=[42]
         )
         self.assertEqual(wrapped.params, [7, 42, 11])

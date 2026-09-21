@@ -15,7 +15,7 @@ from hexa.databases.query_text import (
     MultipleStatementsError,
     OrderBy,
     PreparedQuery,
-    paginate,
+    paginate_offset,
 )
 from hexa.databases.tests.helpers import seed_demo_table
 from hexa.databases.utils import (
@@ -443,7 +443,7 @@ class DatabaseUtilsTest(TestCase):
 
     def test_execute_database_query_binds_the_parameters_of_a_wrapped_statement(self):
         seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "ca")])
-        prepared = paginate(
+        prepared = paginate_offset(
             PreparedQuery.from_text("SELECT id FROM demo WHERE label LIKE '%a%'"),
             order_by=[OrderBy(column="id", direction=OrderByDirectionEnum.DESC)],
             per_page=1,
