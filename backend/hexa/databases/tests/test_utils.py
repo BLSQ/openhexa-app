@@ -11,12 +11,18 @@ from psycopg2.errors import (
 from psycopg2.extras import DictRow
 
 from hexa.core.test import TestCase
-from hexa.databases.query_text import MultipleStatementsError
+from hexa.databases.query_text import (
+    MultipleStatementsError,
+    OrderBy,
+    PreparedQuery,
+    paginate,
+)
 from hexa.databases.tests.helpers import seed_demo_table
 from hexa.databases.utils import (
     OrderByDirectionEnum,
     TableNotFound,
     TableRowsPage,
+    count_database_rows,
     delete_table,
     execute_database_query,
     get_database_definition,
@@ -325,7 +331,8 @@ class DatabaseUtilsTest(TestCase):
         seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
 
         result = execute_database_query(
-            self.WORKSPACE, "SELECT id, label FROM demo ORDER BY id"
+            self.WORKSPACE,
+            PreparedQuery.from_text("SELECT id, label FROM demo ORDER BY id"),
         )
 
         self.assertIsInstance(result.pop("duration_ms"), int)
@@ -347,7 +354,9 @@ class DatabaseUtilsTest(TestCase):
         seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
 
         result = execute_database_query(
-            self.WORKSPACE, "SELECT id FROM demo ORDER BY id", max_rows=2
+            self.WORKSPACE,
+            PreparedQuery.from_text("SELECT id FROM demo ORDER BY id"),
+            max_rows=2,
         )
 
         self.assertEqual([{"id": 1}, {"id": 2}], result["rows"])
@@ -356,7 +365,8 @@ class DatabaseUtilsTest(TestCase):
 
     def test_execute_database_query_defaults_to_50_rows(self):
         result = execute_database_query(
-            self.WORKSPACE, "SELECT generate_series(1, 100) AS id"
+            self.WORKSPACE,
+            PreparedQuery.from_text("SELECT generate_series(1, 100) AS id"),
         )
 
         self.assertEqual(50, result["row_count"])
@@ -366,7 +376,7 @@ class DatabaseUtilsTest(TestCase):
         with self.settings(WORKSPACE_DATABASE_QUERY_MAX_ROWS=2):
             result = execute_database_query(
                 self.WORKSPACE,
-                "SELECT generate_series(1, 100) AS id",
+                PreparedQuery.from_text("SELECT generate_series(1, 100) AS id"),
                 max_rows=1000,
             )
 
@@ -378,7 +388,9 @@ class DatabaseUtilsTest(TestCase):
         # comes back whole even though max_rows is smaller than the line count.
         result = execute_database_query(
             self.WORKSPACE,
-            "EXPLAIN SELECT generate_series(1, 100) AS id ORDER BY id DESC",
+            PreparedQuery.from_text(
+                "EXPLAIN SELECT generate_series(1, 100) AS id ORDER BY id DESC"
+            ),
             max_rows=1,
         )
 
@@ -389,7 +401,9 @@ class DatabaseUtilsTest(TestCase):
         self.assertIn("Sort", plan)
 
     def test_execute_database_query_no_result_set(self):
-        result = execute_database_query(self.WORKSPACE, "SET search_path TO public")
+        result = execute_database_query(
+            self.WORKSPACE, PreparedQuery.from_text("SET search_path TO public")
+        )
 
         self.assertIsInstance(result.pop("duration_ms"), int)
         self.assertEqual(
@@ -408,22 +422,55 @@ class DatabaseUtilsTest(TestCase):
         for statement in write_statements:
             with self.subTest(statement=statement):
                 with self.assertRaises(InsufficientPrivilege):
-                    execute_database_query(self.WORKSPACE, statement)
+                    execute_database_query(
+                        self.WORKSPACE, PreparedQuery.from_text(statement)
+                    )
 
     def test_execute_database_query_enforces_statement_timeout(self):
         # pg_sleep runs far longer than the timeout, so the statement is cancelled.
         with self.assertRaises(QueryCanceled):
             execute_database_query(
-                self.WORKSPACE, "SELECT pg_sleep(3);", timeout_ms=100
+                self.WORKSPACE,
+                PreparedQuery.from_text("SELECT pg_sleep(3);"),
+                timeout_ms=100,
             )
 
     def test_execute_database_query_serializes_binary_values(self):
-        result = execute_database_query(self.WORKSPACE, "SELECT 'abc'::bytea AS data")
+        result = execute_database_query(
+            self.WORKSPACE, PreparedQuery.from_text("SELECT 'abc'::bytea AS data")
+        )
         self.assertEqual([{"data": "\\x616263"}], result["rows"])
 
-    def test_execute_database_query_rejects_multiple_statements(self):
-        with self.assertRaises(MultipleStatementsError):
-            execute_database_query(self.WORKSPACE, "SELECT 1; SELECT 2")
+    def test_execute_database_query_binds_the_parameters_of_a_wrapped_statement(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "ca")])
+        prepared = paginate(
+            PreparedQuery.from_text("SELECT id FROM demo WHERE label LIKE '%a%'"),
+            order_by=[OrderBy(column="id", direction=OrderByDirectionEnum.DESC)],
+            per_page=1,
+        )
+
+        result = execute_database_query(self.WORKSPACE, prepared, max_rows=1)
+
+        self.assertEqual([{"id": 3}], result["rows"])
+        self.assertTrue(result["truncated"])
+
+    def test_count_database_rows_counts_the_inner_query(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
+
+        count = count_database_rows(
+            self.WORKSPACE, PreparedQuery.from_text("SELECT id FROM demo LIMIT 2;")
+        )
+
+        # The query's own LIMIT applies; a page size would not.
+        self.assertEqual(2, count)
+
+    def test_count_database_rows_enforces_statement_timeout(self):
+        with self.assertRaises(QueryCanceled):
+            count_database_rows(
+                self.WORKSPACE,
+                PreparedQuery.from_text("SELECT pg_sleep(3)"),
+                timeout_ms=100,
+            )
 
     def test_execute_database_query_accepts_blanks_postgresql_rejects(self):
         # SQL pasted from a chat or a document carries non-breaking spaces and
@@ -433,13 +480,17 @@ class DatabaseUtilsTest(TestCase):
 
         result = execute_database_query(
             self.WORKSPACE,
-            "SELECT\u00a0id, label\u200b FROM demo ORDER\u00a0BY id",
+            PreparedQuery.from_text(
+                "SELECT\u00a0id, label\u200b FROM demo ORDER\u00a0BY id"
+            ),
         )
 
         self.assertEqual([{"id": 1, "label": "a"}], result["rows"])
 
     def test_execute_database_query_allows_trailing_semicolon(self):
-        result = execute_database_query(self.WORKSPACE, "SELECT 1 AS id;")
+        result = execute_database_query(
+            self.WORKSPACE, PreparedQuery.from_text("SELECT 1 AS id;")
+        )
 
         self.assertEqual(1, result["row_count"])
         self.assertEqual([{"id": 1}], result["rows"])
@@ -470,7 +521,11 @@ class DatabaseUtilsTest(TestCase):
         for statement in bypass_attempts:
             with self.subTest(statement=statement):
                 with self.assertRaises(QueryCanceled):
-                    execute_database_query(self.WORKSPACE, statement, timeout_ms=100)
+                    execute_database_query(
+                        self.WORKSPACE,
+                        PreparedQuery.from_text(statement),
+                        timeout_ms=100,
+                    )
 
     def test_execute_database_query_blocks_filesystem_and_credential_access(self):
         """The read-only role cannot reach the host or other roles' credentials.
@@ -493,7 +548,9 @@ class DatabaseUtilsTest(TestCase):
         for statement in escalation_attempts:
             with self.subTest(statement=statement):
                 with self.assertRaises(InsufficientPrivilege):
-                    execute_database_query(self.WORKSPACE, statement)
+                    execute_database_query(
+                        self.WORKSPACE, PreparedQuery.from_text(statement)
+                    )
 
     def test_stream_database_query_returns_every_row(self):
         seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
