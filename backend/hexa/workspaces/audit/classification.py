@@ -11,10 +11,10 @@ TEMPLATE_MODELS = frozenset({"PipelineTemplate", "PipelineTemplateVersion"})
 
 
 def reachable_datasets(workspace: Workspace, dataset_ids: set) -> dict:
-    """External datasets that a member of ``workspace`` legitimately reaches.
+    """External datasets that a ``workspace`` member legitimately reaches.
 
     Org-shared datasets and dataset links are reachable for workspace-scoped tokens;
-    both survive scoping, so a request using them is not misuse.
+    both inside scope, so a request using them is not misuse.
     """
     if not dataset_ids:
         return {}

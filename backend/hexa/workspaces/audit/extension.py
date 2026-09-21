@@ -15,19 +15,17 @@ from .classification import classify
 logger = getLogger(__name__)
 
 # Past this many distinct objects a request stops remembering which ones it has
-# already seen, so ``seen`` cannot grow with the response. Attribution itself keeps
-# running past the cap — what it accumulates stays bounded by the number of distinct
-# workspaces and datasets touched — or a long request would look in scope merely
-# because it was long.
+# already seen, so ``seen`` cannot grow with the response.
+# Attribution keeps running past the cap. What it accumulates stays bounded by the
+# distinct workspaces and datasets touched.
 MAX_TRACKED_OBJECTS = 200
 
 
 def audit_extensions(request, context) -> list:
     """Install the audit only on requests that carry a workspace token.
 
-    Ariadne turns an extension into GraphQL middleware for the whole request, so
-    an unconditional one would add a frame to every field resolution of every
-    session-authenticated request as well, for nothing.
+    Ariadne turns an extension into GraphQL middleware for the whole request,
+    so we avoid adding it to every request that doesn't need it.
     """
     if getattr(request, "workspace_token", None) is None:
         return []
@@ -116,7 +114,7 @@ class WorkspaceScopeAudit(Extension):
 
         if verdict == TokenScopeVerdict.OUT_OF_SCOPE:
             # Kept below Sentry's ERROR threshold on purpose: this is expected traffic,
-            # but it's good to keep it documented and in mind
+            # but it's good to keep it documented
             logger.warning(
                 "workspace token used outside its workspace",
                 extra={

@@ -1,4 +1,4 @@
-"""Which workspace an observed object belongs to."""
+"""Which workspace an object belongs to."""
 
 from collections.abc import Iterator
 from typing import NamedTuple
@@ -11,11 +11,12 @@ from hexa.workspaces.models import Workspace
 
 
 class IndirectOwner(NamedTuple):
-    """How to reach the workspace of a model that has no workspace_id of its own.
+    """How to get the workspace of an object with no workspace_id attribute.
 
-    ``fk`` is read off the observed object, so a page of files collapses to the few
-    parents it hangs from; those parents are then resolved in one query at the end of
-    the request through ``workspace_path`` and ``dataset_path``.
+    ``fk`` points to the linked object that has the workspace information.
+    A page of objects collapses to the few parents/workspaces it hangs from;
+    those parents are then resolved in one query at the end of the request
+    using ``workspace_path`` and ``dataset_path`` to get the workspace.
     """
 
     fk: str
@@ -50,10 +51,7 @@ def workspace_id_of(obj: Model) -> UUID | None:
 def resolve_indirect_owners(
     pending: dict[type[Model], set],
 ) -> Iterator[tuple[UUID, str, UUID]]:
-    """Attribute the parents collected during the request, one query per model.
-
-    Yields ``(workspace_id, model_name, dataset_id)`` for every parent that resolves.
-    """
+    """Yields ``(workspace_id, model_name, dataset_id)`` for every object parent it finds."""
     for model, owner in INDIRECT_OWNERS.items():
         parent_ids = pending[model]
         if not parent_ids:
