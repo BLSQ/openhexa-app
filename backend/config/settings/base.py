@@ -623,11 +623,11 @@ ASSISTANT_MANAGED = os.environ.get("ASSISTANT_MANAGED", "false") == "true"
 # runtime environment, do not pass keys through Django.
 # europe-west1 keeps data in the EU for GDPR.
 VERTEX_PROJECT_ID = os.environ.get("VERTEX_PROJECT_ID")
+# Region of every model that does not name its own in ASSISTANT_MANAGED_AGENT_MODELS.
 VERTEX_REGION = os.environ.get("VERTEX_REGION", "europe-west1")
-# Region for Vertex's OpenAI-compatible endpoint, most of them in global or us-* regions
-VERTEX_MAAS_REGION = os.environ.get("VERTEX_MAAS_REGION", VERTEX_REGION)
-# JSON map of agents to models, including a reserved "default" key.
-# Example: {"default": "google-cloud:gemini-3-pro-preview", "naming": "haiku"}
+# JSON map of agents to models, including a reserved "default" key. A model served
+# from another region than VERTEX_REGION names it: {"model": ..., "region": ...}.
+# Example: {"default": {"model": "google-cloud:gemini-3-pro-preview", "region": "eu"}, "naming": "haiku"}
 ASSISTANT_MANAGED_AGENT_MODELS = os.environ.get("ASSISTANT_MANAGED_AGENT_MODELS", "")
 
 # Two Factor Authentication

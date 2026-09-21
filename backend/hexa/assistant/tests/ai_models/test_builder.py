@@ -63,16 +63,21 @@ class AiModelBuilderTest(TestCase):
         with self.assertNoLogs(_LOGGER, level="ERROR"):
             builder.build(_id("anthropic:claude-opus-4-6"))
 
-    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_MAAS_REGION="global")
+    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_REGION="europe-west1")
     @patch("hexa.assistant.ai_models.vertex._google_credentials")
     def test_a_model_garden_model_needs_no_code_of_its_own(self, credentials):
         """The point of the openai-chat entry: Qwen, Kimi and the rest arrive as
-        a configured model id, with no code of their own.
+        a configured model id, with no code of their own. The region it names
+        outranks ours, which does not serve it.
         """
         credentials.return_value.valid = True
         credentials.return_value.token = "ya29.token"
         built = _builder(AiSettings.Provider.MANAGED, model=None, api_key=None).build(
-            _id("openai-chat:qwen/qwen3-coder-480b-a35b-instruct-maas")
+            ModelId(
+                "openai-chat",
+                "qwen/qwen3-coder-480b-a35b-instruct-maas",
+                region="global",
+            )
         )
         self.assertEqual(built.api_name, "qwen/qwen3-coder-480b-a35b-instruct-maas")
         self.assertEqual(

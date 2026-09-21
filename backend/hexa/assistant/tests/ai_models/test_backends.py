@@ -89,26 +89,26 @@ class VertexOpenAiTest(SimpleTestCase):
     model name, so adding Qwen or Kimi is a model id, not a code change.
     """
 
-    def _base_url(self) -> str:
+    def _base_url(self, region: str | None = None) -> str:
         with patch(
             "hexa.assistant.ai_models.vertex._google_credentials"
         ) as credentials:
             credentials.return_value.valid = True
             credentials.return_value.token = "ya29.token"
-            return str(_managed_backend().provider_for("openai-chat").base_url)
+            return str(_managed_backend().provider_for("openai-chat", region).base_url)
 
-    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_MAAS_REGION="us-south1")
+    @override_settings(VERTEX_PROJECT_ID="test-project")
     def test_a_region_is_addressed_on_its_own_host(self):
         self.assertEqual(
-            self._base_url(),
+            self._base_url("us-south1"),
             "https://us-south1-aiplatform.googleapis.com/v1/projects/test-project"
             "/locations/us-south1/endpoints/openapi/",
         )
 
-    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_MAAS_REGION="global")
+    @override_settings(VERTEX_PROJECT_ID="test-project")
     def test_the_global_endpoint_drops_the_region_from_the_host(self):
         self.assertEqual(
-            self._base_url(),
+            self._base_url("global"),
             "https://aiplatform.googleapis.com/v1/projects/test-project"
             "/locations/global/endpoints/openapi/",
         )
@@ -146,6 +146,12 @@ class ProviderForTest(SimpleTestCase):
         mock_provider.assert_called_once_with(
             project="test-project", location="europe-west1"
         )
+
+    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_REGION="europe-west1")
+    @patch("hexa.assistant.ai_models.vertex.GoogleCloudProvider")
+    def test_a_model_region_wins_over_ours(self, mock_provider):
+        _managed_backend().provider_for("google-cloud", "eu")
+        mock_provider.assert_called_once_with(project="test-project", location="eu")
 
     @override_settings(VERTEX_PROJECT_ID=None)
     def test_managed_without_a_project_raises(self):

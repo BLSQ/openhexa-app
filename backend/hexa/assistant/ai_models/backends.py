@@ -37,7 +37,7 @@ class ProviderBackend(ABC):
         """The genai_prices provider for the model in this backend."""
 
     @abstractmethod
-    def _build_provider(self, provider: str) -> Provider:
+    def _build_provider(self, provider: str, region: str | None) -> Provider:
         """Build `provider` pydantic-ai class."""
 
     @abstractmethod
@@ -46,14 +46,17 @@ class ProviderBackend(ABC):
     ) -> list[ModelRequest | None]:
         """Models to try for `agent_key`, in order of precedence."""
 
-    def provider_for(self, provider: str) -> Provider:
-        """Build `provider` pydantic-ai class if supported."""
+    def provider_for(self, provider: str, region: str | None = None) -> Provider:
+        """Build `provider` pydantic-ai class if supported.
+
+        `region` is where the model about to run is served, when it names one.
+        """
         if not self.supports(provider):
             raise AssistantException(
                 f"Provider {provider!r} cannot run with the credentials of "
                 f"{self.ai_settings.provider!r} organizations"
             )
-        return self._build_provider(provider)
+        return self._build_provider(provider, region)
 
 
 class ManagedBackend(ProviderBackend):
@@ -100,12 +103,12 @@ class ManagedBackend(ProviderBackend):
     def pricing_provider(self, model_id: ModelId) -> str:
         return self.PRICING_PROVIDER
 
-    def _build_provider(self, provider: str) -> Provider:
+    def _build_provider(self, provider: str, region: str | None) -> Provider:
         if not settings.VERTEX_PROJECT_ID:
             raise AssistantException(
                 "VERTEX_PROJECT_ID is not configured; cannot use the managed provider."
             )
-        return PROVIDERS[provider]()
+        return PROVIDERS[provider](region or settings.VERTEX_REGION)
 
 
 class BringYourOwnKeyBackend(ProviderBackend):
@@ -137,7 +140,8 @@ class BringYourOwnKeyBackend(ProviderBackend):
     def pricing_provider(self, model_id: ModelId) -> str:
         return model_id.provider
 
-    def _build_provider(self, provider: str) -> Provider:
+    def _build_provider(self, provider: str, region: str | None) -> Provider:
+        # A key reaches its provider's own API, which has no regions to pick from.
         return infer_provider_class(provider)(api_key=self.ai_settings.api_key)
 
 

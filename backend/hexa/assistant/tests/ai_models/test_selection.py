@@ -131,6 +131,25 @@ class LiteralOverrideTest(SimpleTestCase):
         )
 
     @override_settings(
+        ASSISTANT_MANAGED_AGENT_MODELS=(
+            '{"generate_sql": {"model": "google-cloud:gemini-3-pro-preview",'
+            ' "region": "eu"}}'
+        )
+    )
+    def test_a_model_id_pin_may_name_the_region_that_serves_it(self):
+        model_id = _selector(_managed_settings()).for_agent(AgentKey.GENERATE_SQL, None)
+        self.assertEqual(str(model_id), _GEMINI_ID)
+        self.assertEqual(model_id.region, "eu")
+
+    @override_settings(
+        ASSISTANT_MANAGED_AGENT_MODELS='{"generate_sql": {"model": "%s"}}' % _GEMINI_ID
+    )
+    def test_a_model_object_without_a_region_runs_in_ours(self):
+        model_id = _selector(_managed_settings()).for_agent(AgentKey.GENERATE_SQL, None)
+        self.assertEqual(str(model_id), _GEMINI_ID)
+        self.assertIsNone(model_id.region)
+
+    @override_settings(
         ASSISTANT_MANAGED_AGENT_MODELS='{"generate_sql": "mistral:mistral-large"}'
     )
     def test_falls_back_when_vertex_does_not_serve_the_provider(self):
@@ -237,6 +256,20 @@ class OverridesParsingTest(SimpleTestCase):
 
     @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"naming": ["haiku"]}')
     def test_a_model_that_is_not_a_string_is_ignored(self):
+        self._assert_entry_ignored()
+
+    @override_settings(
+        ASSISTANT_MANAGED_AGENT_MODELS='{"naming": {"model": "haiku", "region": "eu"}}'
+    )
+    def test_a_region_on_a_logical_model_is_ignored(self):
+        self._assert_entry_ignored()
+
+    @override_settings(
+        ASSISTANT_MANAGED_AGENT_MODELS=(
+            '{"naming": {"model": "%s", "regoin": "eu"}}' % _GEMINI_ID
+        )
+    )
+    def test_a_misspelled_model_object_key_is_ignored(self):
         self._assert_entry_ignored()
 
     @override_settings(ASSISTANT_MANAGED_AGENT_MODELS='{"nmaing": "opus"}')
