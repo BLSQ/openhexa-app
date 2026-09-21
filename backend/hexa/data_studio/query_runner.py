@@ -6,8 +6,15 @@ import psycopg2
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 
-from hexa.databases.query_text import MultipleStatementsError, PreparedQuery
+from hexa.databases.query_text import (
+    MultipleStatementsError,
+    OrderBy,
+    PreparedQuery,
+    paginate_cursor,
+    paginate_offset,
+)
 from hexa.databases.utils import (
+    count_database_rows,
     elapsed_ms,
     execute_database_query,
     stream_database_query,
@@ -16,6 +23,15 @@ from hexa.user_management.models import User
 from hexa.workspaces.models import Workspace
 
 from .models import QueryLog
+from .pagination import (
+    CursorPage,
+    OffsetPage,
+    PageRequest,
+    PaginationError,
+    build_page_info,
+    build_page_request,
+    resolve_per_page,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -105,31 +121,30 @@ def log_rejected_query(
     )
 
 
-def run_and_log_database_query(
+def _execute_and_log(
     request: HttpRequest,
     workspace: Workspace,
     query: str,
     origin: str,
-    max_rows: int | None = None,
+    statement: PreparedQuery,
+    *,
     saved_query=None,
-):
-    """Single point of entry for executing SQL on behalf of an API request.
+    max_rows: int | None = None,
+    count: PreparedQuery | None = None,
+) -> tuple[dict, int | None]:
+    """Run ``statement`` and record the outcome, re-raising errors for the caller.
 
-    Checks the permission, delegates to ``hexa.databases.utils.execute_database_query``
-    and records a ``QueryLog`` entry for every outcome, re-raising errors so that
-    callers only have to translate them into API responses.
+    ``count`` is run first when given: a failing count then reaches the log as
+    the one ERROR entry of the request, rather than following a SUCCESS entry.
+    ``query`` is the text logged, raw, for every outcome.
     """
-    ensure_can_run_query(request, workspace, query, origin, saved_query=saved_query)
     max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
     started_at = time.perf_counter()
     try:
-        prepared = PreparedQuery.from_text(query)
-        result = execute_database_query(workspace, prepared, **max_rows_kwarg)
-    except MultipleStatementsError as e:
-        log_rejected_query(
-            request, workspace, query, origin, str(e), saved_query=saved_query
+        total_items = (
+            count_database_rows(workspace, count) if count is not None else None
         )
-        raise
+        result = execute_database_query(workspace, statement, **max_rows_kwarg)
     except psycopg2.Error as e:
         # QueryCanceled (statement timeout) is a psycopg2.Error subclass and
         # needs no dedicated handling here: both outcomes log the same fields.
@@ -157,17 +172,88 @@ def run_and_log_database_query(
         truncated=result["truncated"],
         saved_query=saved_query,
     )
+    return result, total_items
+
+
+def run_and_log_database_query(
+    request: HttpRequest,
+    workspace: Workspace,
+    query: str,
+    origin: str,
+    max_rows: int | None = None,
+    saved_query=None,
+):
+    """Execute caller-supplied SQL on behalf of an API request.
+
+    Checks the permission, delegates to ``hexa.databases.utils.execute_database_query``
+    and records a ``QueryLog`` entry for every outcome, re-raising errors so that
+    callers only have to translate them into API responses. Never wrapped: the
+    ``page_info`` it attaches only reports what the row cap saw.
+    """
+    ensure_can_run_query(request, workspace, query, origin, saved_query=saved_query)
+    try:
+        prepared = PreparedQuery.from_text(query)
+    except MultipleStatementsError as e:
+        log_rejected_query(
+            request, workspace, query, origin, str(e), saved_query=saved_query
+        )
+        raise
+    result, _ = _execute_and_log(
+        request,
+        workspace,
+        query,
+        origin,
+        prepared,
+        saved_query=saved_query,
+        max_rows=max_rows,
+    )
+    result["page_info"] = build_page_info(
+        None, rows=result["rows"], has_next=result["truncated"], sql_text=prepared.body
+    )
     return result
 
 
-def run_saved_query(request: HttpRequest, saved_query, max_rows: int | None = None):
-    """Execute a stored query on behalf of an API request.
+def _wrap(prepared: PreparedQuery, page_request: PageRequest | None) -> PreparedQuery:
+    if isinstance(page_request, OffsetPage):
+        return paginate_offset(
+            prepared,
+            order_by=page_request.order_by,
+            per_page=page_request.per_page,
+            offset=page_request.offset,
+        )
+    if isinstance(page_request, CursorPage):
+        return paginate_cursor(
+            prepared,
+            order_by=page_request.order_by,
+            per_page=page_request.per_page,
+            keyset=page_request.keyset,
+        )
+    return prepared
+
+
+def run_saved_query(
+    request: HttpRequest,
+    saved_query,
+    *,
+    order_by: list[OrderBy] | None = None,
+    per_page: int | None = None,
+    max_rows: int | None = None,
+    page: int | None = None,
+    after: str | None = None,
+    include_total_items: bool | None = None,
+):
+    """Execute a stored query on behalf of an API request, sorted and paged as asked.
 
     Unlike the interactive path this is reachable from a web app: the SQL was written
     and vetted by a workspace member when the query was saved, not supplied by the
     caller, which is the whole point of the endpoint. The permission checked is still
     the workspace-database one, so a web app cannot reach a database its viewer could
     not query directly.
+
+    A call with no ``order_by``, ``page`` or ``after`` runs the stored text unwrapped,
+    exactly as before those arguments existed. Otherwise the text is wrapped in a
+    sorted, limited subquery and ``page_info`` describes the page. Raises
+    ``PaginationError`` (logged as REJECTED) for arguments that cannot be honoured.
     """
     # Derived from the request rather than accepted as an argument: a client that
     # could name its own origin could disown the queries it ran.
@@ -176,14 +262,44 @@ def run_saved_query(request: HttpRequest, saved_query, max_rows: int | None = No
         if getattr(request, "webapp", None) is not None
         else QueryLog.Origin.OTHER
     )
-    return run_and_log_database_query(
+    workspace = saved_query.workspace
+    query = saved_query.content
+    ensure_can_run_query(request, workspace, query, origin, saved_query=saved_query)
+    try:
+        per_page = resolve_per_page(per_page, max_rows)
+        prepared = PreparedQuery.from_text(query)
+        page_request = build_page_request(
+            prepared,
+            order_by=order_by,
+            per_page=per_page,
+            page=page,
+            after=after,
+            include_total_items=include_total_items,
+        )
+    except (MultipleStatementsError, PaginationError) as e:
+        log_rejected_query(
+            request, workspace, query, origin, str(e), saved_query=saved_query
+        )
+        raise
+    wants_total = isinstance(page_request, OffsetPage) and page_request.include_total
+    result, total_items = _execute_and_log(
         request,
-        saved_query.workspace,
-        saved_query.content,
+        workspace,
+        query,
         origin,
-        max_rows=max_rows,
+        _wrap(prepared, page_request),
         saved_query=saved_query,
+        max_rows=per_page,
+        count=prepared if wants_total else None,
     )
+    result["page_info"] = build_page_info(
+        page_request,
+        rows=result["rows"],
+        has_next=result["truncated"],
+        sql_text=prepared.body,
+        total_items=total_items,
+    )
+    return result
 
 
 class QueryExportAudit:
