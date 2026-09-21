@@ -128,8 +128,7 @@ def execute_database_query(
     the result was capped.
 
     This function does no permission check and no audit logging: SQL executed on behalf
-    of an API request must go through
-    ``hexa.data_studio.query_runner.run_and_log_database_query``.
+    of an API request must go through ``hexa.data_studio.query_runner``.
     """
     hard_limit = settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS
     # A plan is bounded by query complexity, so let it through the hard limit
