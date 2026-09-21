@@ -3,22 +3,16 @@
 from logging import getLogger
 
 from ariadne.types import Extension, Resolver
-from django.db.models import Model
 from graphql import GraphQLResolveInfo
 
-from hexa.datasets.models import Dataset
 from hexa.workspaces.models import TokenScopeVerdict, WorkspaceTokenUsage
 
-from .attribution import INDIRECT_OWNERS, resolve_indirect_owners, workspace_id_of
+from .attribution import INDIRECT_OWNERS, resolve_indirect_owners, tracking_plan
 from .classification import classify
 
 logger = getLogger(__name__)
 
-# Past this many distinct objects a request stops remembering which ones it has
-# already seen, so ``seen`` cannot grow with the response.
-# Attribution keeps running past the cap. What it accumulates stays bounded by the
-# distinct workspaces and datasets touched.
-MAX_TRACKED_OBJECTS = 200
+_NOTHING = object()
 
 
 def audit_extensions(request, context) -> list:
@@ -42,13 +36,19 @@ class WorkspaceScopeAudit(Extension):
         self.models_by_workspace = {}
         self.dataset_ids = set()
         self.pending = {model: set() for model in INDIRECT_OWNERS}
-        self.seen = set()
+        # GraphQL resolves all the selected fields of one object back to back, so the
+        # object of the previous call is nearly always the object of this one.
+        self.last_obj = _NOTHING
 
     def request_started(self, context) -> None:
         self.token = context["request"].workspace_token
 
     def resolve(self, next_: Resolver, obj, info: GraphQLResolveInfo, **kwargs):
-        self._observe(obj, info)
+        if info.path.prev is None:
+            self.root_fields.setdefault(info.field_name, None)
+        if obj is not self.last_obj:
+            self.last_obj = obj
+            self._observe(obj)
         return next_(obj, info, **kwargs)
 
     def request_finished(self, context) -> None:
@@ -57,34 +57,30 @@ class WorkspaceScopeAudit(Extension):
         except Exception:  # never let instrumentation break a request
             logger.exception("workspace token audit failed")
 
-    def _observe(self, obj, info: GraphQLResolveInfo) -> None:
-        if info.path.prev is None:
-            self.root_fields.setdefault(info.field_name, None)
+    def _observe(self, obj) -> None:
+        """Called once per object rather than once per field, and kept allocation-free.
 
-        if not isinstance(obj, Model):
+        Every accumulator is a set, so re-observing an object is harmless; nothing here
+        needs to remember which objects it has already seen.
+        """
+        plan = tracking_plan(type(obj))
+        if plan is None:
             return
-        key = (type(obj).__name__, obj.pk)
-        if key in self.seen:
+
+        if plan.owner is not None:
+            parent_id = getattr(obj, plan.owner.fk, None)
+            if parent_id is not None:
+                self.pending[plan.tracked_as].add(parent_id)
             return
-        if len(self.seen) < MAX_TRACKED_OBJECTS:
-            self.seen.add(key)
 
-        for model, owner in INDIRECT_OWNERS.items():
-            if isinstance(obj, model):
-                if (parent_id := getattr(obj, owner.fk, None)) is not None:
-                    self.pending[model].add(parent_id)
-                return
-
-        workspace_id = workspace_id_of(obj)
+        workspace_id = getattr(obj, plan.workspace_attr, None)
         if workspace_id is None:
             return
-        self._attribute(workspace_id, type(obj).__name__)
-        if isinstance(obj, Dataset):
-            self.dataset_ids.add(obj.pk)
-        elif (dataset_id := getattr(obj, "dataset_id", None)) is not None:
-            # A dataset link reached from another workspace is classified by the
-            # dataset it points at, not by the link itself.
-            self.dataset_ids.add(dataset_id)
+        self._attribute(workspace_id, plan.name)
+        if plan.dataset_attr is not None:
+            dataset_id = getattr(obj, plan.dataset_attr, None)
+            if dataset_id is not None:
+                self.dataset_ids.add(dataset_id)
 
     def _attribute(self, workspace_id, model_name: str) -> None:
         self.models_by_workspace.setdefault(workspace_id, set()).add(model_name)

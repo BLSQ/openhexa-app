@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from types import SimpleNamespace
 
 from django.test import RequestFactory, TestCase, override_settings
 from django_sql_dashboard.models import Dashboard
@@ -42,6 +42,16 @@ DATASET_LINK_QUERY = """
     query ($workspaceSlug: String!, $datasetSlug: String!) {
         datasetLinkBySlug(workspaceSlug: $workspaceSlug, datasetSlug: $datasetSlug) {
             id
+        }
+    }
+"""
+
+
+WORKSPACE_DATASETS_QUERY = """
+    query ($slug: String!) {
+        workspace(slug: $slug) {
+            slug
+            datasets { items { dataset { slug } } }
         }
     }
 """
@@ -150,12 +160,40 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
             TokenScopeVerdict.OUT_OF_SCOPE, {str(self.OTHER.id): "none"}
         )
 
-    def test_out_of_scope_is_recorded_even_when_tracking_is_truncated(self):
-        """Past the tracking cap a request must not look in scope just for being long."""
-        with patch("hexa.workspaces.audit.extension.MAX_TRACKED_OBJECTS", 0):
-            self.query_with_token(DATASET_QUERY, {"id": str(self.PRIVATE_DATASET.id)})
+    def test_every_object_of_a_multi_object_response_is_attributed(self):
+        """The per-object short-circuit must not skip objects, only repeated fields."""
+        response = self.query_with_token(
+            WORKSPACE_DATASETS_QUERY, {"slug": self.OTHER.slug}
+        )
+        items = response["data"]["workspace"]["datasets"]["items"]
+        self.assertEqual(
+            {"linked", "private", "shared"}, {item["dataset"]["slug"] for item in items}
+        )
         self.assertRecorded(
-            TokenScopeVerdict.OUT_OF_SCOPE, {str(self.OTHER.id): "none"}
+            TokenScopeVerdict.CROSS_REACHABLE, {str(self.OTHER.id): "linked"}
+        )
+
+    def test_resolve_observes_every_distinct_object(self):
+        """Repeated fields of one object are skipped; a different object never is."""
+        audit = WorkspaceScopeAudit()
+        info = SimpleNamespace(path=SimpleNamespace(prev=None), field_name="dataset")
+        for dataset in (
+            self.PRIVATE_DATASET,
+            self.PRIVATE_DATASET,
+            self.SHARED_DATASET,
+            self.SHARED_DATASET,
+            self.LINKED_DATASET,
+        ):
+            audit.resolve(lambda obj, info, **kwargs: None, dataset, info)
+
+        self.assertEqual({self.OTHER.id: {"Dataset"}}, audit.models_by_workspace)
+        self.assertEqual(
+            {
+                self.PRIVATE_DATASET.id,
+                self.SHARED_DATASET.id,
+                self.LINKED_DATASET.id,
+            },
+            audit.dataset_ids,
         )
 
     def test_dataset_version_file_is_attributed_to_the_dataset_workspace(self):
@@ -167,8 +205,7 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
             dataset_version=version, uri="s3://private/v1/data.csv", content_type="csv"
         )
 
-        with patch("hexa.workspaces.audit.extension.MAX_TRACKED_OBJECTS", 0):
-            self.query_with_token(DATASET_VERSION_FILE_QUERY, {"id": str(file.id)})
+        self.query_with_token(DATASET_VERSION_FILE_QUERY, {"id": str(file.id)})
 
         self.assertRecorded(
             TokenScopeVerdict.OUT_OF_SCOPE, {str(self.OTHER.id): "none"}

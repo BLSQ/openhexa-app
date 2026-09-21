@@ -41,13 +41,6 @@ INDIRECT_OWNERS = {
 }
 
 
-def workspace_id_of(obj: Model) -> UUID | None:
-    """The workspace an object belongs to"""
-    if isinstance(obj, Workspace):
-        return obj.id
-    return getattr(obj, "workspace_id", None)
-
-
 def resolve_indirect_owners(
     pending: dict[type[Model], set],
 ) -> Iterator[tuple[UUID, str, UUID]]:
@@ -61,3 +54,55 @@ def resolve_indirect_owners(
         ).values_list(owner.workspace_path, owner.dataset_path):
             if workspace_id is not None:
                 yield workspace_id, model.__name__, dataset_id
+
+
+class TrackingPlan(NamedTuple):
+    """What to read off an instance of one model class, decided once per class.
+
+    ``_observe`` runs on every object of every response, so everything that depends only
+    on the class - its name, whether it reaches its workspace directly or through a
+    parent, which attributes hold the ids - is resolved here once instead of there.
+    """
+
+    name: str
+    tracked_as: type[Model] | None
+    owner: IndirectOwner | None
+    workspace_attr: str | None
+    dataset_attr: str | None
+
+
+_PLANS: dict[type, TrackingPlan | None] = {}
+
+
+def tracking_plan(cls: type) -> TrackingPlan | None:
+    """The plan for ``cls``, or ``None`` if instances of it say nothing about scope."""
+    try:
+        return _PLANS[cls]
+    except KeyError:
+        pass
+
+    plan = None
+    if issubclass(cls, Model):
+        attnames = {field.attname for field in cls._meta.concrete_fields}
+        for tracked_as, owner in INDIRECT_OWNERS.items():
+            if issubclass(cls, tracked_as):
+                plan = TrackingPlan(cls.__name__, tracked_as, owner, None, None)
+                break
+        else:
+            if issubclass(cls, Workspace):
+                workspace_attr = "id"
+            else:
+                workspace_attr = "workspace_id" if "workspace_id" in attnames else None
+            if workspace_attr:
+                # A dataset link reached from another workspace is classified by the
+                # dataset it points at, not by the link itself.
+                if issubclass(cls, Dataset):
+                    dataset_attr = "id"
+                else:
+                    dataset_attr = "dataset_id" if "dataset_id" in attnames else None
+                plan = TrackingPlan(
+                    cls.__name__, None, None, workspace_attr, dataset_attr
+                )
+
+    _PLANS[cls] = plan
+    return plan
