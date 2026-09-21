@@ -236,42 +236,27 @@ def _keyset_predicate(order_by: list[OrderBy]) -> tuple[Composable, int]:
     return sql.SQL(" OR ").join(branches), sum(range(1, len(order_by) + 1))
 
 
-def paginate(
+def _wrap(
     prepared: PreparedQuery,
-    *,
-    order_by: list[OrderBy] | None,
+    order_by: list[OrderBy],
     per_page: int,
-    offset: int | None = None,
-    keyset: list | None = None,
-) -> PreparedQuery:
-    """Wrap ``prepared`` in a sorted, paginated subquery.
+    predicate: Composable | None,
+    predicate_params: list,
+) -> tuple[list[Composable], list]:
+    """The subquery, an optional WHERE, the ORDER BY and the LIMIT, plus their values.
 
-    Offset mode (``offset`` given, or neither) emits ``ORDER BY ... LIMIT %s
-    OFFSET %s``; cursor mode (``keyset`` given: the previous page's last
-    sort-key values, one per ``order_by`` entry) emits a keyset predicate instead
-    of the offset. The ``LIMIT`` is ``per_page + 1`` so that the executing side,
-    which fetches ``max_rows + 1`` to detect a further page, sees exactly the
-    rows the database was asked for.
-
-    The wrapper's values are appended after the ones ``prepared`` carries, so a
-    templated statement keeps its placeholders bound in order.
+    The LIMIT is ``per_page + 1`` so that the executing side, which fetches
+    ``max_rows + 1`` to detect a further page, sees exactly the rows the database
+    was asked for. The wrapper's values are appended after the ones ``prepared``
+    carries, so a templated statement keeps its placeholders bound in order.
     """
     if per_page < 1:
         raise ValueError("per_page must be at least 1.")
-    if offset is not None and keyset is not None:
-        raise ValueError("offset and keyset are mutually exclusive.")
-    order_by = order_by or []
     inner, params = prepared._inner()
     parts = [_SUBQUERY.format(inner=inner)]
-    if keyset is not None:
-        if not order_by:
-            raise ValueError("A keyset needs an order_by.")
-        if len(keyset) != len(order_by):
-            raise ValueError("A keyset holds one value per order_by entry.")
-        predicate, _ = _keyset_predicate(order_by)
+    if predicate is not None:
         parts.append(sql.SQL(" WHERE {}").format(predicate))
-        for index in range(len(order_by)):
-            params.extend(keyset[: index + 1])
+        params.extend(predicate_params)
     if order_by:
         parts.append(
             sql.SQL(" ORDER BY {}").format(
@@ -280,9 +265,10 @@ def paginate(
         )
     parts.append(sql.SQL(" LIMIT {}").format(sql.Placeholder()))
     params.append(per_page + 1)
-    if keyset is None:
-        parts.append(sql.SQL(" OFFSET {}").format(sql.Placeholder()))
-        params.append(offset or 0)
+    return parts, params
+
+
+def _wrapped(prepared: PreparedQuery, parts: list[Composable], params: list):
     return replace(
         prepared,
         sql=sql.Composed(parts),
@@ -291,6 +277,44 @@ def paginate(
         body="",
         params=params,
     )
+
+
+def paginate_offset(
+    prepared: PreparedQuery,
+    *,
+    order_by: list[OrderBy] | None,
+    per_page: int,
+    offset: int = 0,
+) -> PreparedQuery:
+    """Wrap ``prepared`` as ``[ORDER BY ...] LIMIT %s OFFSET %s``."""
+    parts, params = _wrap(prepared, order_by or [], per_page, None, [])
+    parts.append(sql.SQL(" OFFSET {}").format(sql.Placeholder()))
+    params.append(offset)
+    return _wrapped(prepared, parts, params)
+
+
+def paginate_cursor(
+    prepared: PreparedQuery,
+    *,
+    order_by: list[OrderBy],
+    per_page: int,
+    keyset: list,
+) -> PreparedQuery:
+    """Wrap ``prepared`` as ``WHERE <keyset> ORDER BY ... LIMIT %s``.
+
+    ``keyset`` holds the previous page's last sort-key values, one per
+    ``order_by`` entry.
+    """
+    if not order_by:
+        raise ValueError("A keyset needs an order_by.")
+    if len(keyset) != len(order_by):
+        raise ValueError("A keyset holds one value per order_by entry.")
+    predicate, _ = _keyset_predicate(order_by)
+    predicate_params = []
+    for index in range(len(order_by)):
+        predicate_params.extend(keyset[: index + 1])
+    parts, params = _wrap(prepared, order_by, per_page, predicate, predicate_params)
+    return _wrapped(prepared, parts, params)
 
 
 def count_statement(prepared: PreparedQuery) -> PreparedQuery:
