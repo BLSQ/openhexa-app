@@ -1,12 +1,18 @@
 import unittest
 from unittest import mock
 
+import psycopg2
+from django.db import connection
 from sqlparse import tokens
 from sqlparse.lexer import Lexer
 
 from hexa.databases.query_text import (
     MultipleStatementsError,
+    OrderBy,
+    OrderByDirectionEnum,
     PreparedQuery,
+    count_statement,
+    paginate,
     sanitize_sql,
 )
 
@@ -184,3 +190,191 @@ class ExplainDetectionTest(unittest.TestCase):
         for query in ["SELECT 1", "WITH t AS (SELECT 1) SELECT * FROM t", ""]:
             with self.subTest(query=query):
                 self.assertFalse(PreparedQuery.from_text(query).is_explain)
+
+
+class WrappabilityTest(unittest.TestCase):
+    def test_strips_the_trailing_separator(self):
+        for query, body in [
+            ("SELECT 1;", "SELECT 1"),
+            ("SELECT 1 ;  ", "SELECT 1   "),
+            ("SELECT 1; -- SELECT 2", "SELECT 1 -- SELECT 2"),
+            ("SELECT 'a;b';", "SELECT 'a;b'"),
+            ("SELECT 1", "SELECT 1"),
+            ("", ""),
+        ]:
+            with self.subTest(query=query):
+                self.assertEqual(PreparedQuery.from_text(query).body, body)
+
+    def test_allows_the_statements_a_subquery_accepts(self):
+        for query in [
+            "SELECT 1",
+            "select 1",
+            "WITH t AS (SELECT 1) SELECT * FROM t",
+            "TABLE t",
+            "VALUES (1), (2)",
+            "-- a comment\nSELECT 1",
+            "/* a comment */ SELECT 1",
+        ]:
+            with self.subTest(query=query):
+                self.assertTrue(PreparedQuery.from_text(query).is_wrappable)
+
+    def test_refuses_the_statements_a_subquery_rejects(self):
+        for query in ["EXPLAIN SELECT 1", "SHOW all", "DO $$ BEGIN END $$", ""]:
+            with self.subTest(query=query):
+                self.assertFalse(PreparedQuery.from_text(query).is_wrappable)
+
+
+class PaginateTest(unittest.TestCase):
+    """The wrapper's SQL, checked on the bytes psycopg2 sends.
+
+    These need a connection because ``psycopg2.sql.Identifier`` quotes through
+    libpq; no query is run. Workspace databases are reached through psycopg2
+    where Django's own connection is psycopg3, so one is opened on the test
+    database directly.
+    """
+
+    maxDiff = None
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        db = connection.settings_dict
+        cls.conn = psycopg2.connect(
+            host=db["HOST"],
+            port=db["PORT"],
+            dbname=db["NAME"],
+            user=db["USER"],
+            password=db["PASSWORD"],
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.conn.close()
+        super().tearDownClass()
+
+    def _render(self, prepared: PreparedQuery) -> str:
+        """The exact statement psycopg2 sends, values substituted."""
+        with self.conn.cursor() as cursor:
+            return cursor.mogrify(prepared.sql, prepared.params).decode()
+
+    def test_offset_mode(self):
+        wrapped = paginate(
+            PreparedQuery.from_text("SELECT id, name FROM t;"),
+            order_by=[
+                OrderBy(column="name"),
+                OrderBy(column="id", direction=OrderByDirectionEnum.DESC),
+            ],
+            per_page=10,
+            offset=20,
+        )
+        self.assertEqual(
+            self._render(wrapped),
+            'SELECT * FROM (\nSELECT id, name FROM t\n) AS q ORDER BY "name" ASC, '
+            '"id" DESC LIMIT 11 OFFSET 20',
+        )
+
+    def test_limit_is_one_more_than_the_page(self):
+        # The executing side fetches max_rows + 1 to detect a further page: a
+        # LIMIT of exactly per_page would make hasNextPage always false.
+        wrapped = paginate(
+            PreparedQuery.from_text("SELECT 1"), order_by=None, per_page=50
+        )
+        self.assertEqual(wrapped.params, [51, 0])
+
+    def test_offset_mode_without_order_by(self):
+        wrapped = paginate(PreparedQuery.from_text("SELECT 1"), order_by=[], per_page=5)
+        self.assertEqual(
+            self._render(wrapped), "SELECT * FROM (\nSELECT 1\n) AS q LIMIT 6 OFFSET 0"
+        )
+
+    def test_cursor_mode_with_mixed_directions(self):
+        wrapped = paginate(
+            PreparedQuery.from_text("SELECT a, b, c FROM t"),
+            order_by=[
+                OrderBy(column="a"),
+                OrderBy(column="b", direction=OrderByDirectionEnum.DESC),
+                OrderBy(column="c"),
+            ],
+            per_page=10,
+            keyset=[1, "two", 3],
+        )
+        self.assertEqual(
+            self._render(wrapped),
+            "SELECT * FROM (\nSELECT a, b, c FROM t\n) AS q WHERE "
+            '("a" > 1) OR ("a" = 1 AND "b" < \'two\') '
+            'OR ("a" = 1 AND "b" = \'two\' AND "c" > 3) '
+            'ORDER BY "a" ASC, "b" DESC, "c" ASC LIMIT 11',
+        )
+
+    def test_cursor_mode_needs_an_order_by_and_one_value_per_key(self):
+        prepared = PreparedQuery.from_text("SELECT a FROM t")
+        with self.assertRaises(ValueError):
+            paginate(prepared, order_by=[], per_page=10, keyset=[1])
+        with self.assertRaises(ValueError):
+            paginate(prepared, order_by=[OrderBy(column="a")], per_page=10, keyset=[])
+
+    def test_refuses_offset_and_keyset_together(self):
+        with self.assertRaises(ValueError):
+            paginate(
+                PreparedQuery.from_text("SELECT a FROM t"),
+                order_by=[OrderBy(column="a")],
+                per_page=10,
+                offset=0,
+                keyset=[1],
+            )
+
+    def test_refuses_an_empty_page(self):
+        with self.assertRaises(ValueError):
+            paginate(PreparedQuery.from_text("SELECT 1"), order_by=None, per_page=0)
+
+    def test_refuses_an_unwrappable_statement(self):
+        with self.assertRaises(ValueError):
+            paginate(
+                PreparedQuery.from_text("EXPLAIN SELECT 1"), order_by=None, per_page=1
+            )
+
+    def test_quotes_a_column_name_as_an_identifier(self):
+        wrapped = paginate(
+            PreparedQuery.from_text("SELECT 1"),
+            order_by=[OrderBy(column='x"; DROP TABLE t; --')],
+            per_page=1,
+        )
+        self.assertIn('ORDER BY "x""; DROP TABLE t; --" ASC', self._render(wrapped))
+
+    def test_doubles_percent_in_raw_text(self):
+        # Raw text (params None) is about to be %-formatted for the first time.
+        wrapped = paginate(
+            PreparedQuery.from_text("SELECT * FROM t WHERE n LIKE '%foo%'"),
+            order_by=None,
+            per_page=1,
+        )
+        self.assertIn("LIKE '%foo%'", self._render(wrapped))
+        self.assertIn("LIKE '%%foo%%'", wrapped.sql.as_string(self.conn))
+
+    def test_keeps_paramstyle_text_and_appends_its_values(self):
+        # Text already in paramstyle is not escaped again, and the wrapper's
+        # values come after the ones it was handed.
+        prepared = PreparedQuery(
+            sql="SELECT * FROM t WHERE n LIKE '%%foo%%' AND id > %s",
+            is_explain=False,
+            is_wrappable=True,
+            body="SELECT * FROM t WHERE n LIKE '%%foo%%' AND id > %s",
+            params=[7],
+        )
+        wrapped = paginate(
+            prepared, order_by=[OrderBy(column="id")], per_page=10, keyset=[42]
+        )
+        self.assertEqual(wrapped.params, [7, 42, 11])
+        self.assertEqual(
+            self._render(wrapped),
+            "SELECT * FROM (\nSELECT * FROM t WHERE n LIKE '%foo%' AND id > 7\n) AS q "
+            'WHERE ("id" > 42) ORDER BY "id" ASC LIMIT 11',
+        )
+
+    def test_counts_the_inner_query(self):
+        counted = count_statement(PreparedQuery.from_text("SELECT 1 AS a; -- tail"))
+        self.assertEqual(
+            self._render(counted),
+            "SELECT COUNT(*) FROM (\nSELECT 1 AS a -- tail\n) AS q",
+        )
+        self.assertFalse(counted.is_explain)

@@ -1,4 +1,3 @@
-import enum
 import json
 import math
 import time
@@ -16,7 +15,7 @@ from psycopg2.extras import RealDictCursor
 from hexa.workspaces.models import Workspace
 
 from .api import get_db_server_credentials
-from .query_text import PreparedQuery
+from .query_text import OrderByDirectionEnum, PreparedQuery
 
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
@@ -74,11 +73,6 @@ def get_row_count(cursor, table_name: str, reltuples: float) -> int:
 
 class TableNotFound(Exception):
     pass
-
-
-class OrderByDirectionEnum(enum.Enum):
-    ASC = "ASC"
-    DESC = "DESC"
 
 
 def get_workspace_database_connection(workspace: Workspace):
