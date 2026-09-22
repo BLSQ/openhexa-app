@@ -1,3 +1,16 @@
+fragment SavedQuerySummary on SavedQuery {
+  id
+  slug
+  name
+  description
+  visibility
+  createdAt
+  updatedAt
+  createdBy {
+    displayName
+  }
+}
+
 query ListSavedQueries($workspaceSlug: String!, $query: String, $page: Int, $perPage: Int) {
   workspace(slug: $workspaceSlug) {
     savedQueries(query: $query, page: $page, perPage: $perPage) {
@@ -5,17 +18,7 @@ query ListSavedQueries($workspaceSlug: String!, $query: String, $page: Int, $per
       totalPages
       totalItems
       items {
-        id
-        slug
-        name
-        description
-        content
-        visibility
-        createdAt
-        updatedAt
-        createdBy {
-          displayName
-        }
+        ...SavedQuerySummary
         permissions {
           update
           updateVisibility
@@ -30,12 +33,8 @@ mutation CreateSavedQuery($input: CreateSavedQueryInput!) {
     success
     errors
     savedQuery {
-      id
-      slug
-      name
-      description
+      ...SavedQuerySummary
       content
-      visibility
     }
   }
 }
@@ -45,29 +44,16 @@ mutation UpdateSavedQuery($input: UpdateSavedQueryInput!) {
     success
     errors
     savedQuery {
-      id
-      slug
-      name
-      description
+      ...SavedQuerySummary
       content
-      visibility
     }
   }
 }
 
 query GetSavedQuery($slug: String!) {
   savedQueryBySlug(slug: $slug) {
-    id
-    slug
-    name
-    description
+    ...SavedQuerySummary
     content
-    visibility
-    createdAt
-    updatedAt
-    createdBy {
-      displayName
-    }
     workspace {
       slug
     }

@@ -6,13 +6,14 @@ from ._graphql import execute_graphql
 
 @tool
 def list_saved_queries(
-    user, workspace_slug: str, query: str = "", page: int = 1, per_page: int = 15
+    user, workspace_slug: str, query: str = "", page: int = 1, per_page: int = 10
 ) -> dict:
     """List the saved SQL queries of a workspace's Data Studio, most recently updated first.
 
-    Returns each query's id, slug, name, description, SQL content and visibility (PRIVATE: only
-    its author can see it, WORKSPACE: shared with every workspace member). Pass query to filter
-    by name or description. Use the returned 'id' when calling update_saved_query, or the 'slug' with get_saved_query.
+    Returns each query's id, slug, name, description and visibility (PRIVATE: only its author
+    can see it, WORKSPACE: shared with every workspace member), without the SQL content. Pass
+    query to filter by name or description. Use get_saved_query with the returned 'slug' to
+    get the SQL content, or the returned 'id' when calling update_saved_query.
     """
     variables = {"workspaceSlug": workspace_slug, "page": page, "perPage": per_page}
     if query:
@@ -23,13 +24,7 @@ def list_saved_queries(
     workspace = data.get("workspace")
     if workspace is None:
         return {"error": "Workspace not found"}
-    saved_queries = workspace["savedQueries"]
-    return {
-        "savedQueries": saved_queries["items"],
-        "pageNumber": saved_queries["pageNumber"],
-        "totalPages": saved_queries["totalPages"],
-        "totalItems": saved_queries["totalItems"],
-    }
+    return {"savedQueries": workspace["savedQueries"]}
 
 
 @tool

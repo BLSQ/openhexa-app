@@ -39,12 +39,13 @@ class ListSavedQueriesTest(SavedQueryTestCase):
         result = list_saved_queries(
             user=self.USER_ADMIN, workspace_slug=self.WORKSPACE.slug
         )
-        self.assertEqual(result["totalItems"], 1)
-        self.assertEqual(result["pageNumber"], 1)
-        item = result["savedQueries"][0]
+        page = result["savedQueries"]
+        self.assertEqual(page["totalItems"], 1)
+        self.assertEqual(page["pageNumber"], 1)
+        item = page["items"][0]
         self.assertEqual(item["id"], create_result["savedQuery"]["id"])
         self.assertEqual(item["name"], "Listed query")
-        self.assertEqual(item["content"], "SELECT 1")
+        self.assertNotIn("content", item)
         self.assertEqual(item["visibility"], "PRIVATE")
         self.assertTrue(item["permissions"]["update"])
 
@@ -60,8 +61,8 @@ class ListSavedQueriesTest(SavedQueryTestCase):
         result = list_saved_queries(
             user=self.USER_ADMIN, workspace_slug=self.WORKSPACE.slug, query="sales"
         )
-        self.assertEqual(result["totalItems"], 1)
-        self.assertEqual(result["savedQueries"][0]["name"], "Sales report")
+        self.assertEqual(result["savedQueries"]["totalItems"], 1)
+        self.assertEqual(result["savedQueries"]["items"][0]["name"], "Sales report")
 
     def test_list_saved_queries_hides_others_private_queries(self):
         create_saved_query(
@@ -81,7 +82,9 @@ class ListSavedQueriesTest(SavedQueryTestCase):
         result = list_saved_queries(
             user=self.USER_EDITOR, workspace_slug=self.WORKSPACE.slug
         )
-        self.assertEqual([q["name"] for q in result["savedQueries"]], ["Viewer shared"])
+        self.assertEqual(
+            [q["name"] for q in result["savedQueries"]["items"]], ["Viewer shared"]
+        )
 
     def test_list_saved_queries_no_access(self):
         result = list_saved_queries(
