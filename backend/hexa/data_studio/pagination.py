@@ -117,16 +117,18 @@ def build_page_request(
     )
 
 
-def _end_cursor(request: PageRequest, rows: list[dict], has_next: bool, sql_text: str):
-    if not (has_next and rows and request.order_by):
+def _end_cursor(
+    request: PageRequest, last_row: dict | None, has_next: bool, sql_text: str
+):
+    if not (has_next and last_row is not None and request.order_by):
         return None
-    return cursor_codec.encode_cursor(sql_text, request.order_by, rows[-1])
+    return cursor_codec.encode_cursor(sql_text, request.order_by, last_row)
 
 
 def build_page_info(
     request: PageRequest | None,
     *,
-    rows: list[dict],
+    last_row: dict | None,
     has_next: bool,
     sql_text: str,
     total_items: int | None = None,
@@ -135,7 +137,8 @@ def build_page_info(
 
     ``has_next`` is the executing side's "one more row than the page" signal,
     which the wrapper's ``LIMIT per_page + 1`` makes exact. An unwrapped result
-    only knows that.
+    only knows that. ``last_row`` is the page's last row as fetched, not its
+    JSON form, so the cursor keeps the full precision of the sort key.
     """
     info = {
         "has_next_page": has_next,
@@ -148,11 +151,11 @@ def build_page_info(
     if isinstance(request, OffsetPage):
         info["has_previous_page"] = request.page > 1
         info["page_number"] = request.page
-        info["end_cursor"] = _end_cursor(request, rows, has_next, sql_text)
+        info["end_cursor"] = _end_cursor(request, last_row, has_next, sql_text)
         if total_items is not None:
             info["total_items"] = total_items
             info["total_pages"] = math.ceil(total_items / request.per_page)
     elif isinstance(request, CursorPage):
         info["has_previous_page"] = True
-        info["end_cursor"] = _end_cursor(request, rows, has_next, sql_text)
+        info["end_cursor"] = _end_cursor(request, last_row, has_next, sql_text)
     return info

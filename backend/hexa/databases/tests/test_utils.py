@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest import mock
 
 from psycopg2.errors import (
@@ -346,8 +347,24 @@ class DatabaseUtilsTest(TestCase):
                 ],
                 "row_count": 3,
                 "truncated": False,
+                "last_row": {"id": 3, "label": "c"},
             },
             result,
+        )
+
+    def test_execute_database_query_keeps_the_last_row_as_fetched(self):
+        # The JSON form of a timestamp stops at milliseconds; the fetched row
+        # keeps the microseconds a keyset cursor needs.
+        result = execute_database_query(
+            self.WORKSPACE,
+            PreparedQuery.from_text(
+                "SELECT TIMESTAMP '2024-01-01 10:00:00.123456' AS at"
+            ),
+        )
+
+        self.assertEqual([{"at": "2024-01-01T10:00:00.123"}], result["rows"])
+        self.assertEqual(
+            {"at": datetime(2024, 1, 1, 10, 0, 0, 123456)}, result["last_row"]
         )
 
     def test_execute_database_query_truncates_to_max_rows(self):
@@ -407,7 +424,14 @@ class DatabaseUtilsTest(TestCase):
 
         self.assertIsInstance(result.pop("duration_ms"), int)
         self.assertEqual(
-            {"columns": [], "rows": [], "row_count": 0, "truncated": False}, result
+            {
+                "columns": [],
+                "rows": [],
+                "row_count": 0,
+                "truncated": False,
+                "last_row": None,
+            },
+            result,
         )
 
     def test_execute_database_query_is_read_only(self):
