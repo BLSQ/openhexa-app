@@ -176,7 +176,7 @@ class WorkspaceQuerySet(BaseQuerySet):
         # excluded here to fall through to the User branch below, where it is
         # further scoped to its webapp's workspace.
         if isinstance(user, ServicePrincipal) and not isinstance(user, WebappUser):
-            qs = self.filter(pk=user.workspace_id)
+            qs = self.filter(pk__in=user.workspace_ids)
         elif isinstance(user, User):
             qs = (
                 self.all()
@@ -193,7 +193,7 @@ class WorkspaceQuerySet(BaseQuerySet):
                 ).distinct()
             )
             if isinstance(user, WebappUser):
-                qs = qs.filter(pk=user.workspace_id)
+                qs = qs.filter(pk__in=user.workspace_ids)
         else:
             raise NotImplementedError(
                 f"WorkspaceQuerySet.filter_for_user has no dispatch for principal "
