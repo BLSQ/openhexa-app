@@ -11,7 +11,7 @@ from hexa.assistant.agents.generate_sql_agent import GenerateSqlAgent
 from hexa.assistant.instructions import InstructionSet
 
 if TYPE_CHECKING:
-    from hexa.assistant.model_builder import AiModelBuilder
+    from hexa.assistant.ai_models import AiModelBuilder
     from hexa.assistant.models import Conversation
 
 _AGENT_REGISTRY: dict[InstructionSet, type[BaseAgent]] = {

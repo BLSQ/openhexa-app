@@ -624,10 +624,11 @@ ASSISTANT_MANAGED = os.environ.get("ASSISTANT_MANAGED", "false") == "true"
 # europe-west1 keeps data in the EU for GDPR.
 VERTEX_PROJECT_ID = os.environ.get("VERTEX_PROJECT_ID")
 VERTEX_REGION = os.environ.get("VERTEX_REGION", "europe-west1")
-# Pins assistant agents to a model, as a JSON map of agents (see AgentKey enum)
-# to model, e.g. {"naming": "haiku", "generate_sql": "sonnet"}.
-# The overriding order is, if set: env > agent default > organization configured model
-ASSISTANT_AGENT_MODELS = os.environ.get("ASSISTANT_AGENT_MODELS", "")
+# Region for Vertex's OpenAI-compatible endpoint, most of them in global or us-* regions
+VERTEX_MAAS_REGION = os.environ.get("VERTEX_MAAS_REGION", VERTEX_REGION)
+# JSON map of agents to models, including a reserved "default" key.
+# Example: {"default": "google-cloud:gemini-3-pro-preview", "naming": "haiku"}
+ASSISTANT_MANAGED_AGENT_MODELS = os.environ.get("ASSISTANT_MANAGED_AGENT_MODELS", "")
 
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"
