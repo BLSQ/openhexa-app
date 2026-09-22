@@ -106,6 +106,14 @@ class VertexOpenAiTest(SimpleTestCase):
         )
 
     @override_settings(VERTEX_PROJECT_ID="test-project")
+    def test_a_multi_region_is_addressed_on_its_rep_host(self):
+        self.assertEqual(
+            self._base_url("eu"),
+            "https://aiplatform.eu.rep.googleapis.com/v1/projects/test-project"
+            "/locations/eu/endpoints/openapi/",
+        )
+
+    @override_settings(VERTEX_PROJECT_ID="test-project")
     def test_the_global_endpoint_drops_the_region_from_the_host(self):
         self.assertEqual(
             self._base_url("global"),

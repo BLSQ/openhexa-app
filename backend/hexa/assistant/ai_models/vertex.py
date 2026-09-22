@@ -57,11 +57,12 @@ def _vertex_openai(region: str) -> Provider:
     credentials = _google_credentials()
     if not credentials.valid:
         credentials.refresh(GoogleAuthRequest())
-    host = (
-        "aiplatform.googleapis.com"
-        if region == "global"
-        else f"{region}-aiplatform.googleapis.com"
-    )
+    if region == "global":
+        host = "aiplatform.googleapis.com"
+    elif region in {"us", "eu"}:  # multi-regions
+        host = f"aiplatform.{region}.rep.googleapis.com"
+    else:
+        host = f"{region}-aiplatform.googleapis.com"
     return OpenAIProvider(
         base_url=(
             f"https://{host}/v1/projects/{settings.VERTEX_PROJECT_ID}"
