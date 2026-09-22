@@ -1,3 +1,6 @@
+from datetime import date, datetime, timezone
+from decimal import Decimal
+
 from django.test import SimpleTestCase, override_settings
 
 from hexa.data_studio.cursor import InvalidCursor, decode_cursor, encode_cursor
@@ -127,13 +130,21 @@ class CursorTest(SimpleTestCase):
         cursor = encode_cursor(SQL, ORDER_BY, row)
         self.assertEqual(["x", 7], decode_cursor(cursor, SQL, ORDER_BY))
 
-    def test_carries_the_serialised_values_as_they_are(self):
-        # Rows reach this module already JSON-safe (dates and decimals as
-        # strings), and PostgreSQL coerces those literals back to the column type.
-        order_by = [OrderBy(column="born_on"), OrderBy(column="amount")]
-        row = {"born_on": "1990-01-02", "amount": "12.50"}
+    def test_carries_values_as_literals_postgresql_coerces_back(self):
+        # The row comes as fetched; a timestamp keeps its microseconds, which the
+        # JSON form of the result drops, and json/jsonb values travel as text.
+        order_by = [OrderBy(column=c) for c in ("born_on", "amount", "at", "doc")]
+        row = {
+            "born_on": date(1990, 1, 2),
+            "amount": Decimal("12.50"),
+            "at": datetime(2024, 1, 1, 10, 0, 0, 123456, tzinfo=timezone.utc),
+            "doc": {"id": 7},
+        }
         cursor = encode_cursor(SQL, order_by, row)
-        self.assertEqual(["1990-01-02", "12.50"], decode_cursor(cursor, SQL, order_by))
+        self.assertEqual(
+            ["1990-01-02", "12.50", "2024-01-01T10:00:00.123456+00:00", '{"id": 7}'],
+            decode_cursor(cursor, SQL, order_by),
+        )
 
     def test_is_opaque(self):
         cursor = encode_cursor(SQL, ORDER_BY, {"id": 7, "name": "x"})
@@ -165,7 +176,7 @@ class CursorTest(SimpleTestCase):
 
 
 class PageInfoTest(SimpleTestCase):
-    ROWS = [{"id": 1, "name": "a"}, {"id": 2, "name": "b"}]
+    LAST_ROW = {"id": 2, "name": "b"}
 
     def test_unwrapped_result(self):
         self.assertEqual(
@@ -177,13 +188,13 @@ class PageInfoTest(SimpleTestCase):
                 "total_items": None,
                 "total_pages": None,
             },
-            build_page_info(None, rows=self.ROWS, has_next=True, sql_text=SQL),
+            build_page_info(None, last_row=self.LAST_ROW, has_next=True, sql_text=SQL),
         )
 
     def test_first_page_serves_both_modes(self):
         info = build_page_info(
             OffsetPage(order_by=ORDER_BY, per_page=2),
-            rows=self.ROWS,
+            last_row=self.LAST_ROW,
             has_next=True,
             sql_text=SQL,
         )
@@ -194,7 +205,7 @@ class PageInfoTest(SimpleTestCase):
     def test_offset_page_with_total(self):
         info = build_page_info(
             OffsetPage(order_by=[], per_page=2, page=3, include_total=True),
-            rows=self.ROWS,
+            last_row=self.LAST_ROW,
             has_next=False,
             sql_text=SQL,
             total_items=5,
@@ -209,7 +220,7 @@ class PageInfoTest(SimpleTestCase):
     def test_cursor_page(self):
         info = build_page_info(
             CursorPage(order_by=ORDER_BY, per_page=2, keyset=["z", 0]),
-            rows=self.ROWS,
+            last_row=self.LAST_ROW,
             has_next=True,
             sql_text=SQL,
         )
@@ -219,10 +230,12 @@ class PageInfoTest(SimpleTestCase):
 
     def test_no_cursor_on_the_last_page_or_a_null_key(self):
         request = OffsetPage(order_by=ORDER_BY, per_page=2)
-        last = build_page_info(request, rows=self.ROWS, has_next=False, sql_text=SQL)
+        last = build_page_info(
+            request, last_row=self.LAST_ROW, has_next=False, sql_text=SQL
+        )
         self.assertIsNone(last["end_cursor"])
         nulled = build_page_info(
-            request, rows=[{"id": 1, "name": None}], has_next=True, sql_text=SQL
+            request, last_row={"id": 1, "name": None}, has_next=True, sql_text=SQL
         )
         self.assertTrue(nulled["has_next_page"])
         self.assertIsNone(nulled["end_cursor"])
