@@ -419,15 +419,17 @@ class BackfillSavedQueryRepositoriesTest(SavedQueryTestMixin, TestCase):
             [None], [q.repository for q in (first, second) if q.repository is None]
         )
 
-    def test_an_authorless_query_is_credited_to_the_instance(self):
+    def test_an_authorless_query_names_no_author(self):
         saved_query = self._query_without_history()
         SavedQuery.objects.filter(pk=saved_query.pk).update(created_by=None)
 
         call_command("backfill_saved_query_repositories")
 
-        self.assertEqual(
-            "OpenHEXA", self.client_mock.commit_files.call_args.kwargs["author_name"]
-        )
+        # Blank, so the git server credits the account it authenticates as rather than
+        # an identity this instance invented.
+        kwargs = self.client_mock.commit_files.call_args.kwargs
+        self.assertEqual("", kwargs["author_name"])
+        self.assertEqual("", kwargs["author_email"])
 
     def test_a_dry_run_writes_nothing(self):
         self._query_without_history()
