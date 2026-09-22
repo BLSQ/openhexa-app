@@ -1,13 +1,18 @@
+import hashlib
+
 # Forgejo rejects a repository name longer than this.
 REPO_NAME_MAX_LENGTH = 100
 
 
-def build_repo_name(readable: str, *, unique: str) -> str:
-    """Compose a repository name that fits Forgejo's limit and stays unique whatever it costs.
+def build_repo_name(readable: str) -> str:
+    """Make a name Forgejo accepts.
 
-    `readable` is for whoever browses the repository list and is cut to make room;
-    `unique` is kept whole, so two names cannot collide by having been cut at the same
-    point — which also makes the name safe to derive from an identifier a deleted row
-    releases, since the repository it left behind is named after a different one.
+    A repository is named after the slugs of the object. As we have a length
+    limit, we cut off part of it; and replace the last bits with a hash to ensure
+    no duplicated repo names.
     """
-    return f"{readable[: REPO_NAME_MAX_LENGTH - len(unique) - 1]}-{unique}"
+    if len(readable) <= REPO_NAME_MAX_LENGTH:
+        return readable
+
+    digest = hashlib.sha1(readable.encode()).hexdigest()[:8]
+    return f"{readable[: REPO_NAME_MAX_LENGTH - len(digest) - 1]}-{digest}"

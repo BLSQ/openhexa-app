@@ -19,6 +19,7 @@ from hexa.core.models.soft_delete import (
 from hexa.git.enums import FileEncoding
 from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 from hexa.git.mixins import GitOrg, GitRepoMixin
+from hexa.git.naming import build_repo_name
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
@@ -422,7 +423,9 @@ class GitWebapp(Webapp, GitRepoMixin):
                 created_by=created_by,
                 allowed_operations=allowed_operations or [],
             )
-            webapp.repository = f"{workspace.slug}-webapp-{webapp.slug}"
+            webapp.repository = build_repo_name(
+                f"{workspace.slug}-webapp-{webapp.slug}"
+            )
 
             initial_sha = webapp.create_repo(files=files, user=principal)
             webapp.published_commit = initial_sha
