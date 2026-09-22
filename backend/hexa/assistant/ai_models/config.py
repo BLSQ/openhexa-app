@@ -8,8 +8,10 @@ apply. A typo must never take the assistant down.
 import json
 import logging
 from dataclasses import replace
+from decimal import Decimal
 
 from django.conf import settings
+from genai_prices.types import ModelPrice
 
 from hexa.assistant.ai_models.ids import ModelId, ModelRequest
 from hexa.assistant.keys import AgentKey
@@ -78,3 +80,36 @@ def managed_agent_models() -> dict[str, ModelRequest]:
         except Exception as exc:
             logger.error("%s: ignoring entry %r -> %r (%s)", setting, key, value, exc)
     return overrides
+
+
+def _model_price(value: object) -> ModelPrice:
+    """`value` as a price in USD per million tokens, or raise.
+
+    An object of genai_prices price fields: {"input_mtok": 0.6, "output_mtok": 2.2}.
+    """
+    if not isinstance(value, dict):
+        raise TypeError("a price is an object of per-million-token fields")
+    unknown = set(value) - {
+        "input_mtok",
+        "output_mtok",
+        "cache_read_mtok",
+        "cache_write_mtok",
+    }
+    if unknown:
+        raise ValueError(f"unknown keys {sorted(unknown)}")
+    return ModelPrice(**{key: Decimal(str(amount)) for key, amount in value.items()})
+
+
+def model_prices() -> dict[str, ModelPrice]:
+    """Model name (lowercased, as genai_prices matches them) -> price set via env config.
+
+    For the models genai_prices does not know; where both know one, this wins.
+    """
+    prices: dict[str, ModelPrice] = {}
+    setting = "ASSISTANT_MODEL_PRICES"
+    for key, value in _json_object(settings.ASSISTANT_MODEL_PRICES, setting).items():
+        try:
+            prices[str(key).lower()] = _model_price(value)
+        except Exception as exc:
+            logger.error("%s: ignoring entry %r -> %r (%s)", setting, key, value, exc)
+    return prices

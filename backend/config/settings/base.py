@@ -629,6 +629,10 @@ VERTEX_REGION = os.environ.get("VERTEX_REGION", "europe-west1")
 # from another region than VERTEX_REGION names it: {"model": ..., "region": ...}.
 # Example: {"default": {"model": "google-cloud:gemini-3-pro-preview", "region": "eu"}, "naming": "haiku"}
 ASSISTANT_MANAGED_AGENT_MODELS = os.environ.get("ASSISTANT_MANAGED_AGENT_MODELS", "")
+# JSON map of model name to its price in USD per million tokens, for models genai_prices
+# does not know (Vertex Model Garden). Overrides genai_prices when both have a price.
+# Example: {"zai-org/glm-5.2-maas": {"input_mtok": 0.6, "output_mtok": 2.2}}
+ASSISTANT_MODEL_PRICES = os.environ.get("ASSISTANT_MODEL_PRICES", "")
 
 # Two Factor Authentication
 OTP_EMAIL_BODY_TEMPLATE_PATH = "user_management/token.txt"
