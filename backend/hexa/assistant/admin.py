@@ -1,6 +1,7 @@
 import json
 
 from django.contrib import admin
+from django.db.models import Count, Q
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.html import format_html, mark_safe
@@ -44,6 +45,28 @@ def _format_with_warning(value, formatter, tiers):
 
 def format_cost_with_warning(cost):
     return _format_with_warning(cost, format_cost, COST_TIERS)
+
+
+def _unpriced(label):
+    return format_html("<span style='{}'>{}</span>", WARNING_RED_STYLE, label)
+
+
+def format_message_cost(message: Message):
+    """A message that used tokens but costs nothing ran on a model we could not
+    price: a hole in the organization's budget rather than a free message.
+    """
+    if message.input_tokens is not None and not message.cost:
+        return _unpriced("unpriced")
+    return format_cost_with_warning(message.cost)
+
+
+def format_conversation_cost(conversation: Conversation):
+    """Relies on `unpriced_messages` annotated by `ConversationAdmin.get_queryset`."""
+    text = format_cost_with_warning(conversation.cost)
+    unpriced = getattr(conversation, "unpriced_messages", 0)
+    if unpriced:
+        return format_html("{} {}", text, _unpriced(f"{unpriced} unpriced"))
+    return text
 
 
 def format_token_count_with_warning(count):
@@ -93,7 +116,7 @@ class MessageInline(admin.StackedInline):
     display_output_tokens.short_description = "Output tokens"
 
     def display_cost(self, message: Message):
-        return format_cost_with_warning(message.cost)
+        return format_message_cost(message)
 
     display_cost.short_description = "Cost"
 
@@ -153,8 +176,21 @@ class ConversationAdmin(admin.ModelAdmin):
     inlines = [MessageInline]
     date_hierarchy = "updated_at"
 
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .annotate(
+                unpriced_messages=Count(
+                    "messages",
+                    filter=Q(messages__input_tokens__isnull=False)
+                    & (Q(messages__cost__isnull=True) | Q(messages__cost=0)),
+                )
+            )
+        )
+
     def display_cost(self, conversation: Conversation):
-        return format_cost_with_warning(conversation.cost)
+        return format_conversation_cost(conversation)
 
     display_cost.short_description = "Cost"
 
@@ -208,7 +244,7 @@ class MessageAdmin(admin.ModelAdmin):
     inlines = [ToolInvocationInline]
 
     def display_cost(self, message: Message):
-        return format_cost_with_warning(message.cost)
+        return format_message_cost(message)
 
     display_cost.short_description = "Cost"
 
