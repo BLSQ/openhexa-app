@@ -87,17 +87,9 @@ def resolve_database_execute_sql(
             "error_message": str(e),
         }
     except QueryCanceled as e:
-        return {
-            "success": False,
-            "errors": ["QUERY_TIMEOUT"],
-            "error_message": str(e).strip(),
-        }
+        return {"success": False, "errors": ["QUERY_TIMEOUT"], "error_message": str(e)}
     except Psycopg2Error as e:
-        return {
-            "success": False,
-            "errors": ["QUERY_ERROR"],
-            "error_message": str(e).strip(),
-        }
+        return {"success": False, "errors": ["QUERY_ERROR"], "error_message": str(e)}
 
 
 @saved_query_object.field("permissions")
