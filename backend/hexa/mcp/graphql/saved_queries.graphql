@@ -1,0 +1,80 @@
+query ListSavedQueries($workspaceSlug: String!, $query: String, $page: Int, $perPage: Int) {
+  workspace(slug: $workspaceSlug) {
+    savedQueries(query: $query, page: $page, perPage: $perPage) {
+      pageNumber
+      totalPages
+      totalItems
+      items {
+        id
+        slug
+        name
+        description
+        content
+        visibility
+        createdAt
+        updatedAt
+        createdBy {
+          displayName
+        }
+        permissions {
+          update
+          updateVisibility
+        }
+      }
+    }
+  }
+}
+
+mutation CreateSavedQuery($input: CreateSavedQueryInput!) {
+  createSavedQuery(input: $input) {
+    success
+    errors
+    savedQuery {
+      id
+      slug
+      name
+      description
+      content
+      visibility
+    }
+  }
+}
+
+mutation UpdateSavedQuery($input: UpdateSavedQueryInput!) {
+  updateSavedQuery(input: $input) {
+    success
+    errors
+    savedQuery {
+      id
+      slug
+      name
+      description
+      content
+      visibility
+    }
+  }
+}
+
+query GetSavedQuery($slug: String!) {
+  savedQueryBySlug(slug: $slug) {
+    id
+    slug
+    name
+    description
+    content
+    visibility
+    createdAt
+    updatedAt
+    createdBy {
+      displayName
+    }
+    workspace {
+      slug
+    }
+    permissions {
+      update
+      delete
+      updateVisibility
+    }
+  }
+}

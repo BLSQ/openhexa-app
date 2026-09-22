@@ -6,7 +6,7 @@ _OVERVIEW = {
         "OpenHEXA is a data integration platform. Users organize work in workspaces, "
         "which contain pipelines (automated data workflows), datasets (versioned data collections), "
         "files (in a workspace bucket), connections (external data sources like S3, PostgreSQL, DHIS2), "
-        "and static web apps."
+        "saved SQL queries (in the Data Studio) and static web apps."
     ),
     "common_workflows": [
         "Explore: list_workspaces -> list_pipelines / list_datasets / list_files",
@@ -14,6 +14,7 @@ _OVERVIEW = {
         "Inspect data: list_datasets -> get_dataset -> preview_dataset_file",
         "Use a template: list_pipeline_templates -> get_pipeline_template -> create_pipeline_from_template",
         "Create a web app: create_static_webapp with HTML/CSS/JS files",
+        "Save a SQL query: get_db_schema -> get_db_table_schema -> create_saved_query",
     ],
     "tips": [
         "Start with list_workspaces to discover available workspaces",
