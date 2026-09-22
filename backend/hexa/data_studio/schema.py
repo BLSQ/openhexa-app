@@ -14,7 +14,11 @@ from psycopg2 import Error as Psycopg2Error
 from psycopg2.errors import QueryCanceled
 
 from hexa.core.graphql import result_page
-from hexa.databases.query_text import MultipleStatementsError, OrderBy
+from hexa.databases.query_text import (
+    MultipleStatementsError,
+    OrderBy,
+    OrderByDirectionEnum,
+)
 from hexa.databases.schema import database_object
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
@@ -217,8 +221,12 @@ def _is_order_by_error(error: Psycopg2Error, order_by: list[OrderBy]) -> bool:
 def resolve_execute_saved_query(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     query_input = kwargs["input"]
+    # Clients may send an explicit null, which bypasses the schema default
     order_by = [
-        OrderBy(column=key["column"], direction=key["direction"])
+        OrderBy(
+            column=key["column"],
+            direction=key.get("direction") or OrderByDirectionEnum.ASC,
+        )
         for key in query_input.get("order_by") or []
     ]
 

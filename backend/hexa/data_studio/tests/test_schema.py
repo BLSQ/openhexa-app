@@ -969,6 +969,16 @@ class ExecuteSavedQueryPaginationTest(SavedQueryTestMixin, GraphQLTestCase):
         )
         self.assertEqual([2, 3, 1], [row["id"] for row in rows])
 
+    def test_a_null_direction_sorts_ascending(self):
+        saved_query = self.create_saved_query(content="SELECT id FROM demo")
+
+        result = self._execute(
+            saved_query.slug, orderBy=[{"column": "id", "direction": None}], perPage=2
+        )
+
+        self.assertTrue(result["success"], result)
+        self.assertEqual([{"id": 1}, {"id": 2}], result["rows"])
+
     def test_unknown_order_by_column(self):
         saved_query = self.create_saved_query(content="SELECT id FROM demo")
 
