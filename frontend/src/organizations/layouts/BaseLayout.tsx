@@ -1,6 +1,7 @@
 import React from "react";
 import clsx from "clsx";
 import Help from "workspaces/layouts/WorkspaceLayout/Help";
+import McpHeaderLink from "core/features/McpHeaderLink";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import { useTranslation } from "next-i18next";
 import useSidebarOpen from "core/hooks/useSidebarOpen";
@@ -43,8 +44,11 @@ const BaseLayout = ({
         >
           <div className="flex items-center h-full px-4 md:px-6 xl:px-10 2xl:px-12">
             <div className="flex-1 min-w-0">{header}</div>
-            <div className="shrink-0 w-100 max-w-md mx-auto p-2">
-              <SpotlightSearch organizationId={organizationId} />
+            <div className="flex shrink-0 items-center gap-2 w-120 max-w-lg mx-auto p-2">
+              <div className="min-w-0 flex-1">
+                <SpotlightSearch organizationId={organizationId} />
+              </div>
+              <McpHeaderLink />
             </div>
             <div className="flex-1 flex justify-end items-center gap-2">
               {headerActions}

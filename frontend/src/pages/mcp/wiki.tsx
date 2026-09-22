@@ -95,7 +95,7 @@ const McpWikiPage: NextPageWithLayout<McpWikiPageProps> = ({ mcpUrl }) => {
               {t("MCP Setup Guide")}
             </h1>
             <p className="text-sm text-gray-500">
-              {t("Connect your AI assistant to OpenHEXA")}
+              {t("Connect your tools to OpenHEXA over MCP")}
             </p>
           </div>
         </div>
