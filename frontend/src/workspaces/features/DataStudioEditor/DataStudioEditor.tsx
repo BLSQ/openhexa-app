@@ -388,7 +388,9 @@ DataStudioEditor.queries = {
             columns
             rows
             rowCount
-            truncated
+            pageInfo {
+              hasNextPage
+            }
             durationMs
           }
         }

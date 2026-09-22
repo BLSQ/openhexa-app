@@ -74,7 +74,7 @@ describe("useDataStudioQuery", () => {
   it("streams even a complete (not truncated) result from the server", async () => {
     mockState = withResult({
       success: true,
-      truncated: false,
+      pageInfo: { hasNextPage: false },
       columns: ["id"],
       rows: [{ id: 1 }],
     });
@@ -91,7 +91,7 @@ describe("useDataStudioQuery", () => {
   it("streams the last run query from the server (not the editor contents)", async () => {
     mockState = withResult({
       success: true,
-      truncated: true,
+      pageInfo: { hasNextPage: true },
       rows: [{ id: 1 }],
     });
     const { result } = renderHook(() => useDataStudioQuery("ws-1"));
@@ -111,7 +111,7 @@ describe("useDataStudioQuery", () => {
     (downloadQueryCsv as jest.Mock).mockRejectedValue(new Error("boom"));
     mockState = withResult({
       success: true,
-      truncated: true,
+      pageInfo: { hasNextPage: true },
       rows: [{ id: 1 }],
     });
     const { result } = renderHook(() => useDataStudioQuery("ws-1"));
@@ -134,7 +134,7 @@ describe("useDataStudioQuery", () => {
     );
     mockState = withResult({
       success: true,
-      truncated: true,
+      pageInfo: { hasNextPage: true },
       rows: [{ id: 1 }],
     });
     const { result } = renderHook(() => useDataStudioQuery("ws-1"));

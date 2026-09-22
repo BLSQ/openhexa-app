@@ -995,7 +995,16 @@ type Query {
 
 input ExecuteSavedQueryInput {
   slug: String!
-  maxRows: Int
+  orderBy: [QueryResultOrderBy!]
+  perPage: Int                 # defaults to 50
+  page: Int                    # 1-based
+  after: String                # a previous page's endCursor
+  includeTotalItems: Boolean
+}
+
+input QueryResultOrderBy {
+  column: String!
+  direction: OrderByDirection = ASC   # ASC | DESC
 }
 
 # Same payload as executeSQL.
@@ -1006,8 +1015,17 @@ type ExecuteSQLResult {
   columns: [String!]
   rows: [JSON!]
   rowCount: Int
-  truncated: Boolean
+  pageInfo: QueryResultPageInfo
   durationMs: Int
+}
+
+type QueryResultPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  pageNumber: Int      # null with a cursor
+  endCursor: String    # null on the last page
+  totalItems: Int      # only with includeTotalItems
+  totalPages: Int      # only with includeTotalItems
 }
 
 enum ExecuteSQLError {
@@ -1016,6 +1034,9 @@ enum ExecuteSQLError {
   QUERY_TIMEOUT
   QUERY_ERROR
   MULTIPLE_STATEMENTS
+  INVALID_ORDER_BY
+  INVALID_CURSOR
+  INVALID_PAGINATION
 }
 ```
 
@@ -1026,6 +1047,30 @@ enum ExecuteSQLError {
 Find the slug in the Data Studio: it is the last segment of the saved query's
 URL. Note that the query must be shared with the workspace, a private one fails
 with `SAVED_QUERY_NOT_FOUND`.
+
+#### Sorting and pagination
+
+A call with only a `slug` runs the query as saved and returns its first `perPage`
+rows; `pageInfo.hasNextPage` tells you whether the cap cut the result. To sort or
+page through the result, add `orderBy`, `page` or `after`: the query is then
+wrapped in a subquery, so its own `ORDER BY` is overridden and any `LIMIT` it
+carries still applies inside. Two modes are available, and `orderBy` alone
+returns the first page of both:
+
+- **By page number** (`page`): simple, and the only mode that can report a
+  total. Ask for one with `includeTotalItems: true`, at the cost of a second
+  scan of the query. Without an `orderBy` the order of rows is not guaranteed
+  from one page to the next.
+- **By cursor** (`after`): pass the previous page's `endCursor`, with the same
+  `orderBy`. Stable when rows are inserted or deleted between calls, and cheap
+  on deep pages. Sort on non-nullable columns and end `orderBy` with a unique
+  one; an `endCursor` of `null` alongside `hasNextPage: true` means the last
+  row's sort key holds a `NULL` and that ordering cannot be paged by cursor.
+
+`INVALID_ORDER_BY` is returned for a column the result does not have (or has
+twice: alias the columns in the saved query), `INVALID_CURSOR` for a cursor built
+for another query or ordering, and `INVALID_PAGINATION` for arguments that
+contradict each other, such as `page` together with `after`.
 
 ```html
 <!DOCTYPE html>
@@ -1065,10 +1110,11 @@ with `SAVED_QUERY_NOT_FOUND`.
       const { executeSavedQuery: result } = await gql(`
         query($input: ExecuteSavedQueryInput!) {
           executeSavedQuery(input: $input) {
-            success errors columns rows rowCount truncated
+            success errors columns rows rowCount
+            pageInfo { hasNextPage }
           }
         }
-      `, { input: { slug: SAVED_QUERY_SLUG, maxRows: 100 } });
+      `, { input: { slug: SAVED_QUERY_SLUG, perPage: 100 } });
 
       if (!result.success) {
         out.textContent = "Error: " + result.errors.join(", ");
@@ -1080,9 +1126,35 @@ with `SAVED_QUERY_NOT_FOUND`.
         `<tr>${result.columns.map(c => `<td>${row[c] ?? ""}</td>`).join("")}</tr>`
       ).join("");
       out.innerHTML = `<table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>` +
-        (result.truncated ? `<p>Showing the first ${result.rowCount} rows.</p>` : "");
+        (result.pageInfo.hasNextPage ? `<p>Showing the first ${result.rowCount} rows.</p>` : "");
     })();
   </script>
 </body>
 </html>
+```
+
+To page through a large result, keep the `orderBy` fixed and pass each page's
+`endCursor` back as `after`:
+
+```js
+async function* pages(slug, orderBy, perPage = 100) {
+  let after = null;
+  while (true) {
+    const { executeSavedQuery: result } = await gql(`
+      query($input: ExecuteSavedQueryInput!) {
+        executeSavedQuery(input: $input) {
+          success errors rows pageInfo { hasNextPage endCursor }
+        }
+      }
+    `, { input: { slug, orderBy, perPage, after } });
+    if (!result.success) throw new Error(result.errors.join(", "));
+    yield result.rows;
+    if (!result.pageInfo.hasNextPage) return;
+    after = result.pageInfo.endCursor;
+  }
+}
+
+for await (const rows of pages(SAVED_QUERY_SLUG, [{ column: "id" }])) {
+  console.log(rows.length, "rows");
+}
 ```
