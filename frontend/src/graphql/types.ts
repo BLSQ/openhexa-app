@@ -2409,6 +2409,18 @@ export type EnableTwoFactorResult = {
 
 /** Possible errors when executing a SQL query against the workspace database. */
 export enum ExecuteSqlError {
+  /** The `after` cursor is forged, or was built for another query or ordering. */
+  InvalidCursor = 'INVALID_CURSOR',
+  /**
+   * An `orderBy` entry names a column the result does not have, or one that is ambiguous,
+   * or a cursor was sent without the `orderBy` it was built for.
+   */
+  InvalidOrderBy = 'INVALID_ORDER_BY',
+  /**
+   * The pagination arguments contradict each other, are out of range, or were sent for a
+   * statement that cannot be paginated (e.g. an EXPLAIN).
+   */
+  InvalidPagination = 'INVALID_PAGINATION',
   /** More than one SQL statement was submitted; only a single statement is allowed. */
   MultipleStatements = 'MULTIPLE_STATEMENTS',
   /** The user is not allowed to run queries against this workspace database. */
@@ -2440,20 +2452,47 @@ export type ExecuteSqlResult = {
   errorMessage?: Maybe<Scalars['String']['output']>;
   /** The errors that occurred while executing the query. */
   errors: Array<ExecuteSqlError>;
+  /** Where this result sits in the full result set. Null only when the query failed. */
+  pageInfo?: Maybe<QueryResultPageInfo>;
   /** The number of rows returned by the query (after any truncation). */
   rowCount?: Maybe<Scalars['Int']['output']>;
   /** The rows returned by the query, each one a JSON object keyed by column name. */
   rows?: Maybe<Array<Scalars['JSON']['output']>>;
   /** Indicates whether the query executed successfully. */
   success: Scalars['Boolean']['output'];
-  /** Whether the result was truncated because it exceeded the maximum number of rows. */
+  /**
+   * Whether more rows exist than were returned. Same value as `pageInfo.hasNextPage`.
+   * @deprecated Use pageInfo.hasNextPage.
+   */
   truncated?: Maybe<Scalars['Boolean']['output']>;
 };
 
-/** Input for executing a saved query. */
+/**
+ * Input for executing a saved query.
+ *
+ * Three options:
+ * 1. Pagination with offset/limit by sending `page`
+ * 2. Pagination with cursor by sending `after`
+ * 3. No pagination: runs the query as saved, capped to `perPage` rows
+ *
+ * Note: `orderBy` alone returns the first page of both pagination methods.
+ */
 export type ExecuteSavedQueryInput = {
-  /** Caps the number of returned rows; defaults to 50 and is itself capped to a server-side hard limit. */
+  /** The `endCursor` of the previous page. Requires the `orderBy` it was built for. */
+  after?: InputMaybe<Scalars['String']['input']>;
+  /** Also count the total number of rows, not available with `after`. Note that this adds the cost of a second scan of the query. */
+  includeTotalItems?: InputMaybe<Scalars['Boolean']['input']>;
+  /** @deprecated Use perPage. */
   maxRows?: InputMaybe<Scalars['Int']['input']>;
+  /**
+   * Sorts the result, overriding any ORDER BY of the query itself. For cursor pagination,
+   * sort on non-nullable columns and end with a unique one.
+   */
+  orderBy?: InputMaybe<Array<QueryResultOrderBy>>;
+  /** The 1-based page to return. Cannot be combined with `after`. */
+  page?: InputMaybe<Scalars['Int']['input']>;
+  /** The number of rows per page; defaults to 50 and is capped to a server-side hard limit. Ignored for an EXPLAIN. */
+  perPage?: InputMaybe<Scalars['Int']['input']>;
   slug: Scalars['String']['input'];
 };
 
@@ -5234,6 +5273,25 @@ export type QueryWorkspacesArgs = {
   perPage?: InputMaybe<Scalars['Int']['input']>;
   query?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+/** One sort key of a query result. */
+export type QueryResultOrderBy = {
+  /** A column of the result, by name. */
+  column: Scalars['String']['input'];
+  direction?: InputMaybe<OrderByDirection>;
+};
+
+/** Describes the page a query result holds. */
+export type QueryResultPageInfo = {
+  __typename?: 'QueryResultPageInfo';
+  /** Pass as `after`, with the same `orderBy`, to get the next page. */
+  endCursor?: Maybe<Scalars['String']['output']>;
+  hasNextPage: Scalars['Boolean']['output'];
+  hasPreviousPage: Scalars['Boolean']['output'];
+  pageNumber?: Maybe<Scalars['Int']['output']>;
+  totalItems?: Maybe<Scalars['Int']['output']>;
+  totalPages?: Maybe<Scalars['Int']['output']>;
 };
 
 export enum ReadFileContentError {

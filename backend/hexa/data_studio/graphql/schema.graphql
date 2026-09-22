@@ -49,6 +49,23 @@ enum ExecuteSQLError {
   More than one SQL statement was submitted; only a single statement is allowed.
   """
   MULTIPLE_STATEMENTS
+
+  """
+  An `orderBy` entry names a column the result does not have, or one that is ambiguous,
+  or a cursor was sent without the `orderBy` it was built for.
+  """
+  INVALID_ORDER_BY
+
+  """
+  The `after` cursor is forged, or was built for another query or ordering.
+  """
+  INVALID_CURSOR
+
+  """
+  The pagination arguments contradict each other, are out of range, or were sent for a
+  statement that cannot be paginated (e.g. an EXPLAIN).
+  """
+  INVALID_PAGINATION
 }
 
 """
@@ -86,14 +103,41 @@ type ExecuteSQLResult {
   rowCount: Int
 
   """
-  Whether the result was truncated because it exceeded the maximum number of rows.
+  Whether more rows exist than were returned. Same value as `pageInfo.hasNextPage`.
   """
-  truncated: Boolean
+  truncated: Boolean @deprecated(reason: "Use pageInfo.hasNextPage.")
+
+  """
+  Where this result sits in the full result set. Null only when the query failed.
+  """
+  pageInfo: QueryResultPageInfo
 
   """
   The server-side execution time of the query, in milliseconds.
   """
   durationMs: Int
+}
+
+"""
+Describes the page a query result holds.
+"""
+type QueryResultPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  pageNumber: Int
+  "Pass as `after`, with the same `orderBy`, to get the next page."
+  endCursor: String
+  totalItems: Int
+  totalPages: Int
+}
+
+"""
+One sort key of a query result.
+"""
+input QueryResultOrderBy {
+  "A column of the result, by name."
+  column: String!
+  direction: OrderByDirection = ASC
 }
 
 """
@@ -178,11 +222,30 @@ extend type Query {
 
 """
 Input for executing a saved query.
+
+Three options:
+1. Pagination with offset/limit by sending `page`
+2. Pagination with cursor by sending `after`
+3. No pagination: runs the query as saved, capped to `perPage` rows
+
+Note: `orderBy` alone returns the first page of both pagination methods.
 """
 input ExecuteSavedQueryInput {
   slug: String!
-  "Caps the number of returned rows; defaults to 50 and is itself capped to a server-side hard limit."
-  maxRows: Int
+  """
+  Sorts the result, overriding any ORDER BY of the query itself. For cursor pagination,
+  sort on non-nullable columns and end with a unique one.
+  """
+  orderBy: [QueryResultOrderBy!]
+  "The number of rows per page; defaults to 50 and is capped to a server-side hard limit. Ignored for an EXPLAIN."
+  perPage: Int
+  "The 1-based page to return. Cannot be combined with `after`."
+  page: Int
+  "The `endCursor` of the previous page. Requires the `orderBy` it was built for."
+  after: String
+  "Also count the total number of rows, not available with `after`. Note that this adds the cost of a second scan of the query."
+  includeTotalItems: Boolean
+  maxRows: Int @deprecated(reason: "Use perPage.")
 }
 
 # executeSavedQuery returns the same payload as executeSQL -- the two differ in

@@ -14,12 +14,13 @@ from psycopg2 import Error as Psycopg2Error
 from psycopg2.errors import QueryCanceled
 
 from hexa.core.graphql import result_page
-from hexa.databases.query_text import MultipleStatementsError
+from hexa.databases.query_text import MultipleStatementsError, OrderBy
 from hexa.databases.schema import database_object
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
 from .models import QueryLog, SavedQuery
+from .pagination import PaginationError
 from .query_runner import run_and_log_database_query, run_saved_query
 
 data_studio_type_defs = load_schema_from_path(
@@ -206,10 +207,28 @@ def resolve_saved_query_by_slug(_, info, **kwargs):
         return None
 
 
+# What PostgreSQL raises when the wrapper's ORDER BY names a column that:
+# - the result does not have (42703: undefined_column);
+# - or has twice (42702: ambiguous_column)
+_ORDER_BY_SQL_ERROR_STATES = {"42703", "42702"}
+
+
+def _is_order_by_error(error: Psycopg2Error, order_by: list[OrderBy]) -> bool:
+    if error.pgcode in _ORDER_BY_SQL_ERROR_STATES:
+        message = error.diag.message_primary or ""
+        return any(f'"{key.column}"' in message for key in order_by)
+
+    return False
+
+
 @data_studio_queries.field("executeSavedQuery")
 def resolve_execute_saved_query(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     query_input = kwargs["input"]
+    order_by = [
+        OrderBy(column=key["column"], direction=key["direction"])
+        for key in query_input.get("order_by") or []
+    ]
 
     try:
         # No workspace to match on: the slug is unique across workspaces, and
@@ -217,7 +236,14 @@ def resolve_execute_saved_query(_, info, **kwargs):
         # its token was issued for.
         saved_query = _visible_saved_queries(request).get(slug=query_input["slug"])
         result = run_saved_query(
-            request, saved_query, max_rows=query_input.get("max_rows")
+            request,
+            saved_query,
+            order_by=order_by,
+            per_page=query_input.get("per_page"),
+            max_rows=query_input.get("max_rows"),
+            page=query_input.get("page"),
+            after=query_input.get("after"),
+            include_total_items=query_input.get("include_total_items"),
         )
         return {"success": True, "errors": [], **result}
     except SavedQuery.DoesNotExist:
@@ -233,18 +259,13 @@ def resolve_execute_saved_query(_, info, **kwargs):
             "errors": ["MULTIPLE_STATEMENTS"],
             "error_message": str(e),
         }
+    except PaginationError as e:
+        return {"success": False, "errors": [e.code], "error_message": str(e)}
     except QueryCanceled as e:
-        return {
-            "success": False,
-            "errors": ["QUERY_TIMEOUT"],
-            "error_message": str(e).strip(),
-        }
+        return {"success": False, "errors": ["QUERY_TIMEOUT"], "error_message": str(e)}
     except Psycopg2Error as e:
-        return {
-            "success": False,
-            "errors": ["QUERY_ERROR"],
-            "error_message": str(e).strip(),
-        }
+        code = "INVALID_ORDER_BY" if _is_order_by_error(e, order_by) else "QUERY_ERROR"
+        return {"success": False, "errors": [code], "error_message": str(e)}
 
 
 @data_studio_mutations.field("createSavedQuery")
