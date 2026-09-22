@@ -208,7 +208,10 @@ def run_and_log_database_query(
         max_rows=max_rows,
     )
     result["page_info"] = build_page_info(
-        None, rows=result["rows"], has_next=result["truncated"], sql_text=prepared.body
+        None,
+        last_row=result["last_row"],
+        has_next=result["truncated"],
+        sql_text=prepared.body,
     )
     return result
 
@@ -294,7 +297,7 @@ def run_saved_query(
     )
     result["page_info"] = build_page_info(
         page_request,
-        rows=result["rows"],
+        last_row=result["last_row"],
         has_next=result["truncated"],
         sql_text=prepared.body,
         total_items=total_items,

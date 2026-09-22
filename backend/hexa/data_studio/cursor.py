@@ -7,11 +7,14 @@ parameters render different text and invalidate the cursor for free. The page
 size is deliberately left out; changing it mid-walk is harmless for a keyset.
 """
 
+import datetime
 import hashlib
+import json
 
 from django.core import signing
 
 from hexa.databases.query_text import OrderBy
+from hexa.databases.utils import ResultJSONEncoder
 
 _SALT = "hexa.data_studio.cursor"
 
@@ -27,9 +30,27 @@ def _fingerprint(sql_text: str, order_by: list[OrderBy]) -> str:
     return digest.hexdigest()[:16]
 
 
+def _literal(value):
+    """``value`` as a literal PostgreSQL coerces back to the column type.
+
+    Built from the row as fetched rather than from its JSON form in the result:
+    ``DjangoJSONEncoder`` keeps only milliseconds of a timestamp, and a cursor cut
+    from that points between rows, repeating or skipping the ones in the gap.
+    json/jsonb values travel as text because psycopg2 adapts neither dict nor list.
+    """
+    if isinstance(value, (datetime.date, datetime.time)):
+        return value.isoformat()
+    if isinstance(value, (dict, list)):
+        return json.dumps(value)
+    if isinstance(value, (bool, int, float, str)):
+        return value
+    return ResultJSONEncoder().default(value)
+
+
 def encode_cursor(sql_text: str, order_by: list[OrderBy], last_row: dict) -> str | None:
     """The cursor pointing past ``last_row``; ``None`` when its sort key holds a NULL.
 
+    ``last_row`` is the row as psycopg2 fetched it, not its JSON form in the result.
     A keyset comparison never matches NULL, so such a row cannot be paged from.
     Reporting that as a missing cursor rather than an error keeps an offset-mode
     caller, who never uses the cursor, from being refused for it.
@@ -37,7 +58,10 @@ def encode_cursor(sql_text: str, order_by: list[OrderBy], last_row: dict) -> str
     values = [last_row.get(key.column) for key in order_by]
     if any(value is None for value in values):
         return None
-    payload = {"v": values, "f": _fingerprint(sql_text, order_by)}
+    payload = {
+        "v": [_literal(v) for v in values],
+        "f": _fingerprint(sql_text, order_by),
+    }
     return signing.dumps(payload, salt=_SALT, compress=True)
 
 

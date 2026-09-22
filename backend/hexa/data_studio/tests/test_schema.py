@@ -903,14 +903,21 @@ class ExecuteSavedQueryPaginationTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertEqual([{"id": 5}], pages[2]["rows"])
         self.assertIsNone(pages[2]["pageInfo"]["endCursor"])
 
-    def test_cursor_walk_over_date_and_numeric_keys(self):
-        # Cursor values travel as JSON strings; PostgreSQL has to coerce them back
-        # to the column type for the keyset comparison to mean anything.
+    def test_cursor_walk_over_typed_keys(self):
+        # Cursor values travel as literals PostgreSQL coerces back to the column
+        # type. The timestamps differ by microseconds only: a cursor cut from the
+        # JSON form of the row (milliseconds) would point before all of them.
         saved_query = self.create_saved_query(
             content="SELECT id, DATE '2024-01-01' + id AS day, "
-            "(id * 1.5)::numeric AS amount FROM demo"
+            "(id * 1.5)::numeric AS amount, "
+            "TIMESTAMP '2024-01-01 10:00:00.123450' + id * INTERVAL '1 microsecond'"
+            " AS at, "
+            "TIMESTAMPTZ '2024-01-01 10:00:00.123450+00'"
+            " + id * INTERVAL '1 microsecond' AS at_tz, "
+            "jsonb_build_object('id', id) AS doc "
+            "FROM demo"
         )
-        for column in ("day", "amount"):
+        for column in ("day", "amount", "at", "at_tz", "doc"):
             with self.subTest(column=column):
                 rows = self._walk(
                     saved_query.slug,
