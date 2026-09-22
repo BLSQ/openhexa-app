@@ -136,8 +136,16 @@ const DataStudioResults = ({
       "Only a single SQL statement can be run at a time.",
     ),
     // executeSavedQuery shares this enum and is the only field that can return
-    // this value; the editor submits SQL directly, so it never renders here.
+    // the values below; the editor submits SQL directly and asks for no
+    // sorting or pagination, so none of them ever renders here.
     [ExecuteSqlError.SavedQueryNotFound]: t("The saved query was not found."),
+    [ExecuteSqlError.InvalidOrderBy]: t(
+      "The result cannot be sorted as requested.",
+    ),
+    [ExecuteSqlError.InvalidCursor]: t("The pagination cursor is not valid."),
+    [ExecuteSqlError.InvalidPagination]: t(
+      "The pagination arguments are not valid.",
+    ),
   };
 
   const transportErrorLabels: Record<TransportErrorKind, string> = {
@@ -238,7 +246,7 @@ const DataStudioResults = ({
 
   return (
     <Block>
-      {result.truncated && (
+      {result.pageInfo?.hasNextPage && (
         <div className="shrink-0 border-b border-amber-200 bg-amber-50 px-3 py-1.5 text-xs text-amber-800">
           {t("Results truncated to the first {{count}} rows.", {
             count: rowCount,
