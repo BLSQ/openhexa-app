@@ -47,15 +47,17 @@ def _literal(value):
     return ResultJSONEncoder().default(value)
 
 
-def encode_cursor(sql_text: str, order_by: list[OrderBy], last_row: dict) -> str | None:
-    """The cursor pointing past ``last_row``; ``None`` when its sort key holds a NULL.
+def encode_cursor(sql_text: str, order_by: list[OrderBy], row: dict) -> str | None:
+    """The cursor pointing at ``row``; ``None`` when its sort key holds a NULL.
 
-    ``last_row`` is the row as psycopg2 fetched it, not its JSON form in the result.
-    A keyset comparison never matches NULL, so such a row cannot be paged from.
-    Reporting that as a missing cursor rather than an error keeps an offset-mode
-    caller, who never uses the cursor, from being refused for it.
+    The same cursor serves both directions: passed as ``after`` it yields the
+    rows past ``row``, as ``before`` the rows ahead of it. ``row`` is the row as
+    psycopg2 fetched it, not its JSON form in the result. A keyset comparison
+    never matches NULL, so such a row cannot be paged from. Reporting that as a
+    missing cursor rather than an error keeps an offset-mode caller, who never
+    uses the cursor, from being refused for it.
     """
-    values = [last_row.get(key.column) for key in order_by]
+    values = [row.get(key.column) for key in order_by]
     if any(value is None for value in values):
         return None
     payload = {

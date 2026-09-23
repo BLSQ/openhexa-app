@@ -691,7 +691,8 @@ input ExecuteSavedQueryInput {
   orderBy: [QueryResultOrderBy!]
   perPage: Int                 # 50 par défaut
   page: Int                    # à partir de 1
-  after: String                # le endCursor d'une page précédente
+  after: String                # le endCursor de la page précédente
+  before: String               # le startCursor de la page suivante
   includeTotalItems: Boolean
 }
 
@@ -716,6 +717,7 @@ type QueryResultPageInfo {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
   pageNumber: Int      # null avec un curseur
+  startCursor: String  # null sur la première page
   endCursor: String    # null sur la dernière page
   totalItems: Int      # seulement avec includeTotalItems
   totalPages: Int      # seulement avec includeTotalItems
@@ -746,8 +748,8 @@ une requête privée échoue avec `SAVED_QUERY_NOT_FOUND`.
 Un appel avec le seul `slug` exécute la requête telle qu'enregistrée et renvoie
 ses `perPage` premières lignes ; `pageInfo.hasNextPage` indique si le plafond a
 coupé le résultat. Pour trier ou parcourir le résultat page par page, ajoutez
-`orderBy`, `page` ou `after` : la requête est alors enveloppée dans une
-sous-requête, son propre `ORDER BY` est donc remplacé et un éventuel `LIMIT`
+`orderBy`, `page`, `after` ou `before` : la requête est alors enveloppée dans
+une sous-requête, son propre `ORDER BY` est donc remplacé et un éventuel `LIMIT`
 continue de s'appliquer à l'intérieur. Deux modes sont disponibles, et `orderBy`
 seul renvoie la première page des deux :
 
@@ -755,19 +757,20 @@ seul renvoie la première page des deux :
   total. Demandez-le avec `includeTotalItems: true`, au prix d'un second parcours
   de la requête. Sans `orderBy`, l'ordre des lignes n'est pas garanti d'une page
   à l'autre.
-- **Par curseur** (`after`) : passez le `endCursor` de la page précédente, avec
-  le même `orderBy`. Stable quand des lignes sont insérées ou supprimées entre
-  deux appels, et peu coûteux sur les pages profondes. Triez sur des colonnes non
-  nullables et terminez `orderBy` par une colonne unique ; un `endCursor` à
-  `null` accompagné de `hasNextPage: true` signifie que la clé de tri de la
-  dernière ligne contient un `NULL` et que ce tri ne peut pas être parcouru par
-  curseur.
+- **Par curseur** (`after` ou `before`) : passez le `endCursor` de la page
+  précédente dans `after` pour avancer, ou le `startCursor` de la page suivante
+  dans `before` pour reculer, toujours avec le même `orderBy`. Stable quand des
+  lignes sont insérées ou supprimées entre deux appels, et peu coûteux sur les
+  pages profondes. Triez sur des colonnes non nullables et terminez `orderBy`
+  par une colonne unique ; un curseur à `null` accompagné de `hasNextPage` (ou
+  `hasPreviousPage`) à `true` signifie que la clé de tri de la ligne contient un
+  `NULL` et que ce tri ne peut pas être parcouru par curseur à partir de là.
 
 `INVALID_ORDER_BY` est renvoyé pour une colonne absente du résultat (ou présente
 deux fois : donnez un alias aux colonnes dans la requête enregistrée),
 `INVALID_CURSOR` pour un curseur construit pour une autre requête ou un autre
 tri, et `INVALID_PAGINATION` pour des arguments contradictoires, comme `page`
-avec `after`.
+avec un curseur, ou `after` avec `before`.
 
 ```html
 <!DOCTYPE html>
@@ -855,3 +858,8 @@ for await (const rows of pages(SAVED_QUERY_SLUG, [{ column: "id" }])) {
   console.log(rows.length, "lignes");
 }
 ```
+
+Un tableau avec des boutons Précédent et Suivant conserve le `startCursor` et le
+`endCursor` de la page courante et renvoie l'un des deux : `{ before: startCursor }`
+pour la page précédente, `{ after: endCursor }` pour la suivante. Les deux valent
+`null` quand il n'y a pas de page dans cette direction.

@@ -2472,7 +2472,7 @@ export type ExecuteSqlResult = {
  *
  * Three options:
  * 1. Pagination with offset/limit by sending `page`
- * 2. Pagination with cursor by sending `after`
+ * 2. Pagination with cursor by sending `after` (forward) or `before` (backward)
  * 3. No pagination: runs the query as saved, capped to `perPage` rows
  *
  * Note: `orderBy` alone returns the first page of both pagination methods.
@@ -2480,7 +2480,9 @@ export type ExecuteSqlResult = {
 export type ExecuteSavedQueryInput = {
   /** The `endCursor` of the previous page. Requires the `orderBy` it was built for. */
   after?: InputMaybe<Scalars['String']['input']>;
-  /** Also count the total number of rows, not available with `after`. Note that this adds the cost of a second scan of the query. */
+  /** The `startCursor` of the next page: returns the `perPage` rows before it. Requires the `orderBy` it was built for and cannot be combined with `after`. */
+  before?: InputMaybe<Scalars['String']['input']>;
+  /** Also count the total number of rows, not available with a cursor. Note that this adds the cost of a second scan of the query. */
   includeTotalItems?: InputMaybe<Scalars['Boolean']['input']>;
   /** @deprecated Use perPage. */
   maxRows?: InputMaybe<Scalars['Int']['input']>;
@@ -2489,7 +2491,7 @@ export type ExecuteSavedQueryInput = {
    * sort on non-nullable columns and end with a unique one.
    */
   orderBy?: InputMaybe<Array<QueryResultOrderBy>>;
-  /** The 1-based page to return. Cannot be combined with `after`. */
+  /** The 1-based page to return. Cannot be combined with a cursor. */
   page?: InputMaybe<Scalars['Int']['input']>;
   /** The number of rows per page; defaults to 50 and is capped to a server-side hard limit. Ignored for an EXPLAIN. */
   perPage?: InputMaybe<Scalars['Int']['input']>;
@@ -5285,11 +5287,13 @@ export type QueryResultOrderBy = {
 /** Describes the page a query result holds. */
 export type QueryResultPageInfo = {
   __typename?: 'QueryResultPageInfo';
-  /** Pass as `after`, with the same `orderBy`, to get the next page. */
+  /** Pass as `after`, with the same `orderBy`, to get the next page. Null on the last page. */
   endCursor?: Maybe<Scalars['String']['output']>;
   hasNextPage: Scalars['Boolean']['output'];
   hasPreviousPage: Scalars['Boolean']['output'];
   pageNumber?: Maybe<Scalars['Int']['output']>;
+  /** Pass as `before`, with the same `orderBy`, to get the previous page. Null on the first page. */
+  startCursor?: Maybe<Scalars['String']['output']>;
   totalItems?: Maybe<Scalars['Int']['output']>;
   totalPages?: Maybe<Scalars['Int']['output']>;
 };

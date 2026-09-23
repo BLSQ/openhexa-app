@@ -804,7 +804,7 @@ class ExecuteSavedQueryPaginationTest(SavedQueryTestMixin, GraphQLTestCase):
             executeSavedQuery(input: $input) {
                 success errors errorMessage columns rows rowCount truncated
                 pageInfo {
-                    hasNextPage hasPreviousPage pageNumber endCursor
+                    hasNextPage hasPreviousPage pageNumber startCursor endCursor
                     totalItems totalPages
                 }
             }
@@ -853,6 +853,7 @@ class ExecuteSavedQueryPaginationTest(SavedQueryTestMixin, GraphQLTestCase):
                 "hasNextPage": True,
                 "hasPreviousPage": False,
                 "pageNumber": None,
+                "startCursor": None,
                 "endCursor": None,
                 "totalItems": None,
                 "totalPages": None,
@@ -902,6 +903,55 @@ class ExecuteSavedQueryPaginationTest(SavedQueryTestMixin, GraphQLTestCase):
         )
         self.assertEqual([{"id": 5}], pages[2]["rows"])
         self.assertIsNone(pages[2]["pageInfo"]["endCursor"])
+        self.assertIsNone(pages[0]["pageInfo"]["startCursor"])
+        self.assertIsNotNone(pages[1]["pageInfo"]["startCursor"])
+
+    def test_before_returns_the_previous_page(self):
+        saved_query = self.create_saved_query(content="SELECT id, label FROM demo")
+        order_by = [{"column": "label"}, {"column": "id"}]
+
+        first = self._execute(saved_query.slug, orderBy=order_by, perPage=2)
+        second = self._execute(
+            saved_query.slug,
+            orderBy=order_by,
+            perPage=2,
+            after=first["pageInfo"]["endCursor"],
+        )
+        back = self._execute(
+            saved_query.slug,
+            orderBy=order_by,
+            perPage=2,
+            before=second["pageInfo"]["startCursor"],
+        )
+
+        self.assertEqual(["apple", "avocado"], [row["label"] for row in first["rows"]])
+        self.assertEqual(["banana", "cherry"], [row["label"] for row in second["rows"]])
+        self.assertEqual(first["rows"], back["rows"])
+        self.assertEqual(
+            {
+                "hasNextPage": True,
+                "hasPreviousPage": False,
+                "pageNumber": None,
+                "startCursor": None,
+            },
+            {
+                key: back["pageInfo"][key]
+                for key in (
+                    "hasNextPage",
+                    "hasPreviousPage",
+                    "pageNumber",
+                    "startCursor",
+                )
+            },
+        )
+        # The cursors of a page reached backwards lead forward again.
+        forward_again = self._execute(
+            saved_query.slug,
+            orderBy=order_by,
+            perPage=2,
+            after=back["pageInfo"]["endCursor"],
+        )
+        self.assertEqual(second["rows"], forward_again["rows"])
 
     def test_cursor_walk_over_typed_keys(self):
         # Cursor values travel as literals PostgreSQL coerces back to the column
@@ -1051,11 +1101,27 @@ class ExecuteSavedQueryPaginationTest(SavedQueryTestMixin, GraphQLTestCase):
                 "INVALID_PAGINATION",
             ),
             (
+                "page with before",
+                {"orderBy": order_by, "page": 2, "before": cursor},
+                "INVALID_PAGINATION",
+            ),
+            (
+                "both cursors",
+                {"orderBy": order_by, "after": cursor, "before": cursor},
+                "INVALID_PAGINATION",
+            ),
+            (
                 "total with cursor",
                 {"orderBy": order_by, "after": cursor, "includeTotalItems": True},
                 "INVALID_PAGINATION",
             ),
+            (
+                "total with before",
+                {"orderBy": order_by, "before": cursor, "includeTotalItems": True},
+                "INVALID_PAGINATION",
+            ),
             ("cursor without order", {"after": cursor}, "INVALID_ORDER_BY"),
+            ("before without order", {"before": cursor}, "INVALID_ORDER_BY"),
         ]:
             with self.subTest(label):
                 result = self._execute(saved_query.slug, **payload)

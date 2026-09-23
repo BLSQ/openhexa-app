@@ -998,7 +998,8 @@ input ExecuteSavedQueryInput {
   orderBy: [QueryResultOrderBy!]
   perPage: Int                 # defaults to 50
   page: Int                    # 1-based
-  after: String                # a previous page's endCursor
+  after: String                # the previous page's endCursor
+  before: String               # the next page's startCursor
   includeTotalItems: Boolean
 }
 
@@ -1023,6 +1024,7 @@ type QueryResultPageInfo {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
   pageNumber: Int      # null with a cursor
+  startCursor: String  # null on the first page
   endCursor: String    # null on the last page
   totalItems: Int      # only with includeTotalItems
   totalPages: Int      # only with includeTotalItems
@@ -1052,25 +1054,28 @@ with `SAVED_QUERY_NOT_FOUND`.
 
 A call with only a `slug` runs the query as saved and returns its first `perPage`
 rows; `pageInfo.hasNextPage` tells you whether the cap cut the result. To sort or
-page through the result, add `orderBy`, `page` or `after`: the query is then
-wrapped in a subquery, so its own `ORDER BY` is overridden and any `LIMIT` it
-carries still applies inside. Two modes are available, and `orderBy` alone
-returns the first page of both:
+page through the result, add `orderBy`, `page`, `after` or `before`: the query
+is then wrapped in a subquery, so its own `ORDER BY` is overridden and any
+`LIMIT` it carries still applies inside. Two modes are available, and `orderBy`
+alone returns the first page of both:
 
 - **By page number** (`page`): simple, and the only mode that can report a
   total. Ask for one with `includeTotalItems: true`, at the cost of a second
   scan of the query. Without an `orderBy` the order of rows is not guaranteed
   from one page to the next.
-- **By cursor** (`after`): pass the previous page's `endCursor`, with the same
-  `orderBy`. Stable when rows are inserted or deleted between calls, and cheap
-  on deep pages. Sort on non-nullable columns and end `orderBy` with a unique
-  one; an `endCursor` of `null` alongside `hasNextPage: true` means the last
-  row's sort key holds a `NULL` and that ordering cannot be paged by cursor.
+- **By cursor** (`after` or `before`): pass the previous page's `endCursor` as
+  `after` to move forward, or the next page's `startCursor` as `before` to move
+  back, always with the same `orderBy`. Stable when rows are inserted or deleted
+  between calls, and cheap on deep pages. Sort on non-nullable columns and end
+  `orderBy` with a unique one; a cursor of `null` alongside `hasNextPage` (or
+  `hasPreviousPage`) `true` means the row's sort key holds a `NULL` and that
+  ordering cannot be paged by cursor from there.
 
 `INVALID_ORDER_BY` is returned for a column the result does not have (or has
 twice: alias the columns in the saved query), `INVALID_CURSOR` for a cursor built
 for another query or ordering, and `INVALID_PAGINATION` for arguments that
-contradict each other, such as `page` together with `after`.
+contradict each other, such as `page` together with a cursor, or `after` with
+`before`.
 
 ```html
 <!DOCTYPE html>
@@ -1158,3 +1163,8 @@ for await (const rows of pages(SAVED_QUERY_SLUG, [{ column: "id" }])) {
   console.log(rows.length, "rows");
 }
 ```
+
+A table with Previous and Next buttons keeps the current page's `startCursor`
+and `endCursor` and sends one of them back: `{ before: startCursor }` for the
+previous page, `{ after: endCursor }` for the next. Both are `null` when there
+is no page in that direction.

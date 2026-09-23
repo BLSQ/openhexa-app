@@ -243,6 +243,7 @@ def resolve_execute_saved_query(_, info, **kwargs):
             max_rows=query_input.get("max_rows"),
             page=query_input.get("page"),
             after=query_input.get("after"),
+            before=query_input.get("before"),
             include_total_items=query_input.get("include_total_items"),
         )
         return {"success": True, "errors": [], **result}

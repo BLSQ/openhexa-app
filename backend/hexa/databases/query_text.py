@@ -197,6 +197,15 @@ class OrderBy:
     column: str
     direction: OrderByDirectionEnum = OrderByDirectionEnum.ASC
 
+    def reversed(self) -> "OrderBy":
+        """The same key in the opposite direction, for a page read backwards."""
+        direction = (
+            OrderByDirectionEnum.DESC
+            if self.direction is OrderByDirectionEnum.ASC
+            else OrderByDirectionEnum.ASC
+        )
+        return replace(self, direction=direction)
+
     def _target(self) -> Composable:
         return sql.Identifier(self.column)
 
@@ -299,16 +308,22 @@ def paginate_cursor(
     order_by: list[OrderBy],
     per_page: int,
     keyset: list,
+    before: bool = False,
 ) -> PreparedQuery:
     """Wrap ``prepared`` as ``WHERE <keyset> ORDER BY ... LIMIT %s``.
 
-    ``keyset`` holds the previous page's last sort-key values, one per
-    ``order_by`` entry.
+    ``keyset`` holds the sort-key values of the row to page from, one per
+    ``order_by`` entry: the last row of the previous page, or with ``before``
+    the first row of the next one. A ``before`` page is read against the
+    reversed ordering, so that the LIMIT keeps the rows nearest the keyset; the
+    caller reverses the rows back into ``order_by`` order.
     """
     if not order_by:
         raise ValueError("A keyset needs an order_by.")
     if len(keyset) != len(order_by):
         raise ValueError("A keyset holds one value per order_by entry.")
+    if before:
+        order_by = [key.reversed() for key in order_by]
     predicate, _ = _keyset_predicate(order_by)
     predicate_params = []
     for index in range(len(order_by)):

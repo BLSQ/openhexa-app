@@ -36,6 +36,7 @@ class RunSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
                 "has_next_page": True,
                 "has_previous_page": False,
                 "page_number": None,
+                "start_cursor": None,
                 "end_cursor": None,
                 "total_items": None,
                 "total_pages": None,
@@ -75,6 +76,34 @@ class RunSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
                 break
             after = info["end_cursor"]
         self.assertEqual(["date", "cherry", "banana", "avocado", "apple"], seen)
+
+    def test_backward_cursor_walk_retraces_the_forward_walk(self):
+        content = "SELECT id, label FROM demo"
+        order_by = [
+            OrderBy(column="label", direction=OrderByDirectionEnum.DESC),
+            OrderBy(column="id"),
+        ]
+        forward = [self._run(content, order_by=order_by, per_page=2)]
+        while forward[-1]["page_info"]["has_next_page"]:
+            after = forward[-1]["page_info"]["end_cursor"]
+            forward.append(
+                self._run(content, order_by=order_by, per_page=2, after=after)
+            )
+        self.assertEqual(3, len(forward))
+
+        backward = [forward[-1]]
+        while backward[-1]["page_info"]["has_previous_page"]:
+            before = backward[-1]["page_info"]["start_cursor"]
+            result = self._run(content, order_by=order_by, per_page=2, before=before)
+            self.assertTrue(result["page_info"]["has_next_page"])
+            self.assertIsNone(result["page_info"]["page_number"])
+            backward.append(result)
+
+        self.assertEqual(
+            [page["rows"] for page in forward],
+            [page["rows"] for page in reversed(backward)],
+        )
+        self.assertIsNone(backward[-1]["page_info"]["start_cursor"])
 
     def test_a_literal_percent_survives_wrapping(self):
         content = "SELECT id FROM demo WHERE label LIKE '%an%' ORDER BY id"
