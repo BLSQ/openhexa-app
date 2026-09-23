@@ -2,12 +2,11 @@ from unittest.mock import MagicMock, patch
 
 from django.contrib.admin.utils import NestedObjects
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import ImproperlyConfigured, PermissionDenied
-from django.db import IntegrityError, connection, router, transaction
+from django.core.exceptions import PermissionDenied
+from django.db import IntegrityError, router, transaction
 
 from hexa.core.test import TestCase
 from hexa.data_studio.models import (
-    ON_AUTHOR_DELETED,
     QueryLog,
     SavedQuery,
     SavedQueryVisibility,
@@ -230,6 +229,16 @@ class SavedQueryModelTest(SavedQueryTestMixin, TestCase):
         query.refresh_from_db()
         self.assertEqual("my-query", query.slug)
 
+    def test_slug_of_a_deleted_query_is_not_handed_out_again(self):
+        # The repository holding a query's history is named after its slug, so the
+        # slug stays taken for as long as that history exists - which is forever.
+        first = self.create_saved_query(name="My query")
+        first.delete()
+
+        second = self.create_saved_query(name="My query")
+
+        self.assertNotEqual(first.slug, second.slug)
+
     def test_slug_falls_back_when_name_has_nothing_to_slugify(self):
         self.assertEqual("query", self.create_saved_query(name="!@#$%").slug)
 
@@ -283,6 +292,17 @@ class SavedQueryAuthorDeletionTest(SavedQueryTestMixin, TestCase):
         self.USER_VIEWER.delete()
 
         self.assertFalse(SavedQuery.objects.filter(id=query.id).exists())
+
+    def test_a_private_query_is_kept_soft_deleted(self):
+        # Its slug names the repository holding its history, so the row stays to hold
+        # the slug rather than releasing it to the next query of that name.
+        query = self._create_private(self.USER_VIEWER)
+
+        self.USER_VIEWER.delete()
+
+        query.refresh_from_db()
+        self.assertTrue(query.is_deleted)
+        self.assertIsNone(query.created_by)
 
     def test_shared_queries_outlive_their_author(self):
         # Colleagues, and the webapps and pipelines built on a shared query, must not
@@ -342,8 +362,10 @@ class SavedQueryAuthorDeletionTest(SavedQueryTestMixin, TestCase):
         )
 
     def test_workspace_deletion_removes_every_query(self):
-        # The workspace cascade is unconditional: a private query is not kept alive by
-        # the workspace it belonged to disappearing.
+        # The workspace cascade is unconditional - a private query is not kept alive by
+        # the workspace it belonged to disappearing - and it is a hard delete: the
+        # database cascade never reaches a model method. That releases the slugs, the
+        # one path that still does (see `hexa/git` README).
         private_query = self._create_private(
             self.USER_ADMIN, workspace=self.WORKSPACE_2
         )
@@ -354,7 +376,7 @@ class SavedQueryAuthorDeletionTest(SavedQueryTestMixin, TestCase):
         self.WORKSPACE_2.delete()
 
         self.assertFalse(
-            SavedQuery.objects.filter(
+            SavedQuery.all_objects.filter(
                 id__in=[private_query.id, shared_query.id]
             ).exists()
         )
@@ -367,41 +389,18 @@ class SavedQueryAuthorDeletionTest(SavedQueryTestMixin, TestCase):
         with self.assertRaises(IntegrityError), transaction.atomic():
             SavedQuery.objects.filter(id=query.id).update(created_by=None)
 
-    def test_the_backend_can_defer_constraint_checks(self):
-        # The one thing the PRIVATE policy assumes about the database. CASCADE nulls
-        # created_by before deleting on backends that cannot defer, which
-        # `data_studio_private_query_has_author` rejects - so on such a backend every
-        # test above fails with an IntegrityError. The replacement is the six-line
-        # handler documented in `saved_queries_on_author_deleted`: collect() with
-        # source_attr, and no field update.
-        self.assertTrue(connection.features.can_defer_constraint_checks)
-
-    def test_private_queries_are_listed_under_their_author_in_the_admin(self):
+    def test_the_admin_announces_what_the_deletion_touches(self):
         # The confirmation page is the whole UI of this feature - user deletion has no
-        # mutation - and it nests what will be deleted under what causes it. Django's
-        # CASCADE passes the collector the relation the queries hang from; an
-        # equivalent that omits it still deletes them, but lists them at the top level
-        # next to the user rather than underneath.
+        # mutation - so what the collector reports is what the person about to delete
+        # an account gets to see.
         query = self._create_private(self.USER_VIEWER)
         collector = NestedObjects(using=router.db_for_write(User))
 
         collector.collect([self.USER_VIEWER])
 
-        self.assertIn(query, collector.edges.get(self.USER_VIEWER, []))
-
-    def test_every_visibility_states_a_policy(self):
-        # A visibility added without deciding whether its queries outlive their author
-        # would otherwise be handled by whichever branch happens to catch it.
-        self.assertEqual(set(SavedQueryVisibility), set(ON_AUTHOR_DELETED))
-
-    def test_unknown_visibility_fails_loudly(self):
-        # Choices are not enforced by the database, so the guard - not the schema - is
-        # what stops an unmapped visibility from being silently kept or dropped.
-        query = self.create_saved_query(user=self.USER_VIEWER)
-        SavedQuery.objects.filter(id=query.id).update(visibility="TEAM")
-
-        with self.assertRaises(ImproperlyConfigured):
-            self.USER_VIEWER.delete()
+        self.assertIn(
+            query, collector.field_updates[(SavedQuery.created_by.field, None)][0]
+        )
 
 
 class SavedQueryMembershipRemovalTest(SavedQueryTestMixin, TestCase):

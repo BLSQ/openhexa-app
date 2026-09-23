@@ -1,15 +1,21 @@
 import logging
 import secrets
-from collections import defaultdict
 
 from django.contrib.auth.models import AnonymousUser
-from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+from django.core.exceptions import PermissionDenied
 from django.core.validators import validate_slug
 from django.db import models, transaction
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from slugify import slugify
 
 from hexa.core.models.base import Base, BaseQuerySet
+from hexa.core.models.soft_delete import (
+    DefaultSoftDeletedManager,
+    IncludeSoftDeletedManager,
+    SoftDeletedModel,
+    SoftDeleteQuerySet,
+)
 from hexa.databases.query_text import sanitize_sql
 from hexa.git.enums import FileEncoding
 from hexa.git.exceptions import GitError
@@ -36,7 +42,7 @@ def generate_saved_query_slug(name: str) -> str:
         # leaves nothing to build on, and an empty slug would make the query
         # unaddressable by the endpoints keyed on it.
         slug = slugify(name[: SLUG_MAX_LENGTH - len(suffix)] + suffix) or "query"
-        if not SavedQuery.objects.filter(slug=slug).exists():
+        if not SavedQuery.all_objects.filter(slug=slug).exists():
             return slug
         suffix = "-" + secrets.token_hex(3)
 
@@ -51,7 +57,7 @@ class SavedQueryVisibility(models.TextChoices):
     WORKSPACE = "WORKSPACE", _("Workspace")
 
 
-class SavedQueryQuerySet(BaseQuerySet):
+class SavedQueryQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
         accessible = models.Q(visibility=SavedQueryVisibility.WORKSPACE)
         # Service principals (pipeline runs, webapps) impersonate a workspace rather
@@ -68,7 +74,7 @@ class SavedQueryQuerySet(BaseQuerySet):
         )
 
 
-class SavedQueryManager(models.Manager):
+class SavedQueryManager(DefaultSoftDeletedManager.from_queryset(SavedQueryQuerySet)):
     def create_if_has_perm(
         self,
         principal: User,
@@ -102,83 +108,38 @@ class SavedQueryManager(models.Manager):
         return saved_query
 
 
-# Every SavedQueryVisibility must appear here: a new visibility has to state whether
-# its queries outlive their author, and there is no sane default to fall back on.
-ON_AUTHOR_DELETED = {
-    # Nothing but its author can reach a private query - no workspace or organization
-    # role grants access to one - so leaving it behind would keep a row alive that
-    # only a superuser could still see.
-    #
-    # CASCADE nulls the foreign key before deleting on backends that cannot defer
-    # constraint checks, which the check constraint below would reject. PostgreSQL
-    # defers, and it is the only backend OpenHEXA runs on - pinned by
-    # `test_the_backend_can_defer_constraint_checks`. On a backend that cannot, drop
-    # the delegation for a handler that collects without the field update:
-    #
-    #     collector.collect(sub_objs, source=field.remote_field.model,
-    #                       source_attr=field.name, nullable=field.null,
-    #                       fail_on_restricted=False)
-    #
-    # `source_attr` is what nests the queries under the user in the admin's delete
-    # confirmation, so it is not optional.
-    SavedQueryVisibility.PRIVATE: models.CASCADE,
-    # Shared queries outlive their author: colleagues, and the webapps and pipelines
-    # built on them, depend on queries they did not write.
-    SavedQueryVisibility.WORKSPACE: models.SET_NULL,
-}
-
-
-def _policy_for(visibility: str):
-    try:
-        return ON_AUTHOR_DELETED[visibility]
-    except KeyError:
-        raise ImproperlyConfigured(
-            f"No author-deletion policy for saved query visibility {visibility!r}:"
-            " every visibility must state whether its queries outlive their author."
-        ) from None
-
-
 def saved_queries_on_author_deleted(collector, field, sub_objs, using):
     """`on_delete` for SavedQuery.created_by: what a query survives depends on who could read it.
 
-    Nullifying every query would strand the private ones - rows no role can reach,
-    kept forever for nobody - while deleting every query would break shared ones their
-    workspace still relies on. The split mirrors the access rule in
-    SavedQueryQuerySet.filter_for_user: what survives is exactly what someone other
-    than the author could already read.
-
-    What this is *not* is an erasure policy: it removes queries that became
-    unreachable, not everything the account left behind. QueryLog keeps the text of
-    what that user ran (see QueryLog.user).
-
-    This is deliberately enforced at the model layer: user deletion happens through
-    the Django admin or a shell, so any policy living in a service or a mutation
-    would simply be bypassed.
+    Shared queries are maintained after removing their author, to be used by other
+    objects (e.g.: pipelines). Private queries do not, and get soft-deleted instead.
     """
-    by_policy = defaultdict(list)
-    for saved_query in sub_objs:
-        by_policy[_policy_for(saved_query.visibility)].append(saved_query)
+    # Private queries deleted first to avoid failing check constraint
+    collector.add_field_update(
+        SavedQuery._meta.get_field("deleted_at"),
+        timezone.now(),
+        sub_objs.filter(visibility=SavedQueryVisibility.PRIVATE),
+    )
+    models.SET_NULL(collector, field, sub_objs, using)
 
-    for policy, saved_queries in by_policy.items():
-        policy(collector, field, saved_queries, using)
+
+# Both updates done in database, so the collector doesn't need to fetch the queries first (`Collector.collect`).
+saved_queries_on_author_deleted.lazy_sub_objs = True
 
 
-class SavedQuery(Base, GitRepoMixin):
+class SavedQuery(Base, SoftDeletedModel, GitRepoMixin):
     """A SQL query saved by a user in the Data Studio.
 
-    A saved query belongs to a workspace, but its `visibility` decides who within
-    that workspace can reach it: WORKSPACE queries are shared with every member,
-    PRIVATE ones are the author's alone.
+    A saved query belongs to a workspace, but its `visibility` decides who can reach it:
+    WORKSPACE queries are shared with every member, PRIVATE ones are the author's alone.
 
-    Losing access and losing the author are two different things: a member removed
-    from the workspace stops seeing their private queries but gets them back if they
-    are added again, while deleting the account itself takes them for good (see
-    `saved_queries_on_author_deleted`).
+    A member removed from the workspace stops seeing their private queries, but gets
+    them back if they are added again. Deleting the account soft-deletes it (see
+    `saved_queries_on_author_deleted`), so its slug is not reusable.
 
-    Its history lives in a git repository of its own, one `query.sql` per query, as a
-    static web app's does. `content` stays the source of truth — running, exporting and
-    listing a query must not need the git server — so git is written through on save and
-    read only for history. See `hexa/git` README for the trade-offs.
+    Its history lives in a git repository, one `query.sql` per query. `content` stays
+    the source of truth — running, exporting and listing a query must not need the git server —
+    so git is written through on save and read only for history.
     """
 
     workspace = models.ForeignKey(
@@ -190,10 +151,6 @@ class SavedQuery(Base, GitRepoMixin):
         User, null=True, on_delete=saved_queries_on_author_deleted
     )
     name = models.CharField(max_length=255, null=False, blank=False)
-    # Stable public identifier: web apps address a saved query by slug, so it is
-    # generated once and left alone when the query is renamed. Unique across all
-    # workspaces, so the slug alone identifies a query and callers need not pair
-    # it with a workspace.
     slug = models.CharField(
         max_length=SLUG_MAX_LENGTH, editable=False, validators=[validate_slug]
     )
@@ -204,32 +161,28 @@ class SavedQuery(Base, GitRepoMixin):
         choices=SavedQueryVisibility.choices,
         default=SavedQueryVisibility.PRIVATE,
     )
-    # Nullable, unlike the mixin's: a saved query exists before its repository does
-    # (see hexa/git README), and null is what says so. Named when the repository is
-    # actually created, never before.
+    # Nullable, unlike the mixin's: a saved query exists before its repository does.
+    # Named when the repository is created, never before.
     repository = models.CharField(max_length=255, unique=True, null=True)
 
-    objects = SavedQueryManager.from_queryset(SavedQueryQuerySet)()
+    objects = SavedQueryManager()
+    all_objects = IncludeSoftDeletedManager.from_queryset(SavedQueryQuerySet)()
 
     class Meta:
         verbose_name_plural = "saved queries"
         ordering = ["-updated_at"]
         constraints = [
-            # An author-less private query is readable by nobody, so it can only be
-            # dead weight. `saved_queries_on_author_deleted` is what keeps that from
-            # happening; this makes any other code path that forgets an author fail
-            # where it writes instead of leaving an invisible row behind.
+            # A live private query with no author is not reachable, so they're deleted.
+            # This check ensures not leaving an author null without deleting the query.
             models.CheckConstraint(
                 condition=models.Q(created_by__isnull=False)
-                | ~models.Q(visibility=SavedQueryVisibility.PRIVATE),
+                | ~models.Q(visibility=SavedQueryVisibility.PRIVATE)
+                | models.Q(deleted_at__isnull=False),
                 name="data_studio_private_query_has_author",
             ),
             models.UniqueConstraint(fields=["slug"], name="unique_saved_query_slug"),
         ]
         indexes = [
-            # `id` mirrors the tiebreaker the listing resolver appends: without it
-            # Postgres can only presort on the leading column and still has to run an
-            # incremental sort on top of the index scan.
             models.Index(
                 fields=["workspace", "-updated_at", "id"],
                 name="data_studio_ws_updated_idx",
@@ -240,11 +193,7 @@ class SavedQuery(Base, GitRepoMixin):
             ),
             # Listings match `workspace = X AND (visibility = 'WORKSPACE' OR
             # created_by = me)`. Postgres serves that OR as a BitmapOr, so the two
-            # indexes above cover the shared branch and this one covers the author
-            # branch. `visibility` is deliberately not folded into their leading
-            # columns: a BitmapOr discards index ordering anyway, so it would buy
-            # nothing. If this ever shows up in profiling, the next step is partial
-            # indexes, not a reshuffle here.
+            # indexes above cover the shared branch and this one covers the author branch.
             models.Index(
                 fields=["workspace", "created_by", "-updated_at", "id"],
                 name="data_studio_ws_author_idx",
@@ -262,13 +211,9 @@ class SavedQuery(Base, GitRepoMixin):
         )
 
     def save(self, *args, **kwargs):
-        # SQL pasted from a chat, a document or a PDF carries blanks PostgreSQL
-        # rejects; cleaning them here means a query is stored runnable whichever
-        # way it was written (editor, admin, ...).
         self.content = sanitize_sql(self.content)
         # Generated here rather than in the manager (as pipelines do) because the
-        # Django admin creates saved queries through a plain form, which would
-        # otherwise hit the not-null column with nothing in it.
+        # Django admin can create saved queries through a plain form without slug.
         if not self.slug:
             self.slug = generate_saved_query_slug(self.name)
         return super().save(*args, **kwargs)
@@ -285,11 +230,7 @@ class SavedQuery(Base, GitRepoMixin):
         }
 
     def initialize_repository(self, user: User) -> str:
-        """Create the repository, its first commit holding the SQL as currently stored.
-
-        `repository` is assigned here and nowhere else, so the column stays null for
-        exactly as long as the repository it names does not exist. Callers persist it.
-        """
+        """Create the repository, its first commit holding the current SQL."""
         self.repository = self.default_repository_name()
         return self.create_repo(files=[self._query_file()], user=user)
 
@@ -306,8 +247,6 @@ class SavedQuery(Base, GitRepoMixin):
 
     @property
     def has_history(self) -> bool:
-        # Created by `initialize_repository`, which is also what names it: unlike a
-        # web app, a saved query exists before its repository does.
         return bool(self.repository)
 
     def get_version_content(self, ref: str = "main") -> str:
@@ -323,13 +262,10 @@ class SavedQuery(Base, GitRepoMixin):
             raise PermissionDenied
 
         content = kwargs.get("content")
-        # Compared as `save` stores it, which is also what the repository holds:
-        # otherwise a change only in characters sanitizing drops commits an empty diff.
         new_content = sanitize_sql(content) if content is not None else None
 
         with transaction.atomic():
-            # Locked, and re-read in full: `self` predates this transaction and `save`
-            # writes every column from it, so a partial edit would revert whatever
+            # Locked, and re-read in full: a partial edit would revert whatever
             # landed in between and record no version of the revert.
             self.refresh_from_db(
                 from_queryset=SavedQuery.objects.select_for_update().select_related(
@@ -337,8 +273,8 @@ class SavedQuery(Base, GitRepoMixin):
                 )
             )
 
-            # Gated separately, and only when it actually changes: a client echoing
-            # back the current visibility must not need the stricter permission.
+            # Gating visibility only when it changes: a client echoing
+            # back the current visibility does not need strict permission.
             visibility = kwargs.get("visibility")
             if visibility is not None and visibility != self.visibility:
                 if not principal.has_perm(
@@ -349,8 +285,8 @@ class SavedQuery(Base, GitRepoMixin):
 
             content_changed = new_content is not None and new_content != self.content
 
-            # Before the new content is applied, so a query older than versioning
-            # starts its history at the SQL it already had rather than at this edit.
+            # Initializing the repo before the new content is applied, so an old query
+            # starts its history with the SQL it already had rather than at this edit.
             if content_changed and not self.has_history:
                 self.initialize_repository(principal)
 
@@ -372,18 +308,17 @@ class SavedQuery(Base, GitRepoMixin):
             raise PermissionDenied
 
         with transaction.atomic():
-            result = self.delete()
+            self.delete()
             if self.has_history:
                 # Archived rather than deleted, and after the commit because it
                 # cannot be undone (see hexa/git README).
                 transaction.on_commit(self._archive_repo_quietly)
-            return result
 
     def _archive_repo_quietly(self):
         """Archive the repository, leaving it be if the git server refuses.
 
-        The query is already gone by the time this runs, so there is no one to report a
-        failure to; it leaves an unarchived repository behind (see `hexa/git` README).
+        The query is already deleted by the time this runs. If it fails
+        it leaves an unarchived repository we alert via Sentry.
         """
         try:
             self.archive_repo()

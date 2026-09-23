@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from hexa.core.admin import GlobalObjectsModelAdmin
+
 from .models import QueryLog, SavedQuery
 
 
@@ -20,7 +22,7 @@ class QueryLogAdmin(admin.ModelAdmin):
 
 
 @admin.register(SavedQuery)
-class SavedQueryAdmin(admin.ModelAdmin):
+class SavedQueryAdmin(GlobalObjectsModelAdmin):
     list_display = (
         "name",
         "slug",

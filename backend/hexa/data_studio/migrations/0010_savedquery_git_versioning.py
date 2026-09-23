@@ -16,4 +16,32 @@ class Migration(migrations.Migration):
             name="repository",
             field=models.CharField(max_length=255, null=True, unique=True),
         ),
+        # Deletion becomes soft, so that a deleted query keeps the slug its repository
+        # is named after (see `generate_saved_query_slug`).
+        migrations.AddField(
+            model_name="savedquery",
+            name="deleted_at",
+            field=models.DateTimeField(blank=True, default=None, null=True),
+        ),
+        migrations.AddField(
+            model_name="savedquery",
+            name="restored_at",
+            field=models.DateTimeField(blank=True, default=None, null=True),
+        ),
+        migrations.RemoveConstraint(
+            model_name="savedquery",
+            name="data_studio_private_query_has_author",
+        ),
+        migrations.AddConstraint(
+            model_name="savedquery",
+            constraint=models.CheckConstraint(
+                condition=models.Q(
+                    ("created_by__isnull", False),
+                    models.Q(("visibility", "PRIVATE"), _negated=True),
+                    ("deleted_at__isnull", False),
+                    _connector="OR",
+                ),
+                name="data_studio_private_query_has_author",
+            ),
+        ),
     ]

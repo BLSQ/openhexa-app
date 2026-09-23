@@ -39,23 +39,32 @@ that is true: `has_history` tests it, and the name is assigned only where the re
 is really created. Models created with their repository (`GitWebapp`) keep the mixin's
 non-null column and inherit `has_history` returning True.
 
-## Repository names are readable, but not only readable
+## A repository is named by slugs, and by nothing else
 
-Both models name a repository after the row's slug (`{workspace}-webapp-{slug}`,
-`{workspace}-query-{slug}`) so the repository list reads like the product does. A saved
-query appends a short tail of its primary key, through `naming.build_repo_name`, which is
-load-bearing twice over.
+Both models name a repository after the row's slug and its workspace's
+(`{workspace}-webapp-{slug}`, `{workspace}-query-{slug}`), and nothing is mixed in — no
+primary key, no counter. The name is therefore something whoever holds the two slugs can
+work out, in either direction: from a query in the UI to its history, and from a repository
+in the list back to the query it versions. That is worth more than it looks, and it is a
+one-way door — repositories cannot be renamed once clients hold their URLs.
 
-Hard-deleting a query releases its slug, so a name built from the slug alone would land the
-next query taking it on the repository the deleted one left behind — which `create_repo`
-reports as "already exists, reusing it" before committing the two histories into one. And
-Forgejo rejects a name over 100 characters, so the readable part has to be cut to fit;
-cutting it is only safe because what survives the cut is the part that distinguishes two
-names.
+What it costs is that **a slug can never be handed to a second row**. Otherwise the new row
+lands on the repository the old one left behind, which `create_repo` reports as "already
+exists, reusing it" before committing the two histories into one — and where the
+predecessor was someone's private query, its SQL becomes readable through the new query's
+history. So both models delete softly and generate slugs against `all_objects`: the
+deleted row stays, holding its slug. `SavedQuery` goes one step further than `GitWebapp`
+and keeps its slug unique *unconditionally* (`unique_saved_query_slug`), so the database
+refuses a reuse rather than trusting the generator to have checked.
 
-`GitWebapp` needs neither today — its slugs are soft-deleted rather than released, and
-`create_webapp_slug` checks `all_objects` — but its names can still overflow 100 characters,
-so it is the obvious next caller for `build_repo_name`.
+The one path that still releases a slug is a workspace deletion, which cascades in the
+database and reaches no model method. It bites only if that workspace's slug is reused by a
+later workspace *and* a same-named row is created in it; both models have it.
+
+Names still have to fit: Forgejo rejects anything over 100 characters. `naming.build_repo_name`
+leaves a name that fits untouched — the case that matters, and the common one — and cuts
+only an overlong one, replacing what it cut with a digest of the whole name so that two
+names cut at the same point cannot collide.
 
 ## Commit metadata outlives the account
 
@@ -74,8 +83,10 @@ would leave a read-only repository on a query that still exists, which no later 
 recover from. The price is that archiving is best-effort — a failure is logged and leaves
 the repository behind, the query being gone by then.
 
-Three paths leak that way: that logged failure, and cascading workspace or author
-deletions, which never reach `delete_if_has_perm` at all. **Nothing collects them.** The
+Two paths leak that way: that logged failure, and a cascading workspace deletion, which
+never reaches `delete_if_has_perm` at all. (An author deletion does not: it soft-deletes
+the private queries it takes, leaving their repositories live rather than orphaned.)
+**Nothing collects them.** The
 only backstop is organization deletion, which archives every repository in the org
 (`user_management.Organization._archive_git_org`). At current volumes this is accepted
 rather than solved; the fix is a sweep command diffing `list_org_repositories` against live

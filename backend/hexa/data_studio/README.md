@@ -40,6 +40,19 @@ after the commit and cannot fail the deletion.
 
 There is no published version; the current one runs, so no sha is stored.
 
+### Deleting a query keeps its slug
+
+Deletion is soft, and a deleted query's slug is never handed out again
+That is what lets the repository be named `{workspace}-query-{slug}`
+and nothing more — see `hexa/git`. The repository is archived, not deleted, so a query that
+is ever restored comes back to a read-only history until it is unarchived.
+
+Deleting the *author* of a private query deletes the query the same way, rather than
+dropping the row: `saved_queries_on_author_deleted` sets `deleted_at` and nulls
+`created_by`, in that order, because `data_studio_private_query_has_author` is a check
+constraint and PostgreSQL cannot defer one. The SQL stays in the soft-deleted row — as
+`QueryLog` and the git commits already keep it.
+
 ### Rolling versioning out over existing queries
 
 `repository` is null until the repository exists, and migration 0010 leaves it null for
