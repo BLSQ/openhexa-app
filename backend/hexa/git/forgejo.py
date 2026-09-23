@@ -28,8 +28,8 @@ def _commit_summary(payload: dict, *, fallback_id: str = "") -> dict:
 class ForgejoAPIError(GitError):
     """A Forgejo call came back with an unexpected status.
 
-    A `GitError`, so a caller needing only "git is not answering" need not import this
-    backend; the status code is here for the few that act on a specific one.
+    A `GitError`, in case a caller needs only "git is not answering";
+    the status code is here for whoever acts on a specific one.
     """
 
     def __init__(self, method: str, url: str, status_code: int, detail: str = ""):
