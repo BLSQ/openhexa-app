@@ -13,10 +13,17 @@ from hexa.assistant.keys import AgentKey
 from hexa.assistant.models import Conversation, ToolInvocation
 from hexa.git.enums import FileEncoding
 from hexa.mcp.tools.connections import list_connections
+from hexa.mcp.tools.databases import get_db_schema, get_db_table_schema
 from hexa.mcp.tools.datasets import get_dataset, list_datasets, preview_dataset_file
 from hexa.mcp.tools.files import list_files, read_file
 from hexa.mcp.tools.help import get_help_or_doc
 from hexa.mcp.tools.pipelines import get_pipeline, list_pipelines
+from hexa.mcp.tools.saved_queries import (
+    create_saved_query,
+    get_saved_query,
+    list_saved_queries,
+    update_saved_query,
+)
 from hexa.mcp.tools.webapps import get_static_webapp_file
 from hexa.webapps.models import GitWebapp
 
@@ -172,6 +179,12 @@ class EditWebappAgent(BaseAgent):
         read_file,
         list_pipelines,
         get_pipeline,
+        get_db_schema,
+        get_db_table_schema,
+        list_saved_queries,
+        get_saved_query,
+        create_saved_query,
+        update_saved_query,
         propose_webapp_version,
     ]
 
