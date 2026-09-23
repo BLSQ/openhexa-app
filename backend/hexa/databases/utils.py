@@ -125,10 +125,10 @@ def execute_database_query(
     single request cannot hold database resources for an extended period of time.
     At most ``max_rows`` rows are returned, capped to
     ``settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS``; ``truncated`` indicates whether
-    the result was capped. ``rows`` are JSON-safe; ``last_row`` is the last of them
-    as psycopg2 returned it (``None`` without rows), for the keyset cursor: the JSON
-    form keeps only milliseconds of a timestamp, which is not enough to point
-    between two rows.
+    the result was capped. ``rows`` are JSON-safe; ``first_row`` and ``last_row``
+    are the ends of the page as psycopg2 returned them (``None`` without rows), for
+    the keyset cursors: the JSON form keeps only milliseconds of a timestamp, which
+    is not enough to point between two rows.
 
     This function does no permission check and no audit logging: SQL executed on behalf
     of an API request must go through ``hexa.data_studio.query_runner``.
@@ -162,6 +162,7 @@ def execute_database_query(
             "row_count": len(rows),
             "truncated": truncated,
             "duration_ms": duration_ms,
+            "first_row": page[0] if page else None,
             "last_row": page[-1] if page else None,
         }
     finally:

@@ -30,6 +30,7 @@ def _request(**kwargs) -> PageRequest | None:
         "per_page": 10,
         "page": None,
         "after": None,
+        "before": None,
         "include_total_items": None,
     }
     arguments.update(kwargs)
@@ -84,26 +85,45 @@ class PageRequestTest(SimpleTestCase):
         cursor = encode_cursor(SQL, ORDER_BY, {"id": 7, "name": "x"})
         request = _request(order_by=ORDER_BY, after=cursor)
         self.assertIsInstance(request, CursorPage)
+        self.assertFalse(request.backward)
+        self.assertEqual(["x", 7], request.keyset)
+
+    def test_backward_cursor_mode(self):
+        cursor = encode_cursor(SQL, ORDER_BY, {"id": 7, "name": "x"})
+        request = _request(order_by=ORDER_BY, before=cursor)
+        self.assertIsInstance(request, CursorPage)
+        self.assertTrue(request.backward)
         self.assertEqual(["x", 7], request.keyset)
 
     def test_reports_a_bad_cursor_with_its_error_code(self):
-        with self.assertRaises(InvalidCursorRequest) as raised:
-            _request(order_by=ORDER_BY, after="not a cursor")
-        self.assertEqual("INVALID_CURSOR", raised.exception.code)
+        for argument in ("after", "before"):
+            with self.assertRaises(InvalidCursorRequest) as raised:
+                _request(order_by=ORDER_BY, **{argument: "not a cursor"})
+            self.assertEqual("INVALID_CURSOR", raised.exception.code)
 
-    def test_rejects_page_and_after_together(self):
+    def test_rejects_page_and_a_cursor_together(self):
+        cursor = encode_cursor(SQL, ORDER_BY, {"id": 7, "name": "x"})
+        for argument in ("after", "before"):
+            with self.assertRaises(InvalidPagination):
+                _request(order_by=ORDER_BY, page=2, **{argument: cursor})
+
+    def test_rejects_both_cursors_together(self):
         cursor = encode_cursor(SQL, ORDER_BY, {"id": 7, "name": "x"})
         with self.assertRaises(InvalidPagination):
-            _request(order_by=ORDER_BY, page=2, after=cursor)
+            _request(order_by=ORDER_BY, after=cursor, before=cursor)
 
     def test_rejects_a_cursor_without_order_by(self):
-        with self.assertRaises(InvalidOrderBy):
-            _request(after="anything")
+        for argument in ("after", "before"):
+            with self.assertRaises(InvalidOrderBy):
+                _request(**{argument: "anything"})
 
     def test_rejects_a_total_with_a_cursor(self):
         cursor = encode_cursor(SQL, ORDER_BY, {"id": 7, "name": "x"})
-        with self.assertRaises(InvalidPagination):
-            _request(order_by=ORDER_BY, after=cursor, include_total_items=True)
+        for argument in ("after", "before"):
+            with self.assertRaises(InvalidPagination):
+                _request(
+                    order_by=ORDER_BY, include_total_items=True, **{argument: cursor}
+                )
 
     def test_rejects_a_page_below_one(self):
         with self.assertRaises(InvalidPagination):
@@ -176,7 +196,21 @@ class CursorTest(SimpleTestCase):
 
 
 class PageInfoTest(SimpleTestCase):
+    FIRST_ROW = {"id": 1, "name": "a"}
     LAST_ROW = {"id": 2, "name": "b"}
+
+    def _info(self, request, **kwargs):
+        arguments = {
+            "first_row": self.FIRST_ROW,
+            "last_row": self.LAST_ROW,
+            "truncated": True,
+            "sql_text": SQL,
+        }
+        arguments.update(kwargs)
+        return build_page_info(request, **arguments)
+
+    def _keys(self, cursor):
+        return decode_cursor(cursor, SQL, ORDER_BY)
 
     def test_unwrapped_result(self):
         self.assertEqual(
@@ -184,58 +218,76 @@ class PageInfoTest(SimpleTestCase):
                 "has_next_page": True,
                 "has_previous_page": False,
                 "page_number": None,
+                "start_cursor": None,
                 "end_cursor": None,
                 "total_items": None,
                 "total_pages": None,
             },
-            build_page_info(None, last_row=self.LAST_ROW, has_next=True, sql_text=SQL),
+            self._info(None),
         )
 
     def test_first_page_serves_both_modes(self):
-        info = build_page_info(
-            OffsetPage(order_by=ORDER_BY, per_page=2),
-            last_row=self.LAST_ROW,
-            has_next=True,
-            sql_text=SQL,
-        )
+        info = self._info(OffsetPage(order_by=ORDER_BY, per_page=2))
         self.assertEqual(1, info["page_number"])
         self.assertFalse(info["has_previous_page"])
-        self.assertEqual(["b", 2], decode_cursor(info["end_cursor"], SQL, ORDER_BY))
+        self.assertIsNone(info["start_cursor"])
+        self.assertEqual(["b", 2], self._keys(info["end_cursor"]))
 
     def test_offset_page_with_total(self):
-        info = build_page_info(
+        info = self._info(
             OffsetPage(order_by=[], per_page=2, page=3, include_total=True),
-            last_row=self.LAST_ROW,
-            has_next=False,
-            sql_text=SQL,
+            truncated=False,
             total_items=5,
         )
         self.assertEqual(3, info["page_number"])
         self.assertTrue(info["has_previous_page"])
         self.assertFalse(info["has_next_page"])
+        # A page before, but no ordering to cut a cursor from.
+        self.assertIsNone(info["start_cursor"])
         self.assertIsNone(info["end_cursor"])
         self.assertEqual(5, info["total_items"])
         self.assertEqual(3, info["total_pages"])
 
+    def test_a_sorted_middle_page_cuts_both_cursors(self):
+        info = self._info(OffsetPage(order_by=ORDER_BY, per_page=2, page=2))
+        self.assertEqual(["a", 1], self._keys(info["start_cursor"]))
+        self.assertEqual(["b", 2], self._keys(info["end_cursor"]))
+
     def test_cursor_page(self):
-        info = build_page_info(
-            CursorPage(order_by=ORDER_BY, per_page=2, keyset=["z", 0]),
-            last_row=self.LAST_ROW,
-            has_next=True,
-            sql_text=SQL,
-        )
+        info = self._info(CursorPage(order_by=ORDER_BY, per_page=2, keyset=["z", 0]))
         self.assertIsNone(info["page_number"])
         self.assertTrue(info["has_previous_page"])
-        self.assertIsNotNone(info["end_cursor"])
+        self.assertTrue(info["has_next_page"])
+        self.assertEqual(["a", 1], self._keys(info["start_cursor"]))
+        self.assertEqual(["b", 2], self._keys(info["end_cursor"]))
 
-    def test_no_cursor_on_the_last_page_or_a_null_key(self):
+    def test_backward_cursor_page(self):
+        request = CursorPage(
+            order_by=ORDER_BY, per_page=2, keyset=["c", 3], backward=True
+        )
+
+        # The row the cursor came from lies ahead; ``truncated`` now means behind.
+        middle = self._info(request)
+        self.assertTrue(middle["has_next_page"])
+        self.assertTrue(middle["has_previous_page"])
+        self.assertEqual(["a", 1], self._keys(middle["start_cursor"]))
+        self.assertEqual(["b", 2], self._keys(middle["end_cursor"]))
+
+        first = self._info(request, truncated=False)
+        self.assertTrue(first["has_next_page"])
+        self.assertFalse(first["has_previous_page"])
+        self.assertIsNone(first["start_cursor"])
+        self.assertEqual(["b", 2], self._keys(first["end_cursor"]))
+
+    def test_no_cursor_beyond_the_ends_or_from_a_null_key(self):
         request = OffsetPage(order_by=ORDER_BY, per_page=2)
-        last = build_page_info(
-            request, last_row=self.LAST_ROW, has_next=False, sql_text=SQL
-        )
+        last = self._info(request, truncated=False)
         self.assertIsNone(last["end_cursor"])
-        nulled = build_page_info(
-            request, last_row={"id": 1, "name": None}, has_next=True, sql_text=SQL
-        )
+        nulled = self._info(request, last_row={"id": 1, "name": None})
         self.assertTrue(nulled["has_next_page"])
         self.assertIsNone(nulled["end_cursor"])
+
+        forward = CursorPage(order_by=ORDER_BY, per_page=2, keyset=["z", 0])
+        nulled_start = self._info(forward, first_row={"id": 1, "name": None})
+        self.assertTrue(nulled_start["has_previous_page"])
+        self.assertIsNone(nulled_start["start_cursor"])

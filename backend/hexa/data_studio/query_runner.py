@@ -209,8 +209,9 @@ def run_and_log_database_query(
     )
     result["page_info"] = build_page_info(
         None,
+        first_row=result["first_row"],
         last_row=result["last_row"],
-        has_next=result["truncated"],
+        truncated=result["truncated"],
         sql_text=prepared.body,
     )
     return result
@@ -230,8 +231,19 @@ def _wrap(prepared: PreparedQuery, page_request: PageRequest | None) -> Prepared
             order_by=page_request.order_by,
             per_page=page_request.per_page,
             keyset=page_request.keyset,
+            before=page_request.backward,
         )
     return prepared
+
+
+def _restore_order(result: dict, page_request: PageRequest | None) -> None:
+    """Put a backward page, read against the reversed ordering, back in order."""
+    if isinstance(page_request, CursorPage) and page_request.backward:
+        result["rows"].reverse()
+        result["first_row"], result["last_row"] = (
+            result["last_row"],
+            result["first_row"],
+        )
 
 
 def run_saved_query(
@@ -243,6 +255,7 @@ def run_saved_query(
     max_rows: int | None = None,
     page: int | None = None,
     after: str | None = None,
+    before: str | None = None,
     include_total_items: bool | None = None,
 ):
     """Execute a stored query on behalf of an API request, sorted and paged as asked.
@@ -253,9 +266,9 @@ def run_saved_query(
     the workspace-database one, so a web app cannot reach a database its viewer could
     not query directly.
 
-    A call with no ``order_by``, ``page`` or ``after`` runs the stored text unwrapped,
-    exactly as before those arguments existed. Otherwise the text is wrapped in a
-    sorted, limited subquery and ``page_info`` describes the page. Raises
+    A call with no ``order_by``, ``page``, ``after`` or ``before`` runs the stored
+    text unwrapped, exactly as before those arguments existed. Otherwise the text is
+    wrapped in a sorted, limited subquery and ``page_info`` describes the page. Raises
     ``PaginationError`` (logged as REJECTED) for arguments that cannot be honoured.
     """
     # Derived from the request rather than accepted as an argument: a client that
@@ -277,6 +290,7 @@ def run_saved_query(
             per_page=per_page,
             page=page,
             after=after,
+            before=before,
             include_total_items=include_total_items,
         )
     except (MultipleStatementsError, PaginationError) as e:
@@ -295,13 +309,18 @@ def run_saved_query(
         max_rows=per_page,
         count=prepared if wants_total else None,
     )
+    _restore_order(result, page_request)
     result["page_info"] = build_page_info(
         page_request,
+        first_row=result["first_row"],
         last_row=result["last_row"],
-        has_next=result["truncated"],
+        truncated=result["truncated"],
         sql_text=prepared.body,
         total_items=total_items,
     )
+    # The deprecated field promises the same value as hasNextPage; on a backward
+    # page the raw signal points the other way.
+    result["truncated"] = result["page_info"]["has_next_page"]
     return result
 
 
