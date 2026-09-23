@@ -309,6 +309,26 @@ class PaginateTest(unittest.TestCase):
             'ORDER BY "a" ASC, "b" DESC, "c" ASC LIMIT 11',
         )
 
+    def test_cursor_mode_backward_reads_against_the_reversed_ordering(self):
+        # Reversing both the comparison and the ORDER BY keeps the LIMIT on the
+        # rows nearest the keyset; the caller turns the page back around.
+        wrapped = paginate_cursor(
+            PreparedQuery.from_text("SELECT a, b FROM t"),
+            order_by=[
+                OrderBy(column="a"),
+                OrderBy(column="b", direction=OrderByDirectionEnum.DESC),
+            ],
+            per_page=10,
+            keyset=[1, "two"],
+            before=True,
+        )
+        self.assertEqual(
+            self._render(wrapped),
+            "SELECT * FROM (\nSELECT a, b FROM t\n) AS q WHERE "
+            '("a" < 1) OR ("a" = 1 AND "b" > \'two\') '
+            'ORDER BY "a" DESC, "b" ASC LIMIT 11',
+        )
+
     def test_cursor_mode_needs_an_order_by_and_one_value_per_key(self):
         prepared = PreparedQuery.from_text("SELECT a FROM t")
         with self.assertRaises(ValueError):
