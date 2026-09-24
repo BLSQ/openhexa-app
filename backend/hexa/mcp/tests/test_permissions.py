@@ -96,6 +96,21 @@ class ToolCallEnforcementTest(TestCase):
                 connection,
             )
 
+    def test_an_unknown_tool_is_a_different_failure_from_a_refused_one(self):
+        connection = self.connection(["list_files"])
+
+        with self.assertRaises(ValueError):
+            call_tool("list_flies", {}, self.USER, connection)
+
+    def test_a_successful_call_is_recorded(self):
+        connection = self.connection(["get_help_or_doc"])
+
+        call_tool("get_help_or_doc", {"topic": "pipelines"}, self.USER, connection)
+
+        call = ToolCall.objects.get(tool_name="get_help_or_doc")
+        self.assertTrue(call.success)
+        self.assertEqual("", call.error)
+
     def test_a_refusal_is_recorded(self):
         connection = self.connection([])
 
