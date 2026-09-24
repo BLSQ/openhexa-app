@@ -32,6 +32,7 @@ order (see `orchestrator.WORKSPACE_COPIERS`):
 | `connections` | `ConnectionsCopier`       | connections + secret fields                                                                        |
 | `pipelines`   | `PipelinesCopier`         | pipelines + versions<br>Notes: The `.ipynb` file is copied for notebook pipelines<br>Schedules are not copied to avoid them running immediately after a copy. This allows a human to validate the copied pipeline and schedule it manually.
 | `datasets`    | `DatasetsCopier`          | datasets **owned** by the workspace                                                                |
+| `webapps`     | `WebappsCopier`           | web apps + **every** version<br>Notes: A static web app's git history is replayed commit by commit (as diffs), then the target commit matching the source's *published* one is published — it is not necessarily the latest. Commit messages are kept when the target supports `updateWebapp(commitMessage)`; authors and dates are not (the first commit is always titled "Initial content").<br>Iframe web apps are recreated from their URL. Superset web apps are skipped with a warning: their Superset instance is server-specific.<br>Subdomains, custom domains, favorites and the "powered by" setting are not copied, so public web app URLs change.<br>Commits that saved unchanged content are recreated too, so the version count matches.<br>Files over 10 MiB can't be read through the API: such a web app fails and is left for manual handling. A replay that fails part-way (including timeouts) deletes the half-built target web app so a re-run retries it; if only the publishing step fails (or the published version is not on `main`), the web app is kept and reported as failed so the right version can be published by hand |
 
 Template pipelines are **not** in this registry — they are server-wide, not a
 per-workspace resource, so they are copied by a separate flow (see
@@ -107,7 +108,7 @@ Pass `--target-workspace-slug` to copy **into an existing workspace** instead:
 When `--target-workspace-slug` is set:
 
 - the workspace-metadata copier **skips creation** and leaves the existing workspace's metadata untouched;
-- every resource copier skips what already exists (pipelines by code, connections by slug, files by key + size), so only the missing pieces are filled in;
+- every resource copier skips what already exists (pipelines by code, connections by slug, files by key + size, web apps by name), so only the missing pieces are filled in;
 - if the slug does **not** exist on the target, the run exists early with a clear message;
 - `--target-organization` and `--target-workspace-name` are no longer required or taken into account.
 
