@@ -29,7 +29,7 @@ function AccountPage() {
   return (
     <Page title={t("Account")}>
       <BackLayout
-        className="gap-5 flex flex-col"
+        className="gap-5 flex flex-col pb-8"
         title={
           <div className={"flex justify-between items-center gap-3"}>
             {t("Your account")}
