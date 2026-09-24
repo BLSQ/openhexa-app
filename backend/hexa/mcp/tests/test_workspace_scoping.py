@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
@@ -7,7 +8,8 @@ from oauth2_provider.models import Application
 from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
 from hexa.mcp.models import MCPConnection, MCPUser
 from hexa.mcp.tests.testutils import all_tool_names
-from hexa.mcp.tools.datasets import preview_dataset_file
+from hexa.mcp.tools.datasets import create_dataset, preview_dataset_file
+from hexa.mcp.tools.files import list_files, write_file
 from hexa.mcp.tools.pipelines import get_pipeline_run, run_pipeline, update_pipeline
 from hexa.mcp.tools.templates import (
     create_pipeline_from_template,
@@ -15,6 +17,7 @@ from hexa.mcp.tools.templates import (
     list_pipeline_templates,
 )
 from hexa.mcp.tools.webapps import edit_static_webapp_file, update_static_webapp
+from hexa.mcp.tools.workspaces import update_workspace
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.pipelines.models import (
     Pipeline,
@@ -163,6 +166,33 @@ class OpaqueIdScopingTest(MCPTestCase):
         self.OTHER_PIPELINE.refresh_from_db()
         self.assertEqual("Other Pipeline", self.OTHER_PIPELINE.name)
 
+    def test_a_write_to_an_ungranted_workspace_is_refused_by_slug_too(self):
+        before = Dataset.objects.filter(workspace=self.UNGRANTED_WORKSPACE).count()
+
+        result = create_dataset(
+            user=self.mcp_user,
+            workspace_slug=self.UNGRANTED_WORKSPACE.slug,
+            name="Sneaky",
+            files_json=json.dumps(
+                [{"uri": "a.csv", "contentType": "text/csv", "content": "a,b"}]
+            ),
+        )
+
+        self.assertFalse(result.get("success", False))
+        self.assertEqual(
+            before, Dataset.objects.filter(workspace=self.UNGRANTED_WORKSPACE).count()
+        )
+
+    def test_a_file_write_to_an_ungranted_workspace_is_refused(self):
+        result = write_file(
+            user=self.mcp_user,
+            workspace_slug=self.UNGRANTED_WORKSPACE.slug,
+            file_path="sneaky.txt",
+            content="hello",
+        )
+
+        self.assertFalse(result["success"])
+
     def test_a_dataset_file_in_an_ungranted_workspace_is_invisible(self):
         result = preview_dataset_file(
             user=self.mcp_user, file_id=str(self.OTHER_DATASET_FILE.id)
@@ -227,3 +257,71 @@ class OpaqueIdScopingTest(MCPTestCase):
         )
 
         self.assertEqual("Other Template", result["name"])
+
+
+class GrantIsACeilingTest(MCPTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.APPLICATION = Application.objects.create(
+            name="Claude",
+            client_id="ceiling-test-client",
+            client_type=Application.CLIENT_PUBLIC,
+            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+        )
+        cls.GRANT = MCPConnection.objects.create(
+            user=cls.USER_VIEWER,
+            application=cls.APPLICATION,
+            tools=all_tool_names(),
+        )
+        cls.GRANT.workspaces.set([cls.WORKSPACE])
+
+    def setUp(self):
+        super().setUp()
+        self.viewer = MCPUser.from_user(self.USER_VIEWER, self.GRANT)
+
+    def test_the_viewer_can_still_read(self):
+        result = list_files(user=self.viewer, workspace_slug=self.WORKSPACE.slug)
+
+        self.assertIn("items", result)
+
+    def test_granting_write_file_does_not_let_a_viewer_write(self):
+        result = write_file(
+            user=self.viewer,
+            workspace_slug=self.WORKSPACE.slug,
+            file_path="sneaky.txt",
+            content="hello",
+        )
+
+        self.assertFalse(result["success"])
+
+    def test_granting_update_workspace_does_not_let_a_viewer_rename_it(self):
+        result = update_workspace(
+            user=self.viewer, slug=self.WORKSPACE.slug, name="Renamed"
+        )
+
+        self.assertFalse(result.get("success", False))
+        self.WORKSPACE.refresh_from_db()
+        self.assertEqual("Test Workspace", self.WORKSPACE.name)
+
+    def test_granting_create_dataset_does_not_let_a_viewer_create_one(self):
+        before = Dataset.objects.filter(workspace=self.WORKSPACE).count()
+
+        result = create_dataset(
+            user=self.viewer,
+            workspace_slug=self.WORKSPACE.slug,
+            name="Sneaky Dataset",
+            files_json=json.dumps(
+                [{"uri": "a.csv", "contentType": "text/csv", "content": "a,b"}]
+            ),
+        )
+
+        self.assertFalse(result.get("success", False))
+        self.assertEqual(
+            before, Dataset.objects.filter(workspace=self.WORKSPACE).count()
+        )
+
+    def test_the_grant_does_not_change_what_the_role_already_allows(self):
+        result = run_pipeline(user=self.viewer, pipeline_id=str(self.PIPELINE.id))
+
+        self.assertTrue(result["success"], result.get("errors"))
