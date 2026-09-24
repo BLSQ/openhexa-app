@@ -89,7 +89,7 @@ class DatasetManager(models.Manager):
         description: str,
         files: list[dict] | None = None,
     ):
-        if isinstance(principal, ServicePrincipal):
+        if isinstance(principal, ServicePrincipal) and not isinstance(principal, User):
             if workspace.pk not in principal.workspace_ids:
                 raise PermissionDenied
         elif not principal.has_perm("datasets.create_dataset", workspace):
@@ -222,7 +222,7 @@ class DatasetVersionManager(models.Manager):
         changelog: str,
         files: list[dict] | None = None,
     ):
-        if isinstance(principal, ServicePrincipal):
+        if isinstance(principal, ServicePrincipal) and not isinstance(principal, User):
             if dataset.workspace_id not in principal.workspace_ids:
                 raise PermissionDenied
         elif not principal.has_perm("datasets.create_dataset_version", dataset):
@@ -357,7 +357,7 @@ class DatasetVersionFileManager(models.Manager):
         uri: str,
         content_type: str,
     ):
-        if isinstance(principal, ServicePrincipal):
+        if isinstance(principal, ServicePrincipal) and not isinstance(principal, User):
             if dataset_version.dataset.workspace_id not in principal.workspace_ids:
                 raise PermissionDenied
         elif not principal.has_perm(
