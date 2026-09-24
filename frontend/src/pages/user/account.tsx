@@ -15,6 +15,7 @@ import AccountAccessTokens from "identity/features/AccountAccessTokens";
 import AccountProfileSettings from "identity/features/AccountProfileSettings";
 import AccountSecuritySettings from "identity/features/AccountSecuritySettings";
 import PendingWorkspaceInvitations from "identity/features/PendingWorkspaceInvitations";
+import AccountMCPConnections from "mcp/features/AccountMCPConnections";
 
 function AccountPage() {
   const { t } = useTranslation();
@@ -51,6 +52,8 @@ function AccountPage() {
 
         <AccountAccessTokens />
 
+        <AccountMCPConnections />
+
         <PendingWorkspaceInvitations
           invitations={data.pendingWorkspaceInvitations}
         />
@@ -73,6 +76,7 @@ export const getServerSideProps = createGetServerSideProps({
       };
     }
     await AccountAccessTokens.prefetch(client);
+    await AccountMCPConnections.prefetch(client);
   },
 });
 
