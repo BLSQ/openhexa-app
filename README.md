@@ -428,6 +428,8 @@ That database is a tmpfs: it lives in RAM and is discarded with the container, s
 touches your local `pgdata` volume. The `-p openhexa-test` project name keeps it in its own
 set of containers — without it, compose recreates your development `db` container with these
 settings, which makes your local database unavailable until you bring the stack back up.
+The Makefile wraps this: `make tb` runs the suite this way, `make tb ARGS="--exclude-tag=external"`
+forwards arguments, and `make tbclean` removes the throwaway database. Run `make` to list all targets.
 
 Some tests call external resources (such as the public DHIS2 API) and will slow down the suite. You can exclude them
 when running the test suite for unrelated parts of the codebase:
