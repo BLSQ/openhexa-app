@@ -50,7 +50,14 @@ app.prepare().then(async () => {
 
         // Let Next.js handle GET requests to MCP pages while still proxying
         // API sub-routes (e.g. /mcp/tools.json) and POST/DELETE to the backend.
-        const MCP_PAGES = ["/mcp", "/mcp/", "/mcp/wiki", "/mcp/wiki/"];
+        const MCP_PAGES = [
+          "/mcp",
+          "/mcp/",
+          "/mcp/wiki",
+          "/mcp/wiki/",
+          "/mcp/authorize",
+          "/mcp/authorize/",
+        ];
         if (req.method === "GET" && MCP_PAGES.includes(realPath)) {
           return false;
         }
