@@ -794,6 +794,7 @@ if GIT_PUBLIC_URL and GIT_PUBLIC_URL not in CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS.append(GIT_PUBLIC_URL)
 
 # OAuth2 Provider (django-oauth-toolkit)
+OAUTH2_PROVIDER_APPLICATION_MODEL = "oauth2_provider.Application"
 OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": True,
     "SCOPES": {
