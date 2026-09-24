@@ -1,0 +1,58 @@
+fragment MCPConnection_connection on MCPConnection {
+  id
+  name
+  createdAt
+  lastUsedAt
+  workspaces {
+    slug
+    name
+  }
+  tools
+}
+
+query AccountMCPConnections($page: Int, $perPage: Int) {
+  mcpConnections {
+    ...MCPConnection_connection
+  }
+  mcpTools {
+    name
+    description
+    resource
+    write
+  }
+  workspaces(page: $page, perPage: $perPage) {
+    totalItems
+    items {
+      slug
+      name
+      countries {
+        code
+      }
+    }
+  }
+}
+
+query MCPAuthorizationRequest($clientId: String!, $page: Int, $perPage: Int) {
+  mcpAuthorizationRequest(clientId: $clientId) {
+    clientName
+    connection {
+      ...MCPConnection_connection
+    }
+    tools {
+      name
+      description
+      resource
+      write
+    }
+  }
+  workspaces(page: $page, perPage: $perPage) {
+    totalItems
+    items {
+      slug
+      name
+      countries {
+        code
+      }
+    }
+  }
+}
