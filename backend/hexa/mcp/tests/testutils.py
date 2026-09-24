@@ -9,7 +9,7 @@ from django.utils import timezone
 from hexa.core.test import TestCase
 from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
 from hexa.files import storage
-from hexa.mcp.protocol import get_tools_catalogue
+from hexa.mcp.protocol import get_tools_catalogue, get_tools_list
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.pipelines.models import (
     Pipeline,
@@ -32,6 +32,10 @@ from hexa.workspaces.tests.testutils import create_workspace
 def all_tool_names() -> list[str]:
     """Every tool the server currently exposes, for a grant that holds them all."""
     return [tool["name"] for tool in get_tools_catalogue()]
+
+
+def advertised_tool_names(connection=None) -> set[str]:
+    return {tool["name"] for tool in get_tools_list(connection)}
 
 
 # MCP tools execute GraphQL queries internally rather than through HTTP,
