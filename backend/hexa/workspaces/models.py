@@ -222,12 +222,12 @@ class WorkspaceQuerySet(BaseQuerySet):
             return self.none()
 
         if user.is_superuser:
-            return self.filter(slug__in=workspace_slugs)
+            return self.filter(slug__in=workspace_slugs).order_by("name")
 
         return self.filter(
             Q(workspacemembership__user=user, slug__in=workspace_slugs),
             Q(archived=False),
-        )
+        ).order_by("name")
 
 
 class Workspace(Base):
