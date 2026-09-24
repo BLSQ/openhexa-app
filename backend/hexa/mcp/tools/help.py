@@ -25,7 +25,7 @@ _OVERVIEW = {
 }
 
 
-@tool
+@tool(ungated=True)
 def get_help_or_doc(user, topic: str = "", reason: str = "") -> dict:
     """Call this tool when you are stuck, unsure what to do next, or need guidance on OpenHEXA.
 
