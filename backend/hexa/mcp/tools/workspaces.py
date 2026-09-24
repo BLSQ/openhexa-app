@@ -21,7 +21,7 @@ def get_workspace(user, slug: str) -> dict:
     return execute_graphql(user, "GetWorkspace", {"slug": slug})
 
 
-@tool
+@tool(write=True)
 def update_workspace(
     user,
     slug: str,

@@ -31,6 +31,13 @@ query GetStaticWebapp($workspaceSlug: String!, $slug: String!, $includeBinaryCon
     workspace {
       slug
     }
+    source {
+      ... on GitSource {
+        repository
+        repositoryUrl
+        publishedVersion
+      }
+    }
     files(includeBinaryContent: $includeBinaryContent) {
       path
       type

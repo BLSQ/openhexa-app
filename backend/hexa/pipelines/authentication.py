@@ -16,12 +16,8 @@ class PipelineRunUser(UserInterface, ServicePrincipal):
         return self.pipeline_run.user
 
     @property
-    def workspace(self):
-        return self.pipeline_run.pipeline.workspace
-
-    @property
-    def workspace_id(self):
-        return self.pipeline_run.pipeline.workspace_id
+    def workspace_ids(self):
+        return [self.pipeline_run.pipeline.workspace_id]
 
     def get_username(self):
         return f"pipeline_{self.pipeline_run.id}"

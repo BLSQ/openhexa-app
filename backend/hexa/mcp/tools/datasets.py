@@ -75,7 +75,7 @@ def preview_dataset_file(user, file_id: str) -> dict:
     return file_data
 
 
-@tool
+@tool(write=True)
 def create_dataset(
     user,
     workspace_slug: str,
@@ -110,7 +110,7 @@ def create_dataset(
     return data["createDataset"]
 
 
-@tool
+@tool(write=True)
 def create_dataset_version(
     user, dataset_id: str, name: str, changelog: str = "", files_json: str = ""
 ) -> dict:

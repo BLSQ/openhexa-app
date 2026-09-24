@@ -516,6 +516,28 @@ type AssistantToolSegment {
   toolOutput: JSON
 }
 
+enum AuthorizeMCPConnectionError {
+  CLIENT_NOT_FOUND
+  TOOL_NOT_FOUND
+  WORKSPACE_NOT_FOUND
+}
+
+"""
+The grant a user picks on the consent screen, before the client holds a token.
+Creates the connection if this is the client's first authorization.
+"""
+input AuthorizeMCPConnectionInput {
+  clientId: String!
+  tools: [String!]
+  workspaceSlugs: [String!]
+}
+
+type AuthorizeMCPConnectionResult {
+  errors: [AuthorizeMCPConnectionError!]!
+  mcpConnection: MCPConnection
+  success: Boolean!
+}
+
 """The Avatar type represents the avatar of a user."""
 type Avatar {
   """The color of the user's avatar."""
@@ -2968,6 +2990,55 @@ type LogoutResult {
   success: Boolean!
 }
 
+"""
+An authorization request awaiting the user's consent, used to render the same
+permission editor on the consent screen as in the account settings.
+"""
+type MCPAuthorizationRequest {
+  clientName: String!
+  connection: MCPConnection
+  tools: [MCPTool!]!
+}
+
+"""
+What a given MCP client may do on behalf of the current user. Editable at any
+time: narrowing a connection takes effect on its next call, without the client
+having to authorize again.
+"""
+type MCPConnection {
+  createdAt: DateTime!
+  id: UUID!
+  lastUsedAt: DateTime
+  name: String!
+  tools: [String!]!
+  workspaces: [Workspace!]!
+}
+
+"""
+A family of OpenHEXA resources an MCP connection can be granted access to.
+"""
+enum MCPResource {
+  CONNECTIONS
+  DATABASES
+  DATASETS
+  FILES
+  PIPELINES
+  TEMPLATES
+  WEBAPPS
+  WORKSPACES
+}
+
+type MCPTool {
+  description: String!
+  name: String!
+  resource: MCPResource
+
+  """
+  True when calling it changes something. Display only — grants name tools.
+  """
+  write: Boolean!
+}
+
 """The Me type represents the currently authenticated user."""
 type Me {
   assistantMonthlyCost: Int!
@@ -3100,6 +3171,7 @@ type Mutation {
   addWebappToShortcuts(input: AddWebappToShortcutsInput!): AddWebappToShortcutsResult!
   approveAccessmodAccessRequest(input: ApproveAccessmodAccessRequestInput!): ApproveAccessmodAccessRequestResult!
   archiveWorkspace(input: ArchiveWorkspaceInput!): ArchiveWorkspaceResult!
+  authorizeMCPConnection(input: AuthorizeMCPConnectionInput!): AuthorizeMCPConnectionResult!
   convertExternalCollaboratorToMember(input: ConvertExternalCollaboratorToMemberInput!): ConvertExternalCollaboratorToMemberResult!
   createAccessmodAccessibilityAnalysis(input: CreateAccessmodAccessibilityAnalysisInput): CreateAccessmodAccessibilityAnalysisResult!
   createAccessmodFile(input: CreateAccessmodFileInput!): CreateAccessmodFileResult!
@@ -3264,6 +3336,7 @@ type Mutation {
   """Sends a password reset email to the user."""
   resetPassword(input: ResetPasswordInput!): ResetPasswordResult!
   resolveAssistantProposal(toolInvocationId: UUID!): ResolveAssistantProposalResult!
+  revokeMCPConnection(input: RevokeMCPConnectionInput!): RevokeMCPConnectionResult!
   runDAG(input: RunDAGInput!): RunDAGResult!
 
   """Runs a pipeline."""
@@ -3294,6 +3367,7 @@ type Mutation {
   """Update a dataset version."""
   updateDatasetVersion(input: UpdateDatasetVersionInput!): UpdateDatasetVersionResult!
   updateExternalCollaborator(input: UpdateExternalCollaboratorInput!): UpdateExternalCollaboratorResult!
+  updateMCPConnection(input: UpdateMCPConnectionInput!): UpdateMCPConnectionResult!
   updateMembership(input: UpdateMembershipInput!): UpdateMembershipResult!
   updateOrganization(input: UpdateOrganizationInput!): UpdateOrganizationResult!
 
@@ -4203,6 +4277,18 @@ type Query {
   """Get a file by its path within a workspace."""
   getFileByPath(path: String!, workspaceSlug: String!): BucketObject
 
+  """The consent context for a pending authorization, by OAuth client id."""
+  mcpAuthorizationRequest(clientId: String!): MCPAuthorizationRequest
+
+  """The MCP clients the current user has connected."""
+  mcpConnections: [MCPConnection!]!
+
+  """
+  Every tool the MCP server exposes, with the access each one needs. Lets the
+  permission editor show which tools a resource family actually covers.
+  """
+  mcpTools: [MCPTool!]!
+
   """Retrieves the currently authenticated user."""
   me: Me!
   metadataAttributes(targetId: OpaqueID!): [MetadataAttribute]!
@@ -4525,6 +4611,19 @@ input ResourceCountsInput {
 
   """Number of workspaces."""
   workspaces: Int!
+}
+
+enum RevokeMCPConnectionError {
+  NOT_FOUND
+}
+
+input RevokeMCPConnectionInput {
+  id: UUID!
+}
+
+type RevokeMCPConnectionResult {
+  errors: [RevokeMCPConnectionError!]!
+  success: Boolean!
 }
 
 enum RunDAGError {
@@ -5176,6 +5275,24 @@ type UpdateExternalCollaboratorResult {
   """
   Indicates whether the updateExternalCollaborator mutation was successful.
   """
+  success: Boolean!
+}
+
+enum UpdateMCPConnectionError {
+  NOT_FOUND
+  TOOL_NOT_FOUND
+  WORKSPACE_NOT_FOUND
+}
+
+input UpdateMCPConnectionInput {
+  id: UUID!
+  tools: [String!]
+  workspaceSlugs: [String!]
+}
+
+type UpdateMCPConnectionResult {
+  errors: [UpdateMCPConnectionError!]!
+  mcpConnection: MCPConnection
   success: Boolean!
 }
 

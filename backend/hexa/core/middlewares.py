@@ -7,6 +7,9 @@ from django.middleware.gzip import GZipMiddleware
 from django.utils import timezone
 from oauth2_provider.models import AccessToken
 
+from hexa.mcp.models import MCPConnection, MCPUser
+from hexa.oauth.scopes import MCP_SCOPE
+
 logger = logging.getLogger(__name__)
 security_logger = logging.getLogger("django.security.RequestDataTooBig")
 
@@ -182,14 +185,18 @@ def oauth2_token_authentication_middleware(get_response):
                 if (
                     access_token.expires >= timezone.now()
                     and request.path.startswith("/mcp")
-                    and "openhexa:mcp" in access_token.scope
+                    and MCP_SCOPE in access_token.scope
                 ):  # Only allow MCP access for now, users authorized this scope for MCP access, not for GraphQL or other endpoints. We can later add more scopes for other endpoints if needed.
-                    request.user = access_token.user
+                    mcp_connection = MCPConnection.objects.prefetch_related(
+                        "workspaces"
+                    ).get(user=access_token.user, application=access_token.application)
+                    mcp_connection.mark_used()
+                    request.user = MCPUser.from_user(access_token.user, mcp_connection)
         except KeyError:
             pass
         except ValueError:
             logger.error("OAuth2 token authentication error")
-        except AccessToken.DoesNotExist:
+        except (AccessToken.DoesNotExist, MCPConnection.DoesNotExist):
             pass
 
         return get_response(request)

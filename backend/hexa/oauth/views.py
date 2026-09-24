@@ -1,6 +1,6 @@
 import json
 import uuid
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -12,9 +12,7 @@ from oauth2_provider.models import Application
 from oauth2_provider.views import AuthorizationView
 
 from hexa.mcp.server import get_tools_list
-
-GIT_SCOPE = "openhexa:git"
-MCP_SCOPE = "openhexa:mcp"
+from hexa.oauth.scopes import GIT_SCOPE, MCP_SCOPE
 
 
 def mcp_tools() -> list[dict]:
@@ -155,8 +153,42 @@ def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
     return JsonResponse(response_data, status=201)
 
 
+MCP_CONSENT_PATH = "/mcp/authorize"
+
+# Forwarded to the consent screen, which hands them straight back to this view.
+# An allow list rather than the whole query string: nothing else is needed, and
+# reflecting arbitrary caller input into a redirect is worth avoiding even where
+# the host is fixed and the values are escaped.
+CONSENT_PARAMS = (
+    "client_id",
+    "redirect_uri",
+    "response_type",
+    "scope",
+    "state",
+    "nonce",
+    "code_challenge",
+    "code_challenge_method",
+    "claims",
+)
+
+
 class OAuthAuthorizeView(AuthorizationView):
     login_url = "/login"
+
+    def get(self, request, *args, **kwargs):
+        scopes = request.GET.get("scope", "").split()
+        if MCP_SCOPE in scopes and request.user.is_authenticated:
+            params = urlencode(
+                {
+                    name: request.GET[name]
+                    for name in CONSENT_PARAMS
+                    if name in request.GET
+                }
+            )
+            return redirect(
+                f"{settings.NEW_FRONTEND_DOMAIN}{MCP_CONSENT_PATH}/?{params}"
+            )
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

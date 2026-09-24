@@ -41,7 +41,7 @@ def get_static_webapp(user, workspace_slug: str, webapp_slug: str) -> dict:
     return webapp
 
 
-@tool
+@tool(write=True)
 def create_static_webapp(
     user,
     workspace_slug: str,
@@ -93,7 +93,7 @@ def create_static_webapp(
     return data["createWebapp"]
 
 
-@tool
+@tool(write=True)
 def update_static_webapp(
     user,
     webapp_id: str,
@@ -153,7 +153,7 @@ def update_static_webapp(
     return data["updateWebapp"]
 
 
-@tool
+@tool(write=True)
 def edit_static_webapp_file(
     user,
     webapp_id: str,

@@ -88,7 +88,7 @@ class UserInterface:
 
 
 class ServicePrincipal:
-    """Marker mixin for principals that impersonate a workspace rather than
+    """Marker mixin for principals that impersonate workspaces rather than
     a real user account (PipelineRunUser, WebappUser, ...). Used as
     `isinstance(user, ServicePrincipal)` to short-circuit user-membership
     queries that wouldn't make sense for service principals.
@@ -99,11 +99,8 @@ class ServicePrincipal:
         raise NotImplementedError
 
     @property
-    def workspace(self):
-        raise NotImplementedError
-
-    @property
-    def workspace_id(self):
+    def workspace_ids(self) -> list:
+        """The workspaces this principal may reach."""
         raise NotImplementedError
 
 

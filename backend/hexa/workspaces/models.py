@@ -167,16 +167,15 @@ class WorkspaceQuerySet(BaseQuerySet):
         *,
         include_archived: bool = False,
     ) -> models.QuerySet:
-        from hexa.webapps.models import WebappUser
-
         if not user.is_authenticated:
             return self.none()
 
-        # WebappUser subclasses both User and ServicePrincipal, so it is
-        # excluded here to fall through to the User branch below, where it is
-        # further scoped to its webapp's workspace.
-        if isinstance(user, ServicePrincipal) and not isinstance(user, WebappUser):
-            qs = self.filter(pk=user.workspace_id)
+        # A service principal that also subclasses User (WebappUser, MCPUser)
+        # falls through to the User branch below, where its own workspaces are
+        # intersected with the person's memberships: it can narrow their access,
+        # never widen it. One that doesn't (PipelineRunUser) replaces it.
+        if isinstance(user, ServicePrincipal) and not isinstance(user, User):
+            qs = self.filter(pk__in=user.workspace_ids)
         elif isinstance(user, User):
             qs = (
                 self.all()
@@ -192,8 +191,8 @@ class WorkspaceQuerySet(BaseQuerySet):
                     )
                 ).distinct()
             )
-            if isinstance(user, WebappUser):
-                qs = qs.filter(pk=user.workspace_id)
+            if isinstance(user, ServicePrincipal):
+                qs = qs.filter(pk__in=user.workspace_ids)
         else:
             raise NotImplementedError(
                 f"WorkspaceQuerySet.filter_for_user has no dispatch for principal "
@@ -223,12 +222,12 @@ class WorkspaceQuerySet(BaseQuerySet):
             return self.none()
 
         if user.is_superuser:
-            return self.filter(slug__in=workspace_slugs)
+            return self.filter(slug__in=workspace_slugs).order_by("name")
 
         return self.filter(
             Q(workspacemembership__user=user, slug__in=workspace_slugs),
             Q(archived=False),
-        )
+        ).order_by("name")
 
 
 class Workspace(Base):

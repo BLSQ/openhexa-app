@@ -57,7 +57,7 @@ def get_pipeline_run(user, run_id: str) -> dict:
     return run
 
 
-@tool
+@tool(write=True)
 def run_pipeline(user, pipeline_id: str, config: str = "{}") -> dict:
     """Run a pipeline. Requires the pipeline UUID (from get_pipeline's 'id' field) and a JSON config string mapping parameter codes to values. Check the pipeline's parameters with get_pipeline first to see required parameters and their types. Example config: '{"param1": "value1", "param2": 42}'. Returns the created run's ID — use get_pipeline_run to monitor progress and get results."""
     try:
@@ -75,7 +75,7 @@ def run_pipeline(user, pipeline_id: str, config: str = "{}") -> dict:
     return data["runPipeline"]
 
 
-@tool
+@tool(write=True)
 def update_pipeline(
     user,
     pipeline_id: str,
@@ -236,7 +236,7 @@ call get_help_or_doc(topic="writing-pipelines"). For SDK details, use topic="sdk
 """
 
 
-@tool
+@tool(write=True)
 def create_pipeline(
     user,
     workspace_slug: str,
@@ -284,7 +284,7 @@ def create_pipeline(
     return data.get("createPipeline", {})
 
 
-@tool
+@tool(write=True)
 def create_pipeline_version(
     user,
     workspace_slug: str,

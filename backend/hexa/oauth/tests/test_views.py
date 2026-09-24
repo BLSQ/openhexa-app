@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
@@ -149,3 +150,70 @@ class OAuthAuthorizeRedirectTest(TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertIn(b"redirectUri", response.content)
             self.assertIn(b"Authorization successful", response.content)
+
+
+class MCPConsentRedirectTest(TestCase):
+    """The MCP consent screen is rendered by the frontend, which posts the same
+    form back to this view.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user("consent@openhexa.org", "password")
+
+    def authorize_request(self, scope, user):
+        request = RequestFactory().get(
+            "/oauth/authorize/",
+            {"client_id": "some-client", "response_type": "code", "scope": scope},
+        )
+        request.user = user
+        return request
+
+    def test_an_mcp_request_goes_to_the_frontend_editor(self):
+        response = OAuthAuthorizeView.as_view()(
+            self.authorize_request("openhexa:mcp", self.USER)
+        )
+
+        self.assertEqual(302, response.status_code)
+        self.assertTrue(
+            response["Location"].startswith(
+                f"{settings.NEW_FRONTEND_DOMAIN}/mcp/authorize/?"
+            ),
+            response["Location"],
+        )
+        self.assertIn("client_id=some-client", response["Location"])
+        self.assertIn("response_type=code", response["Location"])
+
+    def test_only_the_oauth_parameters_are_forwarded(self):
+        request = RequestFactory().get(
+            "/oauth/authorize/",
+            {
+                "client_id": "some-client",
+                "response_type": "code",
+                "scope": "openhexa:mcp",
+                "resource": "http://evil.example/",
+                "next": "http://evil.example/",
+            },
+        )
+        request.user = self.USER
+
+        response = OAuthAuthorizeView.as_view()(request)
+
+        self.assertNotIn("evil.example", response["Location"])
+        self.assertNotIn("resource=", response["Location"])
+        self.assertIn("client_id=some-client", response["Location"])
+
+    def test_a_git_request_is_left_alone(self):
+        response = OAuthAuthorizeView.as_view()(
+            self.authorize_request("openhexa:git", self.USER)
+        )
+
+        self.assertNotEqual(302, response.status_code)
+
+    def test_an_anonymous_request_still_goes_through_login(self):
+        response = OAuthAuthorizeView.as_view()(
+            self.authorize_request("openhexa:mcp", AnonymousUser())
+        )
+
+        self.assertEqual(302, response.status_code)
+        self.assertIn("/login", response["Location"])

@@ -33,7 +33,7 @@ def get_pipeline_template(user, template_code: str) -> dict:
     return template
 
 
-@tool
+@tool(write=True)
 def create_pipeline_from_template(
     user, workspace_slug: str, template_version_id: str
 ) -> dict:

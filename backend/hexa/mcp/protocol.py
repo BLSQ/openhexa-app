@@ -4,8 +4,12 @@ import json
 import logging
 import types
 import typing
+from dataclasses import dataclass
 
-from hexa.mcp.models import ToolCall
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured, PermissionDenied
+
+from hexa.mcp.models import MCPConnection, MCPResource, ToolCall
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +22,58 @@ TYPE_MAP = {str: "string", int: "integer", float: "number", bool: "boolean"}
 _TOOLS = {}
 
 
-def tool(func):
-    _TOOLS[func.__name__] = func
-    return func
+@dataclass(frozen=True)
+class RegisteredTool:
+    func: typing.Callable
+    resource: str | None
+    write: bool
+
+
+def _group_of(func, ungated: bool) -> str | None:
+    if ungated:
+        return None
+    module = func.__module__.rsplit(".", 1)[-1].upper()
+    if module not in MCPResource.values:
+        raise ImproperlyConfigured(
+            f"{func.__name__} is defined in {func.__module__}, which matches no "
+            f"MCPResource group. Add one, move the tool, or pass ungated=True."
+        )
+    return module
+
+
+def tool(func=None, *, write: bool = False, ungated: bool = False):
+    def register(func):
+        _TOOLS[func.__name__] = RegisteredTool(
+            func=func, resource=_group_of(func, ungated), write=write
+        )
+        return func
+
+    return register(func) if func is not None else register
+
+
+def _refusal_message(name: str, connection: MCPConnection | None) -> str:
+    client = (
+        f"The OpenHEXA connection for {connection.application.name}"
+        if connection is not None
+        else "This OpenHEXA connection"
+    )
+    return (
+        f"{client} is not authorized to call {name}. "
+        f"The person who authorized it can turn this tool on at "
+        f"{settings.NEW_FRONTEND_DOMAIN}/user/account#mcp-connections "
+        f"— the change takes effect on the next call, with no need to "
+        f"authorize the client again."
+    )
+
+
+def _is_granted(
+    name: str, entry: RegisteredTool, connection: MCPConnection | None
+) -> bool:
+    if entry.resource is None:
+        return True
+    if connection is None:
+        return False
+    return connection.allows_tool(name)
 
 
 def _base_type(annotation):
@@ -70,23 +123,46 @@ def _get_tool_schema(func):
     return {"type": "object", "properties": properties, "required": required}
 
 
-def get_tools_list():
+def get_tools_list(connection: MCPConnection | None = None):
+    """The tools to advertise. Passing no connection returns the full catalogue,
+    which is what the public tool list and the consent screen show.
+    """
     return [
         {
             "name": name,
-            "description": func.__doc__ or "",
-            "inputSchema": _get_tool_schema(func),
+            "description": entry.func.__doc__ or "",
+            "inputSchema": _get_tool_schema(entry.func),
         }
-        for name, func in _TOOLS.items()
+        for name, entry in _TOOLS.items()
+        if connection is None or _is_granted(name, entry, connection)
     ]
 
 
-def call_tool(name, arguments, user):
-    func = _TOOLS.get(name)
-    if not func:
+def get_tools_catalogue():
+    """Every tool with the grant it needs, for the permission editor."""
+    return [
+        {
+            "name": name,
+            "description": entry.func.__doc__ or "",
+            "resource": entry.resource,
+            "write": entry.write,
+        }
+        for name, entry in _TOOLS.items()
+    ]
+
+
+def call_tool(name, arguments, user, connection: MCPConnection | None):
+    entry = _TOOLS.get(name)
+    if not entry:
         raise ValueError(f"Unknown tool: {name}")
+    if not _is_granted(name, entry, connection):
+        message = _refusal_message(name, connection)
+        ToolCall.objects.create(
+            user=user, tool_name=name, arguments=arguments, success=False, error=message
+        )
+        raise PermissionDenied(message)
     try:
-        result = func(user=user, **arguments)
+        result = entry.func(user=user, **arguments)
         ToolCall.objects.create(
             user=user, tool_name=name, arguments=arguments, success=True
         )
@@ -99,6 +175,7 @@ def call_tool(name, arguments, user):
 
 
 def handle_jsonrpc(body: bytes, user) -> dict | None:
+    connection = getattr(user, "connection", None)
     try:
         request = json.loads(body)
     except (json.JSONDecodeError, ValueError):
@@ -130,14 +207,14 @@ def handle_jsonrpc(body: bytes, user) -> dict | None:
         return {
             "jsonrpc": "2.0",
             "id": req_id,
-            "result": {"tools": get_tools_list()},
+            "result": {"tools": get_tools_list(connection)},
         }
 
     if method == "tools/call":
         tool_name = params.get("name")
         tool_args = params.get("arguments", {})
         try:
-            result = call_tool(tool_name, tool_args, user)
+            result = call_tool(tool_name, tool_args, user, connection)
             content = (
                 json.dumps(result, default=str)
                 if not isinstance(result, str)
@@ -148,6 +225,15 @@ def handle_jsonrpc(body: bytes, user) -> dict | None:
                 "id": req_id,
                 "result": {
                     "content": [{"type": "text", "text": content}],
+                },
+            }
+        except PermissionDenied as e:
+            return {
+                "jsonrpc": "2.0",
+                "id": req_id,
+                "result": {
+                    "content": [{"type": "text", "text": str(e)}],
+                    "isError": True,
                 },
             }
         except Exception:

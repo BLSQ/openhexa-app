@@ -7,7 +7,11 @@ from graphql import graphql_sync
 from config.schema import schema
 
 _GRAPHQL_DIR = Path(__file__).parent.parent / "graphql"
-_QUERIES = "\n".join(f.read_text() for f in sorted(_GRAPHQL_DIR.glob("*.graphql")))
+_QUERIES = "\n".join(
+    f.read_text()
+    for f in sorted(_GRAPHQL_DIR.glob("*.graphql"))
+    if f.name != "schema.graphql"
+)
 
 
 def _make_request(user):
