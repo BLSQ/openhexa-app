@@ -1,0 +1,23 @@
+mutation UpdateMCPConnection($input: UpdateMCPConnectionInput!) {
+  updateMCPConnection(input: $input) {
+    success
+    errors
+    mcpConnection {
+      ...MCPConnection_connection
+    }
+  }
+}
+
+mutation RevokeMCPConnection($input: RevokeMCPConnectionInput!) {
+  revokeMCPConnection(input: $input) {
+    success
+    errors
+  }
+}
+
+mutation AuthorizeMCPConnection($input: AuthorizeMCPConnectionInput!) {
+  authorizeMCPConnection(input: $input) {
+    success
+    errors
+  }
+}
