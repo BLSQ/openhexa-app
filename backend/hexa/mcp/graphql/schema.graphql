@@ -1,0 +1,126 @@
+"""
+A family of OpenHEXA resources an MCP connection can be granted access to.
+"""
+enum MCPResource {
+  WORKSPACES
+  FILES
+  DATASETS
+  PIPELINES
+  TEMPLATES
+  WEBAPPS
+  DATABASES
+  CONNECTIONS
+}
+
+"""
+What a given MCP client may do on behalf of the current user. Editable at any
+time: narrowing a connection takes effect on its next call, without the client
+having to authorize again.
+"""
+type MCPConnection {
+  id: UUID!
+  name: String!
+  createdAt: DateTime!
+  lastUsedAt: DateTime
+  workspaces: [Workspace!]!
+  tools: [String!]!
+}
+
+"""
+An authorization request awaiting the user's consent, used to render the same
+permission editor on the consent screen as in the account settings.
+"""
+type MCPAuthorizationRequest {
+  clientName: String!
+  connection: MCPConnection
+  tools: [MCPTool!]!
+}
+
+type MCPTool {
+  name: String!
+  description: String!
+  resource: MCPResource
+  """
+  True when calling it changes something. Display only — grants name tools.
+  """
+  write: Boolean!
+}
+
+input UpdateMCPConnectionInput {
+  id: UUID!
+  workspaceSlugs: [String!]
+  tools: [String!]
+}
+
+enum UpdateMCPConnectionError {
+  NOT_FOUND
+  WORKSPACE_NOT_FOUND
+  TOOL_NOT_FOUND
+}
+
+type UpdateMCPConnectionResult {
+  success: Boolean!
+  errors: [UpdateMCPConnectionError!]!
+  mcpConnection: MCPConnection
+}
+
+"""
+The grant a user picks on the consent screen, before the client holds a token.
+Creates the connection if this is the client's first authorization.
+"""
+input AuthorizeMCPConnectionInput {
+  clientId: String!
+  workspaceSlugs: [String!]
+  tools: [String!]
+}
+
+enum AuthorizeMCPConnectionError {
+  CLIENT_NOT_FOUND
+  WORKSPACE_NOT_FOUND
+  TOOL_NOT_FOUND
+}
+
+type AuthorizeMCPConnectionResult {
+  success: Boolean!
+  errors: [AuthorizeMCPConnectionError!]!
+  mcpConnection: MCPConnection
+}
+
+input RevokeMCPConnectionInput {
+  id: UUID!
+}
+
+enum RevokeMCPConnectionError {
+  NOT_FOUND
+}
+
+type RevokeMCPConnectionResult {
+  success: Boolean!
+  errors: [RevokeMCPConnectionError!]!
+}
+
+extend type Query {
+  """
+  The MCP clients the current user has connected.
+  """
+  mcpConnections: [MCPConnection!]! @loginRequired
+  """
+  The consent context for a pending authorization, by OAuth client id.
+  """
+  mcpAuthorizationRequest(clientId: String!): MCPAuthorizationRequest @loginRequired
+  """
+  Every tool the MCP server exposes, with the access each one needs. Lets the
+  permission editor show which tools a resource family actually covers.
+  """
+  mcpTools: [MCPTool!]!
+}
+
+extend type Mutation {
+  authorizeMCPConnection(
+    input: AuthorizeMCPConnectionInput!
+  ): AuthorizeMCPConnectionResult! @loginRequired
+  updateMCPConnection(input: UpdateMCPConnectionInput!): UpdateMCPConnectionResult!
+    @loginRequired
+  revokeMCPConnection(input: RevokeMCPConnectionInput!): RevokeMCPConnectionResult!
+    @loginRequired
+}
