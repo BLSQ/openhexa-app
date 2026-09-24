@@ -184,6 +184,25 @@ class MCPConsentRedirectTest(TestCase):
         self.assertIn("client_id=some-client", response["Location"])
         self.assertIn("response_type=code", response["Location"])
 
+    def test_only_the_oauth_parameters_are_forwarded(self):
+        request = RequestFactory().get(
+            "/oauth/authorize/",
+            {
+                "client_id": "some-client",
+                "response_type": "code",
+                "scope": "openhexa:mcp",
+                "resource": "http://evil.example/",
+                "next": "http://evil.example/",
+            },
+        )
+        request.user = self.USER
+
+        response = OAuthAuthorizeView.as_view()(request)
+
+        self.assertNotIn("evil.example", response["Location"])
+        self.assertNotIn("resource=", response["Location"])
+        self.assertIn("client_id=some-client", response["Location"])
+
     def test_a_git_request_is_left_alone(self):
         response = OAuthAuthorizeView.as_view()(
             self.authorize_request("openhexa:git", self.USER)
