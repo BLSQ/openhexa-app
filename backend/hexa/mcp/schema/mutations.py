@@ -65,9 +65,11 @@ def resolve_authorize_mcp_connection(_, info, **kwargs):
             "mcp_connection": None,
         }
 
-    connection, _created = MCPConnection.objects.get_or_create(
+    connection, created = MCPConnection.objects.get_or_create(
         user=request.user, application=application
     )
+    if created:
+        connection.supersede_earlier_registrations()
     return {
         "success": True,
         "errors": [],
