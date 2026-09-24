@@ -20,6 +20,7 @@ from hexa.workspace_copier.resources.database import DatabaseCopier
 from hexa.workspace_copier.resources.datasets import DatasetsCopier
 from hexa.workspace_copier.resources.files import FilesCopier
 from hexa.workspace_copier.resources.pipelines import PipelinesCopier
+from hexa.workspace_copier.resources.webapps import WebappsCopier
 from hexa.workspace_copier.resources.workspace import WorkspaceMetadataCopier
 from hexa.workspace_copier.results import CopyResult
 
@@ -30,6 +31,7 @@ WORKSPACE_COPIERS: list[ResourceCopier] = [
     ConnectionsCopier(),
     PipelinesCopier(),
     DatasetsCopier(),
+    WebappsCopier(),
 ]
 
 
