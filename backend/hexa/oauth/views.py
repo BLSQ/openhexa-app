@@ -12,9 +12,7 @@ from oauth2_provider.models import Application
 from oauth2_provider.views import AuthorizationView
 
 from hexa.mcp.server import get_tools_list
-
-GIT_SCOPE = "openhexa:git"
-MCP_SCOPE = "openhexa:mcp"
+from hexa.oauth.scopes import GIT_SCOPE, MCP_SCOPE
 
 
 def mcp_tools() -> list[dict]:
@@ -155,8 +153,20 @@ def dynamic_client_registration(request: HttpRequest) -> JsonResponse:
     return JsonResponse(response_data, status=201)
 
 
+MCP_CONSENT_PATH = "/mcp/authorize"
+
+
 class OAuthAuthorizeView(AuthorizationView):
     login_url = "/login"
+
+    def get(self, request, *args, **kwargs):
+        scopes = request.GET.get("scope", "").split()
+        if MCP_SCOPE in scopes and request.user.is_authenticated:
+            return redirect(
+                f"{settings.NEW_FRONTEND_DOMAIN}{MCP_CONSENT_PATH}/"
+                f"?{request.GET.urlencode()}"
+            )
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
