@@ -167,15 +167,14 @@ class WorkspaceQuerySet(BaseQuerySet):
         *,
         include_archived: bool = False,
     ) -> models.QuerySet:
-        from hexa.webapps.models import WebappUser
-
         if not user.is_authenticated:
             return self.none()
 
-        # WebappUser subclasses both User and ServicePrincipal, so it is
-        # excluded here to fall through to the User branch below, where it is
-        # further scoped to its webapp's workspace.
-        if isinstance(user, ServicePrincipal) and not isinstance(user, WebappUser):
+        # A service principal that also subclasses User (WebappUser, MCPUser)
+        # falls through to the User branch below, where its own workspaces are
+        # intersected with the person's memberships: it can narrow their access,
+        # never widen it. One that doesn't (PipelineRunUser) replaces it.
+        if isinstance(user, ServicePrincipal) and not isinstance(user, User):
             qs = self.filter(pk__in=user.workspace_ids)
         elif isinstance(user, User):
             qs = (
@@ -192,7 +191,7 @@ class WorkspaceQuerySet(BaseQuerySet):
                     )
                 ).distinct()
             )
-            if isinstance(user, WebappUser):
+            if isinstance(user, ServicePrincipal):
                 qs = qs.filter(pk__in=user.workspace_ids)
         else:
             raise NotImplementedError(
