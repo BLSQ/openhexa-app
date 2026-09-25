@@ -688,10 +688,20 @@ type Query {
 
 input ExecuteSavedQueryInput {
   slug: String!
-  maxRows: Int
+  orderBy: [QueryResultOrderBy!]
+  perPage: Int                 # 50 par défaut
+  page: Int                    # à partir de 1
+  after: String                # le endCursor de la page précédente
+  before: String               # le startCursor de la page suivante
+  includeTotalItems: Boolean
 }
 
-# Same payload as executeSQL.
+input QueryResultOrderBy {
+  column: String!
+  direction: OrderByDirection = ASC   # ASC | DESC
+}
+
+# Même payload que executeSQL.
 type ExecuteSQLResult {
   success: Boolean!
   errors: [ExecuteSQLError!]!
@@ -699,8 +709,18 @@ type ExecuteSQLResult {
   columns: [String!]
   rows: [JSON!]
   rowCount: Int
-  truncated: Boolean
+  pageInfo: QueryResultPageInfo
   durationMs: Int
+}
+
+type QueryResultPageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  pageNumber: Int      # null avec un curseur
+  startCursor: String  # null sur la première page
+  endCursor: String    # null sur la dernière page
+  totalItems: Int      # seulement avec includeTotalItems
+  totalPages: Int      # seulement avec includeTotalItems
 }
 
 enum ExecuteSQLError {
@@ -709,6 +729,9 @@ enum ExecuteSQLError {
   QUERY_TIMEOUT
   QUERY_ERROR
   MULTIPLE_STATEMENTS
+  INVALID_ORDER_BY
+  INVALID_CURSOR
+  INVALID_PAGINATION
 }
 ```
 
@@ -719,6 +742,35 @@ enum ExecuteSQLError {
 Le slug se lit dans le Data Studio : c'est le dernier segment de l'URL de la
 requête enregistrée. Notez que la requête doit être partagée avec le workspace ;
 une requête privée échoue avec `SAVED_QUERY_NOT_FOUND`.
+
+#### Tri et pagination
+
+Un appel avec le seul `slug` exécute la requête telle qu'enregistrée et renvoie
+ses `perPage` premières lignes ; `pageInfo.hasNextPage` indique si le plafond a
+coupé le résultat. Pour trier ou parcourir le résultat page par page, ajoutez
+`orderBy`, `page`, `after` ou `before` : la requête est alors enveloppée dans
+une sous-requête, son propre `ORDER BY` est donc remplacé et un éventuel `LIMIT`
+continue de s'appliquer à l'intérieur. Deux modes sont disponibles, et `orderBy`
+seul renvoie la première page des deux :
+
+- **Par numéro de page** (`page`) : simple, et le seul mode qui peut renvoyer un
+  total. Demandez-le avec `includeTotalItems: true`, au prix d'un second parcours
+  de la requête. Sans `orderBy`, l'ordre des lignes n'est pas garanti d'une page
+  à l'autre.
+- **Par curseur** (`after` ou `before`) : passez le `endCursor` de la page
+  précédente dans `after` pour avancer, ou le `startCursor` de la page suivante
+  dans `before` pour reculer, toujours avec le même `orderBy`. Stable quand des
+  lignes sont insérées ou supprimées entre deux appels, et peu coûteux sur les
+  pages profondes. Triez sur des colonnes non nullables et terminez `orderBy`
+  par une colonne unique ; un curseur à `null` accompagné de `hasNextPage` (ou
+  `hasPreviousPage`) à `true` signifie que la clé de tri de la ligne contient un
+  `NULL` et que ce tri ne peut pas être parcouru par curseur à partir de là.
+
+`INVALID_ORDER_BY` est renvoyé pour une colonne absente du résultat (ou présente
+deux fois : donnez un alias aux colonnes dans la requête enregistrée),
+`INVALID_CURSOR` pour un curseur construit pour une autre requête ou un autre
+tri, et `INVALID_PAGINATION` pour des arguments contradictoires, comme `page`
+avec un curseur, ou `after` avec `before`.
 
 ```html
 <!DOCTYPE html>
@@ -758,10 +810,11 @@ une requête privée échoue avec `SAVED_QUERY_NOT_FOUND`.
       const { executeSavedQuery: result } = await gql(`
         query($input: ExecuteSavedQueryInput!) {
           executeSavedQuery(input: $input) {
-            success errors columns rows rowCount truncated
+            success errors columns rows rowCount
+            pageInfo { hasNextPage }
           }
         }
-      `, { input: { slug: SAVED_QUERY_SLUG, maxRows: 100 } });
+      `, { input: { slug: SAVED_QUERY_SLUG, perPage: 100 } });
 
       if (!result.success) {
         out.textContent = "Erreur : " + result.errors.join(", ");
@@ -773,9 +826,40 @@ une requête privée échoue avec `SAVED_QUERY_NOT_FOUND`.
         `<tr>${result.columns.map(c => `<td>${row[c] ?? ""}</td>`).join("")}</tr>`
       ).join("");
       out.innerHTML = `<table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>` +
-        (result.truncated ? `<p>Affichage des ${result.rowCount} premières lignes.</p>` : "");
+        (result.pageInfo.hasNextPage ? `<p>Affichage des ${result.rowCount} premières lignes.</p>` : "");
     })();
   </script>
 </body>
 </html>
 ```
+
+Pour parcourir un résultat volumineux, gardez le même `orderBy` et renvoyez le
+`endCursor` de chaque page dans `after` :
+
+```js
+async function* pages(slug, orderBy, perPage = 100) {
+  let after = null;
+  while (true) {
+    const { executeSavedQuery: result } = await gql(`
+      query($input: ExecuteSavedQueryInput!) {
+        executeSavedQuery(input: $input) {
+          success errors rows pageInfo { hasNextPage endCursor }
+        }
+      }
+    `, { input: { slug, orderBy, perPage, after } });
+    if (!result.success) throw new Error(result.errors.join(", "));
+    yield result.rows;
+    if (!result.pageInfo.hasNextPage) return;
+    after = result.pageInfo.endCursor;
+  }
+}
+
+for await (const rows of pages(SAVED_QUERY_SLUG, [{ column: "id" }])) {
+  console.log(rows.length, "lignes");
+}
+```
+
+Un tableau avec des boutons Précédent et Suivant conserve le `startCursor` et le
+`endCursor` de la page courante et renvoie l'un des deux : `{ before: startCursor }`
+pour la page précédente, `{ after: endCursor }` pour la suivante. Les deux valent
+`null` quand il n'y a pas de page dans cette direction.

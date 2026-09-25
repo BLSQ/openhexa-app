@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.core.exceptions import PermissionDenied
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
@@ -792,3 +794,364 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         log = QueryLog.objects.get()
         self.assertEqual(QueryLog.Status.DENIED, log.status)
         self.assertEqual(saved_query, log.saved_query)
+
+
+class ExecuteSavedQueryPaginationTest(SavedQueryTestMixin, GraphQLTestCase):
+    """Sorting and pagination through the endpoint web apps call."""
+
+    EXECUTE_QUERY = """
+        query ($input: ExecuteSavedQueryInput!) {
+            executeSavedQuery(input: $input) {
+                success errors errorMessage columns rows rowCount truncated
+                pageInfo {
+                    hasNextPage hasPreviousPage pageNumber startCursor endCursor
+                    totalItems totalPages
+                }
+            }
+        }
+    """
+    ROWS = [(1, "apple"), (2, "banana"), (3, "cherry"), (4, "date"), (5, "avocado")]
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        provision_workspace_database(cls, cls.WORKSPACE)
+
+    def setUp(self):
+        super().setUp()
+        seed_demo_table(self.WORKSPACE, self.ROWS)
+        self.client.force_login(self.USER_VIEWER)
+
+    def _execute(self, slug, **payload):
+        response = self.run_query(
+            self.EXECUTE_QUERY, {"input": {"slug": slug, **payload}}
+        )
+        self.assertNotIn("errors", response)
+        return response["data"]["executeSavedQuery"]
+
+    def _walk(self, slug, next_page, **payload):
+        """Every row of a paginated walk, asserting ``truncated`` on the way."""
+        rows, arguments = [], {}
+        while True:
+            result = self._execute(slug, **{**payload, **arguments})
+            self.assertTrue(result["success"], result)
+            self.assertEqual(result["truncated"], result["pageInfo"]["hasNextPage"])
+            rows.extend(result["rows"])
+            if not result["pageInfo"]["hasNextPage"]:
+                return rows
+            arguments = next_page(result["pageInfo"])
+
+    def test_an_unpaginated_call_still_carries_page_info(self):
+        saved_query = self.create_saved_query(content="SELECT id FROM demo ORDER BY id")
+
+        result = self._execute(saved_query.slug, perPage=2)
+
+        self.assertEqual([{"id": 1}, {"id": 2}], result["rows"])
+        self.assertTrue(result["truncated"])
+        self.assertEqual(
+            {
+                "hasNextPage": True,
+                "hasPreviousPage": False,
+                "pageNumber": None,
+                "startCursor": None,
+                "endCursor": None,
+                "totalItems": None,
+                "totalPages": None,
+            },
+            result["pageInfo"],
+        )
+
+    def test_both_modes_walk_the_same_rows(self):
+        saved_query = self.create_saved_query(content="SELECT id, label FROM demo;")
+        order_by = [{"column": "label", "direction": "DESC"}, {"column": "id"}]
+
+        by_page = self._walk(
+            saved_query.slug,
+            lambda info: {"page": info["pageNumber"] + 1},
+            orderBy=order_by,
+            perPage=2,
+            page=1,
+        )
+        by_cursor = self._walk(
+            saved_query.slug,
+            lambda info: {"after": info["endCursor"]},
+            orderBy=order_by,
+            perPage=2,
+        )
+
+        self.assertEqual(
+            ["date", "cherry", "banana", "avocado", "apple"],
+            [row["label"] for row in by_page],
+        )
+        self.assertEqual(by_page, by_cursor)
+
+    def test_page_boundaries(self):
+        saved_query = self.create_saved_query(content="SELECT id FROM demo")
+        order_by = [{"column": "id"}]
+
+        pages = [
+            self._execute(saved_query.slug, orderBy=order_by, perPage=2, page=page)
+            for page in (1, 2, 3)
+        ]
+
+        self.assertEqual(
+            [(True, False), (True, True), (False, True)],
+            [
+                (p["pageInfo"]["hasNextPage"], p["pageInfo"]["hasPreviousPage"])
+                for p in pages
+            ],
+        )
+        self.assertEqual([{"id": 5}], pages[2]["rows"])
+        self.assertIsNone(pages[2]["pageInfo"]["endCursor"])
+        self.assertIsNone(pages[0]["pageInfo"]["startCursor"])
+        self.assertIsNotNone(pages[1]["pageInfo"]["startCursor"])
+
+    def test_before_returns_the_previous_page(self):
+        saved_query = self.create_saved_query(content="SELECT id, label FROM demo")
+        order_by = [{"column": "label"}, {"column": "id"}]
+
+        first = self._execute(saved_query.slug, orderBy=order_by, perPage=2)
+        second = self._execute(
+            saved_query.slug,
+            orderBy=order_by,
+            perPage=2,
+            after=first["pageInfo"]["endCursor"],
+        )
+        back = self._execute(
+            saved_query.slug,
+            orderBy=order_by,
+            perPage=2,
+            before=second["pageInfo"]["startCursor"],
+        )
+
+        self.assertEqual(["apple", "avocado"], [row["label"] for row in first["rows"]])
+        self.assertEqual(["banana", "cherry"], [row["label"] for row in second["rows"]])
+        self.assertEqual(first["rows"], back["rows"])
+        self.assertEqual(
+            {
+                "hasNextPage": True,
+                "hasPreviousPage": False,
+                "pageNumber": None,
+                "startCursor": None,
+            },
+            {
+                key: back["pageInfo"][key]
+                for key in (
+                    "hasNextPage",
+                    "hasPreviousPage",
+                    "pageNumber",
+                    "startCursor",
+                )
+            },
+        )
+        # The cursors of a page reached backwards lead forward again.
+        forward_again = self._execute(
+            saved_query.slug,
+            orderBy=order_by,
+            perPage=2,
+            after=back["pageInfo"]["endCursor"],
+        )
+        self.assertEqual(second["rows"], forward_again["rows"])
+
+    def test_cursor_walk_over_typed_keys(self):
+        # Cursor values travel as literals PostgreSQL coerces back to the column
+        # type. The timestamps differ by microseconds only: a cursor cut from the
+        # JSON form of the row (milliseconds) would point before all of them.
+        saved_query = self.create_saved_query(
+            content="SELECT id, DATE '2024-01-01' + id AS day, "
+            "(id * 1.5)::numeric AS amount, "
+            "TIMESTAMP '2024-01-01 10:00:00.123450' + id * INTERVAL '1 microsecond'"
+            " AS at, "
+            "TIMESTAMPTZ '2024-01-01 10:00:00.123450+00'"
+            " + id * INTERVAL '1 microsecond' AS at_tz, "
+            "jsonb_build_object('id', id) AS doc "
+            "FROM demo"
+        )
+        for column in ("day", "amount", "at", "at_tz", "doc"):
+            with self.subTest(column=column):
+                rows = self._walk(
+                    saved_query.slug,
+                    lambda info: {"after": info["endCursor"]},
+                    orderBy=[{"column": column, "direction": "DESC"}],
+                    perPage=2,
+                )
+                self.assertEqual([5, 4, 3, 2, 1], [row["id"] for row in rows])
+
+    def test_total_items_only_when_requested(self):
+        saved_query = self.create_saved_query(content="SELECT id FROM demo")
+
+        without = self._execute(saved_query.slug, page=1, perPage=2)
+        with_total = self._execute(
+            saved_query.slug, page=1, perPage=2, includeTotalItems=True
+        )
+
+        self.assertIsNone(without["pageInfo"]["totalItems"])
+        self.assertIsNone(without["pageInfo"]["totalPages"])
+        self.assertEqual(5, with_total["pageInfo"]["totalItems"])
+        self.assertEqual(3, with_total["pageInfo"]["totalPages"])
+
+    def test_a_literal_percent_survives_pagination(self):
+        saved_query = self.create_saved_query(
+            content="SELECT id FROM demo WHERE label LIKE '%an%'"
+        )
+
+        plain = self._execute(saved_query.slug)
+        paged = self._execute(saved_query.slug, orderBy=[{"column": "id"}])
+
+        self.assertEqual([{"id": 2}], plain["rows"])
+        self.assertEqual(plain["rows"], paged["rows"])
+
+    def test_nullable_sort_column_pages_by_number_but_not_by_cursor(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, None), (3, "c")])
+        saved_query = self.create_saved_query(content="SELECT id, label FROM demo")
+        order_by = [{"column": "label", "direction": "DESC"}]
+
+        first = self._execute(saved_query.slug, orderBy=order_by, perPage=1)
+        self.assertTrue(first["pageInfo"]["hasNextPage"])
+        self.assertIsNone(first["pageInfo"]["endCursor"])
+
+        rows = self._walk(
+            saved_query.slug,
+            lambda info: {"page": info["pageNumber"] + 1},
+            orderBy=order_by,
+            perPage=1,
+            page=1,
+        )
+        self.assertEqual([2, 3, 1], [row["id"] for row in rows])
+
+    def test_a_null_direction_sorts_ascending(self):
+        saved_query = self.create_saved_query(content="SELECT id FROM demo")
+
+        result = self._execute(
+            saved_query.slug, orderBy=[{"column": "id", "direction": None}], perPage=2
+        )
+
+        self.assertTrue(result["success"], result)
+        self.assertEqual([{"id": 1}, {"id": 2}], result["rows"])
+
+    def test_unknown_order_by_column(self):
+        saved_query = self.create_saved_query(content="SELECT id FROM demo")
+
+        result = self._execute(saved_query.slug, orderBy=[{"column": "nope"}])
+
+        self.assertEqual(["INVALID_ORDER_BY"], result["errors"])
+        self.assertIn("nope", result["errorMessage"])
+        self.assertIsNone(result["pageInfo"])
+
+    def test_ambiguous_order_by_column(self):
+        saved_query = self.create_saved_query(
+            content="SELECT a.id, b.id FROM demo a JOIN demo b ON a.id = b.id"
+        )
+
+        result = self._execute(saved_query.slug, orderBy=[{"column": "id"}])
+
+        self.assertEqual(["INVALID_ORDER_BY"], result["errors"])
+
+    def test_order_by_column_is_quoted_not_executed(self):
+        saved_query = self.create_saved_query(content="SELECT id FROM demo")
+
+        result = self._execute(
+            saved_query.slug, orderBy=[{"column": 'id"; DROP TABLE demo; --'}]
+        )
+
+        self.assertEqual(["INVALID_ORDER_BY"], result["errors"])
+        self.assertTrue(self._execute(saved_query.slug)["success"])
+
+    def test_a_broken_query_is_not_blamed_on_the_order_by(self):
+        saved_query = self.create_saved_query(content="SELECT id FROM gone")
+
+        result = self._execute(saved_query.slug, orderBy=[{"column": "id"}])
+
+        self.assertEqual(["QUERY_ERROR"], result["errors"])
+
+    def test_cursor_is_tied_to_its_query_and_ordering(self):
+        saved_query = self.create_saved_query(content="SELECT id, label FROM demo")
+        order_by = [{"column": "id"}]
+        cursor = self._execute(saved_query.slug, orderBy=order_by, perPage=2)[
+            "pageInfo"
+        ]["endCursor"]
+
+        for label, payload in [
+            ("another ordering", {"orderBy": [{"column": "label"}], "after": cursor}),
+            ("tampered", {"orderBy": order_by, "after": cursor[:-2] + "zz"}),
+        ]:
+            with self.subTest(label):
+                result = self._execute(saved_query.slug, **payload)
+                self.assertEqual(["INVALID_CURSOR"], result["errors"])
+
+        saved_query.content = "SELECT id, label FROM demo WHERE id > 0"
+        saved_query.save()
+        result = self._execute(saved_query.slug, orderBy=order_by, after=cursor)
+        self.assertEqual(["INVALID_CURSOR"], result["errors"])
+
+    def test_invalid_arguments(self):
+        saved_query = self.create_saved_query(content="SELECT id FROM demo")
+        order_by = [{"column": "id"}]
+        cursor = self._execute(saved_query.slug, orderBy=order_by, perPage=2)[
+            "pageInfo"
+        ]["endCursor"]
+
+        for label, payload, error in [
+            ("page below one", {"page": 0}, "INVALID_PAGINATION"),
+            ("empty page", {"perPage": 0}, "INVALID_PAGINATION"),
+            ("both sizes", {"perPage": 2, "maxRows": 2}, "INVALID_PAGINATION"),
+            (
+                "both modes",
+                {"orderBy": order_by, "page": 2, "after": cursor},
+                "INVALID_PAGINATION",
+            ),
+            (
+                "page with before",
+                {"orderBy": order_by, "page": 2, "before": cursor},
+                "INVALID_PAGINATION",
+            ),
+            (
+                "both cursors",
+                {"orderBy": order_by, "after": cursor, "before": cursor},
+                "INVALID_PAGINATION",
+            ),
+            (
+                "total with cursor",
+                {"orderBy": order_by, "after": cursor, "includeTotalItems": True},
+                "INVALID_PAGINATION",
+            ),
+            (
+                "total with before",
+                {"orderBy": order_by, "before": cursor, "includeTotalItems": True},
+                "INVALID_PAGINATION",
+            ),
+            ("cursor without order", {"after": cursor}, "INVALID_ORDER_BY"),
+            ("before without order", {"before": cursor}, "INVALID_ORDER_BY"),
+        ]:
+            with self.subTest(label):
+                result = self._execute(saved_query.slug, **payload)
+                self.assertFalse(result["success"])
+                self.assertEqual([error], result["errors"])
+                self.assertIsNotNone(result["errorMessage"])
+
+    def test_explain_runs_whole_and_refuses_to_page(self):
+        saved_query = self.create_saved_query(
+            content="EXPLAIN SELECT id FROM demo ORDER BY id DESC"
+        )
+
+        bare = self._execute(saved_query.slug, perPage=1)
+        self.assertGreater(bare["rowCount"], 1)
+        self.assertFalse(bare["pageInfo"]["hasNextPage"])
+
+        paged = self._execute(saved_query.slug, page=1)
+        self.assertEqual(["INVALID_PAGINATION"], paged["errors"])
+
+    def test_failures_keep_a_structured_response(self):
+        # pageInfo is nullable so that an error result is still a result: a non-null
+        # field would null the whole response instead.
+        missing = self._execute("no-such-query", page=1)
+        self.assertEqual(["SAVED_QUERY_NOT_FOUND"], missing["errors"])
+        self.assertIsNone(missing["pageInfo"])
+
+        saved_query = self.create_saved_query(content="SELECT 1")
+        with mock.patch(
+            "hexa.data_studio.schema.run_saved_query", side_effect=PermissionDenied
+        ):
+            denied = self._execute(saved_query.slug, page=1)
+        self.assertEqual(["PERMISSION_DENIED"], denied["errors"])
+        self.assertIsNone(denied["pageInfo"])
