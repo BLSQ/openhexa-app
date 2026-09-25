@@ -9,6 +9,7 @@ import json
 import logging
 from dataclasses import replace
 from decimal import Decimal
+from functools import cache
 
 from django.conf import settings
 from genai_prices.types import ModelPrice
@@ -70,11 +71,14 @@ def managed_agent_models() -> dict[str, ModelRequest]:
     The model is either a logical model (from the available ones in AI settings),
     or a `ModelId`, optionally pinned to a region.
     """
+    return _parse_agent_models(settings.ASSISTANT_MANAGED_AGENT_MODELS)
+
+
+@cache
+def _parse_agent_models(raw: str) -> dict[str, ModelRequest]:
     overrides: dict[str, ModelRequest] = {}
     setting = "ASSISTANT_MANAGED_AGENT_MODELS"
-    for key, value in _json_object(
-        settings.ASSISTANT_MANAGED_AGENT_MODELS, setting
-    ).items():
+    for key, value in _json_object(raw, setting).items():
         try:
             overrides[_override_key(key)] = _model_request(value)
         except Exception as exc:
@@ -105,9 +109,14 @@ def model_prices() -> dict[str, ModelPrice]:
 
     For the models genai_prices does not know; where both know one, this wins.
     """
+    return _parse_model_prices(settings.ASSISTANT_MODEL_PRICES)
+
+
+@cache
+def _parse_model_prices(raw: str) -> dict[str, ModelPrice]:
     prices: dict[str, ModelPrice] = {}
     setting = "ASSISTANT_MODEL_PRICES"
-    for key, value in _json_object(settings.ASSISTANT_MODEL_PRICES, setting).items():
+    for key, value in _json_object(raw, setting).items():
         try:
             prices[str(key).lower()] = _model_price(value)
         except Exception as exc:
