@@ -8,7 +8,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { SQLNamespace } from "@codemirror/lang-sql";
-import Clipboard from "core/components/Clipboard";
 import CodeEditor, {
   CodeEditorHandle,
 } from "core/components/CodeEditor/CodeEditor";
@@ -196,6 +195,11 @@ const DataStudioEditor = ({
             <span className="truncate text-sm font-medium text-gray-800">
               {editor.savedQuery?.name ?? t("Query")}
             </span>
+            {editor.savedQuery && (
+              <span className="truncate text-xs text-gray-500">
+                ({editor.savedQuery.slug})
+              </span>
+            )}
             {editor.savedQuery && editor.canUpdate && (
               <button
                 type="button"
@@ -206,23 +210,6 @@ const DataStudioEditor = ({
               >
                 <PencilIcon className="h-4 w-4" />
               </button>
-            )}
-            {/* The slug is what `executeSavedQuery` takes, so API users need it
-                visible and copyable. */}
-            {editor.savedQuery && (
-              <div
-                className="min-w-0 shrink text-xs text-gray-500"
-                title={t("Slug")}
-              >
-                <Clipboard
-                  value={editor.savedQuery.slug}
-                  iconClassName="h-3.5 w-3.5 text-gray-400"
-                >
-                  <code className="truncate rounded-sm bg-gray-100 px-1.5 py-0.5 font-mono">
-                    {editor.savedQuery.slug}
-                  </code>
-                </Clipboard>
-              </div>
             )}
             <div className="ml-auto flex items-center gap-2">
               <SaveQueryButton plan={editor.savePlan} />

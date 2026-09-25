@@ -1,7 +1,6 @@
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
-import Clipboard from "core/components/Clipboard";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import UserColumn from "core/components/DataGrid/UserColumn";
@@ -115,28 +114,11 @@ const SavedQueriesList = ({
                 label={t("Name")}
               >
                 {(item) => (
-                  <span className="font-medium text-gray-800">{item.name}</span>
-                )}
-              </BaseColumn>
-              <BaseColumn<SavedQueryListItem_SavedQueryFragment>
-                id="slug"
-                label={t("Slug")}
-                disableSortBy
-              >
-                {(item) => (
-                  // Copying the slug must not also open the query.
-                  <div
-                    className="text-xs text-gray-600"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <Clipboard
-                      value={item.slug}
-                      iconClassName="h-3.5 w-3.5 text-gray-400"
-                    >
-                      <code className="rounded-sm bg-gray-100 px-1.5 py-0.5 font-mono">
-                        {item.slug}
-                      </code>
-                    </Clipboard>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-gray-800">
+                      {item.name}
+                    </span>
+                    <span className="text-sm text-gray-500">{item.slug}</span>
                   </div>
                 )}
               </BaseColumn>

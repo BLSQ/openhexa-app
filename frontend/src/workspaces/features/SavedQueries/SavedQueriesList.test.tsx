@@ -122,17 +122,6 @@ describe("SavedQueriesList", () => {
     expect(screen.getByText("q2-slug")).toBeInTheDocument();
   });
 
-  it("copies a slug without opening the query", () => {
-    Object.assign(navigator, {
-      clipboard: { writeText: jest.fn().mockResolvedValue(undefined) },
-    });
-    mockRouter.setCurrentUrl("/workspaces/ws-1/data-studio/queries");
-    renderList();
-    fireEvent.click(screen.getAllByRole("button", { name: "Copy" })[0]);
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith("q1-slug");
-    expect(mockRouter.asPath).toBe("/workspaces/ws-1/data-studio/queries");
-  });
-
   it("opens a query when its row is clicked", () => {
     renderList();
     fireEvent.click(screen.getByText("Query One"));

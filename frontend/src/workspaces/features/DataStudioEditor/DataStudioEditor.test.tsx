@@ -1,10 +1,4 @@
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SavedQueryVisibility } from "graphql/types";
 import { ComponentProps } from "react";
@@ -509,9 +503,10 @@ describe("DataStudioEditor", () => {
     expect(screen.getByRole("button", { name: /Private/ })).toBeInTheDocument();
   });
 
-  it("shows the saved query slug with a copy button", () => {
-    renderEditor();
-    expect(screen.queryByTitle("Slug")).not.toBeInTheDocument();
+  it("shows the saved query slug next to its name", () => {
+    const { unmount } = renderEditor();
+    expect(screen.queryByText("(cohort-query)")).not.toBeInTheDocument();
+    unmount();
 
     mockEditorState.savedQuery = {
       id: "q1",
@@ -521,11 +516,7 @@ describe("DataStudioEditor", () => {
     };
     renderEditor();
 
-    const slug = screen.getByTitle("Slug");
-    expect(slug).toHaveTextContent("cohort-query");
-    expect(
-      within(slug).getByRole("button", { name: "Copy" }),
-    ).toBeInTheDocument();
+    expect(screen.getByText("(cohort-query)")).toBeInTheDocument();
   });
 
   it("disables Save when the plan withholds it, and runs it when offered", async () => {
