@@ -2,7 +2,6 @@ import { gql } from "@apollo/client";
 import clsx from "clsx";
 import { CustomApolloClient } from "core/helpers/apollo";
 import useLocalStorage from "core/hooks/useLocalStorage";
-import McpHeaderLink from "core/features/McpHeaderLink";
 import SpotlightSearch from "core/features/SpotlightSearch/SpotlightSearch";
 import { GetServerSidePropsContext } from "next";
 import { ComponentProps, ReactElement, ReactNode, useEffect } from "react";
@@ -68,11 +67,8 @@ const WorkspaceLayout = (props: WorkspaceLayoutProps) => {
         >
           <div className="flex items-center h-full gap-2 px-4 md:px-6 xl:px-10 2xl:px-12">
             <div className="flex-1 min-w-24 xl:min-w-48">{header}</div>
-            <div className="flex shrink basis-auto items-center gap-2 max-w-lg p-2 xl:basis-96 xl:min-w-48 2xl:basis-120">
-              <div className="min-w-0 flex-1">
-                <SpotlightSearch organizationId={workspace.organization?.id} />
-              </div>
-              <McpHeaderLink />
+            <div className="shrink basis-auto max-w-md p-2 xl:basis-80 xl:min-w-48 2xl:basis-100">
+              <SpotlightSearch organizationId={workspace.organization?.id} />
             </div>
             <div className="flex-1 flex justify-end items-center gap-2">
               {headerActions}

@@ -431,57 +431,16 @@ exports[`Workspaces renders the workspace page 1`] = `
         class="flex-1 min-w-24 xl:min-w-48"
       />
       <div
-        class="flex shrink basis-auto items-center gap-2 max-w-lg p-2 xl:basis-96 xl:min-w-48 2xl:basis-120"
+        class="shrink basis-auto max-w-md p-2 xl:basis-80 xl:min-w-48 2xl:basis-100"
       >
-        <div
-          class="min-w-0 flex-1"
-        >
-          <button
-            aria-label="Search..."
-            class="flex items-center justify-center gap-2 w-full px-3 py-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors cursor-pointer xl:justify-start"
-            title="Search..."
-          >
-            <svg
-              aria-hidden="true"
-              class="h-4 w-4 shrink-0 text-gray-500"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <span
-              class="hidden flex-1 truncate text-left text-gray-500 xl:block"
-            >
-              Search...
-            </span>
-            <kbd
-              class="hidden xl:inline-flex items-center gap-0.5 px-1.5 py-0.5 font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded"
-            >
-              <span
-                class="text-xs"
-              >
-                Ctrl+K
-              </span>
-            </kbd>
-          </button>
-        </div>
-        <a
-          class="flex shrink-0 cursor-pointer items-center gap-2 self-stretch rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700"
-          href="/mcp"
-          rel="noopener noreferrer"
-          title="Tools exposed by the OpenHEXA MCP server"
+        <button
+          aria-label="Search..."
+          class="flex items-center justify-center gap-2 w-full px-3 py-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors cursor-pointer xl:justify-start"
+          title="Search..."
         >
           <svg
             aria-hidden="true"
-            class="h-4 w-4 shrink-0"
+            class="h-4 w-4 shrink-0 text-gray-500"
             data-slot="icon"
             fill="none"
             stroke="currentColor"
@@ -490,13 +449,26 @@ exports[`Workspaces renders the workspace page 1`] = `
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
               stroke-linecap="round"
               stroke-linejoin="round"
             />
           </svg>
-          MCP
-        </a>
+          <span
+            class="hidden flex-1 truncate text-left text-gray-500 xl:block"
+          >
+            Search...
+          </span>
+          <kbd
+            class="hidden xl:inline-flex items-center gap-0.5 px-1.5 py-0.5 font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded"
+          >
+            <span
+              class="text-xs"
+            >
+              Ctrl+K
+            </span>
+          </kbd>
+        </button>
       </div>
       <div
         class="flex-1 flex justify-end items-center gap-2"
@@ -1022,57 +994,16 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
         class="flex-1 min-w-24 xl:min-w-48"
       />
       <div
-        class="flex shrink basis-auto items-center gap-2 max-w-lg p-2 xl:basis-96 xl:min-w-48 2xl:basis-120"
+        class="shrink basis-auto max-w-md p-2 xl:basis-80 xl:min-w-48 2xl:basis-100"
       >
-        <div
-          class="min-w-0 flex-1"
-        >
-          <button
-            aria-label="Search..."
-            class="flex items-center justify-center gap-2 w-full px-3 py-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors cursor-pointer xl:justify-start"
-            title="Search..."
-          >
-            <svg
-              aria-hidden="true"
-              class="h-4 w-4 shrink-0 text-gray-500"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <span
-              class="hidden flex-1 truncate text-left text-gray-500 xl:block"
-            >
-              Search...
-            </span>
-            <kbd
-              class="hidden xl:inline-flex items-center gap-0.5 px-1.5 py-0.5 font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded"
-            >
-              <span
-                class="text-xs"
-              >
-                Ctrl+K
-              </span>
-            </kbd>
-          </button>
-        </div>
-        <a
-          class="flex shrink-0 cursor-pointer items-center gap-2 self-stretch rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700"
-          href="/mcp"
-          rel="noopener noreferrer"
-          title="Tools exposed by the OpenHEXA MCP server"
+        <button
+          aria-label="Search..."
+          class="flex items-center justify-center gap-2 w-full px-3 py-2 text-sm bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors cursor-pointer xl:justify-start"
+          title="Search..."
         >
           <svg
             aria-hidden="true"
-            class="h-4 w-4 shrink-0"
+            class="h-4 w-4 shrink-0 text-gray-500"
             data-slot="icon"
             fill="none"
             stroke="currentColor"
@@ -1081,13 +1012,26 @@ exports[`Workspaces shows the jupyterhub entry when user have the launchNotebook
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 0 0 2.25-2.25V6.75a2.25 2.25 0 0 0-2.25-2.25H6.75A2.25 2.25 0 0 0 4.5 6.75v10.5a2.25 2.25 0 0 0 2.25 2.25Zm.75-12h9v9h-9v-9Z"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
               stroke-linecap="round"
               stroke-linejoin="round"
             />
           </svg>
-          MCP
-        </a>
+          <span
+            class="hidden flex-1 truncate text-left text-gray-500 xl:block"
+          >
+            Search...
+          </span>
+          <kbd
+            class="hidden xl:inline-flex items-center gap-0.5 px-1.5 py-0.5 font-medium text-gray-500 bg-gray-100 border border-gray-300 rounded"
+          >
+            <span
+              class="text-xs"
+            >
+              Ctrl+K
+            </span>
+          </kbd>
+        </button>
       </div>
       <div
         class="flex-1 flex justify-end items-center gap-2"
