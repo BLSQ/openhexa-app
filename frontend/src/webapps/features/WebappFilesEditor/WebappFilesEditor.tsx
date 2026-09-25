@@ -25,6 +25,7 @@ type WebappFilesEditorProps = {
   proposedCommitMessage?: string;
   onSaveSuccess?: () => void;
   onBusyChange?: (busy: boolean) => void;
+  saveDisabledReason?: string;
 };
 
 const WebappFilesEditor = ({
@@ -40,6 +41,7 @@ const WebappFilesEditor = ({
   proposedCommitMessage,
   onSaveSuccess,
   onBusyChange,
+  saveDisabledReason,
 }: WebappFilesEditorProps) => {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -250,6 +252,7 @@ const WebappFilesEditor = ({
           proposedDeletedPaths={proposedDeletedPaths}
           headerActions={uploadActions}
           onSave={handleSave}
+          saveDisabledReason={saveDisabledReason}
         />
       </div>
     </div>

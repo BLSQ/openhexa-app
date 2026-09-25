@@ -60,6 +60,12 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
   const [proposedToolInvocationId, setProposedToolInvocationId] = useState<
     string | null
   >(null);
+  // A proposal streamed by the agent is shown before its invocation is persisted
+  // (that only happens when the turn ends), so it cannot be resolved yet.
+  const proposalBlockedReason =
+    proposedFiles !== null && proposedToolInvocationId === null
+      ? t("Waiting for the assistant to finish…")
+      : undefined;
   const [proposedDeletedPaths, setProposedDeletedPaths] = useState<
     string[] | null
   >(null);
@@ -249,6 +255,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
               messagePlaceholder={t("Commit message")}
               onMessageChange={setProposedCommitMessage}
               onDismiss={handleDismiss}
+              disabledReason={proposalBlockedReason}
               className="-my-2"
             />
           )}
@@ -265,6 +272,7 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
                 proposedCommitMessage={proposedCommitMessage ?? undefined}
                 onSaveSuccess={handleSaveSuccess}
                 onBusyChange={setIsEditorBusy}
+                saveDisabledReason={proposalBlockedReason}
               />
             </div>
             {chatOpen && showAssistant && (
