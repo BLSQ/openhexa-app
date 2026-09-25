@@ -14,6 +14,8 @@ GitOrg = namedtuple("GitOrg", ["slug", "display_name"])
 
 
 class GitRepoMixin(models.Model):
+    """A model whose history lives in a git repository of its own."""
+
     repository = models.CharField(max_length=255, unique=True)
 
     class Meta:
@@ -26,6 +28,32 @@ class GitRepoMixin(models.Model):
     @property
     def client(self) -> GitClient:
         return get_forgejo_client()
+
+    @property
+    def has_history(self) -> bool:
+        """Whether the repository exists on the server and holds something to read.
+
+        True by default. If the model can be created without a repository, it overrides this.
+        """
+        return True
+
+    def get_versions(self, page: int = 1, per_page: int = 20) -> dict:
+        if not self.has_history:
+            return {"items": [], "page": page}
+        return {
+            "items": self.client.get_commits(
+                self.git_org.slug, self.repository, page=page, limit=per_page
+            ),
+            "page": page,
+        }
+
+    def get_commit_diff(self, sha: str) -> dict:
+        return {
+            **self.client.get_commit(self.git_org.slug, self.repository, sha),
+            "raw_diff": self.client.get_commit_diff(
+                self.git_org.slug, self.repository, sha
+            ),
+        }
 
     def create_repo(self, *, files: list[dict] | None = None, user: User) -> str:
         try:

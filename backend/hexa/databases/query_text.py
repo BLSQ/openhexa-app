@@ -60,8 +60,7 @@ def sanitize_sql(text: str) -> str:
     literals, quoted identifiers and comments verbatim. Cleaning is idempotent,
     so it can be applied wherever SQL enters the system.
     """
-    # Nothing to clean is by far the common case, and answering it costs a scan
-    # rather than a trip through sqlparse.
+    # Nothing to clean is the common case, and answering it doesn't need sqlparse.
     if not _SUSPICIOUS_CHARACTER.search(text):
         return text
     # Lexing rather than parsing: token types are all the verbatim regions need,

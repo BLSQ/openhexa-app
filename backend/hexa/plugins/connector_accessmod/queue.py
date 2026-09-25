@@ -292,7 +292,7 @@ def generate_geojson(fileset: Fileset, filename: str, **options):
 
     # rewrite to file in all case to force use geojson
     # usually input are in gpkg
-    json_filename = "/tmp/current_work_file.geojson"
+    json_filename = f"/tmp/current_work_file_{os.getpid()}.geojson"
     gdf.to_file(json_filename, driver="GeoJSON")
 
     # upload to target!
@@ -354,7 +354,7 @@ def generate_cog_raster(fileset: Fileset, filename: str, **options):
         GDAL_TIFF_OVR_BLOCKSIZE="128",
     )
 
-    cog_filename = "/tmp/current_work_file.cog.tif"
+    cog_filename = f"/tmp/current_work_file_{os.getpid()}.cog.tif"
     with memfile.open() as src_mem:
         cog_translate(
             src_mem,
@@ -412,8 +412,9 @@ def validate_data_and_download(fileset: Fileset) -> str:
         fileset.set_invalid("bucket not found")
         return None
 
-    # erase always the same file, make sure we don't consume too much ram
-    local_name = "/tmp/current_work_file"
+    # reuse one file per process so /tmp does not fill up; the pid keeps
+    # concurrent workers (e.g. parallel test processes) from clobbering each other
+    local_name = f"/tmp/current_work_file_{os.getpid()}"
 
     download_file(bucket=bucket, object_key=get_object_key(file.uri), target=local_name)
 
