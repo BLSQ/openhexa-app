@@ -116,6 +116,12 @@ describe("SavedQueriesList", () => {
     expect(onSearchChange).toHaveBeenCalledWith("malaria");
   });
 
+  it("shows each query's slug", () => {
+    renderList();
+    expect(screen.getByText("q1-slug")).toBeInTheDocument();
+    expect(screen.getByText("q2-slug")).toBeInTheDocument();
+  });
+
   it("opens a query when its row is clicked", () => {
     renderList();
     fireEvent.click(screen.getByText("Query One"));
