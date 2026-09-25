@@ -3,6 +3,7 @@ import { Transition } from "@headlessui/react";
 import {
   ArrowRightStartOnRectangleIcon,
   Cog6ToothIcon,
+  CpuChipIcon,
   QuestionMarkCircleIcon,
   UserIcon,
 } from "@heroicons/react/24/outline";
@@ -151,6 +152,15 @@ const UserMenu = (props: UserMenuProps) => {
                 {t("Administration")}
               </a>
             )}
+            <Link
+              href="/mcp"
+              noStyle
+              title={t("Tools exposed by the OpenHEXA MCP server")}
+              className="group flex gap-2 px-4 py-2.5 text-gray-700 transition-all hover:bg-gray-100 hover:text-gray-800"
+            >
+              <CpuChipIcon className="h-5 w-5 text-gray-400 transition-all group-hover:text-gray-600" />
+              {t("MCP")}
+            </Link>
             <Link
               href="https://docs.openhexa.com/#user-manual"
               noStyle
