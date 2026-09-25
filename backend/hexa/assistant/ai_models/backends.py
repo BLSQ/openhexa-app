@@ -5,9 +5,14 @@ Each subclass has the logic specific to the provider backend (managed or BYOK)
 from abc import ABC, abstractmethod
 
 from django.conf import settings
+from genai_prices.types import ModelPrice
 from pydantic_ai.providers import Provider, infer_provider_class
 
-from hexa.assistant.ai_models.config import DEFAULT_KEY, managed_agent_models
+from hexa.assistant.ai_models.config import (
+    DEFAULT_KEY,
+    managed_agent_models,
+    model_prices,
+)
 from hexa.assistant.ai_models.ids import ModelId, ModelRequest
 from hexa.assistant.ai_models.vertex import PROVIDERS
 from hexa.assistant.exceptions import AssistantException
@@ -35,6 +40,10 @@ class ProviderBackend(ABC):
     @abstractmethod
     def pricing_provider(self, model_id: ModelId) -> str:
         """The genai_prices provider for the model in this backend."""
+
+    @abstractmethod
+    def price_override(self, model_id: ModelId) -> ModelPrice | None:
+        """The price this backend sets for `model_id`, outranking genai_prices."""
 
     @abstractmethod
     def _build_provider(self, provider: str, region: str | None) -> Provider:
@@ -103,6 +112,9 @@ class ManagedBackend(ProviderBackend):
     def pricing_provider(self, model_id: ModelId) -> str:
         return self.PRICING_PROVIDER
 
+    def price_override(self, model_id: ModelId) -> ModelPrice | None:
+        return model_prices().get(model_id.name.lower())
+
     def _build_provider(self, provider: str, region: str | None) -> Provider:
         if not settings.VERTEX_PROJECT_ID:
             raise AssistantException(
@@ -139,6 +151,9 @@ class BringYourOwnKeyBackend(ProviderBackend):
 
     def pricing_provider(self, model_id: ModelId) -> str:
         return model_id.provider
+
+    def price_override(self, model_id: ModelId) -> ModelPrice | None:
+        return None
 
     def _build_provider(self, provider: str, region: str | None) -> Provider:
         # A key reaches its provider's own API, which has no regions to pick from.

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
@@ -136,6 +137,53 @@ class PricingProviderTest(SimpleTestCase):
             _byok_backend().pricing_provider(ModelId("anthropic", "claude-opus-4-6")),
             "anthropic",
         )
+
+
+_CONFIG_LOGGER = "hexa.assistant.ai_models.config"
+_GLM = ModelId("openai-chat", "zai-org/glm-5.2-maas")
+_GLM_PRICE = '"%s": {"input_mtok": 0.6, "output_mtok": 2.2}' % _GLM.name
+
+
+class PriceOverrideTest(SimpleTestCase):
+    """ASSISTANT_MODEL_PRICES prices the Vertex Model Garden models genai_prices
+    does not know. It is about our Vertex project, so it never reaches a key.
+    """
+
+    def test_managed_has_no_price_unless_configured(self):
+        self.assertIsNone(_managed_backend().price_override(_GLM))
+
+    @override_settings(ASSISTANT_MODEL_PRICES="{%s}" % _GLM_PRICE)
+    def test_managed_reads_the_configured_price(self):
+        price = _managed_backend().price_override(_GLM)
+        self.assertEqual(price.input_mtok, Decimal("0.6"))
+        self.assertEqual(price.output_mtok, Decimal("2.2"))
+
+    @override_settings(ASSISTANT_MODEL_PRICES="{%s}" % _GLM_PRICE.replace("glm", "GLM"))
+    def test_model_names_match_regardless_of_case(self):
+        self.assertIsNotNone(_managed_backend().price_override(_GLM))
+
+    @override_settings(
+        ASSISTANT_MODEL_PRICES='{"claude-opus-4-6": {"input_mtok": 1, "output_mtok": 1}}'
+    )
+    def test_bring_your_own_key_ignores_the_setting(self):
+        """Their usage is priced by their provider's own catalog: a price we set
+        to correct Vertex billing must not move what we count on their key.
+        """
+        self.assertIsNone(
+            _byok_backend().price_override(ModelId("anthropic", "claude-opus-4-6"))
+        )
+
+    @override_settings(
+        ASSISTANT_MODEL_PRICES='{"typo": {"input_mtok": "cheap"}, '
+        '"scalar": 0.5, "extra": {"per_call": 1}, %s}' % _GLM_PRICE
+    )
+    def test_a_broken_entry_is_reported_and_leaves_the_others_alone(self):
+        with self.assertLogs(_CONFIG_LOGGER, level="ERROR") as logs:
+            price = _managed_backend().price_override(_GLM)
+        self.assertEqual(price.input_mtok, Decimal("0.6"))
+        self.assertEqual(len(logs.output), 3)
+        self.assertIn("'extra'", logs.output[2])
+        self.assertIn("per_call", logs.output[2])
 
 
 class ProviderForTest(SimpleTestCase):

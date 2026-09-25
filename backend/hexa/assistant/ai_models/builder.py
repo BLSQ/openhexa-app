@@ -74,6 +74,7 @@ class AiModelBuilder:
             model=model,
             api_name=model.model_name,
             provider_id=self._backend.pricing_provider(model_id),
+            price_override=self._backend.price_override(model_id),
         )
         # Reaching for a new model does not fail on missing cost calculation,
         # in case we need to change models quickly so service is not down;

@@ -103,6 +103,15 @@ class AiModelBuilderTest(TestCase):
             )
         self.assertGreater(built.calculate_cost(RunUsage(input_tokens=1000)), 0)
 
+    @override_settings(
+        ASSISTANT_MODEL_PRICES='{"claude-haiku-4-5": {"input_mtok": 0, "output_mtok": 0}}'
+    )
+    def test_a_bring_your_own_key_build_ignores_the_configured_prices(self):
+        builder = _builder(AiSettings.Provider.ANTHROPIC, AiSettings.Model.HAIKU)
+        built = builder.build(_id("anthropic:claude-haiku-4-5"))
+        self.assertIsNone(built.price_override)
+        self.assertGreater(built.calculate_cost(RunUsage(input_tokens=1000)), 0)
+
     def test_build_a_provider_we_hold_no_credentials_for_raises(self):
         builder = _builder(AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS)
         with self.assertRaises(AssistantException):
