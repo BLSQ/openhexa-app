@@ -20,6 +20,7 @@ interface PipelineFilesEditorProps {
   pipelineCode: string;
   pipelineId: string;
   onVersionCreated?: (version: PipelineVersionPicker_VersionFragment) => void;
+  saveDisabledReason?: string;
 }
 
 export const PipelineFilesEditor = ({
@@ -33,6 +34,7 @@ export const PipelineFilesEditor = ({
   pipelineCode,
   pipelineId,
   onVersionCreated,
+  saveDisabledReason,
 }: PipelineFilesEditorProps) => {
   const [uploadPipeline] = useUploadPipelineMutation({
     refetchQueries: ["WorkspacePipelineCodePage"],
@@ -145,6 +147,7 @@ export const PipelineFilesEditor = ({
       proposedFiles={proposedFiles}
       proposedDeletedPaths={proposedDeletedPaths}
       onSave={handleSave}
+      saveDisabledReason={saveDisabledReason}
     />
   );
 };

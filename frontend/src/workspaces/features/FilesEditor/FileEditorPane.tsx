@@ -28,6 +28,8 @@ type FileEditorPaneProps = {
   canDelete: boolean;
   onRestore: (node: FileNode) => void;
   hasSaveHandler: boolean;
+  /** When set, the Save button is disabled and shows this as its tooltip. */
+  saveDisabledReason?: string;
 };
 
 const FileEditorPane = ({
@@ -46,6 +48,7 @@ const FileEditorPane = ({
   canDelete,
   onRestore,
   hasSaveHandler,
+  saveDisabledReason,
 }: FileEditorPaneProps) => {
   const { t } = useTranslation();
 
@@ -58,10 +61,11 @@ const FileEditorPane = ({
   const saveButton = canSave ? (
     <button
       onClick={onSave}
-      disabled={isSaving}
+      disabled={isSaving || !!saveDisabledReason}
+      title={saveDisabledReason}
       className={clsx(
         "px-3 py-1 text-xs font-medium rounded-md transition-colors",
-        isSaving
+        isSaving || saveDisabledReason
           ? "bg-gray-200 text-gray-500 cursor-not-allowed"
           : "bg-blue-600 text-white hover:bg-blue-700",
       )}

@@ -10,6 +10,8 @@ type Props = {
   onDismiss: () => void;
   onAccept?: () => void;
   acceptDisabled?: boolean;
+  /** When set, Apply and Dismiss are disabled and show this as their tooltip. */
+  disabledReason?: string;
   className?: string;
 };
 
@@ -21,6 +23,7 @@ export default function AssistantProposalBanner({
   onDismiss,
   onAccept,
   acceptDisabled,
+  disabledReason,
   className,
 }: Props) {
   const { t } = useTranslation();
@@ -57,7 +60,8 @@ export default function AssistantProposalBanner({
         {onAccept && (
           <button
             onClick={onAccept}
-            disabled={acceptDisabled}
+            disabled={acceptDisabled || !!disabledReason}
+            title={disabledReason}
             className="text-xs font-medium text-blue-700 hover:text-blue-900 disabled:opacity-50"
           >
             {t("Apply")}
@@ -65,7 +69,9 @@ export default function AssistantProposalBanner({
         )}
         <button
           onClick={onDismiss}
-          className="flex items-center gap-1 text-blue-500 hover:text-blue-700 text-xs"
+          disabled={!!disabledReason}
+          title={disabledReason}
+          className="flex items-center gap-1 text-blue-500 hover:text-blue-700 text-xs disabled:opacity-50"
         >
           <XMarkIcon className="h-3.5 w-3.5" />
           {t("Dismiss")}

@@ -22,6 +22,7 @@ interface FilesEditorProps {
     allFiles: FilesEditor_FileFragment[],
     deletedPaths: string[],
   ) => Promise<SaveResult>;
+  saveDisabledReason?: string;
 }
 
 export const FilesEditor = ({
@@ -33,6 +34,7 @@ export const FilesEditor = ({
   proposedDeletedPaths,
   headerActions,
   onSave,
+  saveDisabledReason,
 }: FilesEditorProps) => {
   const {
     isPanelOpen,
@@ -112,6 +114,7 @@ export const FilesEditor = ({
           canDelete={isEditable && allowDelete}
           onRestore={restoreDeleted}
           hasSaveHandler={!!onSave}
+          saveDisabledReason={saveDisabledReason}
         />
       </div>
     </div>
