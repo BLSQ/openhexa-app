@@ -1,0 +1,29 @@
+# Throwaway test database, layered on top of docker-compose.yaml. The data
+# directory is a tmpfs, so it lives in RAM and dies with the container — that is
+# what makes the durability settings below safe to use anywhere, including
+# locally. Measured ~30% faster than the durable configuration on the full suite.
+services:
+  app:
+    # Tests patch the forgejo client, so there is no need to boot the git server.
+    depends_on: !override
+      - db
+
+  db:
+    command: postgres -c fsync=off -c synchronous_commit=off -c full_page_writes=off
+    # Avoid clash with the dev database on 5434.
+    ports: !reset []
+    volumes:
+      # Replaces the pgdata volume from the base file (compose merges mounts by
+      # target). Peak usage is ~600MB with 8 parallel worker databases; tmpfs
+      # allocates lazily, so this is a ceiling, not a reservation.
+      - type: tmpfs
+        target: /var/lib/postgresql/data
+        tmpfs:
+          size: 2147483648
+
+networks:
+  # Private, project-managed network instead of the shared external `openhexa`
+  # one, so the test app cannot resolve `db` to the development database.
+  openhexa:
+    name: openhexa-test
+    external: false
