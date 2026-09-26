@@ -1,5 +1,24 @@
 # Changelog
 
+## [5.19.0](https://github.com/BLSQ/openhexa-app/compare/5.18.0...5.19.0) (2026-09-26)
+
+
+### Features
+
+* agents with more flexible providers (HEXA-1809) ([#2065](https://github.com/BLSQ/openhexa-app/issues/2065)) ([be97fe7](https://github.com/BLSQ/openhexa-app/commit/be97fe7085173c8a8d99fed7c3eba29c7f49fe0f))
+* Editing agents can make commits with proposed change(Hexa-1743 ) ([#2058](https://github.com/BLSQ/openhexa-app/issues/2058)) ([a566193](https://github.com/BLSQ/openhexa-app/commit/a566193096c8141673b019728c0350d985f5e407))
+* naming agent simpler model (HEXA-1806) ([#2052](https://github.com/BLSQ/openhexa-app/issues/2052)) ([8785e7b](https://github.com/BLSQ/openhexa-app/commit/8785e7b5fc56490f7a41a8c236d4055e1cdd0199))
+* saved queries versioning (HEXA-1768) (HEXA-1808) ([#2053](https://github.com/BLSQ/openhexa-app/issues/2053)) ([9ad61bd](https://github.com/BLSQ/openhexa-app/commit/9ad61bd439154b5a5323fcd9ce775a069ea6f0cc))
+* show saved query slugs on the frontend (HEXA-1805) ([#2075](https://github.com/BLSQ/openhexa-app/issues/2075)) ([886407c](https://github.com/BLSQ/openhexa-app/commit/886407cf929006e2dc22b3d44ca7c24bad88ab17))
+
+
+### Bug Fixes
+
+* add link to mcp (HEXA-1813) ([#2071](https://github.com/BLSQ/openhexa-app/issues/2071)) ([d57b86c](https://github.com/BLSQ/openhexa-app/commit/d57b86c379f7a184d4fbcbb6938a03c7ec14ca1b))
+* documentation dev.js links ([#2066](https://github.com/BLSQ/openhexa-app/issues/2066)) ([d0df249](https://github.com/BLSQ/openhexa-app/commit/d0df249e42ac2a5c3557558d257fa36f816222b2))
+* handling of scheduling pipeline without default params (HEXA- 1788) ([#2038](https://github.com/BLSQ/openhexa-app/issues/2038)) ([0d94a6c](https://github.com/BLSQ/openhexa-app/commit/0d94a6c1d1e8fe99f71c5db044e24642b1795e77))
+* type error on Parquet arrays datasets ([#2068](https://github.com/BLSQ/openhexa-app/issues/2068)) ([c8c02e2](https://github.com/BLSQ/openhexa-app/commit/c8c02e2d5f14e11e562db7b46850ec1d24a1cad7))
+
 ## [5.18.0](https://github.com/BLSQ/openhexa-app/compare/5.17.0...5.18.0) (2026-09-08)
 
 
