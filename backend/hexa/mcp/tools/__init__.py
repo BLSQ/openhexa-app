@@ -5,6 +5,7 @@ from hexa.mcp.tools import (  # noqa: F401
     files,
     help,
     pipelines,
+    saved_queries,
     templates,
     webapps,
     workspaces,

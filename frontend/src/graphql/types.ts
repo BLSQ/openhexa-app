@@ -522,21 +522,25 @@ export type AssistantTextSegment = {
  */
 export enum AssistantToolName {
   CreatePipeline = 'create_pipeline',
+  CreateSavedQuery = 'create_saved_query',
   GetDataset = 'get_dataset',
   GetDbSchema = 'get_db_schema',
   GetDbTableSchema = 'get_db_table_schema',
   GetHelpOrDoc = 'get_help_or_doc',
   GetPipeline = 'get_pipeline',
+  GetSavedQuery = 'get_saved_query',
   GetStaticWebappFile = 'get_static_webapp_file',
   GetWorkspace = 'get_workspace',
   ListConnections = 'list_connections',
   ListDatasets = 'list_datasets',
   ListFiles = 'list_files',
   ListPipelines = 'list_pipelines',
+  ListSavedQueries = 'list_saved_queries',
   PreviewDatasetFile = 'preview_dataset_file',
   ProposePipelineVersion = 'propose_pipeline_version',
   ProposeWebappVersion = 'propose_webapp_version',
-  ReadFile = 'read_file'
+  ReadFile = 'read_file',
+  UpdateSavedQuery = 'update_saved_query'
 }
 
 export type AssistantToolSegment = {
