@@ -63,16 +63,21 @@ class AiModelBuilderTest(TestCase):
         with self.assertNoLogs(_LOGGER, level="ERROR"):
             builder.build(_id("anthropic:claude-opus-4-6"))
 
-    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_MAAS_REGION="global")
+    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_REGION="europe-west1")
     @patch("hexa.assistant.ai_models.vertex._google_credentials")
     def test_a_model_garden_model_needs_no_code_of_its_own(self, credentials):
         """The point of the openai-chat entry: Qwen, Kimi and the rest arrive as
-        a configured model id, with no code of their own.
+        a configured model id, with no code of their own. The region it names
+        outranks ours, which does not serve it.
         """
         credentials.return_value.valid = True
         credentials.return_value.token = "ya29.token"
         built = _builder(AiSettings.Provider.MANAGED, model=None, api_key=None).build(
-            _id("openai-chat:qwen/qwen3-coder-480b-a35b-instruct-maas")
+            ModelId(
+                "openai-chat",
+                "qwen/qwen3-coder-480b-a35b-instruct-maas",
+                region="global",
+            )
         )
         self.assertEqual(built.api_name, "qwen/qwen3-coder-480b-a35b-instruct-maas")
         self.assertEqual(
@@ -80,6 +85,32 @@ class AiModelBuilderTest(TestCase):
             "https://aiplatform.googleapis.com/v1/projects/test-project"
             "/locations/global/endpoints/openapi/",
         )
+
+    @override_settings(
+        VERTEX_PROJECT_ID="test-project",
+        ASSISTANT_MODEL_PRICES='{"zai-org/glm-5.2-maas": {"input_mtok": 0.6, "output_mtok": 2.2}}',
+    )
+    @patch("hexa.assistant.ai_models.vertex._google_credentials")
+    def test_a_model_garden_model_with_a_configured_price_builds_quietly(
+        self, credentials
+    ):
+        credentials.return_value.valid = True
+        credentials.return_value.token = "ya29.token"
+        builder = _builder(AiSettings.Provider.MANAGED, model=None, api_key=None)
+        with self.assertNoLogs(_LOGGER, level="ERROR"):
+            built = builder.build(
+                ModelId("openai-chat", "zai-org/glm-5.2-maas", region="global")
+            )
+        self.assertGreater(built.calculate_cost(RunUsage(input_tokens=1000)), 0)
+
+    @override_settings(
+        ASSISTANT_MODEL_PRICES='{"claude-haiku-4-5": {"input_mtok": 0, "output_mtok": 0}}'
+    )
+    def test_a_bring_your_own_key_build_ignores_the_configured_prices(self):
+        builder = _builder(AiSettings.Provider.ANTHROPIC, AiSettings.Model.HAIKU)
+        built = builder.build(_id("anthropic:claude-haiku-4-5"))
+        self.assertIsNone(built.price_override)
+        self.assertGreater(built.calculate_cost(RunUsage(input_tokens=1000)), 0)
 
     def test_build_a_provider_we_hold_no_credentials_for_raises(self):
         builder = _builder(AiSettings.Provider.ANTHROPIC, AiSettings.Model.OPUS)

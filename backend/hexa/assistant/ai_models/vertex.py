@@ -3,6 +3,9 @@
 Vertex speaks a different API per publisher — Gemini through google-genai, Claude
 through Anthropic's own client, everything else through an OpenAI-compatible
 endpoint — and each names its credentials differently.
+
+Vertex serves each model from its own set of regions, so every provider is built
+for the region of the model it is about to run.
 """
 
 from collections.abc import Callable
@@ -18,21 +21,19 @@ from pydantic_ai.providers.google_cloud import GoogleCloudProvider
 from pydantic_ai.providers.openai import OpenAIProvider
 
 
-def _vertex_anthropic() -> Provider:
+def _vertex_anthropic(region: str) -> Provider:
     # pydantic-ai has no Anthropic-on-Vertex provider of its own: Claude on
     # Vertex is the Anthropic provider wrapped around Google's client.
     return AnthropicProvider(
         anthropic_client=AsyncAnthropicVertex(
             project_id=settings.VERTEX_PROJECT_ID,
-            region=settings.VERTEX_REGION,
+            region=region,
         )
     )
 
 
-def _vertex_google() -> Provider:
-    return GoogleCloudProvider(
-        project=settings.VERTEX_PROJECT_ID, location=settings.VERTEX_REGION
-    )
+def _vertex_google(region: str) -> Provider:
+    return GoogleCloudProvider(project=settings.VERTEX_PROJECT_ID, location=region)
 
 
 @cache
@@ -44,10 +45,11 @@ def _google_credentials():
     return credentials
 
 
-def _vertex_openai() -> Provider:
+def _vertex_openai(region: str) -> Provider:
     """Vertex's OpenAI-compatible endpoint, which serves every Model Garden
     publisher that is neither Gemini nor Claude: Qwen, Kimi, DeepSeek, Llama, gpt-oss.
     Example: "openai-chat:qwen/qwen3-coder-480b-a35b-instruct-maas"
+    Most of them are only served from "global" or a us-* region.
 
     It authenticates with a bearer token rather than a key,
     which is why it builds its own client
@@ -55,12 +57,12 @@ def _vertex_openai() -> Provider:
     credentials = _google_credentials()
     if not credentials.valid:
         credentials.refresh(GoogleAuthRequest())
-    region = settings.VERTEX_MAAS_REGION
-    host = (
-        "aiplatform.googleapis.com"
-        if region == "global"
-        else f"{region}-aiplatform.googleapis.com"
-    )
+    if region == "global":
+        host = "aiplatform.googleapis.com"
+    elif region in {"us", "eu"}:  # multi-regions
+        host = f"aiplatform.{region}.rep.googleapis.com"
+    else:
+        host = f"{region}-aiplatform.googleapis.com"
     return OpenAIProvider(
         base_url=(
             f"https://{host}/v1/projects/{settings.VERTEX_PROJECT_ID}"
@@ -70,7 +72,7 @@ def _vertex_openai() -> Provider:
     )
 
 
-PROVIDERS: dict[str, Callable[[], Provider]] = {
+PROVIDERS: dict[str, Callable[[str], Provider]] = {
     "anthropic": _vertex_anthropic,
     "google-cloud": _vertex_google,
     "openai-chat": _vertex_openai,

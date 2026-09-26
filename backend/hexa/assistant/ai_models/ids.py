@@ -15,6 +15,9 @@ SEPARATOR = ":"
 class ModelId:
     provider: str
     name: str
+    # Where the model is served, for backends that serve each model from its own
+    # region. Not part of the id: pydantic-ai knows nothing about it.
+    region: str | None = None
 
     @classmethod
     def parse(cls, value: object) -> "ModelId | None":

@@ -29,6 +29,13 @@ class ModelIdTest(SimpleTestCase):
         self.assertIsNone(ModelId.parse(["haiku"]))
         self.assertIsNone(ModelId.parse(None))
 
+    def test_the_region_is_not_part_of_the_id(self):
+        """pydantic-ai reads the id as is, and knows nothing about regions."""
+        self.assertEqual(
+            str(ModelId("google-cloud", "gemini-3-pro-preview", region="eu")),
+            "google-cloud:gemini-3-pro-preview",
+        )
+
     def test_str_gives_back_the_id_it_was_parsed_from(self):
         self.assertEqual(
             str(ModelId.parse("google-cloud:gemini-3-pro-preview")),

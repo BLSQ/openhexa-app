@@ -7,6 +7,7 @@ not a code one. Reaching another provider costs one entry in the backend's regis
 """
 
 import logging
+from functools import partial
 
 from pydantic_ai import RunUsage
 from pydantic_ai.models import infer_model
@@ -56,7 +57,12 @@ class AiModelBuilder:
         """Build `model_id` with this organization's credentials."""
         name = str(model_id)
         try:
-            model = infer_model(name, provider_factory=self._backend.provider_for)
+            model = infer_model(
+                name,
+                provider_factory=partial(
+                    self._backend.provider_for, region=model_id.region
+                ),
+            )
         except AssistantException:
             raise
         except Exception as exc:
@@ -68,6 +74,7 @@ class AiModelBuilder:
             model=model,
             api_name=model.model_name,
             provider_id=self._backend.pricing_provider(model_id),
+            price_override=self._backend.price_override(model_id),
         )
         # Reaching for a new model does not fail on missing cost calculation,
         # in case we need to change models quickly so service is not down;

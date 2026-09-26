@@ -30,6 +30,9 @@ if "hexa.plugins.connector_accessmod" in INSTALLED_APPS:  # noqa: F405
     ACCESSMOD_MANAGE_REQUESTS_URL = "http://localhost:3000/admin/access-requests"
     ACCESSMOD_SET_PASSWORD_URL = "http://localhost:3000/account/set-password"
 
+ASSISTANT_MANAGED_AGENT_MODELS = ""
+ASSISTANT_MODEL_PRICES = ""
+
 NEW_FRONTEND_DOMAIN = "http://localhost:3000"
 NOTEBOOKS_URL = "http://localhost:8001"
 
