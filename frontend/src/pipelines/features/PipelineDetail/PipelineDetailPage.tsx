@@ -9,10 +9,12 @@ import { CreateTemplateVersionPermissionReason } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import DownloadPipelineVersion from "pipelines/features/DownloadPipelineVersion";
 import PipelineDetail from "pipelines/features/PipelineDetail/PipelineDetail";
+import PipelineRunLauncher, {
+  usePipelineRunLauncher,
+} from "pipelines/features/PipelineRunLauncher";
 import PublishPipelineDialog from "pipelines/features/PublishPipelineDialog";
 import { useMemo, useState } from "react";
 import DeletePipelineDialog from "workspaces/features/DeletePipelineDialog";
-import RunPipelineDialog from "workspaces/features/RunPipelineDialog";
 import { useWorkspacePipelineDetailPageQuery } from "workspaces/graphql/queries.generated";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 
@@ -39,6 +41,7 @@ const PipelineDetailPage = ({
   useCacheKey(["pipelines"], refetch);
 
   const pipeline = data?.pipeline;
+  const runLauncher = usePipelineRunLauncher(pipeline ?? undefined);
 
   const createTemplateVersionReasonMessages = useMemo(() => {
     const reasonMessages = {
@@ -141,17 +144,13 @@ const PipelineDetailPage = ({
               </DownloadPipelineVersion>
             )}
             {pipeline.permissions.run && (
-              <RunPipelineDialog pipeline={pipeline}>
-                {(onClick) => (
-                  <Button
-                    variant="primary"
-                    leadingIcon={<PlayIcon className="h-4 w-4" />}
-                    onClick={onClick}
-                  >
-                    {t("Run")}
-                  </Button>
-                )}
-              </RunPipelineDialog>
+              <Button
+                variant="primary"
+                leadingIcon={<PlayIcon className="h-4 w-4" />}
+                onClick={runLauncher.openRun}
+              >
+                {t("Run")}
+              </Button>
             )}
             {pipeline.permissions.delete && (
               <Button
@@ -184,6 +183,13 @@ const PipelineDetailPage = ({
           />
         </div>
       </WorkspaceLayout>
+      {pipeline.permissions.run && (
+        <PipelineRunLauncher
+          launcher={runLauncher}
+          pipeline={pipeline}
+          workspaceSlug={workspace.slug}
+        />
+      )}
       <DeletePipelineDialog
         open={isDeleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}

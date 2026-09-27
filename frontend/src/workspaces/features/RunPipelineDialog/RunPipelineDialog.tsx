@@ -1,42 +1,23 @@
 import { gql } from "@apollo/client";
-import {
-  ChevronDownIcon,
-  ExclamationCircleIcon,
-  PlayIcon,
-} from "@heroicons/react/24/outline";
-import clsx from "clsx";
+import { PlayIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Spinner from "core/components/Spinner";
-import Field from "core/components/forms/Field";
-import { ensureArray } from "core/helpers/array";
 import useCacheKey from "core/hooks/useCacheKey";
-import useForm from "core/hooks/useForm";
 import { PipelineType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  convertParametersToPipelineInput,
-  getDisabledParameterCodes,
-  getParameterDisablers,
-  isConnectionParameter,
-  runPipeline,
-} from "workspaces/helpers/pipelines";
+import React, { useState } from "react";
+import { runPipeline } from "workspaces/helpers/pipelines";
 import PipelineVersionPicker from "../PipelineVersionPicker";
 import ParameterField from "./ParameterField";
 import {
   RunPipelineDialog_PipelineFragment,
   RunPipelineDialog_RunFragment,
-  RunPipelineDialog_VersionFragment,
 } from "./RunPipelineDialog.generated";
 import { ErrorAlert } from "core/components/Alert";
-import Checkbox from "core/components/forms/Checkbox";
-import {
-  Disclosure,
-  DisclosureButton,
-  DisclosurePanel,
-} from "@headlessui/react";
+import RunPipelineFormFields from "./RunPipelineFormFields";
+import useRunPipelineForm from "./useRunPipelineForm";
 
 type RunPipelineDialogProps = {
   children(onClick: () => void): React.ReactNode;
@@ -52,133 +33,44 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
   const [open, setOpen] = useState(false);
   const onClose = () => setOpen(false);
 
-  const [activeVersion, setActiveVersion] =
-    useState<RunPipelineDialog_VersionFragment | null>(
-      run?.version ?? pipeline.currentVersion ?? null,
+  const goToRun = (runId: string) =>
+    router.push(
+      `/workspaces/${encodeURIComponent(
+        pipeline.workspace!.slug,
+      )}/pipelines/${encodeURIComponent(pipeline.code)}/runs/${encodeURIComponent(
+        runId,
+      )}`,
     );
+
   const onClick = () => {
     if (pipeline.type === PipelineType.ZipFile) {
       setOpen(true);
     } else {
       runPipeline(pipeline.id).then((run) => {
-        router.push(
-          `/workspaces/${encodeURIComponent(
-            pipeline.workspace!.slug,
-          )}/pipelines/${encodeURIComponent(pipeline.code)}/runs/${encodeURIComponent(
-            run.id,
-          )}`,
-        );
+        goToRun(run.id);
         clearCache();
       });
     }
   };
 
-  useEffect(() => {
-    if (open) {
-      setActiveVersion(run?.version ?? pipeline.currentVersion ?? null);
-    }
-  }, [open]);
-
-  const form = useForm<{ [key: string]: any }>({
-    async onSubmit(values) {
-      const { sendMailNotifications, enableDebugLogs, ...params } = values;
-      if (!activeVersion) {
-        throw new Error("No active version found");
-      }
+  const formState = useRunPipelineForm({
+    pipeline,
+    run,
+    open,
+    async onSubmit(input) {
       const run = await runPipeline(
         pipeline.id,
-        convertParametersToPipelineInput(activeVersion!, params),
-        activeVersion!.id,
-        sendMailNotifications,
-        enableDebugLogs,
+        input.config,
+        input.versionId,
+        input.sendMailNotifications,
+        input.enableDebugLogs,
       );
-      await router.push(
-        `/workspaces/${encodeURIComponent(
-          pipeline.workspace!.slug,
-        )}/pipelines/${encodeURIComponent(
-          pipeline.code,
-        )}/runs/${encodeURIComponent(run.id)}`,
-      );
+      await goToRun(run.id);
       clearCache();
       onClose();
     },
-    getInitialState() {
-      if (run) {
-        return {
-          sendMailNotifications: true,
-          enableDebugLogs: false,
-          ...run.config,
-        };
-      } else if (activeVersion) {
-        return {
-          sendMailNotifications: true,
-          enableDebugLogs: false,
-          ...activeVersion.config,
-        };
-      }
-    },
-    validate(values) {
-      const errors = {} as any;
-      if (!activeVersion) {
-        return errors;
-      }
-      const disabledCodes = getDisabledParameterCodes(
-        activeVersion.parameters,
-        values,
-      );
-      const normalizedValues = convertParametersToPipelineInput(
-        activeVersion,
-        values,
-        disabledCodes,
-      );
-      for (const parameter of activeVersion.parameters) {
-        if (disabledCodes.has(parameter.code)) {
-          continue;
-        }
-        const val = normalizedValues[parameter.code];
-        if (parameter.type === "int" || parameter.type === "float") {
-          if (ensureArray(val).length === 0 && parameter.required) {
-            errors[parameter.code] = t("This field is required");
-          } else if (ensureArray(val).some((v) => isNaN(v))) {
-            errors[parameter.code] = t("This field must contain only numbers");
-          }
-        }
-
-        if (
-          ["str", "dataset", "file"].includes(parameter.type) &&
-          parameter.required &&
-          ensureArray(val).length === 0
-        ) {
-          errors[parameter.code] = t("This field is required");
-        }
-        if (
-          isConnectionParameter(parameter.type) &&
-          parameter.required &&
-          !val
-        ) {
-          errors[parameter.code] = t("This field is required");
-        }
-      }
-      return errors;
-    },
   });
-
-  useEffect(() => {
-    form.resetForm();
-  }, [form, activeVersion]);
-
-  const parameterDisablers = useMemo(
-    () => getParameterDisablers(activeVersion?.parameters ?? [], form.formData),
-    [activeVersion, form.formData],
-  );
-
-  const parameterNameByCode = useMemo(() => {
-    const map: { [code: string]: string } = {};
-    for (const param of activeVersion?.parameters ?? []) {
-      map[param.code] = param.name;
-    }
-    return map;
-  }, [activeVersion]);
+  const { form, activeVersion } = formState;
 
   if (!pipeline.permissions.run) {
     return null;
@@ -211,146 +103,7 @@ const RunPipelineDialog = (props: RunPipelineDialogProps) => {
           ) : (
             <>
               <Dialog.Content>
-                <div
-                  className={clsx(
-                    "grid gap-x-3 gap-y-4",
-                    activeVersion.parameters.length > 4 &&
-                      "grid-cols-2 gap-x-5",
-                  )}
-                >
-                  {activeVersion.parameters.map((param, i) => {
-                    const disablingCodes = parameterDisablers.get(param.code);
-                    const isDisabled = !!disablingCodes;
-                    return (
-                      <Field
-                        required={
-                          (param.required || param.type === "bool") &&
-                          !isDisabled
-                        }
-                        key={i}
-                        name={param.code}
-                        label={param.name}
-                        help={param.help}
-                        note={
-                          disablingCodes
-                            ? t("Disabled by {{names}}", {
-                                names: disablingCodes
-                                  .map(
-                                    (code) => parameterNameByCode[code] ?? code,
-                                  )
-                                  .join(", "),
-                              })
-                            : undefined
-                        }
-                        error={
-                          form.touched[param.code] && form.errors[param.code]
-                        }
-                      >
-                        <fieldset
-                          disabled={isDisabled}
-                          className={clsx(isDisabled && "opacity-50")}
-                        >
-                          <ParameterField
-                            parameter={param}
-                            value={
-                              form.formData[param.code] ??
-                              (param.multiple ? [] : "")
-                            }
-                            onChange={(value: any) => {
-                              form.setFieldValue(param.code, value);
-                            }}
-                            form={form}
-                            workspaceSlug={pipeline.workspace?.slug}
-                            pipelineVersionId={activeVersion.id}
-                          />
-                        </fieldset>
-                      </Field>
-                    );
-                  })}
-                </div>
-                {form.submitError && (
-                  <div className="mt-4 flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-                    <ExclamationCircleIcon className="h-4 w-4 shrink-0 text-red-500" />
-                    {form.submitError}
-                  </div>
-                )}
-                <Disclosure as="div" className={"mt-5"}>
-                  {({ open }) => (
-                    <>
-                      <DisclosureButton className="group flex w-full justify-between text-left">
-                        <div className="flex flex-col">
-                          <span
-                            className={
-                              "font-bold text-sm group-data-hover:text-black/80"
-                            }
-                          >
-                            {t("Advanced settings")}
-                          </span>
-                          {!open && (
-                            <span className="text-gray-500 text-sm mt-1">
-                              {t("Pipeline version, notifications and logs")}
-                            </span>
-                          )}
-                        </div>
-                        <ChevronDownIcon
-                          className={`size-5 mt-1 ml-5 group-data-hover:text-black/80 ${
-                            open ? "rotate-180" : ""
-                          }`}
-                        />
-                      </DisclosureButton>
-                      <DisclosurePanel>
-                        <Field
-                          name="version"
-                          label={t("Version")}
-                          required
-                          className="mb-3"
-                        >
-                          <PipelineVersionPicker
-                            required
-                            pipeline={pipeline}
-                            value={activeVersion}
-                            onChange={(value) => setActiveVersion(value)}
-                          />
-                        </Field>
-                        <Field
-                          name="notification"
-                          label={t("Notifications")}
-                          required
-                          className="mb-4"
-                        >
-                          <Checkbox
-                            checked={form.formData.sendMailNotifications}
-                            name="sendMailNotifications"
-                            onChange={(event) =>
-                              form.setFieldValue(
-                                "sendMailNotifications",
-                                event.target.checked,
-                              )
-                            }
-                            label={t("Send notifications")}
-                            help={t("Notifications will be sent for this run.")}
-                          />
-                        </Field>
-                        <Field name="logs" label={t("Logs")} required>
-                          <Checkbox
-                            checked={form.formData.enableDebugLogs}
-                            name="enableDebugLogs"
-                            onChange={(event) =>
-                              form.setFieldValue(
-                                "enableDebugLogs",
-                                event.target.checked,
-                              )
-                            }
-                            label={t("Show debug messages")}
-                            help={t(
-                              "Debug messages will be shown for this run.",
-                            )}
-                          />
-                        </Field>
-                      </DisclosurePanel>
-                    </>
-                  )}
-                </Disclosure>
+                <RunPipelineFormFields pipeline={pipeline} state={formState} />
               </Dialog.Content>
               <Dialog.Actions className="flex-1 items-center">
                 <Button variant="white" onClick={onClose}>

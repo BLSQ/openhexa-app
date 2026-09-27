@@ -116,3 +116,18 @@ query PipelineRunPoller($runId: UUID!) {
         hasErrorMessages
       }
 }
+
+query PipelineRunLauncherRun($runId: UUID!) {
+  run: pipelineRun(id: $runId) {
+    id
+    status
+    executionDate
+    duration
+    version {
+      id
+      versionName
+    }
+    ...usePipelineRunPoller_run
+    ...PipelineRunStatusBadge_run
+  }
+}

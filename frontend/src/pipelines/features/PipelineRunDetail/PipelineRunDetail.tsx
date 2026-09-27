@@ -11,7 +11,6 @@ import User from "core/features/User";
 import { formatDuration } from "core/helpers/time";
 import {
   PipelineParameter,
-  PipelineRunStatus,
   PipelineRunTrigger,
   PipelineType,
 } from "graphql/types";
@@ -21,24 +20,15 @@ import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import RunLogs from "pipelines/features/RunLogs";
 import RunMessages from "pipelines/features/RunMessages";
-import usePipelineRunMessages from "pipelines/hooks/usePipelineRunMessages/usePipelineRunMessages";
-import usePipelineRunPoller from "pipelines/hooks/usePipelineRunPoller";
-import { ReactNode, useEffect, useMemo, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import RunOutputsTable from "workspaces/features/RunOutputsTable";
 import StopPipelineDialog from "workspaces/features/StopPipelineDialog";
-import { useWorkspacePipelineRunPageQuery } from "workspaces/graphql/queries.generated";
 import {
   formatPipelineSource,
   getPipelineRunConfig,
   isConnectionParameter,
 } from "workspaces/helpers/pipelines";
-
-const TERMINAL_STATUSES = [
-  PipelineRunStatus.Failed,
-  PipelineRunStatus.Success,
-  PipelineRunStatus.Stopped,
-  PipelineRunStatus.Skipped,
-];
+import usePipelineRunDetail from "./usePipelineRunDetail";
 
 const Field = ({ label, children }: { label: string; children: ReactNode }) => (
   <div className="min-w-0">
@@ -63,34 +53,19 @@ const PipelineRunDetail = ({
     useState(false);
   const [areLogsVisible, setLogsVisible] = useState(false);
 
-  const { data, refetch } = useWorkspacePipelineRunPageQuery({
-    variables: { workspaceSlug, runId },
-  });
-
-  const run = data?.pipelineRun;
-  const config = useMemo(() => (run ? getPipelineRunConfig(run) : []), [run]);
-
-  const isFinished = TERMINAL_STATUSES.includes(
-    run?.status as PipelineRunStatus,
-  );
-
-  usePipelineRunPoller(
-    { id: run?.id ?? runId, status: run?.status ?? PipelineRunStatus.Queued },
-    !isFinished && !!run,
-  );
-
-  useEffect(() => {
-    if (isFinished) {
-      refetch();
-    }
-  }, [isFinished]);
-
   const {
-    messages: sseMessages,
-    isStreaming,
-    streamError,
-    reload: reloadStream,
-  } = usePipelineRunMessages(run?.id ?? runId, isFinished, refetch);
+    data,
+    run,
+    isFinished,
+    messageStream: {
+      messages: sseMessages,
+      isStreaming,
+      streamError,
+      reload: reloadStream,
+    },
+  } = usePipelineRunDetail(workspaceSlug, runId);
+
+  const config = useMemo(() => (run ? getPipelineRunConfig(run) : []), [run]);
 
   if (!data?.workspace || !run) {
     return (
