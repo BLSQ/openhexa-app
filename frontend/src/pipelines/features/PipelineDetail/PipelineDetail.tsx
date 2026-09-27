@@ -8,6 +8,7 @@ import {
   InformationCircleIcon,
   PlayIcon,
   SparklesIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 import AssistantProposalBanner from "assistant/features/AssistantProposalBanner";
 import PipelineEditChatPanel, {
@@ -97,6 +98,7 @@ type PipelineDetailProps = {
   aiBudgetLimitReached: boolean;
   monthlyLimitExceeded: boolean;
   onRefetch: () => void;
+  onDelete?: () => void;
 };
 
 const PipelineDetail = ({
@@ -108,6 +110,7 @@ const PipelineDetail = ({
   aiBudgetLimitReached,
   monthlyLimitExceeded,
   onRefetch,
+  onDelete,
 }: PipelineDetailProps) => {
   const { t } = useTranslation();
   const router = useRouter();
@@ -945,6 +948,34 @@ const PipelineDetail = ({
                       )}
                     </DataCard.FormSection>
                   </DataCard>
+                )}
+
+                {onDelete && (
+                  <SettingsCard
+                    title={t("Danger zone")}
+                    className="border-red-200"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="text-sm">
+                        <div className="font-medium text-gray-900">
+                          {t("Delete this pipeline")}
+                        </div>
+                        <div className="text-gray-500">
+                          {t(
+                            "Once deleted, this pipeline and its versions cannot be recovered.",
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        variant="danger"
+                        onClick={onDelete}
+                        leadingIcon={<TrashIcon className="h-4 w-4" />}
+                        className="whitespace-nowrap"
+                      >
+                        {t("Delete")}
+                      </Button>
+                    </div>
+                  </SettingsCard>
                 )}
               </div>
             </DetailViewPane>

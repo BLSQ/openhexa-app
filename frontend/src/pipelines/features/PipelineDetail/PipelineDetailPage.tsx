@@ -1,4 +1,4 @@
-import { PlayIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { PlayIcon } from "@heroicons/react/24/outline";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
 import Page from "core/components/Page";
@@ -152,15 +152,6 @@ const PipelineDetailPage = ({
                 {t("Run")}
               </Button>
             )}
-            {pipeline.permissions.delete && (
-              <Button
-                variant="danger"
-                onClick={() => setDeleteDialogOpen(true)}
-                leadingIcon={<TrashIcon className="h-4 w-4" />}
-              >
-                {t("Delete")}
-              </Button>
-            )}
           </div>
         }
       >
@@ -180,6 +171,11 @@ const PipelineDetailPage = ({
             onRefetch={() => {
               refetch().then();
             }}
+            onDelete={
+              pipeline.permissions.delete
+                ? () => setDeleteDialogOpen(true)
+                : undefined
+            }
           />
         </div>
       </WorkspaceLayout>
