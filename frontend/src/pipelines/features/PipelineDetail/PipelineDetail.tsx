@@ -1,10 +1,8 @@
 import {
   ArrowUturnLeftIcon,
-  BookOpenIcon,
   ClockIcon,
   CodeBracketIcon,
   Cog6ToothIcon,
-  CommandLineIcon,
   DocumentTextIcon,
   ExclamationCircleIcon,
   InformationCircleIcon,
@@ -330,23 +328,11 @@ const PipelineDetail = ({
   return (
     <DetailShell>
       <DetailHeader
-        icon={
-          pipeline.type === PipelineType.Notebook ? (
-            <BookOpenIcon className="h-6 w-6 text-gray-400" />
-          ) : (
-            <CommandLineIcon className="h-6 w-6 text-gray-400" />
-          )
-        }
         title={pipeline.name ?? t("Pipeline")}
         badges={
           <>
-            <DetailBadge color="gray">
-              {formatPipelineSource(pipeline.type, !!pipeline.sourceTemplate)}
-            </DetailBadge>
-            {pipeline.functionalType && (
-              <DetailBadge color="indigo">
-                {formatPipelineFunctionalType(pipeline.functionalType)}
-              </DetailBadge>
+            {pipeline.type === PipelineType.Notebook && (
+              <DetailBadge color="gray">{t("Notebook")}</DetailBadge>
             )}
             {pipeline.schedule && (
               <Tooltip
