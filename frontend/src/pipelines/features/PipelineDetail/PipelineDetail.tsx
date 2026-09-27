@@ -72,6 +72,7 @@ import {
 import {
   formatPipelineFunctionalType,
   formatPipelineSource,
+  getCronExpressionDescription,
   getCronExpressionNextRun,
   updatePipeline,
 } from "workspaces/helpers/pipelines";
@@ -348,12 +349,20 @@ const PipelineDetail = ({
               </DetailBadge>
             )}
             {pipeline.schedule && (
-              <DetailBadge
-                color="blue"
-                icon={<ClockIcon className="h-3 w-3" />}
+              <Tooltip
+                className="flex flex-none"
+                label={getCronExpressionDescription(pipeline.schedule) ?? ""}
               >
-                {t("Scheduled")}
-              </DetailBadge>
+                <DetailBadge
+                  color="blue"
+                  icon={<ClockIcon className="h-3 w-3" />}
+                >
+                  {t("Scheduled")}
+                  <code className="font-mono font-normal">
+                    {pipeline.schedule}
+                  </code>
+                </DetailBadge>
+              </Tooltip>
             )}
           </>
         }
