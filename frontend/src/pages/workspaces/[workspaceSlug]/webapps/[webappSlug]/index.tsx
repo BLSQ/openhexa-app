@@ -2,7 +2,6 @@ import {
   EyeIcon,
   GlobeAltIcon,
   LockClosedIcon,
-  TrashIcon,
 } from "@heroicons/react/24/outline";
 import Breadcrumbs from "core/components/Breadcrumbs";
 import Button from "core/components/Button";
@@ -168,15 +167,6 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
                 {t("View")}
               </Button>
             </Link>
-            {webapp.permissions.delete && (
-              <Button
-                variant="danger"
-                onClick={() => setIsDeleteDialogOpen(true)}
-                leadingIcon={<TrashIcon className="h-4 w-4" />}
-              >
-                {t("Delete")}
-              </Button>
-            )}
           </div>
         }
       >
@@ -193,6 +183,11 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
             onRefetch={() => {
               refetch().then();
             }}
+            onDelete={
+              webapp.permissions.delete
+                ? () => setIsDeleteDialogOpen(true)
+                : undefined
+            }
           />
         </div>
       </WorkspaceLayout>

@@ -7,6 +7,7 @@ import {
   EyeIcon,
   GlobeAltIcon,
   SparklesIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 import AssistantProposalBanner from "assistant/features/AssistantProposalBanner";
 import WebappEditChatPanel, {
@@ -64,6 +65,7 @@ type WebappDetailProps = {
   monthlyLimitExceeded: boolean;
   isReviewing?: boolean;
   onRefetch: () => void;
+  onDelete?: () => void;
 };
 
 const splitServeUrl = (serveUrl?: string | null, subdomain?: string | null) => {
@@ -87,6 +89,7 @@ const WebappDetail = ({
   monthlyLimitExceeded,
   isReviewing = false,
   onRefetch,
+  onDelete,
 }: WebappDetailProps) => {
   const { t } = useTranslation();
   const isStatic = webapp.type === WebappType.Static;
@@ -589,6 +592,32 @@ const WebappDetail = ({
                 </SettingsCard>
 
                 {isStatic && <WebappApiAccess webapp={webapp} />}
+
+                {onDelete && (
+                  <SettingsCard
+                    title={t("Danger zone")}
+                    className="border-red-200"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="text-sm">
+                        <div className="font-medium text-gray-900">
+                          {t("Delete this web app")}
+                        </div>
+                        <div className="text-gray-500">
+                          {t("Once deleted, this web app cannot be recovered.")}
+                        </div>
+                      </div>
+                      <Button
+                        variant="danger"
+                        onClick={onDelete}
+                        leadingIcon={<TrashIcon className="h-4 w-4" />}
+                        className="whitespace-nowrap"
+                      >
+                        {t("Delete")}
+                      </Button>
+                    </div>
+                  </SettingsCard>
+                )}
               </div>
             </DetailViewPane>
           )}
