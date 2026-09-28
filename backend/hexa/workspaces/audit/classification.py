@@ -10,6 +10,13 @@ from hexa.workspaces.models import TokenScopeVerdict, Workspace
 TEMPLATE_MODELS = frozenset({"PipelineTemplate", "PipelineTemplateVersion"})
 
 
+def _is_template_read(models: set[str]) -> bool:
+    """A template exposes its publishing workspace, which alone is not a template read."""
+    touches_template = bool(models & TEMPLATE_MODELS)
+    only_template_related = (models - {"Workspace"}).issubset(TEMPLATE_MODELS)
+    return touches_template and only_template_related
+
+
 def reachable_datasets(workspace: Workspace, dataset_ids: set) -> dict:
     """External datasets that a ``workspace`` member legitimately reaches.
 
@@ -60,7 +67,7 @@ def classify(
     reasons = {}
     for workspace_id, models in foreign.items():
         reason = dataset_reasons.get(workspace_id)
-        if reason is None and models <= TEMPLATE_MODELS:
+        if reason is None and _is_template_read(models):
             reason = "template"
         reasons[str(workspace_id)] = reason or "none"
 

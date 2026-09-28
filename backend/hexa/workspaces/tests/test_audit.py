@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 from django.test import RequestFactory, TestCase
+from django.utils import timezone
 
 from hexa.core.test import GraphQLTestCase
 from hexa.datasets.models import (
@@ -8,6 +9,13 @@ from hexa.datasets.models import (
     DatasetLink,
     DatasetVersion,
     DatasetVersionFile,
+)
+from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineRun,
+    PipelineRunTrigger,
+    PipelineVersion,
 )
 from hexa.user_management.models import Organization, User
 from hexa.workspaces.audit import WorkspaceScopeAudit, audit_extensions
@@ -45,6 +53,29 @@ DATASET_LINK_QUERY = """
     }
 """
 
+PIPELINE_RUN_QUERY = """
+    query ($id: UUID!) {
+        pipelineRun(id: $id) { id }
+    }
+"""
+
+PIPELINE_VERSION_QUERY = """
+    query ($id: UUID!) {
+        pipelineVersion(id: $id) { id }
+    }
+"""
+
+PIPELINE_TEMPLATE_VERSION_QUERY = """
+    query ($id: UUID!) {
+        pipelineTemplateVersion(id: $id) { id }
+    }
+"""
+
+PIPELINE_TEMPLATES_QUERY = """
+    query {
+        pipelineTemplates { items { code workspace { slug } } }
+    }
+"""
 
 WORKSPACE_DATASETS_QUERY = """
     query ($slug: String!) {
@@ -79,6 +110,32 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
         cls.SHARED_DATASET = cls.create_dataset("Shared", shared=True)
         cls.LINKED_DATASET = cls.create_dataset("Linked", shared=False)
         DatasetLink.objects.create(dataset=cls.LINKED_DATASET, workspace=cls.SCOPE)
+
+        cls.PIPELINE = Pipeline.objects.create(
+            code="other-pipeline", workspace=cls.OTHER
+        )
+        cls.PIPELINE_VERSION = PipelineVersion.objects.create(
+            pipeline=cls.PIPELINE, version_number=1
+        )
+        cls.PIPELINE_RUN = PipelineRun.objects.create(
+            pipeline=cls.PIPELINE,
+            pipeline_version=cls.PIPELINE_VERSION,
+            run_id="other-run",
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            execution_date=timezone.now(),
+            config={},
+        )
+        cls.TEMPLATE = PipelineTemplate.objects.create(
+            name="Other Template",
+            code="other-template",
+            workspace=cls.OTHER,
+            source_pipeline=cls.PIPELINE,
+        )
+        cls.TEMPLATE_VERSION = PipelineTemplateVersion.objects.create(
+            template=cls.TEMPLATE,
+            version_number=1,
+            source_pipeline_version=cls.PIPELINE_VERSION,
+        )
 
     @classmethod
     def create_dataset(cls, name: str, *, shared: bool) -> Dataset:
@@ -218,6 +275,36 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
         )
         self.assertRecorded(
             TokenScopeVerdict.CROSS_REACHABLE, {str(self.OTHER.id): "org_shared"}
+        )
+
+    def test_pipeline_objects_of_another_workspace_are_out_of_scope(self):
+        """Runs and versions carry no workspace of their own, so they are resolved through their pipeline."""
+        for query, obj in (
+            (PIPELINE_RUN_QUERY, self.PIPELINE_RUN),
+            (PIPELINE_VERSION_QUERY, self.PIPELINE_VERSION),
+        ):
+            with self.subTest(query=query):
+                WorkspaceTokenUsage.objects.all().delete()
+                self.query_with_token(query, {"id": str(obj.id)})
+                self.assertRecorded(
+                    TokenScopeVerdict.OUT_OF_SCOPE, {str(self.OTHER.id): "none"}
+                )
+
+    def test_template_version_of_another_workspace_is_cross_reachable(self):
+        self.query_with_token(
+            PIPELINE_TEMPLATE_VERSION_QUERY, {"id": str(self.TEMPLATE_VERSION.id)}
+        )
+        self.assertRecorded(
+            TokenScopeVerdict.CROSS_REACHABLE, {str(self.OTHER.id): "template"}
+        )
+
+    def test_template_publishing_workspace_is_cross_reachable(self):
+        response = self.query_with_token(PIPELINE_TEMPLATES_QUERY, {})
+        [template] = response["data"]["pipelineTemplates"]["items"]
+        self.assertEqual(template["workspace"]["slug"], self.OTHER.slug)
+
+        self.assertRecorded(
+            TokenScopeVerdict.CROSS_REACHABLE, {str(self.OTHER.id): "template"}
         )
 
 

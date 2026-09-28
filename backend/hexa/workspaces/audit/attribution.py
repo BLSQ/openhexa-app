@@ -4,9 +4,11 @@ from collections.abc import Iterator
 from typing import NamedTuple
 from uuid import UUID
 
-from django.db.models import Model
+from django.db.models import Model, UUIDField, Value
 
 from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
+from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
+from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
 from hexa.workspaces.models import Workspace
 
 
@@ -22,7 +24,7 @@ class IndirectOwner(NamedTuple):
     fk: str
     parent: type[Model]
     workspace_path: str
-    dataset_path: str
+    dataset_path: str | None = None
 
 
 INDIRECT_OWNERS = {
@@ -38,12 +40,21 @@ INDIRECT_OWNERS = {
         workspace_path="dataset__workspace_id",
         dataset_path="dataset_id",
     ),
+    PipelineRun: IndirectOwner(
+        fk="pipeline_id", parent=Pipeline, workspace_path="workspace_id"
+    ),
+    PipelineVersion: IndirectOwner(
+        fk="pipeline_id", parent=Pipeline, workspace_path="workspace_id"
+    ),
+    PipelineTemplateVersion: IndirectOwner(
+        fk="template_id", parent=PipelineTemplate, workspace_path="workspace_id"
+    ),
 }
 
 
 def resolve_indirect_owners(
     pending: dict[type[Model], set],
-) -> Iterator[tuple[UUID, str, UUID]]:
+) -> Iterator[tuple[UUID, str, UUID | None]]:
     """Yields ``(workspace_id, model_name, dataset_id)`` for every object parent it finds."""
     for model, owner in INDIRECT_OWNERS.items():
         parent_ids = pending[model]
@@ -51,7 +62,10 @@ def resolve_indirect_owners(
             continue
         for workspace_id, dataset_id in owner.parent._base_manager.filter(
             pk__in=parent_ids
-        ).values_list(owner.workspace_path, owner.dataset_path):
+        ).values_list(
+            owner.workspace_path,
+            owner.dataset_path or Value(None, output_field=UUIDField()),
+        ):
             if workspace_id is not None:
                 yield workspace_id, model.__name__, dataset_id
 

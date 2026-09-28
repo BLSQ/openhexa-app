@@ -90,7 +90,8 @@ class WorkspaceScopeAudit(Extension):
             self.pending
         ):
             self._attribute(workspace_id, model_name)
-            self.dataset_ids.add(dataset_id)
+            if dataset_id is not None:
+                self.dataset_ids.add(dataset_id)
 
         verdict, foreign_workspaces = classify(
             self.token.workspace, self.models_by_workspace, self.dataset_ids
