@@ -229,6 +229,7 @@ Notebook versions, and code that cannot be parsed, yield an empty graph.
 type PipelineDag {
   tasks: [PipelineDagTask!]!  # The tasks declared by the version, in the order the pipeline calls them; tasks never called come last.
   edges: [PipelineDagEdge!]!  # The dependencies between parameters and tasks, and between tasks.
+  parameters: [PipelineParameter!]!  # The parameters that reach at least one task, in declaration order. Parameters the code never passes on are left out.
 }
 
 """

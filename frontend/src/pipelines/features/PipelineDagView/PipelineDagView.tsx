@@ -22,12 +22,8 @@ const PipelineDagView = ({ version, className }: PipelineDagViewProps) => {
 
   const { nodes, edges } = useMemo(
     () =>
-      buildGraph(
-        version.dag.tasks,
-        version.dag.edges,
-        version.parameters ?? [],
-      ),
-    [version.dag.tasks, version.dag.edges, version.parameters],
+      buildGraph(version.dag.tasks, version.dag.edges, version.dag.parameters),
+    [version.dag.tasks, version.dag.edges, version.dag.parameters],
   );
 
   if (nodes.length === 0) {
@@ -68,12 +64,6 @@ PipelineDagView.fragments = {
   version: gql`
     fragment PipelineDagView_version on PipelineVersion {
       id
-      parameters {
-        code
-        name
-        type
-        required
-      }
       dag {
         tasks {
           id
@@ -82,6 +72,12 @@ PipelineDagView.fragments = {
         edges {
           source
           target
+        }
+        parameters {
+          code
+          name
+          type
+          required
         }
       }
     }

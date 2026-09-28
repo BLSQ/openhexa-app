@@ -387,7 +387,27 @@ def resolve_pipeline_version_zipfile(version: PipelineVersion, info, **kwargs):
 
 @pipeline_version_object.field("dag")
 def resolve_pipeline_version_dag(version: PipelineVersion, info, **kwargs):
-    return version.get_dag()
+    """Return the stored graph, keeping only the parameters that reach a task.
+
+    A pipeline can declare a parameter its body never passes on; drawing it would claim a
+    relationship the code does not have, so the version's parameter list stays the exhaustive one.
+    """
+    dag = version.get_dag()
+    task_ids = {task["id"] for task in dag["tasks"]}
+    parameters = {parameter["code"]: parameter for parameter in version.parameters}
+    edges = [
+        edge
+        for edge in dag["edges"]
+        if edge["source"] in task_ids or edge["source"] in parameters
+    ]
+    sources = {edge["source"] for edge in edges}
+    return {
+        "tasks": dag["tasks"],
+        "edges": edges,
+        "parameters": [
+            parameter for code, parameter in parameters.items() if code in sources
+        ],
+    }
 
 
 @pipeline_version_object.field("files")

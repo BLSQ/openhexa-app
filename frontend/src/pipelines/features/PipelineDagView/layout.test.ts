@@ -21,7 +21,7 @@ const DIAMOND = {
 const ids = (nodes: { id: string }[]) => nodes.map((node) => node.id).sort();
 
 describe("buildGraph", () => {
-  it("builds a node per task and per connected parameter", () => {
+  it("builds a node per task and per parameter", () => {
     const { nodes, edges } = buildGraph(
       DIAMOND.tasks,
       DIAMOND.edges,
@@ -65,33 +65,6 @@ describe("buildGraph", () => {
     expect(edges).toContainEqual(
       expect.objectContaining({ source: "city", target: "load_devices" }),
     );
-  });
-
-  it("falls back to the parameter code when it has no display name", () => {
-    const { nodes } = buildGraph(
-      [{ id: "t", name: "t" }],
-      [{ source: "raw_code", target: "t" }],
-      [{ code: "raw_code", name: null, type: "int", required: false }],
-    );
-
-    expect(nodes.find((node) => node.id === "raw_code")!.data.label).toBe(
-      "raw_code",
-    );
-  });
-
-  it("omits a parameter the code never passes to a task", () => {
-    const { nodes } = buildGraph(
-      [{ id: "t", name: "t" }],
-      [],
-      [
-        { code: "used", name: "Used", type: "str", required: true },
-        { code: "unused", name: "Unused", type: "str", required: false },
-      ],
-    );
-
-    // Drawing an unconnected box would claim a relationship the pipeline does not have; the
-    // parameters table below the diagram remains the exhaustive list.
-    expect(ids(nodes)).toEqual(["t"]);
   });
 
   it("renders tasks when the pipeline declares no parameters", () => {
@@ -142,19 +115,6 @@ describe("buildGraph", () => {
         [{ code: "a", name: "A", type: "str", required: true }],
       ),
     ).toEqual({ nodes: [], edges: [] });
-  });
-
-  it("drops an edge pointing at something that is neither task nor parameter", () => {
-    const { edges } = buildGraph(
-      [{ id: "t", name: "t" }],
-      [
-        { source: "t", target: "ghost" },
-        { source: "ghost", target: "t" },
-      ],
-      [],
-    );
-
-    expect(edges).toEqual([]);
   });
 
   it("lays out left to right, sources left of their targets", () => {

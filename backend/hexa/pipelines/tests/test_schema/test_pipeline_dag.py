@@ -44,6 +44,7 @@ query getPipelineVersion($id: UUID!) {
         dag {
             tasks { id name }
             edges { source target }
+            parameters { code name }
         }
     }
 }
@@ -86,6 +87,7 @@ class PipelineVersionDagTest(GraphQLTestCase):
             pipeline=self.PIPELINE,
             user=self.USER_ROOT,
             zipfile=self.build_zipfile({"pipeline.py": PIPELINE_PY}),
+            parameters=[{"code": "city", "name": "City", "type": "str"}],
         )
 
         dag = self.query_dag(version)
@@ -107,6 +109,7 @@ class PipelineVersionDagTest(GraphQLTestCase):
                 {"source": "load_history", "target": "save_dataset"},
             ],
         )
+        self.assertEqual(dag["parameters"], [{"code": "city", "name": "City"}])
 
     def test_notebook_version_returns_empty_dag(self):
         """Notebook pipelines carry no archive and must not raise."""
@@ -121,7 +124,9 @@ class PipelineVersionDagTest(GraphQLTestCase):
             pipeline=notebook, user=self.USER_ROOT, zipfile=None
         )
 
-        self.assertEqual(self.query_dag(version), {"tasks": [], "edges": []})
+        self.assertEqual(
+            self.query_dag(version), {"tasks": [], "edges": [], "parameters": []}
+        )
 
     def test_unparseable_zipfile_returns_empty_dag(self):
         """A broken version must degrade to an empty graph, never break the page."""
@@ -132,7 +137,9 @@ class PipelineVersionDagTest(GraphQLTestCase):
                 zipfile=self.build_zipfile({"pipeline.py": "def broken(:\n"}),
             )
 
-        self.assertEqual(self.query_dag(version), {"tasks": [], "edges": []})
+        self.assertEqual(
+            self.query_dag(version), {"tasks": [], "edges": [], "parameters": []}
+        )
 
     def test_version_without_entrypoint_returns_empty_dag(self):
         version = PipelineVersion.objects.create(
@@ -141,7 +148,9 @@ class PipelineVersionDagTest(GraphQLTestCase):
             zipfile=self.build_zipfile({"README.md": "# No code here"}),
         )
 
-        self.assertEqual(self.query_dag(version), {"tasks": [], "edges": []})
+        self.assertEqual(
+            self.query_dag(version), {"tasks": [], "edges": [], "parameters": []}
+        )
 
     def test_dag_is_stored_when_version_is_created(self):
         version = PipelineVersion.objects.create(
@@ -168,3 +177,34 @@ class PipelineVersionDagTest(GraphQLTestCase):
         self.assertEqual(len(self.query_dag(version)["tasks"]), 3)
         version.refresh_from_db()
         self.assertEqual(len(version.dag["tasks"]), 3)
+
+    def test_parameter_never_passed_to_a_task_is_left_out(self):
+        version = PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            user=self.USER_ROOT,
+            zipfile=self.build_zipfile({"pipeline.py": PIPELINE_PY}),
+            parameters=[
+                {"code": "unused", "name": "Unused", "type": "int"},
+                {"code": "city", "type": "str"},
+            ],
+        )
+
+        # The unnamed parameter falls back to its code, as everywhere PipelineParameter is used.
+        self.assertEqual(
+            self.query_dag(version)["parameters"], [{"code": "city", "name": "city"}]
+        )
+
+    def test_edge_from_undeclared_parameter_is_dropped(self):
+        """``city`` is an argument of the pipeline function but not a declared parameter."""
+        version = PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            user=self.USER_ROOT,
+            zipfile=self.build_zipfile({"pipeline.py": PIPELINE_PY}),
+            parameters=[],
+        )
+
+        dag = self.query_dag(version)
+
+        self.assertNotIn({"source": "city", "target": "load_devices"}, dag["edges"])
+        self.assertEqual(len(dag["edges"]), 3)
+        self.assertEqual(dag["parameters"], [])

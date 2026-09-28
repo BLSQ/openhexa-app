@@ -4,15 +4,13 @@ import PipelineDagView from "./PipelineDagView";
 const version = (dag: {
   tasks: { id: string; name: string }[];
   edges: { source: string; target: string }[];
-}) =>
-  ({
-    id: "version-1",
-    parameters: [
-      { code: "city", name: "City", type: "str", required: true },
-      { code: "unused", name: "Unused", type: "int", required: false },
-    ],
-    dag,
-  }) as any;
+  parameters?: {
+    code: string;
+    name: string;
+    type: string;
+    required: boolean;
+  }[];
+}) => ({ id: "version-1", dag: { parameters: [], ...dag } }) as any;
 
 const DIAMOND = {
   tasks: [
@@ -26,6 +24,7 @@ const DIAMOND = {
     { source: "load_devices", target: "save_dataset" },
     { source: "load_history", target: "save_dataset" },
   ],
+  parameters: [{ code: "city", name: "City", type: "str", required: true }],
 };
 
 describe("PipelineDagView", () => {
@@ -37,11 +36,10 @@ describe("PipelineDagView", () => {
     expect(screen.getByText("save_dataset")).toBeInTheDocument();
   });
 
-  it("renders the parameters the tasks consume, and only those", () => {
+  it("renders the parameters the graph returns", () => {
     render(<PipelineDagView version={version(DIAMOND)} />);
 
     expect(screen.getByText("City")).toBeInTheDocument();
-    expect(screen.queryByText("Unused")).not.toBeInTheDocument();
   });
 
   it("renders nothing when the version has no tasks", () => {

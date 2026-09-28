@@ -3669,6 +3669,7 @@ Notebook versions, and code that cannot be parsed, yield an empty graph.
 """
 type PipelineDag {
   edges: [PipelineDagEdge!]!
+  parameters: [PipelineParameter!]!
   tasks: [PipelineDagTask!]!
 }
 

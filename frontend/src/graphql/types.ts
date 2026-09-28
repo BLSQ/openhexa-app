@@ -4279,6 +4279,7 @@ export type PipelineVersionsArgs = {
 export type PipelineDag = {
   __typename?: 'PipelineDag';
   edges: Array<PipelineDagEdge>;
+  parameters: Array<PipelineParameter>;
   tasks: Array<PipelineDagTask>;
 };
 

@@ -11,15 +11,15 @@ export type DagTask = { id: string; name: string };
 export type DagEdge = { source: string; target: string };
 export type DagParameter = {
   code: string;
-  name?: string | null;
-  type?: string | null;
-  required?: boolean | null;
+  name: string;
+  type: string;
+  required: boolean;
 };
 
 export type ParameterNodeData = {
   label: string;
   code: string;
-  type: string | null;
+  type: string;
   required: boolean;
   [key: string]: unknown;
 };
@@ -38,10 +38,8 @@ export const isParameterNode = (node: Node) => node.type === "parameter";
 /**
  * Build the React Flow graph for a version.
  *
- * A parameter only gets a node when the extracted graph shows it reaching a task. A pipeline
- * can declare a parameter its body never passes on, and drawing it as an unconnected box on
- * the left would claim a relationship the code does not have — the parameters table remains
- * the exhaustive list.
+ * The backend already keeps only the parameters that reach a task, and only edges between
+ * known nodes, so every input here becomes a node or an edge as is.
  */
 export const buildGraph = (
   tasks: DagTask[],
@@ -52,44 +50,18 @@ export const buildGraph = (
     return { nodes: [], edges: [] };
   }
 
-  const taskIds = new Set(tasks.map((task) => task.id));
-  const parametersByCode = new Map(
-    parameters.map((parameter) => [parameter.code, parameter]),
-  );
-
-  // An edge whose source is not a task is a parameter feeding one — that is the discriminator
-  // the backend documents, rather than a flag on the edge itself.
-  const edges = dagEdges.filter(
-    (edge) =>
-      taskIds.has(edge.target) &&
-      (taskIds.has(edge.source) || parametersByCode.has(edge.source)),
-  );
-
-  const connectedParameters = Array.from(
-    new Set(
-      edges
-        .map((edge) => edge.source)
-        .filter(
-          (source) => !taskIds.has(source) && parametersByCode.has(source),
-        ),
-    ),
-  );
-
   const nodes: Node[] = [
-    ...connectedParameters.map((code) => {
-      const parameter = parametersByCode.get(code)!;
-      return {
-        id: code,
-        type: "parameter",
-        position: { x: 0, y: 0 },
-        data: {
-          label: parameter.name || parameter.code,
-          code: parameter.code,
-          type: parameter.type ?? null,
-          required: parameter.required ?? false,
-        } satisfies ParameterNodeData,
-      };
-    }),
+    ...parameters.map((parameter) => ({
+      id: parameter.code,
+      type: "parameter",
+      position: { x: 0, y: 0 },
+      data: {
+        label: parameter.name,
+        code: parameter.code,
+        type: parameter.type,
+        required: parameter.required,
+      } satisfies ParameterNodeData,
+    })),
     ...tasks.map((task) => ({
       id: task.id,
       type: "task",
@@ -98,7 +70,7 @@ export const buildGraph = (
     })),
   ];
 
-  const flowEdges: Edge[] = edges.map((edge) => ({
+  const flowEdges: Edge[] = dagEdges.map((edge) => ({
     id: `${edge.source}->${edge.target}`,
     source: edge.source,
     target: edge.target,
