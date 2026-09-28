@@ -335,6 +335,106 @@ def fetch(country):
 """
         self.assertGraph(source, ["fetch"], [])
 
+    def assertBodyGraph(self, body, edges):
+        """Wrap a pipeline body in a module declaring tasks t1..t3, then check its edges."""
+        source = (
+            "from openhexa.sdk import parameter, pipeline\n\n\n"
+            '@pipeline("shapes")\n'
+            '@parameter("x", type=int)\n'
+            "def shapes(x):\n"
+            + "".join(f"    {line}\n" for line in body.strip("\n").splitlines())
+            + "".join(
+                f"\n\n@shapes.task\ndef {name}(*args):\n    pass\n"
+                for name in ("t1", "t2", "t3")
+            )
+        )
+        self.assertGraph(source, ["t1", "t2", "t3"], edges)
+
+    def test_nested_block_is_read_in_source_order(self):
+        """ast.walk would visit a = t3() before the loop body and wire t3 to t2."""
+        self.assertBodyGraph(
+            """
+a = t1()
+for _ in range(2):
+    t2(a)
+a = t3()
+""",
+            [("t1", "t2")],
+        )
+
+    def test_assignment_inside_with_block(self):
+        self.assertBodyGraph(
+            """
+with open("f") as f:
+    a = t1()
+t2(a)
+""",
+            [("t1", "t2")],
+        )
+
+    def test_assignment_inside_try_and_match(self):
+        self.assertBodyGraph(
+            """
+try:
+    a = t1()
+except ValueError:
+    pass
+match x:
+    case 1:
+        t2(a)
+""",
+            [("t1", "t2")],
+        )
+
+    def test_rebinding_to_non_task_drops_edge(self):
+        self.assertBodyGraph(
+            """
+a = t1()
+a = foo()
+t2(a)
+""",
+            [],
+        )
+
+    def test_loop_target_rebinding_drops_edge(self):
+        self.assertBodyGraph(
+            """
+a = t1()
+for a in range(2):
+    t2(a)
+""",
+            [],
+        )
+
+    def test_rebinding_parameter_drops_edge(self):
+        self.assertBodyGraph(
+            """
+x = int(x)
+t1(x)
+""",
+            [],
+        )
+
+    def test_nested_helper_is_ignored(self):
+        """A helper's argument named like a parameter is not that parameter."""
+        self.assertBodyGraph(
+            """
+def helper(x):
+    t2(x)
+a = t1()
+""",
+            [],
+        )
+
+    def test_annotated_assignment(self):
+        self.assertBodyGraph(
+            """
+a: int = t1()
+t2(a)
+""",
+            [("t1", "t2")],
+        )
+
     def test_pipeline_without_tasks(self):
         """No node is synthesized: the caller renders nothing rather than invented code."""
         source = """

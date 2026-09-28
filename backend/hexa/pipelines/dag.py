@@ -10,8 +10,10 @@ This module replays that same reasoning statically, over the stored source text:
 which local name holds which task's result, and emits an edge whenever such a name reaches
 another task's arguments.
 
-The result is a *lower bound* on the real graph. It never invents a dependency, but it
-cannot see through loops, conditionals, or indirection through undecorated helpers.
+The body is followed in source order, each name standing for the task that last assigned it.
+The result approximates the real graph: it cannot see a dependency that only appears on a later
+loop iteration, it assumes every branch of a conditional runs, and it does not look inside
+helper functions, whose arguments are unknown until they are called.
 """
 
 import ast
@@ -159,7 +161,7 @@ def _find_edges(
                 add_edge(visit_call(argument), target)
         return target
 
-    for statement in ast.walk(entrypoint):
+    def visit_statement(statement: ast.stmt) -> None:
         target = None
         if isinstance(statement, ast.Assign):
             call = statement.value
@@ -167,16 +169,51 @@ def _find_edges(
                 statement.targets[0], ast.Name
             ):
                 target = statement.targets[0].id
+        elif isinstance(statement, ast.AnnAssign):
+            call = statement.value
+            if isinstance(statement.target, ast.Name):
+                target = statement.target.id
         elif isinstance(statement, ast.Expr):
             call = statement.value
         else:
-            continue
+            call = None
 
-        if not is_task_call(call):
-            continue
+        producer = visit_call(call) if is_task_call(call) else None
 
-        producer = visit_call(call)
-        if target is not None:
+        # A name rebound to anything but a task result no longer carries the old edge.
+        for name in _bound_names(statement):
+            producers.pop(name, None)
+        if target is not None and producer is not None:
             producers[target] = producer
 
+    def visit_block(node: ast.AST) -> None:
+        # ast.walk is breadth-first, so it would read nested blocks after every top-level
+        # statement. Iterating children keeps the order in which the code actually runs.
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
+                continue
+            if isinstance(child, ast.stmt):
+                visit_statement(child)
+                visit_block(child)
+            elif isinstance(child, ast.ExceptHandler | ast.match_case):
+                visit_block(child)
+
+    visit_block(entrypoint)
     return edges
+
+
+def _bound_names(statement: ast.stmt) -> list[str]:
+    if isinstance(statement, ast.Assign):
+        targets = statement.targets
+    elif isinstance(statement, ast.AnnAssign | ast.AugAssign | ast.For | ast.AsyncFor):
+        targets = [statement.target]
+    elif isinstance(statement, ast.With | ast.AsyncWith):
+        targets = [item.optional_vars for item in statement.items if item.optional_vars]
+    else:
+        return []
+    return [
+        node.id
+        for target in targets
+        for node in ast.walk(target)
+        if isinstance(node, ast.Name)
+    ]
