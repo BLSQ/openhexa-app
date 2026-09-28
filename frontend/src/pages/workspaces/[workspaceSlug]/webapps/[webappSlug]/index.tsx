@@ -15,6 +15,7 @@ import { useTranslation } from "next-i18next";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import MakeWebappPrivateDialog from "webapps/features/MakeWebappPrivateDialog";
 import MakeWebappPublicDialog from "webapps/features/MakeWebappPublicDialog";
 import WebappDetail from "webapps/features/WebappDetail/WebappDetail";
 import GitClonePopover from "webapps/features/GitClonePopover/GitClonePopover";
@@ -45,6 +46,7 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isTogglingVisibility, setIsTogglingVisibility] = useState(false);
   const [isPublicDialogOpen, setIsPublicDialogOpen] = useState(false);
+  const [isPrivateDialogOpen, setIsPrivateDialogOpen] = useState(false);
   const [isReviewing, setIsReviewing] = useState(false);
   const reviewTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [updateWebapp] = useUpdateWebappMutation();
@@ -90,12 +92,17 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
 
   const handleToggleVisibility = () => {
     if (webapp.isPublic) {
-      setVisibility(false).then();
+      setIsPrivateDialogOpen(true);
     } else if (webapp.type === WebappType.Static) {
       setIsPublicDialogOpen(true);
     } else {
       setVisibility(true).then();
     }
+  };
+
+  const handleConfirmPrivate = async () => {
+    await setVisibility(false);
+    setIsPrivateDialogOpen(false);
   };
 
   const handleConfirmPublic = () => {
@@ -195,6 +202,12 @@ const WorkspaceWebappPage: NextPageWithLayout = (props: Props) => {
         open={isPublicDialogOpen}
         onClose={() => setIsPublicDialogOpen(false)}
         onConfirm={handleConfirmPublic}
+        webapp={webapp}
+      />
+      <MakeWebappPrivateDialog
+        open={isPrivateDialogOpen}
+        onClose={() => setIsPrivateDialogOpen(false)}
+        onConfirm={handleConfirmPrivate}
         webapp={webapp}
       />
       <DeleteWebappDialog
