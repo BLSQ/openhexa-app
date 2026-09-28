@@ -6,7 +6,7 @@ from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.edit_webapp_agent import _MAX_INLINE_LINES, EditWebappAgent
-from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.webapps.models import GitWebapp, Webapp
 
@@ -340,3 +340,28 @@ class EditWebappAgentProposalPendingTest(AgentTestCase):
         )
         self.conversation.refresh_from_db()
         self.assertIn("<h1>New</h1>", json.dumps(self.conversation.messages_history))
+
+
+class EditWebappAgentToolsTest(AgentTestCase):
+    def test_exposes_saved_query_and_schema_tools(self):
+        # The webapp proxy only reaches the database through executeSavedQuery, so
+        # the agent must be able to find, inspect and write the saved query it
+        # wires the web app to.
+        names = {tool.__name__ for tool in EditWebappAgent.tools}
+        self.assertLessEqual(
+            {
+                "list_saved_queries",
+                "get_saved_query",
+                "create_saved_query",
+                "update_saved_query",
+                "get_db_schema",
+                "get_db_table_schema",
+            },
+            names,
+        )
+
+    def test_instructions_explain_database_access(self):
+        instructions = get_instructions(InstructionSet.EDIT_WEBAPP)
+        self.assertIn("executeSavedQuery", instructions)
+        self.assertIn("create_saved_query", instructions)
+        self.assertIn("WORKSPACE", instructions)

@@ -35,6 +35,10 @@ export function getToolLabels(t: TFunction): Record<string, string> {
     [TOOL.GetDbSchema]: t("Reading database schema"),
     [TOOL.GetDbTableSchema]: t("Reading table schema"),
     [TOOL.GetWorkspace]: t("Reading workspace"),
+    [TOOL.ListSavedQueries]: t("Listing saved queries"),
+    [TOOL.GetSavedQuery]: t("Reading saved query"),
+    [TOOL.CreateSavedQuery]: t("Creating saved query"),
+    [TOOL.UpdateSavedQuery]: t("Updating saved query"),
   };
 }
 

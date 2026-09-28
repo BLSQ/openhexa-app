@@ -75,21 +75,25 @@ registry (`hexa.assistant.agents.all_agent_tool_names`) — a unit test enforces
 """
 enum AssistantToolName {
   create_pipeline
+  create_saved_query
   get_dataset
   get_db_schema
   get_db_table_schema
   get_help_or_doc
   get_pipeline
+  get_saved_query
   get_static_webapp_file
   get_workspace
   list_connections
   list_datasets
   list_files
   list_pipelines
+  list_saved_queries
   preview_dataset_file
   propose_pipeline_version
   propose_webapp_version
   read_file
+  update_saved_query
 }
 
 input CreateAssistantConversationInput {
