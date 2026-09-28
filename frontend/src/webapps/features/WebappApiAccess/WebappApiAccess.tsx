@@ -20,6 +20,14 @@ const EXAMPLE_SNIPPET = `const response = await fetch("/graphql/", {
 });
 const { data } = await response.json();`;
 
+// HEXA-1815: write access is being removed from the web app API. These scopes
+// can no longer be enabled from the UI, but a web app that already has one
+// keeps its toggle so existing apps are not broken.
+const LEGACY_SCOPES: WebappOperationScope[] = [
+  WebappOperationScope.FilesWrite,
+  WebappOperationScope.DatasetsWrite,
+];
+
 function getScopeDescriptions(t: (key: string) => string) {
   return {
     [WebappOperationScope.PipelinesRead]: {
@@ -113,7 +121,13 @@ const ApiAccessContent = ({
   const { t } = useTranslation();
   const section = useDataCardSection();
   const scopeDescriptions = getScopeDescriptions(t);
-  const scopeGroups = getScopeGroups(t);
+  const scopeGroups = getScopeGroups(t).map((group) => ({
+    ...group,
+    scopes: group.scopes.filter(
+      (scope) =>
+        !LEGACY_SCOPES.includes(scope) || savedOperations.includes(scope),
+    ),
+  }));
 
   // Sync the draft to the persisted value on each edit-mode transition so a
   // previous cancel never leaks unsaved toggles into the next edit session.
