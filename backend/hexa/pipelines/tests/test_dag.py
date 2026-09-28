@@ -389,13 +389,16 @@ class ExtractDagFromZipfileTest(TestCase):
         self.assertEqual([task["id"] for task in dag["tasks"]], ["task_1", "task_2"])
 
     def test_missing_entrypoint(self):
-        dag = extract_dag_from_zipfile(self.build_zipfile({"notebook.ipynb": "{}"}))
+        """Archives without pipeline.py are accepted at upload, so this is not logged."""
+        with self.assertNoLogs("hexa.pipelines.dag"):
+            dag = extract_dag_from_zipfile(self.build_zipfile({"notebook.ipynb": "{}"}))
         self.assertEqual(dag, {"tasks": [], "edges": []})
 
     def test_not_a_zipfile(self):
-        self.assertEqual(
-            extract_dag_from_zipfile(b"not a zip"), {"tasks": [], "edges": []}
-        )
+        with self.assertLogs("hexa.pipelines.dag", level="ERROR"):
+            self.assertEqual(
+                extract_dag_from_zipfile(b"not a zip"), {"tasks": [], "edges": []}
+            )
 
     def test_no_zipfile(self):
         """Notebook versions carry no archive."""

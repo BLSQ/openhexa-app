@@ -24,17 +24,24 @@ logger = logging.getLogger(__name__)
 ENTRYPOINT = "pipeline.py"
 
 
-def extract_dag_from_zipfile(zipfile_data: bytes) -> dict:
+def extract_dag_from_zipfile(zipfile_data: bytes | None) -> dict:
     """Return the task graph of a pipeline version's zip archive.
 
     Only ``pipeline.py`` at the archive root is read, mirroring the SDK's ``get_pipeline()``.
     Scanning the archive for a ``@pipeline`` decorator would risk describing a module that
     never runs.
     """
+    if not zipfile_data:
+        return _empty()
+
     try:
         with ZipFile(io.BytesIO(zipfile_data)) as zip_file:
             source = zip_file.read(ENTRYPOINT).decode()
+    except KeyError:
+        # Uploads without a pipeline.py are accepted (see _parse_parameters_from_zipfile).
+        return _empty()
     except Exception:
+        logger.exception("Failed to read pipeline source from zipfile")
         return _empty()
 
     return extract_dag(source)
