@@ -1,4 +1,5 @@
 import io
+from unittest.mock import patch
 from zipfile import ZipFile
 
 from hexa.core.test import TestCase
@@ -351,7 +352,18 @@ def empty(foo):
         self.assertGraph("import os\n\n\ndef main():\n    pass\n", [], [])
 
     def test_syntax_error(self):
-        self.assertGraph("def broken(:\n", [], [])
+        with self.assertLogs("hexa.pipelines.dag", level="ERROR") as logs:
+            self.assertGraph("def broken(:\n", [], [])
+        self.assertIsNotNone(logs.records[0].exc_info)
+
+    def test_unexpected_error_returns_empty_graph_and_logs_exception(self):
+        error = RecursionError("maximum recursion depth exceeded")
+        with (
+            patch("hexa.pipelines.dag._find_edges", side_effect=error),
+            self.assertLogs("hexa.pipelines.dag", level="ERROR") as logs,
+        ):
+            self.assertGraph(SCAFFOLD, [], [])
+        self.assertIs(logs.records[0].exc_info[1], error)
 
     def test_empty_source(self):
         self.assertGraph("", [], [])

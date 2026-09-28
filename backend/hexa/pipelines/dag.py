@@ -16,7 +16,10 @@ cannot see through loops, conditionals, or indirection through undecorated helpe
 
 import ast
 import io
+import logging
 from zipfile import ZipFile
+
+logger = logging.getLogger(__name__)
 
 ENTRYPOINT = "pipeline.py"
 
@@ -44,22 +47,22 @@ def extract_dag(source: str) -> dict:
     the caller discriminates by looking the source up in the task list.
 
     Unlike ``_parse_parameters_from_zipfile``, which raises so a bad upload is rejected, this
-    is deliberately silent: it feeds a read-only view and must never break the pipeline page.
+    returns an empty graph on extraction failure and logs the exception for investigation.
     """
     try:
         tree = ast.parse(source)
-    except SyntaxError:
-        return _empty()
+        entrypoint = _find_pipeline_function(tree)
+        if entrypoint is None:
+            return _empty()
 
-    entrypoint = _find_pipeline_function(tree)
-    if entrypoint is None:
+        # The @pipeline decorator rebinds the decorated function's name to a Pipeline
+        # instance, so the function's own name is what tasks are decorated with.
+        pipeline_var = entrypoint.name
+        tasks = _find_tasks(tree, pipeline_var)
+        edges = _find_edges(entrypoint, set(tasks))
+    except Exception:
+        logger.exception("Failed to extract DAG from pipeline source")
         return _empty()
-
-    # The @pipeline decorator rebinds the decorated function's name to a Pipeline instance,
-    # so the function's own name is what tasks are decorated with.
-    pipeline_var = entrypoint.name
-    tasks = _find_tasks(tree, pipeline_var)
-    edges = _find_edges(entrypoint, set(tasks))
 
     return {
         "tasks": [{"id": name, "name": name} for name in tasks],
