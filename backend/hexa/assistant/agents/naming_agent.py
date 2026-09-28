@@ -87,6 +87,7 @@ class NamingAgent:
 
         agent = Agent(
             model=self.built_model.model,
+            name=self.agent_key,
             instructions=INSTRUCTIONS,
             output_type=TextOutput(parse_title),
             output_retries=self.output_retries,

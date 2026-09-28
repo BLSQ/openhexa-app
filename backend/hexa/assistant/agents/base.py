@@ -176,6 +176,7 @@ class BaseAgent:
 
         self.agent = Agent(
             model=self._built_model.model,
+            name=self.agent_key,
             instructions=self._build_instructions(),
             tools=self._tools_with_context,
             output_type=self._output_type(),
