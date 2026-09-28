@@ -1,5 +1,6 @@
 import io
 import zipfile
+from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
 from hexa.pipelines.models import Pipeline, PipelineType, PipelineVersion
@@ -124,11 +125,12 @@ class PipelineVersionDagTest(GraphQLTestCase):
 
     def test_unparseable_zipfile_returns_empty_dag(self):
         """A broken version must degrade to an empty graph, never break the page."""
-        version = PipelineVersion.objects.create(
-            pipeline=self.PIPELINE,
-            user=self.USER_ROOT,
-            zipfile=self.build_zipfile({"pipeline.py": "def broken(:\n"}),
-        )
+        with self.assertLogs("hexa.pipelines.dag", level="ERROR"):
+            version = PipelineVersion.objects.create(
+                pipeline=self.PIPELINE,
+                user=self.USER_ROOT,
+                zipfile=self.build_zipfile({"pipeline.py": "def broken(:\n"}),
+            )
 
         self.assertEqual(self.query_dag(version), {"tasks": [], "edges": []})
 
@@ -140,3 +142,29 @@ class PipelineVersionDagTest(GraphQLTestCase):
         )
 
         self.assertEqual(self.query_dag(version), {"tasks": [], "edges": []})
+
+    def test_dag_is_stored_when_version_is_created(self):
+        version = PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            user=self.USER_ROOT,
+            zipfile=self.build_zipfile({"pipeline.py": PIPELINE_PY}),
+        )
+        version.refresh_from_db()
+
+        self.assertEqual(len(version.dag["tasks"]), 3)
+        with patch("hexa.pipelines.models.extract_dag_from_zipfile") as extract:
+            self.assertEqual(self.query_dag(version)["tasks"], version.dag["tasks"])
+        extract.assert_not_called()
+
+    def test_version_without_stored_dag_is_filled_on_first_read(self):
+        """Versions uploaded before the dag column existed are extracted lazily, once."""
+        version = PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            user=self.USER_ROOT,
+            zipfile=self.build_zipfile({"pipeline.py": PIPELINE_PY}),
+        )
+        PipelineVersion.objects.filter(pk=version.pk).update(dag=None)
+
+        self.assertEqual(len(self.query_dag(version)["tasks"]), 3)
+        version.refresh_from_db()
+        self.assertEqual(len(version.dag["tasks"]), 3)

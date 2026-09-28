@@ -13,7 +13,6 @@ from hexa.files import storage
 from hexa.files.backends.base import StorageObject
 from hexa.git.enums import FileEncoding
 from hexa.pipeline_templates.models import PipelineTemplateVersion
-from hexa.pipelines.dag import extract_dag_from_zipfile
 from hexa.pipelines.enums import PipelineParameterChoicesFileFormat
 from hexa.pipelines.models import (
     Pipeline,
@@ -388,16 +387,7 @@ def resolve_pipeline_version_zipfile(version: PipelineVersion, info, **kwargs):
 
 @pipeline_version_object.field("dag")
 def resolve_pipeline_version_dag(version: PipelineVersion, info, **kwargs):
-    """Derive the task graph from the version's code.
-
-    Computed on the fly rather than stored: it needs no migration and works on versions
-    uploaded long before this field existed. The archive bytes are already loaded with the
-    version row, so this costs CPU but no extra query.
-    """
-    if not version.zipfile:
-        return {"tasks": [], "edges": []}
-
-    return extract_dag_from_zipfile(version.zipfile)
+    return version.get_dag()
 
 
 @pipeline_version_object.field("files")
