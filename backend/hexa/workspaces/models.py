@@ -11,7 +11,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.validators import RegexValidator, validate_slug
 from django.db import models
-from django.db.models import Q
+from django.db.models import Count, Max, Q, Sum
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.regex_helper import _lazy_re_compile
@@ -889,6 +889,44 @@ class TokenScopeVerdict(models.TextChoices):
     OUT_OF_SCOPE = "OUT_OF_SCOPE", _("Out of scope")
 
 
+class WorkspaceTokenUsageQuerySet(models.QuerySet):
+    # Identity tokens are minted per notebook session and membership tokens are one per
+    # membership, so a token is counted by what it was issued for rather than its fingerprint.
+    TOKEN = ("token_type", "user", "workspace")
+
+    def scope_summary(self, top: int = 10) -> dict:
+        """Headline numbers and the top breaking tokens of the audit."""
+        out_of_scope = Q(verdict=TokenScopeVerdict.OUT_OF_SCOPE)
+        tokens = (
+            self.order_by()
+            .values(*self.TOKEN)
+            .annotate(
+                request_count=Count("id"),
+                out_of_scope_count=Count("id", filter=out_of_scope),
+                cross_reachable_count=Count(
+                    "id", filter=Q(verdict=TokenScopeVerdict.CROSS_REACHABLE)
+                ),
+            )
+        )
+        summary = tokens.aggregate(
+            tokens=Count("request_count"),
+            breaking=Count("request_count", filter=Q(out_of_scope_count__gt=0)),
+            reaching=Count(
+                "request_count",
+                filter=Q(out_of_scope_count=0, cross_reachable_count__gt=0),
+            ),
+            requests=Sum("request_count", default=0),
+            out_of_scope_requests=Sum("out_of_scope_count", default=0),
+        )
+        summary["top_breaking"] = (
+            self.filter(out_of_scope)
+            .values(*self.TOKEN, "user__email", "workspace__slug")
+            .annotate(requests=Count("id"), last_seen=Max("created_at"))
+            .order_by("-requests")[:top]
+        )
+        return summary
+
+
 class WorkspaceTokenUsage(Base):
     """One row per workspace-token GraphQL request.
 
@@ -911,6 +949,8 @@ class WorkspaceTokenUsage(Base):
     foreign_workspaces = models.JSONField(default=dict)
     client = models.TextField(blank=True)
     ip = models.GenericIPAddressField(null=True, blank=True)
+
+    objects = WorkspaceTokenUsageQuerySet.as_manager()
 
     def __str__(self):
         return f"{self.token_fingerprint} {self.verdict}"

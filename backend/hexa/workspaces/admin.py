@@ -150,12 +150,20 @@ class WorkspaceTokenUsageAdmin(admin.ModelAdmin):
         "workspace",
         "client",
     )
-    list_filter = ("verdict", "token_type")
+    list_filter = ("verdict", "token_type", "workspace__organization")
     search_fields = ("token_fingerprint", "user__email", "workspace__slug")
     date_hierarchy = "created_at"
+    change_list_template = "admin/workspaces/workspacetokenusage/change_list.html"
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("user", "workspace")
+
+    def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(request, extra_context)
+        # Invalid filters redirect instead of rendering, leaving no changelist to summarise.
+        if cl := getattr(response, "context_data", {}).get("cl"):
+            response.context_data["summary"] = cl.queryset.scope_summary()
+        return response
 
     def has_add_permission(self, request):
         return False

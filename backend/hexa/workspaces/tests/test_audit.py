@@ -1,7 +1,6 @@
 from types import SimpleNamespace
 
-from django.test import RequestFactory, TestCase, override_settings
-from django_sql_dashboard.models import Dashboard
+from django.test import RequestFactory, TestCase
 
 from hexa.core.test import GraphQLTestCase
 from hexa.datasets.models import (
@@ -222,23 +221,63 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
         )
 
 
-class TokenScopeDashboardTest(TestCase):
-    """The dashboard is seeded by migration, so its SQL is only exercised at runtime."""
-
-    # The "dashboard" alias is the read-only role on the same database; in tests
-    # there is only the one test database, so point the dashboard at it.
-    @override_settings(DASHBOARD_DB_ALIAS="default")
-    def test_dashboard_renders_without_a_failing_query(self):
-        dashboard = Dashboard.objects.get(slug="workspace-token-scope")
-        self.assertEqual(dashboard.view_policy, "superuser")
-
-        user = User.objects.create_user(
-            "admin@openhexa.org", "password", is_superuser=True
+class TokenScopeSummaryTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.ALICE = User.objects.create_user(
+            "alice@openhexa.org", "password", is_superuser=True, is_staff=True
         )
-        self.client.force_login(user)
-        response = self.client.get(f"/dashboard/{dashboard.slug}/")
+        cls.BOB = User.objects.create_user("bob@openhexa.org", "password")
+        cls.WORKSPACE = create_workspace(cls.ALICE, name="Audited Workspace")
+
+        # Two identity sessions of Alice's count as one token, Bob's cross-workspace
+        # but legal token as another, and his in-scope membership token as a third.
+        cls.record(cls.ALICE, "identity", TokenScopeVerdict.OUT_OF_SCOPE, "session-1")
+        cls.record(cls.ALICE, "identity", TokenScopeVerdict.OUT_OF_SCOPE, "session-2")
+        cls.record(cls.ALICE, "identity", TokenScopeVerdict.IN_SCOPE, "session-2")
+        cls.record(cls.BOB, "identity", TokenScopeVerdict.CROSS_REACHABLE, "session-3")
+        cls.record(cls.BOB, "membership", TokenScopeVerdict.IN_SCOPE, "membership")
+
+    @classmethod
+    def record(cls, user, token_type, verdict, fingerprint):
+        WorkspaceTokenUsage.objects.create(
+            token_fingerprint=fingerprint,
+            token_type=token_type,
+            user=user,
+            workspace=cls.WORKSPACE,
+            verdict=verdict,
+        )
+
+    def test_scope_summary_counts_tokens_by_what_they_were_issued_for(self):
+        summary = WorkspaceTokenUsage.objects.scope_summary()
+
+        self.assertEqual(
+            {
+                "tokens": 3,
+                "breaking": 1,
+                "reaching": 1,
+                "requests": 5,
+                "out_of_scope_requests": 2,
+            },
+            {key: value for key, value in summary.items() if key != "top_breaking"},
+        )
+        [top] = summary["top_breaking"]
+        self.assertEqual(top["user__email"], self.ALICE.email)
+        self.assertEqual(top["requests"], 2)
+
+    def test_scope_summary_of_no_requests(self):
+        summary = WorkspaceTokenUsage.objects.none().scope_summary()
+        self.assertEqual(summary["tokens"], 0)
+        self.assertEqual(summary["requests"], 0)
+
+    def test_admin_summarises_the_filtered_requests(self):
+        self.client.force_login(self.ALICE)
+        response = self.client.get(
+            "/admin/workspaces/workspacetokenusage/",
+            # The same filters the top breaking tokens link to.
+            {"user": self.BOB.id, "token_type__exact": "membership"},
+        )
 
         self.assertEqual(response.status_code, 200)
-        # django-sql-dashboard renders failures in place rather than raising, and
-        # rejects things plain psycopg accepts (";" anywhere, an unescaped "%").
-        self.assertNotContains(response, "query-error")
+        self.assertEqual(response.context["summary"]["tokens"], 1)
+        self.assertContains(response, "Would break if scoped")
