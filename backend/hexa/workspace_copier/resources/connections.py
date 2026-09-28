@@ -49,6 +49,7 @@ query ListConnections($slug: String!) {
 class ConnectionsCopier(ResourceCopier):
     name = "connections"
     label = "Connections"
+    option_fields = ("include_connection_secrets",)
 
     def copy(
         self,
@@ -60,7 +61,7 @@ class ConnectionsCopier(ResourceCopier):
         options: CopyOptions = CopyOptions(),
     ) -> None:
         if source.is_remote and target.is_remote:
-            self._copy_remote(source, target, result, reporter)
+            self._copy_remote(source, target, result, reporter, options)
         else:
             raise NotImplementedError(
                 "LOCAL connections copy (native ORM clone) is implemented in a "
@@ -73,9 +74,16 @@ class ConnectionsCopier(ResourceCopier):
         target: Endpoint,
         result: CopyResult,
         reporter: ProgressReporter,
+        options: CopyOptions,
     ) -> None:
         conns_result = ConnectionsResult()
         result.connections = conns_result
+        include_secrets = options.include_connection_secrets
+        if not include_secrets:
+            conns_result.warnings.append(
+                "secrets were not copied — secret fields were created empty; "
+                "set them manually on the target."
+            )
 
         conns = _list_connections(source.client, source.slug)
         if conns is None:
@@ -94,7 +102,7 @@ class ConnectionsCopier(ResourceCopier):
                 reporter.info(f"   skipped connection '{slug}' (already exists)")
                 continue
             try:
-                fields_in = _build_fields(conn, conns_result)
+                fields_in = _build_fields(conn, conns_result, include_secrets)
                 res = target.client.create_connection(
                     input=CreateConnectionInput(
                         workspace_slug=target.slug,
@@ -129,21 +137,24 @@ def _list_connections(client: Client, slug: str) -> list[dict[str, Any]] | None:
 
 
 def _build_fields(
-    conn: dict[str, Any], result: ConnectionsResult
+    conn: dict[str, Any], result: ConnectionsResult, include_secrets: bool
 ) -> list[ConnectionFieldInput]:
-    """Map source fields to ConnectionFieldInput, warning on empty secrets."""
+    """Map source fields to ConnectionFieldInput, blanking secrets unless included.
+
+    An empty secret is only warned about when secrets were requested: when they
+    were deliberately skipped, the run-wide warning already covers it.
+    """
     fields_in: list[ConnectionFieldInput] = []
     for f in conn.get("fields") or []:
-        value = f.get("value")
-        if f.get("secret") and not value:
+        secret = bool(f.get("secret"))
+        value = f.get("value") if include_secrets or not secret else None
+        if secret and include_secrets and not value:
             result.warnings.append(
                 f"connection '{conn['slug']}' field '{f['code']}' is a secret "
                 "with no readable value on source — created empty; set it "
                 "manually on the target."
             )
         fields_in.append(
-            ConnectionFieldInput(
-                code=f["code"], secret=bool(f.get("secret")), value=value
-            )
+            ConnectionFieldInput(code=f["code"], secret=secret, value=value)
         )
     return fields_in

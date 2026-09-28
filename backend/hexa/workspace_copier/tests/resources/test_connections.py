@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 from django.test import SimpleTestCase
 
 from hexa.workspace_copier.endpoints import Endpoint
+from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import NullReporter
 from hexa.workspace_copier.resources.connections import ConnectionsCopier
 from hexa.workspace_copier.results import CopyResult
@@ -65,6 +66,44 @@ class ConnectionsCopierRemoteTest(SimpleTestCase):
         ConnectionsCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertTrue(any("secret" in w for w in self.result.connections.warnings))
+
+    def _copy_db_with_password(self, mock_list, options):
+        mock_list.side_effect = [
+            [
+                _conn(
+                    "db",
+                    [
+                        {"code": "host", "value": "h", "secret": False},
+                        {"code": "password", "value": "pw", "secret": True},
+                    ],
+                )
+            ],
+            [],
+        ]
+        self.target.client.create_connection.return_value = MagicMock(
+            success=True, connection=MagicMock()
+        )
+        ConnectionsCopier().copy(
+            self.source, self.target, self.result, NullReporter(), options=options
+        )
+        fields = self.target.client.create_connection.call_args.kwargs["input"].fields
+        return {f.code: f.value for f in fields}
+
+    @patch("hexa.workspace_copier.resources.connections._list_connections")
+    def test_secrets_copied_by_default(self, mock_list):
+        values = self._copy_db_with_password(mock_list, CopyOptions())
+
+        self.assertEqual(values, {"host": "h", "password": "pw"})
+        self.assertEqual(self.result.connections.warnings, [])
+
+    @patch("hexa.workspace_copier.resources.connections._list_connections")
+    def test_secrets_blanked_when_excluded(self, mock_list):
+        values = self._copy_db_with_password(
+            mock_list, CopyOptions(include_connection_secrets=False)
+        )
+
+        self.assertEqual(values, {"host": "h", "password": None})
+        self.assertEqual(len(self.result.connections.warnings), 1)
 
     def test_local_endpoint_not_yet_implemented(self):
         with self.assertRaises(NotImplementedError):
