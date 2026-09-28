@@ -19,11 +19,21 @@ export const ParameterNode = ({ data }: NodeProps) => {
   return (
     <div
       style={size}
-      className="flex flex-col justify-center rounded-md border border-dashed border-gray-300 bg-gray-50 px-3"
+      className="flex flex-col justify-center rounded-md border border-dashed border-indigo-300 bg-indigo-50 px-3"
       title={type ? `${label} (${type})` : label}
     >
+      <div className="flex items-baseline justify-between gap-1.5">
+        <span className="text-[10px] font-semibold tracking-wide text-indigo-600 uppercase">
+          {t("Parameter")}
+        </span>
+        {type && (
+          <span className="truncate font-mono text-[10px] text-indigo-400">
+            {type}
+          </span>
+        )}
+      </div>
       <div className="flex items-baseline gap-1.5">
-        <span className="truncate text-xs font-medium text-gray-700">
+        <span className="truncate text-xs font-medium text-gray-800">
           {label}
         </span>
         {required && (
@@ -32,11 +42,6 @@ export const ParameterNode = ({ data }: NodeProps) => {
           </span>
         )}
       </div>
-      {type && (
-        <span className="truncate font-mono text-[10px] text-gray-400">
-          {type}
-        </span>
-      )}
       <Handle
         type="source"
         position={Position.Right}
@@ -47,13 +52,14 @@ export const ParameterNode = ({ data }: NodeProps) => {
 };
 
 export const TaskNode = ({ data }: NodeProps) => {
+  const { t } = useTranslation();
   const { label } = data as { label: string };
 
   return (
     <div
       style={size}
       className={clsx(
-        "flex items-center justify-center rounded-md border border-gray-200 bg-white px-3",
+        "flex flex-col justify-center rounded-md border border-l-4 border-gray-200 border-l-blue-500 bg-white px-3",
         "shadow-sm",
       )}
       title={label}
@@ -63,7 +69,10 @@ export const TaskNode = ({ data }: NodeProps) => {
         position={Position.Left}
         className={handleClassName}
       />
-      <span className="truncate font-mono text-xs text-gray-700">{label}</span>
+      <span className="text-[10px] font-semibold tracking-wide text-blue-600 uppercase">
+        {t("Task")}
+      </span>
+      <span className="truncate font-mono text-xs text-gray-800">{label}</span>
       <Handle
         type="source"
         position={Position.Right}
