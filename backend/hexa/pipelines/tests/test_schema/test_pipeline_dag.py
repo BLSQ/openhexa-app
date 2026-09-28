@@ -93,9 +93,9 @@ class PipelineVersionDagTest(GraphQLTestCase):
         self.assertEqual(
             dag["tasks"],
             [
-                {"id": "save_dataset", "name": "save_dataset"},
-                {"id": "load_history", "name": "load_history"},
                 {"id": "load_devices", "name": "load_devices"},
+                {"id": "load_history", "name": "load_history"},
+                {"id": "save_dataset", "name": "save_dataset"},
             ],
         )
         self.assertEqual(

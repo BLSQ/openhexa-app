@@ -67,8 +67,10 @@ def extract_dag(source: str) -> dict:
         # The @pipeline decorator rebinds the decorated function's name to a Pipeline
         # instance, so the function's own name is what tasks are decorated with.
         pipeline_var = entrypoint.name
-        tasks = _find_tasks(tree, pipeline_var)
-        edges = _find_edges(entrypoint, set(tasks))
+        declared = _find_tasks(tree, pipeline_var)
+        edges, call_order = _walk_body(entrypoint, set(declared))
+        # Call order is execution order; tasks never called keep their declaration order.
+        tasks = call_order + [name for name in declared if name not in call_order]
     except Exception:
         logger.exception("Failed to extract DAG from pipeline source")
         return _empty()
@@ -122,17 +124,18 @@ def _find_tasks(tree: ast.Module, pipeline_var: str) -> list[str]:
     return tasks
 
 
-def _find_edges(
+def _walk_body(
     entrypoint: ast.FunctionDef, task_names: set[str]
-) -> list[tuple[str, str]]:
-    """Walk the pipeline body, mapping local names to whatever produced them.
+) -> tuple[list[tuple[str, str]], list[str]]:
+    """Walk the pipeline body, returning its edges and the tasks in the order they are called.
 
-    The map is seeded with the pipeline function's own arguments, whose names are the
+    Local names are mapped to whatever produced them. The map is seeded with the pipeline function's own arguments, whose names are the
     parameter codes — so a parameter reaching a task's arguments yields an edge just like a
     task result does.
     """
     producers = {argument.arg: argument.arg for argument in entrypoint.args.args}
     edges: list[tuple[str, str]] = []
+    call_order: list[str] = []
 
     def is_task_call(node: ast.AST) -> bool:
         return (
@@ -159,6 +162,9 @@ def _find_edges(
                 add_edge(producers[argument.id], target)
             elif is_task_call(argument):
                 add_edge(visit_call(argument), target)
+        # Recorded after the arguments: in t2(t1()), t1 runs first.
+        if target not in call_order:
+            call_order.append(target)
         return target
 
     def visit_statement(statement: ast.stmt) -> None:
@@ -199,7 +205,7 @@ def _find_edges(
                 visit_block(child)
 
     visit_block(entrypoint)
-    return edges
+    return edges, call_order
 
 
 def _bound_names(statement: ast.stmt) -> list[str]:

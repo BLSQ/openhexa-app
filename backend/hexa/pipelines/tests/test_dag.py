@@ -230,12 +230,11 @@ class ExtractDagTest(TestCase):
     def test_diamond(self):
         """One producer feeding two consumers, one of which also feeds the other.
 
-        Tasks are declared in reverse execution order here, so the returned order is
-        declaration order and carries no meaning — layout must come from the edges.
+        Tasks are declared in reverse execution order here: they come back in call order.
         """
         self.assertGraph(
             DIAMOND,
-            ["save_dataset", "load_history", "load_devices"],
+            ["load_devices", "load_history", "save_dataset"],
             [
                 ("load_devices", "load_history"),
                 ("load_devices", "save_dataset"),
@@ -292,6 +291,16 @@ def t3(value):
         # t1 feeds t2, not t3: at runtime it is t2 that holds the reference to t1.
         self.assertGraph(source, ["t1", "t2", "t3"], [("t1", "t2"), ("t2", "t3")])
 
+    def test_tasks_follow_call_order_then_declaration_order(self):
+        """Nested calls run innermost first; a task never called goes last."""
+        self.assertBodyGraph(
+            """
+t3(t2())
+""",
+            [("t2", "t3")],
+            tasks=["t2", "t3", "t1"],
+        )
+
     def test_task_called_twice_is_one_node(self):
         """A node is a task definition, not an invocation."""
         source = """
@@ -335,7 +344,7 @@ def fetch(country):
 """
         self.assertGraph(source, ["fetch"], [])
 
-    def assertBodyGraph(self, body, edges):
+    def assertBodyGraph(self, body, edges, tasks=("t1", "t2", "t3")):
         """Wrap a pipeline body in a module declaring tasks t1..t3, then check its edges."""
         source = (
             "from openhexa.sdk import parameter, pipeline\n\n\n"
@@ -348,7 +357,7 @@ def fetch(country):
                 for name in ("t1", "t2", "t3")
             )
         )
-        self.assertGraph(source, ["t1", "t2", "t3"], edges)
+        self.assertGraph(source, list(tasks), edges)
 
     def test_nested_block_is_read_in_source_order(self):
         """ast.walk would visit a = t3() before the loop body and wire t3 to t2."""
@@ -459,7 +468,7 @@ def empty(foo):
     def test_unexpected_error_returns_empty_graph_and_logs_exception(self):
         error = RecursionError("maximum recursion depth exceeded")
         with (
-            patch("hexa.pipelines.dag._find_edges", side_effect=error),
+            patch("hexa.pipelines.dag._walk_body", side_effect=error),
             self.assertLogs("hexa.pipelines.dag", level="ERROR") as logs,
         ):
             self.assertGraph(SCAFFOLD, [], [])

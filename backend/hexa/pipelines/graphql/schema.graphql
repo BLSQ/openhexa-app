@@ -227,7 +227,7 @@ dependency, but it cannot see through loops, conditionals, or undecorated helper
 Notebook versions, and code that cannot be parsed, yield an empty graph.
 """
 type PipelineDag {
-  tasks: [PipelineDagTask!]!  # The tasks declared by the version, in declaration order, which carries no execution meaning.
+  tasks: [PipelineDagTask!]!  # The tasks declared by the version, in the order the pipeline calls them; tasks never called come last.
   edges: [PipelineDagEdge!]!  # The dependencies between parameters and tasks, and between tasks.
 }
 
