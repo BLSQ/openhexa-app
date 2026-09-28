@@ -3,7 +3,7 @@ from unittest.mock import patch
 from zipfile import ZipFile
 
 from hexa.core.test import TestCase
-from hexa.pipelines.dag import extract_dag, extract_dag_from_zipfile
+from hexa.pipelines.dag import Dag, extract_dag, extract_dag_from_zipfile
 
 # Fixtures below are trimmed from real pipelines: the SDK's CLI scaffold and example
 # pipelines, plus two pipelines written by users. They are the shapes the extractor
@@ -180,12 +180,10 @@ if __name__ == "__main__":
 class ExtractDagTest(TestCase):
     def assertGraph(self, source, tasks, edges):
         dag = extract_dag(source)
-        self.assertEqual([task["id"] for task in dag["tasks"]], tasks)
-        self.assertEqual(
-            [(edge["source"], edge["target"]) for edge in dag["edges"]], edges
-        )
-        for task in dag["tasks"]:
-            self.assertEqual(task["id"], task["name"])
+        self.assertEqual([task.id for task in dag.tasks], tasks)
+        self.assertEqual([(edge.source, edge.target) for edge in dag.edges], edges)
+        for task in dag.tasks:
+            self.assertEqual(task.id, task.name)
 
     def test_linear_chain(self):
         """The CLI scaffold every new pipeline starts from."""
@@ -252,17 +250,17 @@ class ExtractDagTest(TestCase):
     def test_ignores_undecorated_helper(self):
         """fetch_history looks like a task but carries no decorator."""
         self.assertNotIn(
-            "fetch_history", [task["id"] for task in extract_dag(DIAMOND)["tasks"]]
+            "fetch_history", [task.id for task in extract_dag(DIAMOND).tasks]
         )
 
     def test_ignores_non_task_calls_in_body(self):
         """current_run.log_info() sits in the body of DIAMOND and is not a task."""
-        for edge in extract_dag(DIAMOND)["edges"]:
-            self.assertNotIn("log_info", edge)
+        for edge in extract_dag(DIAMOND).edges:
+            self.assertNotIn("log_info", (edge.source, edge.target))
 
     def test_ignores_bare_task_import(self):
         """SINGLE_TASK imports a bare `task` name that is never used as a decorator."""
-        self.assertEqual(len(extract_dag(SINGLE_TASK)["tasks"]), 1)
+        self.assertEqual(len(extract_dag(SINGLE_TASK).tasks), 1)
 
     def test_nested_task_call(self):
         source = """
@@ -488,27 +486,25 @@ class ExtractDagFromZipfileTest(TestCase):
 
     def test_reads_entrypoint(self):
         dag = extract_dag_from_zipfile(self.build_zipfile({"pipeline.py": SCAFFOLD}))
-        self.assertEqual([task["id"] for task in dag["tasks"]], ["task_1", "task_2"])
+        self.assertEqual([task.id for task in dag.tasks], ["task_1", "task_2"])
 
     def test_ignores_other_modules(self):
         """Only pipeline.py is read: another module's @pipeline must not be described."""
         dag = extract_dag_from_zipfile(
             self.build_zipfile({"pipeline.py": SCAFFOLD, "backup/old.py": DIAMOND})
         )
-        self.assertEqual([task["id"] for task in dag["tasks"]], ["task_1", "task_2"])
+        self.assertEqual([task.id for task in dag.tasks], ["task_1", "task_2"])
 
     def test_missing_entrypoint(self):
         """Archives without pipeline.py are accepted at upload, so this is not logged."""
         with self.assertNoLogs("hexa.pipelines.dag"):
             dag = extract_dag_from_zipfile(self.build_zipfile({"notebook.ipynb": "{}"}))
-        self.assertEqual(dag, {"tasks": [], "edges": []})
+        self.assertEqual(dag, Dag())
 
     def test_not_a_zipfile(self):
         with self.assertLogs("hexa.pipelines.dag", level="ERROR"):
-            self.assertEqual(
-                extract_dag_from_zipfile(b"not a zip"), {"tasks": [], "edges": []}
-            )
+            self.assertEqual(extract_dag_from_zipfile(b"not a zip"), Dag())
 
     def test_no_zipfile(self):
         """Notebook versions carry no archive."""
-        self.assertEqual(extract_dag_from_zipfile(None), {"tasks": [], "edges": []})
+        self.assertEqual(extract_dag_from_zipfile(None), Dag())

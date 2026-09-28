@@ -19,6 +19,7 @@ helper functions, whose arguments are unknown until they are called.
 import ast
 import io
 import logging
+from dataclasses import dataclass, field
 from zipfile import ZipFile
 
 logger = logging.getLogger(__name__)
@@ -26,7 +27,27 @@ logger = logging.getLogger(__name__)
 ENTRYPOINT = "pipeline.py"
 
 
-def extract_dag_from_zipfile(zipfile_data: bytes | None) -> dict:
+@dataclass(frozen=True)
+class DagTask:
+    id: str
+    name: str
+
+
+@dataclass(frozen=True)
+class DagEdge:
+    """``source`` is either a task id or a parameter code; ``target`` is always a task id."""
+
+    source: str
+    target: str
+
+
+@dataclass
+class Dag:
+    tasks: list[DagTask] = field(default_factory=list)
+    edges: list[DagEdge] = field(default_factory=list)
+
+
+def extract_dag_from_zipfile(zipfile_data: bytes | None) -> Dag:
     """Return the task graph of a pipeline version's zip archive.
 
     Only ``pipeline.py`` at the archive root is read, mirroring the SDK's ``get_pipeline()``.
@@ -34,26 +55,23 @@ def extract_dag_from_zipfile(zipfile_data: bytes | None) -> dict:
     never runs.
     """
     if not zipfile_data:
-        return _empty()
+        return Dag()
 
     try:
         with ZipFile(io.BytesIO(zipfile_data)) as zip_file:
             source = zip_file.read(ENTRYPOINT).decode()
     except KeyError:
         # Uploads without a pipeline.py are accepted (see _parse_parameters_from_zipfile).
-        return _empty()
+        return Dag()
     except Exception:
         logger.exception("Failed to read pipeline source from zipfile")
-        return _empty()
+        return Dag()
 
     return extract_dag(source)
 
 
-def extract_dag(source: str) -> dict:
-    """Return ``{"tasks": [...], "edges": [...]}`` for a pipeline module's source.
-
-    Task ids are function names; edge sources are either a task id or a parameter code, and
-    the caller discriminates by looking the source up in the task list.
+def extract_dag(source: str) -> Dag:
+    """Return the task graph of a pipeline module's source. Task ids are function names.
 
     Unlike ``_parse_parameters_from_zipfile``, which raises so a bad upload is rejected, this
     returns an empty graph on extraction failure and logs the exception for investigation.
@@ -62,7 +80,7 @@ def extract_dag(source: str) -> dict:
         tree = ast.parse(source)
         entrypoint = _find_pipeline_function(tree)
         if entrypoint is None:
-            return _empty()
+            return Dag()
 
         # The @pipeline decorator rebinds the decorated function's name to a Pipeline
         # instance, so the function's own name is what tasks are decorated with.
@@ -73,18 +91,12 @@ def extract_dag(source: str) -> dict:
         tasks = call_order + [name for name in declared if name not in call_order]
     except Exception:
         logger.exception("Failed to extract DAG from pipeline source")
-        return _empty()
+        return Dag()
 
-    return {
-        "tasks": [{"id": name, "name": name} for name in tasks],
-        "edges": [
-            {"source": source_id, "target": target} for source_id, target in edges
-        ],
-    }
-
-
-def _empty() -> dict:
-    return {"tasks": [], "edges": []}
+    return Dag(
+        tasks=[DagTask(id=name, name=name) for name in tasks],
+        edges=[DagEdge(source=source_id, target=target) for source_id, target in edges],
+    )
 
 
 def _find_pipeline_function(tree: ast.Module) -> ast.FunctionDef | None:
