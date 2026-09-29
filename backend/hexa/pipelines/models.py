@@ -203,8 +203,6 @@ class PipelineVersion(models.Model):
     zipfile = models.BinaryField(null=True)
     parameters = models.JSONField(blank=True, default=dict)
     config = models.JSONField(blank=True, default=dict)
-    # NULL means "not extracted yet": versions older than this field are filled on first read.
-    # Changing dag.py's output needs a migration resetting this column so versions re-extract.
     dag = models.JSONField(null=True, blank=True, editable=False)
 
     timeout = models.IntegerField(
@@ -236,14 +234,11 @@ class PipelineVersion(models.Model):
     def save(self, *args, **kwargs):
         if not self.version_number:  # Increment for new records only
             self._increment_version_number()
-        if self.dag is None:
-            self.dag = asdict(extract_dag_from_zipfile(self.zipfile))
         super().save(*args, **kwargs)
 
     def get_dag(self) -> dict:
         if self.dag is None:
             self.dag = asdict(extract_dag_from_zipfile(self.zipfile))
-            # update() rather than save(): a read must not overwrite concurrent edits to the row.
             PipelineVersion.objects.filter(pk=self.pk).update(dag=self.dag)
         return self.dag
 

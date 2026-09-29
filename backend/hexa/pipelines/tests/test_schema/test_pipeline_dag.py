@@ -130,16 +130,15 @@ class PipelineVersionDagTest(GraphQLTestCase):
 
     def test_unparseable_zipfile_returns_empty_dag(self):
         """A broken version must degrade to an empty graph, never break the page."""
-        with self.assertLogs("hexa.pipelines.dag", level="ERROR"):
-            version = PipelineVersion.objects.create(
-                pipeline=self.PIPELINE,
-                user=self.USER_ROOT,
-                zipfile=self.build_zipfile({"pipeline.py": "def broken(:\n"}),
-            )
-
-        self.assertEqual(
-            self.query_dag(version), {"tasks": [], "edges": [], "parameters": []}
+        version = PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            user=self.USER_ROOT,
+            zipfile=self.build_zipfile({"pipeline.py": "def broken(:\n"}),
         )
+
+        with self.assertLogs("hexa.pipelines.dag", level="ERROR"):
+            dag = self.query_dag(version)
+        self.assertEqual(dag, {"tasks": [], "edges": [], "parameters": []})
 
     def test_version_without_entrypoint_returns_empty_dag(self):
         version = PipelineVersion.objects.create(
@@ -152,7 +151,7 @@ class PipelineVersionDagTest(GraphQLTestCase):
             self.query_dag(version), {"tasks": [], "edges": [], "parameters": []}
         )
 
-    def test_dag_is_stored_when_version_is_created(self):
+    def test_dag_is_not_built_when_version_is_saved(self):
         version = PipelineVersion.objects.create(
             pipeline=self.PIPELINE,
             user=self.USER_ROOT,
@@ -160,23 +159,22 @@ class PipelineVersionDagTest(GraphQLTestCase):
         )
         version.refresh_from_db()
 
-        self.assertEqual(len(version.dag["tasks"]), 3)
-        with patch("hexa.pipelines.models.extract_dag_from_zipfile") as extract:
-            self.assertEqual(self.query_dag(version)["tasks"], version.dag["tasks"])
-        extract.assert_not_called()
+        self.assertIsNone(version.dag)
 
-    def test_version_without_stored_dag_is_filled_on_first_read(self):
-        """Versions uploaded before the dag column existed are extracted lazily, once."""
+    def test_dag_is_built_on_first_read_then_reused(self):
         version = PipelineVersion.objects.create(
             pipeline=self.PIPELINE,
             user=self.USER_ROOT,
             zipfile=self.build_zipfile({"pipeline.py": PIPELINE_PY}),
         )
-        PipelineVersion.objects.filter(pk=version.pk).update(dag=None)
 
         self.assertEqual(len(self.query_dag(version)["tasks"]), 3)
         version.refresh_from_db()
         self.assertEqual(len(version.dag["tasks"]), 3)
+
+        with patch("hexa.pipelines.models.extract_dag_from_zipfile") as extract:
+            self.assertEqual(len(self.query_dag(version)["tasks"]), 3)
+        extract.assert_not_called()
 
     def test_parameter_never_passed_to_a_task_is_left_out(self):
         version = PipelineVersion.objects.create(
