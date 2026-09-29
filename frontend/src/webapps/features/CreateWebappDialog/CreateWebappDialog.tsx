@@ -14,14 +14,9 @@ import { useRouter } from "next/router";
 import { ReactNode, useEffect, useState } from "react";
 import { useSupersetInstancesQuery } from "webapps/graphql/queries.generated";
 import { CreateWebappDialog_WorkspaceFragment } from "./CreateWebappDialog.generated";
-import CreateWebappFromGit, {
-  GitFormData,
-} from "./CreateWebappFromGit/CreateWebappFromGit";
 import CreateWebappUsingAI from "./CreateWebappUsingAI/CreateWebappUsingAI";
 
-type Method = "ai" | "git" | null;
-
-const EMPTY_GIT_FORM: GitFormData = { name: "", url: "" };
+type Method = "ai" | null;
 
 type MethodCardProps = {
   icon: ReactNode;
@@ -77,7 +72,6 @@ const CreateWebappDialog = (props: CreateWebappDialogProps) => {
 
   const [activeMethod, setActiveMethod] = useState<Method>(null);
   const [prompt, setPrompt] = useState("");
-  const [gitForm, setGitForm] = useState<GitFormData>(EMPTY_GIT_FORM);
 
   const { data: supersetData } = useSupersetInstancesQuery({
     variables: { workspaceSlug: workspace.slug },
@@ -90,7 +84,6 @@ const CreateWebappDialog = (props: CreateWebappDialogProps) => {
     if (open) {
       setActiveMethod(null);
       setPrompt("");
-      setGitForm(EMPTY_GIT_FORM);
     }
   }, [open]);
 
@@ -104,7 +97,6 @@ const CreateWebappDialog = (props: CreateWebappDialogProps) => {
 
   const TITLES: Record<string, string> = {
     ai: t("Create with AI"),
-    git: t("From Git repo"),
   };
   const dialogTitle = activeMethod
     ? TITLES[activeMethod]
@@ -143,9 +135,11 @@ const CreateWebappDialog = (props: CreateWebappDialogProps) => {
             />
             <MethodCard
               icon={<CodeBracketIcon className="h-5 w-5 text-blue-400" />}
-              title={t("From Git repo")}
-              description={t("Import an existing web app from a Git repo")}
-              onClick={() => setActiveMethod("git")}
+              title={t("From code/files")}
+              description={t(
+                "Write the code or upload the files of your web app",
+              )}
+              onClick={() => goToCreatePage(WebappType.Static)}
             />
             <MethodCard
               icon={<ChartBarSquareIcon className="h-5 w-5 text-blue-400" />}
@@ -171,10 +165,6 @@ const CreateWebappDialog = (props: CreateWebappDialogProps) => {
         {activeMethod === "ai" && (
           <CreateWebappUsingAI prompt={prompt} onPromptChange={setPrompt} />
         )}
-
-        {activeMethod === "git" && (
-          <CreateWebappFromGit values={gitForm} onChange={setGitForm} />
-        )}
       </Dialog.Content>
       <Dialog.Actions>
         <div className="flex-1" />
@@ -183,11 +173,6 @@ const CreateWebappDialog = (props: CreateWebappDialogProps) => {
         </Button>
         {activeMethod === "ai" && (
           <Button disabled={!prompt.trim()}>{t("Create")}</Button>
-        )}
-        {activeMethod === "git" && (
-          <Button disabled={!gitForm.name.trim() || !gitForm.url.trim()}>
-            {t("Create")}
-          </Button>
         )}
       </Dialog.Actions>
     </Dialog>
