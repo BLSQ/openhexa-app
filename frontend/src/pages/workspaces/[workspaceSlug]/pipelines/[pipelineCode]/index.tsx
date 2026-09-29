@@ -18,6 +18,7 @@ import { NextPageWithLayout } from "core/helpers/types";
 import useCacheKey from "core/hooks/useCacheKey";
 import { PipelineType, PipelineFunctionalType } from "graphql/types";
 import { useTranslation } from "next-i18next";
+import PipelineDagView from "pipelines/features/PipelineDagView";
 import PipelineVersionParametersTable from "pipelines/features/PipelineVersionParametersTable";
 import UpgradePipelineFromTemplateDialog from "pipelines/features/UpgradePipelineFromTemplateDialog";
 import { useState } from "react";
@@ -316,6 +317,13 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
             </RenderProperty>
           )}
         </DataCard.FormSection>
+        {pipeline.type === PipelineType.ZipFile && pipeline.currentVersion ? (
+          <DataCard.Section title={t("Task graph")} defaultOpen>
+            <PipelineDagView version={pipeline.currentVersion} />
+          </DataCard.Section>
+        ) : (
+          <></>
+        )}
         {pipeline.type === PipelineType.ZipFile && pipeline.currentVersion ? (
           <DataCard.Section title={t("Parameters")} collapsible={false}>
             {pipeline.currentVersion.parameters.length > 0 ? (
