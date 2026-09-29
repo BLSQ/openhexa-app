@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 from django.test import SimpleTestCase
+from openhexa.graphql.graphql_client.exceptions import GraphQLClientError
 
 from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.options import CopyOptions
@@ -66,6 +67,21 @@ class ConnectionsCopierRemoteTest(SimpleTestCase):
         ConnectionsCopier().copy(self.source, self.target, self.result, NullReporter())
 
         self.assertTrue(any("secret" in w for w in self.result.connections.warnings))
+        fields = self.target.client.create_connection.call_args.kwargs["input"].fields
+        self.assertEqual(fields[0].value, "")
+
+    @patch("hexa.workspace_copier.resources.connections._list_connections")
+    def test_sdk_error_is_recorded_as_failure(self, mock_list):
+        mock_list.side_effect = [[_conn("db", []), _conn("api", [])], []]
+        self.target.client.create_connection.side_effect = [
+            GraphQLClientError("boom"),
+            MagicMock(success=True, connection=MagicMock()),
+        ]
+
+        ConnectionsCopier().copy(self.source, self.target, self.result, NullReporter())
+
+        self.assertEqual(self.result.connections.failed, ["db"])
+        self.assertEqual(self.result.connections.created, [("api", 0)])
 
     def _copy_db_with_password(self, mock_list, options):
         mock_list.side_effect = [
@@ -102,7 +118,7 @@ class ConnectionsCopierRemoteTest(SimpleTestCase):
             mock_list, CopyOptions(include_connection_secrets=False)
         )
 
-        self.assertEqual(values, {"host": "h", "password": None})
+        self.assertEqual(values, {"host": "h", "password": ""})
         self.assertEqual(len(self.result.connections.warnings), 1)
 
     def test_local_endpoint_not_yet_implemented(self):

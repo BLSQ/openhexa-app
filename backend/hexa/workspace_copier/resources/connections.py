@@ -19,6 +19,7 @@ The LOCAL (ORM) branch is implemented in a later phase.
 from typing import Any
 
 from openhexa.graphql.graphql_client.client import Client
+from openhexa.graphql.graphql_client.exceptions import GraphQLClientError
 from openhexa.graphql.graphql_client.input_types import (
     ConnectionFieldInput,
     ConnectionType,
@@ -120,7 +121,7 @@ class ConnectionsCopier(ResourceCopier):
                     )
                 conns_result.created.append((slug, len(fields_in)))
                 reporter.info(f"   created connection '{slug}'")
-            except GraphQLError:
+            except (GraphQLError, GraphQLClientError):
                 # Collect and continue (like files) so one bad connection
                 # doesn't abort the rest of the copy.
                 conns_result.failed.append(slug)
@@ -139,21 +140,22 @@ def _list_connections(client: Client, slug: str) -> list[dict[str, Any]] | None:
 def _build_fields(
     conn: dict[str, Any], result: ConnectionsResult, include_secrets: bool
 ) -> list[ConnectionFieldInput]:
-    """Map source fields to ConnectionFieldInput, blanking secrets unless included.
-
-    An empty secret is only warned about when secrets were requested: when they
-    were deliberately skipped, the run-wide warning already covers it.
-    """
+    """Map source fields to ConnectionFieldInput, blanking secrets unless included."""
     fields_in: list[ConnectionFieldInput] = []
     for f in conn.get("fields") or []:
         secret = bool(f.get("secret"))
-        value = f.get("value") if include_secrets or not secret else None
-        if secret and include_secrets and not value:
-            result.warnings.append(
-                f"connection '{conn['slug']}' field '{f['code']}' is a secret "
-                "with no readable value on source — created empty; set it "
-                "manually on the target."
-            )
+        if secret and not include_secrets:
+            value = ""
+        else:
+            # The target column is NOT NULL: a null value (e.g. a secret the
+            # source redacted) would fail the insert, so fall back to "".
+            value = f.get("value") or ""
+            if secret and not value:
+                result.warnings.append(
+                    f"connection '{conn['slug']}' field '{f['code']}' is a secret "
+                    "with no readable value on source — created empty; set it "
+                    "manually on the target."
+                )
         fields_in.append(
             ConnectionFieldInput(code=f["code"], secret=secret, value=value)
         )
