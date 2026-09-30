@@ -43,6 +43,12 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   const [proposedToolInvocationId, setProposedToolInvocationId] = useState<
     string | null
   >(null);
+  // A proposal streamed by the agent is shown before its invocation is persisted
+  // (that only happens when the turn ends), so it cannot be resolved yet.
+  const proposalBlockedReason =
+    proposedFiles !== null && proposedToolInvocationId === null
+      ? t("Waiting for the assistant to finish…")
+      : undefined;
   const [proposedDeletedPaths, setProposedDeletedPaths] = useState<
     string[] | null
   >(null);
@@ -231,6 +237,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
               messagePlaceholder={t("Version description")}
               onMessageChange={setProposedCommitMessage}
               onDismiss={handleDismiss}
+              disabledReason={proposalBlockedReason}
               className="-my-2"
             />
           )}
@@ -253,6 +260,7 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                 pipelineCode={pipelineCode}
                 pipelineId={pipeline.id}
                 onVersionCreated={handleVersionCreated}
+                saveDisabledReason={proposalBlockedReason}
               />
             </div>
             {chatOpen && aiEnabled && canEditCode && (
