@@ -28,7 +28,7 @@ order (see `orchestrator.WORKSPACE_COPIERS`):
 | ------------- | ------------------------- |----------------------------------------------------------------------------------------------------|
 | `workspace`   | `WorkspaceMetadataCopier` | **mandatory** — creates the target, yields its handle                                              |
 | `files`       | `FilesCopier`             | bucket objects (streamed through a temp file — see [Large files](#large-files)); the target bucket is listed first and files matching by key + size are skipped, as is anything under a `SKIPPED_DIRECTORIES` scratch dir |
-| `database`    | `DatabaseCopier`          | native Postgres copy when both workspaces are hosted on the server running the copy; else skipped — see [Database](#database) |
+| `database`    | `DatabaseCopier`          | native Postgres copy when both endpoints are LOCAL; else skipped with manual instructions — see [Database](#database) |
 | `connections` | `ConnectionsCopier`       | connections + secret fields                                                                        |
 | `pipelines`   | `PipelinesCopier`         | pipelines + versions<br>Notes: The `.ipynb` file is copied for notebook pipelines<br>Schedules are not copied to avoid them running immediately after a copy. This allows a human to validate the copied pipeline and schedule it manually.
 | `datasets`    | `DatasetsCopier`          | datasets **owned** by the workspace                                                                |
@@ -58,16 +58,26 @@ multi-GB transfer runs as long as it needs.
 
 ## Database
 
-When both workspaces are hosted on the server running the copy, the target database is replaced by a native copy of the source (`CREATE DATABASE ... WITH TEMPLATE`, see `hexa.databases.api.replace_empty_database_with_copy`). This is a file-level copy, much faster than a dump/restore.
+When both endpoints are LOCAL (blank source and target URLs), the target database is replaced by a native copy of the source (`CREATE DATABASE ... WITH TEMPLATE`, see `hexa.databases.api.replace_empty_database_with_copy`). This is a file-level copy, much faster than a dump/restore.
 
-- **Same server detection** works whatever the endpoint modes, since a "remote" URL may point back at this very server: a remote workspace counts as local when the workspace with the same slug here has the database name *and password* the remote server reports (`workspace.database.credentials`). Tokens therefore need access to the database credentials (workspace editor/admin, or organization admin).
+The other resources are only copied between REMOTE endpoints for now, so a same-server copy takes two runs: the usual one (with URLs), which creates the target workspace and skips the database, then a database-only run on that server, with blank URLs:
+
+```
+./manage.py copy_workspace \
+	--source-workspace-slug my-workspace \
+	--target-workspace-slug my-workspace-ab12 \
+	--resources database
+```
+
+The skipped database step of the first run prints this exact command.
+
 - **No open connections**: Postgres refuses to copy a database while anyone is connected to it. The copier checks first and fails early with the number of open connections (notebooks, pipelines, BI tools...). Close them and re-run into the same target workspace with `--target-workspace-slug`. During the copy itself, new connections to the source are refused.
 - **The target database is never overwritten** once it holds data (any table or view besides PostGIS's own): the database step is skipped instead.
 - The target workspace keeps its own roles and credentials. The copy is built under a staging name (`<db_name>_copy`) and only swapped in once it succeeded, so a failed copy leaves the target database untouched.
 
 ### Copying between servers
 
-Not automated yet. Copy the database manually with both workspaces' database credentials, from a machine that can reach both database hosts and has a `pg_dump` at least as recent as the source server:
+Not automated yet: the copy summary prints these steps. Copy the database manually with both workspaces' database credentials, from a machine that can reach both database hosts and has a `pg_dump` at least as recent as the source server:
 
 1. In each workspace, open **Database** and copy the connection URL (or read `workspace { database { credentials { url } } }` over GraphQL).
 2. Make sure the target database is empty, then run:
