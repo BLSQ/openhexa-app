@@ -203,11 +203,13 @@ class OAuthAuthorizeView(AuthorizationView):
         scope = ""
         if request is not None:
             scope = request.POST.get("scope") or request.GET.get("scope") or ""
-        tools = mcp_tools() if MCP_SCOPE in scope.split() else []
-        html = render_to_string(
-            "oauth2_provider/authorized.html",
-            {"redirect_uri": redirect_to, "tools": tools},
-        )
+        context = {"redirect_uri": redirect_to}
+        if MCP_SCOPE in scope.split() and application is not None:
+            context["client_name"] = application.name
+            context[
+                "settings_url"
+            ] = f"{settings.NEW_FRONTEND_DOMAIN}/user/account#mcp-connections"
+        html = render_to_string("oauth2_provider/authorized.html", context)
         return HttpResponse(html)
 
 

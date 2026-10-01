@@ -6,6 +6,7 @@ from django.test import RequestFactory, TestCase
 from django.utils import timezone
 from oauth2_provider.models import AccessToken, Application, RefreshToken
 
+from hexa.oauth.scopes import GIT_SCOPE, MCP_SCOPE
 from hexa.oauth.views import OAuthAuthorizeView, forgejo_authorize
 from hexa.user_management.models import User
 
@@ -150,6 +151,25 @@ class OAuthAuthorizeRedirectTest(TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertIn(b"redirectUri", response.content)
             self.assertIn(b"Authorization successful", response.content)
+
+    def test_the_mcp_success_page_points_to_the_connection_settings(self):
+        view = OAuthAuthorizeView()
+        view.request = RequestFactory().post("/oauth/authorize/", {"scope": MCP_SCOPE})
+
+        response = view.redirect("http://127.0.0.1:54321/?code=abc", self.application)
+
+        self.assertContains(
+            response, f"{settings.NEW_FRONTEND_DOMAIN}/user/account#mcp-connections"
+        )
+        self.assertContains(response, self.application.name)
+
+    def test_the_git_success_page_has_no_connection_settings(self):
+        view = OAuthAuthorizeView()
+        view.request = RequestFactory().post("/oauth/authorize/", {"scope": GIT_SCOPE})
+
+        response = view.redirect("http://127.0.0.1:54321/?code=abc", self.application)
+
+        self.assertNotContains(response, "#mcp-connections")
 
 
 class MCPConsentRedirectTest(TestCase):
