@@ -104,6 +104,14 @@ class ServicePrincipal:
         raise NotImplementedError
 
 
+def is_non_personal_principal(principal) -> bool:
+    """A service principal with no person behind it (ex. PipelineRunUser): it acts
+    only within its workspaces and has no role of its own. WebappUser and MCPUser
+    act for a person, so they are Users too.
+    """
+    return isinstance(principal, ServicePrincipal) and not isinstance(principal, User)
+
+
 class User(AbstractUser, UserInterface):
     class Meta:
         db_table = "identity_user"

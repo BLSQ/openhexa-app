@@ -24,6 +24,7 @@ from hexa.user_management.models import (
     ServicePrincipal,
     User,
     UserInterface,
+    is_non_personal_principal,
 )
 
 logger = logging.getLogger(__name__)
@@ -51,7 +52,7 @@ def check_principal_perm(principal, workspace_id, perm: str, obj) -> None:
         and workspace_id not in principal.workspace_ids
     ):
         raise PermissionDenied
-    if isinstance(principal, User) and not principal.has_perm(perm, obj):
+    if not is_non_personal_principal(principal) and not principal.has_perm(perm, obj):
         raise PermissionDenied
 
 

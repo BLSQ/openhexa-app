@@ -38,6 +38,7 @@ from hexa.user_management.models import (
     ServicePrincipal,
     User,
     UserInterface,
+    is_non_personal_principal,
 )
 
 
@@ -174,7 +175,7 @@ class WorkspaceQuerySet(BaseQuerySet):
         # falls through to the User branch below, where its own workspaces are
         # intersected with the person's memberships: it can narrow their access,
         # never widen it. One that doesn't (PipelineRunUser) replaces it.
-        if isinstance(user, ServicePrincipal) and not isinstance(user, User):
+        if is_non_personal_principal(user):
             qs = self.filter(pk__in=user.workspace_ids)
         elif isinstance(user, User):
             qs = (
