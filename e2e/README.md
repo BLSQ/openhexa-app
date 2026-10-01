@@ -29,6 +29,15 @@ npx playwright test tests/organization-settings.spec.ts
 npx playwright test -g "Usage & Limits"
 ```
 
+From the repository root the Makefile wraps the two common cases, with `ARGS`
+passed through to Playwright:
+
+```bash
+make te2e                                    # headless
+make te2ev                                   # visible browser, slowed down
+make te2e ARGS='-g "Usage & Limits"'
+```
+
 ### Watching it run
 
 | Command | What you get |
