@@ -17,7 +17,7 @@ def list_workspaces(user, query: str = "", page: int = 1, per_page: int = 10) ->
 
 @tool
 def get_workspace(user, slug: str) -> dict:
-    """Get details of a specific workspace by its slug. Returns workspace metadata, countries, dockerImage, and permissions (update, manageMembers). Use list_workspaces first if you don't know the slug."""
+    """Get details of a specific workspace by its slug. Returns workspace metadata, countries and dockerImage. Use list_workspaces first if you don't know the slug."""
     return execute_graphql(user, "GetWorkspace", {"slug": slug})
 
 

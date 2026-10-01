@@ -40,7 +40,7 @@ def get_dataset(
     versions_page: int = 1,
     versions_per_page: int = 10,
 ) -> dict:
-    """Get full details of a dataset: metadata, permissions, all versions with their files, and the latest version's file list. Use a file 'id' from the response with preview_dataset_file to see sample data. Use the dataset 'id' with create_dataset_version to add a new version."""
+    """Get full details of a dataset: metadata, all versions with their files, and the latest version's file list. Use a file 'id' from the response with preview_dataset_file to see sample data. Use the dataset 'id' with create_dataset_version to add a new version."""
     data = execute_graphql(
         user,
         "GetDataset",

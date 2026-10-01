@@ -11,9 +11,6 @@ query ListStaticWebapps($workspaceSlug: String, $page: Int, $perPage: Int) {
       url
       type
       isPublic
-      permissions {
-        update
-      }
     }
   }
 }
@@ -45,10 +42,6 @@ query GetStaticWebapp($workspaceSlug: String!, $slug: String!, $includeBinaryCon
       encoding
       language
       lineCount
-    }
-    permissions {
-      update
-      delete
     }
   }
 }

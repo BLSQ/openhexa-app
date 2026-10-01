@@ -32,7 +32,7 @@ def get_saved_query(user, saved_query_slug: str) -> dict:
     """Get a saved SQL query of the Data Studio by its slug.
 
     Slugs are unique across workspaces, so no workspace slug is needed. Returns the query's
-    metadata, SQL content, visibility, workspace and permissions. Use the returned 'id' when
+    metadata, SQL content, visibility and workspace. Use the returned 'id' when
     calling update_saved_query.
     """
     data = execute_graphql(user, "GetSavedQuery", {"slug": saved_query_slug})

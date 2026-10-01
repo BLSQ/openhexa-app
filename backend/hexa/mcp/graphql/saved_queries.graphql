@@ -19,10 +19,6 @@ query ListSavedQueries($workspaceSlug: String!, $query: String, $page: Int, $per
       totalItems
       items {
         ...SavedQuerySummary
-        permissions {
-          update
-          updateVisibility
-        }
       }
     }
   }
@@ -56,11 +52,6 @@ query GetSavedQuery($slug: String!) {
     content
     workspace {
       slug
-    }
-    permissions {
-      update
-      delete
-      updateVisibility
     }
   }
 }

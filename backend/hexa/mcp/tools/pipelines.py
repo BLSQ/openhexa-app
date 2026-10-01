@@ -26,7 +26,7 @@ def get_pipeline(
     runs_page: int = 1,
     runs_per_page: int = 5,
 ) -> dict:
-    """Get full details of a pipeline: metadata, schedule, permissions, current version source code with all files, parameters, and recent runs. Use the returned 'id' field when calling run_pipeline or update_pipeline. Use a run 'id' from the runs list with get_pipeline_run to inspect outputs and logs."""
+    """Get full details of a pipeline: metadata, schedule, current version source code with all files, parameters, and recent runs. Use the returned 'id' field when calling run_pipeline or update_pipeline. Use a run 'id' from the runs list with get_pipeline_run to inspect outputs and logs."""
     data = execute_graphql(
         user,
         "GetPipeline",
