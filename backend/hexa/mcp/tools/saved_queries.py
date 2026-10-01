@@ -44,7 +44,7 @@ def get_saved_query(user, saved_query_slug: str) -> dict:
     return saved_query
 
 
-@tool
+@tool(write=True)
 def create_saved_query(
     user,
     workspace_slug: str,
@@ -76,7 +76,7 @@ def create_saved_query(
     return data["createSavedQuery"]
 
 
-@tool
+@tool(write=True)
 def update_saved_query(
     user,
     saved_query_id: str,

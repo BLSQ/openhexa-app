@@ -518,6 +518,7 @@
   "Let the assistant inspect pipelines and their runs, and create, edit or run them.": "Let the assistant inspect pipelines and their runs, and create, edit or run them.",
   "Let the assistant list datasets, preview their contents, and publish new versions.": "Let the assistant list datasets, preview their contents, and publish new versions.",
   "Let the assistant list the external connections a workspace holds.": "Let the assistant list the external connections a workspace holds.",
+  "Let the assistant read the saved SQL queries of the Data Studio, and save or edit them.": "Let the assistant read the saved SQL queries of the Data Studio, and save or edit them.",
   "Let the assistant read the structure of your workspace databases.": "Let the assistant read the structure of your workspace databases.",
   "Let the assistant read web apps and edit the files they are built from.": "Let the assistant read web apps and edit the files they are built from.",
   "Let the assistant see your workspaces and change their settings.": "Let the assistant see your workspaces and change their settings.",

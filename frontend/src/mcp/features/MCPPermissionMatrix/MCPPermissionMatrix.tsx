@@ -43,6 +43,7 @@ const RESOURCE_ORDER: McpResource[] = [
   McpResource.Templates,
   McpResource.Webapps,
   McpResource.Databases,
+  McpResource.SavedQueries,
   McpResource.Connections,
 ];
 
@@ -162,6 +163,7 @@ const MCPPermissionMatrix = ({
     [McpResource.Templates]: t("Pipeline templates"),
     [McpResource.Webapps]: t("Web apps"),
     [McpResource.Databases]: t("Databases"),
+    [McpResource.SavedQueries]: t("Saved queries"),
     [McpResource.Connections]: t("Connections"),
   };
 
@@ -186,6 +188,9 @@ const MCPPermissionMatrix = ({
     ),
     [McpResource.Databases]: t(
       "Let the assistant read the structure of your workspace databases.",
+    ),
+    [McpResource.SavedQueries]: t(
+      "Let the assistant read the saved SQL queries of the Data Studio, and save or edit them.",
     ),
     [McpResource.Connections]: t(
       "Let the assistant list the external connections a workspace holds.",

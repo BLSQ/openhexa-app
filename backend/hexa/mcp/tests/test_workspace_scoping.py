@@ -5,12 +5,19 @@ from unittest.mock import MagicMock, patch
 from django.utils import timezone
 from oauth2_provider.models import Application
 
+from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
 from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
 from hexa.mcp.models import MCPConnection, MCPUser
 from hexa.mcp.tests.testutils import all_tool_names
 from hexa.mcp.tools.datasets import create_dataset, preview_dataset_file
 from hexa.mcp.tools.files import list_files, write_file
 from hexa.mcp.tools.pipelines import get_pipeline_run, run_pipeline, update_pipeline
+from hexa.mcp.tools.saved_queries import (
+    create_saved_query,
+    get_saved_query,
+    list_saved_queries,
+    update_saved_query,
+)
 from hexa.mcp.tools.templates import (
     create_pipeline_from_template,
     get_pipeline_template,
@@ -258,6 +265,47 @@ class OpaqueIdScopingTest(MCPTestCase):
 
         self.assertEqual("Other Template", result["name"])
 
+    def test_a_saved_query_in_an_ungranted_workspace_is_invisible(self):
+        other = SavedQuery.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            self.UNGRANTED_WORKSPACE,
+            name="Other query",
+            content="SELECT 1",
+            visibility=SavedQueryVisibility.WORKSPACE,
+        )
+
+        self.assertEqual(
+            {"error": "Saved query not found"},
+            get_saved_query(user=self.mcp_user, saved_query_slug=other.slug),
+        )
+        self.assertEqual(
+            0,
+            list_saved_queries(
+                user=self.mcp_user, workspace_slug=self.UNGRANTED_WORKSPACE.slug
+            ).get("savedQueries", {"totalItems": 0})["totalItems"],
+        )
+
+        result = update_saved_query(
+            user=self.mcp_user, saved_query_id=str(other.id), name="Renamed"
+        )
+
+        self.assertFalse(result["success"])
+        other.refresh_from_db()
+        self.assertEqual("Other query", other.name)
+
+    def test_a_saved_query_cannot_be_created_in_an_ungranted_workspace(self):
+        result = create_saved_query(
+            user=self.mcp_user,
+            workspace_slug=self.UNGRANTED_WORKSPACE.slug,
+            name="Sneaky",
+            content="SELECT 1",
+        )
+
+        self.assertFalse(result["success"])
+        self.assertFalse(
+            SavedQuery.objects.filter(workspace=self.UNGRANTED_WORKSPACE).exists()
+        )
+
 
 class GrantIsACeilingTest(MCPTestCase):
     @classmethod
@@ -325,3 +373,19 @@ class GrantIsACeilingTest(MCPTestCase):
         result = run_pipeline(user=self.viewer, pipeline_id=str(self.PIPELINE.id))
 
         self.assertTrue(result["success"], result.get("errors"))
+
+    def test_the_viewer_keeps_seeing_their_private_queries(self):
+        created = create_saved_query(
+            user=self.viewer,
+            workspace_slug=self.WORKSPACE.slug,
+            name="Mine",
+            content="SELECT 1",
+        )
+        self.assertTrue(created["success"], created["errors"])
+        self.assertEqual("PRIVATE", created["savedQuery"]["visibility"])
+
+        result = get_saved_query(
+            user=self.viewer, saved_query_slug=created["savedQuery"]["slug"]
+        )
+
+        self.assertEqual("Mine", result["name"])

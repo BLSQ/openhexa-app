@@ -532,6 +532,7 @@
   "Let the assistant inspect pipelines and their runs, and create, edit or run them.": "Permet à l'assistant d'inspecter les pipelines et leurs exécutions, et de les créer, modifier ou exécuter.",
   "Let the assistant list datasets, preview their contents, and publish new versions.": "Permet à l'assistant de lister les jeux de données, d'en prévisualiser le contenu et de publier de nouvelles versions.",
   "Let the assistant list the external connections a workspace holds.": "Permet à l'assistant de lister les connexions externes d'un espace de travail.",
+  "Let the assistant read the saved SQL queries of the Data Studio, and save or edit them.": "Permet à l'assistant de lire les requêtes SQL sauvegardées du Data Studio, et d'en sauvegarder ou modifier.",
   "Let the assistant read the structure of your workspace databases.": "Permet à l'assistant de lire la structure des bases de données de vos espaces de travail.",
   "Let the assistant read web apps and edit the files they are built from.": "Permet à l'assistant de lire les applications web et de modifier les fichiers qui les composent.",
   "Let the assistant see your workspaces and change their settings.": "Permet à l'assistant de voir vos espaces de travail et de modifier leurs paramètres.",

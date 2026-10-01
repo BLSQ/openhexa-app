@@ -15,6 +15,7 @@ class MCPResource(models.TextChoices):
     TEMPLATES = "TEMPLATES", "Pipeline templates"
     WEBAPPS = "WEBAPPS", "Web apps"
     DATABASES = "DATABASES", "Databases"
+    SAVED_QUERIES = "SAVED_QUERIES", "Saved queries"
     CONNECTIONS = "CONNECTIONS", "Connections"
 
 

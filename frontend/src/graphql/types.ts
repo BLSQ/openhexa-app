@@ -3018,6 +3018,7 @@ export enum McpResource {
   Datasets = 'DATASETS',
   Files = 'FILES',
   Pipelines = 'PIPELINES',
+  SavedQueries = 'SAVED_QUERIES',
   Templates = 'TEMPLATES',
   Webapps = 'WEBAPPS',
   Workspaces = 'WORKSPACES'

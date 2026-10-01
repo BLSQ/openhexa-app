@@ -39,6 +39,10 @@ ALL_TOOLS = [
     "list_workspaces",
     "get_workspace",
     "update_workspace",
+    "list_saved_queries",
+    "get_saved_query",
+    "create_saved_query",
+    "update_saved_query",
 ]
 
 
