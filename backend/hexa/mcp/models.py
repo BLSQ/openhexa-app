@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from django.conf import settings
 from django.db import models, transaction
+from django.db.models import Q
 from django.utils import timezone
 from oauth2_provider.models import AccessToken, Grant, RefreshToken
 
@@ -17,6 +20,9 @@ class MCPResource(models.TextChoices):
     DATABASES = "DATABASES", "Databases"
     SAVED_QUERIES = "SAVED_QUERIES", "Saved queries"
     CONNECTIONS = "CONNECTIONS", "Connections"
+
+
+SUPERSEDE_IDLE_REGISTRATIONS_AFTER = timedelta(days=30)
 
 
 class MCPConnection(Base):
@@ -51,9 +57,17 @@ class MCPConnection(Base):
         return name in self.tools
 
     def supersede_earlier_registrations(self) -> int:
-        superseded = MCPConnection.objects.filter(
-            user=self.user, application__name=self.application.name
-        ).exclude(pk=self.pk)
+        idle_since = timezone.now() - SUPERSEDE_IDLE_REGISTRATIONS_AFTER
+        superseded = (
+            MCPConnection.objects.filter(
+                user=self.user, application__name=self.application.name
+            )
+            .exclude(pk=self.pk)
+            .filter(
+                Q(last_used_at__lt=idle_since)
+                | Q(last_used_at__isnull=True, created_at__lt=idle_since)
+            )
+        )
         applications = [connection.application_id for connection in superseded]
         if not applications:
             return 0
