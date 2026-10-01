@@ -39,7 +39,14 @@ export default defineConfig({
     },
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"], storageState: STORAGE_STATE },
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: STORAGE_STATE,
+        // Taller than the Desktop Chrome default, which this must come after to
+        // override: several create dialogs put their actions below the fold at
+        // 720px, where Playwright will not click them.
+        viewport: { width: 1440, height: 1080 },
+      },
       dependencies: ["setup"],
     },
   ],

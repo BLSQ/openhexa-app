@@ -40,6 +40,24 @@ export const organization = {
   shortName: process.env.E2E_ORGANIZATION_SHORT_NAME ?? "PIT",
 };
 
+/**
+ * A dedicated, otherwise-empty workspace. The feature tests create and remove
+ * their own resources inside it, so it is expected to be left empty.
+ */
+export const workspace = {
+  slug: process.env.E2E_WORKSPACE_SLUG ?? "playwright-ws",
+};
+
+export const workspacePaths = {
+  home: `/workspaces/${workspace.slug}/`,
+  files: `/workspaces/${workspace.slug}/files/`,
+  datasets: `/workspaces/${workspace.slug}/datasets/`,
+  connections: `/workspaces/${workspace.slug}/connections/`,
+  pipelines: `/workspaces/${workspace.slug}/pipelines/`,
+  webapps: `/workspaces/${workspace.slug}/webapps/`,
+  settings: `/workspaces/${workspace.slug}/settings/`,
+};
+
 export const organizationPaths = {
   workspaces: `/organizations/${organization.id}/`,
   members: `/organizations/${organization.id}/members/`,
