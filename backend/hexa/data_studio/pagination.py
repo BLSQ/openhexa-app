@@ -72,9 +72,12 @@ def resolve_per_page(per_page: int | None, max_rows: int | None) -> int:
     """
     if per_page is not None and max_rows is not None:
         raise InvalidPagination("maxRows and perPage cannot be combined; use perPage.")
-    value = DEFAULT_PER_PAGE if per_page is None and max_rows is None else per_page
-    if value is None:
+    if per_page is not None:
+        value = per_page
+    elif max_rows is not None:
         value = max_rows
+    else:
+        value = DEFAULT_PER_PAGE
     if value < 1:
         raise InvalidPagination("perPage must be at least 1.")
     return min(value, settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS)
