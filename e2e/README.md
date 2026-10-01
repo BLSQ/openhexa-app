@@ -88,9 +88,11 @@ E2E_BASE_URL=https://app.openhexa.org E2E_ORGANIZATION_ID=... npm test
 
 | Path | Contents |
 | --- | --- |
-| `config/environment.ts` | Environment variables, defaults, and the organization URLs |
+| `config/environment.ts` | Environment variables, defaults, and the organization/workspace URLs |
 | `fixtures/auth.setup.ts` | Signs in once per run and saves the session to `.auth/user.json` |
+| `fixtures/cleanup.ts` | Registers undo steps that run in reverse at teardown, pass or fail |
 | `fixtures/disposableWorkspace.ts` | A uniquely named workspace, archived again in teardown |
+| `helpers/` | Native-confirm handling, unique names, grid-load waiting |
 | `pages/` | Page objects — the only place selectors live |
 | `tests/` | Specs |
 
@@ -125,9 +127,30 @@ Covered so far:
 | `organization-navigation.spec.ts` | The sidebar and every organization route |
 | `organization-settings.spec.ts` | The General, AI Assistant and Usage & Limits cards |
 | `workspace-lifecycle.spec.ts` | Creating a workspace and archiving it again |
+| `workspace-files.spec.ts` | Creating a folder, uploading a file, deleting both |
+| `workspace-datasets.spec.ts` | Creating a dataset and a version, removing both |
+| `workspace-connections.spec.ts` | Creating and deleting one connection of each type |
+| `workspace-pipelines.spec.ts` | Creating a pipeline from a template and deleting it |
+| `workspace-webapps.spec.ts` | Creating an iFrame and a Static app, deleting both |
 
-Pipelines, datasets and the workspace interior are not covered yet; follow the
-same page-object shape when adding them.
+The workspace specs run against a dedicated, otherwise-empty workspace
+(`E2E_WORKSPACE_SLUG`, default `playwright-ws`) and are expected to leave it
+empty. The database, Data Studio and JupyterHub sections are not covered yet;
+follow the same page-object shape when adding them.
+
+### Things worth knowing before adding a test
+
+- **Some destructive actions use `window.confirm`.** Playwright dismisses native
+  dialogs unless something handles them, which silently cancels the action. Arm
+  `acceptNextConfirm(page)` from `helpers/confirm.ts` before the click.
+- **Not every control has an accessible name.** A few fields -- the web app
+  create form, GCS's service account key -- are rendered without a label the
+  browser associates with them, so they are reached through their `<dt>` term or
+  a `name` attribute. Prefer a role wherever the app provides one.
+- **Upload dialogs hold two file inputs**, one of them a directory picker.
+  Target `input[type="file"]:not([webkitdirectory])`.
+- **Pipelines created from a template take the template's name**, so that spec
+  cannot run twice at once against the same workspace.
 
 ## CI
 
