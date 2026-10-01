@@ -42,6 +42,19 @@ def create_dataset_slug(name: str, workspace):
         suffix = "-" + secrets.token_hex(3)
 
 
+def check_principal_perm(principal, workspace_id, perm: str, obj) -> None:
+    """A service principal is confined to its workspaces. One acting for a person
+    (MCPUser, WebappUser) is also held to that person's role; a pipeline run has none.
+    """
+    if (
+        isinstance(principal, ServicePrincipal)
+        and workspace_id not in principal.workspace_ids
+    ):
+        raise PermissionDenied
+    if isinstance(principal, User) and not principal.has_perm(perm, obj):
+        raise PermissionDenied
+
+
 class DatasetQuerySet(BaseQuerySet):
     @staticmethod
     def optimize_query(qs: models.QuerySet) -> models.QuerySet:
@@ -89,11 +102,9 @@ class DatasetManager(models.Manager):
         description: str,
         files: list[dict] | None = None,
     ):
-        if isinstance(principal, ServicePrincipal) and not isinstance(principal, User):
-            if workspace.pk not in principal.workspace_ids:
-                raise PermissionDenied
-        elif not principal.has_perm("datasets.create_dataset", workspace):
-            raise PermissionDenied
+        check_principal_perm(
+            principal, workspace.pk, "datasets.create_dataset", workspace
+        )
 
         created_by = (
             principal.real_user
@@ -222,11 +233,9 @@ class DatasetVersionManager(models.Manager):
         changelog: str,
         files: list[dict] | None = None,
     ):
-        if isinstance(principal, ServicePrincipal) and not isinstance(principal, User):
-            if dataset.workspace_id not in principal.workspace_ids:
-                raise PermissionDenied
-        elif not principal.has_perm("datasets.create_dataset_version", dataset):
-            raise PermissionDenied
+        check_principal_perm(
+            principal, dataset.workspace_id, "datasets.create_dataset_version", dataset
+        )
         created_by = (
             principal.real_user
             if isinstance(principal, ServicePrincipal)
@@ -357,13 +366,12 @@ class DatasetVersionFileManager(models.Manager):
         uri: str,
         content_type: str,
     ):
-        if isinstance(principal, ServicePrincipal) and not isinstance(principal, User):
-            if dataset_version.dataset.workspace_id not in principal.workspace_ids:
-                raise PermissionDenied
-        elif not principal.has_perm(
-            "datasets.create_dataset_version_file", dataset_version
-        ):
-            raise PermissionDenied
+        check_principal_perm(
+            principal,
+            dataset_version.dataset.workspace_id,
+            "datasets.create_dataset_version_file",
+            dataset_version,
+        )
 
         created_by = (
             principal.real_user
