@@ -306,21 +306,36 @@ class AuthorizeMCPConnectionTest(GraphQLTestCase):
         )
         self.assertEqual(["read_file"], payload["mcpConnection"]["tools"])
 
-    def test_authorizing_a_re_registered_client_cuts_off_the_old_one(self):
-        old_application = Application.objects.create(
+    def earlier_registration(self, *, idle_for):
+        application = Application.objects.create(
             name=self.APPLICATION.name,
-            client_id="consent-test-client-old",
+            client_id=f"consent-test-client-{idle_for.days}",
             client_type=Application.CLIENT_PUBLIC,
             authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
         )
-        old = MCPConnection.objects.create(
-            user=self.USER, application=old_application, tools=["list_files"]
+        connection = MCPConnection.objects.create(
+            user=self.USER, application=application, tools=["list_files"]
         )
+        MCPConnection.objects.filter(pk=connection.pk).update(
+            last_used_at=timezone.now() - idle_for
+        )
+        return connection
+
+    def test_authorizing_a_re_registered_client_cuts_off_an_abandoned_one(self):
+        old = self.earlier_registration(idle_for=timedelta(days=31))
         self.client.force_login(self.USER)
 
         self.authorize(tools=["list_files"])
 
         self.assertFalse(MCPConnection.objects.filter(pk=old.pk).exists())
+
+    def test_the_same_client_on_another_device_in_use_is_kept(self):
+        other_device = self.earlier_registration(idle_for=timedelta(days=29))
+        self.client.force_login(self.USER)
+
+        self.authorize(tools=["list_files"])
+
+        self.assertTrue(MCPConnection.objects.filter(pk=other_device.pk).exists())
 
     def test_an_unknown_client_is_refused(self):
         self.client.force_login(self.USER)
