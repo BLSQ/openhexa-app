@@ -2,6 +2,7 @@ import json
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
+from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from oauth2_provider.models import Application
 
@@ -306,6 +307,57 @@ class OpaqueIdScopingTest(MCPTestCase):
             SavedQuery.objects.filter(workspace=self.UNGRANTED_WORKSPACE).exists()
         )
 
+    def test_a_dataset_shared_into_a_granted_workspace_cannot_be_written(self):
+        self.OTHER_DATASET.link(self.USER_ADMIN, self.WORKSPACE)
+
+        with self.assertRaises(PermissionDenied):
+            DatasetVersion.objects.create_if_has_perm(
+                self.mcp_user, dataset=self.OTHER_DATASET, name="v2", changelog=""
+            )
+        with self.assertRaises(PermissionDenied):
+            DatasetVersionFile.objects.create_if_has_perm(
+                self.mcp_user,
+                dataset_version=self.OTHER_DATASET_VERSION,
+                uri="sneaky.csv",
+                content_type="text/csv",
+            )
+
+    def test_an_organization_shared_dataset_cannot_be_written(self):
+        self.UNGRANTED_WORKSPACE.organization = self.WORKSPACE.organization
+        self.UNGRANTED_WORKSPACE.save()
+        self.OTHER_DATASET.shared_with_organization = True
+        self.OTHER_DATASET.save()
+        self.assertIn(
+            self.OTHER_DATASET, Dataset.objects.filter_for_user(self.mcp_user)
+        )
+
+        with self.assertRaises(PermissionDenied):
+            DatasetVersion.objects.create_if_has_perm(
+                self.mcp_user, dataset=self.OTHER_DATASET, name="v2", changelog=""
+            )
+
+    def test_a_dataset_in_the_granted_workspace_can_be_written(self):
+        version = DatasetVersion.objects.create_if_has_perm(
+            self.mcp_user, dataset=self.DATASET, name="v2", changelog=""
+        )
+        DatasetVersionFile.objects.create_if_has_perm(
+            self.mcp_user,
+            dataset_version=version,
+            uri="granted-file.csv",
+            content_type="text/csv",
+        )
+
+        self.assertEqual(1, version.files.count())
+
+    def test_a_dataset_cannot_be_created_in_an_ungranted_workspace(self):
+        with self.assertRaises(PermissionDenied):
+            Dataset.objects.create_if_has_perm(
+                self.mcp_user,
+                workspace=self.UNGRANTED_WORKSPACE,
+                name="Sneaky",
+                description="",
+            )
+
 
 class GrantIsACeilingTest(MCPTestCase):
     @classmethod
@@ -368,6 +420,19 @@ class GrantIsACeilingTest(MCPTestCase):
         self.assertEqual(
             before, Dataset.objects.filter(workspace=self.WORKSPACE).count()
         )
+
+    def test_granting_dataset_tools_does_not_let_a_viewer_add_versions_or_files(self):
+        with self.assertRaises(PermissionDenied):
+            DatasetVersion.objects.create_if_has_perm(
+                self.viewer, dataset=self.DATASET, name="v2", changelog=""
+            )
+        with self.assertRaises(PermissionDenied):
+            DatasetVersionFile.objects.create_if_has_perm(
+                self.viewer,
+                dataset_version=self.DATASET_VERSION,
+                uri="sneaky.csv",
+                content_type="text/csv",
+            )
 
     def test_the_grant_does_not_change_what_the_role_already_allows(self):
         result = run_pipeline(user=self.viewer, pipeline_id=str(self.PIPELINE.id))
