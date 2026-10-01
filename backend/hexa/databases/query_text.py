@@ -224,13 +224,14 @@ _SUBQUERY = sql.SQL("SELECT * FROM (\n{inner}\n) AS q")
 _COUNT = sql.SQL("SELECT COUNT(*) FROM (\n{inner}\n) AS q")
 
 
-def _keyset_predicate(order_by: list[OrderBy]) -> tuple[Composable, int]:
+def _keyset_predicate(order_by: list[OrderBy], keyset: list) -> tuple[Composable, list]:
     """``(a > %s) OR (a = %s AND b < %s) ...`` for a mixed-direction sort key.
 
-    Returns the predicate and how many placeholders it holds, in the order the
-    caller must supply their values: the sort-key values, repeated per branch.
+    Returns the predicate and the values for its placeholders: the sort-key
+    values, repeated per branch.
     """
     branches = []
+    params = []
     for index, key in enumerate(order_by):
         equalities = [
             sql.SQL("{} = {}").format(previous._target(), sql.Placeholder())
@@ -241,7 +242,8 @@ def _keyset_predicate(order_by: list[OrderBy]) -> tuple[Composable, int]:
                 sql.SQL(" AND ").join([*equalities, key._comparison()])
             )
         )
-    return sql.SQL(" OR ").join(branches), sum(range(1, len(order_by) + 1))
+        params.extend(keyset[: index + 1])
+    return sql.SQL(" OR ").join(branches), params
 
 
 def _wrap(
@@ -323,10 +325,7 @@ def paginate_cursor(
         raise ValueError("A keyset holds one value per order_by entry.")
     if before:
         order_by = [key.reversed() for key in order_by]
-    predicate, _ = _keyset_predicate(order_by)
-    predicate_params = []
-    for index in range(len(order_by)):
-        predicate_params.extend(keyset[: index + 1])
+    predicate, predicate_params = _keyset_predicate(order_by, keyset)
     parts, params = _wrap(prepared, order_by, per_page, predicate, predicate_params)
     return _wrapped(prepared, parts, params)
 

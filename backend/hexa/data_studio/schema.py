@@ -95,9 +95,17 @@ def resolve_database_execute_sql(
             "error_message": str(e),
         }
     except QueryCanceled as e:
-        return {"success": False, "errors": ["QUERY_TIMEOUT"], "error_message": str(e)}
+        return {
+            "success": False,
+            "errors": ["QUERY_TIMEOUT"],
+            "error_message": str(e).strip(),
+        }
     except Psycopg2Error as e:
-        return {"success": False, "errors": ["QUERY_ERROR"], "error_message": str(e)}
+        return {
+            "success": False,
+            "errors": ["QUERY_ERROR"],
+            "error_message": str(e).strip(),
+        }
 
 
 @saved_query_object.field("permissions")
@@ -267,10 +275,14 @@ def resolve_execute_saved_query(_, info, **kwargs):
     except PaginationError as e:
         return {"success": False, "errors": [e.code], "error_message": str(e)}
     except QueryCanceled as e:
-        return {"success": False, "errors": ["QUERY_TIMEOUT"], "error_message": str(e)}
+        return {
+            "success": False,
+            "errors": ["QUERY_TIMEOUT"],
+            "error_message": str(e).strip(),
+        }
     except Psycopg2Error as e:
         code = "INVALID_ORDER_BY" if _is_order_by_error(e, order_by) else "QUERY_ERROR"
-        return {"success": False, "errors": [code], "error_message": str(e)}
+        return {"success": False, "errors": [code], "error_message": str(e).strip()}
 
 
 @data_studio_mutations.field("createSavedQuery")
