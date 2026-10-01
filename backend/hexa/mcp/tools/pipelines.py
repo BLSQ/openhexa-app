@@ -342,3 +342,23 @@ create_pipeline.__doc__ = (
 create_pipeline_version.__doc__ = (
     create_pipeline_version.__doc__ or ""
 ) + _PIPELINE_AUTHORING_CHEAT_SHEET
+
+
+@tool(write=True)
+def create_pipeline_from_template(
+    user, workspace_slug: str, template_version_id: str
+) -> dict:
+    """Create a new pipeline in a workspace from a template version. Use get_pipeline_template first to find the template_version_id (the currentVersion.id). The new pipeline will have the template's code, parameters, and configuration pre-configured."""
+    data = execute_graphql(
+        user,
+        "CreatePipelineFromTemplate",
+        {
+            "input": {
+                "workspaceSlug": workspace_slug,
+                "pipelineTemplateVersionId": template_version_id,
+            }
+        },
+    )
+    if "errors" in data:
+        return data
+    return data["createPipelineFromTemplateVersion"]
