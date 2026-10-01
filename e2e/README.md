@@ -6,8 +6,10 @@ demo before promoting a release to production and they will catch navigation,
 rendering and permission regressions that unit tests cannot.
 
 These tests do not start a server. They sign in as a real account and drive a
-real environment, so they are deliberately **non-destructive**: they read pages,
-open forms and cancel out of them, but never submit a mutation.
+real environment, so they are kept as close to read-only as the coverage allows:
+they read pages, and open forms and cancel out of them. Where a test has to write
+-- creating a workspace, say -- it names the resource uniquely and removes it
+again, including when the test fails partway through.
 
 ## Setup
 
@@ -88,6 +90,7 @@ E2E_BASE_URL=https://app.openhexa.org E2E_ORGANIZATION_ID=... npm test
 | --- | --- |
 | `config/environment.ts` | Environment variables, defaults, and the organization URLs |
 | `fixtures/auth.setup.ts` | Signs in once per run and saves the session to `.auth/user.json` |
+| `fixtures/disposableWorkspace.ts` | A uniquely named workspace, archived again in teardown |
 | `pages/` | Page objects — the only place selectors live |
 | `tests/` | Specs |
 
@@ -105,16 +108,26 @@ unrelated failures.
   does not. `data-testid` is used where the app already provides one.
 - **Assert on what a user would notice**: the URL, the page title, the headings,
   and the values in the cards.
-- **Never persist a change.** The environment is shared. Opening a form and
-  cancelling is fine; clicking Save is not.
+- **Leave nothing behind.** The environment is shared. Prefer opening a form and
+  cancelling to clicking Save. A test that must create something takes a
+  fixture that gives it a uniquely named resource and removes it in teardown, so
+  a failed run cleans up too -- see `fixtures/disposableWorkspace.ts`.
+- **Decide from a resource, not from a list.** The data grids render their empty
+  state while loading, so counting rows to check whether something exists races
+  the fetch. Ask for the thing itself: an archived workspace's URL returns 404.
 
 ## Adding coverage
 
-The organization section is covered by `organization-navigation.spec.ts` (the
-sidebar and every section's route) and `organization-settings.spec.ts` (the
-General, AI Assistant and Usage & Limits cards). Workspaces, pipelines and
-datasets are not covered yet; follow the same page-object shape when adding
-them.
+Covered so far:
+
+| Spec | What it exercises |
+| --- | --- |
+| `organization-navigation.spec.ts` | The sidebar and every organization route |
+| `organization-settings.spec.ts` | The General, AI Assistant and Usage & Limits cards |
+| `workspace-lifecycle.spec.ts` | Creating a workspace and archiving it again |
+
+Pipelines, datasets and the workspace interior are not covered yet; follow the
+same page-object shape when adding them.
 
 ## CI
 
