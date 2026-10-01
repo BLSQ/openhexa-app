@@ -126,6 +126,84 @@ describe("WebappApiAccess", () => {
     });
   });
 
+  it("does not offer write scopes to a web app that does not have them", () => {
+    render(
+      <TestApp mocks={[]}>
+        <WebappApiAccess webapp={webapp} />
+      </TestApp>,
+    );
+
+    expect(
+      screen.queryByRole("switch", { name: "Write files" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("switch", { name: "Write datasets" }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+
+    expect(
+      screen.queryByRole("switch", { name: "Write files" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("switch", { name: "Write datasets" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("switch", { name: "Read files" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("switch", { name: "Read datasets" }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps write scopes editable for a web app that already has them", async () => {
+    const mocks: MockedResponse[] = [
+      {
+        request: {
+          query: UpdateWebappDocument,
+          variables: {
+            input: {
+              id: "1",
+              allowedOperations: [WebappOperationScope.DatasetsWrite],
+            },
+          },
+        },
+        result: {
+          data: { updateWebapp: { success: true, errors: [], webapp: null } },
+        },
+      },
+    ];
+
+    render(
+      <TestApp mocks={mocks}>
+        <WebappApiAccess
+          webapp={{
+            ...webapp,
+            allowedOperations: [
+              WebappOperationScope.FilesWrite,
+              WebappOperationScope.DatasetsWrite,
+            ],
+          }}
+        />
+      </TestApp>,
+    );
+
+    expect(screen.getByRole("switch", { name: "Write files" })).toBeChecked();
+    expect(
+      screen.getByRole("switch", { name: "Write datasets" }),
+    ).toBeChecked();
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("switch", { name: "Write files" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith(
+        "API access updated successfully",
+      );
+    });
+  });
+
   it("does not allow editing without update permission", () => {
     render(
       <TestApp mocks={[]}>

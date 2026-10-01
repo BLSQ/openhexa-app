@@ -3,6 +3,7 @@ import secrets
 import time
 import typing
 import uuid
+from dataclasses import asdict
 
 from croniter import croniter
 from django.apps import apps
@@ -35,6 +36,7 @@ from hexa.core.models.soft_delete import (
     SoftDeleteQuerySet,
 )
 from hexa.pipelines.constants import UNIQUE_PIPELINE_VERSION_NAME
+from hexa.pipelines.dag import extract_dag_from_zipfile
 from hexa.user_management.models import User, UserInterface
 from hexa.workspaces.models import ConnectionType, Workspace
 
@@ -201,6 +203,7 @@ class PipelineVersion(models.Model):
     zipfile = models.BinaryField(null=True)
     parameters = models.JSONField(blank=True, default=dict)
     config = models.JSONField(blank=True, default=dict)
+    dag = models.JSONField(null=True, blank=True, editable=False)
 
     timeout = models.IntegerField(
         null=True,
@@ -232,6 +235,12 @@ class PipelineVersion(models.Model):
         if not self.version_number:  # Increment for new records only
             self._increment_version_number()
         super().save(*args, **kwargs)
+
+    def get_dag(self) -> dict:
+        if self.dag is None:
+            self.dag = asdict(extract_dag_from_zipfile(self.zipfile))
+            PipelineVersion.objects.filter(pk=self.pk).update(dag=self.dag)
+        return self.dag
 
     def update_if_has_perm(self, principal: User, **kwargs):
         if not principal.has_perm("pipelines.update_pipeline_version", self):

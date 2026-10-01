@@ -476,21 +476,25 @@ registry (`hexa.assistant.agents.all_agent_tool_names`) — a unit test enforces
 """
 enum AssistantToolName {
   create_pipeline
+  create_saved_query
   get_dataset
   get_db_schema
   get_db_table_schema
   get_help_or_doc
   get_pipeline
+  get_saved_query
   get_static_webapp_file
   get_workspace
   list_connections
   list_datasets
   list_files
   list_pipelines
+  list_saved_queries
   preview_dataset_file
   propose_pipeline_version
   propose_webapp_version
   read_file
+  update_saved_query
 }
 
 type AssistantToolSegment {
@@ -1197,6 +1201,11 @@ input CreatePipelineVersionInput {
 """Errors that can occur when creating a saved query."""
 enum CreateSavedQueryError {
   PERMISSION_DENIED
+
+  """
+  The query's history could not be recorded, so nothing was saved. Retrying is safe.
+  """
+  VERSIONING_UNAVAILABLE
   WORKSPACE_NOT_FOUND
 }
 
@@ -3733,6 +3742,32 @@ type Pipeline {
   workspace: Workspace!
 }
 
+"""
+The task graph of a pipeline version, extracted statically from its code.
+
+OpenHEXA does not persist the graph the SDK builds at runtime, so this is derived by parsing
+the version's `pipeline.py`. It is a lower bound on the real graph: it never invents a
+dependency, but it cannot see through loops, conditionals, or undecorated helper functions.
+Notebook versions, and code that cannot be parsed, yield an empty graph.
+"""
+type PipelineDag {
+  edges: [PipelineDagEdge!]!
+  parameters: [PipelineParameter!]!
+  tasks: [PipelineDagTask!]!
+}
+
+"""A dependency in a pipeline version's task graph."""
+type PipelineDagEdge {
+  source: String!
+  target: String!
+}
+
+"""A single task in a pipeline version's task graph."""
+type PipelineDagTask {
+  id: String!
+  name: String!
+}
+
 enum PipelineError {
   CANNOT_UPDATE_NOTEBOOK_PIPELINE
   DUPLICATE_PIPELINE_VERSION_NAME
@@ -4058,6 +4093,7 @@ enum PipelineType {
 type PipelineVersion {
   config: JSON
   createdAt: DateTime!
+  dag: PipelineDag!
   description: String
   externalLink: URL
   files: [FileNode!]!
@@ -5646,6 +5682,11 @@ type UpdatePipelineVersionResult {
 enum UpdateSavedQueryError {
   PERMISSION_DENIED
   SAVED_QUERY_NOT_FOUND
+
+  """
+  The new version could not be recorded, so no change was saved. Retrying is safe.
+  """
+  VERSIONING_UNAVAILABLE
 }
 
 """Input for updating a saved query."""

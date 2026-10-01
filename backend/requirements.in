@@ -2,7 +2,7 @@ ariadne
 ariadne_django
 colorhash
 cryptography
-Django>=5
+Django>=5.2.17
 django-cors-headers
 django-countries
 django-debug-toolbar
@@ -77,7 +77,7 @@ regex
 openhexa-toolbox==2.11.3
 
 #sdk
-openhexa-sdk==2.22.6
+openhexa-sdk==2.22.7
 
 # email templating
 mjml-python
@@ -90,6 +90,7 @@ azure-identity
 
 # AI assistant
 pydantic-ai-slim[anthropic,google,openai]==1.107.5
+genai-prices==0.1.7
 anthropic[vertex]
 logfire==4.30.0
 vcrpy

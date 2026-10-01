@@ -9,6 +9,7 @@ from decimal import Decimal
 from typing import NamedTuple
 
 import genai_prices
+from genai_prices.types import ModelPrice
 from pydantic_ai import RunUsage
 from pydantic_ai.models import Model as PydanticModel
 
@@ -19,15 +20,18 @@ class BuiltModel(NamedTuple):
     model: PydanticModel
     api_name: str
     provider_id: str
+    price_override: ModelPrice | None = None
 
     def calculate_cost(self, usage: RunUsage) -> Decimal | None:
         """Price `usage`, or None if this model has no known price.
 
         Agents in one conversation may run on different models, so each prices
-        its own usage. Unpriced usage is caught by Sentry so we know we need
-        to add a new pricing ASAP.
+        its own usage. A model's price can be overridden by a backend ENV setting.
         """
         try:
+            if self.price_override is not None:
+                return self.price_override.calc_price(usage)["total_price"]
+
             return genai_prices.calc_price(
                 usage, self.api_name, provider_id=self.provider_id
             ).total_price

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.test import SimpleTestCase, override_settings
@@ -89,26 +90,34 @@ class VertexOpenAiTest(SimpleTestCase):
     model name, so adding Qwen or Kimi is a model id, not a code change.
     """
 
-    def _base_url(self) -> str:
+    def _base_url(self, region: str | None = None) -> str:
         with patch(
             "hexa.assistant.ai_models.vertex._google_credentials"
         ) as credentials:
             credentials.return_value.valid = True
             credentials.return_value.token = "ya29.token"
-            return str(_managed_backend().provider_for("openai-chat").base_url)
+            return str(_managed_backend().provider_for("openai-chat", region).base_url)
 
-    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_MAAS_REGION="us-south1")
+    @override_settings(VERTEX_PROJECT_ID="test-project")
     def test_a_region_is_addressed_on_its_own_host(self):
         self.assertEqual(
-            self._base_url(),
+            self._base_url("us-south1"),
             "https://us-south1-aiplatform.googleapis.com/v1/projects/test-project"
             "/locations/us-south1/endpoints/openapi/",
         )
 
-    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_MAAS_REGION="global")
+    @override_settings(VERTEX_PROJECT_ID="test-project")
+    def test_a_multi_region_is_addressed_on_its_rep_host(self):
+        self.assertEqual(
+            self._base_url("eu"),
+            "https://aiplatform.eu.rep.googleapis.com/v1/projects/test-project"
+            "/locations/eu/endpoints/openapi/",
+        )
+
+    @override_settings(VERTEX_PROJECT_ID="test-project")
     def test_the_global_endpoint_drops_the_region_from_the_host(self):
         self.assertEqual(
-            self._base_url(),
+            self._base_url("global"),
             "https://aiplatform.googleapis.com/v1/projects/test-project"
             "/locations/global/endpoints/openapi/",
         )
@@ -130,6 +139,53 @@ class PricingProviderTest(SimpleTestCase):
         )
 
 
+_CONFIG_LOGGER = "hexa.assistant.ai_models.config"
+_GLM = ModelId("openai-chat", "zai-org/glm-5.2-maas")
+_GLM_PRICE = '"%s": {"input_mtok": 0.6, "output_mtok": 2.2}' % _GLM.name
+
+
+class PriceOverrideTest(SimpleTestCase):
+    """ASSISTANT_MODEL_PRICES prices the Vertex Model Garden models genai_prices
+    does not know. It is about our Vertex project, so it never reaches a key.
+    """
+
+    def test_managed_has_no_price_unless_configured(self):
+        self.assertIsNone(_managed_backend().price_override(_GLM))
+
+    @override_settings(ASSISTANT_MODEL_PRICES="{%s}" % _GLM_PRICE)
+    def test_managed_reads_the_configured_price(self):
+        price = _managed_backend().price_override(_GLM)
+        self.assertEqual(price.input_mtok, Decimal("0.6"))
+        self.assertEqual(price.output_mtok, Decimal("2.2"))
+
+    @override_settings(ASSISTANT_MODEL_PRICES="{%s}" % _GLM_PRICE.replace("glm", "GLM"))
+    def test_model_names_match_regardless_of_case(self):
+        self.assertIsNotNone(_managed_backend().price_override(_GLM))
+
+    @override_settings(
+        ASSISTANT_MODEL_PRICES='{"claude-opus-4-6": {"input_mtok": 1, "output_mtok": 1}}'
+    )
+    def test_bring_your_own_key_ignores_the_setting(self):
+        """Their usage is priced by their provider's own catalog: a price we set
+        to correct Vertex billing must not move what we count on their key.
+        """
+        self.assertIsNone(
+            _byok_backend().price_override(ModelId("anthropic", "claude-opus-4-6"))
+        )
+
+    @override_settings(
+        ASSISTANT_MODEL_PRICES='{"typo": {"input_mtok": "cheap"}, '
+        '"scalar": 0.5, "extra": {"per_call": 1}, %s}' % _GLM_PRICE
+    )
+    def test_a_broken_entry_is_reported_and_leaves_the_others_alone(self):
+        with self.assertLogs(_CONFIG_LOGGER, level="ERROR") as logs:
+            price = _managed_backend().price_override(_GLM)
+        self.assertEqual(price.input_mtok, Decimal("0.6"))
+        self.assertEqual(len(logs.output), 3)
+        self.assertIn("'extra'", logs.output[2])
+        self.assertIn("per_call", logs.output[2])
+
+
 class ProviderForTest(SimpleTestCase):
     @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_REGION="europe-west1")
     @patch("hexa.assistant.ai_models.vertex.AsyncAnthropicVertex")
@@ -146,6 +202,12 @@ class ProviderForTest(SimpleTestCase):
         mock_provider.assert_called_once_with(
             project="test-project", location="europe-west1"
         )
+
+    @override_settings(VERTEX_PROJECT_ID="test-project", VERTEX_REGION="europe-west1")
+    @patch("hexa.assistant.ai_models.vertex.GoogleCloudProvider")
+    def test_a_model_region_wins_over_ours(self, mock_provider):
+        _managed_backend().provider_for("google-cloud", "eu")
+        mock_provider.assert_called_once_with(project="test-project", location="eu")
 
     @override_settings(VERTEX_PROJECT_ID=None)
     def test_managed_without_a_project_raises(self):

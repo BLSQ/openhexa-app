@@ -19,6 +19,7 @@ from hexa.core.models.soft_delete import (
 from hexa.git.enums import FileEncoding
 from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 from hexa.git.mixins import GitOrg, GitRepoMixin
+from hexa.git.naming import build_repo_name
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
@@ -243,7 +244,7 @@ class GitWebapp(Webapp, GitRepoMixin):
         ]
 
     @property
-    def git_org(self):
+    def git_org(self) -> GitOrg:
         return GitOrg(
             slug=self.workspace.organization.slug,
             display_name=self.workspace.organization.name,
@@ -255,12 +256,6 @@ class GitWebapp(Webapp, GitRepoMixin):
             f"{settings.GIT_PUBLIC_URL.rstrip('/')}"
             f"/{self.git_org.slug}/{self.repository}.git"
         )
-
-    def get_versions(self, page=1, per_page=20):
-        items = self.client.get_commits(
-            self.git_org.slug, self.repository, page=page, limit=per_page
-        )
-        return {"items": items, "page": page}
 
     LANGUAGE_MAP = {
         ".py": "python",
@@ -318,20 +313,6 @@ class GitWebapp(Webapp, GitRepoMixin):
                 }
             )
         return nodes
-
-    def get_commit_diff(self, sha: str) -> dict:
-        raw = self.client.get_commit(self.git_org.slug, self.repository, sha)
-        git_commit = raw.get("commit") or {}
-        git_author = git_commit.get("author") or {}
-        raw_diff = self.client.get_commit_diff(self.git_org.slug, self.repository, sha)
-        return {
-            "id": raw.get("sha", sha),
-            "message": (git_commit.get("message") or "").strip(),
-            "author_name": git_author.get("name", ""),
-            "author_email": git_author.get("email", ""),
-            "date": git_author.get("date", ""),
-            "raw_diff": raw_diff,
-        }
 
     def publish_version(self, version_id):
         if not self.client.commit_exists(
@@ -442,7 +423,9 @@ class GitWebapp(Webapp, GitRepoMixin):
                 created_by=created_by,
                 allowed_operations=allowed_operations or [],
             )
-            webapp.repository = f"{workspace.slug}-webapp-{webapp.slug}"
+            webapp.repository = build_repo_name(
+                f"{workspace.slug}-webapp-{webapp.slug}"
+            )
 
             initial_sha = webapp.create_repo(files=files, user=principal)
             webapp.published_commit = initial_sha
