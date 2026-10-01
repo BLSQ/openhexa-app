@@ -435,6 +435,8 @@ class GraphQLProxyMiddlewareTest(TestCase):
                 "row_count": 1,
                 "truncated": False,
                 "duration_ms": 1,
+                "first_row": {"probe": 1},
+                "last_row": {"probe": 1},
             },
         ):
             response = self._execute_saved_query(webapp, "db-app", saved_query.slug)
@@ -467,6 +469,8 @@ class GraphQLProxyMiddlewareTest(TestCase):
                 "row_count": 2,
                 "truncated": True,
                 "duration_ms": 1,
+                "first_row": {"probe": 1},
+                "last_row": {"probe": 2},
             },
         ) as execute:
             response = self._graphql_post(
