@@ -17,7 +17,7 @@ NPM_E2E := npm --prefix e2e
 	tb tests_backend tbc tests_backend_coverage tbclean tests_backend_clean \
 	lb lint_backend mk makemigrations m migrate fx fixtures db database s shell \
 	if install_frontend rf run_frontend tf tests_frontend lf lint_frontend cg codegen i18n \
-	ie2e install_e2e te2e tests_e2e te2ev tests_e2e_visual \
+	ie2e install_e2e te2e tests_e2e te2ev tests_e2e_visual re2e report_e2e \
 	t tests l lint
 
 h help: ## Show this help
@@ -101,6 +101,9 @@ te2e tests_e2e: ## Run the e2e tests against the demo environment, headless
 
 te2ev tests_e2e_visual: ## Run the e2e tests in a visible browser, slowed down to follow
 	$(NPM_E2E) run test:watch -- $(ARGS)
+
+re2e report_e2e: ## Open the HTML report of the last e2e run, with its traces
+	$(NPM_E2E) run report
 
 ##@ All
 

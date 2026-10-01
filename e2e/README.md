@@ -38,6 +38,7 @@ passed through to Playwright:
 make te2e                                    # headless
 make te2ev                                   # visible browser, slowed down
 make te2e ARGS='-g "Usage & Limits"'
+make re2e                                    # open the last run's report
 ```
 
 ### Watching it run
@@ -68,7 +69,7 @@ Headed and UI mode need a display. On a headless box run them under
 ### After the fact
 
 ```bash
-npm run report           # HTML report of the last run
+make re2e                # HTML report of the last run (npm run report)
 npx playwright show-trace test-results/<test-dir>/trace.zip
 ```
 
