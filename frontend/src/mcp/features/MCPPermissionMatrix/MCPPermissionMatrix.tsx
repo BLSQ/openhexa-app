@@ -1,9 +1,13 @@
-import { ChevronDownIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  GlobeAltIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import clsx from "clsx";
-import Checkbox from "core/components/forms/Checkbox";
 import { McpResource } from "graphql/types";
 import { useTranslation } from "next-i18next";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import Flag from "react-world-flags";
 
 export type MCPTool = {
@@ -47,30 +51,6 @@ const RESOURCE_ORDER: McpResource[] = [
   McpResource.Connections,
 ];
 
-const PresetLink = ({
-  label,
-  active,
-  disabled,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  disabled?: boolean;
-  onClick: () => void;
-}) => (
-  <button
-    type="button"
-    disabled={disabled}
-    onClick={onClick}
-    className={clsx(
-      "text-sm disabled:text-gray-400 disabled:no-underline",
-      active ? "font-medium text-gray-900" : "text-blue-600 hover:underline",
-    )}
-  >
-    {label}
-  </button>
-);
-
 const SelectAllLink = ({
   allSelected,
   disabled,
@@ -93,44 +73,54 @@ const SelectAllLink = ({
   );
 };
 
-function firstSentence(text: string) {
-  const [sentence] = text.split(/(?<=\.)\s/);
-  return sentence ?? text;
-}
+type AccessLevel = "NONE" | "READ" | "WRITE";
 
-const TriStateCheckbox = ({
-  id,
-  checked,
-  indeterminate,
+const LevelSelector = ({
+  name,
+  options,
+  value,
   disabled,
   onChange,
 }: {
-  id: string;
-  checked: boolean;
-  indeterminate: boolean;
+  name: string;
+  options: { level: AccessLevel; label: string; unavailable?: boolean }[];
+  value: AccessLevel | null;
   disabled?: boolean;
-  onChange: (checked: boolean) => void;
-}) => {
-  const ref = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (ref.current) {
-      ref.current.indeterminate = indeterminate;
-    }
-  }, [indeterminate]);
-
-  return (
-    <input
-      ref={ref}
-      id={id}
-      type="checkbox"
-      checked={checked}
-      disabled={disabled}
-      onChange={(event) => onChange(event.target.checked)}
-      className="form-checkbox mt-0.5 h-4 w-4 cursor-pointer rounded-sm border-gray-300 text-blue-500 focus:ring-0 focus:ring-offset-0"
-    />
-  );
-};
+  onChange: (level: AccessLevel) => void;
+}) => (
+  <div
+    role="radiogroup"
+    className="grid shrink-0 grid-cols-3 gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5"
+  >
+    {options.map((option) => (
+      <label
+        key={option.level}
+        className={clsx(
+          "w-24 rounded-md px-2 py-1 text-center text-xs font-medium whitespace-nowrap transition-colors",
+          value === option.level
+            ? "bg-blue-600 text-white shadow-sm"
+            : option.unavailable
+              ? "text-gray-300"
+              : "text-gray-600 hover:bg-white hover:text-gray-900",
+          disabled || option.unavailable
+            ? "cursor-not-allowed"
+            : "cursor-pointer",
+          disabled && "opacity-60",
+        )}
+      >
+        <input
+          type="radio"
+          name={name}
+          className="sr-only"
+          checked={value === option.level}
+          disabled={disabled || option.unavailable}
+          onChange={() => onChange(option.level)}
+        />
+        {option.label}
+      </label>
+    ))}
+  </div>
+);
 
 const MCPPermissionMatrix = ({
   grant,
@@ -141,10 +131,16 @@ const MCPPermissionMatrix = ({
   idPrefix,
 }: Props) => {
   const { t } = useTranslation();
-  const [collapsed, setCollapsed] = useState<Set<McpResource>>(
-    () => new Set(RESOURCE_ORDER),
-  );
   const [workspaceQuery, setWorkspaceQuery] = useState("");
+  const [expanded, setExpanded] = useState<Set<McpResource>>(new Set());
+
+  const toggleExpanded = (resource: McpResource) => {
+    const next = new Set(expanded);
+    if (!next.delete(resource)) {
+      next.add(resource);
+    }
+    setExpanded(next);
+  };
 
   const matchingWorkspaces = useMemo(() => {
     const query = workspaceQuery.trim().toLowerCase();
@@ -209,49 +205,79 @@ const MCPPermissionMatrix = ({
   }, [tools]);
 
   const granted = useMemo(() => new Set(grant.tools), [grant.tools]);
-  const grantable = tools.filter((tool) => tool.resource);
-  const selectedCount = granted.size;
-  const readOnlyTools = grantable
-    .filter((tool) => !tool.write)
-    .map((tool) => tool.name);
-  const isReadOnly =
-    granted.size === readOnlyTools.length &&
-    readOnlyTools.every((name) => granted.has(name));
-
-  const isSelected = (tool: MCPTool) => granted.has(tool.name);
+  const groups = RESOURCE_ORDER.filter(
+    (resource) => (toolsByGroup.get(resource) ?? []).length > 0,
+  );
+  const hasWrite = (resource: McpResource) =>
+    (toolsByGroup.get(resource) ?? []).some((tool) => tool.write);
 
   const setTools = (names: Set<string>) =>
     onChange({ ...grant, tools: Array.from(names).sort() });
 
-  const toggleTool = (name: string, checked: boolean) => {
-    const next = new Set(granted);
-    if (checked) {
-      next.add(name);
-    } else {
-      next.delete(name);
+  const levelOf = (groupTools: MCPTool[]): AccessLevel | null => {
+    const selected = groupTools.filter((tool) => granted.has(tool.name));
+    const reads = groupTools.filter((tool) => !tool.write);
+    if (selected.length === 0) {
+      return "NONE";
     }
-    setTools(next);
+    if (selected.length === groupTools.length) {
+      return groupTools.some((tool) => tool.write) ? "WRITE" : "READ";
+    }
+    if (
+      selected.length === reads.length &&
+      selected.every((tool) => !tool.write)
+    ) {
+      return "READ";
+    }
+    return null;
   };
 
-  const toggleGroup = (resource: McpResource, checked: boolean) => {
+  const setLevel = (resources: McpResource[], level: AccessLevel) => {
     const next = new Set(granted);
-    for (const tool of toolsByGroup.get(resource) ?? []) {
-      if (checked) {
-        next.add(tool.name);
-      } else {
-        next.delete(tool.name);
+    for (const resource of resources) {
+      for (const tool of toolsByGroup.get(resource) ?? []) {
+        const allowed = level === "WRITE" || (level === "READ" && !tool.write);
+        if (allowed) {
+          next.add(tool.name);
+        } else {
+          next.delete(tool.name);
+        }
       }
     }
     setTools(next);
   };
 
-  const toggleCollapsed = (resource: McpResource) => {
-    const next = new Set(collapsed);
-    if (!next.delete(resource)) {
-      next.add(resource);
+  const overallLevel = (): AccessLevel | null => {
+    const levels = groups.map((resource) => ({
+      level: levelOf(toolsByGroup.get(resource) ?? []),
+      canWrite: hasWrite(resource),
+    }));
+    if (levels.every(({ level }) => level === "NONE")) {
+      return "NONE";
     }
-    setCollapsed(next);
+    if (levels.every(({ level }) => level === "READ")) {
+      return "READ";
+    }
+    if (
+      levels.every(
+        ({ level, canWrite }) =>
+          level === "WRITE" || (level === "READ" && !canWrite),
+      )
+    ) {
+      return "WRITE";
+    }
+    return null;
   };
+
+  const levelOptions = (canWrite: boolean) => [
+    {
+      level: "WRITE" as const,
+      label: t("Read & Write"),
+      unavailable: !canWrite,
+    },
+    { level: "READ" as const, label: t("Read") },
+    { level: "NONE" as const, label: t("No access") },
+  ];
 
   const setWorkspaces = (slugs: Set<string>) =>
     onChange({ ...grant, workspaceSlugs: Array.from(slugs).sort() });
@@ -369,102 +395,97 @@ const MCPPermissionMatrix = ({
       </section>
 
       <section className="space-y-3">
-        <div className="flex items-baseline justify-between gap-4">
-          <h5 className="font-medium text-gray-900">{t("Permissions")}</h5>
-          <div className="flex items-baseline gap-4">
-            <span className="text-sm text-gray-500">
-              {t("{{selected}} of {{total}} tools selected", {
-                selected: selectedCount,
-                total: grantable.length,
-              })}
-            </span>
-            <PresetLink
-              label={t("Read only")}
-              active={isReadOnly}
+        <h5 className="font-medium text-gray-900">{t("Permissions")}</h5>
+
+        <div className="divide-y divide-gray-200 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between gap-4 bg-gray-50 px-4 py-2.5">
+            <p className="text-sm font-medium text-gray-900">
+              {t("All resources")}
+              {overallLevel() === null && (
+                <span className="ml-2 text-xs font-normal text-gray-400">
+                  {t("Custom")}
+                </span>
+              )}
+            </p>
+            <LevelSelector
+              name={`${idPrefix}-level-all`}
+              options={levelOptions(true)}
+              value={overallLevel()}
               disabled={disabled}
-              onClick={() => setTools(new Set(readOnlyTools))}
-            />
-            <PresetLink
-              label={t("Read & write")}
-              active={selectedCount === grantable.length}
-              disabled={disabled}
-              onClick={() =>
-                setTools(new Set(grantable.map((tool) => tool.name)))
-              }
-            />
-            <PresetLink
-              label={t("None")}
-              active={selectedCount === 0}
-              disabled={disabled}
-              onClick={() => setTools(new Set())}
+              onChange={(level) => setLevel(groups, level)}
             />
           </div>
-        </div>
-
-        <div className="space-y-3">
-          {RESOURCE_ORDER.map((resource) => {
-            const groupTools = toolsByGroup.get(resource) ?? [];
-            const selected = groupTools.filter(isSelected);
-            const isCollapsed = collapsed.has(resource);
+          {groups.map((resource) => {
+            const level = levelOf(toolsByGroup.get(resource) ?? []);
             return (
               <div
                 key={resource}
-                className="rounded-lg border border-gray-200 p-4 hover:border-gray-300"
+                className="flex items-start justify-between gap-4 px-4 py-3"
               >
-                <div className="flex items-start gap-3">
-                  <TriStateCheckbox
-                    id={`${idPrefix}-group-${resource}`}
-                    checked={
-                      groupTools.length > 0 &&
-                      selected.length === groupTools.length
-                    }
-                    indeterminate={
-                      selected.length > 0 && selected.length < groupTools.length
-                    }
-                    disabled={disabled}
-                    onChange={(checked) => toggleGroup(resource, checked)}
-                  />
+                <div className="min-w-0">
+                  <p className="text-sm text-gray-500">
+                    <span className="font-medium text-gray-900">
+                      {groupLabels[resource]}
+                    </span>
+                    {level === null && (
+                      <span className="ml-2 text-xs text-gray-400">
+                        {t("Custom")}
+                      </span>
+                    )}
+                    <span className="ml-2">{groupDescriptions[resource]}</span>
+                  </p>
                   <button
                     type="button"
-                    aria-expanded={!isCollapsed}
-                    onClick={() => toggleCollapsed(resource)}
-                    className="flex flex-1 items-start justify-between gap-2 text-left"
+                    aria-expanded={expanded.has(resource)}
+                    onClick={() => toggleExpanded(resource)}
+                    className="mt-1 inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
                   >
-                    <span>
-                      <span className="text-sm font-medium text-gray-900">
-                        {groupLabels[resource]}
-                      </span>
-                      <span className="mt-0.5 block text-sm text-gray-500">
-                        {groupDescriptions[resource]}
-                      </span>
-                    </span>
+                    {expanded.has(resource) ? t("Hide tools") : t("Show tools")}
                     <ChevronDownIcon
                       className={clsx(
-                        "mt-0.5 h-4 w-4 shrink-0 text-gray-400 transition-transform",
-                        isCollapsed && "-rotate-90",
+                        "h-3 w-3 transition-transform",
+                        expanded.has(resource) && "rotate-180",
                       )}
                     />
                   </button>
+                  {expanded.has(resource) && (
+                    <ul className="mt-2 space-y-1">
+                      {(toolsByGroup.get(resource) ?? []).map((tool) => (
+                        <li
+                          key={tool.name}
+                          className="flex items-center gap-1.5 text-xs"
+                        >
+                          {granted.has(tool.name) ? (
+                            <CheckIcon className="h-3.5 w-3.5 text-green-600" />
+                          ) : (
+                            <XMarkIcon className="h-3.5 w-3.5 text-gray-300" />
+                          )}
+                          <code
+                            className={
+                              granted.has(tool.name)
+                                ? "text-gray-700"
+                                : "text-gray-400"
+                            }
+                          >
+                            {tool.name}
+                          </code>
+                          {tool.write && (
+                            <span className="rounded bg-amber-50 px-1 text-[10px] font-medium text-amber-700">
+                              {t("write")}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-
-                {!isCollapsed && (
-                  <div className="mt-4 space-y-3 pl-7">
-                    {groupTools.map((tool) => (
-                      <Checkbox
-                        key={tool.name}
-                        id={`${idPrefix}-tool-${tool.name}`}
-                        name={`${idPrefix}-tool-${tool.name}`}
-                        label={<code className="text-xs">{tool.name}</code>}
-                        description={firstSentence(tool.description)}
-                        disabled={disabled}
-                        checked={isSelected(tool)}
-                        onChange={(event) =>
-                          toggleTool(tool.name, event.target.checked)
-                        }
-                      />
-                    ))}
-                  </div>
-                )}
+                <LevelSelector
+                  name={`${idPrefix}-level-${resource}`}
+                  options={levelOptions(hasWrite(resource))}
+                  value={level}
+                  disabled={disabled}
+                  onChange={(next) => setLevel([resource], next)}
+                />
               </div>
             );
           })}
