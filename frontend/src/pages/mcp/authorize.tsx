@@ -18,7 +18,7 @@ import { useTranslation } from "next-i18next";
 import logo from "public/images/logo.svg";
 import { ReactElement, useRef, useState } from "react";
 
-const WORKSPACES_PAGE_SIZE = 100;
+const WORKSPACES_PAGE_SIZE = 1000;
 
 const OAUTH_FIELDS = [
   "client_id",

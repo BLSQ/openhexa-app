@@ -24,7 +24,7 @@ import {
 import { Trans, useTranslation } from "next-i18next";
 import { useState } from "react";
 
-const WORKSPACES_PAGE_SIZE = 100;
+const WORKSPACES_PAGE_SIZE = 1000;
 
 type Connection = AccountMcpConnectionsQuery["mcpConnections"][number];
 
