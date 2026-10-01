@@ -130,7 +130,7 @@ Covered so far:
 | `workspace-files.spec.ts` | Creating a folder, uploading a file, deleting both |
 | `workspace-datasets.spec.ts` | Creating a dataset and a version, removing both |
 | `workspace-connections.spec.ts` | Creating and deleting one connection of each type |
-| `workspace-pipelines.spec.ts` | Creating a pipeline from a template and deleting it |
+| `workspace-pipelines.spec.ts` | A pipeline from a template: every tab, running it, editing the code, and running the new version |
 | `workspace-webapps.spec.ts` | Creating an iFrame and a Static app, deleting both |
 
 The workspace specs run against a dedicated, otherwise-empty workspace
@@ -150,7 +150,16 @@ follow the same page-object shape when adding them.
 - **Upload dialogs hold two file inputs**, one of them a directory picker.
   Target `input[type="file"]:not([webkitdirectory])`.
 - **Pipelines created from a template take the template's name**, so that spec
-  cannot run twice at once against the same workspace.
+  runs `serial` -- two of its tests at once would collide over the same code.
+- **A template's own run may legitimately fail.** Most templates call a real
+  external service, so the first run is only asserted to reach a verdict. The
+  run that has to succeed is the one after the code is replaced with a pipeline
+  that just logs a marker; a pipeline version's decorator does not have to match
+  the pipeline it is uploaded to, so that source is the same whichever template
+  the catalogue lists first.
+- **Filling CodeMirror replaces the whole file**, which is what the edit relies
+  on. Save only appears once there are pending changes and goes once they are
+  committed, so its disappearance is the signal that a version was published.
 
 ## CI
 
