@@ -1,5 +1,5 @@
 # Every target has a short alias and a long name; `make` or `make help` lists them.
-# Backend/frontend counterparts share a letter and differ by a `b`/`f` suffix.
+# Backend/frontend/e2e counterparts share a letter and differ by a `b`/`f`/`e2e` suffix.
 # Pass extra arguments to the underlying command with ARGS, e.g.
 #   make tb ARGS="hexa.core.tests"
 #   make tb ARGS="--exclude-tag=external"
@@ -10,12 +10,14 @@ COMPOSE := docker compose
 # Throwaway in-memory database in its own project, so it never touches the dev stack
 COMPOSE_TEST := docker compose -p openhexa-test -f docker-compose.yaml -f docker-compose.test.yaml
 NPM := npm --prefix frontend
+NPM_E2E := npm --prefix e2e
 
 .PHONY: help h \
 	b build rb run_backend rbl run_backend_light rbsso run_backend_sso \
 	tb tests_backend tbc tests_backend_coverage tbclean tests_backend_clean \
 	lb lint_backend mk makemigrations m migrate fx fixtures db database s shell \
 	if install_frontend rf run_frontend tf tests_frontend lf lint_frontend cg codegen i18n \
+	ie2e install_e2e te2e tests_e2e te2ev tests_e2e_visual \
 	t tests l lint
 
 h help: ## Show this help
@@ -85,6 +87,20 @@ cg codegen: ## Generate the GraphQL types
 
 i18n: ## Extract the frontend translation strings
 	$(NPM) run i18n:extract
+
+##@ End-to-end
+
+# These drive a deployed environment (demo by default) rather than a local
+# stack, so they need credentials in e2e/.env and are kept out of `make tests`.
+
+ie2e install_e2e: ## Install the e2e dependencies and the browser they drive
+	$(NPM_E2E) install
+
+te2e tests_e2e: ## Run the e2e tests against the demo environment, headless
+	$(NPM_E2E) run test -- $(ARGS)
+
+te2ev tests_e2e_visual: ## Run the e2e tests in a visible browser, slowed down to follow
+	$(NPM_E2E) run test:watch -- $(ARGS)
 
 ##@ All
 
