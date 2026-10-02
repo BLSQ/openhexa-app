@@ -22,6 +22,12 @@ cp .env.example .env # then fill in E2E_EMAIL / E2E_PASSWORD
 The account in `.env` must be an admin or owner of the organization under test —
 the settings page renders nothing without the `update` permission.
 
+`E2E_OUTSIDER_EMAIL` / `E2E_OUTSIDER_PASSWORD` are optional: a second account
+that is signed in but has no access to the test workspace -- not a member of
+it, and not an admin or owner of its organization, which would reach every
+workspace in it. The tests that check what such a user is refused are skipped
+without it.
+
 ## Running
 
 ```bash
@@ -93,6 +99,7 @@ E2E_BASE_URL=https://app.openhexa.org E2E_ORGANIZATION_ID=... npm test
 | `fixtures/auth.setup.ts` | Signs in once per run and saves the session to `.auth/user.json` |
 | `fixtures/cleanup.ts` | Registers undo steps that run in reverse at teardown, pass or fail |
 | `fixtures/disposableWorkspace.ts` | A uniquely named workspace, archived again in teardown |
+| `fixtures/visitors.ts` | Pages for an anonymous visitor and for the outsider account |
 | `helpers/` | Native-confirm handling, unique names, grid-load waiting |
 | `pages/` | Page objects — the only place selectors live |
 | `tests/` | Specs |
@@ -132,7 +139,8 @@ Covered so far:
 | `workspace-datasets.spec.ts` | Creating a dataset and a version, removing both |
 | `workspace-connections.spec.ts` | Creating and deleting one connection of each type |
 | `workspace-pipelines.spec.ts` | A pipeline from a template: every tab, running it, editing the code, and running the new version |
-| `workspace-webapps.spec.ts` | Creating an iFrame and a Static app, deleting both |
+| `workspace-webapps.spec.ts` | Creating an iFrame app and deleting it |
+| `workspace-static-webapps.spec.ts` | A static app's code, history, rollback, name, subdomain, icon and deletion; who can open it when private or public, and its API access |
 | `workspace-data-studio.spec.ts` | Running a query into a table, a failing query, and the bar, line, pie and map widgets |
 | `workspace-saved-queries.spec.ts` | Creating, listing, opening and deleting a saved query; editing its name, description, SQL and sharing |
 
@@ -171,6 +179,16 @@ assert on their values, so reloading that data means updating the expectations.
   test clicks the middle of the map -- which MapLibre frames on the result --
   and reads the popup. A popup is also the only proof the shapes were drawn:
   MapLibre's worker fails silently and leaves a bare basemap.
+- **`browser.newContext()` is still signed in.** Inside a test it inherits the
+  project's `use` options, storage state included. A visitor's context needs
+  an explicitly empty one -- see `fixtures/visitors.ts`.
+- **A static web app is served on its own subdomain**, and a private one
+  sends the browser through the backend's `auth-token` view to get there: to
+  the login page when nobody is signed in, to a bare "Forbidden" for a user
+  without access. Its address is read off the General tab rather than built,
+  since the web app domain differs per environment.
+- **Saving a static app's code publishes it.** Each save is a commit that goes
+  live at once; publishing an older commit from the Code tab rolls it back.
 - **A saved query is deleted from the list only**, and the list is searched by
   name, so cleanup reads the current name off the query's page first in case
   the test renamed it before failing.
@@ -180,11 +198,13 @@ assert on their values, so reloading that data means updating the expectations.
 ## CI
 
 `.github/workflows/e2e.yml` runs the suite on demand (`workflow_dispatch`) and
-nightly. It needs two repository secrets:
+nightly. It needs two repository secrets, plus two optional ones:
 
 | Secret | Value |
 | --- | --- |
 | `E2E_EMAIL` | The test account's email |
 | `E2E_PASSWORD` | Its password |
+| `E2E_OUTSIDER_EMAIL` | Optional: an account without access to the test workspace |
+| `E2E_OUTSIDER_PASSWORD` | Its password |
 
 The HTML report and any failure traces are uploaded as a build artifact.

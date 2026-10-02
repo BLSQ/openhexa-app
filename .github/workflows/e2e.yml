@@ -34,6 +34,8 @@ jobs:
       E2E_BASE_URL: ${{ inputs.base_url || 'https://app.demo.openhexa.org' }}
       E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
       E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+      E2E_OUTSIDER_EMAIL: ${{ secrets.E2E_OUTSIDER_EMAIL }}
+      E2E_OUTSIDER_PASSWORD: ${{ secrets.E2E_OUTSIDER_PASSWORD }}
     steps:
       - uses: actions/checkout@v5
       - name: Use Node.js v22
