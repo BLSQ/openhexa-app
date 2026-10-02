@@ -3,9 +3,11 @@ import fs from "node:fs";
 import path from "node:path";
 
 import {
+  OUTSIDER_STORAGE_STATE,
   STORAGE_STATE,
   credentials,
   organization,
+  outsiderCredentials,
 } from "../config/environment";
 import { LoginPage } from "../pages/LoginPage";
 
@@ -36,4 +38,22 @@ setup("authenticate", async ({ page }) => {
 
   fs.mkdirSync(path.dirname(STORAGE_STATE), { recursive: true });
   await page.context().storageState({ path: STORAGE_STATE });
+});
+
+setup("authenticate the outsider", async ({ page }) => {
+  setup.skip(
+    !outsiderCredentials,
+    "E2E_OUTSIDER_EMAIL / E2E_OUTSIDER_PASSWORD are not set",
+  );
+  const loginPage = new LoginPage(page);
+
+  await loginPage.goto();
+  await loginPage.login(
+    outsiderCredentials!.email,
+    outsiderCredentials!.password,
+  );
+  await expect(page).not.toHaveURL(/\/login/, { timeout: 30_000 });
+
+  fs.mkdirSync(path.dirname(OUTSIDER_STORAGE_STATE), { recursive: true });
+  await page.context().storageState({ path: OUTSIDER_STORAGE_STATE });
 });
