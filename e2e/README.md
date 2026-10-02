@@ -133,11 +133,17 @@ Covered so far:
 | `workspace-connections.spec.ts` | Creating and deleting one connection of each type |
 | `workspace-pipelines.spec.ts` | A pipeline from a template: every tab, running it, editing the code, and running the new version |
 | `workspace-webapps.spec.ts` | Creating an iFrame and a Static app, deleting both |
+| `workspace-data-studio.spec.ts` | Running a query into a table, a failing query, and the bar, line, pie and map widgets |
+| `workspace-saved-queries.spec.ts` | Creating, listing, opening and deleting a saved query; editing its name, description, SQL and sharing |
 
 The workspace specs run against a dedicated, otherwise-empty workspace
 (`E2E_WORKSPACE_SLUG`, default `playwright-ws`) and are expected to leave it
-empty. The database, Data Studio and JupyterHub sections are not covered yet;
-follow the same page-object shape when adding them.
+empty. The database and JupyterHub sections are not covered yet; follow the
+same page-object shape when adding them.
+
+The Data Studio specs also read the tables loaded into that workspace's database
+(Senegal's `level_2_region` and `level_3_department`, and `bikes_history`) and
+assert on their values, so reloading that data means updating the expectations.
 
 ### Things worth knowing before adding a test
 
@@ -161,6 +167,15 @@ follow the same page-object shape when adding them.
 - **Filling CodeMirror replaces the whole file**, which is what the edit relies
   on. Save only appears once there are pending changes and goes once they are
   committed, so its disappearance is the signal that a version was published.
+- **Data Studio's map is a canvas.** Its features cannot be inspected, so the
+  test clicks the middle of the map -- which MapLibre frames on the result --
+  and reads the popup. A popup is also the only proof the shapes were drawn:
+  MapLibre's worker fails silently and leaves a bare basemap.
+- **A saved query is deleted from the list only**, and the list is searched by
+  name, so cleanup reads the current name off the query's page first in case
+  the test renamed it before failing.
+- **Saving a query needs the git server**: each saved query gets a repository,
+  and creating one fails ("the query history is unavailable") when it is down.
 
 ## CI
 
