@@ -68,6 +68,15 @@ class MCPUserFilteringTest(TestCase):
         self.assertEqual([self.GRANTED.pk], mcp_user.workspace_ids)
         self.assertEqual(self.USER, mcp_user.real_user)
 
+    def test_workspace_ids_are_read_once_per_request(self):
+        mcp_user = MCPUser.from_user(
+            self.USER, self.connection_for(self.USER, self.GRANTED)
+        )
+
+        with self.assertNumQueries(1):
+            mcp_user.workspace_ids
+            mcp_user.workspace_ids
+
     def test_grant_narrows_to_the_granted_workspaces(self):
         connection = self.connection_for(self.USER, self.GRANTED)
         mcp_user = MCPUser.from_user(self.USER, connection)
@@ -185,3 +194,40 @@ class MCPTokenMiddlewareTest(TestCase):
         User.objects.filter(pk=self.USER.pk).update(is_active=False)
 
         self.assertFalse(self.call().is_authenticated)
+
+
+class MarkUsedTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user("used@bluesquarehub.com", "password")
+        cls.APPLICATION = Application.objects.create(
+            name="Claude",
+            client_id="used-test-client",
+            client_type=Application.CLIENT_PUBLIC,
+            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+        )
+
+    def connection_last_used(self, ago):
+        return MCPConnection.objects.create(
+            user=self.USER,
+            application=self.APPLICATION,
+            last_used_at=timezone.now() - ago,
+        )
+
+    def test_a_recent_use_is_left_as_is(self):
+        connection = self.connection_last_used(timedelta(seconds=30))
+        last_used_at = connection.last_used_at
+
+        connection.mark_used()
+
+        connection.refresh_from_db()
+        self.assertEqual(last_used_at, connection.last_used_at)
+
+    def test_an_older_use_is_refreshed(self):
+        connection = self.connection_last_used(timedelta(hours=1))
+        before = timezone.now()
+
+        connection.mark_used()
+
+        connection.refresh_from_db()
+        self.assertGreaterEqual(connection.last_used_at, before)
