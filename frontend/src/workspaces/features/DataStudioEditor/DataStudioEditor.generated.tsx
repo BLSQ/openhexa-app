@@ -10,7 +10,7 @@ export type ExecuteWorkspaceSqlQueryVariables = Types.Exact<{
 }>;
 
 
-export type ExecuteWorkspaceSqlQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, database: { __typename?: 'Database', executeSQL: { __typename?: 'ExecuteSQLResult', success: boolean, errors: Array<Types.ExecuteSqlError>, errorMessage?: string | null, columns?: Array<string> | null, rows?: Array<any> | null, rowCount?: number | null, truncated?: boolean | null, durationMs?: number | null } } } | null };
+export type ExecuteWorkspaceSqlQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, database: { __typename?: 'Database', executeSQL: { __typename?: 'ExecuteSQLResult', success: boolean, errors: Array<Types.ExecuteSqlError>, errorMessage?: string | null, columns?: Array<string> | null, rows?: Array<any> | null, rowCount?: number | null, durationMs?: number | null, pageInfo?: { __typename?: 'QueryResultPageInfo', hasNextPage: boolean } | null } } } | null };
 
 
 export const ExecuteWorkspaceSqlDocument = gql`
@@ -25,7 +25,9 @@ export const ExecuteWorkspaceSqlDocument = gql`
         columns
         rows
         rowCount
-        truncated
+        pageInfo {
+          hasNextPage
+        }
         durationMs
       }
     }

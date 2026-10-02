@@ -435,6 +435,8 @@ class GraphQLProxyMiddlewareTest(TestCase):
                 "row_count": 1,
                 "truncated": False,
                 "duration_ms": 1,
+                "first_row": {"probe": 1},
+                "last_row": {"probe": 1},
             },
         ):
             response = self._execute_saved_query(webapp, "db-app", saved_query.slug)
@@ -448,6 +450,61 @@ class GraphQLProxyMiddlewareTest(TestCase):
         self.assertEqual(QueryLog.Origin.WEBAPP, log.origin)
         self.assertEqual(saved_query, log.saved_query)
         self.assertEqual(self.USER, log.user)
+
+    def test_pagination_arguments_pass_through_the_proxy(self):
+        # The proxy gates on top-level field names only, so input fields added to
+        # executeSavedQuery need no allowlisting. Pinned here so that a stricter
+        # proxy cannot silently strip a web app's sorting and paging.
+        saved_query = self._create_saved_query()
+        webapp = self._create_scoped_webapp(
+            "db-app", [Webapp.OperationScope.DATABASE_READ]
+        )
+        session = self._create_webapp_session(webapp, self.USER)
+
+        with patch(
+            "hexa.data_studio.query_runner.execute_database_query",
+            return_value={
+                "columns": ["probe"],
+                "rows": [{"probe": 1}, {"probe": 2}],
+                "row_count": 2,
+                "truncated": True,
+                "duration_ms": 1,
+                "first_row": {"probe": 1},
+                "last_row": {"probe": 2},
+            },
+        ) as execute:
+            response = self._graphql_post(
+                "db-app",
+                f"""query {{
+                    executeSavedQuery(input: {{
+                        slug: "{saved_query.slug}"
+                        orderBy: [{{ column: "probe", direction: DESC }}]
+                        perPage: 2
+                        page: 3
+                    }}) {{
+                        success errors
+                        pageInfo {{ hasNextPage hasPreviousPage pageNumber }}
+                    }}
+                }}""",
+                session_key=session.session_key,
+            )
+
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.content)["data"]["executeSavedQuery"]
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "pageInfo": {
+                    "hasNextPage": True,
+                    "hasPreviousPage": True,
+                    "pageNumber": 3,
+                },
+            },
+            result,
+        )
+        statement = execute.call_args.args[1]
+        self.assertEqual([3, 4], statement.params)
 
     def test_private_saved_query_is_out_of_reach(self):
         # A web app authenticates as the workspace, not as the query's author, so
