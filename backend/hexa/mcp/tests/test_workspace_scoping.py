@@ -9,11 +9,18 @@ from oauth2_provider.models import Application
 from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
 from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
 from hexa.mcp.models import MCPConnection, MCPUser
+from hexa.mcp.protocol import get_tools_catalogue
 from hexa.mcp.tests.testutils import all_tool_names
-from hexa.mcp.tools.datasets import create_dataset, preview_dataset_file
+from hexa.mcp.tools.datasets import (
+    create_dataset,
+    create_dataset_version,
+    preview_dataset_file,
+)
 from hexa.mcp.tools.files import list_files, write_file
 from hexa.mcp.tools.pipelines import (
+    create_pipeline,
     create_pipeline_from_template,
+    create_pipeline_version,
     get_pipeline_run,
     run_pipeline,
     update_pipeline,
@@ -25,7 +32,11 @@ from hexa.mcp.tools.saved_queries import (
     update_saved_query,
 )
 from hexa.mcp.tools.templates import get_pipeline_template, list_pipeline_templates
-from hexa.mcp.tools.webapps import edit_static_webapp_file, update_static_webapp
+from hexa.mcp.tools.webapps import (
+    create_static_webapp,
+    edit_static_webapp_file,
+    update_static_webapp,
+)
 from hexa.mcp.tools.workspaces import update_workspace
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.pipelines.models import (
@@ -46,6 +57,7 @@ def _mock_forgejo():
     client.get_commits.return_value = [{"id": "a" * 40}]
     client.commit_files.return_value = "a" * 40
     client.get_repository_files.return_value = []
+    client.get_file.return_value = b"<html/>"
     return patch("hexa.git.mixins.get_forgejo_client", return_value=client)
 
 
@@ -376,10 +388,123 @@ class GrantIsACeilingTest(MCPTestCase):
             tools=all_tool_names(),
         )
         cls.GRANT.workspaces.set([cls.WORKSPACE])
+        with _mock_forgejo():
+            cls.WEBAPP_ID = create_static_webapp(
+                user=cls.USER_ADMIN,
+                workspace_slug=cls.WORKSPACE.slug,
+                name="Viewed app",
+                files_json=json.dumps([{"path": "index.html", "content": "<html/>"}]),
+            )["webapp"]["id"]
+        cls.SHARED_QUERY = SavedQuery.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            cls.WORKSPACE,
+            name="Shared",
+            content="SELECT 1",
+            visibility=SavedQueryVisibility.WORKSPACE,
+        )
 
     def setUp(self):
         super().setUp()
         self.viewer = MCPUser.from_user(self.USER_VIEWER, self.GRANT)
+
+    ALLOWED_TO_VIEWERS = {"run_pipeline", "create_saved_query"}
+
+    def write_attempts(self, user):
+        files = json.dumps([{"path": "pipeline.py", "content": "print(1)"}])
+        webapp_files = json.dumps([{"path": "index.html", "content": "<html/>"}])
+        dataset_files = json.dumps(
+            [{"uri": "a.csv", "contentType": "text/csv", "content": "a,b"}]
+        )
+        return {
+            "write_file": lambda: write_file(
+                user=user,
+                workspace_slug=self.WORKSPACE.slug,
+                file_path="sneaky.txt",
+                content="hello",
+            ),
+            "update_workspace": lambda: update_workspace(
+                user=user, slug=self.WORKSPACE.slug, name="Renamed"
+            ),
+            "create_dataset": lambda: create_dataset(
+                user=user,
+                workspace_slug=self.WORKSPACE.slug,
+                name="Sneaky",
+                files_json=dataset_files,
+            ),
+            "create_dataset_version": lambda: create_dataset_version(
+                user=user, dataset_id=str(self.DATASET.id), name="v2"
+            ),
+            "update_pipeline": lambda: update_pipeline(
+                user=user, pipeline_id=str(self.PIPELINE.id), name="Renamed"
+            ),
+            "create_pipeline": lambda: create_pipeline(
+                user=user,
+                workspace_slug=self.WORKSPACE.slug,
+                name="Sneaky",
+                files_json=files,
+            ),
+            "create_pipeline_version": lambda: create_pipeline_version(
+                user=user,
+                workspace_slug=self.WORKSPACE.slug,
+                pipeline_code=self.PIPELINE.code,
+                files_json=files,
+            ),
+            "create_pipeline_from_template": lambda: create_pipeline_from_template(
+                user=user,
+                workspace_slug=self.WORKSPACE.slug,
+                template_version_id=str(self.TEMPLATE_VERSION.id),
+            ),
+            "create_static_webapp": lambda: create_static_webapp(
+                user=user,
+                workspace_slug=self.WORKSPACE.slug,
+                name="Sneaky",
+                files_json=webapp_files,
+            ),
+            "update_static_webapp": lambda: update_static_webapp(
+                user=user, webapp_id=str(self.WEBAPP_ID), name="Renamed"
+            ),
+            "edit_static_webapp_file": lambda: edit_static_webapp_file(
+                user=user,
+                webapp_id=str(self.WEBAPP_ID),
+                path="index.html",
+                old_string="<html/>",
+                new_string="<html>sneaky</html>",
+            ),
+            "update_saved_query": lambda: update_saved_query(
+                user=user,
+                saved_query_id=str(self.SHARED_QUERY.id),
+                name="Renamed",
+            ),
+        }
+
+    def test_every_write_tool_has_a_viewer_case(self):
+        write_tools = {tool["name"] for tool in get_tools_catalogue() if tool["write"]}
+
+        self.assertEqual(
+            write_tools,
+            set(self.write_attempts(self.viewer)) | self.ALLOWED_TO_VIEWERS,
+        )
+
+    def test_granted_write_tools_do_not_lift_a_viewer(self):
+        for name, attempt in self.write_attempts(self.viewer).items():
+            with self.subTest(tool=name), _mock_forgejo():
+                result = attempt()
+                self.assertFalse(result.get("success", False), result)
+
+    def test_the_same_writes_succeed_for_an_admin(self):
+        admin = MCPUser.from_user(
+            self.USER_ADMIN,
+            MCPConnection.objects.create(
+                user=self.USER_ADMIN,
+                application=self.APPLICATION,
+                tools=all_tool_names(),
+            ),
+        )
+        admin.connection.workspaces.set([self.WORKSPACE])
+        for name, attempt in self.write_attempts(admin).items():
+            with self.subTest(tool=name), _mock_forgejo():
+                result = attempt()
+                self.assertTrue(result.get("success", False), result)
 
     def test_the_viewer_can_still_read(self):
         result = list_files(user=self.viewer, workspace_slug=self.WORKSPACE.slug)
