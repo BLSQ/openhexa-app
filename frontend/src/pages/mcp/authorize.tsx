@@ -4,6 +4,7 @@ import Spinner from "core/components/Spinner";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import CenteredLayout from "core/layouts/centered";
+import { getMCPErrorMessage } from "mcp/helpers";
 import MCPPermissionMatrix, {
   MCPGrant,
 } from "mcp/features/MCPPermissionMatrix";
@@ -17,6 +18,7 @@ import Image from "next/legacy/image";
 import { useTranslation } from "next-i18next";
 import logo from "public/images/logo.svg";
 import { ReactElement, useRef, useState } from "react";
+import { toast } from "react-toastify";
 
 const WORKSPACES_PAGE_SIZE = 1000;
 
@@ -64,7 +66,7 @@ const AuthorizePage: NextPageWithLayout<Props> = ({
 
   const onAccept = async () => {
     setSubmitting(true);
-    const { data } = await authorizeConnection({
+    const result = await authorizeConnection({
       variables: {
         input: {
           clientId: params.client_id ?? "",
@@ -72,8 +74,10 @@ const AuthorizePage: NextPageWithLayout<Props> = ({
           workspaceSlugs: grant.workspaceSlugs,
         },
       },
-    });
-    if (!data?.authorizeMCPConnection.success) {
+    }).catch(() => null);
+    const payload = result?.data?.authorizeMCPConnection;
+    if (!payload?.success) {
+      toast.error(getMCPErrorMessage(t, payload?.errors));
       setSubmitting(false);
       return;
     }

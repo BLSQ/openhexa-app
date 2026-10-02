@@ -7,6 +7,7 @@ import Link from "core/components/Link";
 import Spinner from "core/components/Spinner";
 import Time from "core/components/Time";
 import { CustomApolloClient } from "core/helpers/apollo";
+import { getMCPErrorMessage } from "mcp/helpers";
 import MCPPermissionMatrix, {
   MCPGrant,
   MCPTool,
@@ -23,6 +24,7 @@ import {
 } from "mcp/graphql/queries.generated";
 import { Trans, useTranslation } from "next-i18next";
 import { useState } from "react";
+import { toast } from "react-toastify";
 
 const WORKSPACES_PAGE_SIZE = 1000;
 
@@ -82,7 +84,7 @@ const ConnectionCard = ({
 
   const onSave = async () => {
     setSaving(true);
-    const { data } = await updateConnection({
+    const result = await updateConnection({
       variables: {
         input: {
           id: connection.id,
@@ -90,19 +92,25 @@ const ConnectionCard = ({
           tools: draft.tools,
         },
       },
-    });
-    const updated = data?.updateMCPConnection.mcpConnection;
-    if (updated) {
-      setDraft(grantOf(updated));
+    }).catch(() => null);
+    const payload = result?.data?.updateMCPConnection;
+    if (payload?.success && payload.mcpConnection) {
+      setDraft(grantOf(payload.mcpConnection));
+    } else {
+      toast.error(getMCPErrorMessage(t, payload?.errors));
     }
     setSaving(false);
   };
 
   const onRevoke = async () => {
-    await revokeConnection({
+    const result = await revokeConnection({
       variables: { input: { id: connection.id } },
       refetchQueries: [AccountMcpConnectionsDocument],
-    });
+    }).catch(() => null);
+    const payload = result?.data?.revokeMCPConnection;
+    if (!payload?.success) {
+      toast.error(getMCPErrorMessage(t, payload?.errors));
+    }
     setRevoking(false);
   };
 
