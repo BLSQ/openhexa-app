@@ -66,6 +66,7 @@ export const organization = {
  */
 export const workspace = {
   slug: process.env.E2E_WORKSPACE_SLUG ?? "playwright-ws",
+  name: process.env.E2E_WORKSPACE_NAME ?? "Playwright WS",
 };
 
 export const workspacePaths = {
