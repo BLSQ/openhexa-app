@@ -13,6 +13,7 @@ import { OrganizationWorkspacesPage } from "../pages/OrganizationWorkspacesPage"
 export class DisposableWorkspace {
   readonly name: string;
   private slug: string | null = null;
+  private requested = false;
 
   constructor(private readonly page: Page) {
     const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
@@ -24,6 +25,7 @@ export class DisposableWorkspace {
   }
 
   async create(): Promise<string> {
+    this.requested = true;
     this.slug = await this.workspaces.create(this.name);
     return this.slug;
   }
@@ -34,6 +36,11 @@ export class DisposableWorkspace {
 
   async cleanup() {
     if (!this.slug) {
+      // The creation timed out before redirecting, but may still have gone
+      // through: the name is unique, so look for it by that.
+      if (this.requested) {
+        await this.workspaces.archiveIfCreated(this.name);
+      }
       return;
     }
     // Asking for the workspace itself is decisive in a way the organization
