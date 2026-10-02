@@ -565,6 +565,29 @@ export type AssistantToolSegment = {
   toolOutput?: Maybe<Scalars['JSON']['output']>;
 };
 
+export enum AuthorizeMcpConnectionError {
+  ClientNotFound = 'CLIENT_NOT_FOUND',
+  ToolNotFound = 'TOOL_NOT_FOUND',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+/**
+ * The grant a user picks on the consent screen, before the client holds a token.
+ * Creates the connection if this is the client's first authorization.
+ */
+export type AuthorizeMcpConnectionInput = {
+  clientId: Scalars['String']['input'];
+  tools?: InputMaybe<Array<Scalars['String']['input']>>;
+  workspaceSlugs?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type AuthorizeMcpConnectionResult = {
+  __typename?: 'AuthorizeMCPConnectionResult';
+  errors: Array<AuthorizeMcpConnectionError>;
+  mcpConnection?: Maybe<McpConnection>;
+  success: Scalars['Boolean']['output'];
+};
+
 /** The Avatar type represents the avatar of a user. */
 export type Avatar = {
   __typename?: 'Avatar';
@@ -2962,6 +2985,54 @@ export type LogoutResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/**
+ * An authorization request awaiting the user's consent, used to render the same
+ * permission editor on the consent screen as in the account settings.
+ */
+export type McpAuthorizationRequest = {
+  __typename?: 'MCPAuthorizationRequest';
+  clientName: Scalars['String']['output'];
+  connection?: Maybe<McpConnection>;
+  tools: Array<McpTool>;
+};
+
+/**
+ * What a given MCP client may do on behalf of the current user. Editable at any
+ * time: narrowing a connection takes effect on its next call, without the client
+ * having to authorize again.
+ */
+export type McpConnection = {
+  __typename?: 'MCPConnection';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['UUID']['output'];
+  lastUsedAt?: Maybe<Scalars['DateTime']['output']>;
+  name: Scalars['String']['output'];
+  tools: Array<Scalars['String']['output']>;
+  workspaces: Array<Workspace>;
+};
+
+/** A family of OpenHEXA resources an MCP connection can be granted access to. */
+export enum McpResource {
+  Connections = 'CONNECTIONS',
+  Databases = 'DATABASES',
+  Datasets = 'DATASETS',
+  Files = 'FILES',
+  Pipelines = 'PIPELINES',
+  SavedQueries = 'SAVED_QUERIES',
+  Templates = 'TEMPLATES',
+  Webapps = 'WEBAPPS',
+  Workspaces = 'WORKSPACES'
+}
+
+export type McpTool = {
+  __typename?: 'MCPTool';
+  description: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  resource?: Maybe<McpResource>;
+  /** True when calling it changes something. Display only — grants name tools. */
+  write: Scalars['Boolean']['output'];
+};
+
 /** The Me type represents the currently authenticated user. */
 export type Me = {
   __typename?: 'Me';
@@ -3078,6 +3149,7 @@ export type Mutation = {
   addWebappToShortcuts: AddWebappToShortcutsResult;
   approveAccessmodAccessRequest: ApproveAccessmodAccessRequestResult;
   archiveWorkspace: ArchiveWorkspaceResult;
+  authorizeMCPConnection: AuthorizeMcpConnectionResult;
   convertExternalCollaboratorToMember: ConvertExternalCollaboratorToMemberResult;
   createAccessmodAccessibilityAnalysis: CreateAccessmodAccessibilityAnalysisResult;
   createAccessmodFile: CreateAccessmodFileResult;
@@ -3202,6 +3274,7 @@ export type Mutation = {
   /** Sends a password reset email to the user. */
   resetPassword: ResetPasswordResult;
   resolveAssistantProposal: ResolveAssistantProposalResult;
+  revokeMCPConnection: RevokeMcpConnectionResult;
   runDAG: RunDagResult;
   /** Runs a pipeline. */
   runPipeline: RunPipelineResult;
@@ -3226,6 +3299,7 @@ export type Mutation = {
   /** Update a dataset version. */
   updateDatasetVersion: UpdateDatasetVersionResult;
   updateExternalCollaborator: UpdateExternalCollaboratorResult;
+  updateMCPConnection: UpdateMcpConnectionResult;
   updateMembership: UpdateMembershipResult;
   updateOrganization: UpdateOrganizationResult;
   /** Updates the AI settings of the currently authenticated user. */
@@ -3295,6 +3369,11 @@ export type MutationApproveAccessmodAccessRequestArgs = {
 
 export type MutationArchiveWorkspaceArgs = {
   input: ArchiveWorkspaceInput;
+};
+
+
+export type MutationAuthorizeMcpConnectionArgs = {
+  input: AuthorizeMcpConnectionInput;
 };
 
 
@@ -3728,6 +3807,11 @@ export type MutationResolveAssistantProposalArgs = {
 };
 
 
+export type MutationRevokeMcpConnectionArgs = {
+  input: RevokeMcpConnectionInput;
+};
+
+
 export type MutationRunDagArgs = {
   input: RunDagInput;
 };
@@ -3815,6 +3899,11 @@ export type MutationUpdateDatasetVersionArgs = {
 
 export type MutationUpdateExternalCollaboratorArgs = {
   input: UpdateExternalCollaboratorInput;
+};
+
+
+export type MutationUpdateMcpConnectionArgs = {
+  input: UpdateMcpConnectionInput;
 };
 
 
@@ -4861,6 +4950,15 @@ export type Query = {
   executeSavedQuery: ExecuteSqlResult;
   /** Get a file by its path within a workspace. */
   getFileByPath?: Maybe<BucketObject>;
+  /** The consent context for a pending authorization, by OAuth client id. */
+  mcpAuthorizationRequest?: Maybe<McpAuthorizationRequest>;
+  /** The MCP clients the current user has connected. */
+  mcpConnections: Array<McpConnection>;
+  /**
+   * Every tool the MCP server exposes, with the access each one needs. Lets the
+   * permission editor show which tools a resource family actually covers.
+   */
+  mcpTools: Array<McpTool>;
   /** Retrieves the currently authenticated user. */
   me: Me;
   metadataAttributes: Array<Maybe<MetadataAttribute>>;
@@ -5060,6 +5158,11 @@ export type QueryExecuteSavedQueryArgs = {
 export type QueryGetFileByPathArgs = {
   path: Scalars['String']['input'];
   workspaceSlug: Scalars['String']['input'];
+};
+
+
+export type QueryMcpAuthorizationRequestArgs = {
+  clientId: Scalars['String']['input'];
 };
 
 
@@ -5497,6 +5600,20 @@ export type ResourceCountsInput = {
   users: Scalars['Int']['input'];
   /** Number of workspaces. */
   workspaces: Scalars['Int']['input'];
+};
+
+export enum RevokeMcpConnectionError {
+  NotFound = 'NOT_FOUND'
+}
+
+export type RevokeMcpConnectionInput = {
+  id: Scalars['UUID']['input'];
+};
+
+export type RevokeMcpConnectionResult = {
+  __typename?: 'RevokeMCPConnectionResult';
+  errors: Array<RevokeMcpConnectionError>;
+  success: Scalars['Boolean']['output'];
 };
 
 export enum RunDagError {
@@ -6119,6 +6236,25 @@ export type UpdateExternalCollaboratorResult = {
   /** The list of errors that occurred during the updateExternalCollaborator mutation. */
   errors: Array<UpdateExternalCollaboratorError>;
   /** Indicates whether the updateExternalCollaborator mutation was successful. */
+  success: Scalars['Boolean']['output'];
+};
+
+export enum UpdateMcpConnectionError {
+  NotFound = 'NOT_FOUND',
+  ToolNotFound = 'TOOL_NOT_FOUND',
+  WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
+}
+
+export type UpdateMcpConnectionInput = {
+  id: Scalars['UUID']['input'];
+  tools?: InputMaybe<Array<Scalars['String']['input']>>;
+  workspaceSlugs?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type UpdateMcpConnectionResult = {
+  __typename?: 'UpdateMCPConnectionResult';
+  errors: Array<UpdateMcpConnectionError>;
+  mcpConnection?: Maybe<McpConnection>;
   success: Scalars['Boolean']['output'];
 };
 

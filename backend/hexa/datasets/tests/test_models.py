@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.test import override_settings
+from django.utils import timezone
 from django.utils.crypto import get_random_string
 
 from hexa.core.test import TestCase
@@ -14,7 +15,12 @@ from hexa.datasets.models import (
 )
 from hexa.files import storage
 from hexa.pipelines.authentication import PipelineRunUser
-from hexa.pipelines.models import Pipeline, PipelineRun
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineRun,
+    PipelineRunState,
+    PipelineRunTrigger,
+)
 from hexa.user_management.models import (
     Organization,
     OrganizationMembership,
@@ -982,3 +988,37 @@ class DatasetLinkPipelineRunUserTest(BaseTestMixin, TestCase):
             description="",
         )
         self.assertIsNone(dataset.created_by)
+
+    def test_pipeline_user_writes_versions_and_files_in_its_workspace_only(self):
+        run = PipelineRun.objects.create(
+            pipeline=self.PIPELINE,
+            user=self.USER_ADMIN,
+            run_id="dataset-writer",
+            execution_date=timezone.now(),
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            state=PipelineRunState.RUNNING,
+        )
+        principal = PipelineRunUser(run)
+
+        version = DatasetVersion.objects.create_if_has_perm(
+            principal,
+            dataset=self.DATASET_IN_PIPELINE_WORKSPACE,
+            name="From the pipeline",
+            changelog="",
+        )
+        DatasetVersionFile.objects.create_if_has_perm(
+            principal,
+            dataset_version=version,
+            uri="pipeline-file.csv",
+            content_type="text/csv",
+        )
+        self.assertEqual(run, version.pipeline_run)
+        self.assertEqual(1, version.files.count())
+
+        with self.assertRaises(PermissionDenied):
+            DatasetVersion.objects.create_if_has_perm(
+                principal,
+                dataset=self.DATASET_IN_WORKSPACE_3,
+                name="Elsewhere",
+                changelog="",
+            )

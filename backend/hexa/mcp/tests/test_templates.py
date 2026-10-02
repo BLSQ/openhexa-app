@@ -1,8 +1,5 @@
-from hexa.mcp.tools.templates import (
-    create_pipeline_from_template,
-    get_pipeline_template,
-    list_pipeline_templates,
-)
+from hexa.mcp.tools.pipelines import create_pipeline_from_template
+from hexa.mcp.tools.templates import get_pipeline_template, list_pipeline_templates
 from hexa.pipelines.models import Pipeline
 
 from .testutils import MCPTestCase
