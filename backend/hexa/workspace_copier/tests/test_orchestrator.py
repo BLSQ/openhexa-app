@@ -44,6 +44,24 @@ class ResolveSelectionTest(SimpleTestCase):
         # order matches registry (workspace appears before pipelines)
         self.assertLess(names.index("workspace"), names.index("pipelines"))
 
+    def test_registry_order(self):
+        self.assertEqual(
+            [c.name for c in WORKSPACE_COPIERS],
+            [
+                "workspace",
+                "files",
+                "database",
+                "connections",
+                "pipelines",
+                "datasets",
+                "webapps",
+            ],
+        )
+
+    def test_webapps_can_be_selected_alone(self):
+        selected = _resolve_selection(WORKSPACE_COPIERS, {"webapps"})
+        self.assertEqual([c.name for c in selected], ["workspace", "webapps"])
+
     def test_unknown_names_are_ignored(self):
         selected = _resolve_selection(WORKSPACE_COPIERS, {"does-not-exist"})
         self.assertEqual([c.name for c in selected], ["workspace"])

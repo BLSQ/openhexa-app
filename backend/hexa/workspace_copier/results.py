@@ -102,6 +102,23 @@ class DatasetsResult:
 
 
 @dataclass
+class WebappsResult:
+    """What the web apps copier did, for the summary."""
+
+    created: list[tuple[str, int]] = field(default_factory=list)
+    """(webapp_slug, version_count) for each web app created on target."""
+
+    skipped: list[str] = field(default_factory=list)
+    """Web app slugs that already existed on target or cannot be copied (Superset)."""
+
+    failed: list[str] = field(default_factory=list)
+    """Web app slugs whose copy failed; user must handle manually."""
+
+    warnings: list[str] = field(default_factory=list)
+    """Human-readable warnings to print in the summary."""
+
+
+@dataclass
 class TemplatesResult:
     """What a template copy run did, for the summary.
 
@@ -140,6 +157,7 @@ class CopyResult:
     connections: ConnectionsResult | None = None
     pipelines: PipelinesResult | None = None
     datasets: DatasetsResult | None = None
+    webapps: WebappsResult | None = None
     warnings: list[str] = field(default_factory=list)
 
     started_at: datetime | None = None
@@ -244,6 +262,23 @@ def format_summary(result: CopyResult) -> str:
         if datasets.warnings:
             lines.append("Dataset warnings:")
             lines.extend(f"  - {w}" for w in datasets.warnings)
+
+    if result.webapps is not None:
+        webapps = result.webapps
+        lines.append(f"Web apps created: {len(webapps.created)}")
+        lines.extend(f"  * {slug} ({n} version(s))" for slug, n in webapps.created)
+        if webapps.skipped:
+            lines.append(f"Web apps skipped: {len(webapps.skipped)}")
+            lines.extend(f"  * {slug}" for slug in webapps.skipped)
+        if webapps.failed:
+            lines.append(
+                f"Web apps that could NOT be copied "
+                f"({len(webapps.failed)} — handle manually):"
+            )
+            lines.extend(f"  * {slug}" for slug in webapps.failed)
+        if webapps.warnings:
+            lines.append("Web app warnings:")
+            lines.extend(f"  - {w}" for w in webapps.warnings)
 
     if result.warnings:
         lines.append("Warnings:")
