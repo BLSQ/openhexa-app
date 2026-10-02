@@ -8,8 +8,9 @@ import Breadcrumbs from "core/components/Breadcrumbs";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Page from "core/components/Page";
 import { useTranslation } from "next-i18next";
+import { WebappType } from "graphql/types";
 
-const WebappCreatePage = ({ workspace }: any) => {
+const WebappCreatePage = ({ workspace, defaultType }: any) => {
   const { t } = useTranslation();
 
   return (
@@ -36,7 +37,7 @@ const WebappCreatePage = ({ workspace }: any) => {
         }
       >
         <WorkspaceLayout.PageContent>
-          <WebappForm workspace={workspace} />
+          <WebappForm workspace={workspace} defaultType={defaultType} />
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
     </Page>
@@ -66,9 +67,11 @@ export const getServerSideProps = createGetServerSideProps({
         },
       };
     }
+    const type = ctx.query?.type as WebappType;
     return {
       props: {
         workspace: data.workspace,
+        ...(Object.values(WebappType).includes(type) && { defaultType: type }),
       },
     };
   },
