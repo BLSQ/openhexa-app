@@ -20,7 +20,9 @@ cp .env.example .env # then fill in E2E_EMAIL / E2E_PASSWORD
 ```
 
 The account in `.env` must be an admin or owner of the organization under test —
-the settings page renders nothing without the `update` permission.
+the settings page renders nothing without the `update` permission. It must also
+be a member (editor or admin) of the test workspace itself: the organization
+role reaches the workspace's pages, but the AI assistant only serves members.
 
 `E2E_OUTSIDER_EMAIL` / `E2E_OUTSIDER_PASSWORD` are optional: a second account
 that is signed in but has no access to the test workspace -- not a member of
@@ -140,6 +142,7 @@ Covered so far:
 | `workspace-connections.spec.ts` | Creating and deleting one connection of each type |
 | `workspace-pipelines.spec.ts` | A pipeline from a template: every tab, running it, editing the code, and running the new version |
 | `workspace-webapps.spec.ts` | Creating an iFrame app and deleting it |
+| `workspace-webapp-assistant.spec.ts` | The AI assistant on a static app's code: a proposal that cannot be resolved while the agent is still writing, then dismissed or saved |
 | `workspace-static-webapps.spec.ts` | A static app's code, history, rollback, name, subdomain, icon and deletion; who can open it when private or public, and its API access |
 | `workspace-data-studio.spec.ts` | Running a query into a table, a failing query, and the bar, line, pie and map widgets |
 | `workspace-saved-queries.spec.ts` | Creating, listing, opening and deleting a saved query; editing its name, description, SQL and sharing |
@@ -189,6 +192,11 @@ assert on their values, so reloading that data means updating the expectations.
   since the web app domain differs per environment.
 - **Saving a static app's code publishes it.** Each save is a commit that goes
   live at once; publishing an older commit from the Code tab rolls it back.
+- **The assistant specs talk to the real agent**, so they spend tokens on
+  every run and take as long as the model does. A proposal can only be saved
+  or dismissed once the agent's turn has ended; the prompt asks for a long
+  answer after the proposal, so the turn stays open long enough to check that
+  both are refused until then.
 - **A saved query is deleted from the list only**, and the list is searched by
   name, so cleanup reads the current name off the query's page first in case
   the test renamed it before failing.
