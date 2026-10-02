@@ -55,6 +55,8 @@ export const workspacePaths = {
   connections: `/workspaces/${workspace.slug}/connections/`,
   pipelines: `/workspaces/${workspace.slug}/pipelines/`,
   webapps: `/workspaces/${workspace.slug}/webapps/`,
+  dataStudio: `/workspaces/${workspace.slug}/data-studio/`,
+  savedQueries: `/workspaces/${workspace.slug}/data-studio/queries/`,
   settings: `/workspaces/${workspace.slug}/settings/`,
 };
 
