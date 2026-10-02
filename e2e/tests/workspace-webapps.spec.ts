@@ -5,7 +5,8 @@ import {
   WorkspaceWebappsPage,
 } from "../pages/WorkspaceWebappsPage";
 
-const TYPES: WebappType[] = ["iFrame", "Static"];
+// Static apps have their own, fuller spec: workspace-static-webapps.spec.ts.
+const TYPES: WebappType[] = ["iFrame"];
 
 test.describe("Workspace web apps", () => {
   for (const type of TYPES) {
