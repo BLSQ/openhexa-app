@@ -28,7 +28,8 @@ role reaches the workspace's pages, but the AI assistant only serves members.
 that is signed in but has no access to the test workspace -- not a member of
 it, and not an admin or owner of its organization, which would reach every
 workspace in it. The tests that check what such a user is refused are skipped
-without it.
+without it. The suite also switches this account's interface language, so that
+the main account's never changes under the tests running alongside.
 
 ## Running
 
@@ -136,6 +137,7 @@ Covered so far:
 | --- | --- |
 | `organization-navigation.spec.ts` | The sidebar and every organization route |
 | `organization-settings.spec.ts` | The General, AI Assistant and Usage & Limits cards |
+| `user-menu.spec.ts` | The user menu's links (Account settings, MCP, Documentation); the profile name, access tokens and two-factor dialog; adding a member; the interface language |
 | `workspace-lifecycle.spec.ts` | Creating a workspace and archiving it again |
 | `workspace-files.spec.ts` | Creating a folder, uploading a file, deleting both |
 | `workspace-datasets.spec.ts` | Creating a dataset and a version, removing both |
@@ -197,6 +199,17 @@ assert on their values, so reloading that data means updating the expectations.
   or dismissed once the agent's turn has ended; the prompt asks for a long
   answer after the proposal, so the turn stays open long enough to check that
   both are refused until then.
+- **The interface language belongs to the account, not the browser.**
+  Switching it changes every session of that user at once, which is why the
+  language test runs as the outsider, serially with the other outsider test in
+  its file, and resets the language through the API in cleanup.
+- **Adding an existing user to a workspace makes them a member at once** --
+  there is no invitation to accept. Pending invitations only exist for emails
+  without an account, so the account page's invitation list is not covered.
+- **A workspace creation can outlive its test.** Under load the redirect to a
+  new workspace can take longer than the test waits, while the backend still
+  creates it. `DisposableWorkspace` then looks it up by its unique name in
+  teardown and archives it.
 - **A saved query is deleted from the list only**, and the list is searched by
   name, so cleanup reads the current name off the query's page first in case
   the test renamed it before failing.
