@@ -296,17 +296,21 @@ class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
 
         if not user.is_authenticated:
             return self.none()
-        if isinstance(user, ServicePrincipal):
+        if is_non_personal_principal(user):
             return self.filter(workspaces__in=Workspace.objects.filter_for_user(user))
         if user.is_superuser or user.has_perm(
             "user_management.manage_all_organizations"
         ):
-            return self.all()
-        if direct_membership_only:
-            return self.filter(organizationmembership__user=user).distinct()
-        return self.filter(
-            Q(organizationmembership__user=user) | Q(workspaces__members=user)
-        ).distinct()
+            qs = self.all()
+        elif direct_membership_only:
+            qs = self.filter(organizationmembership__user=user)
+        else:
+            qs = self.filter(
+                Q(organizationmembership__user=user) | Q(workspaces__members=user)
+            )
+        if isinstance(user, ServicePrincipal):
+            qs = qs.filter(workspaces__in=Workspace.objects.filter_for_user(user))
+        return qs.distinct()
 
 
 class Organization(Base, SoftDeletedModel):

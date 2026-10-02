@@ -180,7 +180,7 @@ def oauth2_token_authentication_middleware(get_response):
             auth_type, token = request.headers["Authorization"].split(" ")
             if auth_type.lower() == "bearer":
                 access_token = AccessToken.objects.select_related("user").get(
-                    token=token
+                    token=token, user__is_active=True
                 )
                 if (
                     access_token.expires >= timezone.now()

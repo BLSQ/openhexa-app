@@ -6,6 +6,7 @@ from django.utils import timezone
 from oauth2_provider.models import AccessToken, Application
 
 from hexa.core.middlewares import oauth2_token_authentication_middleware
+from hexa.datasets.models import Dataset
 from hexa.mcp.models import MCPConnection, MCPUser
 from hexa.mcp.tests.testutils import all_tool_names
 from hexa.user_management.models import (
@@ -102,6 +103,19 @@ class MCPUserFilteringTest(TestCase):
 
         self.assertEqual([], list(Workspace.objects.filter_for_user(mcp_user)))
 
+    def test_an_organization_shared_dataset_stays_hidden_from_a_non_member(self):
+        dataset = Dataset.objects.create_if_has_perm(
+            self.SUPERUSER, self.STRANGER, name="Org-wide", description=""
+        )
+        dataset.shared_with_organization = True
+        dataset.save()
+        mcp_user = MCPUser.from_user(
+            self.USER, self.connection_for(self.USER, self.GRANTED)
+        )
+
+        self.assertNotIn(dataset, Dataset.objects.filter_for_user(self.USER))
+        self.assertNotIn(dataset, Dataset.objects.filter_for_user(mcp_user))
+
 
 class MCPConnectionAccessTest(TestCase):
     def test_only_the_named_tools_are_allowed(self):
@@ -163,3 +177,11 @@ class MCPTokenMiddlewareTest(TestCase):
         self.assertEqual(self.USER, user.real_user)
         connection.refresh_from_db()
         self.assertIsNotNone(connection.last_used_at)
+
+    def test_a_deactivated_user_is_not_authenticated(self):
+        MCPConnection.objects.create(
+            user=self.USER, application=self.APPLICATION, tools=all_tool_names()
+        )
+        User.objects.filter(pk=self.USER.pk).update(is_active=False)
+
+        self.assertFalse(self.call().is_authenticated)
