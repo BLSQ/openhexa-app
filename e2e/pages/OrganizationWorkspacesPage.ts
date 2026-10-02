@@ -94,4 +94,26 @@ export class OrganizationWorkspacesPage {
 
     await expect(row).toHaveCount(0);
   }
+
+  /**
+   * Archives a workspace known only by its name, if it turns up within
+   * `timeout`. For a creation that timed out before reporting its slug: the
+   * backend may still be provisioning it, so it is given time to appear.
+   */
+  async archiveIfCreated(name: string, timeout = 60_000) {
+    await this.goto();
+    await this.showList();
+    await this.searchInput.fill(name);
+    try {
+      await expect(async () => {
+        await this.page.reload();
+        await this.showList();
+        await this.searchInput.fill(name);
+        await expect(this.row(name)).toBeVisible({ timeout: 5_000 });
+      }).toPass({ timeout });
+    } catch {
+      return;
+    }
+    await this.archive(name);
+  }
 }
