@@ -28,6 +28,9 @@ query AccountMCPConnections($page: Int, $perPage: Int) {
       countries {
         code
       }
+      currentMembership {
+        role
+      }
     }
   }
 }
@@ -52,6 +55,9 @@ query MCPAuthorizationRequest($clientId: String!, $page: Int, $perPage: Int) {
       name
       countries {
         code
+      }
+      currentMembership {
+        role
       }
     }
   }

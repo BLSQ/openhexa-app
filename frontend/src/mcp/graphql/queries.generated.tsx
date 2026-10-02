@@ -11,7 +11,7 @@ export type AccountMcpConnectionsQueryVariables = Types.Exact<{
 }>;
 
 
-export type AccountMcpConnectionsQuery = { __typename?: 'Query', mcpConnections: Array<{ __typename?: 'MCPConnection', id: string, name: string, createdAt: any, lastUsedAt?: any | null, tools: Array<string>, workspaces: Array<{ __typename?: 'Workspace', slug: string, name: string }> }>, mcpTools: Array<{ __typename?: 'MCPTool', name: string, description: string, resource?: Types.McpResource | null, write: boolean }>, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> } };
+export type AccountMcpConnectionsQuery = { __typename?: 'Query', mcpConnections: Array<{ __typename?: 'MCPConnection', id: string, name: string, createdAt: any, lastUsedAt?: any | null, tools: Array<string>, workspaces: Array<{ __typename?: 'Workspace', slug: string, name: string }> }>, mcpTools: Array<{ __typename?: 'MCPTool', name: string, description: string, resource?: Types.McpResource | null, write: boolean }>, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }>, currentMembership?: { __typename?: 'WorkspaceMembership', role: Types.WorkspaceMembershipRole } | null }> } };
 
 export type McpAuthorizationRequestQueryVariables = Types.Exact<{
   clientId: Types.Scalars['String']['input'];
@@ -20,7 +20,7 @@ export type McpAuthorizationRequestQueryVariables = Types.Exact<{
 }>;
 
 
-export type McpAuthorizationRequestQuery = { __typename?: 'Query', mcpAuthorizationRequest?: { __typename?: 'MCPAuthorizationRequest', clientName: string, connection?: { __typename?: 'MCPConnection', id: string, name: string, createdAt: any, lastUsedAt?: any | null, tools: Array<string>, workspaces: Array<{ __typename?: 'Workspace', slug: string, name: string }> } | null, tools: Array<{ __typename?: 'MCPTool', name: string, description: string, resource?: Types.McpResource | null, write: boolean }> } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }> }> } };
+export type McpAuthorizationRequestQuery = { __typename?: 'Query', mcpAuthorizationRequest?: { __typename?: 'MCPAuthorizationRequest', clientName: string, connection?: { __typename?: 'MCPConnection', id: string, name: string, createdAt: any, lastUsedAt?: any | null, tools: Array<string>, workspaces: Array<{ __typename?: 'Workspace', slug: string, name: string }> } | null, tools: Array<{ __typename?: 'MCPTool', name: string, description: string, resource?: Types.McpResource | null, write: boolean }> } | null, workspaces: { __typename?: 'WorkspacePage', totalItems: number, items: Array<{ __typename?: 'Workspace', slug: string, name: string, countries: Array<{ __typename?: 'Country', code: string }>, currentMembership?: { __typename?: 'WorkspaceMembership', role: Types.WorkspaceMembershipRole } | null }> } };
 
 export const McpConnection_ConnectionFragmentDoc = gql`
     fragment MCPConnection_connection on MCPConnection {
@@ -53,6 +53,9 @@ export const AccountMcpConnectionsDocument = gql`
       name
       countries {
         code
+      }
+      currentMembership {
+        role
       }
     }
   }
@@ -113,6 +116,9 @@ export const McpAuthorizationRequestDocument = gql`
       name
       countries {
         code
+      }
+      currentMembership {
+        role
       }
     }
   }

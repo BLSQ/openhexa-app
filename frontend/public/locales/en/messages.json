@@ -1233,6 +1233,8 @@
   "Writing OpenHEXA pipelines": "Writing OpenHEXA pipelines",
   "Wrong email address and/or password.": "Wrong email address and/or password.",
   "Yes": "Yes",
+  "You are a viewer in {{count}} of the selected workspaces: there, the assistant can only do what a viewer can, whatever you choose below.___one": "You are a viewer in {{count}} of the selected workspaces: there, the assistant can only do what a viewer can, whatever you choose below.",
+  "You are a viewer in {{count}} of the selected workspaces: there, the assistant can only do what a viewer can, whatever you choose below.___other": "You are a viewer in {{count}} of the selected workspaces: there, the assistant can only do what a viewer can, whatever you choose below.",
   "You are about to replace the pipeline webhook URL.": "You are about to replace the pipeline webhook URL.",
   "You are about to replace the workspace database password.": "You are about to replace the workspace database password.",
   "You are not a direct member of this workspace, so this token is temporary: generate a new one once it expires.": "You are not a direct member of this workspace, so this token is temporary: generate a new one once it expires.",

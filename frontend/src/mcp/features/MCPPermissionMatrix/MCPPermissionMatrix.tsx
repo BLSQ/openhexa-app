@@ -5,7 +5,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
-import { McpResource } from "graphql/types";
+import { McpResource, WorkspaceMembershipRole } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useMemo, useState } from "react";
 import Flag from "react-world-flags";
@@ -26,6 +26,7 @@ export type MCPWorkspace = {
   slug: string;
   name: string;
   countries: { code: string }[];
+  currentMembership?: { role: WorkspaceMembershipRole } | null;
 };
 
 type Props = {
@@ -205,6 +206,15 @@ const MCPPermissionMatrix = ({
   }, [tools]);
 
   const granted = useMemo(() => new Set(grant.tools), [grant.tools]);
+  const viewerWorkspaceCount = workspaces.filter(
+    (workspace) =>
+      grant.workspaceSlugs.includes(workspace.slug) &&
+      workspace.currentMembership?.role === WorkspaceMembershipRole.Viewer,
+  ).length;
+  const grantsWrite = tools.some(
+    (tool) => tool.resource && tool.write && granted.has(tool.name),
+  );
+
   const groups = RESOURCE_ORDER.filter(
     (resource) => (toolsByGroup.get(resource) ?? []).length > 0,
   );
@@ -378,6 +388,12 @@ const MCPPermissionMatrix = ({
                     {workspace.slug}
                   </span>
                 </span>
+                {workspace.currentMembership?.role ===
+                  WorkspaceMembershipRole.Viewer && (
+                  <span className="shrink-0 rounded bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-700">
+                    {t("Viewer")}
+                  </span>
+                )}
               </label>
             ))}
           </div>
@@ -396,6 +412,14 @@ const MCPPermissionMatrix = ({
 
       <section className="space-y-3">
         <h5 className="font-medium text-gray-900">{t("Permissions")}</h5>
+        {viewerWorkspaceCount > 0 && grantsWrite && (
+          <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            {t(
+              "You are a viewer in {{count}} of the selected workspaces: there, the assistant can only do what a viewer can, whatever you choose below.",
+              { count: viewerWorkspaceCount },
+            )}
+          </p>
+        )}
 
         <div className="divide-y divide-gray-200 rounded-lg border border-gray-200">
           <div className="flex items-center justify-between gap-4 bg-gray-50 px-4 py-2.5">
