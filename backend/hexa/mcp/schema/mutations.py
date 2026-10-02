@@ -32,6 +32,15 @@ def resolve_workspaces(user, input):
     return workspaces
 
 
+def validate_grant(user, grant_input):
+    if unknown_tool_names(grant_input):
+        return None, "TOOL_NOT_FOUND"
+    try:
+        return resolve_workspaces(user, grant_input), None
+    except LookupError:
+        return None, "WORKSPACE_NOT_FOUND"
+
+
 def apply_grant(connection: MCPConnection, input, workspaces) -> MCPConnection:
     with transaction.atomic():
         if "tools" in input:
@@ -54,16 +63,9 @@ def resolve_authorize_mcp_connection(_, info, **kwargs):
             "errors": ["CLIENT_NOT_FOUND"],
             "mcp_connection": None,
         }
-    if unknown_tool_names(input):
-        return {"success": False, "errors": ["TOOL_NOT_FOUND"], "mcp_connection": None}
-    try:
-        workspaces = resolve_workspaces(request.user, input)
-    except LookupError:
-        return {
-            "success": False,
-            "errors": ["WORKSPACE_NOT_FOUND"],
-            "mcp_connection": None,
-        }
+    workspaces, error = validate_grant(request.user, input)
+    if error:
+        return {"success": False, "errors": [error], "mcp_connection": None}
 
     connection, created = MCPConnection.objects.get_or_create(
         user=request.user, application=application
@@ -86,16 +88,9 @@ def resolve_update_mcp_connection(_, info, **kwargs):
     if connection is None:
         return {"success": False, "errors": ["NOT_FOUND"], "mcp_connection": None}
 
-    if unknown_tool_names(input):
-        return {"success": False, "errors": ["TOOL_NOT_FOUND"], "mcp_connection": None}
-    try:
-        workspaces = resolve_workspaces(request.user, input)
-    except LookupError:
-        return {
-            "success": False,
-            "errors": ["WORKSPACE_NOT_FOUND"],
-            "mcp_connection": None,
-        }
+    workspaces, error = validate_grant(request.user, input)
+    if error:
+        return {"success": False, "errors": [error], "mcp_connection": None}
 
     return {
         "success": True,
