@@ -6,6 +6,12 @@ import path from "node:path";
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
 export const STORAGE_STATE = path.join(__dirname, "..", ".auth", "user.json");
+export const OUTSIDER_STORAGE_STATE = path.join(
+  __dirname,
+  "..",
+  ".auth",
+  "outsider.json",
+);
 
 export const BASE_URL =
   process.env.E2E_BASE_URL ?? "https://app.demo.openhexa.org";
@@ -28,6 +34,20 @@ export const credentials = {
     return required("E2E_PASSWORD");
   },
 };
+
+/**
+ * An optional second account that is signed in but has no access to the test
+ * workspace: not a member of it, and not an admin or owner of its organization,
+ * which would grant access to every workspace in it. The tests that need it
+ * are skipped when it is not configured.
+ */
+export const outsiderCredentials =
+  process.env.E2E_OUTSIDER_EMAIL && process.env.E2E_OUTSIDER_PASSWORD
+    ? {
+        email: process.env.E2E_OUTSIDER_EMAIL,
+        password: process.env.E2E_OUTSIDER_PASSWORD,
+      }
+    : null;
 
 /**
  * The organization the suite navigates. It is a dedicated, otherwise-unused
