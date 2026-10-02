@@ -1,0 +1,13 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block extrahead %}{{ block.super }}
+{% if original.is_active %}<meta http-equiv="refresh" content="5">{% endif %}
+{% endblock %}
+
+{% block object-tools-items %}
+{% if resume_url %}
+<li><a href="{{ resume_url }}">{% trans 'Resume into the same workspace' %}</a></li>
+{% endif %}
+{{ block.super }}
+{% endblock %}

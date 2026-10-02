@@ -95,3 +95,20 @@ class CopyWorkspaceTest(SimpleTestCase):
                 object(), object(), NullReporter(), resources={"files", "pipelines"}
             )
         self.assertFalse(any("not selected" in w for w in result.warnings))
+
+    def test_on_target_ready_called_once_when_target_exists(self):
+        class CreatingCopier(FakeCopier):
+            def copy(self, source, target, result, reporter, *, options=CopyOptions()):
+                result.workspace_slug = "my-ws-ab12"
+
+        fakes = [
+            CreatingCopier("workspace", mandatory=True),
+            FakeCopier("files"),
+            FakeCopier("pipelines"),
+        ]
+        announced = []
+        with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
+            copy_workspace(
+                object(), object(), NullReporter(), on_target_ready=announced.append
+            )
+        self.assertEqual(announced, ["my-ws-ab12"])

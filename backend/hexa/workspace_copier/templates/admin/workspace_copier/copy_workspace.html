@@ -33,8 +33,9 @@
 </style>
 <p>
     Copy a workspace between servers. Leave a server URL blank to use the local
-    server. Source/target superuser credentials are used only for this request
-    and are never stored.
+    server. The copy runs in the background: submitting queues it and opens its
+    run page, where logs appear as it progresses. Source/target credentials are
+    stored encrypted until the run ends, then erased.
 </p>
 <p>{% trans 'Example server URLs:' %}</p>
 <ul>
@@ -87,7 +88,7 @@
         </div>
     </fieldset>
     <div class="submit-row">
-        <input type="submit" value="{% trans 'Run copy' %}" class="default">
+        <input type="submit" value="{% trans 'Queue copy' %}" class="default">
     </div>
 </form>
 
@@ -115,16 +116,6 @@
     });
 })();
 </script>
-
-{% if log %}
-<h2>{% trans 'Log' %}</h2>
-<pre>{{ log }}</pre>
-{% endif %}
-
-{% if summary %}
-<h2>{% trans 'Summary' %}</h2>
-<pre>{{ summary }}</pre>
-{% endif %}
 
 <script>
 (function () {

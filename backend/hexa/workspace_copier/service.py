@@ -183,6 +183,7 @@ def run_copy(
     resources: set[str] | None = None,
     options: CopyOptions = CopyOptions(),
     reporter: ProgressReporter,
+    on_target_ready: Callable[[str], None] | None = None,
 ) -> CopyResult:
     """Verify both endpoints, then copy the workspace, returning the result."""
     source, target = _verify_endpoints(
@@ -201,6 +202,7 @@ def run_copy(
         reporter,
         resources=resources,
         options=options,
+        on_target_ready=on_target_ready,
     )
 
 
