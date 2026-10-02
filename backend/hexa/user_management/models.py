@@ -89,9 +89,15 @@ class UserInterface:
 
 class ServicePrincipal:
     """Marker mixin for principals that impersonate workspaces rather than
-    a real user account (PipelineRunUser, WebappUser, ...). Used as
-    `isinstance(user, ServicePrincipal)` to short-circuit user-membership
-    queries that wouldn't make sense for service principals.
+    a real user account (PipelineRunUser, WebappUser, MCPUser).
+
+    Some of them act for a person (WebappUser, MCPUser are also Users) and must
+    never reach more than that person. A filter_for_user branch that replaces
+    the person's access with "everything in my workspaces" is therefore for
+    non-personal principals only (see is_non_personal_principal); one acting for
+    a person starts from the person's result and only narrows it to its
+    workspace_ids. hexa.mcp.tests.test_access_ceiling checks this for every
+    filter_for_user.
     """
 
     @property
