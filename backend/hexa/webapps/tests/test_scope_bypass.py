@@ -50,11 +50,7 @@ class WebappProxyClientMixin:
 
 
 @override_settings(WEBAPPS_DOMAIN=WEBAPPS_DOMAIN, ALLOWED_HOSTS=["*"])
-class InlineFragmentBypassTest(WebappProxyClientMixin, TestCase):
-    """A web app must not reach fields outside its scopes by wrapping them in
-    an inline fragment on the root type.
-    """
-
+class ScopeBypassTestCase(WebappProxyClientMixin, TestCase):
     @classmethod
     def setUpTestData(cls):
         # An admin has every role-based permission, so only the scope check
@@ -89,6 +85,12 @@ class InlineFragmentBypassTest(WebappProxyClientMixin, TestCase):
         self.user_read_webapp = self._create_webapp(
             "user-read-app", [Webapp.OperationScope.USER_READ]
         )
+
+
+class InlineFragmentBypassTest(ScopeBypassTestCase):
+    """A web app must not reach fields outside its scopes by wrapping them in
+    an inline fragment on the root type.
+    """
 
     def test_inline_fragment_query_cannot_read_out_of_scope_data(self):
         response = self._post_as_webapp(
@@ -159,5 +161,63 @@ class InlineFragmentBypassTest(WebappProxyClientMixin, TestCase):
         response = self._post_as_webapp(
             self.user_read_webapp,
             "query { ... on Query { me { user { email } } } }",
+        )
+        self.assertEqual(response.status_code, 403)
+
+
+class NamedFragmentBypassTest(ScopeBypassTestCase):
+    """A web app must not reach fields outside its scopes by spreading, at the
+    root, a fragment named after a field it is allowed to use.
+    """
+
+    def test_fragment_named_after_allowed_field_cannot_read_out_of_scope_data(self):
+        response = self._post_as_webapp(
+            self.user_read_webapp,
+            f"""
+            query {{ ...me }}
+            fragment me on Query {{
+                pipelines(workspaceSlug: "{self.WORKSPACE.slug}") {{
+                    items {{ name }}
+                }}
+            }}
+            """,
+        )
+        self.assertNotIn(PIPELINE_SENTINEL, response.content.decode())
+
+    def test_fragment_named_after_allowed_field_cannot_write(self):
+        original_name = self.WORKSPACE.name
+        self._post_as_webapp(
+            self.user_read_webapp,
+            f"""
+            mutation {{ ...me }}
+            fragment me on Mutation {{
+                updateWorkspace(input: {{slug: "{self.WORKSPACE.slug}", name: "PWNED"}}) {{
+                    success
+                }}
+            }}
+            """,
+        )
+        self.WORKSPACE.refresh_from_db()
+        self.assertEqual(self.WORKSPACE.name, original_name)
+
+    def test_fragment_spread_chain_is_inspected(self):
+        response = self._post_as_webapp(
+            self.user_read_webapp,
+            f"""
+            query {{ ...me }}
+            fragment me on Query {{ ...inner }}
+            fragment inner on Query {{
+                pipelines(workspaceSlug: "{self.WORKSPACE.slug}") {{
+                    items {{ name }}
+                }}
+            }}
+            """,
+        )
+        self.assertNotIn(PIPELINE_SENTINEL, response.content.decode())
+
+    def test_root_fragment_spread_is_rejected_even_with_allowed_fields(self):
+        response = self._post_as_webapp(
+            self.user_read_webapp,
+            "query { ...me } fragment me on Query { me { user { email } } }",
         )
         self.assertEqual(response.status_code, 403)
