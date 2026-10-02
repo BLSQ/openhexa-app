@@ -187,9 +187,10 @@ def oauth2_token_authentication_middleware(get_response):
                     and request.path.startswith("/mcp")
                     and MCP_SCOPE in access_token.scope
                 ):  # Only allow MCP access for now, users authorized this scope for MCP access, not for GraphQL or other endpoints. We can later add more scopes for other endpoints if needed.
-                    mcp_connection = MCPConnection.objects.prefetch_related(
-                        "workspaces"
-                    ).get(user=access_token.user, application=access_token.application)
+                    mcp_connection = MCPConnection.objects.get(
+                        user=access_token.user,
+                        application_id=access_token.application_id,
+                    )
                     mcp_connection.mark_used()
                     request.user = MCPUser.from_user(access_token.user, mcp_connection)
         except KeyError:

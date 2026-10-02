@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db import models, transaction
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.functional import cached_property
 from oauth2_provider.models import AccessToken, Grant, RefreshToken
 
 from hexa.core.models.base import Base
@@ -23,6 +24,8 @@ class MCPResource(models.TextChoices):
 
 
 SUPERSEDE_IDLE_REGISTRATIONS_AFTER = timedelta(days=30)
+
+LAST_USED_PRECISION = timedelta(minutes=1)
 
 
 class MCPConnection(Base):
@@ -51,7 +54,11 @@ class MCPConnection(Base):
     last_used_at = models.DateTimeField(null=True, blank=True)
 
     def mark_used(self) -> None:
-        MCPConnection.objects.filter(pk=self.pk).update(last_used_at=timezone.now())
+        now = timezone.now()
+        if self.last_used_at and now - self.last_used_at < LAST_USED_PRECISION:
+            return
+        MCPConnection.objects.filter(pk=self.pk).update(last_used_at=now)
+        self.last_used_at = now
 
     def allows_tool(self, name: str) -> bool:
         return name in self.tools
@@ -95,7 +102,7 @@ class MCPUser(User, ServicePrincipal):
         instance.real_user = user
         return instance
 
-    @property
+    @cached_property
     def workspace_ids(self):
         return list(self.connection.workspaces.values_list("id", flat=True))
 
