@@ -18,7 +18,7 @@ What a run does, in order:
     set up     create the test database and patch the test environment
     evaluate   run each case --repeats times against the real agent
     tear down  drop the database, whatever happened
-    report     the per-run table, the per-case spread, the total cost, the
+    report     the per-run table, the per-case spread, the totals box, the
                  Logfire trace id
 
 The first three steps run against the development database, which is why a dry
@@ -36,7 +36,12 @@ from statistics import mean
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import DEFAULT_DB_ALIAS, connections
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
 
+from hexa.assistant.ai_models.backends import ManagedBackend
+from hexa.assistant.ai_models.selection import ModelSelector
 from hexa.assistant.evals.core.dataset import (
     DatasetError,
     experiment_metadata,
@@ -44,7 +49,6 @@ from hexa.assistant.evals.core.dataset import (
     validate_cases,
 )
 from hexa.assistant.evals.suites import SUITES, get_suite
-from hexa.assistant.model_builder import MANAGED_DEFAULT_MODEL
 from hexa.core.test.runner import DiscoverRunner
 from hexa.user_management.models import AiSettings
 
@@ -54,6 +58,13 @@ MAX_CONCURRENCY = 4
 
 # The score the per-case spread is reported over.
 HEADLINE_SCORE = "average_score"
+
+
+def _managed_model(suite) -> str:
+    """The model the suite's agent resolves to on the managed provider."""
+    backend = ManagedBackend(AiSettings(provider=AiSettings.Provider.MANAGED))
+    agent = suite.agent
+    return str(ModelSelector(backend).for_agent(agent.agent_key, agent.default_model))
 
 
 class Command(BaseCommand):
@@ -181,10 +192,10 @@ class Command(BaseCommand):
                 )
             dataset.cases = [c for c in dataset.cases if c.metadata.task_id in task_ids]
 
-        # Evals run on the managed (Vertex) provider only, which always
-        # resolves MANAGED_DEFAULT_MODEL regardless of any stored value.
+        # Evals run on the managed (Vertex) provider only, where the model comes
+        # from the agent and the environment, never from a stored setting.
         metadata = experiment_metadata(
-            dataset, suite=suite, model=MANAGED_DEFAULT_MODEL
+            dataset, suite=suite, model=_managed_model(suite)
         )
         metadata["lang_filter"] = lang
         metadata["repeats"] = options["repeats"]
@@ -258,33 +269,56 @@ class Command(BaseCommand):
             self.stdout.write(line.rstrip())
 
     def _print_totals(self, report) -> None:
-        """What the run spent in total.
+        """What the run spent in total, as a box under the report table.
 
         pydantic-evals reads cost and token usage off each run's model request
         spans, but its report only averages them. A run that raised carries no
-        metrics, so its spend is missing from the total and the line says so.
+        metrics, so its spend is missing from the totals and the box says so.
         """
         runs = report.cases
         costs = [run.metrics["cost"] for run in runs if "cost" in run.metrics]
 
-        def total(metric: str) -> int:
-            return int(sum(run.metrics.get(metric, 0) for run in runs))
+        def total(metric: str) -> str:
+            return f"{int(sum(run.metrics.get(metric, 0) for run in runs)):,}"
 
-        notes = []
-        if len(costs) < len(runs):
-            notes.append(f"{len(runs) - len(costs)} run(s) had no cost recorded")
-        if report.failures:
-            notes.append(f"{len(report.failures)} errored run(s) not included")
-
-        line = (
-            f"\nTotal cost: {f'${sum(costs):.2f}' if costs else 'unavailable'} "
-            f"over {len(runs)} run(s), {total('requests')} requests, "
-            f"{total('input_tokens'):,} input and "
-            f"{total('output_tokens'):,} output tokens"
+        rows = [
+            (
+                "runs",
+                str(len(runs)),
+                f"{len(report.failures)} errored run(s) not included"
+                if report.failures
+                else "",
+            ),
+            ("requests", total("requests"), ""),
+            ("input tokens", total("input_tokens"), ""),
+            ("output tokens", total("output_tokens"), ""),
+            (
+                "cost",
+                f"${sum(costs):.2f}" if costs else "unavailable",
+                f"{len(runs) - len(costs)} run(s) had no cost recorded"
+                if len(costs) < len(runs)
+                else "",
+            ),
+        ]
+        # An empty notes column still takes its padding, so it is left out.
+        with_notes = any(note for *_, note in rows)
+        grid = Table.grid(padding=(0, 2))
+        grid.add_column(no_wrap=True)
+        grid.add_column(justify="right", no_wrap=True)
+        if with_notes:
+            grid.add_column(style="dim")
+        for label, value, note in rows:
+            grid.add_row(label, value, *([note] if with_notes else []))
+        Console(file=self.stdout).print(
+            Panel(
+                grid,
+                title="Totals",
+                title_align="left",
+                border_style="dim",
+                padding=(0, 1),
+                expand=False,
+            )
         )
-        if notes:
-            line += f" ({'; '.join(notes)})"
-        self.stdout.write(line)
 
     @staticmethod
     def _check_vertex_configured() -> None:

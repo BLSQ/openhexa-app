@@ -313,24 +313,35 @@ class TotalCostTest(SimpleTestCase):
         command._print_totals(report)
         return command.stdout._out.getvalue()
 
+    def _row(self, out: str, label: str) -> list[str]:
+        """The cells of one row of the box, without the border."""
+        line = next(line for line in out.splitlines() if f"│ {label} " in line)
+        return line.strip("│ ").split()
+
+    def test_is_a_box_titled_totals(self):
+        out = self._totals({"a": {"cost": 0.5}})
+        self.assertIn("Totals", out.splitlines()[0])
+
     def test_sums_cost_and_usage_across_runs(self):
         run = {"cost": 0.5, "requests": 4, "input_tokens": 1500, "output_tokens": 200}
         out = self._totals({"a": run, "b": run}, repeat=2)
-        self.assertIn("Total cost: $2.00 over 4 run(s)", out)
-        self.assertIn("16 requests", out)
-        self.assertIn("6,000 input and 800 output tokens", out)
+        self.assertEqual(["runs", "4"], self._row(out, "runs"))
+        self.assertEqual(["requests", "16"], self._row(out, "requests"))
+        self.assertEqual(["input", "tokens", "6,000"], self._row(out, "input tokens"))
+        self.assertEqual(["output", "tokens", "800"], self._row(out, "output tokens"))
+        self.assertEqual(["cost", "$2.00"], self._row(out, "cost"))
 
     def test_unpriced_runs_are_called_out(self):
         """A model genai-prices cannot price must not read as a free run."""
         out = self._totals({"a": {"cost": 0.5}, "b": {"requests": 3}})
-        self.assertIn("Total cost: $0.50 over 2 run(s)", out)
+        self.assertIn("$0.50", self._row(out, "cost"))
         self.assertIn("1 run(s) had no cost recorded", out)
 
     def test_no_cost_at_all_is_unavailable_not_zero(self):
         out = self._totals({"a": {"requests": 3}})
-        self.assertIn("Total cost: unavailable", out)
+        self.assertIn("unavailable", self._row(out, "cost"))
 
     def test_errored_runs_are_flagged_as_missing(self):
         out = self._totals({"a": {"cost": 0.5}, "b": None})
-        self.assertIn("Total cost: $0.50 over 1 run(s)", out)
+        self.assertEqual("1", self._row(out, "runs")[1])
         self.assertIn("1 errored run(s) not included", out)
