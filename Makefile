@@ -20,7 +20,8 @@ NPM := npm --prefix frontend
 	lb lint_backend mk makemigrations m migrate fx fixtures db database s shell \
 	if install_frontend rf run_frontend tf tests_frontend lf lint_frontend cg codegen i18n \
 	dev t tests l lint \
-	worktree worktree-reset-db worktree-remove
+	worktree worktree-reset-db worktree-remove \
+	e evals \
 
 h help: ## Show this help
 	@awk 'BEGIN { FS = ":.*## " } \
@@ -69,6 +70,22 @@ db database: ## Open a psql session on the dev database
 
 s shell: ## Open a Django shell
 	$(COMPOSE) run --rm app manage shell
+
+##@ Evals
+
+# Spends real model tokens, unlike `make tests`. Start with DRY=1.
+#   make e DRY=1                        check what would run, without calling the model
+#   make e                              every case of the default suite
+#   make e TASK=<task_id> REPEATS=1     one case, once
+#   make e SUITE=<suite>                another suite
+SUITE ?= pipeline_create
+
+e evals: ## Run the agent evals (SUITE, TASK, REPEATS, DRY=1)
+	$(COMPOSE) run --rm app manage run_evals --suite=$(SUITE) \
+		$(if $(REPEATS),--repeats=$(REPEATS)) \
+		$(if $(DRY),--dry-run) \
+		$(foreach task,$(TASK),--task-id=$(task)) \
+		$(ARGS) --settings=config.settings.eval
 
 ##@ Frontend
 
