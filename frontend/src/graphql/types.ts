@@ -6741,6 +6741,7 @@ export type Webapp = {
   isShortcut: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   permissions: WebappPermissions;
+  pointsToOpenhexaWebapp: Scalars['Boolean']['output'];
   previewUrl: Scalars['String']['output'];
   serveUrl: Scalars['String']['output'];
   showPoweredBy: Scalars['Boolean']['output'];

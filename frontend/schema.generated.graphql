@@ -5957,6 +5957,7 @@ type Webapp {
   isShortcut: Boolean!
   name: String!
   permissions: WebappPermissions!
+  pointsToOpenhexaWebapp: Boolean!
   previewUrl: String!
   serveUrl: String!
   showPoweredBy: Boolean!

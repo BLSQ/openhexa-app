@@ -71,6 +71,9 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
     getDefaultSourceFiles(webapp?.type ?? WebappType.Iframe),
   );
   const debouncedUrl = useDebounce(url, 500);
+  const redirectsToOpenhexaWebapp =
+    webapp?.pointsToOpenhexaWebapp &&
+    (!debouncedUrl || debouncedUrl === webapp.url);
 
   const { data: supersetData } = useSupersetInstancesQuery({
     variables: { workspaceSlug: workspace.slug },
@@ -262,6 +265,12 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           id="url"
           accessor="url"
           label={t("Source URL")}
+          hint={
+            redirectsToOpenhexaWebapp &&
+            t(
+              "This is an OpenHEXA web app: visitors are redirected to it instead of seeing it embedded.",
+            )
+          }
           visible={selectedType === WebappType.Iframe}
           required={selectedType === WebappType.Iframe}
           onChange={(e) => setUrl(e.target.value)}
@@ -353,6 +362,7 @@ WebappForm.fragment = {
       description
       url
       previewUrl
+      pointsToOpenhexaWebapp
       type
       icon
       isPublic

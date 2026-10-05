@@ -1020,6 +1020,7 @@
   "This field must contain only numbers": "This field must contain only numbers",
   "This file is too large to display": "This file is too large to display",
   "This file will be deleted": "This file will be deleted",
+  "This is an OpenHEXA web app: visitors are redirected to it instead of seeing it embedded.": "This is an OpenHEXA web app: visitors are redirected to it instead of seeing it embedded.",
   "This is the code used to identify this pipeline using the cli.": "This is the code used to identify this pipeline using the cli.",
   "This link will expire in 48 hours.": "This link will expire in 48 hours.",
   "This may take a while": "This may take a while",

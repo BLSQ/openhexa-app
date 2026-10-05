@@ -6,7 +6,7 @@ import DataCard from "./DataCard";
 import { useDataCardProperty } from "./context";
 import { PropertyDefinition } from "./types";
 import { TextareaProps } from "../forms/Textarea/Textarea";
-import { ChangeEvent } from "react";
+import { ChangeEvent, ReactNode } from "react";
 
 type TextPropertyProps = PropertyDefinition & {
   markdown?: boolean;
@@ -14,6 +14,7 @@ type TextPropertyProps = PropertyDefinition & {
   placeholder?: string;
   className?: string;
   sm?: boolean;
+  hint?: ReactNode;
   onChange?: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 } & { rows?: TextareaProps["rows"] };
 
@@ -26,6 +27,7 @@ const TextProperty = (props: TextPropertyProps) => {
     onChange,
     defaultValue,
     placeholder,
+    hint,
     ...delegated
   } = props;
 
@@ -64,6 +66,7 @@ const TextProperty = (props: TextPropertyProps) => {
             readOnly={property.readonly}
           />
         )}
+        {hint && <p className="mt-1 text-xs text-amber-700">{hint}</p>}
       </DataCard.Property>
     );
   } else {
@@ -82,6 +85,7 @@ const TextProperty = (props: TextPropertyProps) => {
             {property.displayValue || defaultValue}
           </div>
         )}
+        {hint && <p className="mt-1 text-xs text-amber-700">{hint}</p>}
       </DataCard.Property>
     );
   }

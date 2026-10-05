@@ -1037,6 +1037,7 @@
   "This field must contain only numbers": "Ce champ ne doit contenir que des chiffres",
   "This file is too large to display": "Ce fichier est trop volumineux pour être affiché",
   "This file will be deleted": "Ce fichier sera supprimé",
+  "This is an OpenHEXA web app: visitors are redirected to it instead of seeing it embedded.": "Il s'agit d'une application web OpenHEXA : les visiteurs y sont redirigés au lieu de la voir intégrée.",
   "This is the code used to identify this pipeline using the cli.": "Il s'agit du code utilisé pour identifier ce pipeline à l'aide du cli.",
   "This link will expire in 48 hours.": "Ce lien expirera dans 48 heures.",
   "This may take a while": "Cela peut prendre un moment",

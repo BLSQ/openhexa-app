@@ -178,4 +178,43 @@ describe("WebappForm", () => {
     expect(sentInput.subdomain).toBe("test-webapp");
     expect(sentInput).not.toHaveProperty("source");
   });
+
+  it("shows a redirect note next to an OpenHEXA web app url", async () => {
+    render(
+      <TestApp mocks={[supersetInstancesMock]}>
+        <WebappForm
+          workspace={workspace}
+          webapp={{
+            ...webapp,
+            url: "https://other-app.openhexa.io/",
+            pointsToOpenhexaWebapp: true,
+          }}
+        />
+      </TestApp>,
+    );
+
+    expect(
+      await screen.findByText(
+        "This is an OpenHEXA web app: visitors are redirected to it instead of seeing it embedded.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("previews an external url", async () => {
+    render(
+      <TestApp mocks={[supersetInstancesMock]}>
+        <WebappForm
+          workspace={workspace}
+          webapp={{ ...webapp, pointsToOpenhexaWebapp: false }}
+        />
+      </TestApp>,
+    );
+
+    expect(await screen.findByTestId("webapp-iframe")).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        "This is an OpenHEXA web app: visitors are redirected to it instead of seeing it embedded.",
+      ),
+    ).not.toBeInTheDocument();
+  });
 });
