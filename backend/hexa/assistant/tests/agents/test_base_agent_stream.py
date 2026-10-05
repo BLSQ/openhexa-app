@@ -15,9 +15,9 @@ from hexa.assistant.models import Conversation, Message
 from hexa.core.test.utils import parse_sse_stream
 
 from ._helpers import (
+    FakeModelBuilder,
     _AgentWithFakeTool,
     _make_tool_call_model,
-    make_built_model,
 )
 from ._testcase import AgentTestCase
 
@@ -44,7 +44,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
 
     def test_first_event_is_user_message(self):
         agent = BaseAgent(
-            self.conversation, make_built_model(TestModel(custom_output_text="Hello!"))
+            self.conversation, FakeModelBuilder(TestModel(custom_output_text="Hello!"))
         )
         events = _collect_stream(agent, "What can you do?")
         self.assertEqual(events[0]["event"], "user_message")
@@ -52,14 +52,14 @@ class BaseAgentRunStreamTest(AgentTestCase):
 
     def test_last_event_is_done(self):
         agent = BaseAgent(
-            self.conversation, make_built_model(TestModel(custom_output_text="Hello!"))
+            self.conversation, FakeModelBuilder(TestModel(custom_output_text="Hello!"))
         )
         events = _collect_stream(agent, "What can you do?")
         self.assertEqual(events[-1]["event"], "done")
 
     def test_text_deltas_reconstruct_full_response(self):
         agent = BaseAgent(
-            self.conversation, make_built_model(TestModel(custom_output_text="Hello!"))
+            self.conversation, FakeModelBuilder(TestModel(custom_output_text="Hello!"))
         )
         events = _collect_stream(agent, "What can you do?")
         deltas = [e["data"]["delta"] for e in events if e["event"] == "text_delta"]
@@ -67,7 +67,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
 
     def test_done_event_includes_message_id(self):
         agent = BaseAgent(
-            self.conversation, make_built_model(TestModel(custom_output_text="Hello!"))
+            self.conversation, FakeModelBuilder(TestModel(custom_output_text="Hello!"))
         )
         events = _collect_stream(agent, "What can you do?")
         done = events[-1]
@@ -78,7 +78,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
 
     def test_done_event_includes_name_on_first_message(self):
         agent = BaseAgent(
-            self.conversation, make_built_model(TestModel(custom_output_text="Hello!"))
+            self.conversation, FakeModelBuilder(TestModel(custom_output_text="Hello!"))
         )
         events = _collect_stream(agent, "What can you do?")
         self.assertIsNotNone(events[-1]["data"]["name"])
@@ -87,7 +87,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
         self.conversation.name = "Existing Name"
         self.conversation.save(update_fields=["name"])
         agent = BaseAgent(
-            self.conversation, make_built_model(TestModel(custom_output_text="Hello!"))
+            self.conversation, FakeModelBuilder(TestModel(custom_output_text="Hello!"))
         )
         events = _collect_stream(agent, "A follow-up question")
         self.assertEqual(events[-1]["data"]["name"], "Existing Name")
@@ -101,7 +101,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
             yield  # pragma: no cover
 
         agent = BaseAgent(
-            self.conversation, make_built_model(TestModel(custom_output_text="Hello!"))
+            self.conversation, FakeModelBuilder(TestModel(custom_output_text="Hello!"))
         )
         with patch.object(agent.agent, "iter", _failing_iter):
             events = _collect_stream(agent, "What can you do?")
@@ -115,7 +115,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
             yield  # pragma: no cover
 
         agent = BaseAgent(
-            self.conversation, make_built_model(TestModel(custom_output_text="Hello!"))
+            self.conversation, FakeModelBuilder(TestModel(custom_output_text="Hello!"))
         )
         with patch.object(agent.agent, "iter", _failing_iter):
             _collect_stream(agent, "What can you do?")
@@ -127,7 +127,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
 
     def test_tool_call_and_result_events_are_yielded(self):
         model = _make_tool_call_model("_fake_tool", {"arg": "hello"})
-        agent = _AgentWithFakeTool(self.conversation, make_built_model(model))
+        agent = _AgentWithFakeTool(self.conversation, FakeModelBuilder(model))
         events = _collect_stream(agent, "Use the tool")
         event_types = [e["event"] for e in events]
         self.assertIn("tool_call", event_types)
@@ -135,14 +135,14 @@ class BaseAgentRunStreamTest(AgentTestCase):
 
     def test_tool_call_event_contains_tool_name(self):
         model = _make_tool_call_model("_fake_tool", {"arg": "hello"})
-        agent = _AgentWithFakeTool(self.conversation, make_built_model(model))
+        agent = _AgentWithFakeTool(self.conversation, FakeModelBuilder(model))
         events = _collect_stream(agent, "Use the tool")
         tool_call = next(e for e in events if e["event"] == "tool_call")
         self.assertEqual(tool_call["data"]["tool_name"], "_fake_tool")
 
     def test_tool_result_event_indicates_success(self):
         model = _make_tool_call_model("_fake_tool", {"arg": "hello"})
-        agent = _AgentWithFakeTool(self.conversation, make_built_model(model))
+        agent = _AgentWithFakeTool(self.conversation, FakeModelBuilder(model))
         events = _collect_stream(agent, "Use the tool")
         tool_result = next(e for e in events if e["event"] == "tool_result")
         self.assertTrue(tool_result["data"]["success"])
@@ -154,7 +154,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
             yield  # pragma: no cover
 
         agent = _AgentWithFakeTool(
-            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+            self.conversation, FakeModelBuilder(TestModel(custom_output_text="Hi"))
         )
         with patch.object(agent.agent, "iter", _incomplete_iter):
             events = _collect_stream(agent, "Use the tool")
@@ -169,7 +169,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
             yield  # pragma: no cover
 
         agent = _AgentWithFakeTool(
-            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+            self.conversation, FakeModelBuilder(TestModel(custom_output_text="Hi"))
         )
         with patch.object(agent.agent, "iter", _incomplete_iter):
             events = _collect_stream(agent, "Use the tool")
@@ -183,7 +183,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
             yield  # pragma: no cover
 
         agent = BaseAgent(
-            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+            self.conversation, FakeModelBuilder(TestModel(custom_output_text="Hi"))
         )
         with patch.object(agent.agent, "iter", _usage_limit_iter):
             events = _collect_stream(agent, "Do something complex")
@@ -198,7 +198,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
             yield  # pragma: no cover
 
         agent = BaseAgent(
-            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+            self.conversation, FakeModelBuilder(TestModel(custom_output_text="Hi"))
         )
         with patch.object(agent.agent, "iter", _loop_iter):
             events = _collect_stream(agent, "Do something complex")
@@ -213,7 +213,7 @@ class BaseAgentRunStreamTest(AgentTestCase):
             yield  # pragma: no cover
 
         agent = BaseAgent(
-            self.conversation, make_built_model(TestModel(custom_output_text="Hi"))
+            self.conversation, FakeModelBuilder(TestModel(custom_output_text="Hi"))
         )
         with patch.object(agent.agent, "iter", _unexpected_iter):
             events = _collect_stream(agent, "Do something")

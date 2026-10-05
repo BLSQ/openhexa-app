@@ -11,7 +11,12 @@ type Props = {
   pipelineId: string;
   workspaceSlug: string;
   monthlyLimitExceeded: boolean;
-  onProposedFiles: (files: ProposedFile[] | null, toolInvocationId?: string) => void;
+  onProposedFiles: (
+    files: ProposedFile[] | null,
+    toolInvocationId?: string,
+    deletedPaths?: string[],
+    commitMessage?: string,
+  ) => void;
   conversations: PipelineConversation[];
   activeConversationId: string | null;
   onConversationChange: (id: string) => void;
@@ -26,8 +31,18 @@ export default function PipelineEditChatPanel({
   ...rest
 }: Props) {
   const handleProposedFiles = useCallback(
-    (files: unknown[] | null, toolInvocationId?: string) => {
-      onProposedFiles(files as ProposedFile[] | null, toolInvocationId);
+    (
+      files: unknown[] | null,
+      toolInvocationId?: string,
+      deletedPaths?: string[],
+      commitMessage?: string,
+    ) => {
+      onProposedFiles(
+        files as ProposedFile[] | null,
+        toolInvocationId,
+        deletedPaths,
+        commitMessage,
+      );
     },
     [onProposedFiles],
   );

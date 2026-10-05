@@ -40,6 +40,7 @@ export async function updatePipeline(
         updatePipeline(input: $input) {
           success
           errors
+          details
           pipeline {
             id
             name
@@ -89,8 +90,18 @@ export async function updatePipeline(
       UpdatePipelineError.MissingVersionConfig,
     )
   ) {
+    const missing = data.updatePipeline.details
+      ? data.updatePipeline.details.split(", ")
+      : [];
     throw new Error(
-      "This pipeline has required parameters that have not been set. Edit the default parameters to fix this issue.",
+      missing.length
+        ? i18n!.t(
+            "The required parameter {{parameters}} has no value. Edit the default parameters of the version to run to fix this issue.",
+            { count: missing.length, parameters: missing.join(", ") },
+          )
+        : i18n!.t(
+            "This pipeline has required parameters that have not been set. Edit the default parameters to fix this issue.",
+          ),
     );
   } else if (
     data?.updatePipeline.errors.includes(

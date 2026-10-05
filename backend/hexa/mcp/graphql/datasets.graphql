@@ -76,7 +76,7 @@ query PreviewDatasetFile($id: ID!) {
     contentType
     size
     rows
-    properties
+    columns
     fileSample {
       sample
       status

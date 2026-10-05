@@ -41,7 +41,7 @@ Chaque webapp obtient un sous-domaine sous le domaine webapps du workspace — p
 
 ## Appeler l'API GraphQL d'OpenHEXA
 
-Les webapps statiques privées peuvent appeler l'API GraphQL de la plateforme directement depuis leur code JavaScript pour lire et écrire les données du workspace. Le reste de cette page couvre cette API en détail — les webapps publiques et iframe ne peuvent pas utiliser ce point d'accès.
+Les webapps statiques privées peuvent appeler l'API GraphQL de la plateforme directement depuis leur code JavaScript pour lire les données du workspace et lancer des pipelines. Le reste de cette page couvre cette API en détail — les webapps publiques et iframe ne peuvent pas utiliser ce point d'accès.
 
 ### Comment ça fonctionne
 
@@ -63,9 +63,7 @@ Par défaut, une webapp statique a une liste `allowed_operations` vide, ce qui s
 | `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion` |
 | `PIPELINES_RUN` | `runPipeline`, `stopPipeline` |
 | `FILES_READ` | `getFileByPath`, `readFileContent`, `prepareObjectDownload` |
-| `FILES_WRITE` | `prepareObjectUpload`, `createBucketFolder`, `deleteBucketObject`, `writeFileContent` |
 | `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
-| `DATASETS_WRITE` | `createDataset`, `updateDataset`, `deleteDataset`, `createDatasetVersion`, `updateDatasetVersion`, `deleteDatasetVersion`, `createDatasetVersionFile`, `deleteDatasetLink` |
 | `DATABASE_READ` | `executeSavedQuery` |
 
 Les champs d'introspection `__typename`, `__schema`, `__type` sont toujours autorisés.
@@ -100,10 +98,8 @@ Vous pouvez développer une webapp sur votre machine — votre éditeur, votre r
 ### 1. Ajoutez le script à votre page
 
 ```html
-<script src="https://api.openhexa.org/webapps/dev.js"></script>
+<script src="[[ BASE_URL ]]/webapps/dev.js"></script>
 ```
-
-Pointez-le vers l'hôte du **backend** OpenHEXA (l'API), pas celui de l'application — `https://api.openhexa.org/webapps/dev.js` sur OpenHEXA Cloud, `http://localhost:8000/webapps/dev.js` pour un backend local.
 
 Les webapps créées à partir du template par défaut incluent déjà cette balise. Elle est inerte une fois déployée (elle ne s'active que sur les pages `file://` et `localhost`), vous pouvez donc la laisser dans votre `index.html`.
 
@@ -132,7 +128,7 @@ La fenêtre se ferme et votre page se recharge, connectée. `window.OPENHEXA` es
 Indiquez le workspace et la webapp directement : la liste se réduit à cette seule entrée, présélectionnée — vous confirmez toujours avec **Approve** :
 
 ```html
-<script src="https://api.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
+<script src="[[ BASE_URL ]]/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
 ```
 
 ### Bon à savoir
@@ -156,6 +152,7 @@ Affiche l'utilisateur courant et le workspace au chargement.
 <head>
   <meta charset="utf-8">
   <title>Qui suis-je ?</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
     pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; }
@@ -203,6 +200,7 @@ Liste tous les pipelines du workspace.
 <head>
   <meta charset="utf-8">
   <title>Pipelines</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
     li { margin-bottom: 0.75rem; }
@@ -259,6 +257,7 @@ Charge la liste des pipelines à l'ouverture de la page, vous laisse en choisir 
 <head>
   <meta charset="utf-8">
   <title>Lancer un pipeline</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
     label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
@@ -364,6 +363,7 @@ Liste les fichiers CSV du bucket au chargement de la page, vous laisse en choisi
 <head>
   <meta charset="utf-8">
   <title>Aperçu CSV</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
     label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
@@ -466,72 +466,6 @@ Liste les fichiers CSV du bucket au chargement de la page, vous laisse en choisi
 </html>
 ```
 
-### FILES_WRITE — Téléverser un fichier dans le bucket du workspace
-
-Sélectionnez un fichier, téléversez-le via une URL présignée.
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Téléverser un fichier</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 560px; margin: 2rem auto; padding: 0 1rem; }
-    input { width: 100%; padding: 0.4rem; box-sizing: border-box; }
-    button { margin-top: 0.5rem; padding: 0.5rem 1rem; }
-    #status { margin-top: 1rem; font-weight: 600; }
-  </style>
-</head>
-<body>
-  <h1>Téléverser un fichier</h1>
-
-  <label>Clé de destination (chemin dans le bucket)
-    <input id="key" value="uploads/example.bin">
-  </label>
-  <input type="file" id="file">
-  <button onclick="upload()">Téléverser</button>
-
-  <p id="status"></p>
-
-  <script>
-    const { workspaceSlug } = window.OPENHEXA;
-
-    async function gql(query, variables = {}) {
-      const res = await fetch("/graphql/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, variables }),
-      });
-      const json = await res.json();
-      if (json.errors) throw new Error(json.errors.map(e => e.message).join("; "));
-      return json.data;
-    }
-
-    async function upload() {
-      const status = document.getElementById("status");
-      const blob = document.getElementById("file").files[0];
-      const key = document.getElementById("key").value.trim();
-      if (!blob) { status.textContent = "Sélectionnez d'abord un fichier."; return; }
-
-      const { prepareObjectUpload } = await gql(`
-        mutation($input: PrepareObjectUploadInput!) {
-          prepareObjectUpload(input: $input) { success uploadUrl headers }
-        }
-      `, { input: { workspaceSlug: workspaceSlug, objectKey: key, contentType: blob.type } });
-
-      const res = await fetch(prepareObjectUpload.uploadUrl, {
-        method: "PUT",
-        headers: { ...prepareObjectUpload.headers, "Content-Type": blob.type },
-        body: blob,
-      });
-      status.textContent = res.ok ? "Téléversé ✓" : `Échec : HTTP ${res.status}`;
-    }
-  </script>
-</body>
-</html>
-```
-
 ### DATASETS_READ — Lister les jeux de données
 
 Liste les jeux de données visibles depuis le workspace, avec leur dernière version.
@@ -542,6 +476,7 @@ Liste les jeux de données visibles depuis le workspace, avec leur dernière ver
 <head>
   <meta charset="utf-8">
   <title>Jeux de données</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
     li { margin-bottom: 0.75rem; }
@@ -592,76 +527,6 @@ Liste les jeux de données visibles depuis le workspace, avec leur dernière ver
         list.appendChild(li);
       }
     })();
-  </script>
-</body>
-</html>
-```
-
-### DATASETS_WRITE — Créer un nouveau jeu de données
-
-Petit formulaire qui crée un jeu de données et affiche le nouvel id/slug.
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Créer un jeu de données</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 560px; margin: 2rem auto; padding: 0 1rem; }
-    label { display: block; margin: 0.5rem 0 0.25rem; }
-    input, textarea { width: 100%; padding: 0.4rem; box-sizing: border-box; font-family: inherit; }
-    button { margin-top: 1rem; padding: 0.5rem 1rem; }
-    #out { margin-top: 1rem; }
-  </style>
-</head>
-<body>
-  <h1>Créer un jeu de données</h1>
-
-  <label>Nom
-    <input id="name" placeholder="Résultats d'enquête">
-  </label>
-  <label>Description
-    <textarea id="desc" rows="3"></textarea>
-  </label>
-  <button onclick="create()">Créer</button>
-
-  <p id="out"></p>
-
-  <script>
-    const { workspaceSlug } = window.OPENHEXA;
-
-    async function gql(query, variables = {}) {
-      const res = await fetch("/graphql/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, variables }),
-      });
-      const json = await res.json();
-      if (json.errors) throw new Error(json.errors.map(e => e.message).join("; "));
-      return json.data;
-    }
-
-    async function create() {
-      const out = document.getElementById("out");
-      const name = document.getElementById("name").value.trim();
-      const description = document.getElementById("desc").value.trim();
-      if (!name) { out.textContent = "Le nom est obligatoire."; return; }
-
-      const { createDataset } = await gql(`
-        mutation($input: CreateDatasetInput!) {
-          createDataset(input: $input) {
-            success errors dataset { id slug name }
-          }
-        }
-      `, { input: { workspaceSlug: workspaceSlug, name, description } });
-
-      if (!createDataset.success) {
-        out.textContent = "Erreur : " + (createDataset.errors || []).join(", ");
-        return;
-      }
-      out.textContent = `Créé : ${createDataset.dataset.name} (slug : ${createDataset.dataset.slug})`;
-    }
   </script>
 </body>
 </html>
@@ -721,6 +586,7 @@ une requête privée échoue avec `SAVED_QUERY_NOT_FOUND`.
 <head>
   <meta charset="utf-8">
   <title>Requête enregistrée</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
     table { border-collapse: collapse; width: 100%; }

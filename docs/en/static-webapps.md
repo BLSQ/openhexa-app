@@ -41,7 +41,7 @@ Each webapp gets a subdomain under the workspace's webapps domain — e.g. `my-w
 
 ## Calling the OpenHEXA GraphQL API
 
-Private static webapps can call the platform's GraphQL API directly from their JavaScript code to read and write workspace data. The rest of this page covers that API in detail — public webapps and iframe webapps cannot use this endpoint.
+Private static webapps can call the platform's GraphQL API directly from their JavaScript code to read workspace data and run pipelines. The rest of this page covers that API in detail — public webapps and iframe webapps cannot use this endpoint.
 
 ### How it works
 
@@ -63,9 +63,7 @@ By default a static webapp has an empty `allowed_operations` list, which means i
 | `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion` |
 | `PIPELINES_RUN` | `runPipeline`, `stopPipeline` |
 | `FILES_READ` | `getFileByPath`, `readFileContent`, `prepareObjectDownload` |
-| `FILES_WRITE` | `prepareObjectUpload`, `createBucketFolder`, `writeFileContent` |
 | `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
-| `DATASETS_WRITE` | `createDataset`, `updateDataset`, `createDatasetVersion`, `updateDatasetVersion`, `createDatasetVersionFile` |
 | `DATABASE_READ` | `executeSavedQuery` |
 
 Introspection fields `__typename`, `__schema`, `__type` are always allowed.
@@ -105,10 +103,8 @@ You can build a webapp on your own machine — your editor, your live reload, yo
 ### 1. Add the script to your page
 
 ```html
-<script src="https://api.openhexa.org/webapps/dev.js"></script>
+<script src="[[ BASE_URL ]]/webapps/dev.js"></script>
 ```
-
-Point it at the OpenHEXA **backend** (API) host, not the app host — `https://api.openhexa.org/webapps/dev.js` on OpenHEXA Cloud, `http://localhost:8000/webapps/dev.js` for a local backend.
 
 New webapps created from the default template already include this tag. It is inert once deployed (it only activates on `file://` and `localhost` pages), so you can leave it in your `index.html`.
 
@@ -137,7 +133,7 @@ The window closes and your page reloads, connected. `window.OPENHEXA` is populat
 Name the workspace and webapp up front and the list is reduced to that single, preselected entry — you still confirm with **Approve**:
 
 ```html
-<script src="https://api.openhexa.org/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
+<script src="[[ BASE_URL ]]/webapps/dev.js" data-workspace-slug="my-workspace" data-webapp-slug="my-webapp"></script>
 ```
 
 ### Good to know
@@ -202,6 +198,7 @@ type Workspace {
 <head>
   <meta charset="utf-8">
   <title>Who am I?</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
     pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; }
@@ -289,6 +286,7 @@ type Pipeline {
 <head>
   <meta charset="utf-8">
   <title>Pipelines</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
     li { margin-bottom: 0.75rem; }
@@ -399,6 +397,7 @@ union PipelineRunOutput = BucketObject | GenericOutput | DatabaseTable
 <head>
   <meta charset="utf-8">
   <title>Run a pipeline</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
     label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
@@ -555,6 +554,7 @@ type PrepareObjectDownloadResult {
 <head>
   <meta charset="utf-8">
   <title>Preview CSV</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
     label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
@@ -657,112 +657,6 @@ type PrepareObjectDownloadResult {
 </html>
 ```
 
-### FILES_WRITE — Upload a file to the workspace bucket
-
-Pick a file, upload it via a presigned URL.
-
-<details markdown="1">
-<summary>Schema</summary>
-
-```graphql
-type Mutation {
-  prepareObjectUpload(input: PrepareObjectUploadInput!): PrepareObjectUploadResult!
-  writeFileContent(input: WriteFileContentInput!): WriteFileContentResult!
-  createBucketFolder(input: CreateBucketFolderInput!): CreateBucketFolderResult!
-}
-
-input PrepareObjectUploadInput {
-  workspaceSlug: String!
-  objectKey: String!
-  contentType: String
-}
-
-input WriteFileContentInput {
-  workspaceSlug: String!
-  filePath: String!
-  content: String!
-  overwrite: Boolean = false
-}
-
-input CreateBucketFolderInput { workspaceSlug: String!, folderKey: String! }
-
-type PrepareObjectUploadResult {
-  uploadUrl: URL
-  headers: JSON
-  success: Boolean!
-  errors: [PrepareObjectUploadError!]!
-}
-
-type WriteFileContentResult { success: Boolean!, errors: [WriteFileContentError!]!, filePath: String, size: Int }
-type CreateBucketFolderResult { success: Boolean!, errors: [CreateBucketFolderError!]!, folder: BucketObject }
-```
-
-[Browse the full schema in the playground →](https://app.openhexa.org/graphql/)
-
-</details>
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Upload a file</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 560px; margin: 2rem auto; padding: 0 1rem; }
-    input { width: 100%; padding: 0.4rem; box-sizing: border-box; }
-    button { margin-top: 0.5rem; padding: 0.5rem 1rem; }
-    #status { margin-top: 1rem; font-weight: 600; }
-  </style>
-</head>
-<body>
-  <h1>Upload a file</h1>
-
-  <label>Destination key (path in the bucket)
-    <input id="key" value="uploads/example.bin">
-  </label>
-  <input type="file" id="file">
-  <button onclick="upload()">Upload</button>
-
-  <p id="status"></p>
-
-  <script>
-    const { workspaceSlug } = window.OPENHEXA;
-
-    async function gql(query, variables = {}) {
-      const res = await fetch("/graphql/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, variables }),
-      });
-      const json = await res.json();
-      if (json.errors) throw new Error(json.errors.map(e => e.message).join("; "));
-      return json.data;
-    }
-
-    async function upload() {
-      const status = document.getElementById("status");
-      const blob = document.getElementById("file").files[0];
-      const key = document.getElementById("key").value.trim();
-      if (!blob) { status.textContent = "Pick a file first."; return; }
-
-      const { prepareObjectUpload } = await gql(`
-        mutation($input: PrepareObjectUploadInput!) {
-          prepareObjectUpload(input: $input) { success uploadUrl headers }
-        }
-      `, { input: { workspaceSlug, objectKey: key, contentType: blob.type } });
-
-      const res = await fetch(prepareObjectUpload.uploadUrl, {
-        method: "PUT",
-        headers: { ...prepareObjectUpload.headers, "Content-Type": blob.type },
-        body: blob,
-      });
-      status.textContent = res.ok ? "Uploaded ✓" : `Failed: HTTP ${res.status}`;
-    }
-  </script>
-</body>
-</html>
-```
-
 ### DATASETS_READ — List datasets
 
 Lists datasets visible to the workspace and their latest version.
@@ -810,6 +704,7 @@ type Dataset {
 <head>
   <meta charset="utf-8">
   <title>Datasets</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
     li { margin-bottom: 0.75rem; }
@@ -865,116 +760,6 @@ type Dataset {
 </html>
 ```
 
-### DATASETS_WRITE — Create a new dataset
-
-Tiny form that creates a dataset and prints the new id/slug.
-
-<details markdown="1">
-<summary>Schema</summary>
-
-```graphql
-type Mutation {
-  createDataset(input: CreateDatasetInput!): CreateDatasetResult!
-  createDatasetVersion(input: CreateDatasetVersionInput!): CreateDatasetVersionResult!
-  createDatasetVersionFile(input: CreateDatasetVersionFileInput!): CreateDatasetVersionFileResult!
-  updateDataset(input: UpdateDatasetInput!): UpdateDatasetResult!
-  updateDatasetVersion(input: UpdateDatasetVersionInput!): UpdateDatasetVersionResult!
-}
-
-input CreateDatasetInput {
-  workspaceSlug: String!
-  name: String!
-  description: String
-  files: [DatasetVersionFileContentInput!]
-}
-
-input DatasetVersionFileContentInput { uri: String!, contentType: String!, content: String! }
-
-input CreateDatasetVersionInput {
-  datasetId: ID!
-  name: String!
-  changelog: String
-  files: [DatasetVersionFileContentInput!]
-}
-
-input CreateDatasetVersionFileInput { versionId: ID!, contentType: String!, uri: String! }
-
-type CreateDatasetResult { link: DatasetLink, dataset: Dataset, success: Boolean!, errors: [CreateDatasetError!]! }
-type CreateDatasetVersionResult { version: DatasetVersion, success: Boolean!, errors: [CreateDatasetVersionError!]! }
-type CreateDatasetVersionFileResult { file: DatasetVersionFile, uploadUrl: String!, success: Boolean!, errors: [CreateDatasetVersionFileError!]! }
-type UpdateDatasetResult { dataset: Dataset, success: Boolean!, errors: [UpdateDatasetError!]! }
-type UpdateDatasetVersionResult { version: DatasetVersion, success: Boolean!, errors: [UpdateDatasetVersionError!]! }
-```
-
-[Browse the full schema in the playground →](https://app.openhexa.org/graphql/)
-
-</details>
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Create a dataset</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 560px; margin: 2rem auto; padding: 0 1rem; }
-    label { display: block; margin: 0.5rem 0 0.25rem; }
-    input, textarea { width: 100%; padding: 0.4rem; box-sizing: border-box; font-family: inherit; }
-    button { margin-top: 1rem; padding: 0.5rem 1rem; }
-    #out { margin-top: 1rem; }
-  </style>
-</head>
-<body>
-  <h1>Create a dataset</h1>
-
-  <label>Name
-    <input id="name" placeholder="Survey results">
-  </label>
-  <label>Description
-    <textarea id="desc" rows="3"></textarea>
-  </label>
-  <button onclick="create()">Create</button>
-
-  <p id="out"></p>
-
-  <script>
-    const { workspaceSlug } = window.OPENHEXA;
-
-    async function gql(query, variables = {}) {
-      const res = await fetch("/graphql/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, variables }),
-      });
-      const json = await res.json();
-      if (json.errors) throw new Error(json.errors.map(e => e.message).join("; "));
-      return json.data;
-    }
-
-    async function create() {
-      const out = document.getElementById("out");
-      const name = document.getElementById("name").value.trim();
-      const description = document.getElementById("desc").value.trim();
-      if (!name) { out.textContent = "Name is required."; return; }
-
-      const { createDataset } = await gql(`
-        mutation($input: CreateDatasetInput!) {
-          createDataset(input: $input) {
-            success errors dataset { id slug name }
-          }
-        }
-      `, { input: { workspaceSlug, name, description } });
-
-      if (!createDataset.success) {
-        out.textContent = "Error: " + (createDataset.errors || []).join(", ");
-        return;
-      }
-      out.textContent = `Created: ${createDataset.dataset.name} (slug: ${createDataset.dataset.slug})`;
-    }
-  </script>
-</body>
-</html>
-```
 ### DATABASE_READ — Run a saved query
 
 Runs a query saved in the Data Studio and renders the rows as a table. The web
@@ -1028,6 +813,7 @@ with `SAVED_QUERY_NOT_FOUND`.
 <head>
   <meta charset="utf-8">
   <title>Saved query</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
     table { border-collapse: collapse; width: 100%; }

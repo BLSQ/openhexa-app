@@ -36,6 +36,39 @@ class TestDataframeJsonEncoder(TestCase):
         encoder = DataframeJsonEncoder()
         self.assertEqual(encoder.encode({"a": float("nan")}), '{"a": null}')
 
+    def test_ndarray(self):
+        encoder = DataframeJsonEncoder()
+        self.assertEqual(
+            encoder.encode({"a": np.array(["x", "y"])}), '{"a": ["x", "y"]}'
+        )
+
+    def test_nested_ndarray(self):
+        encoder = DataframeJsonEncoder()
+        self.assertEqual(
+            encoder.encode({"a": np.array([[1, 2], [3, 4]])}), '{"a": [[1, 2], [3, 4]]}'
+        )
+
+    def test_ndarray_with_nan(self):
+        encoder = DataframeJsonEncoder()
+        self.assertEqual(
+            encoder.encode({"a": np.array([1.5, np.nan])}), '{"a": [1.5, null]}'
+        )
+
+    def test_numpy_scalar(self):
+        encoder = DataframeJsonEncoder()
+        self.assertEqual(
+            encoder.encode({"a": np.int64(3), "b": np.float32("nan")}),
+            '{"a": 3, "b": null}',
+        )
+
+    def test_dataframe_with_array_column(self):
+        df = pd.DataFrame({"id": [1], "tags": [np.array(["a", "b"])]})
+        encoder = DataframeJsonEncoder()
+        self.assertEqual(
+            encoder.encode(df.to_dict(orient="records")),
+            '[{"id": 1, "tags": ["a", "b"]}]',
+        )
+
 
 class TestCreateDatasetFileSampleTask(TestCase, DatasetTestMixin):
     @classmethod

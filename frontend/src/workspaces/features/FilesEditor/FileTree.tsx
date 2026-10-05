@@ -1,9 +1,11 @@
 import {
+  ArrowUturnLeftIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   DocumentIcon,
   FolderIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 import clsx from "clsx";
 import { FileType } from "graphql/types";
@@ -20,6 +22,9 @@ const FileTreeNode = ({
   proposedByKey,
   deletedFilePaths,
   deletedFolderPaths,
+  canDelete,
+  onDelete,
+  onRestore,
 }: {
   node: FileNode;
   level?: number;
@@ -29,20 +34,59 @@ const FileTreeNode = ({
   proposedByKey: Map<string, string>;
   deletedFilePaths: Set<string>;
   deletedFolderPaths: Set<string>;
+  canDelete: boolean;
+  onDelete: (node: FileNode) => void;
+  onRestore: (node: FileNode) => void;
 }) => {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(node.isProposed);
   const isSelected = selectedFile?.id === node.id;
-  const isDeleted = node.type === FileType.File && deletedFilePaths.has(node.path);
+  const isDeleted =
+    node.type === FileType.File && deletedFilePaths.has(node.path);
   const isFolderDeleted =
     node.type === FileType.Directory && deletedFolderPaths.has(node.path);
-  const isProposed = !isDeleted && node.type === FileType.File && proposedByKey.has(node.path);
+  const isProposed =
+    !isDeleted && node.type === FileType.File && proposedByKey.has(node.path);
   const isModified = !isProposed && !isDeleted && modifiedFiles.has(node.id);
+  const markedForDeletion = isDeleted || isFolderDeleted;
+
+  const deleteAction = canDelete ? (
+    <button
+      type="button"
+      className={clsx(
+        "ml-auto shrink-0 rounded p-0.5 transition-opacity hover:bg-gray-300 focus:opacity-100 group-hover:opacity-100",
+        markedForDeletion
+          ? "text-red-500 opacity-100 hover:text-red-700"
+          : "text-gray-400 opacity-0 hover:text-gray-700",
+      )}
+      aria-label={
+        markedForDeletion
+          ? t("Restore {{name}}", { name: node.name })
+          : t("Delete {{name}}", { name: node.name })
+      }
+      title={markedForDeletion ? t("Undo delete") : t("Delete")}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (markedForDeletion) {
+          onRestore(node);
+        } else {
+          onDelete(node);
+        }
+      }}
+    >
+      {markedForDeletion ? (
+        <ArrowUturnLeftIcon className="h-3.5 w-3.5" />
+      ) : (
+        <TrashIcon className="h-3.5 w-3.5" />
+      )}
+    </button>
+  ) : null;
 
   if (node.type === FileType.File) {
     return (
       <div
         className={clsx(
-          "flex items-center cursor-pointer px-2 py-1 text-sm",
+          "group flex items-center cursor-pointer px-2 py-1 text-sm",
           isSelected
             ? isDeleted
               ? "bg-red-50 text-red-700"
@@ -53,7 +97,10 @@ const FileTreeNode = ({
         onClick={() => setSelectedFile(isSelected ? null : node)}
       >
         <DocumentIcon
-          className={clsx("w-4 h-4 mr-2", isDeleted ? "text-red-400" : "text-gray-400")}
+          className={clsx(
+            "w-4 h-4 mr-2",
+            isDeleted ? "text-red-400" : "text-gray-400",
+          )}
         />
         <span className="flex items-center gap-2">
           <span className={clsx(isDeleted && "line-through text-red-500")}>
@@ -72,6 +119,7 @@ const FileTreeNode = ({
             )}
           />
         </span>
+        {deleteAction}
       </div>
     );
   }
@@ -79,25 +127,35 @@ const FileTreeNode = ({
   return (
     <div>
       <div
-        className="flex items-center cursor-pointer hover:bg-gray-200 px-2 py-1 text-sm"
+        className="group flex items-center cursor-pointer hover:bg-gray-200 px-2 py-1 text-sm"
         style={{ paddingLeft: `${level * 24 + 8}px` }}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         {isExpanded ? (
           <ChevronDownIcon
-            className={clsx("w-4 h-4 mr-2", isFolderDeleted ? "text-red-400" : "text-gray-400")}
+            className={clsx(
+              "w-4 h-4 mr-2",
+              isFolderDeleted ? "text-red-400" : "text-gray-400",
+            )}
           />
         ) : (
           <ChevronRightIcon
-            className={clsx("w-4 h-4 mr-2", isFolderDeleted ? "text-red-400" : "text-gray-400")}
+            className={clsx(
+              "w-4 h-4 mr-2",
+              isFolderDeleted ? "text-red-400" : "text-gray-400",
+            )}
           />
         )}
         <FolderIcon
-          className={clsx("w-4 h-4 mr-2", isFolderDeleted ? "text-red-400" : "text-gray-400")}
+          className={clsx(
+            "w-4 h-4 mr-2",
+            isFolderDeleted ? "text-red-400" : "text-gray-400",
+          )}
         />
         <span className={clsx(isFolderDeleted && "line-through text-red-500")}>
           {node.name}
         </span>
+        {deleteAction}
       </div>
       {isExpanded && (
         <div>
@@ -112,6 +170,9 @@ const FileTreeNode = ({
               proposedByKey={proposedByKey}
               deletedFilePaths={deletedFilePaths}
               deletedFolderPaths={deletedFolderPaths}
+              canDelete={canDelete}
+              onDelete={onDelete}
+              onRestore={onRestore}
             />
           ))}
         </div>
@@ -130,6 +191,9 @@ type FileTreeProps = {
   proposedByKey: Map<string, string>;
   deletedFilePaths: Set<string>;
   deletedFolderPaths: Set<string>;
+  canDelete: boolean;
+  onDelete: (node: FileNode) => void;
+  onRestore: (node: FileNode) => void;
   onClose: () => void;
 };
 
@@ -143,6 +207,9 @@ const FileTree = ({
   proposedByKey,
   deletedFilePaths,
   deletedFolderPaths,
+  canDelete,
+  onDelete,
+  onRestore,
   onClose,
 }: FileTreeProps) => {
   const { t } = useTranslation();
@@ -171,6 +238,9 @@ const FileTree = ({
             proposedByKey={proposedByKey}
             deletedFilePaths={deletedFilePaths}
             deletedFolderPaths={deletedFolderPaths}
+            canDelete={canDelete}
+            onDelete={onDelete}
+            onRestore={onRestore}
           />
         ))}
       </div>

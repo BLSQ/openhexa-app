@@ -522,20 +522,25 @@ export type AssistantTextSegment = {
  */
 export enum AssistantToolName {
   CreatePipeline = 'create_pipeline',
+  CreateSavedQuery = 'create_saved_query',
   GetDataset = 'get_dataset',
   GetDbSchema = 'get_db_schema',
   GetDbTableSchema = 'get_db_table_schema',
   GetHelpOrDoc = 'get_help_or_doc',
   GetPipeline = 'get_pipeline',
+  GetSavedQuery = 'get_saved_query',
   GetStaticWebappFile = 'get_static_webapp_file',
+  GetWorkspace = 'get_workspace',
   ListConnections = 'list_connections',
   ListDatasets = 'list_datasets',
   ListFiles = 'list_files',
   ListPipelines = 'list_pipelines',
+  ListSavedQueries = 'list_saved_queries',
   PreviewDatasetFile = 'preview_dataset_file',
   ProposePipelineVersion = 'propose_pipeline_version',
   ProposeWebappVersion = 'propose_webapp_version',
-  ReadFile = 'read_file'
+  ReadFile = 'read_file',
+  UpdateSavedQuery = 'update_saved_query'
 }
 
 export type AssistantToolSegment = {
@@ -1177,6 +1182,8 @@ export type CreatePipelineVersionInput = {
 /** Errors that can occur when creating a saved query. */
 export enum CreateSavedQueryError {
   PermissionDenied = 'PERMISSION_DENIED',
+  /** The query's history could not be recorded, so nothing was saved. Retrying is safe. */
+  VersioningUnavailable = 'VERSIONING_UNAVAILABLE',
   WorkspaceNotFound = 'WORKSPACE_NOT_FOUND'
 }
 
@@ -1749,6 +1756,8 @@ export type DatasetVersionFilesArgs = {
 export type DatasetVersionFile = MetadataObject & {
   __typename?: 'DatasetVersionFile';
   attributes: Array<MetadataAttribute>;
+  /** Column names in file order, when profiling succeeded. */
+  columns?: Maybe<Array<Scalars['String']['output']>>;
   contentType: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
   createdBy?: Maybe<User>;
@@ -4265,6 +4274,35 @@ export type PipelineVersionsArgs = {
   perPage?: InputMaybe<Scalars['Int']['input']>;
 };
 
+/**
+ * The task graph of a pipeline version, extracted statically from its code.
+ *
+ * OpenHEXA does not persist the graph the SDK builds at runtime, so this is derived by parsing
+ * the version's `pipeline.py`. It is a lower bound on the real graph: it never invents a
+ * dependency, but it cannot see through loops, conditionals, or undecorated helper functions.
+ * Notebook versions, and code that cannot be parsed, yield an empty graph.
+ */
+export type PipelineDag = {
+  __typename?: 'PipelineDag';
+  edges: Array<PipelineDagEdge>;
+  parameters: Array<PipelineParameter>;
+  tasks: Array<PipelineDagTask>;
+};
+
+/** A dependency in a pipeline version's task graph. */
+export type PipelineDagEdge = {
+  __typename?: 'PipelineDagEdge';
+  source: Scalars['String']['output'];
+  target: Scalars['String']['output'];
+};
+
+/** A single task in a pipeline version's task graph. */
+export type PipelineDagTask = {
+  __typename?: 'PipelineDagTask';
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+};
+
 export enum PipelineError {
   CannotUpdateNotebookPipeline = 'CANNOT_UPDATE_NOTEBOOK_PIPELINE',
   DuplicatePipelineVersionName = 'DUPLICATE_PIPELINE_VERSION_NAME',
@@ -4613,11 +4651,13 @@ export type PipelineVersion = {
   __typename?: 'PipelineVersion';
   config?: Maybe<Scalars['JSON']['output']>;
   createdAt: Scalars['DateTime']['output'];
+  dag: PipelineDag;
   description?: Maybe<Scalars['String']['output']>;
   externalLink?: Maybe<Scalars['URL']['output']>;
   files: Array<FileNode>;
   id: Scalars['UUID']['output'];
   isLatestVersion: Scalars['Boolean']['output'];
+  missingScheduleParameters: Array<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
   /** @deprecated Use 'versionNumber' instead */
   number?: Maybe<Scalars['Int']['output']>;
@@ -6316,6 +6356,7 @@ export type UpdatePipelineRecipientResult = {
 /** Represents the result of updating a pipeline. */
 export type UpdatePipelineResult = {
   __typename?: 'UpdatePipelineResult';
+  details?: Maybe<Scalars['String']['output']>;
   errors: Array<UpdatePipelineError>;
   pipeline?: Maybe<Pipeline>;
   success: Scalars['Boolean']['output'];
@@ -6348,7 +6389,9 @@ export type UpdatePipelineVersionResult = {
 /** Errors that can occur when updating a saved query. */
 export enum UpdateSavedQueryError {
   PermissionDenied = 'PERMISSION_DENIED',
-  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND'
+  SavedQueryNotFound = 'SAVED_QUERY_NOT_FOUND',
+  /** The new version could not be recorded, so no change was saved. Retrying is safe. */
+  VersioningUnavailable = 'VERSIONING_UNAVAILABLE'
 }
 
 /** Input for updating a saved query. */
@@ -6497,6 +6540,7 @@ export enum UpdateWebappError {
 /** Represents the input for updating a web app. */
 export type UpdateWebappInput = {
   allowedOperations?: InputMaybe<Array<WebappOperationScope>>;
+  commitMessage?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   files?: InputMaybe<Array<WebappFileInput>>;
   filesToDelete?: InputMaybe<Array<Scalars['String']['input']>>;

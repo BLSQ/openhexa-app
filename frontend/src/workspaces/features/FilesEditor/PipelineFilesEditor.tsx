@@ -14,10 +14,13 @@ interface PipelineFilesEditorProps {
   files: FilesEditor_FileFragment[];
   isEditable?: boolean;
   proposedFiles?: ProposedFile[];
+  proposedDeletedPaths?: string[];
+  proposedCommitMessage?: string;
   workspaceSlug: string;
   pipelineCode: string;
   pipelineId: string;
   onVersionCreated?: (version: PipelineVersionPicker_VersionFragment) => void;
+  saveDisabledReason?: string;
 }
 
 export const PipelineFilesEditor = ({
@@ -25,10 +28,13 @@ export const PipelineFilesEditor = ({
   files,
   isEditable = false,
   proposedFiles,
+  proposedDeletedPaths,
+  proposedCommitMessage,
   workspaceSlug,
   pipelineCode,
   pipelineId,
   onVersionCreated,
+  saveDisabledReason,
 }: PipelineFilesEditorProps) => {
   const [uploadPipeline] = useUploadPipelineMutation({
     refetchQueries: ["WorkspacePipelineCodePage"],
@@ -69,6 +75,7 @@ export const PipelineFilesEditor = ({
               workspaceSlug: workspaceSlug,
               pipelineCode: pipelineCode,
               zipfile: zipBase64,
+              description: proposedCommitMessage?.trim() || undefined,
             },
           },
         });
@@ -93,6 +100,21 @@ export const PipelineFilesEditor = ({
               details: result.data?.uploadPipeline.details,
             }),
           };
+        } else if (
+          result.data?.uploadPipeline.errors.includes(
+            PipelineError.PipelineDoesNotSupportParameters,
+          )
+        ) {
+          const missing = result.data.uploadPipeline.details
+            ? result.data.uploadPipeline.details.split(", ")
+            : [];
+          return {
+            success: false,
+            error: t(
+              "This pipeline is scheduled, so the required parameter {{parameters}} needs a default value. Give it one, or turn off the schedule before saving.",
+              { count: missing.length, parameters: missing.join(", ") },
+            ),
+          };
         } else {
           const errors = result.data?.uploadPipeline.errors || [
             t("Unknown error"),
@@ -106,7 +128,14 @@ export const PipelineFilesEditor = ({
         };
       }
     },
-    [workspaceSlug, pipelineCode, uploadPipeline, clearCache, onVersionCreated],
+    [
+      workspaceSlug,
+      pipelineCode,
+      proposedCommitMessage,
+      uploadPipeline,
+      clearCache,
+      onVersionCreated,
+    ],
   );
 
   return (
@@ -114,8 +143,11 @@ export const PipelineFilesEditor = ({
       name={name}
       files={files}
       isEditable={isEditable}
+      allowDelete
       proposedFiles={proposedFiles}
+      proposedDeletedPaths={proposedDeletedPaths}
       onSave={handleSave}
+      saveDisabledReason={saveDisabledReason}
     />
   );
 };

@@ -6,18 +6,20 @@ _OVERVIEW = {
         "OpenHEXA is a data integration platform. Users organize work in workspaces, "
         "which contain pipelines (automated data workflows), datasets (versioned data collections), "
         "files (in a workspace bucket), connections (external data sources like S3, PostgreSQL, DHIS2), "
-        "and static web apps."
+        "saved SQL queries (in the Data Studio) and static web apps."
     ),
     "common_workflows": [
-        "Explore: list_workspaces -> list_pipelines / list_datasets / list_files",
+        "Explore: list_workspaces -> list_pipelines / list_datasets / list_files / list_saved_queries",
         "Run a pipeline: get_pipeline (check parameters) -> run_pipeline -> get_pipeline_run (check results)",
         "Inspect data: list_datasets -> get_dataset -> preview_dataset_file",
         "Use a template: list_pipeline_templates -> get_pipeline_template -> create_pipeline_from_template",
         "Create a web app: create_static_webapp with HTML/CSS/JS files",
+        "Save a SQL query: get_db_schema -> get_db_table_schema -> create_saved_query",
+        "Reuse a SQL query: list_saved_queries -> get_saved_query (full SQL content)",
     ],
     "tips": [
         "Start with list_workspaces to discover available workspaces",
-        "Most resources are identified by workspace_slug + resource_slug or UUID",
+        "Most resources are identified by workspace_slug + resource_slug or UUID; saved query slugs are global, so get_saved_query takes only the slug",
         "When running pipelines, always check parameters first with get_pipeline",
         "Connection slugs from list_connections are used as pipeline parameter values",
         "For deeper guidance on a topic, call this tool again with topic=<doc-name>",

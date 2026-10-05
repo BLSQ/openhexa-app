@@ -131,6 +131,7 @@ class GitClient(ABC):
         repo_name: str,
         sha: str,
     ) -> dict:
+        """Return one commit in the shape `get_commits` returns each of its own."""
         ...
 
     @abstractmethod
