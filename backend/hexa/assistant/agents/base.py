@@ -4,7 +4,7 @@ import logging
 from collections.abc import AsyncGenerator
 from dataclasses import replace
 
-from pydantic_ai import Agent, ModelSettings, RunUsage, UsageLimits
+from pydantic_ai import Agent, RunUsage, UsageLimits
 from pydantic_ai.capabilities import ProcessHistory
 from pydantic_ai.exceptions import (
     IncompleteToolCall,
@@ -25,6 +25,7 @@ from pydantic_ai.messages import (
     ToolCallPart,
     ToolReturnPart,
 )
+from pydantic_ai.models.anthropic import AnthropicModelSettings
 
 from hexa.assistant.agents.naming_agent import NamingAgent, NamingResult
 from hexa.assistant.ai_models import AiModelBuilder, BuiltModel
@@ -182,7 +183,15 @@ class BaseAgent:
             output_type=self._output_type(),
             output_retries=self.output_retries,
             end_strategy="exhaustive",
-            model_settings=ModelSettings(max_tokens=self.max_tokens),
+            # Models only read the settings with their own prefix, so the
+            # anthropic_* keys are ignored when the agent runs on another
+            # provider. Gemini caches prompt prefixes implicitly instead.
+            model_settings=AnthropicModelSettings(
+                max_tokens=self.max_tokens,
+                anthropic_cache_instructions=True,
+                anthropic_cache_tool_definitions=True,
+                anthropic_cache=True,
+            ),
             capabilities=self._capabilities(),
         )
 
