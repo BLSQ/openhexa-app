@@ -194,7 +194,14 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
     @property
     def serve_url(self):
-        if self.type == self.WebappType.IFRAME:
+        # Iframe webapps were moved to the /play page for everyone in
+        # https://github.com/BLSQ/openhexa-app/pull/1782 (HEXA-1639) to fix one
+        # project; they are back on their subdomain, and organizations that
+        # still rely on /play opt in with `iframe_webapps_use_play_page`.
+        if (
+            self.type == self.WebappType.IFRAME
+            and self.workspace.organization.iframe_webapps_use_play_page
+        ):
             return f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.workspace.slug}/webapps/{self.slug}/play"
         return webapp_host_url(self.subdomain)
 

@@ -325,6 +325,13 @@ class Organization(Base, SoftDeletedModel):
     url = models.URLField(blank=True)
     contact_info = models.TextField(blank=True)
     logo = models.BinaryField(blank=True, null=True)
+    iframe_webapps_use_play_page = models.BooleanField(
+        default=False,
+        help_text=(
+            "Publish iframe web apps on the frontend /play page instead of their "
+            "own subdomain (see https://github.com/BLSQ/openhexa-app/pull/1782)."
+        ),
+    )
     members = models.ManyToManyField(User, through="OrganizationMembership")
 
     objects = OrganizationManager.from_queryset(OrganizationQuerySet)()
