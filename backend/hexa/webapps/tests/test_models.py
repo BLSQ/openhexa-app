@@ -250,8 +250,8 @@ class WebappModelTest(TestCase):
         self.assertIn(webapp.subdomain, shortcut["url"])
         self.assertNotIn(str(webapp.id), shortcut["url"])
 
-    def test_serve_url_iframe_returns_play_page(self):
-        webapp = Webapp.objects.create(
+    def _create_iframe_webapp(self):
+        return Webapp.objects.create(
             name="Iframe App",
             slug="iframe-app",
             subdomain="iframe-app",
@@ -261,11 +261,22 @@ class WebappModelTest(TestCase):
             type=Webapp.WebappType.IFRAME,
         )
 
+    def test_serve_url_iframe_returns_subdomain(self):
+        webapp = self._create_iframe_webapp()
+
+        self.assertIn(f"{webapp.subdomain}.", webapp.serve_url)
+        self.assertNotIn("/play", webapp.serve_url)
+
+    def test_serve_url_iframe_returns_play_page_when_organization_opts_in(self):
+        webapp = self._create_iframe_webapp()
+
+        self.workspace.organization.iframe_webapps_use_play_page = True
+        self.workspace.organization.save()
+
         self.assertEqual(
             webapp.serve_url,
             f"http://localhost:3000/workspaces/{self.workspace.slug}/webapps/iframe-app/play",
         )
-        self.assertNotIn(webapp.subdomain, webapp.serve_url.split("/workspaces/")[0])
 
     def test_serve_url_non_iframe_returns_subdomain(self):
         for webapp_type in (Webapp.WebappType.STATIC, Webapp.WebappType.SUPERSET):
