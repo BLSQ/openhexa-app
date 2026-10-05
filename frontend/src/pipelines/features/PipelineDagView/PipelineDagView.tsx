@@ -44,6 +44,9 @@ const PipelineDagView = ({ version, className }: PipelineDagViewProps) => {
         edges={edges}
         nodeTypes={nodeTypes}
         fitView
+        // Nodes are styled for zoom 1; without this cap fitView blows small graphs up to the
+        // default maxZoom (2) and they look oversized next to the rest of the page.
+        fitViewOptions={{ maxZoom: 1 }}
         // The canvas sits inside a scrolling page: zooming on scroll would trap the wheel and
         // make the page feel broken. Zoom stays available through the controls.
         zoomOnScroll={false}
