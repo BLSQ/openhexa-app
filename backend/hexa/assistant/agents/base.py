@@ -205,15 +205,21 @@ class BaseAgent:
 
         return [ProcessHistory(processor=strip_proposals)]
 
-    def _build_instructions(self) -> str:
-        instructions = get_instructions(self.instruction_set)
-        workspace_block = self._workspace_instructions()
-        if workspace_block:
-            instructions += "\n\n" + workspace_block
-        extra = self._extra_instructions()
-        if extra:
-            instructions += "\n\n" + extra
+    def _build_instructions(self) -> list:
+        # pydantic-ai puts the cache breakpoint after the string (static) part, so
+        # the per-workspace and per-conversation text goes in as a callable
+        # (dynamic) part to keep it out of the cached prefix. Callables run on
+        # every model request, hence the text is resolved once here: recomputing
+        # it mid-run would change the prompt under the cached conversation.
+        instructions: list = [get_instructions(self.instruction_set)]
+        dynamic = self._dynamic_instructions()
+        if dynamic:
+            instructions.append(lambda: dynamic)
         return instructions
+
+    def _dynamic_instructions(self) -> str:
+        blocks = [self._workspace_instructions(), self._extra_instructions()]
+        return "\n\n".join(block for block in blocks if block)
 
     def _workspace_instructions(self) -> str:
         workspace = self.conversation.workspace

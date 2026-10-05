@@ -7,17 +7,24 @@ from asgiref.sync import async_to_sync
 from django.test import SimpleTestCase
 from google.genai.types import Candidate, Content, GenerateContentResponse, Part
 from pydantic_ai import RunUsage
+from pydantic_ai.messages import InstructionPart
 from pydantic_ai.models.anthropic import AnthropicModel
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.models.test import TestModel
 from pydantic_ai.providers.anthropic import AnthropicProvider
 from pydantic_ai.providers.google import GoogleProvider
 
+from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.ai_models import BuiltModel
-from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.models import Conversation
 
-from ._helpers import FakeModelBuilder, _AgentWithFakeTool
+from ._helpers import (
+    FakeModelBuilder,
+    _AgentWithFakeTool,
+    _make_tool_call_model,
+    run_agent,
+)
 from ._testcase import AgentTestCase
 
 _MODEL = "claude-opus-4-6"
@@ -111,6 +118,111 @@ class PromptCachingRequestTest(AgentTestCase):
         self.assertEqual(
             usage.input_tokens,
             _UNCACHED_TOKENS + _CACHE_WRITE_TOKENS + _CACHE_READ_TOKENS,
+        )
+
+
+class _AgentWithExtraInstructions(_AgentWithFakeTool):
+    extra_instructions_calls = 0
+
+    def _extra_instructions(self) -> str:
+        self.extra_instructions_calls += 1
+        return "## Current Pipeline\nEXTRA MARKER"
+
+
+class InstructionSplitTest(AgentTestCase):
+    """The static text must be the only thing ahead of the cache breakpoint."""
+
+    def setUp(self):
+        self.conversation = Conversation.objects.create(
+            user=self.user,
+            workspace=self.workspace,
+            instruction_set=InstructionSet.GENERAL,
+        )
+
+    def _run(self, agent_class) -> tuple[BaseAgent, list[list[InstructionPart]]]:
+        """Run a two-request conversation and return the parts sent on each one."""
+        model = _make_tool_call_model("_fake_tool", {"arg": "x"})
+        stream_function = model.stream_function
+        seen = []
+
+        async def recording_stream(messages, agent_info):
+            seen.append(agent_info.model_request_parameters.instruction_parts)
+            async for chunk in stream_function(messages, agent_info):
+                yield chunk
+
+        model.stream_function = recording_stream
+        self.conversation.name = "Named, so no naming request is made"
+        agent = agent_class(self.conversation, FakeModelBuilder(model))
+        run_agent(agent, "Hello")
+        return agent, seen
+
+    def test_extra_instructions_follow_the_static_text_as_a_dynamic_part(self):
+        _, (first_request, _) = self._run(_AgentWithExtraInstructions)
+        self.assertEqual(
+            [(part.content, part.dynamic) for part in first_request],
+            [
+                (get_instructions(InstructionSet.GENERAL).strip(), False),
+                ("## Current Pipeline\nEXTRA MARKER", True),
+            ],
+        )
+
+    def test_workspace_description_is_in_the_dynamic_part(self):
+        """Kept out of the static part so every workspace shares the cached prefix."""
+        self.workspace.description = "Always use ISO country codes."
+        self.workspace.save()
+        _, (first_request, _) = self._run(_AgentWithExtraInstructions)
+        static, dynamic = first_request
+        self.assertNotIn("ISO country codes", static.content)
+        self.assertTrue(dynamic.dynamic)
+        self.assertIn("ISO country codes", dynamic.content)
+        self.assertLess(
+            dynamic.content.index("## Workspace notes"),
+            dynamic.content.index("EXTRA MARKER"),
+        )
+
+    def test_agent_without_extra_instructions_has_only_the_static_part(self):
+        _, (first_request, _) = self._run(_AgentWithFakeTool)
+        self.assertEqual([part.dynamic for part in first_request], [False])
+
+    def test_extra_instructions_are_resolved_once_per_agent(self):
+        """pydantic-ai re-runs dynamic instructions on every request; text that
+        changed between two requests of a run would miss the conversation cache.
+        """
+        agent, (first_request, second_request) = self._run(_AgentWithExtraInstructions)
+        self.assertEqual(agent.extra_instructions_calls, 1)
+        self.assertEqual(first_request, second_request)
+
+    def test_only_the_static_part_carries_a_cache_breakpoint(self):
+        requests = []
+
+        async def create(**kwargs):
+            requests.append(kwargs)
+            return BetaMessage(
+                id="msg-test",
+                content=[BetaTextBlock(type="text", text="Done.")],
+                model=_MODEL,
+                role="assistant",
+                stop_reason="end_turn",
+                type="message",
+                usage=BetaUsage(input_tokens=10, output_tokens=5),
+            )
+
+        client = AsyncAnthropic(api_key="test-key")
+        client.beta.messages.create = create
+        model = AnthropicModel(
+            _MODEL, provider=AnthropicProvider(anthropic_client=client)
+        )
+        agent = _AgentWithExtraInstructions(self.conversation, FakeModelBuilder(model))
+        async_to_sync(agent.agent.run)("Hello")
+        self.assertEqual(
+            [
+                (block["text"], block.get("cache_control"))
+                for block in requests[0]["system"]
+            ],
+            [
+                (get_instructions(InstructionSet.GENERAL).strip(), _EPHEMERAL),
+                ("## Current Pipeline\nEXTRA MARKER", None),
+            ],
         )
 
 
