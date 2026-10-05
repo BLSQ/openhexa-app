@@ -4,7 +4,7 @@ from io import StringIO
 from django.core.management import call_command
 from django.core.management.base import CommandError, OutputWrapper
 from django.test import SimpleTestCase
-from pydantic_evals import Case, Dataset
+from pydantic_evals import Case, Dataset, increment_eval_metric
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 
 from hexa.assistant.evals.core.dataset import (
@@ -288,3 +288,49 @@ class CaseSpreadTest(SimpleTestCase):
     def test_silent_for_a_single_run(self):
         """With repeat=1 there is nothing to aggregate; the table says it all."""
         self.assertEqual("", self._summary({"solo": [1.0]}, repeat=1))
+
+
+class TotalCostTest(SimpleTestCase):
+    """The run total the built-in report only shows as a per-run average."""
+
+    def _totals(self, usage: dict[str, dict | None], repeat: int = 1) -> str:
+        async def task(inputs: str) -> str:
+            metrics = usage[inputs]
+            if metrics is None:
+                raise RuntimeError("the agent crashed")
+            for name, value in metrics.items():
+                increment_eval_metric(name, value)
+            return inputs
+
+        dataset = Dataset(
+            name="totals-test", cases=[Case(name=k, inputs=k) for k in usage]
+        )
+        report = dataset.evaluate_sync(
+            task, repeat=repeat, progress=False, max_concurrency=1
+        )
+        command = Command()
+        command.stdout = OutputWrapper(StringIO())
+        command._print_totals(report)
+        return command.stdout._out.getvalue()
+
+    def test_sums_cost_and_usage_across_runs(self):
+        run = {"cost": 0.5, "requests": 4, "input_tokens": 1500, "output_tokens": 200}
+        out = self._totals({"a": run, "b": run}, repeat=2)
+        self.assertIn("Total cost: $2.00 over 4 run(s)", out)
+        self.assertIn("16 requests", out)
+        self.assertIn("6,000 input and 800 output tokens", out)
+
+    def test_unpriced_runs_are_called_out(self):
+        """A model genai-prices cannot price must not read as a free run."""
+        out = self._totals({"a": {"cost": 0.5}, "b": {"requests": 3}})
+        self.assertIn("Total cost: $0.50 over 2 run(s)", out)
+        self.assertIn("1 run(s) had no cost recorded", out)
+
+    def test_no_cost_at_all_is_unavailable_not_zero(self):
+        out = self._totals({"a": {"requests": 3}})
+        self.assertIn("Total cost: unavailable", out)
+
+    def test_errored_runs_are_flagged_as_missing(self):
+        out = self._totals({"a": {"cost": 0.5}, "b": None})
+        self.assertIn("Total cost: $0.50 over 1 run(s)", out)
+        self.assertIn("1 errored run(s) not included", out)

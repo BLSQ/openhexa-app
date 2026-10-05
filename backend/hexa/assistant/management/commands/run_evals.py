@@ -18,7 +18,8 @@ What a run does, in order:
     set up     create the test database and patch the test environment
     evaluate   run each case --repeats times against the real agent
     tear down  drop the database, whatever happened
-    report     the per-run table, the per-case spread, the Logfire trace id
+    report     the per-run table, the per-case spread, the total cost, the
+                 Logfire trace id
 
 The first three steps run against the development database, which is why a dry
 run needs no test database. setup_databases() then swaps the connection, and
@@ -135,6 +136,7 @@ class Command(BaseCommand):
 
         report.print(include_input=False, include_output=False)
         self._print_case_spread(report)
+        self._print_totals(report)
         self.stdout.write(
             self.style.SUCCESS(
                 f"Experiment reported to Logfire (trace {report.trace_id})."
@@ -254,6 +256,35 @@ class Command(BaseCommand):
                 f"{spread:>6.3f}  " + "; ".join(notes)
             )
             self.stdout.write(line.rstrip())
+
+    def _print_totals(self, report) -> None:
+        """What the run spent in total.
+
+        pydantic-evals reads cost and token usage off each run's model request
+        spans, but its report only averages them. A run that raised carries no
+        metrics, so its spend is missing from the total and the line says so.
+        """
+        runs = report.cases
+        costs = [run.metrics["cost"] for run in runs if "cost" in run.metrics]
+
+        def total(metric: str) -> int:
+            return int(sum(run.metrics.get(metric, 0) for run in runs))
+
+        notes = []
+        if len(costs) < len(runs):
+            notes.append(f"{len(runs) - len(costs)} run(s) had no cost recorded")
+        if report.failures:
+            notes.append(f"{len(report.failures)} errored run(s) not included")
+
+        line = (
+            f"\nTotal cost: {f'${sum(costs):.2f}' if costs else 'unavailable'} "
+            f"over {len(runs)} run(s), {total('requests')} requests, "
+            f"{total('input_tokens'):,} input and "
+            f"{total('output_tokens'):,} output tokens"
+        )
+        if notes:
+            line += f" ({'; '.join(notes)})"
+        self.stdout.write(line)
 
     @staticmethod
     def _check_vertex_configured() -> None:
