@@ -108,6 +108,11 @@ class WorkspaceCopyRunAdmin(admin.ModelAdmin):
     readonly_fields = fields
     change_form_template = "admin/workspace_copier/workspacecopyrun/change_form.html"
 
+    def get_queryset(self, request):
+        # Runs are kept forever and their logs can be large; the list never
+        # shows them. The run page still loads them, with one extra query.
+        return super().get_queryset(request).defer("logs", "summary")
+
     @admin.display(description="Logs")
     def logs_display(self, obj):
         return format_html("<pre>{}</pre>", obj.logs)
