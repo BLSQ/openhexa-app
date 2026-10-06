@@ -13,9 +13,8 @@ The template copy view stays synchronous: it is small and remote→remote only.
 from django.contrib import admin, messages
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
-from django.urls import reverse
 from django.utils.html import format_html
 
 from hexa.workspace_copier.forms import CopyTemplatesForm, CopyWorkspaceForm
@@ -48,22 +47,6 @@ def _queue_copy_run(user, data) -> WorkspaceCopyRun:
     return run
 
 
-def _resume_initial(run: WorkspaceCopyRun) -> dict:
-    """Prefill the form to copy into the workspace a failed run already created.
-
-    Tokens are not prefilled: they were erased when the run ended.
-    """
-    return {
-        "source_url": run.source_url,
-        "source_slug": run.source_slug,
-        "target_url": run.target_url,
-        "target_mode": "existing",
-        "target_workspace_slug": run.result_workspace_slug,
-        "resources": run.resources,
-        "all_dataset_versions": run.all_dataset_versions,
-    }
-
-
 def copy_workspace_view(request):
     if not request.user.is_superuser:
         raise PermissionDenied
@@ -76,9 +59,6 @@ def copy_workspace_view(request):
                 request, "Workspace copy queued. This page refreshes while it runs."
             )
             return redirect("admin:workspace_copier_workspacecopyrun_change", run.id)
-    elif resume_id := request.GET.get("resume"):
-        run = get_object_or_404(WorkspaceCopyRun, id=resume_id)
-        form = CopyWorkspaceForm(initial=_resume_initial(run))
     else:
         form = CopyWorkspaceForm()
 
@@ -150,15 +130,6 @@ class WorkspaceCopyRunAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser and not (obj and obj.is_active)
-
-    def change_view(self, request, object_id, form_url="", extra_context=None):
-        extra_context = extra_context or {}
-        run = self.get_object(request, object_id)
-        if run is not None and run.can_resume:
-            extra_context[
-                "resume_url"
-            ] = f"{reverse('admin:workspaces_workspace_copy')}?resume={run.id}"
-        return super().change_view(request, object_id, form_url, extra_context)
 
 
 def copy_templates_view(request):

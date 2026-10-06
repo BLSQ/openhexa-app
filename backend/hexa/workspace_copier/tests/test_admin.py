@@ -70,19 +70,6 @@ class CopyWorkspaceViewTest(TestCase):
         self.client.force_login(self.staff)
         self.assertEqual(self.client.get(self.url).status_code, 403)
 
-    def test_resume_prefills_the_existing_target(self):
-        run = WorkspaceCopyRun.objects.create(
-            source_slug="my-ws",
-            status=WorkspaceCopyRunStatus.FAILED,
-            result_workspace_slug="my-ws-ab12",
-        )
-        self.client.force_login(self.superuser)
-
-        response = self.client.get(self.url, {"resume": str(run.id)})
-
-        self.assertEqual(response.context["form"].initial["target_mode"], "existing")
-        self.assertContains(response, 'value="my-ws-ab12"')
-
 
 class WorkspaceCopyRunAdminTest(TestCase):
     @classmethod
@@ -115,16 +102,3 @@ class WorkspaceCopyRunAdminTest(TestCase):
         response = self.client.get(self._change_url(run))
 
         self.assertContains(response, 'http-equiv="refresh"')
-
-    def test_failed_run_with_target_offers_resume(self):
-        run = WorkspaceCopyRun.objects.create(
-            source_slug="my-ws",
-            status=WorkspaceCopyRunStatus.FAILED,
-            result_workspace_slug="my-ws-ab12",
-        )
-        self.client.force_login(self.superuser)
-
-        response = self.client.get(self._change_url(run))
-
-        self.assertNotContains(response, 'http-equiv="refresh"')
-        self.assertContains(response, f"?resume={run.id}")
