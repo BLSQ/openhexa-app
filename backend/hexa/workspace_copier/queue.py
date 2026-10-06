@@ -1,7 +1,16 @@
 from logging import getLogger
 
-from django.db.models import F, TextField, Value
-from django.db.models.functions import Concat
+from django.db.models import (
+    CharField,
+    Exists,
+    F,
+    OuterRef,
+    Q,
+    TextField,
+    Value,
+)
+from django.db.models.fields.json import KeyTextTransform
+from django.db.models.functions import Cast, Concat
 from django.utils import timezone
 from dpq.queue import AtMostOnceQueue
 
@@ -17,7 +26,7 @@ from hexa.workspace_copier.service import CredentialError, run_copy
 
 logger = getLogger(__name__)
 
-INTERRUPTED_MESSAGE = "Interrupted: the worker stopped while this run was in progress."
+INTERRUPTED_MESSAGE = "Interrupted: the worker stopped before this run could finish."
 
 
 def execute_copy_run(run_id: str) -> None:
@@ -53,7 +62,6 @@ def execute_copy_run(run_id: str) -> None:
             resources=set(run.resources) or None,
             options=CopyOptions(all_dataset_versions=run.all_dataset_versions),
             reporter=reporter,
-            on_target_ready=run.record_target_slug,
         )
         run.summary = format_summary(result)
         run.result_workspace_slug = result.workspace_slug or ""
@@ -76,14 +84,25 @@ def execute_copy_run(run_id: str) -> None:
 
 
 def fail_interrupted_runs() -> int:
-    """Mark runs left as running by a previous worker process as failed.
+    """Mark runs cut off by a previous worker process as failed.
+
+    That is every running run, plus every queued run whose job is gone: the
+    AtMostOnceQueue deletes the job when the worker claims it, so a crash
+    between claiming and starting would otherwise leave the run queued forever,
+    with its tokens stored.
 
     Only correct with a single worker replica: at startup, no other worker can
     be executing these runs, so they were cut off by a crash or a restart.
     """
     now = timezone.now()
+    has_job = WorkspaceCopyJob.objects.annotate(
+        run_id=KeyTextTransform("run_id", "args")
+    ).filter(run_id=Cast(OuterRef("id"), CharField()))
+    # One UPDATE statement, so a run and its job committed together by the
+    # admin are either both visible to it or both invisible.
     return WorkspaceCopyRun.objects.filter(
-        status=WorkspaceCopyRunStatus.RUNNING
+        Q(status=WorkspaceCopyRunStatus.RUNNING)
+        | Q(~Exists(has_job), status=WorkspaceCopyRunStatus.QUEUED)
     ).update(
         status=WorkspaceCopyRunStatus.FAILED,
         error=INTERRUPTED_MESSAGE,
@@ -107,7 +126,7 @@ class WorkspaceCopyQueue(AtMostOnceQueue):
 
 # AtMostOnceQueue commits the dequeue before running the task. AtLeastOnceQueue
 # would wrap the whole (possibly hours-long) copy in one transaction, hiding
-# every log line until the end. A crashed run is resumed by hand instead.
+# every log line until the end. A crashed run is not retried automatically.
 workspace_copy_queue = WorkspaceCopyQueue(
     tasks={
         "run_workspace_copy": lambda _, job: execute_copy_run(job.args["run_id"]),
