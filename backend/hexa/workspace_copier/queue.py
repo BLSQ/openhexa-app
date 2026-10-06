@@ -91,8 +91,8 @@ def fail_interrupted_runs() -> int:
     between claiming and starting would otherwise leave the run queued forever,
     with its tokens stored.
 
-    Only correct with a single worker replica: at startup, no other worker can
-    be executing these runs, so they were cut off by a crash or a restart.
+    Only correct while no other worker is executing runs; the worker command
+    guarantees it by holding an advisory lock before calling this.
     """
     now = timezone.now()
     has_job = WorkspaceCopyJob.objects.annotate(

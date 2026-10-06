@@ -133,7 +133,9 @@ workspace_copy_worker ─┴─> queue.execute_copy_run(run_id)
 
 ### Interrupted runs
 
-If the worker stops mid-copy (deploy, out of memory), the run would stay `RUNNING`. And because the queue deletes a job as soon as the worker claims it, a crash right after claiming would leave the run `QUEUED` with no job left to pick it up. On startup, the worker marks both as `FAILED` ("interrupted") and erases their tokens. **This assumes a single worker replica**: with more, a restarting worker would fail runs another one is still executing.
+If the worker stops mid-copy (deploy, out of memory), the run would stay `RUNNING`. And because the queue deletes a job as soon as the worker claims it, a crash right after claiming would leave the run `QUEUED` with no job left to pick it up. On startup, the worker marks both as `FAILED` ("interrupted") and erases their tokens.
+
+That cleanup is only correct if no other worker is still copying, so the worker first takes a Postgres advisory lock (`pg_advisory_lock`). In a rolling deploy, the new worker waits until the old one has exited before cleaning up. Only one worker runs at a time; extra replicas just wait. The lock is tied to the worker's database session, so Postgres releases it however the process ends (crash included).
 
 A failed run is not retried. To finish it, start a new copy from the admin into the workspace it created ("existing workspace" mode); thanks to [idempotency](#re-running-into-an-existing-workspace-idempotency), only the missing pieces are copied.
 
@@ -148,7 +150,7 @@ A reporter exposes `log(message, *, level=...)` plus the `info` / `warning` / `e
 | `NullReporter`   | default / backend tests | discards everything, so the script can run without a caller                |
 | `StreamReporter` | CLI                     | writes live to `self.stdout`                                               |
 | `BufferReporter` | template copy admin view | collects lines in memory; `render()` produces the text shown after the run |
-| `DatabaseReporter` | async workspace copy  | appends lines to `WorkspaceCopyRun.logs` in batches (every ~2s or 50 lines, immediately on warnings/errors) |
+| `DatabaseReporter` | async workspace copy  | appends lines to `WorkspaceCopyRun.logs` in batches (every 50 lines, on the first line logged 2s after the last write, and immediately on warnings/errors) |
 
 ## Results
 
