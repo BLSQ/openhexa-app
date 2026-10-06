@@ -128,14 +128,14 @@ workspace_copy_worker ─┴─> queue.execute_copy_run(run_id)
 
 - `WorkspaceCopyRun` (`models.py`) holds the inputs, status, timestamps, logs, summary and the target workspace slug. Statuses: `QUEUED` → `RUNNING` → `SUCCESS` / `SUCCESS_WITH_ERRORS` (finished, but some resources failed — see the summary) / `FAILED`.
 - The dpq job carries only the run id. Tokens live on the run in `EncryptedTextField`s and are erased when it ends, whatever the outcome.
-- The queue is an `AtMostOnceQueue`: the job is committed as claimed before the copy starts, so log lines are visible while it runs. An `AtLeastOnceQueue` would hold one transaction for the whole copy. The trade-off is no automatic retry — see below.
+- The queue is an `AtMostOnceQueue`: the job is committed as claimed before the copy starts, so log lines are visible while it runs. An `AtLeastOnceQueue` would hold one transaction for the whole copy. The trade-off is no automatic retry — see [Interrupted runs](#interrupted-runs).
 - Run the worker locally with `docker compose --profile workspace_copy_worker up`.
 
-### Interrupted runs and resuming
+### Interrupted runs
 
-If the worker stops mid-copy (deploy, out of memory), the run would stay `RUNNING`. On startup, the worker marks every `RUNNING` run as `FAILED` ("interrupted"). **This assumes a single worker replica**: with more, a restarting worker would fail runs another one is still executing.
+If the worker stops mid-copy (deploy, out of memory), the run would stay `RUNNING`. And because the queue deletes a job as soon as the worker claims it, a crash right after claiming would leave the run `QUEUED` with no job left to pick it up. On startup, the worker marks both as `FAILED` ("interrupted") and erases their tokens. **This assumes a single worker replica**: with more, a restarting worker would fail runs another one is still executing.
 
-The target slug is recorded as soon as the target workspace exists, so a failed run's admin page offers **Resume into the same workspace**: it opens the copy form in "existing workspace" mode with the same inputs (tokens must be re-entered). Thanks to [idempotency](#re-running-into-an-existing-workspace-idempotency), only the missing pieces are copied.
+A failed run is not retried. To finish it, start a new copy from the admin into the workspace it created ("existing workspace" mode); thanks to [idempotency](#re-running-into-an-existing-workspace-idempotency), only the missing pieces are copied.
 
 ## Progress reporting (`progress.py`)
 

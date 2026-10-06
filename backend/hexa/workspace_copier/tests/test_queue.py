@@ -8,6 +8,7 @@ from hexa.workspace_copier.queue import (
     INTERRUPTED_MESSAGE,
     execute_copy_run,
     fail_interrupted_runs,
+    workspace_copy_queue,
 )
 from hexa.workspace_copier.results import CopyResult, FilesResult
 from hexa.workspace_copier.service import CredentialError
@@ -113,21 +114,6 @@ class ExecuteCopyRunTest(TestCase):
         run.refresh_from_db()
         self.assertIn("copied file a.csv", run.logs)
 
-    def test_target_slug_is_kept_when_the_run_fails_later(self, mock_run_copy):
-        def fake_copy(**kwargs):
-            kwargs["on_target_ready"]("my-ws-ab12")
-            raise RuntimeError("crashed while copying files")
-
-        mock_run_copy.side_effect = fake_copy
-        run = _create_run()
-
-        with self.assertLogs("hexa.workspace_copier.queue", level="ERROR"):
-            execute_copy_run(str(run.id))
-
-        run.refresh_from_db()
-        self.assertEqual(run.result_workspace_slug, "my-ws-ab12")
-        self.assertTrue(run.can_resume)
-
     def test_skips_a_run_that_is_not_queued(self, mock_run_copy):
         run = _create_run(status=WorkspaceCopyRunStatus.RUNNING)
 
@@ -140,7 +126,6 @@ class ExecuteCopyRunTest(TestCase):
 class FailInterruptedRunsTest(TestCase):
     def test_marks_running_runs_failed_and_erases_tokens(self):
         running = _create_run(status=WorkspaceCopyRunStatus.RUNNING)
-        queued = _create_run()
 
         self.assertEqual(fail_interrupted_runs(), 1)
 
@@ -150,6 +135,24 @@ class FailInterruptedRunsTest(TestCase):
         self.assertIn(INTERRUPTED_MESSAGE, running.logs)
         self.assertIsNone(running.source_token)
         self.assertIsNotNone(running.finished_at)
+
+    def test_marks_queued_runs_whose_job_is_gone_failed(self):
+        # The worker claimed (and deleted) the job, then crashed before starting.
+        orphaned = _create_run()
+
+        self.assertEqual(fail_interrupted_runs(), 1)
+
+        orphaned.refresh_from_db()
+        self.assertEqual(orphaned.status, WorkspaceCopyRunStatus.FAILED)
+        self.assertEqual(orphaned.error, INTERRUPTED_MESSAGE)
+        self.assertIsNone(orphaned.source_token)
+        self.assertIsNone(orphaned.target_token)
+
+    def test_leaves_queued_runs_with_a_job_alone(self):
+        queued = _create_run()
+        workspace_copy_queue.enqueue("run_workspace_copy", {"run_id": str(queued.id)})
+
+        self.assertEqual(fail_interrupted_runs(), 0)
 
         queued.refresh_from_db()
         self.assertEqual(queued.status, WorkspaceCopyRunStatus.QUEUED)
