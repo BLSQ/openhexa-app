@@ -2,17 +2,19 @@ import json
 from unittest.mock import patch
 
 from django.contrib.sessions.backends.db import SessionStore
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
+from graphql import parse
 
+from config.schema import schema
 from hexa.core.test import GraphQLTestCase
 from hexa.data_studio.models import QueryLog, SavedQuery, SavedQueryVisibility
 from hexa.datasets.models import Dataset, DatasetLink
 from hexa.files.backends.base import StorageObject
 from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
 from hexa.user_management.models import Organization, User
-from hexa.webapps.graphql_proxy import extract_top_level_fields
 from hexa.webapps.middlewares import WEBAPP_SESSION_COOKIE, WEBAPP_SESSION_MAX_AGE
 from hexa.webapps.models import Webapp
+from hexa.webapps.scopes import SCOPE_FIELDS, WebappScopePolicy
 from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
@@ -22,50 +24,154 @@ from hexa.workspaces.tests.testutils import create_workspace
 WEBAPPS_DOMAIN = "webapps.test.local"
 
 
-class ExtractTopLevelFieldsTest(TestCase):
-    def test_simple_query(self):
-        query = 'query { pipeline(id: "abc") { id name } }'
-        self.assertEqual(extract_top_level_fields(query), {"pipeline"})
+class WebappScopePolicyTest(SimpleTestCase):
+    def _denied(self, scopes, query):
+        return WebappScopePolicy(scopes).check(parse(query)).denied
 
-    def test_simple_mutation(self):
-        query = 'mutation { runPipeline(input: {id: "abc"}) { success } }'
-        self.assertEqual(extract_top_level_fields(query), {"runPipeline"})
-
-    def test_multiple_fields(self):
-        query = 'query { pipeline(id: "abc") { id } me { email } }'
-        self.assertEqual(extract_top_level_fields(query), {"pipeline", "me"})
-
-    def test_named_operation(self):
-        query = 'query GetPipeline { pipeline(id: "abc") { id name } }'
-        self.assertEqual(extract_top_level_fields(query), {"pipeline"})
-
-    def test_multiple_operations(self):
-        query = """
-            query A { pipeline(id: "a") { id } }
-            query B { me { email } workspace(slug: "w") { name } }
-        """
+    def test_allowed_root_and_nested_fields(self):
         self.assertEqual(
-            extract_top_level_fields(query), {"pipeline", "me", "workspace"}
+            self._denied(
+                [Webapp.OperationScope.PIPELINES_READ],
+                'query { pipeline(id: "abc") { id name currentVersion { versionNumber } } }',
+            ),
+            set(),
         )
 
-    def test_with_fragments(self):
-        query = """
-            query { pipeline(id: "abc") { ...PipelineFields } }
-            fragment PipelineFields on Pipeline { id name }
-        """
-        self.assertEqual(extract_top_level_fields(query), {"pipeline"})
+    def test_root_field_outside_scopes(self):
+        self.assertEqual(
+            self._denied(
+                [Webapp.OperationScope.USER_READ],
+                'query { pipeline(id: "abc") { id } }',
+            ),
+            {"Query.pipeline", "Pipeline.id"},
+        )
 
-    def test_aliased_field(self):
-        query = 'query { myPipeline: pipeline(id: "abc") { id } }'
-        self.assertEqual(extract_top_level_fields(query), {"pipeline"})
+    def test_nested_field_outside_scopes(self):
+        self.assertEqual(
+            self._denied(
+                [Webapp.OperationScope.PIPELINES_READ],
+                'query { pipeline(id: "abc") { workspace { slug } } }',
+            ),
+            {"Pipeline.workspace", "Workspace.slug"},
+        )
 
-    def test_introspection_field(self):
-        query = "query { __typename }"
-        self.assertEqual(extract_top_level_fields(query), {"__typename"})
+    def test_edge_opens_with_the_scope_that_grants_it(self):
+        query = (
+            'query { workspace(slug: "w") { bucket { objects { items { name } } } } }'
+        )
+        self.assertIn(
+            "Workspace.bucket", self._denied([Webapp.OperationScope.USER_READ], query)
+        )
+        self.assertEqual(
+            self._denied(
+                [Webapp.OperationScope.USER_READ, Webapp.OperationScope.FILES_READ],
+                query,
+            ),
+            set(),
+        )
 
-    def test_invalid_query_raises(self):
-        with self.assertRaises(Exception):
-            extract_top_level_fields("not a query {{{")
+    def test_fields_inside_fragments_are_checked(self):
+        for query in [
+            'query { ... on Query { pipeline(id: "abc") { id } } }',
+            'query { ...F } fragment F on Query { pipeline(id: "abc") { id } }',
+            "query { me { ...F } } fragment F on Me { user { email } } "
+            'fragment G on Query { pipeline(id: "abc") { id } }',
+        ]:
+            with self.subTest(query=query):
+                self.assertIn(
+                    "Query.pipeline",
+                    self._denied([Webapp.OperationScope.USER_READ], query),
+                )
+
+    def test_alias_is_judged_by_its_field(self):
+        self.assertEqual(
+            self._denied(
+                [Webapp.OperationScope.USER_READ],
+                'query { me: pipeline(id: "abc") { id } }',
+            ),
+            {"Query.pipeline", "Pipeline.id"},
+        )
+
+    def test_introspection_is_allowed(self):
+        self.assertEqual(
+            self._denied([], "query { __typename __schema { types { name } } }"),
+            set(),
+        )
+
+    def test_unknown_type_is_denied(self):
+        self.assertEqual(
+            self._denied(
+                [Webapp.OperationScope.USER_READ],
+                "query { ... on Nope { me { user { id } } } }",
+            ),
+            {"?.me", "?.user", "?.id"},
+        )
+
+    def test_operations_lists_the_root_fields(self):
+        check = WebappScopePolicy([]).check(
+            parse(
+                "query { __typename ... on Query { me { user { id } } } } "
+                'mutation { runPipeline(input: {id: "abc"}) { success } }'
+            )
+        )
+        self.assertEqual(check.operations, {"me", "runPipeline"})
+
+    def test_documented_examples_are_allowed(self):
+        """The example web apps in docs/en/static-webapps.md."""
+        scope = Webapp.OperationScope
+        examples = [
+            (
+                [scope.USER_READ],
+                "query { me { user { id email displayName } } "
+                'workspace(slug: "w") { slug name description } }',
+            ),
+            (
+                [scope.PIPELINES_READ],
+                'query { pipelines(workspaceSlug: "w", page: 1, perPage: 50) '
+                "{ items { id code name description schedule } } }",
+            ),
+            (
+                [scope.PIPELINES_READ, scope.PIPELINES_RUN],
+                'mutation { runPipeline(input: {id: "abc", config: {}}) '
+                "{ success errors run { id status } } }",
+            ),
+            (
+                [scope.PIPELINES_READ],
+                'query { pipelineRun(id: "abc") { status } }',
+            ),
+            (
+                [scope.USER_READ, scope.FILES_READ],
+                'query { workspace(slug: "w") { bucket { objects(page: 1, perPage: 200, '
+                "ignoreHiddenFiles: true) { items { key name path type } } } } }",
+            ),
+            (
+                [scope.FILES_READ],
+                'query { readFileContent(workspaceSlug: "w", filePath: "a.csv", '
+                "startLine: 1, endLine: 100) { success content } }",
+            ),
+            (
+                [scope.USER_READ, scope.DATASETS_READ],
+                'query { workspace(slug: "w") { datasets(page: 1, perPage: 50) { items '
+                "{ dataset { id slug name description latestVersion { name createdAt } } } } } }",
+            ),
+            (
+                [scope.DATABASE_READ],
+                'query { executeSavedQuery(input: {slug: "q", maxRows: 100}) '
+                "{ success errors columns rows rowCount truncated } }",
+            ),
+        ]
+        for scopes, query in examples:
+            with self.subTest(query=query):
+                self.assertEqual(self._denied(scopes, query), set())
+
+    def test_every_listed_field_exists_in_the_schema(self):
+        """A typo would silently take a field away from web apps."""
+        for scope, field_map in SCOPE_FIELDS.items():
+            for type_name, fields in field_map.items():
+                graphql_type = schema.get_type(type_name)
+                with self.subTest(scope=scope, type=type_name):
+                    self.assertIsNotNone(graphql_type)
+                    self.assertLessEqual(fields, set(graphql_type.fields))
 
 
 @override_settings(
@@ -365,10 +471,6 @@ class GraphQLProxyMiddlewareTest(TestCase):
         self.assertIn("runPipeline", data["errors"][0]["message"])
 
     def test_user_read_cannot_reach_execute_sql(self):
-        """`executeSQL` hangs off `Workspace`, which `USER_READ` grants, and the
-        proxy only validates top-level fields -- so the endpoint itself has to
-        refuse a webapp rather than rely on the scope check.
-        """
         session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
         response = self._graphql_post(
             "private-app",
@@ -381,18 +483,8 @@ class GraphQLProxyMiddlewareTest(TestCase):
             }}""",
             session_key=session.session_key,
         )
-        # The proxy lets the query through (its top-level field is allowed);
-        # the refusal comes from the resolver.
-        self.assertEqual(response.status_code, 200)
-        result = json.loads(response.content)["data"]["workspace"]["database"][
-            "executeSQL"
-        ]
-        self.assertEqual(
-            result, {"success": False, "errors": ["PERMISSION_DENIED"], "rows": None}
-        )
-        query_log = QueryLog.objects.get(workspace=self.WORKSPACE)
-        self.assertEqual(query_log.status, QueryLog.Status.DENIED)
-        self.assertEqual(query_log.user, self.USER)
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(QueryLog.objects.filter(workspace=self.WORKSPACE).exists())
 
     def _execute_saved_query(self, webapp, subdomain, slug):
         session = self._create_webapp_session(webapp, self.USER)
@@ -669,7 +761,10 @@ class GraphQLProxyMiddlewareTest(TestCase):
         )
         self.assertEqual(response.status_code, 403)
         data = json.loads(response.content)
-        self.assertEqual(data["errors"][0]["message"], "Operations not allowed: me")
+        self.assertEqual(
+            data["errors"][0]["message"],
+            "Fields not allowed: Me.user, Query.me, User.email",
+        )
 
 
 @override_settings(WEBAPPS_DOMAIN=WEBAPPS_DOMAIN)

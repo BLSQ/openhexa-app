@@ -4,66 +4,14 @@ import sentry_sdk
 from ariadne_django.views import GraphQLView
 from django.conf import settings
 from django.http import HttpRequest, JsonResponse
-from graphql import OperationDefinitionNode
+from graphql import GraphQLError
 from graphql import parse as gql_parse
 
 from config.schema import schema
 from hexa.analytics.api import track
 from hexa.webapps.models import Webapp
+from hexa.webapps.scopes import WebappScopePolicy
 from hexa.webapps.utils import is_local_dev_origin, is_preview_host
-
-INTROSPECTION_FIELDS = {"__typename", "__schema", "__type"}
-
-SCOPE_FIELDS = {
-    Webapp.OperationScope.PIPELINES_RUN: {"runPipeline", "stopPipeline"},
-    Webapp.OperationScope.PIPELINES_READ: {
-        "pipeline",
-        "pipelines",
-        "pipelineByCode",
-        "pipelineRun",
-        "pipelineVersion",
-    },
-    Webapp.OperationScope.FILES_READ: {
-        "getFileByPath",
-        "readFileContent",
-        "prepareObjectDownload",
-    },
-    Webapp.OperationScope.FILES_WRITE: {
-        "prepareObjectUpload",
-        "createBucketFolder",
-        "writeFileContent",
-    },
-    Webapp.OperationScope.DATASETS_READ: {
-        "dataset",
-        "datasets",
-        "datasetVersion",
-        "datasetLink",
-    },
-    Webapp.OperationScope.DATASETS_WRITE: {
-        "createDataset",
-        "updateDataset",
-        "createDatasetVersion",
-        "updateDatasetVersion",
-        "createDatasetVersionFile",
-    },
-    Webapp.OperationScope.USER_READ: {"me", "workspace"},
-    # Only the execution endpoint: `savedQuery` and `savedQueryBySlug` return the
-    # SQL body, and the point of this scope is to run a vetted query without
-    # handing the web app the query itself.
-    Webapp.OperationScope.DATABASE_READ: {"executeSavedQuery"},
-}
-
-
-def extract_top_level_fields(query_string: str) -> set[str]:
-    document = gql_parse(query_string)
-    return {
-        selection.name.value
-        for definition in document.definitions
-        if isinstance(definition, OperationDefinitionNode)
-        for selection in definition.selection_set.selections
-        if hasattr(selection, "name")
-    }
-
 
 _graphql_view = GraphQLView.as_view(schema=schema)
 
@@ -107,25 +55,14 @@ def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
         )
 
     try:
-        requested_fields = extract_top_level_fields(query_string)
-    except Exception:
+        document = gql_parse(query_string)
+    except GraphQLError:
         return JsonResponse(
-            {
-                "errors": [
-                    {"message": "Impossible to parse the query for top-level fields"}
-                ]
-            },
+            {"errors": [{"message": "Impossible to parse the query"}]},
             status=400,
         )
 
-    requested_fields -= INTROSPECTION_FIELDS
-    allowed_fields = {
-        f
-        for scope in webapp.allowed_operations
-        if scope in SCOPE_FIELDS
-        for f in SCOPE_FIELDS[scope]
-    }
-    disallowed = requested_fields - allowed_fields
+    scope_check = WebappScopePolicy(webapp.allowed_operations).check(document)
 
     event_properties = {
         "webapp_id": str(webapp.id),
@@ -133,24 +70,24 @@ def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
         "workspace_id": str(webapp.workspace_id),
         "workspace_name": webapp.workspace.name,
         "is_public": webapp.is_public,
-        "operations": sorted(requested_fields),
+        "operations": sorted(scope_check.operations),
     }
 
-    if disallowed:
+    if scope_check.denied:
         track(
             request,
             "webapp_graphql_query",
             {
                 **event_properties,
                 "status": "denied",
-                "disallowed_operations": sorted(disallowed),
+                "disallowed_operations": sorted(scope_check.denied),
             },
         )
         return JsonResponse(
             {
                 "errors": [
                     {
-                        "message": f"Operations not allowed: {', '.join(sorted(disallowed))}"
+                        "message": f"Fields not allowed: {', '.join(sorted(scope_check.denied))}"
                     }
                 ]
             },

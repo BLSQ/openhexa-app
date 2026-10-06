@@ -170,12 +170,19 @@ class InlineFragmentBypassTest(ScopeBypassTestCase):
         )
         self.assertNotIn(SECRET_SENTINEL, response.content.decode())
 
-    def test_root_inline_fragment_is_rejected_even_with_allowed_fields(self):
-        response = self._post_as_webapp(
-            self.user_read_webapp,
+    def test_root_inline_fragment_with_allowed_fields_is_accepted(self):
+        for query in [
             "query { ... on Query { me { user { email } } } }",
-        )
-        self.assertEqual(response.status_code, 403)
+            "query ($withUser: Boolean = true) "
+            "{ ... @include(if: $withUser) { me { user { email } } } }",
+        ]:
+            with self.subTest(query=query):
+                response = self._post_as_webapp(self.user_read_webapp, query)
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(
+                    json.loads(response.content)["data"]["me"]["user"]["email"],
+                    self.USER.email,
+                )
 
 
 class NamedFragmentBypassTest(ScopeBypassTestCase):
@@ -228,12 +235,16 @@ class NamedFragmentBypassTest(ScopeBypassTestCase):
         )
         self.assertNotIn(PIPELINE_SENTINEL, response.content.decode())
 
-    def test_root_fragment_spread_is_rejected_even_with_allowed_fields(self):
+    def test_root_fragment_spread_with_allowed_fields_is_accepted(self):
         response = self._post_as_webapp(
             self.user_read_webapp,
             "query { ...me } fragment me on Query { me { user { email } } }",
         )
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            json.loads(response.content)["data"]["me"]["user"]["email"],
+            self.USER.email,
+        )
 
 
 class NestedFieldBypassTest(ScopeBypassTestCase):

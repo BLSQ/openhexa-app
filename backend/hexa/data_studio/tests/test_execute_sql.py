@@ -1,12 +1,14 @@
 import functools
 from unittest import mock
 
+from django.core.exceptions import PermissionDenied
 from psycopg2 import Error as Psycopg2Error
 
 from hexa.core.test import GraphQLTestCase
 from hexa.data_studio.models import QueryLog
 from hexa.data_studio.query_runner import (
     _log_executed_query,
+    ensure_can_run_query,
     run_and_log_database_query,
 )
 from hexa.databases.tests.helpers import seed_demo_table
@@ -194,6 +196,20 @@ class ExecuteSqlTest(GraphQLTestCase):
 
         log = self._get_single_query_log()
         self.assertIsNone(log.user)
+
+    def test_webapp_request_cannot_run_its_own_sql(self):
+        # The web app proxy already refuses `Database.executeSQL`; this is the
+        # guard behind it.
+        request = self.mock_request(self.USER_SABRINA)
+        request.webapp = mock.Mock()
+
+        with self.assertRaises(PermissionDenied):
+            ensure_can_run_query(
+                request, self.WORKSPACE, "SELECT 1", QueryLog.Origin.OTHER
+            )
+
+        log = self._get_single_query_log()
+        self.assertEqual(QueryLog.Status.DENIED, log.status)
 
     def test_run_and_log_database_query_logs_before_reraising(self):
         # The resolver relies on this contract: every execution error is
