@@ -101,6 +101,23 @@ class ExecuteCopyRunTest(TestCase):
         self.assertIn("Copy failed: boom", run.logs)
         self.assertTokensErased(run)
 
+    def test_tokens_are_erased_even_if_the_final_log_write_fails(self, mock_run_copy):
+        mock_run_copy.return_value = CopyResult()
+        run = _create_run()
+
+        with (
+            patch(
+                "hexa.workspace_copier.queue.DatabaseReporter.flush",
+                side_effect=RuntimeError("db hiccup"),
+            ),
+            self.assertLogs("hexa.workspace_copier.queue", level="ERROR"),
+        ):
+            execute_copy_run(str(run.id))
+
+        run.refresh_from_db()
+        self.assertEqual(run.status, WorkspaceCopyRunStatus.SUCCESS)
+        self.assertTokensErased(run)
+
     def test_logs_written_during_the_run_survive_the_final_save(self, mock_run_copy):
         def fake_copy(**kwargs):
             kwargs["reporter"].info("copied file a.csv")
