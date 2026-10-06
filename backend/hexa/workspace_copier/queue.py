@@ -46,10 +46,10 @@ def execute_copy_run(run_id: str) -> None:
         )
         return
 
-    run.mark_running()
     reporter = DatabaseReporter(run)
     status = WorkspaceCopyRunStatus.FAILED
     try:
+        run.mark_running()
         result = run_copy(
             source_url=run.source_url or None,
             source_token=run.source_token,
@@ -79,7 +79,11 @@ def execute_copy_run(run_id: str) -> None:
         reporter.error(f"Copy failed: {exc}")
         run.error = str(exc)
     finally:
-        reporter.flush()
+        # A failed log write must not stop finish(), which erases the tokens.
+        try:
+            reporter.flush()
+        except Exception:
+            logger.exception("Could not write the final logs of run %s", run_id)
         run.finish(status)
 
 
