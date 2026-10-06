@@ -65,20 +65,10 @@ class WorkspaceCopyRun(Base):
             WorkspaceCopyRunStatus.RUNNING,
         )
 
-    @property
-    def can_resume(self) -> bool:
-        return self.status == WorkspaceCopyRunStatus.FAILED and bool(
-            self.result_workspace_slug
-        )
-
     def mark_running(self) -> None:
         self.status = WorkspaceCopyRunStatus.RUNNING
         self.started_at = timezone.now()
         self.save(update_fields=["status", "started_at", "updated_at"])
-
-    def record_target_slug(self, slug: str) -> None:
-        self.result_workspace_slug = slug
-        self.save(update_fields=["result_workspace_slug", "updated_at"])
 
     def finish(self, status: str) -> None:
         self.status = status

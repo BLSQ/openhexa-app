@@ -7,7 +7,7 @@ inside each copier, so this orchestration is written once and shared by every
 flow (CLI + admin).
 """
 
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 
 from django.utils import timezone
 
@@ -54,7 +54,6 @@ def copy_workspace(
     *,
     resources: set[str] | None = None,
     options: CopyOptions = CopyOptions(),
-    on_target_ready: Callable[[str], None] | None = None,
 ) -> CopyResult:
     """Copy a workspace from ``source`` to ``target``.
 
@@ -63,14 +62,11 @@ def copy_workspace(
     through ``reporter``; pass a :class:`~hexa.workspace_copier.progress.NullReporter`
     to discard it. ``options`` carries the run-wide switches (see
     :class:`~hexa.workspace_copier.options.CopyOptions`); every copier receives
-    them and reads only what concerns it. ``on_target_ready`` is called once
-    with the target slug as soon as the target workspace exists, so a caller
-    can record it before the rest of the run (and resume there if it crashes).
+    them and reads only what concerns it.
     """
     selected = _resolve_selection(WORKSPACE_COPIERS, resources)
     selected_names = {c.name for c in selected}
     result = CopyResult(started_at=timezone.localtime())
-    target_announced = False
     for copier in selected:
         for dep in copier.depends_on:
             if dep not in selected_names:
@@ -79,9 +75,6 @@ def copy_workspace(
                 reporter.warning(message)
         reporter.info(f"=> Copying {copier.name} ...")
         copier.copy(source, target, result, reporter, options=options)
-        if on_target_ready and result.workspace_slug and not target_announced:
-            on_target_ready(result.workspace_slug)
-            target_announced = True
         # Every line is timestamped, so bracketing each copier with a start and
         # a finish line is what makes "how long did files take" answerable —
         # including for the last copier, which has no successor line.
