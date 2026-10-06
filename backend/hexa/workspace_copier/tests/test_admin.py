@@ -93,6 +93,22 @@ class WorkspaceCopyRunAdminTest(TestCase):
         self.assertNotContains(response, "src-secret")
         self.assertNotContains(response, "tgt-secret")
 
+    def test_list_and_run_page_with_deferred_logs(self):
+        run = WorkspaceCopyRun.objects.create(
+            source_slug="my-ws", logs="copied file a.csv\n", summary="1 file"
+        )
+        self.client.force_login(self.superuser)
+
+        list_response = self.client.get(
+            reverse("admin:workspace_copier_workspacecopyrun_changelist")
+        )
+        run_response = self.client.get(self._change_url(run))
+
+        self.assertContains(list_response, "my-ws")
+        self.assertNotContains(list_response, "copied file a.csv")
+        self.assertContains(run_response, "copied file a.csv")
+        self.assertContains(run_response, "1 file")
+
     def test_active_run_page_refreshes_itself(self):
         run = WorkspaceCopyRun.objects.create(
             source_slug="my-ws", status=WorkspaceCopyRunStatus.RUNNING
