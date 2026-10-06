@@ -148,6 +148,19 @@ class FailInterruptedRunsTest(TestCase):
         self.assertIsNone(orphaned.source_token)
         self.assertIsNone(orphaned.target_token)
 
+    def test_leaves_finished_runs_alone(self):
+        for status in (
+            WorkspaceCopyRunStatus.SUCCESS,
+            WorkspaceCopyRunStatus.SUCCESS_WITH_ERRORS,
+            WorkspaceCopyRunStatus.FAILED,
+        ):
+            _create_run(status=status, error="original error")
+
+        self.assertEqual(fail_interrupted_runs(), 0)
+        self.assertFalse(
+            WorkspaceCopyRun.objects.filter(error=INTERRUPTED_MESSAGE).exists()
+        )
+
     def test_leaves_queued_runs_with_a_job_alone(self):
         queued = _create_run()
         workspace_copy_queue.enqueue("run_workspace_copy", {"run_id": str(queued.id)})
