@@ -73,6 +73,11 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
   const { dataset } = datasetLink;
   const sourceWorkspace = dataset.workspace!;
   const isWorkspaceSource = workspace.slug === sourceWorkspace.slug;
+  const datasetBaseHref = `/workspaces/${encodeURIComponent(workspace.slug)}/datasets/${encodeURIComponent(dataset.slug)}/from/${encodeURIComponent(sourceWorkspace.slug)}`;
+  const versionSearch =
+    typeof router.query.version === "string"
+      ? `?version=${encodeURIComponent(router.query.version)}`
+      : "";
 
   return (
     <WorkspaceLayout
@@ -179,21 +184,21 @@ const DatasetLayout = (props: DatasetLayoutProps) => {
             tabs={[
               {
                 label: t("General"),
-                href: `/workspaces/${encodeURIComponent(workspace.slug)}/datasets/${encodeURIComponent(dataset.slug)}/from/${encodeURIComponent(sourceWorkspace.slug)}`,
+                href: `${datasetBaseHref}${versionSearch}`,
                 id: "general",
               },
               ...(version
                 ? [
                     {
                       label: t("Files"),
-                      href: `/workspaces/${encodeURIComponent(workspace.slug)}/datasets/${encodeURIComponent(dataset.slug)}/from/${encodeURIComponent(sourceWorkspace.slug)}/files`,
+                      href: `${datasetBaseHref}/files${versionSearch}`,
                       id: "files",
                     },
                   ]
                 : []),
               {
                 label: t("Access management"),
-                href: `/workspaces/${encodeURIComponent(workspace.slug)}/datasets/${encodeURIComponent(dataset.slug)}/from/${encodeURIComponent(sourceWorkspace.slug)}/access`,
+                href: `${datasetBaseHref}/access${versionSearch}`,
                 id: "access",
               },
             ]}
