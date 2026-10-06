@@ -66,7 +66,6 @@ const TextProperty = (props: TextPropertyProps) => {
             readOnly={property.readonly}
           />
         )}
-        {hint && <p className="mt-1 text-xs text-amber-700">{hint}</p>}
       </DataCard.Property>
     );
   } else {

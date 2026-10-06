@@ -198,6 +198,14 @@ describe("WebappForm", () => {
         "This is an OpenHEXA web app: visitors are redirected to it instead of seeing it embedded.",
       ),
     ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByText("Edit"));
+
+    expect(
+      screen.queryByText(
+        "This is an OpenHEXA web app: visitors are redirected to it instead of seeing it embedded.",
+      ),
+    ).not.toBeInTheDocument();
   });
 
   it("previews an external url", async () => {
