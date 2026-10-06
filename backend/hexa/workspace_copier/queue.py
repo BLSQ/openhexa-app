@@ -59,7 +59,7 @@ def execute_copy_run(run_id: str) -> None:
             target_organization_id=run.target_organization_id or None,
             target_workspace_name=run.target_workspace_name or None,
             target_workspace_slug=run.target_workspace_slug or None,
-            resources=set(run.resources) or None,
+            resources=set(run.resources),
             options=CopyOptions(all_dataset_versions=run.all_dataset_versions),
             reporter=reporter,
         )
