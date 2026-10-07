@@ -52,6 +52,10 @@ export class ServedWebapp {
     return this.page.getByRole("heading", { name: text, level: 1 });
   }
 
+  text(text: string): Locator {
+    return this.page.getByText(text);
+  }
+
   /** Written by the script in `staticAppHtml`. */
   get apiResult(): Locator {
     return this.page.locator("#api");
