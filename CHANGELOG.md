@@ -1,5 +1,15 @@
 # Changelog
 
+## [5.19.1](https://github.com/BLSQ/openhexa-app/compare/5.19.0...5.19.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* keep dataset version on different tabs ([#2109](https://github.com/BLSQ/openhexa-app/issues/2109)) ([c59fe89](https://github.com/BLSQ/openhexa-app/commit/c59fe89dcc05fcb5ab230cc7df45e7e701290205))
+* **pipelines:** cap initial zoom of small DAG views ([#2102](https://github.com/BLSQ/openhexa-app/issues/2102)) ([309c4c7](https://github.com/BLSQ/openhexa-app/commit/309c4c7462914a41bbb846736e1639396ff3205a))
+* show both view and download buttons for HTML run outputs ([#2103](https://github.com/BLSQ/openhexa-app/issues/2103)) ([c28404d](https://github.com/BLSQ/openhexa-app/commit/c28404d26faf847af9de745b7e948baf9f39b157))
+* wiki links and reserved rights dates (HEXA-1823) ([d0a25cc](https://github.com/BLSQ/openhexa-app/commit/d0a25cceabbf7afc69acb31f30c8d37e0e19b512))
+
 ## [5.19.0](https://github.com/BLSQ/openhexa-app/compare/5.18.0...5.19.0) (2026-10-01)
 
 
