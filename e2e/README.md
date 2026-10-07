@@ -155,7 +155,7 @@ Covered so far:
 | `workspace-webapp-assistant.spec.ts` | The AI assistant on a static app's code: a proposal that cannot be resolved while the agent is still writing, then dismissed or saved |
 | `workspace-static-webapps.spec.ts` | A static app's code, history, rollback, name, subdomain, icon and deletion; who can open it when private or public, and its API access |
 | `workspace-database.spec.ts` | The database's table list and a table's rows; a table written by a pipeline run, then deleted |
-| `workspace-data-studio.spec.ts` | Running a query into a table, a failing query, and the bar, line, pie and map widgets |
+| `workspace-data-studio.spec.ts` | Running a query into a table, a failing query, and the bar, line, pie and map widgets; the assistant writing a query from a description |
 | `workspace-saved-queries.spec.ts` | Creating, listing, opening and deleting a saved query; editing its name, description, SQL and sharing |
 
 The workspace specs run against a dedicated, otherwise-empty workspace
