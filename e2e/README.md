@@ -137,8 +137,8 @@ Covered so far:
 | --- | --- |
 | `organization-navigation.spec.ts` | The sidebar and every organization route |
 | `organization-settings.spec.ts` | The General, AI Assistant and Usage & Limits cards |
-| `user-menu.spec.ts` | The user menu's links (Account settings, MCP, Documentation); the profile name, access tokens and two-factor dialog; adding a member, who then shows as an external collaborator of the organization; the interface language |
-| `workspace-roles.spec.ts` | What a Viewer, Editor and Admin of a workspace are offered in each section and its settings, and that removing a member ends their access |
+| `user-menu.spec.ts` | The user menu's links (Account settings, MCP, Documentation); the profile name, access tokens and two-factor dialog |
+| `outsider.spec.ts` | Everything seen through the outsider account: being added to a workspace and listed as an external collaborator; the interface language; what a workspace Viewer, Editor and Admin are offered; the organization changing a collaborator's roles, converting them to a member, and removing them |
 | `workspace-lifecycle.spec.ts` | Creating a workspace and archiving it again |
 | `workspace-files.spec.ts` | Creating a folder, uploading a file, deleting both |
 | `workspace-datasets.spec.ts` | Creating a dataset and a version, removing both |
@@ -216,8 +216,14 @@ assert on their values, so reloading that data means updating the expectations.
   with a known `pipeline.py` through the API.
 - **The interface language belongs to the account, not the browser.**
   Switching it changes every session of that user at once, which is why the
-  language test runs as the outsider, serially with the other outsider test in
-  its file, and resets the language through the API in cleanup.
+  language test runs as the outsider and resets the language through the API
+  in cleanup.
+- **Every test that uses the outsider lives in `outsider.spec.ts`**, which runs
+  its tests one after the other. They share one account: the language test
+  changes how it reads, and the others change what it belongs to -- removing
+  an external collaborator, or an organization member, deletes every workspace
+  membership they hold in the organization. A test that makes the outsider an
+  organization member removes them again in cleanup.
 - **Adding an existing user to a workspace makes them a member at once** --
   there is no invitation to accept. Pending invitations only exist for emails
   without an account, so the account page's invitation list is not covered.

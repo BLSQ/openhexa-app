@@ -1,24 +1,12 @@
-import { mergeTests } from "@playwright/test";
-
-import {
-  credentials,
-  outsiderCredentials,
-  workspace,
-  workspacePaths,
-} from "../config/environment";
-import { test as disposableTest } from "../fixtures/disposableWorkspace";
-import { expect, test as visitorsTest } from "../fixtures/visitors";
+import { credentials, workspace, workspacePaths } from "../config/environment";
+import { expect, test } from "../fixtures/cleanup";
 import { uniqueName } from "../helpers/confirm";
 import {
   ACCOUNT_PATH,
   AccountSettingsPage,
 } from "../pages/AccountSettingsPage";
 import { McpPage } from "../pages/McpPage";
-import { OrganizationExternalCollaboratorsPage } from "../pages/OrganizationExternalCollaboratorsPage";
-import { LABELS, UserMenu } from "../pages/UserMenu";
-import { WorkspaceSettingsPage } from "../pages/WorkspaceSettingsPage";
-
-const test = mergeTests(visitorsTest, disposableTest);
+import { UserMenu } from "../pages/UserMenu";
 
 const DOCUMENTATION_URL = "https://docs.openhexa.com/#user-manual";
 
@@ -157,90 +145,5 @@ test.describe("Account settings", () => {
       .click();
     await expect(account.enableTwoFactorDialog).toBeHidden();
     await expect(account.twoFactorStatus).toContainText("Currently disabled");
-  });
-});
-
-test.describe("Seen by another account", () => {
-  test.skip(
-    !outsiderCredentials,
-    "Needs E2E_OUTSIDER_EMAIL / E2E_OUTSIDER_PASSWORD for a second account",
-  );
-  // The language test changes how the outsider's whole interface reads, so the
-  // other test using that account must not run at the same time.
-  test.describe.configure({ mode: "serial" });
-
-  test("a member added to a workspace reaches it and gets its token", async ({
-    page,
-    outsiderPage,
-    disposableWorkspace,
-  }) => {
-    test.setTimeout(240_000);
-    const settings = new WorkspaceSettingsPage(page);
-    const outsiderAccount = new AccountSettingsPage(outsiderPage);
-    const collaborators = new OrganizationExternalCollaboratorsPage(page);
-    const email = outsiderCredentials!.email;
-
-    const slug = await disposableWorkspace.create();
-
-    const before = await outsiderPage.goto(`/workspaces/${slug}/`);
-    expect(before?.status()).toBe(404);
-
-    await settings.goto(slug);
-    await settings.addMember(email, "Editor");
-
-    const after = await outsiderPage.goto(`/workspaces/${slug}/`);
-    expect(after?.status()).toBe(200);
-
-    await outsiderAccount.goto();
-    await expect(
-      outsiderAccount.tokenRole(disposableWorkspace.name),
-    ).toHaveText("Editor");
-
-    await test.step(
-      "the organization lists them as an external collaborator",
-      async () => {
-        await collaborators.goto();
-        await collaborators.search(email);
-        await collaborators.showAllRoles(email);
-        await expect(
-          collaborators.workspaceRole(email, disposableWorkspace.name, "Editor"),
-        ).toBeVisible();
-      },
-    );
-  });
-
-  test("the interface language switches to French and back", async ({
-    outsiderPage,
-    cleanup,
-  }) => {
-    const menu = new UserMenu(outsiderPage, outsiderCredentials!.email);
-    const account = new AccountSettingsPage(outsiderPage);
-    cleanup.add("the outsider's language", () => menu.resetLanguageToEnglish());
-
-    await outsiderPage.goto("/");
-
-    await test.step("French", async () => {
-      await menu.switchLanguage("Français");
-      await menu.open();
-      await expect(menu.languageSelect).toHaveValue("fr");
-      await expect(menu.link(LABELS.Français.accountSettings)).toBeVisible();
-
-      await menu.link(LABELS.Français.accountSettings).click();
-      await expect(
-        account.headingIn(LABELS.Français.yourAccount),
-      ).toBeVisible();
-    });
-
-    await test.step("back to English", async () => {
-      // The account page has no sidebar, so no menu to switch from.
-      await outsiderPage.goto("/");
-      await menu.switchLanguage("English");
-      await menu.open();
-      await expect(menu.languageSelect).toHaveValue("en");
-      await expect(menu.link(LABELS.English.accountSettings)).toBeVisible();
-
-      await account.goto();
-      await expect(account.heading).toBeVisible();
-    });
   });
 });
