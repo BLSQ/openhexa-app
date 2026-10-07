@@ -1,6 +1,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 
 import { workspace, workspacePaths } from "../config/environment";
+import { graphql } from "../helpers/graphql";
 
 export const PIPELINE_TABS = [
   "General",
@@ -148,40 +149,43 @@ export class WorkspacePipelinesPage {
     workspaceSlug = workspace.slug,
   ): Promise<string> {
     await this.goto();
-    const response = await this.page.evaluate(
-      async ({ workspaceSlug, name, source }) => {
-        const csrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? "";
-        const res = await fetch("/graphql/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrf,
-          },
-          body: JSON.stringify({
-            query: `mutation ($input: CreatePipelineInput!) {
-              createPipeline(input: $input) {
-                success
-                errors
-                details
-                pipeline { code }
-              }
-            }`,
-            variables: {
-              input: {
-                workspaceSlug,
-                name,
-                version: { files: [{ path: "pipeline.py", content: source }] },
-              },
-            },
-          }),
-        });
-        return res.json();
+    const data = await graphql(
+      this.page,
+      `mutation ($input: CreatePipelineInput!) {
+        createPipeline(input: $input) { success errors details pipeline { code } }
+      }`,
+      {
+        input: {
+          workspaceSlug,
+          name,
+          version: { files: [{ path: "pipeline.py", content: source }] },
+        },
       },
-      { workspaceSlug, name, source },
     );
-    const result = response?.data?.createPipeline;
-    expect(result?.success, JSON.stringify(response)).toBe(true);
-    return result.pipeline.code;
+    expect(data.createPipeline.success, JSON.stringify(data)).toBe(true);
+    return data.createPipeline.pipeline.code;
+  }
+
+  /** Publishes `source` as the pipeline's next version, through the API. */
+  async uploadVersion(
+    code: string,
+    source: string,
+    workspaceSlug = workspace.slug,
+  ) {
+    const data = await graphql(
+      this.page,
+      `mutation ($input: UploadPipelineInput!) {
+        uploadPipeline(input: $input) { success errors details }
+      }`,
+      {
+        input: {
+          workspaceSlug,
+          pipelineCode: code,
+          files: [{ path: "pipeline.py", content: source }],
+        },
+      },
+    );
+    expect(data.uploadPipeline.success, JSON.stringify(data)).toBe(true);
   }
 
   async gotoPipeline(code: string) {
@@ -233,20 +237,26 @@ export class WorkspacePipelinesPage {
   }
 
   /**
-   * A parameter's field in the run dialog. The label points at the input by
+   * A parameter's field in the run (or default values) dialog. The label points at the input by
    * the parameter's code; the switch and combobox widgets carry no name of
    * their own, so the field is reached through the label.
    */
-  parameterField(code: string): Locator {
-    return this.runDialog
+  parameterField(code: string, form: Locator = this.runDialog): Locator {
+    return form
       .locator(`label[for="${code}"]`)
       .locator("xpath=ancestor::div[2]");
   }
 
-  /** Numbers and text are typed, choices picked, and a boolean switched. */
-  async fillParameters(values: Record<string, string | number | boolean>) {
+  /**
+   * Numbers and text are typed, choices picked, and a boolean switched. The
+   * default-values dialog lays its fields out the same way as the run dialog.
+   */
+  async fillParameters(
+    values: Record<string, string | number | boolean>,
+    form: Locator = this.runDialog,
+  ) {
     for (const [code, value] of Object.entries(values)) {
-      const field = this.parameterField(code);
+      const field = this.parameterField(code, form);
       if (typeof value === "boolean") {
         const toggle = field.getByRole("switch");
         if ((await toggle.getAttribute("aria-checked")) !== String(value)) {
