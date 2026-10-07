@@ -1,6 +1,6 @@
 """Suite registry, the unit of extension.
 
-A suite bundles one hosted dataset, one task callable, one evaluator set and the
+A suite bundles one cases file, one task callable, one evaluator set and the
 types they share. Adding the edit, webapp or SQL agents means adding a suite
 here. `evals.core` does not change.
 """
@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from pydantic_evals.evaluators import Evaluator
@@ -27,7 +28,7 @@ from .pipeline_create.schemas import (
 @dataclass(frozen=True)
 class SuiteSpec:
     name: str
-    dataset_name: str
+    cases_path: Path
     input_type: type[Any]
     output_type: type[Any]
     metadata_type: type[Any]
@@ -38,7 +39,7 @@ class SuiteSpec:
 
 PIPELINE_CREATE = SuiteSpec(
     name="pipeline_create",
-    dataset_name="create-pipeline-outcome-evals",
+    cases_path=Path(__file__).parent / "pipeline_create" / "cases.yaml",
     input_type=PipelineCreateInput,
     output_type=ProposedPipeline,
     metadata_type=PipelineCreateMetadata,

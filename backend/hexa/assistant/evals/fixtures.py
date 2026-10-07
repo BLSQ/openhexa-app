@@ -186,7 +186,7 @@ def build_standard_workspace(user: User) -> EvalWorld:
 
 
 # One profile today, but kept as a registry: `fixture_profile` is stored in
-# every hosted case, so adding a world means adding an entry here and pointing
+# every case, so adding a world means adding an entry here and pointing
 # cases at it, with no change to the runner.
 PROFILES: dict[str, Callable[[User], EvalWorld]] = {
     STANDARD_WORKSPACE: build_standard_workspace,

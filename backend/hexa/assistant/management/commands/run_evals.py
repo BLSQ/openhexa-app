@@ -11,7 +11,7 @@ run under the wrong settings still costs full price, and fails quietly.
 
 What a run does, in order:
 
-    pull       fetch the suite's cases from Logfire and validate them
+    load       read the suite's cases.yaml and validate it
     filter     apply --lang and --task-id
     check      confirm Vertex is configured
                  (--dry-run stops here, having spent nothing)
@@ -39,7 +39,7 @@ from django.db import DEFAULT_DB_ALIAS, connections
 from hexa.assistant.evals.core.dataset import (
     DatasetError,
     experiment_metadata,
-    pull_dataset,
+    load_dataset,
     validate_cases,
 )
 from hexa.assistant.evals.suites import SUITES, get_suite
@@ -91,7 +91,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--dry-run",
             action="store_true",
-            help="Pull and validate the dataset, then stop without spending tokens.",
+            help="Load and validate the cases, then stop without spending tokens.",
         )
 
     def handle(self, *args, **options):
@@ -107,7 +107,7 @@ class Command(BaseCommand):
 
         if options["dry_run"]:
             self.stdout.write(
-                self.style.SUCCESS("Dry run: dataset and credentials are ready.")
+                self.style.SUCCESS("Dry run: cases and credentials are ready.")
             )
             return
 
@@ -151,13 +151,13 @@ class Command(BaseCommand):
         return override or f"{suite.name}-{metadata['model']}"
 
     def _prepare(self, suite, options) -> tuple:
-        """Pull, filter and describe the suite, without running anything.
+        """Load, filter and describe the suite, without running anything.
 
         Separated from handle() so --dry-run exercises the whole pre-flight
         rather than a partial one.
         """
         try:
-            dataset = pull_dataset(suite)
+            dataset = load_dataset(suite)
             validate_cases(dataset)
         except DatasetError as exc:
             raise CommandError(f"{suite.name}: {exc}") from exc

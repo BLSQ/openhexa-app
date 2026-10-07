@@ -1,19 +1,17 @@
-"""Pulling cases from the hosted Logfire dataset, and proving they are runnable.
+"""Loading a suite's cases, and proving they are runnable.
 
-Cases live server-side and are editable in the Logfire UI, which has no PR
-review. The harness therefore detects drift rather than preventing it. Every
-experiment is stamped with a hash of the cases it ran, so an edited dataset
-shows up as a changed hash instead of silently explaining a moved score.
+Cases live in a YAML file beside each suite and change through PR review like
+any other code. Every experiment is still stamped with a hash of the cases it
+ran: the container has no git checkout, so the hash is the only record on the
+experiment of which cases produced its scores.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
-import os
-import re
 
-from logfire.experimental.api_client import LogfireAPIClient
+import yaml
 from pydantic_evals import Dataset
 
 from hexa.assistant.instructions import get_instructions
@@ -21,50 +19,22 @@ from hexa.assistant.instructions import get_instructions
 from ..fixtures import profile_spec
 from ..suites import SuiteSpec
 
-TOKEN_ENV_VARS = ("LOGFIRE_DATASET_TOKEN", "LOGFIRE_TOKEN")
-
-# logfire only reads the region out of a token whose body is alphanumeric, and
-# dataset tokens have a UUID-style body. The match fails, logfire falls back to
-# the US endpoint, and an EU token is rejected there with a 401. Parse the region
-# ourselves. LOGFIRE_BASE_URL overrides for self-hosted.
-_TOKEN_REGION = re.compile(r"^pylf_v\d+_(?P<region>[a-z]{2})_")
-
 
 class DatasetError(RuntimeError):
     pass
 
 
-def _token() -> str:
-    for name in TOKEN_ENV_VARS:
-        value = (os.environ.get(name) or "").strip().strip("\"'")
-        if value:
-            return value
-    raise DatasetError(
-        f"No Logfire API key found. Set one of: {', '.join(TOKEN_ENV_VARS)}."
-    )
+def load_dataset(suite: SuiteSpec) -> Dataset:
+    """Read and type-check the suite's cases file.
 
-
-def _base_url(token: str) -> str | None:
-    override = (os.environ.get("LOGFIRE_BASE_URL") or "").strip()
-    if override:
-        return override
-    match = _TOKEN_REGION.match(token)
-    return f"https://logfire-{match['region']}.pydantic.dev" if match else None
-
-
-def pull_dataset(suite: SuiteSpec) -> Dataset:
-    token = _token()
-    with LogfireAPIClient(api_key=token, base_url=_base_url(token)) as client:
-        dataset = client.get_dataset(
-            suite.dataset_name,
-            input_type=suite.input_type,
-            output_type=suite.output_type,
-            metadata_type=suite.metadata_type,
-        )
-    if not isinstance(dataset, Dataset):
-        raise DatasetError(
-            f"{suite.dataset_name!r} did not come back as an evaluable dataset."
-        )
+    A missing field, a wrong value or a duplicate case name fails here, before
+    any model call, rather than as a misread case halfway through a run.
+    """
+    dataset_type = Dataset[suite.input_type, suite.output_type, suite.metadata_type]
+    try:
+        dataset = dataset_type.from_file(suite.cases_path)
+    except (OSError, ValueError, yaml.YAMLError) as exc:
+        raise DatasetError(str(exc)) from exc
     dataset.evaluators = list(suite.evaluators)
     return dataset
 
@@ -121,7 +91,7 @@ def instructions_hash(instruction_set) -> str:
 def experiment_metadata(dataset: Dataset, *, suite: SuiteSpec, model: str) -> dict:
     return {
         "suite": suite.name,
-        "dataset_name": suite.dataset_name,
+        "dataset_name": dataset.name,
         "dataset_hash": dataset_hash(dataset),
         "case_count": len(dataset.cases),
         "model": model,

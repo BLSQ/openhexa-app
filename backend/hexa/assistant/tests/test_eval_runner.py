@@ -1,5 +1,8 @@
 import json
+import tempfile
+from dataclasses import replace
 from io import StringIO
+from pathlib import Path
 
 from django.core.management import call_command
 from django.core.management.base import CommandError, OutputWrapper
@@ -11,6 +14,7 @@ from hexa.assistant.evals.core.dataset import (
     DatasetError,
     dataset_hash,
     instructions_hash,
+    load_dataset,
     validate_cases,
 )
 from hexa.assistant.evals.suites import SUITES, get_suite
@@ -179,13 +183,57 @@ class SuiteRegistryTest(SimpleTestCase):
 
     def test_registered_suite_is_complete(self):
         suite = get_suite("pipeline_create")
-        self.assertEqual("create-pipeline-outcome-evals", suite.dataset_name)
+        self.assertTrue(suite.cases_path.is_file())
         self.assertEqual(InstructionSet.CREATE_PIPELINE, suite.instruction_set)
         self.assertTrue(suite.evaluators)
 
-    def test_every_suite_has_a_distinct_dataset(self):
-        names = [suite.dataset_name for suite in SUITES.values()]
-        self.assertEqual(len(names), len(set(names)))
+    def test_every_suite_has_its_own_cases(self):
+        paths = [suite.cases_path for suite in SUITES.values()]
+        self.assertEqual(len(paths), len(set(paths)))
+
+
+class CasesFileTest(SimpleTestCase):
+    """The committed cases, checked on every PR rather than at eval time."""
+
+    SUITE = get_suite("pipeline_create")
+
+    def _load(self, yaml_text: str):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "cases.yaml"
+            path.write_text(yaml_text)
+            return load_dataset(replace(self.SUITE, cases_path=path))
+
+    def test_every_suite_ships_runnable_cases(self):
+        for suite in SUITES.values():
+            with self.subTest(suite=suite.name):
+                validate_cases(load_dataset(suite))
+
+    def test_a_wrong_field_value_fails_on_load(self):
+        with self.assertRaises(DatasetError):
+            self._load(
+                "cases:\n"
+                "- name: a\n"
+                "  inputs: {prompt: p, fixture_profile: standard_workspace}\n"
+                "  metadata: {task_id: a, lang: de}\n"
+            )
+
+    def test_a_duplicate_case_name_fails_on_load(self):
+        case = (
+            "- name: a\n"
+            "  inputs: {prompt: p, fixture_profile: standard_workspace}\n"
+            "  metadata: {task_id: a, lang: en}\n"
+        )
+        with self.assertRaises(DatasetError):
+            self._load("cases:\n" + case + case)
+
+    def test_broken_yaml_fails_on_load(self):
+        with self.assertRaises(DatasetError):
+            self._load("cases: [\n")
+
+    def test_a_missing_file_fails_on_load(self):
+        suite = replace(self.SUITE, cases_path=Path("/nonexistent/cases.yaml"))
+        with self.assertRaises(DatasetError):
+            load_dataset(suite)
 
 
 class InstructionsHashTest(SimpleTestCase):

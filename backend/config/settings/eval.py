@@ -14,10 +14,10 @@ from .test import *  # noqa: F401, F403
 # Must be set before the app registry loads: hexa.assistant.apps reads it in ready().
 os.environ["LOGFIRE_SEND_TO_LOGFIRE"] = "true"
 
-# logfire only reads the region out of a token whose body is alphanumeric:
-# its pattern ends `[a-zA-Z0-9]+$`. Dataset tokens have a UUID-style body, so
-# the match fails and logfire falls back to the US endpoint, where an EU token
-# gets a 401. Resolve the region ourselves unless a base URL is already set.
+# logfire only reads the region out of a token whose body is alphanumeric: its
+# pattern ends `[a-zA-Z0-9]+$`. API keys (`pylf_v2_…`) have a UUID-style body, so
+# the match fails and spans go to the US endpoint, where an EU key gets a 401.
+# Resolve the region ourselves unless a base URL is already set.
 if not os.environ.get("LOGFIRE_BASE_URL"):
     _match = re.match(
         r"^pylf_v\d+_(?P<region>[a-z]{2})_",

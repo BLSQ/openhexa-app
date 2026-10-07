@@ -1,9 +1,8 @@
-"""The contract between the hosted Logfire dataset and the runner.
+"""The types of a pipeline_create case, and of what the agent produced.
 
-These types mirror the schemas declared on `create-pipeline-outcome-evals`, and
-`get_dataset` validates every pulled case against them. Changing them without
-changing the hosted schemas makes the pull fail, which is the intent. A silent
-mismatch would score the agent on cases the harness had misread.
+`cases.yaml` is validated against these on load, and by `make t`. A case with a
+missing or wrong field fails before any model call, rather than being scored as
+a case the harness had misread.
 """
 
 from __future__ import annotations
