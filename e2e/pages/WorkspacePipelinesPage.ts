@@ -34,6 +34,50 @@ if __name__ == "__main__":
     e2e_edited()
 `;
 
+/** What `RUN_PIPELINE_SOURCE` logs, once per run, with its parameters. */
+export const PARAMETERS_MARKER = "E2E-PARAMETERS";
+
+/** What `RUN_PIPELINE_SOURCE` logs every few seconds while it holds. */
+export const HOLDING_MARKER = "E2E-HOLDING";
+
+/**
+ * A pipeline for exercising runs: typed parameters it logs back, an optional
+ * hold that keeps it running (and logging) for a while, and an optional
+ * `output` under which it writes a CSV file and a database table and records
+ * both as run outputs.
+ */
+export const RUN_PIPELINE_SOURCE = `import time
+
+import pandas as pd
+from openhexa.sdk import current_run, parameter, pipeline, workspace
+from sqlalchemy import create_engine
+
+
+@pipeline("e2e_run", name="E2E run pipeline")
+@parameter("rows", name="Rows", type=int, default=2, required=True)
+@parameter("label", name="Label", type=str, choices=["alpha", "beta"], default="alpha", required=True)
+@parameter("shout", name="Shout", type=bool, default=False, required=False)
+@parameter("hold", name="Hold seconds", type=int, default=0, required=False)
+@parameter("output", name="Output name", type=str, required=False)
+def e2e_run(rows, label, shout, hold, output):
+    text = label.upper() if shout else label
+    current_run.log_info(f"${PARAMETERS_MARKER} rows={rows} label={text}")
+    for second in range(0, hold or 0, 5):
+        current_run.log_info(f"${HOLDING_MARKER} {second}s")
+        time.sleep(5)
+    if output:
+        frame = pd.DataFrame({"n": range(rows), "label": [text] * rows})
+        path = f"{workspace.files_path}/{output}.csv"
+        frame.to_csv(path, index=False)
+        current_run.add_file_output(path)
+        frame.to_sql(output, create_engine(workspace.database_url), if_exists="replace", index=False)
+        current_run.add_database_output(output)
+
+
+if __name__ == "__main__":
+    e2e_run()
+`;
+
 export class WorkspacePipelinesPage {
   constructor(private readonly page: Page) {}
 
@@ -184,9 +228,77 @@ export class WorkspacePipelinesPage {
     await this.page.waitForURL(/\/runs\/[0-9a-f-]{36}\/?$/);
   }
 
+  /**
+   * A parameter's field in the run dialog. The label points at the input by
+   * the parameter's code; the switch and combobox widgets carry no name of
+   * their own, so the field is reached through the label.
+   */
+  parameterField(code: string): Locator {
+    return this.runDialog
+      .locator(`label[for="${code}"]`)
+      .locator("xpath=ancestor::div[2]");
+  }
+
+  /** Numbers and text are typed, choices picked, and a boolean switched. */
+  async fillParameters(values: Record<string, string | number | boolean>) {
+    for (const [code, value] of Object.entries(values)) {
+      const field = this.parameterField(code);
+      if (typeof value === "boolean") {
+        const toggle = field.getByRole("switch");
+        if ((await toggle.getAttribute("aria-checked")) !== String(value)) {
+          await toggle.click();
+        }
+        await expect(toggle).toHaveAttribute("aria-checked", String(value));
+      } else if (await field.getByRole("combobox").count()) {
+        await field.getByRole("combobox").click();
+        await this.page
+          .getByRole("option", { name: String(value), exact: true })
+          .click();
+      } else {
+        await field.locator(`input[name="${code}"]`).fill(String(value));
+      }
+    }
+  }
+
+  /** Starts a run with these parameters and waits for its page. */
+  async runWith(values: Record<string, string | number | boolean>) {
+    await this.runButton.click();
+    await expect(this.runDialog).toBeVisible();
+    await this.fillParameters(values);
+    await this.runDialog
+      .getByRole("button", { name: "Run", exact: true })
+      .click();
+    await this.page.waitForURL(/\/runs\/[0-9a-f-]{36}\/?$/);
+  }
+
+  get stopButton(): Locator {
+    return this.page.getByRole("button", { name: "Stop", exact: true });
+  }
+
+  get stopDialog(): Locator {
+    return this.page.getByRole("dialog").filter({
+      has: this.page.getByRole("heading", { name: /^Stop .* execution$/ }),
+    });
+  }
+
+  async stopRun() {
+    await this.stopButton.click();
+    await this.stopDialog
+      .getByRole("button", { name: "Stop", exact: true })
+      .click();
+    await expect(this.stopDialog).toBeHidden();
+  }
+
+  /** A row of the run's Outputs table, by the output's exact name. */
+  outputRow(name: string): Locator {
+    return this.page
+      .getByRole("row")
+      .filter({ has: this.page.getByText(name, { exact: true }) });
+  }
+
   /** The run page reports status inside its level-3 heading. */
   get runStatus(): Locator {
-    return this.page.getByRole("heading", { level: 3 });
+    return this.page.getByRole("main").getByRole("heading", { level: 3 });
   }
 
   /** Waits for the run to finish and returns the status it settled on. */
