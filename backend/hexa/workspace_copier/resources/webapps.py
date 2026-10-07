@@ -272,7 +272,9 @@ def _fetch_tree(
 
     A file too large for the git API comes back without content; replaying the
     commit without it would silently produce a different web app, so it fails
-    the web app instead.
+    the web app instead. An empty tree fails it too: the source resolver turns a
+    git server error into an empty file list, and a web app version always has
+    files, so replaying it would commit a deletion of every file.
     """
     data = gql(
         client,
@@ -293,6 +295,11 @@ def _fetch_tree(
                 "copied through the API"
             )
         tree[node["path"]] = (node["content"], node["encoding"])
+    if not tree:
+        raise GraphQLError(
+            f"version {ref[:8]} came back with no files, the source git server "
+            "probably failed"
+        )
     return tree
 
 
@@ -419,21 +426,20 @@ def _copy_static(
             new_tree = _fetch_tree(source.client, source.slug, src_slug, version["id"])
             changed = [p for p in new_tree if tree.get(p) != new_tree[p]]
             deleted = [p for p in tree if p not in new_tree]
-            if not changed and not deleted and new_tree:
+            if not changed and not deleted:
                 # Saving unchanged content is a real commit (the editor and agents
                 # do it). Re-sending one unchanged file makes the git server create
                 # one too; an empty file list would be a no-op.
                 changed = [min(new_tree)]
-            if changed or deleted:
-                input_ = {
-                    "id": created["id"],
-                    "files": _files_input(new_tree, changed),
-                    "filesToDelete": sorted(deleted),
-                }
-                if keeps_messages:
-                    input_["commitMessage"] = version["message"]
-                target_sha = _update_on_target(target.client, input_)
-                replayed += 1
+            input_ = {
+                "id": created["id"],
+                "files": _files_input(new_tree, changed),
+                "filesToDelete": sorted(deleted),
+            }
+            if keeps_messages:
+                input_["commitMessage"] = version["message"]
+            target_sha = _update_on_target(target.client, input_)
+            replayed += 1
             sha_map[version["id"]] = target_sha
             tree = new_tree
         reporter.info(f"      replayed {replayed} version(s)")
@@ -445,11 +451,6 @@ def _copy_static(
             )
         raise
 
-    if replayed < len(versions):
-        wa_result.warnings.append(
-            f"web app '{src_slug}': {len(versions) - replayed} commit(s) with no "
-            "files could not be recreated, so the target has fewer versions."
-        )
     _publish(target.client, created["id"], webapp, versions, sha_map)
     return created["slug"], replayed
 

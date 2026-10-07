@@ -259,17 +259,41 @@ class WebappsCopierRemoteTest(SimpleTestCase):
         self.assertEqual(publish, {"id": "target-app", "publishedVersionId": "t-2"})
         self.assertEqual(result.webapps.created, [("app", 3)])
 
-    def test_commit_without_files_is_counted_as_not_recreated(self):
+    def test_empty_first_version_fails_before_anything_is_created(self):
         servers = FakeServers(
             [_webapp("app")],
-            {"app": [("s1", "Initial", []), ("s2", "Empty", [])]},
+            {
+                "app": [
+                    ("s1", "Initial", []),
+                    ("s2", "Edit", [_file("index.html", "v2")]),
+                ]
+            },
+        )
+
+        result = self.run_copy(servers)
+
+        self.assertEqual(servers.calls, [])
+        self.assertEqual(result.webapps.failed, ["app"])
+        self.assertTrue(any("no files" in w for w in result.webapps.warnings))
+
+    def test_empty_later_version_fails_and_deletes_the_partial_target_webapp(self):
+        servers = FakeServers(
+            [_webapp("app")],
+            {
+                "app": [
+                    ("s1", "Initial", [_file("index.html", "v1")]),
+                    ("s2", "Edit", []),
+                    ("s3", "Edit again", [_file("index.html", "v3")]),
+                ]
+            },
         )
 
         result = self.run_copy(servers)
 
         self.assertEqual(servers.writes("UpdateWebapp"), [])
-        self.assertEqual(result.webapps.created, [("app", 1)])
-        self.assertTrue(any("fewer versions" in w for w in result.webapps.warnings))
+        self.assertEqual(servers.writes("DeleteWebapp"), [{"id": "target-app"}])
+        self.assertEqual(result.webapps.failed, ["app"])
+        self.assertEqual(result.webapps.created, [])
 
     def test_every_version_page_is_read(self):
         history = [
