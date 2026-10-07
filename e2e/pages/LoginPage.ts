@@ -31,4 +31,21 @@ export class LoginPage {
     await this.passwordInput.fill(password);
     await this.submitButton.click();
   }
+
+  get forgotPasswordLink() {
+    return this.page.getByRole("link", { name: "Forgot your password?" });
+  }
+
+  /** The reset page answers the same whether or not the account exists. */
+  async requestPasswordReset(email: string) {
+    await this.forgotPasswordLink.click();
+    await expect(
+      this.page.getByRole("heading", { name: "Password reset" }),
+    ).toBeVisible();
+    await this.page.getByRole("textbox", { name: "Email address" }).fill(email);
+    await this.page.getByRole("button", { name: "Reset" }).click();
+    await expect(
+      this.page.getByRole("heading", { name: "Password reset sent" }),
+    ).toBeVisible();
+  }
 }
