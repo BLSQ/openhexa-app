@@ -151,8 +151,8 @@ Covered so far:
 | `workspace-pipeline-sources.spec.ts` | A pipeline created from a notebook in the workspace's files, and run; a multi-task pipeline's task graph |
 | `workspace-templates.spec.ts` | Publishing a pipeline as a template, its pages, building a pipeline from it through the catalogue, upgrading that pipeline to a new template version, and deleting the template |
 | `workspace-pipeline-runs.spec.ts` | A run with typed parameters, its file and database table outputs, its messages arriving while it runs, and stopping it |
-| `workspace-pipeline-assistant.spec.ts` | Creating a pipeline with AI and landing in its editor with the conversation; on a pipeline's code, a proposal that cannot be resolved while the agent is still writing, then dismissed or published as a new version |
-| `workspace-webapp-assistant.spec.ts` | The AI assistant on a static app's code: a proposal that cannot be resolved while the agent is still writing, then dismissed or saved |
+| `workspace-pipeline-assistant.spec.ts` | Creating a pipeline with AI and landing in its editor with the conversation; on a pipeline's code, a proposal that cannot be resolved while the agent is still writing, then dismissed or published as a new version; separate conversations, named and switched between from the history |
+| `workspace-webapp-assistant.spec.ts` | The AI assistant on a static app's code: a proposal that cannot be resolved while the agent is still writing, then dismissed or saved; a second request adding to a pending proposal; a proposal deleting a file |
 | `workspace-static-webapps.spec.ts` | A static app's code, history, rollback, name, subdomain, icon and deletion; who can open it when private or public, and its API access |
 | `workspace-database.spec.ts` | The database's table list and a table's rows; a table written by a pipeline run, then deleted |
 | `workspace-data-studio.spec.ts` | Running a query into a table, a failing query, and the bar, line, pie and map widgets; the assistant writing a query from a description |
