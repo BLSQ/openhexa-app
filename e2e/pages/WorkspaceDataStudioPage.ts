@@ -43,6 +43,36 @@ export class WorkspaceDataStudioPage {
     ).toBeHidden();
   }
 
+  // --- AI query generation ---------------------------------------------------
+
+  /** The toolbar button that opens the bar; it reports itself as pressed. */
+  get generateToggle(): Locator {
+    return this.page.locator("button[aria-pressed]", { hasText: "Generate" });
+  }
+
+  get generatePrompt(): Locator {
+    return this.page.getByPlaceholder("Describe what you'd like to query…");
+  }
+
+  /** The bar's own submit, as opposed to the toolbar toggle. */
+  get generateSubmit(): Locator {
+    return this.page
+      .locator("form")
+      .filter({ has: this.generatePrompt })
+      .getByRole("button", { name: /Generat/ });
+  }
+
+  /**
+   * Asks the assistant for a query; it replaces the editor's content once the
+   * agent's turn ends and the bar closes.
+   */
+  async generate(description: string) {
+    await this.generateToggle.click();
+    await this.generatePrompt.fill(description);
+    await this.generateSubmit.click();
+    await expect(this.generatePrompt).toBeHidden({ timeout: 120_000 });
+  }
+
   // --- results -------------------------------------------------------------
 
   get resultsTable(): Locator {

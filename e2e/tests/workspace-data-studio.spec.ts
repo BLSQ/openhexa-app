@@ -129,4 +129,21 @@ test.describe("Workspace Data Studio", () => {
     await expect(studio.mapPopupValue("name")).toHaveText("Koupentoum");
     await expect(studio.mapPopupValue("code")).toHaveText("SN.TB.KP");
   });
+
+  test("the assistant writes a query from a description", async ({ page }) => {
+    // This talks to the real agent, so it takes as long as the model does.
+    test.setTimeout(180_000);
+    const studio = new WorkspaceDataStudioPage(page);
+    await studio.goto();
+    await studio.sqlEditor.fill("SELECT 1");
+
+    await studio.generate(
+      "Count the rows of the level_2_region table, as a single column named region_count.",
+    );
+    await expect(studio.sqlEditor).toContainText(/level_2_region/i);
+
+    await studio.runButton.click();
+    await expect(studio.resultSummary).toHaveText(/^1 row/);
+    await expect(studio.resultCells(1)).toHaveText(["1", "14"]);
+  });
 });
