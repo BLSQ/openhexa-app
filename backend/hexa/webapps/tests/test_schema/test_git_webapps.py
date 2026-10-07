@@ -925,6 +925,52 @@ class GitWebappQueryTest(GraphQLTestCase):
         self.assertEqual(versions["items"][0]["authorName"], "Test User")
 
     @patch("hexa.git.mixins.get_forgejo_client")
+    def test_query_git_webapp_versions_git_error_is_reported(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_commits.side_effect = ForgejoAPIError(
+            "GET", "http://forgejo.internal/api", 500, "boom"
+        )
+        mock_client.get_repository_files.return_value = []
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            WEBAPP_QUERY,
+            {
+                "workspaceSlug": self.WS.slug,
+                "slug": "query-test-app",
+            },
+        )
+
+        self.assertIsNone(response["data"]["webapp"]["versions"])
+        [error] = response["errors"]
+        self.assertEqual(error["message"], "Could not load the web app versions")
+        self.assertEqual(error["path"], ["webapp", "versions"])
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_query_git_webapp_files_git_error_is_reported(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.get_commits.return_value = []
+        mock_client.get_repository_files.side_effect = ForgejoAPIError(
+            "GET", "http://forgejo.internal/api", 500, "boom"
+        )
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            WEBAPP_QUERY,
+            {
+                "workspaceSlug": self.WS.slug,
+                "slug": "query-test-app",
+            },
+        )
+
+        self.assertIsNone(response["data"]["webapp"]["files"])
+        [error] = response["errors"]
+        self.assertEqual(error["message"], "Could not load the web app files")
+        self.assertEqual(error["path"], ["webapp", "files"])
+
+    @patch("hexa.git.mixins.get_forgejo_client")
     def test_query_git_webapp_files(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.get_commits.return_value = []
