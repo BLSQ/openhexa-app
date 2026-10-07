@@ -137,7 +137,7 @@ Covered so far:
 | --- | --- |
 | `organization-navigation.spec.ts` | The sidebar and every organization route |
 | `organization-settings.spec.ts` | The General, AI Assistant and Usage & Limits cards |
-| `user-menu.spec.ts` | The user menu's links (Account settings, MCP, Documentation); the profile name, access tokens and two-factor dialog; adding a member; the interface language |
+| `user-menu.spec.ts` | The user menu's links (Account settings, MCP, Documentation); the profile name, access tokens and two-factor dialog; adding a member, who then shows as an external collaborator of the organization; the interface language |
 | `workspace-lifecycle.spec.ts` | Creating a workspace and archiving it again |
 | `workspace-files.spec.ts` | Creating a folder, uploading a file, deleting both |
 | `workspace-datasets.spec.ts` | Creating a dataset and a version, removing both |
