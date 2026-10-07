@@ -11,7 +11,8 @@ import { OrganizationWorkspacesPage } from "../pages/OrganizationWorkspacesPage"
  * leave the shared environment as it found it.
  */
 export class DisposableWorkspace {
-  readonly name: string;
+  /** Its current name, which cleanup looks it up by. */
+  name: string;
   private slug: string | null = null;
   private requested = false;
 
@@ -28,6 +29,11 @@ export class DisposableWorkspace {
     this.requested = true;
     this.slug = await this.workspaces.create(this.name);
     return this.slug;
+  }
+
+  /** Records a rename done through the UI, so cleanup still finds it. */
+  renamed(name: string) {
+    this.name = name;
   }
 
   async archive() {
