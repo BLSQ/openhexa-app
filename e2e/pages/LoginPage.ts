@@ -32,6 +32,15 @@ export class LoginPage {
     await this.submitButton.click();
   }
 
+  get signUpLink() {
+    return this.page.getByRole("link", { name: "Sign up" });
+  }
+
+  /** Self sign-up asks only for an address; the rest comes by email. */
+  get signUpHeading() {
+    return this.page.getByRole("heading", { name: "Sign up" });
+  }
+
   get forgotPasswordLink() {
     return this.page.getByRole("link", { name: "Forgot your password?" });
   }
