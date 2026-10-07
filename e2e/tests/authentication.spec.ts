@@ -53,4 +53,21 @@ test.describe("Authentication", () => {
     // An address without an account, on a reserved domain: nothing is sent.
     await login.requestPasswordReset(`${uniqueName("e2e-reset")}@example.com`);
   });
+
+  test("sign-up is offered, and registering needs an invitation", async ({
+    anonymousPage,
+  }) => {
+    const login = new LoginPage(anonymousPage);
+
+    await login.goto();
+    await login.signUpLink.click();
+    await expect(login.signUpHeading).toBeVisible();
+    await expect(
+      anonymousPage.getByRole("textbox", { name: "Email address" }),
+    ).toBeVisible();
+
+    // Registration completes an emailed invitation; without one it bounces.
+    await anonymousPage.goto("/register/");
+    await expect(anonymousPage).toHaveURL(/\/login/);
+  });
 });
