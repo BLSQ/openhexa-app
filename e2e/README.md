@@ -142,7 +142,7 @@ Covered so far:
 | `outsider.spec.ts` | Everything seen through the outsider account: being added to a workspace and listed as an external collaborator; the interface language; what a workspace Viewer, Editor and Admin are offered; the organization changing a collaborator's roles, converting them to a member, and removing them |
 | `workspace-lifecycle.spec.ts` | Creating a workspace and archiving it again |
 | `workspace-settings.spec.ts` | In a temporary workspace: its name, countries and configuration, regenerating its database passwords, and a pipeline run that reads the configuration and writes to the database |
-| `workspace-files.spec.ts` | Creating a folder, uploading a file, deleting both |
+| `workspace-files.spec.ts` | Creating a folder, uploading a file, deleting both; browsing into a folder, searching it, downloading and the breadcrumb back; uploading a whole folder; an accented file name and a 5 MB file round-tripping |
 | `workspace-datasets.spec.ts` | Creating a dataset and a version, removing both; a file's preview, column profile and download, and picking an earlier version; renaming a dataset and sharing it with the organization (as the organization's dataset list shows); sharing it with another workspace, which reads it, then revoking that |
 | `workspace-connections.spec.ts` | Creating and deleting one connection of each type |
 | `workspace-pipelines.spec.ts` | A pipeline from a template: every tab, running it, editing the code, and running the new version |
@@ -177,7 +177,11 @@ assert on their values, so reloading that data means updating the expectations.
   browser associates with them, so they are reached through their `<dt>` term or
   a `name` attribute. Prefer a role wherever the app provides one.
 - **Upload dialogs hold two file inputs**, one of them a directory picker.
-  Target `input[type="file"]:not([webkitdirectory])`.
+  Target `input[type="file"]:not([webkitdirectory])` for files, and the
+  `[webkitdirectory]` one, given a local directory, for folders.
+- **The files search runs on Enter and covers the folder on screen only**, not
+  the folders below it.
+- **A file has no preview page**; clicking its name does nothing.
 - **Pipelines created from a template take the template's name**, so that spec
   runs `serial` -- two of its tests at once would collide over the same code.
 - **A published template is offered to every user of the platform** until it

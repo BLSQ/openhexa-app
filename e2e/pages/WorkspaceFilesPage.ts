@@ -85,4 +85,47 @@ export class WorkspaceFilesPage {
     }
     await this.delete(name);
   }
+
+  // --- browsing --------------------------------------------------------------
+
+  get searchInput(): Locator {
+    return this.page.getByRole("main").getByRole("textbox", { name: "Search..." });
+  }
+
+  breadcrumb(name: string): Locator {
+    return this.page
+      .getByRole("navigation", { name: "Breadcrumbs" })
+      .getByRole("link", { name, exact: true });
+  }
+
+  async openFolder(name: string) {
+    await this.row(name).getByRole("link", { name, exact: true }).click();
+    await this.page.waitForURL(`**/${encodeURIComponent(name)}/`);
+    await expect(this.breadcrumb(name)).toBeVisible();
+  }
+
+  /** The search only runs once submitted, and looks through every folder. */
+  async search(text: string) {
+    await this.searchInput.fill(text);
+    await this.searchInput.press("Enter");
+    await this.page.waitForURL(new RegExp(`[?&]q=${encodeURIComponent(text)}`));
+  }
+
+  async download(name: string) {
+    const [download] = await Promise.all([
+      this.page.waitForEvent("download"),
+      this.row(name).getByRole("button", { name: "Download" }).click(),
+    ]);
+    return download;
+  }
+
+  /** Uploads a local directory through the dialog's folder picker. */
+  async uploadDirectory(path: string) {
+    await this.uploadButton.click();
+    await this.uploadDialog
+      .locator("input[type=file][webkitdirectory]")
+      .setInputFiles(path);
+    await this.uploadDialog.getByRole("button", { name: "Upload" }).click();
+    await expect(this.uploadDialog).toBeHidden();
+  }
 }
