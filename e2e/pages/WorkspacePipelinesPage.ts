@@ -1,6 +1,6 @@
 import { Locator, Page, expect } from "@playwright/test";
 
-import { workspacePaths } from "../config/environment";
+import { workspace, workspacePaths } from "../config/environment";
 
 export const PIPELINE_TABS = [
   "General",
@@ -92,8 +92,56 @@ export class WorkspacePipelinesPage {
     return { name, code };
   }
 
+  /**
+   * Creates a pipeline whose first version is `source`, through the API: the
+   * tests that need one to work on get a known file under a unique name,
+   * rather than a template's, which two tests at once would collide over.
+   * Returns its code.
+   */
+  async createWithSource(name: string, source: string): Promise<string> {
+    await this.goto();
+    const response = await this.page.evaluate(
+      async ({ workspaceSlug, name, source }) => {
+        const csrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] ?? "";
+        const res = await fetch("/graphql/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrf,
+          },
+          body: JSON.stringify({
+            query: `mutation ($input: CreatePipelineInput!) {
+              createPipeline(input: $input) {
+                success
+                errors
+                details
+                pipeline { code }
+              }
+            }`,
+            variables: {
+              input: {
+                workspaceSlug,
+                name,
+                version: { files: [{ path: "pipeline.py", content: source }] },
+              },
+            },
+          }),
+        });
+        return res.json();
+      },
+      { workspaceSlug: workspace.slug, name, source },
+    );
+    const result = response?.data?.createPipeline;
+    expect(result?.success, JSON.stringify(response)).toBe(true);
+    return result.pipeline.code;
+  }
+
   async gotoPipeline(code: string) {
     await this.page.goto(`${workspacePaths.pipelines}${code}/`);
+  }
+
+  async gotoCode(code: string) {
+    await this.page.goto(`${workspacePaths.pipelines}${code}/code/`);
   }
 
   tab(name: PipelineTab): Locator {
@@ -106,6 +154,13 @@ export class WorkspacePipelinesPage {
 
   async gotoVersions(code: string) {
     await this.page.goto(`${workspacePaths.pipelines}${code}/versions/`);
+  }
+
+  /** A card's heading on the versions page, e.g. "Version v2". */
+  versionHeading(version: string): Locator {
+    return this.page.getByRole("heading", {
+      name: new RegExp(`Version ${version}\\b`),
+    });
   }
 
   // --- running -------------------------------------------------------------
