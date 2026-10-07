@@ -49,6 +49,42 @@ export class OrganizationWorkspacesPage {
     await this.page.goto(organizationPaths.workspaces);
   }
 
+  async showCards() {
+    await this.page.getByTestId("card-view").click();
+    await expect(
+      this.page.getByRole("columnheader", { name: "Name" }),
+    ).toHaveCount(0);
+  }
+
+  /** A workspace's card, by the name in its heading. */
+  card(name: string): Locator {
+    return this.page.getByRole("article").filter({
+      has: this.page.getByRole("heading", { name, exact: true }),
+    });
+  }
+
+  /** Searches the list; matching is on the workspace's name. */
+  async search(text: string) {
+    await this.searchInput.fill(text);
+  }
+
+  /** Creates or picks `tag` for a workspace from its row's Tags dialog. */
+  async addTag(name: string, tag: string) {
+    await this.row(name).getByRole("button", { name: "Tags" }).click();
+    const heading = this.page.getByRole("heading", { name: "Manage tags" });
+    await this.page.getByRole("combobox", { name: "Select or create tags..." }).click();
+    await this.page.keyboard.type(tag);
+    // An existing tag is offered as an option; a new one as a "Create tag" line.
+    const existing = this.page.getByRole("option", { name: tag, exact: true });
+    const create = this.page.getByRole("listbox").getByText(`Create tag "${tag}"`);
+    await expect(existing.or(create)).toBeVisible();
+    await ((await existing.count()) ? existing : create).click();
+    // Escape would close the dialog too, so the list is dismissed by clicking away.
+    await heading.click();
+    await this.page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(this.page.getByText("Tags updated!", { exact: true })).toBeVisible();
+  }
+
   /** The card view hides the per-row actions, so the table view is the one to drive. */
   async showList() {
     await this.page.getByTestId("grid-view").click();
