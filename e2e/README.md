@@ -103,7 +103,7 @@ E2E_BASE_URL=https://app.openhexa.org E2E_ORGANIZATION_ID=... npm test
 | `fixtures/cleanup.ts` | Registers undo steps that run in reverse at teardown, pass or fail |
 | `fixtures/disposableWorkspace.ts` | A uniquely named workspace, archived again in teardown |
 | `fixtures/visitors.ts` | Pages for an anonymous visitor and for the outsider account |
-| `helpers/` | Native-confirm handling, unique names, grid-load waiting |
+| `helpers/` | Native-confirm handling, unique names, grid-load waiting, and GraphQL calls made as the signed-in user, for setting up data a test is not about |
 | `pages/` | Page objects — the only place selectors live |
 | `tests/` | Specs |
 
