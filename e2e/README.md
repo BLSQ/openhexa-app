@@ -146,7 +146,7 @@ Covered so far:
 | `workspace-datasets.spec.ts` | Creating a dataset and a version, removing both; a file's preview, column profile and download, and picking an earlier version; renaming a dataset and sharing it with the organization (as the organization's dataset list shows); sharing it with another workspace, which reads it, then revoking that |
 | `workspace-connections.spec.ts` | Creating and deleting one connection of each type; testing a PostgreSQL connection to the workspace's own database (failing, then passing), keeping its password hidden, and a pipeline run querying it through a connection parameter |
 | `workspace-pipelines.spec.ts` | A pipeline from a template: every tab, running it, editing the code, and running the new version |
-| `workspace-webapps.spec.ts` | Creating an iFrame app and deleting it |
+| `workspace-webapps.spec.ts` | Creating an iFrame app and deleting it; its play page framing its URL, and a changed URL |
 | `workspace-pipeline-settings.spec.ts` | A pipeline's name, description, tags and type; its schedule and notification recipients; its webhook starting a run; default parameter values; the Runs tab; editing, downloading and deleting versions |
 | `workspace-pipeline-sources.spec.ts` | A pipeline created from a notebook in the workspace's files, and run; a multi-task pipeline's task graph |
 | `workspace-templates.spec.ts` | Publishing a pipeline as a template, its pages, building a pipeline from it through the catalogue, upgrading that pipeline to a new template version, and deleting the template |
