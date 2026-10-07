@@ -14,6 +14,7 @@ import {
   AccountSettingsPage,
 } from "../pages/AccountSettingsPage";
 import { McpPage } from "../pages/McpPage";
+import { OrganizationExternalCollaboratorsPage } from "../pages/OrganizationExternalCollaboratorsPage";
 import { LABELS, UserMenu } from "../pages/UserMenu";
 import { WorkspaceSettingsPage } from "../pages/WorkspaceSettingsPage";
 
@@ -176,6 +177,8 @@ test.describe("Seen by another account", () => {
     test.setTimeout(240_000);
     const settings = new WorkspaceSettingsPage(page);
     const outsiderAccount = new AccountSettingsPage(outsiderPage);
+    const collaborators = new OrganizationExternalCollaboratorsPage(page);
+    const email = outsiderCredentials!.email;
 
     const slug = await disposableWorkspace.create();
 
@@ -183,7 +186,7 @@ test.describe("Seen by another account", () => {
     expect(before?.status()).toBe(404);
 
     await settings.goto(slug);
-    await settings.addMember(outsiderCredentials!.email, "Editor");
+    await settings.addMember(email, "Editor");
 
     const after = await outsiderPage.goto(`/workspaces/${slug}/`);
     expect(after?.status()).toBe(200);
@@ -192,6 +195,18 @@ test.describe("Seen by another account", () => {
     await expect(
       outsiderAccount.tokenRole(disposableWorkspace.name),
     ).toHaveText("Editor");
+
+    await test.step(
+      "the organization lists them as an external collaborator",
+      async () => {
+        await collaborators.goto();
+        await collaborators.search(email);
+        await collaborators.showAllRoles(email);
+        await expect(
+          collaborators.workspaceRole(email, disposableWorkspace.name, "Editor"),
+        ).toBeVisible();
+      },
+    );
   });
 
   test("the interface language switches to French and back", async ({
