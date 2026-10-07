@@ -142,7 +142,11 @@ export class WorkspacePipelinesPage {
    * rather than a template's, which two tests at once would collide over.
    * Returns its code.
    */
-  async createWithSource(name: string, source: string): Promise<string> {
+  async createWithSource(
+    name: string,
+    source: string,
+    workspaceSlug = workspace.slug,
+  ): Promise<string> {
     await this.goto();
     const response = await this.page.evaluate(
       async ({ workspaceSlug, name, source }) => {
@@ -173,7 +177,7 @@ export class WorkspacePipelinesPage {
         });
         return res.json();
       },
-      { workspaceSlug: workspace.slug, name, source },
+      { workspaceSlug, name, source },
     );
     const result = response?.data?.createPipeline;
     expect(result?.success, JSON.stringify(response)).toBe(true);
