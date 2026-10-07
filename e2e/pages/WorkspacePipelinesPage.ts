@@ -295,8 +295,10 @@ export class WorkspacePipelinesPage {
         await expect(toggle).toHaveAttribute("aria-checked", String(value));
       } else if (await field.getByRole("combobox").count()) {
         await field.getByRole("combobox").click();
+        // Some options lead with an icon whose alt text joins their name.
+        const escaped = String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         await this.page
-          .getByRole("option", { name: String(value), exact: true })
+          .getByRole("option", { name: new RegExp(`(^|\\s)${escaped}$`) })
           .click();
       } else {
         await field.locator(`input[name="${code}"]`).fill(String(value));

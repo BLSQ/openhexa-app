@@ -143,4 +143,53 @@ export class WorkspaceConnectionsPage {
     await this.goto();
     await expect(this.card(name)).toBeVisible();
   }
+
+  // --- a connection's page ---------------------------------------------------
+
+  /** A row of the Fields table: the field's code, then its value. */
+  fieldValue(code: string): Locator {
+    return this.page
+      .getByRole("row")
+      .filter({ has: this.page.getByRole("cell", { name: code, exact: true }) })
+      .getByRole("cell")
+      .nth(1);
+  }
+
+  get fieldsDialog(): Locator {
+    return this.page.getByRole("dialog").filter({
+      has: this.page.getByRole("heading", { name: /^Update connection fields for/ }),
+    });
+  }
+
+  /** The Fields card's Edit button is the second on the page. */
+  async editFields(values: Record<string, string>) {
+    await this.page.getByRole("button", { name: "Edit", exact: true }).nth(1).click();
+    for (const [label, value] of Object.entries(values)) {
+      const textbox = this.fieldsDialog.getByRole("textbox", { name: label, exact: true });
+      const control = (await textbox.count())
+        ? textbox
+        : this.fieldsDialog.getByRole("spinbutton", { name: label, exact: true });
+      await control.fill(value);
+    }
+  }
+
+  /** Presses "Test connection" in the open dialog and returns what it says. */
+  async testConnection(): Promise<Locator> {
+    await this.fieldsDialog.getByRole("button", { name: "Test connection" }).click();
+    const result = this.fieldsDialog.getByText(
+      /Connection successful!|Connection failed/,
+    );
+    await expect(result).toBeVisible({ timeout: 60_000 });
+    return result;
+  }
+
+  async saveFields() {
+    await this.fieldsDialog.getByRole("button", { name: "Save" }).click();
+    await expect(this.fieldsDialog).toBeHidden();
+  }
+
+  async cancelFields() {
+    await this.fieldsDialog.getByRole("button", { name: "Cancel" }).click();
+    await expect(this.fieldsDialog).toBeHidden();
+  }
 }
