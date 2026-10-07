@@ -137,6 +137,7 @@ Covered so far:
 | --- | --- |
 | `authentication.spec.ts` | A wrong password refused; a protected page sending a visitor to sign in and back; signing out; requesting a password reset; the sign-up page, and registration needing an invitation |
 | `organization-navigation.spec.ts` | The sidebar and every organization route |
+| `organization-workspaces.spec.ts` | The organization's workspaces as cards and as a table, searched; tagging a workspace |
 | `organization-settings.spec.ts` | The General, AI Assistant and Usage & Limits cards |
 | `organization-members.spec.ts` | The members list; inviting an address, resending the invitation and deleting it |
 | `user-menu.spec.ts` | The user menu's links (Account settings, MCP, Documentation); the profile name, access tokens and two-factor dialog |
