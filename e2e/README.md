@@ -144,7 +144,7 @@ Covered so far:
 | `workspace-settings.spec.ts` | In a temporary workspace: its name, countries and configuration, regenerating its database passwords, and a pipeline run that reads the configuration and writes to the database |
 | `workspace-files.spec.ts` | Creating a folder, uploading a file, deleting both; browsing into a folder, searching it, downloading and the breadcrumb back; uploading a whole folder; an accented file name and a 5 MB file round-tripping |
 | `workspace-datasets.spec.ts` | Creating a dataset and a version, removing both; a file's preview, column profile and download, and picking an earlier version; renaming a dataset and sharing it with the organization (as the organization's dataset list shows); sharing it with another workspace, which reads it, then revoking that |
-| `workspace-connections.spec.ts` | Creating and deleting one connection of each type |
+| `workspace-connections.spec.ts` | Creating and deleting one connection of each type; testing a PostgreSQL connection to the workspace's own database (failing, then passing), keeping its password hidden, and a pipeline run querying it through a connection parameter |
 | `workspace-pipelines.spec.ts` | A pipeline from a template: every tab, running it, editing the code, and running the new version |
 | `workspace-webapps.spec.ts` | Creating an iFrame app and deleting it |
 | `workspace-pipeline-settings.spec.ts` | A pipeline's name, description, tags and type; its schedule and notification recipients; its webhook starting a run; default parameter values; the Runs tab; editing, downloading and deleting versions |
