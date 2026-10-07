@@ -144,6 +144,7 @@ Covered so far:
 | `workspace-connections.spec.ts` | Creating and deleting one connection of each type |
 | `workspace-pipelines.spec.ts` | A pipeline from a template: every tab, running it, editing the code, and running the new version |
 | `workspace-webapps.spec.ts` | Creating an iFrame app and deleting it |
+| `workspace-pipeline-assistant.spec.ts` | Creating a pipeline with AI and landing in its editor with the conversation; on a pipeline's code, a proposal that cannot be resolved while the agent is still writing, then dismissed or published as a new version |
 | `workspace-webapp-assistant.spec.ts` | The AI assistant on a static app's code: a proposal that cannot be resolved while the agent is still writing, then dismissed or saved |
 | `workspace-static-webapps.spec.ts` | A static app's code, history, rollback, name, subdomain, icon and deletion; who can open it when private or public, and its API access |
 | `workspace-data-studio.spec.ts` | Running a query into a table, a failing query, and the bar, line, pie and map widgets |
@@ -199,6 +200,12 @@ assert on their values, so reloading that data means updating the expectations.
   or dismissed once the agent's turn has ended; the prompt asks for a long
   answer after the proposal, so the turn stays open long enough to check that
   both are refused until then.
+- **A pipeline created with AI is cleaned up by its requested name.** Its code
+  is its name slugified, so the prompt asks for an exact lowercase, hyphenated
+  name and cleanup is registered under it before the agent runs. While the agent
+  works, the dialog holds the page with a `beforeunload` prompt, which cleanup
+  accepts. The editing specs skip the agent for setup and create their pipeline
+  with a known `pipeline.py` through the API.
 - **The interface language belongs to the account, not the browser.**
   Switching it changes every session of that user at once, which is why the
   language test runs as the outsider, serially with the other outsider test in
