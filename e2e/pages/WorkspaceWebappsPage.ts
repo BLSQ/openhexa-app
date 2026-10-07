@@ -201,6 +201,11 @@ export class WorkspaceWebappsPage {
 
   // --- code ----------------------------------------------------------------
 
+  /** A file in the Code tab's file tree. */
+  treeFile(name: string): Locator {
+    return this.page.getByTestId("files-panel").getByText(name, { exact: true });
+  }
+
   /** CodeMirror's content area, showing index.html. */
   get codeEditor(): Locator {
     return this.page.locator(".cm-content");

@@ -162,4 +162,57 @@ test.describe("Pipeline AI assistant", () => {
       await expect(assistant.proposalBanner).toBeHidden();
     });
   });
+
+  test("conversations are kept apart and listed in the history", async ({
+    page,
+    cleanup,
+  }) => {
+    const pipelines = new WorkspacePipelinesPage(page);
+    const assistant = new PipelineAssistantPanel(page);
+    // Questions that need no tools, so each turn is short.
+    const first = "Reply with only the word ALPHA. Do not propose any change.";
+    const second = "Reply with only the word BRAVO. Do not propose any change.";
+
+    const code = await pipelines.createWithSource(
+      uniqueName("e2e-assistant"),
+      ASSISTANT_PIPELINE_SOURCE,
+    );
+    cleanup.add(`pipeline ${code}`, () => pipelines.deleteIfPresent(code));
+
+    await pipelines.gotoCode(code);
+    await assistant.open();
+
+    const firstName = await test.step("the first conversation is named", async () => {
+      await assistant.send(first);
+      await expect(assistant.message("ALPHA")).toBeVisible({ timeout: 120_000 });
+      // The name is written by a separate agent once the first turn is in.
+      await expect(assistant.conversationName).toHaveText(/\S/, {
+        timeout: 60_000,
+      });
+      return (await assistant.conversationName.innerText()).trim();
+    });
+
+    await test.step("a new conversation starts empty", async () => {
+      await assistant.newConversationButton.click();
+      await expect(assistant.message(first)).toHaveCount(0);
+      await assistant.send(second);
+      await expect(assistant.message("BRAVO")).toBeVisible({ timeout: 120_000 });
+    });
+
+    await test.step("the history switches back to the first", async () => {
+      await assistant.openConversation(firstName);
+      await expect(assistant.message(first)).toBeVisible();
+      await expect(assistant.message(second)).toHaveCount(0);
+    });
+
+    await test.step("both are kept with the pipeline", async () => {
+      await pipelines.gotoCode(code);
+      await expect(assistant.heading).toBeVisible();
+      await assistant.historyButton.click();
+      await expect(assistant.historyEntries).toHaveCount(2);
+      await expect(
+        assistant.historyEntries.filter({ hasText: firstName }),
+      ).toBeVisible();
+    });
+  });
 });

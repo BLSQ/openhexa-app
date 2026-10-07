@@ -103,6 +103,43 @@ export abstract class AssistantPanel {
     await expect(this.saveButton).toBeEnabled();
   }
 
+  /**
+   * For a proposal that replaces one already on screen: the banner never goes
+   * away, so wait for the new one to block it, then for the turn to end.
+   */
+  async waitForNextProposal() {
+    await expect(this.dismissButton).toBeDisabled({ timeout: TURN_TIMEOUT });
+    await expect(this.dismissButton).toBeEnabled({ timeout: TURN_TIMEOUT });
+    await expect(this.saveButton).toBeEnabled();
+  }
+
+  get newConversationButton(): Locator {
+    return this.page.getByTitle("New conversation");
+  }
+
+  get historyButton(): Locator {
+    return this.page.getByRole("button", { name: "History", exact: true });
+  }
+
+  /** The active conversation's name, shown under the panel's heading. */
+  get conversationName(): Locator {
+    return this.heading.locator("xpath=following-sibling::div[1]");
+  }
+
+  /** History lists each conversation as a button, with when it was last used. */
+  get historyEntries(): Locator {
+    return this.page.getByRole("button").filter({ has: this.page.locator("time") });
+  }
+
+  /** History lists each conversation as a button, by its name. */
+  async openConversation(name: string) {
+    await this.historyButton.click();
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    await this.page
+      .getByRole("button", { name: new RegExp(`^${escaped}`) })
+      .click();
+  }
+
   async dismiss() {
     await this.dismissButton.click();
     await expect(this.proposalBanner).toBeHidden();
