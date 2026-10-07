@@ -137,6 +137,36 @@ export class WorkspacePipelinesPage {
     return { name, code };
   }
 
+  get createDialog(): Locator {
+    return this.page.getByRole("dialog");
+  }
+
+  /**
+   * Creates a pipeline that runs a notebook from the workspace's files, from
+   * the Create dialog's "From Notebook" path. Returns its code.
+   */
+  async createFromNotebook(name: string, notebook: string): Promise<string> {
+    await this.goto();
+    await this.page.getByRole("button", { name: "Create", exact: true }).click();
+    await this.createDialog
+      .getByRole("button", { name: /^From Notebook/ })
+      .click();
+    await this.createDialog.getByRole("textbox", { name: "Pipeline Name" }).fill(name);
+    await this.createDialog
+      .getByRole("textbox", { name: "Select a Jupyter notebook" })
+      .click();
+    await this.createDialog.getByRole("button", { name: notebook }).click();
+    await this.createDialog
+      .getByRole("button", { name: "Create", exact: true })
+      .click();
+    await this.page.waitForURL(
+      (url) =>
+        /\/pipelines\/[^/]+\/?$/.test(url.pathname) &&
+        !url.pathname.endsWith("/pipelines/"),
+    );
+    return this.page.url().replace(/\/$/, "").split("/pipelines/")[1];
+  }
+
   /**
    * Creates a pipeline whose first version is `source`, through the API: the
    * tests that need one to work on get a known file under a unique name,

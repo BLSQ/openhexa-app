@@ -148,6 +148,7 @@ Covered so far:
 | `workspace-pipelines.spec.ts` | A pipeline from a template: every tab, running it, editing the code, and running the new version |
 | `workspace-webapps.spec.ts` | Creating an iFrame app and deleting it |
 | `workspace-pipeline-settings.spec.ts` | A pipeline's name, description, tags and type; its schedule and notification recipients; its webhook starting a run; default parameter values; the Runs tab; editing, downloading and deleting versions |
+| `workspace-pipeline-sources.spec.ts` | A pipeline created from a notebook in the workspace's files, and run; a multi-task pipeline's task graph |
 | `workspace-pipeline-runs.spec.ts` | A run with typed parameters, its file and database table outputs, its messages arriving while it runs, and stopping it |
 | `workspace-pipeline-assistant.spec.ts` | Creating a pipeline with AI and landing in its editor with the conversation; on a pipeline's code, a proposal that cannot be resolved while the agent is still writing, then dismissed or published as a new version |
 | `workspace-webapp-assistant.spec.ts` | The AI assistant on a static app's code: a proposal that cannot be resolved while the agent is still writing, then dismissed or saved |
