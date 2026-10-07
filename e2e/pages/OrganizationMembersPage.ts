@@ -93,13 +93,16 @@ export class OrganizationMembersPage {
 
   /** Invites an address with no workspace roles. */
   async invite(email: string, role: OrganizationRole) {
+    // The dialog clears its form whenever the page's organization query
+    // settles, which wipes an address typed before then.
+    await waitForGrid(this.page);
     await this.inviteButton.click();
     const dialog = this.dialog("Invite Member");
-    await dialog.getByPlaceholder("Enter email address").fill(email);
     await dialog
       .locator('select[name="organizationRole"]')
       .selectOption({ label: role });
     await dialog.locator("select#bulkRole").selectOption({ label: "None" });
+    await dialog.getByPlaceholder("Enter email address").fill(email);
     await dialog.getByRole("button", { name: "Invite Member" }).click();
     await expect(this.toast("Invitation sent!")).toBeVisible();
     await expect(this.invitationRow(email)).toBeVisible();
