@@ -159,6 +159,7 @@ export class WorkspaceWebappsPage {
 
   async updateDetails(changes: {
     name?: string;
+    sourceUrl?: string;
     subdomain?: string;
     isPublic?: boolean;
     icon?: Buffer;
@@ -166,6 +167,9 @@ export class WorkspaceWebappsPage {
     await this.editButton.click();
     if (changes.name !== undefined) {
       await this.nameInput.fill(changes.name);
+    }
+    if (changes.sourceUrl !== undefined) {
+      await this.sourceUrlInput.fill(changes.sourceUrl);
     }
     if (changes.subdomain !== undefined) {
       await this.subdomainInput.fill(changes.subdomain);
@@ -182,6 +186,17 @@ export class WorkspaceWebappsPage {
     }
     await this.saveButton.click();
     await expect(this.toast("Web app updated successfully")).toBeVisible();
+  }
+
+  // --- play ----------------------------------------------------------------
+
+  /** The full-page view of an app, framed. */
+  async gotoPlay(slug: string) {
+    await this.page.goto(`${workspacePaths.webapps}${slug}/play/`);
+  }
+
+  get playFrame(): Locator {
+    return this.page.getByTestId("webapp-iframe");
   }
 
   // --- code ----------------------------------------------------------------
