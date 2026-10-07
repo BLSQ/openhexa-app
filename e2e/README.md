@@ -135,7 +135,7 @@ Covered so far:
 
 | Spec | What it exercises |
 | --- | --- |
-| `authentication.spec.ts` | A wrong password refused; a protected page sending a visitor to sign in and back; signing out; requesting a password reset |
+| `authentication.spec.ts` | A wrong password refused; a protected page sending a visitor to sign in and back; signing out; requesting a password reset; the sign-up page, and registration needing an invitation |
 | `organization-navigation.spec.ts` | The sidebar and every organization route |
 | `organization-settings.spec.ts` | The General, AI Assistant and Usage & Limits cards |
 | `organization-members.spec.ts` | The members list; inviting an address, resending the invitation and deleting it |
