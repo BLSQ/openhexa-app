@@ -145,6 +145,7 @@ Covered so far:
 | `workspace-connections.spec.ts` | Creating and deleting one connection of each type |
 | `workspace-pipelines.spec.ts` | A pipeline from a template: every tab, running it, editing the code, and running the new version |
 | `workspace-webapps.spec.ts` | Creating an iFrame app and deleting it |
+| `workspace-pipeline-runs.spec.ts` | A run with typed parameters, its file and database table outputs, its messages arriving while it runs, and stopping it |
 | `workspace-pipeline-assistant.spec.ts` | Creating a pipeline with AI and landing in its editor with the conversation; on a pipeline's code, a proposal that cannot be resolved while the agent is still writing, then dismissed or published as a new version |
 | `workspace-webapp-assistant.spec.ts` | The AI assistant on a static app's code: a proposal that cannot be resolved while the agent is still writing, then dismissed or saved |
 | `workspace-static-webapps.spec.ts` | A static app's code, history, rollback, name, subdomain, icon and deletion; who can open it when private or public, and its API access |
@@ -179,6 +180,11 @@ assert on their values, so reloading that data means updating the expectations.
   that just logs a marker; a pipeline version's decorator does not have to match
   the pipeline it is uploaded to, so that source is the same whichever template
   the catalogue lists first.
+- **Run specs use their own pipeline**, `RUN_PIPELINE_SOURCE`, created through
+  the API with a unique name. It logs its parameters back, can hold for a
+  while logging every five seconds (to watch a live run, and to stop one), and
+  can write a CSV and a database table under a given name -- which cleanup then
+  removes from the files and the database.
 - **Filling CodeMirror replaces the whole file**, which is what the edit relies
   on. Save only appears once there are pending changes and goes once they are
   committed, so its disappearance is the signal that a version was published.
