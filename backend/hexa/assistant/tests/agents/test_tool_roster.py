@@ -37,6 +37,11 @@ class AgentToolsSchemaTest(TestCase):
             ),
         )
 
+    def test_common_tools_are_in_roster(self):
+        # common_tools live outside the per-agent `tools` lists; the roster
+        # must include them or the frontend would render them unlabelled.
+        self.assertIn("get_workspace", all_agent_tool_names())
+
 
 def _invocation(tool_name: str) -> SimpleNamespace:
     return SimpleNamespace(

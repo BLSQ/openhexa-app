@@ -1,5 +1,8 @@
-from django.test import override_settings
+from django.conf import settings
+from django.http import HttpResponse
+from django.test import RequestFactory, override_settings
 
+from hexa.core.middlewares import SSEAwareGZipMiddleware
 from hexa.core.test import TestCase
 
 
@@ -19,3 +22,28 @@ class RequestTooBigMiddlewareTest(TestCase):
             any("DATA_UPLOAD_MAX_MEMORY_SIZE" in line for line in cm.output),
             f"Expected security log to mention DATA_UPLOAD_MAX_MEMORY_SIZE, got {cm.output}",
         )
+
+
+@override_settings(STATIC_ROOT=settings.BASE_DIR / "hexa" / "static")
+class SSEAwareGZipMiddlewareTest(TestCase):
+    def test_conditional_static_request_is_not_compressed(self):
+        first = self.client.get("/static/img/favicon.png", HTTP_ACCEPT_ENCODING="gzip")
+        self.assertEqual(200, first.status_code)
+
+        response = self.client.get(
+            "/static/img/favicon.png",
+            HTTP_ACCEPT_ENCODING="gzip",
+            HTTP_IF_NONE_MATCH=first["ETag"],
+        )
+
+        self.assertEqual(304, response.status_code)
+        self.assertNotIn("Content-Encoding", response)
+        self.assertEqual(b"", b"".join(response.streaming_content))
+
+    def test_html_response_is_gzipped(self):
+        request = RequestFactory().get("/", HTTP_ACCEPT_ENCODING="gzip")
+        response = SSEAwareGZipMiddleware(
+            lambda r: HttpResponse("<html>" + "x" * 500)
+        ).process_response(request, HttpResponse("<html>" + "x" * 500))
+
+        self.assertEqual("gzip", response["Content-Encoding"])

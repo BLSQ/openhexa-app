@@ -95,5 +95,5 @@ def experiment_metadata(dataset: Dataset, *, suite: SuiteSpec, model: str) -> di
         "dataset_hash": dataset_hash(dataset),
         "case_count": len(dataset.cases),
         "model": model,
-        "instructions_hash": instructions_hash(suite.instruction_set),
+        "instructions_hash": instructions_hash(suite.agent.instruction_set),
     }

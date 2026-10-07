@@ -42,6 +42,13 @@ missing locally, `git fetch --tags` first.
 The range includes any patch releases between the two versions, which is what you
 want: production is upgrading across all of them.
 
+Every commit subject carries its own references, keep them, you need them for
+the links in step 3:
+
+- the HEXA ticket, e.g. `(HEXA-1713)`
+- the PR number, e.g. `(#1969)`
+- the commit hash, the fallback when neither is present
+
 For more detail on an unclear commit, read the PR title and body:
 
 ```bash
@@ -53,34 +60,55 @@ grouped under each version, but the git range is the source of truth.
 
 ## 3. Write the summary
 
-Structure, following this shape:
+Print the whole summary in GitHub markdown inside a fenced code block, otherwise
+the terminal renders the markdown away and there is nothing left to copy.
+
+Open with one informal line that catches the eye, names both versions and links
+the GitHub release page for the new one:
+
+```
+Off we go, OpenHEXA moves from 5.13.2 to [5.15.0](https://github.com/BLSQ/openhexa-app/releases/tag/5.15.0), with Data Studio getting a real SQL editor and an agent that writes queries for you.
+```
+
+Keep it light, one sentence, and mention the headline of the release. The release
+page link is always
+`https://github.com/BLSQ/openhexa-app/releases/tag/$RELEASE`.
+
+Then the body:
 
 ```
 **Features**
 
-- <Theme, e.g. AI / Assistant & MCP>
-    - <user-facing capability>
-    - <user-facing capability>
+- <Theme, e.g. AI assistant & MCP>
+    - <user-facing capability> ([HEXA-1697](https://github.com/BLSQ/openhexa-app/pull/1919))
+    - <user-facing capability> ([#1935](https://github.com/BLSQ/openhexa-app/pull/1935))
 - <Theme, e.g. Web apps>
-    - <user-facing capability>
+    - <user-facing capability> ([HEXA-1727](https://github.com/BLSQ/openhexa-app/pull/1908))
 - Other
     - <one-off features that do not form a theme>
 
 **Fixes and chores**
 
-- <fix, one line>
-- <fix, one line>
+- <fix, one line> ([HEXA-1772](https://github.com/BLSQ/openhexa-app/pull/1987))
+- <fix, one line> ([#1995](https://github.com/BLSQ/openhexa-app/pull/1995))
 - Many package updates and security dependency bumps: <name the notable ones>
 ```
 
 Rules:
 
-- **Be succinct.** One line per item. No commit hashes, no PR numbers, no HEXA ticket IDs.
+- **Be succinct.** One line per item.
+- **End every item with a reference link**, the label reads as the reference so it
+  stays scannable in Slack:
+    - HEXA ticket in the commit subject: ticket ID linked to the PR,
+      `[HEXA-1713](https://github.com/BLSQ/openhexa-app/pull/1969)`
+    - no ticket but a PR number: `[#1995](https://github.com/BLSQ/openhexa-app/pull/1995)`
+    - neither: `[67f95bde3](https://github.com/BLSQ/openhexa-app/commit/67f95bde3)`
+    - item merged from several commits: list every reference, separated by commas
 - **No em-dashes.** Use `->` when you need to point at a consequence, a comma otherwise.
 - **Group features by theme** (area of the product), not by commit order. Use `Other` for the leftovers.
 - **Describe the user impact**, not the implementation. "Edit web apps directly with the AI assistant", not "add mutation to webapp schema".
 - **Bold anything the team must notice**, such as a change in who gets access to a feature or a required configuration change.
-- **Collapse `chore(deps)` commits** into a single line, naming only the notable or security-relevant bumps.
+- **Collapse `chore(deps)` commits** into a single line, naming only the notable or security-relevant bumps. No links needed on that line.
 - **Drop noise**: `chore(main): release ...` commits, revert pairs that cancel out, changes that shipped and were reverted in the same range.
 - Merge several commits describing one feature into a single item.
 

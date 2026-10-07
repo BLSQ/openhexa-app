@@ -23,13 +23,13 @@ type DownloadBucketObjectProps = {
     onClick(): void;
   }): ReactElement | null;
   object: DownloadBucketObject_ObjectFragment;
+  view?: boolean;
 } & Omit<ButtonProps, "children">;
 
 const DownloadBucketObject = (props: DownloadBucketObjectProps) => {
-  const { workspace, object, children, ...delegated } = props;
+  const { workspace, object, children, view = false, ...delegated } = props;
   const [isPreparing, setIsPreparing] = useState(false);
   const { t } = useTranslation();
-  const openInNewTab = object.key.toLowerCase().endsWith(".html");
 
   const onClick = async () => {
     setIsPreparing(true);
@@ -37,9 +37,9 @@ const DownloadBucketObject = (props: DownloadBucketObjectProps) => {
       const url = await getBucketObjectDownloadUrl(
         workspace.slug,
         object.key,
-        !openInNewTab,
+        !view,
       );
-      await downloadURL(url, openInNewTab ? "_blank" : "");
+      await downloadURL(url, view ? "_blank" : "");
     } finally {
       setIsPreparing(false);
     }
@@ -52,7 +52,7 @@ const DownloadBucketObject = (props: DownloadBucketObjectProps) => {
   return (
     <Button disabled={isPreparing} onClick={onClick} {...delegated}>
       {isPreparing && <Spinner size="xs" className="mr-1" />}
-      {openInNewTab ? t("View") : t("Download")}
+      {view ? t("View") : t("Download")}
     </Button>
   );
 };

@@ -17,6 +17,7 @@ import { ParameterField_ParameterFragmentDoc } from '../features/RunPipelineDial
 import { PipelineVersionPicker_VersionFragmentDoc } from '../features/PipelineVersionPicker/PipelineVersionPicker.generated';
 import { PipelineVersionParametersTable_VersionFragmentDoc } from '../../pipelines/features/PipelineVersionParametersTable/PipelineVersionParametersTable.generated';
 import { PipelineVersionConfigDialog_VersionFragmentDoc } from '../features/PipelineVersionConfigDialog/PipelineVersionConfigDialog.generated';
+import { PipelineDagView_VersionFragmentDoc } from '../../pipelines/features/PipelineDagView/PipelineDagView.generated';
 import { FilesEditor_FileFragmentDoc } from '../features/FilesEditor/FilesEditor.generated';
 import { PipelineRecipients_PipelineFragmentDoc } from '../features/PipelineRecipients/PipelineRecipients.generated';
 import { PipelineVersionCard_VersionFragmentDoc } from '../../pipelines/features/PipelineVersionCard/PipelineVersionCard.generated';
@@ -40,6 +41,7 @@ import { ConnectionFieldsSection_ConnectionFragmentDoc } from '../features/Conne
 import { TemplateCard_TemplateFragmentDoc } from '../features/TemplateCard/TemplateCard.generated';
 import { TemplateLayout_TemplateFragmentDoc } from '../layouts/TemplateLayout/TemplateLayout.generated';
 import { TemplateVersionCard_VersionFragmentDoc } from '../../pipelines/features/TemplateVersionCard/TemplateVersionCard.generated';
+import { CreateWebappDialog_WorkspaceFragmentDoc } from '../../webapps/features/CreateWebappDialog/CreateWebappDialog.generated';
 import { WebappCard_WebappFragmentDoc } from '../../webapps/features/WebappCard/WebappCard.generated';
 import { WebappForm_WorkspaceFragmentDoc, WebappForm_WebappFragmentDoc } from '../../webapps/features/WebappForm/WebappForm.generated';
 import { WebappLayout_WorkspaceFragmentDoc, WebappLayout_WebappFragmentDoc } from '../layouts/WebappLayout/WebappLayout.generated';
@@ -122,7 +124,7 @@ export type WorkspacePipelinePageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspacePipelinePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipeline?: { __typename?: 'Pipeline', webhookUrl?: string | null, webhookEnabled: boolean, id: string, createdAt: any, code: string, name?: string | null, description?: string | null, schedule?: string | null, type: Types.PipelineType, functionalType?: Types.PipelineFunctionalType | null, notebookPath?: string | null, autoUpdateFromTemplate: boolean, hasNewTemplateVersions: boolean, permissions: { __typename?: 'PipelinePermissions', run: boolean, update: boolean, schedule: boolean, delete: boolean, createVersion: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<Types.CreateTemplateVersionPermissionReason> } }, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, code: string, name: string, documentation?: string | null } | null, newTemplateVersions: Array<{ __typename?: 'PipelineTemplateVersion', id: string, changelog?: string | null, versionNumber: number, createdAt: any }>, currentVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, description?: string | null, config?: any | null, externalLink?: any | null, createdAt: any, name?: string | null, isLatestVersion: boolean, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }>, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, pipeline: { __typename?: 'Pipeline', id: string, schedule?: string | null, code: string, workspace: { __typename?: 'Workspace', slug: string } } } | null, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: string, displayName: string } }>, workspace: { __typename?: 'Workspace', slug: string }, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null } | null };
+export type WorkspacePipelinePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipeline?: { __typename?: 'Pipeline', webhookUrl?: string | null, webhookEnabled: boolean, id: string, createdAt: any, code: string, name?: string | null, description?: string | null, schedule?: string | null, type: Types.PipelineType, functionalType?: Types.PipelineFunctionalType | null, notebookPath?: string | null, autoUpdateFromTemplate: boolean, hasNewTemplateVersions: boolean, permissions: { __typename?: 'PipelinePermissions', run: boolean, update: boolean, schedule: boolean, delete: boolean, createVersion: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<Types.CreateTemplateVersionPermissionReason> } }, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, code: string, name: string, documentation?: string | null } | null, newTemplateVersions: Array<{ __typename?: 'PipelineTemplateVersion', id: string, changelog?: string | null, versionNumber: number, createdAt: any }>, currentVersion?: { __typename?: 'PipelineVersion', id: string, versionName: string, description?: string | null, config?: any | null, externalLink?: any | null, createdAt: any, name?: string | null, isLatestVersion: boolean, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }>, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, pipeline: { __typename?: 'Pipeline', id: string, schedule?: string | null, code: string, workspace: { __typename?: 'Workspace', slug: string } }, dag: { __typename?: 'PipelineDag', tasks: Array<{ __typename?: 'PipelineDagTask', id: string, name: string }>, edges: Array<{ __typename?: 'PipelineDagEdge', source: string, target: string }>, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, type: Types.ParameterType, required: boolean }> } } | null, recipients: Array<{ __typename?: 'PipelineRecipient', user: { __typename?: 'User', id: string, displayName: string } }>, workspace: { __typename?: 'Workspace', slug: string }, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null } | null };
 
 export type WorkspacePipelineCodePageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -155,7 +157,7 @@ export type WorkspacePipelineNotificationsPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspacePipelineNotificationsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', name: string, slug: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipeline?: { __typename?: 'Pipeline', id: string, code: string, type: Types.PipelineType, schedule?: string | null, name?: string | null, scheduledPipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, required: boolean }> } | null, versions: { __typename?: 'PipelineVersionPage', items: Array<{ __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, isLatestVersion: boolean }> }, currentVersion?: { __typename?: 'PipelineVersion', id: string, name?: string | null, description?: string | null, config?: any | null, externalLink?: any | null, versionName: string, createdAt: any, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }>, pipeline: { __typename?: 'Pipeline', id: string, code: string } } | null, permissions: { __typename?: 'PipelinePermissions', schedule: boolean, update: boolean, run: boolean, delete: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<Types.CreateTemplateVersionPermissionReason> } }, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null, workspace: { __typename?: 'Workspace', slug: string } } | null };
+export type WorkspacePipelineNotificationsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', name: string, slug: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipeline?: { __typename?: 'Pipeline', id: string, code: string, type: Types.PipelineType, schedule?: string | null, name?: string | null, scheduledPipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, missingScheduleParameters: Array<string> } | null, currentVersion?: { __typename?: 'PipelineVersion', id: string, missingScheduleParameters: Array<string>, name?: string | null, description?: string | null, config?: any | null, externalLink?: any | null, versionName: string, createdAt: any, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }>, pipeline: { __typename?: 'Pipeline', id: string, code: string } } | null, versions: { __typename?: 'PipelineVersionPage', items: Array<{ __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, isLatestVersion: boolean, missingScheduleParameters: Array<string> }> }, permissions: { __typename?: 'PipelinePermissions', schedule: boolean, update: boolean, run: boolean, delete: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<Types.CreateTemplateVersionPermissionReason> } }, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null, workspace: { __typename?: 'Workspace', slug: string } } | null };
 
 export type WorkspacePipelineVersionsPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -312,7 +314,7 @@ export type WorkspaceWebappsPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceWebappsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, webapps: { __typename?: 'WebappsPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'Webapp', id: string, slug: string, name: string, icon?: string | null, description?: string | null, url: string, serveUrl: string, type: Types.WebappType, isPublic: boolean, isFavorite: boolean, isShortcut: boolean, createdBy: { __typename?: 'User', firstName?: string | null, lastName?: string | null, id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, workspace: { __typename?: 'Workspace', slug: string, name: string }, permissions: { __typename?: 'WebappPermissions', update: boolean, delete: boolean } }> }, favoriteWebapps: { __typename?: 'WebappsPage', items: Array<{ __typename?: 'Webapp', id: string, slug: string, icon?: string | null, name: string, type: Types.WebappType, url: string, serveUrl: string, workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
+export type WorkspaceWebappsPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, aiBudgetLimitReached: boolean, name: string, shortName?: string | null, logo?: string | null, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null } | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, webapps: { __typename?: 'WebappsPage', totalPages: number, totalItems: number, items: Array<{ __typename?: 'Webapp', id: string, slug: string, name: string, icon?: string | null, description?: string | null, url: string, serveUrl: string, type: Types.WebappType, isPublic: boolean, isFavorite: boolean, isShortcut: boolean, createdBy: { __typename?: 'User', firstName?: string | null, lastName?: string | null, id: string, email: string, displayName: string, avatar: { __typename?: 'Avatar', initials: string, color: string } }, workspace: { __typename?: 'Workspace', slug: string, name: string }, permissions: { __typename?: 'WebappPermissions', update: boolean, delete: boolean } }> }, favoriteWebapps: { __typename?: 'WebappsPage', items: Array<{ __typename?: 'Webapp', id: string, slug: string, icon?: string | null, name: string, type: Types.WebappType, url: string, serveUrl: string, workspace: { __typename?: 'Workspace', slug: string, name: string } }> } };
 
 export type WorkspaceWebappPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -828,6 +830,7 @@ export const WorkspacePipelinePageDocument = gql`
       externalLink
       ...PipelineVersionParametersTable_version
       ...PipelineVersionConfigDialog_version
+      ...PipelineDagView_version
     }
     recipients {
       user {
@@ -842,7 +845,8 @@ ${RunPipelineDialog_PipelineFragmentDoc}
 ${PipelineLayout_PipelineFragmentDoc}
 ${Tag_TagFragmentDoc}
 ${PipelineVersionParametersTable_VersionFragmentDoc}
-${PipelineVersionConfigDialog_VersionFragmentDoc}`;
+${PipelineVersionConfigDialog_VersionFragmentDoc}
+${PipelineDagView_VersionFragmentDoc}`;
 
 /**
  * __useWorkspacePipelinePageQuery__
@@ -1099,11 +1103,11 @@ export const WorkspacePipelineNotificationsPageDocument = gql`
       id
       versionNumber
       versionName
-      parameters {
-        code
-        required
-      }
-      config
+      missingScheduleParameters
+    }
+    currentVersion {
+      id
+      missingScheduleParameters
     }
     versions(perPage: 10) {
       items {
@@ -1111,14 +1115,8 @@ export const WorkspacePipelineNotificationsPageDocument = gql`
         versionNumber
         versionName
         isLatestVersion
+        missingScheduleParameters
       }
-    }
-    currentVersion {
-      parameters {
-        code
-        required
-      }
-      config
     }
     permissions {
       schedule
@@ -2258,6 +2256,7 @@ export const WorkspaceWebappsPageDocument = gql`
     slug
     name
     ...WorkspaceLayout_workspace
+    ...CreateWebappDialog_workspace
   }
   webapps(workspaceSlug: $workspaceSlug, page: $page, perPage: $perPage) {
     totalPages
@@ -2301,6 +2300,7 @@ export const WorkspaceWebappsPageDocument = gql`
   }
 }
     ${WorkspaceLayout_WorkspaceFragmentDoc}
+${CreateWebappDialog_WorkspaceFragmentDoc}
 ${User_UserFragmentDoc}
 ${WebappCard_WebappFragmentDoc}`;
 

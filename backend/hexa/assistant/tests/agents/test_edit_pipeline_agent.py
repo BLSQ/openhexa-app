@@ -1,11 +1,14 @@
+import io
+import zipfile
+
 from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
 from hexa.assistant.instructions import InstructionSet
-from hexa.assistant.models import Conversation, ToolInvocation
+from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.pipelines.models import Pipeline, PipelineVersion
 
-from ._helpers import _make_tool_call_model, _make_zipfile, make_built_model, run_agent
+from ._helpers import FakeModelBuilder, _make_tool_call_model, _make_zipfile, run_agent
 from ._testcase import AgentTestCase
 
 
@@ -19,7 +22,7 @@ class EditPipelineAgentExtraInstructionsTest(AgentTestCase):
         if pipeline is not None:
             conversation.linked_object = pipeline
         conversation.save()
-        return EditPipelineAgent(conversation, make_built_model(TestModel()))
+        return EditPipelineAgent(conversation, FakeModelBuilder(TestModel()))
 
     def test_no_pipeline_returns_empty_string(self):
         agent = self._make_agent(pipeline=None)
@@ -95,6 +98,51 @@ class EditPipelineAgentExtraInstructionsTest(AgentTestCase):
         self.assertIn("pipeline.py", instructions)
         self.assertIn("utils.py", instructions)
 
+    def test_binary_file_is_listed_so_it_can_be_deleted(self):
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as zf:
+            zf.writestr("pipeline.py", "# main")
+            zf.writestr("assets/logo.png", b"\x00\xff\xfe")
+        pipeline = Pipeline.objects.create(
+            code="binary-pipeline", name="Binary Pipeline", workspace=self.workspace
+        )
+        PipelineVersion.objects.create(
+            pipeline=pipeline, user=self.user, zipfile=buf.getvalue()
+        )
+        agent = self._make_agent(pipeline=pipeline)
+        instructions = agent._extra_instructions()
+        self.assertIn("assets/logo.png", instructions)
+        self.assertIn("(binary)", instructions)
+
+    def test_pending_deletions_are_listed(self):
+        pipeline = Pipeline.objects.create(
+            code="pending-del", name="Pending Del", workspace=self.workspace
+        )
+        PipelineVersion.objects.create(
+            pipeline=pipeline, user=self.user, zipfile=_make_zipfile(("a.py", "# a"))
+        )
+        agent = self._make_agent(pipeline=pipeline)
+        message = Message.objects.create(
+            conversation=agent.conversation,
+            role=Message.Role.ASSISTANT,
+            content=[],
+        )
+        ToolInvocation.objects.create(
+            message=message,
+            tool_name="propose_pipeline_version",
+            tool_call_id="call-pending-del",
+            tool_input={},
+            success=True,
+            proposal_pending=True,
+            tool_output={
+                "files": [{"name": "a.py", "content": "# a"}],
+                "deleted_paths": ["assets/logo.png"],
+            },
+        )
+        instructions = agent._extra_instructions()
+        self.assertIn("Staged For Deletion", instructions)
+        self.assertIn("assets/logo.png", instructions)
+
     def test_pipeline_is_injected_into_context(self):
         pipeline = Pipeline.objects.create(
             code="ctx-pipeline", name="Context Pipeline", workspace=self.workspace
@@ -129,7 +177,7 @@ class EditPipelineAgentToolCallTest(AgentTestCase):
         )
         conversation.linked_object = self.pipeline
         conversation.save()
-        agent = EditPipelineAgent(conversation, make_built_model(model))
+        agent = EditPipelineAgent(conversation, FakeModelBuilder(model))
         run_agent(agent, "Update the pipeline")
         invocation = self.first_tool_invocation(conversation)
         self.assertEqual(invocation.tool_name, "propose_pipeline_version")
@@ -149,7 +197,7 @@ class EditPipelineAgentToolCallTest(AgentTestCase):
         )
         conversation.linked_object = self.pipeline
         conversation.save()
-        agent = EditPipelineAgent(conversation, make_built_model(model))
+        agent = EditPipelineAgent(conversation, FakeModelBuilder(model))
         run_agent(agent, "Update the pipeline")
         invocation = self.first_tool_invocation(conversation)
         self.assertTrue(invocation.proposal_pending)
@@ -168,7 +216,7 @@ class EditPipelineAgentToolCallTest(AgentTestCase):
             {"modified_files": [{"name": "pipeline.py", "content": "print('v2')"}]},
         )
         run_agent(
-            EditPipelineAgent(conversation, make_built_model(first_model)),
+            EditPipelineAgent(conversation, FakeModelBuilder(first_model)),
             "First change",
         )
 
@@ -177,7 +225,7 @@ class EditPipelineAgentToolCallTest(AgentTestCase):
             {"modified_files": [{"name": "pipeline.py", "content": "print('v3')"}]},
         )
         run_agent(
-            EditPipelineAgent(conversation, make_built_model(second_model)),
+            EditPipelineAgent(conversation, FakeModelBuilder(second_model)),
             "Second change",
         )
 

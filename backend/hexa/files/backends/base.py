@@ -45,6 +45,12 @@ class StorageObject:
     content_type: str | None = None
 
 
+class SupportsBucketCors(ABC):
+    @abstractmethod
+    def set_bucket_cors(self, bucket_name: str) -> None:
+        pass
+
+
 class Storage(ABC):
     storage_type = None
 

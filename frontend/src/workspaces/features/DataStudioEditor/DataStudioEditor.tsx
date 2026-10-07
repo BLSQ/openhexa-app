@@ -195,6 +195,11 @@ const DataStudioEditor = ({
             <span className="truncate text-sm font-medium text-gray-800">
               {editor.savedQuery?.name ?? t("Query")}
             </span>
+            {editor.savedQuery && (
+              <span className="truncate text-xs text-gray-500">
+                ({editor.savedQuery.slug})
+              </span>
+            )}
             {editor.savedQuery && editor.canUpdate && (
               <button
                 type="button"

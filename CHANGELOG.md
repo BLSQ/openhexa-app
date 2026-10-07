@@ -1,5 +1,71 @@
 # Changelog
 
+## [5.19.1](https://github.com/BLSQ/openhexa-app/compare/5.19.0...5.19.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* keep dataset version on different tabs ([#2109](https://github.com/BLSQ/openhexa-app/issues/2109)) ([c59fe89](https://github.com/BLSQ/openhexa-app/commit/c59fe89dcc05fcb5ab230cc7df45e7e701290205))
+* **pipelines:** cap initial zoom of small DAG views ([#2102](https://github.com/BLSQ/openhexa-app/issues/2102)) ([309c4c7](https://github.com/BLSQ/openhexa-app/commit/309c4c7462914a41bbb846736e1639396ff3205a))
+* show both view and download buttons for HTML run outputs ([#2103](https://github.com/BLSQ/openhexa-app/issues/2103)) ([c28404d](https://github.com/BLSQ/openhexa-app/commit/c28404d26faf847af9de745b7e948baf9f39b157))
+* wiki links and reserved rights dates (HEXA-1823) ([d0a25cc](https://github.com/BLSQ/openhexa-app/commit/d0a25cceabbf7afc69acb31f30c8d37e0e19b512))
+
+## [5.19.0](https://github.com/BLSQ/openhexa-app/compare/5.18.0...5.19.0) (2026-10-01)
+
+
+### Features
+
+* Add tools for managing saved queries (HEXA-1804) ([#2073](https://github.com/BLSQ/openhexa-app/issues/2073)) ([bb5534e](https://github.com/BLSQ/openhexa-app/commit/bb5534e3aa370be10b3dac1b08bd40809af44b27))
+* agents with more flexible providers (HEXA-1809) ([#2065](https://github.com/BLSQ/openhexa-app/issues/2065)) ([be97fe7](https://github.com/BLSQ/openhexa-app/commit/be97fe7085173c8a8d99fed7c3eba29c7f49fe0f))
+* Editing agents can make commits with proposed change(Hexa-1743 ) ([#2058](https://github.com/BLSQ/openhexa-app/issues/2058)) ([a566193](https://github.com/BLSQ/openhexa-app/commit/a566193096c8141673b019728c0350d985f5e407))
+* log token usage (HEXA-1789) ([#2061](https://github.com/BLSQ/openhexa-app/issues/2061)) ([8034e01](https://github.com/BLSQ/openhexa-app/commit/8034e015881321868e587a89c86f863a56598cce))
+* naming agent simpler model (HEXA-1806) ([#2052](https://github.com/BLSQ/openhexa-app/issues/2052)) ([8785e7b](https://github.com/BLSQ/openhexa-app/commit/8785e7b5fc56490f7a41a8c236d4055e1cdd0199))
+* saved queries versioning (HEXA-1768) (HEXA-1808) ([#2053](https://github.com/BLSQ/openhexa-app/issues/2053)) ([9ad61bd](https://github.com/BLSQ/openhexa-app/commit/9ad61bd439154b5a5323fcd9ce775a069ea6f0cc))
+* show saved query slugs on the frontend (HEXA-1805) ([#2075](https://github.com/BLSQ/openhexa-app/issues/2075)) ([886407c](https://github.com/BLSQ/openhexa-app/commit/886407cf929006e2dc22b3d44ca7c24bad88ab17))
+* visualise pipelines with dag ([#2062](https://github.com/BLSQ/openhexa-app/issues/2062)) ([9093280](https://github.com/BLSQ/openhexa-app/commit/9093280b7653bd75f54139bf2e71bbad92658ea7))
+
+
+### Bug Fixes
+
+* add link to mcp (HEXA-1813) ([#2071](https://github.com/BLSQ/openhexa-app/issues/2071)) ([d57b86c](https://github.com/BLSQ/openhexa-app/commit/d57b86c379f7a184d4fbcbb6938a03c7ec14ca1b))
+* Deprecate web app write permissions (HEXA-1815) ([#2087](https://github.com/BLSQ/openhexa-app/issues/2087)) ([c8e8e87](https://github.com/BLSQ/openhexa-app/commit/c8e8e87c00ce7280881b604c2c0d09912c2478c9))
+* documentation dev.js links ([#2066](https://github.com/BLSQ/openhexa-app/issues/2066)) ([d0df249](https://github.com/BLSQ/openhexa-app/commit/d0df249e42ac2a5c3557558d257fa36f816222b2))
+* handling of scheduling pipeline without default params (HEXA- 1788) ([#2038](https://github.com/BLSQ/openhexa-app/issues/2038)) ([0d94a6c](https://github.com/BLSQ/openhexa-app/commit/0d94a6c1d1e8fe99f71c5db044e24642b1795e77))
+* Make DB speed improvements CI/test-only ([#2050](https://github.com/BLSQ/openhexa-app/issues/2050)) ([427ab6b](https://github.com/BLSQ/openhexa-app/commit/427ab6bbcf6691acd7791d72488870ccb159b9ce))
+* Race condition with the agent proposal ([#2081](https://github.com/BLSQ/openhexa-app/issues/2081)) ([dc9d103](https://github.com/BLSQ/openhexa-app/commit/dc9d10306c279d9445c029716dddd7fe32ef0c5c))
+* type error on Parquet arrays datasets ([#2068](https://github.com/BLSQ/openhexa-app/issues/2068)) ([c8c02e2](https://github.com/BLSQ/openhexa-app/commit/c8c02e2d5f14e11e562db7b46850ec1d24a1cad7))
+
+## [5.18.0](https://github.com/BLSQ/openhexa-app/compare/5.17.0...5.18.0) (2026-09-08)
+
+
+### Features
+
+* map widget for Data Studio (HEXA-1779) ([#2049](https://github.com/BLSQ/openhexa-app/issues/2049)) ([593310b](https://github.com/BLSQ/openhexa-app/commit/593310bf70728b3b5024797432534ced732b65d0))
+
+
+### Bug Fixes
+
+* ensure all buckets have the same cors rules (HEXA-1794) ([#2034](https://github.com/BLSQ/openhexa-app/issues/2034)) ([16739d3](https://github.com/BLSQ/openhexa-app/commit/16739d300bda79943edb1a9e0dcb7b74d818bff2))
+* improve release notes skill ([#2037](https://github.com/BLSQ/openhexa-app/issues/2037)) ([aec328d](https://github.com/BLSQ/openhexa-app/commit/aec328df295dfa07afd1929c66c3369f813b3262))
+* naming agent too strict ([#2016](https://github.com/BLSQ/openhexa-app/issues/2016)) ([da08e62](https://github.com/BLSQ/openhexa-app/commit/da08e62dede2498c92df8e94f7f8e975aaa43b2d))
+* Workspace copier small improvements (HEXA-1756) ([#2010](https://github.com/BLSQ/openhexa-app/issues/2010)) ([1354416](https://github.com/BLSQ/openhexa-app/commit/1354416148a5136cc7d25760977b0deb933bea52))
+
+## [5.17.0](https://github.com/BLSQ/openhexa-app/compare/5.16.1...5.17.0) (2026-08-31)
+
+
+### Features
+
+* Add the workspace description to the agent's base context (HEXA-1795) ([#2036](https://github.com/BLSQ/openhexa-app/issues/2036)) ([29b4264](https://github.com/BLSQ/openhexa-app/commit/29b42643cc7173b15c1f4ae2da8ac3d0d37ecb18))
+* allow data studio left and bottom panels to be adjustable(HEXA-1778) ([#2012](https://github.com/BLSQ/openhexa-app/issues/2012)) ([2ab3d94](https://github.com/BLSQ/openhexa-app/commit/2ab3d94fd5cd0514a7aa62b615d0e8493d411fbd))
+
+
+### Bug Fixes
+
+* attribute issue for unauthenticated error ([#2035](https://github.com/BLSQ/openhexa-app/issues/2035)) ([dcdea38](https://github.com/BLSQ/openhexa-app/commit/dcdea38d1aef0c64b35c6738a6036ca15d1fed68))
+* make it possible to delete webapp/pipeline files from UI and webassistant (HEXA-1774) ([#2027](https://github.com/BLSQ/openhexa-app/issues/2027)) ([af42ce1](https://github.com/BLSQ/openhexa-app/commit/af42ce1237146ede1010fe765369fa332db0cb33))
+* too much data for declared Content-Length ([#2033](https://github.com/BLSQ/openhexa-app/issues/2033)) ([6491ecb](https://github.com/BLSQ/openhexa-app/commit/6491ecbec2a0bc58cdc341603e69ed56c46bed98))
+* unit tests leak database tables (HEXA-1785) ([#2014](https://github.com/BLSQ/openhexa-app/issues/2014)) ([76b172f](https://github.com/BLSQ/openhexa-app/commit/76b172f7f1f12307409b8deed1744a53e491cfac))
+
 ## [5.16.1](https://github.com/BLSQ/openhexa-app/compare/5.16.0...5.16.1) (2026-08-27)
 
 

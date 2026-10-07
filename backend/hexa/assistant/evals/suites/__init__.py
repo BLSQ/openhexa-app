@@ -14,7 +14,8 @@ from typing import Any
 
 from pydantic_evals.evaluators import Evaluator
 
-from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.agents.base import BaseAgent
+from hexa.assistant.agents.create_pipeline_agent import CreatePipelineAgent
 
 from .pipeline_create import evaluators as create_evaluators
 from .pipeline_create import task as create_task
@@ -32,7 +33,9 @@ class SuiteSpec:
     input_type: type[Any]
     output_type: type[Any]
     metadata_type: type[Any]
-    instruction_set: InstructionSet
+    # The agent under test. Its agent_key decides the model it runs on, and its
+    # instruction_set the prompt that instructions_hash fingerprints.
+    agent: type[BaseAgent]
     evaluators: tuple[Evaluator, ...]
     make_task: Callable[[], Callable]
 
@@ -43,7 +46,7 @@ PIPELINE_CREATE = SuiteSpec(
     input_type=PipelineCreateInput,
     output_type=ProposedPipeline,
     metadata_type=PipelineCreateMetadata,
-    instruction_set=InstructionSet.CREATE_PIPELINE,
+    agent=CreatePipelineAgent,
     evaluators=(create_evaluators.VerifierScores(), create_evaluators.Trajectory()),
     make_task=create_task.make_task,
 )

@@ -11,7 +11,12 @@ type Props = {
   webappId: string;
   workspaceSlug: string;
   monthlyLimitExceeded: boolean;
-  onProposedFiles: (files: WebappProposedFile[] | null, toolInvocationId?: string) => void;
+  onProposedFiles: (
+    files: WebappProposedFile[] | null,
+    toolInvocationId?: string,
+    deletedPaths?: string[],
+    commitMessage?: string,
+  ) => void;
   conversations: WebappConversation[];
   activeConversationId: string | null;
   onConversationChange: (id: string) => void;
@@ -26,8 +31,18 @@ export default function WebappEditChatPanel({
   ...rest
 }: Props) {
   const handleProposedFiles = useCallback(
-    (files: unknown[] | null, toolInvocationId?: string) => {
-      onProposedFiles(files as WebappProposedFile[] | null, toolInvocationId);
+    (
+      files: unknown[] | null,
+      toolInvocationId?: string,
+      deletedPaths?: string[],
+      commitMessage?: string,
+    ) => {
+      onProposedFiles(
+        files as WebappProposedFile[] | null,
+        toolInvocationId,
+        deletedPaths,
+        commitMessage,
+      );
     },
     [onProposedFiles],
   );

@@ -28,9 +28,9 @@ def _configure_ai(world: EvalWorld) -> None:
     """Point the fixture organization at the managed (Vertex) provider.
 
     Vertex is what production runs on, and it needs no API key: it authenticates
-    with ambient Google credentials. Model and key stay null because
-    AiModelBuilder ignores both for managed orgs and always resolves
-    MANAGED_DEFAULT_MODEL.
+    with ambient Google credentials. Model and key stay null because the managed
+    backend ignores both: the model comes from ASSISTANT_MANAGED_AGENT_MODELS and
+    the agent's defaults instead.
     """
     AiSettings.objects.update_or_create(
         organization=world.workspace.organization,

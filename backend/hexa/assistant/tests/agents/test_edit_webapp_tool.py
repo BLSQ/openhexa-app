@@ -20,8 +20,17 @@ def _make_webapp_stub(files=None):
     return webapp
 
 
-def _make_file_entry(path, content, encoding=FileEncoding.TEXT):
-    return {"path": path, "content": content, "encoding": encoding}
+def _make_file_entry(path, content, encoding: FileEncoding = FileEncoding.TEXT):
+    return {
+        "path": path,
+        "content": content,
+        "encoding": encoding,
+        "type": "file",
+    }
+
+
+def _make_dir_entry(path):
+    return {"path": path, "content": None, "encoding": None, "type": "directory"}
 
 
 class ProposeWebappChangesToolTest(TestCase):
@@ -33,7 +42,10 @@ class ProposeWebappChangesToolTest(TestCase):
         )
         self.assertEqual(
             result,
-            {"files": [{"path": "index.html", "content": "<h1>Hello</h1>"}]},
+            {
+                "files": [{"path": "index.html", "content": "<h1>Hello</h1>"}],
+                "deleted_paths": [],
+            },
         )
 
     def test_merges_modified_file_into_existing_files(self):
@@ -80,6 +92,47 @@ class ProposeWebappChangesToolTest(TestCase):
         files = {f["path"] for f in result["files"]}
         self.assertIn("index.html", files)
         self.assertNotIn("old.html", files)
+
+    def test_deletes_binary_file_by_explicit_path(self):
+        webapp = _make_webapp_stub(
+            [
+                _make_file_entry("index.html", "<h1>Home</h1>"),
+                _make_file_entry("logo.png", None, FileEncoding.BASE64),
+            ]
+        )
+        result = propose_webapp_version(
+            webapp,
+            deleted_files=["logo.png"],
+        )
+        self.assertEqual(result["deleted_paths"], ["logo.png"])
+
+    def test_deletes_every_file_under_a_directory(self):
+        webapp = _make_webapp_stub(
+            [
+                _make_file_entry("index.html", "<h1>Home</h1>"),
+                _make_dir_entry("assets"),
+                _make_file_entry("assets/logo.png", None, FileEncoding.BASE64),
+                _make_file_entry("assets/app.css", "body {}"),
+            ]
+        )
+        result = propose_webapp_version(webapp, deleted_files=["assets"])
+        self.assertEqual(result["deleted_paths"], ["assets/app.css", "assets/logo.png"])
+        self.assertEqual({f["path"] for f in result["files"]}, {"index.html"})
+
+    def test_deleting_unknown_path_returns_error(self):
+        webapp = _make_webapp_stub([_make_file_entry("index.html", "<h1>Home</h1>")])
+        result = propose_webapp_version(webapp, deleted_files=["nope/"])
+        self.assertIn("error", result)
+        self.assertIn("nope/", result["error"])
+
+    def test_every_unknown_path_is_reported_at_once(self):
+        webapp = _make_webapp_stub([_make_file_entry("index.html", "<h1>Home</h1>")])
+        result = propose_webapp_version(
+            webapp, deleted_files=["gone.js", "index.html", "missing/"]
+        )
+        self.assertIn("gone.js", result["error"])
+        self.assertIn("missing/", result["error"])
+        self.assertNotIn("index.html", result["error"])
 
     def test_empty_call_returns_error(self):
         webapp = _make_webapp_stub()
@@ -197,7 +250,9 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
             instruction_set=InstructionSet.EDIT_WEBAPP,
         )
 
-    def _make_pending_invocation(self, conversation, files):
+    def _make_pending_invocation(
+        self, conversation, files, deleted_paths=None, commit_message=None
+    ):
         message = Message.objects.create(
             conversation=conversation,
             role=Message.Role.ASSISTANT,
@@ -210,7 +265,11 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
             tool_input={},
             success=True,
             proposal_pending=True,
-            tool_output={"files": files},
+            tool_output={
+                "files": files,
+                "deleted_paths": deleted_paths or [],
+                **({"commit_message": commit_message} if commit_message else {}),
+            },
         )
 
     def test_pending_proposal_is_used_as_base_instead_of_live_files(self):
@@ -232,6 +291,23 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
         self.assertEqual(files["style.css"], "body { color: red; }")
         webapp.get_files.assert_not_called()
 
+    def test_pending_deletions_carry_over_to_the_next_proposal(self):
+        conversation = self._make_conversation()
+        self._make_pending_invocation(
+            conversation,
+            [{"path": "index.html", "content": "<h1>Pending</h1>"}],
+            deleted_paths=["assets/logo.png"],
+        )
+
+        webapp = _make_webapp_stub()
+        result = propose_webapp_version(
+            webapp,
+            [ProposedFile(path="index.html", content="<h1>Updated</h1>")],
+            conversation=conversation,
+        )
+        self.assertEqual(result["deleted_paths"], ["assets/logo.png"])
+        webapp.get_files.assert_not_called()
+
     def test_no_pending_proposal_falls_back_to_live_files(self):
         conversation = self._make_conversation()
         webapp = _make_webapp_stub(
@@ -247,3 +323,70 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
         files = {f["path"] for f in result["files"]}
         self.assertIn("index.html", files)
         webapp.get_files.assert_called_once()
+
+    def test_commit_message_is_returned_with_the_proposal(self):
+        webapp = _make_webapp_stub()
+        result = propose_webapp_version(
+            webapp,
+            [ProposedFile(path="index.html", content="<h1>Hello</h1>")],
+            commit_message="  Add a dark theme toggle  ",
+        )
+        self.assertEqual(result["commit_message"], "Add a dark theme toggle")
+
+    def test_no_commit_message_leaves_the_key_out(self):
+        webapp = _make_webapp_stub()
+        result = propose_webapp_version(
+            webapp,
+            [ProposedFile(path="index.html", content="<h1>Hello</h1>")],
+            commit_message="   ",
+        )
+        self.assertNotIn("commit_message", result)
+
+    def test_multi_line_commit_message_is_kept_whole(self):
+        webapp = _make_webapp_stub()
+        message = (
+            "feat(ui): add a dark theme toggle\n"
+            "\n"
+            "Users reported the dashboard being unreadable in low light."
+        )
+        result = propose_webapp_version(
+            webapp,
+            [ProposedFile(path="index.html", content="<h1>Hello</h1>")],
+            commit_message=message,
+        )
+        self.assertEqual(result["commit_message"], message)
+
+    def test_pending_commit_message_carries_over_when_not_restated(self):
+        conversation = self._make_conversation()
+        self._make_pending_invocation(
+            conversation,
+            [{"path": "index.html", "content": "<h1>Pending</h1>"}],
+            commit_message="Add a dark theme toggle",
+        )
+
+        webapp = _make_webapp_stub()
+        result = propose_webapp_version(
+            webapp,
+            [ProposedFile(path="index.html", content="<h1>Updated</h1>")],
+            conversation=conversation,
+        )
+        self.assertEqual(result["commit_message"], "Add a dark theme toggle")
+
+    def test_new_commit_message_replaces_the_pending_one(self):
+        conversation = self._make_conversation()
+        self._make_pending_invocation(
+            conversation,
+            [{"path": "index.html", "content": "<h1>Pending</h1>"}],
+            commit_message="Add a dark theme toggle",
+        )
+
+        webapp = _make_webapp_stub()
+        result = propose_webapp_version(
+            webapp,
+            [ProposedFile(path="index.html", content="<h1>Updated</h1>")],
+            commit_message="Add a dark theme toggle and persist the choice",
+            conversation=conversation,
+        )
+        self.assertEqual(
+            result["commit_message"], "Add a dark theme toggle and persist the choice"
+        )

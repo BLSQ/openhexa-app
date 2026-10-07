@@ -1,4 +1,5 @@
 import hashlib
+import re
 import secrets
 import string
 import typing
@@ -10,7 +11,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.core.validators import RegexValidator, validate_slug
 from django.db import models
-from django.db.models import Q
+from django.db.models import Count, Max, Q, Sum
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.regex_helper import _lazy_re_compile
@@ -815,6 +816,24 @@ Now that your workspace has been created, you can (depending on your privileges)
 - Monitor and launch [data pipelines](/workspaces/{workspace_slug}/pipelines)
 - Manage users and permissions [notebooks](/workspaces/{workspace_slug}/settings)"""
 
+_DEFAULT_WORKSPACE_DESCRIPTION_RE = re.compile(
+    re.escape(DEFAULT_WORKSPACE_DESCRIPTION.strip())
+    .replace(re.escape("{workspace_name}"), ".+")
+    .replace(re.escape("{workspace_slug}"), ".+")
+)
+
+
+def is_default_workspace_description(description: str | None) -> bool:
+    """Whether a description is still the untouched boilerplate created with the workspace.
+
+    The placeholders are matched as wildcards so that a workspace renamed after its
+    creation is still recognized, while any edit to the surrounding text makes the
+    description count as authored by the workspace admins.
+    """
+    return bool(
+        _DEFAULT_WORKSPACE_DESCRIPTION_RE.fullmatch((description or "").strip())
+    )
+
 
 class OrganizationWorkspaceInvitation(Base):
     """
@@ -853,3 +872,85 @@ class OrganizationWorkspaceInvitation(Base):
                 )
             except Workspace.DoesNotExist:
                 continue
+
+
+class TokenScopeVerdict(models.TextChoices):
+    """Scope reached by a token-authenticated request.
+
+    ``CROSS_REACHABLE`` is distinct from ``OUT_OF_SCOPE``: an org-shared dataset or
+    a dataset link is reachable *through* the token's workspace even if outside it.
+    This will keep working once tokens are scoped, but it gives as extra visibility
+    on how the tokens are used.
+    TODO (HEXA-1775): Remove once the analysis has been done
+    """
+
+    IN_SCOPE = "IN_SCOPE", _("In scope")
+    CROSS_REACHABLE = "CROSS_REACHABLE", _("Reachable from the token's workspace")
+    OUT_OF_SCOPE = "OUT_OF_SCOPE", _("Out of scope")
+
+
+class WorkspaceTokenUsageQuerySet(models.QuerySet):
+    # Identity tokens are minted per notebook session and membership tokens are one per
+    # membership, so a token is counted by what it was issued for rather than its fingerprint.
+    TOKEN = ("token_type", "user", "workspace")
+
+    def scope_summary(self, top: int = 10) -> dict:
+        """Headline numbers and the top breaking tokens of the audit."""
+        out_of_scope = Q(verdict=TokenScopeVerdict.OUT_OF_SCOPE)
+        tokens = (
+            self.order_by()
+            .values(*self.TOKEN)
+            .annotate(
+                request_count=Count("id"),
+                out_of_scope_count=Count("id", filter=out_of_scope),
+                cross_reachable_count=Count(
+                    "id", filter=Q(verdict=TokenScopeVerdict.CROSS_REACHABLE)
+                ),
+            )
+        )
+        summary = tokens.aggregate(
+            tokens=Count("request_count"),
+            breaking=Count("request_count", filter=Q(out_of_scope_count__gt=0)),
+            reaching=Count(
+                "request_count",
+                filter=Q(out_of_scope_count=0, cross_reachable_count__gt=0),
+            ),
+            requests=Sum("request_count", default=0),
+            out_of_scope_requests=Sum("out_of_scope_count", default=0),
+        )
+        summary["top_breaking"] = (
+            self.filter(out_of_scope)
+            .values(*self.TOKEN, "user__email", "workspace__slug")
+            .annotate(requests=Count("id"), last_seen=Max("created_at"))
+            .order_by("-requests")[:top]
+        )
+        return summary
+
+
+class WorkspaceTokenUsage(Base):
+    """One row per workspace-token GraphQL request.
+
+    Answers: "how many tokens would break if we scoped them?"
+    TODO (HEXA-1775): Remove once the analysis has been done
+    """
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["created_at", "verdict"]),
+            models.Index(fields=["token_fingerprint"]),
+        ]
+
+    token_fingerprint = models.CharField(max_length=32)
+    token_type = models.CharField(max_length=20)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="+")
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name="+")
+    verdict = models.CharField(max_length=20, choices=TokenScopeVerdict.choices)
+    root_fields = models.JSONField(default=list)
+    foreign_workspaces = models.JSONField(default=dict)
+    client = models.TextField(blank=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+
+    objects = WorkspaceTokenUsageQuerySet.as_manager()
+
+    def __str__(self):
+        return f"{self.token_fingerprint} {self.verdict}"

@@ -7,7 +7,8 @@ from pydantic_ai.messages import ModelResponse, TextPart, ToolCallPart
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 
 from hexa.assistant.agents.base import BaseAgent
-from hexa.assistant.model_builder import BuiltModel
+from hexa.assistant.ai_models import AiModelBuilder, BuiltModel, ModelId
+from hexa.user_management.models import AiSettings
 
 
 def run_agent(agent: BaseAgent, message: str) -> None:
@@ -69,8 +70,33 @@ def _make_tool_call_model(tool_name: str, tool_args: dict) -> FunctionModel:
     return FunctionModel(func, stream_function=stream_func)
 
 
-def make_built_model(test_model) -> BuiltModel:
-    return BuiltModel(model=test_model, api_name="test", provider_id="test")
+def make_built_model(test_model, api_name: str = "test") -> BuiltModel:
+    return BuiltModel(model=test_model, api_name=api_name, provider_id="test")
+
+
+class FakeModelBuilder(AiModelBuilder):
+    """Serves one test model whatever is asked of it.
+
+    Only `build` is faked, so an agent and the naming agent it spawns both run on
+    the test model while model *selection* still goes through the real code: the
+    api name reported back is the model id that was resolved, so tests can tell
+    the two apart when pricing.
+    """
+
+    def __init__(self, test_model, ai_settings: AiSettings | None = None):
+        super().__init__(
+            ai_settings
+            or AiSettings(
+                provider=AiSettings.Provider.ANTHROPIC,
+                model=AiSettings.Model.OPUS,
+                api_key="test-key",
+                enabled=True,
+            )
+        )
+        self._test_model = test_model
+
+    def build(self, model_id: ModelId) -> BuiltModel:
+        return make_built_model(self._test_model, api_name=str(model_id))
 
 
 def _make_truncated_tool_call_model(tool_name: str) -> FunctionModel:
@@ -96,3 +122,22 @@ def _make_zipfile(*files: tuple[str, str]) -> bytes:
         for name, content in files:
             zf.writestr(name, content)
     return buf.getvalue()
+
+
+def _make_naming_model(*titles: str) -> FunctionModel:
+    """Model whose non-streamed calls return `titles` in order, repeating the last one.
+
+    Only the naming agent issues non-streamed requests, so the counter tracks its
+    attempts alone; the main agent is served by `stream_function`.
+    """
+    calls = []
+
+    def func(messages: list, agent_info: AgentInfo) -> ModelResponse:
+        index = min(len(calls), len(titles) - 1)
+        calls.append(1)
+        return ModelResponse(parts=[TextPart(content=titles[index])])
+
+    async def stream_func(messages, agent_info):
+        yield "Reply"
+
+    return FunctionModel(func, stream_function=stream_func)

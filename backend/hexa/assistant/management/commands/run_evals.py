@@ -36,6 +36,9 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import DEFAULT_DB_ALIAS, connections
 
+from hexa.assistant.ai_models.backends import backend_for
+from hexa.assistant.ai_models.ids import ModelId
+from hexa.assistant.ai_models.selection import ModelSelector
 from hexa.assistant.evals.core.dataset import (
     DatasetError,
     experiment_metadata,
@@ -43,7 +46,6 @@ from hexa.assistant.evals.core.dataset import (
     validate_cases,
 )
 from hexa.assistant.evals.suites import SUITES, get_suite
-from hexa.assistant.model_builder import MANAGED_DEFAULT_MODEL
 from hexa.core.test.runner import DiscoverRunner
 from hexa.user_management.models import AiSettings
 
@@ -145,10 +147,29 @@ class Command(BaseCommand):
     def _experiment_name(suite, metadata: dict, override: str | None) -> str:
         """What this run is called in Logfire.
 
-        Defaults to <suite>-<model> so unnamed runs stay identifiable. Pass a
-        name to mark a run you intend to compare against later.
+        Defaults to <suite>-<model name>, e.g. pipeline_create-claude-opus-4-6, so
+        unnamed runs stay identifiable. Pass a name to mark a run you intend to
+        compare against later.
         """
-        return override or f"{suite.name}-{metadata['model']}"
+        if override:
+            return override
+        model_id = ModelId.parse(metadata["model"])
+        return f"{suite.name}-{model_id.name if model_id else metadata['model']}"
+
+    @staticmethod
+    def _resolve_model(suite) -> ModelId:
+        """The model the suite's agent will run on, resolved as the agent does.
+
+        Evals run on the managed provider, so this follows
+        ASSISTANT_MANAGED_AGENT_MODELS, then the agent's default, then the
+        provider default. Setting that variable is how to eval another model.
+        The AiSettings row is never saved: the managed backend reads only its
+        provider.
+        """
+        backend = backend_for(AiSettings(provider=AiSettings.Provider.MANAGED))
+        return ModelSelector(backend).for_agent(
+            suite.agent.agent_key, suite.agent.default_model
+        )
 
     def _prepare(self, suite, options) -> tuple:
         """Load, filter and describe the suite, without running anything.
@@ -179,10 +200,8 @@ class Command(BaseCommand):
                 )
             dataset.cases = [c for c in dataset.cases if c.metadata.task_id in task_ids]
 
-        # Evals run on the managed (Vertex) provider only, which always
-        # resolves MANAGED_DEFAULT_MODEL regardless of any stored value.
         metadata = experiment_metadata(
-            dataset, suite=suite, model=MANAGED_DEFAULT_MODEL
+            dataset, suite=suite, model=str(self._resolve_model(suite))
         )
         metadata["lang_filter"] = lang
         metadata["repeats"] = options["repeats"]

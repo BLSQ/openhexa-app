@@ -6,10 +6,12 @@ from pathlib import Path
 
 from django.core.management import call_command
 from django.core.management.base import CommandError, OutputWrapper
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, override_settings
 from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 
+from hexa.assistant.agents.create_pipeline_agent import CreatePipelineAgent
+from hexa.assistant.ai_models.backends import ManagedBackend
 from hexa.assistant.evals.core.dataset import (
     DatasetError,
     dataset_hash,
@@ -184,7 +186,7 @@ class SuiteRegistryTest(SimpleTestCase):
     def test_registered_suite_is_complete(self):
         suite = get_suite("pipeline_create")
         self.assertTrue(suite.cases_path.is_file())
-        self.assertEqual(InstructionSet.CREATE_PIPELINE, suite.instruction_set)
+        self.assertIs(CreatePipelineAgent, suite.agent)
         self.assertTrue(suite.evaluators)
 
     def test_every_suite_has_its_own_cases(self):
@@ -253,11 +255,12 @@ class SuiteSelectionTest(SimpleTestCase):
 
 class ExperimentNameTest(SimpleTestCase):
     SUITE = get_suite("pipeline_create")
-    METADATA = {"model": "opus"}
+    METADATA = {"model": "anthropic:claude-opus-4-6"}
 
-    def test_defaults_to_suite_and_model(self):
+    def test_defaults_to_suite_and_model_name(self):
+        """The provider prefix is dropped: it adds length, not identity."""
         self.assertEqual(
-            "pipeline_create-opus",
+            "pipeline_create-claude-opus-4-6",
             Command._experiment_name(self.SUITE, self.METADATA, None),
         )
 
@@ -272,8 +275,29 @@ class ExperimentNameTest(SimpleTestCase):
     def test_empty_override_falls_back_to_the_default(self):
         """An empty --name is a mistake, not a request for an unnamed run."""
         self.assertEqual(
-            "pipeline_create-opus",
+            "pipeline_create-claude-opus-4-6",
             Command._experiment_name(self.SUITE, self.METADATA, ""),
+        )
+
+
+class ResolveModelTest(SimpleTestCase):
+    """The model is resolved the way the agent resolves it, not hardcoded."""
+
+    SUITE = get_suite("pipeline_create")
+
+    @override_settings(ASSISTANT_MANAGED_AGENT_MODELS="")
+    def test_falls_back_to_the_managed_default(self):
+        expected = ManagedBackend.DEFAULT_MODEL_IDS[ManagedBackend.DEFAULT_MODEL]
+        self.assertEqual(expected, Command._resolve_model(self.SUITE))
+
+    @override_settings(
+        ASSISTANT_MANAGED_AGENT_MODELS=json.dumps({"create_pipeline": "haiku"})
+    )
+    def test_follows_the_per_agent_override(self):
+        """Setting the override is how an eval runs on another model."""
+        self.assertEqual(
+            ManagedBackend.DEFAULT_MODEL_IDS["haiku"],
+            Command._resolve_model(self.SUITE),
         )
 
 
