@@ -43,4 +43,47 @@ export class WorkspaceSettingsPage {
       this.page.getByText("Member invited successfully", { exact: true }),
     ).toBeVisible();
   }
+
+  memberRow(email: string): Locator {
+    return this.page
+      .getByRole("row")
+      .filter({ has: this.page.getByText(email, { exact: true }) });
+  }
+
+  /** The row's role cell, e.g. "Editor". */
+  memberRole(email: string): Locator {
+    return this.memberRow(email).getByRole("cell").nth(2);
+  }
+
+  /** The edit and remove buttons are bare icons, in that order. */
+  private memberAction(email: string, action: "edit" | "remove"): Locator {
+    return this.memberRow(email)
+      .getByRole("button")
+      .nth(action === "edit" ? 0 : 1);
+  }
+
+  async changeRole(email: string, role: WorkspaceRole) {
+    await this.memberAction(email, "edit").click();
+    const dialog = this.page.getByRole("dialog").filter({
+      has: this.page.getByRole("heading", { name: "Edit member" }),
+    });
+    await dialog.locator('select[name="role"]').selectOption({ label: role });
+    await dialog.getByRole("button", { name: "Save" }).click();
+    await expect(
+      this.page.getByText("Member role updated successfully", { exact: true }),
+    ).toBeVisible();
+    await expect(this.memberRole(email)).toHaveText(role);
+  }
+
+  async removeMember(email: string) {
+    await this.memberAction(email, "remove").click();
+    const dialog = this.page.getByRole("dialog").filter({
+      has: this.page.getByRole("heading", { name: "Remove member" }),
+    });
+    await dialog.getByRole("button", { name: "Delete" }).click();
+    await expect(
+      this.page.getByText("Member removed successfully", { exact: true }),
+    ).toBeVisible();
+    await expect(this.memberRow(email)).toHaveCount(0);
+  }
 }
