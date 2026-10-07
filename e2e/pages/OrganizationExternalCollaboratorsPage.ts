@@ -3,6 +3,8 @@ import { Locator, Page, expect } from "@playwright/test";
 import { organizationPaths } from "../config/environment";
 import { WorkspaceRole } from "./WorkspaceSettingsPage";
 
+export type OrganizationRole = "Owner" | "Admin" | "Member";
+
 /** Workspace users of the organization who are not members of it. */
 export class OrganizationExternalCollaboratorsPage {
   constructor(private readonly page: Page) {}
@@ -25,6 +27,16 @@ export class OrganizationExternalCollaboratorsPage {
     });
   }
 
+  private dialog(title: string): Locator {
+    return this.page.getByRole("dialog").filter({
+      has: this.page.getByRole("heading", { name: title }),
+    });
+  }
+
+  private toast(text: string): Locator {
+    return this.page.getByText(text, { exact: true });
+  }
+
   async goto() {
     await this.page.goto(organizationPaths.externalCollaborators);
   }
@@ -44,5 +56,44 @@ export class OrganizationExternalCollaboratorsPage {
     if (await more.isVisible()) {
       await more.click();
     }
+  }
+
+  /** Sets their role in one workspace, by its slug, from the edit dialog. */
+  async setWorkspaceRole(
+    email: string,
+    workspaceSlug: string,
+    role: WorkspaceRole | "None",
+  ) {
+    await this.row(email).getByRole("button", { name: "edit" }).click();
+    const dialog = this.dialog("Update Member Permissions");
+    await dialog
+      .getByRole("radio", {
+        name: `${workspaceSlug} ${role.toUpperCase()}`,
+        exact: true,
+      })
+      .check();
+    await dialog.getByRole("button", { name: "Update" }).click();
+    await expect(this.toast("Permissions updated!")).toBeVisible();
+    await expect(dialog).toBeHidden();
+  }
+
+  async convertToMember(email: string, role: OrganizationRole) {
+    await this.row(email)
+      .getByRole("button", { name: "convert to member" })
+      .click();
+    const dialog = this.dialog("Convert to Organization Member");
+    await dialog.locator('select[name="role"]').selectOption({ label: role });
+    await dialog.getByRole("button", { name: "Convert to member" }).click();
+    await expect(this.toast("Converted to member!")).toBeVisible();
+    await expect(this.row(email)).toHaveCount(0);
+  }
+
+  /** Takes away every workspace membership they hold in the organization. */
+  async remove(email: string) {
+    await this.row(email).getByRole("button", { name: "delete" }).click();
+    const dialog = this.dialog("Remove External Collaborator");
+    await dialog.getByRole("button", { name: "Remove" }).click();
+    await expect(this.toast("External collaborator removed")).toBeVisible();
+    await expect(this.row(email)).toHaveCount(0);
   }
 }
