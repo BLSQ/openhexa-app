@@ -149,6 +149,7 @@ Covered so far:
 | `workspace-webapps.spec.ts` | Creating an iFrame app and deleting it |
 | `workspace-pipeline-settings.spec.ts` | A pipeline's name, description, tags and type; its schedule and notification recipients; its webhook starting a run; default parameter values; the Runs tab; editing, downloading and deleting versions |
 | `workspace-pipeline-sources.spec.ts` | A pipeline created from a notebook in the workspace's files, and run; a multi-task pipeline's task graph |
+| `workspace-templates.spec.ts` | Publishing a pipeline as a template, its pages, building a pipeline from it through the catalogue, upgrading that pipeline to a new template version, and deleting the template |
 | `workspace-pipeline-runs.spec.ts` | A run with typed parameters, its file and database table outputs, its messages arriving while it runs, and stopping it |
 | `workspace-pipeline-assistant.spec.ts` | Creating a pipeline with AI and landing in its editor with the conversation; on a pipeline's code, a proposal that cannot be resolved while the agent is still writing, then dismissed or published as a new version |
 | `workspace-webapp-assistant.spec.ts` | The AI assistant on a static app's code: a proposal that cannot be resolved while the agent is still writing, then dismissed or saved |
@@ -179,6 +180,10 @@ assert on their values, so reloading that data means updating the expectations.
   Target `input[type="file"]:not([webkitdirectory])`.
 - **Pipelines created from a template take the template's name**, so that spec
   runs `serial` -- two of its tests at once would collide over the same code.
+- **A published template is offered to every user of the platform** until it
+  is deleted, which the templates spec does at its end and in cleanup. While
+  it exists it may also be the first entry in the catalogue, which is what
+  `workspace-pipelines.spec.ts` builds from; that spec copes with any template.
 - **A template's own run may legitimately fail.** Most templates call a real
   external service, so the first run is only asserted to reach a verdict. The
   run that has to succeed is the one after the code is replaced with a pipeline
