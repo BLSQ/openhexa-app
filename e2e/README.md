@@ -141,6 +141,7 @@ Covered so far:
 | `organization-members.spec.ts` | The members list; inviting an address, resending the invitation and deleting it |
 | `user-menu.spec.ts` | The user menu's links (Account settings, MCP, Documentation); the profile name, access tokens and two-factor dialog |
 | `outsider.spec.ts` | Everything seen through the outsider account: being added to a workspace and listed as an external collaborator; the interface language; what a workspace Viewer, Editor and Admin are offered; the organization changing a collaborator's roles, converting them to a member, and removing them |
+| `workspace-navigation.spec.ts` | The workspace home page; every sidebar section; the global search finding a table and a new pipeline; the retired /pipelines and /notebooks pages leading to the workspaces |
 | `workspace-lifecycle.spec.ts` | Creating a workspace and archiving it again |
 | `workspace-settings.spec.ts` | In a temporary workspace: its name, countries and configuration, regenerating its database passwords, and a pipeline run that reads the configuration and writes to the database |
 | `workspace-files.spec.ts` | Creating a folder, uploading a file, deleting both; browsing into a folder, searching it, downloading and the breadcrumb back; uploading a whole folder; an accented file name and a 5 MB file round-tripping |
