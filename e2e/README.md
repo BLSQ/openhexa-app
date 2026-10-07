@@ -137,6 +137,7 @@ Covered so far:
 | --- | --- |
 | `organization-navigation.spec.ts` | The sidebar and every organization route |
 | `organization-settings.spec.ts` | The General, AI Assistant and Usage & Limits cards |
+| `organization-members.spec.ts` | The members list; inviting an address, resending the invitation and deleting it |
 | `user-menu.spec.ts` | The user menu's links (Account settings, MCP, Documentation); the profile name, access tokens and two-factor dialog |
 | `outsider.spec.ts` | Everything seen through the outsider account: being added to a workspace and listed as an external collaborator; the interface language; what a workspace Viewer, Editor and Admin are offered; the organization changing a collaborator's roles, converting them to a member, and removing them |
 | `workspace-lifecycle.spec.ts` | Creating a workspace and archiving it again |
