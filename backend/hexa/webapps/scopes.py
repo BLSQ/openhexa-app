@@ -59,174 +59,230 @@ _DATASET = {
 }
 _PAGE = {"items", "pageNumber", "totalPages", "totalItems"}
 
-# For each scope, the fields a web app may select, keyed by their parent type.
-# Anything not listed is refused, so a new schema field stays out of reach of
-# web apps until it is added here.
-SCOPE_FIELDS: dict[str, FieldMap] = {
-    Scope.USER_READ: _merge(
-        _USER,
-        {
-            "Query": {"me", "workspace"},
-            "Me": {"user", "features", "permissions"},
-            "FeatureFlag": {"code", "config"},
-            "MePermissions": {
-                "adminPanel",
-                "createAccessmodProject",
-                "createTeam",
-                "manageAccessmodAccessRequests",
-                "superUser",
+
+@dataclass(frozen=True)
+class ScopeGrant:
+    fields: FieldMap
+    permissions: frozenset[str] = frozenset()
+
+
+# For each scope, the fields a web app may select (keyed by their parent type)
+# and the permissions it may use. Anything not listed is refused, so a new schema
+# field or permission stays out of reach of web apps until it is added here.
+SCOPE_GRANTS: dict[str, ScopeGrant] = {
+    Scope.USER_READ: ScopeGrant(
+        fields=_merge(
+            _USER,
+            {
+                "Query": {"me", "workspace"},
+                "Me": {"user", "features", "permissions"},
+                "FeatureFlag": {"code", "config"},
+                "MePermissions": {
+                    "adminPanel",
+                    "createAccessmodProject",
+                    "createTeam",
+                    "manageAccessmodAccessRequests",
+                    "superUser",
+                },
+                "Workspace": {
+                    "slug",
+                    "name",
+                    "description",
+                    "countries",
+                    "organization",
+                    "createdAt",
+                    "updatedAt",
+                    "createdBy",
+                },
+                "Country": {"code", "alpha3", "name", "flag"},
+                "Organization": {"id", "name", "shortName"},
             },
-            "Workspace": {
-                "slug",
-                "name",
-                "description",
-                "countries",
-                "organization",
-                "createdAt",
-                "updatedAt",
-                "createdBy",
-            },
-            "Country": {"code", "alpha3", "name", "flag"},
-            "Organization": {"id", "name", "shortName"},
-        },
+        ),
+        # Read by the `me.permissions` flags; no AccessMod mutation is reachable.
+        permissions=frozenset(
+            {
+                "connector_accessmod.create_project",
+                "connector_accessmod.manage_access_requests",
+            }
+        ),
     ),
-    Scope.PIPELINES_READ: _merge(
-        _PIPELINE_RUN,
-        {
-            "Query": {
-                "pipeline",
-                "pipelines",
-                "pipelineByCode",
-                "pipelineRun",
-                "pipelineVersion",
+    Scope.PIPELINES_READ: ScopeGrant(
+        fields=_merge(
+            _PIPELINE_RUN,
+            {
+                "Query": {
+                    "pipeline",
+                    "pipelines",
+                    "pipelineByCode",
+                    "pipelineRun",
+                    "pipelineVersion",
+                },
+                "PipelinesPage": _PAGE,
+                "Pipeline": {
+                    "id",
+                    "code",
+                    "name",
+                    "description",
+                    "schedule",
+                    "type",
+                    "currentVersion",
+                },
+                "PipelineVersion": {
+                    "id",
+                    "versionNumber",
+                    "versionName",
+                    "description",
+                    "createdAt",
+                    "isLatestVersion",
+                    "parameters",
+                },
+                "PipelineParameter": {
+                    "code",
+                    "name",
+                    "type",
+                    "help",
+                    "default",
+                    "choices",
+                    "multiple",
+                    "required",
+                    "widget",
+                    "directory",
+                },
             },
-            "PipelinesPage": _PAGE,
-            "Pipeline": {
-                "id",
-                "code",
-                "name",
-                "description",
-                "schedule",
-                "type",
-                "currentVersion",
-            },
-            "PipelineVersion": {
-                "id",
-                "versionNumber",
-                "versionName",
-                "description",
-                "createdAt",
-                "isLatestVersion",
-                "parameters",
-            },
-            "PipelineParameter": {
-                "code",
-                "name",
-                "type",
-                "help",
-                "default",
-                "choices",
-                "multiple",
-                "required",
-                "widget",
-                "directory",
-            },
-        },
+        ),
+        permissions=frozenset({"pipelines.view_pipeline_version"}),
     ),
-    Scope.PIPELINES_RUN: _merge(
-        _PIPELINE_RUN,
-        {
-            "Mutation": {"runPipeline", "stopPipeline"},
-            "RunPipelineResult": {"success", "errors", "run"},
-            "StopPipelineResult": {"success", "errors"},
-        },
-    ),
-    Scope.FILES_READ: _merge(
-        _BUCKET_OBJECT,
-        {
-            "Query": {"getFileByPath", "readFileContent"},
-            "Mutation": {"prepareObjectDownload"},
-            "Workspace": {"bucket"},
-            "Bucket": {"object", "objects"},
-            "BucketObjectPage": {
-                "items",
-                "pageNumber",
-                "hasNextPage",
-                "hasPreviousPage",
+    Scope.PIPELINES_RUN: ScopeGrant(
+        fields=_merge(
+            _PIPELINE_RUN,
+            {
+                "Mutation": {"runPipeline", "stopPipeline"},
+                "RunPipelineResult": {"success", "errors", "run"},
+                "StopPipelineResult": {"success", "errors"},
             },
-            "ReadFileContentResult": {"success", "errors", "content", "size"},
-            "PrepareObjectDownloadResult": {"success", "errors", "downloadUrl"},
-        },
+        ),
+        permissions=frozenset({"pipelines.run_pipeline", "pipelines.stop_pipeline"}),
     ),
-    Scope.FILES_WRITE: _merge(
-        _BUCKET_OBJECT,
-        {
-            "Mutation": {
-                "prepareObjectUpload",
-                "createBucketFolder",
-                "writeFileContent",
+    Scope.FILES_READ: ScopeGrant(
+        fields=_merge(
+            _BUCKET_OBJECT,
+            {
+                "Query": {"getFileByPath", "readFileContent"},
+                "Mutation": {"prepareObjectDownload"},
+                "Workspace": {"bucket"},
+                "Bucket": {"object", "objects"},
+                "BucketObjectPage": {
+                    "items",
+                    "pageNumber",
+                    "hasNextPage",
+                    "hasPreviousPage",
+                },
+                "ReadFileContentResult": {"success", "errors", "content", "size"},
+                "PrepareObjectDownloadResult": {"success", "errors", "downloadUrl"},
             },
-            "PrepareObjectUploadResult": {"success", "errors", "uploadUrl", "headers"},
-            "CreateBucketFolderResult": {"success", "errors", "folder"},
-            "WriteFileContentResult": {"success", "errors", "filePath", "size"},
-        },
+        ),
+        permissions=frozenset({"files.download_object"}),
     ),
-    Scope.DATASETS_READ: _merge(
-        _USER,
-        _DATASET,
-        {
-            "Query": {"dataset", "datasets", "datasetVersion", "datasetLink"},
-            "DatasetPage": _PAGE,
-            "DatasetVersionPage": _PAGE,
-            "DatasetVersionFilePage": _PAGE,
-            "DatasetLinkPage": _PAGE,
-            # `workspace` names the workspace a shared dataset comes from; only
-            # its identity is readable through this scope.
-            "Dataset": {"createdBy", "workspace", "versions", "latestVersion", "links"},
-            "DatasetVersion": {"createdBy", "dataset", "files", "fileByName"},
-            "DatasetVersionFile": {"downloadUrl"},
-            "DatasetLink": {"id", "dataset", "workspace", "createdAt"},
-            "Workspace": {"slug", "name", "datasets"},
-        },
+    Scope.FILES_WRITE: ScopeGrant(
+        fields=_merge(
+            _BUCKET_OBJECT,
+            {
+                "Mutation": {
+                    "prepareObjectUpload",
+                    "createBucketFolder",
+                    "writeFileContent",
+                },
+                "PrepareObjectUploadResult": {
+                    "success",
+                    "errors",
+                    "uploadUrl",
+                    "headers",
+                },
+                "CreateBucketFolderResult": {"success", "errors", "folder"},
+                "WriteFileContentResult": {"success", "errors", "filePath", "size"},
+            },
+        ),
+        permissions=frozenset({"files.create_object"}),
     ),
-    Scope.DATASETS_WRITE: _merge(
-        _DATASET,
-        {
-            "Mutation": {
-                "createDataset",
-                "updateDataset",
-                "createDatasetVersion",
-                "updateDatasetVersion",
-                "createDatasetVersionFile",
+    Scope.DATASETS_READ: ScopeGrant(
+        fields=_merge(
+            _USER,
+            _DATASET,
+            {
+                "Query": {"dataset", "datasets", "datasetVersion", "datasetLink"},
+                "DatasetPage": _PAGE,
+                "DatasetVersionPage": _PAGE,
+                "DatasetVersionFilePage": _PAGE,
+                "DatasetLinkPage": _PAGE,
+                # `workspace` names the workspace a shared dataset comes from; only
+                # its identity is readable through this scope.
+                "Dataset": {
+                    "createdBy",
+                    "workspace",
+                    "versions",
+                    "latestVersion",
+                    "links",
+                },
+                "DatasetVersion": {"createdBy", "dataset", "files", "fileByName"},
+                "DatasetVersionFile": {"downloadUrl"},
+                "DatasetLink": {"id", "dataset", "workspace", "createdAt"},
+                "Workspace": {"slug", "name", "datasets"},
             },
-            "CreateDatasetResult": {"success", "errors", "dataset"},
-            "UpdateDatasetResult": {"success", "errors", "dataset"},
-            "CreateDatasetVersionResult": {"success", "errors", "version"},
-            "UpdateDatasetVersionResult": {"success", "errors", "version"},
-            "CreateDatasetVersionFileResult": {
-                "success",
-                "errors",
-                "file",
-                "uploadUrl",
+        ),
+        permissions=frozenset({"datasets.download_dataset_version"}),
+    ),
+    Scope.DATASETS_WRITE: ScopeGrant(
+        fields=_merge(
+            _DATASET,
+            {
+                "Mutation": {
+                    "createDataset",
+                    "updateDataset",
+                    "createDatasetVersion",
+                    "updateDatasetVersion",
+                    "createDatasetVersionFile",
+                },
+                "CreateDatasetResult": {"success", "errors", "dataset"},
+                "UpdateDatasetResult": {"success", "errors", "dataset"},
+                "CreateDatasetVersionResult": {"success", "errors", "version"},
+                "UpdateDatasetVersionResult": {"success", "errors", "version"},
+                "CreateDatasetVersionFileResult": {
+                    "success",
+                    "errors",
+                    "file",
+                    "uploadUrl",
+                },
             },
-        },
+        ),
+        permissions=frozenset(
+            {
+                "datasets.create_dataset",
+                "datasets.update_dataset",
+                "datasets.create_dataset_version",
+                "datasets.update_dataset_version",
+                "datasets.create_dataset_version_file",
+            }
+        ),
     ),
     # Only the execution endpoint: `savedQuery`, `savedQueryBySlug` and
     # `Workspace.savedQueries` return the SQL body, and the point of this scope is
     # to run a vetted query without handing the web app the query itself.
-    Scope.DATABASE_READ: {
-        "Query": {"executeSavedQuery"},
-        "ExecuteSQLResult": {
-            "success",
-            "errors",
-            "errorMessage",
-            "columns",
-            "rows",
-            "rowCount",
-            "truncated",
-            "durationMs",
+    Scope.DATABASE_READ: ScopeGrant(
+        fields={
+            "Query": {"executeSavedQuery"},
+            "ExecuteSQLResult": {
+                "success",
+                "errors",
+                "errorMessage",
+                "columns",
+                "rows",
+                "rowCount",
+                "truncated",
+                "durationMs",
+            },
         },
-    },
+        permissions=frozenset({"databases.run_query"}),
+    ),
 }
 
 
@@ -239,7 +295,7 @@ class ScopeCheck:
 
 
 class WebappScopePolicy:
-    """The schema fields a web app may select, given its scopes.
+    """The schema fields and permissions a web app may use, given its scopes.
 
     The check walks the whole document against the schema, so a field is judged
     by the type it is selected on however it is reached: nested, aliased, or
@@ -247,12 +303,17 @@ class WebappScopePolicy:
     """
 
     def __init__(self, scopes: Iterable[str]):
-        self._allowed = _merge(*(SCOPE_FIELDS[s] for s in scopes if s in SCOPE_FIELDS))
+        grants = [SCOPE_GRANTS[s] for s in scopes if s in SCOPE_GRANTS]
+        self._allowed = _merge(*(grant.fields for grant in grants))
+        self._permissions = frozenset().union(*(grant.permissions for grant in grants))
 
     def allows(self, type_name: str, field_name: str) -> bool:
         if field_name.startswith("__") or type_name.startswith("__"):
             return True
         return field_name in self._allowed.get(type_name, ())
+
+    def allows_permission(self, perm: str) -> bool:
+        return perm in self._permissions
 
     def check(self, document: DocumentNode) -> ScopeCheck:
         result = ScopeCheck()

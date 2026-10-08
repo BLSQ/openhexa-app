@@ -3,18 +3,31 @@ from unittest.mock import patch
 
 from django.contrib.sessions.backends.db import SessionStore
 from django.test import SimpleTestCase, TestCase, override_settings
+from django.utils import timezone
 from graphql import parse
 
 from config.schema import schema
 from hexa.core.test import GraphQLTestCase
 from hexa.data_studio.models import QueryLog, SavedQuery, SavedQueryVisibility
-from hexa.datasets.models import Dataset, DatasetLink
+from hexa.datasets.models import (
+    Dataset,
+    DatasetLink,
+    DatasetVersion,
+    DatasetVersionFile,
+)
 from hexa.files.backends.base import StorageObject
-from hexa.pipelines.models import Pipeline, PipelineRun, PipelineVersion
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineRun,
+    PipelineRunState,
+    PipelineRunTrigger,
+    PipelineVersion,
+)
+from hexa.user_management.backends import PermissionsBackend
 from hexa.user_management.models import Organization, User
 from hexa.webapps.middlewares import WEBAPP_SESSION_COOKIE, WEBAPP_SESSION_MAX_AGE
 from hexa.webapps.models import Webapp
-from hexa.webapps.scopes import SCOPE_FIELDS, WebappScopePolicy
+from hexa.webapps.scopes import SCOPE_GRANTS, WebappScopePolicy
 from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
@@ -166,12 +179,21 @@ class WebappScopePolicyTest(SimpleTestCase):
 
     def test_every_listed_field_exists_in_the_schema(self):
         """A typo would silently take a field away from web apps."""
-        for scope, field_map in SCOPE_FIELDS.items():
-            for type_name, fields in field_map.items():
+        for scope, grant in SCOPE_GRANTS.items():
+            for type_name, fields in grant.fields.items():
                 graphql_type = schema.get_type(type_name)
                 with self.subTest(scope=scope, type=type_name):
                     self.assertIsNotNone(graphql_type)
                     self.assertLessEqual(fields, set(graphql_type.fields))
+
+    def test_every_granted_permission_exists(self):
+        """A typo would silently take a permission away from web apps."""
+        for scope, grant in SCOPE_GRANTS.items():
+            for perm in grant.permissions:
+                app_label, name = perm.split(".")
+                module = PermissionsBackend._get_permission_module(app_label)
+                with self.subTest(scope=scope, perm=perm):
+                    self.assertTrue(hasattr(module, name))
 
 
 @override_settings(
@@ -447,6 +469,171 @@ class GraphQLProxyMiddlewareTest(TestCase):
         )
         self.assertEqual(dataset.name, "Webapp Dataset")
         self.assertEqual(dataset.created_by, self.USER)
+
+    def _post_with_scopes(self, slug, scopes, query):
+        webapp = self._create_scoped_webapp(slug, scopes)
+        session = self._create_webapp_session(webapp, self.USER)
+        response = self._graphql_post(slug, query, session_key=session.session_key)
+        self.assertEqual(response.status_code, 200)
+        return json.loads(response.content)["data"]
+
+    def _create_pipeline_with_version(self, code):
+        pipeline = Pipeline.objects.create(
+            workspace=self.WORKSPACE, name=code, code=code
+        )
+        version = PipelineVersion.objects.create(
+            pipeline=pipeline, version_number=1, zipfile=b"some_bytes"
+        )
+        return pipeline, version
+
+    def test_allowed_stop_pipeline_mutation_stops_run(self):
+        pipeline, version = self._create_pipeline_with_version("stoppable")
+        run = PipelineRun.objects.create(
+            user=self.USER,
+            pipeline=pipeline,
+            pipeline_version=version,
+            run_id="running",
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            execution_date=timezone.now(),
+            state=PipelineRunState.RUNNING,
+        )
+        data = self._post_with_scopes(
+            "stop-app",
+            [Webapp.OperationScope.PIPELINES_RUN],
+            f'mutation {{ stopPipeline(input: {{runId: "{run.id}"}}) {{ success errors }} }}',
+        )
+        self.assertEqual(data["stopPipeline"], {"success": True, "errors": []})
+        run.refresh_from_db()
+        self.assertEqual(run.state, PipelineRunState.TERMINATING)
+
+    def test_allowed_pipeline_version_query_returns_data(self):
+        _, version = self._create_pipeline_with_version("versioned")
+        data = self._post_with_scopes(
+            "version-app",
+            [Webapp.OperationScope.PIPELINES_READ],
+            f'query {{ pipelineVersion(id: "{version.id}") {{ versionNumber }} }}',
+        )
+        self.assertEqual(data["pipelineVersion"], {"versionNumber": 1})
+
+    @patch("hexa.files.schema.queries.storage")
+    def test_allowed_read_file_content_query_returns_content(self, mock_storage):
+        mock_storage.get_bucket_object.return_value = StorageObject(
+            key="a.txt",
+            name="a.txt",
+            path="a.txt",
+            size=5,
+            updated_at=None,
+            type="file",
+        )
+        mock_storage.read_object.return_value = b"hello"
+        data = self._post_with_scopes(
+            "read-file-app",
+            [Webapp.OperationScope.FILES_READ],
+            f'query {{ readFileContent(workspaceSlug: "{self.WORKSPACE.slug}", filePath: "a.txt") '
+            "{ success errors content } }",
+        )
+        self.assertEqual(
+            data["readFileContent"], {"success": True, "errors": [], "content": "hello"}
+        )
+
+    @patch("hexa.files.schema.mutations.storage")
+    def test_allowed_prepare_object_download_mutation_returns_url(self, mock_storage):
+        mock_storage.generate_download_url.return_value = (
+            "https://signed.example.com/dl"
+        )
+        data = self._post_with_scopes(
+            "download-app",
+            [Webapp.OperationScope.FILES_READ],
+            f'mutation {{ prepareObjectDownload(input: {{workspaceSlug: "{self.WORKSPACE.slug}", '
+            'objectKey: "a.txt"}) { success errors downloadUrl } }',
+        )
+        self.assertEqual(
+            data["prepareObjectDownload"],
+            {
+                "success": True,
+                "errors": [],
+                "downloadUrl": "https://signed.example.com/dl",
+            },
+        )
+
+    @patch("hexa.datasets.schema.types.generate_download_url")
+    def test_allowed_dataset_file_download_url_is_returned(
+        self, mock_generate_download_url
+    ):
+        mock_generate_download_url.return_value = "https://signed.example.com/data.csv"
+        dataset = Dataset.objects.create_if_has_perm(
+            principal=self.USER, workspace=self.WORKSPACE, name="Files", description=""
+        )
+        version = DatasetVersion.objects.create_if_has_perm(
+            principal=self.USER, dataset=dataset, name="v1", changelog=None
+        )
+        DatasetVersionFile.objects.create_if_has_perm(
+            principal=self.USER,
+            dataset_version=version,
+            uri="data.csv",
+            content_type="text/csv",
+        )
+        data = self._post_with_scopes(
+            "dataset-file-app",
+            [Webapp.OperationScope.DATASETS_READ],
+            f'query {{ datasetVersion(id: "{version.id}") '
+            "{ files { items { filename downloadUrl } } } }",
+        )
+        [file] = data["datasetVersion"]["files"]["items"]
+        self.assertEqual(
+            file,
+            {
+                "filename": "data.csv",
+                "downloadUrl": "https://signed.example.com/data.csv",
+            },
+        )
+
+    def test_allowed_dataset_write_mutations(self):
+        dataset = Dataset.objects.create_if_has_perm(
+            principal=self.USER,
+            workspace=self.WORKSPACE,
+            name="Writable",
+            description="",
+        )
+        scopes = [Webapp.OperationScope.DATASETS_WRITE]
+
+        data = self._post_with_scopes(
+            "dataset-update-app",
+            scopes,
+            f'mutation {{ updateDataset(input: {{datasetId: "{dataset.id}", name: "Renamed"}}) '
+            "{ success errors dataset { name } } }",
+        )
+        self.assertEqual(data["updateDataset"]["dataset"], {"name": "Renamed"})
+
+        data = self._post_with_scopes(
+            "version-create-app",
+            scopes,
+            f'mutation {{ createDatasetVersion(input: {{datasetId: "{dataset.id}", name: "v1"}}) '
+            "{ success errors version { id } } }",
+        )
+        self.assertEqual(data["createDatasetVersion"]["errors"], [])
+        version_id = data["createDatasetVersion"]["version"]["id"]
+
+        data = self._post_with_scopes(
+            "version-update-app",
+            scopes,
+            f'mutation {{ updateDatasetVersion(input: {{versionId: "{version_id}", changelog: "Notes"}}) '
+            "{ success errors version { changelog } } }",
+        )
+        self.assertEqual(
+            data["updateDatasetVersion"]["version"], {"changelog": "Notes"}
+        )
+
+        data = self._post_with_scopes(
+            "version-file-app",
+            scopes,
+            f'mutation {{ createDatasetVersionFile(input: {{versionId: "{version_id}", '
+            'uri: "data.csv", contentType: "text/csv"}) { success errors file { filename } } }',
+        )
+        self.assertEqual(
+            data["createDatasetVersionFile"],
+            {"success": True, "errors": [], "file": {"filename": "data.csv"}},
+        )
 
     def test_allowed_me_query_returns_authenticated_user(self):
         session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)

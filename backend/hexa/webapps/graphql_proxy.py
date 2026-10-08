@@ -10,7 +10,6 @@ from graphql import parse as gql_parse
 from config.schema import schema
 from hexa.analytics.api import track
 from hexa.webapps.models import Webapp
-from hexa.webapps.scopes import WebappScopePolicy
 from hexa.webapps.utils import is_local_dev_origin, is_preview_host
 
 _graphql_view = GraphQLView.as_view(schema=schema)
@@ -62,7 +61,7 @@ def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
             status=400,
         )
 
-    scope_check = WebappScopePolicy(webapp.allowed_operations).check(document)
+    scope_check = webapp.scope_policy.check(document)
 
     event_properties = {
         "webapp_id": str(webapp.id),

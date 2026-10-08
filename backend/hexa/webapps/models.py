@@ -1,5 +1,7 @@
 import os
 import secrets
+from functools import cached_property
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
@@ -26,6 +28,9 @@ from hexa.user_management.models import ServicePrincipal, User, UserInterface
 from hexa.webapps.utils import webapp_host_url
 from hexa.webapps.validators import validate_subdomain
 from hexa.workspaces.models import Workspace
+
+if TYPE_CHECKING:
+    from hexa.webapps.scopes import WebappScopePolicy
 
 
 class WebappFileEditError(Exception):
@@ -191,6 +196,13 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     allowed_operations = models.JSONField(default=list, blank=True)
     objects = WebappManager()
     all_objects = AllWebappManager()
+
+    @cached_property
+    def scope_policy(self) -> "WebappScopePolicy":
+        # Inline import: scopes imports the GraphQL schema, which imports this module.
+        from hexa.webapps.scopes import WebappScopePolicy
+
+        return WebappScopePolicy(self.allowed_operations)
 
     @property
     def serve_url(self):
@@ -500,6 +512,13 @@ class WebappUser(User, ServicePrincipal):
         instance.webapp = webapp
         instance.real_user = user
         return instance
+
+    def has_perm(self, perm, obj=None):
+        # A web app may use a permission only if both the viewer's role and the
+        # web app's scopes allow it: its scopes narrow what the viewer can do.
+        return self.webapp.scope_policy.allows_permission(perm) and super().has_perm(
+            perm, obj
+        )
 
     @property
     def workspace(self):
