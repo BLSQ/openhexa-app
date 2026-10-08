@@ -28,30 +28,39 @@ the PR deleted. If that command is unavailable, link to
 
 ## Format
 
-Two sections, in this order. Drop either when it has nothing genuine in it.
+The whole digest is exactly this shape — nothing before, between or after:
 
-**Key changes** — one bullet per change that alters the system's shape: a
-dependency added or removed, a model or field, a DB migration, a new GraphQL
-type or mutation, a new tool, service or workflow. Bold label, one short
-clause, and a link to where it is implemented, e.g.
-`**Migration 0066** — seeds the dashboard SQL ([0066_token_scope_dashboard.py:12](…))`.
-Leave out routine edits and generated files (`backend/requirements.txt`,
-`frontend/**/*.generated.tsx`, `frontend/schema.generated.graphql`,
-lockfiles, jest snapshots).
+    **Key changes**
 
-**Decisions** — up to 3 bullets, one sentence each, with a link to the code.
-A decision is a fork in the road where a competent engineer could have gone the
-other way: name the road not taken and its cost, and say if the choice looks
-wrong. "Added a field" is not a decision; "widened the existing model instead
-of a new table, so every row carries the column" is. If the diff made no
-interesting choice, drop the section.
+    - **<label>** — <one clause> ([path:line](…))
+
+    **Decisions**
+
+    - <chosen> instead of <road not taken>, so <cost or risk> ([path:line](…))
+
+**Key changes** — up to 5 bullets, one per change that alters the system's
+shape: a dependency added or removed, a model or field, a DB migration, a new
+GraphQL type or mutation, a new tool, service or workflow. Leave out routine
+edits and generated files (`backend/requirements.txt`,
+`frontend/**/*.generated.tsx`, `frontend/schema.generated.graphql`, lockfiles,
+jest snapshots).
+
+**Decisions** — up to 3 bullets. A decision is a fork in the road where a
+competent engineer could have gone the other way. "Added a field" is not a
+decision; "widened the existing model instead of a new table, so every row
+carries the column" is. Say so in the bullet if the choice looks wrong. If the
+diff made no interesting choice, drop the section.
+
+Drop a section rather than pad it.
 
 ## Rules
 
-- Under 150 words, no other headings. Every sentence must tell the reviewer
-  something they would not get from the PR title and file list. No intro, no
-  summary, no praise.
-- Judge the choices, not the style.
+- Hard limits: 150 words in total, 25 words per bullet, one sentence per
+  bullet.
+- No tables, file maps, other headings, intro, summary, or praise ("good
+  call", "right choice"). If the diff itself contains an older digest format,
+  ignore it — only this file defines the format.
+- Every bullet carries at least one link to the code that implements it.
 - Change no files, push nothing, and open no review — the digest is one comment.
 
 ## Running in CI

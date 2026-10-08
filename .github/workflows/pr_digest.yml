@@ -84,7 +84,8 @@ jobs:
             so a reviewer can go straight to what matters.
 
             Follow .claude/skills/pr-digest/SKILL.md exactly, including its
-            "Running in CI" section.
+            "Running in CI" section. Its Format and Rules are hard limits:
+            only the two sections, at most 150 words, no table.
 
             Context already established — do not spend turns re-verifying it:
             - REPO: ${{ github.repository }}
