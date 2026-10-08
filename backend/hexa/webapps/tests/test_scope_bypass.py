@@ -8,7 +8,7 @@ from django.test import TestCase, override_settings
 from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
 from hexa.datasets.models import Dataset, DatasetLink
 from hexa.files.backends.base import ObjectsPage, StorageObject
-from hexa.pipelines.models import Pipeline
+from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.user_management.models import User
 from hexa.webapps.middlewares import WEBAPP_SESSION_COOKIE, WEBAPP_SESSION_MAX_AGE
 from hexa.webapps.models import Webapp
@@ -46,6 +46,10 @@ class WebappProxyClientMixin:
             is_public=False,
             allowed_operations=scopes,
         )
+
+    def _assert_refused(self, response, field):
+        self.assertEqual(response.status_code, 403)
+        self.assertIn(field, json.loads(response.content)["errors"][0]["message"])
 
     def _post_as_webapp(self, webapp, query):
         session = SessionStore()
@@ -118,11 +122,12 @@ class InlineFragmentBypassTest(ScopeBypassTestCase):
             }}
             """,
         )
+        self._assert_refused(response, "Query.workspace")
         self.assertNotIn(SECRET_SENTINEL, response.content.decode())
 
     def test_inline_fragment_mutation_cannot_write(self):
         original_name = self.WORKSPACE.name
-        self._post_as_webapp(
+        response = self._post_as_webapp(
             self.no_scope_webapp,
             f"""
             mutation {{
@@ -134,6 +139,7 @@ class InlineFragmentBypassTest(ScopeBypassTestCase):
             }}
             """,
         )
+        self._assert_refused(response, "Mutation.updateWorkspace")
         self.WORKSPACE.refresh_from_db()
         self.assertEqual(self.WORKSPACE.name, original_name)
 
@@ -151,6 +157,7 @@ class InlineFragmentBypassTest(ScopeBypassTestCase):
             }}
             """,
         )
+        self._assert_refused(response, "Query.pipelines")
         self.assertNotIn(PIPELINE_SENTINEL, response.content.decode())
 
     def test_nested_inline_fragments_are_inspected(self):
@@ -168,6 +175,7 @@ class InlineFragmentBypassTest(ScopeBypassTestCase):
             }}
             """,
         )
+        self._assert_refused(response, "Query.workspace")
         self.assertNotIn(SECRET_SENTINEL, response.content.decode())
 
     def test_root_inline_fragment_with_allowed_fields_is_accepted(self):
@@ -202,11 +210,12 @@ class NamedFragmentBypassTest(ScopeBypassTestCase):
             }}
             """,
         )
+        self._assert_refused(response, "Query.pipelines")
         self.assertNotIn(PIPELINE_SENTINEL, response.content.decode())
 
     def test_fragment_named_after_allowed_field_cannot_write(self):
         original_name = self.WORKSPACE.name
-        self._post_as_webapp(
+        response = self._post_as_webapp(
             self.user_read_webapp,
             f"""
             mutation {{ ...me }}
@@ -217,6 +226,7 @@ class NamedFragmentBypassTest(ScopeBypassTestCase):
             }}
             """,
         )
+        self._assert_refused(response, "Mutation.updateWorkspace")
         self.WORKSPACE.refresh_from_db()
         self.assertEqual(self.WORKSPACE.name, original_name)
 
@@ -233,6 +243,7 @@ class NamedFragmentBypassTest(ScopeBypassTestCase):
             }}
             """,
         )
+        self._assert_refused(response, "Query.pipelines")
         self.assertNotIn(PIPELINE_SENTINEL, response.content.decode())
 
     def test_root_fragment_spread_with_allowed_fields_is_accepted(self):
@@ -312,23 +323,26 @@ class NestedFieldBypassTest(ScopeBypassTestCase):
         return self._post_as_webapp(
             webapp,
             f'query {{ workspace(slug: "{self.WORKSPACE.slug}") {{ {selection} }} }}',
-        ).content.decode()
+        )
 
     def test_user_read_cannot_read_connection_secrets(self):
-        body = self._query_workspace(
+        response = self._query_workspace(
             self.probe_webapp, "connections { fields { code value } }"
         )
-        self.assertNotIn(SECRET_SENTINEL, body)
+        self._assert_refused(response, "Workspace.connections")
+        self.assertNotIn(SECRET_SENTINEL, response.content.decode())
 
     def test_user_read_cannot_list_connections(self):
-        body = self._query_workspace(self.probe_webapp, "connections { name }")
-        self.assertNotIn(CONNECTION_NAME_SENTINEL, body)
+        response = self._query_workspace(self.probe_webapp, "connections { name }")
+        self._assert_refused(response, "Workspace.connections")
+        self.assertNotIn(CONNECTION_NAME_SENTINEL, response.content.decode())
 
     def test_user_read_cannot_read_database_credentials(self):
-        body = self._query_workspace(
+        response = self._query_workspace(
             self.probe_webapp, "database { credentials { password } }"
         )
-        self.assertNotIn(DB_PASSWORD_SENTINEL, body)
+        self._assert_refused(response, "Workspace.database")
+        self.assertNotIn(DB_PASSWORD_SENTINEL, response.content.decode())
 
     @patch("hexa.files.schema.types.storage")
     def test_user_read_cannot_list_files(self, mock_storage):
@@ -347,37 +361,42 @@ class NestedFieldBypassTest(ScopeBypassTestCase):
             has_previous_page=False,
             page_number=1,
         )
-        body = self._query_workspace(
+        response = self._query_workspace(
             self.probe_webapp, "bucket { objects { items { name } } }"
         )
-        self.assertNotIn(FILE_SENTINEL, body)
+        self._assert_refused(response, "Workspace.bucket")
+        self.assertNotIn(FILE_SENTINEL, response.content.decode())
 
     def test_database_read_cannot_read_saved_query_sql(self):
-        body = self._query_workspace(
+        response = self._query_workspace(
             self.probe_webapp, "savedQueries { items { content } }"
         )
-        self.assertNotIn(SQL_SENTINEL, body)
+        self._assert_refused(response, "Workspace.savedQueries")
+        self.assertNotIn(SQL_SENTINEL, response.content.decode())
 
     def test_user_read_cannot_list_other_members(self):
-        body = self._query_workspace(
+        response = self._query_workspace(
             self.probe_webapp, "members { items { user { email } } }"
         )
-        self.assertNotIn(MEMBER_SENTINEL, body)
+        self._assert_refused(response, "Workspace.members")
+        self.assertNotIn(MEMBER_SENTINEL, response.content.decode())
 
     def test_user_read_cannot_list_invitations(self):
-        body = self._query_workspace(
+        response = self._query_workspace(
             self.probe_webapp, "invitations { items { email } }"
         )
-        self.assertNotIn(INVITEE_SENTINEL, body)
+        self._assert_refused(response, "Workspace.invitations")
+        self.assertNotIn(INVITEE_SENTINEL, response.content.decode())
 
     def test_user_read_cannot_list_datasets(self):
-        body = self._query_workspace(
+        response = self._query_workspace(
             self.probe_webapp, "datasets { items { dataset { name } } }"
         )
-        self.assertNotIn(DATASET_SENTINEL, body)
+        self._assert_refused(response, "Workspace.datasets")
+        self.assertNotIn(DATASET_SENTINEL, response.content.decode())
 
     def test_pipeline_root_cannot_reach_workspace_secrets(self):
-        body = self._post_as_webapp(
+        response = self._post_as_webapp(
             self.pipelines_read_webapp,
             f"""
             query {{
@@ -386,11 +405,12 @@ class NestedFieldBypassTest(ScopeBypassTestCase):
                 }}
             }}
             """,
-        ).content.decode()
-        self.assertNotIn(DB_PASSWORD_SENTINEL, body)
+        )
+        self._assert_refused(response, "Pipeline.workspace")
+        self.assertNotIn(DB_PASSWORD_SENTINEL, response.content.decode())
 
     def test_dataset_root_cannot_reach_workspace_secrets(self):
-        body = self._post_as_webapp(
+        response = self._post_as_webapp(
             self.datasets_read_webapp,
             f"""
             query {{
@@ -399,8 +419,65 @@ class NestedFieldBypassTest(ScopeBypassTestCase):
                 }}
             }}
             """,
-        ).content.decode()
-        self.assertNotIn(SECRET_SENTINEL, body)
+        )
+        self._assert_refused(response, "Workspace.connections")
+        self.assertNotIn(SECRET_SENTINEL, response.content.decode())
+
+
+class MutationResultBypassTest(ScopeBypassTestCase):
+    """A mutation's result must not be a way back into the workspace."""
+
+    def test_run_pipeline_result_cannot_reach_workspace_secrets(self):
+        webapp = self._create_webapp("run-app", [Webapp.OperationScope.PIPELINES_RUN])
+        pipeline = Pipeline.objects.get(code="sentinel")
+        response = self._post_as_webapp(
+            webapp,
+            f"""
+            mutation {{
+                runPipeline(input: {{id: "{pipeline.id}", config: {{}}}}) {{
+                    run {{ pipeline {{ workspace {{ database {{ credentials {{ password }} }} }} }} }}
+                }}
+            }}
+            """,
+        )
+        self._assert_refused(response, "PipelineRun.pipeline")
+        self.assertFalse(PipelineRun.objects.filter(pipeline=pipeline).exists())
+
+    def test_create_dataset_result_cannot_reach_workspace_secrets(self):
+        webapp = self._create_webapp(
+            "dataset-write-app", [Webapp.OperationScope.DATASETS_WRITE]
+        )
+        response = self._post_as_webapp(
+            webapp,
+            f"""
+            mutation {{
+                createDataset(input: {{workspaceSlug: "{self.WORKSPACE.slug}", name: "Probe"}}) {{
+                    dataset {{ workspace {{ connections {{ fields {{ code value }} }} }} }}
+                }}
+            }}
+            """,
+        )
+        self._assert_refused(response, "Dataset.workspace")
+        self.assertFalse(Dataset.objects.filter(name="Probe").exists())
+
+
+class StaticCheckTest(ScopeBypassTestCase):
+    def test_skipped_field_is_still_refused(self):
+        """The check reads the query, not what ends up executing: a field the
+        query skips is refused all the same.
+        """
+        response = self._post_as_webapp(
+            self.user_read_webapp,
+            f"""
+            query {{
+                workspace(slug: "{self.WORKSPACE.slug}") {{
+                    slug
+                    connections @include(if: false) {{ name }}
+                }}
+            }}
+            """,
+        )
+        self._assert_refused(response, "Workspace.connections")
 
 
 class ScopeAllowedAccessTest(ScopeBypassTestCase):
