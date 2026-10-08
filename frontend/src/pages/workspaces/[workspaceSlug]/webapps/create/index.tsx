@@ -67,17 +67,11 @@ export const getServerSideProps = createGetServerSideProps({
         },
       };
     }
-    const requestedType = ctx.query?.type as string | undefined;
-    const defaultType = Object.values(WebappType).includes(
-      requestedType as WebappType,
-    )
-      ? (requestedType as WebappType)
-      : WebappType.Iframe;
-
+    const type = ctx.query?.type as WebappType;
     return {
       props: {
         workspace: data.workspace,
-        defaultType,
+        ...(Object.values(WebappType).includes(type) && { defaultType: type }),
       },
     };
   },

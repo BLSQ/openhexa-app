@@ -10,7 +10,11 @@ import Clipboard from "core/components/Clipboard";
 import useCacheKey from "core/hooks/useCacheKey";
 import { useUpdateWebappMutation } from "webapps/graphql/mutations.generated";
 import { UpdateWebappError, WebappOperationScope } from "graphql/types";
-import { getScopeDescriptions, getScopeGroups } from "webapps/helpers";
+import {
+  LEGACY_SCOPES,
+  getScopeDescriptions,
+  getScopeGroups,
+} from "webapps/helpers";
 import { WebappApiAccess_WebappFragment } from "./WebappApiAccess.generated";
 
 const EXAMPLE_SNIPPET = `const response = await fetch("/graphql/", {
@@ -39,7 +43,13 @@ const ApiAccessContent = ({
   const { t } = useTranslation();
   const section = useDataCardSection();
   const scopeDescriptions = getScopeDescriptions(t);
-  const scopeGroups = getScopeGroups(t);
+  const scopeGroups = getScopeGroups(t).map((group) => ({
+    ...group,
+    scopes: group.scopes.filter(
+      (scope) =>
+        !LEGACY_SCOPES.includes(scope) || savedOperations.includes(scope),
+    ),
+  }));
 
   // Sync the draft to the persisted value on each edit-mode transition so a
   // previous cancel never leaks unsaved toggles into the next edit session.

@@ -503,6 +503,22 @@ describe("DataStudioEditor", () => {
     expect(screen.getByRole("button", { name: /Private/ })).toBeInTheDocument();
   });
 
+  it("shows the saved query slug next to its name", () => {
+    const { unmount } = renderEditor();
+    expect(screen.queryByText("(cohort-query)")).not.toBeInTheDocument();
+    unmount();
+
+    mockEditorState.savedQuery = {
+      id: "q1",
+      slug: "cohort-query",
+      name: "Cohort query",
+      visibility: SavedQueryVisibility.Private,
+    };
+    renderEditor();
+
+    expect(screen.getByText("(cohort-query)")).toBeInTheDocument();
+  });
+
   it("disables Save when the plan withholds it, and runs it when offered", async () => {
     mockEditorState.savePlan = savePlan({ save: null, blockedBy: "empty" });
     const { unmount } = renderEditor();

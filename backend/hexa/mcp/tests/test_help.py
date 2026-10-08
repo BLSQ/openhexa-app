@@ -1,3 +1,5 @@
+from django.test import override_settings
+
 from hexa.mcp.tools.help import get_help_or_doc
 
 from .testutils import MCPTestCase
@@ -47,6 +49,15 @@ class GetHelpOrDocTest(MCPTestCase):
             result["content"],
         )
         self.assertIn("## Quickstart", result["content"])
+
+    @override_settings(BASE_URL="https://api.openhexa.test")
+    def test_backend_url_token_resolves_to_this_install(self):
+        result = get_help_or_doc(user=self.USER_ADMIN, topic="static-webapps")
+        self.assertNotIn("[[ BASE_URL ]]", result["content"])
+        self.assertIn(
+            '<script src="https://api.openhexa.test/webapps/dev.js"></script>',
+            result["content"],
+        )
 
     def test_docstring_lists_curated_topics(self):
         expected = (

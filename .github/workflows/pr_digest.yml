@@ -1,9 +1,9 @@
 name: pr_digest
-run-name: Digest PR #${{ github.event.pull_request.number }}
+run-name: Digest PR #${{ inputs.pr }}
 
+# Automatic runs on pull_request are disabled while the digest is being
+# reworked; trigger it manually with workflow_dispatch in the meantime.
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
       pr:
@@ -20,20 +20,23 @@ permissions:
   id-token: write # required for the GCP Workload Identity Federation OIDC exchange
 
 concurrency:
-  group: pr-digest-${{ github.event.pull_request.number || inputs.pr }}
+  group: pr-digest-${{ inputs.pr }}
   cancel-in-progress: true
 
 jobs:
   digest:
     name: Digest the pull request
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout code
+      - name: Checkout the pull request head
         uses: actions/checkout@v7
+        with:
+          ref: refs/pull/${{ inputs.pr }}/head
+
+      - name: Resolve the head SHA
+        id: head
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -62,7 +65,7 @@ jobs:
           OTEL_EXPORTER_OTLP_ENDPOINT: https://logfire-eu.pydantic.dev
           OTEL_EXPORTER_OTLP_HEADERS: Authorization=${{ secrets.LOGFIRE_WRITE_TOKEN }}
           OTEL_SERVICE_NAME: pr-digest
-          OTEL_RESOURCE_ATTRIBUTES: gh.run_id=${{ github.run_id }},gh.pr=${{ github.event.pull_request.number || inputs.pr }},gh.model=${{ inputs.model || vars.CLAUDE_MODEL || 'claude-opus-4-6' }}
+          OTEL_RESOURCE_ATTRIBUTES: gh.run_id=${{ github.run_id }},gh.pr=${{ inputs.pr }},gh.model=${{ inputs.model || vars.CLAUDE_MODEL || 'claude-opus-4-6' }}
           OTEL_METRIC_EXPORT_INTERVAL: "10000"
           # Prompts and responses carry this repository's source; left redacted.
           # Set these to "1" to see full content in Logfire.
@@ -78,7 +81,7 @@ jobs:
             --model ${{ inputs.model || vars.CLAUDE_MODEL || 'claude-opus-4-6' }}
             --allowedTools "Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(printf:*),Bash(sha256sum:*)"
           prompt: |
-            Digest pull request #${{ github.event.pull_request.number || inputs.pr }}
+            Digest pull request #${{ inputs.pr }}
             so a reviewer can go straight to what matters.
 
             Follow .claude/skills/pr-digest/SKILL.md exactly, including its
@@ -86,7 +89,7 @@ jobs:
 
             Context already established — do not spend turns re-verifying it:
             - REPO: ${{ github.repository }}
-            - PR NUMBER: ${{ github.event.pull_request.number || inputs.pr }}
-            - PR URL, for the diff links: ${{ github.server_url }}/${{ github.repository }}/pull/${{ github.event.pull_request.number || inputs.pr }}
-            - Head SHA, for the fallback links: ${{ github.event.pull_request.head.sha }}
+            - PR NUMBER: ${{ inputs.pr }}
+            - PR URL, for the diff links: ${{ github.server_url }}/${{ github.repository }}/pull/${{ inputs.pr }}
+            - Head SHA, for the fallback links: ${{ steps.head.outputs.sha }}
             - The PR head is checked out in the working directory.

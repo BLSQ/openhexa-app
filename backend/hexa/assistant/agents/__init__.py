@@ -5,18 +5,20 @@ from typing import TYPE_CHECKING
 
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.agents.create_pipeline_agent import CreatePipelineAgent
+from hexa.assistant.agents.create_webapp_agent import CreateWebappAgent
 from hexa.assistant.agents.edit_pipeline_agent import EditPipelineAgent
 from hexa.assistant.agents.edit_webapp_agent import EditWebappAgent
 from hexa.assistant.agents.generate_sql_agent import GenerateSqlAgent
 from hexa.assistant.instructions import InstructionSet
-from hexa.assistant.model_builder import BuiltModel
 
 if TYPE_CHECKING:
+    from hexa.assistant.ai_models import AiModelBuilder
     from hexa.assistant.models import Conversation
 
 _AGENT_REGISTRY: dict[InstructionSet, type[BaseAgent]] = {
     InstructionSet.CREATE_PIPELINE: CreatePipelineAgent,
     InstructionSet.EDIT_PIPELINE: EditPipelineAgent,
+    InstructionSet.CREATE_WEBAPPS: CreateWebappAgent,
     InstructionSet.EDIT_WEBAPP: EditWebappAgent,
     InstructionSet.GENERATE_SQL: GenerateSqlAgent,
     InstructionSet.GENERAL: BaseAgent,
@@ -24,12 +26,12 @@ _AGENT_REGISTRY: dict[InstructionSet, type[BaseAgent]] = {
 
 
 def create_agent(
-    conversation: Conversation, built_model: BuiltModel | None = None
+    conversation: Conversation, builder: AiModelBuilder | None = None
 ) -> BaseAgent:
     agent_class = _AGENT_REGISTRY.get(
         InstructionSet(conversation.instruction_set), BaseAgent
     )
-    return agent_class(conversation, built_model)
+    return agent_class(conversation, builder)
 
 
 @cache

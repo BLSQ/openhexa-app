@@ -330,6 +330,54 @@ class GitWebappUpdateFilesTest(GraphQLTestCase):
         )
 
     @patch("hexa.git.mixins.get_forgejo_client")
+    def test_update_files_uses_provided_commit_message(self, mock_get_client):
+        mock_client = MagicMock()
+        mock_client.commit_files.return_value = "sha-msg"
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            UPDATE_WEBAPP_MUTATION,
+            {
+                "input": {
+                    "id": str(self.GIT_WEBAPP.id),
+                    "files": [{"path": "index.html", "content": "<h1>Hello</h1>"}],
+                    "commitMessage": "Add a dark theme toggle",
+                }
+            },
+        )
+
+        self.assertTrue(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(
+            mock_client.commit_files.call_args.args[2], "Add a dark theme toggle"
+        )
+
+    @patch("hexa.git.mixins.get_forgejo_client")
+    def test_update_files_blank_commit_message_falls_back_to_default(
+        self, mock_get_client
+    ):
+        mock_client = MagicMock()
+        mock_client.commit_files.return_value = "sha-blank"
+        mock_get_client.return_value = mock_client
+
+        self.client.force_login(self.USER)
+        response = self.run_query(
+            UPDATE_WEBAPP_MUTATION,
+            {
+                "input": {
+                    "id": str(self.GIT_WEBAPP.id),
+                    "files": [{"path": "index.html", "content": "<h1>Hello</h1>"}],
+                    "commitMessage": "   ",
+                }
+            },
+        )
+
+        self.assertTrue(response["data"]["updateWebapp"]["success"])
+        self.assertEqual(
+            mock_client.commit_files.call_args.args[2], "Update webapp content"
+        )
+
+    @patch("hexa.git.mixins.get_forgejo_client")
     def test_update_files_to_delete_propagates(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.commit_files.return_value = "sha-del"
@@ -1210,16 +1258,11 @@ class GitWebappCommitDiffTest(GraphQLTestCase):
     def test_commit_diff_success(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.get_commit.return_value = {
-            "sha": "abc123",
-            "commit": {
-                "message": "Update homepage\n",
-                "author": {
-                    "name": "Test User",
-                    "email": "test@example.com",
-                    "date": "2024-01-02T00:00:00Z",
-                },
-            },
-            "parents": [{"sha": "def456"}],
+            "id": "abc123",
+            "message": "Update homepage",
+            "author_name": "Test User",
+            "author_email": "test@example.com",
+            "date": "2024-01-02T00:00:00Z",
         }
         mock_client.get_commit_diff.return_value = (
             "diff --git a/index.html b/index.html\n"
@@ -1251,16 +1294,11 @@ class GitWebappCommitDiffTest(GraphQLTestCase):
     def test_commit_diff_initial_commit_all_added(self, mock_get_client):
         mock_client = MagicMock()
         mock_client.get_commit.return_value = {
-            "sha": "firstsha",
-            "commit": {
-                "message": "Initial commit",
-                "author": {
-                    "name": "Test User",
-                    "email": "test@example.com",
-                    "date": "2024-01-01T00:00:00Z",
-                },
-            },
-            "parents": [],
+            "id": "firstsha",
+            "message": "Initial commit",
+            "author_name": "Test User",
+            "author_email": "test@example.com",
+            "date": "2024-01-01T00:00:00Z",
         }
         mock_client.get_commit_diff.return_value = (
             "diff --git a/index.html b/index.html\n"

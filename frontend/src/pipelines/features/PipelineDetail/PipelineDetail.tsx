@@ -15,6 +15,7 @@ import PipelineEditChatPanel, {
   PipelineConversation,
 } from "assistant/features/PipelineEditChatPanel";
 import { useResolveAssistantProposalMutation } from "assistant/graphql/mutations.generated";
+import useProposalCommitMessage from "assistant/hooks/useProposalCommitMessage";
 import clsx from "clsx";
 import Badge from "core/components/Badge";
 import Button from "core/components/Button";
@@ -50,6 +51,7 @@ import { PipelineFunctionalType, PipelineType } from "graphql/types";
 import { DateTime } from "luxon";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
+import PipelineDagView from "pipelines/features/PipelineDagView";
 import PipelineHistory from "pipelines/features/PipelineHistory";
 import PipelineRunDetail from "pipelines/features/PipelineRunDetail";
 import PipelineRuns from "pipelines/features/PipelineRuns";
@@ -198,15 +200,29 @@ const PipelineDetail = ({
   const [proposedToolInvocationId, setProposedToolInvocationId] = useState<
     string | null
   >(null);
+  // A proposal streamed by the agent is shown before its invocation is persisted
+  // (that only happens when the turn ends), so it cannot be resolved yet.
+  const proposalBlockedReason =
+    proposedFiles !== null && proposedToolInvocationId === null
+      ? t("Waiting for the assistant to finish…")
+      : undefined;
+  const {
+    commitMessage: proposedCommitMessage,
+    setCommitMessage: setProposedCommitMessage,
+    receiveCommitMessage,
+    resetCommitMessage,
+  } = useProposalCommitMessage();
 
   const handleProposedFiles = useCallback(
     (
       files: ProposedFile[] | null,
       toolInvocationId?: string,
       deletedPaths?: string[],
+      commitMessage?: string,
     ) => {
       setProposedFiles(files);
       setProposedDeletedPaths(deletedPaths ?? null);
+      receiveCommitMessage(commitMessage);
       if (toolInvocationId !== undefined) {
         setProposedToolInvocationId(toolInvocationId);
       } else if (files !== null) {
@@ -220,30 +236,37 @@ const PipelineDetail = ({
         setView("code");
       }
     },
-    [setView],
+    [setView, receiveCommitMessage],
   );
 
   const handleDismiss = useCallback(async () => {
     setProposedFiles(null);
     setProposedDeletedPaths(null);
+    resetCommitMessage();
     const idToDismiss = proposedToolInvocationId;
     setProposedToolInvocationId(null);
     if (idToDismiss) {
       await resolveProposal({ variables: { toolInvocationId: idToDismiss } });
     }
-  }, [proposedToolInvocationId, resolveProposal]);
+  }, [proposedToolInvocationId, resolveProposal, resetCommitMessage]);
 
   const handleVersionCreated = useCallback(() => {
     setVersionRef(null);
     setProposedFiles(null);
     setProposedDeletedPaths(null);
+    resetCommitMessage();
     const idToResolve = proposedToolInvocationId;
     setProposedToolInvocationId(null);
     if (idToResolve) {
       resolveProposal({ variables: { toolInvocationId: idToResolve } });
     }
     onRefetch();
-  }, [proposedToolInvocationId, resolveProposal, onRefetch]);
+  }, [
+    proposedToolInvocationId,
+    resolveProposal,
+    resetCommitMessage,
+    onRefetch,
+  ]);
 
   const [conversations, setConversations] = useState<PipelineConversation[]>(
     [],
@@ -307,15 +330,23 @@ const PipelineDetail = ({
     })),
   ];
 
-  const hasMissingConfiguration = useMemo(() => {
-    if (!isZipFile || !pipeline.schedule) return false;
-    const version =
-      pipeline.scheduledPipelineVersion ?? pipeline.currentVersion;
-    if (!version) return false;
-    return version.parameters.some(
-      (p: any) => p.required && !version.config?.[p.code],
-    );
-  }, [isZipFile, pipeline]);
+  // The scheduler runs the pinned version, or the latest one when nothing is pinned.
+  const versionToRun =
+    pipeline.scheduledPipelineVersion ?? pipeline.currentVersion;
+
+  // Not gated on the pipeline already being scheduled: the point is to say up front that this
+  // pipeline cannot run unattended as it stands, rather than to reject the cron on save. Notebooks
+  // take no parameters, and a manual run still prompts the user for the missing values.
+  const missingScheduleParameters: string[] = isZipFile
+    ? (versionToRun?.missingScheduleParameters ?? [])
+    : [];
+
+  const showMissingParametersWarning =
+    pipeline.permissions.update && missingScheduleParameters.length > 0;
+
+  const canEditScheduling =
+    pipeline.permissions.update &&
+    (Boolean(pipeline.schedule) || missingScheduleParameters.length === 0);
 
   const versionItems = pipeline.versions?.items ?? [];
   const pinnedVersion = pipeline.scheduledPipelineVersion;
@@ -422,6 +453,11 @@ const PipelineDetail = ({
                     </p>
                   )}
                 </SettingsCard>
+                {isZipFile && pipeline.currentVersion && (
+                  <SettingsCard title={t("Task graph")}>
+                    <PipelineDagView version={pipeline.currentVersion} />
+                  </SettingsCard>
+                )}
               </div>
             </DetailViewPane>
           )}
@@ -476,7 +512,11 @@ const PipelineDetail = ({
               {proposedFiles && (
                 <AssistantProposalBanner
                   label={t("Proposed version from AI assistant")}
+                  message={proposedCommitMessage ?? undefined}
+                  messagePlaceholder={t("Version description")}
+                  onMessageChange={setProposedCommitMessage}
                   onDismiss={handleDismiss}
+                  disabledReason={proposalBlockedReason}
                   className="mx-5 mt-4"
                 />
               )}
@@ -495,11 +535,13 @@ const PipelineDetail = ({
                       isEditable={canEditCode && !versionRef}
                       proposedFiles={proposedFiles ?? undefined}
                       proposedDeletedPaths={proposedDeletedPaths ?? undefined}
+                      proposedCommitMessage={proposedCommitMessage ?? undefined}
                       workspaceSlug={workspaceSlug}
                       pipelineCode={pipelineCode}
                       pipelineId={pipeline.id}
                       flush
                       onVersionCreated={handleVersionCreated}
+                      saveDisabledReason={proposalBlockedReason}
                     />
                   )}
                 </div>
@@ -684,30 +726,24 @@ const PipelineDetail = ({
 
                 <DataCard item={pipeline}>
                   <DataCard.FormSection
-                    title={
-                      <div className="flex items-center">
-                        {t("Scheduling")}
-                        {pipeline.permissions.update &&
-                          hasMissingConfiguration && (
-                            <Tooltip
-                              className="flex items-center"
-                              label={t(
-                                "Missing configuration: set default parameters to fix the problem.",
-                              )}
-                            >
-                              <ExclamationCircleIcon className="ml-1.5 inline-block h-5 w-5 text-yellow-500" />
-                            </Tooltip>
-                          )}
-                      </div>
-                    }
-                    onSave={
-                      pipeline.permissions.update &&
-                      pipeline.permissions.schedule
-                        ? onSaveScheduling
-                        : undefined
-                    }
+                    title={t("Scheduling")}
+                    onSave={canEditScheduling ? onSaveScheduling : undefined}
                     collapsible={false}
                   >
+                    {showMissingParametersWarning && (
+                      <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                        <ExclamationCircleIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+                        <span>
+                          {t(
+                            "The required parameter {{parameters}} has no value, so this pipeline cannot run on a schedule. Set a default value to fix this.",
+                            {
+                              count: missingScheduleParameters.length,
+                              parameters: missingScheduleParameters.join(", "),
+                            },
+                          )}
+                        </span>
+                      </div>
+                    )}
                     <SwitchProperty
                       id="enableScheduling"
                       label={t("Enabled")}
@@ -739,7 +775,13 @@ const PipelineDetail = ({
                         options={versionOptions}
                         nullable
                         defaultValue={t("Latest version")}
-                        getOptionLabel={(v: any) => v.versionName}
+                        getOptionLabel={(v: any) =>
+                          v.missingScheduleParameters?.length > 0
+                            ? t("{{version}} (missing parameter values)", {
+                                version: v.versionName,
+                              })
+                            : v.versionName
+                        }
                         visible={(_, __, values) =>
                           Boolean(values.enableScheduling || pipeline.schedule)
                         }

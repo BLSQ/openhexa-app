@@ -236,16 +236,14 @@ query WorkspacePipelineDetailPage(
       ...DownloadPipelineVersion_version
       ...PipelineVersionParametersTable_version
       ...PipelineVersionConfigDialog_version
+      ...PipelineDagView_version
+      missingScheduleParameters
     }
     scheduledPipelineVersion {
       id
       versionNumber
       versionName
-      parameters {
-        code
-        required
-      }
-      config
+      missingScheduleParameters
     }
     versions(perPage: 10) {
       items {
@@ -253,6 +251,7 @@ query WorkspacePipelineDetailPage(
         versionNumber
         versionName
         isLatestVersion
+        missingScheduleParameters
       }
     }
     assistantConversations {

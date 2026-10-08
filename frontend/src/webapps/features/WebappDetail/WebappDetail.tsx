@@ -15,6 +15,7 @@ import WebappEditChatPanel, {
   WebappProposedFile,
 } from "assistant/features/WebappEditChatPanel";
 import { useResolveAssistantProposalMutation } from "assistant/graphql/mutations.generated";
+import useProposalCommitMessage from "assistant/hooks/useProposalCommitMessage";
 import Button from "core/components/Button";
 import DetailShell, {
   AssistantDock,
@@ -229,13 +230,35 @@ const WebappDetail = ({
   const [proposedFiles, setProposedFiles] = useState<
     WebappProposedFile[] | null
   >(null);
+  const [proposedDeletedPaths, setProposedDeletedPaths] = useState<
+    string[] | null
+  >(null);
   const [proposedToolInvocationId, setProposedToolInvocationId] = useState<
     string | null
   >(null);
+  // A proposal streamed by the agent is shown before its invocation is persisted
+  // (that only happens when the turn ends), so it cannot be resolved yet.
+  const proposalBlockedReason =
+    proposedFiles !== null && proposedToolInvocationId === null
+      ? t("Waiting for the assistant to finish…")
+      : undefined;
+  const {
+    commitMessage: proposedCommitMessage,
+    setCommitMessage: setProposedCommitMessage,
+    receiveCommitMessage,
+    resetCommitMessage,
+  } = useProposalCommitMessage();
 
   const handleProposedFiles = useCallback(
-    (files: WebappProposedFile[] | null, toolInvocationId?: string) => {
+    (
+      files: WebappProposedFile[] | null,
+      toolInvocationId?: string,
+      deletedPaths?: string[],
+      commitMessage?: string,
+    ) => {
       setProposedFiles(files);
+      setProposedDeletedPaths(deletedPaths ?? null);
+      receiveCommitMessage(commitMessage);
       if (toolInvocationId !== undefined) {
         setProposedToolInvocationId(toolInvocationId);
       } else if (files !== null) {
@@ -248,27 +271,36 @@ const WebappDetail = ({
         setView("code");
       }
     },
-    [],
+    [receiveCommitMessage],
   );
 
   const handleDismiss = useCallback(async () => {
     setProposedFiles(null);
+    setProposedDeletedPaths(null);
+    resetCommitMessage();
     const idToDismiss = proposedToolInvocationId;
     setProposedToolInvocationId(null);
     if (idToDismiss) {
       await resolveProposal({ variables: { toolInvocationId: idToDismiss } });
     }
-  }, [proposedToolInvocationId, resolveProposal]);
+  }, [proposedToolInvocationId, resolveProposal, resetCommitMessage]);
 
   const handleSaveSuccess = useCallback(() => {
     onRefetch();
     const idToResolve = proposedToolInvocationId;
     setProposedFiles(null);
+    setProposedDeletedPaths(null);
+    resetCommitMessage();
     setProposedToolInvocationId(null);
     if (idToResolve) {
       resolveProposal({ variables: { toolInvocationId: idToResolve } });
     }
-  }, [proposedToolInvocationId, resolveProposal, onRefetch]);
+  }, [
+    proposedToolInvocationId,
+    resolveProposal,
+    resetCommitMessage,
+    onRefetch,
+  ]);
 
   const [conversations, setConversations] = useState<WebappConversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<
@@ -425,7 +457,11 @@ const WebappDetail = ({
               {proposedFiles && (
                 <AssistantProposalBanner
                   label={t("Proposed changes from AI assistant")}
+                  message={proposedCommitMessage ?? undefined}
+                  messagePlaceholder={t("Commit message")}
+                  onMessageChange={setProposedCommitMessage}
                   onDismiss={handleDismiss}
+                  disabledReason={proposalBlockedReason}
                   className="mx-5 mt-4"
                 />
               )}
@@ -439,8 +475,11 @@ const WebappDetail = ({
                     isEditable={canEdit && !versionRef}
                     versionRef={versionRef ?? undefined}
                     proposedFiles={proposedFiles ?? undefined}
+                    proposedDeletedPaths={proposedDeletedPaths ?? undefined}
+                    proposedCommitMessage={proposedCommitMessage ?? undefined}
                     flush
                     onSaveSuccess={handleSaveSuccess}
+                    saveDisabledReason={proposalBlockedReason}
                   />
                 </div>
               </div>

@@ -15,6 +15,7 @@ type Props = {
     files: ProposedFile[] | null,
     toolInvocationId?: string,
     deletedPaths?: string[],
+    commitMessage?: string,
   ) => void;
   conversations: PipelineConversation[];
   activeConversationId: string | null;
@@ -36,11 +37,13 @@ export default function PipelineEditChatPanel({
       files: unknown[] | null,
       toolInvocationId?: string,
       deletedPaths?: string[],
+      commitMessage?: string,
     ) => {
       onProposedFiles(
         files as ProposedFile[] | null,
         toolInvocationId,
         deletedPaths,
+        commitMessage,
       );
     },
     [onProposedFiles],

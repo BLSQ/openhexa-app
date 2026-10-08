@@ -23,6 +23,7 @@ import { PipelineVersionPicker_VersionFragmentDoc } from '../features/PipelineVe
 import { DownloadPipelineVersion_VersionFragmentDoc } from '../../pipelines/features/DownloadPipelineVersion/DownloadPipelineVersion.generated';
 import { PipelineVersionParametersTable_VersionFragmentDoc } from '../../pipelines/features/PipelineVersionParametersTable/PipelineVersionParametersTable.generated';
 import { PipelineVersionConfigDialog_VersionFragmentDoc } from '../features/PipelineVersionConfigDialog/PipelineVersionConfigDialog.generated';
+import { PipelineDagView_VersionFragmentDoc } from '../../pipelines/features/PipelineDagView/PipelineDagView.generated';
 import { PipelineVersionCard_VersionFragmentDoc } from '../../pipelines/features/PipelineVersionCard/PipelineVersionCard.generated';
 import { RunOutputsTable_WorkspaceFragmentDoc, RunOutputsTable_RunFragmentDoc } from '../features/RunOutputsTable/RunOutputsTable.generated';
 import { RunMessages_RunFragmentDoc } from '../../pipelines/features/RunMessages/RunMessages.generated';
@@ -128,7 +129,7 @@ export type WorkspacePipelineDetailPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspacePipelineDetailPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, aiBudgetLimitReached: boolean, name: string, shortName?: string | null, logo?: string | null, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null } | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipeline?: { __typename?: 'Pipeline', id: string, code: string, name?: string | null, description?: string | null, type: Types.PipelineType, functionalType?: Types.PipelineFunctionalType | null, notebookPath?: string | null, schedule?: string | null, createdAt: any, webhookEnabled: boolean, webhookUrl?: string | null, autoUpdateFromTemplate: boolean, hasNewTemplateVersions: boolean, permissions: { __typename?: 'PipelinePermissions', run: boolean, update: boolean, schedule: boolean, delete: boolean, createVersion: boolean, stopPipeline: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<Types.CreateTemplateVersionPermissionReason> } }, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, code: string, name: string, documentation?: string | null } | null, newTemplateVersions: Array<{ __typename?: 'PipelineTemplateVersion', id: string, changelog?: string | null, versionNumber: number, createdAt: any }>, currentVersion?: { __typename?: 'PipelineVersion', id: string, name?: string | null, versionName: string, description?: string | null, config?: any | null, externalLink?: any | null, createdAt: any, isLatestVersion: boolean, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, files: Array<{ __typename?: 'FileNode', id: string, name: string, path: string, type: Types.FileType, content?: string | null, encoding?: Types.FileEncoding | null, parentId?: string | null, autoSelect: boolean, language?: string | null, lineCount?: number | null, size?: number | null, tooLarge?: boolean | null }>, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }>, pipeline: { __typename?: 'Pipeline', id: string, code: string, schedule?: string | null, workspace: { __typename?: 'Workspace', slug: string } } } | null, scheduledPipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, config?: any | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, required: boolean }> } | null, versions: { __typename?: 'PipelineVersionPage', items: Array<{ __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, isLatestVersion: boolean }> }, assistantConversations: Array<{ __typename?: 'AssistantConversation', id: string, name?: string | null, createdAt: any, updatedAt: any }>, workspace: { __typename?: 'Workspace', slug: string } } | null, me: { __typename?: 'Me', assistantMonthlyLimitExceeded: boolean } };
+export type WorkspacePipelineDetailPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, organization: { __typename?: 'Organization', id: string, aiBudgetLimitReached: boolean, name: string, shortName?: string | null, logo?: string | null, aiSettings?: { __typename?: 'AiSettings', enabled?: boolean | null } | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, permissions: { __typename?: 'WorkspacePermissions', manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null, pipeline?: { __typename?: 'Pipeline', id: string, code: string, name?: string | null, description?: string | null, type: Types.PipelineType, functionalType?: Types.PipelineFunctionalType | null, notebookPath?: string | null, schedule?: string | null, createdAt: any, webhookEnabled: boolean, webhookUrl?: string | null, autoUpdateFromTemplate: boolean, hasNewTemplateVersions: boolean, permissions: { __typename?: 'PipelinePermissions', run: boolean, update: boolean, schedule: boolean, delete: boolean, createVersion: boolean, stopPipeline: boolean, createTemplateVersion: { __typename?: 'CreateTemplateVersionPermission', isAllowed: boolean, reasons: Array<Types.CreateTemplateVersionPermissionReason> } }, tags: Array<{ __typename?: 'Tag', id: string, name: string }>, template?: { __typename?: 'PipelineTemplate', id: string, name: string, code: string } | null, sourceTemplate?: { __typename?: 'PipelineTemplate', id: string, code: string, name: string, documentation?: string | null } | null, newTemplateVersions: Array<{ __typename?: 'PipelineTemplateVersion', id: string, changelog?: string | null, versionNumber: number, createdAt: any }>, currentVersion?: { __typename?: 'PipelineVersion', id: string, name?: string | null, versionName: string, description?: string | null, config?: any | null, externalLink?: any | null, createdAt: any, missingScheduleParameters: Array<string>, isLatestVersion: boolean, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string } | null, files: Array<{ __typename?: 'FileNode', id: string, name: string, path: string, type: Types.FileType, content?: string | null, encoding?: Types.FileEncoding | null, parentId?: string | null, autoSelect: boolean, language?: string | null, lineCount?: number | null, size?: number | null, tooLarge?: boolean | null }>, user?: { __typename?: 'User', displayName: string } | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }>, pipeline: { __typename?: 'Pipeline', id: string, code: string, schedule?: string | null, workspace: { __typename?: 'Workspace', slug: string } }, dag: { __typename?: 'PipelineDag', tasks: Array<{ __typename?: 'PipelineDagTask', id: string, name: string }>, edges: Array<{ __typename?: 'PipelineDagEdge', source: string, target: string }>, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, type: Types.ParameterType, required: boolean }> } } | null, scheduledPipelineVersion?: { __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, missingScheduleParameters: Array<string> } | null, versions: { __typename?: 'PipelineVersionPage', items: Array<{ __typename?: 'PipelineVersion', id: string, versionNumber: number, versionName: string, isLatestVersion: boolean, missingScheduleParameters: Array<string> }> }, assistantConversations: Array<{ __typename?: 'AssistantConversation', id: string, name?: string | null, createdAt: any, updatedAt: any }>, workspace: { __typename?: 'Workspace', slug: string } } | null, me: { __typename?: 'Me', assistantMonthlyLimitExceeded: boolean } };
 
 export type WorkspacePipelineHistoryQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -848,16 +849,14 @@ export const WorkspacePipelineDetailPageDocument = gql`
       ...DownloadPipelineVersion_version
       ...PipelineVersionParametersTable_version
       ...PipelineVersionConfigDialog_version
+      ...PipelineDagView_version
+      missingScheduleParameters
     }
     scheduledPipelineVersion {
       id
       versionNumber
       versionName
-      parameters {
-        code
-        required
-      }
-      config
+      missingScheduleParameters
     }
     versions(perPage: 10) {
       items {
@@ -865,6 +864,7 @@ export const WorkspacePipelineDetailPageDocument = gql`
         versionNumber
         versionName
         isLatestVersion
+        missingScheduleParameters
       }
     }
     assistantConversations {
@@ -892,7 +892,8 @@ ${FilesEditor_FileFragmentDoc}
 ${PipelineVersionPicker_VersionFragmentDoc}
 ${DownloadPipelineVersion_VersionFragmentDoc}
 ${PipelineVersionParametersTable_VersionFragmentDoc}
-${PipelineVersionConfigDialog_VersionFragmentDoc}`;
+${PipelineVersionConfigDialog_VersionFragmentDoc}
+${PipelineDagView_VersionFragmentDoc}`;
 
 /**
  * __useWorkspacePipelineDetailPageQuery__

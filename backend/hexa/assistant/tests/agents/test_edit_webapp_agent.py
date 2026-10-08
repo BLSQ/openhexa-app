@@ -6,11 +6,11 @@ from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 from pydantic_ai.models.test import TestModel
 
 from hexa.assistant.agents.edit_webapp_agent import _MAX_INLINE_LINES, EditWebappAgent
-from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.instructions import InstructionSet, get_instructions
 from hexa.assistant.models import Conversation, Message, ToolInvocation
 from hexa.webapps.models import GitWebapp, Webapp
 
-from ._helpers import _make_tool_call_model, make_built_model, run_agent
+from ._helpers import FakeModelBuilder, _make_tool_call_model, run_agent
 from ._testcase import AgentTestCase
 
 
@@ -70,7 +70,7 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
         if webapp is not None:
             conversation.linked_object = webapp
         conversation.save()
-        return EditWebappAgent(conversation, make_built_model(TestModel()))
+        return EditWebappAgent(conversation, FakeModelBuilder(TestModel()))
 
     def _make_pending_invocation(self, conversation, files):
         message = Message.objects.create(
@@ -233,7 +233,7 @@ class EditWebappAgentToolCallTest(AgentTestCase):
         )
         conversation.linked_object = self.webapp
         conversation.save()
-        agent = EditWebappAgent(conversation, make_built_model(model))
+        agent = EditWebappAgent(conversation, FakeModelBuilder(model))
         run_agent(agent, "Update the web app")
         invocation = self.first_tool_invocation(conversation)
         self.assertEqual(invocation.tool_name, "propose_webapp_version")
@@ -276,7 +276,7 @@ class EditWebappAgentProposalPendingTest(AgentTestCase):
             model = _make_capturing_tool_call_model(
                 "propose_webapp_version", tool_args, captured_requests
             )
-        agent = EditWebappAgent(self.conversation, make_built_model(model))
+        agent = EditWebappAgent(self.conversation, FakeModelBuilder(model))
         run_agent(agent, "Update the web app")
 
     def test_successful_proposal_is_marked_pending(self):
@@ -340,3 +340,28 @@ class EditWebappAgentProposalPendingTest(AgentTestCase):
         )
         self.conversation.refresh_from_db()
         self.assertIn("<h1>New</h1>", json.dumps(self.conversation.messages_history))
+
+
+class EditWebappAgentToolsTest(AgentTestCase):
+    def test_exposes_saved_query_and_schema_tools(self):
+        # The webapp proxy only reaches the database through executeSavedQuery, so
+        # the agent must be able to find, inspect and write the saved query it
+        # wires the web app to.
+        names = {tool.__name__ for tool in EditWebappAgent.tools}
+        self.assertLessEqual(
+            {
+                "list_saved_queries",
+                "get_saved_query",
+                "create_saved_query",
+                "update_saved_query",
+                "get_db_schema",
+                "get_db_table_schema",
+            },
+            names,
+        )
+
+    def test_instructions_explain_database_access(self):
+        instructions = get_instructions(InstructionSet.EDIT_WEBAPP)
+        self.assertIn("executeSavedQuery", instructions)
+        self.assertIn("create_saved_query", instructions)
+        self.assertIn("WORKSPACE", instructions)

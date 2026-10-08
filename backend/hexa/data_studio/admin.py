@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from hexa.core.admin import GlobalObjectsModelAdmin
+
 from .models import QueryLog, SavedQuery
 
 
@@ -20,7 +22,7 @@ class QueryLogAdmin(admin.ModelAdmin):
 
 
 @admin.register(SavedQuery)
-class SavedQueryAdmin(admin.ModelAdmin):
+class SavedQueryAdmin(GlobalObjectsModelAdmin):
     list_display = (
         "name",
         "slug",
@@ -33,7 +35,7 @@ class SavedQueryAdmin(admin.ModelAdmin):
     )
     list_filter = ("visibility", "workspace__organization")
     list_select_related = ("workspace__organization", "created_by")
-    readonly_fields = ("slug",)
+    readonly_fields = ("slug", "repository")
     search_fields = (
         "id",
         "name",
@@ -52,6 +54,8 @@ class SavedQueryAdmin(admin.ModelAdmin):
         "created_by",
         "visibility",
         "content",
+        # Read-only: history is recorded by saving a query, never by editing these.
+        "repository",
     )
 
     @admin.display(ordering="workspace__organization")

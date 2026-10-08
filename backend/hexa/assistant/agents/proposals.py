@@ -23,6 +23,20 @@ def resolve_deleted_paths(
     return resolved, unmatched
 
 
+def resolve_commit_message(
+    requested: str | None, pending_output: dict | None
+) -> str | None:
+    """The message the proposal should carry.
+
+    A chained call that does not restate a message keeps the pending one, the same
+    way unchanged files are preserved.
+    """
+    cleaned = (requested or "").strip()
+    if cleaned:
+        return cleaned
+    return (pending_output or {}).get("commit_message")
+
+
 def nothing_to_delete_error(paths: list[str]) -> dict:
     listed = ", ".join(f"'{p}'" for p in paths)
     return {

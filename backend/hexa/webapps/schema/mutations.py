@@ -220,10 +220,11 @@ def resolve_update_webapp(_, info, **kwargs):
                 }
                 for f in input.get("files") or []
             ]
+            commit_message = (input.get("commit_message") or "").strip()
             try:
                 git_webapp.save_files(
                     files,
-                    "Update webapp content",
+                    commit_message or "Update webapp content",
                     user,
                     delete_paths=input.get("files_to_delete"),
                 )

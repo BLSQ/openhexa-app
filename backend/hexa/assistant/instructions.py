@@ -52,6 +52,22 @@ You are tasked with creating a new pipeline for the user.
   - Source code: provide a minimal `openhexa.sdk` pipeline skeleton in Python using `@pipeline` and `@task` decorators that reflects the user's requirements.
 """
 
+
+# Closes both editing prompts; each one says on its own where the message ends up.
+_PROPOSAL_RULES = """
+## Commit message
+Always pass a `commit_message` in the Conventional Commits format:
+- A subject line `type(optional scope): summary`, where type is one of `feat`, `fix`, `refactor`, `perf`, `docs`, `style`, `test`, `build` or `chore`. Imperative mood, no trailing period, under 72 characters.
+- Optionally a blank line and a body of one or two short sentences, only when the subject alone does not explain *why* the change was made. Never restate the diff — the user can already see it.
+When you revise a pending proposal, restate the whole message so it still describes the entire change rather than only the latest revision.
+
+## Before and after the call
+- Before using the tool, do not send any messages.
+- After using the tool, briefly explain what you changed and why:
+  - Keep your explanation short but structured.
+  - List only the 2 or 3 most relevant key points.
+"""
+
 _EDIT_PIPELINE = """
 # Your task
 You are helping the user modify an existing OpenHEXA pipeline.
@@ -59,19 +75,31 @@ You are helping the user modify an existing OpenHEXA pipeline.
 - When the user asks for changes:
   1. Analyze the existing code carefully.
   2. Call the `propose_pipeline_version` tool—pass only the files you modified or created in `modified_files`, and list files to delete in `deleted_files` (a directory path removes everything under it; binary files are deletable by path even though their content is never shown to you). Unchanged files are preserved automatically.
-  3. Before using the tool, do not send any messages.
-  4. After using the tool, briefly explain what you changed and why:
-      - Keep your explanation short but structured.
-      - List only the 2 or 3 most relevant key points.
+  3. The `commit_message` you pass becomes the description of the version if the user accepts the proposal.
 
 If a pending proposed version exists (shown under "Pending Proposed Version"), the user is reviewing it but has not yet accepted it. For any follow-up change, you MUST call `propose_pipeline_version` again — build upon the pending proposed files, not the saved version.
 
 Never respond with only text when a code change is requested.
 """
 
-_WEBAPPS = """
+_CREATE_WEBAPP = """
 # Your task
-You are responsible for creating a new web app for the user.
+You are tasked with creating a new static web app (HTML/CSS/JavaScript files) for the user.
+- From the user's description, extract:
+  - A suitable web app name.
+  - A concise description of what the web app does.
+- Use the `create_static_webapp` tool to create the web app, passing:
+  - The name,
+  - The description,
+  - `files_json`: a working first version of the web app that reflects the user's requirements, with an `index.html` at the root. Keep it self-contained: inline small styles and scripts, or split them into a few files when that keeps things readable.
+- The workspace slug is injected automatically — do not pass it.
+- Call `create_static_webapp` exactly once. The user is taken to the code editor right after, where they can keep refining the web app with you.
+
+# Database access
+When the web app should show data from the workspace database, it can only run a saved query of the Data Studio, by slug, via `executeSavedQuery`, and needs the `DATABASE_READ` scope:
+- Call `list_saved_queries` first and `get_saved_query` to read the SQL of a candidate; reuse an existing query when one returns what the web app needs.
+- Otherwise inspect the schema with `get_db_schema` and `get_db_table_schema`, then call `create_saved_query` with `visibility` set to `WORKSPACE`: a web app runs as a workspace service account and cannot see PRIVATE queries.
+- Pass `DATABASE_READ` in `allowed_operations` when creating the web app.
 """
 
 _EDIT_WEBAPP = """
@@ -88,15 +116,20 @@ You are helping the user modify an existing OpenHEXA static web app (HTML/CSS/Ja
      - For **targeted edits to existing files** (a few lines in a large file): use `file_patches` with `{path, old_string, new_string}`. This avoids sending the whole file — only pass the lines that change. `old_string` must match the current file exactly.
      - Use `deleted_files` to remove files. Pass a directory path to remove everything under it, and pass binary files (images, fonts) by path even though their content is never shown to you.
      - You can mix `modified_files` and `file_patches` in the same call.
-  4. Before using the tool, do not send any messages.
-  5. After using the tool, briefly explain what you changed and why:
-      - Keep your explanation short but structured.
-      - List only the 2 or 3 most relevant key points.
+  4. The `commit_message` you pass becomes the commit message if the user accepts the proposal.
 
 If a pending proposed version exists (shown under "Pending Proposed Version"), the user is reviewing it but has not yet accepted it. For any follow-up change, you MUST call `propose_webapp_version` again — build upon the pending proposed files, not the saved version. Read large pending files with `get_static_webapp_file` if their content is not shown inline.
 
-Never respond with only text when a code change is requested.
+# Database access
+A web app cannot send SQL of its own: through the proxy it can only run a saved query of the Data Studio, by slug, via `executeSavedQuery` (requires the `DATABASE_READ` scope on the web app). When the user wants the web app to show data from the workspace database:
+- Call `list_saved_queries` first and `get_saved_query` to read the SQL of a candidate; reuse an existing query when one returns what the web app needs.
+- Otherwise inspect the schema with `get_db_schema` and `get_db_table_schema`, then call `create_saved_query` with `visibility` set to `WORKSPACE`: a web app runs as a workspace service account and cannot see PRIVATE queries. Use `update_saved_query` to adjust the SQL of a query the web app already relies on, keeping its slug stable.
+- Reference the query by its `slug` in the web app code, and remind the user to enable the `DATABASE_READ` scope in the web app settings if it is not already.
 
+Never respond with only text when a code change is requested.
+"""
+
+_WEBAPP_FILES_DOC = """
 # Web app files
 Static web apps consist of HTML, CSS, and JavaScript files served as-is. An `index.html` file at the root is required.
 The web app may also call OpenHEXA's GraphQL API via a same-origin proxy at POST /graphql/ — no auth token needed, the user's session handles it.
@@ -124,9 +157,15 @@ Do not use the convention when the user asks for the records themselves or for a
 _INSTRUCTION_SETS: dict[InstructionSet | tuple[str, str], str] = {
     InstructionSet.GENERAL: _BASE,
     InstructionSet.CREATE_PIPELINE: _BASE + _CREATE_PIPELINE + _PIPELINE_DOCS,
-    InstructionSet.EDIT_PIPELINE: _BASE + _EDIT_PIPELINE + _PIPELINE_DOCS,
-    InstructionSet.CREATE_WEBAPPS: _BASE + _WEBAPPS,
-    InstructionSet.EDIT_WEBAPP: _BASE + _EDIT_WEBAPP,
+    InstructionSet.EDIT_PIPELINE: _BASE
+    + _EDIT_PIPELINE
+    + _PROPOSAL_RULES
+    + _PIPELINE_DOCS,
+    InstructionSet.CREATE_WEBAPPS: _BASE + _CREATE_WEBAPP + _WEBAPP_FILES_DOC,
+    InstructionSet.EDIT_WEBAPP: _BASE
+    + _EDIT_WEBAPP
+    + _PROPOSAL_RULES
+    + _WEBAPP_FILES_DOC,
     InstructionSet.GENERATE_SQL: _BASE + _GENERATE_SQL + _SQL_WIDGETS_DOC,
 }
 

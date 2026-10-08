@@ -413,6 +413,12 @@ describe("WorkspaceWebappPage", () => {
     );
 
     await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Settings" })).toBeVisible();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+
+    await waitFor(() => {
       expect(screen.getByRole("button", { name: "Delete" })).toBeVisible();
     });
 

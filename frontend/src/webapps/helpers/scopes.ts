@@ -1,5 +1,13 @@
 import { WebappOperationScope } from "graphql/types";
 
+// HEXA-1815: write access is being removed from the web app API. These scopes
+// can no longer be enabled from the UI, but a web app that already has one
+// keeps its toggle so existing apps are not broken.
+export const LEGACY_SCOPES: WebappOperationScope[] = [
+  WebappOperationScope.FilesWrite,
+  WebappOperationScope.DatasetsWrite,
+];
+
 export function getScopeDescriptions(t: (key: string) => string) {
   return {
     [WebappOperationScope.PipelinesRead]: {

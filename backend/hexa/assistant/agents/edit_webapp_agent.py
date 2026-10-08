@@ -5,16 +5,25 @@ from pydantic import BaseModel
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.agents.proposals import (
     nothing_to_delete_error,
+    resolve_commit_message,
     resolve_deleted_paths,
 )
 from hexa.assistant.instructions import InstructionSet
+from hexa.assistant.keys import AgentKey
 from hexa.assistant.models import Conversation, ToolInvocation
 from hexa.git.enums import FileEncoding
 from hexa.mcp.tools.connections import list_connections
+from hexa.mcp.tools.databases import get_db_schema, get_db_table_schema
 from hexa.mcp.tools.datasets import get_dataset, list_datasets, preview_dataset_file
 from hexa.mcp.tools.files import list_files, read_file
 from hexa.mcp.tools.help import get_help_or_doc
 from hexa.mcp.tools.pipelines import get_pipeline, list_pipelines
+from hexa.mcp.tools.saved_queries import (
+    create_saved_query,
+    get_saved_query,
+    list_saved_queries,
+    update_saved_query,
+)
 from hexa.mcp.tools.webapps import get_static_webapp_file
 from hexa.webapps.models import GitWebapp
 
@@ -38,6 +47,7 @@ def propose_webapp_version(
     modified_files: list[ProposedFile] | None = None,
     file_patches: list[FilePatch] | str | None = None,
     deleted_files: list[str] | None = None,
+    commit_message: str | None = None,
     conversation: Conversation | None = None,
 ) -> dict:
     """Propose changes to the web app files.
@@ -56,6 +66,10 @@ def propose_webapp_version(
     inlined here.
     Unchanged files are preserved automatically.
     You can mix modified_files and file_patches in the same call.
+    Pass commit_message to describe the change as a Conventional Commit: a
+    `type(scope): summary` subject line, optionally followed by a blank line and a
+    short body explaining why.
+    It becomes the commit message if the user accepts the proposal.
     """
     if isinstance(file_patches, str):
         try:
@@ -138,14 +152,21 @@ def propose_webapp_version(
         for path in resolved:
             current_files.pop(path, None)
 
-    return {
+    output = {
         "files": [{"path": k, "content": v} for k, v in current_files.items()],
         "deleted_paths": sorted(deleted_paths),
     }
+    message = resolve_commit_message(
+        commit_message, pending.tool_output if pending else None
+    )
+    if message:
+        output["commit_message"] = message
+    return output
 
 
 class EditWebappAgent(BaseAgent):
     instruction_set = InstructionSet.EDIT_WEBAPP
+    agent_key = AgentKey.EDIT_WEBAPP
     history_strip_tools = {"propose_webapp_version"}
     tools = [
         get_help_or_doc,
@@ -158,6 +179,12 @@ class EditWebappAgent(BaseAgent):
         read_file,
         list_pipelines,
         get_pipeline,
+        get_db_schema,
+        get_db_table_schema,
+        list_saved_queries,
+        get_saved_query,
+        create_saved_query,
+        update_saved_query,
         propose_webapp_version,
     ]
 

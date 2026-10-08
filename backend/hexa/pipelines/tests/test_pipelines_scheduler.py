@@ -339,6 +339,44 @@ class ScheduledPipelineVersionTest(TestCase):
         self.PIPELINE.save()
         unschedulable_version.delete()
 
+    def test_scheduler_records_a_skipped_run_when_not_schedulable(self):
+        unschedulable_version = PipelineVersion.objects.create(
+            pipeline=self.PIPELINE,
+            name="unschedulable",
+            parameters=[
+                {
+                    "code": "required_param",
+                    "name": "Required",
+                    "type": "str",
+                    "required": True,
+                }
+            ],
+        )
+        self.PIPELINE.scheduled_pipeline_version = unschedulable_version
+        self.PIPELINE.save()
+
+        with patch(
+            "hexa.pipelines.management.commands.pipelines_scheduler.mail_skipped_run_recipients"
+        ) as mock_mail:
+            self._run_scheduler_once()
+
+        mock_mail.assert_called_once()
+        self.assertIn("required_param", mock_mail.call_args.args[2].message)
+
+        run = (
+            PipelineRun.objects.filter(
+                pipeline=self.PIPELINE,
+                trigger_mode=PipelineRunTrigger.SCHEDULED,
+            )
+            .exclude(run_id="seed__past")
+            .get()
+        )
+        self.assertEqual(run.state, PipelineRunState.SKIPPED)
+        self.assertEqual(run.pipeline_version, unschedulable_version)
+        self.assertEqual(len(run.messages), 1)
+        self.assertEqual(run.messages[0]["priority"], "ERROR")
+        self.assertIn("required_param", run.messages[0]["message"])
+
     def _disabling_version(self, config):
         return PipelineVersion.objects.create(
             pipeline=self.PIPELINE,

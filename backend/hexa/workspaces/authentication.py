@@ -1,5 +1,6 @@
 import abc
 import binascii
+import hashlib
 import time
 from logging import getLogger
 
@@ -15,9 +16,13 @@ logger = getLogger(__name__)
 class WorkspaceToken(abc.ABC):
     """A signed bearer token granting a user access to a single workspace."""
 
+    TYPE: str
+
     def __init__(self, user: User, workspace: Workspace):
         self.user = user
         self.workspace = workspace
+        # The signed string this instance stands for
+        self.raw: str | None = None
 
     @abc.abstractmethod
     def payload(self) -> str | dict:
@@ -29,7 +34,14 @@ class WorkspaceToken(abc.ABC):
         """Rebuild a token from its payload, or ``None`` if it no longer grants access."""
 
     def sign(self) -> str:
-        return Signer().sign_object(self.payload())
+        if self.raw is None:
+            self.raw = Signer().sign_object(self.payload())
+        return self.raw
+
+    @property
+    def fingerprint(self) -> str:
+        """Hash of the signed token, to count and group tokens without storing secrets."""
+        return hashlib.sha256(self.sign().encode()).hexdigest()[:32]
 
     @classmethod
     def issue(
@@ -62,10 +74,16 @@ class WorkspaceToken(abc.ABC):
             token = IdentityToken.from_payload(payload)
         else:
             return None
-        return token if token and token.user.is_active else None
+
+        if token is None or not token.user.is_active:
+            return None
+        token.raw = raw_token
+        return token
 
 
 class MembershipToken(WorkspaceToken):
+    TYPE = "membership"
+
     def __init__(self, membership: WorkspaceMembership):
         self.membership = membership
         super().__init__(membership.user, membership.workspace)

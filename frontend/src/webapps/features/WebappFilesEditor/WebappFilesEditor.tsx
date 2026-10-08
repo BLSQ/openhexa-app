@@ -23,8 +23,10 @@ type WebappFilesEditorProps = {
   proposedFiles?: { path: string; content: string }[];
   proposedDeletedPaths?: string[];
   flush?: boolean;
+  proposedCommitMessage?: string;
   onSaveSuccess?: () => void;
   onBusyChange?: (busy: boolean) => void;
+  saveDisabledReason?: string;
 };
 
 const WebappFilesEditor = ({
@@ -38,8 +40,10 @@ const WebappFilesEditor = ({
   proposedFiles,
   proposedDeletedPaths,
   flush = false,
+  proposedCommitMessage,
   onSaveSuccess,
   onBusyChange,
+  saveDisabledReason,
 }: WebappFilesEditorProps) => {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -136,6 +140,7 @@ const WebappFilesEditor = ({
             id: webappId,
             files: fileInputs,
             filesToDelete: deletedPaths,
+            commitMessage: proposedCommitMessage?.trim() || undefined,
           },
         },
         refetchQueries: ["WebappVersions"],
@@ -250,6 +255,7 @@ const WebappFilesEditor = ({
           headerActions={uploadActions}
           flush={flush}
           onSave={handleSave}
+          saveDisabledReason={saveDisabledReason}
         />
       </div>
     </div>

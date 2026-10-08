@@ -1,60 +1,23 @@
 import { gql } from "@apollo/client";
 import {
-  ChartBarSquareIcon,
+  ChartBarIcon,
   CodeBracketIcon,
+  GlobeAltIcon,
   SparklesIcon,
-  WindowIcon,
 } from "@heroicons/react/24/outline";
-import clsx from "clsx";
+import CreateWithAI, { useAIForm } from "assistant/features/CreateWithAI";
+import { InstructionSet } from "assistant/instructions";
 import Button from "core/components/Button/Button";
 import Dialog from "core/components/Dialog";
-import { WebappType } from "graphql/types";
+import MethodCard from "core/components/MethodCard";
+import Spinner from "core/components/Spinner";
+import { AssistantToolName, WebappType } from "graphql/types";
 import { useTranslation } from "next-i18next";
 import { useRouter } from "next/router";
-import { ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSupersetInstancesQuery } from "webapps/graphql/queries.generated";
+import { getWebappTypeLabel } from "webapps/helpers/webappType";
 import { CreateWebappDialog_WorkspaceFragment } from "./CreateWebappDialog.generated";
-import CreateWebappUsingAI from "./CreateWebappUsingAI/CreateWebappUsingAI";
-
-type Method = "ai" | null;
-
-type MethodCardProps = {
-  icon: ReactNode;
-  title: string;
-  description: string;
-  disabled?: boolean;
-  note?: string;
-  onClick: () => void;
-};
-
-const MethodCard = ({
-  icon,
-  title,
-  description,
-  disabled,
-  note,
-  onClick,
-}: MethodCardProps) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    className={clsx(
-      "flex flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all",
-      disabled
-        ? "cursor-not-allowed opacity-60"
-        : "hover:border-blue-400 hover:bg-blue-50 hover:shadow-md",
-    )}
-  >
-    <div className="mb-4 rounded-lg bg-blue-50 p-2.5">{icon}</div>
-    <span className="font-semibold text-gray-900">{title}</span>
-    <span className="mt-1 text-sm leading-relaxed text-gray-500">
-      {description}
-    </span>
-    {note && (
-      <span className="mt-2 text-xs font-medium text-amber-600">{note}</span>
-    )}
-  </button>
-);
 
 type CreateWebappDialogProps = {
   open: boolean;
@@ -62,117 +25,138 @@ type CreateWebappDialogProps = {
   workspace: CreateWebappDialog_WorkspaceFragment;
 };
 
-const CreateWebappDialog = (props: CreateWebappDialogProps) => {
+const CreateWebappDialog = ({
+  open,
+  onClose,
+  workspace,
+}: CreateWebappDialogProps) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const { open, onClose, workspace } = props;
   const aiEnabled = workspace.organization?.aiSettings?.enabled ?? false;
   const aiBudgetLimitReached =
     workspace.organization?.aiBudgetLimitReached ?? false;
-
-  const [activeMethod, setActiveMethod] = useState<Method>(null);
-  const [prompt, setPrompt] = useState("");
+  const [isAIActive, setIsAIActive] = useState(false);
 
   const { data: supersetData } = useSupersetInstancesQuery({
     variables: { workspaceSlug: workspace.slug },
     skip: !open,
   });
   const hasSupersetInstances =
-    (supersetData?.supersetInstances?.length ?? 0) > 0;
+    (supersetData?.supersetInstances ?? []).length > 0;
+
+  const aiForm = useAIForm({
+    workspaceSlug: workspace.slug,
+    instructionSet: InstructionSet.CREATE_WEBAPPS,
+    createTool: AssistantToolName.CreateStaticWebapp,
+    getRedirectUrl: (toolOutput) => {
+      const slug = (toolOutput as { webapp?: { slug?: string } })?.webapp?.slug;
+      return slug
+        ? `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/${encodeURIComponent(slug)}/code`
+        : null;
+    },
+    notCreatedMessage: t(
+      "The AI could not create the web app. Please try again.",
+    ),
+    failedMessage: t("An error occurred while creating the web app"),
+  });
 
   useEffect(() => {
     if (open) {
-      setActiveMethod(null);
-      setPrompt("");
+      setIsAIActive(false);
+      aiForm.reset();
     }
   }, [open]);
 
-  const goToCreatePage = (type: WebappType) => {
-    router
-      .push(
-        `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/create?type=${type}`,
-      )
-      .then();
-  };
-
-  const TITLES: Record<string, string> = {
-    ai: t("Create with AI"),
-  };
-  const dialogTitle = activeMethod
-    ? TITLES[activeMethod]
-    : t("Create a web app");
+  const goToForm = (type: WebappType) =>
+    router.push({
+      pathname: `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/create`,
+      query: { type },
+    });
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="max-w-3xl">
-      <Dialog.Title onClose={onClose}>{dialogTitle}</Dialog.Title>
+    <Dialog open={open} onClose={onClose} maxWidth="max-w-4xl">
+      <Dialog.Title onClose={onClose}>
+        {isAIActive ? t("Create with AI") : t("Create a web app")}
+      </Dialog.Title>
       <Dialog.Content className="space-y-4">
-        <button
-          onClick={() => setActiveMethod(null)}
-          className={
-            activeMethod === null
-              ? "hidden"
-              : "flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800"
-          }
-        >
-          ← {t("Back")}
-        </button>
-
-        {activeMethod === null && (
-          <div className="grid grid-cols-2 gap-3">
-            <MethodCard
-              icon={<SparklesIcon className="h-5 w-5 text-blue-400" />}
-              title={t("Create with AI")}
-              description={t("Describe what you want, AI writes the code")}
-              disabled={!aiEnabled || aiBudgetLimitReached}
-              note={
-                aiBudgetLimitReached
-                  ? t("Monthly AI budget reached")
-                  : !aiEnabled
-                    ? t("AI is not enabled for this organization")
-                    : undefined
-              }
-              onClick={() => setActiveMethod("ai")}
+        {isAIActive ? (
+          <>
+            <button
+              onClick={() => setIsAIActive(false)}
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800"
+            >
+              ← {t("Back")}
+            </button>
+            <CreateWithAI
+              form={aiForm}
+              labels={{
+                description: t(
+                  "Describe your web app and the AI will generate the code to get you started.",
+                ),
+                placeholder: t(
+                  "e.g. Create a dashboard that shows the monthly number of malaria cases per district from the workspace database",
+                ),
+                generatingStep: t("Generating web app code"),
+                creatingStep: t("Creating web app"),
+                openingStep: t("Opening web app editor"),
+              }}
             />
+          </>
+        ) : (
+          <div className="flex gap-3">
+            {aiEnabled && (
+              <MethodCard
+                icon={<SparklesIcon className="h-5 w-5 text-blue-400" />}
+                title={t("Create with AI")}
+                description={t("Describe what you want, AI writes the code")}
+                onClick={() => setIsAIActive(true)}
+                disabled={aiBudgetLimitReached}
+                footer={
+                  aiBudgetLimitReached && (
+                    <span className="mt-2 text-xs font-medium text-amber-600">
+                      {t("Monthly AI budget reached")}
+                    </span>
+                  )
+                }
+              />
+            )}
             <MethodCard
               icon={<CodeBracketIcon className="h-5 w-5 text-blue-400" />}
-              title={t("From code/files")}
+              title={t("From code")}
               description={t(
-                "Write the code or upload the files of your web app",
+                "Write or upload your own HTML, CSS and JavaScript",
               )}
-              onClick={() => goToCreatePage(WebappType.Static)}
+              onClick={() => goToForm(WebappType.Static)}
             />
+            {hasSupersetInstances && (
+              <MethodCard
+                icon={<ChartBarIcon className="h-5 w-5 text-blue-400" />}
+                title={getWebappTypeLabel(WebappType.Superset)}
+                description={t("Embed a Superset dashboard")}
+                onClick={() => goToForm(WebappType.Superset)}
+              />
+            )}
             <MethodCard
-              icon={<ChartBarSquareIcon className="h-5 w-5 text-blue-400" />}
-              title={t("Superset")}
-              description={t("Embed a dashboard from a Superset instance")}
-              disabled={!hasSupersetInstances}
-              note={
-                hasSupersetInstances
-                  ? undefined
-                  : t("No Superset instance configured")
-              }
-              onClick={() => goToCreatePage(WebappType.Superset)}
-            />
-            <MethodCard
-              icon={<WindowIcon className="h-5 w-5 text-blue-400" />}
-              title={t("iFrame")}
-              description={t("Embed an existing page from its URL")}
-              onClick={() => goToCreatePage(WebappType.Iframe)}
+              icon={<GlobeAltIcon className="h-5 w-5 text-blue-400" />}
+              title={getWebappTypeLabel(WebappType.Iframe)}
+              description={t("Embed an existing website by its URL")}
+              onClick={() => goToForm(WebappType.Iframe)}
             />
           </div>
         )}
-
-        {activeMethod === "ai" && (
-          <CreateWebappUsingAI prompt={prompt} onPromptChange={setPrompt} />
-        )}
       </Dialog.Content>
       <Dialog.Actions>
-        <div className="flex-1" />
         <Button onClick={onClose} variant="outlined">
           {t("Close")}
         </Button>
-        {activeMethod === "ai" && (
-          <Button disabled={!prompt.trim()}>{t("Create")}</Button>
+        {isAIActive && (
+          <Button
+            disabled={aiForm.isSubmitting || !aiForm.prompt.trim()}
+            onClick={aiForm.handleSubmit}
+            leadingIcon={aiForm.isSubmitting ? <Spinner size="xs" /> : null}
+          >
+            {t("Create")}
+          </Button>
         )}
       </Dialog.Actions>
     </Dialog>

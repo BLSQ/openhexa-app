@@ -1,2 +1,2 @@
 export { getWebappTypeLabel } from "./webappType";
-export { getScopeDescriptions, getScopeGroups } from "./scopes";
+export { LEGACY_SCOPES, getScopeDescriptions, getScopeGroups } from "./scopes";

@@ -114,7 +114,12 @@ const SavedQueriesList = ({
                 label={t("Name")}
               >
                 {(item) => (
-                  <span className="font-medium text-gray-800">{item.name}</span>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-gray-800">
+                      {item.name}
+                    </span>
+                    <span className="text-sm text-gray-500">{item.slug}</span>
+                  </div>
                 )}
               </BaseColumn>
               <BaseColumn<SavedQueryListItem_SavedQueryFragment>
