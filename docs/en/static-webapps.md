@@ -36,19 +36,21 @@ Each webapp gets a subdomain under the workspace's webapps domain — e.g. `my-w
 
 ## Public vs private
 
-- **Private** (default): viewers must be authenticated workspace members. The browser session cookie is what authorises requests, so private static webapps can also call OpenHEXA's GraphQL API directly (see below).
+- **Private** (default): viewers must be authenticated workspace members. Private static webapps can also call OpenHEXA's GraphQL API through an endpoint on their own URL (see below).
 - **Public**: anyone with the URL can view the webapp. Public webapps **cannot** call the GraphQL proxy — if you need to expose workspace data publicly, generate a static export from a pipeline and serve it as a file inside the webapp.
 
 ## Calling the OpenHEXA GraphQL API
 
-Private static webapps can call the platform's GraphQL API directly from their JavaScript code to read workspace data and run pipelines. The rest of this page covers that API in detail — public webapps and iframe webapps cannot use this endpoint.
+Private static webapps can call the platform's GraphQL API from their JavaScript code, through an endpoint on their own URL, to read workspace data and run pipelines. The rest of this page covers that API in detail — public webapps and iframe webapps cannot use this endpoint.
 
 ### How it works
 
 - **Endpoint**: `POST /graphql/` on the webapp's own URL (same-origin). For example, a webapp served at `https://my-webapp.webapps.example.com/` calls `https://my-webapp.webapps.example.com/graphql/`.
 - **Authentication**: handled by the webapp session — the user's browser session cookie is attached automatically. Do not send `Authorization` headers; do not embed tokens in your code.
 - **Origin check**: only requests whose `Origin` matches the webapp's own origin are allowed. Cross-site calls are rejected.
-- **Scope-gated**: each webapp declares an `allowed_operations` list. Only GraphQL top-level fields covered by those scopes are allowed; everything else returns a `403`.
+- **Scope-gated**: each webapp declares an `allowed_operations` list. Every field a query selects is checked against those scopes, including nested fields and fields inside fragments. If any field is not covered, the whole request returns a `403` naming the refused fields, for example `Fields not allowed: Workspace.connections`.
+- **Viewer's role, narrowed by scopes**: the webapp acts as the viewing user, but can only use what both the user's workspace role and the webapp's scopes allow. Credentials (database passwords, connection secrets, tokens) are never available to a webapp.
+- **Own endpoint only**: the main OpenHEXA API refuses requests coming from webapp pages. Always call `/graphql/` on the webapp's own URL.
 - **JSON body**: same as any GraphQL POST — `{"query": "...", "variables": {...}}`.
 
 ## Enabling the API on a webapp
@@ -57,14 +59,23 @@ By default a static webapp has an empty `allowed_operations` list, which means i
 
 ## Scope reference
 
-| Scope | What it grants |
+| Scope | Entry points |
 |---|---|
 | `USER_READ` | `me`, `workspace` |
 | `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion` |
 | `PIPELINES_RUN` | `runPipeline`, `stopPipeline` |
 | `FILES_READ` | `getFileByPath`, `readFileContent`, `prepareObjectDownload` |
+| `FILES_WRITE` | `prepareObjectUpload`, `createBucketFolder`, `writeFileContent` |
 | `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
+| `DATASETS_WRITE` | `createDataset`, `updateDataset`, `createDatasetVersion`, `updateDatasetVersion`, `createDatasetVersionFile` |
 | `DATABASE_READ` | `executeSavedQuery` |
+
+Each scope also covers the fields of the objects these entry points return, as shown in the schema of the [examples](#example-webapps) below. Links back up to the workspace, such as `Pipeline.workspace` or `Dataset.workspace` beyond its name and slug, are not covered by any scope.
+
+Some fields need a second scope:
+
+- Listing files through `workspace { bucket { objects } }` needs `USER_READ` and `FILES_READ`.
+- Listing datasets through `workspace { datasets }` needs `USER_READ` and `DATASETS_READ`.
 
 Introspection fields `__typename`, `__schema`, `__type` are always allowed.
 
@@ -80,7 +91,7 @@ Introspection fields `__typename`, `__schema`, `__type` are always allowed.
 
 The fastest way to design queries for a webapp is the interactive GraphQL playground at <https://app.openhexa.org/graphql/> (or `/graphql/` on your own install).
 
-Note that the playground shows the **full** schema, not just what the webapp proxy allows. A query that works there can still return `403` from a webapp at runtime if its top-level field isn't covered by the webapp's [scopes](#scope-reference) — cross-check before pasting into webapp code.
+Note that the playground shows the **full** schema, not just what the webapp proxy allows. A query that works there can still return `403` from a webapp at runtime if any field it selects, at the top level or nested, isn't covered by the webapp's [scopes](#scope-reference). The `403` names the refused fields, so check it before pasting into webapp code.
 
 ## The `window.OPENHEXA` global
 
@@ -657,7 +668,7 @@ type PrepareObjectDownloadResult {
 </html>
 ```
 
-### DATASETS_READ — List datasets
+### USER_READ + DATASETS_READ — List datasets
 
 Lists datasets visible to the workspace and their latest version.
 
