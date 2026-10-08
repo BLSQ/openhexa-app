@@ -56,8 +56,8 @@ interesting choice, drop the section.
 
 ## Running in CI
 
-`.github/workflows/pr_digest.yml` runs this skill on demand: when someone with
-write access comments `/digest` on a pull request, or from the Actions tab.
-Return the digest markdown as the `digest` field of your structured output; the
-workflow posts it and refreshes the same comment on the next run, so do not
-post it yourself with `gh pr comment`. The PR head is already checked out.
+`.github/workflows/pr_digest.yml` runs this skill when the `digest` label is
+added to a pull request. Return the digest markdown as the `digest` field of
+your structured output; the workflow posts it and refreshes the same comment on
+the next run, so do not post it yourself with `gh pr comment`. The PR head is
+already checked out.
