@@ -25,6 +25,7 @@ from hexa.user_management.models import (
     Team,
     User,
 )
+from hexa.workspaces.authentication import WorkspaceToken
 from hexa.workspaces.models import (
     Workspace,
     WorkspaceInvitation,
@@ -1195,6 +1196,26 @@ class TwoFactorTest(GraphQLTestCase):
         cls.USER_WITH_DEVICE_2.emaildevice_set.create(
             name="default", user=cls.USER_WITH_DEVICE_2
         ).save()
+
+    def test_me_with_workspace_token_and_two_factor(self):
+        workspace = create_workspace(name="Token WS")
+        membership = WorkspaceMembership.objects.create(
+            user=self.USER_WITH_DEVICE,
+            workspace=workspace,
+            role=WorkspaceMembershipRole.EDITOR,
+        )
+        token = WorkspaceToken.issue(
+            user=self.USER_WITH_DEVICE, workspace=workspace, membership=membership
+        )
+        r = self.run_query(
+            "query { me { user { email } } }",
+            headers={"HTTP_AUTHORIZATION": f"Bearer {token.sign()}"},
+        )
+
+        self.assertNotIn("errors", r)
+        self.assertEqual(
+            {"email": self.USER_WITH_DEVICE.email}, r["data"]["me"]["user"]
+        )
 
     def test_me_without_two_factor(self):
         self.client.force_login(self.USER_REGULAR)

@@ -39,6 +39,16 @@ def has_configured_two_factor(user):
     return user.is_authenticated and user_has_device(user)
 
 
+def is_two_factor_pending(request):
+    if getattr(request, "bypass_two_factor", False):
+        return False
+    user = request.user
+    if not has_configured_two_factor(user):
+        return False
+    is_verified = getattr(user, "is_verified", None)
+    return is_verified is None or not is_verified()
+
+
 def send_organization_invite(invitation):
     """Send invitation email to organization"""
     title = gettext_lazy(

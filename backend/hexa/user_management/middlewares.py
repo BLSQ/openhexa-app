@@ -13,7 +13,7 @@ from django_otp.middleware import OTPMiddleware
 
 from hexa.app import get_hexa_app_configs
 
-from .utils import has_configured_two_factor
+from .utils import is_two_factor_pending
 
 logger = logging.getLogger(__name__)
 
@@ -87,9 +87,7 @@ def login_required_middleware(
         if not is_protected_routes(request):
             return get_response(request)
 
-        if not request.user.is_authenticated or (
-            has_configured_two_factor(request.user) and not request.user.is_verified()
-        ):
+        if not request.user.is_authenticated or is_two_factor_pending(request):
             if (
                 request.method == "GET"
                 or request.META.get("CONTENT_TYPE") != "application/json"
