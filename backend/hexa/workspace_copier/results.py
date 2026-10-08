@@ -48,6 +48,19 @@ class FilesResult:
 
 
 @dataclass
+class DatabaseResult:
+    """What the database copier did, for the summary. At most one reason is set."""
+
+    copied: bool = False
+
+    skipped: str | None = None
+    """Why the database was deliberately not copied (not on this server, target not empty)."""
+
+    failed: str | None = None
+    """Why the copy was attempted but failed; user must handle manually."""
+
+
+@dataclass
 class ConnectionsResult:
     """What the connections copier did, for the summary."""
 
@@ -131,12 +144,13 @@ class CopyResult:
     """Aggregate of a single workspace copy run.
 
     Copiers attach their per-resource result here and append run-wide warnings
-    (e.g. a skipped database copy or a deselected dependency) via :meth:`warn`.
+    (e.g. a deselected dependency) via :meth:`warn`.
     """
 
     workspace_name: str | None = None
     workspace_slug: str | None = None
     files: FilesResult | None = None
+    database: DatabaseResult | None = None
     connections: ConnectionsResult | None = None
     pipelines: PipelinesResult | None = None
     datasets: DatasetsResult | None = None
@@ -186,6 +200,17 @@ def format_summary(result: CopyResult) -> str:
             lines.extend(
                 f"  * {path}: {reason}" for path, reason in result.files.failed
             )
+
+    if result.database is not None:
+        database = result.database
+        if database.copied:
+            lines.append("Database: copied")
+        elif database.failed:
+            lines.append(
+                f"Database could NOT be copied (handle manually): {database.failed}"
+            )
+        elif database.skipped:
+            lines.append(f"Database skipped: {database.skipped}")
 
     if result.connections is not None:
         conns = result.connections

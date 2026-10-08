@@ -94,21 +94,25 @@ def create_read_and_write_role(db_name: str, pwd: str, cursor=None):
                 ),
             )
         )
-        cur.execute(
-            sql.SQL("GRANT CREATE, CONNECT ON DATABASE {db_name} TO {role};").format(
-                db_name=sql.Identifier(db_name),
-                role=sql.Identifier(db_name),
-            )
+        grant_read_and_write_privileges(db_name, cur)
+
+
+def grant_read_and_write_privileges(db_name: str, cursor):
+    cursor.execute(
+        sql.SQL("GRANT CREATE, CONNECT ON DATABASE {db_name} TO {role};").format(
+            db_name=sql.Identifier(db_name),
+            role=sql.Identifier(db_name),
         )
-        # Starting from PostgreSQL 15+, we need to grant all access to the public schema
-        # to the role when creating a database
-        # No changes are needed for existing databases, the default behavior is kept
-        # More info on https://www.postgresql.org/docs/release/15.0/
-        cur.execute(
-            sql.SQL("GRANT ALL ON SCHEMA public TO {role}").format(
-                role=sql.Identifier(db_name)
-            )
+    )
+    # Starting from PostgreSQL 15+, we need to grant all access to the public schema
+    # to the role when creating a database
+    # No changes are needed for existing databases, the default behavior is kept
+    # More info on https://www.postgresql.org/docs/release/15.0/
+    cursor.execute(
+        sql.SQL("GRANT ALL ON SCHEMA public TO {role}").format(
+            role=sql.Identifier(db_name)
         )
+    )
 
 
 def create_read_only_role(db_name: str, ro_pwd: str, cursor=None):
@@ -122,43 +126,48 @@ def create_read_only_role(db_name: str, ro_pwd: str, cursor=None):
     """
     ro_role = f"{db_name}_ro"
     with get_cursor(db_name, cursor) as cur:
-        # template1.public ACL granted CREATE to PUBLIC (pre-PG15 default, and
-        # potentially retained across pg_upgrade). Without this REVOKE,
-        # the RO role inherits CREATE on the public schema via PUBLIC and can
-        # create tables. Run before any role-specific GRANTs so the RW role's
-        # explicit GRANT ALL is unaffected.
-        # Adding this to ensure the fix on all databases, also ones we don't manage.
-        cur.execute("REVOKE CREATE ON SCHEMA public FROM PUBLIC;")
         cur.execute(
             sql.SQL("CREATE ROLE {role_name} LOGIN PASSWORD {password};").format(
                 role_name=sql.Identifier(ro_role), password=sql.Literal(ro_pwd)
             )
         )
-        cur.execute(
-            sql.SQL("GRANT CONNECT ON DATABASE {db_name} TO {role};").format(
-                db_name=sql.Identifier(db_name),
-                role=sql.Identifier(ro_role),
-            )
+        grant_read_only_privileges(db_name, cur)
+
+
+def grant_read_only_privileges(db_name: str, cursor):
+    ro_role = f"{db_name}_ro"
+    # template1.public ACL granted CREATE to PUBLIC (pre-PG15 default, and
+    # potentially retained across pg_upgrade). Without this REVOKE,
+    # the RO role inherits CREATE on the public schema via PUBLIC and can
+    # create tables. Run before any role-specific GRANTs so the RW role's
+    # explicit GRANT ALL is unaffected.
+    # Adding this to ensure the fix on all databases, also ones we don't manage.
+    cursor.execute("REVOKE CREATE ON SCHEMA public FROM PUBLIC;")
+    cursor.execute(
+        sql.SQL("GRANT CONNECT ON DATABASE {db_name} TO {role};").format(
+            db_name=sql.Identifier(db_name),
+            role=sql.Identifier(ro_role),
         )
-        cur.execute(
-            sql.SQL("GRANT USAGE ON SCHEMA public TO {role}").format(
-                role=sql.Identifier(ro_role)
-            )
+    )
+    cursor.execute(
+        sql.SQL("GRANT USAGE ON SCHEMA public TO {role}").format(
+            role=sql.Identifier(ro_role)
         )
-        cur.execute(
-            sql.SQL("GRANT SELECT ON ALL TABLES IN SCHEMA public TO {role}").format(
-                role=sql.Identifier(ro_role)
-            )
+    )
+    cursor.execute(
+        sql.SQL("GRANT SELECT ON ALL TABLES IN SCHEMA public TO {role}").format(
+            role=sql.Identifier(ro_role)
         )
-        cur.execute(
-            sql.SQL(
-                "ALTER DEFAULT PRIVILEGES FOR ROLE {owner_role} IN SCHEMA public "
-                "GRANT SELECT ON TABLES TO {ro_role}"
-            ).format(
-                owner_role=sql.Identifier(db_name),
-                ro_role=sql.Identifier(ro_role),
-            )
+    )
+    cursor.execute(
+        sql.SQL(
+            "ALTER DEFAULT PRIVILEGES FOR ROLE {owner_role} IN SCHEMA public "
+            "GRANT SELECT ON TABLES TO {ro_role}"
+        ).format(
+            owner_role=sql.Identifier(db_name),
+            ro_role=sql.Identifier(ro_role),
         )
+    )
 
 
 def create_database(db_name: str, pwd: str, ro_pwd: str):
@@ -182,42 +191,7 @@ def create_database(db_name: str, pwd: str, ro_pwd: str):
                     db_name=sql.Identifier(db_name),
                 )
             )
-            cursor.execute(
-                sql.SQL("REVOKE ALL ON DATABASE {db_name} FROM PUBLIC;").format(
-                    db_name=sql.Identifier(db_name),
-                )
-            )
-            # Set limitations to make sure one workspace doesn't starve the DB server:
-            # - Amount of open connections
-            # - idle_in_transaction_session_timeout:
-            #       Ensure that idle sessions do not hold locks for an unreasonable
-            #       amount of time. Set to a low value because idle sessions in transaction
-            #       can cause big performance issues.
-            # - statement_timeout:
-            #       Avoid accumulation of idle sessions over time. Incorrectly terminated
-            #       processes could cause idle connections that accumulate over time,
-            #       eventually hitting the connection limit.
-            #       We've observed this with e.g. PowerBI dashboard refreshes that don't
-            #       properly close connections.
-            cursor.execute(
-                sql.SQL("ALTER DATABASE {db_name} CONNECTION LIMIT 50;").format(
-                    db_name=sql.Identifier(db_name),
-                )
-            )
-            cursor.execute(
-                sql.SQL(
-                    "ALTER DATABASE {db_name} SET idle_in_transaction_session_timeout = '5min';"
-                ).format(
-                    db_name=sql.Identifier(db_name),
-                )
-            )
-            cursor.execute(
-                sql.SQL(
-                    "ALTER DATABASE {db_name} SET statement_timeout = '90min';"
-                ).format(
-                    db_name=sql.Identifier(db_name),
-                )
-            )
+            apply_database_settings(db_name, cursor)
 
     finally:
         if conn:
@@ -235,6 +209,44 @@ def create_database(db_name: str, pwd: str, ro_pwd: str):
     finally:
         if conn:
             conn.close()
+
+
+def apply_database_settings(db_name: str, cursor):
+    """Apply the per-database ACL and limits every workspace database carries."""
+    cursor.execute(
+        sql.SQL("REVOKE ALL ON DATABASE {db_name} FROM PUBLIC;").format(
+            db_name=sql.Identifier(db_name),
+        )
+    )
+    # Set limitations to make sure one workspace doesn't starve the DB server:
+    # - Amount of open connections
+    # - idle_in_transaction_session_timeout:
+    #       Ensure that idle sessions do not hold locks for an unreasonable
+    #       amount of time. Set to a low value because idle sessions in transaction
+    #       can cause big performance issues.
+    # - statement_timeout:
+    #       Avoid accumulation of idle sessions over time. Incorrectly terminated
+    #       processes could cause idle connections that accumulate over time,
+    #       eventually hitting the connection limit.
+    #       We've observed this with e.g. PowerBI dashboard refreshes that don't
+    #       properly close connections.
+    cursor.execute(
+        sql.SQL("ALTER DATABASE {db_name} CONNECTION LIMIT 50;").format(
+            db_name=sql.Identifier(db_name),
+        )
+    )
+    cursor.execute(
+        sql.SQL(
+            "ALTER DATABASE {db_name} SET idle_in_transaction_session_timeout = '5min';"
+        ).format(
+            db_name=sql.Identifier(db_name),
+        )
+    )
+    cursor.execute(
+        sql.SQL("ALTER DATABASE {db_name} SET statement_timeout = '90min';").format(
+            db_name=sql.Identifier(db_name),
+        )
+    )
 
 
 def update_database_password(db_role: str, new_password: str):
@@ -295,3 +307,91 @@ def delete_database(db_name: str):
     finally:
         if conn:
             conn.close()
+
+
+class DatabaseInUse(Exception):
+    def __init__(self, db_name: str, connection_count: int):
+        super().__init__(
+            f"database '{db_name}' has {connection_count} open connection(s)"
+        )
+
+
+class DatabaseNotEmpty(Exception):
+    def __init__(self, db_name: str):
+        super().__init__(f"database '{db_name}' already contains data")
+
+
+def count_open_connections(db_name: str, cursor) -> int:
+    cursor.execute(
+        "SELECT count(*) FROM pg_stat_activity WHERE datname = %s;", [db_name]
+    )
+    return cursor.fetchone()[0]
+
+
+# PostGIS creates these in every workspace database, so they don't count as data.
+TABLES_QUERY = """
+SELECT EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema NOT IN ('pg_catalog', 'information_schema', 'topology')
+      AND table_name NOT IN ('spatial_ref_sys', 'geography_columns', 'geometry_columns')
+);
+"""
+
+
+def database_has_tables(db_name: str) -> bool:
+    with get_cursor(db_name) as cursor:
+        cursor.execute(TABLES_QUERY)
+        return cursor.fetchone()[0]
+
+
+def _ensure_empty(db_name: str):
+    if database_has_tables(db_name):
+        raise DatabaseNotEmpty(db_name)
+
+
+def replace_empty_database_with_copy(source_db: str, target_db: str):
+    staging_db = f"{target_db}_copy"
+    _ensure_empty(target_db)
+    with get_cursor(settings.WORKSPACES_DATABASE_DEFAULT_DB) as cursor:
+        connection_count = count_open_connections(source_db, cursor)
+        if connection_count:
+            raise DatabaseInUse(source_db, connection_count)
+        cursor.execute(
+            sql.SQL("DROP DATABASE IF EXISTS {staging};").format(
+                staging=sql.Identifier(staging_db)
+            )
+        )
+        cursor.execute(
+            sql.SQL("CREATE DATABASE {staging} WITH TEMPLATE {source};").format(
+                staging=sql.Identifier(staging_db), source=sql.Identifier(source_db)
+            )
+        )
+        try:
+            _ensure_empty(target_db)
+            cursor.execute(
+                sql.SQL("DROP DATABASE {target};").format(
+                    target=sql.Identifier(target_db)
+                )
+            )
+        except (DatabaseNotEmpty, psycopg2.Error):
+            cursor.execute(
+                sql.SQL("DROP DATABASE {staging};").format(
+                    staging=sql.Identifier(staging_db)
+                )
+            )
+            raise
+        cursor.execute(
+            sql.SQL("ALTER DATABASE {staging} RENAME TO {target};").format(
+                staging=sql.Identifier(staging_db), target=sql.Identifier(target_db)
+            )
+        )
+        apply_database_settings(target_db, cursor)
+
+    with get_cursor(target_db) as cursor:
+        cursor.execute(
+            sql.SQL("REASSIGN OWNED BY {source} TO {target};").format(
+                source=sql.Identifier(source_db), target=sql.Identifier(target_db)
+            )
+        )
+        grant_read_and_write_privileges(target_db, cursor)
+        grant_read_only_privileges(target_db, cursor)
