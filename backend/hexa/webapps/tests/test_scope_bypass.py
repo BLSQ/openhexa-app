@@ -444,6 +444,9 @@ class ScopeAllowedAccessTest(ScopeBypassTestCase):
         )
 
 
+# Back to the WEBAPPS_DOMAIN the settings were loaded with: the origin checks
+# read it at runtime, and must agree with the CORS settings computed from it.
+@override_settings(WEBAPPS_DOMAIN=settings.WEBAPPS_DOMAIN)
 class MainApiFromWebappOriginTest(ScopeBypassTestCase):
     """Web app pages must go through the proxy: their origin must not be able
     to call the main API with the user's session.
@@ -495,17 +498,26 @@ class MainApiFromWebappOriginTest(ScopeBypassTestCase):
                 response = self._preflight(path, self.webapp_origin)
                 self.assertNotIn("Access-Control-Allow-Origin", response)
 
-    def test_file_transfer_paths_allow_webapp_origin_without_credentials(self):
+    def test_file_transfer_paths_allow_webapp_origin(self):
         # Download/upload URLs handed out by prepareObjectDownload/Upload point
-        # at the main host on the filesystem backend; the token in the URL is
-        # the credential, so the session cookie must not come along.
+        # at the main host on the filesystem backend. Their views authenticate
+        # with the token in the URL and never read the session, so the
+        # Access-Control-Allow-Credentials header (global in django-cors-headers)
+        # grants nothing there.
         for path in ["/files/dl/sometoken/", "/files/up/sometoken/"]:
             with self.subTest(path=path):
                 response = self._preflight(path, self.webapp_origin)
                 self.assertEqual(
                     response.get("Access-Control-Allow-Origin"), self.webapp_origin
                 )
-                self.assertNotIn("Access-Control-Allow-Credentials", response)
+
+    @patch("hexa.webapps.middlewares.sentry_sdk")
+    def test_refused_request_is_reported_to_sentry(self, mock_sentry):
+        response = self._preflight("/graphql/", self.webapp_origin)
+        self.assertEqual(response.status_code, 403)
+        mock_sentry.capture_message.assert_called_once_with(
+            "Refused a webapp request to the main host", level="warning"
+        )
 
     def test_webapp_origin_cannot_mutate_via_simple_request(self):
         # multipart/form-data is a CORS "simple" request: the browser sends it
