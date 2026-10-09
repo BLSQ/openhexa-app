@@ -126,7 +126,7 @@ distro==1.9.0
     #   anthropic
     #   google-genai
     #   openai
-django==5.2.16
+django==5.2.17
     # via
     #   -r requirements.in
     #   ariadne-django
@@ -473,7 +473,7 @@ pygments==2.20.0
     # via
     #   dhis2-py
     #   rich
-pyjwt[crypto]==2.13.0
+pyjwt[crypto]==2.15.0
     # via
     #   django-allauth
     #   msal
@@ -636,7 +636,7 @@ ua-parser==1.0.1
     # via -r requirements.in
 ua-parser-builtins==0.18.0.post1
     # via ua-parser
-urllib3==2.7.0
+urllib3==2.8.0
     # via
     #   botocore
     #   docker

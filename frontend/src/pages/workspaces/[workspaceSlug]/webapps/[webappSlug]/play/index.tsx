@@ -68,6 +68,12 @@ export const getServerSideProps = createGetServerSideProps({
       return { notFound: true };
     }
 
+    if (data.webapp.pointsToOpenhexaWebapp) {
+      return {
+        redirect: { permanent: false, destination: data.webapp.url },
+      };
+    }
+
     return {
       props: {
         isAuthenticated,

@@ -31,12 +31,23 @@ const RunOutputsTable = (props: RunOutputsTableProps) => {
       switch (output.__typename) {
         case "BucketObject":
           return (
-            <DownloadBucketObject
-              variant="outlined"
-              size="sm"
-              workspace={workspace}
-              object={output}
-            />
+            <div className="flex justify-end gap-2">
+              {output.key.toLowerCase().endsWith(".html") && (
+                <DownloadBucketObject
+                  variant="outlined"
+                  size="sm"
+                  workspace={workspace}
+                  object={output}
+                  view
+                />
+              )}
+              <DownloadBucketObject
+                variant="outlined"
+                size="sm"
+                workspace={workspace}
+                object={output}
+              />
+            </div>
           );
         case "DatabaseTable":
           return (

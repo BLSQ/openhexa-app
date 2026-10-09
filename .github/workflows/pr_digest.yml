@@ -1,42 +1,39 @@
 name: pr_digest
-run-name: Digest PR #${{ inputs.pr }}
+run-name: Digest PR #${{ github.event.pull_request.number }}
 
-# Automatic runs on pull_request are disabled while the digest is being
-# reworked; trigger it manually with workflow_dispatch in the meantime.
+# On demand: add the `digest` label to a pull request. The label is removed
+# once the run ends, so adding it again refreshes the digest.
 on:
-  workflow_dispatch:
-    inputs:
-      pr:
-        description: "Pull request number to digest"
-        required: true
-      model:
-        description: "Claude model override (default: the CLAUDE_MODEL repo variable)"
-        required: false
-        default: ""
+  pull_request:
+    types: [labeled]
 
 permissions:
   contents: read
   pull-requests: write
+  issues: write # removing the label
   id-token: write # required for the GCP Workload Identity Federation OIDC exchange
 
 concurrency:
-  group: pr-digest-${{ inputs.pr }}
+  group: pr-digest-${{ github.event.pull_request.number }}
   cancel-in-progress: true
+
+env:
+  PR: ${{ github.event.pull_request.number }}
+  MODEL: ${{ vars.CLAUDE_MODEL || 'claude-opus-4-6' }}
 
 jobs:
   digest:
     name: Digest the pull request
+    if: >-
+      github.event.label.name == 'digest' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Checkout the pull request head
         uses: actions/checkout@v7
         with:
-          ref: refs/pull/${{ inputs.pr }}/head
-
-      - name: Resolve the head SHA
-        id: head
-        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -45,6 +42,7 @@ jobs:
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Run the pr-digest skill
+        id: claude
         uses: anthropics/claude-code-action@v1
         env:
           ANTHROPIC_VERTEX_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
@@ -65,7 +63,7 @@ jobs:
           OTEL_EXPORTER_OTLP_ENDPOINT: https://logfire-eu.pydantic.dev
           OTEL_EXPORTER_OTLP_HEADERS: Authorization=${{ secrets.LOGFIRE_WRITE_TOKEN }}
           OTEL_SERVICE_NAME: pr-digest
-          OTEL_RESOURCE_ATTRIBUTES: gh.run_id=${{ github.run_id }},gh.pr=${{ inputs.pr }},gh.model=${{ inputs.model || vars.CLAUDE_MODEL || 'claude-opus-4-6' }}
+          OTEL_RESOURCE_ATTRIBUTES: gh.run_id=${{ github.run_id }},gh.pr=${{ env.PR }},gh.model=${{ env.MODEL }}
           OTEL_METRIC_EXPORT_INTERVAL: "10000"
           # Prompts and responses carry this repository's source; left redacted.
           # Set these to "1" to see full content in Logfire.
@@ -75,21 +73,46 @@ jobs:
         with:
           use_vertex: "true"
           github_token: ${{ secrets.BLSQBOT_TOKEN }}
-          track_progress: true
-          use_sticky_comment: true
+          # The digest comes back as structured output and is posted by the
+          # next step, which keeps one comment per PR and refreshes it.
           claude_args: >-
-            --model ${{ inputs.model || vars.CLAUDE_MODEL || 'claude-opus-4-6' }}
+            --model ${{ env.MODEL }}
             --allowedTools "Read,Grep,Glob,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(printf:*),Bash(sha256sum:*)"
+            --json-schema '{"type":"object","properties":{"digest":{"type":"string"}},"required":["digest"]}'
           prompt: |
-            Digest pull request #${{ inputs.pr }}
+            Digest pull request #${{ env.PR }}
             so a reviewer can go straight to what matters.
 
             Follow .claude/skills/pr-digest/SKILL.md exactly, including its
-            "Running in CI" section. Your final message becomes the comment.
+            "Running in CI" section. Its Format and Rules are hard limits:
+            only the two sections, at most 150 words, no table.
 
             Context already established — do not spend turns re-verifying it:
             - REPO: ${{ github.repository }}
-            - PR NUMBER: ${{ inputs.pr }}
-            - PR URL, for the diff links: ${{ github.server_url }}/${{ github.repository }}/pull/${{ inputs.pr }}
-            - Head SHA, for the fallback links: ${{ steps.head.outputs.sha }}
+            - PR NUMBER: ${{ env.PR }}
+            - PR URL, for the diff links: ${{ github.server_url }}/${{ github.repository }}/pull/${{ env.PR }}
+            - Head SHA, for the fallback links: ${{ github.event.pull_request.head.sha }}
             - The PR head is checked out in the working directory.
+
+      - name: Post or update the digest comment
+        env:
+          GH_TOKEN: ${{ secrets.BLSQBOT_TOKEN }}
+          STRUCTURED_OUTPUT: ${{ steps.claude.outputs.structured_output }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          marker='<!-- pr-digest -->'
+          digest=$(jq -r '.digest' <<< "$STRUCTURED_OUTPUT")
+          body=$(printf '%s\n%s\n\n<sub>Digest of %s · add the `digest` label to refresh</sub>\n' "$marker" "$digest" "${HEAD_SHA:0:7}")
+          existing=$(gh api --paginate "repos/${{ github.repository }}/issues/$PR/comments" \
+            --jq "map(select(.body | startswith(\"$marker\"))) | last | .id // empty" | tail -n1)
+          if [ -n "$existing" ]; then
+            gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$existing" -f body="$body" >/dev/null
+          else
+            gh api --method POST "repos/${{ github.repository }}/issues/$PR/comments" -f body="$body" >/dev/null
+          fi
+
+      - name: Remove the digest label
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method DELETE "repos/${{ github.repository }}/issues/$PR/labels/digest" >/dev/null || true

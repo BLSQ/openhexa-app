@@ -50,7 +50,7 @@ def read_file(
     return data["readFileContent"]
 
 
-@tool
+@tool(write=True)
 def write_file(user, workspace_slug: str, file_path: str, content: str) -> dict:
     """Write text content to a new file in a workspace bucket. Fails if the file already exists. Maximum 1 MB. For Jupyter notebooks, provide valid .ipynb JSON content. Requires createObject permission on the workspace."""
     data = execute_graphql(

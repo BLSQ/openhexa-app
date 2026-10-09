@@ -2,6 +2,7 @@ import os
 import secrets
 from functools import cached_property
 from typing import TYPE_CHECKING
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
@@ -25,7 +26,7 @@ from hexa.git.naming import build_repo_name
 from hexa.shortcuts.mixins import ShortcutableMixin
 from hexa.superset.models import SupersetDashboard
 from hexa.user_management.models import ServicePrincipal, User, UserInterface
-from hexa.webapps.utils import webapp_host_url
+from hexa.webapps.utils import extract_webapp_subdomain, webapp_host_url
 from hexa.webapps.validators import validate_subdomain
 from hexa.workspaces.models import Workspace
 
@@ -206,9 +207,25 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
 
     @property
     def serve_url(self):
-        if self.type == self.WebappType.IFRAME:
+        # Iframe webapps were moved to the /play page for everyone in
+        # https://github.com/BLSQ/openhexa-app/pull/1782 (HEXA-1639) to fix one
+        # project; they are back on their subdomain, and organizations that
+        # still rely on /play opt in with `iframe_webapps_use_play_page`.
+        if (
+            self.type == self.WebappType.IFRAME
+            and self.workspace.organization.iframe_webapps_use_play_page
+        ):
             return f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.workspace.slug}/webapps/{self.slug}/play"
         return webapp_host_url(self.subdomain)
+
+    @property
+    def points_to_openhexa_webapp(self):
+        if self.type != self.WebappType.IFRAME or not self.url:
+            return False
+        host = (urlparse(self.url).hostname or "").lower()
+        if extract_webapp_subdomain(host):
+            return True
+        return bool(host) and Webapp.objects.filter(custom_domain=host).exists()
 
     def is_favorite(self, user: User):
         return self.favorites.filter(pk=user.pk).exists()
@@ -521,12 +538,8 @@ class WebappUser(User, ServicePrincipal):
         )
 
     @property
-    def workspace(self):
-        return self.webapp.workspace
-
-    @property
-    def workspace_id(self):
-        return self.webapp.workspace_id
+    def workspace_ids(self):
+        return [self.webapp.workspace_id]
 
     def get_username(self):
         return f"webapp_{self.webapp.id}_as_{self.email}"

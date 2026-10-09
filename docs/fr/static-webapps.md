@@ -13,7 +13,10 @@ OpenHEXA supporte trois types de webapps :
 
 ## Créer une webapp statique
 
-Depuis l'interface du workspace : **Web Apps → Créer → Statique**, puis déposez vos fichiers ou partez du modèle `index.html` par défaut.
+Depuis l'interface du workspace, cliquez sur **Web Apps → Créer**, puis choisissez :
+
+- **Créer avec l'IA** : décrivez la webapp et l'assistant en écrit une première version, puis l'ouvre dans l'éditeur de code pour que vous puissiez continuer à l'affiner dans le chat. Proposé uniquement lorsque l'IA est activée pour votre organisation.
+- **À partir du code** : déposez vos fichiers ou partez du modèle `index.html` par défaut.
 
 Par programme : utilisez l'outil MCP `create_static_webapp`, ou la mutation GraphQL `createWebapp` avec une source `static` portant une liste de fichiers `{path, content}`. Un fichier `index.html` à la racine est obligatoire.
 

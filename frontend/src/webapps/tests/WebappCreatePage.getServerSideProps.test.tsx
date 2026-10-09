@@ -20,9 +20,10 @@ jest.mock("next-i18next/serverSideTranslations", () => ({
   serverSideTranslations: jest.fn().mockResolvedValue({}),
 }));
 
-const buildCtx = () =>
+const buildCtx = (query: Record<string, string> = {}) =>
   ({
     params: { workspaceSlug: "test-workspace" },
+    query,
     req: { headers: {} },
     res: {},
     resolvedUrl: "/workspaces/test-workspace/webapps/create",
@@ -39,9 +40,7 @@ const mockWorkspaceQuery = (workspace: any) => {
 describe("WebappCreatePage getServerSideProps", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest
-      .spyOn(WorkspaceLayout, "prefetch")
-      .mockResolvedValue(undefined as any);
+    jest.spyOn(WorkspaceLayout, "prefetch").mockResolvedValue(undefined as any);
     (getMe as jest.Mock).mockResolvedValue({
       user: { id: "user-1" },
       features: [],
@@ -73,6 +72,28 @@ describe("WebappCreatePage getServerSideProps", () => {
 
     expect(result.redirect).toBeUndefined();
     expect(result.props.workspace).toEqual(workspace);
+  });
+
+  it("pre-selects the web app type passed in the query", async () => {
+    mockWorkspaceQuery({
+      slug: "test-workspace",
+      permissions: { update: true },
+    });
+
+    const result: any = await getServerSideProps(buildCtx({ type: "STATIC" }));
+
+    expect(result.props.defaultType).toBe("STATIC");
+  });
+
+  it("ignores an unknown web app type in the query", async () => {
+    mockWorkspaceQuery({
+      slug: "test-workspace",
+      permissions: { update: true },
+    });
+
+    const result: any = await getServerSideProps(buildCtx({ type: "UNKNOWN" }));
+
+    expect(result.props.defaultType).toBeUndefined();
   });
 
   it("returns notFound when the workspace does not exist", async () => {

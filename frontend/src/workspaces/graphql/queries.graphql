@@ -898,6 +898,7 @@ query WorkspaceWebappsPage(
     slug
     name
     ...WorkspaceLayout_workspace
+    ...CreateWebappDialog_workspace
   }
 
   webapps(workspaceSlug: $workspaceSlug, page: $page, perPage: $perPage) {

@@ -167,6 +167,8 @@ def _dispatch_webapp_response(
             )
     elif webapp.type == Webapp.WebappType.SUPERSET:
         response = _serve_superset_webapp(request, webapp)
+    elif webapp.type == Webapp.WebappType.IFRAME and webapp.points_to_openhexa_webapp:
+        response = HttpResponseRedirect(webapp.url)
     else:
         response = _serve_iframe_webapp(
             webapp,

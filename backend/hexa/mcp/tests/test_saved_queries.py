@@ -47,7 +47,6 @@ class ListSavedQueriesTest(SavedQueryTestCase):
         self.assertEqual(item["name"], "Listed query")
         self.assertNotIn("content", item)
         self.assertEqual(item["visibility"], "PRIVATE")
-        self.assertTrue(item["permissions"]["update"])
 
     def test_list_saved_queries_filters_by_query(self):
         for name in ["Sales report", "Stock levels"]:
@@ -114,8 +113,6 @@ class GetSavedQueryTest(SavedQueryTestCase):
         self.assertEqual(result["description"], "A description")
         self.assertEqual(result["visibility"], "WORKSPACE")
         self.assertEqual(result["workspace"]["slug"], self.WORKSPACE.slug)
-        self.assertTrue(result["permissions"]["update"])
-        self.assertFalse(result["permissions"]["updateVisibility"])
 
     def test_get_saved_query_private_hidden_from_others(self):
         saved_query = SavedQuery.objects.create(

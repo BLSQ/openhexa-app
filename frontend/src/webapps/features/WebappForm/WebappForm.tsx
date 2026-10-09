@@ -55,9 +55,14 @@ const buildSource: Record<WebappType, (values: any) => any> = {
 type WebappFormProps = {
   webapp?: WebappForm_WebappFragment;
   workspace: WebappForm_WorkspaceFragment;
+  defaultType?: WebappType;
 };
 
-const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
+const WebappForm = ({
+  workspace,
+  webapp,
+  defaultType = WebappType.Iframe,
+}: WebappFormProps) => {
   const { t } = useTranslation();
   const router = useRouter();
   const [createWebapp] = useCreateWebappMutation();
@@ -65,10 +70,10 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
   const [loading, setLoading] = useState(false);
   const [url, setUrl] = useState(webapp?.url || "");
   const [selectedType, setSelectedType] = useState<WebappType>(
-    webapp?.type ?? WebappType.Iframe,
+    webapp?.type ?? defaultType,
   );
   const [sourceFiles, setSourceFiles] = useState<WebappFileInput[]>(
-    getDefaultSourceFiles(webapp?.type ?? WebappType.Iframe),
+    getDefaultSourceFiles(webapp?.type ?? defaultType),
   );
   const debouncedUrl = useDebounce(url, 500);
 
@@ -245,7 +250,7 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
             accessor="type"
             label={t("Type")}
             required
-            defaultValue={WebappType.Iframe}
+            defaultValue={defaultType}
             options={[
               WebappType.Iframe,
               WebappType.Static,
@@ -262,6 +267,12 @@ const WebappForm = ({ workspace, webapp }: WebappFormProps) => {
           id="url"
           accessor="url"
           label={t("Source URL")}
+          hint={
+            webapp?.pointsToOpenhexaWebapp &&
+            t(
+              "This is an OpenHEXA web app: visitors are redirected to it instead of seeing it embedded.",
+            )
+          }
           visible={selectedType === WebappType.Iframe}
           required={selectedType === WebappType.Iframe}
           onChange={(e) => setUrl(e.target.value)}
@@ -353,6 +364,7 @@ WebappForm.fragment = {
       description
       url
       previewUrl
+      pointsToOpenhexaWebapp
       type
       icon
       isPublic
