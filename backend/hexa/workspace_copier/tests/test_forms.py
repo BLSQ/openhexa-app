@@ -90,7 +90,13 @@ class CopyWorkspaceFormTest(SimpleTestCase):
             [option.name for option in rows["datasets"]["options"]],
             ["all_dataset_versions"],
         )
-        self.assertEqual(rows["connections"]["options"], [])
+        self.assertEqual(
+            [option.name for option in rows["connections"]["options"]],
+            ["include_connection_secrets"],
+        )
+
+    def test_connection_secrets_included_by_default(self):
+        self.assertTrue(CopyWorkspaceForm()["include_connection_secrets"].initial)
 
     def test_mandatory_resource_renders_checked_and_locked(self):
         rows = {

@@ -5,3 +5,6 @@ from dataclasses import dataclass
 class CopyOptions:
     all_dataset_versions: bool = False
     """Copy every version of each dataset instead of only the latest one."""
+
+    include_connection_secrets: bool = True
+    """Copy secret connection field values; when False they are created empty."""
