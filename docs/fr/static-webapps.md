@@ -65,9 +65,7 @@ Par défaut, une webapp statique a une liste `allowed_operations` vide, ce qui s
 | `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion` |
 | `PIPELINES_RUN` | `runPipeline`, `stopPipeline` |
 | `FILES_READ` | `getFileByPath`, `readFileContent`, `prepareObjectDownload` |
-| `FILES_WRITE` | `prepareObjectUpload`, `createBucketFolder`, `writeFileContent` |
 | `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
-| `DATASETS_WRITE` | `createDataset`, `updateDataset`, `createDatasetVersion`, `updateDatasetVersion`, `createDatasetVersionFile` |
 | `DATABASE_READ` | `executeSavedQuery` |
 
 Chaque scope couvre aussi les champs des objets renvoyés par ces points d'entrée, comme le montre le schéma des [exemples](#exemples-de-webapps) ci-dessous. Les liens qui remontent vers le workspace, comme `Pipeline.workspace` ou `Dataset.workspace` au-delà de son nom et de son slug, ne sont couverts par aucun scope.

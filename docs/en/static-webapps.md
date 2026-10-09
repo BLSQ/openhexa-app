@@ -65,9 +65,7 @@ By default a static webapp has an empty `allowed_operations` list, which means i
 | `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion` |
 | `PIPELINES_RUN` | `runPipeline`, `stopPipeline` |
 | `FILES_READ` | `getFileByPath`, `readFileContent`, `prepareObjectDownload` |
-| `FILES_WRITE` | `prepareObjectUpload`, `createBucketFolder`, `writeFileContent` |
 | `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
-| `DATASETS_WRITE` | `createDataset`, `updateDataset`, `createDatasetVersion`, `updateDatasetVersion`, `createDatasetVersionFile` |
 | `DATABASE_READ` | `executeSavedQuery` |
 
 Each scope also covers the fields of the objects these entry points return, as shown in the schema of the [examples](#example-webapps) below. Links back up to the workspace, such as `Pipeline.workspace` or `Dataset.workspace` beyond its name and slug, are not covered by any scope.
@@ -196,6 +194,11 @@ type Workspace {
   createdAt: DateTime!
   updatedAt: DateTime
   createdBy: User!
+  currentMembership: WorkspaceMembership  # null when the viewer has access without being a member (e.g. organization admin)
+}
+
+type WorkspaceMembership {
+  role: WorkspaceMembershipRole!  # ADMIN, EDITOR or VIEWER
 }
 ```
 
