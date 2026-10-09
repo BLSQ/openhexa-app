@@ -87,13 +87,21 @@ def sanitize_sql(text: str) -> str:
     )
 
 
+# sqlparse wraps some openings (VALUES, a parenthesised query) in a group whose
+# own first token holds the keyword, one or two levels down.
+# Added a depth limit just in case.
+_MAX_OPENING_DEPTH = 8
+
+
 def _first_keyword(statement: Statement) -> str | None:
     token = statement.token_first(skip_cm=True)
-    # sqlparse wraps some openings (VALUES, a parenthesised query) in a group
-    # whose own first token holds the keyword.
-    while token is not None and token.is_group:
+    for _ in range(_MAX_OPENING_DEPTH):
+        if token is None or not token.is_group:
+            break
         token = token.token_first(skip_cm=True)
-    return None if token is None else token.normalized.upper()
+    if token is None or token.is_group:
+        return None
+    return token.normalized.upper()
 
 
 def _starts_with_explain(statement: Statement) -> bool:

@@ -114,7 +114,7 @@ class RunSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertEqual([{"id": 2}], plain["rows"])
         self.assertEqual(plain["rows"], paged["rows"])
 
-    def test_total_items(self):
+    def test_total_items_ignores_the_page_size(self):
         result = self._run(
             "SELECT id FROM demo", per_page=2, page=1, include_total_items=True
         )

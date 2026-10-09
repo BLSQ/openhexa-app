@@ -480,14 +480,13 @@ class DatabaseUtilsTest(TestCase):
         self.assertEqual([{"id": 3}], result["rows"])
         self.assertTrue(result["truncated"])
 
-    def test_count_database_rows_counts_the_inner_query(self):
+    def test_count_database_rows_honours_the_query_own_limit(self):
         seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b"), (3, "c")])
 
         count = count_database_rows(
             self.WORKSPACE, PreparedQuery.from_text("SELECT id FROM demo LIMIT 2;")
         )
 
-        # The query's own LIMIT applies; a page size would not.
         self.assertEqual(2, count)
 
     def test_count_database_rows_enforces_statement_timeout(self):
