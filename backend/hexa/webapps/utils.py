@@ -4,8 +4,6 @@ from urllib.parse import urlencode, urlparse
 from django.conf import settings
 
 PREVIEW_KEY_RE = re.compile(r"^[a-z0-9]{32}$")
-# TODO: Once removing Scope.FILES_WRITE, remove up endpoint
-FILE_TRANSFER_PATH_RE = re.compile(r"^/files/(dl|up)/[^/]+/$")
 POWERED_BY_TARGET_URL = "https://www.openhexa.com/"
 
 
@@ -21,20 +19,6 @@ def is_local_dev_origin(origin):
         "127.0.0.1",
         "::1",
     }
-
-
-def is_webapp_origin(origin):
-    """Whether an Origin header value is a webapp subdomain (preview URLs included)."""
-    hostname = urlparse(origin).hostname if origin else None
-    return bool(hostname) and extract_webapp_subdomain(hostname) is not None
-
-
-def is_file_transfer_path(path):
-    """Whether a path is one of the token-authenticated file transfer URLs that the
-    filesystem storage backend hands out (`/files/dl/<token>/`, `/files/up/<token>/`).
-    TODO: Once removing Scope.FILES_WRITE, up endpoint is not allowed to be accessed
-    """
-    return bool(FILE_TRANSFER_PATH_RE.match(path))
 
 
 def is_preview_host(host):

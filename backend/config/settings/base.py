@@ -188,9 +188,11 @@ else:
 if "CORS_ALLOWED_ORIGINS" in os.environ:
     CORS_ALLOWED_ORIGINS += os.environ.get("CORS_ALLOWED_ORIGINS").split(",")
 
-# Web app origins are not included: a web app page talks to OpenHEXA
-# through its GraphQL proxy, enforcing web app's scopes
 CORS_ALLOWED_ORIGIN_REGEXES = []
+if WEBAPPS_DOMAIN:
+    CORS_ALLOWED_ORIGIN_REGEXES.append(
+        rf"^https?://[\w-]+\.{re.escape(WEBAPPS_DOMAIN_HOST)}(:\d+)?$"
+    )
 if "CORS_ALLOWED_ORIGIN_REGEXES" in os.environ:
     CORS_ALLOWED_ORIGIN_REGEXES += os.environ.get("CORS_ALLOWED_ORIGIN_REGEXES").split(
         ","
@@ -355,8 +357,6 @@ MIDDLEWARE = [
     # Note: SSE issues appears resolved in Django 6.0, to check when we upgrade:
     # https://github.com/django/django/commit/bb4fcf5f67e6a39440bb1271450319604a755f2e
     "hexa.core.middlewares.SSEAwareGZipMiddleware",
-    # Before CorsMiddleware, so that preflights from web app pages are refused too.
-    "hexa.webapps.middlewares.webapp_origin_middleware",
     "corsheaders.middleware.CorsMiddleware",
     "hexa.core.middlewares.RequestTooBigMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
