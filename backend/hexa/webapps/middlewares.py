@@ -1,6 +1,7 @@
 import json
 from urllib.parse import urlencode
 
+import sentry_sdk
 from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore
 from django.contrib.sessions.models import Session
@@ -23,6 +24,8 @@ from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp, WebappUser
 from hexa.webapps.utils import (
     PREVIEW_KEY_RE,
     extract_webapp_subdomain,
+    is_file_transfer_path,
+    is_webapp_origin,
     powered_by_url,
     webapp_host_url,
 )
@@ -343,6 +346,41 @@ def _handle_webapp_request(request, webapp, *, request_has_user=True):
     response = _dispatch_webapp_response(request, webapp, show_powered_by)
     _set_csp_frame_ancestors(response)
     return response
+
+
+def webapp_origin_middleware(get_response):
+    """Refuses requests that a webapp page sends to the main host.
+
+    Webapp pages reach OpenHEXA through their same-origin GraphQL proxy, which
+    enforces its scopes. A request from a webapp origin to the main host would
+    instead carry the viewer's session cookie without scope checking:
+    CORS keeps the page from reading the response, but not from sending a write.
+    The token-authenticated file transfer URLs are the exception; we let them go
+    through as they might need access for filesystem-storage backends.
+    """
+
+    def middleware(request: HttpRequest):
+        origin = request.META.get("HTTP_ORIGIN", "")
+        if (
+            not is_webapp_origin(origin)
+            or extract_webapp_subdomain(request.get_host())
+            or is_file_transfer_path(request.path)
+        ):
+            return get_response(request)
+
+        # Reported so that a webapp relying on the main host shows up instead of
+        # just failing in its viewers' browsers.
+        with sentry_sdk.new_scope() as scope:
+            scope.set_tag("webapp_origin", origin)
+            sentry_sdk.capture_message(
+                "Refused a webapp request to the main host", level="warning"
+            )
+        return JsonResponse(
+            {"errors": [{"message": "Webapps must call their own /graphql/ endpoint"}]},
+            status=403,
+        )
+
+    return middleware
 
 
 def webapp_subdomain_middleware(get_response):
