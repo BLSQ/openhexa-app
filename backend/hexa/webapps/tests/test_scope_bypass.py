@@ -506,6 +506,49 @@ class ScopeAllowedAccessTest(ScopeBypassTestCase):
             {"slug": self.WORKSPACE.slug, "name": self.WORKSPACE.name},
         )
 
+    def test_user_read_returns_viewer_role(self):
+        response = self._post_as_webapp(
+            self.user_read_webapp,
+            f'query {{ workspace(slug: "{self.WORKSPACE.slug}") {{ currentMembership {{ role }} }} }}',
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            json.loads(response.content)["data"]["workspace"]["currentMembership"],
+            {"role": "ADMIN"},
+        )
+
+    def test_user_read_role_does_not_open_the_membership(self):
+        response = self._post_as_webapp(
+            self.user_read_webapp,
+            f'query {{ workspace(slug: "{self.WORKSPACE.slug}") '
+            "{ currentMembership { workspace { connections { name } } } } }",
+        )
+        self._assert_refused(response, "WorkspaceMembership.workspace")
+
+    def test_pipeline_permissions_reflect_the_web_app_scopes(self):
+        """The viewer is an admin, but only a web app with PIPELINES_RUN can run."""
+        pipeline = Pipeline.objects.get(code="sentinel")
+        query = f'query {{ pipeline(id: "{pipeline.id}") {{ permissions {{ run }} }} }}'
+        for slug, scopes, can_run in [
+            ("read-only-app", [Webapp.OperationScope.PIPELINES_READ], False),
+            (
+                "read-run-app",
+                [
+                    Webapp.OperationScope.PIPELINES_READ,
+                    Webapp.OperationScope.PIPELINES_RUN,
+                ],
+                True,
+            ),
+        ]:
+            with self.subTest(scopes=scopes):
+                response = self._post_as_webapp(
+                    self._create_webapp(slug, scopes), query
+                )
+                self.assertEqual(
+                    json.loads(response.content)["data"]["pipeline"]["permissions"],
+                    {"run": can_run},
+                )
+
     def test_pipelines_read_returns_pipeline(self):
         webapp = self._create_webapp(
             "pipelines-read-app", [Webapp.OperationScope.PIPELINES_READ]

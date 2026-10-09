@@ -46,6 +46,7 @@ _PIPELINE_RUN = _merge(
             "executionDate",
             "duration",
             "outputs",
+            "triggerMode",
         },
         "GenericOutput": {"name", "type", "uri"},
         # Only the name: `rows` and `sample` would read the database.
@@ -93,7 +94,10 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                     "createdAt",
                     "updatedAt",
                     "createdBy",
+                    "currentMembership",
                 },
+                # Only the viewer's own role, not the membership's other links.
+                "WorkspaceMembership": {"role"},
                 "Country": {"code", "alpha3", "name", "flag"},
                 "Organization": {"id", "name", "shortName"},
             },
@@ -118,6 +122,7 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                     "pipelineVersion",
                 },
                 "PipelinesPage": _PAGE,
+                "PipelineRunPage": _PAGE,
                 "Pipeline": {
                     "id",
                     "code",
@@ -125,8 +130,17 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                     "description",
                     "schedule",
                     "type",
+                    "functionalType",
+                    "createdAt",
+                    "updatedAt",
                     "currentVersion",
+                    "runs",
+                    "permissions",
                 },
+                # Resolved through `has_perm`, so they tell whether the web app itself
+                # (viewer's role and the web app's scopes) may run or stop the pipeline.
+                "PipelinePermissions": {"run", "stopPipeline"},
+                "PipelineRun": {"version"},
                 "PipelineVersion": {
                     "id",
                     "versionNumber",
@@ -222,10 +236,11 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                     "versions",
                     "latestVersion",
                     "links",
+                    "sharedWithOrganization",
                 },
                 "DatasetVersion": {"createdBy", "dataset", "files", "fileByName"},
                 "DatasetVersionFile": {"downloadUrl"},
-                "DatasetLink": {"id", "dataset", "workspace", "createdAt"},
+                "DatasetLink": {"id", "dataset", "workspace", "createdAt", "isPinned"},
                 "Workspace": {"slug", "name", "datasets"},
             },
         ),

@@ -177,6 +177,23 @@ class WebappScopePolicyTest(SimpleTestCase):
             with self.subTest(query=query):
                 self.assertEqual(self._denied(scopes, query), set())
 
+    def test_pipeline_and_dataset_extras_are_allowed(self):
+        scope = Webapp.OperationScope
+        for scopes, query in [
+            (
+                [scope.PIPELINES_READ],
+                'query { pipeline(id: "abc") { createdAt updatedAt functionalType '
+                "permissions { run stopPipeline } "
+                "runs { items { status triggerMode version { versionNumber } } } } }",
+            ),
+            (
+                [scope.DATASETS_READ],
+                'query { dataset(id: "abc") { sharedWithOrganization links { items { isPinned } } } }',
+            ),
+        ]:
+            with self.subTest(query=query):
+                self.assertEqual(self._denied(scopes, query), set())
+
     def test_every_listed_field_exists_in_the_schema(self):
         """A typo would silently take a field away from web apps."""
         for scope, grant in SCOPE_GRANTS.items():
