@@ -349,7 +349,9 @@ def resolve_stop_pipeline(_, info, **kwargs):
     input = kwargs["input"]
 
     try:
-        pipeline_run = PipelineRun.objects.get(id=input.get("run_id"))
+        pipeline_run = PipelineRun.objects.filter_for_user(request.user).get(
+            id=input.get("run_id")
+        )
         if pipeline_run.state in [PipelineRunState.SUCCESS, PipelineRunState.FAILED]:
             return {
                 "success": False,

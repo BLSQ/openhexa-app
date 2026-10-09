@@ -166,7 +166,9 @@ def resolve_pipeline_run(_, info, **kwargs):
 def resolve_pipeline_version(_, info, **kwargs):
     request: HttpRequest = info.context["request"]
     try:
-        version = PipelineVersion.objects.get(id=kwargs["id"])
+        version = PipelineVersion.objects.filter_for_user(request.user).get(
+            id=kwargs["id"]
+        )
         if request.user.has_perm("pipelines.view_pipeline_version", version):
             return version
     except PipelineVersion.DoesNotExist:

@@ -1,7 +1,12 @@
 from corsheaders.signals import check_request_enabled
 
 from hexa.app import CoreAppConfig
-from hexa.webapps.utils import is_local_dev_origin, is_preview_host
+from hexa.webapps.utils import (
+    is_file_transfer_path,
+    is_local_dev_origin,
+    is_preview_host,
+    is_webapp_origin,
+)
 
 
 def _allow_local_dev_cors(sender, request, **kwargs):
@@ -21,6 +26,20 @@ def _allow_local_dev_cors(sender, request, **kwargs):
     )
 
 
+def _allow_webapp_file_transfers(sender, request, **kwargs):
+    """Enable CORS for webapp pages on the file transfer URLs, and only there.
+
+    On filesystem storage backends, the download and upload URLs that a webapp
+    can access via GraphQL (`prepareObjectDownload`, `prepareObjectUpload`, dataset file
+    URLs) point at these endpoints on the main host. They authenticate with the token
+    in the URL, never the session, so letting webapp origins call them grants
+    nothing beyond what the token already allows.
+    """
+    return is_file_transfer_path(request.path) and is_webapp_origin(
+        request.META.get("HTTP_ORIGIN", "")
+    )
+
+
 class WebappsConfig(CoreAppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "hexa.webapps"
@@ -30,3 +49,4 @@ class WebappsConfig(CoreAppConfig):
     def ready(self):
         super().ready()
         check_request_enabled.connect(_allow_local_dev_cors)
+        check_request_enabled.connect(_allow_webapp_file_transfers)
