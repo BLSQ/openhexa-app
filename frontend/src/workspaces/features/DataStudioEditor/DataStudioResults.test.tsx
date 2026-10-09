@@ -33,7 +33,7 @@ const successResult = (overrides: Partial<Result> = {}): Result =>
       { id: 2, name: "Bob" },
     ],
     rowCount: 2,
-    truncated: false,
+    pageInfo: { hasNextPage: false },
     durationMs: 12,
     ...overrides,
   }) as Result;
@@ -192,7 +192,7 @@ describe("DataStudioResults", () => {
     render(
       <DataStudioResults
         loading={false}
-        result={successResult({ truncated: true })}
+        result={successResult({ pageInfo: { hasNextPage: true } })}
       />,
     );
     expect(
