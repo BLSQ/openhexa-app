@@ -15,6 +15,7 @@ import AccountAccessTokens from "identity/features/AccountAccessTokens";
 import AccountProfileSettings from "identity/features/AccountProfileSettings";
 import AccountSecuritySettings from "identity/features/AccountSecuritySettings";
 import PendingWorkspaceInvitations from "identity/features/PendingWorkspaceInvitations";
+import AccountMCPConnections from "mcp/features/AccountMCPConnections";
 
 function AccountPage() {
   const { t } = useTranslation();
@@ -28,7 +29,7 @@ function AccountPage() {
   return (
     <Page title={t("Account")}>
       <BackLayout
-        className="gap-5 flex flex-col"
+        className="gap-5 flex flex-col pb-8"
         title={
           <div className={"flex justify-between items-center gap-3"}>
             {t("Your account")}
@@ -50,6 +51,8 @@ function AccountPage() {
         </DataCard>
 
         <AccountAccessTokens />
+
+        <AccountMCPConnections />
 
         <PendingWorkspaceInvitations
           invitations={data.pendingWorkspaceInvitations}
@@ -73,6 +76,7 @@ export const getServerSideProps = createGetServerSideProps({
       };
     }
     await AccountAccessTokens.prefetch(client);
+    await AccountMCPConnections.prefetch(client);
   },
 });
 

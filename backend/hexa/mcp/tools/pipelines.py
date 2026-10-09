@@ -26,7 +26,7 @@ def get_pipeline(
     runs_page: int = 1,
     runs_per_page: int = 5,
 ) -> dict:
-    """Get full details of a pipeline: metadata, schedule, permissions, current version source code with all files, parameters, and recent runs. Use the returned 'id' field when calling run_pipeline or update_pipeline. Use a run 'id' from the runs list with get_pipeline_run to inspect outputs and logs."""
+    """Get full details of a pipeline: metadata, schedule, current version source code with all files, parameters, and recent runs. Use the returned 'id' field when calling run_pipeline or update_pipeline. Use a run 'id' from the runs list with get_pipeline_run to inspect outputs and logs."""
     data = execute_graphql(
         user,
         "GetPipeline",
@@ -57,7 +57,7 @@ def get_pipeline_run(user, run_id: str) -> dict:
     return run
 
 
-@tool
+@tool(write=True)
 def run_pipeline(user, pipeline_id: str, config: str = "{}") -> dict:
     """Run a pipeline. Requires the pipeline UUID (from get_pipeline's 'id' field) and a JSON config string mapping parameter codes to values. Check the pipeline's parameters with get_pipeline first to see required parameters and their types. Example config: '{"param1": "value1", "param2": 42}'. Returns the created run's ID — use get_pipeline_run to monitor progress and get results."""
     try:
@@ -75,7 +75,7 @@ def run_pipeline(user, pipeline_id: str, config: str = "{}") -> dict:
     return data["runPipeline"]
 
 
-@tool
+@tool(write=True)
 def update_pipeline(
     user,
     pipeline_id: str,
@@ -236,7 +236,7 @@ call get_help_or_doc(topic="writing-pipelines"). For SDK details, use topic="sdk
 """
 
 
-@tool
+@tool(write=True)
 def create_pipeline(
     user,
     workspace_slug: str,
@@ -284,7 +284,7 @@ def create_pipeline(
     return data.get("createPipeline", {})
 
 
-@tool
+@tool(write=True)
 def create_pipeline_version(
     user,
     workspace_slug: str,
@@ -342,3 +342,23 @@ create_pipeline.__doc__ = (
 create_pipeline_version.__doc__ = (
     create_pipeline_version.__doc__ or ""
 ) + _PIPELINE_AUTHORING_CHEAT_SHEET
+
+
+@tool(write=True)
+def create_pipeline_from_template(
+    user, workspace_slug: str, template_version_id: str
+) -> dict:
+    """Create a new pipeline in a workspace from a template version. Use get_pipeline_template first to find the template_version_id (the currentVersion.id). The new pipeline will have the template's code, parameters, and configuration pre-configured."""
+    data = execute_graphql(
+        user,
+        "CreatePipelineFromTemplate",
+        {
+            "input": {
+                "workspaceSlug": workspace_slug,
+                "pipelineTemplateVersionId": template_version_id,
+            }
+        },
+    )
+    if "errors" in data:
+        return data
+    return data["createPipelineFromTemplateVersion"]

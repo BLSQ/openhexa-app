@@ -17,6 +17,7 @@ from hexa.data_studio.schema import data_studio_bindables, data_studio_type_defs
 from hexa.databases.schema import databases_bindables, databases_types_def
 from hexa.datasets.schema import datasets_bindables, datasets_type_defs
 from hexa.files.schema import files_bindables, files_type_def
+from hexa.mcp.schema import mcp_bindables, mcp_type_defs
 from hexa.metadata.schema import metadata_bindables, metadata_type_def
 from hexa.notebooks.schema import notebooks_bindables, notebooks_type_defs
 from hexa.pipeline_templates.schema import (
@@ -109,6 +110,7 @@ schema = make_executable_schema(
         config_type_defs,
         datasets_type_defs,
         assistant_type_defs,
+        mcp_type_defs,
     ],
     [
         uuid_scalar,
@@ -133,6 +135,7 @@ schema = make_executable_schema(
         *datasets_bindables,
         *config_bindables,
         *assistant_bindables,
+        *mcp_bindables,
         snake_case_fallback_resolvers,
     ],
     convert_names_case=True,

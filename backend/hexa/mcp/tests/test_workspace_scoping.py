@@ -1,0 +1,582 @@
+import json
+from datetime import timedelta
+from unittest.mock import MagicMock, patch
+
+from django.core.exceptions import PermissionDenied
+from django.utils import timezone
+from oauth2_provider.models import Application
+
+from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
+from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
+from hexa.mcp.models import MCPConnection, MCPUser
+from hexa.mcp.protocol import get_tools_catalogue
+from hexa.mcp.tests.testutils import all_tool_names
+from hexa.mcp.tools.datasets import (
+    create_dataset,
+    create_dataset_version,
+    preview_dataset_file,
+)
+from hexa.mcp.tools.files import list_files, write_file
+from hexa.mcp.tools.pipelines import (
+    create_pipeline,
+    create_pipeline_from_template,
+    create_pipeline_version,
+    get_pipeline_run,
+    run_pipeline,
+    update_pipeline,
+)
+from hexa.mcp.tools.saved_queries import (
+    create_saved_query,
+    get_saved_query,
+    list_saved_queries,
+    update_saved_query,
+)
+from hexa.mcp.tools.templates import get_pipeline_template, list_pipeline_templates
+from hexa.mcp.tools.webapps import (
+    create_static_webapp,
+    edit_static_webapp_file,
+    update_static_webapp,
+)
+from hexa.mcp.tools.workspaces import update_workspace
+from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
+from hexa.pipelines.models import (
+    Pipeline,
+    PipelineRun,
+    PipelineRunState,
+    PipelineRunTrigger,
+    PipelineVersion,
+)
+from hexa.webapps.models import Webapp
+from hexa.workspaces.tests.testutils import create_workspace
+
+from .testutils import MCPTestCase
+
+
+def _mock_forgejo():
+    client = MagicMock()
+    client.get_commits.return_value = [{"id": "a" * 40}]
+    client.commit_files.return_value = "a" * 40
+    client.get_repository_files.return_value = []
+    client.get_file.return_value = b"<html/>"
+    return patch("hexa.git.mixins.get_forgejo_client", return_value=client)
+
+
+class OpaqueIdScopingTest(MCPTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+        cls.UNGRANTED_WORKSPACE = create_workspace(
+            cls.USER_ADMIN, name="Ungranted Workspace"
+        )
+
+        cls.OTHER_PIPELINE = Pipeline.objects.create(
+            workspace=cls.UNGRANTED_WORKSPACE,
+            name="Other Pipeline",
+            code="other-pipeline",
+        )
+        cls.OTHER_PIPELINE_VERSION = PipelineVersion.objects.create(
+            pipeline=cls.OTHER_PIPELINE,
+            user=cls.USER_ADMIN,
+            zipfile=cls.ZIP_CONTENT,
+            parameters=[],
+        )
+        cls.OTHER_RUN = PipelineRun.objects.create(
+            pipeline=cls.OTHER_PIPELINE,
+            pipeline_version=cls.OTHER_PIPELINE_VERSION,
+            user=cls.USER_ADMIN,
+            run_id="other-run-1",
+            execution_date=timezone.now(),
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            state=PipelineRunState.SUCCESS,
+            duration=timedelta(seconds=1),
+            config={},
+        )
+
+        cls.OTHER_DATASET = Dataset.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            workspace=cls.UNGRANTED_WORKSPACE,
+            name="Other Dataset",
+            description="",
+        )
+        cls.OTHER_DATASET_VERSION = DatasetVersion.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            dataset=cls.OTHER_DATASET,
+            name="v1",
+            changelog="",
+        )
+        cls.OTHER_DATASET_FILE = DatasetVersionFile.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            dataset_version=cls.OTHER_DATASET_VERSION,
+            uri="other-file.csv",
+            content_type="text/csv",
+        )
+
+        cls.OTHER_WEBAPP = Webapp.objects.create(
+            name="Other Webapp",
+            slug="other-webapp",
+            subdomain="other-webapp",
+            workspace=cls.UNGRANTED_WORKSPACE,
+            created_by=cls.USER_ADMIN,
+        )
+
+        cls.OTHER_TEMPLATE = PipelineTemplate.objects.create(
+            name="Other Template",
+            code="other-template",
+            workspace=cls.UNGRANTED_WORKSPACE,
+            source_pipeline=cls.OTHER_PIPELINE,
+        )
+        cls.OTHER_TEMPLATE_VERSION = PipelineTemplateVersion.objects.create(
+            template=cls.OTHER_TEMPLATE,
+            version_number=1,
+            user=cls.USER_ADMIN,
+            source_pipeline_version=cls.OTHER_PIPELINE_VERSION,
+        )
+
+        cls.APPLICATION = Application.objects.create(
+            name="Claude",
+            client_id="scoping-test-client",
+            client_type=Application.CLIENT_PUBLIC,
+            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+        )
+        cls.GRANT = MCPConnection.objects.create(
+            user=cls.USER_ADMIN,
+            application=cls.APPLICATION,
+            tools=all_tool_names(),
+        )
+        cls.GRANT.workspaces.set([cls.WORKSPACE])
+
+    def setUp(self):
+        super().setUp()
+        self.mcp_user = MCPUser.from_user(self.USER_ADMIN, self.GRANT)
+
+    def test_the_person_can_reach_both_workspaces(self):
+        self.assertEqual(
+            "Other Pipeline",
+            get_pipeline_run(user=self.USER_ADMIN, run_id=str(self.OTHER_RUN.id))[
+                "pipeline"
+            ]["name"],
+        )
+
+    def test_a_run_in_an_ungranted_workspace_is_invisible(self):
+        result = get_pipeline_run(user=self.mcp_user, run_id=str(self.OTHER_RUN.id))
+
+        self.assertEqual({"error": "Pipeline run not found"}, result)
+
+    def test_a_run_in_the_granted_workspace_is_visible(self):
+        result = get_pipeline_run(user=self.mcp_user, run_id=str(self.PIPELINE_RUN.id))
+
+        self.assertEqual("Test Pipeline", result["pipeline"]["name"])
+
+    def test_a_pipeline_in_an_ungranted_workspace_cannot_be_run(self):
+        result = run_pipeline(
+            user=self.mcp_user, pipeline_id=str(self.OTHER_PIPELINE.id)
+        )
+
+        self.assertFalse(result["success"])
+        self.assertIn("PIPELINE_NOT_FOUND", result["errors"])
+
+    def test_a_pipeline_in_an_ungranted_workspace_cannot_be_updated(self):
+        result = update_pipeline(
+            user=self.mcp_user,
+            pipeline_id=str(self.OTHER_PIPELINE.id),
+            name="Renamed",
+        )
+
+        self.assertFalse(result["success"])
+        self.OTHER_PIPELINE.refresh_from_db()
+        self.assertEqual("Other Pipeline", self.OTHER_PIPELINE.name)
+
+    def test_a_write_to_an_ungranted_workspace_is_refused_by_slug_too(self):
+        before = Dataset.objects.filter(workspace=self.UNGRANTED_WORKSPACE).count()
+
+        result = create_dataset(
+            user=self.mcp_user,
+            workspace_slug=self.UNGRANTED_WORKSPACE.slug,
+            name="Sneaky",
+            files_json=json.dumps(
+                [{"uri": "a.csv", "contentType": "text/csv", "content": "a,b"}]
+            ),
+        )
+
+        self.assertFalse(result.get("success", False))
+        self.assertEqual(
+            before, Dataset.objects.filter(workspace=self.UNGRANTED_WORKSPACE).count()
+        )
+
+    def test_a_file_write_to_an_ungranted_workspace_is_refused(self):
+        result = write_file(
+            user=self.mcp_user,
+            workspace_slug=self.UNGRANTED_WORKSPACE.slug,
+            file_path="sneaky.txt",
+            content="hello",
+        )
+
+        self.assertFalse(result["success"])
+
+    def test_a_dataset_file_in_an_ungranted_workspace_is_invisible(self):
+        result = preview_dataset_file(
+            user=self.mcp_user, file_id=str(self.OTHER_DATASET_FILE.id)
+        )
+
+        self.assertEqual({"error": "Dataset file not found"}, result)
+
+    def test_a_dataset_file_in_the_granted_workspace_is_visible(self):
+        result = preview_dataset_file(
+            user=self.mcp_user, file_id=str(self.DATASET_FILE.id)
+        )
+
+        self.assertEqual("test-file.csv", result["filename"])
+
+    def test_a_webapp_in_an_ungranted_workspace_cannot_be_updated(self):
+        with _mock_forgejo():
+            result = update_static_webapp(
+                user=self.mcp_user,
+                webapp_id=str(self.OTHER_WEBAPP.id),
+                name="Renamed",
+            )
+
+        self.assertFalse(result["success"])
+        self.OTHER_WEBAPP.refresh_from_db()
+        self.assertEqual("Other Webapp", self.OTHER_WEBAPP.name)
+
+    def test_a_webapp_file_in_an_ungranted_workspace_cannot_be_edited(self):
+        with _mock_forgejo():
+            result = edit_static_webapp_file(
+                user=self.mcp_user,
+                webapp_id=str(self.OTHER_WEBAPP.id),
+                path="index.html",
+                old_string="a",
+                new_string="b",
+            )
+
+        self.assertFalse(result["success"])
+
+    def test_a_template_version_in_an_ungranted_workspace_cannot_be_instantiated(self):
+        result = create_pipeline_from_template(
+            user=self.mcp_user,
+            workspace_slug=self.UNGRANTED_WORKSPACE.slug,
+            template_version_id=str(self.OTHER_TEMPLATE_VERSION.id),
+        )
+
+        self.assertFalse(result["success"])
+        self.assertFalse(
+            Pipeline.objects.filter(workspace=self.UNGRANTED_WORKSPACE)
+            .exclude(pk=self.OTHER_PIPELINE.pk)
+            .exists()
+        )
+
+    def test_templates_from_ungranted_workspaces_are_still_listed(self):
+        result = list_pipeline_templates(user=self.mcp_user)
+        codes = {t["code"] for t in result["pipelineTemplates"]["items"]}
+
+        self.assertIn("other-template", codes)
+
+    def test_a_template_from_an_ungranted_workspace_is_still_readable(self):
+        result = get_pipeline_template(
+            user=self.mcp_user, template_code="other-template"
+        )
+
+        self.assertEqual("Other Template", result["name"])
+
+    def test_a_saved_query_in_an_ungranted_workspace_is_invisible(self):
+        other = SavedQuery.objects.create_if_has_perm(
+            self.USER_ADMIN,
+            self.UNGRANTED_WORKSPACE,
+            name="Other query",
+            content="SELECT 1",
+            visibility=SavedQueryVisibility.WORKSPACE,
+        )
+
+        self.assertEqual(
+            {"error": "Saved query not found"},
+            get_saved_query(user=self.mcp_user, saved_query_slug=other.slug),
+        )
+        self.assertEqual(
+            0,
+            list_saved_queries(
+                user=self.mcp_user, workspace_slug=self.UNGRANTED_WORKSPACE.slug
+            ).get("savedQueries", {"totalItems": 0})["totalItems"],
+        )
+
+        result = update_saved_query(
+            user=self.mcp_user, saved_query_id=str(other.id), name="Renamed"
+        )
+
+        self.assertFalse(result["success"])
+        other.refresh_from_db()
+        self.assertEqual("Other query", other.name)
+
+    def test_a_saved_query_cannot_be_created_in_an_ungranted_workspace(self):
+        result = create_saved_query(
+            user=self.mcp_user,
+            workspace_slug=self.UNGRANTED_WORKSPACE.slug,
+            name="Sneaky",
+            content="SELECT 1",
+        )
+
+        self.assertFalse(result["success"])
+        self.assertFalse(
+            SavedQuery.objects.filter(workspace=self.UNGRANTED_WORKSPACE).exists()
+        )
+
+    def test_a_dataset_shared_into_a_granted_workspace_cannot_be_written(self):
+        self.OTHER_DATASET.link(self.USER_ADMIN, self.WORKSPACE)
+
+        with self.assertRaises(PermissionDenied):
+            DatasetVersion.objects.create_if_has_perm(
+                self.mcp_user, dataset=self.OTHER_DATASET, name="v2", changelog=""
+            )
+        with self.assertRaises(PermissionDenied):
+            DatasetVersionFile.objects.create_if_has_perm(
+                self.mcp_user,
+                dataset_version=self.OTHER_DATASET_VERSION,
+                uri="sneaky.csv",
+                content_type="text/csv",
+            )
+
+    def test_an_organization_shared_dataset_cannot_be_written(self):
+        self.UNGRANTED_WORKSPACE.organization = self.WORKSPACE.organization
+        self.UNGRANTED_WORKSPACE.save()
+        self.OTHER_DATASET.shared_with_organization = True
+        self.OTHER_DATASET.save()
+        self.assertIn(
+            self.OTHER_DATASET, Dataset.objects.filter_for_user(self.mcp_user)
+        )
+
+        with self.assertRaises(PermissionDenied):
+            DatasetVersion.objects.create_if_has_perm(
+                self.mcp_user, dataset=self.OTHER_DATASET, name="v2", changelog=""
+            )
+
+    def test_a_dataset_in_the_granted_workspace_can_be_written(self):
+        version = DatasetVersion.objects.create_if_has_perm(
+            self.mcp_user, dataset=self.DATASET, name="v2", changelog=""
+        )
+        DatasetVersionFile.objects.create_if_has_perm(
+            self.mcp_user,
+            dataset_version=version,
+            uri="granted-file.csv",
+            content_type="text/csv",
+        )
+
+        self.assertEqual(1, version.files.count())
+
+    def test_a_dataset_cannot_be_created_in_an_ungranted_workspace(self):
+        with self.assertRaises(PermissionDenied):
+            Dataset.objects.create_if_has_perm(
+                self.mcp_user,
+                workspace=self.UNGRANTED_WORKSPACE,
+                name="Sneaky",
+                description="",
+            )
+
+
+class GrantIsACeilingTest(MCPTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.APPLICATION = Application.objects.create(
+            name="Claude",
+            client_id="ceiling-test-client",
+            client_type=Application.CLIENT_PUBLIC,
+            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+        )
+        cls.GRANT = MCPConnection.objects.create(
+            user=cls.USER_VIEWER,
+            application=cls.APPLICATION,
+            tools=all_tool_names(),
+        )
+        cls.GRANT.workspaces.set([cls.WORKSPACE])
+        with _mock_forgejo():
+            cls.WEBAPP_ID = create_static_webapp(
+                user=cls.USER_ADMIN,
+                workspace_slug=cls.WORKSPACE.slug,
+                name="Viewed app",
+                files_json=json.dumps([{"path": "index.html", "content": "<html/>"}]),
+            )["webapp"]["id"]
+        cls.SHARED_QUERY = SavedQuery.objects.create_if_has_perm(
+            cls.USER_ADMIN,
+            cls.WORKSPACE,
+            name="Shared",
+            content="SELECT 1",
+            visibility=SavedQueryVisibility.WORKSPACE,
+        )
+
+    def setUp(self):
+        super().setUp()
+        self.viewer = MCPUser.from_user(self.USER_VIEWER, self.GRANT)
+
+    ALLOWED_TO_VIEWERS = {"run_pipeline", "create_saved_query"}
+
+    def write_attempts(self, user):
+        files = json.dumps([{"path": "pipeline.py", "content": "print(1)"}])
+        webapp_files = json.dumps([{"path": "index.html", "content": "<html/>"}])
+        dataset_files = json.dumps(
+            [{"uri": "a.csv", "contentType": "text/csv", "content": "a,b"}]
+        )
+        return {
+            "write_file": lambda: write_file(
+                user=user,
+                workspace_slug=self.WORKSPACE.slug,
+                file_path="sneaky.txt",
+                content="hello",
+            ),
+            "update_workspace": lambda: update_workspace(
+                user=user, slug=self.WORKSPACE.slug, name="Renamed"
+            ),
+            "create_dataset": lambda: create_dataset(
+                user=user,
+                workspace_slug=self.WORKSPACE.slug,
+                name="Sneaky",
+                files_json=dataset_files,
+            ),
+            "create_dataset_version": lambda: create_dataset_version(
+                user=user, dataset_id=str(self.DATASET.id), name="v2"
+            ),
+            "update_pipeline": lambda: update_pipeline(
+                user=user, pipeline_id=str(self.PIPELINE.id), name="Renamed"
+            ),
+            "create_pipeline": lambda: create_pipeline(
+                user=user,
+                workspace_slug=self.WORKSPACE.slug,
+                name="Sneaky",
+                files_json=files,
+            ),
+            "create_pipeline_version": lambda: create_pipeline_version(
+                user=user,
+                workspace_slug=self.WORKSPACE.slug,
+                pipeline_code=self.PIPELINE.code,
+                files_json=files,
+            ),
+            "create_pipeline_from_template": lambda: create_pipeline_from_template(
+                user=user,
+                workspace_slug=self.WORKSPACE.slug,
+                template_version_id=str(self.TEMPLATE_VERSION.id),
+            ),
+            "create_static_webapp": lambda: create_static_webapp(
+                user=user,
+                workspace_slug=self.WORKSPACE.slug,
+                name="Sneaky",
+                files_json=webapp_files,
+            ),
+            "update_static_webapp": lambda: update_static_webapp(
+                user=user, webapp_id=str(self.WEBAPP_ID), name="Renamed"
+            ),
+            "edit_static_webapp_file": lambda: edit_static_webapp_file(
+                user=user,
+                webapp_id=str(self.WEBAPP_ID),
+                path="index.html",
+                old_string="<html/>",
+                new_string="<html>sneaky</html>",
+            ),
+            "update_saved_query": lambda: update_saved_query(
+                user=user,
+                saved_query_id=str(self.SHARED_QUERY.id),
+                name="Renamed",
+            ),
+        }
+
+    def test_every_write_tool_has_a_viewer_case(self):
+        write_tools = {tool["name"] for tool in get_tools_catalogue() if tool["write"]}
+
+        self.assertEqual(
+            write_tools,
+            set(self.write_attempts(self.viewer)) | self.ALLOWED_TO_VIEWERS,
+        )
+
+    def test_granted_write_tools_do_not_lift_a_viewer(self):
+        for name, attempt in self.write_attempts(self.viewer).items():
+            with self.subTest(tool=name), _mock_forgejo():
+                result = attempt()
+                self.assertFalse(result.get("success", False), result)
+
+    def test_the_same_writes_succeed_for_an_admin(self):
+        admin = MCPUser.from_user(
+            self.USER_ADMIN,
+            MCPConnection.objects.create(
+                user=self.USER_ADMIN,
+                application=self.APPLICATION,
+                tools=all_tool_names(),
+            ),
+        )
+        admin.connection.workspaces.set([self.WORKSPACE])
+        for name, attempt in self.write_attempts(admin).items():
+            with self.subTest(tool=name), _mock_forgejo():
+                result = attempt()
+                self.assertTrue(result.get("success", False), result)
+
+    def test_the_viewer_can_still_read(self):
+        result = list_files(user=self.viewer, workspace_slug=self.WORKSPACE.slug)
+
+        self.assertIn("items", result)
+
+    def test_granting_write_file_does_not_let_a_viewer_write(self):
+        result = write_file(
+            user=self.viewer,
+            workspace_slug=self.WORKSPACE.slug,
+            file_path="sneaky.txt",
+            content="hello",
+        )
+
+        self.assertFalse(result["success"])
+
+    def test_granting_update_workspace_does_not_let_a_viewer_rename_it(self):
+        result = update_workspace(
+            user=self.viewer, slug=self.WORKSPACE.slug, name="Renamed"
+        )
+
+        self.assertFalse(result.get("success", False))
+        self.WORKSPACE.refresh_from_db()
+        self.assertEqual("Test Workspace", self.WORKSPACE.name)
+
+    def test_granting_create_dataset_does_not_let_a_viewer_create_one(self):
+        before = Dataset.objects.filter(workspace=self.WORKSPACE).count()
+
+        result = create_dataset(
+            user=self.viewer,
+            workspace_slug=self.WORKSPACE.slug,
+            name="Sneaky Dataset",
+            files_json=json.dumps(
+                [{"uri": "a.csv", "contentType": "text/csv", "content": "a,b"}]
+            ),
+        )
+
+        self.assertFalse(result.get("success", False))
+        self.assertEqual(
+            before, Dataset.objects.filter(workspace=self.WORKSPACE).count()
+        )
+
+    def test_granting_dataset_tools_does_not_let_a_viewer_add_versions_or_files(self):
+        with self.assertRaises(PermissionDenied):
+            DatasetVersion.objects.create_if_has_perm(
+                self.viewer, dataset=self.DATASET, name="v2", changelog=""
+            )
+        with self.assertRaises(PermissionDenied):
+            DatasetVersionFile.objects.create_if_has_perm(
+                self.viewer,
+                dataset_version=self.DATASET_VERSION,
+                uri="sneaky.csv",
+                content_type="text/csv",
+            )
+
+    def test_the_grant_does_not_change_what_the_role_already_allows(self):
+        result = run_pipeline(user=self.viewer, pipeline_id=str(self.PIPELINE.id))
+
+        self.assertTrue(result["success"], result.get("errors"))
+
+    def test_the_viewer_keeps_seeing_their_private_queries(self):
+        created = create_saved_query(
+            user=self.viewer,
+            workspace_slug=self.WORKSPACE.slug,
+            name="Mine",
+            content="SELECT 1",
+        )
+        self.assertTrue(created["success"], created["errors"])
+        self.assertEqual("PRIVATE", created["savedQuery"]["visibility"])
+
+        result = get_saved_query(
+            user=self.viewer, saved_query_slug=created["savedQuery"]["slug"]
+        )
+
+        self.assertEqual("Mine", result["name"])
