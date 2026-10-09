@@ -130,19 +130,22 @@ def _execute_and_log(
     *,
     saved_query=None,
     max_rows: int | None = None,
-    count: PreparedQuery | None = None,
+    statement_to_count: PreparedQuery | None = None,
 ) -> tuple[dict, int | None]:
     """Run ``statement`` and record the outcome, re-raising errors for the caller.
 
-    ``count`` is run first when given: a failing count then reaches the log as
-    the one ERROR entry of the request, rather than following a SUCCESS entry.
+    ``statement_to_count`` is counted first when given: a failing count then
+    reaches the log as the one ERROR entry of the request, rather than following
+    a SUCCESS entry.
     ``query`` is the text logged, raw, for every outcome.
     """
     max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
     started_at = time.perf_counter()
     try:
         total_items = (
-            count_database_rows(workspace, count) if count is not None else None
+            count_database_rows(workspace, statement_to_count)
+            if statement_to_count is not None
+            else None
         )
         result = execute_database_query(workspace, statement, **max_rows_kwarg)
     except psycopg2.Error as e:
@@ -307,7 +310,7 @@ def run_saved_query(
         _wrap(prepared, page_request),
         saved_query=saved_query,
         max_rows=per_page,
-        count=prepared if wants_total else None,
+        statement_to_count=prepared if wants_total else None,
     )
     _restore_order(result, page_request)
     result["page_info"] = build_page_info(
