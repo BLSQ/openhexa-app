@@ -31,6 +31,8 @@ MEMBER_SENTINEL = "scope-bypass-member@test.com"
 INVITEE_SENTINEL = "scope-bypass-invitee@test.com"
 CONNECTION_NAME_SENTINEL = "SCOPE-BYPASS-CONNECTION-NAME-SENTINEL"
 DATASET_SENTINEL = "SCOPE-BYPASS-DATASET-SENTINEL"
+PRIVATE_DATASET_SENTINEL = "SCOPE-BYPASS-PRIVATE-DATASET-SENTINEL"
+PARTNER_WORKSPACE_SENTINEL = "SCOPE-BYPASS-PARTNER-WORKSPACE-SENTINEL"
 
 
 class WebappProxyClientMixin:
@@ -419,8 +421,77 @@ class NestedFieldBypassTest(ScopeBypassTestCase):
             }}
             """,
         )
-        self._assert_refused(response, "Workspace.connections")
+        self._assert_refused(response, "Dataset.workspace")
         self.assertNotIn(SECRET_SENTINEL, response.content.decode())
+
+
+class SharedDatasetBypassTest(ScopeBypassTestCase):
+    """A dataset shared into the web app's workspace must not lead to the
+    workspaces it comes from or is shared with.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        source_workspace = create_workspace(
+            name="Source WS", slug="source-ws", db_name="source_ws"
+        )
+        partner_workspace = create_workspace(
+            name=PARTNER_WORKSPACE_SENTINEL, slug="partner-ws", db_name="partner_ws"
+        )
+        cls.SHARED_DATASET = Dataset.objects.create(
+            workspace=source_workspace,
+            created_by=cls.USER,
+            name="Shared dataset",
+            slug="shared-dataset",
+        )
+        for workspace in (source_workspace, cls.WORKSPACE, partner_workspace):
+            DatasetLink.objects.create(
+                dataset=cls.SHARED_DATASET, workspace=workspace, created_by=cls.USER
+            )
+        private_dataset = Dataset.objects.create(
+            workspace=source_workspace,
+            created_by=cls.USER,
+            name=PRIVATE_DATASET_SENTINEL,
+            slug="private-dataset",
+        )
+        DatasetLink.objects.create(
+            dataset=private_dataset, workspace=source_workspace, created_by=cls.USER
+        )
+
+    def setUp(self):
+        super().setUp()
+        self.datasets_read_webapp = self._create_webapp(
+            "datasets-read-app", [Webapp.OperationScope.DATASETS_READ]
+        )
+
+    def test_shared_dataset_cannot_list_source_workspace_datasets(self):
+        response = self._post_as_webapp(
+            self.datasets_read_webapp,
+            f"""
+            query {{
+                dataset(id: "{self.SHARED_DATASET.id}") {{
+                    workspace {{ datasets {{ items {{ dataset {{ name }} }} }} }}
+                }}
+            }}
+            """,
+        )
+        self._assert_refused(response, "Dataset.workspace")
+        self.assertNotIn(PRIVATE_DATASET_SENTINEL, response.content.decode())
+
+    def test_shared_dataset_links_cannot_reveal_other_workspaces(self):
+        response = self._post_as_webapp(
+            self.datasets_read_webapp,
+            f"""
+            query {{
+                dataset(id: "{self.SHARED_DATASET.id}") {{
+                    links {{ items {{ workspace {{ name }} }} }}
+                }}
+            }}
+            """,
+        )
+        self._assert_refused(response, "DatasetLink.workspace")
+        self.assertNotIn(PARTNER_WORKSPACE_SENTINEL, response.content.decode())
 
 
 class MutationResultBypassTest(ScopeBypassTestCase):

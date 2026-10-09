@@ -68,7 +68,7 @@ By default a static webapp has an empty `allowed_operations` list, which means i
 | `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
 | `DATABASE_READ` | `executeSavedQuery` |
 
-Each scope also covers the fields of the objects these entry points return, as shown in the schema of the [examples](#example-webapps) below. Links back up to the workspace, such as `Pipeline.workspace` or `Dataset.workspace` beyond its name and slug, are not covered by any scope.
+Each scope also covers the fields of the objects these entry points return, as shown in the schema of the [examples](#example-webapps) below. Links back up to a workspace, such as `Pipeline.workspace`, `Dataset.workspace` or `DatasetLink.workspace`, are not covered by any scope.
 
 Some fields need a second scope:
 
@@ -701,7 +701,6 @@ type Dataset {
   createdAt: DateTime!
   updatedAt: DateTime!
   createdBy: User
-  workspace: Workspace
   versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
   latestVersion: DatasetVersion
   links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!

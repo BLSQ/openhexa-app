@@ -228,11 +228,11 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                 "DatasetVersionPage": _PAGE,
                 "DatasetVersionFilePage": _PAGE,
                 "DatasetLinkPage": _PAGE,
-                # `workspace` names the workspace a shared dataset comes from; only
-                # its identity is readable through this scope.
+                # No `Dataset.workspace` or `DatasetLink.workspace`: for a shared
+                # dataset they lead to another workspace, whose `datasets` would list
+                # everything linked there.
                 "Dataset": {
                     "createdBy",
-                    "workspace",
                     "versions",
                     "latestVersion",
                     "links",
@@ -240,7 +240,8 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                 },
                 "DatasetVersion": {"createdBy", "dataset", "files", "fileByName"},
                 "DatasetVersionFile": {"downloadUrl"},
-                "DatasetLink": {"id", "dataset", "workspace", "createdAt", "isPinned"},
+                "DatasetLink": {"id", "dataset", "createdAt", "isPinned"},
+                # Only reachable through `Query.workspace`, i.e. with USER_READ too.
                 "Workspace": {"slug", "name", "datasets"},
             },
         ),

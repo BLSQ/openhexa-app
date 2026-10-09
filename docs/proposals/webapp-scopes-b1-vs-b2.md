@@ -208,8 +208,12 @@ documented-example test stay valid in both options.
 ## Known limitation (both options)
 
 The check looks at the parent type, not the full path. An allowed field is
-therefore allowed wherever its type appears. Example: with USER_READ +
-DATASETS_READ, `Dataset.workspace` leads to a `Workspace`, and USER_READ's
-`Workspace` fields (`createdBy`, `organization`) apply there too, even when it
-is another workspace (a shared dataset). Checking full paths would avoid this,
-but recursive types make the allowlist far larger, so it's left out for now.
+therefore allowed wherever its type appears. This is why no scope grants an
+edge that leads to a *different* workspace: `Pipeline.workspace`,
+`Dataset.workspace` and `DatasetLink.workspace` are all refused. With
+`Dataset.workspace` allowed, a shared dataset led to its source workspace, and
+`Workspace.datasets` there listed every dataset linked into it (that resolver
+doesn't check the user, so the same leak exists in the main API and is fixed
+separately). As long as `Workspace` is only reachable through `Query.workspace`,
+which the row filter limits to the web app's own workspace, path checking isn't
+needed.
