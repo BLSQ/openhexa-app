@@ -649,6 +649,7 @@
   "No saved queries yet.": "Aucune requête sauvegardée pour le moment.",
   "No tables": "Aucune table",
   "No tags": "Aucune balise",
+  "No task graph to display: this pipeline version has no functions decorated with @task.": "Aucun graphe de tâches à afficher : cette version du pipeline n'a aucune fonction décorée avec @task.",
   "No template to show": "Aucun modèle à afficher",
   "No tools registered.": "Aucun outil enregistré.",
   "No type": "Aucun type",
