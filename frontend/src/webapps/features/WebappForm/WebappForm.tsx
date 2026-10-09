@@ -267,6 +267,12 @@ const WebappForm = ({
           id="url"
           accessor="url"
           label={t("Source URL")}
+          hint={
+            webapp?.pointsToOpenhexaWebapp &&
+            t(
+              "This is an OpenHEXA web app: visitors are redirected to it instead of seeing it embedded.",
+            )
+          }
           visible={selectedType === WebappType.Iframe}
           required={selectedType === WebappType.Iframe}
           onChange={(e) => setUrl(e.target.value)}
@@ -358,6 +364,7 @@ WebappForm.fragment = {
       description
       url
       previewUrl
+      pointsToOpenhexaWebapp
       type
       icon
       isPublic

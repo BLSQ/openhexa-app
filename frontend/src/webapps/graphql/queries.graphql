@@ -10,6 +10,7 @@ fragment WebappPlay_webapp on Webapp {
   slug
   url
   serveUrl
+  pointsToOpenhexaWebapp
   name
   type
   showPoweredBy
