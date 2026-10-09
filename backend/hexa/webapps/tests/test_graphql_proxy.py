@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from django.contrib.sessions.backends.db import SessionStore
 from django.test import TestCase, override_settings
+from django_otp.plugins.otp_email.models import EmailDevice
 
 from hexa.core.test import GraphQLTestCase
 from hexa.data_studio.models import QueryLog, SavedQuery, SavedQueryVisibility
@@ -150,6 +151,23 @@ class GraphQLProxyMiddlewareTest(TestCase):
         data = json.loads(response.content)
         self.assertEqual(data["data"]["pipeline"]["id"], str(pipeline.id))
         self.assertEqual(data["data"]["pipeline"]["name"], "Test Pipeline")
+
+    def test_user_with_two_factor_can_query(self):
+        EmailDevice.objects.create(user=self.USER, name="default", confirmed=True)
+        pipeline = Pipeline.objects.create(
+            workspace=self.WORKSPACE, name="2FA Pipeline", code="2fa-pipeline"
+        )
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        response = self._graphql_post(
+            "private-app",
+            f'query {{ pipeline(id: "{pipeline.id}") {{ id }} me {{ user {{ email }} }} }}',
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertNotIn("errors", data)
+        self.assertEqual(data["data"]["pipeline"]["id"], str(pipeline.id))
+        self.assertEqual(data["data"]["me"]["user"]["email"], self.USER.email)
 
     def _create_scoped_webapp(self, slug, scopes):
         return Webapp.objects.create(
