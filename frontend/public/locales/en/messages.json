@@ -635,6 +635,7 @@
   "No saved queries yet.": "No saved queries yet.",
   "No tables": "No tables",
   "No tags": "No tags",
+  "No task graph to display: this pipeline version has no functions decorated with @task.": "No task graph to display: this pipeline version has no functions decorated with @task.",
   "No template to show": "No template to show",
   "No tools registered.": "No tools registered.",
   "No type": "No type",
