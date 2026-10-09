@@ -2,7 +2,7 @@
 
 Copy an OpenHEXA workspace (and its resources) from one server to another, or between two workspaces on the same server.
 
-Right now, this is a Django app **without models**. In the future, some models will be introduced to support moving the execution of this script to an async job.
+From the Django admin, a copy runs as an **async job** on a dedicated worker (see [Async execution](#async-execution)). The CLI still runs it synchronously.
 
 ## How it works
 
@@ -113,9 +113,31 @@ When `--target-workspace-slug` is set:
 
 ### Django Admin:
 
-On the workspaces list page, there's a new button "Copy workspace". This provides a view to easily run the CLI script.
+On the workspaces list page, there's a button "Copy workspace". Submitting its form **queues** a copy run and redirects to the run's admin page (Workspace copier → Workspace copy runs), which refreshes itself while the run is queued or running and shows its logs and summary.
 
-The view is Superuser-only and entered credentials are used transiently and never persisted.
+The view is Superuser-only. Entered credentials are stored encrypted on the run and erased when it ends.
+
+## Async execution
+
+```
+admin form ──> WorkspaceCopyRun (QUEUED) + WorkspaceCopyJob  (one transaction)
+                       │
+workspace_copy_worker ─┴─> queue.execute_copy_run(run_id)
+                             └─ service.run_copy(..., reporter=DatabaseReporter(run))
+```
+
+- `WorkspaceCopyRun` (`models.py`) holds the inputs, status, timestamps, logs, summary and the target workspace slug. Statuses: `QUEUED` → `RUNNING` → `SUCCESS` / `SUCCESS_WITH_ERRORS` (finished, but some resources failed — see the summary) / `FAILED`.
+- The dpq job carries only the run id. Tokens live on the run in `EncryptedTextField`s and are erased when it ends, whatever the outcome.
+- The queue is an `AtMostOnceQueue`: the job is committed as claimed before the copy starts, so log lines are visible while it runs. An `AtLeastOnceQueue` would hold one transaction for the whole copy. The trade-off is no automatic retry — see [Interrupted runs](#interrupted-runs).
+- Run the worker locally with `docker compose --profile workspace_copy_worker up`.
+
+### Interrupted runs
+
+If the worker stops mid-copy (deploy, out of memory), the run would stay `RUNNING`. And because the queue deletes a job as soon as the worker claims it, a crash right after claiming would leave the run `QUEUED` with no job left to pick it up. On startup, the worker marks both as `FAILED` ("interrupted") and erases their tokens.
+
+That cleanup is only correct if no other worker is still copying, so the worker first takes a Postgres advisory lock (`pg_advisory_lock`). In a rolling deploy, the new worker waits until the old one has exited before cleaning up. Only one worker runs at a time; extra replicas just wait. The lock is tied to the worker's database session, so Postgres releases it however the process ends (crash included).
+
+A failed run is not retried. To finish it, start a new copy from the admin into the workspace it created ("existing workspace" mode); thanks to [idempotency](#re-running-into-an-existing-workspace-idempotency), only the missing pieces are copied.
 
 ## Progress reporting (`progress.py`)
 
@@ -127,9 +149,8 @@ A reporter exposes `log(message, *, level=...)` plus the `info` / `warning` / `e
 | ---------------- | ----------------------- | -------------------------------------------------------------------------- |
 | `NullReporter`   | default / backend tests | discards everything, so the script can run without a caller                |
 | `StreamReporter` | CLI                     | writes live to `self.stdout`                                               |
-| `BufferReporter` | Django admin view       | collects lines in memory; `render()` produces the text shown after the run |
-
-Note: `BufferReporter` is also the shape a future async-job reporter could follow, by appending lines to a "logs" field on a run record (see the docstring).
+| `BufferReporter` | template copy admin view | collects lines in memory; `render()` produces the text shown after the run |
+| `DatabaseReporter` | async workspace copy  | appends lines to `WorkspaceCopyRun.logs` in batches (every 50 lines, on the first line logged 2s after the last write, and immediately on warnings/errors) |
 
 ## Results
 
