@@ -515,7 +515,7 @@ class WebappUser(User, ServicePrincipal):
 
     def has_perm(self, perm, obj=None):
         # A web app may use a permission only if both the viewer's role and the
-        # web app's scopes allow it: its scopes narrow what the viewer can do.
+        # web app's scopes allow it.
         return self.webapp.scope_policy.allows_permission(perm) and super().has_perm(
             perm, obj
         )

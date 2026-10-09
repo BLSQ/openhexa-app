@@ -20,7 +20,7 @@ def _merge(*maps: FieldMap) -> FieldMap:
 
 # Building blocks shared by several scopes. Edges back up to `Workspace` (e.g.
 # `Pipeline.workspace`) are deliberately absent: following them is how a web app
-# would reach connections, credentials and files its scopes don't cover.
+# would reach connections, credentials and files out of its scope.
 _USER = {
     "User": {
         "id",
@@ -68,7 +68,7 @@ class ScopeGrant:
 
 
 # For each scope, the fields a web app may select (keyed by their parent type)
-# and the permissions it may use. Anything not listed is refused, so a new schema
+# and the permissions it may use. Anything not listed is refused. A new schema
 # field or permission stays out of reach of web apps until it is added here.
 SCOPE_GRANTS: dict[str, ScopeGrant] = {
     Scope.USER_READ: ScopeGrant(
@@ -311,11 +311,11 @@ class ScopeCheck:
 
 
 class WebappScopePolicy:
-    """The schema fields and permissions a web app may use, given its scopes.
+    """Policy to resolve the schema fields and permissions a web app can use,
+    given its scopes.
 
-    The check walks the whole document against the schema, so a field is judged
-    by the type it is selected on however it is reached: nested, aliased, or
-    through inline or named fragments.
+    `check` walks the whole document against the schema, so a field is judged
+    by the type it is selected on, non-matter how it is reached.
     """
 
     def __init__(self, scopes: Iterable[str]):
