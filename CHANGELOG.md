@@ -1,5 +1,23 @@
 # Changelog
 
+## [5.20.0](https://github.com/BLSQ/openhexa-app/compare/5.19.1...5.20.0) (2026-10-10)
+
+
+### Features
+
+* creating web application with assistant ([#2101](https://github.com/BLSQ/openhexa-app/issues/2101)) ([79ca186](https://github.com/BLSQ/openhexa-app/commit/79ca1864efddff3b7600f2e88a5e41e5762f35bf))
+* make the MCP tools access permission more granular (HEXA-1744) ([#2076](https://github.com/BLSQ/openhexa-app/issues/2076)) ([509a0ee](https://github.com/BLSQ/openhexa-app/commit/509a0ee83a06418d1307bc52311e74fb051a5d9a))
+* Saved queries pagination and ordering (part one of HEXA-1793) ([#2074](https://github.com/BLSQ/openhexa-app/issues/2074)) ([18ddcaf](https://github.com/BLSQ/openhexa-app/commit/18ddcaf7d586d9ffb4244ea537cbfb36f5c1bb11))
+* workspace copier, copy optional connection secrets (HEXA-1719) ([#2088](https://github.com/BLSQ/openhexa-app/issues/2088)) ([1277895](https://github.com/BLSQ/openhexa-app/commit/12778956ea4620aa929da455d1afda404568a9c5))
+
+
+### Bug Fixes
+
+* iframe webapps for static webapps (HEXA-1820) ([#2107](https://github.com/BLSQ/openhexa-app/issues/2107)) ([fc16b1e](https://github.com/BLSQ/openhexa-app/commit/fc16b1e9c9cd52c8ac127e1f1a3c79f844c911d2))
+* improve PR digest (HEXA-1812) ([#2119](https://github.com/BLSQ/openhexa-app/issues/2119)) ([d3ae1ee](https://github.com/BLSQ/openhexa-app/commit/d3ae1eeea1446c726f0d04b5191f8173b3ec028f))
+* only make the saved query name clickable in the list (HEXA-1821) ([#2120](https://github.com/BLSQ/openhexa-app/issues/2120)) ([48316d7](https://github.com/BLSQ/openhexa-app/commit/48316d7a2d8401c079db7cbd7b1b897f6a17dd05))
+* show an info message when the pipeline DAG is empty (HEXA-1827)- [#2123](https://github.com/BLSQ/openhexa-app/issues/2123) ([e7222ff](https://github.com/BLSQ/openhexa-app/commit/e7222ff4fd812a876598834f8470153a1a563d25))
+
 ## [5.19.1](https://github.com/BLSQ/openhexa-app/compare/5.19.0...5.19.1) (2026-10-07)
 
 
