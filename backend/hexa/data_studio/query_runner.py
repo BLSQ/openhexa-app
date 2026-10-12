@@ -72,6 +72,7 @@ def ensure_can_run_query(
     query: str,
     origin: str,
     saved_query=None,
+    parameters=None,
 ) -> None:
     """Check the permission both SQL paths share, recording a DENIED entry when it fails.
 
@@ -93,6 +94,7 @@ def ensure_can_run_query(
             query,
             origin,
             QueryLog.Status.DENIED,
+            parameters=parameters,
         )
         raise PermissionDenied
     if not request.user.has_perm("databases.run_query", workspace):
@@ -103,6 +105,7 @@ def ensure_can_run_query(
             origin,
             QueryLog.Status.DENIED,
             saved_query=saved_query,
+            parameters=parameters,
         )
         raise PermissionDenied
 
@@ -302,7 +305,14 @@ def run_saved_query(
     query = saved_query.content
     # Before rendering: a denied caller must get PERMISSION_DENIED and a DENIED entry,
     # not INVALID_PARAMETERS and a REJECTED one.
-    ensure_can_run_query(request, workspace, query, origin, saved_query=saved_query)
+    ensure_can_run_query(
+        request,
+        workspace,
+        query,
+        origin,
+        saved_query=saved_query,
+        parameters=parameters,
+    )
     # Until the values are bound, a rejected call records what the caller sent.
     values = parameters
     try:

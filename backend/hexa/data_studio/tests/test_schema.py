@@ -793,11 +793,12 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         request = self.mock_request(self.USER_OUTSIDER)
 
         with self.assertRaises(PermissionDenied):
-            run_saved_query(request, saved_query)
+            run_saved_query(request, saved_query, parameters={"a": 1})
 
         log = QueryLog.objects.get()
         self.assertEqual(QueryLog.Status.DENIED, log.status)
         self.assertEqual(saved_query, log.saved_query)
+        self.assertEqual({"a": 1}, log.parameters)
 
 
 SHA = "a" * 40
