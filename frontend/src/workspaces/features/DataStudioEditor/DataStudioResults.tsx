@@ -146,6 +146,12 @@ const DataStudioResults = ({
     [ExecuteSqlError.InvalidPagination]: t(
       "The pagination arguments are not valid.",
     ),
+    [ExecuteSqlError.InvalidParameters]: t(
+      "The parameter values are not valid.",
+    ),
+    [ExecuteSqlError.TemplateError]: t(
+      "The query template could not be rendered.",
+    ),
   };
 
   const transportErrorLabels: Record<TransportErrorKind, string> = {
