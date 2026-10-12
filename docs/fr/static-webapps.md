@@ -659,6 +659,10 @@ WHERE district = ANY({{ districts }})
 ]
 ```
 
+La déclaration est l'argument `parameters` des mutations `createSavedQuery` et
+`updateSavedQuery`, ainsi que des outils MCP `create_saved_query` et
+`update_saved_query`.
+
 La webapp envoie ensuite les valeurs qu'elle connaît, par nom, à côté des
 arguments de tri et de pagination décrits plus haut :
 

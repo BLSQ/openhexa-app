@@ -883,6 +883,10 @@ WHERE district = ANY({{ districts }})
 ]
 ```
 
+The declaration is the `parameters` argument of the `createSavedQuery` and
+`updateSavedQuery` mutations, and of the `create_saved_query` and
+`update_saved_query` MCP tools.
+
 The web app then sends the values it knows about, by name, next to the sorting
 and pagination arguments described above:
 

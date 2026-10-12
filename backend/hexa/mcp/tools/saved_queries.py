@@ -1,7 +1,21 @@
+from typing import Any, Literal, Required, TypedDict
+
 from hexa.data_studio.models import SavedQueryVisibility
+from hexa.data_studio.templating import PARAMETER_TYPES
 from hexa.mcp.protocol import tool
 
 from ._graphql import execute_graphql
+
+
+class SavedQueryParameter(TypedDict, total=False):
+    """A parameter declaration, as `SavedQueryParameterInput` in the GraphQL schema."""
+
+    name: Required[str]
+    type: Required[Literal[*PARAMETER_TYPES]]
+    multiple: bool
+    required: bool
+    default: Any
+    help: str
 
 
 @tool
@@ -32,8 +46,8 @@ def get_saved_query(user, saved_query_slug: str) -> dict:
     """Get a saved SQL query of the Data Studio by its slug.
 
     Slugs are unique across workspaces, so no workspace slug is needed. Returns the query's
-    metadata, SQL content, visibility and workspace. Use the returned 'id' when
-    calling update_saved_query.
+    metadata, SQL content, declared parameters, visibility and workspace. Use the returned
+    'id' when calling update_saved_query.
     """
     data = execute_graphql(user, "GetSavedQuery", {"slug": saved_query_slug})
     if "errors" in data:
@@ -52,6 +66,7 @@ def create_saved_query(
     content: str,
     description: str = "",
     visibility: SavedQueryVisibility | None = None,
+    parameters: list[SavedQueryParameter] | None = None,
 ) -> dict:
     """Save a SQL query in a workspace's Data Studio.
 
@@ -59,6 +74,15 @@ def create_saved_query(
     get_db_schema and get_db_table_schema to discover tables and columns first. The query is
     PRIVATE (visible to you only) unless visibility is set to WORKSPACE, which shares it with
     every member of the workspace. Returns the saved query's id and slug.
+
+    To let a web app filter the query, write `{{ name }}` in the SQL wherever a value
+    belongs and declare each name in parameters, with a type among STRING, INTEGER, FLOAT,
+    BOOLEAN and DATE (`multiple` for a list, bound as a PostgreSQL array: filter with
+    `= ANY({{ name }})`). Values are bound at execution and never inlined, so a placeholder
+    can stand for a value but not for a column name, an ORDER BY or a LIMIT: sorting and
+    paging are arguments of executeSavedQuery. A placeholder the parameters do not declare
+    is refused with INVALID_TEMPLATE. The 'Query templating' section of the static-webapps
+    doc (get_help_or_doc with topic 'static-webapps') has the full rules.
     """
     create_input: dict = {
         "workspaceSlug": workspace_slug,
@@ -69,6 +93,8 @@ def create_saved_query(
         create_input["description"] = description
     if visibility is not None:
         create_input["visibility"] = visibility
+    if parameters:
+        create_input["parameters"] = parameters
 
     data = execute_graphql(user, "CreateSavedQuery", {"input": create_input})
     if "errors" in data:
@@ -84,13 +110,19 @@ def update_saved_query(
     content: str = "",
     description: str = "",
     visibility: SavedQueryVisibility | None = None,
+    parameters: list[SavedQueryParameter] | None = None,
 ) -> dict:
     """Update a saved SQL query in the Data Studio.
 
     Provide the saved query UUID (from list_saved_queries) and any fields to change. Only
     provided non-empty fields are updated. Only the query's author can change its visibility;
-    other workspace editors and admins can edit the name, description and content of a
-    WORKSPACE query but not of a PRIVATE one.
+    other workspace editors and admins can edit the name, description, content and
+    parameters of a WORKSPACE query but not of a PRIVATE one.
+
+    parameters replaces the whole declaration list (see create_saved_query for the format):
+    send every parameter the new content reads, or an empty list to drop them all. Send
+    content and parameters together when a change touches both, since content that reads an
+    undeclared placeholder is refused with INVALID_TEMPLATE.
     """
     update_input: dict = {"id": saved_query_id}
     if name:
@@ -101,6 +133,8 @@ def update_saved_query(
         update_input["description"] = description
     if visibility is not None:
         update_input["visibility"] = visibility
+    if parameters is not None:
+        update_input["parameters"] = parameters
 
     data = execute_graphql(user, "UpdateSavedQuery", {"input": update_input})
     if "errors" in data:

@@ -86,8 +86,7 @@ def _base_type(annotation):
     return annotation
 
 
-def _enum_schema(enum_cls):
-    values = [member.value for member in enum_cls]
+def _choices_schema(values):
     value_type = type(values[0]) if values else str
     return {"type": TYPE_MAP.get(value_type, "string"), "enum": values}
 
@@ -95,16 +94,25 @@ def _enum_schema(enum_cls):
 def _property_schema(annotation):
     """Build the JSON Schema for a single tool argument from its annotation."""
     base = _base_type(annotation)
+    if base is typing.Any:
+        return {}
     if isinstance(base, type) and issubclass(base, enum.Enum):
-        return _enum_schema(base)
+        return _choices_schema([member.value for member in base])
+    if typing.get_origin(base) is typing.Literal:
+        return _choices_schema(list(typing.get_args(base)))
+    if typing.is_typeddict(base):
+        hints = typing.get_type_hints(base)
+        return {
+            "type": "object",
+            "properties": {key: _property_schema(hint) for key, hint in hints.items()},
+            "required": [key for key in hints if key in base.__required_keys__],
+        }
+    if base is dict or typing.get_origin(base) is dict:
+        return {"type": "object"}
     if typing.get_origin(base) is list:
         (item,) = typing.get_args(base) or (str,)
-        item_base = _base_type(item)
-        # Carry the enum constraint onto the array items too (e.g. a list of scopes).
-        if isinstance(item_base, type) and issubclass(item_base, enum.Enum):
-            return {"type": "array", "items": _enum_schema(item_base)}
-        return {"type": "array", "items": {"type": TYPE_MAP.get(item_base, "string")}}
-    # Scalars map directly; anything unrecognized (e.g. dict) degrades to string.
+        return {"type": "array", "items": _property_schema(item)}
+    # Scalars map directly; anything unrecognized degrades to string.
     return {"type": TYPE_MAP.get(base, "string")}
 
 
