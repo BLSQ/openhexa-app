@@ -1,12 +1,12 @@
 from unittest.mock import MagicMock
 
 import httpx
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, override_settings
 from openhexa.graphql.graphql_client.exceptions import (
     GraphQLClientGraphQLMultiError,
 )
 
-from hexa.workspace_copier.transport import GraphQLError, gql
+from hexa.workspace_copier.transport import GraphQLError, build_http_client, gql
 
 
 class GqlErrorTranslationTest(SimpleTestCase):
@@ -45,3 +45,43 @@ class GqlErrorTranslationTest(SimpleTestCase):
         with self.assertRaises(GraphQLError) as ctx:
             gql(client, "query Q { ok }", operation_name="Q")
         self.assertIn("permission denied", str(ctx.exception))
+
+
+class InternalUrlRoutingTest(SimpleTestCase):
+    def _sent_url(self, url: str) -> str:
+        sent = []
+
+        def handler(request):
+            sent.append(str(request.url))
+            return httpx.Response(200)
+
+        with build_http_client(transport=httpx.MockTransport(handler)) as client:
+            client.get(url)
+        return sent[0]
+
+    @override_settings(
+        BASE_URL="http://localhost:8000", INTERNAL_BASE_URL="http://app:8000"
+    )
+    def test_public_url_is_routed_to_internal_url(self):
+        self.assertEqual(
+            self._sent_url("http://localhost:8000/files/dl/abc/?attachment=true"),
+            "http://app:8000/files/dl/abc/?attachment=true",
+        )
+
+    @override_settings(
+        BASE_URL="http://localhost:8000", INTERNAL_BASE_URL="http://app:8000"
+    )
+    def test_other_hosts_are_untouched(self):
+        for url in (
+            "https://api.openhexa.org/graphql/",
+            "http://localhost:8001/graphql/",
+        ):
+            self.assertEqual(self._sent_url(url), url)
+
+    @override_settings(
+        BASE_URL="https://api.openhexa.org",
+        INTERNAL_BASE_URL="https://api.openhexa.org",
+    )
+    def test_no_op_when_internal_url_is_the_public_one(self):
+        url = "https://api.openhexa.org/graphql/"
+        self.assertEqual(self._sent_url(url), url)
