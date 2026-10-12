@@ -4,8 +4,8 @@ import logging
 from collections.abc import AsyncGenerator
 from dataclasses import replace
 
-from pydantic_ai import Agent, RunUsage, UsageLimits
-from pydantic_ai.capabilities import ProcessHistory
+from pydantic_ai import Agent, AgentRetries, RunUsage, UsageLimits
+from pydantic_ai.capabilities import Caching, ProcessHistory
 from pydantic_ai.exceptions import (
     IncompleteToolCall,
     UnexpectedModelBehavior,
@@ -25,8 +25,8 @@ from pydantic_ai.messages import (
     ToolCallPart,
     ToolReturnPart,
 )
-from pydantic_ai.models.anthropic import AnthropicModelSettings
 
+from hexa.assistant.agents.capabilities import MaxTokens
 from hexa.assistant.agents.naming_agent import NamingAgent, NamingResult
 from hexa.assistant.ai_models import AiModelBuilder, BuiltModel
 from hexa.assistant.instructions import InstructionSet, get_instructions
@@ -158,7 +158,7 @@ class BaseAgent:
     tools: list = []
     max_tokens: int = 32768
     max_requests: int = 30
-    output_retries: int | None = None
+    output_retries: int = 1
     history_strip_tools: set[str] = set()
     # Identifies the agent in ASSISTANT_MANAGED_AGENT_MODELS. `default_model` is the
     # model the agent asks for when the setting says nothing, None meaning the
@@ -181,29 +181,21 @@ class BaseAgent:
             instructions=self._build_instructions(),
             tools=self._tools_with_context,
             output_type=self._output_type(),
-            output_retries=self.output_retries,
+            retries=AgentRetries(output=self.output_retries),
             end_strategy="exhaustive",
-            # Models only read the settings with their own prefix, so the
-            # anthropic_* keys are ignored when the agent runs on another
-            # provider. Gemini caches prompt prefixes implicitly instead.
-            model_settings=AnthropicModelSettings(
-                max_tokens=self.max_tokens,
-                anthropic_cache_instructions=True,
-                anthropic_cache_tool_definitions=True,
-                anthropic_cache=True,
-            ),
             capabilities=self._capabilities(),
         )
 
     def _capabilities(self) -> list:
+        capabilities: list = [MaxTokens(max_tokens=self.max_tokens), Caching()]
         if not self.history_strip_tools:
-            return []
+            return capabilities
         tool_names = self.history_strip_tools
 
         def strip_proposals(messages: list[ModelMessage]) -> list[ModelMessage]:
             return _strip_proposal_outputs(messages, tool_names)
 
-        return [ProcessHistory(processor=strip_proposals)]
+        return [*capabilities, ProcessHistory(processor=strip_proposals)]
 
     def _build_instructions(self) -> list:
         # pydantic-ai puts the cache breakpoint after the string (static) part, so
@@ -341,7 +333,7 @@ class BaseAgent:
             new_messages = run_result.new_messages() if run_result else []
             content_segments = self._extract_content_segments(new_messages)
             all_messages = run_result.all_messages() if run_result else []
-            usage = run_result.usage() if run_result else RunUsage()
+            usage = run_result.usage if run_result else RunUsage()
 
             assistant_message = await self._persist_run(
                 content_segments,
@@ -446,9 +438,9 @@ class BaseAgent:
                         ),
                     )
                 elif isinstance(event, FunctionToolResultEvent):
-                    if not isinstance(event.result, ToolReturnPart):
+                    if not isinstance(event.part, ToolReturnPart):
                         continue
-                    result_part = event.result
+                    result_part = event.part
                     logger.info(
                         "agent.run_stream: tool_result call_id=%s",
                         result_part.tool_call_id,
