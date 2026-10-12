@@ -338,6 +338,7 @@ class ValidateOnSaveTest(SimpleTestCase):
             ("missing type", [{"name": "a"}]),
             ("bad default", [parameter("a", "INTEGER", default="x")]),
             ("non-boolean multiple", [parameter("a", multiple="yes")]),
+            ("falsy non-string help", [parameter("a", help=0)]),
             ("not an object", ["a"]),
             ("not a list", {"a": 1}),
         ):

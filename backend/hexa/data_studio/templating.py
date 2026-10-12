@@ -133,7 +133,9 @@ def _normalize_parameter(parameter: Any, seen: set[str]) -> dict:
     multiple = _normalize_flag(name, "multiple", parameter.get("multiple"))
     required = _normalize_flag(name, "required", parameter.get("required"))
 
-    help_text = parameter.get("help") or ""
+    help_text = parameter.get("help")
+    if help_text is None:
+        help_text = ""
     if not isinstance(help_text, str):
         raise InvalidParametersError(f"Parameter {name!r} has a non-string help text.")
 
