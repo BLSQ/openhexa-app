@@ -1,6 +1,7 @@
 from ariadne import ObjectType, UnionType
 
 from hexa.git.forgejo import ForgejoAPIError
+from hexa.user_management.utils import is_two_factor_pending
 from hexa.utils.base64_image_encode_decode import encode_base64_image
 from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp
 
@@ -50,7 +51,7 @@ def resolve_url(webapp: Webapp, info, **kwargs):
 @webapp_object.field("previewUrl")
 def resolve_preview_url(webapp: Webapp, info, **kwargs):
     request = info.context["request"]
-    if not request.user.is_authenticated:
+    if not request.user.is_authenticated or is_two_factor_pending(request):
         return webapp.serve_url
     from hexa.webapps.middlewares import get_or_create_preview_url
 

@@ -19,17 +19,15 @@ from django.views.decorators.http import require_GET, require_http_methods
 from hexa.files.utils import is_safe_path
 from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 from hexa.git.forgejo import get_forgejo_client
-from hexa.user_management.utils import has_configured_two_factor
+from hexa.user_management.utils import is_two_factor_pending
 from hexa.webapps.models import Webapp
 from hexa.webapps.utils import extract_webapp_subdomain, is_local_dev_origin
 
 logger = logging.getLogger(__name__)
 
 
-def _needs_login(user):
-    return not user.is_authenticated or (
-        has_configured_two_factor(user) and not user.is_verified()
-    )
+def _needs_login(request):
+    return not request.user.is_authenticated or is_two_factor_pending(request)
 
 
 def _login_redirect(request):
@@ -74,7 +72,7 @@ def auth_token(request, webapp_id):
     if not subdomain_match and not custom_domain_match:
         return HttpResponseBadRequest("Invalid redirect target")
 
-    if not request.user.is_authenticated:
+    if _needs_login(request):
         return _login_redirect(request)
 
     user = request.user
@@ -250,7 +248,7 @@ def dev_auth(request):
 
     # This view handles its own login bounce (it is in ANONYMOUS_URLS) because the
     # generic one sends a relative `next`, which strands the popup on the frontend.
-    if _needs_login(request.user):
+    if _needs_login(request):
         if request.method == "POST":
             return HttpResponse("Authentication required", status=401)
         return _login_redirect(request)

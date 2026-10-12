@@ -267,6 +267,7 @@ def _check_webapp_session(request, webapp):
         return None
 
     request.user = WebappUser.from_user(user, webapp)
+    request.bypass_two_factor = True
     return request.user
 
 
