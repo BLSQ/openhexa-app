@@ -117,11 +117,12 @@ describe("LoginPage: No Two Factor Authentication", () => {
           variables: {
             input: {
               email: "root@openhexa.org",
+              password: "pA$$W0rd",
             },
           },
         },
         result: {
-          data: { login: { success: true } },
+          data: { login: { success: true, errors: [] } },
         },
       },
     ];
@@ -142,8 +143,8 @@ describe("LoginPage: No Two Factor Authentication", () => {
     expect(pushSpy).not.toHaveBeenCalled();
     await user.type(passwordInput, "pA$$W0rd");
     await user.click(submitBtn);
-    waitFor(() => {
-      expect(pushSpy).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(pushSpy).toHaveBeenCalledWith("/");
     });
   });
 
