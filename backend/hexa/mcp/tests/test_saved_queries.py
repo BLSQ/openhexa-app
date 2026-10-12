@@ -10,6 +10,16 @@ from hexa.workspaces.models import WorkspaceMembership, WorkspaceMembershipRole
 
 from .testutils import MCPTestCase
 
+# A declaration as the model stores it, every optional key filled in.
+LIMIT_PARAMETER = {
+    "name": "limit",
+    "type": "INTEGER",
+    "multiple": False,
+    "required": False,
+    "default": 10,
+    "help": "",
+}
+
 
 # USER_ADMIN is a superuser and therefore sees and edits every query, so the
 # visibility rules need a plain workspace editor to be observable.
@@ -101,6 +111,7 @@ class GetSavedQueryTest(SavedQueryTestCase):
             content="SELECT 1",
             description="A description",
             visibility=SavedQueryVisibility.WORKSPACE,
+            parameters=[LIMIT_PARAMETER],
         )
 
         result = get_saved_query(
@@ -112,6 +123,7 @@ class GetSavedQueryTest(SavedQueryTestCase):
         self.assertEqual(result["content"], "SELECT 1")
         self.assertEqual(result["description"], "A description")
         self.assertEqual(result["visibility"], "WORKSPACE")
+        self.assertEqual(result["parameters"], [LIMIT_PARAMETER])
         self.assertEqual(result["workspace"]["slug"], self.WORKSPACE.slug)
 
     def test_get_saved_query_private_hidden_from_others(self):
@@ -163,6 +175,56 @@ class CreateSavedQueryTest(SavedQueryTestCase):
         )
         self.assertTrue(result["success"], result["errors"])
         self.assertEqual(result["savedQuery"]["visibility"], "PRIVATE")
+
+    def test_create_saved_query_with_parameters(self):
+        result = create_saved_query(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name="Filtered",
+            content="SELECT * FROM t WHERE n = ANY({{ ids }}) LIMIT {{ limit }}",
+            parameters=[
+                {"name": "ids", "type": "INTEGER", "multiple": True, "required": True},
+                {"name": "limit", "type": "INTEGER", "default": 10},
+            ],
+        )
+        self.assertTrue(result["success"], result["errors"])
+        self.assertEqual(
+            result["savedQuery"]["parameters"],
+            [
+                {
+                    "name": "ids",
+                    "type": "INTEGER",
+                    "multiple": True,
+                    "required": True,
+                    "default": None,
+                    "help": "",
+                },
+                LIMIT_PARAMETER,
+            ],
+        )
+        db_query = SavedQuery.objects.get(id=result["savedQuery"]["id"])
+        self.assertEqual([p["name"] for p in db_query.parameters], ["ids", "limit"])
+
+    def test_create_saved_query_rejects_an_undeclared_placeholder(self):
+        result = create_saved_query(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name="Filtered",
+            content="SELECT * FROM t LIMIT {{ limit }}",
+        )
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["INVALID_TEMPLATE"])
+
+    def test_create_saved_query_rejects_an_invalid_declaration(self):
+        result = create_saved_query(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            name="Filtered",
+            content="SELECT * FROM t LIMIT {{ limit }}",
+            parameters=[{"name": "limit", "type": "INTEGER", "default": "ten"}],
+        )
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["INVALID_PARAMETERS"])
 
     def test_create_saved_query_no_access(self):
         result = create_saved_query(
@@ -218,6 +280,55 @@ class UpdateSavedQueryTest(SavedQueryTestCase):
         self.assertEqual(self.SAVED_QUERY.content, "SELECT 2")
         self.assertEqual(self.SAVED_QUERY.description, "Original description")
         self.assertEqual(self.SAVED_QUERY.visibility, SavedQueryVisibility.PRIVATE)
+
+    def test_update_saved_query_parameters(self):
+        result = update_saved_query(
+            user=self.USER_VIEWER,
+            saved_query_id=str(self.SAVED_QUERY.id),
+            content="SELECT 1 LIMIT {{ limit }}",
+            parameters=[{"name": "limit", "type": "INTEGER", "default": 10}],
+        )
+        self.assertTrue(result["success"], result["errors"])
+        self.assertEqual(result["savedQuery"]["parameters"], [LIMIT_PARAMETER])
+        self.SAVED_QUERY.refresh_from_db()
+        self.assertEqual(self.SAVED_QUERY.parameters, [LIMIT_PARAMETER])
+
+    def test_update_saved_query_keeps_parameters_when_omitted(self):
+        self.SAVED_QUERY.parameters = [LIMIT_PARAMETER]
+        self.SAVED_QUERY.save()
+
+        result = update_saved_query(
+            user=self.USER_VIEWER,
+            saved_query_id=str(self.SAVED_QUERY.id),
+            name="Renamed",
+        )
+        self.assertTrue(result["success"], result["errors"])
+        self.SAVED_QUERY.refresh_from_db()
+        self.assertEqual(self.SAVED_QUERY.parameters, [LIMIT_PARAMETER])
+
+    def test_update_saved_query_empty_parameters_drops_them(self):
+        self.SAVED_QUERY.parameters = [LIMIT_PARAMETER]
+        self.SAVED_QUERY.save()
+
+        result = update_saved_query(
+            user=self.USER_VIEWER,
+            saved_query_id=str(self.SAVED_QUERY.id),
+            parameters=[],
+        )
+        self.assertTrue(result["success"], result["errors"])
+        self.SAVED_QUERY.refresh_from_db()
+        self.assertEqual(self.SAVED_QUERY.parameters, [])
+
+    def test_update_saved_query_content_must_declare_its_placeholders(self):
+        result = update_saved_query(
+            user=self.USER_VIEWER,
+            saved_query_id=str(self.SAVED_QUERY.id),
+            content="SELECT 1 LIMIT {{ limit }}",
+        )
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["INVALID_TEMPLATE"])
+        self.SAVED_QUERY.refresh_from_db()
+        self.assertEqual(self.SAVED_QUERY.content, "SELECT 1")
 
     def test_update_saved_query_private_hidden_from_others(self):
         result = update_saved_query(
