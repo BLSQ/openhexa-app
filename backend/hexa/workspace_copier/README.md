@@ -137,7 +137,7 @@ If the worker stops mid-copy (deploy, out of memory), the run would stay `RUNNIN
 
 That cleanup is only correct if no other worker is still copying, so the worker first takes a Postgres advisory lock (`pg_advisory_lock`). In a rolling deploy, the new worker waits until the old one has exited before cleaning up. Only one worker runs at a time; extra replicas just wait. The lock is tied to the worker's database session, so Postgres releases it however the process ends (crash included).
 
-A failed run is not retried. To finish it, start a new copy from the admin into the workspace it created ("existing workspace" mode); thanks to [idempotency](#re-running-into-an-existing-workspace-idempotency), only the missing pieces are copied.
+A failed run is not retried. To finish it, start a new copy from the admin into the workspace it created (its "Result workspace slug", recorded even when the run fails) in "existing workspace" mode; thanks to [idempotency](#re-running-into-an-existing-workspace-idempotency), only the missing pieces are copied.
 
 ## Progress reporting (`progress.py`)
 

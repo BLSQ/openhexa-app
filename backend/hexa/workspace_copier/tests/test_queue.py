@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from django.db import connection
 from django.test import TestCase
+from django.utils import timezone
 
 from hexa.workspace_copier.models import WorkspaceCopyRun, WorkspaceCopyRunStatus
 from hexa.workspace_copier.queue import (
@@ -28,6 +29,21 @@ def _create_run(**overrides):
     return WorkspaceCopyRun.objects.create(**data)
 
 
+def _copy_recording(*, error: Exception | None = None, **fields):
+    """Fake run_copy that fills the result it is handed, like the orchestrator."""
+
+    def fake_copy(**kwargs):
+        result = kwargs["result"]
+        result.started_at = timezone.localtime()
+        for name, value in fields.items():
+            setattr(result, name, value)
+        if error:
+            raise error
+        return result
+
+    return fake_copy
+
+
 @patch("hexa.workspace_copier.queue.run_copy")
 class ExecuteCopyRunTest(TestCase):
     def assertTokensErased(self, run):
@@ -35,7 +51,7 @@ class ExecuteCopyRunTest(TestCase):
         self.assertIsNone(run.target_token)
 
     def test_success_records_summary_and_erases_tokens(self, mock_run_copy):
-        mock_run_copy.return_value = CopyResult(
+        mock_run_copy.side_effect = _copy_recording(
             workspace_name="My WS", workspace_slug="my-ws-ab12"
         )
         run = _create_run()
@@ -64,7 +80,7 @@ class ExecuteCopyRunTest(TestCase):
         self.assertTrue(kwargs["options"].all_dataset_versions)
 
     def test_partial_failures_mark_success_with_errors(self, mock_run_copy):
-        mock_run_copy.return_value = CopyResult(
+        mock_run_copy.side_effect = _copy_recording(
             files=FilesResult(failed=[("big.zip", "too large")])
         )
         run = _create_run()
@@ -86,6 +102,8 @@ class ExecuteCopyRunTest(TestCase):
         self.assertEqual(run.status, WorkspaceCopyRunStatus.FAILED)
         self.assertIn("source authentication failed", run.error)
         self.assertIn("[ERROR] target server is unreachable", run.logs)
+        self.assertEqual(run.result_workspace_slug, "")
+        self.assertEqual(run.summary, "")
         self.assertTokensErased(run)
 
     def test_unexpected_exception_marks_failed(self, mock_run_copy):
@@ -100,6 +118,23 @@ class ExecuteCopyRunTest(TestCase):
         self.assertEqual(run.error, "boom")
         self.assertIn("Copy failed: boom", run.logs)
         self.assertTokensErased(run)
+
+    def test_failure_midway_still_records_the_created_workspace(self, mock_run_copy):
+        mock_run_copy.side_effect = _copy_recording(
+            error=RuntimeError("boom"),
+            workspace_name="My WS",
+            workspace_slug="my-ws-ab12",
+            files=FilesResult(copied=[("a.csv", 10)]),
+        )
+        run = _create_run()
+
+        with self.assertLogs("hexa.workspace_copier.queue", level="ERROR"):
+            execute_copy_run(str(run.id))
+
+        run.refresh_from_db()
+        self.assertEqual(run.status, WorkspaceCopyRunStatus.FAILED)
+        self.assertEqual(run.result_workspace_slug, "my-ws-ab12")
+        self.assertIn("Files copied: 1", run.summary)
 
     def test_tokens_are_erased_even_if_the_final_log_write_fails(self, mock_run_copy):
         mock_run_copy.return_value = CopyResult()

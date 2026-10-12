@@ -21,7 +21,7 @@ from hexa.workspace_copier.models import (
 )
 from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import DatabaseReporter, format_entry
-from hexa.workspace_copier.results import format_summary
+from hexa.workspace_copier.results import CopyResult, format_summary
 from hexa.workspace_copier.service import CredentialError, run_copy
 
 logger = getLogger(__name__)
@@ -48,9 +48,12 @@ def execute_copy_run(run_id: str) -> None:
 
     reporter = DatabaseReporter(run)
     status = WorkspaceCopyRunStatus.FAILED
+    # Created here rather than returned by run_copy, so it survives a copier
+    # raising midway: a failed run still records the workspace it created.
+    result = CopyResult()
     try:
         run.mark_running()
-        result = run_copy(
+        run_copy(
             source_url=run.source_url or None,
             source_token=run.source_token,
             source_slug=run.source_slug,
@@ -62,9 +65,8 @@ def execute_copy_run(run_id: str) -> None:
             resources=set(run.resources),
             options=CopyOptions(all_dataset_versions=run.all_dataset_versions),
             reporter=reporter,
+            result=result,
         )
-        run.summary = format_summary(result)
-        run.result_workspace_slug = result.workspace_slug or ""
         status = (
             WorkspaceCopyRunStatus.SUCCESS_WITH_ERRORS
             if result.has_failures
@@ -79,6 +81,9 @@ def execute_copy_run(run_id: str) -> None:
         reporter.error(f"Copy failed: {exc}")
         run.error = str(exc)
     finally:
+        run.result_workspace_slug = result.workspace_slug or ""
+        if result.started_at:
+            run.summary = format_summary(result)
         # A failed log write must not stop finish(), which erases the tokens.
         try:
             reporter.flush()
