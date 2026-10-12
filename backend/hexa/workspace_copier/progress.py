@@ -11,7 +11,7 @@ entrypoint supplies:
 
 import time
 from datetime import datetime
-from typing import Protocol, runtime_checkable
+from typing import Literal, Protocol, runtime_checkable
 
 from django.db.models import F, TextField, Value
 from django.db.models.functions import Concat
@@ -19,11 +19,10 @@ from django.utils import timezone
 
 from hexa.workspace_copier.models import WorkspaceCopyRun
 
-# Ordered low -> high so a reporter can filter by a minimum level.
-LEVELS = ("INFO", "WARNING", "ERROR")
+Level = Literal["INFO", "WARNING", "ERROR"]
 
 
-def format_entry(timestamp: datetime, level: str, message: str) -> str:
+def format_entry(timestamp: datetime, level: Level, message: str) -> str:
     """Render one log line, shared by every reporter so they can't drift apart."""
     prefix = "" if level == "INFO" else f"[{level}] "
     return f"{timestamp.strftime('%H:%M:%S')} {prefix}{message}"
@@ -31,12 +30,12 @@ def format_entry(timestamp: datetime, level: str, message: str) -> str:
 
 @runtime_checkable
 class ProgressReporter(Protocol):
-    def log(self, message: str, *, level: str = "INFO") -> None:
+    def log(self, message: str, *, level: Level = "INFO") -> None:
         ...
 
 
 class BaseReporter:
-    def log(self, message: str, *, level: str = "INFO") -> None:
+    def log(self, message: str, *, level: Level = "INFO") -> None:
         raise NotImplementedError
 
     def info(self, message: str) -> None:
@@ -55,7 +54,7 @@ class NullReporter(BaseReporter):
     Used in backend tests.
     """
 
-    def log(self, message: str, *, level: str = "INFO") -> None:
+    def log(self, message: str, *, level: Level = "INFO") -> None:
         pass
 
 
@@ -65,7 +64,7 @@ class StreamReporter(BaseReporter):
     def __init__(self, stream):
         self.stream = stream
 
-    def log(self, message: str, *, level: str = "INFO") -> None:
+    def log(self, message: str, *, level: Level = "INFO") -> None:
         self.stream.write(f"{format_entry(timezone.localtime(), level, message)}\n")
         self.stream.flush()
 
@@ -77,9 +76,9 @@ class BufferReporter(BaseReporter):
     """
 
     def __init__(self):
-        self.entries: list[tuple[datetime, str, str]] = []
+        self.entries: list[tuple[datetime, Level, str]] = []
 
-    def log(self, message: str, *, level: str = "INFO") -> None:
+    def log(self, message: str, *, level: Level = "INFO") -> None:
         self.entries.append((timezone.localtime(), level, message))
 
     def render(self) -> str:
@@ -110,7 +109,7 @@ class DatabaseReporter(BaseReporter):
         self.buffer: list[str] = []
         self._last_flush = time.monotonic()
 
-    def log(self, message: str, *, level: str = "INFO") -> None:
+    def log(self, message: str, *, level: Level = "INFO") -> None:
         self.buffer.append(format_entry(timezone.localtime(), level, message))
         if (
             level != "INFO"
