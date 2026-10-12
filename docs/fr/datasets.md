@@ -118,10 +118,20 @@ Le partage de jeux de données est l'une des fonctionnalités de collaboration l
 - Sélectionnez l'espace de travail cible dans la liste disponible.
 - Cette approche fournit un contrôle granulaire sur l'accès aux données.
 
-#### Partage au niveau de l'organisation
-- Activez le bouton **Partager avec toute l'organisation**.
-- Cela rend le jeu de données disponible à tous les espaces de travail au sein de votre organisation.
-- ⚠️ Le partage au niveau de l'organisation remplace toutes les permissions d'espace de travail spécifiques.
+#### Visibilité
+Le sélecteur **Visibilité** de l'onglet de gestion des accès du workspace source définit qui peut ouvrir le jeu de données au-delà des espaces de travail avec lesquels il est partagé :
+
+- **Privé** : uniquement le workspace source et les espaces de travail avec lesquels il est explicitement partagé.
+- **Organisation** : tous les espaces de travail de votre organisation peuvent le consulter et le télécharger.
+- **Public** : toute personne disposant du lien peut le consulter et le télécharger, même sans compte OpenHEXA.
+
+⚠️ Les visibilités organisation et public remplacent toutes les permissions d'espace de travail spécifiques.
+
+#### Jeux de données publics
+- Seuls les administrateurs et propriétaires de l'organisation peuvent rendre un jeu de données public. Toute personne pouvant modifier le jeu de données peut le rendre privé à nouveau.
+- Une fois public, un **Lien public** apparaît dans l'onglet de gestion des accès. Il s'agit d'un permalien basé sur l'identifiant du jeu de données : il continue de fonctionner si le jeu de données est renommé.
+- Les visiteurs qui ouvrent le lien voient la description du jeu de données, ses versions et leurs changelogs, la liste des fichiers avec leur aperçu et les métadonnées de colonnes, et peuvent télécharger les fichiers. Ils ne voient pas qui a créé le jeu de données ou ses fichiers et ne peuvent rien modifier.
+- Les jeux de données publics ne sont listés nulle part en dehors de votre organisation : les autres organisations et les visiteurs anonymes n'y accèdent que par le lien.
 
 ### Permissions de partage
 

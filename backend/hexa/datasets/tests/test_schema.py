@@ -28,6 +28,7 @@ from ..models import (
     DatasetLink,
     DatasetVersion,
     DatasetVersionFile,
+    DatasetVisibility,
 )
 from .testutils import DatasetTestMixin
 
@@ -1344,7 +1345,7 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
     def test_query_dataset_shared_with_organization_field(self):
         self.client.force_login(self.org_admin)
 
-        self.dataset.shared_with_organization = True
+        self.dataset.visibility = DatasetVisibility.ORGANIZATION
         self.dataset.save()
 
         r = self.run_query(
@@ -1370,7 +1371,7 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
         )
 
     def test_organization_member_can_access_shared_dataset_via_graphql(self):
-        self.dataset.shared_with_organization = True
+        self.dataset.visibility = DatasetVisibility.ORGANIZATION
         self.dataset.save()
 
         self.client.force_login(self.org_member_from_different_workspace)
@@ -1395,6 +1396,226 @@ class DatasetOrganizationSharingGraphQLTest(GraphQLTestCase, DatasetTestMixin):
                 "sharedWithOrganization": True,
             },
             r["data"]["dataset"],
+        )
+
+
+class DatasetPublicVisibilityGraphQLTest(GraphQLTestCase, DatasetTestMixin):
+    UPDATE_DATASET = """
+        mutation UpdateDataset ($input: UpdateDatasetInput!) {
+            updateDataset(input: $input) {
+                dataset { id visibility sharedWithOrganization }
+                success
+                errors
+            }
+        }
+    """
+    DATASET_BY_ID = """
+        query Dataset ($id: ID!) {
+            dataset(id: $id) {
+                id
+                name
+                visibility
+                createdBy { email }
+                permissions { update delete createVersion makePublic }
+                latestVersion {
+                    name
+                    createdBy { email }
+                    permissions { download }
+                    files { items { filename createdBy { email } } }
+                }
+            }
+        }
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = Organization.objects.create(
+            name="Public Org", short_name="public-org", organization_type="CORPORATE"
+        )
+        cls.org_admin = User.objects.create_user("org_admin@bluesquarehub.com", "pw")
+        cls.workspace_admin = User.objects.create_user(
+            "workspace_admin@bluesquarehub.com", "pw"
+        )
+        cls.outsider = User.objects.create_user("outsider@bluesquarehub.com", "pw")
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.org_admin,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.organization,
+            user=cls.workspace_admin,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+        cls.workspace = create_workspace(
+            principal=cls.org_admin,
+            name="Public Workspace",
+            description="",
+            organization=cls.organization,
+        )
+        WorkspaceMembership.objects.create(
+            workspace=cls.workspace,
+            user=cls.workspace_admin,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
+    def setUp(self):
+        super().setUp()
+        self.dataset = Dataset.objects.create_if_has_perm(
+            self.org_admin, self.workspace, name="Dataset", description="desc"
+        )
+        self.version = self.create_dataset_version(self.org_admin, dataset=self.dataset)
+        self.version_file = self.create_dataset_version_file(
+            self.org_admin, dataset_version=self.version
+        )
+
+    def update_visibility(self, user, **input_):
+        if user is None:
+            self.client.logout()
+        else:
+            self.client.force_login(user)
+        r = self.run_query(
+            self.UPDATE_DATASET,
+            {"input": {"datasetId": str(self.dataset.id), **input_}},
+        )
+        self.dataset.refresh_from_db()
+        return r["data"]["updateDataset"]
+
+    def test_org_admin_can_publish(self):
+        result = self.update_visibility(self.org_admin, visibility="PUBLIC")
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "dataset": {
+                    "id": str(self.dataset.id),
+                    "visibility": "PUBLIC",
+                    "sharedWithOrganization": True,
+                },
+            },
+            result,
+        )
+
+    def test_workspace_admin_cannot_publish(self):
+        result = self.update_visibility(self.workspace_admin, visibility="PUBLIC")
+        self.assertEqual(
+            {"success": False, "errors": ["PERMISSION_DENIED"], "dataset": None}, result
+        )
+        self.assertEqual(DatasetVisibility.PRIVATE, self.dataset.visibility)
+
+        result = self.update_visibility(self.workspace_admin, visibility="ORGANIZATION")
+        self.assertTrue(result["success"])
+        self.assertEqual(DatasetVisibility.ORGANIZATION, self.dataset.visibility)
+
+    def test_legacy_shared_with_organization_input(self):
+        self.update_visibility(self.org_admin, sharedWithOrganization=True)
+        self.assertEqual(DatasetVisibility.ORGANIZATION, self.dataset.visibility)
+
+        self.update_visibility(self.org_admin, visibility="PUBLIC")
+        # The boolean cannot express "public", so turning it on must not downgrade.
+        self.update_visibility(self.org_admin, sharedWithOrganization=True)
+        self.assertEqual(DatasetVisibility.PUBLIC, self.dataset.visibility)
+
+        self.update_visibility(self.org_admin, sharedWithOrganization=False)
+        self.assertEqual(DatasetVisibility.PRIVATE, self.dataset.visibility)
+
+    def test_anonymous_cannot_read_private_or_organization_dataset(self):
+        self.client.logout()
+        for visibility in [DatasetVisibility.PRIVATE, DatasetVisibility.ORGANIZATION]:
+            self.dataset.visibility = visibility
+            self.dataset.save()
+            r = self.run_query(self.DATASET_BY_ID, {"id": str(self.dataset.id)})
+            self.assertIsNone(r["data"]["dataset"])
+
+    def test_anonymous_can_read_public_dataset(self):
+        self.dataset.visibility = DatasetVisibility.PUBLIC
+        self.dataset.save()
+        self.client.logout()
+
+        r = self.run_query(self.DATASET_BY_ID, {"id": str(self.dataset.id)})
+        self.assertEqual(
+            {
+                "id": str(self.dataset.id),
+                "name": "Dataset",
+                "visibility": "PUBLIC",
+                "createdBy": None,
+                "permissions": {
+                    "update": False,
+                    "delete": False,
+                    "createVersion": False,
+                    "makePublic": False,
+                },
+                "latestVersion": {
+                    "name": "v1",
+                    "createdBy": None,
+                    "permissions": {"download": True},
+                    "files": {
+                        "items": [{"filename": "some-uri.csv", "createdBy": None}]
+                    },
+                },
+            },
+            r["data"]["dataset"],
+        )
+
+    def test_user_from_other_organization_can_read_public_dataset_by_id(self):
+        self.dataset.visibility = DatasetVisibility.PUBLIC
+        self.dataset.save()
+        self.client.force_login(self.outsider)
+
+        r = self.run_query(self.DATASET_BY_ID, {"id": str(self.dataset.id)})
+        self.assertEqual("Dataset", r["data"]["dataset"]["name"])
+        self.assertEqual(
+            {"email": self.org_admin.email}, r["data"]["dataset"]["createdBy"]
+        )
+        self.assertFalse(r["data"]["dataset"]["permissions"]["update"])
+
+        # Not listed: the permalink is the only way in.
+        r = self.run_query("query { datasets { items { id } } }")
+        self.assertEqual([], r["data"]["datasets"]["items"])
+
+    def test_anonymous_can_download_public_file(self):
+        storage.reset()
+        storage.create_bucket(settings.WORKSPACE_DATASETS_BUCKET)
+        self.dataset.visibility = DatasetVisibility.PUBLIC
+        self.dataset.save()
+        storage.save_object(
+            settings.WORKSPACE_DATASETS_BUCKET,
+            self.version_file.uri,
+            BytesIO(b"some content"),
+        )
+        self.client.logout()
+
+        r = self.run_query(
+            """
+            mutation PrepareVersionFileDownload ($input: PrepareVersionFileDownloadInput!) {
+                prepareVersionFileDownload(input: $input) { downloadUrl success errors }
+            }
+            """,
+            {"input": {"fileId": str(self.version_file.id)}},
+        )
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "downloadUrl": f"http://mockstorage.com/{settings.WORKSPACE_DATASETS_BUCKET}/{self.version_file.uri}",
+            },
+            r["data"]["prepareVersionFileDownload"],
+        )
+
+        self.dataset.visibility = DatasetVisibility.ORGANIZATION
+        self.dataset.save()
+        r = self.run_query(
+            """
+            mutation PrepareVersionFileDownload ($input: PrepareVersionFileDownloadInput!) {
+                prepareVersionFileDownload(input: $input) { downloadUrl success errors }
+            }
+            """,
+            {"input": {"fileId": str(self.version_file.id)}},
+        )
+        self.assertEqual(
+            {"success": False, "errors": ["FILE_NOT_FOUND"], "downloadUrl": None},
+            r["data"]["prepareVersionFileDownload"],
         )
 
 
@@ -1556,7 +1777,7 @@ class DatasetLinkBySlugTest(GraphQLTestCase, DatasetTestMixin):
         )
 
     def test_dataset_link_by_slug_organization_shared(self):
-        self.dataset.shared_with_organization = True
+        self.dataset.visibility = DatasetVisibility.ORGANIZATION
         self.dataset.save()
 
         self.client.force_login(self.org_member)
@@ -1598,7 +1819,7 @@ class DatasetLinkBySlugTest(GraphQLTestCase, DatasetTestMixin):
         )
 
     def test_dataset_link_by_slug_unrelated_organization_not_shared(self):
-        self.dataset.shared_with_organization = True
+        self.dataset.visibility = DatasetVisibility.ORGANIZATION
         self.dataset.workspace.organization = self.unrelated_organization
 
         self.dataset.workspace.save()
@@ -1653,7 +1874,7 @@ class DatasetLinkBySlugTest(GraphQLTestCase, DatasetTestMixin):
 
         self.dataset.link(principal=self.org_admin, workspace=self.target_workspace)
 
-        self.dataset.shared_with_organization = True
+        self.dataset.visibility = DatasetVisibility.ORGANIZATION
         self.dataset.save()
 
         self.client.force_login(self.org_member)

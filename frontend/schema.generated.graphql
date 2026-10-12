@@ -1611,12 +1611,13 @@ type Dataset implements MetadataObject {
   links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
   name: String!
   permissions: DatasetPermissions!
-  sharedWithOrganization: Boolean!
+  sharedWithOrganization: Boolean! @deprecated(reason: "Use visibility instead (true for ORGANIZATION and PUBLIC).")
   slug: String!
   targetId: OpaqueID!
   updatedAt: DateTime!
   version(id: ID!): DatasetVersion
   versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
+  visibility: DatasetVisibility!
   workspace: Workspace
 }
 
@@ -1670,6 +1671,9 @@ type DatasetPermissions {
 
   """Permissions to delete the dataset"""
   delete: Boolean!
+
+  """Permissions to set the visibility of the dataset to PUBLIC"""
+  makePublic: Boolean!
 
   """Permissions to edit the dataset"""
   update: Boolean!
@@ -1758,6 +1762,20 @@ type DatasetVersionPermissions {
 
   """Permissions to update the dataset version"""
   update: Boolean!
+}
+
+"""Who can open a dataset besides the workspaces it is linked to."""
+enum DatasetVisibility {
+  """Every workspace of the source workspace's organization."""
+  ORGANIZATION
+
+  """
+  Only the source workspace and the workspaces it was explicitly shared with.
+  """
+  PRIVATE
+
+  """Anyone with the permalink, including visitors who are not logged in."""
+  PUBLIC
 }
 
 scalar Date
@@ -3333,7 +3351,9 @@ type Mutation {
   """Prepare to upload an object to a workspace's bucket."""
   prepareObjectUpload(input: PrepareObjectUploadInput!): PrepareObjectUploadResult!
 
-  """Prepare to download a file in a dataset version."""
+  """
+  Prepare to download a file in a dataset version. Open to anonymous visitors for public datasets; the resolver checks the download permission.
+  """
   prepareVersionFileDownload(input: PrepareVersionFileDownloadInput!): PrepareVersionFileDownloadResult!
 
   """Registers a new user."""
@@ -5239,7 +5259,12 @@ input UpdateDatasetInput {
   datasetId: ID!
   description: String
   name: String
+
+  """
+  Deprecated: use visibility instead. Ignored when visibility is also given.
+  """
   sharedWithOrganization: Boolean
+  visibility: DatasetVisibility
 }
 
 """Result of updating a dataset."""

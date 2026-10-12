@@ -9,6 +9,7 @@ from hexa.datasets.models import (
     DatasetLink,
     DatasetVersion,
     DatasetVersionFile,
+    DatasetVisibility,
 )
 from hexa.pipeline_templates.models import PipelineTemplate, PipelineTemplateVersion
 from hexa.pipelines.models import (
@@ -144,7 +145,9 @@ class WorkspaceScopeAuditTest(GraphQLTestCase):
             name=name,
             slug=name.lower(),
             workspace=cls.OTHER,
-            shared_with_organization=shared,
+            visibility=(
+                DatasetVisibility.ORGANIZATION if shared else DatasetVisibility.PRIVATE
+            ),
         )
         DatasetLink.objects.create(dataset=dataset, workspace=cls.OTHER)
         return dataset

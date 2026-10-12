@@ -56,6 +56,20 @@ def check_principal_perm(principal, workspace_id, perm: str, obj) -> None:
         raise PermissionDenied
 
 
+class DatasetVisibility(models.TextChoices):
+    PRIVATE = "PRIVATE", _("Private")
+    ORGANIZATION = "ORGANIZATION", _("Organization")
+    PUBLIC = "PUBLIC", _("Public")
+
+
+# A public dataset is also reachable by every member of its organization, so any
+# organization-level check must accept both values.
+ORGANIZATION_WIDE_VISIBILITIES = [
+    DatasetVisibility.ORGANIZATION,
+    DatasetVisibility.PUBLIC,
+]
+
+
 class DatasetQuerySet(BaseQuerySet):
     @staticmethod
     def optimize_query(qs: models.QuerySet) -> models.QuerySet:
@@ -63,22 +77,30 @@ class DatasetQuerySet(BaseQuerySet):
             "workspace", "workspace__organization", "created_by"
         ).prefetch_related("versions", "links", "links__workspace")
 
-    def filter_for_user(self, user: AnonymousUser | UserInterface) -> models.QuerySet:
+    def filter_for_user(
+        self, user: AnonymousUser | UserInterface, *, include_public: bool = True
+    ) -> models.QuerySet:
+        """Every dataset the user may open.
+
+        Public datasets are meant to be reached by their permalink only, so
+        listings pass ``include_public=False`` and keep them out unless the user
+        would see them anyway (through a link or their organization).
+        """
         from hexa.workspaces.models import Workspace
 
+        # Both helpers return an empty queryset for anonymous users, which leaves
+        # them with public datasets only.
         accessible_workspaces = Workspace.objects.filter_for_user(user)
         accessible_organizations = Organization.objects.filter_for_user(
             user, direct_membership_only=True
         )
-        return self.optimize_query(
-            self.filter(
-                Q(links__workspace__in=accessible_workspaces)
-                | Q(
-                    shared_with_organization=True,
-                    workspace__organization__in=accessible_organizations,
-                )
-            ).distinct()
+        query = Q(links__workspace__in=accessible_workspaces) | Q(
+            visibility__in=ORGANIZATION_WIDE_VISIBILITIES,
+            workspace__organization__in=accessible_organizations,
         )
+        if include_public:
+            query |= Q(visibility=DatasetVisibility.PUBLIC)
+        return self.optimize_query(self.filter(query).distinct())
 
     def filter_for_workspace_slugs(
         self, user: AnonymousUser | UserInterface, workspace_slugs: list[str]
@@ -157,7 +179,11 @@ class Dataset(MetadataMixin, Base):
     name = models.TextField(max_length=64, null=False, blank=False)
     slug = models.TextField(null=False, blank=False, max_length=255)
     description = models.TextField(blank=True, null=True)
-    shared_with_organization = models.BooleanField(default=False)
+    visibility = models.CharField(
+        max_length=20,
+        choices=DatasetVisibility.choices,
+        default=DatasetVisibility.PRIVATE,
+    )
 
     objects = DatasetManager.from_queryset(DatasetQuerySet)()
 
@@ -168,11 +194,29 @@ class Dataset(MetadataMixin, Base):
             return versions[0] if versions else None
         return self.versions.order_by("-created_at").first()
 
+    @property
+    def is_public(self) -> bool:
+        return self.visibility == DatasetVisibility.PUBLIC
+
+    @property
+    def shared_with_organization(self) -> bool:
+        """Kept for the deprecated ``sharedWithOrganization`` GraphQL field."""
+        return self.visibility in ORGANIZATION_WIDE_VISIBILITIES
+
     def update_if_has_perm(self, *, principal: User, **kwargs):
         if not principal.has_perm("datasets.update_dataset", self):
             raise PermissionDenied
 
-        for key in ["name", "description", "shared_with_organization"]:
+        # Going public takes the dataset outside the organization, so it is held
+        # to a stricter permission than the rest of the update.
+        if (
+            kwargs.get("visibility") == DatasetVisibility.PUBLIC
+            and not self.is_public
+            and not principal.has_perm("datasets.make_dataset_public", self)
+        ):
+            raise PermissionDenied
+
+        for key in ["name", "description", "visibility"]:
             if key in kwargs:
                 setattr(self, key, kwargs[key])
 
@@ -216,12 +260,9 @@ class Dataset(MetadataMixin, Base):
 
 class DatasetVersionQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface):
-        # TODO: It should also check workspace where it's added
-        return self._filter_for_user_and_query_object(
-            user,
-            models.Q(dataset__in=Dataset.objects.filter_for_user(user)),
-            return_all_if_superuser=False,
-        )
+        # Not routed through _filter_for_user_and_query_object: that helper turns
+        # anonymous users away, while public datasets must stay reachable for them.
+        return self.filter(dataset__in=Dataset.objects.filter_for_user(user)).distinct()
 
 
 class DatasetVersionManager(models.Manager):
@@ -346,13 +387,11 @@ class DatasetVersion(MetadataMixin, Base):
 
 class DatasetVersionFileQuerySet(BaseQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface):
-        return self._filter_for_user_and_query_object(
-            user,
-            models.Q(
-                dataset_version__dataset__in=Dataset.objects.filter_for_user(user)
-            ),
-            return_all_if_superuser=False,
-        )
+        # See DatasetVersionQuerySet.filter_for_user for why this bypasses the
+        # shared helper.
+        return self.filter(
+            dataset_version__dataset__in=Dataset.objects.filter_for_user(user)
+        ).distinct()
 
     def filter_by_filename(self, filename: str):
         return self.filter(uri__endswith=f"/{filename}")
@@ -595,7 +634,7 @@ class DatasetLinkQuerySet(BaseQuerySet):
             return DatasetLink.objects.none()
 
         permission_query = Q(workspace__id__in=workspace_ids) | Q(
-            dataset__shared_with_organization=True,
+            dataset__visibility__in=ORGANIZATION_WIDE_VISIBILITIES,
             workspace__organization__workspaces__id__in=workspace_ids,
         )
 
@@ -625,11 +664,14 @@ class DatasetLinkQuerySet(BaseQuerySet):
         accessible_organizations = Organization.objects.filter_for_user(
             user, direct_membership_only=True
         )
+        # Public datasets are deliberately absent: links are how datasets appear in
+        # workspace listings, and public datasets are only meant to be reached by
+        # their permalink.
         return self.optimize_query(
             self.filter(
                 Q(workspace__in=accessible_workspaces)
                 | Q(
-                    dataset__shared_with_organization=True,
+                    dataset__visibility__in=ORGANIZATION_WIDE_VISIBILITIES,
                     workspace__organization__in=accessible_organizations,
                 )
             ).distinct()

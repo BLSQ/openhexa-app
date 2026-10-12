@@ -1,5 +1,17 @@
 
 """
+Who can open a dataset besides the workspaces it is linked to.
+"""
+enum DatasetVisibility {
+  "Only the source workspace and the workspaces it was explicitly shared with."
+  PRIVATE
+  "Every workspace of the source workspace's organization."
+  ORGANIZATION
+  "Anyone with the permalink, including visitors who are not logged in."
+  PUBLIC
+}
+
+"""
 Dataset is a collection of files that are related to each other and are versioned.
 """
 type Dataset implements MetadataObject{
@@ -11,7 +23,8 @@ type Dataset implements MetadataObject{
   updatedAt: DateTime!
   createdBy: User
   workspace: Workspace
-  sharedWithOrganization: Boolean!
+  visibility: DatasetVisibility!
+  sharedWithOrganization: Boolean! @deprecated(reason: "Use visibility instead (true for ORGANIZATION and PUBLIC).")
   permissions: DatasetPermissions!
   versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
   version(id: ID!): DatasetVersion
@@ -31,6 +44,8 @@ type DatasetPermissions {
   delete: Boolean!
   "Permissions to create a new version of the dataset"
   createVersion: Boolean!
+  "Permissions to set the visibility of the dataset to PUBLIC"
+  makePublic: Boolean!
 }
 
 """
@@ -214,6 +229,8 @@ input UpdateDatasetInput {
   datasetId: ID!
   name: String
   description: String
+  visibility: DatasetVisibility
+  "Deprecated: use visibility instead. Ignored when visibility is also given."
   sharedWithOrganization: Boolean
 }
 
@@ -539,8 +556,8 @@ extend type Mutation {
   generateDatasetUploadUrl(input: GenerateDatasetUploadUrlInput!): GenerateDatasetUploadUrlResult! @loginRequired
   "Create a new file in a dataset version."
   createDatasetVersionFile(input: CreateDatasetVersionFileInput!): CreateDatasetVersionFileResult! @loginRequired
-  "Prepare to download a file in a dataset version."
-  prepareVersionFileDownload(input: PrepareVersionFileDownloadInput!): PrepareVersionFileDownloadResult! @loginRequired
+  "Prepare to download a file in a dataset version. Open to anonymous visitors for public datasets; the resolver checks the download permission."
+  prepareVersionFileDownload(input: PrepareVersionFileDownloadInput!): PrepareVersionFileDownloadResult!
   "Link a dataset with a workspace."
   linkDataset(input: LinkDatasetInput!): LinkDatasetResult! @loginRequired
   "Delete a dataset link."

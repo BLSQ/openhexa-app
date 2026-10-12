@@ -472,6 +472,7 @@ query WorkspaceDatasetsPage(
           name
           slug
           description
+          visibility
           updatedAt
           workspace {
             slug
@@ -518,7 +519,7 @@ query WorkspaceDatasetIndexPage(
         update
       }
       description
-      sharedWithOrganization
+      visibility
       updatedAt
       createdAt
       workspace {
@@ -585,11 +586,13 @@ query WorkspaceDatasetAccessPage(
     ...DatasetLayout_datasetLink
     id
     dataset {
+      id
       name
       permissions {
         update
+        makePublic
       }
-      sharedWithOrganization
+      visibility
       workspace {
         organization {
           id

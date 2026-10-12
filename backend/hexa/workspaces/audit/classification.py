@@ -2,7 +2,11 @@
 
 from uuid import UUID
 
-from hexa.datasets.models import Dataset, DatasetLink
+from hexa.datasets.models import (
+    ORGANIZATION_WIDE_VISIBILITIES,
+    Dataset,
+    DatasetLink,
+)
 from hexa.workspaces.models import TokenScopeVerdict, Workspace
 
 # Reaching another workspace *only* through these is legitimate by design:
@@ -32,19 +36,22 @@ def reachable_datasets(workspace: Workspace, dataset_ids: set) -> dict:
         ).values_list("dataset_id", flat=True)
     )
     reasons = {}
-    for dataset_id, dataset_workspace_id, shared, organization_id in (
+    for dataset_id, dataset_workspace_id, visibility, organization_id in (
         Dataset.objects.filter(pk__in=dataset_ids)
         .exclude(workspace_id=workspace.id)
         .values_list(
             "id",
             "workspace_id",
-            "shared_with_organization",
+            "visibility",
             "workspace__organization_id",
         )
     ):
         if dataset_id in linked:
             reasons[dataset_workspace_id] = "linked"
-        elif shared and organization_id == workspace.organization_id:
+        elif (
+            visibility in ORGANIZATION_WIDE_VISIBILITIES
+            and organization_id == workspace.organization_id
+        ):
             reasons.setdefault(dataset_workspace_id, "org_shared")
     return reasons
 

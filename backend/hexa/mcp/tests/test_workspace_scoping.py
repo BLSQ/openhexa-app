@@ -7,7 +7,12 @@ from django.utils import timezone
 from oauth2_provider.models import Application
 
 from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
-from hexa.datasets.models import Dataset, DatasetVersion, DatasetVersionFile
+from hexa.datasets.models import (
+    Dataset,
+    DatasetVersion,
+    DatasetVersionFile,
+    DatasetVisibility,
+)
 from hexa.mcp.models import MCPConnection, MCPUser
 from hexa.mcp.protocol import get_tools_catalogue
 from hexa.mcp.tests.testutils import all_tool_names
@@ -338,7 +343,7 @@ class OpaqueIdScopingTest(MCPTestCase):
     def test_an_organization_shared_dataset_cannot_be_written(self):
         self.UNGRANTED_WORKSPACE.organization = self.WORKSPACE.organization
         self.UNGRANTED_WORKSPACE.save()
-        self.OTHER_DATASET.shared_with_organization = True
+        self.OTHER_DATASET.visibility = DatasetVisibility.ORGANIZATION
         self.OTHER_DATASET.save()
         self.assertIn(
             self.OTHER_DATASET, Dataset.objects.filter_for_user(self.mcp_user)

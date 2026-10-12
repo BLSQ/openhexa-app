@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
 import Badge from "core/components/Badge";
+import { DatasetVisibilityBadge } from "datasets/features/DatasetVisibility";
+import { DatasetVisibility } from "graphql/types";
 import { OrganizationDataset_LinkFragment } from "organizations/graphql/queries.generated";
 
 type DatasetWorkspacesListProps = {
@@ -19,11 +21,9 @@ const DatasetWorkspacesList = ({
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (dataset.sharedWithOrganization) {
+  if (dataset.visibility !== DatasetVisibility.Private) {
     return (
-      <Badge className="bg-green-100 text-green-800" size={size}>
-        {t("Organization")}
-      </Badge>
+      <DatasetVisibilityBadge visibility={dataset.visibility} size={size} />
     );
   }
 

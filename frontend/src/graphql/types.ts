@@ -1644,12 +1644,14 @@ export type Dataset = MetadataObject & {
   links: DatasetLinkPage;
   name: Scalars['String']['output'];
   permissions: DatasetPermissions;
+  /** @deprecated Use visibility instead (true for ORGANIZATION and PUBLIC). */
   sharedWithOrganization: Scalars['Boolean']['output'];
   slug: Scalars['String']['output'];
   targetId: Scalars['OpaqueID']['output'];
   updatedAt: Scalars['DateTime']['output'];
   version?: Maybe<DatasetVersion>;
   versions: DatasetVersionPage;
+  visibility: DatasetVisibility;
   workspace?: Maybe<Workspace>;
 };
 
@@ -1727,6 +1729,8 @@ export type DatasetPermissions = {
   createVersion: Scalars['Boolean']['output'];
   /** Permissions to delete the dataset */
   delete: Scalars['Boolean']['output'];
+  /** Permissions to set the visibility of the dataset to PUBLIC */
+  makePublic: Scalars['Boolean']['output'];
   /** Permissions to edit the dataset */
   update: Scalars['Boolean']['output'];
 };
@@ -1837,6 +1841,16 @@ export type DatasetVersionPermissions = {
   /** Permissions to update the dataset version */
   update: Scalars['Boolean']['output'];
 };
+
+/** Who can open a dataset besides the workspaces it is linked to. */
+export enum DatasetVisibility {
+  /** Every workspace of the source workspace's organization. */
+  Organization = 'ORGANIZATION',
+  /** Only the source workspace and the workspaces it was explicitly shared with. */
+  Private = 'PRIVATE',
+  /** Anyone with the permalink, including visitors who are not logged in. */
+  Public = 'PUBLIC'
+}
 
 /** Represents the error types for declining a workspace invitation. */
 export enum DeclineWorkspaceInvitationError {
@@ -3263,7 +3277,7 @@ export type Mutation = {
   prepareObjectDownload: PrepareObjectDownloadResult;
   /** Prepare to upload an object to a workspace's bucket. */
   prepareObjectUpload: PrepareObjectUploadResult;
-  /** Prepare to download a file in a dataset version. */
+  /** Prepare to download a file in a dataset version. Open to anonymous visitors for public datasets; the resolver checks the download permission. */
   prepareVersionFileDownload: PrepareVersionFileDownloadResult;
   /** Registers a new user. */
   register: RegisterResult;
@@ -6179,7 +6193,9 @@ export type UpdateDatasetInput = {
   datasetId: Scalars['ID']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  /** Deprecated: use visibility instead. Ignored when visibility is also given. */
   sharedWithOrganization?: InputMaybe<Scalars['Boolean']['input']>;
+  visibility?: InputMaybe<DatasetVisibility>;
 };
 
 /** Result of updating a dataset. */

@@ -41,23 +41,26 @@ def delete_dataset_version(principal: User, version: DatasetVersion):
     return create_dataset(principal, version.dataset.workspace)
 
 
-def download_dataset_version(principal: User, version: DatasetVersion):
-    return (
-        version.dataset.links.filter(
-            workspace__in=principal.workspace_set.all()
-        ).exists()
-        or (
-            version.dataset.shared_with_organization
-            and version.dataset.workspace.organization
-            and principal.is_organization_member(version.dataset.workspace.organization)
-        )
-        or principal.is_organization_admin_or_owner(
-            version.dataset.workspace.organization
-        )
+def make_dataset_public(principal: User, dataset: Dataset):
+    """Publishing exposes the dataset outside the organization, so it is reserved
+    to the organization's admins and owners rather than to anyone who can edit it.
+    """
+    return principal.is_authenticated and principal.is_organization_admin_or_owner(
+        dataset.workspace.organization
     )
 
 
+def download_dataset_version(principal: User, version: DatasetVersion):
+    return view_dataset(principal, version.dataset)
+
+
 def view_dataset(principal: User, dataset: Dataset):
+    # Public datasets are the only objects an anonymous principal can reach, so
+    # this is checked before anything that assumes a logged-in user.
+    if dataset.is_public:
+        return True
+    if not principal.is_authenticated:
+        return False
     return (
         dataset.links.filter(workspace__in=principal.workspace_set.all()).exists()
         or dataset.workspace.workspacemembership_set.filter(

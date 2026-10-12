@@ -9,9 +9,15 @@ import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
 import { ItemProvider } from "core/hooks/useItemContext";
+import {
+  DatasetVisibilityBadge,
+  getPublicDatasetPath,
+} from "datasets/features/DatasetVisibility";
 import { updateDataset, updateDatasetVersion } from "datasets/helpers/dataset";
 import DatasetLayout from "datasets/layouts/DatasetLayout";
+import { DatasetVisibility } from "graphql/types";
 import { useTranslation } from "next-i18next";
+import Link from "next/link";
 import {
   useWorkspaceDatasetIndexPageQuery,
   WorkspaceDatasetIndexPageDocument,
@@ -122,22 +128,35 @@ const WorkspaceDatasetPage: NextPageWithLayout = (
             >
               {(property) => <Badge>{property.displayValue}</Badge>}
             </RenderProperty>
-            {dataset.sharedWithOrganization &&
+            {dataset.visibility !== DatasetVisibility.Private &&
               dataset.workspace?.organization && (
                 <RenderProperty
-                  id="organizationSharing"
-                  accessor="sharedWithOrganization"
-                  label={t("Organization sharing")}
+                  id="visibility"
+                  accessor="visibility"
+                  label={t("Visibility")}
                   readonly
                 >
                   {() => (
-                    <Badge color="green">
-                      {t("Shared with {{orgName}}", {
-                        orgName:
-                          dataset.workspace?.organization?.name ||
-                          "Organization",
-                      })}
-                    </Badge>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <DatasetVisibilityBadge
+                        visibility={dataset.visibility}
+                        size="sm"
+                      />
+                      {dataset.visibility === DatasetVisibility.Public ? (
+                        <Link
+                          href={getPublicDatasetPath(dataset.id)}
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          {t("Open public page")}
+                        </Link>
+                      ) : (
+                        <span className="text-sm text-gray-500">
+                          {t("Shared with {{orgName}}", {
+                            orgName: dataset.workspace?.organization?.name,
+                          })}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </RenderProperty>
               )}

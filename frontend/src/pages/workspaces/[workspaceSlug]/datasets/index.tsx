@@ -28,6 +28,7 @@ import PinDatasetButton from "datasets/features/PinDatasetButton";
 import useCacheKey from "core/hooks/useCacheKey";
 import clsx from "clsx";
 import Link from "core/components/Link";
+import { DatasetVisibilityBadge } from "datasets/features/DatasetVisibility";
 
 type Props = {
   page: number;
@@ -158,6 +159,13 @@ const WorkspaceDatasetsPage: NextPageWithLayout = (props: Props) => {
                       {value.dataset.name}
                     </Link>
                   </div>
+                )}
+              </BaseColumn>
+              <BaseColumn id="visibility" label={t("Visibility")}>
+                {(value) => (
+                  <DatasetVisibilityBadge
+                    visibility={value.dataset.visibility}
+                  />
                 )}
               </BaseColumn>
               <DateColumn

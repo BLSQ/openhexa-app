@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.test import override_settings
 from django.utils import timezone
@@ -12,6 +13,7 @@ from hexa.datasets.models import (
     DatasetLink,
     DatasetVersion,
     DatasetVersionFile,
+    DatasetVisibility,
 )
 from hexa.files import storage
 from hexa.pipelines.authentication import PipelineRunUser
@@ -428,7 +430,7 @@ class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
         self.assertFalse(self.DATASET.shared_with_organization)
 
     def test_dataset_shared_with_organization_can_be_set_to_true(self):
-        self.DATASET.shared_with_organization = True
+        self.DATASET.visibility = DatasetVisibility.ORGANIZATION
         self.DATASET.save()
         self.DATASET.refresh_from_db()
         self.assertTrue(self.DATASET.shared_with_organization)
@@ -440,7 +442,7 @@ class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
             name="Org Dataset",
             description="Organization shared dataset",
         )
-        org_dataset.shared_with_organization = True
+        org_dataset.visibility = DatasetVisibility.ORGANIZATION
         org_dataset.save()
 
         datasets = Dataset.objects.filter_for_user(self.USER_EDITOR)
@@ -456,7 +458,7 @@ class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
             name="Org Dataset",
             description="Organization shared dataset",
         )
-        org_dataset.shared_with_organization = True
+        org_dataset.visibility = DatasetVisibility.ORGANIZATION
         org_dataset.save()
 
         datasets = Dataset.objects.filter_for_user(self.USER_SERENA)
@@ -479,7 +481,7 @@ class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
             name="Org Dataset",
             description="Organization shared dataset",
         )
-        org_dataset.shared_with_organization = True
+        org_dataset.visibility = DatasetVisibility.ORGANIZATION
         org_dataset.save()
 
         collaborator = User.objects.create_user("collaborator@example.com", "password")
@@ -533,7 +535,7 @@ class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
             name="Different Org Dataset",
             description="Dataset in different organization",
         )
-        different_org_dataset.shared_with_organization = True
+        different_org_dataset.visibility = DatasetVisibility.ORGANIZATION
         different_org_dataset.save()
 
         datasets = Dataset.objects.filter_for_user(self.USER_EDITOR)
@@ -544,11 +546,171 @@ class DatasetOrganizationSharingTest(BaseTestMixin, TestCase):
 
         self.DATASET.update_if_has_perm(
             principal=self.USER_ADMIN,
-            shared_with_organization=True,
+            visibility=DatasetVisibility.ORGANIZATION,
         )
 
         self.DATASET.refresh_from_db()
         self.assertTrue(self.DATASET.shared_with_organization)
+
+
+class DatasetPublicVisibilityTest(BaseTestMixin, TestCase):
+    """Public datasets: reachable by anyone through their permalink, listed nowhere else."""
+
+    @classmethod
+    def setUpTestData(cls):
+        BaseTestMixin.setUpTestData()
+
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER_ADMIN,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+        # Workspace admin who is a plain organization member: may edit, may not publish.
+        OrganizationMembership.objects.create(
+            organization=cls.ORGANIZATION,
+            user=cls.USER_EDITOR,
+            role=OrganizationMembershipRole.MEMBER,
+        )
+        # Lives in the other organization and has never been given access to WORKSPACE.
+        cls.OUTSIDER = User.objects.create_user("outsider@bluesquarehub.com", "pw")
+        cls.OUTSIDER_WORKSPACE = cls.WORKSPACE_2
+        WorkspaceMembership.objects.create(
+            workspace=cls.OUTSIDER_WORKSPACE,
+            user=cls.OUTSIDER,
+            role=WorkspaceMembershipRole.ADMIN,
+        )
+
+        cls.PUBLIC_DATASET = Dataset.objects.create_if_has_perm(
+            cls.USER_ADMIN, cls.WORKSPACE, name="Public", description=""
+        )
+        cls.PUBLIC_DATASET.visibility = DatasetVisibility.PUBLIC
+        cls.PUBLIC_DATASET.save()
+        cls.PUBLIC_VERSION = cls.PUBLIC_DATASET.create_version(
+            principal=cls.USER_ADMIN, name="v1"
+        )
+
+        cls.ORG_DATASET = Dataset.objects.create_if_has_perm(
+            cls.USER_ADMIN, cls.WORKSPACE, name="Org", description=""
+        )
+        cls.ORG_DATASET.visibility = DatasetVisibility.ORGANIZATION
+        cls.ORG_DATASET.save()
+
+        cls.PRIVATE_DATASET = Dataset.objects.create_if_has_perm(
+            cls.USER_ADMIN, cls.WORKSPACE, name="Private", description=""
+        )
+
+    def test_shared_with_organization_property(self):
+        self.assertTrue(self.PUBLIC_DATASET.shared_with_organization)
+        self.assertTrue(self.ORG_DATASET.shared_with_organization)
+        self.assertFalse(self.PRIVATE_DATASET.shared_with_organization)
+        self.assertTrue(self.PUBLIC_DATASET.is_public)
+
+    def test_anonymous_user_sees_public_datasets_only(self):
+        datasets = Dataset.objects.filter_for_user(AnonymousUser())
+        self.assertEqual([self.PUBLIC_DATASET], list(datasets))
+        self.assertEqual(
+            [self.PUBLIC_VERSION],
+            list(DatasetVersion.objects.filter_for_user(AnonymousUser())),
+        )
+
+    def test_user_from_other_organization_sees_public_datasets_only(self):
+        datasets = Dataset.objects.filter_for_user(self.OUTSIDER)
+        self.assertEqual([self.PUBLIC_DATASET], list(datasets))
+
+    def test_listings_exclude_public_datasets_from_other_organizations(self):
+        self.assertEqual(
+            [],
+            list(Dataset.objects.filter_for_user(self.OUTSIDER, include_public=False)),
+        )
+        self.assertEqual(
+            [],
+            list(
+                Dataset.objects.filter_for_user(AnonymousUser(), include_public=False)
+            ),
+        )
+        self.assertEqual(
+            [],
+            list(DatasetLink.objects.filter_for_workspaces([self.OUTSIDER_WORKSPACE])),
+        )
+        self.assertEqual([], list(DatasetLink.objects.filter_for_user(self.OUTSIDER)))
+
+    def test_public_dataset_still_listed_for_its_own_organization(self):
+        org_links = DatasetLink.objects.filter_for_workspaces([self.WORKSPACE])
+        self.assertIn(self.PUBLIC_DATASET, [link.dataset for link in org_links])
+        self.assertIn(
+            self.PUBLIC_DATASET,
+            Dataset.objects.filter_for_user(self.USER_EDITOR, include_public=False),
+        )
+
+    def test_view_and_download_permissions(self):
+        for principal in [AnonymousUser(), self.OUTSIDER]:
+            self.assertTrue(
+                principal.has_perm("datasets.view_dataset", self.PUBLIC_DATASET)
+            )
+            self.assertTrue(
+                principal.has_perm(
+                    "datasets.download_dataset_version", self.PUBLIC_VERSION
+                )
+            )
+            self.assertFalse(
+                principal.has_perm("datasets.view_dataset", self.ORG_DATASET)
+            )
+            self.assertFalse(
+                principal.has_perm("datasets.view_dataset", self.PRIVATE_DATASET)
+            )
+        # Reading is open, writing is not.
+        self.assertFalse(
+            self.OUTSIDER.has_perm("datasets.update_dataset", self.PUBLIC_DATASET)
+        )
+
+    def test_make_dataset_public_permission(self):
+        self.assertTrue(
+            self.USER_ADMIN.has_perm(
+                "datasets.make_dataset_public", self.PRIVATE_DATASET
+            )
+        )
+        self.assertFalse(
+            self.USER_EDITOR.has_perm(
+                "datasets.make_dataset_public", self.PRIVATE_DATASET
+            )
+        )
+        self.assertFalse(
+            self.OUTSIDER.has_perm("datasets.make_dataset_public", self.PRIVATE_DATASET)
+        )
+
+    def test_only_organization_admin_can_publish(self):
+        dataset = Dataset.objects.create_if_has_perm(
+            self.USER_ADMIN, self.WORKSPACE, name="To publish", description=""
+        )
+        self.assertTrue(self.USER_EDITOR.has_perm("datasets.update_dataset", dataset))
+
+        with self.assertRaises(PermissionDenied):
+            dataset.update_if_has_perm(
+                principal=self.USER_EDITOR, visibility=DatasetVisibility.PUBLIC
+            )
+        dataset.refresh_from_db()
+        self.assertEqual(DatasetVisibility.PRIVATE, dataset.visibility)
+
+        dataset.update_if_has_perm(
+            principal=self.USER_ADMIN, visibility=DatasetVisibility.PUBLIC
+        )
+        dataset.refresh_from_db()
+        self.assertEqual(DatasetVisibility.PUBLIC, dataset.visibility)
+
+    def test_editor_can_unpublish_and_rename_public_dataset(self):
+        dataset = Dataset.objects.create_if_has_perm(
+            self.USER_ADMIN, self.WORKSPACE, name="Published", description=""
+        )
+        dataset.visibility = DatasetVisibility.PUBLIC
+        dataset.save()
+
+        dataset.update_if_has_perm(principal=self.USER_EDITOR, name="Renamed")
+        dataset.update_if_has_perm(
+            principal=self.USER_EDITOR, visibility=DatasetVisibility.PRIVATE
+        )
+        dataset.refresh_from_db()
+        self.assertEqual("Renamed", dataset.name)
+        self.assertEqual(DatasetVisibility.PRIVATE, dataset.visibility)
 
 
 class DatasetOrganizationSharingPermissionsTest(BaseTestMixin, TestCase):
@@ -594,7 +756,7 @@ class DatasetOrganizationSharingPermissionsTest(BaseTestMixin, TestCase):
             name="Org Shared Dataset",
             description="Dataset shared with organization",
         )
-        cls.ORG_DATASET.shared_with_organization = True
+        cls.ORG_DATASET.visibility = DatasetVisibility.ORGANIZATION
         cls.ORG_DATASET.save()
 
     def test_organization_admin_can_update_dataset_organization_sharing(self):
@@ -827,7 +989,7 @@ class DatasetOrganizationAdminOwnerPermissionsTest(BaseTestMixin, TestCase):
         self.assertIn(self.DATASET_WORKSPACE_3, datasets)
 
     def test_organization_shared_dataset_plus_admin_owner_permissions(self):
-        self.DATASET_WORKSPACE.shared_with_organization = True
+        self.DATASET_WORKSPACE.visibility = DatasetVisibility.ORGANIZATION
         self.DATASET_WORKSPACE.save()
 
         datasets_owner = Dataset.objects.filter_for_user(self.ORG_OWNER_USER)
@@ -923,7 +1085,9 @@ class DatasetLinkPipelineRunUserTest(BaseTestMixin, TestCase):
 
     def test_pipeline_user_can_access_organization_shared_dataset_links(self):
         """PipelineRunUser should access dataset links that are shared with the organization."""
-        self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG.shared_with_organization = True
+        self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG.visibility = (
+            DatasetVisibility.ORGANIZATION
+        )
         self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG.save()
 
         links = DatasetLink.objects.filter_for_user(self.pipeline_user)
@@ -935,7 +1099,7 @@ class DatasetLinkPipelineRunUserTest(BaseTestMixin, TestCase):
         self,
     ):
         """PipelineRunUser should NOT access dataset links from different organizations."""
-        self.DATASET_IN_DIFFERENT_ORG.shared_with_organization = True
+        self.DATASET_IN_DIFFERENT_ORG.visibility = DatasetVisibility.ORGANIZATION
         self.DATASET_IN_DIFFERENT_ORG.save()
 
         links = DatasetLink.objects.filter_for_user(self.pipeline_user)
@@ -953,9 +1117,11 @@ class DatasetLinkPipelineRunUserTest(BaseTestMixin, TestCase):
 
     def test_pipeline_user_sees_org_shared_datasets_via_dataset_queryset(self):
         """A pipeline run sees datasets shared with its workspace's organization."""
-        self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG.shared_with_organization = True
+        self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG.visibility = (
+            DatasetVisibility.ORGANIZATION
+        )
         self.DATASET_IN_OTHER_WORKSPACE_SAME_ORG.save()
-        self.DATASET_IN_DIFFERENT_ORG.shared_with_organization = True
+        self.DATASET_IN_DIFFERENT_ORG.visibility = DatasetVisibility.ORGANIZATION
         self.DATASET_IN_DIFFERENT_ORG.save()
 
         datasets = Dataset.objects.filter_for_user(self.pipeline_user)

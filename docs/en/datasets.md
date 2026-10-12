@@ -118,10 +118,20 @@ Dataset sharing is one of OpenHEXA's most powerful collaboration features. It le
 - Select the target workspace from the available list.
 - This approach provides granular control over data access.
 
-#### Organization-wide sharing
-- Activate the **Share with the whole organization** toggle.
-- This makes the dataset available to all workspaces within your organization.
-- ⚠️ Organization-wide sharing overrides any specific workspace permissions.
+#### Visibility
+The **Visibility** selector on the access management tab of the source workspace sets who can open the dataset beyond the workspaces it is shared with:
+
+- **Private**: only the source workspace and the workspaces it is explicitly shared with.
+- **Organization**: every workspace of your organization can view and download it.
+- **Public**: anyone with the link can view and download it, even without an OpenHEXA account.
+
+⚠️ Organization and public visibility override any specific workspace permissions.
+
+#### Public datasets
+- Only organization admins and owners can make a dataset public. Anyone who can edit the dataset can make it private again.
+- Once public, a **Public link** appears on the access management tab. It is a permalink based on the dataset identifier, so it keeps working if the dataset is renamed.
+- Visitors who open the link see the dataset description, its versions and changelogs, the list of files with their preview and column metadata, and can download the files. They cannot see who created the dataset or its files, and cannot change anything.
+- Public datasets are not listed anywhere outside your organization: other organizations and anonymous visitors only reach them through the link.
 
 ### Sharing permissions
 

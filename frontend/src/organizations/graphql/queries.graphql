@@ -116,7 +116,7 @@ fragment OrganizationDataset_link on DatasetLink {
     name
     description
     updatedAt
-    sharedWithOrganization
+    visibility
     workspace {
       slug
       name

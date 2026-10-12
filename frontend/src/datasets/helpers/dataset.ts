@@ -3,6 +3,7 @@ import { getApolloClient } from "core/helpers/apollo";
 import { i18n } from "next-i18next";
 import {
   CreateDatasetVersionError,
+  DatasetVisibility,
   DeleteDatasetError,
   DeleteDatasetLinkError,
   DeleteDatasetVersionError,
@@ -40,7 +41,7 @@ export async function updateDataset(
   values: {
     name?: string;
     description?: string;
-    sharedWithOrganization?: boolean;
+    visibility?: DatasetVisibility;
   },
 ) {
   const client = getApolloClient();
@@ -56,7 +57,7 @@ export async function updateDataset(
             id
             name
             description
-            sharedWithOrganization
+            visibility
             updatedAt
           }
           success
@@ -69,7 +70,7 @@ export async function updateDataset(
         datasetId,
         name: values.name,
         description: values.description,
-        sharedWithOrganization: values.sharedWithOrganization,
+        visibility: values.visibility,
       },
     },
   });

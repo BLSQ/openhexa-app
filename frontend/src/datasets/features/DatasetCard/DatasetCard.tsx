@@ -2,6 +2,7 @@ import { gql } from "@apollo/client";
 import Card from "core/components/Card";
 import Time from "core/components/Time";
 import { DatasetCard_LinkFragment } from "datasets/features/DatasetCard/DatasetCard.generated";
+import { DatasetVisibilityBadge } from "datasets/features/DatasetVisibility";
 import { Trans } from "next-i18next";
 
 type DatasetCardProps = {
@@ -24,12 +25,13 @@ const DatasetCard = ({ link }: DatasetCardProps) => {
       title={dataset.name}
       subtitle={dataset.workspace?.name}
     >
-      <div className={"text-sm text-gray-400 mt-2 flex justify-between"}>
+      <div className="text-sm text-gray-400 mt-2 flex items-center justify-between gap-2">
         <span>
           <Trans>
             Updated <Time datetime={dataset.updatedAt} relative />
           </Trans>
         </span>
+        <DatasetVisibilityBadge visibility={dataset.visibility} />
       </div>
     </Card>
   );
@@ -42,6 +44,7 @@ DatasetCard.fragments = {
         name
         slug
         description
+        visibility
         updatedAt
         workspace {
           slug

@@ -13,6 +13,7 @@ from ..models import (
     DatasetLink,
     DatasetVersion,
     DatasetVersionFile,
+    DatasetVisibility,
     FileUploadError,
 )
 
@@ -60,6 +61,15 @@ def resolve_update_dataset(_, info, **kwargs):
         dataset = Dataset.objects.filter_for_user(request.user).get(
             id=mutation_input["dataset_id"]
         )
+
+        # Older clients (SDK, workspace copier) still send the boolean. Turning it
+        # on never downgrades a public dataset, so a copy keeps its wider reach.
+        legacy_shared = mutation_input.pop("shared_with_organization", None)
+        if legacy_shared is not None and "visibility" not in mutation_input:
+            if not legacy_shared:
+                mutation_input["visibility"] = DatasetVisibility.PRIVATE
+            elif not dataset.is_public:
+                mutation_input["visibility"] = DatasetVisibility.ORGANIZATION
 
         dataset.update_if_has_perm(
             principal=request.user,

@@ -1,16 +1,24 @@
 import { LinkIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import Button from "core/components/Button";
-import Switch from "core/components/Switch";
+import Clipboard from "core/components/Clipboard";
+import Dialog from "core/components/Dialog";
 import Page from "core/components/Page";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
-import { updateDataset } from "datasets/helpers/dataset";
 import DatasetLinksDataGrid from "datasets/features/DatasetLinksDataGrid";
+import {
+  DatasetVisibilityBadge,
+  DatasetVisibilityPicker,
+  getPublicDatasetPath,
+  useDatasetVisibilityOption,
+} from "datasets/features/DatasetVisibility";
 import LinkDatasetDialog from "datasets/features/LinkDatasetDialog";
+import { updateDataset } from "datasets/helpers/dataset";
 import DatasetLayout from "datasets/layouts/DatasetLayout";
+import { DatasetVisibility } from "graphql/types";
 import { useTranslation } from "next-i18next";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import {
   useWorkspaceDatasetAccessPageQuery,
@@ -35,6 +43,21 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
     variables: props,
   });
   const [isLinkDialogOpen, setLinkDialogOpen] = useState(false);
+  // Going public is the one change that opens the dataset to the whole internet,
+  // so it waits for a confirmation instead of applying on click.
+  const [isPublishDialogOpen, setPublishDialogOpen] = useState(false);
+  const [isSaving, setSaving] = useState(false);
+  // The permalink needs the browser's origin, which is unknown during SSR.
+  const [origin, setOrigin] = useState("");
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const visibility = data?.datasetLink?.dataset.visibility;
+  const currentOption = useDatasetVisibilityOption(
+    visibility ?? DatasetVisibility.Private,
+  );
+
   if (!data || !data.datasetLink || !data.workspace) {
     return null;
   }
@@ -46,17 +69,31 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
     : datasetLink.dataset.latestVersion;
 
   const isWorkspaceSource = sourceWorkspace.slug === workspace.slug;
+  const hasOrganization = Boolean(dataset.workspace?.organization);
+  const isPublic = dataset.visibility === DatasetVisibility.Public;
+  const canEditVisibility = dataset.permissions.update && isWorkspaceSource;
+  const publicUrl = `${origin}${getPublicDatasetPath(dataset.id)}`;
 
-  const handleOrganizationSharingChange = async (checked: boolean) => {
+  const applyVisibility = async (next: DatasetVisibility) => {
+    setSaving(true);
     try {
-      if (dataset.permissions.update && isWorkspaceSource) {
-        await updateDataset(dataset.id, {
-          sharedWithOrganization: checked,
-        });
-      }
+      await updateDataset(dataset.id, { visibility: next });
     } catch (error: any) {
-      toast.error(error.message || t("Failed to update dataset sharing"));
+      toast.error(error.message || t("Failed to update dataset visibility"));
+    } finally {
+      setSaving(false);
     }
+  };
+
+  const handleVisibilityChange = (next: DatasetVisibility) => {
+    if (next === dataset.visibility) {
+      return;
+    }
+    if (next === DatasetVisibility.Public) {
+      setPublishDialogOpen(true);
+      return;
+    }
+    applyVisibility(next);
   };
 
   return (
@@ -75,59 +112,48 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
         ]}
         tab="access"
       >
-        {dataset.workspace?.organization && (
-          <div>
-            <div className="px-4 py-5 sm:p-6">
-              {isWorkspaceSource && (
-                <div className="mt-4">
-                  <Switch
-                    checked={dataset.sharedWithOrganization}
-                    onChange={handleOrganizationSharingChange}
-                    disabled={!dataset.permissions.update || !isWorkspaceSource}
-                    label={t("Share with the whole Organization")}
-                  />
-                  {!dataset.sharedWithOrganization && (
-                    <p className="mt-2 text-sm text-gray-500">
-                      {t(
-                        "Only accessible by the owner workspace and explicitly shared workspaces",
-                      )}
-                    </p>
+        {hasOrganization && (
+          <div className="px-4 py-5 sm:p-6 space-y-4">
+            {isWorkspaceSource ? (
+              <div>
+                <h3 className="text-sm font-medium text-gray-800 mb-2">
+                  {t("Visibility")}
+                </h3>
+                <DatasetVisibilityPicker
+                  value={dataset.visibility}
+                  onChange={handleVisibilityChange}
+                  disabled={!canEditVisibility || isSaving}
+                  canMakePublic={dataset.permissions.makePublic}
+                />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <DatasetVisibilityBadge
+                  visibility={dataset.visibility}
+                  size="sm"
+                />
+                <span>{currentOption.description}</span>
+              </div>
+            )}
+            {isPublic && (
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                <h3 className="text-sm font-medium text-blue-800">
+                  {t("Public link")}
+                </h3>
+                <p className="mt-1 text-sm text-blue-700">
+                  {t(
+                    "Anyone with this link can view and download the dataset without logging in. The link stays valid even if the dataset is renamed.",
                   )}
+                </p>
+                <div className="mt-2 font-mono text-sm text-blue-900 break-all">
+                  <Clipboard value={publicUrl}>{publicUrl}</Clipboard>
                 </div>
-              )}
-              {dataset.sharedWithOrganization && (
-                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <svg
-                        className="h-5 w-5 text-green-400"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-green-800">
-                        {t("Shared with all workspaces")}
-                      </h3>
-                      <div className="mt-1 text-sm text-green-700">
-                        {t(
-                          "This dataset is available to all workspaces in your organization.",
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         )}
-        {(!dataset.sharedWithOrganization || !dataset.workspace?.organization) && (
+        {(dataset.visibility === DatasetVisibility.Private ||
+          !hasOrganization) && (
           <>
             <DatasetLinksDataGrid dataset={datasetLink.dataset} />
             <Block.Content className="flex justify-end">
@@ -148,6 +174,40 @@ const WorkspaceDatasetAccessPage: NextPageWithLayout = (
         open={isLinkDialogOpen}
         onClose={() => setLinkDialogOpen(false)}
       />
+      <Dialog
+        open={isPublishDialogOpen}
+        onClose={() => !isSaving && setPublishDialogOpen(false)}
+        maxWidth="max-w-md"
+      >
+        <Dialog.Title onClose={() => setPublishDialogOpen(false)}>
+          {t("Make this dataset public?")}
+        </Dialog.Title>
+        <Dialog.Content>
+          <p className="text-sm text-gray-600">
+            {t(
+              "Anyone with the link will be able to view and download every version of this dataset, without an OpenHEXA account. You can make it private again at any time.",
+            )}
+          </p>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            variant="outlined"
+            onClick={() => setPublishDialogOpen(false)}
+            disabled={isSaving}
+          >
+            {t("Cancel")}
+          </Button>
+          <Button
+            onClick={async () => {
+              setPublishDialogOpen(false);
+              await applyVisibility(DatasetVisibility.Public);
+            }}
+            disabled={isSaving}
+          >
+            {t("Make public")}
+          </Button>
+        </Dialog.Actions>
+      </Dialog>
     </Page>
   );
 };

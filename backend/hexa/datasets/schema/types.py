@@ -172,14 +172,33 @@ def resolve_dataset_permissions_delete(obj: Dataset, info, **kwargs):
     )
 
 
-@dataset_version_permissions.field("download")
-def resolve_dataset_version_permissions_download(obj: DatasetVersion, info, **kwargs):
+@dataset_permissions.field("makePublic")
+def resolve_dataset_permissions_make_public(obj: Dataset, info, **kwargs):
     request: HttpRequest = info.context["request"]
     return (
-        request.user.has_perm("datasets.download_dataset_version", obj)
+        request.user.has_perm("datasets.make_dataset_public", obj)
         if request.user.is_authenticated
         else False
     )
+
+
+def _resolve_created_by_for_viewer(obj, info, **kwargs):
+    # Public datasets are readable without an account; the people behind them are not.
+    request: HttpRequest = info.context["request"]
+    return obj.created_by if request.user.is_authenticated else None
+
+
+dataset_object.set_field("createdBy", _resolve_created_by_for_viewer)
+dataset_version_object.set_field("createdBy", _resolve_created_by_for_viewer)
+dataset_version_file_object.set_field("createdBy", _resolve_created_by_for_viewer)
+
+
+@dataset_version_permissions.field("download")
+def resolve_dataset_version_permissions_download(obj: DatasetVersion, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    # No is_authenticated guard: anonymous visitors may download public datasets,
+    # and the permission itself knows how to answer for them.
+    return request.user.has_perm("datasets.download_dataset_version", obj)
 
 
 @dataset_version_object.field("files")
