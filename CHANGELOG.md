@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.19.2](https://github.com/BLSQ/openhexa-app/compare/5.19.1...5.19.2) (2026-10-12)
+
+
+### Bug Fixes
+
+* webapp access issue for users with 2-FA (HEXA-1831) ([#2121](https://github.com/BLSQ/openhexa-app/issues/2121)) ([7a10b3a](https://github.com/BLSQ/openhexa-app/commit/7a10b3a21614873aaadfd6619174c8a1c369ceba))
+
 ## [5.19.1](https://github.com/BLSQ/openhexa-app/compare/5.19.0...5.19.1) (2026-10-07)
 
 
