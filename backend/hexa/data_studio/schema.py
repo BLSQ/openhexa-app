@@ -46,16 +46,22 @@ saved_query_order_by_enum = EnumType(
 )
 
 # Only the origins a client may declare are bound to the GraphQL enum: the CSV export's
-# origin is set server-side (see views.download_query_csv), so it cannot be claimed on an
-# interactive query and means what it says in the audit log. Derived from the model enum
-# rather than hand-listed, so the two stay in sync — a new client-settable value missing
-# from schema.graphql fails loudly when the schema is built.
+# origin is set server-side (see views.download_query_csv), and so are the ones a
+# request earns by who sends it (see query_runner.run_saved_query), so none of them can
+# be claimed on an interactive query and each means what it says in the audit log.
+# Derived from the model enum rather than hand-listed, so the two stay in sync — a new
+# client-settable value missing from schema.graphql fails loudly when the schema is built.
+SERVER_SET_ORIGINS = (
+    QueryLog.Origin.DATA_STUDIO_EXPORT,
+    QueryLog.Origin.WEBAPP,
+    QueryLog.Origin.PUBLIC,
+)
 execute_sql_origin_enum = EnumType(
     "ExecuteSQLOrigin",
     {
         origin.name: origin
         for origin in QueryLog.Origin
-        if origin not in (QueryLog.Origin.DATA_STUDIO_EXPORT, QueryLog.Origin.WEBAPP)
+        if origin not in SERVER_SET_ORIGINS
     },
 )
 
@@ -108,6 +114,13 @@ def resolve_saved_query_permissions(saved_query: SavedQuery, info, **kwargs):
     return saved_query
 
 
+@saved_query_object.field("createdBy")
+def resolve_saved_query_created_by(saved_query: SavedQuery, info, **kwargs):
+    # Public queries are readable without an account; the people behind them are not.
+    request: HttpRequest = info.context["request"]
+    return saved_query.created_by if request.user.is_authenticated else None
+
+
 @saved_query_permissions.field("update")
 def resolve_saved_query_permissions_update(saved_query: SavedQuery, info, **kwargs):
     request: HttpRequest = info.context["request"]
@@ -140,11 +153,23 @@ def resolve_saved_query_permissions_update_visibility(
     )
 
 
+@saved_query_permissions.field("publish")
+def resolve_saved_query_permissions_publish(saved_query: SavedQuery, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("data_studio.publish_saved_query", saved_query)
+        if request.user.is_authenticated
+        else False
+    )
+
+
 @workspace_object.field("savedQueries")
 def resolve_workspace_saved_queries(workspace: Workspace, info, query=None, **kwargs):
     request: HttpRequest = info.context["request"]
+    # A listing is what membership grants (public queries of the workspace are
+    # shared with its members anyway, so they stay listed for them).
     qs = (
-        SavedQuery.objects.filter_for_user(request.user)
+        SavedQuery.objects.filter_for_user(request.user, include_public=False)
         .filter(workspace=workspace)
         .select_related("created_by", "workspace", "workspace__organization")
     )
@@ -174,6 +199,18 @@ def resolve_workspace_permissions_create_saved_query(
     request: HttpRequest = info.context["request"]
     return (
         request.user.has_perm("data_studio.create_saved_query", workspace)
+        if request.user.is_authenticated
+        else False
+    )
+
+
+@workspace_permissions.field("publishSavedQuery")
+def resolve_workspace_permissions_publish_saved_query(
+    workspace: Workspace, info, **kwargs
+):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("data_studio.publish_saved_query", workspace)
         if request.user.is_authenticated
         else False
     )

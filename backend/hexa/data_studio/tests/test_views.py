@@ -10,7 +10,7 @@ from psycopg2.errors import QueryCanceled
 
 from hexa.core.csv import UTF8_BOM
 from hexa.core.test import TestCase
-from hexa.data_studio.models import QueryLog
+from hexa.data_studio.models import QueryLog, SavedQuery, SavedQueryVisibility
 from hexa.databases.tests.helpers import seed_demo_table
 from hexa.plugins.connector_postgresql.models import Database
 from hexa.user_management.models import User
@@ -424,3 +424,111 @@ class DownloadQueryCsvViewTest(TestCase):
     def test_download_requires_login(self):
         response = self.client.post(self._url(), {"query": "SELECT 1"})
         self.assertEqual(302, response.status_code)
+
+
+class DownloadSavedQueryCsvViewTest(TestCase):
+    """The permalink export: a public query's full result, for anyone at all."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER_SUPERUSER = User.objects.create_user(
+            "superuser@bluesquarehub.com", "superuserpassword", is_superuser=True
+        )
+        cls.USER_SABRINA = User.objects.create_user(
+            "sabrina@bluesquarehub.com", "standardpassword"
+        )
+        cls.WORKSPACE = create_workspace(
+            cls.USER_SUPERUSER,
+            name="Test Workspace",
+            description="Test workspace",
+            countries=[],
+            provision_db_on=cls,
+        )
+        WorkspaceMembership.objects.create(
+            user=cls.USER_SABRINA,
+            workspace=cls.WORKSPACE,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+
+    def _saved_query(self, visibility=SavedQueryVisibility.PUBLIC, content=None):
+        return SavedQuery.objects.create(
+            workspace=self.WORKSPACE,
+            created_by=self.USER_SUPERUSER,
+            name="Demo export",
+            content=content or "SELECT id, label FROM demo ORDER BY id",
+            visibility=visibility,
+        )
+
+    def _url(self, slug):
+        return reverse("data_studio:download_saved_query_csv", args=[slug])
+
+    @staticmethod
+    def _collect(response):
+        async def collect():
+            return b"".join([chunk async for chunk in response.streaming_content])
+
+        return async_to_sync(collect)()
+
+    def test_anonymous_downloads_a_public_query(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a"), (2, "b")])
+        saved_query = self._saved_query()
+
+        response = self.client.post(self._url(saved_query.slug), {FIELD_TOKEN: "t1"})
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(
+            f'attachment; filename="{saved_query.slug}.csv"',
+            response.headers["Content-Disposition"],
+        )
+        # The same handshake as the editor export, so the same frontend code waits on it.
+        self.assertIn(f"{COOKIE_PREFIX}t1", response.cookies)
+        self.assertEqual(
+            UTF8_BOM + "id,label\r\n1,a\r\n2,b\r\n",
+            self._collect(response).decode("utf-8"),
+        )
+
+    def test_download_is_on_record_as_the_query(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+        saved_query = self._saved_query()
+
+        response = self.client.post(self._url(saved_query.slug))
+        self._collect(response)
+
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.SUCCESS, log.status)
+        # Still an uncapped run, hence the export origin; what marks it as a
+        # permalink export is the query it names, and the absence of a user.
+        self.assertEqual(QueryLog.Origin.DATA_STUDIO_EXPORT, log.origin)
+        self.assertEqual(saved_query, log.saved_query)
+        self.assertIsNone(log.user)
+        self.assertEqual(1, log.row_count)
+
+    def test_download_rejects_a_query_that_is_not_public(self):
+        shared = self._saved_query(visibility=SavedQueryVisibility.WORKSPACE)
+
+        # Even for a member who could run it in the editor: this endpoint serves
+        # permalinks, and a permalink is a public query.
+        self.client.force_login(self.USER_SABRINA)
+        response = self.client.post(self._url(shared.slug))
+
+        self.assertEqual(404, response.status_code)
+        self.assertEqual(0, QueryLog.objects.count())
+
+    def test_download_unknown_slug_returns_404(self):
+        response = self.client.post(self._url("no-such-query"))
+        self.assertEqual(404, response.status_code)
+
+    def test_download_rejects_get(self):
+        saved_query = self._saved_query()
+        response = self.client.get(self._url(saved_query.slug))
+        self.assertEqual(405, response.status_code)
+
+    def test_download_rejects_invalid_sql(self):
+        saved_query = self._saved_query(content="SELECT * FROM gone")
+
+        response = self.client.post(self._url(saved_query.slug))
+
+        self.assertEqual(400, response.status_code)
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.ERROR, log.status)
+        self.assertEqual(saved_query, log.saved_query)

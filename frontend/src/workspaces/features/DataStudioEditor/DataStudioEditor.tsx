@@ -8,6 +8,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { PlayIcon } from "@heroicons/react/24/solid";
 import { SQLNamespace } from "@codemirror/lang-sql";
+import { SavedQueryVisibility } from "graphql/types";
 import CodeEditor, {
   CodeEditorHandle,
 } from "core/components/CodeEditor/CodeEditor";
@@ -20,8 +21,10 @@ import ResizablePanel, {
 import useSaveShortcut from "core/hooks/useSaveShortcut";
 import { useTranslation } from "next-i18next";
 import { useCallback, useMemo, useRef, useState } from "react";
+import PublicSavedQueryLinkButton from "workspaces/features/SavedQueries/PublicSavedQueryLinkButton";
 import SaveQueryDialog from "workspaces/features/SavedQueries/SaveQueryDialog";
 import { SavedQuery_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
+import { MAX_ROWS_OPTIONS } from "workspaces/helpers/dataStudio";
 import { useWorkspaceDataStudioSchemaQuery } from "./DataStudioSchemaBrowser.generated";
 import DataStudioResults from "./DataStudioResults";
 import DataStudioSchemaBrowser from "./DataStudioSchemaBrowser";
@@ -36,12 +39,12 @@ type DataStudioEditorProps = {
   workspaceSlug: string;
   savedQuery?: SavedQuery_SavedQueryFragment | null;
   canCreate: boolean;
+  // Whether a new query may be created as public (an organization admin's right).
+  canPublish?: boolean;
   aiEnabled?: boolean;
   aiBudgetLimitReached?: boolean;
   monthlyLimitExceeded?: boolean;
 };
-
-const MAX_ROWS_OPTIONS = [50, 100, 500, 1000, 10_000];
 
 // Schema browser bounds. The floor keeps the tree usable rather than letting it
 // be dragged shut; the ceiling leaves room for the editor on a laptop screen.
@@ -63,6 +66,7 @@ const DataStudioEditor = ({
   workspaceSlug,
   savedQuery,
   canCreate,
+  canPublish = false,
   aiEnabled = false,
   aiBudgetLimitReached = false,
   monthlyLimitExceeded = false,
@@ -217,9 +221,14 @@ const DataStudioEditor = ({
                 <SavedQueryVisibilityButton
                   visibility={editor.savedQuery.visibility}
                   canUpdate={editor.canUpdateVisibility}
+                  canPublish={editor.canPublish}
                   saving={editor.saving}
                   onChange={editor.setVisibility}
                 />
+              )}
+              {editor.savedQuery?.visibility ===
+                SavedQueryVisibility.Public && (
+                <PublicSavedQueryLinkButton slug={editor.savedQuery.slug} />
               )}
               <label className="flex items-center gap-1.5 text-xs text-gray-500">
                 {t("Max rows")}
@@ -371,6 +380,7 @@ const DataStudioEditor = ({
         savedQuery={editor.savedQuery}
         onClose={editor.closeDialog}
         onSaved={editor.onDialogSaved}
+        canPublish={canPublish}
       />
     </>
   );

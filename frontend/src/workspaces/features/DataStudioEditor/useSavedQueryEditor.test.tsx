@@ -30,12 +30,22 @@ const savedQuery = {
   updatedAt: "2024-01-01T00:00:00Z",
   visibility: SavedQueryVisibility.Private,
   createdBy: null,
-  permissions: { update: true, delete: true, updateVisibility: true },
+  permissions: {
+    update: true,
+    delete: true,
+    updateVisibility: true,
+    publish: false,
+  },
 } as any;
 
 const readOnlyQuery = {
   ...savedQuery,
-  permissions: { update: false, delete: false, updateVisibility: false },
+  permissions: {
+    update: false,
+    delete: false,
+    updateVisibility: false,
+    publish: false,
+  },
 };
 
 const renderEditor = (
@@ -167,7 +177,12 @@ describe("useSavedQueryEditor", () => {
   it("does not change visibility without the permission to unshare", async () => {
     const { result } = renderEditor("SELECT 1", {
       ...savedQuery,
-      permissions: { update: true, delete: true, updateVisibility: false },
+      permissions: {
+        update: true,
+        delete: true,
+        updateVisibility: false,
+        publish: false,
+      },
     });
 
     expect(result.current.canUpdateVisibility).toBe(false);
@@ -175,6 +190,56 @@ describe("useSavedQueryEditor", () => {
       await result.current.setVisibility(SavedQueryVisibility.Workspace);
     });
     expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  // The author's right to share is not the right to publish: the two are gated
+  // separately, as on the backend.
+  it("does not publish without the permission to publish", async () => {
+    const { result } = renderEditor("SELECT 1");
+
+    expect(result.current.canPublish).toBe(false);
+    await act(async () => {
+      await result.current.setVisibility(SavedQueryVisibility.Public);
+    });
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  it("publishes with the permission to publish, even without the one to share", async () => {
+    updateMock.mockResolvedValue({
+      data: {
+        updateSavedQuery: {
+          success: true,
+          errors: [],
+          savedQuery: {
+            ...savedQuery,
+            visibility: SavedQueryVisibility.Public,
+          },
+        },
+      },
+    });
+    const { result } = renderEditor("SELECT 1", {
+      ...savedQuery,
+      permissions: {
+        update: true,
+        delete: true,
+        updateVisibility: false,
+        publish: true,
+      },
+    });
+
+    await act(async () => {
+      await result.current.setVisibility(SavedQueryVisibility.Public);
+    });
+
+    expect(updateMock).toHaveBeenCalledWith({
+      variables: {
+        input: { id: "q1", visibility: SavedQueryVisibility.Public },
+      },
+    });
+    expect(toast.success).toHaveBeenCalledWith("Query is now public");
+    expect(result.current.savedQuery?.visibility).toBe(
+      SavedQueryVisibility.Public,
+    );
   });
 
   it("does not update a query the user cannot edit", async () => {

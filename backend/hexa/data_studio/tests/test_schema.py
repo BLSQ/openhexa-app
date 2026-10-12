@@ -13,6 +13,11 @@ from hexa.databases.tests.helpers import (
 )
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.git.testutils import make_git_client_mock
+from hexa.user_management.models import (
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    User,
+)
 
 from .testutils import SavedQueryTestMixin
 
@@ -796,6 +801,282 @@ class ExecuteSavedQueryTest(SavedQueryTestMixin, GraphQLTestCase):
         log = QueryLog.objects.get()
         self.assertEqual(QueryLog.Status.DENIED, log.status)
         self.assertEqual(saved_query, log.saved_query)
+
+
+class PublicSavedQuerySchemaTest(SavedQueryTestMixin, GraphQLTestCase):
+    """What a permalink hands to whoever opens it, and who gets to create one."""
+
+    SAVED_QUERY_BY_SLUG = """
+        query ($slug: String!) {
+            savedQueryBySlug(slug: $slug) {
+                name description visibility
+                createdBy { email }
+                workspace { slug name organization { name } }
+                permissions { update delete updateVisibility publish }
+            }
+        }
+    """
+    EXECUTE_QUERY = """
+        query ($input: ExecuteSavedQueryInput!) {
+            executeSavedQuery(input: $input) { success errors columns rows }
+        }
+    """
+    UPDATE_VISIBILITY = """
+        mutation ($input: UpdateSavedQueryInput!) {
+            updateSavedQuery(input: $input) { success errors savedQuery { visibility } }
+        }
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        provision_workspace_database(cls, cls.WORKSPACE)
+        cls.USER_ORG_ADMIN = User.objects.create_user(
+            "orgadmin@bluesquarehub.com", "orgadminpassword"
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.WORKSPACE.organization,
+            user=cls.USER_ORG_ADMIN,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+
+    def _public_query(self, content="SELECT 1"):
+        return self.create_saved_query(
+            user=self.USER_ORG_ADMIN,
+            content=content,
+            visibility=SavedQueryVisibility.PUBLIC,
+        )
+
+    def test_anonymous_reads_a_public_query_but_not_its_author(self):
+        saved_query = self._public_query()
+
+        self.client.logout()
+        r = self.run_query(self.SAVED_QUERY_BY_SLUG, {"slug": saved_query.slug})
+
+        self.assertEqual(
+            {
+                "name": "My query",
+                "description": "a query",
+                "visibility": "PUBLIC",
+                "createdBy": None,
+                "workspace": {
+                    "slug": self.WORKSPACE.slug,
+                    "name": self.WORKSPACE.name,
+                    "organization": {"name": self.WORKSPACE.organization.name},
+                },
+                "permissions": {
+                    "update": False,
+                    "delete": False,
+                    "updateVisibility": False,
+                    "publish": False,
+                },
+            },
+            r["data"]["savedQueryBySlug"],
+        )
+
+    def test_anonymous_cannot_read_a_shared_or_private_query(self):
+        shared = self.create_saved_query()
+        private = self.create_saved_query(visibility=SavedQueryVisibility.PRIVATE)
+
+        self.client.logout()
+        for saved_query in [shared, private]:
+            r = self.run_query(self.SAVED_QUERY_BY_SLUG, {"slug": saved_query.slug})
+            self.assertIsNone(r["data"]["savedQueryBySlug"])
+
+    def test_outsider_reads_a_public_query_by_slug(self):
+        saved_query = self._public_query()
+
+        self.client.force_login(self.USER_OUTSIDER)
+        r = self.run_query(self.SAVED_QUERY_BY_SLUG, {"slug": saved_query.slug})
+
+        self.assertEqual("PUBLIC", r["data"]["savedQueryBySlug"]["visibility"])
+        # Logged in, so the author is not hidden from them.
+        self.assertEqual(
+            self.USER_ORG_ADMIN.email,
+            r["data"]["savedQueryBySlug"]["createdBy"]["email"],
+        )
+
+    def test_public_query_stays_listed_for_members(self):
+        saved_query = self._public_query()
+
+        self.client.force_login(self.USER_VIEWER)
+        r = self.run_query(
+            """
+            query ($slug: String!) {
+                workspace(slug: $slug) { savedQueries { items { slug visibility } } }
+            }
+            """,
+            {"slug": str(self.WORKSPACE.slug)},
+        )
+
+        self.assertEqual(
+            [{"slug": saved_query.slug, "visibility": "PUBLIC"}],
+            r["data"]["workspace"]["savedQueries"]["items"],
+        )
+
+    def test_anonymous_runs_a_public_query(self):
+        seed_demo_table(self.WORKSPACE, [(1, "a")])
+        saved_query = self._public_query(content="SELECT id, label FROM demo")
+
+        self.client.logout()
+        r = self.run_query(
+            self.EXECUTE_QUERY, {"input": {"slug": saved_query.slug, "maxRows": 10}}
+        )
+
+        self.assertEqual(
+            {
+                "success": True,
+                "errors": [],
+                "columns": ["id", "label"],
+                "rows": [{"id": 1, "label": "a"}],
+            },
+            r["data"]["executeSavedQuery"],
+        )
+        log = QueryLog.objects.get()
+        self.assertEqual(QueryLog.Status.SUCCESS, log.status)
+        # On record as a permalink run by nobody in particular.
+        self.assertIsNone(log.user)
+        self.assertEqual(QueryLog.Origin.PUBLIC, log.origin)
+        self.assertEqual(saved_query, log.saved_query)
+
+    def test_outsider_runs_a_public_query_as_a_public_run(self):
+        saved_query = self._public_query()
+
+        self.client.force_login(self.USER_OUTSIDER)
+        r = self.run_query(self.EXECUTE_QUERY, {"input": {"slug": saved_query.slug}})
+
+        self.assertTrue(r["data"]["executeSavedQuery"]["success"])
+        log = QueryLog.objects.get()
+        self.assertEqual(self.USER_OUTSIDER, log.user)
+        self.assertEqual(QueryLog.Origin.PUBLIC, log.origin)
+
+    def test_member_runs_a_public_query_as_themselves(self):
+        # A member could have run the SQL on their own: the permalink changes
+        # nothing to how their run is recorded.
+        saved_query = self._public_query()
+
+        self.client.force_login(self.USER_VIEWER)
+        r = self.run_query(self.EXECUTE_QUERY, {"input": {"slug": saved_query.slug}})
+
+        self.assertTrue(r["data"]["executeSavedQuery"]["success"])
+        self.assertEqual(QueryLog.Origin.OTHER, QueryLog.objects.get().origin)
+
+    def test_anonymous_cannot_run_a_shared_query(self):
+        saved_query = self.create_saved_query()
+
+        self.client.logout()
+        r = self.run_query(self.EXECUTE_QUERY, {"input": {"slug": saved_query.slug}})
+
+        self.assertEqual(
+            ["SAVED_QUERY_NOT_FOUND"], r["data"]["executeSavedQuery"]["errors"]
+        )
+        self.assertEqual(0, QueryLog.objects.count())
+
+    def test_organization_admin_publishes(self):
+        saved_query = self.create_saved_query(user=self.USER_EDITOR)
+
+        self.client.force_login(self.USER_ORG_ADMIN)
+        r = self.run_query(
+            self.UPDATE_VISIBILITY,
+            {"input": {"id": str(saved_query.id), "visibility": "PUBLIC"}},
+        )
+
+        payload = r["data"]["updateSavedQuery"]
+        self.assertTrue(payload["success"])
+        self.assertEqual("PUBLIC", payload["savedQuery"]["visibility"])
+
+    def test_author_without_the_organization_role_cannot_publish(self):
+        saved_query = self.create_saved_query(user=self.USER_EDITOR)
+
+        self.client.force_login(self.USER_EDITOR)
+        r = self.run_query(
+            self.UPDATE_VISIBILITY,
+            {"input": {"id": str(saved_query.id), "visibility": "PUBLIC"}},
+        )
+
+        payload = r["data"]["updateSavedQuery"]
+        self.assertFalse(payload["success"])
+        self.assertEqual(["PERMISSION_DENIED"], payload["errors"])
+        self.assertEqual(
+            SavedQueryVisibility.WORKSPACE,
+            SavedQuery.objects.get(id=saved_query.id).visibility,
+        )
+
+    def test_create_public_query_is_gated_the_same_way(self):
+        create_mutation = """
+            mutation ($input: CreateSavedQueryInput!) {
+                createSavedQuery(input: $input) {
+                    success errors savedQuery { visibility }
+                }
+            }
+        """
+        variables = {
+            "input": {
+                "workspaceSlug": str(self.WORKSPACE.slug),
+                "name": "Public from the start",
+                "content": "SELECT 1",
+                "visibility": "PUBLIC",
+            }
+        }
+
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(create_mutation, variables)
+        self.assertEqual(["PERMISSION_DENIED"], r["data"]["createSavedQuery"]["errors"])
+
+        self.client.force_login(self.USER_ORG_ADMIN)
+        r = self.run_query(create_mutation, variables)
+        self.assertEqual(
+            "PUBLIC", r["data"]["createSavedQuery"]["savedQuery"]["visibility"]
+        )
+
+    def test_permissions_on_a_public_query(self):
+        saved_query = self._public_query()
+        permissions_query = """
+            query ($slug: String!) {
+                savedQueryBySlug(slug: $slug) {
+                    permissions { update updateVisibility publish }
+                }
+            }
+        """
+        variables = {"slug": saved_query.slug}
+
+        # The organization admin who published it may edit it and take it back.
+        self.client.force_login(self.USER_ORG_ADMIN)
+        r = self.run_query(permissions_query, variables)
+        self.assertEqual(
+            {"update": True, "updateVisibility": True, "publish": True},
+            r["data"]["savedQueryBySlug"]["permissions"],
+        )
+
+        # A workspace admin may edit it like any shared query, and nothing more.
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(permissions_query, variables)
+        self.assertEqual(
+            {"update": True, "updateVisibility": False, "publish": False},
+            r["data"]["savedQueryBySlug"]["permissions"],
+        )
+
+    def test_workspace_permission_to_publish(self):
+        permissions_query = """
+            query ($slug: String!) {
+                workspace(slug: $slug) { permissions { createSavedQuery publishSavedQuery } }
+            }
+        """
+        variables = {"slug": str(self.WORKSPACE.slug)}
+
+        self.client.force_login(self.USER_ADMIN)
+        r = self.run_query(permissions_query, variables)
+        self.assertEqual(
+            {"createSavedQuery": True, "publishSavedQuery": False},
+            r["data"]["workspace"]["permissions"],
+        )
+
+        self.client.force_login(self.USER_ORG_ADMIN)
+        r = self.run_query(permissions_query, variables)
+        self.assertEqual(
+            {"createSavedQuery": True, "publishSavedQuery": True},
+            r["data"]["workspace"]["permissions"],
+        )
 
 
 SHA = "a" * 40

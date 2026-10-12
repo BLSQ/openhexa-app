@@ -3,6 +3,7 @@ from hexa.data_studio.models import SavedQuery, SavedQueryVisibility
 from hexa.data_studio.permissions import (
     create_saved_query,
     delete_saved_query,
+    publish_saved_query,
     update_saved_query,
     update_saved_query_visibility,
 )
@@ -87,6 +88,15 @@ class SavedQueryPermissionsTest(SavedQueryTestMixin, TestCase):
         self.assertTrue(delete_saved_query(self.USER_VIEWER, query))
         self.assertFalse(delete_saved_query(self.USER_EDITOR, query))
         self.assertFalse(delete_saved_query(self.USER_ADMIN, query))
+
+    def test_publish_saved_query_needs_an_organization_role(self):
+        # Neither the author nor a workspace admin: the workspace roles stop at
+        # the organization's edge, and publishing crosses it.
+        query = self._create(self.USER_VIEWER)
+        for user in [self.USER_VIEWER, self.USER_EDITOR, self.USER_ADMIN]:
+            self.assertFalse(publish_saved_query(user, query))
+            self.assertFalse(publish_saved_query(user, self.WORKSPACE))
+        self.assertFalse(publish_saved_query(self.USER_OUTSIDER, query))
 
 
 class SavedQueryOrganizationPermissionsTest(TestCase):
@@ -191,6 +201,31 @@ class SavedQueryOrganizationPermissionsTest(TestCase):
         self.assertTrue(
             update_saved_query_visibility(self.USER_WS_CREATOR, self.SAVED_QUERY)
         )
+
+    def test_organization_role_publishes(self):
+        for obj in [self.SAVED_QUERY, self.WORKSPACE]:
+            self.assertTrue(publish_saved_query(self.USER_ORG_OWNER, obj))
+            self.assertTrue(publish_saved_query(self.USER_ORG_ADMIN, obj))
+            self.assertFalse(publish_saved_query(self.USER_ORG_MEMBER, obj))
+            self.assertFalse(publish_saved_query(self.USER_NON_MEMBER, obj))
+            # The author, unless they hold the organization role too.
+            self.assertFalse(publish_saved_query(self.USER_WS_CREATOR, obj))
+
+    def test_organization_role_takes_a_public_query_back(self):
+        # Once public, the query's exposure is the organization's business as much
+        # as the author's, so both may end it.
+        public = SavedQuery.objects.create(
+            workspace=self.WORKSPACE,
+            created_by=self.USER_WS_CREATOR,
+            name="public q",
+            content="SELECT 1",
+            visibility=SavedQueryVisibility.PUBLIC,
+        )
+        self.assertTrue(update_saved_query_visibility(self.USER_ORG_OWNER, public))
+        self.assertTrue(update_saved_query_visibility(self.USER_ORG_ADMIN, public))
+        self.assertTrue(update_saved_query_visibility(self.USER_WS_CREATOR, public))
+        self.assertFalse(update_saved_query_visibility(self.USER_ORG_MEMBER, public))
+        self.assertFalse(update_saved_query_visibility(self.USER_NON_MEMBER, public))
 
     def test_organization_role_does_not_list_private_queries(self):
         visible = set(SavedQuery.objects.filter_for_user(self.USER_ORG_ADMIN))

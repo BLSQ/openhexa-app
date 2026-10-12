@@ -15,6 +15,7 @@ fragment SavedQueryListItem_savedQuery on SavedQuery {
     update
     delete
     updateVisibility
+    publish
   }
 }
 
@@ -33,6 +34,7 @@ fragment SavedQuery_savedQuery on SavedQuery {
     update
     delete
     updateVisibility
+    publish
   }
 }
 

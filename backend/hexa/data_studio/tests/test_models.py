@@ -13,7 +13,11 @@ from hexa.data_studio.models import (
 )
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
-from hexa.user_management.models import User
+from hexa.user_management.models import (
+    OrganizationMembership,
+    OrganizationMembershipRole,
+    User,
+)
 from hexa.workspaces.models import (
     WorkspaceMembership,
     WorkspaceMembershipRole,
@@ -102,9 +106,28 @@ class SavedQueryModelTest(SavedQueryTestMixin, TestCase):
         )
         self.assertIn(private, SavedQuery.objects.filter_for_user(superuser))
 
-    def test_filter_for_user_anonymous_sees_nothing(self):
+    def test_filter_for_user_anonymous_sees_public_queries_only(self):
         self.create_saved_query(user=self.USER_EDITOR)
-        self.assertEqual(0, SavedQuery.objects.filter_for_user(AnonymousUser()).count())
+        self.create_saved_query(
+            user=self.USER_EDITOR, visibility=SavedQueryVisibility.PRIVATE
+        )
+        # Created directly: publishing is gated, and that gate is tested elsewhere.
+        public = SavedQuery.objects.create(
+            workspace=self.WORKSPACE,
+            created_by=self.USER_EDITOR,
+            name="Public",
+            content="SELECT 1",
+            visibility=SavedQueryVisibility.PUBLIC,
+        )
+        self.assertEqual(
+            [public], list(SavedQuery.objects.filter_for_user(AnonymousUser()))
+        )
+        self.assertEqual(
+            0,
+            SavedQuery.objects.filter_for_user(
+                AnonymousUser(), include_public=False
+            ).count(),
+        )
 
     def test_filter_for_user_pipeline_run_user_only_sees_shared_queries(self):
         # A pipeline run impersonates the workspace, not a person, so it can never
@@ -558,3 +581,115 @@ class QueryLogModelTest(TestCase):
     def test_workspace_deletion_removes_logs(self):
         self.WORKSPACE_2.delete()
         self.assertFalse(QueryLog.objects.filter(id=self.LOG_WS2.id).exists())
+
+
+class PublicSavedQueryModelTest(SavedQueryTestMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        # An organization admin who is not a member of the workspace: the role
+        # alone is what publishing is reserved to.
+        cls.USER_ORG_ADMIN = User.objects.create_user(
+            "orgadmin@bluesquarehub.com", "orgadminpassword"
+        )
+        OrganizationMembership.objects.create(
+            organization=cls.WORKSPACE.organization,
+            user=cls.USER_ORG_ADMIN,
+            role=OrganizationMembershipRole.ADMIN,
+        )
+
+    def test_public_query_is_reachable_by_everyone(self):
+        public = self.create_saved_query(
+            user=self.USER_ORG_ADMIN, visibility=SavedQueryVisibility.PUBLIC
+        )
+        for user in [
+            AnonymousUser(),
+            self.USER_OUTSIDER,
+            self.USER_VIEWER,
+            self.USER_ORG_ADMIN,
+        ]:
+            self.assertIn(public, SavedQuery.objects.filter_for_user(user))
+
+    def test_include_public_keeps_outsiders_within_their_memberships(self):
+        # A member still gets the public queries of their workspace: they are
+        # shared with the workspace like any WORKSPACE query.
+        public = self.create_saved_query(
+            user=self.USER_ORG_ADMIN, visibility=SavedQueryVisibility.PUBLIC
+        )
+        self.assertIn(
+            public,
+            SavedQuery.objects.filter_for_user(self.USER_VIEWER, include_public=False),
+        )
+        self.assertNotIn(
+            public,
+            SavedQuery.objects.filter_for_user(
+                self.USER_OUTSIDER, include_public=False
+            ),
+        )
+
+    def test_create_public_query_reserved_to_organization_admins(self):
+        with self.assertRaises(PermissionDenied):
+            self.create_saved_query(
+                user=self.USER_ADMIN, visibility=SavedQueryVisibility.PUBLIC
+            )
+        saved_query = self.create_saved_query(
+            user=self.USER_ORG_ADMIN, visibility=SavedQueryVisibility.PUBLIC
+        )
+        self.assertTrue(saved_query.is_public)
+
+    def test_author_cannot_publish_without_the_organization_role(self):
+        saved_query = self.create_saved_query(user=self.USER_EDITOR)
+        with self.assertRaises(PermissionDenied):
+            saved_query.update_if_has_perm(
+                principal=self.USER_EDITOR, visibility=SavedQueryVisibility.PUBLIC
+            )
+        saved_query.refresh_from_db()
+        self.assertEqual(SavedQueryVisibility.WORKSPACE, saved_query.visibility)
+
+    def test_organization_admin_publishes_and_takes_back(self):
+        saved_query = self.create_saved_query(user=self.USER_EDITOR)
+
+        saved_query.update_if_has_perm(
+            principal=self.USER_ORG_ADMIN, visibility=SavedQueryVisibility.PUBLIC
+        )
+        self.assertTrue(SavedQuery.objects.get(id=saved_query.id).is_public)
+
+        saved_query.update_if_has_perm(
+            principal=self.USER_ORG_ADMIN, visibility=SavedQueryVisibility.WORKSPACE
+        )
+        self.assertEqual(
+            SavedQueryVisibility.WORKSPACE,
+            SavedQuery.objects.get(id=saved_query.id).visibility,
+        )
+
+    def test_author_takes_a_public_query_back(self):
+        saved_query = self.create_saved_query(
+            user=self.USER_ORG_ADMIN, visibility=SavedQueryVisibility.PUBLIC
+        )
+        # Not the author: the organization admin who published it could not have
+        # given them a say, and sharing stays the author's call.
+        saved_query.update_if_has_perm(
+            principal=self.USER_ORG_ADMIN, visibility=SavedQueryVisibility.PRIVATE
+        )
+        self.assertEqual(
+            SavedQueryVisibility.PRIVATE,
+            SavedQuery.objects.get(id=saved_query.id).visibility,
+        )
+
+    def test_workspace_admin_cannot_take_a_public_query_back(self):
+        saved_query = self.create_saved_query(
+            user=self.USER_ORG_ADMIN, visibility=SavedQueryVisibility.PUBLIC
+        )
+        with self.assertRaises(PermissionDenied):
+            saved_query.update_if_has_perm(
+                principal=self.USER_ADMIN, visibility=SavedQueryVisibility.WORKSPACE
+            )
+
+    def test_public_query_is_edited_like_a_shared_one(self):
+        saved_query = self.create_saved_query(
+            user=self.USER_ORG_ADMIN, visibility=SavedQueryVisibility.PUBLIC
+        )
+        saved_query.update_if_has_perm(principal=self.USER_EDITOR, content="SELECT 2")
+        self.assertEqual("SELECT 2", SavedQuery.objects.get(id=saved_query.id).content)
+        with self.assertRaises(PermissionDenied):
+            saved_query.update_if_has_perm(principal=self.USER_VIEWER, name="Mine")

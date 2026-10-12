@@ -1216,7 +1216,7 @@ export type CreateSavedQueryInput = {
   content: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
-  /** Defaults to PRIVATE when omitted. */
+  /** Defaults to PRIVATE when omitted. PUBLIC is reserved to organization admins and owners; PERMISSION_DENIED otherwise. */
   visibility?: InputMaybe<SavedQueryVisibility>;
   workspaceSlug: Scalars['String']['input'];
 };
@@ -4961,7 +4961,7 @@ export type Query = {
   datasetVersionFile?: Maybe<DatasetVersionFile>;
   /** Search datasets. */
   datasets: DatasetPage;
-  /** Runs a saved query against the workspace database and returns its result, without exposing the SQL. */
+  /** Runs a saved query against the workspace database and returns its result, without exposing the SQL. Open to anonymous visitors for public queries; the resolver checks what the caller may run. */
   executeSavedQuery: ExecuteSqlResult;
   /** Get a file by its path within a workspace. */
   getFileByPath?: Maybe<BucketObject>;
@@ -5755,16 +5755,20 @@ export type SavedQueryPermissions = {
   __typename?: 'SavedQueryPermissions';
   /** Permission to delete the saved query. */
   delete: Scalars['Boolean']['output'];
+  /** Permission to make the saved query public. */
+  publish: Scalars['Boolean']['output'];
   /** Permission to edit the saved query. */
   update: Scalars['Boolean']['output'];
-  /** Permission to share or unshare the saved query. */
+  /** Permission to share or unshare the saved query, and to take a public one back. */
   updateVisibility: Scalars['Boolean']['output'];
 };
 
-/** Who a saved query is visible to within its workspace. */
+/** Who a saved query is visible to. */
 export enum SavedQueryVisibility {
   /** Only the author can see, run and edit the query. */
   Private = 'PRIVATE',
+  /** Every member of the workspace, plus anyone with the permalink: they can run the query and export its result without logging in. */
+  Public = 'PUBLIC',
   /** Every member of the workspace can see and run the query. */
   Workspace = 'WORKSPACE'
 }
@@ -6553,7 +6557,7 @@ export type UpdateSavedQueryInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
-  /** Only the author may change this; PERMISSION_DENIED otherwise. */
+  /** Only the author may change this, except that PUBLIC is reserved to organization admins and owners, who may also take a public query back; PERMISSION_DENIED otherwise. */
   visibility?: InputMaybe<SavedQueryVisibility>;
 };
 
@@ -7180,6 +7184,8 @@ export type WorkspacePermissions = {
   launchNotebookServer: Scalars['Boolean']['output'];
   manageMembers: Scalars['Boolean']['output'];
   manageTags: Scalars['Boolean']['output'];
+  /** Permission to make a saved query of the workspace public. */
+  publishSavedQuery: Scalars['Boolean']['output'];
   update: Scalars['Boolean']['output'];
 };
 

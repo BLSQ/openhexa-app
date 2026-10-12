@@ -69,6 +69,7 @@ export const useSavedQueryEditor = ({
 
   const canUpdate = savedQuery?.permissions.update ?? false;
   const canUpdateVisibility = savedQuery?.permissions.updateVisibility ?? false;
+  const canPublish = savedQuery?.permissions.publish ?? false;
   const isDirty = content !== baseline;
   const hasContent = Boolean(content.trim());
 
@@ -132,18 +133,25 @@ export const useSavedQueryEditor = ({
   // baseline is deliberately left alone so unsaved edits stay unsaved.
   const setVisibility = useCallback(
     async (visibility: SavedQueryVisibility) => {
-      if (!savedQuery || !canUpdateVisibility || saving) {
+      // Publishing is its own permission, held by organization admins rather
+      // than by the author; the backend checks the same split.
+      const allowed =
+        visibility === SavedQueryVisibility.Public
+          ? canPublish
+          : canUpdateVisibility;
+      if (!savedQuery || !allowed || saving) {
         return;
       }
+      const confirmations = {
+        [SavedQueryVisibility.Private]: t("Query is now private"),
+        [SavedQueryVisibility.Workspace]: t("Query shared with the workspace"),
+        [SavedQueryVisibility.Public]: t("Query is now public"),
+      };
       try {
         const res = await update({ id: savedQuery.id, visibility });
         if (res.ok) {
           setSavedQuery(res.savedQuery);
-          toast.success(
-            visibility === SavedQueryVisibility.Workspace
-              ? t("Query shared with the workspace")
-              : t("Query is now private"),
-          );
+          toast.success(confirmations[visibility]);
         } else {
           toast.error(res.message);
         }
@@ -151,7 +159,7 @@ export const useSavedQueryEditor = ({
         toast.error(err.message);
       }
     },
-    [savedQuery, canUpdateVisibility, saving, update, t],
+    [savedQuery, canUpdateVisibility, canPublish, saving, update, t],
   );
 
   const saveAsNew = useCallback(
@@ -231,6 +239,7 @@ export const useSavedQueryEditor = ({
     saving,
     canUpdate,
     canUpdateVisibility,
+    canPublish,
     dialog,
     savePlan,
     save,

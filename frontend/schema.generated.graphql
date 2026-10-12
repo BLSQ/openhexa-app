@@ -1216,7 +1216,9 @@ input CreateSavedQueryInput {
   description: String
   name: String!
 
-  """Defaults to PRIVATE when omitted."""
+  """
+  Defaults to PRIVATE when omitted. PUBLIC is reserved to organization admins and owners; PERMISSION_DENIED otherwise.
+  """
   visibility: SavedQueryVisibility
   workspaceSlug: String!
 }
@@ -4328,7 +4330,7 @@ type Query {
   datasets(page: Int = 1, perPage: Int = 15, query: String): DatasetPage!
 
   """
-  Runs a saved query against the workspace database and returns its result, without exposing the SQL.
+  Runs a saved query against the workspace database and returns its result, without exposing the SQL. Open to anonymous visitors for public queries; the resolver checks what the caller may run.
   """
   executeSavedQuery(input: ExecuteSavedQueryInput!): ExecuteSQLResult!
 
@@ -4803,17 +4805,27 @@ type SavedQueryPermissions {
   """Permission to delete the saved query."""
   delete: Boolean!
 
+  """Permission to make the saved query public."""
+  publish: Boolean!
+
   """Permission to edit the saved query."""
   update: Boolean!
 
-  """Permission to share or unshare the saved query."""
+  """
+  Permission to share or unshare the saved query, and to take a public one back.
+  """
   updateVisibility: Boolean!
 }
 
-"""Who a saved query is visible to within its workspace."""
+"""Who a saved query is visible to."""
 enum SavedQueryVisibility {
   """Only the author can see, run and edit the query."""
   PRIVATE
+
+  """
+  Every member of the workspace, plus anyone with the permalink: they can run the query and export its result without logging in.
+  """
+  PUBLIC
 
   """Every member of the workspace can see and run the query."""
   WORKSPACE
@@ -5723,7 +5735,9 @@ input UpdateSavedQueryInput {
   id: ID!
   name: String
 
-  """Only the author may change this; PERMISSION_DENIED otherwise."""
+  """
+  Only the author may change this, except that PUBLIC is reserved to organization admins and owners, who may also take a public query back; PERMISSION_DENIED otherwise.
+  """
   visibility: SavedQueryVisibility
 }
 
@@ -6344,6 +6358,9 @@ type WorkspacePermissions {
   launchNotebookServer: Boolean!
   manageMembers: Boolean!
   manageTags: Boolean!
+
+  """Permission to make a saved query of the workspace public."""
+  publishSavedQuery: Boolean!
   update: Boolean!
 }
 

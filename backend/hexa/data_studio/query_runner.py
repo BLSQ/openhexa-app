@@ -73,6 +73,11 @@ def ensure_can_run_query(
             QueryLog.Status.DENIED,
         )
         raise PermissionDenied
+    # A public query runs for anyone who can reach it, member or not: its SQL was
+    # vetted by the organization admin who published it, and the caller supplies
+    # none of their own. Being public is the whole authorization (see the app README).
+    if saved_query is not None and saved_query.is_public:
+        return
     if not request.user.has_perm("databases.run_query", workspace):
         _log_executed_query(
             request,
@@ -159,22 +164,38 @@ def run_and_log_database_query(
     return result
 
 
+def public_saved_query_origin(request: HttpRequest, saved_query) -> str | None:
+    """``PUBLIC`` when running ``saved_query`` is authorized by its visibility alone.
+
+    That is: the query is public and the caller could not have queried the workspace
+    database on their own. A member opening the permalink keeps their usual origin,
+    so the audit log tells apart "someone we know" from "someone with the link".
+    """
+    if saved_query.is_public and not request.user.has_perm(
+        "databases.run_query", saved_query.workspace
+    ):
+        return QueryLog.Origin.PUBLIC
+    return None
+
+
 def run_saved_query(request: HttpRequest, saved_query, max_rows: int | None = None):
     """Execute a stored query on behalf of an API request.
 
-    Unlike the interactive path this is reachable from a web app: the SQL was written
-    and vetted by a workspace member when the query was saved, not supplied by the
-    caller, which is the whole point of the endpoint. The permission checked is still
-    the workspace-database one, so a web app cannot reach a database its viewer could
-    not query directly.
+    Unlike the interactive path this is reachable from a web app, and from anyone at
+    all when the query is public: the SQL was written and vetted by a workspace member
+    when the query was saved, not supplied by the caller, which is the whole point of
+    the endpoint. The permission checked is still the workspace-database one (waived
+    for public queries, see ``ensure_can_run_query``), so a web app cannot reach a
+    database its viewer could not query directly.
     """
     # Derived from the request rather than accepted as an argument: a client that
     # could name its own origin could disown the queries it ran.
-    origin = (
-        QueryLog.Origin.WEBAPP
-        if getattr(request, "webapp", None) is not None
-        else QueryLog.Origin.OTHER
-    )
+    if getattr(request, "webapp", None) is not None:
+        origin = QueryLog.Origin.WEBAPP
+    else:
+        origin = (
+            public_saved_query_origin(request, saved_query) or QueryLog.Origin.OTHER
+        )
     return run_and_log_database_query(
         request,
         saved_query.workspace,
@@ -240,6 +261,7 @@ def stream_and_log_database_query(
     workspace: Workspace,
     query: str,
     origin: str,
+    saved_query=None,
 ) -> tuple[list[str], Iterator[list[dict]], QueryExportAudit]:
     """Single point of entry for streaming a full result set on behalf of an API request.
 
@@ -256,7 +278,9 @@ def stream_and_log_database_query(
     try:
         columns, row_batches = stream_database_query(workspace, query)
     except MultipleStatementsError as e:
-        log_rejected_query(request, workspace, query, origin, str(e))
+        log_rejected_query(
+            request, workspace, query, origin, str(e), saved_query=saved_query
+        )
         raise
     except psycopg2.Error as e:
         _log_executed_query(
@@ -268,11 +292,17 @@ def stream_and_log_database_query(
             result_code=e.pgcode,
             error_message=str(e).strip(),
             duration_ms=elapsed_ms(started_at),
+            saved_query=saved_query,
         )
         raise
     try:
         log = _log_executed_query(
-            request, workspace, query, origin, QueryLog.Status.STREAMING
+            request,
+            workspace,
+            query,
+            origin,
+            QueryLog.Status.STREAMING,
+            saved_query=saved_query,
         )
     except Exception:
         # Fail closed on a broken audit trail, as the interactive path does. The query

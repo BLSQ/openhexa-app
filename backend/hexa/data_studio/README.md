@@ -26,6 +26,41 @@ calls it separately so it can refuse a request before reserving a concurrency sl
 The rest of this file is the design-decision home for the CSV export; the code carries
 short "why" comments that point here.
 
+## Public saved queries
+
+A saved query's `visibility` has three values. `PRIVATE` and `WORKSPACE` decide which
+members of the workspace see it; `PUBLIC` keeps everything `WORKSPACE` grants and adds a
+permalink (`/queries/<slug>` on the frontend) that anyone can open, logged in or not, to see
+the query's name and description, run it and export its result. The SQL itself is not shown
+there: like a web app, the visitor gets the result, not the query.
+
+Three things follow from "anyone can run it":
+
+- **Being public is the whole authorization.** `ensure_can_run_query` waives
+  `databases.run_query` for a public query (and only for one): the SQL was vetted by whoever
+  published it, and the visitor supplies none of their own. The permission still applies to
+  everything else, including a member running raw SQL.
+- **Publishing is an organization admin's decision**, not the author's
+  (`permissions.publish_saved_query`): it opens the workspace database to the outside. The
+  author keeps the right to share or unshare, and an organization admin can take a public
+  query back. Creating a query as `PUBLIC` is gated the same way.
+- **The audit log tells a permalink run apart.** An interactive run is recorded with origin
+  `PUBLIC` when the caller could not have queried the database on their own (a visitor, a
+  member of another organization); a member opening the permalink keeps their usual origin. A
+  permalink export keeps the `DATA_STUDIO_EXPORT` origin — it is still an uncapped run — and
+  is told apart from an editor export by naming the query (`saved_query`), which the editor
+  path never does. In both cases a visitor leaves `user` null.
+
+`filter_for_user` returns public queries to everyone, anonymous included, which is what the
+permalink lookups and `executeSavedQuery` rely on; listings pass `include_public=False` to
+stay within what membership grants (the public queries of one's own workspace are shared with
+its members anyway). The permalink export (`views.download_saved_query_csv`) is reachable
+without a session and therefore CSRF-exempt: it changes nothing and serves only public
+queries, so a forged cross-site POST could at most make a browser download public data.
+
+There is no throttling of public runs beyond the bounds every query has (statement timeout,
+row cap, export slots). Revisit if a permalink ever draws real traffic.
+
 ## Saved query history
 
 A saved query's SQL is versioned in a git repository of its own holding a single

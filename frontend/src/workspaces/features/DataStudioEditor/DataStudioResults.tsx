@@ -46,6 +46,9 @@ type DataStudioResultsProps = {
   // error) as opposed to a query that ran but reported success: false.
   error?: ApolloError;
   onRetry?: () => void;
+  // The invitation to chart a plain result is for the query's author. A visitor
+  // of a public query cannot act on it, so the permalink page turns it off.
+  widgetHint?: boolean;
 };
 
 // The grid is a preview: rendering tens of thousands of rows as live DOM is slow,
@@ -99,6 +102,7 @@ const DataStudioResults = ({
   result,
   error,
   onRetry,
+  widgetHint = true,
 }: DataStudioResultsProps) => {
   const { t } = useTranslation();
   const [tab, setTab] = useState<"widget" | "table">("widget");
@@ -321,7 +325,7 @@ const DataStudioResults = ({
             workspace layout pins its floating help button to the viewport's
             bottom-right corner, which overlaps the end of this bar and would
             bury the hint under it. */}
-        {!hasWidget && !isQueryPlan && <WidgetHint />}
+        {widgetHint && !hasWidget && !isQueryPlan && <WidgetHint />}
         {/* Each view reports only the cap that applies to what is on screen:
             the row cap belongs to the table, the feature cap to the map. */}
         {showWidget

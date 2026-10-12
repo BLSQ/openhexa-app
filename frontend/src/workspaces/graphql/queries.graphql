@@ -82,6 +82,7 @@ query WorkspaceDataStudioPage($workspaceSlug: String!) {
     slug
     permissions {
       createSavedQuery
+      publishSavedQuery
     }
     organization {
       id
@@ -131,6 +132,7 @@ query WorkspaceSavedQueryPage($workspaceSlug: String!, $slug: String!) {
     slug
     permissions {
       createSavedQuery
+      publishSavedQuery
     }
     ...WorkspaceLayout_workspace
   }
@@ -145,6 +147,39 @@ query WorkspaceSavedQuerySlugById($workspaceSlug: String!, $id: ID!) {
   savedQuery(workspaceSlug: $workspaceSlug, id: $id) {
     id
     slug
+  }
+}
+
+# The permalink page of a public saved query. Deliberately without `content`:
+# visitors get the result, not the SQL (and the author is hidden from them
+# server-side).
+query PublicSavedQueryPage($slug: String!) {
+  savedQueryBySlug(slug: $slug) {
+    id
+    slug
+    name
+    description
+    visibility
+    workspace {
+      slug
+      name
+      organization {
+        name
+      }
+    }
+  }
+}
+
+query ExecuteSavedQuery($slug: String!, $maxRows: Int) {
+  executeSavedQuery(input: { slug: $slug, maxRows: $maxRows }) {
+    success
+    errors
+    errorMessage
+    columns
+    rows
+    rowCount
+    truncated
+    durationMs
   }
 }
 

@@ -46,8 +46,27 @@ def update_saved_query_visibility(principal: User, saved_query: SavedQuery):
     which is also what keeps them reachable: making one private would hand it to
     nobody. The `data_studio_private_query_has_author` constraint is the backstop
     should this rule ever be relaxed.
+
+    A public query is the one exception: the organization admins who could publish
+    it can also take it back, since leaving it exposed is not the author's call alone.
+    Making it public in the first place is `publish_saved_query`.
     """
-    return _is_author(principal, saved_query)
+    if _is_author(principal, saved_query):
+        return True
+    return saved_query.is_public and publish_saved_query(principal, saved_query)
+
+
+def publish_saved_query(principal: User, obj: SavedQuery | Workspace):
+    """Publishing opens the workspace database to anyone with a link, so it is
+    reserved to the organization's admins and owners, author or not.
+
+    Takes the workspace when the query does not exist yet (creation), the query
+    otherwise.
+    """
+    workspace = obj if isinstance(obj, Workspace) else obj.workspace
+    return principal.is_authenticated and principal.is_organization_admin_or_owner(
+        workspace.organization
+    )
 
 
 def delete_saved_query(principal: User, saved_query: SavedQuery):
