@@ -181,7 +181,7 @@ def resolve_create_pipeline(_, info, **kwargs):
                 data["functional_type"] = input["functional_type"]
 
             tags = None
-            if "tags" in input:
+            if input.get("tags") is not None:
                 tags = Tag.objects.get_or_create_from_names(input["tags"])
 
             pipeline = Pipeline.objects.create_if_has_perm(
@@ -280,8 +280,11 @@ def resolve_update_pipeline(_, info, **kwargs):
             id=input.pop("id")
         )
 
-        if "tags" in input:
+        # tags is a nullable list: null means "leave unchanged", like an absent key.
+        if input.get("tags") is not None:
             input["tags"] = Tag.objects.get_or_create_from_names(input["tags"])
+        else:
+            input.pop("tags", None)
 
         pipeline.update_if_has_perm(request.user, **input)
         return {"pipeline": pipeline, "success": True, "errors": []}
@@ -528,7 +531,7 @@ def resolve_upload_pipeline(_, info, **kwargs):
             config=input.get("config"),
         )
 
-        if "tags" in input:
+        if input.get("tags") is not None:
             pipeline.tags.set(Tag.objects.get_or_create_from_names(input["tags"]))
 
         if "functional_type" in input:
