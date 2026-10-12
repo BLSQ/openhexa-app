@@ -42,6 +42,7 @@ def _queue_copy_run(user, data) -> WorkspaceCopyRun:
             target_workspace_slug=data["target_workspace_slug"],
             resources=sorted(data["resources"]),
             all_dataset_versions=data["all_dataset_versions"],
+            include_connection_secrets=data["include_connection_secrets"],
         )
         workspace_copy_queue.enqueue("run_workspace_copy", {"run_id": str(run.id)})
     return run
@@ -98,6 +99,7 @@ class WorkspaceCopyRunAdmin(admin.ModelAdmin):
         "result_workspace_slug",
         "resources",
         "all_dataset_versions",
+        "include_connection_secrets",
         "created_at",
         "started_at",
         "finished_at",
