@@ -63,6 +63,7 @@ class SavedQueryTestMixin:
         content="SELECT 1",
         description="a query",
         visibility=SavedQueryVisibility.WORKSPACE,
+        parameters=None,
     ):
         """Create a saved query, workspace-shared unless stated otherwise.
 
@@ -77,4 +78,5 @@ class SavedQueryTestMixin:
             content=content,
             description=description,
             visibility=visibility,
+            parameters=parameters,
         )
