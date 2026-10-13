@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import ToolCall
+from .models import MCPConnection, ToolCall
 
 
 @admin.register(ToolCall)
@@ -17,3 +17,12 @@ class ToolCallAdmin(admin.ModelAdmin):
         "created_at",
     )
     ordering = ("-created_at",)
+
+
+@admin.register(MCPConnection)
+class MCPConnectionAdmin(admin.ModelAdmin):
+    list_display = ("user", "application", "last_used_at", "created_at")
+    list_select_related = ("user", "application")
+    search_fields = ("user__email", "application__name")
+    filter_horizontal = ("workspaces",)
+    readonly_fields = ("user", "application", "last_used_at")

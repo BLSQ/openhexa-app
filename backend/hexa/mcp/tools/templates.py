@@ -31,23 +31,3 @@ def get_pipeline_template(user, template_code: str) -> dict:
     if template is None:
         return {"error": "Template not found"}
     return template
-
-
-@tool
-def create_pipeline_from_template(
-    user, workspace_slug: str, template_version_id: str
-) -> dict:
-    """Create a new pipeline in a workspace from a template version. Use get_pipeline_template first to find the template_version_id (the currentVersion.id). The new pipeline will have the template's code, parameters, and configuration pre-configured."""
-    data = execute_graphql(
-        user,
-        "CreatePipelineFromTemplate",
-        {
-            "input": {
-                "workspaceSlug": workspace_slug,
-                "pipelineTemplateVersionId": template_version_id,
-            }
-        },
-    )
-    if "errors" in data:
-        return data
-    return data["createPipelineFromTemplateVersion"]

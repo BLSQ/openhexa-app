@@ -160,6 +160,8 @@ def _dispatch_webapp_response(request, webapp, show_powered_by=False):
             )
     elif webapp.type == Webapp.WebappType.SUPERSET:
         response = _serve_superset_webapp(request, webapp)
+    elif webapp.type == Webapp.WebappType.IFRAME and webapp.points_to_openhexa_webapp:
+        response = HttpResponseRedirect(webapp.url)
     else:
         response = _serve_iframe_webapp(
             webapp,
@@ -270,6 +272,7 @@ def _check_webapp_session(request, webapp):
         return None
 
     request.user = WebappUser.from_user(user, webapp)
+    request.bypass_two_factor = True
     return request.user
 
 

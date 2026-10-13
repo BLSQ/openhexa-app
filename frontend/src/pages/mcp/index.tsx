@@ -8,6 +8,7 @@ import Link from "next/link";
 import logo from "public/images/logo.svg";
 import { ReactElement } from "react";
 import { useTranslation } from "next-i18next";
+import useMe from "identity/hooks/useMe";
 import { GetServerSidePropsContext } from "next";
 
 type Tool = {
@@ -34,6 +35,7 @@ const McpToolsPage: NextPageWithLayout<McpPageProps> = ({
   tools,
 }) => {
   const { t } = useTranslation();
+  const me = useMe();
 
   return (
     <Page title={t("MCP Tools")}>
@@ -60,24 +62,34 @@ const McpToolsPage: NextPageWithLayout<McpPageProps> = ({
             {serverName} v{serverVersion} &middot; Protocol {protocolVersion}{" "}
             &middot; {t("{{count}} tool", { count: tools.length })}
           </p>
-          <Link
-            href="/mcp/wiki"
-            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <div className="flex items-center gap-4">
+            {me?.user && (
+              <Link
+                href="/user/account#mcp-connections"
+                className="text-sm text-blue-600 hover:underline"
+              >
+                {t("Manage permissions and connections")}
+              </Link>
+            )}
+            <Link
+              href="/mcp/wiki"
+              className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
             >
-              <path d="M8 2v8M4 6l4 4 4-4M2 14h12" />
-            </svg>
-            {t("Install")}
-          </Link>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M8 2v8M4 6l4 4 4-4M2 14h12" />
+              </svg>
+              {t("Install")}
+            </Link>
+          </div>
         </div>
 
         {tools.length > 0 ? (

@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from django.core.signing import TimestampSigner
 from django.test import override_settings
 from django.utils import timezone
+from django_otp.plugins.otp_email.models import EmailDevice
 
 from hexa.core.test import GraphQLTestCase, TestCase
 from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
@@ -1357,3 +1358,13 @@ class CustomDomainMiddlewareTest(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("auth_token=", response["Location"])
         self.assertTrue(response["Location"].startswith(next_url))
+
+    def test_auth_token_view_requires_verified_two_factor(self):
+        self.client.force_login(self.USER)
+        EmailDevice.objects.create(user=self.USER, name="default", confirmed=True)
+        response = self.client.get(
+            f"/webapps/{self.PRIVATE_WEBAPP.pk}/auth-token/",
+            {"next": "http://privatecustomdomain.com/"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn("auth_token=", response["Location"])

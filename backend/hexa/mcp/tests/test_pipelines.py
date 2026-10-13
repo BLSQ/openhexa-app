@@ -94,15 +94,13 @@ class GetPipelineTest(MCPTestCase):
         )
         self.assertEqual(result, {"error": "Pipeline not found"})
 
-    def test_get_pipeline_permissions(self):
+    def test_get_pipeline_does_not_report_permissions(self):
         result = get_pipeline(
             user=self.USER_ADMIN,
             workspace_slug=self.WORKSPACE.slug,
             pipeline_code="test-pipeline",
         )
-        self.assertIn("permissions", result)
-        self.assertTrue(result["permissions"]["run"])
-        self.assertTrue(result["permissions"]["update"])
+        self.assertNotIn("permissions", result)
 
 
 class GetPipelineRunTest(MCPTestCase):

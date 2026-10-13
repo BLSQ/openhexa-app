@@ -1,5 +1,113 @@
+from datetime import timedelta
+
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
+from django.db.models import Q
+from django.utils import timezone
+from django.utils.functional import cached_property
+from oauth2_provider.models import AccessToken, Grant, RefreshToken
+
+from hexa.core.models.base import Base
+from hexa.user_management.models import ServicePrincipal, User
+
+
+class MCPResource(models.TextChoices):
+    WORKSPACES = "WORKSPACES", "Workspaces"
+    FILES = "FILES", "Files"
+    DATASETS = "DATASETS", "Datasets"
+    PIPELINES = "PIPELINES", "Pipelines"
+    TEMPLATES = "TEMPLATES", "Pipeline templates"
+    WEBAPPS = "WEBAPPS", "Web apps"
+    DATABASES = "DATABASES", "Databases"
+    SAVED_QUERIES = "SAVED_QUERIES", "Saved queries"
+    CONNECTIONS = "CONNECTIONS", "Connections"
+
+
+SUPERSEDE_IDLE_REGISTRATIONS_AFTER = timedelta(days=30)
+
+LAST_USED_PRECISION = timedelta(minutes=1)
+
+
+class MCPConnection(Base):
+    class Meta:
+        ordering = ["-updated_at"]
+        constraints = [
+            models.UniqueConstraint(
+                "user", "application", name="mcp_connection_unique_user_application"
+            )
+        ]
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="mcp_connections",
+    )
+    application = models.ForeignKey(
+        "oauth2_provider.Application",
+        on_delete=models.CASCADE,
+        related_name="mcp_connections",
+    )
+    workspaces = models.ManyToManyField(
+        "workspaces.Workspace", blank=True, related_name="mcp_connections"
+    )
+    tools = models.JSONField(default=list)
+    last_used_at = models.DateTimeField(null=True, blank=True)
+
+    def mark_used(self) -> None:
+        now = timezone.now()
+        if self.last_used_at and now - self.last_used_at < LAST_USED_PRECISION:
+            return
+        MCPConnection.objects.filter(pk=self.pk).update(last_used_at=now)
+        self.last_used_at = now
+
+    def allows_tool(self, name: str) -> bool:
+        return name in self.tools
+
+    def supersede_earlier_registrations(self) -> int:
+        idle_since = timezone.now() - SUPERSEDE_IDLE_REGISTRATIONS_AFTER
+        superseded = (
+            MCPConnection.objects.filter(
+                user=self.user, application__name=self.application.name
+            )
+            .exclude(pk=self.pk)
+            .filter(
+                Q(last_used_at__lt=idle_since)
+                | Q(last_used_at__isnull=True, created_at__lt=idle_since)
+            )
+        )
+        applications = [connection.application_id for connection in superseded]
+        if not applications:
+            return 0
+
+        token_filter = {"user": self.user, "application_id__in": applications}
+        with transaction.atomic():
+            RefreshToken.objects.filter(**token_filter).delete()
+            AccessToken.objects.filter(**token_filter).delete()
+            Grant.objects.filter(**token_filter).delete()
+            count, _ = superseded.delete()
+        return count
+
+
+class MCPUser(User, ServicePrincipal):
+    class Meta:
+        proxy = True
+
+    connection = None
+    real_user = None
+
+    @classmethod
+    def from_user(cls, user: User, connection: MCPConnection) -> "MCPUser":
+        instance = cls.objects.get(pk=user.pk)
+        instance.connection = connection
+        instance.real_user = user
+        return instance
+
+    @cached_property
+    def workspace_ids(self):
+        return list(self.connection.workspaces.values_list("id", flat=True))
+
+    def get_username(self):
+        return f"mcp_{self.connection.application_id}_as_{self.email}"
 
 
 class ToolCall(models.Model):

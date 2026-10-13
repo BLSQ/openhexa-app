@@ -11,7 +11,7 @@ type Props = {
 const BackLayoutHeader: FC<Props> = ({ onBack, title }) => {
   const { t } = useTranslation();
   return (
-    <div className={"w-full sticky top-0 bg-gray-800"}>
+    <div className={"w-full sticky top-0 z-20 bg-gray-800"}>
       <div
         className={
           "text-white px-2 sm:px-6 lg:px-8 flex max-w-7xl mx-auto items-center gap-6  h-16"

@@ -111,6 +111,14 @@ class CopyWorkspaceForm(forms.Form):
         label_suffix="",
         help_text="Off by default: only each dataset's latest version is copied.",
     )
+    include_connection_secrets = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Include connection secrets",
+        label_suffix="",
+        help_text="Copy stored credentials and API keys. If unchecked, "
+        "connections are copied without their secret values.",
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -4,45 +4,47 @@
 {% block title %}Authorized{% endblock %}
 
 {% block extra_css %}
-        .scopes li { opacity: 0.4; color: #9ca3af; transition: opacity 0.4s ease, color 0.4s ease; }
-        .scopes li.enabled { opacity: 1; color: #4b5563; }
-        .scopes li svg { color: #d1d5db; transition: color 0.4s ease; }
-        .scopes li.enabled svg { color: #16a34a; }
-        .scopes li .tool-name { color: inherit; transition: color 0.4s ease; }
-        .scopes li.enabled .tool-name { color: #111827; }
+        body { background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%); }
+        .container { max-width: 30rem; align-items: center; }
+        .logo { height: 1.25rem; opacity: 0.7; }
+        .card { width: 100%; background: #fff; border: 1px solid #e5e7eb; border-radius: 1rem; box-shadow: 0 10px 30px -12px rgba(17, 24, 39, 0.15); padding: 2.5rem 2rem 2rem; text-align: center; }
+        .check { width: 4.5rem; height: 4.5rem; margin: 0 auto; border-radius: 9999px; background: #dcfce7; display: flex; align-items: center; justify-content: center; }
+        .check svg { width: 2.5rem; height: 2.5rem; color: #16a34a; }
+        .check path { stroke-dasharray: 26; }
+        .shown .check { animation: pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+        .shown .check path { animation: draw 0.4s ease-out 0.3s both; }
+        .card h2 { margin-top: 1.25rem; font-size: 1.5rem; font-weight: 700; }
+        .card .subtitle { font-size: 0.9375rem; line-height: 1.5; margin-top: 0.5rem; }
+        .card .subtitle strong { color: #111827; font-weight: 600; }
+        .access { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #f3f4f6; font-size: 0.875rem; color: #6b7280; }
+        .access a { color: #2563eb; font-weight: 500; text-decoration: none; white-space: nowrap; }
+        .access a:hover { text-decoration: underline; }
+        @keyframes pop { from { transform: scale(0.6); opacity: 0; } }
+        @keyframes draw { from { stroke-dashoffset: 26; } }
+        @media (prefers-reduced-motion: reduce) { .shown .check, .shown .check path { animation: none; } }
 {% endblock %}
 
 {% block body %}
     <div class="container" style="display:none;">
-        <div>
-            <img src="{% static 'img/logo/logo.svg' %}" alt="OpenHEXA" class="logo">
+        <div class="card">
+            <div class="check" aria-hidden="true">
+                <svg fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+            </div>
             <h2>Authorization successful</h2>
-            <p class="subtitle">{% if tools %}Enabling tools for your session&hellip;{% else %}You can close this tab.{% endif %}</p>
+            {% if client_name %}
+                <p class="subtitle"><strong>{{ client_name }}</strong> is connected. You can close this tab.</p>
+            {% else %}
+                <p class="subtitle">You can close this tab.</p>
+            {% endif %}
+
+            {% if settings_url %}
+            <p class="access">You can change its access at any time. <a href="{{ settings_url }}" target="_blank" rel="noopener">Manage access <span aria-hidden="true">&rarr;</span></a></p>
+            {% endif %}
         </div>
 
-        {% if tools %}
-        <div class="scopes">
-            <h3>Tools enabled:</h3>
-            <ul>
-                {% for tool in tools %}
-                    <li>
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <div class="tool-content">
-                            <span class="tool-name">{{ tool.name }}</span>
-                            {% if tool.description %}
-                                <details class="tool-details">
-                                    <summary><span class="tool-desc">— {{ tool.description|truncatechars:140 }}</span><span class="tool-arrow" aria-hidden="true">▸</span></summary>
-                                    <div class="tool-full">{{ tool.description }}</div>
-                                </details>
-                            {% endif %}
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-        {% endif %}
+        <img src="{% static 'img/logo/logo_with_text_grey.svg' %}" alt="OpenHEXA" class="logo">
     </div>
 {% endblock %}
 
@@ -53,17 +55,7 @@
         fetch(redirectUri, { mode: "no-cors" }).then(function() {
             var container = document.querySelector(".container");
             container.style.display = "";
-
-            var items = document.querySelectorAll(".scopes li");
-            var delay = 150;
-            items.forEach(function(item, i) {
-                setTimeout(function() { item.classList.add("enabled"); }, (i + 1) * delay);
-            });
-            if (items.length) {
-                setTimeout(function() {
-                    document.querySelector(".subtitle").textContent = "All tools enabled. You can close this tab.";
-                }, (items.length + 1) * delay);
-            }
+            requestAnimationFrame(function() { container.classList.add("shown"); });
         }).catch(function() {
             window.location.href = redirectUri;
         });
