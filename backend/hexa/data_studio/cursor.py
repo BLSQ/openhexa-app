@@ -1,10 +1,10 @@
-"""The opaque cursor of keyset pagination: the last row's sort key, signed.
+"""Opaque cursor encoding and decoding for keyset pagination.
 
-Tied to the statement text and the ordering it was built for, so a changed sort or
-query is refused rather than answered with the wrong rows. The statement text
-rather than the saved query's identity, with the values a template bound (see
-``pagination.statement_text``), so other parameters invalidate the cursor too. The
-page size is deliberately left out; changing it mid-walk is harmless for a keyset.
+Cursors are signed and tied to the specific query text, bound parameter values
+(see ``pagination.statement_text``), and sort order. If the query, its parameters,
+or its sorting change, the cursor is rejected to prevent returning inconsistent rows.
+Page size is not included in the signature, allowing callers to change page size
+between requests.
 """
 
 import datetime

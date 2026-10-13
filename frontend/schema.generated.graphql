@@ -2553,9 +2553,7 @@ input ExecuteSavedQueryInput {
   """The 1-based page to return. Cannot be combined with a cursor."""
   page: Int
 
-  """
-  Values for the parameters the saved query declares, as a name -> value map.
-  """
+  """Parameter values for the saved query, supplied as a name-to-value map."""
   parameters: JSON
 
   """
@@ -4966,24 +4964,20 @@ type SavedQueryPage {
 }
 
 """
-A parameter a saved query declares. Values are bound at execution, never inlined into the SQL.
+A parameter declared on a saved query. Parameter values are bound safely at execution time.
 """
 type SavedQueryParameter {
   default: Generic
   help: String
 
-  """
-  When true the value is a JSON array of `type`, bound as a PostgreSQL array.
-  """
+  """Whether this parameter accepts a list of values of the specified type."""
   multiple: Boolean!
   name: String!
   required: Boolean!
   type: SavedQueryParameterType!
 }
 
-"""
-A parameter declaration. Everything but `name` and `type` is optional and defaults on the way in.
-"""
+"""Input specification for declaring a saved query parameter."""
 input SavedQueryParameterInput {
   default: Generic
   help: String
@@ -4993,10 +4987,7 @@ input SavedQueryParameterInput {
   type: SavedQueryParameterType!
 }
 
-"""
-Type of a saved query parameter. Mirrors the pipeline parameter types: INTEGER and FLOAT
-are separate so a decimal cannot reach a clause like LIMIT, which PostgreSQL rejects.
-"""
+"""Supported data types for saved query parameters."""
 enum SavedQueryParameterType {
   BOOLEAN
   DATE
@@ -5927,7 +5918,9 @@ input UpdateSavedQueryInput {
   id: ID!
   name: String
 
-  """Omitted or null leaves the stored declaration alone; [] clears it."""
+  """
+  Parameter definitions for the query. Omit or pass null to keep current parameters, or pass [] to remove all parameters.
+  """
   parameters: [SavedQueryParameterInput!]
 
   """Only the author may change this; PERMISSION_DENIED otherwise."""

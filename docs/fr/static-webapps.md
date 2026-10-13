@@ -1069,7 +1069,7 @@ input ExecuteSavedQueryInput {
   after: String                # le endCursor de la page précédente
   before: String               # le startCursor de la page suivante
   includeTotalItems: Boolean
-  parameters: JSON             # nom -> valeur, pour une requête qui déclare des paramètres
+  parameters: JSON             # Valeurs des paramètres (nom -> valeur) pour les requêtes paramétrées
 }
 
 input QueryResultOrderBy {
@@ -1152,10 +1152,10 @@ avec un curseur, ou `after` avec `before`.
 
 #### Requêtes paramétrées
 
-Une requête enregistrée peut déclarer des paramètres, ce qui permet à la webapp
-de filtrer la même requête sans que le SQL ne quitte le Data Studio. L'auteur
-écrit les emplacements dans le SQL et déclare chacun d'eux avec un nom et un
-type :
+Les requêtes enregistrées peuvent déclarer des paramètres, ce qui permet aux webapps
+d'appliquer des filtres dynamiques sans modifier le SQL sous-jacent. Vous définissez
+les emplacements de paramètres dans le SQL avec `{{ nom_parametre }}` et déclarez le
+nom et le type de chaque paramètre :
 
 ```sql
 SELECT district, period, cases
@@ -1171,62 +1171,64 @@ WHERE district = ANY({{ districts }})
 ]
 ```
 
-La déclaration est l'argument `parameters` des mutations `createSavedQuery` et
-`updateSavedQuery`, ainsi que des outils MCP `create_saved_query` et
-`update_saved_query`.
+Les paramètres se configurent via l'argument `parameters` des mutations GraphQL
+`createSavedQuery` et `updateSavedQuery`, ou via les outils MCP `create_saved_query`
+et `update_saved_query`.
 
-La webapp envoie ensuite les valeurs qu'elle connaît, par nom, à côté des
-arguments de tri et de pagination décrits plus haut :
+Dans votre webapp, transmettez les valeurs des paramètres par nom aux côtés des options
+de tri et de pagination :
 
 ```js
 { input: { slug: "malaria-by-district", parameters: { districts: ["Dakar", "Thiès"] }, orderBy: [{ column: "period", direction: "DESC" }], perPage: 50 } }
 ```
 
-Toute valeur non envoyée retombe sur sa valeur par défaut : ci-dessus,
-`start_date` vaut donc `2026-01-01`. Les types sont `STRING`, `INTEGER`,
-`FLOAT`, `BOOLEAN` et `DATE` (une chaîne ISO `AAAA-MM-JJ`), chacun pouvant être
-`multiple`. Une valeur du mauvais type, un paramètre obligatoire manquant ou un
-nom que la requête ne déclare pas renvoient tous `INVALID_PARAMETERS` — y
-compris une chaîne numérique comme `"10"` pour un `INTEGER`, qui est refusée
-plutôt que devinée. `TEMPLATE_ERROR` signifie que le modèle lui-même n'a pas pu
-être rendu avec ces valeurs.
+Si un paramètre n'est pas envoyé, sa valeur par défaut s'applique (dans l'exemple
+ci-dessus, `start_date` prend la valeur `"2026-01-01"`). Les types pris en charge sont
+`STRING`, `INTEGER`, `FLOAT`, `BOOLEAN` et `DATE` (une chaîne ISO `AAAA-MM-JJ`), et chaque
+type peut accepter une liste de valeurs avec `"multiple": true`.
 
-**Les valeurs ne deviennent jamais du SQL.** Elles sont liées par le pilote de
-la base de données : une valeur peut donc changer les lignes renvoyées, jamais
-ce que la requête lit. Quatre conséquences à connaître avant d'en écrire une :
+L'API renvoie `INVALID_PARAMETERS` si un paramètre obligatoire est manquant, si un nom
+de paramètre non déclaré est fourni, ou si une valeur est du mauvais type (par exemple,
+transmettre une chaîne comme `"10"` pour un `INTEGER`). Si le modèle ne peut pas être
+rendu avec les valeurs fournies, l'API renvoie `TEMPLATE_ERROR`.
 
-- **Filtrer sur une liste s'écrit `= ANY`, et exclure une liste `<> ALL` :**
+**Les valeurs des paramètres sont liées de manière sécurisée lors de l'exécution.** Elles
+sont traitées par le pilote de base de données comme des paramètres de requête et ne sont
+jamais directement insérées dans le texte SQL. Gardez ces recommandations à l'esprit :
+
+- **Filtrez sur une liste avec `= ANY`, et excluez avec `<> ALL` :**
 
     ```sql
     WHERE district = ANY({{ districts }})     -- garder ces districts
     WHERE district <> ALL({{ districts }})    -- exclure ces districts
     ```
 
-    Il s'agit bien du `IN` habituel — PostgreSQL traduit `IN (…)` en `= ANY(…)`
-    avant la planification — et `= ANY` est l'écriture qui accepte un paramètre.
-    Une liste vide est autorisée et ne correspond simplement à rien : une webapp
-    n'a donc jamais à traiter à part un multi-select que l'utilisateur a vidé.
-    Écrire `IN ({{ districts }})` par habitude échoue explicitement avec
-    `operator does not exist: text = text[]`.
+    PostgreSQL traduit en interne les clauses `IN` en `= ANY(array)`, et `= ANY` est la
+    syntaxe adaptée aux tableaux de paramètres. Cela gère également les listes vides sans
+    erreur : si un utilisateur vide une sélection multiple et que la webapp envoie
+    `districts: []`, la condition ne renvoie simplement aucune ligne au lieu de provoquer
+    une erreur de syntaxe SQL. Évitez d'écrire `IN ({{ districts }})`, ce qui déclenche
+    une erreur de type dans PostgreSQL (`operator does not exist: text = text[]`).
 
-- **Un nom de colonne ne peut jamais être un paramètre.** `ORDER BY {{ sort }}`
-    trie selon une constante et ne fait donc rien. Le tri et la pagination ne
-    sont pas l'affaire du modèle : `orderBy`, `perPage`, `page` et les curseurs
-    s'appliquent à une requête paramétrée comme à toute autre, laissez donc
-    `ORDER BY`, `LIMIT` et `OFFSET` en dehors.
+- **Les paramètres représentent des valeurs de données, pas des identifiants SQL.**
+    Vous ne pouvez pas utiliser un paramètre pour un nom de colonne ou une clause de tri
+    (par exemple, `ORDER BY {{ sort }}` traite la valeur comme une constante). Gérez le
+    tri et la pagination via les arguments GraphQL dédiés (`orderBy`, `perPage`, `page`
+    et curseurs), et n'ajoutez pas `ORDER BY`, `LIMIT` ou `OFFSET` dans votre SQL.
 
-- **Un emplacement ne doit pas se trouver dans une chaîne entre quotes.**
-    `WHERE name LIKE '{{ q }}%'` ne fonctionne pas. Écrivez
-    `WHERE name LIKE {{ q }}` et placez le `%` dans la valeur envoyée par la
-    webapp (`q: "dak%"`).
+- **Ne placez pas d'emplacement entre guillemets.**
+    Écrire `WHERE name LIKE '{{ q }}%'` traite l'emplacement comme une chaîne littérale.
+    Écrivez plutôt `WHERE name LIKE {{ q }}` et ajoutez les caractères génériques (`%`)
+    directement dans la valeur fournie par la webapp (par exemple `{ q: "dak%" }`).
 
-- **Une webapp ne peut pas découvrir les paramètres d'une requête.**
-    `savedQuery` et `savedQueryBySlug` ne sont pas accessibles sous
-    `DATABASE_READ` : les noms et les types circulent hors bande, comme le slug.
+- **Les paramètres ne sont pas découvrables dynamiquement par les webapps.** Les webapps
+    avec la permission `DATABASE_READ` n'ayant pas accès aux métadonnées des requêtes
+    enregistrées, configurez les noms et types de paramètres attendus directement dans
+    le code de votre frontend, tout comme le slug de la requête.
 
-Un curseur est construit pour un jeu de valeurs de paramètres : poursuivre la
-pagination avec d'autres valeurs renvoie `INVALID_CURSOR`, comme pour une autre
-requête.
+Les curseurs de pagination sont associés aux valeurs de paramètres utilisées lors de leur
+génération. Si vous tentez de paginer avec un curseur en modifiant les valeurs de paramètres,
+l'API renvoie `INVALID_CURSOR`.
 
 
 ```html
@@ -1249,7 +1251,7 @@ requête.
 
   <script>
     const SAVED_QUERY_SLUG = "ma-requete-enregistree";
-    // Omettre, ou envoyer {}, pour une requête sans paramètre déclaré.
+    // Omettez ce champ ou passez {} si la requête n'a pas de paramètres déclarés.
     const QUERY_PARAMETERS = {};
 
     async function gql(query, variables) {

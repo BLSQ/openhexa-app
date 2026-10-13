@@ -1067,7 +1067,7 @@ input ExecuteSavedQueryInput {
   after: String                # the previous page's endCursor
   before: String               # the next page's startCursor
   includeTotalItems: Boolean
-  parameters: JSON             # name -> value, for a query that declares parameters
+  parameters: JSON             # Parameter values (name -> value) for parameterized queries
 }
 
 input QueryResultOrderBy {
@@ -1148,9 +1148,9 @@ contradict each other, such as `page` together with a cursor, or `after` with
 
 #### Query templating
 
-A saved query can declare parameters, so the web app can filter the same query
-without the SQL leaving the Data Studio. The author writes the placeholders in
-the SQL and declares each one with a name and a type:
+Saved queries can declare parameters, allowing web apps to apply dynamic filters
+without changing the underlying SQL query. You define parameter placeholders in
+the SQL using `{{ parameter_name }}` and specify each parameter's name and type:
 
 ```sql
 SELECT district, period, cases
@@ -1166,57 +1166,61 @@ WHERE district = ANY({{ districts }})
 ]
 ```
 
-The declaration is the `parameters` argument of the `createSavedQuery` and
-`updateSavedQuery` mutations, and of the `create_saved_query` and
-`update_saved_query` MCP tools.
+Parameters are defined using the `parameters` argument on the `createSavedQuery`
+and `updateSavedQuery` GraphQL mutations, or through the `create_saved_query`
+and `update_saved_query` MCP tools.
 
-The web app then sends the values it knows about, by name, next to the sorting
-and pagination arguments described above:
+In your web app, pass parameter values by name alongside any sorting and pagination
+options:
 
 ```js
 { input: { slug: "malaria-by-district", parameters: { districts: ["Dakar", "Thiès"] }, orderBy: [{ column: "period", direction: "DESC" }], perPage: 50 } }
 ```
 
-Anything not sent falls back to its default, so `start_date` above resolves to
-`2026-01-01`. Types are `STRING`, `INTEGER`, `FLOAT`, `BOOLEAN` and `DATE` (an
-ISO `YYYY-MM-DD` string), each optionally `multiple`. A value of the wrong type,
-a missing required one, or a name the query does not declare all come back as
-`INVALID_PARAMETERS` — including a numeric string such as `"10"` for an
-`INTEGER`, which is rejected rather than guessed at. `TEMPLATE_ERROR` means the
-template itself could not be rendered with those values.
+If a parameter is omitted, it falls back to its default value (for example, `start_date`
+above defaults to `"2026-01-01"`). Supported types are `STRING`, `INTEGER`, `FLOAT`,
+`BOOLEAN`, and `DATE` (an ISO `YYYY-MM-DD` string), and any type can optionally accept
+lists with `"multiple": true`.
 
-**Values never become SQL.** They are bound by the database driver, so a value
-can change which rows come back but never what the query reads. Four
-consequences are worth knowing before you write one:
+The API returns `INVALID_PARAMETERS` if a required parameter is missing, if you provide
+an unrecognized parameter name, or if a value has the wrong type (such as passing a string
+like `"10"` for an `INTEGER`). If the template cannot be rendered with the provided values,
+the API returns `TEMPLATE_ERROR`.
 
-- **Filtering on a list is `= ANY`, and excluding one is `<> ALL`:**
+**Parameter values are safely bound at execution time.** They are handled by the database
+driver as query parameters rather than concatenated directly into SQL text. Keep these
+guidelines in mind when designing queries:
+
+- **Filter against lists with `= ANY`, and exclude lists with `<> ALL`:**
 
     ```sql
     WHERE district = ANY({{ districts }})     -- keep these districts
     WHERE district <> ALL({{ districts }})    -- exclude these districts
     ```
 
-    This *is* `IN` — PostgreSQL compiles `IN (…)` to `= ANY(…)` before planning —
-    and `= ANY` is the spelling that accepts a parameter. An empty list is
-    allowed and simply matches nothing, so a web app never has to special-case a
-    multi-select the user emptied. Writing `IN ({{ districts }})` out of habit
-    fails loudly with `operator does not exist: text = text[]`.
+    PostgreSQL internally translates `IN` lists into `= ANY(array)`, and `= ANY` is the
+    syntax that accepts parameterized arrays. This also safely supports empty lists: if a
+    user clears a multi-select filter and the app passes `districts: []`, the condition
+    simply matches zero rows instead of causing a SQL syntax error. Avoid writing
+    `IN ({{ districts }})`, which causes a PostgreSQL type error (`operator does not exist: text = text[]`).
 
-- **A column name can never be a parameter.** `ORDER BY {{ sort }}` sorts by a
-    constant and silently does nothing. Sorting and paging are not the template's
-    job: `orderBy`, `perPage`, `page` and the cursors apply to a templated query
-    like to any other, so leave `ORDER BY`, `LIMIT` and `OFFSET` out of it.
+- **Parameters represent data values, not SQL identifiers.** Parameters cannot be used for
+    column names or sorting clauses (for example, `ORDER BY {{ sort }}` treats the value as
+    a constant). Instead, manage sorting and pagination through the GraphQL query arguments
+    (`orderBy`, `perPage`, `page`, and cursors), and omit `ORDER BY`, `LIMIT`, and `OFFSET`
+    from the saved SQL query.
 
-- **A placeholder must not sit inside a quoted literal.**
-    `WHERE name LIKE '{{ q }}%'` does not work. Write `WHERE name LIKE {{ q }}`
-    and put the `%` in the value the web app sends (`q: "dak%"`).
+- **Do not place placeholders inside quotes.**
+    Writing `WHERE name LIKE '{{ q }}%'` treats the placeholder as literal text. Instead,
+    write `WHERE name LIKE {{ q }}` and add any wildcards directly in the parameter value
+    passed by the web app (for example, `{ q: "dak%" }`).
 
-- **A web app cannot discover a query's parameters.** `savedQuery` and
-    `savedQueryBySlug` are not available under `DATABASE_READ`, so names and
-    types travel out of band, the same way the slug does.
+- **Parameter definitions cannot be queried dynamically by web apps.** Because web apps
+    operating under `DATABASE_READ` cannot read saved query metadata, specify the expected
+    parameter names and types in your frontend code alongside the query slug.
 
-A cursor is cut for one set of parameter values: paging on with other values
-returns `INVALID_CURSOR`, as it would for another query.
+Pagination cursors are tied to the parameter values used when they were generated. If you
+attempt to paginate using a cursor with different parameter values, the API returns `INVALID_CURSOR`.
 
 
 ```html
@@ -1239,7 +1243,7 @@ returns `INVALID_CURSOR`, as it would for another query.
 
   <script>
     const SAVED_QUERY_SLUG = "my-saved-query";
-    // Omit, or send {}, for a query that declares no parameters.
+    // Omit this or pass {} if the query does not declare parameters.
     const QUERY_PARAMETERS = {};
 
     async function gql(query, variables) {

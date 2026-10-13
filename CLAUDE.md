@@ -4,42 +4,36 @@
 
 Follow these guidelines when writing code:
 
--   **Comments**: Do not write comments that merely restate what the code does. Only add comments when explaining _why_ something is done a certain way, not _what_ it does. See "Writing comments" below.
+-   **Comments**: Only add comments when explaining _why_ something is done a certain way, not _what_ it does. Avoid redundant comments that merely restate self-evident code.
 -   **Imports**: Place imports at the top of the file. Do not use inline/dynamic imports inside functions or methods unless strictly necessary (e.g., to break a circular import or to defer an optional/expensive dependency).
--   **Django admin**: An administrator is trusted to know what they are doing. Never add code to a model — a `clean()`, a validator, a guard — whose only purpose is to stop the admin doing something wrong; that noise reaches every other caller for the benefit of one trusted one. Where something genuinely is needed, it belongs in `admin.py`: a custom `ModelForm`, `readonly_fields`, or a `has_*_permission` returning `False`.
--   **Docstrings**: Write for a human skimming the file for the first time. See "Writing docstrings" below.
+-   **Django admin**: Put administrator-specific rules in `admin.py` (such as custom forms, `readonly_fields`, or permission methods) rather than placing guards or validation on models whose sole purpose is restricting the admin interface.
+-   **Docstrings**: Keep docstrings concise and helpful. Explain the purpose of a function or class, and document non-obvious rules, assumptions, or exceptions.
 -   **Documentation**: The docs are maintained in English (`docs/en/`) and French (`docs/fr/`). Any change to a page in one language must be applied to its counterpart in the other in the same change — never update only one side.
 
 ### Writing comments
 
-The bar is surprise: comment only where a reader who knows this codebase would otherwise be puzzled, or would "fix" correct code and break it. A _why_ that nobody would have questioned is still noise.
+Write comments to help other developers understand the context behind non-obvious code. If someone working on the codebase might wonder why something was written a specific way, or might accidentally break it during a refactor, a brief comment is helpful.
 
 Leave these uncommented:
 
--   A name that already says it — `search_fields` gaining a field, a `parameters` column next to `query`.
--   A framework or stdlib option doing its documented job, e.g. `encoder=DjangoJSONEncoder`.
--   A line that does the same thing as the ones around it.
--   A GraphQL schema member whose name already states its meaning — error enum values such as `PERMISSION_DENIED` or `INVALID_PARAMETERS` need no description, and neither does a field like `name: String!`.
--   The reasoning behind a design decision. That belongs in the app README or the ticket; the code gets a pointer at most.
+-   Self-explanatory code, fields, or arguments (e.g., standard model fields or query options).
+-   Standard framework or library options doing their normal job (e.g., `encoder=DjangoJSONEncoder`).
+-   GraphQL schema definitions where the name already makes the meaning clear (e.g., error codes like `PERMISSION_DENIED` or `INVALID_PARAMETERS`).
+-   Broad architecture or product design discussions; link to the relevant ticket or documentation instead.
 
-Keep whatever survives to a line or two. A comment longer than the code beneath it means the explanation belongs elsewhere, or the code should be clearer.
+Aim to keep comments concise and focused.
 
 ### Writing docstrings
 
-State what the code does, as briefly as possible. Add the _why_ only where it is not obvious from the code.
+State clearly what the code does. Add the _why_ or practical usage details when they are not obvious from the signature.
 
-Scale the form to what is being documented:
+-   **Functions and methods**: A single clear line is often enough. For more complex logic, add a brief description of key arguments, return values, or edge cases that callers need to know about.
+-   **Modules**: Provide a high-level summary of the module's role, its main entry points, and an overview of data flow or security boundaries where helpful.
 
--   **One-liner** for a function. This is the default; most functions need nothing more.
--   **Summary + one or two sentences** when a caller needs a rule that is not visible in the signature (a fallback order, a rejected input, which layer takes over next).
--   **Structured sections** only for a module docstring. Use `*` bullets, a numbered pipeline when data passes through a chain of transformations, and a short list of the exceptions callers handle. `backend/hexa/data_studio/templating.py` is the reference example.
+Avoid unnecessary filler:
 
-What to leave out:
-
--   Alternatives that were considered and not taken, and what the code deliberately does _not_ do. If a reader must know it, it belongs in a comment at the line that would otherwise be "fixed", not in the docstring.
--   Justification for a decision the code already makes plain.
--   Anything the signature says. No `Args:` block that just renames the parameters.
--   Emphasis on how important a piece of code is. Describe the behaviour and let it speak.
+-   Do not repeat information already apparent from parameter names and types.
+-   Avoid redundant descriptions of what the code deliberately does not do unless it directly prevents common pitfalls.
 
 ## Common Development Commands
 

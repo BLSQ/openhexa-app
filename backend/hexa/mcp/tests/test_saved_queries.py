@@ -10,7 +10,7 @@ from hexa.workspaces.models import WorkspaceMembership, WorkspaceMembershipRole
 
 from .testutils import MCPTestCase
 
-# A declaration as the model stores it, every optional key filled in.
+# Expected normalized parameter dictionary as stored on the model.
 LIMIT_PARAMETER = {
     "name": "limit",
     "type": "INTEGER",

@@ -86,11 +86,11 @@ def resolve_per_page(per_page: int | None, max_rows: int | None) -> int:
 
 
 def statement_text(prepared: PreparedQuery) -> str:
-    """The text a cursor is fingerprinted on.
+    """Return the query text and parameters used to sign pagination cursors.
 
-    A templated statement carries placeholders where its values go, so the values
-    are appended: a cursor cut under one set of parameters is refused under another,
-    as it would be for a different query.
+    For parameterized queries, the bound values are appended to the query body so
+    cursors are tied to specific parameter values and cannot be reused across
+    different filter criteria.
     """
     if prepared.params is None:
         return prepared.body
