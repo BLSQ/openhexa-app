@@ -29,6 +29,7 @@ query GetPipeline($workspaceSlug: String!, $code: String!, $runsPage: Int, $runs
     createdAt
     updatedAt
     webhookEnabled
+    visibility
     workspace {
       slug
       name

@@ -7,7 +7,12 @@ import Time from "core/components/Time";
 import { createGetServerSideProps } from "core/helpers/page";
 import { formatDuration } from "core/helpers/time";
 import { NextPageWithLayout } from "core/helpers/types";
-import { PipelineParameter, PipelineRunStatus, PipelineRunTrigger, PipelineType } from "graphql/types";
+import {
+  PipelineParameter,
+  PipelineRunStatus,
+  PipelineRunTrigger,
+  PipelineType,
+} from "graphql/types";
 import { useTranslation } from "next-i18next";
 import router from "next/router";
 import { useState } from "react";
@@ -26,7 +31,11 @@ import PipelineLayout from "workspaces/layouts/PipelineLayout";
 
 const MAX_VISIBLE_PARAMS = 3;
 
-function RunPoller({ run }: { run: { id: string; status: PipelineRunStatus } }) {
+function RunPoller({
+  run,
+}: {
+  run: { id: string; status: PipelineRunStatus };
+}) {
   usePipelineRunPoller(run);
   return null;
 }
@@ -34,7 +43,10 @@ function RunPoller({ run }: { run: { id: string; status: PipelineRunStatus } }) 
 function RunParametersCell({
   run,
 }: {
-  run: { config: any; version?: { parameters: Omit<PipelineParameter, "__typename">[] } | null };
+  run: {
+    config: any;
+    version?: { parameters: Omit<PipelineParameter, "__typename">[] } | null;
+  };
 }) {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -43,17 +55,25 @@ function RunParametersCell({
   if (!params.length) return <span className="text-gray-400">-</span>;
 
   const shouldShowToggle = params.length > MAX_VISIBLE_PARAMS;
-  const visibleParams = isExpanded ? params : params.slice(0, MAX_VISIBLE_PARAMS);
+  const visibleParams = isExpanded
+    ? params
+    : params.slice(0, MAX_VISIBLE_PARAMS);
   const remainingCount = params.length - MAX_VISIBLE_PARAMS;
 
   return (
     <div className="max-w-md whitespace-normal space-y-0.5 text-xs text-gray-600">
       {visibleParams.map((p) => (
         <div key={p.code} className="flex min-w-0 items-baseline gap-1">
-          <TruncatedText lines={1} tooltip className="shrink-0 max-w-[45%] text-gray-400">
+          <TruncatedText
+            lines={1}
+            tooltip
+            className="shrink-0 max-w-[45%] text-gray-400"
+          >
             {`${p.name}:`}
           </TruncatedText>
-          <TruncatedText lines={3} tooltip className="flex-1">{formatParamValue(p)}</TruncatedText>
+          <TruncatedText lines={3} tooltip className="flex-1">
+            {formatParamValue(p)}
+          </TruncatedText>
         </div>
       ))}
       {shouldShowToggle && !isExpanded && (
@@ -169,6 +189,7 @@ const WorkspacePipelineRunsPage: NextPageWithLayout = (props: Props) => {
                 {value === PipelineRunTrigger.Scheduled && t("Scheduled")}
                 {value === PipelineRunTrigger.Manual && t("Manual")}
                 {value === PipelineRunTrigger.Webhook && t("Webhook")}
+                {value === PipelineRunTrigger.Public && t("Public link")}
               </span>
             )}
           </BaseColumn>

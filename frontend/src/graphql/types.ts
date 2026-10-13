@@ -3293,6 +3293,8 @@ export type Mutation = {
   runDAG: RunDagResult;
   /** Runs a pipeline. */
   runPipeline: RunPipelineResult;
+  /** Launches a public pipeline from its permalink. Open to anonymous visitors: being public is the whole authorization. */
+  runPublicPipeline: RunPublicPipelineResult;
   setDAGRunFavorite?: Maybe<SetDagRunFavoriteResult>;
   /** Set a custom metadata attribute to an object instance */
   setMetadataAttribute: SetMetadataAttributeResult;
@@ -3837,6 +3839,11 @@ export type MutationRunPipelineArgs = {
 };
 
 
+export type MutationRunPublicPipelineArgs = {
+  input: RunPublicPipelineInput;
+};
+
+
 export type MutationSetDagRunFavoriteArgs = {
   input: SetDagRunFavoriteInput;
 };
@@ -4358,6 +4365,7 @@ export type Pipeline = {
   type: PipelineType;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   versions: PipelineVersionPage;
+  visibility: PipelineVisibility;
   webhookEnabled: Scalars['Boolean']['output'];
   webhookUrl?: Maybe<Scalars['String']['output']>;
   workspace: Workspace;
@@ -4521,6 +4529,8 @@ export type PipelinePermissions = {
   createTemplateVersion: CreateTemplateVersionPermission;
   createVersion: Scalars['Boolean']['output'];
   delete: Scalars['Boolean']['output'];
+  /** Permission to make the pipeline public. Reserved to organization admins and owners; anyone who can update the pipeline can take it back. */
+  publish: Scalars['Boolean']['output'];
   run: Scalars['Boolean']['output'];
   schedule: Scalars['Boolean']['output'];
   stopPipeline: Scalars['Boolean']['output'];
@@ -4623,6 +4633,8 @@ export enum PipelineRunStatus {
 
 export enum PipelineRunTrigger {
   Manual = 'manual',
+  /** Launched from the pipeline's public permalink. */
+  Public = 'public',
   Scheduled = 'scheduled',
   Webhook = 'webhook'
 }
@@ -4792,6 +4804,14 @@ export type PipelineVersionPermissions = {
   update: Scalars['Boolean']['output'];
 };
 
+/** Who can reach a pipeline. */
+export enum PipelineVisibility {
+  /** Every member of the workspace, plus anyone with the permalink: they can launch the pipeline and follow their run without logging in. */
+  Public = 'PUBLIC',
+  /** Every member of the workspace. */
+  Workspace = 'WORKSPACE'
+}
+
 /** Represents a page of pipelines. */
 export type PipelinesPage = {
   __typename?: 'PipelinesPage';
@@ -4925,6 +4945,36 @@ export type PrepareVersionFileDownloadResult = {
   success: Scalars['Boolean']['output'];
 };
 
+/** A pipeline as its permalink shows it to a visitor: what they need to launch it, and nothing about the workspace behind it. */
+export type PublicPipeline = {
+  __typename?: 'PublicPipeline';
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+  /** The organization the pipeline belongs to, for attribution. */
+  organizationName?: Maybe<Scalars['String']['output']>;
+  /** The parameters a visitor fills in: plain values only. The others run with their default. */
+  parameters: Array<PipelineParameter>;
+  /** Whether a visitor can launch the pipeline right now. False when a version uploaded since it was published leaves a required parameter they cannot set without a default. */
+  runnable: Scalars['Boolean']['output'];
+  visibility: PipelineVisibility;
+};
+
+/** A run launched from a public permalink, as its visitor follows it. Messages only: outputs and container logs stay with the workspace. */
+export type PublicPipelineRun = {
+  __typename?: 'PublicPipelineRun';
+  /** The values of the parameters a visitor can set, secrets left out; nothing the pipeline fell back on. */
+  config: Scalars['JSON']['output'];
+  /** The duration of the run in seconds. */
+  duration?: Maybe<Scalars['Int']['output']>;
+  executionDate?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['UUID']['output'];
+  messages: Array<PipelineRunMessage>;
+  pipeline: PublicPipeline;
+  progress: Scalars['Int']['output'];
+  status: PipelineRunStatus;
+};
+
 export type Query = {
   __typename?: 'Query';
   accessmodAccessRequests: AccessmodAccessRequestPage;
@@ -5004,6 +5054,10 @@ export type Query = {
   pipelineVersion?: Maybe<PipelineVersion>;
   /** Retrieves a page of pipelines ordered by relevant name. */
   pipelines: PipelinesPage;
+  /** A public pipeline by id, as its permalink shows it. Open to anonymous visitors; null unless the pipeline is public. */
+  publicPipeline?: Maybe<PublicPipeline>;
+  /** A run launched from a public permalink, open to anyone holding its id; null for any other run, or once the pipeline is no longer public. */
+  publicPipelineRun?: Maybe<PublicPipelineRun>;
   /** Read the text content of a file from a workspace's bucket. */
   readFileContent: ReadFileContentResult;
   readWebappFile: ReadWebappFileResult;
@@ -5256,6 +5310,16 @@ export type QueryPipelinesArgs = {
   search?: InputMaybe<Scalars['String']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
   workspaceSlug?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryPublicPipelineArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryPublicPipelineRunArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 
@@ -5663,6 +5727,29 @@ export type RunPipelineResult = {
   __typename?: 'RunPipelineResult';
   errors: Array<PipelineError>;
   run?: Maybe<PipelineRun>;
+  success: Scalars['Boolean']['output'];
+};
+
+export enum RunPublicPipelineError {
+  InvalidConfig = 'INVALID_CONFIG',
+  PipelineNotFound = 'PIPELINE_NOT_FOUND',
+  /** A required parameter the visitor cannot set has no default: the pipeline cannot run from its permalink until a member fixes that. */
+  PipelineNotRunnable = 'PIPELINE_NOT_RUNNABLE',
+  PipelineRunsLimitReached = 'PIPELINE_RUNS_LIMIT_REACHED',
+  /** A public run of this pipeline is already queued or running. */
+  PublicRunInProgress = 'PUBLIC_RUN_IN_PROGRESS'
+}
+
+export type RunPublicPipelineInput = {
+  /** Values for the parameters a visitor can set; anything else is ignored. */
+  config: Scalars['JSON']['input'];
+  id: Scalars['UUID']['input'];
+};
+
+export type RunPublicPipelineResult = {
+  __typename?: 'RunPublicPipelineResult';
+  errors: Array<RunPublicPipelineError>;
+  run?: Maybe<PublicPipelineRun>;
   success: Scalars['Boolean']['output'];
 };
 
@@ -6482,6 +6569,8 @@ export type UpdatePipelineInput = {
   schedule?: InputMaybe<Scalars['String']['input']>;
   scheduledPipelineVersionId?: InputMaybe<Scalars['UUID']['input']>;
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** PUBLIC is reserved to organization admins and owners (PERMISSION_DENIED otherwise), needs a version (PIPELINE_VERSION_NOT_FOUND) and a default for every required parameter a visitor cannot set (MISSING_VERSION_CONFIG, with the codes in `details`). */
+  visibility?: InputMaybe<PipelineVisibility>;
   webhookEnabled?: InputMaybe<Scalars['Boolean']['input']>;
 };
 

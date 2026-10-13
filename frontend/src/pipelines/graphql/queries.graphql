@@ -101,18 +101,66 @@ query PipelineConfigureRunPage($pipelineId: UUID!) {
   }
 }
 query PipelinesPicker {
-        dags {
-          items {
-            ...PipelinesPicker_value
-          }
-        }
+  dags {
+    items {
+      ...PipelinesPicker_value
+    }
+  }
 }
 
 query PipelineRunPoller($runId: UUID!) {
-      run: pipelineRun(id: $runId) {
-        ...usePipelineRunPoller_run
-        duration
-        progress
-        hasErrorMessages
+  run: pipelineRun(id: $runId) {
+    ...usePipelineRunPoller_run
+    duration
+    progress
+    hasErrorMessages
+  }
+}
+# The permalink page of a public pipeline: what a visitor needs to launch it.
+query PublicPipelinePage($id: UUID!) {
+  publicPipeline(id: $id) {
+    id
+    name
+    description
+    visibility
+    runnable
+    organizationName
+    parameters {
+      ...ParameterField_parameter
+    }
+  }
+}
+
+# Server-side only, for members who open the permalink of a pipeline that is
+# not public: the Data Studio is where they work with it.
+query PublicPipelineRedirect($id: UUID!) {
+  pipeline(id: $id) {
+    id
+    code
+    workspace {
+      slug
+    }
+  }
+}
+
+query PublicPipelineRunPage($id: UUID!) {
+  publicPipelineRun(id: $id) {
+    id
+    status
+    progress
+    executionDate
+    duration
+    config
+    ...RunMessages_publicRun
+    pipeline {
+      id
+      name
+      # The same selection as the launcher: the cache unions arrays by object
+      # equality when a page is hydrated, so a narrower selection here would
+      # leave each parameter in the list twice.
+      parameters {
+        ...ParameterField_parameter
       }
+    }
+  }
 }

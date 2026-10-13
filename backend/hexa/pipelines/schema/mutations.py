@@ -33,6 +33,7 @@ from hexa.pipelines.models import (
     PipelineRunTrigger,
     PipelineType,
     PipelineVersion,
+    PublicRunInProgress,
 )
 from hexa.tags.models import InvalidTag, Tag
 from hexa.user_management.models import User
@@ -341,6 +342,41 @@ def resolve_delete_pipeline(_, info, **kwargs):
             "success": False,
             "errors": ["PERMISSION_DENIED"],
         }
+
+
+@pipelines_mutations.field("runPublicPipeline")
+def resolve_run_public_pipeline(_, info, **kwargs):
+    request: HttpRequest = info.context["request"]
+    input = kwargs["input"]
+    try:
+        pipeline = Pipeline.objects.public().get(id=input["id"])
+    except Pipeline.DoesNotExist:
+        return {"success": False, "errors": ["PIPELINE_NOT_FOUND"]}
+
+    try:
+        run = pipeline.run_public(request.user, input.get("config") or {})
+    except MissingPipelineConfiguration:
+        return {"success": False, "errors": ["PIPELINE_NOT_RUNNABLE"]}
+    except PublicRunInProgress:
+        return {"success": False, "errors": ["PUBLIC_RUN_IN_PROGRESS"]}
+    except PipelineRunsLimitReached:
+        return {"success": False, "errors": ["PIPELINE_RUNS_LIMIT_REACHED"]}
+    except ValueError:
+        return {"success": False, "errors": ["INVALID_CONFIG"]}
+
+    track(
+        request,
+        "pipelines.pipeline_run",
+        {
+            "pipeline_id": pipeline.code,
+            "version_name": (
+                run.pipeline_version.name if run.pipeline_version else None
+            ),
+            "trigger": PipelineRunTrigger.PUBLIC,
+            "workspace": pipeline.workspace.slug,
+        },
+    )
+    return {"success": True, "errors": [], "run": run}
 
 
 @pipelines_mutations.field("stopPipeline")

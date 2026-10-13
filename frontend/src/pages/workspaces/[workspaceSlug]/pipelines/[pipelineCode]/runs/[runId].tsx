@@ -112,7 +112,11 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
   const renderParameterValue = (entry: PipelineParameter & { value: any }) => {
     if (entry.type === "str" && entry.value) {
       const text = entry.multiple ? entry.value.join(", ") : entry.value;
-      return <TruncatedText lines={6} expandable>{text}</TruncatedText>;
+      return (
+        <TruncatedText lines={6} expandable>
+          {text}
+        </TruncatedText>
+      );
     }
     if (entry.type === "bool") {
       return <Switch checked={entry.value} disabled />;
@@ -121,11 +125,21 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
       (entry.type === "int" || entry.type === "float") &&
       !isNil(entry.value)
     ) {
-      const text = entry.multiple ? entry.value.join(", ") : String(entry.value);
-      return <TruncatedText lines={6} expandable>{text}</TruncatedText>;
+      const text = entry.multiple
+        ? entry.value.join(", ")
+        : String(entry.value);
+      return (
+        <TruncatedText lines={6} expandable>
+          {text}
+        </TruncatedText>
+      );
     }
     if (isConnectionParameter(entry.type) && entry.value) {
-      return <TruncatedText lines={6} expandable>{entry.value}</TruncatedText>;
+      return (
+        <TruncatedText lines={6} expandable>
+          {entry.value}
+        </TruncatedText>
+      );
     }
     if (entry.type === "dataset") {
       return (
@@ -139,7 +153,11 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
       );
     }
     if (entry.type === "file" && entry.value) {
-      return <TruncatedText lines={6} expandable>{entry.value}</TruncatedText>;
+      return (
+        <TruncatedText lines={6} expandable>
+          {entry.value}
+        </TruncatedText>
+      );
     }
     if (entry.type === "secret" && entry.value) {
       return "••••••";
@@ -314,6 +332,8 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
                     t("Scheduled")}
                   {run.triggerMode === PipelineRunTrigger.Webhook &&
                     t("Webhook")}
+                  {run.triggerMode === PipelineRunTrigger.Public &&
+                    t("Public link")}
                 </DescriptionList.Item>
                 <DescriptionList.Item label={t("User")}>
                   {run.user ? <User user={run.user} /> : "-"}

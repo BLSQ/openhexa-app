@@ -30,6 +30,18 @@ def delete_pipeline(principal: User, pipeline: Pipeline):
     )
 
 
+def publish_pipeline(principal: User, pipeline: Pipeline):
+    """Publishing lets anyone with a link run the pipeline with the workspace's
+    credentials, so it is reserved to the organization's admins and owners rather
+    than to anyone who can edit it. Taking it back is `update_pipeline`.
+    """
+    return bool(
+        principal.is_authenticated
+        and pipeline.workspace
+        and principal.is_organization_admin_or_owner(pipeline.workspace.organization)
+    )
+
+
 def run_pipeline(principal: User, pipeline: Pipeline):
     return pipeline.workspace and (
         pipeline.workspace.workspacemembership_set.filter(

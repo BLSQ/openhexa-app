@@ -10,6 +10,8 @@ import { PipelineRunDataCard_DagRunFragmentDoc, PipelineRunDataCard_DagFragmentD
 import { PipelineRunForm_DagFragmentDoc } from '../features/PipelineRunForm/PipelineRunForm.generated';
 import { PipelinesPicker_ValueFragmentDoc } from '../features/PipelinesPicker/PipelinesPicker.generated';
 import { UsePipelineRunPoller_RunFragmentDoc } from '../hooks/usePipelineRunPoller/usePipelineRunPoller.generated';
+import { ParameterField_ParameterFragmentDoc } from '../../workspaces/features/RunPipelineDialog/ParameterField.generated';
+import { RunMessages_PublicRunFragmentDoc } from '../features/RunMessages/RunMessages.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type PipelinesPageQueryVariables = Types.Exact<{
@@ -55,6 +57,27 @@ export type PipelineRunPollerQueryVariables = Types.Exact<{
 
 
 export type PipelineRunPollerQuery = { __typename?: 'Query', run?: { __typename?: 'PipelineRun', duration?: number | null, progress: number, hasErrorMessages: boolean, id: string, status: Types.PipelineRunStatus } | null };
+
+export type PublicPipelinePageQueryVariables = Types.Exact<{
+  id: Types.Scalars['UUID']['input'];
+}>;
+
+
+export type PublicPipelinePageQuery = { __typename?: 'Query', publicPipeline?: { __typename?: 'PublicPipeline', id: string, name: string, description?: string | null, visibility: Types.PipelineVisibility, runnable: boolean, organizationName?: string | null, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }> } | null };
+
+export type PublicPipelineRedirectQueryVariables = Types.Exact<{
+  id: Types.Scalars['UUID']['input'];
+}>;
+
+
+export type PublicPipelineRedirectQuery = { __typename?: 'Query', pipeline?: { __typename?: 'Pipeline', id: string, code: string, workspace: { __typename?: 'Workspace', slug: string } } | null };
+
+export type PublicPipelineRunPageQueryVariables = Types.Exact<{
+  id: Types.Scalars['UUID']['input'];
+}>;
+
+
+export type PublicPipelineRunPageQuery = { __typename?: 'Query', publicPipelineRun?: { __typename?: 'PublicPipelineRun', id: string, status: Types.PipelineRunStatus, progress: number, executionDate?: any | null, duration?: number | null, config: any, pipeline: { __typename?: 'PublicPipeline', id: string, name: string, parameters: Array<{ __typename?: 'PipelineParameter', code: string, name: string, help?: string | null, type: Types.ParameterType, default?: any | null, required: boolean, choices?: Array<any> | null, connection?: string | null, widget?: Types.ParameterWidget | null, multiple: boolean, directory?: string | null, disables: Array<string>, disableWhen: boolean, choicesFromFile?: { __typename?: 'PipelineParameterChoicesFromFile', path: string, format?: Types.PipelineParameterChoicesFileFormat | null, column?: string | null } | null }> }, messages: Array<{ __typename?: 'PipelineRunMessage', message: string, timestamp?: any | null, priority: Types.MessagePriority }> } | null };
 
 
 export const PipelinesPageDocument = gql`
@@ -389,3 +412,149 @@ export type PipelineRunPollerQueryHookResult = ReturnType<typeof usePipelineRunP
 export type PipelineRunPollerLazyQueryHookResult = ReturnType<typeof usePipelineRunPollerLazyQuery>;
 export type PipelineRunPollerSuspenseQueryHookResult = ReturnType<typeof usePipelineRunPollerSuspenseQuery>;
 export type PipelineRunPollerQueryResult = Apollo.QueryResult<PipelineRunPollerQuery, PipelineRunPollerQueryVariables>;
+export const PublicPipelinePageDocument = gql`
+    query PublicPipelinePage($id: UUID!) {
+  publicPipeline(id: $id) {
+    id
+    name
+    description
+    visibility
+    runnable
+    organizationName
+    parameters {
+      ...ParameterField_parameter
+    }
+  }
+}
+    ${ParameterField_ParameterFragmentDoc}`;
+
+/**
+ * __usePublicPipelinePageQuery__
+ *
+ * To run a query within a React component, call `usePublicPipelinePageQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePublicPipelinePageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePublicPipelinePageQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function usePublicPipelinePageQuery(baseOptions: Apollo.QueryHookOptions<PublicPipelinePageQuery, PublicPipelinePageQueryVariables> & ({ variables: PublicPipelinePageQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PublicPipelinePageQuery, PublicPipelinePageQueryVariables>(PublicPipelinePageDocument, options);
+      }
+export function usePublicPipelinePageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PublicPipelinePageQuery, PublicPipelinePageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PublicPipelinePageQuery, PublicPipelinePageQueryVariables>(PublicPipelinePageDocument, options);
+        }
+export function usePublicPipelinePageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PublicPipelinePageQuery, PublicPipelinePageQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PublicPipelinePageQuery, PublicPipelinePageQueryVariables>(PublicPipelinePageDocument, options);
+        }
+export type PublicPipelinePageQueryHookResult = ReturnType<typeof usePublicPipelinePageQuery>;
+export type PublicPipelinePageLazyQueryHookResult = ReturnType<typeof usePublicPipelinePageLazyQuery>;
+export type PublicPipelinePageSuspenseQueryHookResult = ReturnType<typeof usePublicPipelinePageSuspenseQuery>;
+export type PublicPipelinePageQueryResult = Apollo.QueryResult<PublicPipelinePageQuery, PublicPipelinePageQueryVariables>;
+export const PublicPipelineRedirectDocument = gql`
+    query PublicPipelineRedirect($id: UUID!) {
+  pipeline(id: $id) {
+    id
+    code
+    workspace {
+      slug
+    }
+  }
+}
+    `;
+
+/**
+ * __usePublicPipelineRedirectQuery__
+ *
+ * To run a query within a React component, call `usePublicPipelineRedirectQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePublicPipelineRedirectQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePublicPipelineRedirectQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function usePublicPipelineRedirectQuery(baseOptions: Apollo.QueryHookOptions<PublicPipelineRedirectQuery, PublicPipelineRedirectQueryVariables> & ({ variables: PublicPipelineRedirectQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PublicPipelineRedirectQuery, PublicPipelineRedirectQueryVariables>(PublicPipelineRedirectDocument, options);
+      }
+export function usePublicPipelineRedirectLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PublicPipelineRedirectQuery, PublicPipelineRedirectQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PublicPipelineRedirectQuery, PublicPipelineRedirectQueryVariables>(PublicPipelineRedirectDocument, options);
+        }
+export function usePublicPipelineRedirectSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PublicPipelineRedirectQuery, PublicPipelineRedirectQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PublicPipelineRedirectQuery, PublicPipelineRedirectQueryVariables>(PublicPipelineRedirectDocument, options);
+        }
+export type PublicPipelineRedirectQueryHookResult = ReturnType<typeof usePublicPipelineRedirectQuery>;
+export type PublicPipelineRedirectLazyQueryHookResult = ReturnType<typeof usePublicPipelineRedirectLazyQuery>;
+export type PublicPipelineRedirectSuspenseQueryHookResult = ReturnType<typeof usePublicPipelineRedirectSuspenseQuery>;
+export type PublicPipelineRedirectQueryResult = Apollo.QueryResult<PublicPipelineRedirectQuery, PublicPipelineRedirectQueryVariables>;
+export const PublicPipelineRunPageDocument = gql`
+    query PublicPipelineRunPage($id: UUID!) {
+  publicPipelineRun(id: $id) {
+    id
+    status
+    progress
+    executionDate
+    duration
+    config
+    ...RunMessages_publicRun
+    pipeline {
+      id
+      name
+      parameters {
+        ...ParameterField_parameter
+      }
+    }
+  }
+}
+    ${RunMessages_PublicRunFragmentDoc}
+${ParameterField_ParameterFragmentDoc}`;
+
+/**
+ * __usePublicPipelineRunPageQuery__
+ *
+ * To run a query within a React component, call `usePublicPipelineRunPageQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePublicPipelineRunPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePublicPipelineRunPageQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function usePublicPipelineRunPageQuery(baseOptions: Apollo.QueryHookOptions<PublicPipelineRunPageQuery, PublicPipelineRunPageQueryVariables> & ({ variables: PublicPipelineRunPageQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PublicPipelineRunPageQuery, PublicPipelineRunPageQueryVariables>(PublicPipelineRunPageDocument, options);
+      }
+export function usePublicPipelineRunPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PublicPipelineRunPageQuery, PublicPipelineRunPageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PublicPipelineRunPageQuery, PublicPipelineRunPageQueryVariables>(PublicPipelineRunPageDocument, options);
+        }
+export function usePublicPipelineRunPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PublicPipelineRunPageQuery, PublicPipelineRunPageQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PublicPipelineRunPageQuery, PublicPipelineRunPageQueryVariables>(PublicPipelineRunPageDocument, options);
+        }
+export type PublicPipelineRunPageQueryHookResult = ReturnType<typeof usePublicPipelineRunPageQuery>;
+export type PublicPipelineRunPageLazyQueryHookResult = ReturnType<typeof usePublicPipelineRunPageLazyQuery>;
+export type PublicPipelineRunPageSuspenseQueryHookResult = ReturnType<typeof usePublicPipelineRunPageSuspenseQuery>;
+export type PublicPipelineRunPageQueryResult = Apollo.QueryResult<PublicPipelineRunPageQuery, PublicPipelineRunPageQueryVariables>;

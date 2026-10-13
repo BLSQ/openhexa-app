@@ -21,8 +21,14 @@ import { useTranslation } from "next-i18next";
 import PipelineDagView from "pipelines/features/PipelineDagView";
 import PipelineVersionParametersTable from "pipelines/features/PipelineVersionParametersTable";
 import UpgradePipelineFromTemplateDialog from "pipelines/features/UpgradePipelineFromTemplateDialog";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import GeneratePipelineWebhookUrlDialog from "workspaces/features/GeneratePipelineWebhookUrlDialog";
+import {
+  getPublicPipelinePath,
+  PipelineVisibilityBadge,
+  PipelineVisibilityPicker,
+} from "pipelines/features/PipelineVisibility";
+import { PipelineVisibility } from "graphql/types";
 import PipelineVersionConfigDialog from "workspaces/features/PipelineVersionConfigDialog";
 import {
   useWorkspacePipelinePageQuery,
@@ -52,6 +58,11 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
     useState(false);
   const [isUpgradeFromTemplateDialogOpen, setUpgradeFromTemplateDialogOpen] =
     useState(false);
+  // The permalink needs the browser's origin, which is unknown during SSR.
+  const [origin, setOrigin] = useState("");
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   const { data, refetch } = useWorkspacePipelinePageQuery({
     variables: {
@@ -80,6 +91,10 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
     await updatePipeline(pipeline.id, {
       webhookEnabled: values.webhookEnabled,
     });
+  };
+
+  const onSaveVisibility = async (values: any) => {
+    await updatePipeline(pipeline.id, { visibility: values.visibility });
   };
 
   const onSaveAutoUpdate = async (values: any) => {
@@ -438,6 +453,51 @@ const WorkspacePipelinePage: NextPageWithLayout = (props: Props) => {
                     />
                   </>
                 )}
+              </div>
+            )}
+          </RenderProperty>
+        </DataCard.FormSection>
+        <DataCard.FormSection
+          title={t("Public access")}
+          defaultOpen={false}
+          onSave={pipeline.permissions.update ? onSaveVisibility : undefined}
+          collapsible={false}
+        >
+          <RenderProperty
+            id="visibility"
+            accessor="visibility"
+            label={t("Visibility")}
+          >
+            {(property, section) =>
+              section.isEdited ? (
+                <PipelineVisibilityPicker
+                  value={property.formValue}
+                  onChange={property.setValue}
+                  canPublish={pipeline.permissions.publish}
+                />
+              ) : (
+                <PipelineVisibilityBadge
+                  visibility={property.displayValue}
+                  size="sm"
+                />
+              )
+            }
+          </RenderProperty>
+          <RenderProperty
+            visible={() => pipeline.visibility === PipelineVisibility.Public}
+            readonly
+            id="publicUrl"
+            label={t("Public link")}
+            accessor="id"
+          >
+            {() => (
+              <div className="flex items-center gap-2">
+                <code className="text-xs max-w-[100ch] text-ellipsis overflow-x-hidden">
+                  {origin + getPublicPipelinePath(pipeline.id)}
+                </code>
+                <Clipboard
+                  value={origin + getPublicPipelinePath(pipeline.id)}
+                />
               </div>
             )}
           </RenderProperty>

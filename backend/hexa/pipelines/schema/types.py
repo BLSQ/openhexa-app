@@ -56,6 +56,8 @@ pipeline_run_order_by_enum = EnumType(
     },
 )
 pipeline_object = ObjectType("Pipeline")
+public_pipeline_object = ObjectType("PublicPipeline")
+public_pipeline_run_object = ObjectType("PublicPipelineRun")
 generic_output_object = ObjectType("GenericOutput")
 
 pipeline_run_output_union = UnionType("PipelineRunOutput")
@@ -170,6 +172,14 @@ def resolve_pipeline_permissions_stop_pipeline(pipeline: Pipeline, info, **kwarg
     request = info.context["request"]
     return request.user.is_authenticated and request.user.has_perm(
         "pipelines.stop_pipeline", pipeline
+    )
+
+
+@pipeline_permissions.field("publish")
+def resolve_pipeline_permissions_publish(pipeline: Pipeline, info, **kwargs):
+    request = info.context["request"]
+    return request.user.is_authenticated and request.user.has_perm(
+        "pipelines.publish_pipeline", pipeline
     )
 
 
@@ -305,6 +315,41 @@ def resolve_pipeline_recipients(pipeline: Pipeline, info, **kwargs):
 @pipeline_object.field("tags")
 def resolve_pipeline_tags(pipeline: Pipeline, info, **kwargs):
     return pipeline.tags.all()
+
+
+@public_pipeline_object.field("parameters")
+def resolve_public_pipeline_parameters(pipeline: Pipeline, info, **kwargs):
+    return pipeline.get_public_parameters()
+
+
+@public_pipeline_object.field("runnable")
+def resolve_public_pipeline_runnable(pipeline: Pipeline, info, **kwargs):
+    return pipeline.is_publicly_runnable
+
+
+@public_pipeline_object.field("organizationName")
+def resolve_public_pipeline_organization_name(pipeline: Pipeline, info, **kwargs):
+    organization = pipeline.workspace.organization if pipeline.workspace else None
+    return organization.name if organization else None
+
+
+public_pipeline_run_object.set_alias("progress", "current_progress")
+
+
+@public_pipeline_run_object.field("duration")
+def resolve_public_pipeline_run_duration(run: PipelineRun, info, **kwargs):
+    return int(run.duration.total_seconds()) if run.duration is not None else 0
+
+
+@public_pipeline_run_object.field("config")
+def resolve_public_pipeline_run_config(run: PipelineRun, info, **kwargs):
+    # The stored config also holds what the version fell back on for the other
+    # parameters (a connection slug, a file path): not the visitor's to see.
+    return {
+        parameter["code"]: run.config.get(parameter["code"])
+        for parameter in run.pipeline.get_public_parameters()
+        if parameter.get("type") != "secret"
+    }
 
 
 pipeline_run_object = ObjectType("PipelineRun")
@@ -540,6 +585,8 @@ bindables = [
     pipeline_parameter_choices_from_file,
     pipeline_parameter_choices_file_format_enum,
     pipeline_object,
+    public_pipeline_object,
+    public_pipeline_run_object,
     pipeline_order_by_enum,
     pipeline_run_object,
     pipeline_run_status_enum,

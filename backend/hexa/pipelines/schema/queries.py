@@ -162,6 +162,24 @@ def resolve_pipeline_run(_, info, **kwargs):
         return None
 
 
+@pipelines_query.field("publicPipeline")
+def resolve_public_pipeline(_, info, **kwargs):
+    # No user check: being public is what makes the pipeline reachable, and the
+    # PublicPipeline type only carries what a visitor needs.
+    try:
+        return Pipeline.objects.public().get(id=kwargs["id"])
+    except Pipeline.DoesNotExist:
+        return None
+
+
+@pipelines_query.field("publicPipelineRun")
+def resolve_public_pipeline_run(_, info, **kwargs):
+    try:
+        return PipelineRun.objects.public().get(id=kwargs["id"])
+    except PipelineRun.DoesNotExist:
+        return None
+
+
 @pipelines_query.field("pipelineVersion")
 def resolve_pipeline_version(_, info, **kwargs):
     request: HttpRequest = info.context["request"]

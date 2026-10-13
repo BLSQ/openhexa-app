@@ -22,6 +22,18 @@ enum PipelineRunTrigger {
   scheduled
   manual
   webhook
+  "Launched from the pipeline's public permalink."
+  public
+}
+
+"""
+Who can reach a pipeline.
+"""
+enum PipelineVisibility {
+  "Every member of the workspace."
+  WORKSPACE
+  "Every member of the workspace, plus anyone with the permalink: they can launch the pipeline and follow their run without logging in."
+  PUBLIC
 }
 
 """
@@ -304,6 +316,8 @@ type PipelinePermissions {
   createVersion: Boolean!  # Indicates if a new version of the pipeline can be created.
   stopPipeline: Boolean!  # Indicates if the pipeline can be stopped.
   createTemplateVersion: CreateTemplateVersionPermission!  # Indicates if a new template version can be created.
+  "Permission to make the pipeline public. Reserved to organization admins and owners; anyone who can update the pipeline can take it back."
+  publish: Boolean!
 }
 
 """
@@ -408,6 +422,7 @@ type Pipeline {
   recipients: [PipelineRecipient!]!  # The recipients of the pipeline.
   webhookEnabled: Boolean!  # Indicates if the webhook is enabled for the pipeline.
   webhookUrl: String  # The URL of the webhook for the pipeline.
+  visibility: PipelineVisibility!  # Who can reach the pipeline.
   type: PipelineType!  # Technical format: how the pipeline is packaged (zipFile/notebook)
   functionalType: PipelineFunctionalType  # Business purpose: what the pipeline does (extraction/transformation/loading/computation)
   notebookPath: String  # The path to the notebook file for the pipeline (only filled if the pipeline is a notebook).
@@ -585,6 +600,8 @@ input UpdatePipelineInput {
   scheduledPipelineVersionId: UUID  # The ID of the pipeline version to pin for scheduled runs. Set to null to unpin and always use the latest version.
   description: String  # The new description of the pipeline.
   webhookEnabled: Boolean  # Indicates if the webhook should be enabled for the pipeline.
+  "PUBLIC is reserved to organization admins and owners (PERMISSION_DENIED otherwise), needs a version (PIPELINE_VERSION_NOT_FOUND) and a default for every required parameter a visitor cannot set (MISSING_VERSION_CONFIG, with the codes in `details`)."
+  visibility: PipelineVisibility
   autoUpdateFromTemplate: Boolean  # Automatically update this pipeline when its source template is updated.
   tags: [String!]  # The names of tags to associate with the pipeline.
   functionalType: PipelineFunctionalType  # The functional type of the pipeline.
@@ -644,6 +661,60 @@ type RunPipelineResult {
   success: Boolean!  # Indicates if the pipeline was run successfully.
   errors: [PipelineError!]!  # The list of errors that occurred during the run of the pipeline.
   run: PipelineRun  # The created pipeline run.
+}
+
+"""
+A pipeline as its permalink shows it to a visitor: what they need to launch it, and nothing about the workspace behind it.
+"""
+type PublicPipeline {
+  id: UUID!
+  name: String!
+  description: String
+  visibility: PipelineVisibility!
+  "The parameters a visitor fills in: plain values only. The others run with their default."
+  parameters: [PipelineParameter!]!
+  "Whether a visitor can launch the pipeline right now. False when a version uploaded since it was published leaves a required parameter they cannot set without a default."
+  runnable: Boolean!
+  "The organization the pipeline belongs to, for attribution."
+  organizationName: String
+}
+
+"""
+A run launched from a public permalink, as its visitor follows it. Messages only: outputs and container logs stay with the workspace.
+"""
+type PublicPipelineRun {
+  id: UUID!
+  pipeline: PublicPipeline!
+  status: PipelineRunStatus!
+  progress: Int!
+  executionDate: DateTime
+  "The duration of the run in seconds."
+  duration: Int
+  "The values of the parameters a visitor can set, secrets left out; nothing the pipeline fell back on."
+  config: JSON!
+  messages: [PipelineRunMessage!]!
+}
+
+input RunPublicPipelineInput {
+  id: UUID!
+  "Values for the parameters a visitor can set; anything else is ignored."
+  config: JSON!
+}
+
+enum RunPublicPipelineError {
+  PIPELINE_NOT_FOUND
+  "A required parameter the visitor cannot set has no default: the pipeline cannot run from its permalink until a member fixes that."
+  PIPELINE_NOT_RUNNABLE
+  "A public run of this pipeline is already queued or running."
+  PUBLIC_RUN_IN_PROGRESS
+  INVALID_CONFIG
+  PIPELINE_RUNS_LIMIT_REACHED
+}
+
+type RunPublicPipelineResult {
+  success: Boolean!
+  errors: [RunPublicPipelineError!]!
+  run: PublicPipelineRun
 }
 
 """
@@ -872,6 +943,12 @@ extend type Query {
   """
   pipelineRun(id: UUID!): PipelineRun @loginRequired
 
+  "A public pipeline by id, as its permalink shows it. Open to anonymous visitors; null unless the pipeline is public."
+  publicPipeline(id: UUID!): PublicPipeline
+
+  "A run launched from a public permalink, open to anyone holding its id; null for any other run, or once the pipeline is no longer public."
+  publicPipelineRun(id: UUID!): PublicPipelineRun
+
   """
   Resolves the list of choices for a parameter backed by a workspace file.
   Returns a list of string values read from the file at the time of the call.
@@ -899,6 +976,9 @@ extend type Mutation {
   Runs a pipeline.
   """
   runPipeline(input: RunPipelineInput): RunPipelineResult! @loginRequired
+
+  "Launches a public pipeline from its permalink. Open to anonymous visitors: being public is the whole authorization."
+  runPublicPipeline(input: RunPublicPipelineInput!): RunPublicPipelineResult!
 
   """
   Stops a pipeline.

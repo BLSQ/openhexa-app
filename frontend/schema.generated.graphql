@@ -3374,6 +3374,11 @@ type Mutation {
 
   """Runs a pipeline."""
   runPipeline(input: RunPipelineInput): RunPipelineResult!
+
+  """
+  Launches a public pipeline from its permalink. Open to anonymous visitors: being public is the whole authorization.
+  """
+  runPublicPipeline(input: RunPublicPipelineInput!): RunPublicPipelineResult!
   setDAGRunFavorite(input: SetDAGRunFavoriteInput!): SetDAGRunFavoriteResult
 
   """Set a custom metadata attribute to an object instance"""
@@ -3761,6 +3766,7 @@ type Pipeline {
   type: PipelineType!
   updatedAt: DateTime
   versions(page: Int, perPage: Int): PipelineVersionPage!
+  visibility: PipelineVisibility!
   webhookEnabled: Boolean!
   webhookUrl: String
   workspace: Workspace!
@@ -3903,6 +3909,11 @@ type PipelinePermissions {
   createTemplateVersion: CreateTemplateVersionPermission!
   createVersion: Boolean!
   delete: Boolean!
+
+  """
+  Permission to make the pipeline public. Reserved to organization admins and owners; anyone who can update the pipeline can take it back.
+  """
+  publish: Boolean!
   run: Boolean!
   schedule: Boolean!
   stopPipeline: Boolean!
@@ -4001,6 +4012,9 @@ enum PipelineRunStatus {
 
 enum PipelineRunTrigger {
   manual
+
+  """Launched from the pipeline's public permalink."""
+  public
   scheduled
   webhook
 }
@@ -4151,6 +4165,17 @@ type PipelineVersionPermissions {
   update: Boolean!
 }
 
+"""Who can reach a pipeline."""
+enum PipelineVisibility {
+  """
+  Every member of the workspace, plus anyone with the permalink: they can launch the pipeline and follow their run without logging in.
+  """
+  PUBLIC
+
+  """Every member of the workspace."""
+  WORKSPACE
+}
+
 """Represents a page of pipelines."""
 type PipelinesPage {
   items: [Pipeline!]!
@@ -4286,6 +4311,48 @@ type PrepareVersionFileDownloadResult {
   success: Boolean!
 }
 
+"""
+A pipeline as its permalink shows it to a visitor: what they need to launch it, and nothing about the workspace behind it.
+"""
+type PublicPipeline {
+  description: String
+  id: UUID!
+  name: String!
+
+  """The organization the pipeline belongs to, for attribution."""
+  organizationName: String
+
+  """
+  The parameters a visitor fills in: plain values only. The others run with their default.
+  """
+  parameters: [PipelineParameter!]!
+
+  """
+  Whether a visitor can launch the pipeline right now. False when a version uploaded since it was published leaves a required parameter they cannot set without a default.
+  """
+  runnable: Boolean!
+  visibility: PipelineVisibility!
+}
+
+"""
+A run launched from a public permalink, as its visitor follows it. Messages only: outputs and container logs stay with the workspace.
+"""
+type PublicPipelineRun {
+  """
+  The values of the parameters a visitor can set, secrets left out; nothing the pipeline fell back on.
+  """
+  config: JSON!
+
+  """The duration of the run in seconds."""
+  duration: Int
+  executionDate: DateTime
+  id: UUID!
+  messages: [PipelineRunMessage!]!
+  pipeline: PublicPipeline!
+  progress: Int!
+  status: PipelineRunStatus!
+}
+
 type Query {
   accessmodAccessRequests(page: Int, perPage: Int): AccessmodAccessRequestPage!
   accessmodAnalyses(page: Int, perPage: Int, projectId: String!): AccessmodAnalysisPage!
@@ -4388,6 +4455,16 @@ type Query {
 
   """Retrieves a page of pipelines ordered by relevant name."""
   pipelines(functionalType: PipelineFunctionalType, lastRunStates: [PipelineRunStatus!], name: String, orderBy: PipelineOrderBy, page: Int, perPage: Int, search: String, tags: [String!], workspaceSlug: String): PipelinesPage!
+
+  """
+  A public pipeline by id, as its permalink shows it. Open to anonymous visitors; null unless the pipeline is public.
+  """
+  publicPipeline(id: UUID!): PublicPipeline
+
+  """
+  A run launched from a public permalink, open to anyone holding its id; null for any other run, or once the pipeline is no longer public.
+  """
+  publicPipelineRun(id: UUID!): PublicPipelineRun
 
   """Read the text content of a file from a workspace's bucket."""
   readFileContent(endLine: Int, filePath: String!, startLine: Int, workspaceSlug: String!): ReadFileContentResult!
@@ -4716,6 +4793,32 @@ input RunPipelineInput {
 type RunPipelineResult {
   errors: [PipelineError!]!
   run: PipelineRun
+  success: Boolean!
+}
+
+enum RunPublicPipelineError {
+  INVALID_CONFIG
+  PIPELINE_NOT_FOUND
+
+  """
+  A required parameter the visitor cannot set has no default: the pipeline cannot run from its permalink until a member fixes that.
+  """
+  PIPELINE_NOT_RUNNABLE
+  PIPELINE_RUNS_LIMIT_REACHED
+
+  """A public run of this pipeline is already queued or running."""
+  PUBLIC_RUN_IN_PROGRESS
+}
+
+input RunPublicPipelineInput {
+  """Values for the parameters a visitor can set; anything else is ignored."""
+  config: JSON!
+  id: UUID!
+}
+
+type RunPublicPipelineResult {
+  errors: [RunPublicPipelineError!]!
+  run: PublicPipelineRun
   success: Boolean!
 }
 
@@ -5658,6 +5761,11 @@ input UpdatePipelineInput {
   schedule: String
   scheduledPipelineVersionId: UUID
   tags: [String!]
+
+  """
+  PUBLIC is reserved to organization admins and owners (PERMISSION_DENIED otherwise), needs a version (PIPELINE_VERSION_NOT_FOUND) and a default for every required parameter a visitor cannot set (MISSING_VERSION_CONFIG, with the codes in `details`).
+  """
+  visibility: PipelineVisibility
   webhookEnabled: Boolean
 }
 

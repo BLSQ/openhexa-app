@@ -116,6 +116,7 @@ export function createGetServerSideProps(options: CreateGetServerSideProps) {
           "/mcp",
           "/datasets",
           "/queries",
+          "/run",
         ].some((path) => ctx.resolvedUrl.startsWith(path))
       ) {
         return {

@@ -153,7 +153,9 @@ query WorkspaceSavedQuerySlugById($workspaceSlug: String!, $id: ID!) {
 
 # The permalink page of a public saved query. Deliberately without `content`:
 # visitors get the result, not the SQL (and the author is hidden from them
-# server-side).
+# server-side). Only run on the server, outside the cache: the workspace is
+# needed there to route members and to credit the organization, but it is
+# never sent to the browser.
 query PublicSavedQueryPage($slug: String!) {
   savedQueryBySlug(slug: $slug) {
     id
@@ -163,7 +165,6 @@ query PublicSavedQueryPage($slug: String!) {
     visibility
     workspace {
       slug
-      name
       organization {
         name
       }
@@ -202,9 +203,11 @@ query WorkspacePipelinePage($workspaceSlug: String!, $pipelineCode: String!) {
       createTemplateVersion {
         isAllowed
       }
+      publish
     }
     webhookUrl
     webhookEnabled
+    visibility
     id
     createdAt
     code

@@ -242,8 +242,10 @@ _TERMINAL_STATES = {
 
 
 def _get_run(run_id, user):
+    # Public runs included: a visitor of a public permalink follows their run here,
+    # with the run id as their only credential (see PipelineRunQuerySet).
     run = (
-        PipelineRun.objects.filter_for_user(user)
+        PipelineRun.objects.filter_for_user(user, include_public=True)
         .only("messages", "state")
         .get(id=run_id)
     )
@@ -288,9 +290,8 @@ async def stream_pipeline_run_messages(
     if request.method != "GET":
         return HttpResponseNotAllowed(["GET"])
 
-    if not request.user.is_authenticated:
-        return JsonResponse({"error": "Authentication required"}, status=401)
-
+    # No login check: anonymous callers only ever reach public runs, and a run they
+    # cannot see is a 404 for them as for anyone else.
     try:
         run = await _get_run_async(run_id, request.user)
     except PipelineRun.DoesNotExist:

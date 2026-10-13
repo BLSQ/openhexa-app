@@ -61,6 +61,7 @@ export async function updatePipeline(
             updatedAt
             webhookEnabled
             webhookUrl
+            visibility
             autoUpdateFromTemplate
             tags {
               ...Tag_tag

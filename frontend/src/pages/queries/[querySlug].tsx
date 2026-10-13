@@ -4,14 +4,10 @@ import Page from "core/components/Page";
 import Spinner from "core/components/Spinner";
 import { createGetServerSideProps } from "core/helpers/page";
 import { NextPageWithLayout } from "core/helpers/types";
+import PublicLayout from "core/layouts/public/PublicLayout";
 import { SavedQueryVisibility } from "graphql/types";
 import { getMe } from "identity/helpers/auth";
-import useMe from "identity/hooks/useMe";
 import { useTranslation } from "next-i18next";
-import Image from "next/legacy/image";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import logo from "public/images/logo.svg";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import DataStudioResults from "workspaces/features/DataStudioEditor/DataStudioResults";
@@ -23,7 +19,6 @@ import {
   PublicSavedQueryPageQuery,
   PublicSavedQueryPageQueryVariables,
   useExecuteSavedQueryLazyQuery,
-  usePublicSavedQueryPageQuery,
 } from "workspaces/graphql/queries.generated";
 import {
   dataStudioRoutes,
@@ -32,21 +27,22 @@ import {
 
 type PublicSavedQueryPageProps = {
   querySlug: string;
+  name: string;
+  description: string | null;
+  visibility: SavedQueryVisibility;
+  organizationName: string | null;
 };
 
-// Landing page of a saved query permalink. It works without an account, so it
-// stands on its own instead of using the workspace layout, which needs a
-// workspace the visitor can open. The query runs as soon as the page loads:
-// there is nothing to edit here, so there is nothing to wait for either.
+// Landing page of a saved query permalink. The query runs as soon as the page
+// loads: there is nothing to edit here, so there is nothing to wait for either.
 const PublicSavedQueryPage: NextPageWithLayout = ({
   querySlug,
+  name,
+  description,
+  visibility,
+  organizationName,
 }: PublicSavedQueryPageProps) => {
   const { t } = useTranslation();
-  const router = useRouter();
-  const me = useMe();
-  const { data } = usePublicSavedQueryPageQuery({
-    variables: { slug: querySlug },
-  });
   const [maxRows, setMaxRows] = useState(MAX_ROWS_OPTIONS[0]);
   const [exporting, setExporting] = useState(false);
   // Results are large and never read from the cache elsewhere; skip
@@ -82,129 +78,91 @@ const PublicSavedQueryPage: NextPageWithLayout = ({
     }
   };
 
-  if (!data?.savedQueryBySlug) {
-    return null;
-  }
-  const savedQuery = data.savedQueryBySlug;
-
   return (
-    <Page title={savedQuery.name}>
-      <div className="min-h-screen bg-gray-50">
-        <header className="border-b border-gray-200 bg-white">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-            <Link href="/" className="relative block h-8 w-24">
-              <Image src={logo} layout="fill" alt="OpenHEXA" />
-            </Link>
-            {me?.user ? (
-              <Link
-                href="/workspaces"
-                className="text-sm text-blue-600 hover:underline"
-              >
-                {t("Go to my workspaces")}
-              </Link>
-            ) : (
-              <Link
-                href={`/login?next=${encodeURIComponent(router.asPath)}`}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                {t("Log in")}
-              </Link>
-            )}
+    <Page title={name}>
+      <PublicLayout>
+        <div>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-semibold text-gray-900">{name}</h1>
+            <SavedQueryVisibilityBadge visibility={visibility} size="sm" />
           </div>
-        </header>
-
-        <main className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6">
-          <div>
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-semibold text-gray-900">
-                {savedQuery.name}
-              </h1>
-              <SavedQueryVisibilityBadge
-                visibility={savedQuery.visibility}
-                size="sm"
-              />
-            </div>
+          {organizationName && (
             <p className="mt-1 text-sm text-gray-500">
-              {savedQuery.workspace.organization
-                ? t("Published by {{workspace}} ({{organization}})", {
-                    workspace: savedQuery.workspace.name,
-                    organization: savedQuery.workspace.organization.name,
-                  })
-                : t("Published by {{workspace}}", {
-                    workspace: savedQuery.workspace.name,
-                  })}
+              {t("Published by {{organization}}", {
+                organization: organizationName,
+              })}
             </p>
-          </div>
+          )}
+        </div>
 
-          <Block>
-            <Block.Content>
-              {savedQuery.description ? (
-                <p className="text-sm whitespace-pre-line text-gray-700">
-                  {savedQuery.description}
-                </p>
-              ) : (
-                <p className="text-sm text-gray-500 italic">
-                  {t("No description")}
-                </p>
-              )}
-            </Block.Content>
-          </Block>
+        <Block>
+          <Block.Content>
+            {description ? (
+              <p className="text-sm whitespace-pre-line text-gray-700">
+                {description}
+              </p>
+            ) : (
+              <p className="text-sm text-gray-500 italic">
+                {t("No description")}
+              </p>
+            )}
+          </Block.Content>
+        </Block>
 
-          <div className="flex h-[70vh] min-h-[420px] flex-col overflow-hidden rounded-md border bg-white shadow-xs">
-            <div className="flex h-11 shrink-0 items-center justify-end gap-2 border-b border-gray-200 px-3">
-              <label className="flex items-center gap-1.5 text-xs text-gray-500">
-                {t("Max rows")}
-                <select
-                  value={maxRows}
-                  disabled={loading}
-                  onChange={(event) => setMaxRows(Number(event.target.value))}
-                  className="h-8 rounded-md border border-gray-200 pr-7 pl-2 text-xs text-gray-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                >
-                  {MAX_ROWS_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option.toLocaleString()}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              {/* The server re-run can take a while; reassure the visitor
-                  right where they clicked. */}
-              {exporting && (
-                <span className="text-xs text-gray-400">
-                  {t("This may take a while")}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={exportCsv}
-                disabled={!canExport || exporting}
-                className={GHOST}
+        <div className="flex h-[70vh] min-h-[420px] flex-col overflow-hidden rounded-md border bg-white shadow-xs">
+          <div className="flex h-11 shrink-0 items-center justify-end gap-2 border-b border-gray-200 px-3">
+            <label className="flex items-center gap-1.5 text-xs text-gray-500">
+              {t("Max rows")}
+              <select
+                value={maxRows}
+                disabled={loading}
+                onChange={(event) => setMaxRows(Number(event.target.value))}
+                className="h-8 rounded-md border border-gray-200 pr-7 pl-2 text-xs text-gray-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               >
-                {exporting ? (
-                  <>
-                    <Spinner size="xs" />
-                    {t("Exporting…")}
-                  </>
-                ) : (
-                  <>
-                    <ArrowDownTrayIcon className="h-4 w-4" />
-                    {t("Export CSV")}
-                  </>
-                )}
-              </button>
-            </div>
-            <div className="min-h-0 flex-1">
-              <DataStudioResults
-                loading={loading}
-                result={result}
-                error={error}
-                onRetry={run}
-                widgetHint={false}
-              />
-            </div>
+                {MAX_ROWS_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option.toLocaleString()}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {/* The server re-run can take a while; reassure the visitor
+                  right where they clicked. */}
+            {exporting && (
+              <span className="text-xs text-gray-400">
+                {t("This may take a while")}
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={exportCsv}
+              disabled={!canExport || exporting}
+              className={GHOST}
+            >
+              {exporting ? (
+                <>
+                  <Spinner size="xs" />
+                  {t("Exporting…")}
+                </>
+              ) : (
+                <>
+                  <ArrowDownTrayIcon className="h-4 w-4" />
+                  {t("Export CSV")}
+                </>
+              )}
+            </button>
           </div>
-        </main>
-      </div>
+          <div className="min-h-0 flex-1">
+            <DataStudioResults
+              loading={loading}
+              result={result}
+              error={error}
+              onRetry={run}
+              widgetHint={false}
+            />
+          </div>
+        </div>
+      </PublicLayout>
     </Page>
   );
 };
@@ -222,6 +180,10 @@ export const getServerSideProps = createGetServerSideProps({
       >({
         query: PublicSavedQueryPageDocument,
         variables: { slug: querySlug },
+        // Kept out of the cache: whatever lands there is hydrated into the
+        // page, and the workspace behind a public query is not the visitor's
+        // business. The page gets what it shows as props instead.
+        fetchPolicy: "no-cache",
       }),
       getMe(ctx),
     ]);
@@ -254,7 +216,15 @@ export const getServerSideProps = createGetServerSideProps({
       };
     }
 
-    return { props: { querySlug: savedQuery.slug } };
+    return {
+      props: {
+        querySlug: savedQuery.slug,
+        name: savedQuery.name,
+        description: savedQuery.description ?? null,
+        visibility: savedQuery.visibility,
+        organizationName: savedQuery.workspace.organization?.name ?? null,
+      },
+    };
   },
 });
 

@@ -53,6 +53,19 @@ _PRIMITIVE_TYPE_CHECKS = {
 
 _CONNECTION_TYPES = frozenset(ct.value.lower() for ct in ConnectionType)
 
+# What a visitor of a public pipeline can fill in on their own: plain values. The
+# other kinds (connections, datasets, files, choices read from a workspace file)
+# name workspace resources the visitor cannot see, let alone pick from.
+VISITOR_PARAMETER_TYPES = frozenset({"bool", "int", "float", "str", "secret"})
+
+
+def is_visitor_parameter(parameter: dict) -> bool:
+    return (
+        parameter.get("type") in VISITOR_PARAMETER_TYPES
+        and not parameter.get("connection")
+        and not parameter.get("choices_from_file")
+    )
+
 
 def _is_valid_config_value(value, param_type: str) -> bool:
     if param_type in _PRIMITIVE_TYPE_CHECKS:
@@ -104,6 +117,12 @@ class MissingPipelineConfiguration(Exception):
 
 class PipelineRunsLimitReached(Exception):
     """The organization has reached its monthly pipeline runs limit."""
+
+    pass
+
+
+class PublicRunInProgress(Exception):
+    """A public run of the pipeline is already queued or running."""
 
     pass
 
@@ -161,6 +180,8 @@ class PipelineRunTrigger(models.TextChoices):
     SCHEDULED = "scheduled", _("Scheduled")
     MANUAL = "manual", _("Manual")
     WEBHOOK = "webhook", _("Webhook")
+    # Launched from the pipeline's public permalink (see Pipeline.run_public).
+    PUBLIC = "public", _("Public")
 
 
 class PipelineVersionQuerySet(BaseQuerySet):
@@ -324,6 +345,27 @@ class PipelineVersion(models.Model):
         return not self.get_missing_required_parameters()
 
     @property
+    def public_parameters(self) -> list[dict]:
+        """The parameters a visitor of the public permalink fills in."""
+        return [p for p in self.parameters if is_visitor_parameter(p)]
+
+    def get_public_run_blockers(self) -> list[str]:
+        """Codes of the parameters a visitor cannot set that have no value to fall back on.
+
+        Stricter than `get_missing_required_parameters`: a parameter disabled by the
+        default values still counts, since the visitor may flip the boolean that
+        disables it and the run would then fail for want of a value.
+        """
+        return [
+            parameter["code"]
+            for parameter in self.parameters
+            if not is_visitor_parameter(parameter)
+            and parameter.get("required")
+            and parameter.get("default") is None
+            and self.config.get(parameter["code"]) is None
+        ]
+
+    @property
     def is_latest_version(self):
         return self == self.pipeline.last_version
 
@@ -341,9 +383,24 @@ class PipelineVersion(models.Model):
         return self.display_name
 
 
+class PipelineVisibility(models.TextChoices):
+    WORKSPACE = "WORKSPACE", _("Workspace")
+    PUBLIC = "PUBLIC", _("Public")
+
+
 class PipelineQuerySet(BaseQuerySet, SoftDeleteQuerySet):
     def filter_for_user(self, user: AnonymousUser | UserInterface):
+        """The pipelines the user's memberships grant.
+
+        Public pipelines are deliberately not added here: the full pipeline is a
+        member's view (code, runs, recipients). What a permalink shows is served
+        from `public()` through its own, narrower GraphQL type.
+        """
         return self.filter(workspace__in=Workspace.objects.filter_for_user(user))
+
+    def public(self):
+        """The pipelines anyone with their permalink may launch, logged in or not."""
+        return self.filter(visibility=PipelineVisibility.PUBLIC)
 
     def filter_for_workspace_slugs(
         self, user: AnonymousUser | UserInterface, workspace_slugs: list[str]
@@ -477,6 +534,13 @@ class Pipeline(SoftDeletedModel):
     schedule = models.CharField(max_length=200, null=True, blank=True)
     workspace = models.ForeignKey(Workspace, on_delete=models.SET_NULL, null=True)
     webhook_enabled = models.BooleanField(default=False)
+    # A pipeline is always shared with its whole workspace; PUBLIC opens it further,
+    # to anyone with its permalink (see run_public).
+    visibility = models.CharField(
+        max_length=20,
+        choices=PipelineVisibility.choices,
+        default=PipelineVisibility.WORKSPACE,
+    )
 
     cpu_request = models.CharField(blank=True, max_length=32)
     cpu_limit = models.CharField(blank=True, max_length=32)
@@ -579,6 +643,71 @@ class Pipeline(SoftDeletedModel):
     @property
     def version_to_run(self):
         return self.scheduled_pipeline_version or self.last_version
+
+    @property
+    def is_public(self) -> bool:
+        return self.visibility == PipelineVisibility.PUBLIC
+
+    def get_public_parameters(self) -> list[dict]:
+        """The parameters a visitor of the permalink fills in, for the version a run would use."""
+        version = self.version_to_run if self.type == PipelineType.ZIPFILE else None
+        return version.public_parameters if version else []
+
+    def get_public_run_blockers(self) -> list[str]:
+        """The parameter codes that keep a visitor from running the pipeline, if any.
+
+        Only explains why `is_publicly_runnable` says no; a zipfile pipeline with no
+        version is not runnable either and has nothing to name.
+        """
+        version = self.version_to_run if self.type == PipelineType.ZIPFILE else None
+        return version.get_public_run_blockers() if version else []
+
+    @property
+    def is_publicly_runnable(self) -> bool:
+        if self.type == PipelineType.ZIPFILE and not self.version_to_run:
+            return False
+        return not self.get_public_run_blockers()
+
+    def run_public(self, user: AnonymousUser | User, config: dict | None):
+        """Launch the pipeline from its permalink, for whoever holds it.
+
+        Being public is the whole authorization: the code, and the values of the
+        parameters a visitor cannot set, were vetted by the organization admin who
+        published it. The visitor's input is confined to the parameters they can see,
+        so a request cannot smuggle in a connection or a file path. One public run at
+        a time per pipeline: the link is open to anyone, the organization's run quota
+        is not. Members launching from the permalink get the same treatment, so the
+        audit trail (the trigger mode) tells a permalink run from a Data Studio one.
+        """
+        if not self.is_public:
+            raise PermissionDenied
+        if not self.is_publicly_runnable:
+            raise MissingPipelineConfiguration(self.get_public_run_blockers())
+
+        version = self.version_to_run if self.type == PipelineType.ZIPFILE else None
+        if version:
+            allowed = {parameter["code"] for parameter in version.public_parameters}
+            config = {
+                code: value for code, value in (config or {}).items() if code in allowed
+            }
+
+        with transaction.atomic():
+            # Locked so that two visitors clicking at once cannot both pass the check.
+            Pipeline.objects.select_for_update().get(pk=self.pk)
+            if PipelineRun.objects.filter(
+                pipeline=self,
+                trigger_mode=PipelineRunTrigger.PUBLIC,
+                state__in=[PipelineRunState.QUEUED, PipelineRunState.RUNNING],
+            ).exists():
+                raise PublicRunInProgress
+            return self.run(
+                user=user if user.is_authenticated else None,
+                pipeline_version=version,
+                trigger_mode=PipelineRunTrigger.PUBLIC,
+                config=config,
+                send_mail_notifications=True,
+                log_level=PipelineRunLogLevel.INFO,
+            )
 
     @property
     def is_schedulable(self) -> bool:
@@ -717,6 +846,11 @@ class Pipeline(SoftDeletedModel):
 
         self.scheduled_pipeline_version = scheduled_version
 
+        # After the scheduled version is settled: it is the one a visitor would run.
+        visibility = kwargs.get("visibility")
+        if visibility is not None and visibility != self.visibility:
+            self.set_visibility(principal, visibility)
+
         if "auto_update_from_template" in kwargs:
             self.auto_update_from_template = kwargs["auto_update_from_template"]
 
@@ -757,6 +891,24 @@ class Pipeline(SoftDeletedModel):
                 "app_label": self._meta.app_label,
             }
         )
+
+    def set_visibility(self, principal: User, visibility: str):
+        """Going public opens the pipeline to anyone with the link, so it is held to
+        its own permission, and to the pipeline being runnable by a visitor right
+        away. Taking it back is part of an ordinary update: leaving a pipeline
+        exposed is not something only the publisher should be able to end.
+        """
+        if visibility == PipelineVisibility.PUBLIC:
+            if not principal.has_perm("pipelines.publish_pipeline", self):
+                raise PermissionDenied
+            if self.type == PipelineType.ZIPFILE and not self.version_to_run:
+                raise PipelineVersion.DoesNotExist(
+                    "A pipeline needs a version before it can be made public."
+                )
+            blockers = self.get_public_run_blockers()
+            if blockers:
+                raise MissingPipelineConfiguration(blockers)
+        self.visibility = visibility
 
     def set_webhook_state(self, enabled: bool):
         if enabled:
@@ -883,8 +1035,35 @@ class PipelineRecipient(Base):
 
 
 class PipelineRunQuerySet(BaseQuerySet):
-    def filter_for_user(self, user: AnonymousUser | UserInterface):
-        return self.filter(pipeline__in=Pipeline.objects.filter_for_user(user))
+    def filter_for_user(
+        self, user: AnonymousUser | UserInterface, *, include_public: bool = False
+    ):
+        """The runs the user may open.
+
+        ``include_public`` adds the runs launched from a public permalink, which
+        anyone holding their id may follow (a visitor has no account to tie them to).
+        Off by default: the full run type is a member's view.
+        """
+        query = Q(pipeline__in=Pipeline.objects.filter_for_user(user))
+        if include_public:
+            query |= self._public_query()
+        return self.filter(query)
+
+    def public(self):
+        """The runs launched from a public permalink, while their pipeline stays public."""
+        return self.filter(self._public_query())
+
+    @staticmethod
+    def _public_query() -> Q:
+        # Only the runs the permalink produced: a member's own runs of the same
+        # pipeline are theirs, whatever the pipeline's visibility. Through the
+        # pipeline rather than Pipeline.objects.public() so a soft-deleted pipeline
+        # takes its runs with it.
+        return Q(
+            pipeline__visibility=PipelineVisibility.PUBLIC,
+            pipeline__deleted_at__isnull=True,
+            trigger_mode=PipelineRunTrigger.PUBLIC,
+        )
 
 
 class PipelineRunState(models.TextChoices):

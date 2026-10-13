@@ -14,11 +14,15 @@ import { useRef } from "react";
 import { SseMessage } from "pipelines/hooks/usePipelineRunMessages/usePipelineRunMessages";
 import {
   RunMessages_DagRunFragment,
+  RunMessages_PublicRunFragment,
   RunMessages_RunFragment,
 } from "./RunMessages.generated";
 
 type RunMessagesProps = {
-  run: RunMessages_DagRunFragment | RunMessages_RunFragment;
+  run:
+    | RunMessages_DagRunFragment
+    | RunMessages_RunFragment
+    | RunMessages_PublicRunFragment;
   // When provided, replaces run.messages entirely (used for live SSE streaming)
   messages?: SseMessage[];
   isStreaming?: boolean;
@@ -53,7 +57,8 @@ const RunMessages = (props: RunMessagesProps) => {
   const ref = useRef<HTMLDivElement>(null);
   useAutoScroll(ref, "smooth");
 
-  const messages = messagesOverride !== undefined ? messagesOverride : run.messages;
+  const messages =
+    messagesOverride !== undefined ? messagesOverride : run.messages;
 
   const isTerminal = [
     PipelineRunStatus.Failed,
@@ -62,8 +67,7 @@ const RunMessages = (props: RunMessagesProps) => {
     PipelineRunStatus.Skipped,
   ].includes(run.status as PipelineRunStatus);
 
-  const showWaiting =
-    isStreaming ?? run.status === PipelineRunStatus.Running;
+  const showWaiting = isStreaming ?? run.status === PipelineRunStatus.Running;
 
   return (
     <>
@@ -156,6 +160,17 @@ RunMessages.fragments = {
   `,
   run: gql`
     fragment RunMessages_run on PipelineRun {
+      id
+      status
+      messages {
+        message
+        timestamp
+        priority
+      }
+    }
+  `,
+  publicRun: gql`
+    fragment RunMessages_publicRun on PublicPipelineRun {
       id
       status
       messages {

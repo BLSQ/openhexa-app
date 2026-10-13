@@ -9,6 +9,8 @@ class PipelinesConfig(CoreAppConfig):
         "pipelines:credentials",
         "pipelines:run",
         "pipelines:run_with_version",
+        # Visitors follow the runs they launched from a public permalink live.
+        "pipelines:stream_pipeline_run_messages",
     ]
 
     def ready(self):

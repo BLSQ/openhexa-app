@@ -5,6 +5,8 @@ export type RunMessages_DagRunFragment = { __typename?: 'DAGRun', id: string, st
 
 export type RunMessages_RunFragment = { __typename?: 'PipelineRun', id: string, status: Types.PipelineRunStatus, messages: Array<{ __typename?: 'PipelineRunMessage', message: string, timestamp?: any | null, priority: Types.MessagePriority }> };
 
+export type RunMessages_PublicRunFragment = { __typename?: 'PublicPipelineRun', id: string, status: Types.PipelineRunStatus, messages: Array<{ __typename?: 'PipelineRunMessage', message: string, timestamp?: any | null, priority: Types.MessagePriority }> };
+
 export const RunMessages_DagRunFragmentDoc = gql`
     fragment RunMessages_dagRun on DAGRun {
   id
@@ -18,6 +20,17 @@ export const RunMessages_DagRunFragmentDoc = gql`
     `;
 export const RunMessages_RunFragmentDoc = gql`
     fragment RunMessages_run on PipelineRun {
+  id
+  status
+  messages {
+    message
+    timestamp
+    priority
+  }
+}
+    `;
+export const RunMessages_PublicRunFragmentDoc = gql`
+    fragment RunMessages_publicRun on PublicPipelineRun {
   id
   status
   messages {

@@ -17,6 +17,7 @@ from hexa.pipelines.models import (
     PipelineRunState,
     PipelineRunTrigger,
     PipelineType,
+    PipelineVisibility,
 )
 from hexa.user_management.models import User
 from hexa.workspaces.models import (
@@ -502,10 +503,33 @@ class SSEStreamTest(TestCase):
 
     # --- Auth / permission ---
 
-    def test_unauthenticated_redirects_to_login(self):
+    def test_unauthenticated_cannot_access_a_members_run(self):
         run = self._make_run(PipelineRunState.SUCCESS)
         response = self.client.get(self._url(run.id))
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 404)
+
+    def test_unauthenticated_follows_a_public_run(self):
+        self.PIPELINE.visibility = PipelineVisibility.PUBLIC
+        self.PIPELINE.save()
+        run = PipelineRun.objects.create(
+            pipeline=self.PIPELINE,
+            user=None,
+            run_id="sse-public-run",
+            execution_date=timezone.now(),
+            trigger_mode=PipelineRunTrigger.PUBLIC,
+            state=PipelineRunState.SUCCESS,
+            messages=[{"message": "hello", "priority": "INFO", "timestamp": None}],
+        )
+        response = self.client.get(self._url(run.id))
+        self.assertEqual(response.status_code, 200)
+        events = self._consume(response)
+        self.assertEqual([e["event"] for e in events], ["message", "done"])
+
+        # Only while the pipeline stays public.
+        self.PIPELINE.visibility = PipelineVisibility.WORKSPACE
+        self.PIPELINE.save()
+        response = self.client.get(self._url(run.id))
+        self.assertEqual(response.status_code, 404)
 
     def test_run_not_found_returns_404(self):
         self.client.force_login(self.USER)

@@ -47,6 +47,13 @@ export type UpdateTemplateVersionMutationVariables = Types.Exact<{
 
 export type UpdateTemplateVersionMutation = { __typename?: 'Mutation', updateTemplateVersion: { __typename?: 'UpdateTemplateVersionResult', success: boolean, errors: Array<Types.UpdateTemplateVersionError>, templateVersion?: { __typename?: 'PipelineTemplateVersion', id: string, versionNumber: number, name?: string | null, changelog?: string | null, documentation?: string | null, createdAt: any, isLatestVersion: boolean, user?: { __typename?: 'User', displayName: string } | null, permissions: { __typename?: 'PipelineTemplateVersionPermissions', update: boolean, delete: boolean }, template: { __typename?: 'PipelineTemplate', id: string, code: string } } | null } };
 
+export type RunPublicPipelineMutationVariables = Types.Exact<{
+  input: Types.RunPublicPipelineInput;
+}>;
+
+
+export type RunPublicPipelineMutation = { __typename?: 'Mutation', runPublicPipeline: { __typename?: 'RunPublicPipelineResult', success: boolean, errors: Array<Types.RunPublicPipelineError>, run?: { __typename?: 'PublicPipelineRun', id: string } | null } };
+
 
 export const UpdatePipelineDocument = gql`
     mutation UpdatePipeline($input: UpdatePipelineInput!) {
@@ -281,3 +288,40 @@ export function useUpdateTemplateVersionMutation(baseOptions?: Apollo.MutationHo
 export type UpdateTemplateVersionMutationHookResult = ReturnType<typeof useUpdateTemplateVersionMutation>;
 export type UpdateTemplateVersionMutationResult = Apollo.MutationResult<UpdateTemplateVersionMutation>;
 export type UpdateTemplateVersionMutationOptions = Apollo.BaseMutationOptions<UpdateTemplateVersionMutation, UpdateTemplateVersionMutationVariables>;
+export const RunPublicPipelineDocument = gql`
+    mutation RunPublicPipeline($input: RunPublicPipelineInput!) {
+  runPublicPipeline(input: $input) {
+    success
+    errors
+    run {
+      id
+    }
+  }
+}
+    `;
+export type RunPublicPipelineMutationFn = Apollo.MutationFunction<RunPublicPipelineMutation, RunPublicPipelineMutationVariables>;
+
+/**
+ * __useRunPublicPipelineMutation__
+ *
+ * To run a mutation, you first call `useRunPublicPipelineMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRunPublicPipelineMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [runPublicPipelineMutation, { data, loading, error }] = useRunPublicPipelineMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRunPublicPipelineMutation(baseOptions?: Apollo.MutationHookOptions<RunPublicPipelineMutation, RunPublicPipelineMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RunPublicPipelineMutation, RunPublicPipelineMutationVariables>(RunPublicPipelineDocument, options);
+      }
+export type RunPublicPipelineMutationHookResult = ReturnType<typeof useRunPublicPipelineMutation>;
+export type RunPublicPipelineMutationResult = Apollo.MutationResult<RunPublicPipelineMutation>;
+export type RunPublicPipelineMutationOptions = Apollo.BaseMutationOptions<RunPublicPipelineMutation, RunPublicPipelineMutationVariables>;

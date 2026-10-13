@@ -170,6 +170,28 @@ curl -X POST \
   https://api.openhexa.org/pipelines/{pipeline_id}/run
 ```
 
+## Pipelines publics
+
+Un pipeline peut être rendu public : toute personne disposant de son lien peut le lancer et suivre son exécution, sans compte OpenHEXA. C'est prévu pour les pipelines que d'autres personnes doivent déclencher, comme un rapport à rafraîchir ou un import de données à demander, sans leur donner accès à l'espace de travail.
+
+Cliquez sur **Modifier** dans la section **Accès public** de la page du pipeline et choisissez **Public**.
+
+### Qui peut publier
+- Seuls les administrateurs et propriétaires de l'organisation peuvent rendre un pipeline public. Toute personne pouvant modifier le pipeline peut le restreindre à nouveau à l'espace de travail.
+- Publier un pipeline l'exécute avec les identifiants de l'espace de travail pour quiconque détient le lien : ne publiez que du code que vous avez relu.
+
+### Paramètres
+- Les visiteurs ne remplissent que les paramètres simples : booléens, nombres, chaînes de caractères et secrets, y compris ceux avec une liste fixe de choix.
+- Tout autre type de paramètre (connexions, jeux de données, fichiers, choix lus depuis un fichier, widgets DHIS2 et IASO) est exécuté avec sa valeur par défaut. Un paramètre obligatoire de ce type doit avoir une valeur par défaut, dans le code ou dans les valeurs par défaut de la version à exécuter, sinon le pipeline ne peut pas être publié. Si une version ultérieure supprime une telle valeur par défaut, la page publique cesse d'accepter des exécutions jusqu'à ce qu'une valeur par défaut soit à nouveau définie.
+- La version exécutée est celle épinglée pour les exécutions planifiées, ou la plus récente.
+
+### Exécutions publiques
+- Une fois le pipeline public, un **Lien public** apparaît dans la section **Accès public**. C'est un lien permanent basé sur l'identifiant du pipeline, qui continue de fonctionner si le pipeline est renommé.
+- Les visiteurs voient le nom et la description du pipeline, lancent une exécution et suivent son statut et ses messages. Ils ne voient ni les sorties, ni les journaux du conteneur, ni qui d'autre a exécuté le pipeline, ni quoi que ce soit de l'espace de travail.
+- Les exécutions publiques apparaissent dans l'historique du pipeline avec le déclencheur **Lien public**. Elles envoient les notifications habituelles aux destinataires du pipeline.
+- Une seule exécution publique à la fois par pipeline : un visiteur qui lance une exécution alors qu'une autre exécution publique est en attente ou en cours est invité à patienter. Les exécutions publiques comptent dans la limite mensuelle d'exécutions de l'organisation.
+- Les pipelines publics ne sont listés nulle part en dehors de l'espace de travail : les visiteurs n'y accèdent que par le lien.
+
 ## Exécutions de pipelines
 
 - **Historique d'exécution** : Voir tous les pipelines précédents. Cliquez sur **Voir** pour les journaux détaillés et les résultats d'une exécution spécifique.

@@ -32,9 +32,9 @@ const savedQuery = (visibility: SavedQueryVisibility) => ({
   id: "q1",
   slug: "my-query",
   name: "My query",
-  description: "",
+  description: "Some numbers",
   visibility,
-  workspace: { slug: "ws-1", name: "WS", organization: { name: "Org" } },
+  workspace: { slug: "ws-1", organization: { name: "Org" } },
 });
 
 const mockClient = (savedQueryBySlug: any) => {
@@ -60,7 +60,40 @@ describe("PublicSavedQueryPage getServerSideProps", () => {
     const result: any = await getServerSideProps(buildCtx("my-query"));
 
     expect(result.redirect).toBeUndefined();
-    expect(result.props).toMatchObject({ querySlug: "my-query" });
+    expect(result.props).toMatchObject({
+      querySlug: "my-query",
+      name: "My query",
+      description: "Some numbers",
+      visibility: SavedQueryVisibility.Public,
+      organizationName: "Org",
+    });
+  });
+
+  // The workspace behind a public query is not the visitor's business: it is
+  // read server-side only and neither passed as a prop nor hydrated into the
+  // Apollo cache.
+  it("does not send the workspace to the browser", async () => {
+    anonymous();
+    const client = mockClient(savedQuery(SavedQueryVisibility.Public));
+
+    const result: any = await getServerSideProps(buildCtx("my-query"));
+
+    expect(client.query).toHaveBeenCalledWith(
+      expect.objectContaining({ fetchPolicy: "no-cache" }),
+    );
+    expect(JSON.stringify(result.props)).not.toContain("ws-1");
+  });
+
+  it("credits no one when the workspace has no organization", async () => {
+    anonymous();
+    mockClient({
+      ...savedQuery(SavedQueryVisibility.Public),
+      workspace: { slug: "ws-1", organization: null },
+    });
+
+    const result: any = await getServerSideProps(buildCtx("my-query"));
+
+    expect(result.props).toMatchObject({ organizationName: null });
   });
 
   // The query may exist but not be public: a login may be what is missing.

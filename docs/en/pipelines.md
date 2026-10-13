@@ -170,6 +170,28 @@ curl -X POST \
   https://api.openhexa.org/pipelines/{pipeline_id}/run
 ```
 
+## Public pipelines
+
+A pipeline can be made public: anyone with its link can launch it and follow their run, without an OpenHEXA account. This is meant for pipelines that other people need to trigger, such as a report to refresh or a data import to request, without giving them access to the workspace.
+
+Click **Edit** in the **Public access** section of the pipeline page and choose **Public**.
+
+### Who can publish
+- Only organization admins and owners can make a pipeline public. Anyone who can edit the pipeline can make it workspace-only again.
+- Publishing runs the pipeline with the workspace's credentials for whoever holds the link, so publish code you have reviewed.
+
+### Parameters
+- Visitors only fill in plain parameters: booleans, numbers, strings and secrets, including those with a fixed list of choices.
+- Every other kind of parameter (connections, datasets, files, choices read from a file, DHIS2 and IASO widgets) runs with its default value. A required parameter of that kind must have a default, either in the code or in the default values of the version to run, or the pipeline cannot be published. If a later version drops such a default, the public page stops accepting runs until a default is set again.
+- The version that runs is the one pinned for scheduled runs, or the latest one.
+
+### Public runs
+- Once public, a **Public link** appears in the **Public access** section. It is a permalink based on the pipeline identifier, so it keeps working if the pipeline is renamed.
+- Visitors see the pipeline name and description, launch a run and follow its status and messages. They cannot see the outputs, the container logs, who else ran the pipeline or anything about the workspace.
+- Public runs appear in the pipeline's run history with the **Public link** trigger. They send the usual notifications to the pipeline recipients.
+- One public run per pipeline at a time: a visitor who launches while another public run is queued or running is asked to wait. Public runs count towards the organization's monthly run limit.
+- Public pipelines are not listed anywhere outside the workspace: visitors only reach them through the link.
+
 ## Pipeline runs
 
 - **Execution history**: View all previous pipelines. Click **View** for detailed logs and results of a specific run.
