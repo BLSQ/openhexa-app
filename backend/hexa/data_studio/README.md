@@ -157,6 +157,71 @@ the third by `views`:
   concurrent exports per worker; excess callers get an immediate **429** rather than queueing.
   It is per process, not a global cap (that is the per-role Postgres `CONNECTION LIMIT`).
 
+## Query templating
+
+A saved query may declare parameters (`SavedQuery.parameters`), making its SQL a template
+that `templating.py` renders before execution. The trust boundary is the point of the
+module: the template is trusted, because a workspace member wrote it, while the values are
+not — they arrive from a web app's JavaScript.
+
+Rendering never puts a value into the SQL. It emits a placeholder token and collects the
+value on the side; `hexa.databases.query_text.to_psycopg2` then turns the token into a
+psycopg2 `%s` and returns a `PreparedQuery` carrying the values, which the driver binds.
+That split is deliberate: `templating.py` decides whether a value may become SQL and holds
+no driver knowledge, while the two psycopg2 facts — the `%s` spelling and the `%`-doubling
+that pre-compensates for psycopg2's client-side formatting — live on the other side of the
+seam. A future DuckDB backend replaces the converter and nothing else; carrying the
+`%`-doubling across would corrupt data, since DuckDB binds inside the engine and never
+un-doubles.
+
+Sorting and pagination are not the template's job. `executeSavedQuery` wraps the prepared
+statement *after* rendering, so `orderBy`, `page` and the cursors apply to a templated
+query like to any other, with the wrapper's own placeholders bound after the template's.
+Two consequences:
+
+- The placeholder token is regenerated on every render, so a cursor cannot be fingerprinted
+  on the rendered text. `pagination.statement_text` fingerprints the `%s` form plus the
+  bound values instead: the same template with the same values yields the same cursor, and
+  other values refuse it, as another query would.
+- The audit entry (`QueryLog`) keeps the stored text and the bound values (`parameters`),
+  never the rendered statement — the same rule as for the pagination wrapper, which is not
+  logged either. Template plus values is enough to reproduce the run.
+
+Two absences are deliberate and should stay absent:
+
+- **No `sqlsafe` filter, and no `Markup` pass-through in `finalize`.** There is no route by
+  which a value reaches the SQL grammar — a property of the code, not a convention. The one
+  construct that would need such a hatch is a macro-style snippet taking arguments, which
+  does not exist yet.
+- **No expansion of `IN` clauses.** A `multiple` parameter binds as a PostgreSQL array
+  against `= ANY(…)`, which is what `IN` already compiles to. One output node stays one
+  placeholder, and an empty list is legal — it matches nothing under `= ANY` and everything
+  under `<> ALL`, where an expanded `IN ()` would be a syntax error the web app could not
+  recover from.
+
+Two lines inside `render_saved_query` carry more weight than they look:
+
+- `finalize` must fail on an `Undefined` itself. Jinja hands it the raw object *before*
+  anything stringifies it, so returning a token would short-circuit the only step that
+  would have raised — and both `StrictUndefined` and the sandbox's refusals travel that
+  way. Without it the environment's `undefined=StrictUndefined` and `SandboxedEnvironment`
+  are decoration, and the failure resurfaces much later as a psycopg2 adaptation error.
+- `@pass_context` on `finalize` stops Jinja constant-folding output nodes at compile time,
+  which would otherwise put literals at the front of the value list and desync them from
+  their placeholders.
+
+Validation runs on the two API paths (`create_if_has_perm`, `update_if_has_perm`), not in
+`save()` — which would make fixtures and data migrations brittle — and returns a
+*normalized* spec with every optional key filled in. That normalization is load-bearing for
+reads, not just for tidiness: the GraphQL type declares `multiple` and `required` non-null
+and resolves them straight off the JSONField, so a spec stored without them would break
+every later read of the query.
+
+**Snippets are the designed-for extension.** `build_environment` already accepts a
+`loader`, and `{% include %}` output bypasses `finalize` entirely, so a snippet's static SQL
+would be emitted verbatim with no escape hatch. Until that exists, `{% include %}` and
+`{% import %}` are rejected at save time so the syntax stays reserved behind a clear error.
+
 ## Resource lifecycle
 
 The slot and connection outlive the view call — the response keeps consuming rows after the

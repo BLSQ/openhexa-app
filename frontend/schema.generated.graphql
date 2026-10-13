@@ -2425,8 +2425,6 @@ type EnableTwoFactorResult {
 Possible errors when executing a SQL query against the workspace database.
 """
 enum ExecuteSQLError {
-  INVALID_PARAMETERS
-
   """
   The `after` cursor is forged, or was built for another query or ordering.
   """
@@ -2443,6 +2441,7 @@ enum ExecuteSQLError {
   statement that cannot be paginated (e.g. an EXPLAIN).
   """
   INVALID_PAGINATION
+  INVALID_PARAMETERS
 
   """
   More than one SQL statement was submitted; only a single statement is allowed.
