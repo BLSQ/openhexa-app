@@ -7,6 +7,7 @@ from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.progress import NullReporter
 from hexa.workspace_copier.resources.pipelines import (
     PipelinesCopier,
+    _create_on_target,
     _upload_versions,
 )
 from hexa.workspace_copier.results import CopyResult, PipelinesResult
@@ -198,3 +199,16 @@ class UploadVersionsTest(SimpleTestCase):
         )
 
         self.assertIsNone(scheduled_version_id)
+
+
+class CreateOnTargetTest(SimpleTestCase):
+    def test_pipeline_without_tags_sends_an_empty_list(self):
+        target = MagicMock()
+        target.create_pipeline.return_value.pipeline = None
+        target.create_pipeline.return_value.success = False
+
+        with self.assertRaises(GraphQLError):
+            _create_on_target(target, "tgt", {"code": "p", "tags": []}, "P")
+
+        # A null is rejected by servers that predate the tags=null fix.
+        self.assertEqual(target.create_pipeline.call_args.kwargs["input"].tags, [])

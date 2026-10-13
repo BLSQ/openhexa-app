@@ -3271,6 +3271,33 @@ def test_pipeline(input_file, threshold, enable_debug):
         self.assertIn("new-tag", tag_names)
         self.assertTrue(Tag.objects.filter(name="new-tag").exists())
 
+    def test_upload_pipeline_with_null_tags_keeps_existing_tags(self):
+        self.client.force_login(self.USER_ROOT)
+        pipeline = Pipeline.objects.create(
+            code="test-pipeline-null-tags", workspace=self.WS1, name="Test Pipeline"
+        )
+        pipeline.tags.set([Tag.objects.create(name="kept")])
+
+        r = self.run_query(
+            """
+            mutation uploadPipeline($input: UploadPipelineInput!) {
+                uploadPipeline(input: $input) { success errors }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS1.slug,
+                    "pipelineCode": "test-pipeline-null-tags",
+                    "name": "Test Version",
+                    "zipfile": self.zip_pipeline_py,
+                    "tags": None,
+                }
+            },
+        )
+
+        self.assertEqual(r["data"]["uploadPipeline"]["success"], True)
+        self.assertEqual([t.name for t in pipeline.tags.all()], ["kept"])
+
     def test_upload_pipeline_with_invalid_tags(self):
         self.client.force_login(self.USER_ROOT)
 
@@ -3446,6 +3473,45 @@ def test_pipeline(input_file, threshold, enable_debug):
 
         pipeline.refresh_from_db()
         self.assertEqual(pipeline.functional_type, "transformation")
+
+    def test_create_pipeline_with_null_tags(self):
+        self.client.force_login(self.USER_ROOT)
+        r = self.run_query(
+            """
+            mutation createPipeline($input: CreatePipelineInput!) {
+                createPipeline(input: $input) { success errors pipeline { tags { name } } }
+            }
+            """,
+            {
+                "input": {
+                    "workspaceSlug": self.WS1.slug,
+                    "name": "Pipeline with null tags",
+                    "tags": None,
+                }
+            },
+        )
+
+        self.assertEqual(r["data"]["createPipeline"]["success"], True)
+        self.assertEqual(r["data"]["createPipeline"]["pipeline"]["tags"], [])
+
+    def test_update_pipeline_with_null_tags_keeps_existing_tags(self):
+        pipeline = self.test_create_pipeline()
+        pipeline.tags.set([Tag.objects.create(name="kept")])
+        self.client.force_login(self.USER_ROOT)
+
+        r = self.run_query(
+            """
+            mutation updatePipeline($input: UpdatePipelineInput!) {
+                updatePipeline(input: $input) { success errors }
+            }
+            """,
+            {"input": {"id": str(pipeline.id), "name": "Renamed", "tags": None}},
+        )
+
+        self.assertEqual(r["data"]["updatePipeline"]["success"], True)
+        pipeline.refresh_from_db()
+        self.assertEqual(pipeline.name, "Renamed")
+        self.assertEqual([t.name for t in pipeline.tags.all()], ["kept"])
 
     def test_functional_type_in_pipeline_queries(self):
         """Test that functional_type is returned in pipeline queries"""
