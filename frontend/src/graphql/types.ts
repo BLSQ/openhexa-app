@@ -2527,7 +2527,7 @@ export type ExecuteSavedQueryInput = {
   orderBy?: InputMaybe<Array<QueryResultOrderBy>>;
   /** The 1-based page to return. Cannot be combined with a cursor. */
   page?: InputMaybe<Scalars['Int']['input']>;
-  /** Values for the parameters the saved query declares, as a name -> value map. */
+  /** Parameter values for the saved query, supplied as a name-to-value map. */
   parameters?: InputMaybe<Scalars['JSON']['input']>;
   /** The number of rows per page; defaults to 50 and is capped to a server-side hard limit. Ignored for an EXPLAIN. */
   perPage?: InputMaybe<Scalars['Int']['input']>;
@@ -5805,19 +5805,19 @@ export type SavedQueryPage = {
   totalPages: Scalars['Int']['output'];
 };
 
-/** A parameter a saved query declares. Values are bound at execution, never inlined into the SQL. */
+/** A parameter declared on a saved query. Parameter values are bound safely at execution time. */
 export type SavedQueryParameter = {
   __typename?: 'SavedQueryParameter';
   default?: Maybe<Scalars['Generic']['output']>;
   help?: Maybe<Scalars['String']['output']>;
-  /** When true the value is a JSON array of `type`, bound as a PostgreSQL array. */
+  /** Whether this parameter accepts a list of values of the specified type. */
   multiple: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   required: Scalars['Boolean']['output'];
   type: SavedQueryParameterType;
 };
 
-/** A parameter declaration. Everything but `name` and `type` is optional and defaults on the way in. */
+/** Input specification for declaring a saved query parameter. */
 export type SavedQueryParameterInput = {
   default?: InputMaybe<Scalars['Generic']['input']>;
   help?: InputMaybe<Scalars['String']['input']>;
@@ -5827,10 +5827,7 @@ export type SavedQueryParameterInput = {
   type: SavedQueryParameterType;
 };
 
-/**
- * Type of a saved query parameter. Mirrors the pipeline parameter types: INTEGER and FLOAT
- * are separate so a decimal cannot reach a clause like LIMIT, which PostgreSQL rejects.
- */
+/** Supported data types for saved query parameters. */
 export enum SavedQueryParameterType {
   Boolean = 'BOOLEAN',
   Date = 'DATE',
@@ -6642,7 +6639,7 @@ export type UpdateSavedQueryInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
-  /** Omitted or null leaves the stored declaration alone; [] clears it. */
+  /** Parameter definitions for the query. Omit or pass null to keep current parameters, or pass [] to remove all parameters. */
   parameters?: InputMaybe<Array<SavedQueryParameterInput>>;
   /** Only the author may change this; PERMISSION_DENIED otherwise. */
   visibility?: InputMaybe<SavedQueryVisibility>;

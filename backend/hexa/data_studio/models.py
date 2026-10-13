@@ -301,8 +301,7 @@ class SavedQuery(Base, SoftDeletedModel, GitRepoMixin):
             parameters = kwargs.get("parameters")
             if parameters is None:
                 parameters = self.parameters
-            # Validated before the repository is touched: a refused edit must not leave
-            # a repository behind for a change that never happened.
+            # Validate parameters before updating git history so invalid edits do not create commits.
             parameters = validate_saved_query_template(
                 self.content if new_content is None else new_content, parameters
             )

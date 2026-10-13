@@ -28,7 +28,7 @@ from .testutils import SavedQueryTestMixin
 
 
 class SavedQueryParametersTest(SavedQueryTestMixin, TestCase):
-    """Declared parameters: validation on the two API paths, and partial-update semantics."""
+    """Tests for saved query parameter validation and partial updates."""
 
     def test_create_stores_a_normalized_spec(self):
         saved_query = self.create_saved_query(
@@ -62,7 +62,7 @@ class SavedQueryParametersTest(SavedQueryTestMixin, TestCase):
             )
 
     def test_sanitize_sql_leaves_template_syntax_intact(self):
-        # save() cleans blanks PostgreSQL cannot parse; it must not touch the delimiters.
+        # Verifies that SQL whitespace sanitization does not alter Jinja template tags.
         content = "SELECT {{ a }} {% if a %}x{% endif %}{# note #}"
         saved_query = self.create_saved_query(
             content=content, parameters=[{"name": "a", "type": "INTEGER"}]
@@ -71,7 +71,7 @@ class SavedQueryParametersTest(SavedQueryTestMixin, TestCase):
         self.assertEqual(content, saved_query.content)
 
     def test_an_update_that_omits_parameters_keeps_them(self):
-        """A client PATCHing only `name` must not drop the declaration."""
+        """Updating other fields without specifying parameters preserves existing parameter declarations."""
         saved_query = self.create_saved_query(
             content="SELECT {{ a }}", parameters=[{"name": "a", "type": "INTEGER"}]
         )
@@ -99,7 +99,7 @@ class SavedQueryParametersTest(SavedQueryTestMixin, TestCase):
         self.assertEqual([], saved_query.parameters)
 
     def test_an_update_validates_the_resulting_pair(self):
-        """Changing only the content must not leave it disagreeing with the spec."""
+        """Updating SQL content validates against existing parameters if new parameters are not supplied."""
         saved_query = self.create_saved_query(
             content="SELECT {{ a }}", parameters=[{"name": "a", "type": "INTEGER"}]
         )

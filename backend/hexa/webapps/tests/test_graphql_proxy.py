@@ -436,11 +436,7 @@ class GraphQLProxyMiddlewareTest(TestCase):
         )
 
     def test_database_read_scope_passes_parameters(self):
-        """The proxy allowlists top-level field names only, so `parameters` flows through.
-
-        That is by design, and is exactly why `executeSQL` is blocked at the resolver
-        rather than left to the scope check (see the test below).
-        """
+        """Verifies that web apps with DATABASE_READ scope can pass parameters to executeSavedQuery."""
         saved_query = SavedQuery.objects.create(
             workspace=self.WORKSPACE,
             created_by=self.USER,
@@ -488,7 +484,7 @@ class GraphQLProxyMiddlewareTest(TestCase):
         self.assertEqual(response.status_code, 200)
         result = json.loads(response.content)["data"]["executeSavedQuery"]
         self.assertTrue(result["success"], result["errors"])
-        # The value reached psycopg2 as a bound parameter, never as SQL text.
+        # Parameter values are bound safely through psycopg2 rather than inlined into SQL.
         statement = execute.call_args.args[1]
         self.assertIn("%s", statement.sql)
         self.assertNotIn("2", statement.sql)
@@ -499,7 +495,7 @@ class GraphQLProxyMiddlewareTest(TestCase):
         self.assertEqual({"n": 2}, query_log.parameters)
 
     def test_database_read_scope_cannot_reach_execute_sql(self):
-        """The scope that may run stored queries still may not write its own SQL."""
+        """Web apps with DATABASE_READ scope cannot execute arbitrary SQL queries."""
         webapp = self._create_scoped_webapp(
             "db-app", [Webapp.OperationScope.DATABASE_READ]
         )

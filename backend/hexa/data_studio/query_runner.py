@@ -150,8 +150,8 @@ def _execute_and_log(
     ``statement_to_count`` is counted first when given: a failing count then
     reaches the log as the one ERROR entry of the request, rather than following
     a SUCCESS entry.
-    ``query`` is the text logged, raw, for every outcome; ``parameters`` are the
-    values a template bound, recorded beside it.
+    ``query`` is the raw SQL text recorded in the log; ``parameters`` holds any
+    bound template parameter values.
     """
     max_rows_kwarg = {} if max_rows is None else {"max_rows": max_rows}
     started_at = time.perf_counter()
@@ -291,9 +291,9 @@ def run_saved_query(
     wrapped in a sorted, limited subquery and ``page_info`` describes the page. Raises
     ``PaginationError`` (logged as REJECTED) for arguments that cannot be honoured.
 
-    ``parameters`` are the values for the parameters the query declares. The text is
-    rendered with them bound through the driver (see ``templating``), and both the
-    stored text and the bound values go on the audit entry.
+    ``parameters``: optional dictionary of values for parameters declared by the query.
+    The template is rendered with values bound through the database driver, and both the
+    SQL text and bound parameters are recorded in the query log.
     """
     # Derived from the request rather than accepted as an argument: a client that
     # could name its own origin could disown the queries it ran.
@@ -304,8 +304,7 @@ def run_saved_query(
     )
     workspace = saved_query.workspace
     query = saved_query.content
-    # Before rendering: a denied caller must get PERMISSION_DENIED and a DENIED entry,
-    # not INVALID_PARAMETERS and a REJECTED one.
+    # Check permissions before rendering so unauthorized callers receive PERMISSION_DENIED.
     ensure_can_run_query(
         request,
         workspace,
@@ -314,7 +313,7 @@ def run_saved_query(
         saved_query=saved_query,
         parameters=parameters,
     )
-    # Until the values are bound, a rejected call records what the caller sent.
+    # If rendering fails, log the raw parameters sent by the caller.
     values = parameters
     try:
         per_page = resolve_per_page(per_page, max_rows)

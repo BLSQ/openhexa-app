@@ -1219,7 +1219,7 @@ class ExecuteSavedQueryPaginationTest(SavedQueryTestMixin, GraphQLTestCase):
 
 
 class ExecuteSavedQueryWithParametersTest(SavedQueryTestMixin, GraphQLTestCase):
-    """Running a template: values bound, errors mapped, audit entry written."""
+    """Tests running templated saved queries with bound parameters."""
 
     EXECUTE_QUERY = """
         query ($input: ExecuteSavedQueryInput!) {
@@ -1283,7 +1283,7 @@ class ExecuteSavedQueryWithParametersTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertEqual([{"id": 3}], result["rows"])
 
     def test_a_template_is_sorted_and_paged_like_any_other_query(self):
-        """Sorting and paging wrap the rendered statement, its values bound first."""
+        """Verifies that sorting and pagination wrap the rendered templated query."""
         saved_query = self._range_query()
 
         result = self._execute(
@@ -1311,13 +1311,13 @@ class ExecuteSavedQueryWithParametersTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertEqual([{"id": 1}], first["rows"])
         self.assertIsNotNone(cursor)
 
-        # The placeholder token changes on every render; the cursor must not.
+        # Cursors remain valid across requests using the same parameter values.
         second = self._execute(
             saved_query.slug, {"min_id": 1}, orderBy=order_by, perPage=1, after=cursor
         )
         self.assertEqual([{"id": 2}], second["rows"])
 
-        # Other values are another result set, so the cursor is refused.
+        # Changing parameter values invalidates the previous cursor.
         other = self._execute(
             saved_query.slug, {"min_id": 2}, orderBy=order_by, perPage=1, after=cursor
         )
@@ -1331,11 +1331,7 @@ class ExecuteSavedQueryWithParametersTest(SavedQueryTestMixin, GraphQLTestCase):
         )
 
     def test_an_empty_list_matches_nothing_rather_than_failing(self):
-        """The reason `= ANY` is used instead of expanding an IN clause.
-
-        A web app whose multi-select the user emptied cannot branch around the
-        clause -- it never holds the SQL -- so the empty set has to be legal.
-        """
+        """Verifies that filtering with an empty list against '= ANY' produces an empty result without error."""
         result = self._execute(self._in_query().slug, {"labels": []})
         self.assertTrue(result["success"])
         self.assertEqual([], result["rows"])
@@ -1353,7 +1349,7 @@ class ExecuteSavedQueryWithParametersTest(SavedQueryTestMixin, GraphQLTestCase):
 
         self.assertTrue(result["success"])
         self.assertEqual([], result["rows"])
-        # The table is still there, which is the whole point.
+        # Verify that SQL injection attempts are safely treated as literal string values.
         self.assertEqual(
             [{"id": 1}, {"id": 2}, {"id": 3}],
             self._execute(self._in_query().slug, {"labels": ["a", "b", "c"]})["rows"],
@@ -1367,7 +1363,7 @@ class ExecuteSavedQueryWithParametersTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertEqual(
             [{"id": 1}], self._execute(saved_query.slug, {"id": 1})["rows"]
         )
-        # Wrapped for pagination, the statement must not be %-doubled twice.
+        # Statement wrapped for pagination must not double '%' characters multiple times.
         paged = self._execute(saved_query.slug, {"id": 1}, orderBy=[{"column": "id"}])
         self.assertEqual([{"id": 1}], paged["rows"])
 
@@ -1397,11 +1393,7 @@ class ExecuteSavedQueryWithParametersTest(SavedQueryTestMixin, GraphQLTestCase):
         self.assertNotIn("script", result["errorMessage"])
 
     def test_a_camel_case_parameter_name_survives_ariadne(self):
-        """`convert_names_case=True` must not recurse into the JSON scalar.
-
-        It converts input-object field names (`maxRows` -> `max_rows`); a parameter
-        name silently arriving as `min_id` would fail to bind.
-        """
+        """Verifies that camelCase parameter names in the JSON input retain their casing."""
         saved_query = self.create_saved_query(
             content="SELECT id FROM demo WHERE id >= {{ minId }} ORDER BY id",
             parameters=[{"name": "minId", "type": "INTEGER"}],
@@ -1417,7 +1409,7 @@ class ExecuteSavedQueryWithParametersTest(SavedQueryTestMixin, GraphQLTestCase):
 
         log = QueryLog.objects.get()
         self.assertEqual(QueryLog.Status.SUCCESS, log.status)
-        # The stored text, with the values beside it rather than inlined.
+        # The log stores the template SQL along with the bound parameter values.
         self.assertEqual(saved_query.content, log.query)
         self.assertEqual({"min_id": 2, "max_id": 3}, log.parameters)
 
@@ -1434,7 +1426,7 @@ class ExecuteSavedQueryWithParametersTest(SavedQueryTestMixin, GraphQLTestCase):
         log = QueryLog.objects.get()
         self.assertEqual(QueryLog.Status.REJECTED, log.status)
         self.assertEqual(saved_query.content, log.query)
-        # Nothing was bound, so what the caller sent is what gets recorded.
+        # When validation fails before execution, the attempted parameter values are still logged.
         self.assertEqual({"min_id": "nope"}, log.parameters)
         self.assertEqual(saved_query, log.saved_query)
 
@@ -1444,12 +1436,12 @@ class ExecuteSavedQueryWithParametersTest(SavedQueryTestMixin, GraphQLTestCase):
         result = self._execute(saved_query.slug, {"min_id": "nope"}, self.USER_OUTSIDER)
 
         self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
-        # An outsider cannot even see the query, so nothing is executed or logged.
+        # Unauthorized callers cannot access or execute the query, and no query execution is logged.
         self.assertEqual(0, QueryLog.objects.count())
 
 
 class SavedQueryParametersSchemaTest(SavedQueryTestMixin, GraphQLTestCase):
-    """Declaring parameters through the mutations, and reading them back."""
+    """Tests declaring and updating parameters via GraphQL mutations."""
 
     CREATE = """
         mutation ($input: CreateSavedQueryInput!) {
@@ -1481,7 +1473,7 @@ class SavedQueryParametersSchemaTest(SavedQueryTestMixin, GraphQLTestCase):
         ]
 
     def test_create_with_parameters_reads_every_field_back(self):
-        """Without normalization this query errors on a null `required` and `multiple`."""
+        """Verifies that parameter normalization populates all fields when queried back."""
         result = self._create("SELECT {{ a }}", [{"name": "a", "type": "INTEGER"}])
 
         self.assertTrue(result["success"])

@@ -18,7 +18,7 @@ from hexa.databases.query_text import MultipleStatementsError, to_psycopg2
 
 
 class FakeSavedQuery:
-    """Stands in for the model: rendering only ever reads these two attributes."""
+    """Minimal test double representing a saved query with content and parameters."""
 
     def __init__(self, content, parameters=None):
         self.content = content
@@ -51,7 +51,7 @@ class RenderTest(SimpleTestCase):
         self.assertEqual([], rendered.params)
         prepared = to_psycopg2(rendered)
         self.assertEqual(content, prepared.sql)
-        # None, not [], or psycopg2 would %-format a statement it has no values for.
+        # Passing params=None prevents psycopg2 from formatting queries without parameters.
         self.assertIsNone(prepared.params)
 
     def test_injection_arrives_as_a_value_not_as_sql(self):
@@ -67,7 +67,7 @@ class RenderTest(SimpleTestCase):
         self.assertNotIn("DROP TABLE", prepared.sql)
 
     def test_rendering_stops_at_the_token(self):
-        """The seam: `to_psycopg2` is the only thing that may write a psycopg2 placeholder."""
+        """Template rendering outputs neutral placeholder tokens without driver-specific syntax."""
         rendered = render("SELECT {{ a }}", [parameter("a", "INTEGER")], {"a": 1})
         self.assertIn(rendered.token, rendered.sql)
         self.assertNotIn("%s", rendered.sql)
@@ -80,8 +80,7 @@ class RenderTest(SimpleTestCase):
             {"id": 7},
         )
         prepared = to_psycopg2(rendered)
-        # Doubled for psycopg2, which un-doubles it as it binds; the placeholder
-        # written by the same pass must not itself be doubled.
+        # Literal '%' is doubled to '%%' for psycopg2 string formatting, while parameter placeholders remain '%s'.
         self.assertEqual(
             "SELECT * FROM t WHERE name LIKE '%%foo%%' AND id = %s", prepared.sql
         )
@@ -89,7 +88,7 @@ class RenderTest(SimpleTestCase):
         self.assertEqual([7], prepared.params)
 
     def test_the_body_is_converted_for_the_pagination_wrapper(self):
-        """``body`` is what ``paginate_*`` embed, so it carries the same placeholders."""
+        """The inner query body is converted with parameter placeholders so pagination wrappers can enclose it."""
         rendered = render(
             "SELECT * FROM t WHERE id = {{ id }}",
             [parameter("id", "INTEGER")],
@@ -107,7 +106,7 @@ class RenderTest(SimpleTestCase):
             to_psycopg2(rendered)
 
     def test_placeholder_order_matches_value_order(self):
-        """The regression `@pass_context` on `finalize` exists to prevent."""
+        """Verifies that parameter values match the exact order of placeholders in the rendered SQL."""
         rendered = render(
             "A {{ a }} B {{ 'LIT' }} C {{ a }} D {% for n in ns %}{{ n }},{% endfor %} E {{ b }}",
             [
@@ -132,7 +131,7 @@ class RenderTest(SimpleTestCase):
                 self.assertEqual([n], rendered.params)
 
     def test_a_safe_filtered_value_is_still_bound(self):
-        """`| safe` hands `finalize` a Markup; there is no pass-through for it."""
+        """Values marked safe (Markup objects) are still bound as parameters rather than injected into SQL."""
         rendered = render("SELECT {{ x | safe }}", [parameter("x")], {"x": "<b>"})
         self.assertEqual(rendered.token, rendered.sql.replace("SELECT ", ""))
         self.assertEqual(["<b>"], rendered.params)
@@ -148,13 +147,7 @@ class RenderTest(SimpleTestCase):
 
 class RenderFailureTest(SimpleTestCase):
     def test_the_sandbox_and_undefined_surface_as_a_render_error(self):
-        """Without the `Undefined` guard in `finalize` these render "successfully".
-
-        Jinja hands `finalize` the raw `Undefined` before anything stringifies it, so a
-        hook that returns a token short-circuits the only step that would have raised;
-        the failure would then surface from psycopg2 as "can't adapt type
-        'StrictUndefined'". Each of these must fail here instead.
-        """
+        """Sandbox restrictions and undefined variables raise TemplateRenderError during rendering rather than failing later during execution."""
         for content in (
             "SELECT {{ ''.__class__ }}",
             "SELECT {{ x.__class__ }}",
@@ -167,7 +160,7 @@ class RenderFailureTest(SimpleTestCase):
                     render(content, [parameter("x")], {"x": "hi"})
 
     def test_a_construct_that_captures_output_is_refused(self):
-        """`{% set %}...{% endset %}` binds a value without emitting a placeholder."""
+        """Constructs that capture output without emitting placeholders raise a render error."""
         with self.assertRaises(TemplateRenderError):
             render(
                 "{% set s %}{{ x }}{% endset %}SELECT {{ s }}",
@@ -213,9 +206,7 @@ class CoercionTest(SimpleTestCase):
         self.assertEqual(date(2026, 1, 1), self.coerce("DATE", "2026-01-01"))
 
     def test_rejected_values(self):
-        # `isinstance(True, int)` is True in Python, so both numeric types must
-        # exclude bool explicitly; a numeric string is how `LIMIT "10"` bugs happen;
-        # and a decimal written for an INTEGER is a caller who meant something else.
+        # Verify that booleans are rejected for numbers, strings are not cast to numbers, and invalid date formats fail.
         for parameter_type, value in (
             ("INTEGER", True),
             ("FLOAT", True),
@@ -233,7 +224,7 @@ class CoercionTest(SimpleTestCase):
                     self.coerce(parameter_type, value)
 
     def test_an_error_message_never_echoes_the_rejected_value(self):
-        """It is attacker-controlled text landing in an audit field people read."""
+        """Error messages should not echo user input."""
         with self.assertRaises(InvalidParametersError) as raised:
             self.coerce("INTEGER", "<script>alert(1)</script>")
         self.assertNotIn("script", str(raised.exception))
@@ -242,7 +233,7 @@ class CoercionTest(SimpleTestCase):
         self.assertEqual([1, 2], self.coerce("INTEGER", [1, 2], multiple=True))
 
     def test_multiple_accepts_an_empty_list(self):
-        """The case the design is chosen for: no rows under `= ANY`, all under `<> ALL`."""
+        """Empty lists are valid inputs for array parameters."""
         self.assertEqual([], self.coerce("INTEGER", [], multiple=True))
 
     def test_multiple_rejects_a_scalar_a_nested_list_and_bad_elements(self):
@@ -285,7 +276,7 @@ class BindValuesTest(SimpleTestCase):
             self.bind({})
 
     def test_an_unknown_name_is_rejected_rather_than_ignored(self):
-        """How a web app finds its typo."""
+        """Unknown parameter names raise an error to help callers catch typos."""
         with self.assertRaises(InvalidParametersError) as raised:
             self.bind({"a": 1, "limitt": 2})
         self.assertIn("limitt", str(raised.exception))
@@ -314,7 +305,7 @@ class ValidateOnSaveTest(SimpleTestCase):
         )
 
     def test_a_declared_but_unused_parameter_is_allowed(self):
-        # The frontend form may want a parameter before the SQL uses it.
+        # Parameters may be declared before they are used in SQL (for example, while drafting in the UI).
         self.assertEqual(
             1, len(validate_saved_query_template("SELECT 1", [parameter("a")]))
         )

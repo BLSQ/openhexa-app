@@ -8,7 +8,7 @@ from ._graphql import execute_graphql
 
 
 class SavedQueryParameter(TypedDict, total=False):
-    """A parameter declaration, as `SavedQueryParameterInput` in the GraphQL schema."""
+    """Parameter definition for a saved query (mirrors SavedQueryParameterInput in GraphQL)."""
 
     name: Required[str]
     type: Required[Literal[*PARAMETER_TYPES]]
@@ -43,11 +43,11 @@ def list_saved_queries(
 
 @tool
 def get_saved_query(user, saved_query_slug: str) -> dict:
-    """Get a saved SQL query of the Data Studio by its slug.
+    """Get a saved SQL query from the Data Studio by its slug.
 
-    Slugs are unique across workspaces, so no workspace slug is needed. Returns the query's
-    metadata, SQL content, declared parameters, visibility and workspace. Use the returned
-    'id' when calling update_saved_query.
+    Slugs are unique across workspaces. Returns the query's metadata, SQL content,
+    declared parameters, visibility, and workspace. Use the returned 'id' when calling
+    update_saved_query.
     """
     data = execute_graphql(user, "GetSavedQuery", {"slug": saved_query_slug})
     if "errors" in data:
@@ -70,19 +70,18 @@ def create_saved_query(
 ) -> dict:
     """Save a SQL query in a workspace's Data Studio.
 
-    content is a single read-only SQL statement against the workspace database; use
+    `content` is a single read-only SQL statement against the workspace database; use
     get_db_schema and get_db_table_schema to discover tables and columns first. The query is
     PRIVATE (visible to you only) unless visibility is set to WORKSPACE, which shares it with
     every member of the workspace. Returns the saved query's id and slug.
 
-    To let a web app filter the query, write `{{ name }}` in the SQL wherever a value
-    belongs and declare each name in parameters, with a type among STRING, INTEGER, FLOAT,
-    BOOLEAN and DATE (`multiple` for a list, bound as a PostgreSQL array: filter with
-    `= ANY({{ name }})`). Values are bound at execution and never inlined, so a placeholder
-    can stand for a value but not for a column name, an ORDER BY or a LIMIT: sorting and
-    paging are arguments of executeSavedQuery. A placeholder the parameters do not declare
-    is refused with INVALID_TEMPLATE. The 'Query templating' section of the static-webapps
-    doc (get_help_or_doc with topic 'static-webapps') has the full rules.
+    To allow web apps to filter results, use `{{ name }}` placeholders in the SQL and declare
+    each one in `parameters`. Supported types are STRING, INTEGER, FLOAT, BOOLEAN, and DATE.
+    Set `multiple: true` for list values, which can be filtered with `= ANY({{ name }})`.
+    Parameter values are bound safely at execution time. Sorting and pagination should be
+    handled using `executeSavedQuery` rather than in SQL. All variables in the SQL must be
+    declared in `parameters`. See the 'Query templating' section of the static web apps
+    documentation for complete rules.
     """
     create_input: dict = {
         "workspaceSlug": workspace_slug,
@@ -114,15 +113,14 @@ def update_saved_query(
 ) -> dict:
     """Update a saved SQL query in the Data Studio.
 
-    Provide the saved query UUID (from list_saved_queries) and any fields to change. Only
-    provided non-empty fields are updated. Only the query's author can change its visibility;
-    other workspace editors and admins can edit the name, description, content and
-    parameters of a WORKSPACE query but not of a PRIVATE one.
+    Provide the saved query UUID (from list_saved_queries) and any fields to update. Only
+    specified non-empty fields are updated. Only the author can change query visibility;
+    workspace editors and admins can modify the name, description, content, and parameters
+    of WORKSPACE queries.
 
-    parameters replaces the whole declaration list (see create_saved_query for the format):
-    send every parameter the new content reads, or an empty list to drop them all. Send
-    content and parameters together when a change touches both, since content that reads an
-    undeclared placeholder is refused with INVALID_TEMPLATE.
+    `parameters` replaces the entire list of declared parameters. When updating SQL content
+    that adds or changes placeholders, supply both `content` and `parameters` together to keep
+    them aligned. Pass an empty list `[]` to remove all parameters.
     """
     update_input: dict = {"id": saved_query_id}
     if name:

@@ -112,7 +112,7 @@ def _property_schema(annotation):
     if typing.get_origin(base) is list:
         (item,) = typing.get_args(base) or (str,)
         return {"type": "array", "items": _property_schema(item)}
-    # Scalars map directly; anything unrecognized degrades to string.
+    # Map scalar types directly; any unrecognized type defaults to string.
     return {"type": TYPE_MAP.get(base, "string")}
 
 
