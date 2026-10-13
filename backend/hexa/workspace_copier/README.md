@@ -28,7 +28,7 @@ order (see `orchestrator.WORKSPACE_COPIERS`):
 | ------------- | ------------------------- |----------------------------------------------------------------------------------------------------|
 | `workspace`   | `WorkspaceMetadataCopier` | **mandatory** — creates the target, yields its handle                                              |
 | `files`       | `FilesCopier`             | bucket objects (streamed through a temp file — see [Large files](#large-files)); the target bucket is listed first and files matching by key + size are skipped, as is anything under a `SKIPPED_DIRECTORIES` scratch dir |
-| `database`    | `DatabaseCopier`          | native pg copy only if **both** sides LOCAL; else skipped + warned. Local copy not yet implemented |
+| `database`    | `DatabaseCopier`          | native Postgres copy when both endpoints are LOCAL; else skipped with manual instructions — see [Database](#database) |
 | `connections` | `ConnectionsCopier`       | connections + secret fields                                                                        |
 | `pipelines`   | `PipelinesCopier`         | pipelines + versions<br>Notes: The `.ipynb` file is copied for notebook pipelines<br>Schedules are not copied to avoid them running immediately after a copy. This allows a human to validate the copied pipeline and schedule it manually.
 | `datasets`    | `DatasetsCopier`          | datasets **owned** by the workspace                                                                |
@@ -55,6 +55,41 @@ multi-GB files. Two consequences:
 `TRANSFER_TIMEOUT` bounds a single chunk read/write, not a whole file, so a
 stalled connection fails in a couple of minutes while a legitimately slow
 multi-GB transfer runs as long as it needs.
+
+## Database
+
+When both endpoints are LOCAL (blank source and target URLs), the target database is replaced by a native copy of the source (`CREATE DATABASE ... WITH TEMPLATE`, see `hexa.databases.api.replace_empty_database_with_copy`). This is a file-level copy, much faster than a dump/restore.
+
+The other resources are only copied between REMOTE endpoints for now, so a same-server copy takes two runs: the usual one (with URLs), which creates the target workspace and skips the database, then a database-only run on that server, with blank URLs:
+
+```
+./manage.py copy_workspace \
+	--source-workspace-slug my-workspace \
+	--target-workspace-slug my-workspace-ab12 \
+	--resources database
+```
+
+The skipped database step of the first run prints this exact command.
+
+- **No open connections**: Postgres refuses to copy a database while anyone is connected to it. The copier checks first and fails early with the number of open connections (notebooks, pipelines, BI tools...). Close them and re-run into the same target workspace with `--target-workspace-slug`. During the copy itself, new connections to the source are refused.
+- **The target database is never overwritten** once it holds data (any table or view besides PostGIS's own): the database step is skipped instead.
+- The target workspace keeps its own roles and credentials. The copy is built under a staging name (`<db_name>_copy`) and only swapped in once it succeeded, so a failed copy leaves the target database untouched.
+
+### Copying between servers
+
+Not automated yet: the copy summary prints these steps. Copy the database manually with both workspaces' database credentials, from a machine that can reach both database hosts and has a `pg_dump` at least as recent as the source server:
+
+1. In each workspace, open **Database** and copy the connection URL (or read `workspace { database { credentials { url } } }` over GraphQL).
+2. Make sure the target database is empty, then run:
+
+   ```
+   pg_dump -Fc --no-owner --no-acl "$SOURCE_URL" \
+     | pg_restore --no-owner --no-acl -d "$TARGET_URL"
+   ```
+
+   PostGIS already exists in every workspace database and belongs to the server admin, so `pg_restore` may report errors on the `postgis` / `postgis_topology` extensions (e.g. `must be owner of extension`). They are harmless and the rest of the restore goes on; check that any other error is not a real one. With PostgreSQL 17+ clients, add `--exclude-extension='postgis*'` to `pg_dump` to avoid them.
+
+Tables are restored as owned by the target workspace role, so the workspace's read-only role can read them automatically.
 
 ## Entry points
 
