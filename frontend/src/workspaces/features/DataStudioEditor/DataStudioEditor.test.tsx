@@ -202,7 +202,7 @@ const successState = (overrides: Record<string, unknown> = {}) => ({
           columns: ["id"],
           rows: [{ id: 1 }],
           rowCount: 1,
-          truncated: false,
+          pageInfo: { hasNextPage: false },
           durationMs: 3,
           ...overrides,
         },
@@ -335,7 +335,7 @@ describe("DataStudioEditor", () => {
         resolveDownload = res;
       }),
     );
-    mockQueryState = successState({ truncated: true });
+    mockQueryState = successState({ pageInfo: { hasNextPage: true } });
     renderEditor();
     await userEvent.type(screen.getByTestId("editor"), "SELECT 1");
     await userEvent.click(screen.getByRole("button", { name: "Run" }));

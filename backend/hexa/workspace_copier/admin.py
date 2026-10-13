@@ -46,7 +46,8 @@ def copy_workspace_view(request):
                     target_workspace_slug=data["target_workspace_slug"] or None,
                     resources=set(data["resources"]),
                     options=CopyOptions(
-                        all_dataset_versions=data["all_dataset_versions"]
+                        all_dataset_versions=data["all_dataset_versions"],
+                        include_connection_secrets=data["include_connection_secrets"],
                     ),
                     reporter=reporter,
                 )

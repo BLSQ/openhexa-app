@@ -28,7 +28,7 @@ from hexa.workspaces.models import (
 )
 
 from ..errors import AuthenticationError
-from ..utils import has_configured_two_factor
+from ..utils import has_configured_two_factor, is_two_factor_pending
 
 
 class LoginRequiredDirective(SchemaDirectiveVisitor):
@@ -42,11 +42,7 @@ class LoginRequiredDirective(SchemaDirectiveVisitor):
             if not principal.is_authenticated:
                 raise AuthenticationError
 
-            if not withoutTwoFactor and (
-                not getattr(request, "bypass_two_factor", False)
-                and has_configured_two_factor(principal)
-                and not principal.is_verified()
-            ):
+            if not withoutTwoFactor and is_two_factor_pending(request):
                 raise AuthenticationError
 
             return original_resolver(obj, info, **kwargs)
@@ -82,11 +78,9 @@ me_object = ObjectType("Me")
 @me_object.field("user")
 def resolve_me_user(_, info):
     request = info.context["request"]
-    if has_configured_two_factor(request.user):
-        return request.user if request.user.is_verified() else None
-    elif request.user.is_authenticated:
-        return request.user
-    return None
+    if not request.user.is_authenticated or is_two_factor_pending(request):
+        return None
+    return request.user
 
 
 @me_object.field("hasTwoFactorEnabled")

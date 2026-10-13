@@ -5,6 +5,7 @@ from hexa.core.test import TestCase
 from hexa.user_management.models import User
 
 from ..middlewares import TwoFactorMiddleware
+from ..utils import is_two_factor_pending
 
 
 class TwoFactorMiddlewareTest(TestCase):
@@ -112,3 +113,30 @@ class TwoFactorMiddlewareTest(TestCase):
         self.middleware(request)
 
         self.assertFalse(request.user.is_verified())
+
+    def test_pending_when_unverified(self):
+        request = self.factory.get("/")
+        request.user = self.USER_SERENA
+        request.session = {}
+        self.middleware(request)
+
+        self.assertTrue(is_two_factor_pending(request))
+
+    def test_not_pending_without_device(self):
+        request = self.factory.get("/")
+        request.user = self.USER_SABRINA
+
+        self.assertFalse(is_two_factor_pending(request))
+
+    def test_not_pending_when_bypassed(self):
+        request = self.factory.get("/")
+        request.user = self.USER_SERENA
+        request.bypass_two_factor = True
+
+        self.assertFalse(is_two_factor_pending(request))
+
+    def test_pending_when_user_swapped_after_otp_middleware(self):
+        request = self.factory.get("/")
+        request.user = User.objects.get(pk=self.USER_SERENA.pk)
+
+        self.assertTrue(is_two_factor_pending(request))
