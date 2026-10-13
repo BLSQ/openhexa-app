@@ -332,7 +332,6 @@ def _create_on_target(
         workspace_slug=target_slug,
         notebook_path=src_pipeline.get("notebookPath") if is_notebook else None,
         functional_type=src_pipeline.get("functionalType"),
-        # Not `tags or None`: servers before the tags=null fix crash on null.
         tags=tags,
     )
     result = target.create_pipeline(input=create_input)
