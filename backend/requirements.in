@@ -90,6 +90,7 @@ azure-identity
 
 # AI assistant
 pydantic-ai-slim[anthropic,google,openai]==2.55.0
+pydantic-evals==2.55.0
 genai-prices==0.1.10
 anthropic[vertex]
 logfire==4.30.0

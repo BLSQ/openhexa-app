@@ -27,7 +27,7 @@ from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import ProgressReporter
 from hexa.workspace_copier.resources.base import ResourceCopier
 from hexa.workspace_copier.results import CopyResult, DatasetsResult, format_bytes
-from hexa.workspace_copier.transport import GraphQLError, gql
+from hexa.workspace_copier.transport import GraphQLError, build_http_client, gql
 
 DATASETS_PAGE_SIZE = 50
 VERSIONS_PAGE_SIZE = 50
@@ -169,7 +169,7 @@ class DatasetsCopier(ResourceCopier):
         # copier: it reuses connections across files and carries no auth headers
         # (presigned URLs are self-authenticating and some storage backends
         # reject requests that also send an Authorization header).
-        with httpx.Client(timeout=FILE_TRANSFER_TIMEOUT) as http_client:
+        with build_http_client(timeout=FILE_TRANSFER_TIMEOUT) as http_client:
             for dataset_id, src_slug, target_name, target_slug in assignments:
                 if target_slug in existing_slugs:
                     ds_result.skipped.append(src_slug)

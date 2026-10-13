@@ -67,6 +67,15 @@ services:
     depends_on:
       - db
 
+  workspace_copy_worker:
+    <<: *common
+    command: "manage workspace_copy_worker"
+    restart: unless-stopped
+    profiles:
+      - "workspace_copy_worker"
+    depends_on:
+      - db
+
   pipelines_runner:
     <<: *common
     user: "root"

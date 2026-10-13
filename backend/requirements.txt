@@ -20,6 +20,7 @@ anyio==4.14.2
     #   httpx2
     #   openai
     #   pydantic-ai-slim
+    #   pydantic-evals
     #   pydantic-graph
     #   starlette
 ariadne==0.26.2
@@ -308,7 +309,9 @@ kubernetes==33.1.0
 logfire==4.30.0
     # via -r requirements.in
 logfire-api==4.25.0
-    # via pydantic-graph
+    # via
+    #   pydantic-evals
+    #   pydantic-graph
 logzero==1.7.0
     # via dhis2-py
 markdown==3.8.2
@@ -458,12 +461,17 @@ pydantic==2.12.5
     #   morecantile
     #   openai
     #   pydantic-ai-slim
+    #   pydantic-evals
     #   pydantic-graph
     #   rio-cogeo
 pydantic-ai-slim[anthropic,google,openai]==2.55.0
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   pydantic-evals
 pydantic-core==2.41.5
     # via pydantic
+pydantic-evals==2.55.0
+    # via -r requirements.in
 pydantic-graph==2.55.0
     # via pydantic-ai-slim
 pyflakes==3.4.0
@@ -510,6 +518,7 @@ pyyaml==6.0.2
     #   kubernetes
     #   moto
     #   openhexa-sdk
+    #   pydantic-evals
     #   responses
     #   vcrpy
 rasterio==1.4.3
@@ -557,6 +566,7 @@ rich==14.0.0
     # via
     #   logfire
     #   openhexa-toolbox
+    #   pydantic-evals
 rio-cogeo==5.4.2
     # via -r requirements.in
 s3transfer==0.14.0
