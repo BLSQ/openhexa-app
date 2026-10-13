@@ -23,7 +23,7 @@ You've been invited to join the organization "{{organization}}" on OpenHEXA.
 
 {% trans "Need help? Check out our resources:" %}
 - {% trans "User Manual" %}: https://docs.openhexa.com/#user-manual
-- Wiki: https://github.com/BLSQ/openhexa/wiki
+- {% trans "Documentation" %}: https://docs.openhexa.com/
 
 {% trans "The OpenHEXA Team" %}
 {% endautoescape %}

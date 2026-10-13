@@ -34,8 +34,8 @@ const item = (
 ) => ({
   __typename: "SavedQuery",
   id,
-  // Rows navigate by slug, not id: distinct values here so a regression that
-  // routes on the id cannot pass by coincidence.
+  // Links point at the slug, not the id: distinct values here so a regression
+  // that routes on the id cannot pass by coincidence.
   slug: `${id}-slug`,
   name,
   description,
@@ -122,12 +122,19 @@ describe("SavedQueriesList", () => {
     expect(screen.getByText("q2-slug")).toBeInTheDocument();
   });
 
-  it("opens a query when its row is clicked", () => {
+  it("links each query's name to its page", () => {
     renderList();
-    fireEvent.click(screen.getByText("Query One"));
-    expect(mockRouter.asPath).toBe(
+    expect(screen.getByRole("link", { name: "Query One" })).toHaveAttribute(
+      "href",
       "/workspaces/ws-1/data-studio/queries/q1-slug",
     );
+  });
+
+  it("does not navigate when clicking outside the name", () => {
+    renderList();
+    fireEvent.click(screen.getByText("q1-slug"));
+    fireEvent.click(screen.getByText("first"));
+    expect(mockRouter.asPath).toBe("/");
   });
 });
 

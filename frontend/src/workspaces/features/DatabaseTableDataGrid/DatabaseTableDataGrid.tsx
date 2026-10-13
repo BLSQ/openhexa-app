@@ -4,6 +4,8 @@ import { TextColumn } from "core/components/DataGrid/TextColumn";
 import { SimplePagination } from "core/components/Pagination";
 import { CustomApolloClient } from "core/helpers/apollo";
 import { OrderByDirection } from "graphql/types";
+import { useMemo } from "react";
+import { stringifyCellValue } from "workspaces/features/DataStudioEditor/widgets/cellValue";
 import {
   DatabaseTableDataGrid_TableFragment,
   DatabaseTableDataGrid_WorkspaceFragment,
@@ -67,6 +69,20 @@ const DatabaseTableDataGrid = (props: DatabaseTableDataGridProps) => {
   };
 
   const { rows } = data?.workspace?.database?.table ?? {};
+  const items = useMemo(
+    () =>
+      (rows?.items ?? []).map((row: Record<string, unknown>) =>
+        Object.fromEntries(
+          Object.entries(row).map(([key, value]) => [
+            key,
+            value !== null && typeof value === "object"
+              ? stringifyCellValue(value)
+              : value,
+          ]),
+        ),
+      ),
+    [rows?.items],
+  );
   if (!rows) {
     return null;
   }
@@ -74,7 +90,7 @@ const DatabaseTableDataGrid = (props: DatabaseTableDataGridProps) => {
   return (
     <div>
       <DataGrid
-        data={rows.items ?? []}
+        data={items}
         defaultPageSize={10}
         fixedLayout={false}
         defaultSortBy={[

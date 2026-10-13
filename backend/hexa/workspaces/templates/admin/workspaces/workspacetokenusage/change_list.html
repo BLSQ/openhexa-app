@@ -1,0 +1,34 @@
+{% extends "admin/change_list.html" %}
+
+{# TODO (HEXA-1775): Remove once the analysis has been done #}
+
+{% block result_list %}
+<div class="module">
+    <h2>Summary of the filtered requests</h2>
+    <table>
+        <tr><th>Active tokens</th><td>{{ summary.tokens }}</td></tr>
+        <tr><th>Would break if scoped</th><td>{{ summary.breaking }}</td></tr>
+        <tr><th>Cross-workspace but legal</th><td>{{ summary.reaching }}</td></tr>
+        <tr><th>Requests</th><td>{{ summary.requests }}</td></tr>
+        <tr><th>Out-of-scope requests</th><td>{{ summary.out_of_scope_requests }}</td></tr>
+    </table>
+</div>
+{% if summary.top_breaking %}
+<div class="module">
+    <h2>Top breaking tokens</h2>
+    <table>
+        <thead><tr><th>Owner</th><th>Scoped to</th><th>Type</th><th>Out-of-scope requests</th><th>Last seen</th></tr></thead>
+        {% for token in summary.top_breaking %}
+        <tr>
+            <td><a href="?user={{ token.user }}&workspace={{ token.workspace }}&token_type__exact={{ token.token_type }}&verdict__exact=OUT_OF_SCOPE">{{ token.user__email }}</a></td>
+            <td>{{ token.workspace__slug }}</td>
+            <td>{{ token.token_type }}</td>
+            <td>{{ token.requests }}</td>
+            <td>{{ token.last_seen }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endif %}
+{{ block.super }}
+{% endblock %}

@@ -57,8 +57,8 @@
           </mj-button>
         </mj-column>
         <mj-column width="50%">
-          <mj-button href="https://github.com/BLSQ/openhexa/wiki" width="100%" background-color="#FF499C" color="#ffffff">
-            Wiki
+          <mj-button href="https://docs.openhexa.com/" width="100%" background-color="#FF499C" color="#ffffff">
+            {% trans "Documentation" %}
           </mj-button>
         </mj-column>
       </mj-section>

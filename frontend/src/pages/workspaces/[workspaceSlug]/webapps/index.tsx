@@ -7,8 +7,7 @@ import Page from "core/components/Page";
 import Link from "core/components/Link";
 import { createGetServerSideProps } from "core/helpers/page";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import Button from "core/components/Button";
 import WorkspaceLayout from "workspaces/layouts/WorkspaceLayout";
 import Breadcrumbs from "core/components/Breadcrumbs";
@@ -32,6 +31,7 @@ import ShortcutWebappButton from "webapps/features/ShortcutWebappButton";
 import LinkColumn from "core/components/DataGrid/LinkColumn";
 import clsx from "clsx";
 import WebappCard from "webapps/features/WebappCard";
+import CreateWebappDialog from "webapps/features/CreateWebappDialog";
 
 type Props = {
   page: number;
@@ -43,7 +43,7 @@ const WebappsPage = (props: Props) => {
   const { page, perPage, workspaceSlug } = props;
 
   const { t } = useTranslation();
-  const router = useRouter();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const { data, refetch } = useWorkspaceWebappsPageQuery({
     variables: { workspaceSlug, page, perPage },
@@ -83,11 +83,7 @@ const WebappsPage = (props: Props) => {
           workspace.permissions.update && (
             <Button
               leadingIcon={<PlusIcon className="h-4 w-4" />}
-              onClick={() =>
-                router.push(
-                  `/workspaces/${encodeURIComponent(workspace.slug)}/webapps/create`,
-                )
-              }
+              onClick={() => setIsCreateDialogOpen(true)}
             >
               {t("Create")}
             </Button>
@@ -233,6 +229,11 @@ const WebappsPage = (props: Props) => {
           </Block>
         </WorkspaceLayout.PageContent>
       </WorkspaceLayout>
+      <CreateWebappDialog
+        open={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        workspace={workspace}
+      />
     </Page>
   );
 };

@@ -1,6 +1,7 @@
 from hexa.assistant.instructions import (
     _PIPELINE_DOCS,
     _SQL_WIDGETS_DOC,
+    _WEBAPP_FILES_DOC,
     PIPELINE_DOC_TOPICS,
     InstructionSet,
     get_instructions,
@@ -25,6 +26,16 @@ class PipelineDocsInstructionsTest(TestCase):
 
     def test_edit_pipeline_instructions_include_docs(self):
         self.assertIn(_PIPELINE_DOCS, get_instructions(InstructionSet.EDIT_PIPELINE))
+
+
+class WebappDocsInstructionsTest(TestCase):
+    def test_create_webapp_instructions_include_docs(self):
+        self.assertIn(
+            _WEBAPP_FILES_DOC, get_instructions(InstructionSet.CREATE_WEBAPPS)
+        )
+
+    def test_edit_webapp_instructions_include_docs(self):
+        self.assertIn(_WEBAPP_FILES_DOC, get_instructions(InstructionSet.EDIT_WEBAPP))
 
 
 class SqlWidgetsInstructionsTest(TestCase):

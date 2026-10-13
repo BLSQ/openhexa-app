@@ -11,6 +11,7 @@ from hexa.workspace_copier.orchestrator import (
 )
 from hexa.workspace_copier.progress import NullReporter
 from hexa.workspace_copier.resources.base import ResourceCopier
+from hexa.workspace_copier.results import CopyResult
 
 
 class FakeCopier(ResourceCopier):
@@ -27,6 +28,11 @@ class FakeCopier(ResourceCopier):
         self.options = options
         reporter.info(f"ran:{self.name}")
         result.warn(f"ran:{self.name}")
+
+
+class FailingCopier(FakeCopier):
+    def copy(self, source, target, result, reporter, *, options=CopyOptions()):
+        raise RuntimeError("boom")
 
 
 class ResolveSelectionTest(SimpleTestCase):
@@ -95,3 +101,14 @@ class CopyWorkspaceTest(SimpleTestCase):
                 object(), object(), NullReporter(), resources={"files", "pipelines"}
             )
         self.assertFalse(any("not selected" in w for w in result.warnings))
+
+    def test_given_result_keeps_progress_when_a_copier_raises(self):
+        fakes = [FakeCopier("workspace", mandatory=True), FailingCopier("files")]
+        result = CopyResult()
+        with (
+            patch.object(orchestrator, "WORKSPACE_COPIERS", fakes),
+            self.assertRaises(RuntimeError),
+        ):
+            copy_workspace(object(), object(), NullReporter(), result=result)
+        self.assertIn("ran:workspace", result.warnings)
+        self.assertIsNotNone(result.started_at)

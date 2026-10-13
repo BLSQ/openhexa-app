@@ -39,7 +39,7 @@ class WorkspaceInstructionsTest(AgentTestCase):
                 self._set_description(description)
                 agent = self._make_agent()
                 self.assertEqual(agent._workspace_instructions(), "")
-                self.assertNotIn("Workspace notes", agent._build_instructions())
+                self.assertNotIn("Workspace notes", agent._dynamic_instructions())
 
     def test_default_boilerplate_is_skipped(self):
         self._set_description(
@@ -77,7 +77,7 @@ class WorkspaceInstructionsTest(AgentTestCase):
     def test_custom_description_is_injected(self):
         self._set_description("Always use ISO country codes.")
         agent = self._make_agent()
-        instructions = agent._build_instructions()
+        instructions = agent._dynamic_instructions()
         self.assertIn("## Workspace notes", instructions)
         self.assertIn(
             "<workspace_description>\nAlways use ISO country codes.\n"
@@ -100,7 +100,7 @@ class WorkspaceInstructionsTest(AgentTestCase):
     def test_subclass_extra_instructions_come_after_workspace_block(self):
         self._set_description("Always use ISO country codes.")
         agent = self._make_agent(_AgentWithExtraInstructions)
-        instructions = agent._build_instructions()
+        instructions = agent._dynamic_instructions()
         self.assertIn("EXTRA MARKER", instructions)
         self.assertLess(
             instructions.index("## Workspace notes"),

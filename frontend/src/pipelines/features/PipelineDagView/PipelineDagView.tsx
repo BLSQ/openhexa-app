@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { Background, Controls, ReactFlow } from "@xyflow/react";
 import clsx from "clsx";
 import { useTranslation } from "next-i18next";
@@ -27,7 +28,20 @@ const PipelineDagView = ({ version, className }: PipelineDagViewProps) => {
   );
 
   if (nodes.length === 0) {
-    return null;
+    return (
+      <div
+        className={clsx(
+          "flex items-center gap-2 rounded-md bg-blue-50 p-3 text-sm text-blue-800",
+          className,
+        )}
+        role="status"
+      >
+        <InformationCircleIcon className="h-5 w-5 shrink-0" />
+        {t(
+          "No task graph to display: this pipeline version has no functions decorated with @task.",
+        )}
+      </div>
+    );
   }
 
   return (
@@ -44,6 +58,9 @@ const PipelineDagView = ({ version, className }: PipelineDagViewProps) => {
         edges={edges}
         nodeTypes={nodeTypes}
         fitView
+        // Nodes are styled for zoom 1; without this cap fitView blows small graphs up to the
+        // default maxZoom (2) and they look oversized next to the rest of the page.
+        fitViewOptions={{ maxZoom: 1 }}
         // The canvas sits inside a scrolling page: zooming on scroll would trap the wheel and
         // make the page feel broken. Zoom stays available through the controls.
         zoomOnScroll={false}

@@ -88,10 +88,16 @@ class UserInterface:
 
 
 class ServicePrincipal:
-    """Marker mixin for principals that impersonate a workspace rather than
-    a real user account (PipelineRunUser, WebappUser, ...). Used as
-    `isinstance(user, ServicePrincipal)` to short-circuit user-membership
-    queries that wouldn't make sense for service principals.
+    """Marker mixin for principals that impersonate workspaces rather than
+    a real user account (PipelineRunUser, WebappUser, MCPUser).
+
+    Some of them act for a person (WebappUser, MCPUser are also Users) and must
+    never reach more than that person. A filter_for_user branch that replaces
+    the person's access with "everything in my workspaces" is therefore for
+    non-personal principals only (see is_non_personal_principal); one acting for
+    a person starts from the person's result and only narrows it to its
+    workspace_ids. hexa.mcp.tests.test_access_ceiling checks this for every
+    filter_for_user.
     """
 
     @property
@@ -99,12 +105,17 @@ class ServicePrincipal:
         raise NotImplementedError
 
     @property
-    def workspace(self):
+    def workspace_ids(self) -> list:
+        """The workspaces this principal may reach."""
         raise NotImplementedError
 
-    @property
-    def workspace_id(self):
-        raise NotImplementedError
+
+def is_non_personal_principal(principal) -> bool:
+    """A service principal with no person behind it (ex. PipelineRunUser): it acts
+    only within its workspaces and has no role of its own. WebappUser and MCPUser
+    act for a person, so they are Users too.
+    """
+    return isinstance(principal, ServicePrincipal) and not isinstance(principal, User)
 
 
 class User(AbstractUser, UserInterface):
@@ -291,17 +302,21 @@ class OrganizationQuerySet(BaseQuerySet, SoftDeleteQuerySet):
 
         if not user.is_authenticated:
             return self.none()
-        if isinstance(user, ServicePrincipal):
+        if is_non_personal_principal(user):
             return self.filter(workspaces__in=Workspace.objects.filter_for_user(user))
         if user.is_superuser or user.has_perm(
             "user_management.manage_all_organizations"
         ):
-            return self.all()
-        if direct_membership_only:
-            return self.filter(organizationmembership__user=user).distinct()
-        return self.filter(
-            Q(organizationmembership__user=user) | Q(workspaces__members=user)
-        ).distinct()
+            qs = self.all()
+        elif direct_membership_only:
+            qs = self.filter(organizationmembership__user=user)
+        else:
+            qs = self.filter(
+                Q(organizationmembership__user=user) | Q(workspaces__members=user)
+            )
+        if isinstance(user, ServicePrincipal):
+            qs = qs.filter(workspaces__in=Workspace.objects.filter_for_user(user))
+        return qs.distinct()
 
 
 class Organization(Base, SoftDeletedModel):
@@ -325,6 +340,13 @@ class Organization(Base, SoftDeletedModel):
     url = models.URLField(blank=True)
     contact_info = models.TextField(blank=True)
     logo = models.BinaryField(blank=True, null=True)
+    iframe_webapps_use_play_page = models.BooleanField(
+        default=False,
+        help_text=(
+            "Publish iframe web apps on the frontend /play page instead of their "
+            "own subdomain (see https://github.com/BLSQ/openhexa-app/pull/1782)."
+        ),
+    )
     members = models.ManyToManyField(User, through="OrganizationMembership")
 
     objects = OrganizationManager.from_queryset(OrganizationQuerySet)()

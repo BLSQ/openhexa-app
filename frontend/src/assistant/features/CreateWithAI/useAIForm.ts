@@ -5,13 +5,13 @@ import { getErrorCodeMessage } from "assistant/helpers";
 import { InstructionSet } from "assistant/instructions";
 import { getPublicEnv } from "core/helpers/runtimeConfig";
 import useStreamingFetch from "core/hooks/useStreamingFetch";
-import { CreatePipelineDialog_WorkspaceFragment } from "../CreatePipelineDialog.generated";
+import { AssistantToolName } from "graphql/types";
 import { useCreateAssistantConversationMutation } from "assistant/graphql/mutations.generated";
 
 export enum AIPhase {
   Idle = "idle",
   Generating = "generating",
-  CreatingPipeline = "creating_pipeline",
+  Creating = "creating",
   Done = "done",
   Error = "error",
 }
@@ -26,19 +26,35 @@ export type AIFormInstance = {
   errorAtPhase: AIPhase | null;
   error: string | null;
   agentResponse: string | null;
-  pipelineName: string | null;
+  objectName: string | null;
   reset: () => void;
+};
+
+export type AIFormOptions = {
+  workspaceSlug: string;
+  instructionSet: InstructionSet;
+  // The tool whose successful result means the object exists and the user can be redirected.
+  createTool: AssistantToolName;
+  getRedirectUrl: (toolOutput: unknown) => string | null;
+  notCreatedMessage: string;
+  failedMessage: string;
 };
 
 function getStreamUrl(conversationId: string): string {
   const apiBasePath =
-    process.env.NEXT_PUBLIC_API_BASE_PATH || getPublicEnv().OPENHEXA_BACKEND_URL;
+    process.env.NEXT_PUBLIC_API_BASE_PATH ||
+    getPublicEnv().OPENHEXA_BACKEND_URL;
   return `${apiBasePath}/assistant/conversations/${conversationId}/stream/`;
 }
 
-export function useAIForm(
-  workspace: CreatePipelineDialog_WorkspaceFragment,
-): AIFormInstance {
+export function useAIForm({
+  workspaceSlug,
+  instructionSet,
+  createTool,
+  getRedirectUrl,
+  notCreatedMessage,
+  failedMessage,
+}: AIFormOptions): AIFormInstance {
   const { t } = useTranslation();
   const router = useRouter();
   const [prompt, setPrompt] = useState("");
@@ -46,14 +62,14 @@ export function useAIForm(
   const [errorAtPhase, setErrorAtPhase] = useState<AIPhase | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [agentResponse, setAgentResponse] = useState<string | null>(null);
-  const [pipelineName, setPipelineName] = useState<string | null>(null);
+  const [objectName, setObjectName] = useState<string | null>(null);
   // SSE event handlers are closures created at mount time and can't see updated React state.
   // phaseRef mirrors the phase state so handlers always read the current value without stale closures.
   // Always update both together via setPhaseWithRef.
   const phaseRef = useRef<AIPhase>(AIPhase.Idle);
   const agentResponseRef = useRef<string>("");
   const navigationTriggeredRef = useRef(false);
-  const pendingPipelineCodeRef = useRef<string | null>(null);
+  const pendingRedirectUrlRef = useRef<string | null>(null);
   const navigationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [createConversation] = useCreateAssistantConversationMutation();
@@ -81,10 +97,13 @@ export function useAIForm(
       agentResponseRef.current += delta;
     },
     tool_call: (data) => {
-      const { tool_name, tool_args } = data as { tool_name: string; tool_args?: { name?: string } };
-      if (tool_name === "create_pipeline") {
-        if (tool_args?.name) setPipelineName(tool_args.name);
-        setPhaseWithRef(AIPhase.CreatingPipeline);
+      const { tool_name, tool_args } = data as {
+        tool_name: string;
+        tool_args?: { name?: string };
+      };
+      if (tool_name === createTool) {
+        if (tool_args?.name) setObjectName(tool_args.name);
+        setPhaseWithRef(AIPhase.Creating);
       }
     },
     tool_result: (data) => {
@@ -93,24 +112,20 @@ export function useAIForm(
         success: boolean;
         tool_output: unknown;
       };
-      if (tool_name === "create_pipeline" && success) {
-        const output = tool_output as { pipeline?: { code?: string } };
-        const pipelineCode = output?.pipeline?.code;
-        if (pipelineCode) {
-          pendingPipelineCodeRef.current = pipelineCode;
+      if (tool_name === createTool && success) {
+        const redirectUrl = getRedirectUrl(tool_output);
+        if (redirectUrl) {
+          pendingRedirectUrlRef.current = redirectUrl;
           navigationTriggeredRef.current = true;
           setPhaseWithRef(AIPhase.Done);
         }
       }
     },
     done: () => {
-      if (phaseRef.current === AIPhase.Done && pendingPipelineCodeRef.current) {
-        const code = pendingPipelineCodeRef.current;
-        const workspaceSlug = router.query.workspaceSlug as string;
+      if (phaseRef.current === AIPhase.Done && pendingRedirectUrlRef.current) {
+        const redirectUrl = pendingRedirectUrlRef.current;
         navigationTimerRef.current = setTimeout(() => {
-          router.push(
-            `/workspaces/${encodeURIComponent(workspaceSlug)}/pipelines/${encodeURIComponent(code)}/code`,
-          );
+          router.push(redirectUrl);
         }, 500);
       }
     },
@@ -123,7 +138,9 @@ export function useAIForm(
   useEffect(() => {
     if (streamError) {
       setError_(
-        t("Could not connect to the server. Please check your connection and try again."),
+        t(
+          "Could not connect to the server. Please check your connection and try again.",
+        ),
       );
     }
   }, [streamError, setError_, t]);
@@ -157,10 +174,10 @@ export function useAIForm(
     setError(null);
     setErrorAtPhase(null);
     setAgentResponse(null);
-    setPipelineName(null);
+    setObjectName(null);
     agentResponseRef.current = "";
     navigationTriggeredRef.current = false;
-    pendingPipelineCodeRef.current = null;
+    pendingRedirectUrlRef.current = null;
   }, []);
 
   const reset = useCallback(() => {
@@ -181,7 +198,7 @@ export function useAIForm(
     if (
       !prompt.trim() ||
       phase === AIPhase.Generating ||
-      phase === AIPhase.CreatingPipeline
+      phase === AIPhase.Creating
     )
       return;
     clearNavigationTimer();
@@ -191,8 +208,8 @@ export function useAIForm(
       const convResult = await createConversation({
         variables: {
           input: {
-            workspaceSlug: workspace.slug,
-            instructionSet: InstructionSet.CREATE_PIPELINE,
+            workspaceSlug,
+            instructionSet,
           },
         },
       });
@@ -208,14 +225,28 @@ export function useAIForm(
       if (
         !navigationTriggeredRef.current &&
         (phaseRef.current === AIPhase.Generating ||
-          phaseRef.current === AIPhase.CreatingPipeline)
+          phaseRef.current === AIPhase.Creating)
       ) {
-        setError_(t("The AI could not create the pipeline. Please try again."));
+        setError_(notCreatedMessage);
       }
     } catch {
-      setError_(t("An error occurred while creating the pipeline."));
+      setError_(failedMessage);
     }
-  }, [prompt, phase, createConversation, workspace.slug, send, setPhaseWithRef, setError_, clearNavigationTimer, clearState, t]);
+  }, [
+    prompt,
+    phase,
+    createConversation,
+    workspaceSlug,
+    instructionSet,
+    send,
+    setPhaseWithRef,
+    setError_,
+    clearNavigationTimer,
+    clearState,
+    t,
+    notCreatedMessage,
+    failedMessage,
+  ]);
 
   return {
     prompt,
@@ -224,13 +255,13 @@ export function useAIForm(
     cancel,
     isSubmitting:
       phase === AIPhase.Generating ||
-      phase === AIPhase.CreatingPipeline ||
+      phase === AIPhase.Creating ||
       phase === AIPhase.Done,
     phase,
     errorAtPhase,
     error,
     agentResponse,
-    pipelineName,
+    objectName,
     reset,
   };
 }

@@ -1,4 +1,3 @@
-import enum
 import json
 import math
 import time
@@ -16,7 +15,7 @@ from psycopg2.extras import RealDictCursor
 from hexa.workspaces.models import Workspace
 
 from .api import get_db_server_credentials
-from .query_text import PreparedQuery
+from .query_text import OrderByDirectionEnum, PreparedQuery, count_statement
 
 IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
@@ -76,11 +75,6 @@ class TableNotFound(Exception):
     pass
 
 
-class OrderByDirectionEnum(enum.Enum):
-    ASC = "ASC"
-    DESC = "DESC"
-
-
 def get_workspace_database_connection(workspace: Workspace):
     credentials = get_db_server_credentials()
     host = credentials["host"]
@@ -109,24 +103,36 @@ def get_workspace_database_ro_connection(workspace: Workspace):
     )
 
 
+def _set_statement_timeout(cursor, timeout_ms: int) -> None:
+    cursor.execute(
+        sql.SQL("SET LOCAL statement_timeout = {timeout};").format(
+            timeout=sql.Literal(timeout_ms)
+        )
+    )
+
+
 def execute_database_query(
     workspace: Workspace,
-    query: str,
+    prepared: PreparedQuery,
     timeout_ms: int = 10_000,
     max_rows: int = 50,
 ):
-    """Execute a SQL query against the workspace database using the read-only role.
+    """Execute a prepared statement against the workspace database using the read-only role.
 
-    A per-statement timeout is set so that a single request cannot hold database
-    resources for an extended period of time. At most ``max_rows`` rows are
-    returned, capped to ``settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS``;
-    ``truncated`` indicates whether the result was capped.
+    ``prepared`` comes from ``PreparedQuery.from_text`` (which is where stacked
+    statements are rejected, so the caller handles ``MultipleStatementsError``),
+    possibly wrapped by ``paginate``. A per-statement timeout is set so that a
+    single request cannot hold database resources for an extended period of time.
+    At most ``max_rows`` rows are returned, capped to
+    ``settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS``; ``truncated`` indicates whether
+    the result was capped. ``rows`` are JSON-safe; ``first_row`` and ``last_row``
+    are the ends of the page as psycopg2 returned them (``None`` without rows), for
+    the keyset cursors: the JSON form keeps only milliseconds of a timestamp, which
+    is not enough to point between two rows.
 
     This function does no permission check and no audit logging: SQL executed on behalf
-    of an API request must go through
-    ``hexa.data_studio.query_runner.run_and_log_database_query``.
+    of an API request must go through ``hexa.data_studio.query_runner``.
     """
-    prepared = PreparedQuery.from_text(query)
     hard_limit = settings.WORKSPACE_DATABASE_QUERY_MAX_ROWS
     # A plan is bounded by query complexity, so let it through the hard limit
     # in full rather than clipping it to the (small) requested row cap.
@@ -135,13 +141,9 @@ def execute_database_query(
     try:
         conn = get_workspace_database_ro_connection(workspace)
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            cursor.execute(
-                sql.SQL("SET LOCAL statement_timeout = {timeout};").format(
-                    timeout=sql.Literal(timeout_ms)
-                )
-            )
+            _set_statement_timeout(cursor, timeout_ms)
             started_at = time.perf_counter()
-            cursor.execute(prepared.sql)
+            cursor.execute(prepared.sql, prepared.params)
             # cursor.description is None for statements that do not return rows
             columns = (
                 [column.name for column in cursor.description]
@@ -152,14 +154,39 @@ def execute_database_query(
             fetched = cursor.fetchmany(max_rows + 1) if cursor.description else []
             duration_ms = elapsed_ms(started_at)
         truncated = len(fetched) > max_rows
-        rows = json.loads(json.dumps(fetched[:max_rows], cls=ResultJSONEncoder))
+        page = fetched[:max_rows]
+        rows = json.loads(json.dumps(page, cls=ResultJSONEncoder))
         return {
             "columns": columns,
             "rows": rows,
             "row_count": len(rows),
             "truncated": truncated,
             "duration_ms": duration_ms,
+            "first_row": page[0] if page else None,
+            "last_row": page[-1] if page else None,
         }
+    finally:
+        if conn:
+            conn.close()
+
+
+def count_database_rows(
+    workspace: Workspace, prepared: PreparedQuery, timeout_ms: int = 10_000
+) -> int:
+    """Count the rows ``prepared`` returns, on a connection of its own.
+
+    A full scan of the statement, so only worth running when a caller asked for a
+    total. Kept apart from ``execute_database_query`` because that function returns
+    one result set and every other caller would pay for a second.
+    """
+    counted = count_statement(prepared)
+    conn = None
+    try:
+        conn = get_workspace_database_ro_connection(workspace)
+        with conn.cursor() as cursor:
+            _set_statement_timeout(cursor, timeout_ms)
+            cursor.execute(counted.sql, counted.params)
+            return cursor.fetchone()[0]
     finally:
         if conn:
             conn.close()
@@ -207,11 +234,7 @@ def stream_database_query(
         # the whole stream: the connection is not in autocommit, so the named
         # cursor below shares the same transaction these settings apply to.
         with conn.cursor() as setup_cursor:
-            setup_cursor.execute(
-                sql.SQL("SET LOCAL statement_timeout = {timeout};").format(
-                    timeout=sql.Literal(timeout_ms)
-                )
-            )
+            _set_statement_timeout(setup_cursor, timeout_ms)
             setup_cursor.execute(
                 sql.SQL(
                     "SET LOCAL idle_in_transaction_session_timeout = {timeout};"
@@ -265,11 +288,7 @@ def validate_query(workspace: Workspace, query: str) -> None:
     try:
         conn = get_workspace_database_ro_connection(workspace)
         with conn.cursor() as cursor:
-            cursor.execute(
-                sql.SQL("SET LOCAL statement_timeout = {timeout};").format(
-                    timeout=sql.Literal(_VALIDATE_QUERY_TIMEOUT_MS)
-                )
-            )
+            _set_statement_timeout(cursor, _VALIDATE_QUERY_TIMEOUT_MS)
             cursor.execute(
                 prepared.sql if prepared.is_explain else "EXPLAIN " + prepared.sql
             )

@@ -4,8 +4,8 @@ import {
   SparklesIcon,
   DocumentTextIcon,
 } from "@heroicons/react/24/outline";
-import clsx from "clsx";
 import Button from "core/components/Button/Button";
+import MethodCard from "core/components/MethodCard";
 import Spinner from "core/components/Spinner";
 import Dialog from "core/components/Dialog";
 import { useTranslation } from "next-i18next";
@@ -15,8 +15,9 @@ import { CreatePipelineDialog_WorkspaceFragment } from "./CreatePipelineDialog.g
 import CreatePipelineUsingCLI from "./CreatePipelineUsingCLI/CreatePipelineUsingCLI";
 import CreatePipelineUsingNotebook from "./CreatePipelineUsingNotebook/CreatePipelineUsingNotebook";
 import { useNotebookForm } from "./CreatePipelineUsingNotebook/useNotebookForm";
-import CreatePipelineUsingAI from "./CreatePipelineUsingAI/CreatePipelineUsingAI";
-import { useAIForm } from "./CreatePipelineUsingAI/useAIForm";
+import CreateWithAI, { useAIForm } from "assistant/features/CreateWithAI";
+import { InstructionSet } from "assistant/instructions";
+import { AssistantToolName } from "graphql/types";
 import BucketObjectPicker from "../BucketObjectPicker";
 
 type Method = "ai" | "template" | "notebook" | "cli" | null;
@@ -37,7 +38,22 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
   const [activeMethod, setActiveMethod] = useState<Method>(null);
 
   const notebookForm = useNotebookForm(workspace);
-  const aiForm = useAIForm(workspace);
+  const aiForm = useAIForm({
+    workspaceSlug: workspace.slug,
+    instructionSet: InstructionSet.CREATE_PIPELINE,
+    createTool: AssistantToolName.CreatePipeline,
+    getRedirectUrl: (toolOutput) => {
+      const code = (toolOutput as { pipeline?: { code?: string } })?.pipeline
+        ?.code;
+      return code
+        ? `/workspaces/${encodeURIComponent(workspace.slug)}/pipelines/${encodeURIComponent(code)}/code`
+        : null;
+    },
+    notCreatedMessage: t(
+      "The AI could not create the pipeline. Please try again.",
+    ),
+    failedMessage: t("An error occurred while creating the pipeline."),
+  });
 
   useEffect(() => {
     if (open) {
@@ -79,64 +95,52 @@ const CreatePipelineDialog = (props: CreatePipelineDialogProps) => {
         <div className={activeMethod !== null ? "hidden" : "space-y-4"}>
           <div className="flex gap-3">
             {aiEnabled && (
-              <button
+              <MethodCard
+                icon={<SparklesIcon className="h-5 w-5 text-blue-400" />}
+                title={t("Create with AI")}
+                description={t("Describe what you want, AI writes the code")}
                 onClick={() => setActiveMethod("ai")}
                 disabled={aiBudgetLimitReached}
-                className={clsx(
-                  "flex flex-1 flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all",
-                  aiBudgetLimitReached
-                    ? "cursor-not-allowed opacity-60"
-                    : "hover:border-blue-400 hover:bg-blue-50 hover:shadow-md",
-                )}
-              >
-                <div className="mb-4 rounded-lg bg-blue-50 p-2.5">
-                  <SparklesIcon className="h-5 w-5 text-blue-400" />
-                </div>
-                <span className="font-semibold text-gray-900">
-                  {t("Create with AI")}
-                </span>
-                <span className="mt-1 text-sm leading-relaxed text-gray-500">
-                  {t("Describe what you want, AI writes the code")}
-                </span>
-                {aiBudgetLimitReached && (
-                  <span className="mt-2 text-xs font-medium text-amber-600">
-                    {t("Monthly AI budget reached")}
-                  </span>
-                )}
-              </button>
+                footer={
+                  aiBudgetLimitReached && (
+                    <span className="mt-2 text-xs font-medium text-amber-600">
+                      {t("Monthly AI budget reached")}
+                    </span>
+                  )
+                }
+              />
             )}
-            <button
+            <MethodCard
+              icon={<DocumentDuplicateIcon className="h-5 w-5 text-blue-400" />}
+              title={t("From Template")}
+              description={t("Start from a shared template")}
               onClick={() => setActiveMethod("template")}
-              className="flex flex-1 flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 hover:shadow-md"
-            >
-              <div className="mb-4 rounded-lg bg-blue-50 p-2.5">
-                <DocumentDuplicateIcon className="h-5 w-5 text-blue-400" />
-              </div>
-              <span className="font-semibold text-gray-900">
-                {t("From Template")}
-              </span>
-              <span className="mt-1 text-sm leading-relaxed text-gray-500">
-                {t("Start from a shared template")}
-              </span>
-            </button>
-            <button
+            />
+            <MethodCard
+              icon={<DocumentTextIcon className="h-5 w-5 text-blue-400" />}
+              title={t("From Notebook")}
+              description={t("Use a Jupyter notebook")}
               onClick={() => setActiveMethod("notebook")}
-              className="flex flex-1 flex-col items-start rounded-xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-all hover:border-blue-400 hover:bg-blue-50 hover:shadow-md"
-            >
-              <div className="mb-4 rounded-lg bg-blue-50 p-2.5">
-                <DocumentTextIcon className="h-5 w-5 text-blue-400" />
-              </div>
-              <span className="font-semibold text-gray-900">
-                {t("From Notebook")}
-              </span>
-              <span className="mt-1 text-sm leading-relaxed text-gray-500">
-                {t("Use a Jupyter notebook")}
-              </span>
-            </button>
+            />
           </div>
         </div>
 
-        {activeMethod === "ai" && <CreatePipelineUsingAI form={aiForm} />}
+        {activeMethod === "ai" && (
+          <CreateWithAI
+            form={aiForm}
+            labels={{
+              description: t(
+                "Describe your pipeline and the AI will generate the code to get you started.",
+              ),
+              placeholder: t(
+                "e.g. Create a pipeline that fetches data from the DHIS2 API, transform it, and save it as a CSV in the workspace",
+              ),
+              generatingStep: t("Generating pipeline code"),
+              creatingStep: t("Creating pipeline"),
+              openingStep: t("Opening pipeline editor"),
+            }}
+          />
+        )}
 
         <div className={activeMethod !== "template" ? "hidden" : undefined}>
           <PipelineTemplates workspace={workspace} showCard={false} />

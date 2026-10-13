@@ -1,0 +1,306 @@
+# Cases for the pipeline_create eval suite: run_evals --suite=pipeline_create.
+# Field types are defined in schemas.py. Every case is validated by make t.
+
+name: create-pipeline-outcome-evals
+cases:
+- name: build_dataset-en
+  inputs:
+    prompt: Create a pipeline that takes a list of file paths from the workspace and publishes
+      them as a new version of an existing dataset. I should be able to pick the target dataset
+      and pass one or more paths.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: build_dataset
+    lang: en
+    source_template: build_dataset
+    surface_tags:
+    - dataset
+    - files
+    - parameters
+    difficulty: easy
+    notes: 'Core params: a Dataset parameter for the target, and a multiple=True str parameter
+      for the file paths. Should create a new dataset version.'
+- name: build_dataset-fr
+  inputs:
+    prompt: Créé une pipeline qui publie des fichiers du workspace dans un dataset existant.
+      Je dois pouvoir choisir le dataset cible et indiquer un ou plusieurs chemins de fichiers,
+      ajoutés comme nouvelle version.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: build_dataset
+    lang: fr
+    source_template: build_dataset
+    surface_tags:
+    - dataset
+    - files
+    - parameters
+    difficulty: easy
+    notes: 'Core params: a Dataset parameter for the target, and a multiple=True str parameter
+      for the file paths. Should create a new dataset version.'
+- name: dhis2_extract_dataset-en
+  inputs:
+    prompt: I need a pipeline that extracts the data values of a DHIS2 dataset for a set of
+      org units over a date range, and saves the result as a dataset version. Let me choose
+      the DHIS2 connection, the dataset, the org units, and the start and end dates.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: dhis2_extract_dataset
+    lang: en
+    source_template: dhis2_extract_dataset
+    surface_tags:
+    - dhis2
+    - connection
+    - widget
+    - dataset
+    - period
+    difficulty: medium
+    notes: 'Core params: DHIS2Connection, DHIS2Widget.DATASETS and ORG_UNITS bound to that
+      connection, start/end dates, and a Dataset output target.'
+- name: dhis2_extract_dataset-fr
+  inputs:
+    prompt: J'ai besoin d'une pipeline qui extrait les valeurs d'un dataset DHIS2 pour une
+      liste d'org units sur une période donnée, et sauvegarde le résultat dans un dataset
+      OpenHEXA. Je veux pouvoir choisir la connexion DHIS2, le dataset, les org units et les
+      dates de début et de fin.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: dhis2_extract_dataset
+    lang: fr
+    source_template: dhis2_extract_dataset
+    surface_tags:
+    - dhis2
+    - connection
+    - widget
+    - dataset
+    - period
+    difficulty: medium
+    notes: 'Core params: DHIS2Connection, DHIS2Widget.DATASETS and ORG_UNITS bound to that
+      connection, start/end dates, and a Dataset output target.'
+- name: dhis2_metadata_extract-en
+  inputs:
+    prompt: Write a pipeline that exports DHIS2 metadata to the workspace - org units, org
+      unit groups, data elements, data element groups, datasets, category options. Each type
+      optional via its own toggle, and the output folder configurable.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: dhis2_metadata_extract
+    lang: en
+    source_template: dhis2_metadata_extract
+    surface_tags:
+    - dhis2
+    - connection
+    - metadata
+    - files
+    difficulty: easy
+    notes: 'Core params: DHIS2Connection plus one bool toggle per metadata type, and a configurable
+      output path.'
+- name: dhis2_metadata_extract-fr
+  inputs:
+    prompt: 'Génère une pipeline qui exporte les métadonnées d''une instance DHIS2 vers le
+      workspace : org units, groupes d''org units, data elements, groupes de data elements,
+      datasets et category options. Chaque type activable séparément, et le dossier de sortie
+      paramétrable.'
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: dhis2_metadata_extract
+    lang: fr
+    source_template: dhis2_metadata_extract
+    surface_tags:
+    - dhis2
+    - connection
+    - metadata
+    - files
+    difficulty: easy
+    notes: 'Core params: DHIS2Connection plus one bool toggle per metadata type, and a configurable
+      output path.'
+- name: dhis2_shapes_extract-en
+  inputs:
+    prompt: Create a pipeline that pulls organisation unit boundaries from DHIS2 for a chosen
+      org unit level and writes them as a geospatial file in the workspace.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: dhis2_shapes_extract
+    lang: en
+    source_template: dhis2_shapes_extract
+    surface_tags:
+    - dhis2
+    - connection
+    - widget
+    - geo
+    - files
+    difficulty: easy
+    notes: 'Core params: DHIS2Connection, DHIS2Widget.ORG_UNIT_LEVELS bound to it, and an
+      output path. Geospatial file output.'
+- name: dhis2_shapes_extract-fr
+  inputs:
+    prompt: Créé une pipeline qui récupère les limites géographiques des org units depuis
+      DHIS2 pour un niveau donné, et les écrit sous forme de fichier géospatial dans le workspace.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: dhis2_shapes_extract
+    lang: fr
+    source_template: dhis2_shapes_extract
+    surface_tags:
+    - dhis2
+    - connection
+    - widget
+    - geo
+    - files
+    difficulty: easy
+    notes: 'Core params: DHIS2Connection, DHIS2Widget.ORG_UNIT_LEVELS bound to it, and an
+      output path. Geospatial file output.'
+- name: dhis2_to_dhis2-en
+  inputs:
+    prompt: Build a pipeline that copies data element values from one DHIS2 instance to another.
+      It needs a source and a target connection, the dataset to copy, a mapping file for the
+      data elements, a configurable date range, and a dry-run mode that logs what would be
+      pushed without pushing it.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: dhis2_to_dhis2
+    lang: en
+    source_template: dhis2_to_dhis2_data_elements
+    surface_tags:
+    - dhis2
+    - connection
+    - widget
+    - dry_run
+    - period
+    difficulty: hard
+    notes: 'Core params: TWO DHIS2Connections (source and target), a DATASETS widget bound
+      to the source, a mapping file path, a date range, and a dry_run bool.'
+- name: dhis2_to_dhis2-fr
+  inputs:
+    prompt: Développe une pipeline qui copie les valeurs de data elements d'une instance DHIS2
+      vers une autre. Il faut une connexion source et une connexion cible, le dataset à copier,
+      un fichier de mapping pour les data elements, une période configurable, et un mode dry-run
+      qui log ce qui serait envoyé sans rien pousser.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: dhis2_to_dhis2
+    lang: fr
+    source_template: dhis2_to_dhis2_data_elements
+    surface_tags:
+    - dhis2
+    - connection
+    - widget
+    - dry_run
+    - period
+    difficulty: hard
+    notes: 'Core params: TWO DHIS2Connections (source and target), a DATASETS widget bound
+      to the source, a mapping file path, a date range, and a dry_run bool.'
+- name: era5_extract-en
+  inputs:
+    prompt: I want a pipeline that downloads ERA5 climate data from the Copernicus Climate
+      Data Store for the area covered by a boundaries dataset, for a given variable and date
+      range, storing the raw files in the workspace.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: era5_extract
+    lang: en
+    source_template: era5_extract
+    surface_tags:
+    - era5
+    - toolbox
+    - custom_connection
+    - dataset
+    - period
+    difficulty: medium
+    notes: 'Core params: CustomConnection for the CDS credentials, a boundaries Dataset, a
+      variable, a date range, and an output dir. Should use openhexa.toolbox.era5 rather than
+      raw requests.'
+- name: era5_extract-fr
+  inputs:
+    prompt: Je voudrais une pipeline qui télécharge les données climatiques ERA5 depuis le
+      Copernicus Climate Data Store pour la zone couverte par un dataset de limites administratives,
+      pour une variable et une période données, et qui stocke les fichiers bruts dans le workspace.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: era5_extract
+    lang: fr
+    source_template: era5_extract
+    surface_tags:
+    - era5
+    - toolbox
+    - custom_connection
+    - dataset
+    - period
+    difficulty: medium
+    notes: 'Core params: CustomConnection for the CDS credentials, a boundaries Dataset, a
+      variable, a date range, and an output dir. Should use openhexa.toolbox.era5 rather than
+      raw requests.'
+- name: iaso_extract_submissions-en
+  inputs:
+    prompt: Make a pipeline that extracts the submissions of an IASO form and saves them either
+      to the workspace database or as a file in a dataset. Let me pick the IASO connection
+      and the form, and choose whether choice values are replaced by their labels.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: iaso_extract_submissions
+    lang: en
+    source_template: iaso_extract_submissions
+    surface_tags:
+    - iaso
+    - connection
+    - widget
+    - dataset
+    - database
+    difficulty: medium
+    notes: 'Core params: IASOConnection, IASOWidget.IASO_FORMS bound to it, a save-mode choice
+      between workspace database and dataset file, and a choices-to-labels bool.'
+- name: iaso_extract_submissions-fr
+  inputs:
+    prompt: Créé une pipeline qui extrait les soumissions d'un formulaire IASO et les enregistre
+      soit dans la base de données du workspace, soit comme fichier dans un dataset. Je veux
+      pouvoir choisir la connexion IASO et le formulaire, et décider si les choix sont remplacés
+      par leurs libellés.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: iaso_extract_submissions
+    lang: fr
+    source_template: iaso_extract_submissions
+    surface_tags:
+    - iaso
+    - connection
+    - widget
+    - dataset
+    - database
+    difficulty: medium
+    notes: 'Core params: IASOConnection, IASOWidget.IASO_FORMS bound to it, a save-mode choice
+      between workspace database and dataset file, and a choices-to-labels bool.'
+- name: wpop_extract_population-en
+  inputs:
+    prompt: Create a pipeline that extracts WorldPop population data for a country and clips
+      it to boundaries provided as a workspace file, writing the result to a configurable
+      output folder.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: wpop_extract_population
+    lang: en
+    source_template: wpop_extract_population
+    surface_tags:
+    - wpop
+    - toolbox
+    - file
+    - geo
+    difficulty: medium
+    notes: 'Core params: a country selector, a File parameter for the boundaries, and a configurable
+      output path. Should use openhexa.toolbox.wpop rather than raw requests.'
+- name: wpop_extract_population-fr
+  inputs:
+    prompt: Génère une pipeline qui extrait les données de population WorldPop pour un pays
+      et les découpe selon les limites fournies dans un fichier du workspace, avec un dossier
+      de sortie paramétrable.
+    fixture_profile: standard_workspace
+  metadata:
+    task_id: wpop_extract_population
+    lang: fr
+    source_template: wpop_extract_population
+    surface_tags:
+    - wpop
+    - toolbox
+    - file
+    - geo
+    difficulty: medium
+    notes: 'Core params: a country selector, a File parameter for the boundaries, and a configurable
+      output path. Should use openhexa.toolbox.wpop rather than raw requests.'

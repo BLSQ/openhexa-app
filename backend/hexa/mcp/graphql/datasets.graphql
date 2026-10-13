@@ -33,10 +33,6 @@ query GetDataset($workspaceSlug: String!, $datasetSlug: String!, $versionsPage: 
       workspace {
         slug
       }
-      permissions {
-        update
-        createVersion
-      }
       latestVersion {
         id
         name

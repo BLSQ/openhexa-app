@@ -10,8 +10,6 @@ Reason: {{reason}}
 Please go to the following page to view the pipeline: {{ pipeline_url }}
 {% endblocktranslate %}
 
-{%blocktranslate%}
-The OpenHEXA team
+{% trans "The OpenHEXA team" %}
 
-© 2025 Bluesquare SA. All Rights Reserved
-{%endblocktranslate%}
+© {% now "Y" %} Bluesquare SA. {% trans "All Rights Reserved" %}

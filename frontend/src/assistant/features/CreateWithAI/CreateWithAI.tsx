@@ -64,11 +64,20 @@ function Step({ label, status, detail }: StepProps) {
   );
 }
 
-type CreatePipelineUsingAIProps = {
-  form: AIFormInstance;
+export type CreateWithAILabels = {
+  description: string;
+  placeholder: string;
+  generatingStep: string;
+  creatingStep: string;
+  openingStep: string;
 };
 
-const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
+type CreateWithAIProps = {
+  form: AIFormInstance;
+  labels: CreateWithAILabels;
+};
+
+const CreateWithAI = ({ form, labels }: CreateWithAIProps) => {
   const { t } = useTranslation();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -94,17 +103,17 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
     setOverflows(el.scrollHeight > el.clientHeight);
   }, [form.agentResponse, isExpanded]);
 
-  const typedPipelineName = useTypewriter(form.pipelineName);
+  const typedObjectName = useTypewriter(form.objectName);
   const { phase, errorAtPhase } = form;
   const isActive = phase !== AIPhase.Idle;
   const isStreaming =
-    phase === AIPhase.Generating || phase === AIPhase.CreatingPipeline;
+    phase === AIPhase.Generating || phase === AIPhase.Creating;
 
   const generatingStatus = (): StepStatus => {
-    if (phase === AIPhase.CreatingPipeline || phase === AIPhase.Done)
+    if (phase === AIPhase.Creating || phase === AIPhase.Done)
       return StepStatus.Done;
     if (phase === AIPhase.Error) {
-      return errorAtPhase === AIPhase.CreatingPipeline
+      return errorAtPhase === AIPhase.Creating
         ? StepStatus.Done
         : StepStatus.Error;
     }
@@ -114,9 +123,9 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
 
   const creatingStatus = (): StepStatus => {
     if (phase === AIPhase.Done) return StepStatus.Done;
-    if (phase === AIPhase.Error && errorAtPhase === AIPhase.CreatingPipeline)
+    if (phase === AIPhase.Error && errorAtPhase === AIPhase.Creating)
       return StepStatus.Error;
-    if (phase === AIPhase.CreatingPipeline) return StepStatus.Active;
+    if (phase === AIPhase.Creating) return StepStatus.Active;
     return StepStatus.Pending;
   };
 
@@ -135,11 +144,7 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
           <h3 className="text-xl font-semibold text-gray-900">
             {t("What do you want to build?")}
           </h3>
-          <p className="mt-1.5 text-sm text-gray-500">
-            {t(
-              "Describe your pipeline and the AI will generate the code to get you started.",
-            )}
-          </p>
+          <p className="mt-1.5 text-sm text-gray-500">{labels.description}</p>
         </div>
       </div>
       <div className="mx-auto w-4/5 space-y-4">
@@ -148,9 +153,7 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
             ref={textareaRef}
             value={form.prompt}
             onChange={(e) => form.setPrompt(e.target.value)}
-            placeholder={t(
-              "e.g. Create a pipeline that fetches data from the DHIS2 API, transform it, and save it as a CSV in the workspace",
-            )}
+            placeholder={labels.placeholder}
             className="resize-none rounded-none border-0 focus:ring-0"
             autoFocus
             rows={6}
@@ -160,19 +163,13 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
 
         {isActive && (
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+            <Step label={labels.generatingStep} status={generatingStatus()} />
             <Step
-              label={t("Generating pipeline code")}
-              status={generatingStatus()}
-            />
-            <Step
-              label={t("Creating pipeline")}
+              label={labels.creatingStep}
               status={creatingStatus()}
-              detail={typedPipelineName}
+              detail={typedObjectName}
             />
-            <Step
-              label={t("Opening pipeline editor")}
-              status={openingStatus()}
-            />
+            <Step label={labels.openingStep} status={openingStatus()} />
 
             {phase === AIPhase.Error ? (
               <div className="mt-2 space-y-2">
@@ -235,4 +232,4 @@ const CreatePipelineUsingAI = ({ form }: CreatePipelineUsingAIProps) => {
   );
 };
 
-export default CreatePipelineUsingAI;
+export default CreateWithAI;

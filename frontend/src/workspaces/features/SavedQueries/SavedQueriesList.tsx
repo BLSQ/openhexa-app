@@ -1,13 +1,12 @@
-import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import Block from "core/components/Block";
 import DataGrid, { BaseColumn } from "core/components/DataGrid";
 import DateColumn from "core/components/DataGrid/DateColumn";
 import UserColumn from "core/components/DataGrid/UserColumn";
+import Link from "core/components/Link";
 import SearchInput from "core/features/SearchInput";
 import { SavedQueryOrderBy } from "graphql/types";
 import { useTranslation } from "next-i18next";
-import { useRouter } from "next/router";
 import { SortingRule } from "react-table";
 import DeleteSavedQueryTrigger from "workspaces/features/SavedQueries/DeleteSavedQueryTrigger";
 import { SavedQueryListItem_SavedQueryFragment } from "workspaces/features/SavedQueries/SavedQueries.generated";
@@ -44,11 +43,8 @@ const SavedQueriesList = ({
   onChange,
 }: SavedQueriesListProps) => {
   const { t } = useTranslation();
-  const router = useRouter();
   const routes = dataStudioRoutes(workspace.slug);
   const { items, totalItems } = workspace.savedQueries;
-
-  const openQuery = (slug: string) => router.push(routes.query(slug));
 
   const onFetchData = ({
     page: nextPage,
@@ -104,10 +100,6 @@ const SavedQueriesList = ({
               fixedLayout={false}
               loading={loading}
               emptyLabel={t("No saved queries yet.")}
-              onRowClick={(row) =>
-                openQuery((row as SavedQueryListItem_SavedQueryFragment).slug)
-              }
-              rowClassName="cursor-pointer items-center hover:bg-gray-50"
             >
               <BaseColumn<SavedQueryListItem_SavedQueryFragment>
                 id="name"
@@ -115,9 +107,7 @@ const SavedQueriesList = ({
               >
                 {(item) => (
                   <div className="flex flex-col">
-                    <span className="font-medium text-gray-800">
-                      {item.name}
-                    </span>
+                    <Link href={routes.query(item.slug)}>{item.name}</Link>
                     <span className="text-sm text-gray-500">{item.slug}</span>
                   </div>
                 )}
@@ -170,14 +160,11 @@ const SavedQueriesList = ({
                 disableSortBy
               >
                 {(item) => (
-                  <div className="flex items-center justify-end gap-1 text-gray-400">
+                  <div className="flex items-center justify-end text-gray-400">
                     <DeleteSavedQueryTrigger savedQuery={item}>
                       {({ onClick }) => (
                         <button
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onClick();
-                          }}
+                          onClick={onClick}
                           title={t("Delete")}
                           className="rounded-sm p-1.5 hover:bg-gray-100 hover:text-red-600"
                         >
@@ -185,7 +172,6 @@ const SavedQueriesList = ({
                         </button>
                       )}
                     </DeleteSavedQueryTrigger>
-                    <ChevronRightIcon className="h-5 w-5" />
                   </div>
                 )}
               </BaseColumn>

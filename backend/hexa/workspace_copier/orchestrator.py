@@ -54,6 +54,7 @@ def copy_workspace(
     *,
     resources: set[str] | None = None,
     options: CopyOptions = CopyOptions(),
+    result: CopyResult | None = None,
 ) -> CopyResult:
     """Copy a workspace from ``source`` to ``target``.
 
@@ -63,10 +64,15 @@ def copy_workspace(
     to discard it. ``options`` carries the run-wide switches (see
     :class:`~hexa.workspace_copier.options.CopyOptions`); every copier receives
     them and reads only what concerns it.
+
+    Pass ``result`` to keep what was done when a copier raises midway: the
+    async job reads it to record the workspace a failed run created.
     """
     selected = _resolve_selection(WORKSPACE_COPIERS, resources)
     selected_names = {c.name for c in selected}
-    result = CopyResult(started_at=timezone.localtime())
+    if result is None:
+        result = CopyResult()
+    result.started_at = timezone.localtime()
     for copier in selected:
         for dep in copier.depends_on:
             if dep not in selected_names:

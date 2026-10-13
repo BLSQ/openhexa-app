@@ -18,5 +18,5 @@ Start collaborating here: {{ url }}
 
 Need help? Check out:
 User Manual: https://docs.openhexa.com/#user-manual
-Wiki: https://github.com/BLSQ/openhexa/wiki
+Documentation: https://docs.openhexa.com/
 {% endblocktranslate %}

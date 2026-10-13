@@ -76,6 +76,7 @@ registry (`hexa.assistant.agents.all_agent_tool_names`) — a unit test enforces
 enum AssistantToolName {
   create_pipeline
   create_saved_query
+  create_static_webapp
   get_dataset
   get_db_schema
   get_db_table_schema

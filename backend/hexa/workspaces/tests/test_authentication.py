@@ -73,6 +73,36 @@ class WorkspaceTokenAuthenticationTest(TestCase):
         token = WorkspaceToken.authenticate(signed)
         self.assertEqual((token.user, token.workspace), (self.MEMBER, self.WORKSPACE))
 
+    def test_fingerprint_is_stable_across_authentications(self):
+        """The fingerprint identifies the token, not the moment it was looked at."""
+        for user, membership in (
+            (self.MEMBER, self.MEMBERSHIP),
+            (self.ORG_ADMIN, None),
+        ):
+            with self.subTest(user=user.email):
+                issued = WorkspaceToken.issue(
+                    user=user, workspace=self.WORKSPACE, membership=membership
+                )
+                signed = issued.sign()
+                fingerprints = {
+                    issued.fingerprint,
+                    WorkspaceToken.authenticate(signed).fingerprint,
+                    WorkspaceToken.authenticate(signed).fingerprint,
+                }
+                self.assertEqual(1, len(fingerprints))
+
+    def test_identity_tokens_of_the_same_user_have_distinct_fingerprints(self):
+        """Two notebook sessions are two tokens, even for the same user and workspace."""
+        fingerprints = set()
+        for issued_at in (self.NOW, self.NOW + 1):
+            with patch("time.time", return_value=issued_at):
+                token = WorkspaceToken.issue(
+                    user=self.ORG_ADMIN, workspace=self.WORKSPACE, membership=None
+                )
+                token.sign()
+            fingerprints.add(token.fingerprint)
+        self.assertEqual(2, len(fingerprints))
+
     def test_identity_token_payload(self):
         with patch("time.time", return_value=self.NOW):
             payload = IdentityToken(self.ORG_ADMIN, self.WORKSPACE).payload()

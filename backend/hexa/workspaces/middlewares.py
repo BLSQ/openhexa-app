@@ -27,6 +27,7 @@ def workspace_token_authentication_middleware(get_response):
             if token is not None:
                 request.user = token.user
                 request.workspace = token.workspace
+                request.workspace_token = token
                 request.bypass_two_factor = True
 
         return get_response(request)

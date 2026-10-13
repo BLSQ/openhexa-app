@@ -1,5 +1,40 @@
 # Changelog
 
+## [5.19.1](https://github.com/BLSQ/openhexa-app/compare/5.19.0...5.19.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* keep dataset version on different tabs ([#2109](https://github.com/BLSQ/openhexa-app/issues/2109)) ([c59fe89](https://github.com/BLSQ/openhexa-app/commit/c59fe89dcc05fcb5ab230cc7df45e7e701290205))
+* **pipelines:** cap initial zoom of small DAG views ([#2102](https://github.com/BLSQ/openhexa-app/issues/2102)) ([309c4c7](https://github.com/BLSQ/openhexa-app/commit/309c4c7462914a41bbb846736e1639396ff3205a))
+* show both view and download buttons for HTML run outputs ([#2103](https://github.com/BLSQ/openhexa-app/issues/2103)) ([c28404d](https://github.com/BLSQ/openhexa-app/commit/c28404d26faf847af9de745b7e948baf9f39b157))
+* wiki links and reserved rights dates (HEXA-1823) ([d0a25cc](https://github.com/BLSQ/openhexa-app/commit/d0a25cceabbf7afc69acb31f30c8d37e0e19b512))
+
+## [5.19.0](https://github.com/BLSQ/openhexa-app/compare/5.18.0...5.19.0) (2026-10-01)
+
+
+### Features
+
+* Add tools for managing saved queries (HEXA-1804) ([#2073](https://github.com/BLSQ/openhexa-app/issues/2073)) ([bb5534e](https://github.com/BLSQ/openhexa-app/commit/bb5534e3aa370be10b3dac1b08bd40809af44b27))
+* agents with more flexible providers (HEXA-1809) ([#2065](https://github.com/BLSQ/openhexa-app/issues/2065)) ([be97fe7](https://github.com/BLSQ/openhexa-app/commit/be97fe7085173c8a8d99fed7c3eba29c7f49fe0f))
+* Editing agents can make commits with proposed change(Hexa-1743 ) ([#2058](https://github.com/BLSQ/openhexa-app/issues/2058)) ([a566193](https://github.com/BLSQ/openhexa-app/commit/a566193096c8141673b019728c0350d985f5e407))
+* log token usage (HEXA-1789) ([#2061](https://github.com/BLSQ/openhexa-app/issues/2061)) ([8034e01](https://github.com/BLSQ/openhexa-app/commit/8034e015881321868e587a89c86f863a56598cce))
+* naming agent simpler model (HEXA-1806) ([#2052](https://github.com/BLSQ/openhexa-app/issues/2052)) ([8785e7b](https://github.com/BLSQ/openhexa-app/commit/8785e7b5fc56490f7a41a8c236d4055e1cdd0199))
+* saved queries versioning (HEXA-1768) (HEXA-1808) ([#2053](https://github.com/BLSQ/openhexa-app/issues/2053)) ([9ad61bd](https://github.com/BLSQ/openhexa-app/commit/9ad61bd439154b5a5323fcd9ce775a069ea6f0cc))
+* show saved query slugs on the frontend (HEXA-1805) ([#2075](https://github.com/BLSQ/openhexa-app/issues/2075)) ([886407c](https://github.com/BLSQ/openhexa-app/commit/886407cf929006e2dc22b3d44ca7c24bad88ab17))
+* visualise pipelines with dag ([#2062](https://github.com/BLSQ/openhexa-app/issues/2062)) ([9093280](https://github.com/BLSQ/openhexa-app/commit/9093280b7653bd75f54139bf2e71bbad92658ea7))
+
+
+### Bug Fixes
+
+* add link to mcp (HEXA-1813) ([#2071](https://github.com/BLSQ/openhexa-app/issues/2071)) ([d57b86c](https://github.com/BLSQ/openhexa-app/commit/d57b86c379f7a184d4fbcbb6938a03c7ec14ca1b))
+* Deprecate web app write permissions (HEXA-1815) ([#2087](https://github.com/BLSQ/openhexa-app/issues/2087)) ([c8e8e87](https://github.com/BLSQ/openhexa-app/commit/c8e8e87c00ce7280881b604c2c0d09912c2478c9))
+* documentation dev.js links ([#2066](https://github.com/BLSQ/openhexa-app/issues/2066)) ([d0df249](https://github.com/BLSQ/openhexa-app/commit/d0df249e42ac2a5c3557558d257fa36f816222b2))
+* handling of scheduling pipeline without default params (HEXA- 1788) ([#2038](https://github.com/BLSQ/openhexa-app/issues/2038)) ([0d94a6c](https://github.com/BLSQ/openhexa-app/commit/0d94a6c1d1e8fe99f71c5db044e24642b1795e77))
+* Make DB speed improvements CI/test-only ([#2050](https://github.com/BLSQ/openhexa-app/issues/2050)) ([427ab6b](https://github.com/BLSQ/openhexa-app/commit/427ab6bbcf6691acd7791d72488870ccb159b9ce))
+* Race condition with the agent proposal ([#2081](https://github.com/BLSQ/openhexa-app/issues/2081)) ([dc9d103](https://github.com/BLSQ/openhexa-app/commit/dc9d10306c279d9445c029716dddd7fe32ef0c5c))
+* type error on Parquet arrays datasets ([#2068](https://github.com/BLSQ/openhexa-app/issues/2068)) ([c8c02e2](https://github.com/BLSQ/openhexa-app/commit/c8c02e2d5f14e11e562db7b46850ec1d24a1cad7))
+
 ## [5.18.0](https://github.com/BLSQ/openhexa-app/compare/5.17.0...5.18.0) (2026-09-08)
 
 

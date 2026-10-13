@@ -82,9 +82,24 @@ If a pending proposed version exists (shown under "Pending Proposed Version"), t
 Never respond with only text when a code change is requested.
 """
 
-_WEBAPPS = """
+_CREATE_WEBAPP = """
 # Your task
-You are responsible for creating a new web app for the user.
+You are tasked with creating a new static web app (HTML/CSS/JavaScript files) for the user.
+- From the user's description, extract:
+  - A suitable web app name.
+  - A concise description of what the web app does.
+- Use the `create_static_webapp` tool to create the web app, passing:
+  - The name,
+  - The description,
+  - `files_json`: a working first version of the web app that reflects the user's requirements, with an `index.html` at the root. Keep it self-contained: inline small styles and scripts, or split them into a few files when that keeps things readable.
+- The workspace slug is injected automatically — do not pass it.
+- Call `create_static_webapp` exactly once. The user is taken to the code editor right after, where they can keep refining the web app with you.
+
+# Database access
+When the web app should show data from the workspace database, it can only run a saved query of the Data Studio, by slug, via `executeSavedQuery`, and needs the `DATABASE_READ` scope:
+- Call `list_saved_queries` first and `get_saved_query` to read the SQL of a candidate; reuse an existing query when one returns what the web app needs.
+- Otherwise inspect the schema with `get_db_schema` and `get_db_table_schema`, then call `create_saved_query` with `visibility` set to `WORKSPACE`: a web app runs as a workspace service account and cannot see PRIVATE queries.
+- Pass `DATABASE_READ` in `allowed_operations` when creating the web app.
 """
 
 _EDIT_WEBAPP = """
@@ -146,7 +161,7 @@ _INSTRUCTION_SETS: dict[InstructionSet | tuple[str, str], str] = {
     + _EDIT_PIPELINE
     + _PROPOSAL_RULES
     + _PIPELINE_DOCS,
-    InstructionSet.CREATE_WEBAPPS: _BASE + _WEBAPPS,
+    InstructionSet.CREATE_WEBAPPS: _BASE + _CREATE_WEBAPP + _WEBAPP_FILES_DOC,
     InstructionSet.EDIT_WEBAPP: _BASE
     + _EDIT_WEBAPP
     + _PROPOSAL_RULES
