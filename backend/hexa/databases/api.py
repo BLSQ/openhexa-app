@@ -329,18 +329,20 @@ def count_open_connections(db_name: str, cursor) -> int:
 
 
 # PostGIS creates these in every workspace database, so they don't count as data.
+IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
+
 TABLES_QUERY = """
 SELECT EXISTS (
     SELECT 1 FROM information_schema.tables
     WHERE table_schema NOT IN ('pg_catalog', 'information_schema', 'topology')
-      AND table_name NOT IN ('spatial_ref_sys', 'geography_columns', 'geometry_columns')
+      AND table_name <> ALL(%(ignore_tables)s)
 );
 """
 
 
 def database_has_tables(db_name: str) -> bool:
     with get_cursor(db_name) as cursor:
-        cursor.execute(TABLES_QUERY)
+        cursor.execute(TABLES_QUERY, {"ignore_tables": IGNORE_TABLES})
         return cursor.fetchone()[0]
 
 
