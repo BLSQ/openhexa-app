@@ -26,6 +26,7 @@ query WorkspacePage($slug: String!) {
     ...ArchiveWorkspace_workspace
     ...InviteMemberWorkspace_workspace
     ...WorkspaceLayout_workspace
+    ...PublicFilesSettings_workspace
   }
 }
 

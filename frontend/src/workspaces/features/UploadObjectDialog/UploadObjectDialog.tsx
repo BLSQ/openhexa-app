@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client";
-import { ArrowUpTrayIcon } from "@heroicons/react/24/outline";
+import { ArrowUpTrayIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import Dialog from "core/components/Dialog";
 import Dropzone from "core/components/Dropzone";
@@ -8,6 +8,7 @@ import useForm from "core/hooks/useForm";
 import { useEffect, useState } from "react";
 import { useTranslation } from "next-i18next";
 import { UploadObjectDialog_WorkspaceFragment } from "./UploadObjectDialog.generated";
+import { isInPublicFolder } from "workspaces/features/PublicFiles";
 import { useUploadFiles } from "workspaces/hooks/useUploadFiles";
 
 type UploadObjectDialogProps = {
@@ -62,6 +63,14 @@ const UploadObjectDialog = (props: UploadObjectDialogProps) => {
         {t("Upload files in workspace")}
       </Dialog.Title>
       <Dialog.Content>
+        {workspace.publicFilesEnabled && prefix && isInPublicFolder(prefix) && (
+          <p className="mb-3 flex items-center gap-2 rounded-md bg-blue-50 px-3 py-2 text-sm text-blue-800">
+            <GlobeAltIcon className="h-4 w-4 shrink-0" />
+            {t(
+              "You are uploading to the public folder: anyone who has their link will be able to read these files.",
+            )}
+          </p>
+        )}
         <Dropzone
           className="h-80"
           onChange={(files) => form.setFieldValue("files", files)}
@@ -100,6 +109,7 @@ UploadObjectDialog.fragments = {
   workspace: gql`
     fragment UploadObjectDialog_workspace on Workspace {
       slug
+      publicFilesEnabled
       permissions {
         createObject
       }

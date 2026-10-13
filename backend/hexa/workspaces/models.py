@@ -276,6 +276,10 @@ class Workspace(Base):
         help_text="Custom configuration properties for the workspace as key-value pairs",
     )
     tags = models.ManyToManyField("tags.Tag", blank=True, related_name="workspaces")
+    # Opens the bucket's top-level `public/` folder to anyone with a link (see
+    # hexa.files.views.public_file). Off by default so a folder that happens to
+    # carry that name exposes nothing until an organization admin decides so.
+    public_files_enabled = models.BooleanField(default=False)
 
     objects = WorkspaceManager.from_queryset(WorkspaceQuerySet)()
 
@@ -377,6 +381,11 @@ class Workspace(Base):
             if not principal.has_perm("workspaces.manage_tags", self):
                 raise PermissionDenied
             self.tags.set(kwargs["tags"])
+
+        if "public_files_enabled" in kwargs:
+            if not principal.has_perm("workspaces.manage_public_files", self):
+                raise PermissionDenied
+            self.public_files_enabled = kwargs["public_files_enabled"]
 
         return self.save()
 

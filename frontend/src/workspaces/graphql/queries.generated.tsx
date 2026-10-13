@@ -4,6 +4,7 @@ import { gql } from '@apollo/client';
 import { ArchiveWorkspace_WorkspaceFragmentDoc } from '../features/ArchiveWorkspaceDialog/ArchiveWorkspaceDialog.generated';
 import { InviteMemberWorkspace_WorkspaceFragmentDoc } from '../features/InviteMemberDialog/InviteMemberDialog.generated';
 import { WorkspaceLayout_WorkspaceFragmentDoc } from '../layouts/WorkspaceLayout/WorkspaceLayout.generated';
+import { PublicFilesSettings_WorkspaceFragmentDoc } from '../features/PublicFiles/PublicFilesSettings.generated';
 import { CreatePipelineDialog_WorkspaceFragmentDoc } from '../features/CreatePipelineDialog/CreatePipelineDialog.generated';
 import { PipelineCard_PipelineFragmentDoc } from '../features/PipelineCard/PipelineCard.generated';
 import { Tag_TagFragmentDoc } from '../../core/features/Tag.generated';
@@ -61,7 +62,7 @@ export type WorkspacePageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspacePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, description?: string | null, dockerImage?: string | null, configuration: any, webappsEnabled: boolean, countries: Array<{ __typename?: 'Country', code: string, flag: string, name: string }>, permissions: { __typename?: 'WorkspacePermissions', delete: boolean, update: boolean, manageMembers: boolean, launchNotebookServer: boolean }, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }> } | null };
+export type WorkspacePageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, description?: string | null, dockerImage?: string | null, configuration: any, publicFilesEnabled: boolean, publicFilesUrl: any, webappsEnabled: boolean, countries: Array<{ __typename?: 'Country', code: string, flag: string, name: string }>, permissions: { __typename?: 'WorkspacePermissions', delete: boolean, update: boolean, manageMembers: boolean, managePublicFiles: boolean, launchNotebookServer: boolean }, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }> } | null };
 
 export type WorkspacePipelinesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -254,7 +255,7 @@ export type WorkspaceFilesPageQueryVariables = Types.Exact<{
 }>;
 
 
-export type WorkspaceFilesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, webappsEnabled: boolean, bucket: { __typename?: 'Bucket', name: string, objects: { __typename?: 'BucketObjectPage', hasNextPage: boolean, hasPreviousPage: boolean, pageNumber: number, items: Array<{ __typename?: 'BucketObject', key: string, name: string, path: string, size?: any | null, updatedAt?: any | null, type: Types.BucketObjectType }> } }, permissions: { __typename?: 'WorkspacePermissions', createObject: boolean, deleteObject: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
+export type WorkspaceFilesPageQuery = { __typename?: 'Query', workspace?: { __typename?: 'Workspace', slug: string, name: string, publicFilesEnabled: boolean, publicFilesUrl: any, webappsEnabled: boolean, bucket: { __typename?: 'Bucket', name: string, objects: { __typename?: 'BucketObjectPage', hasNextPage: boolean, hasPreviousPage: boolean, pageNumber: number, items: Array<{ __typename?: 'BucketObject', key: string, name: string, path: string, size?: any | null, updatedAt?: any | null, type: Types.BucketObjectType }> } }, permissions: { __typename?: 'WorkspacePermissions', createObject: boolean, deleteObject: boolean, manageMembers: boolean, update: boolean, launchNotebookServer: boolean }, organization: { __typename?: 'Organization', id: string, name: string, shortName?: string | null, logo?: string | null, permissions: { __typename?: 'OrganizationPermissions', createWorkspace: { __typename?: 'CreateWorkspacePermission', isAllowed: boolean } } }, shortcuts: Array<{ __typename?: 'ShortcutItem', id: string, name: string, url: string, order: number }>, countries: Array<{ __typename?: 'Country', flag: string, code: string }> } | null };
 
 export type WorkspaceDatabasesPageQueryVariables = Types.Exact<{
   workspaceSlug: Types.Scalars['String']['input'];
@@ -433,11 +434,13 @@ export const WorkspacePageDocument = gql`
     ...ArchiveWorkspace_workspace
     ...InviteMemberWorkspace_workspace
     ...WorkspaceLayout_workspace
+    ...PublicFilesSettings_workspace
   }
 }
     ${ArchiveWorkspace_WorkspaceFragmentDoc}
 ${InviteMemberWorkspace_WorkspaceFragmentDoc}
-${WorkspaceLayout_WorkspaceFragmentDoc}`;
+${WorkspaceLayout_WorkspaceFragmentDoc}
+${PublicFilesSettings_WorkspaceFragmentDoc}`;
 
 /**
  * __useWorkspacePageQuery__

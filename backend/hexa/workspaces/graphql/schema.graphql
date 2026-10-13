@@ -32,6 +32,12 @@ type Workspace {
     # Whether the webapps feature is enabled on this instance.
     webappsEnabled: Boolean!
 
+    # Whether the files in the bucket's top-level `public/` folder are readable by anyone with a link.
+    publicFilesEnabled: Boolean!
+
+    # The base URL under which the files of the `public/` folder are served, ending with a slash.
+    publicFilesUrl: URL!
+
     # The date and time when the workspace was created.
     createdAt: DateTime!
 
@@ -145,6 +151,9 @@ type WorkspacePermissions {
 
     # Indicates whether a database table can be deleted in the workspace.
     deleteDatabaseTable: Boolean!
+
+    # Indicates whether the public files folder can be enabled or disabled.
+    managePublicFiles: Boolean!
 
     # Indicates whether the current user can retrieve their workspace access token.
     generateToken: Boolean!
@@ -419,6 +428,9 @@ input UpdateWorkspaceInput {
 
     # The new Docker image associated with the workspace.
     dockerImage: String
+
+    # Whether the files in the bucket's top-level `public/` folder are readable by anyone with a link.
+    publicFilesEnabled: Boolean
 
     # The new configuration properties for the workspace.
     configuration: JSON

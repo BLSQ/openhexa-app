@@ -31,6 +31,7 @@ import Tooltip from "core/components/Tooltip";
 import { useRouter } from "next/router";
 import Tabs from "core/components/Tabs";
 import ConfigurationProperty from "workspaces/features/ConfigurationProperty";
+import { PublicFilesSettings } from "workspaces/features/PublicFiles";
 
 type Props = {
   page: number;
@@ -185,6 +186,7 @@ const WorkspaceSettingsPage: NextPageWithLayout = (props: Props) => {
                   />
                 </DataCard.FormSection>
               </DataCard>
+              <PublicFilesSettings workspace={workspace} />
             </Tabs.Tab>
 
             <Tabs.Tab label={t("Members")} className={"space-y-6 pt-6"}>

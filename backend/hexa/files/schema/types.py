@@ -3,8 +3,8 @@ from django.core.exceptions import ImproperlyConfigured
 from django.http import HttpRequest
 
 from hexa.files import storage
-from hexa.files.backends.base import StorageObject
-from hexa.files.utils import is_safe_path
+from hexa.files.backends.base import ObjectsPage, StorageObject
+from hexa.files.utils import PUBLIC_FOLDER, is_safe_path
 from hexa.workspaces.models import Workspace
 from hexa.workspaces.schema.types import workspace_object, workspace_permissions
 
@@ -41,6 +41,47 @@ def resolve_bucket_name(workspace, info, **kwargs):
     return workspace.bucket_name
 
 
+def _is_public_folder(obj: StorageObject) -> bool:
+    # Directory keys end with a slash on the cloud backends and not on the
+    # filesystem one.
+    return obj.type == "directory" and str(obj.key).rstrip("/") == PUBLIC_FOLDER
+
+
+def _find_public_folder(bucket_name: str) -> StorageObject | None:
+    for key in (f"{PUBLIC_FOLDER}/", PUBLIC_FOLDER):
+        try:
+            obj = storage.get_bucket_object(bucket_name, key)
+        except storage.exceptions.NotFound:
+            continue
+        if obj.type == "directory":
+            return obj
+    # A folder that only exists through the files under it (uploaded by the SDK,
+    # for instance) has no object of its own on the cloud backends.
+    if storage.list_bucket_objects(
+        bucket_name, prefix=f"{PUBLIC_FOLDER}/", per_page=1
+    ).items:
+        return StorageObject(
+            name=PUBLIC_FOLDER,
+            key=f"{PUBLIC_FOLDER}/",
+            path=f"{bucket_name}/{PUBLIC_FOLDER}/",
+            type="directory",
+        )
+    return None
+
+
+def pin_public_folder(page: ObjectsPage, bucket_name: str) -> ObjectsPage:
+    """Put the public folder first in a root listing, whichever page it fell on."""
+    items = [obj for obj in page.items if not _is_public_folder(obj)]
+    if page.page_number == 1:
+        folder = next(
+            (obj for obj in page.items if _is_public_folder(obj)), None
+        ) or _find_public_folder(bucket_name)
+        if folder is not None:
+            items.insert(0, folder)
+    page.items = items
+    return page
+
+
 @bucket_object.field("objects")
 def resolve_bucket_objects(
     workspace,
@@ -69,6 +110,8 @@ def resolve_bucket_objects(
         query=query,
         ignore_hidden_files=ignore_hidden_files,
     )
+    if workspace.public_files_enabled and not prefix and not query:
+        page = pin_public_folder(page, workspace.bucket_name)
 
     return page
 

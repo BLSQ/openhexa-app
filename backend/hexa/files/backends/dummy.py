@@ -91,7 +91,7 @@ class DummyStorageClient(Storage):
         obj = self._buckets[bucket_name][object_key]
         if obj == {}:
             return StorageObject(
-                name=object_key.split("/")[-1],
+                name=object_key.rstrip("/").split("/")[-1],
                 key=object_key,
                 path=f"{bucket_name}/{object_key}",
                 updated_at="",

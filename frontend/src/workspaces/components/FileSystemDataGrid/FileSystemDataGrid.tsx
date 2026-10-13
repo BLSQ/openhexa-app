@@ -47,6 +47,7 @@ export interface FileSystemDataGridProps {
   rowClassName?: string | ((row: BucketObject | object) => string);
   actionsRenderer?: (item: BucketObject) => React.ReactElement | null;
   directoryLinkGenerator?: (item: BucketObject) => string;
+  nameBadgeRenderer?: (item: BucketObject) => React.ReactNode;
   onChangePage: (page: number, perPage: number) => void;
   onDroppingFiles?: (files: FileWithPath[]) => void;
   onRowClick?: (item: BucketObject | object) => void;
@@ -63,6 +64,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
   rowClassName,
   actionsRenderer,
   directoryLinkGenerator,
+  nameBadgeRenderer,
   onChangePage,
   onDroppingFiles,
   onRowClick,
@@ -91,6 +93,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
     );
 
     const displayText = displayField === "key" ? item.key : item.name;
+    const badge = nameBadgeRenderer?.(item);
 
     // If directory and link generator provided, wrap in Link
     if (isDirectory && directoryLinkGenerator) {
@@ -102,6 +105,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
         >
           {iconElement}
           {displayText}
+          {badge}
         </Link>
       );
     }
@@ -116,6 +120,7 @@ const FileSystemDataGrid: React.FC<FileSystemDataGridProps> = ({
     return (
       <div className="flex items-center gap-2">
         {iconElement} {textElement}
+        {badge}
       </div>
     );
   };

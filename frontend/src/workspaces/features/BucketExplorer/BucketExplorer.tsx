@@ -1,5 +1,9 @@
 import { gql } from "@apollo/client";
-import { ArrowDownTrayIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowDownTrayIcon,
+  GlobeAltIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 import Button from "core/components/Button";
 import Spinner from "core/components/Spinner";
 import { BucketObject, BucketObjectType } from "graphql/types";
@@ -11,6 +15,13 @@ import {
   BucketExplorer_WorkspaceFragment,
 } from "./BucketExplorer.generated";
 import FileSystemDataGrid from "workspaces/components/FileSystemDataGrid";
+import {
+  getPublicFileUrl,
+  isInPublicFolder,
+  isPublicFolder,
+  PublicFileLinkButton,
+  PublicFolderBadge,
+} from "workspaces/features/PublicFiles";
 import { useUploadFiles } from "workspaces/hooks/useUploadFiles";
 
 type BucketExplorerProps = {
@@ -29,8 +40,25 @@ const BucketExplorer = (props: BucketExplorerProps) => {
   const directoryLinkGenerator = (item: BucketObject) =>
     `/workspaces/${encodeURIComponent(workspace.slug)}/files/${item.key}`;
 
+  const isPublicFile = (item: BucketObject) =>
+    workspace.publicFilesEnabled &&
+    item.type === BucketObjectType.File &&
+    isInPublicFolder(item.key);
+
+  const nameBadgeRenderer = (item: BucketObject) =>
+    workspace.publicFilesEnabled &&
+    item.type === BucketObjectType.Directory &&
+    isPublicFolder(item.key) ? (
+      <PublicFolderBadge className="ml-1" />
+    ) : null;
+
   const actionsRenderer = (item: BucketObject) => (
     <div className="flex flex-1 justify-end gap-2">
+      {isPublicFile(item) && (
+        <PublicFileLinkButton
+          url={getPublicFileUrl(workspace.publicFilesUrl, item.key)}
+        />
+      )}
       <DeleteBucketObject workspace={workspace} object={item}>
         {({ onClick }) => (
           <Button
@@ -69,16 +97,27 @@ const BucketExplorer = (props: BucketExplorerProps) => {
   );
 
   return (
-    <FileSystemDataGrid
-      data={objects.items as BucketObject[]}
-      fixedLayout={false}
-      pagination={objects}
-      perPage={perPage}
-      actionsRenderer={actionsRenderer}
-      directoryLinkGenerator={directoryLinkGenerator}
-      onDroppingFiles={uploadFiles}
-      onChangePage={onChangePage}
-    />
+    <>
+      {workspace.publicFilesEnabled && prefix && isInPublicFolder(prefix) && (
+        <p className="flex items-center gap-2 px-4 py-3 text-sm text-blue-800 bg-blue-50">
+          <GlobeAltIcon className="h-4 w-4 shrink-0" />
+          {t(
+            "The files in this folder can be read by anyone who has their link, without an OpenHEXA account.",
+          )}
+        </p>
+      )}
+      <FileSystemDataGrid
+        data={objects.items as BucketObject[]}
+        fixedLayout={false}
+        pagination={objects}
+        perPage={perPage}
+        actionsRenderer={actionsRenderer}
+        directoryLinkGenerator={directoryLinkGenerator}
+        nameBadgeRenderer={nameBadgeRenderer}
+        onDroppingFiles={uploadFiles}
+        onChangePage={onChangePage}
+      />
+    </>
   );
 };
 
@@ -86,6 +125,8 @@ BucketExplorer.fragments = {
   workspace: gql`
     fragment BucketExplorer_workspace on Workspace {
       slug
+      publicFilesEnabled
+      publicFilesUrl
       ...DownloadBucketObject_workspace
       ...DeleteBucketObject_workspace
     }

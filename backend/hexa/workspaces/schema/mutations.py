@@ -92,6 +92,9 @@ def resolve_update_workspace(_, info, **kwargs):
         if "configuration" in input:
             args["configuration"] = input["configuration"]
 
+        if input.get("public_files_enabled") is not None:
+            args["public_files_enabled"] = input["public_files_enabled"]
+
         with transaction.atomic():
             if "tags" in input:
                 args["tags"] = Tag.objects.get_or_create_from_names(

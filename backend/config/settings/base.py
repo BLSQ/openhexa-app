@@ -213,7 +213,10 @@ CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "sentry-trace",
+    # Partial reads of public files (see hexa.files.views.public_file)
+    "range",
 ]
+CORS_EXPOSE_HEADERS = ["accept-ranges", "content-length", "content-range", "etag"]
 
 # CSRF
 if "CSRF_TRUSTED_ORIGINS" in os.environ:

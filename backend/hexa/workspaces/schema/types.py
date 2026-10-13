@@ -8,6 +8,7 @@ from openhexa.toolbox.dhis2.api import DHIS2ToolboxError
 from openhexa.toolbox.iaso.api_client import IASOError
 
 from hexa.core.graphql import result_page
+from hexa.files.utils import public_files_url
 from hexa.pipelines.authentication import PipelineRunUser
 from hexa.pipelines.models import Pipeline, PipelineRun
 from hexa.tags.models import Tag
@@ -136,6 +137,21 @@ def resolve_workspace_permission_launch_notebooks(workspace: Workspace, info):
 @workspace_object.field("webappsEnabled")
 def resolve_webapps_enabled(workspace: Workspace, info):
     return bool(settings.WEBAPPS_DOMAIN)
+
+
+@workspace_object.field("publicFilesUrl")
+def resolve_public_files_url(workspace: Workspace, info):
+    return public_files_url(workspace)
+
+
+@workspace_permissions.field("managePublicFiles")
+def resolve_workspace_permission_manage_public_files(workspace: Workspace, info):
+    request: HttpRequest = info.context["request"]
+    return (
+        request.user.has_perm("workspaces.manage_public_files", workspace)
+        if request.user.is_authenticated
+        else False
+    )
 
 
 @workspace_object.field("permissions")

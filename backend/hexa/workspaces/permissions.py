@@ -11,6 +11,16 @@ def update_workspace(principal: User, workspace: Workspace):
     ).exists() or principal.is_organization_admin_or_owner(workspace.organization)
 
 
+def manage_public_files(principal: User, workspace: Workspace):
+    """Opening the public folder exposes files outside the organization, so it is
+    reserved to the organization's admins and owners rather than to anyone who can
+    update the workspace, like publishing a dataset or a pipeline.
+    """
+    return principal.is_authenticated and principal.is_organization_admin_or_owner(
+        workspace.organization
+    )
+
+
 def create_connection(principal: User, workspace: Workspace):
     """Only admin users of a workspace can create connections"""
     return workspace.workspacemembership_set.filter(

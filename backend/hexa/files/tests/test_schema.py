@@ -1,6 +1,8 @@
+from io import BytesIO
 from unittest.mock import patch
 
 from hexa.core.test import GraphQLTestCase
+from hexa.files import storage
 from hexa.files.backends.base import StorageObject
 from hexa.files.backends.exceptions import NotFound
 from hexa.user_management.models import User
@@ -76,6 +78,68 @@ class FilesTest(GraphQLTestCase):
             },
             r["data"]["workspace"],
         )
+
+    ROOT_OBJECTS_QUERY = """
+        query WorkspaceObjects ($workspaceSlug: String!, $page: Int, $perPage: Int) {
+            workspace (slug: $workspaceSlug) {
+                bucket {
+                    objects(prefix: "", page: $page, perPage: $perPage) {
+                        items { name type }
+                    }
+                }
+            }
+        }
+    """
+
+    def _fill_bucket(self):
+        bucket = self.WORKSPACE.bucket_name
+        storage.save_object(bucket, "a.txt", BytesIO(b"a"))
+        storage.save_object(bucket, "b.txt", BytesIO(b"b"))
+        storage.buckets[bucket]["public/"] = {}
+        storage.save_object(bucket, "public/x.txt", BytesIO(b"x"))
+        storage.save_object(bucket, "z.txt", BytesIO(b"z"))
+
+    def _root_names(self, page=1, per_page=15):
+        r = self.run_query(
+            self.ROOT_OBJECTS_QUERY,
+            {"workspaceSlug": self.WORKSPACE.slug, "page": page, "perPage": per_page},
+        )
+        return [
+            item["name"]
+            for item in r["data"]["workspace"]["bucket"]["objects"]["items"]
+        ]
+
+    def test_public_folder_is_listed_first(self):
+        self.WORKSPACE.public_files_enabled = True
+        self.WORKSPACE.save()
+        self._fill_bucket()
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+
+        self.assertEqual(
+            ["public", "a.txt", "b.txt", "x.txt", "z.txt"], self._root_names()
+        )
+        # Even when it would have fallen on a later page, where it no longer shows.
+        self.assertEqual(["public", "a.txt"], self._root_names(page=1, per_page=1))
+        self.assertEqual(["x.txt", "z.txt"], self._root_names(page=2, per_page=3))
+
+    def test_public_folder_is_listed_first_without_an_object_of_its_own(self):
+        self.WORKSPACE.public_files_enabled = True
+        self.WORKSPACE.save()
+        self._fill_bucket()
+        del storage.buckets[self.WORKSPACE.bucket_name]["public/"]
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+
+        self.assertEqual(["public", "a.txt"], self._root_names(page=1, per_page=1))
+
+    def test_public_folder_is_not_pinned_when_disabled(self):
+        self._fill_bucket()
+        self.client.force_login(self.USER_WORKSPACE_ADMIN)
+
+        # The dummy storage keeps insertion order across tests, so only the
+        # position of the folder is meaningful here.
+        names = self._root_names()
+        self.assertIn("public", names)
+        self.assertNotEqual("public", names[0])
 
     @patch("hexa.files.schema.mutations.storage")
     def test_create_bucket_folder(self, mock_storage):
