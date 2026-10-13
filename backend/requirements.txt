@@ -8,7 +8,7 @@ affine==2.4.0
     # via rasterio
 annotated-types==0.7.0
     # via pydantic
-anthropic[vertex]==0.109.1
+anthropic[vertex]==1.13.0
     # via
     #   -r requirements.in
     #   pydantic-ai-slim
@@ -19,7 +19,9 @@ anyio==4.14.2
     #   httpx
     #   httpx2
     #   openai
+    #   pydantic-ai-slim
     #   pydantic-evals
+    #   pydantic-graph
     #   starlette
 ariadne==0.26.2
     # via
@@ -123,10 +125,7 @@ dill==0.4.0
 diskcache==5.6.3
     # via openhexa-toolbox
 distro==1.9.0
-    # via
-    #   anthropic
-    #   google-genai
-    #   openai
+    # via google-genai
 django==5.2.17
     # via
     #   -r requirements.in
@@ -181,7 +180,7 @@ filetype==1.2.0
     # via -r requirements.in
 fiona==1.10.1
     # via openhexa-toolbox
-genai-prices==0.1.7
+genai-prices==0.1.10
     # via
     #   -r requirements.in
     #   pydantic-ai-slim
@@ -226,7 +225,7 @@ google-crc32c==1.7.1
     # via
     #   google-cloud-storage
     #   google-resumable-media
-google-genai==2.23.0
+google-genai==2.29.0
     # via pydantic-ai-slim
 google-resumable-media==2.7.2
     # via google-cloud-storage
@@ -265,21 +264,21 @@ h11==0.16.0
     #   uvicorn
 httpcore==1.0.9
     # via httpx
-httpcore2==2.3.0
+httpcore2==2.13.1
     # via httpx2
 httpx==0.28.1
     # via
-    #   anthropic
     #   ariadne-codegen
     #   google-genai
+httpx2==2.13.1
+    # via
+    #   anthropic
+    #   genai-prices
     #   openai
     #   pydantic-ai-slim
-    #   pydantic-graph
-httpx2==2.3.0
-    # via genai-prices
 humanize==4.12.3
     # via openhexa-toolbox
-idna==3.15
+idna==3.20
     # via
     #   anyio
     #   httpx
@@ -295,7 +294,7 @@ jinja2==3.1.6
     # via
     #   moto
     #   openhexa-sdk
-jiter==0.13.0
+jiter==0.17.0
     # via
     #   anthropic
     #   openai
@@ -362,7 +361,7 @@ oauthlib==3.3.1
     #   django-oauth-toolkit
     #   kubernetes
     #   requests-oauthlib
-openai==2.54.0
+openai==3.29.0
     # via pydantic-ai-slim
 openhexa-sdk==2.22.7
     # via
@@ -447,7 +446,7 @@ py-partiql-parser==0.6.1
     # via moto
 pyarrow==23.0.1
     # via -r requirements.in
-pyasn1==0.6.4
+pyasn1==0.6.3
     # via pyasn1-modules
 pyasn1-modules==0.4.2
     # via google-auth
@@ -465,15 +464,15 @@ pydantic==2.12.5
     #   pydantic-evals
     #   pydantic-graph
     #   rio-cogeo
-pydantic-ai-slim[anthropic,google,openai]==1.107.5
+pydantic-ai-slim[anthropic,google,openai]==2.55.0
     # via
     #   -r requirements.in
     #   pydantic-evals
 pydantic-core==2.41.5
     # via pydantic
-pydantic-evals==1.107.5
+pydantic-evals==2.55.0
     # via -r requirements.in
-pydantic-graph==1.107.5
+pydantic-graph==2.55.0
     # via pydantic-ai-slim
 pyflakes==3.4.0
     # via autoflake
@@ -609,9 +608,7 @@ tiktoken==0.14.0
 toml==0.10.2
     # via ariadne-codegen
 tqdm==4.67.1
-    # via
-    #   -r requirements.in
-    #   openai
+    # via -r requirements.in
 truststore==0.10.4
     # via
     #   httpcore2
