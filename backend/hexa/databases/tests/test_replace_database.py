@@ -145,6 +145,18 @@ class ReplaceEmptyDatabaseWithCopyTest(TestCase):
 
         self.assertTargetUntouched()
 
+    def test_configuration_failure_leaves_target_untouched(self):
+        with patch(
+            "hexa.databases.api.grant_read_only_privileges",
+            side_effect=psycopg2.Error("boom"),
+        ):
+            with self.assertRaises(psycopg2.Error):
+                replace_empty_database_with_copy(
+                    self.source.db_name, self.target.db_name
+                )
+
+        self.assertTargetUntouched()
+
     def test_fails_early_when_source_has_open_connections(self):
         credentials = get_db_server_credentials()
         open_conn = psycopg2.connect(

@@ -97,10 +97,10 @@ def create_read_and_write_role(db_name: str, pwd: str, cursor=None):
         grant_read_and_write_privileges(db_name, cur)
 
 
-def grant_read_and_write_privileges(db_name: str, cursor):
+def grant_read_and_write_privileges(db_name: str, cursor, database: str = None):
     cursor.execute(
         sql.SQL("GRANT CREATE, CONNECT ON DATABASE {db_name} TO {role};").format(
-            db_name=sql.Identifier(db_name),
+            db_name=sql.Identifier(database or db_name),
             role=sql.Identifier(db_name),
         )
     )
@@ -134,7 +134,7 @@ def create_read_only_role(db_name: str, ro_pwd: str, cursor=None):
         grant_read_only_privileges(db_name, cur)
 
 
-def grant_read_only_privileges(db_name: str, cursor):
+def grant_read_only_privileges(db_name: str, cursor, database: str = None):
     ro_role = f"{db_name}_ro"
     # template1.public ACL granted CREATE to PUBLIC (pre-PG15 default, and
     # potentially retained across pg_upgrade). Without this REVOKE,
@@ -145,7 +145,7 @@ def grant_read_only_privileges(db_name: str, cursor):
     cursor.execute("REVOKE CREATE ON SCHEMA public FROM PUBLIC;")
     cursor.execute(
         sql.SQL("GRANT CONNECT ON DATABASE {db_name} TO {role};").format(
-            db_name=sql.Identifier(db_name),
+            db_name=sql.Identifier(database or db_name),
             role=sql.Identifier(ro_role),
         )
     )
@@ -369,13 +369,27 @@ def replace_empty_database_with_copy(source_db: str, target_db: str):
             )
         )
         try:
+            with get_cursor(staging_db) as staging_cursor:
+                staging_cursor.execute(
+                    sql.SQL("REASSIGN OWNED BY {source} TO {target};").format(
+                        source=sql.Identifier(source_db),
+                        target=sql.Identifier(target_db),
+                    )
+                )
+                grant_read_and_write_privileges(
+                    target_db, staging_cursor, database=staging_db
+                )
+                grant_read_only_privileges(
+                    target_db, staging_cursor, database=staging_db
+                )
+            apply_database_settings(staging_db, cursor)
             _ensure_empty(target_db)
             cursor.execute(
                 sql.SQL("DROP DATABASE {target};").format(
                     target=sql.Identifier(target_db)
                 )
             )
-        except (DatabaseNotEmpty, psycopg2.Error):
+        except Exception:
             cursor.execute(
                 sql.SQL("DROP DATABASE {staging};").format(
                     staging=sql.Identifier(staging_db)
@@ -387,13 +401,3 @@ def replace_empty_database_with_copy(source_db: str, target_db: str):
                 staging=sql.Identifier(staging_db), target=sql.Identifier(target_db)
             )
         )
-        apply_database_settings(target_db, cursor)
-
-    with get_cursor(target_db) as cursor:
-        cursor.execute(
-            sql.SQL("REASSIGN OWNED BY {source} TO {target};").format(
-                source=sql.Identifier(source_db), target=sql.Identifier(target_db)
-            )
-        )
-        grant_read_and_write_privileges(target_db, cursor)
-        grant_read_only_privileges(target_db, cursor)
