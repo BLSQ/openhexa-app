@@ -1,4 +1,4 @@
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, override_settings
 
 from hexa.workspace_copier.forms import CopyWorkspaceForm
 
@@ -6,10 +6,10 @@ from hexa.workspace_copier.forms import CopyWorkspaceForm
 def _base_data(**overrides):
     data = {
         "source_url": "",
-        "source_token": "",
+        "source_token": "src-token",
         "source_slug": "my-workspace",
         "target_url": "",
-        "target_token": "",
+        "target_token": "tgt-token",
         "target_mode": "new",
         "target_organization": "org-1",
         "resources": ["connections"],
@@ -19,9 +19,20 @@ def _base_data(**overrides):
 
 
 class CopyWorkspaceFormTest(SimpleTestCase):
-    def test_local_endpoints_need_no_token(self):
+    @override_settings(
+        BASE_URL="http://localhost:8000", INTERNAL_BASE_URL="http://app:8000"
+    )
+    def test_blank_url_defaults_to_this_server_internal_url(self):
         form = CopyWorkspaceForm(data=_base_data())
         self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["source_url"], "http://app:8000/graphql/")
+        self.assertEqual(form.cleaned_data["target_url"], "http://app:8000/graphql/")
+
+    def test_token_is_required_for_this_server_too(self):
+        form = CopyWorkspaceForm(data=_base_data(source_token="", target_token=""))
+        self.assertFalse(form.is_valid())
+        self.assertIn("source_token", form.errors)
+        self.assertIn("target_token", form.errors)
 
     def test_target_organization_is_required(self):
         form = CopyWorkspaceForm(data=_base_data(target_organization=""))
@@ -62,19 +73,19 @@ class CopyWorkspaceFormTest(SimpleTestCase):
 
     def test_remote_source_requires_token(self):
         form = CopyWorkspaceForm(
-            data=_base_data(source_url="https://example.org/graphql/")
+            data=_base_data(source_url="https://example.org/graphql/", source_token="")
         )
         self.assertFalse(form.is_valid())
         self.assertIn("source_token", form.errors)
 
     def test_remote_source_with_token_is_valid(self):
         form = CopyWorkspaceForm(
-            data=_base_data(
-                source_url="https://example.org/graphql/",
-                source_token="src-token",
-            )
+            data=_base_data(source_url="https://example.org/graphql/")
         )
         self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(
+            form.cleaned_data["source_url"], "https://example.org/graphql/"
+        )
 
     def test_mandatory_resource_always_included(self):
         form = CopyWorkspaceForm(data=_base_data(resources=["connections"]))

@@ -3,12 +3,39 @@
 from typing import Any
 
 import httpx
+from django.conf import settings
 from openhexa.graphql.graphql_client.client import Client
 from openhexa.graphql.graphql_client.exceptions import GraphQLClientError
 
 
 class GraphQLError(RuntimeError):
     pass
+
+
+def _route_to_internal_url(request: httpx.Request) -> None:
+    """Send requests aimed at this server's public URL to its internal one.
+
+    The copy runs in the worker container, where the public ``BASE_URL``
+    (``http://localhost:8000`` locally) points to the worker itself, not the
+    app. That covers both a copy to/from this server and the presigned file
+    links this server hands out, which are built from ``BASE_URL`` on the
+    filesystem storage backend. In production both settings are usually equal,
+    so this is a no-op.
+    """
+    public = httpx.URL(settings.BASE_URL)
+    internal = httpx.URL(settings.INTERNAL_BASE_URL)
+    if public == internal:
+        return
+    url = request.url
+    if (url.scheme, url.host, url.port) == (public.scheme, public.host, public.port):
+        request.url = url.copy_with(
+            scheme=internal.scheme, host=internal.host, port=internal.port
+        )
+
+
+def build_http_client(**kwargs: Any) -> httpx.Client:
+    """An httpx client that reaches this server even from the worker container."""
+    return httpx.Client(event_hooks={"request": [_route_to_internal_url]}, **kwargs)
 
 
 def gql(
@@ -62,7 +89,7 @@ def build_client(
     # 120s read timeout: createPipelineTemplateVersion can fan out to
     # auto-update every pipeline derived from the template, which is slow
     # on prod and exceeds httpx's 5s default.
-    http = http_client or httpx.Client(timeout=httpx.Timeout(120.0))
+    http = http_client or build_http_client(timeout=httpx.Timeout(120.0))
     http.headers["User-Agent"] = "openhexa-copy/1.0"
     http.headers["Authorization"] = f"Bearer {token}"
 

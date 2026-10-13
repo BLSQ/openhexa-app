@@ -18,7 +18,7 @@ from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.progress import ProgressReporter
 from hexa.workspace_copier.resources.base import ResourceCopier
 from hexa.workspace_copier.results import CopyResult, FilesResult, format_bytes
-from hexa.workspace_copier.transport import GraphQLError, gql
+from hexa.workspace_copier.transport import GraphQLError, build_http_client, gql
 
 OBJECTS_PAGE_SIZE = 100
 
@@ -263,7 +263,7 @@ class FilesCopier(ResourceCopier):
         # one per file. It carries no auth headers: presigned URLs are
         # self-authenticating and some storage backends reject requests that
         # also send an Authorization header.
-        with httpx.Client(timeout=TRANSFER_TIMEOUT) as http_client:
+        with build_http_client(timeout=TRANSFER_TIMEOUT) as http_client:
             # walk() is a generator whose paginated/recursive gql() calls can
             # themselves raise (page 2+, a subdir listing). Driving it via
             # next() lets us record a listing failure and keep the files copied

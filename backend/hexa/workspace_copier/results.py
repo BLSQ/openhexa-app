@@ -148,6 +148,19 @@ class CopyResult:
     def warn(self, message: str) -> None:
         self.warnings.append(message)
 
+    @property
+    def has_failures(self) -> bool:
+        """Whether any resource could not be copied and needs manual handling."""
+        return any(
+            resource is not None and resource.failed
+            for resource in (
+                self.files,
+                self.connections,
+                self.pipelines,
+                self.datasets,
+            )
+        )
+
 
 def _format_run_window(
     started_at: datetime | None, finished_at: datetime | None

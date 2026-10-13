@@ -1,0 +1,5 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}{{ block.super }}
+{% if original.is_active %}<meta http-equiv="refresh" content="5">{% endif %}
+{% endblock %}
