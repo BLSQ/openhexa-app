@@ -27,6 +27,7 @@ import { useTranslation } from "next-i18next";
 import PipelineRunStatusBadge from "pipelines/features/PipelineRunStatusBadge";
 import RunLogs from "pipelines/features/RunLogs";
 import RunMessages from "pipelines/features/RunMessages";
+import { formatParamValue } from "pipelines/helpers/format";
 import usePipelineRunMessages from "pipelines/hooks/usePipelineRunMessages/usePipelineRunMessages";
 import usePipelineRunPoller from "pipelines/hooks/usePipelineRunPoller";
 import { useEffect, useMemo, useState } from "react";
@@ -111,8 +112,11 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
 
   const renderParameterValue = (entry: PipelineParameter & { value: any }) => {
     if (entry.type === "str" && entry.value) {
-      const text = entry.multiple ? entry.value.join(", ") : entry.value;
-      return <TruncatedText lines={6} expandable>{text}</TruncatedText>;
+      return (
+        <TruncatedText lines={6} expandable>
+          {formatParamValue(entry)}
+        </TruncatedText>
+      );
     }
     if (entry.type === "bool") {
       return <Switch checked={entry.value} disabled />;
@@ -121,11 +125,18 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
       (entry.type === "int" || entry.type === "float") &&
       !isNil(entry.value)
     ) {
-      const text = entry.multiple ? entry.value.join(", ") : String(entry.value);
-      return <TruncatedText lines={6} expandable>{text}</TruncatedText>;
+      return (
+        <TruncatedText lines={6} expandable>
+          {formatParamValue(entry)}
+        </TruncatedText>
+      );
     }
     if (isConnectionParameter(entry.type) && entry.value) {
-      return <TruncatedText lines={6} expandable>{entry.value}</TruncatedText>;
+      return (
+        <TruncatedText lines={6} expandable>
+          {formatParamValue(entry)}
+        </TruncatedText>
+      );
     }
     if (entry.type === "dataset") {
       return (
@@ -139,7 +150,11 @@ const WorkspacePipelineRunPage: NextPageWithLayout = (props: Props) => {
       );
     }
     if (entry.type === "file" && entry.value) {
-      return <TruncatedText lines={6} expandable>{entry.value}</TruncatedText>;
+      return (
+        <TruncatedText lines={6} expandable>
+          {formatParamValue(entry)}
+        </TruncatedText>
+      );
     }
     if (entry.type === "secret" && entry.value) {
       return "••••••";

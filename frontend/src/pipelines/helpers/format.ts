@@ -1,7 +1,10 @@
-import { ParameterType, PipelineParameter, PipelineRunStatus } from "graphql/types";
+import {
+  ParameterType,
+  PipelineParameter,
+  PipelineRunStatus,
+} from "graphql/types";
 import isNil from "lodash/isNil";
 import { i18n } from "next-i18next";
-import { isConnectionParameter } from "workspaces/helpers/pipelines";
 
 export function formatPipelineRunStatus(
   status: PipelineRunStatus | PipelineRunStatus,
@@ -24,6 +27,12 @@ export function formatPipelineRunStatus(
   }
 }
 
+function stringifyValue(value: unknown): string {
+  return typeof value === "object" && value !== null
+    ? JSON.stringify(value)
+    : String(value);
+}
+
 export function formatParamValue(
   entry: PipelineParameter & { value: unknown },
 ): string {
@@ -37,12 +46,9 @@ export function formatParamValue(
     return "-";
   }
   if (entry.multiple && Array.isArray(entry.value)) {
-    return entry.value.map(String).join(", ");
+    return entry.value.map(stringifyValue).join(", ");
   }
-  if (isConnectionParameter(entry.type)) {
-    return String(entry.value);
-  }
-  return String(entry.value);
+  return stringifyValue(entry.value);
 }
 
 export function getPipelineRunStatusBadgeClassName(status: PipelineRunStatus) {
