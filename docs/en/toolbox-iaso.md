@@ -2,7 +2,9 @@
   <h1><i class="fas fa-hexagon" style="margin-right: 0.5rem;"></i>IASO Client</h1>
 </div>
 
-[`iaso-client`](https://github.com/BLSQ/iaso-client) is the recommended Python library to fetch data from IASO. It authenticates against an IASO instance and gives typed access to organisation units, organisation unit types, forms, form versions and form submissions (instances), with automatic pagination.
+The `iaso-client` Python library authenticates against an IASO instance and fetches organisation units, organisation unit types, forms, form versions and form submissions, with automatic pagination.
+
+The library is maintained by the IASO team: see the [iaso-client repository](https://github.com/BLSQ/iaso-client) for its source code and full documentation.
 
 !!! warning "`openhexa.toolbox.iaso` is deprecated"
     The `IASO` class from `openhexa.toolbox.iaso` is no longer maintained. Use `iaso-client` for new pipelines and notebooks, and migrate existing code when you can (see [Migrating from `openhexa.toolbox.iaso`](#migrating-from-openhexatoolboxiaso)).
