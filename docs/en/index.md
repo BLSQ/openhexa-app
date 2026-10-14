@@ -76,6 +76,12 @@ This user manual covers all aspects of using OpenHEXA:
     <h3><a href="notebooks/">Notebooks</a></h3>
     <p>Use Jupyter notebooks for interactive data exploration and analysis.</p>
   </div>
+  
+  <div class="quickstart-card">
+    <div class="number">🤖</div>
+    <h3><a href="ai/">AI in OpenHEXA</a></h3>
+    <p>Understand how the assistant and the MCP server use AI, what they can access, and which models run.</p>
+  </div>
 </div>
 
 ## Getting started with OpenHEXA
