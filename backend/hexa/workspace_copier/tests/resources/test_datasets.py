@@ -1,4 +1,7 @@
+import base64
+import io
 from unittest.mock import MagicMock, patch
+from urllib.parse import quote
 
 from django.test import SimpleTestCase
 
@@ -12,6 +15,8 @@ from hexa.workspace_copier.resources.datasets import (
     _list_source_datasets,
     _relative_uri,
     _select_versions,
+    _transfer_file,
+    _upload_by_blocks,
 )
 from hexa.workspace_copier.results import CopyResult, DatasetsResult
 from hexa.workspace_copier.transport import GraphQLError
@@ -398,3 +403,159 @@ class DatasetsCopierOptionsTest(SimpleTestCase):
         )
 
         self.assertIs(mock_select.call_args.args[3], True)
+
+
+UPLOAD_URL = "https://account.blob.core.windows.net/hexa-datasets/td-1/tv-1/data.csv?sig=signature"
+AZURE_HEADERS = {"x-ms-blob-type": "BlockBlob", "Content-Type": "text/csv"}
+
+
+def _block_id(index):
+    return base64.b64encode(f"{index:032d}".encode()).decode()
+
+
+def _response(status_code=201, text=""):
+    return MagicMock(status_code=status_code, is_success=status_code < 400, text=text)
+
+
+class UploadByBlocksTest(SimpleTestCase):
+    def setUp(self):
+        self.target = Endpoint.remote(MagicMock(), "tgt")
+        self.http_client = MagicMock()
+        self.http_client.put.return_value = _response()
+
+    def _upload(self, payload):
+        _upload_by_blocks(
+            self.target,
+            "tv-1",
+            "data.csv",
+            "text/csv",
+            UPLOAD_URL,
+            io.BytesIO(payload),
+            self.http_client,
+        )
+
+    @patch("hexa.workspace_copier.resources.datasets.AZURE_BLOCK_SIZE", 4)
+    def test_blocks_are_staged_then_committed(self):
+        self._upload(b"0123456789")
+
+        calls = self.http_client.put.call_args_list
+        block_urls = [
+            f"{UPLOAD_URL}&comp=block&blockid={quote(_block_id(i), safe='')}"
+            for i in range(3)
+        ]
+        self.assertEqual(
+            [call.args[0] for call in calls],
+            [*block_urls, f"{UPLOAD_URL}&comp=blocklist"],
+        )
+        self.assertEqual(
+            [call.kwargs["content"] for call in calls[:3]],
+            [b"0123", b"4567", b"89"],
+        )
+        # A block request must not claim to be a whole blob; the blob's content
+        # type is set on the commit instead.
+        self.assertEqual([call.kwargs["headers"] for call in calls[:3]], [{}] * 3)
+        commit = calls[-1]
+        self.assertEqual(
+            commit.kwargs["headers"], {"x-ms-blob-content-type": "text/csv"}
+        )
+        self.assertEqual(
+            commit.kwargs["content"],
+            '<?xml version="1.0" encoding="utf-8"?><BlockList>'
+            f"<Latest>{_block_id(0)}</Latest><Latest>{_block_id(1)}</Latest>"
+            f"<Latest>{_block_id(2)}</Latest>"
+            "</BlockList>".encode(),
+        )
+
+    @patch("hexa.workspace_copier.resources.datasets._prepare_upload")
+    @patch("hexa.workspace_copier.resources.datasets.AZURE_BLOCK_SIZE", 4)
+    def test_expired_signed_url_is_refreshed_mid_upload(self, mock_prepare):
+        refreshed_url = UPLOAD_URL.replace("signature", "refreshed")
+        mock_prepare.return_value = (refreshed_url, AZURE_HEADERS)
+        self.http_client.put.side_effect = [_response(403), _response(), _response()]
+
+        self._upload(b"0123")
+
+        block_query = f"comp=block&blockid={quote(_block_id(0), safe='')}"
+        self.assertEqual(
+            [call.args[0] for call in self.http_client.put.call_args_list],
+            [
+                f"{UPLOAD_URL}&{block_query}",
+                f"{refreshed_url}&{block_query}",
+                # The remaining requests keep using the refreshed URL.
+                f"{refreshed_url}&comp=blocklist",
+            ],
+        )
+
+    def test_a_failed_block_raises(self):
+        self.http_client.put.return_value = _response(500, text="boom")
+
+        with self.assertRaises(GraphQLError) as ctx:
+            self._upload(b"0123")
+
+        self.assertIn("data.csv", str(ctx.exception))
+        self.assertIn("boom", str(ctx.exception))
+
+
+class TransferFileTest(SimpleTestCase):
+    def setUp(self):
+        self.target = Endpoint.remote(MagicMock(), "tgt")
+        self.http_client = MagicMock()
+        download = MagicMock(is_success=True)
+        download.iter_bytes.return_value = [b"0123456789"]
+        self.http_client.stream.return_value.__enter__.return_value = download
+        self.http_client.put.return_value = _response()
+
+    def _transfer(self):
+        return _transfer_file(
+            self.target,
+            {"contentType": "text/csv"},
+            "data.csv",
+            "tv-1",
+            "https://download",
+            self.http_client,
+        )
+
+    @patch("hexa.workspace_copier.resources.datasets._register_uploaded_file")
+    @patch("hexa.workspace_copier.resources.datasets._upload_by_blocks")
+    @patch("hexa.workspace_copier.resources.datasets._prepare_upload")
+    @patch("hexa.workspace_copier.resources.datasets.AZURE_MAX_SINGLE_PUT_SIZE", 4)
+    def test_a_file_too_large_for_a_single_put_is_uploaded_by_blocks(
+        self, mock_prepare, mock_blocks, mock_register
+    ):
+        mock_prepare.return_value = (UPLOAD_URL, AZURE_HEADERS)
+
+        self.assertEqual(self._transfer(), 10)
+
+        mock_blocks.assert_called_once()
+        self.http_client.put.assert_not_called()
+        mock_register.assert_called_once()
+
+    @patch("hexa.workspace_copier.resources.datasets._register_uploaded_file")
+    @patch("hexa.workspace_copier.resources.datasets._upload_by_blocks")
+    @patch("hexa.workspace_copier.resources.datasets._prepare_upload")
+    def test_a_file_that_fits_uses_a_single_put(
+        self, mock_prepare, mock_blocks, mock_register
+    ):
+        mock_prepare.return_value = (UPLOAD_URL, AZURE_HEADERS)
+
+        self.assertEqual(self._transfer(), 10)
+
+        mock_blocks.assert_not_called()
+        self.assertEqual(self.http_client.put.call_args.args[0], UPLOAD_URL)
+        self.assertEqual(
+            self.http_client.put.call_args.kwargs["headers"], AZURE_HEADERS
+        )
+
+    @patch("hexa.workspace_copier.resources.datasets._register_uploaded_file")
+    @patch("hexa.workspace_copier.resources.datasets._upload_by_blocks")
+    @patch("hexa.workspace_copier.resources.datasets._prepare_upload")
+    @patch("hexa.workspace_copier.resources.datasets.AZURE_MAX_SINGLE_PUT_SIZE", 4)
+    def test_a_large_file_on_a_non_azure_backend_still_uses_a_single_put(
+        self, mock_prepare, mock_blocks, mock_register
+    ):
+        mock_prepare.return_value = (UPLOAD_URL, {"Content-Type": "text/csv"})
+
+        self._transfer()
+
+        mock_blocks.assert_not_called()
+        self.http_client.put.assert_called_once()
