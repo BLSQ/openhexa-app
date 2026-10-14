@@ -1,7 +1,13 @@
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 
-from graphql import DocumentNode, FieldNode, ValidationRule, validate
+from graphql import (
+    DocumentNode,
+    FieldNode,
+    GraphQLCompositeType,
+    ValidationRule,
+    validate,
+)
 
 from config.schema import schema
 from hexa.webapps.models import Webapp
@@ -342,23 +348,39 @@ class WebappScopePolicy:
         return perm in self._permissions
 
     def check(self, document: DocumentNode) -> ScopeCheck:
+        """We use graphql-core's validator as a typed tree walker: it visits
+        every field of the document (fragments, inline fragments and aliases)
+        while tracking which schema type each field is selected on.
+        The outcome is collected in `result` and the return value of `validate` is ignored.
+        Regular schema validation still happens later, when the request is executed.
+        """
         result = ScopeCheck()
         validate(schema, document, [self._rule(result)])
         return result
 
     def _rule(self, result: ScopeCheck) -> type[ValidationRule]:
+        """`validate` instantiates rules with only a ValidationContext,
+        so the policy and the result are passed through here.
+        """
         policy = self
-        root_types = {schema.query_type, schema.mutation_type}
 
         class ScopeRule(ValidationRule):
             def enter_field(self, node: FieldNode, *_):
-                parent = self.context.get_parent_type()
-                field_name = node.name.value
-                if parent in root_types and not field_name.startswith("__"):
-                    result.operations.add(field_name)
-                # No parent type means the selection doesn't match the schema;
-                # refuse it rather than let it through unchecked.
-                if parent is None or not policy.allows(parent.name, field_name):
-                    result.denied.add(f"{parent.name if parent else '?'}.{field_name}")
+                policy._check_field(
+                    self.context.get_parent_type(), node.name.value, result
+                )
 
         return ScopeRule
+
+    def _check_field(
+        self, parent: GraphQLCompositeType | None, field_name: str, result: ScopeCheck
+    ) -> None:
+        root_types = (schema.query_type, schema.mutation_type)
+        if parent in root_types and not field_name.startswith("__"):
+            result.operations.add(field_name)
+        # No parent type means the selection doesn't match the schema;
+        # refuse it rather than let it through unchecked.
+        if parent is None:
+            result.denied.add(f"?.{field_name}")
+        elif not self.allows(parent.name, field_name):
+            result.denied.add(f"{parent.name}.{field_name}")

@@ -1,6 +1,5 @@
 import os
 import secrets
-from functools import cached_property
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
@@ -198,7 +197,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
     objects = WebappManager()
     all_objects = AllWebappManager()
 
-    @cached_property
+    @property
     def scope_policy(self) -> "WebappScopePolicy":
         # Inline import: scopes imports the GraphQL schema, which imports this module.
         from hexa.webapps.scopes import WebappScopePolicy
