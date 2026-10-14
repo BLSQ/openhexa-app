@@ -113,7 +113,7 @@ plugins:
             CLI: CLI
             SDK: SDK
             Toolbox DHIS2: Toolbox DHIS2
-            Toolbox IASO: Toolbox IASO
+            IASO Client: Client IASO
             Toolbox OpenHEXA Client: Toolbox Client OpenHEXA
             Notebooks (advanced): Notebooks (avancé)
             API Authentication: Authentification API
@@ -235,7 +235,7 @@ nav:
     - CLI: cli.md
     - SDK: sdk.md
     - Toolbox DHIS2: toolbox-dhis2.md
-    - Toolbox IASO: toolbox-iaso.md
+    - IASO Client: toolbox-iaso.md
     - Toolbox OpenHEXA Client: toolbox-hexa.md
     - Notebooks (advanced): notebooks-advanced.md
     - API Authentication: api-authentication.md
