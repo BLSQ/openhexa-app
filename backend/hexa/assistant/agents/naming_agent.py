@@ -2,7 +2,7 @@ import logging
 from decimal import Decimal
 from typing import NamedTuple
 
-from pydantic_ai import Agent, ModelRetry, RunUsage
+from pydantic_ai import Agent, AgentRetries, ModelRetry, RunUsage
 from pydantic_ai.output import TextOutput
 
 from hexa.assistant.ai_models import AiModelBuilder
@@ -90,7 +90,7 @@ class NamingAgent:
             name=self.agent_key,
             instructions=INSTRUCTIONS,
             output_type=TextOutput(parse_title),
-            output_retries=self.output_retries,
+            retries=AgentRetries(output=self.output_retries),
         )
         # Accumulates in place across retries, so an exhausted run still reports
         # the tokens its attempts burned.

@@ -2,7 +2,7 @@
 
 Copy an OpenHEXA workspace (and its resources) from one server to another, or between two workspaces on the same server.
 
-Right now, this is a Django app **without models**. In the future, some models will be introduced to support moving the execution of this script to an async job.
+From the Django admin, a copy runs as an **async job** on a dedicated worker (see [Async execution](#async-execution)). The CLI still runs it synchronously.
 
 ## How it works
 
@@ -28,7 +28,7 @@ order (see `orchestrator.WORKSPACE_COPIERS`):
 | ------------- | ------------------------- |----------------------------------------------------------------------------------------------------|
 | `workspace`   | `WorkspaceMetadataCopier` | **mandatory** — creates the target, yields its handle                                              |
 | `files`       | `FilesCopier`             | bucket objects (streamed through a temp file — see [Large files](#large-files)); the target bucket is listed first and files matching by key + size are skipped, as is anything under a `SKIPPED_DIRECTORIES` scratch dir |
-| `database`    | `DatabaseCopier`          | native pg copy only if **both** sides LOCAL; else skipped + warned. Local copy not yet implemented |
+| `database`    | `DatabaseCopier`          | native Postgres copy when both endpoints are LOCAL; else skipped with manual instructions — see [Database](#database) |
 | `connections` | `ConnectionsCopier`       | connections + secret fields                                                                        |
 | `pipelines`   | `PipelinesCopier`         | pipelines + versions<br>Notes: The `.ipynb` file is copied for notebook pipelines<br>Schedules are not copied to avoid them running immediately after a copy. This allows a human to validate the copied pipeline and schedule it manually.
 | `datasets`    | `DatasetsCopier`          | datasets **owned** by the workspace                                                                |
@@ -55,6 +55,41 @@ multi-GB files. Two consequences:
 `TRANSFER_TIMEOUT` bounds a single chunk read/write, not a whole file, so a
 stalled connection fails in a couple of minutes while a legitimately slow
 multi-GB transfer runs as long as it needs.
+
+## Database
+
+When both endpoints are LOCAL (blank source and target URLs), the target database is replaced by a native copy of the source (`CREATE DATABASE ... WITH TEMPLATE`, see `hexa.databases.api.replace_empty_database_with_copy`). This is a file-level copy, much faster than a dump/restore.
+
+The other resources are only copied between REMOTE endpoints for now, so a same-server copy takes two runs: the usual one (with URLs), which creates the target workspace and skips the database, then a database-only run on that server, with blank URLs:
+
+```
+./manage.py copy_workspace \
+	--source-workspace-slug my-workspace \
+	--target-workspace-slug my-workspace-ab12 \
+	--resources database
+```
+
+The skipped database step of the first run prints this exact command.
+
+- **No open connections**: Postgres refuses to copy a database while anyone is connected to it. The copier checks first and fails early with the number of open connections (notebooks, pipelines, BI tools...). Close them and re-run into the same target workspace with `--target-workspace-slug`. During the copy itself, new connections to the source are refused.
+- **The target database is never overwritten** once it holds data (any table or view besides PostGIS's own): the database step is skipped instead.
+- The target workspace keeps its own roles and credentials. The copy is built under a staging name (`<db_name>_copy`) and only swapped in once it succeeded, so a failed copy leaves the target database untouched.
+
+### Copying between servers
+
+Not automated yet: the copy summary prints these steps. Copy the database manually with both workspaces' database credentials, from a machine that can reach both database hosts and has a `pg_dump` at least as recent as the source server:
+
+1. In each workspace, open **Database** and copy the connection URL (or read `workspace { database { credentials { url } } }` over GraphQL).
+2. Make sure the target database is empty, then run:
+
+   ```
+   pg_dump -Fc --no-owner --no-acl "$SOURCE_URL" \
+     | pg_restore --no-owner --no-acl -d "$TARGET_URL"
+   ```
+
+   PostGIS already exists in every workspace database and belongs to the server admin, so `pg_restore` may report errors on the `postgis` / `postgis_topology` extensions (e.g. `must be owner of extension`). They are harmless and the rest of the restore goes on; check that any other error is not a real one. With PostgreSQL 17+ clients, add `--exclude-extension='postgis*'` to `pg_dump` to avoid them.
+
+Tables are restored as owned by the target workspace role, so the workspace's read-only role can read them automatically.
 
 ## Entry points
 
@@ -113,9 +148,31 @@ When `--target-workspace-slug` is set:
 
 ### Django Admin:
 
-On the workspaces list page, there's a new button "Copy workspace". This provides a view to easily run the CLI script.
+On the workspaces list page, there's a button "Copy workspace". Submitting its form **queues** a copy run and redirects to the run's admin page (Workspace copier → Workspace copy runs), which refreshes itself while the run is queued or running and shows its logs and summary.
 
-The view is Superuser-only and entered credentials are used transiently and never persisted.
+The view is Superuser-only. Entered credentials are stored encrypted on the run and erased when it ends.
+
+## Async execution
+
+```
+admin form ──> WorkspaceCopyRun (QUEUED) + WorkspaceCopyJob  (one transaction)
+                       │
+workspace_copy_worker ─┴─> queue.execute_copy_run(run_id)
+                             └─ service.run_copy(..., reporter=DatabaseReporter(run))
+```
+
+- `WorkspaceCopyRun` (`models.py`) holds the inputs, status, timestamps, logs, summary and the target workspace slug. Statuses: `QUEUED` → `RUNNING` → `SUCCESS` / `SUCCESS_WITH_ERRORS` (finished, but some resources failed — see the summary) / `FAILED`.
+- The dpq job carries only the run id. Tokens live on the run in `EncryptedTextField`s and are erased when it ends, whatever the outcome.
+- The queue is an `AtMostOnceQueue`: the job is committed as claimed before the copy starts, so log lines are visible while it runs. An `AtLeastOnceQueue` would hold one transaction for the whole copy. The trade-off is no automatic retry — see [Interrupted runs](#interrupted-runs).
+- Run the worker locally with `docker compose --profile workspace_copy_worker up`.
+
+### Interrupted runs
+
+If the worker stops mid-copy (deploy, out of memory), the run would stay `RUNNING`. And because the queue deletes a job as soon as the worker claims it, a crash right after claiming would leave the run `QUEUED` with no job left to pick it up. On startup, the worker marks both as `FAILED` ("interrupted") and erases their tokens.
+
+That cleanup is only correct if no other worker is still copying, so the worker first takes a Postgres advisory lock (`pg_advisory_lock`). In a rolling deploy, the new worker waits until the old one has exited before cleaning up. Only one worker runs at a time; extra replicas just wait. The lock is tied to the worker's database session, so Postgres releases it however the process ends (crash included).
+
+A failed run is not retried. To finish it, start a new copy from the admin into the workspace it created (its "Result workspace slug", recorded even when the run fails) in "existing workspace" mode; thanks to [idempotency](#re-running-into-an-existing-workspace-idempotency), only the missing pieces are copied.
 
 ## Progress reporting (`progress.py`)
 
@@ -127,9 +184,8 @@ A reporter exposes `log(message, *, level=...)` plus the `info` / `warning` / `e
 | ---------------- | ----------------------- | -------------------------------------------------------------------------- |
 | `NullReporter`   | default / backend tests | discards everything, so the script can run without a caller                |
 | `StreamReporter` | CLI                     | writes live to `self.stdout`                                               |
-| `BufferReporter` | Django admin view       | collects lines in memory; `render()` produces the text shown after the run |
-
-Note: `BufferReporter` is also the shape a future async-job reporter could follow, by appending lines to a "logs" field on a run record (see the docstring).
+| `BufferReporter` | template copy admin view | collects lines in memory; `render()` produces the text shown after the run |
+| `DatabaseReporter` | async workspace copy  | appends lines to `WorkspaceCopyRun.logs` in batches (every 50 lines, on the first line logged 2s after the last write, and immediately on warnings/errors) |
 
 ## Results
 

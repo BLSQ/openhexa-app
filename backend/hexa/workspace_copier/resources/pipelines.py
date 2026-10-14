@@ -24,7 +24,7 @@ from hexa.workspace_copier.progress import ProgressReporter
 from hexa.workspace_copier.resources.base import ResourceCopier
 from hexa.workspace_copier.resources.files import download, upload
 from hexa.workspace_copier.results import CopyResult, PipelinesResult, format_bytes
-from hexa.workspace_copier.transport import GraphQLError, gql
+from hexa.workspace_copier.transport import GraphQLError, build_http_client, gql
 
 PIPELINES_PAGE_SIZE = 50
 VERSIONS_PAGE_SIZE = 50
@@ -111,7 +111,7 @@ class PipelinesCopier(ResourceCopier):
 
         # One shared client for the presigned notebook transfers, so the
         # connection pool reuses TLS handshakes across pipelines.
-        with httpx.Client(timeout=300) as http_client:
+        with build_http_client(timeout=300) as http_client:
             for pipeline_id, src_code, target_name, target_code in assignments:
                 if target_code in existing_codes:
                     pipes_result.skipped.append(src_code)
@@ -332,7 +332,7 @@ def _create_on_target(
         workspace_slug=target_slug,
         notebook_path=src_pipeline.get("notebookPath") if is_notebook else None,
         functional_type=src_pipeline.get("functionalType"),
-        tags=tags or None,
+        tags=tags,
     )
     result = target.create_pipeline(input=create_input)
     if not result.success or result.pipeline is None:

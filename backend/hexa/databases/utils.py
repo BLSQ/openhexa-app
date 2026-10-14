@@ -14,10 +14,8 @@ from psycopg2.extras import RealDictCursor
 
 from hexa.workspaces.models import Workspace
 
-from .api import get_db_server_credentials
+from .api import IGNORE_TABLES, get_db_server_credentials
 from .query_text import OrderByDirectionEnum, PreparedQuery, count_statement
-
-IGNORE_TABLES = ["geography_columns", "geometry_columns", "spatial_ref_sys"]
 
 
 class ResultJSONEncoder(DjangoJSONEncoder):

@@ -39,19 +39,21 @@ Chaque webapp obtient un sous-domaine sous le domaine webapps du workspace — p
 
 ## Public ou privé
 
-- **Privé** (par défaut) : seuls les membres authentifiés du workspace peuvent voir la webapp. C'est le cookie de session du navigateur qui autorise les requêtes, donc les webapps statiques privées peuvent aussi appeler l'API GraphQL d'OpenHEXA directement (voir ci-dessous).
+- **Privé** (par défaut) : seuls les membres authentifiés du workspace peuvent voir la webapp. Les webapps statiques privées peuvent aussi appeler l'API GraphQL d'OpenHEXA via un point d'accès sur leur propre URL (voir ci-dessous).
 - **Public** : n'importe qui ayant l'URL peut consulter la webapp. Les webapps publiques **ne peuvent pas** appeler le proxy GraphQL — si vous avez besoin d'exposer des données du workspace publiquement, générez un export statique depuis un pipeline et servez-le comme un fichier dans la webapp.
 
 ## Appeler l'API GraphQL d'OpenHEXA
 
-Les webapps statiques privées peuvent appeler l'API GraphQL de la plateforme directement depuis leur code JavaScript pour lire les données du workspace et lancer des pipelines. Le reste de cette page couvre cette API en détail — les webapps publiques et iframe ne peuvent pas utiliser ce point d'accès.
+Les webapps statiques privées peuvent appeler l'API GraphQL de la plateforme depuis leur code JavaScript, via un point d'accès sur leur propre URL, pour lire les données du workspace et lancer des pipelines. Le reste de cette page couvre cette API en détail — les webapps publiques et iframe ne peuvent pas utiliser ce point d'accès.
 
 ### Comment ça fonctionne
 
 - **Endpoint** : `POST /graphql/` sur l'URL de la webapp elle-même (même origine). Par exemple, une webapp servie sur `https://my-webapp.webapps.example.com/` appelle `https://my-webapp.webapps.example.com/graphql/`.
 - **Authentification** : gérée par la session de la webapp — le cookie de session du navigateur est attaché automatiquement. N'envoyez pas d'en-tête `Authorization` ; n'embarquez pas de token dans votre code.
 - **Vérification d'origine** : seules les requêtes dont l'`Origin` correspond à celle de la webapp sont autorisées. Les appels cross-site sont rejetés.
-- **Limité par scopes** : chaque webapp déclare une liste `allowed_operations`. Seuls les champs GraphQL de premier niveau couverts par ces scopes sont autorisés ; tout le reste renvoie un `403`.
+- **Limité par scopes** : chaque webapp déclare une liste `allowed_operations`. Chaque champ sélectionné par une requête est vérifié par rapport à ces scopes, y compris les champs imbriqués et ceux des fragments. Si un champ n'est pas couvert, toute la requête renvoie un `403` qui nomme les champs refusés, par exemple `Fields not allowed: Workspace.connections`.
+- **Rôle de l'utilisateur, restreint par les scopes** : la webapp agit au nom de l'utilisateur qui la consulte, mais ne peut utiliser que ce que permettent à la fois son rôle dans le workspace et les scopes de la webapp. Les identifiants (mots de passe de base de données, secrets de connexion, tokens) ne sont jamais accessibles à une webapp.
+- **Uniquement son propre point d'accès** : l'API principale d'OpenHEXA refuse les requêtes provenant des pages de webapps. Appelez toujours `/graphql/` sur l'URL de la webapp elle-même.
 - **Corps JSON** : identique à n'importe quel POST GraphQL — `{"query": "...", "variables": {...}}`.
 
 ## Activer l'API sur une webapp
@@ -60,7 +62,7 @@ Par défaut, une webapp statique a une liste `allowed_operations` vide, ce qui s
 
 ## Référence des scopes
 
-| Scope | Ce qu'il accorde |
+| Scope | Points d'entrée |
 |---|---|
 | `USER_READ` | `me`, `workspace` |
 | `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion` |
@@ -68,6 +70,13 @@ Par défaut, une webapp statique a une liste `allowed_operations` vide, ce qui s
 | `FILES_READ` | `getFileByPath`, `readFileContent`, `prepareObjectDownload` |
 | `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
 | `DATABASE_READ` | `executeSavedQuery` |
+
+Chaque scope couvre aussi les champs des objets renvoyés par ces points d'entrée, comme le montre le schéma des [exemples](#exemples-de-webapps) ci-dessous. Les liens qui remontent vers un workspace, comme `Pipeline.workspace`, `Dataset.workspace` ou `DatasetLink.workspace`, ne sont couverts par aucun scope.
+
+Certains champs nécessitent un second scope :
+
+- Lister les fichiers via `workspace { bucket { objects } }` nécessite `USER_READ` et `FILES_READ`.
+- Lister les jeux de données via `workspace { datasets }` nécessite `USER_READ` et `DATASETS_READ`.
 
 Les champs d'introspection `__typename`, `__schema`, `__type` sont toujours autorisés.
 
@@ -79,6 +88,12 @@ Les champs d'introspection `__typename`, `__schema`, `__type` sont toujours auto
     un membre du workspace, désignée par son slug. Le SQL n'est jamais renvoyé :
     la webapp peut exécuter la requête, pas la lire ni la modifier. Les requêtes
     s'exécutent avec le rôle de base de données en lecture seule.
+
+## Explorer le schéma
+
+Le moyen le plus rapide de concevoir les requêtes d'une webapp est le playground GraphQL interactif sur <https://app.openhexa.org/graphql/> (ou `/graphql/` sur votre propre installation).
+
+Notez que le playground affiche le schéma **complet**, pas seulement ce que le proxy de la webapp autorise. Une requête qui fonctionne dans le playground peut quand même renvoyer un `403` depuis une webapp si l'un des champs qu'elle sélectionne, au premier niveau ou imbriqué, n'est pas couvert par les [scopes](#reference-des-scopes) de la webapp. Le `403` nomme les champs refusés : vérifiez-le avant de copier la requête dans le code de la webapp.
 
 ## Le global `window.OPENHEXA`
 
@@ -149,6 +164,47 @@ Chaque exemple ci-dessous est un `index.html` complet que vous pouvez déposer d
 
 Affiche l'utilisateur courant et le workspace au chargement.
 
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  me: Me!
+  workspace(slug: String!): Workspace
+}
+
+type Me {
+  user: User
+  features: [FeatureFlag!]!
+  permissions: MePermissions!
+}
+
+type User {
+  id: UUID!
+  email: String!
+  firstName: String
+  lastName: String
+  displayName: String!
+  language: String!
+  avatar: Avatar!
+}
+
+type Workspace {
+  slug: String!
+  name: String!
+  description: String
+  countries: [Country!]!
+  organization: Organization
+  createdAt: DateTime!
+  updatedAt: DateTime
+  createdBy: User!
+}
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -196,6 +252,46 @@ Affiche l'utilisateur courant et le workspace au chargement.
 ### PIPELINES_READ — Lister les pipelines
 
 Liste tous les pipelines du workspace.
+
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  pipelines(
+    workspaceSlug: String
+    name: String
+    search: String
+    tags: [String!]
+    functionalType: PipelineFunctionalType
+    lastRunStates: [PipelineRunStatus!]
+    page: Int
+    perPage: Int
+    orderBy: PipelineOrderBy
+  ): PipelinesPage!
+}
+
+type PipelinesPage {
+  items: [Pipeline!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+}
+
+type Pipeline {
+  id: UUID!
+  code: String!
+  name: String
+  description: String
+  schedule: String
+  currentVersion: PipelineVersion
+  type: PipelineType!
+}
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
@@ -253,6 +349,60 @@ Liste tous les pipelines du workspace.
 ### PIPELINES_READ + PIPELINES_RUN — Choisir un pipeline et le lancer
 
 Charge la liste des pipelines à l'ouverture de la page, vous laisse en choisir un dans une liste déroulante, et le lance avec une configuration JSON. Interroge le statut jusqu'à la fin de l'exécution. Nécessite à la fois `PIPELINES_READ` (pour lister) et `PIPELINES_RUN` (pour lancer).
+
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage!
+  pipeline(id: UUID!): Pipeline
+  pipelineRun(id: UUID!): PipelineRun
+}
+
+type Mutation {
+  runPipeline(input: RunPipelineInput): RunPipelineResult!
+  stopPipeline(input: StopPipelineInput!): StopPipelineResult!
+}
+
+input RunPipelineInput {
+  id: UUID!
+  versionId: UUID
+  config: JSON!
+  sendMailNotifications: Boolean
+  enableDebugLogs: Boolean
+}
+
+input StopPipelineInput {
+  runId: UUID!
+}
+
+type RunPipelineResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+  run: PipelineRun
+}
+
+type StopPipelineResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+}
+
+type PipelineRun {
+  id: UUID!
+  status: PipelineRunStatus!
+  progress: Int!
+  executionDate: DateTime
+  duration: Int
+  outputs: [PipelineRunOutput!]!
+}
+
+union PipelineRunOutput = BucketObject | GenericOutput | DatabaseTable
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
@@ -359,6 +509,57 @@ Charge la liste des pipelines à l'ouverture de la page, vous laisse en choisir 
 ### USER_READ + FILES_READ — Choisir un CSV dans le bucket du workspace et l'afficher
 
 Liste les fichiers CSV du bucket au chargement de la page, vous laisse en choisir un dans une liste déroulante, et affiche les 100 premières lignes dans un tableau. Nécessite à la fois `USER_READ` (pour lister les fichiers via `workspace.bucket.objects`) et `FILES_READ` (pour lire le contenu).
+
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  getFileByPath(workspaceSlug: String!, path: String!): BucketObject
+  readFileContent(
+    workspaceSlug: String!
+    filePath: String!
+    startLine: Int
+    endLine: Int
+  ): ReadFileContentResult!
+}
+
+type Mutation {
+  prepareObjectDownload(input: PrepareObjectDownloadInput!): PrepareObjectDownloadResult!
+}
+
+input PrepareObjectDownloadInput {
+  workspaceSlug: String!
+  objectKey: String!
+  forceAttachment: Boolean = true
+}
+
+type BucketObject {
+  key: String!
+  name: String!
+  path: String!
+  size: BigInt
+  updatedAt: DateTime
+  type: BucketObjectType!
+}
+
+type ReadFileContentResult {
+  success: Boolean!
+  errors: [ReadFileContentError!]!
+  content: String
+  size: Int
+}
+
+type PrepareObjectDownloadResult {
+  success: Boolean!
+  downloadUrl: URL
+  errors: [PrepareObjectDownloadError!]!
+}
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
@@ -469,9 +670,46 @@ Liste les fichiers CSV du bucket au chargement de la page, vous laisse en choisi
 </html>
 ```
 
-### DATASETS_READ — Lister les jeux de données
+### USER_READ + DATASETS_READ — Lister les jeux de données
 
 Liste les jeux de données visibles depuis le workspace, avec leur dernière version.
+
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  datasets(query: String, page: Int = 1, perPage: Int = 15): DatasetPage!
+  dataset(id: ID!): Dataset
+  datasetVersion(id: ID!): DatasetVersion
+  datasetLink(id: ID!): DatasetLink
+}
+
+type DatasetPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [Dataset!]!
+}
+
+type Dataset {
+  id: ID!
+  slug: String!
+  name: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User
+  workspace: Workspace
+  versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
+  latestVersion: DatasetVersion
+  links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+}
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>

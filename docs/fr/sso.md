@@ -70,6 +70,8 @@ Définissez les variables d'environnement suivantes dans votre déploiement :
 | `OIDC_{ID}_CLIENT_SECRET` | Non | Secret client OAuth2. Requis pour les clients confidentiels. |
 | `OIDC_{ID}_DISPLAY_NAME` | Non | Libellé affiché sur le bouton de connexion. Par défaut, l'identifiant du fournisseur en majuscules. |
 | `OIDC_{ID}_NEW_ACCOUNT_EMAIL_RECIPIENTS` | Non | Liste d'adresses e-mail d'administrateurs à notifier lorsqu'un nouveau compte OpenHEXA est créé automatiquement via ce fournisseur. |
+| `OIDC_{ID}_CALLBACK_PATH` | Non | Chemin personnalisé de l'URI de redirection, sans barre oblique initiale, par exemple `polio/login/callback/`. À définir lorsque le fournisseur d'identité a enregistré une ancienne URI de redirection à un chemin non standard et que vous souhaitez qu'OpenHEXA la respecte sans demander à l'administrateur du fournisseur d'en enregistrer une nouvelle. |
+| `OIDC_{ID}_LOGIN_PATH` | Non | Chemin de connexion associé, par exemple `polio/login/`. Nécessaire uniquement si `OIDC_{ID}_CALLBACK_PATH` est défini et que les utilisateurs lancent la connexion directement depuis cette URL. |
 
 **Convention de nommage :** Remplacez `{ID}` par l'identifiant du fournisseur en majuscules. Les tirets dans les identifiants sont remplacés par des underscores, ainsi le fournisseur `who-ciam` utilise `OIDC_WHO_CIAM_CLIENT_ID`.
 

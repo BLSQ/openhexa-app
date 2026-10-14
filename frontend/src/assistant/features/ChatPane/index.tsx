@@ -5,6 +5,7 @@ import { getPublicEnv } from "core/helpers/runtimeConfig";
 import useStreamingFetch from "core/hooks/useStreamingFetch";
 import useWordDrain from "core/hooks/useWordDrain";
 import { KeyboardEvent, ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import AIDisclaimer from "assistant/features/AIDisclaimer";
 import ToolCallCard from "./ToolCallCard";
 import ThinkingIndicator from "./ThinkingIndicator";
 import {
@@ -600,9 +601,7 @@ export default function ChatPane({
             </div>
           </div>
         )}
-        <p className="mt-2 text-center text-xs text-gray-400">
-          {t("AI can make mistakes. Always verify important information.")}
-        </p>
+        <AIDisclaimer />
       </div>
     </div>
   );

@@ -76,6 +76,12 @@ Ce manuel d'utilisation couvre tous les aspects de l'utilisation d'OpenHEXA :
     <h3><a href="notebooks/">Notebooks</a></h3>
     <p>Utilisez les notebooks Jupyter pour l'exploration et l'analyse interactives de données.</p>
   </div>
+  
+  <div class="quickstart-card">
+    <div class="number">🤖</div>
+    <h3><a href="ai/">L'IA dans OpenHEXA</a></h3>
+    <p>Comprenez comment l'assistant et le serveur MCP utilisent l'IA, à quoi ils ont accès et quels modèles sont utilisés.</p>
+  </div>
 </div>
 
 ## Démarrer avec OpenHEXA
@@ -99,7 +105,7 @@ Si vous prévoyez de développer des pipelines ou de travailler avec l'API :
 - **[Utiliser l'OpenHEXA CLI](cli.md)** - Interface en ligne de commande
 - **[Utiliser l'OpenHEXA SDK](sdk.md)** - Kit de développement Python
 - **[Utiliser l'OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md)** - Acquérir et traiter des données depuis des instances DHIS2
-- **[Utiliser l'OpenHEXA Toolbox - IASO](toolbox-iaso.md)** - Récupérer des données depuis IASO
+- **[Client IASO](toolbox-iaso.md)** - Récupérer des données depuis IASO avec `iaso-client`
 - **[Client OpenHEXA](toolbox-hexa.md)** - Client GraphQL typé pour la plateforme OpenHEXA
 - **[Utiliser les notebooks dans OpenHEXA](notebooks-advanced.md)** - Utilisation avancée des notebooks
 - **[Authentification API](api-authentication.md)** - S'authentifier auprès de l'API OpenHEXA

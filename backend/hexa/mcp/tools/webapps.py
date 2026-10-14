@@ -60,7 +60,7 @@ def create_static_webapp(
     allowed values). Omit it to create with no API access (you can grant it later via
     update_static_webapp). When generating the webapp's HTML/JS, you can include
     fetch('/graphql/', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({query, variables})})
-    calls. For the full reference (auth model, all top-level fields per scope, sample queries and
+    calls. For the full reference (auth model, the fields each scope covers, sample queries and
     mutations), call get_help_or_doc(topic="static-webapps").
     """
     try:
@@ -111,7 +111,7 @@ def update_static_webapp(
 
     Files are updated incrementally — you do NOT need to resend the whole bundle. Pass files_json as a JSON array of {path, content} objects containing only the files you want to add or change (e.g. '[{"path": "app.js", "content": "..."}]'); any file you omit is left exactly as it is. Matching is by path: an existing path is overwritten, a new path is created. To remove files, pass files_to_delete_json as a JSON array of paths (e.g. '["old.js", "legacy/style.css"]'); paths that don't exist are ignored. You can combine files_json and files_to_delete_json in a single call — they are applied as one commit.
 
-    Pass allowed_operations as a list of API scopes the webapp's JS may call via the same-origin /graphql/ proxy (see the parameter's allowed values). Omit it to leave the current scopes untouched, or pass an empty list to revoke all access. For the full reference (auth model, all top-level fields per scope, sample queries and mutations), call get_help_or_doc(topic="static-webapps").
+    Pass allowed_operations as a list of API scopes the webapp's JS may call via the same-origin /graphql/ proxy (see the parameter's allowed values). Omit it to leave the current scopes untouched, or pass an empty list to revoke all access. For the full reference (auth model, the fields each scope covers, sample queries and mutations), call get_help_or_doc(topic="static-webapps").
     """
     update_input: dict = {"id": webapp_id}
     if name:

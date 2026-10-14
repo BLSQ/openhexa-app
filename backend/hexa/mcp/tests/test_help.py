@@ -77,7 +77,7 @@ class GetHelpOrDocTest(MCPTestCase):
             "    - static-webapps: Static webapps host an HTML/CSS/JavaScript bundle inside an OpenHEXA workspace, served on its own subdomain, and can query OpenHEXA on behalf of viewing users via a pre-authenticated GraphQL endpoint — great for dashboards and custom forms.\n"
             "    - toolbox-dhis2: The `openhexa.toolbox.dhis2` library connects to a DHIS2 instance with metadata caching, queries org units, data elements and indicators, fetches dataValueSets and analytics, and handles ISO periods and pyramid enrichment.\n"
             "    - toolbox-hexa: The OpenHEXA SDK ships a typed `OpenHexaClient` to interact programmatically with the OpenHEXA platform — workspaces, pipelines, runs, datasets and webapps — with full type hints. It replaces the legacy `openhexa.toolbox.hexa` client.\n"
-            "    - toolbox-iaso: The `openhexa.toolbox.iaso` `IASO` class authenticates against an IASO instance (staging or production) and fetches projects, organisation units, forms, and form submissions — with optional pandas DataFrame output and filters.\n"
+            "    - toolbox-iaso: The `iaso-client` Python library authenticates against an IASO instance and fetches organisation units, organisation unit types, forms, form versions and form submissions, with automatic pagination.\n"
             "    - writing-pipelines: End-to-end guide to authoring OpenHEXA pipelines: `@pipeline`/`@task` DAGs, parallelism and timeouts, typed parameters (datasets, files, secrets, connections, dynamic choices), `workspace.yaml`, GitHub Actions deploys, and Docker runs."
         )
         self.assertEqual(get_help_or_doc.__doc__, expected)
