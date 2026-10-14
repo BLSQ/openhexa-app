@@ -89,6 +89,26 @@ Les champs d'introspection `__typename`, `__schema`, `__type` sont toujours auto
     la webapp peut exécuter la requête, pas la lire ni la modifier. Les requêtes
     s'exécutent avec le rôle de base de données en lecture seule.
 
+!!! note "Les fichiers du bucket et les fichiers de jeux de données se lisent différemment"
+
+    Les fichiers du **bucket du workspace** et ceux d'une **version de jeu de
+    données** sont stockés séparément, et aucune des deux API ne peut lire
+    l'autre :
+
+    - **Fichiers du bucket** (scope `FILES_READ`) : lisez le contenu avec
+      `readFileContent`, ou obtenez un lien de téléchargement avec
+      `prepareObjectDownload`. Les deux prennent un chemin dans le bucket du
+      workspace.
+    - **Fichiers de jeux de données** (scope `DATASETS_READ`) : retrouvez le
+      fichier depuis sa version (`datasetVersion.files` ou
+      `datasetVersion.fileByName`), puis faites un `fetch()` de son
+      `downloadUrl` pour le contenu complet, ou lisez `fileSample` pour un court
+      aperçu des lignes. Passer un fichier de jeu de données à
+      `readFileContent` ou `prepareObjectDownload` échoue.
+
+    Voir [Lire un fichier de jeu de données](#user_read-datasets_read-lire-un-fichier-de-jeu-de-donnees)
+    pour un exemple complet.
+
 ## Explorer le schéma
 
 Le moyen le plus rapide de concevoir les requêtes d'une webapp est le playground GraphQL interactif sur <https://app.openhexa.org/graphql/> (ou `/graphql/` sur votre propre installation).
@@ -672,17 +692,37 @@ type PrepareObjectDownloadResult {
 
 ### USER_READ + DATASETS_READ — Lister les jeux de données
 
-Liste les jeux de données visibles depuis le workspace, avec leur dernière version.
+Liste les jeux de données visibles depuis le workspace, avec leur dernière version. Nécessite à la fois `USER_READ` (la liste vient de `workspace.datasets`) et `DATASETS_READ` (pour lire les jeux de données eux-mêmes).
 
 <details markdown="1">
 <summary>Schéma</summary>
 
 ```graphql
 type Query {
+  # `query` filtre sur le nom du jeu de données (sans tenir compte de la casse), pas sur son slug.
   datasets(query: String, page: Int = 1, perPage: Int = 15): DatasetPage!
   dataset(id: ID!): Dataset
   datasetVersion(id: ID!): DatasetVersion
   datasetLink(id: ID!): DatasetLink
+}
+
+type Workspace {
+  # Jeux de données du workspace, y compris ceux partagés avec lui.
+  datasets(pinned: Boolean, query: String, page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+}
+
+type DatasetLinkPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetLink!]!
+}
+
+type DatasetLink {
+  id: ID!
+  isPinned: Boolean!
+  dataset: Dataset!
+  workspace: Workspace!
 }
 
 type DatasetPage {
@@ -704,6 +744,54 @@ type Dataset {
   versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
   latestVersion: DatasetVersion
   links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+}
+
+type DatasetVersionPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetVersion!]!
+}
+
+type DatasetVersion {
+  id: ID!
+  name: String!
+  changelog: String
+  createdAt: DateTime!
+  createdBy: User
+  dataset: Dataset!
+  files(page: Int = 1, perPage: Int = 15): DatasetVersionFilePage!
+  fileByName(name: String!): DatasetVersionFile
+}
+
+type DatasetVersionFilePage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetVersionFile!]!
+}
+
+type DatasetVersionFile {
+  id: ID!
+  filename: String!
+  contentType: String!
+  size: BigInt!
+  createdAt: DateTime!
+  # Renseignés une fois le fichier analysé (CSV, Parquet, Excel) ; null sinon.
+  rows: Int
+  columns: [String!]
+  fileSample: DatasetFileSample
+  # URL signée à courte durée de vie vers le contenu du fichier. Null si
+  # l'utilisateur ne peut pas télécharger cette version. `attachment: false`
+  # sert le fichier directement au lieu d'un téléchargement.
+  downloadUrl(attachment: Boolean = true): String
+}
+
+type DatasetFileSample {
+  # Premières lignes du fichier, sous forme de liste d'objets { colonne: valeur }.
+  sample: JSON
+  status: FileSampleStatus!  # PROCESSING, FINISHED ou FAILED
+  statusReason: String
 }
 ```
 
@@ -768,6 +856,190 @@ type Dataset {
         list.appendChild(li);
       }
     })();
+  </script>
+</body>
+</html>
+```
+
+### USER_READ + DATASETS_READ — Lire un fichier de jeu de données
+
+Vous laisse choisir un jeu de données, puis l'un des fichiers CSV de sa dernière version, et affiche les 100 premières lignes dans un tableau. Nécessite `USER_READ` (pour lister les jeux de données via `workspace.datasets`) et `DATASETS_READ` (pour lister les fichiers de la version et obtenir leur URL de téléchargement). Utilise le [schéma ci-dessus](#user_read-datasets_read-lister-les-jeux-de-donnees).
+
+Les fichiers de jeux de données ne sont **pas** dans le bucket du workspace : `readFileContent` et `prepareObjectDownload` ne peuvent donc pas les lire. Demandez plutôt à GraphQL le `downloadUrl` du fichier, puis faites-en un `fetch()` :
+
+- L'URL est signée et expire au bout d'une dizaine de minutes. Demandez-la juste avant le téléchargement plutôt qu'au chargement de la page.
+- Elle pointe vers le service de stockage, pas vers le point d'entrée `/graphql/` de la webapp : faites le `fetch()` telle quelle, sans en-têtes supplémentaires.
+- Elle vaut `null` si l'utilisateur n'a pas le droit de télécharger cette version du jeu de données.
+
+Pour un simple aperçu, évitez le téléchargement et lisez `fileSample { status sample }`. `sample` est déjà découpé en une liste de lignes `{ colonne: valeur }`, et est disponible une fois que `status` vaut `FINISHED`.
+
+**Quand la webapp affiche toujours le même jeu de données**, codez en dur l'`id` du jeu de données et lisez-le avec `dataset(id:)`, qui ne nécessite que `DATASETS_READ`. Une webapp ne peut pas retrouver un jeu de données par son slug, et `datasets(query:)` filtre sur le nom : lui passer un slug ne renvoie rien. Lire `latestVersion` garde l'application à jour quand une nouvelle version est publiée :
+
+```js
+const DATASET_ID = "<id du jeu de données>";
+const FILE_NAME = "mon_fichier.csv";
+
+const { dataset } = await gql(`
+  query($id: ID!, $name: String!) {
+    dataset(id: $id) {
+      latestVersion {
+        fileByName(name: $name) { downloadUrl(attachment: false) }
+      }
+    }
+  }
+`, { id: DATASET_ID, name: FILE_NAME });
+
+const url = dataset?.latestVersion?.fileByName?.downloadUrl;
+if (!url) throw new Error("Fichier introuvable, ou vous n'avez pas le droit de le télécharger.");
+const csv = await (await fetch(url)).text();
+```
+
+L'exemple complet ci-dessous laisse plutôt l'utilisateur choisir le jeu de données :
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Aperçu d'un fichier de jeu de données</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
+    select { width: 100%; padding: 0.4rem; box-sizing: border-box; font-family: inherit; }
+    button { margin-top: 0.75rem; padding: 0.5rem 1rem; }
+    button[disabled] { opacity: 0.5; cursor: not-allowed; }
+    table { border-collapse: collapse; margin-top: 1rem; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 0.3rem 0.5rem; font-size: 0.9rem; }
+    th { background: #f5f5f5; }
+    #status { margin-top: 1rem; color: #b91c1c; }
+  </style>
+</head>
+<body>
+  <h1>Aperçu d'un fichier de jeu de données</h1>
+
+  <label>Jeu de données
+    <select id="dataset" disabled onchange="loadFiles()"><option>Chargement…</option></select>
+  </label>
+  <label>Fichier
+    <select id="file" disabled></select>
+  </label>
+  <button id="loadBtn" disabled onclick="load()">Charger</button>
+
+  <p id="status"></p>
+  <div id="table"></div>
+
+  <script>
+    const { workspaceSlug } = window.OPENHEXA;
+    let versionId = null;
+
+    async function gql(query, variables = {}) {
+      const res = await fetch("/graphql/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, variables }),
+      });
+      const json = await res.json();
+      if (json.errors) throw new Error(json.errors.map(e => e.message).join("; "));
+      return json.data;
+    }
+
+    // 1. Liste les jeux de données du workspace.
+    (async () => {
+      const { workspace } = await gql(`
+        query($slug: String!) {
+          workspace(slug: $slug) {
+            datasets(page: 1, perPage: 50) {
+              items { dataset { id name } }
+            }
+          }
+        }
+      `, { slug: workspaceSlug });
+
+      const select = document.getElementById("dataset");
+      select.innerHTML = '<option value="">Choisissez un jeu de données…</option>' + workspace.datasets.items
+        .map(({ dataset }) => `<option value="${dataset.id}">${dataset.name}</option>`)
+        .join("");
+      select.disabled = false;
+    })();
+
+    // 2. Liste les fichiers CSV de la dernière version du jeu de données.
+    async function loadFiles() {
+      const datasetId = document.getElementById("dataset").value;
+      const fileSelect = document.getElementById("file");
+      const loadBtn = document.getElementById("loadBtn");
+      const status = document.getElementById("status");
+      fileSelect.innerHTML = "";
+      fileSelect.disabled = loadBtn.disabled = true;
+      status.textContent = "";
+      document.getElementById("table").innerHTML = "";
+      if (!datasetId) return;
+
+      const { dataset } = await gql(`
+        query($id: ID!) {
+          dataset(id: $id) {
+            latestVersion {
+              id name
+              files(page: 1, perPage: 50) { items { filename size } }
+            }
+          }
+        }
+      `, { id: datasetId });
+
+      const version = dataset.latestVersion;
+      if (!version) {
+        status.textContent = "Ce jeu de données n'a pas encore de version.";
+        return;
+      }
+      versionId = version.id;
+      const csvFiles = version.files.items.filter(f => f.filename.toLowerCase().endsWith(".csv"));
+      if (!csvFiles.length) {
+        status.textContent = `La version ${version.name} ne contient aucun fichier CSV.`;
+        return;
+      }
+      fileSelect.innerHTML = csvFiles
+        .map(f => `<option value="${f.filename}">${f.filename}</option>`)
+        .join("");
+      fileSelect.disabled = loadBtn.disabled = false;
+    }
+
+    // 3. Obtient une URL de téléchargement fraîche pour le fichier choisi, le télécharge et l'affiche.
+    async function load() {
+      const filename = document.getElementById("file").value;
+      const status = document.getElementById("status");
+      const out = document.getElementById("table");
+      status.textContent = "";
+      out.innerHTML = "";
+
+      const { datasetVersion } = await gql(`
+        query($id: ID!, $name: String!) {
+          datasetVersion(id: $id) {
+            fileByName(name: $name) { downloadUrl(attachment: false) }
+          }
+        }
+      `, { id: versionId, name: filename });
+
+      const url = datasetVersion.fileByName?.downloadUrl;
+      if (!url) {
+        status.textContent = "Vous n'avez pas le droit de télécharger ce fichier.";
+        return;
+      }
+      const res = await fetch(url);
+      if (!res.ok) {
+        status.textContent = `Échec du téléchargement (${res.status}).`;
+        return;
+      }
+
+      const rows = (await res.text()).trim().split("\n").slice(0, 101).map(l => l.split(","));
+      const [header, ...body] = rows;
+      out.innerHTML = [
+        "<table><thead><tr>",
+        header.map(h => `<th>${h}</th>`).join(""),
+        "</tr></thead><tbody>",
+        body.map(r => "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>").join(""),
+        "</tbody></table>",
+      ].join("");
+    }
   </script>
 </body>
 </html>
