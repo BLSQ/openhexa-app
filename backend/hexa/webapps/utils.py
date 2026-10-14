@@ -55,7 +55,7 @@ def powered_by_url(request, source):
     return f"{POWERED_BY_TARGET_URL}?{query}"
 
 
-def extract_webapp_subdomain(hostname):
+def extract_webapp_subdomain(hostname: str) -> str | None:
     """Extract the webapp subdomain from a hostname, or return None if it doesn't match."""
     # Check if subdomain for webapps is enabled
     subdomain_base_url = getattr(settings, "WEBAPPS_DOMAIN", None)

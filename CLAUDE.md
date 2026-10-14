@@ -128,6 +128,7 @@ The frontend uses **domain-driven architecture** with TypeScript:
 -   Backend GraphQL schemas in `{app}/graphql/schema.graphql`
 -   Frontend queries in `{domain}/graphql/*.graphql`, these are picked up by codegen to auto-generate Typescripts typed queries
 -   Schema combines all Django app schemas into unified API
+-   **Web app scopes**: web apps reach GraphQL through a proxy that only allows the fields listed in `SCOPE_GRANTS` (`backend/hexa/webapps/scopes.py`). If web apps need a new field, add it there and cover it with a test that goes through the proxy (see `hexa/webapps/tests/test_graphql_proxy.py`).
 -   Use fragments to reuse parts of a query.
 
 Example fragment in `frontend/src/core/features/User/User.tsx`:

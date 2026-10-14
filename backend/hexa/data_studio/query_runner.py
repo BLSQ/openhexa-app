@@ -76,10 +76,9 @@ def ensure_can_run_query(
     workspace database is a property of the database, not of the Data Studio.
     """
     # A webapp may only run SQL the workspace already stored, never SQL of its own
-    # (``saved_query is None`` is exactly the caller-supplied case): the GraphQL proxy
-    # validates top-level fields only, so the `workspace` field that `USER_READ` grants
-    # would otherwise reach executeSQL through `workspace { database { executeSQL } }`
-    # and turn the narrowest scope into an unrestricted read of the whole database.
+    # (``saved_query is None`` is exactly the caller-supplied case). The GraphQL proxy
+    # already refuses `Database.executeSQL` to web apps; this guard stays so a gap in
+    # the proxy's allowlist can't turn into an unrestricted read of the database.
     if saved_query is None and getattr(request, "webapp", None) is not None:
         _log_executed_query(
             request,
