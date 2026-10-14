@@ -99,7 +99,7 @@ If you're planning to develop pipelines or work with the API:
 - **[Using the OpenHEXA CLI](cli.md)** - Command-line interface
 - **[Using the OpenHEXA SDK](sdk.md)** - Python development kit
 - **[Using the OpenHEXA Toolbox - DHIS2](toolbox-dhis2.md)** - Acquire and process data from DHIS2 instances
-- **[Using the OpenHEXA Toolbox - IASO](toolbox-iaso.md)** - Fetch data from IASO
+- **[IASO Client](toolbox-iaso.md)** - Fetch data from IASO with `iaso-client`
 - **[OpenHEXA Client](toolbox-hexa.md)** - Typed GraphQL client for the OpenHEXA platform
 - **[Using Notebooks in OpenHEXA](notebooks-advanced.md)** - Advanced notebook usage
 - **[API Authentication](api-authentication.md)** - Authenticate against the OpenHEXA API
