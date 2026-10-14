@@ -2,7 +2,7 @@
   <h1><i class="fas fa-hexagon" style="margin-right: 0.5rem;"></i>Client IASO</h1>
 </div>
 
-[`iaso-client`](https://github.com/BLSQ/iaso-client) est la bibliothèque Python recommandée pour récupérer des données depuis IASO. Elle s'authentifie auprès d'une instance IASO et donne un accès typé aux unités d'organisation, types d'unités d'organisation, formulaires, versions de formulaires et soumissions de formulaires (instances), avec pagination automatique, sortie en DataFrame pandas et exports CSV/XLSX.
+[`iaso-client`](https://github.com/BLSQ/iaso-client) est la bibliothèque Python recommandée pour récupérer des données depuis IASO. Elle s'authentifie auprès d'une instance IASO et donne un accès typé aux unités d'organisation, types d'unités d'organisation, formulaires, versions de formulaires et soumissions de formulaires (instances), avec pagination automatique.
 
 !!! warning "`openhexa.toolbox.iaso` est déprécié"
     La classe `IASO` de `openhexa.toolbox.iaso` n'est plus maintenue. Utilisez `iaso-client` pour les nouveaux pipelines et notebooks, et migrez le code existant lorsque c'est possible (voir [Migrer depuis `openhexa.toolbox.iaso`](#migrer-depuis-openhexatoolboxiaso)).
@@ -35,7 +35,7 @@ client.login(con.username, con.password)
 
 ### Lire des données
 
-Chaque ressource expose des méthodes `*_list()` et `*_retrieve()`. Les filtres sont passés en arguments nommés.
+Chaque ressource expose des méthodes `*_list()` et `*_retrieve()`. `*_list()` récupère toutes les pages et renvoie tous les éléments correspondants sous forme de liste. Les filtres sont passés en arguments nommés.
 
 ``` python
 # Unités d'organisation
@@ -55,42 +55,17 @@ instances = client.instances_list(form_id=276, date_from="2025-01-01")
 instance = client.instances_retrieve(instance_id=12345)
 ```
 
-### Pagination
-
-- `*_list()` récupère et agrège les résultats de toutes les pages.
-- `*_list(page=...)` renvoie une seule page de résultats (JSON uniquement).
-- `max_page_size` contrôle la taille des pages et doit être compris entre `50` et `2000`.
-
-``` python
-first_page = client.org_units_list(page=1, max_page_size=500)
-```
-
 ### Obtenir un DataFrame pandas
 
-``` python
-df = client.instances_list(form_id=276, format="dataframe")
-```
-
-### Exporter en CSV ou XLSX
-
-Les unités d'organisation, formulaires et instances peuvent être exportés directement dans un fichier via les endpoints d'export d'IASO :
+`*_list()` renvoie une liste de dictionnaires, qui peut être chargée dans un DataFrame :
 
 ``` python
-client.org_units_list(format="csv", output_path=f"{workspace.files_path}/org_units.csv")
-client.instances_list(format="xlsx", form_id=276, output_path=f"{workspace.files_path}/submissions")
+import pandas as pd
+
+df = pd.json_normalize(client.instances_list(form_id=276))
 ```
 
-`output_path` doit être un chemin de fichier : son répertoire parent doit exister et le fichier ne doit pas déjà exister. L'extension `.csv` ou `.xlsx` est ajoutée si elle est omise.
-
-### Endpoints sans méthode typée
-
-Utilisez `raw()` pour appeler n'importe quel endpoint `GET` d'IASO, relatif à `/api/` :
-
-``` python
-entities = client.raw("entities/", params={"entity_type_ids": 12}, page=1, max_page_size=100)
-```
-
-Consultez le [dépôt iaso-client](https://github.com/BLSQ/iaso-client) pour la liste complète des méthodes et des filtres.
+Consultez le [dépôt iaso-client](https://github.com/BLSQ/iaso-client) pour la liste complète des filtres.
 
 ## Migrer depuis `openhexa.toolbox.iaso`
 
@@ -99,5 +74,4 @@ Consultez le [dépôt iaso-client](https://github.com/BLSQ/iaso-client) pour la 
 | `IASO(url, username, password)`                           | `client = IasoClient(base_url=url)` <br> `client.login(username, password)` |
 | `iaso.get_org_units(...)`                                 | `client.org_units_list(...)`                                         |
 | `iaso.get_forms(org_units=[...], projects=[...])`         | `client.forms_list(org_unit_id=..., projects_ids=[...])`             |
-| `iaso.get_form_instances(..., as_dataframe=True)`         | `client.instances_list(..., format="dataframe")`                     |
-| `iaso.get_projects()`                                     | `client.raw("projects/")`                                            |
+| `iaso.get_form_instances(..., as_dataframe=True)`         | `pd.json_normalize(client.instances_list(...))`                      |
