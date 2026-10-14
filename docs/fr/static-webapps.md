@@ -149,6 +149,47 @@ Chaque exemple ci-dessous est un `index.html` complet que vous pouvez déposer d
 
 Affiche l'utilisateur courant et le workspace au chargement.
 
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  me: Me!
+  workspace(slug: String!): Workspace
+}
+
+type Me {
+  user: User
+  features: [FeatureFlag!]!
+  permissions: MePermissions!
+}
+
+type User {
+  id: UUID!
+  email: String!
+  firstName: String
+  lastName: String
+  displayName: String!
+  language: String!
+  avatar: Avatar!
+}
+
+type Workspace {
+  slug: String!
+  name: String!
+  description: String
+  countries: [Country!]!
+  organization: Organization
+  createdAt: DateTime!
+  updatedAt: DateTime
+  createdBy: User!
+}
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -196,6 +237,46 @@ Affiche l'utilisateur courant et le workspace au chargement.
 ### PIPELINES_READ — Lister les pipelines
 
 Liste tous les pipelines du workspace.
+
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  pipelines(
+    workspaceSlug: String
+    name: String
+    search: String
+    tags: [String!]
+    functionalType: PipelineFunctionalType
+    lastRunStates: [PipelineRunStatus!]
+    page: Int
+    perPage: Int
+    orderBy: PipelineOrderBy
+  ): PipelinesPage!
+}
+
+type PipelinesPage {
+  items: [Pipeline!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+}
+
+type Pipeline {
+  id: UUID!
+  code: String!
+  name: String
+  description: String
+  schedule: String
+  currentVersion: PipelineVersion
+  type: PipelineType!
+}
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
@@ -253,6 +334,60 @@ Liste tous les pipelines du workspace.
 ### PIPELINES_READ + PIPELINES_RUN — Choisir un pipeline et le lancer
 
 Charge la liste des pipelines à l'ouverture de la page, vous laisse en choisir un dans une liste déroulante, et le lance avec une configuration JSON. Interroge le statut jusqu'à la fin de l'exécution. Nécessite à la fois `PIPELINES_READ` (pour lister) et `PIPELINES_RUN` (pour lancer).
+
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage!
+  pipeline(id: UUID!): Pipeline
+  pipelineRun(id: UUID!): PipelineRun
+}
+
+type Mutation {
+  runPipeline(input: RunPipelineInput): RunPipelineResult!
+  stopPipeline(input: StopPipelineInput!): StopPipelineResult!
+}
+
+input RunPipelineInput {
+  id: UUID!
+  versionId: UUID
+  config: JSON!
+  sendMailNotifications: Boolean
+  enableDebugLogs: Boolean
+}
+
+input StopPipelineInput {
+  runId: UUID!
+}
+
+type RunPipelineResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+  run: PipelineRun
+}
+
+type StopPipelineResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+}
+
+type PipelineRun {
+  id: UUID!
+  status: PipelineRunStatus!
+  progress: Int!
+  executionDate: DateTime
+  duration: Int
+  outputs: [PipelineRunOutput!]!
+}
+
+union PipelineRunOutput = BucketObject | GenericOutput | DatabaseTable
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
@@ -359,6 +494,57 @@ Charge la liste des pipelines à l'ouverture de la page, vous laisse en choisir 
 ### USER_READ + FILES_READ — Choisir un CSV dans le bucket du workspace et l'afficher
 
 Liste les fichiers CSV du bucket au chargement de la page, vous laisse en choisir un dans une liste déroulante, et affiche les 100 premières lignes dans un tableau. Nécessite à la fois `USER_READ` (pour lister les fichiers via `workspace.bucket.objects`) et `FILES_READ` (pour lire le contenu).
+
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  getFileByPath(workspaceSlug: String!, path: String!): BucketObject
+  readFileContent(
+    workspaceSlug: String!
+    filePath: String!
+    startLine: Int
+    endLine: Int
+  ): ReadFileContentResult!
+}
+
+type Mutation {
+  prepareObjectDownload(input: PrepareObjectDownloadInput!): PrepareObjectDownloadResult!
+}
+
+input PrepareObjectDownloadInput {
+  workspaceSlug: String!
+  objectKey: String!
+  forceAttachment: Boolean = true
+}
+
+type BucketObject {
+  key: String!
+  name: String!
+  path: String!
+  size: BigInt
+  updatedAt: DateTime
+  type: BucketObjectType!
+}
+
+type ReadFileContentResult {
+  success: Boolean!
+  errors: [ReadFileContentError!]!
+  content: String
+  size: Int
+}
+
+type PrepareObjectDownloadResult {
+  success: Boolean!
+  downloadUrl: URL
+  errors: [PrepareObjectDownloadError!]!
+}
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
@@ -472,6 +658,43 @@ Liste les fichiers CSV du bucket au chargement de la page, vous laisse en choisi
 ### DATASETS_READ — Lister les jeux de données
 
 Liste les jeux de données visibles depuis le workspace, avec leur dernière version.
+
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  datasets(query: String, page: Int = 1, perPage: Int = 15): DatasetPage!
+  dataset(id: ID!): Dataset
+  datasetVersion(id: ID!): DatasetVersion
+  datasetLink(id: ID!): DatasetLink
+}
+
+type DatasetPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [Dataset!]!
+}
+
+type Dataset {
+  id: ID!
+  slug: String!
+  name: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User
+  workspace: Workspace
+  versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
+  latestVersion: DatasetVersion
+  links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+}
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
