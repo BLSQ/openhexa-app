@@ -108,6 +108,7 @@ plugins:
             Connections: Connexions
             Pipelines: Pipelines
             Notebooks: Notebooks
+            AI in OpenHEXA: L'IA dans OpenHEXA
             Developer Guide: Guide développeur
             Writing Pipelines: Écrire des pipelines
             CLI: CLI
@@ -229,6 +230,7 @@ nav:
     - Connections: connections.md
     - Pipelines: pipelines.md
     - Notebooks: notebooks.md
+    - AI in OpenHEXA: ai.md
   - Developer Guide:
     - Writing Pipelines: writing-pipelines.md
     - Static Webapps: static-webapps.md

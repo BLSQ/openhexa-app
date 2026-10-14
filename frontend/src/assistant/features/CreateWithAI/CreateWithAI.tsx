@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import useTypewriter from "core/hooks/useTypewriter";
+import AIDisclaimer from "assistant/features/AIDisclaimer";
 import { AIFormInstance, AIPhase } from "./useAIForm";
 
 const MAX_TEXTAREA_HEIGHT = 480;
@@ -225,9 +226,7 @@ const CreateWithAI = ({ form, labels }: CreateWithAIProps) => {
           </div>
         )}
       </div>
-      <p className="mt-2 text-center text-xs text-gray-400">
-        {t("AI can make mistakes. Always verify important information.")}
-      </p>
+      <AIDisclaimer />
     </div>
   );
 };
