@@ -149,7 +149,7 @@ When `--target-workspace-slug` is set:
 
 #### Same-server copy
 
-Leaving both server URLs blank copies between two workspaces of the server running the command, through the ORM. Only the web app copier supports it for now: the other copiers are skipped with a warning. The target must already exist (`--target-workspace-slug`), since creating a workspace provisions its database and bucket:
+Leaving both server URLs blank copies between two workspaces of the server running the command, through the ORM. Only the web app and database copiers support it for now: the other copiers are skipped with a warning. The target must already exist (`--target-workspace-slug`), since creating a workspace provisions its database and bucket:
 
 ```
 ./manage.py copy_workspace \
