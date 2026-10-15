@@ -50,6 +50,7 @@ class DatabaseCopier(ResourceCopier):
         "must have no open connection, and a target database that already holds "
         "data is left untouched."
     )
+    supports_local = True
 
     def copy(
         self,

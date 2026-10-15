@@ -190,6 +190,7 @@ class CopyResult:
                 self.connections,
                 self.pipelines,
                 self.datasets,
+                self.webapps,
             )
         )
 

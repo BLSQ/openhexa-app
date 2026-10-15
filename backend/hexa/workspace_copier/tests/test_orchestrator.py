@@ -150,3 +150,7 @@ class CopyWorkspaceTest(SimpleTestCase):
         ran = [w for w in result.warnings if w.startswith("ran:")]
         self.assertEqual(ran, ["ran:workspace", "ran:webapps"])
         self.assertTrue(any(w.startswith("files: skipped") for w in result.warnings))
+
+    def test_database_copier_runs_in_a_local_run(self):
+        database = next(c for c in WORKSPACE_COPIERS if c.name == "database")
+        self.assertTrue(database.supports_local)

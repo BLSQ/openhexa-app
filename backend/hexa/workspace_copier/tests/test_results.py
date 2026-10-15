@@ -4,6 +4,7 @@ from hexa.workspace_copier.results import (
     CopyResult,
     FilesResult,
     PipelinesResult,
+    WebappsResult,
     format_bytes,
     format_summary,
 )
@@ -42,4 +43,8 @@ class HasFailuresTest(SimpleTestCase):
 
     def test_true_when_any_resource_failed(self):
         result = CopyResult(pipelines=PipelinesResult(failed=["etl"]))
+        self.assertTrue(result.has_failures)
+
+    def test_true_when_a_webapp_failed(self):
+        result = CopyResult(webapps=WebappsResult(failed=["app"]))
         self.assertTrue(result.has_failures)
