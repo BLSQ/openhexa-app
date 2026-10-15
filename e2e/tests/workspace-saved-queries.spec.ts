@@ -37,8 +37,7 @@ test.describe("Workspace saved queries", () => {
     });
 
     await test.step("a row opens the query, and runs it", async () => {
-      await studio.row(slug).click();
-      await page.waitForURL(`**/queries/${slug}/`);
+      await studio.openFromList(slug);
       await studio.runButton.click();
       await expect(studio.resultSummary).toHaveText(/^14 rows/);
     });

@@ -1,5 +1,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 
+import { toast } from "../helpers/toast";
+
 export type WorkspaceRole = "Admin" | "Editor" | "Viewer";
 
 /** A workspace's settings page: its General card, members and database. */
@@ -80,9 +82,7 @@ export class WorkspaceSettingsPage {
       })
       .getByRole("button", { name: "Replace password" })
       .click();
-    await expect(
-      this.page.getByText("Password successfully changed", { exact: true }),
-    ).toBeVisible();
+    await expect(toast(this.page, "Password successfully changed")).toBeVisible();
   }
 
   get addMemberButton(): Locator {

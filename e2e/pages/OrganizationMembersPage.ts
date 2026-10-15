@@ -2,6 +2,7 @@ import { Locator, Page, expect } from "@playwright/test";
 
 import { organizationPaths } from "../config/environment";
 import { waitForGrid } from "../helpers/grid";
+import { toast } from "../helpers/toast";
 import { OrganizationRole } from "./OrganizationExternalCollaboratorsPage";
 import { WorkspaceRole } from "./WorkspaceSettingsPage";
 
@@ -49,7 +50,7 @@ export class OrganizationMembersPage {
   }
 
   private toast(text: string): Locator {
-    return this.page.getByText(text, { exact: true });
+    return toast(this.page, text);
   }
 
   async goto() {
