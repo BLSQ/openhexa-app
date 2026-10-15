@@ -2,10 +2,12 @@
 
 A *static* web app is a row plus a git repository on the server's Forgejo, and
 its published version is any commit of that repository, not necessarily the
-latest. It is only copied when both workspaces are on the same server: Forgejo
-then clones the repository into the target organization itself, which keeps
-every commit, branch, author and date, has no file size limit, and keeps the
-commit shas, so the published version carries over as-is. Across servers the
+latest. It is only copied when both workspaces are on this server — local
+endpoints (CLI with blank URLs), or remote ones pointing at this server's own
+GraphQL endpoint (the admin's blank URLs). Forgejo then clones the repository
+into the target organization itself, which keeps every commit, branch, author
+and date, has no file size limit, and keeps the commit shas, so the published
+version carries over as-is; the row is written with the ORM. Across servers the
 git history could only be replayed through the API, which loses authors and
 dates and cannot carry large files, so static web apps are skipped there.
 
@@ -20,6 +22,7 @@ from typing import Any
 
 import httpx
 import requests
+from django.conf import settings
 from openhexa.graphql.graphql_client.client import Client
 
 from hexa.git.forgejo import ForgejoAPIError
@@ -91,8 +94,8 @@ class WebappsCopier(ResourceCopier):
     name = "webapps"
     label = "Web apps"
     help_text = (
-        "Static web apps are copied with their full history, on the same server "
-        "only. Superset web apps are skipped."
+        "Static web apps are copied with their full history when both workspaces "
+        "are on this server (blank URLs). Superset web apps are skipped."
     )
     supports_local = True
 
@@ -171,6 +174,11 @@ class WebappsCopier(ResourceCopier):
         wa_result: WebappsResult,
         reporter: ProgressReporter,
     ) -> None:
+        same_server = _on_this_server(source) and _on_this_server(target)
+        if same_server:
+            # Same database: the static copy below works on the rows directly.
+            source_ws = Workspace.objects.get(slug=source.slug)
+            target_ws = Workspace.objects.get(slug=target.slug)
         webapps = _list_webapps(source.client, source.slug)
         # Names are unique per workspace while target slugs may get a random
         # suffix, so the name is what identifies an already-copied web app.
@@ -187,7 +195,7 @@ class WebappsCopier(ResourceCopier):
                 wa_result.warnings.append(_superset_warning(webapp))
                 reporter.warning(f"   skipped Superset web app '{src_slug}'")
                 continue
-            if webapp["type"] == "STATIC":
+            if webapp["type"] == "STATIC" and not same_server:
                 wa_result.skipped.append(src_slug)
                 wa_result.warnings.append(
                     STATIC_ACROSS_SERVERS_WARNING.format(slug=src_slug)
@@ -197,12 +205,26 @@ class WebappsCopier(ResourceCopier):
 
             reporter.info(f"   copying web app '{src_slug}' ...")
             try:
-                target_slug = _create_on_target(
-                    target.client,
-                    target.slug,
-                    webapp,
-                    {"iframe": {"url": webapp["source"]["url"]}},
+                if webapp["type"] == "STATIC":
+                    target_slug = _copy_static_local(
+                        GitWebapp.objects.get(workspace=source_ws, slug=src_slug),
+                        target_ws,
+                    ).slug
+                else:
+                    target_slug = _create_on_target(
+                        target.client,
+                        target.slug,
+                        webapp,
+                        {"iframe": {"url": webapp["source"]["url"]}},
+                    )
+            except (ForgejoAPIError, requests.RequestException) as exc:
+                wa_result.failed.append(src_slug)
+                wa_result.warnings.append(
+                    f"web app '{src_slug}' could not be copied — handle "
+                    f"manually ({_describe_git_error(exc)})."
                 )
+                reporter.warning(f"   FAILED to copy web app '{src_slug}' ({exc})")
+                continue
             except (GraphQLError, httpx.HTTPError) as exc:
                 # Per-app like the other copiers, and httpx too: a timeout on one
                 # web app must not abort the ones after it.
@@ -220,6 +242,19 @@ class WebappsCopier(ResourceCopier):
 # ---------------------------------------------------------------------------
 # Same server
 # ---------------------------------------------------------------------------
+
+
+def _on_this_server(endpoint: Endpoint) -> bool:
+    """Whether the endpoint is this server, reached locally or over GraphQL.
+
+    The admin turns a blank server URL into this server's own GraphQL endpoint
+    (built from ``INTERNAL_BASE_URL``, as the copy worker reaches the backend
+    that way), so a remote endpoint at that URL is this server too.
+    """
+    if endpoint.is_local:
+        return True
+    this_server = f"{settings.INTERNAL_BASE_URL.rstrip('/')}/graphql"
+    return str(endpoint.client.url).rstrip("/") == this_server
 
 
 def _new_webapp_row(model: type[Webapp], webapp: Webapp, target_ws: Workspace):
