@@ -3,19 +3,105 @@ import { uniqueName } from "../helpers/confirm";
 import { ServedWebapp } from "../pages/ServedWebapp";
 import { proposeThenExplainPrompt } from "../pages/AssistantPanel";
 import {
+  CreateWebappWithAIDialog,
   WebappAssistantPanel,
+  createWebappPrompt,
   headingChangePrompt,
 } from "../pages/WebappAssistantPanel";
+import { WorkspaceDataStudioPage } from "../pages/WorkspaceDataStudioPage";
 import { WorkspaceWebappsPage } from "../pages/WorkspaceWebappsPage";
 
 /** What a new static app is created with, from the default template. */
 const TEMPLATE_HEADING = "Hello World";
+
+/** The regions of Senegal, loaded into the test workspace's database. */
+const REGIONS_SQL = "SELECT code, name FROM level_2_region ORDER BY code";
 
 // These talk to the real agent on the target environment, so each turn takes
 // as long as the model does.
 test.describe.configure({ timeout: 420_000 });
 
 test.describe("Web app AI assistant", () => {
+  test("a web app created with AI opens in the editor, reading a saved query", async ({
+    page,
+    cleanup,
+  }) => {
+    const webapps = new WorkspaceWebappsPage(page);
+    const studio = new WorkspaceDataStudioPage(page);
+    const dialog = new CreateWebappWithAIDialog(page);
+    const assistant = new WebappAssistantPanel(page);
+    const served = new ServedWebapp(await page.context().newPage());
+    const name = uniqueName("e2e-ai-webapp");
+    const heading = uniqueName("E2E-AI-WEBAPP");
+
+    // Shared with the workspace: an app runs as a service account of the
+    // workspace, which cannot see private queries.
+    const query = await studio.createWithApi(REGIONS_SQL, {
+      name: uniqueName("e2e regions"),
+      description: "Regions of Senegal, for a web app created with AI.",
+      visibility: "WORKSPACE",
+    });
+    cleanup.add(`saved query ${query.slug}`, () =>
+      studio.deleteWithApi(query.id),
+    );
+    const prompt = createWebappPrompt(name, heading, query.slug);
+
+    // Registered before the agent runs: if the test dies while it is still
+    // working, the dialog holds the page with a beforeunload prompt that
+    // cleanup has to get past.
+    cleanup.add(`web app ${name}`, async () => {
+      page.on("dialog", (d) => d.accept());
+      await webapps.deleteIfPresent(name);
+    });
+
+    await webapps.goto();
+    await dialog.open();
+    await dialog.submit(prompt);
+
+    await test.step("the dialog shows the agent at work", async () => {
+      await expect(dialog.step("Generating web app code")).toBeVisible();
+      await expect(dialog.submitButton).toBeDisabled();
+    });
+
+    const slug = await test.step("it opens the new app's code", async () => {
+      const slug = await dialog.waitForWebapp();
+      if (slug !== name) {
+        cleanup.add(`web app ${slug}`, () => webapps.deleteIfPresent(slug));
+      }
+      expect(slug, "the agent did not use the requested name").toBe(name);
+
+      await expect(webapps.treeFile("index.html")).toBeVisible();
+      await expect(webapps.codeEditor).toContainText(heading);
+      expect(await webapps.readFile(slug, "index.html")).toContain(query.slug);
+      return slug;
+    });
+
+    await test.step("the conversation moves to the app", async () => {
+      await expect(assistant.heading).toBeVisible();
+      await expect(assistant.message(prompt)).toBeVisible();
+
+      await webapps.gotoTab(slug, "Code");
+      await expect(assistant.heading).toBeVisible();
+      await expect(assistant.message(prompt)).toBeVisible();
+      await expect(assistant.proposalBanner).toBeHidden();
+    });
+
+    await test.step("it was given access to the database", async () => {
+      await webapps.gotoTab(slug, "API access");
+      await expect(webapps.apiScope("Read database")).toBeChecked();
+    });
+
+    await test.step("it is served, with the query's rows", async () => {
+      await served.goto(await webapps.servedUrl(slug));
+      await expect(served.heading(heading)).toBeVisible();
+      await expect(served.text("Dakar")).toBeVisible({ timeout: 30_000 });
+    });
+
+    await test.step("it is listed with the workspace's apps", async () => {
+      await webapps.expectVisible(name);
+    });
+  });
+
   test("a dismissed proposal leaves the app as it was", async ({
     page,
     cleanup,
