@@ -27,6 +27,9 @@ class WorkspaceMetadataCopier(ResourceCopier):
     name = "workspace"
     label = "Workspace metadata"
     mandatory = True
+    # Only through an existing target: creating one locally is refused up front
+    # by the service (see ``_verify_endpoints``).
+    supports_local = True
 
     def copy(
         self,

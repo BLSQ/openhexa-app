@@ -81,6 +81,14 @@ def copy_workspace(
                 message = f"{copier.name}: dependency '{dep}' not selected — may be incomplete"
                 result.warn(message)
                 reporter.warning(message)
+        if (source.is_local or target.is_local) and not copier.supports_local:
+            message = (
+                f"{copier.name}: skipped, it does not support the local server "
+                "(blank server URL) yet"
+            )
+            result.warn(message)
+            reporter.warning(message)
+            continue
         reporter.info(f"=> Copying {copier.name} ...")
         copier.copy(source, target, result, reporter, options=options)
         # Every line is timestamped, so bracketing each copier with a start and

@@ -196,6 +196,47 @@ class ForgejoClient(GitClient):
         )
         return response.json()
 
+    def get_repository(self, org_slug: str, repo_name: str) -> dict:
+        response = self._request("GET", f"/repos/{org_slug}/{repo_name}")
+        return response.json()
+
+    def delete_repository(self, org_slug: str, repo_name: str) -> None:
+        self._request("DELETE", f"/repos/{org_slug}/{repo_name}")
+
+    def migrate_repository(
+        self,
+        *,
+        source_org_slug: str,
+        source_repo_name: str,
+        target_org_slug: str,
+        target_repo_name: str,
+        private: bool,
+    ) -> dict:
+        """Clone a repository of this server into a new one, keeping its full history.
+
+        Forgejo runs a ``git clone --mirror`` itself, so every branch, tag and
+        commit sha is kept and nothing goes through the contents API size limit.
+        The clone address is this client's own URL, which Forgejo only accepts
+        when its host is listed in ``[migrations] ALLOWED_DOMAINS``: by default it
+        refuses to import from private network addresses, itself included.
+        Credentials go in their own fields since Forgejo rejects them in the URL.
+        """
+        username, password = self._session.auth
+        response = self._request(
+            "POST",
+            "/repos/migrate",
+            json={
+                "clone_addr": f"{self._url}/{source_org_slug}/{source_repo_name}.git",
+                "auth_username": username,
+                "auth_password": password,
+                "repo_owner": target_org_slug,
+                "repo_name": target_repo_name,
+                "service": "git",
+                "private": private,
+            },
+        )
+        return response.json()
+
     def get_files_tree(
         self, repo_name: str, ref: str = "main", *, org_slug: str | None = None
     ) -> list[dict]:

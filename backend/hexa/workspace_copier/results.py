@@ -118,8 +118,8 @@ class DatasetsResult:
 class WebappsResult:
     """What the web apps copier did, for the summary."""
 
-    created: list[tuple[str, int]] = field(default_factory=list)
-    """(webapp_slug, version_count) for each web app created on target."""
+    created: list[str] = field(default_factory=list)
+    """Slugs of the web apps created on target."""
 
     skipped: list[str] = field(default_factory=list)
     """Web app slugs that already existed on target or cannot be copied (Superset)."""
@@ -304,7 +304,7 @@ def format_summary(result: CopyResult) -> str:
     if result.webapps is not None:
         webapps = result.webapps
         lines.append(f"Web apps created: {len(webapps.created)}")
-        lines.extend(f"  * {slug} ({n} version(s))" for slug, n in webapps.created)
+        lines.extend(f"  * {slug}" for slug in webapps.created)
         if webapps.skipped:
             lines.append(f"Web apps skipped: {len(webapps.skipped)}")
             lines.extend(f"  * {slug}" for slug in webapps.skipped)

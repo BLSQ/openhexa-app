@@ -60,11 +60,7 @@ class GitRepoMixin(models.Model):
             self.client.create_org_repository(
                 self.git_org.slug, self.repository, auto_init=not files
             )
-            self.client.protect_branch(self.git_org.slug, self.repository)
-            if settings.GIT_PROXY_USERNAME:
-                self.client.add_collaborator(
-                    self.git_org.slug, self.repository, settings.GIT_PROXY_USERNAME
-                )
+            self._configure_repo()
         except ForgejoAPIError as e:
             if e.status_code == 409:
                 logger.warning(
@@ -87,5 +83,37 @@ class GitRepoMixin(models.Model):
         commits = self.client.get_commits(self.git_org.slug, self.repository, limit=1)
         return commits[0]["id"]
 
+    def copy_repo_from(self, source: "GitRepoMixin") -> None:
+        """Create this repository as a full copy of ``source``, on the same server.
+
+        Branch protection and collaborators are repository settings, not git
+        data, so the copy does not carry them and they are applied again. If that
+        fails the copy is deleted, so a retry does not hit an unprotected leftover
+        under the same name.
+        """
+        source_repo = self.client.get_repository(source.git_org.slug, source.repository)
+        self.client.migrate_repository(
+            source_org_slug=source.git_org.slug,
+            source_repo_name=source.repository,
+            target_org_slug=self.git_org.slug,
+            target_repo_name=self.repository,
+            private=source_repo["private"],
+        )
+        try:
+            self._configure_repo()
+        except Exception:
+            self.delete_repo()
+            raise
+
     def archive_repo(self):
         self.client.archive_repository(self.git_org.slug, self.repository)
+
+    def delete_repo(self):
+        self.client.delete_repository(self.git_org.slug, self.repository)
+
+    def _configure_repo(self):
+        self.client.protect_branch(self.git_org.slug, self.repository)
+        if settings.GIT_PROXY_USERNAME:
+            self.client.add_collaborator(
+                self.git_org.slug, self.repository, settings.GIT_PROXY_USERNAME
+            )

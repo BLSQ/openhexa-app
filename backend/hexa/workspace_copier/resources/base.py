@@ -33,6 +33,9 @@ class ResourceCopier(ABC):
     option_fields: tuple[str, ...] = ()
     """``CopyWorkspaceForm`` fields tuning this copier, rendered under its checkbox."""
 
+    supports_local: bool = False
+    """Whether it handles a LOCAL endpoint; if not, a run with one skips it."""
+
     @abstractmethod
     def copy(
         self,
