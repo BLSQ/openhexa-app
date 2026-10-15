@@ -1,6 +1,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 
-import { workspacePaths } from "../config/environment";
+import { workspace, workspacePaths } from "../config/environment";
+import { graphql } from "../helpers/graphql";
 import { toast } from "../helpers/toast";
 
 export type WebappType = "iFrame" | "Static";
@@ -210,6 +211,25 @@ export class WorkspaceWebappsPage {
   /** CodeMirror's content area, showing index.html. */
   get codeEditor(): Locator {
     return this.page.locator(".cm-content");
+  }
+
+  /**
+   * A file's full content, through the API: the editor only renders the lines
+   * on screen, so a long file cannot be read off it.
+   */
+  async readFile(slug: string, path: string): Promise<string> {
+    const data = await graphql(
+      this.page,
+      `query ($workspaceSlug: String!, $slug: String!) {
+        webapp(workspaceSlug: $workspaceSlug, slug: $slug) {
+          files { path content }
+        }
+      }`,
+      { workspaceSlug: workspace.slug, slug },
+    );
+    const file = data.webapp.files.find((f: { path: string }) => f.path === path);
+    expect(file, `${path} is not among the web app's files`).toBeDefined();
+    return file.content;
   }
 
   get publishButton(): Locator {
