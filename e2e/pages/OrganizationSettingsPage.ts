@@ -49,6 +49,17 @@ export class OrganizationSettingsPage {
     return this.card("Usage & Limits", "Workspaces");
   }
 
+  /** The card's introduction, which links to the documentation on AI. */
+  get aiAssistantIntro(): Locator {
+    return this.aiAssistantCard.getByText("The assistant helps members");
+  }
+
+  get aiDocsLink(): Locator {
+    return this.aiAssistantCard.getByRole("link", {
+      name: "Learn how AI is used in OpenHEXA",
+    });
+  }
+
   get editGeneralButton(): Locator {
     return this.generalCard.getByRole("button", { name: "Edit" });
   }
