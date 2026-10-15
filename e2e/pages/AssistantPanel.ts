@@ -126,18 +126,42 @@ export abstract class AssistantPanel {
     return this.heading.locator("xpath=following-sibling::div[1]");
   }
 
+  /**
+   * The name is written by a separate agent once the first turn is in, then
+   * typed out character by character, so wait for it to stop growing.
+   */
+  async readConversationName(): Promise<string> {
+    await expect(this.conversationName).toHaveText(/\S/, { timeout: 60_000 });
+    let previous = "";
+    await expect
+      .poll(
+        async () => {
+          const current = (await this.conversationName.innerText()).trim();
+          const settled = current === previous;
+          previous = current;
+          return settled;
+        },
+        { intervals: [500], timeout: 15_000 },
+      )
+      .toBe(true);
+    return previous;
+  }
+
   /** History lists each conversation as a button, with when it was last used. */
   get historyEntries(): Locator {
     return this.page.getByRole("button").filter({ has: this.page.locator("time") });
   }
 
-  /** History lists each conversation as a button, by its name. */
+  /** The history entry of the conversation with exactly this name. */
+  historyEntry(name: string): Locator {
+    return this.historyEntries.filter({
+      has: this.page.getByText(name, { exact: true }),
+    });
+  }
+
   async openConversation(name: string) {
     await this.historyButton.click();
-    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    await this.page
-      .getByRole("button", { name: new RegExp(`^${escaped}`) })
-      .click();
+    await this.historyEntry(name).click();
   }
 
   async dismiss() {

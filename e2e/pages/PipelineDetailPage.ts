@@ -121,6 +121,9 @@ export class PipelineDetailPage {
       .getByRole("dialog")
       .getByRole("button", { name: "Generate", exact: true })
       .click();
+    // The dialog closes once the URL is replaced, and its Cancel stays in the
+    // DOM for the leave transition alongside the card's.
+    await expect(this.page.getByRole("dialog")).toBeHidden();
     await this.page.getByRole("button", { name: "Cancel" }).click();
   }
 

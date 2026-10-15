@@ -139,7 +139,7 @@ test.describe("Workspace static web apps", () => {
       await member.goto(url);
       await expect(member.heading(marker)).toBeVisible();
       await expect(member.apiResult).toHaveText(
-        "API error 403: Operations not allowed: me",
+        "API error 403: Fields not allowed: Me.user, Query.me, User.email",
       );
     });
 

@@ -282,6 +282,12 @@ export class WorkspaceDataStudioPage {
       .filter({ has: this.page.getByText(slug, { exact: true }) });
   }
 
+  /** Only the name in a row is a link to the query. */
+  async openFromList(slug: string) {
+    await this.row(slug).getByRole("link").click();
+    await this.page.waitForURL(`**/queries/${slug}/`);
+  }
+
   /** The list's columns, read off the row in display order. */
   cell(slug: string, column: "Name" | "Description" | "Visibility"): Locator {
     const index = { Name: 0, Description: 1, Visibility: 3 }[column];
