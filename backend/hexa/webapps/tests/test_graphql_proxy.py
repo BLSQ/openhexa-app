@@ -1276,6 +1276,67 @@ class GraphQLProxyWorkspaceScopingTest(TestCase):
         self.assertEqual(["SAVED_QUERY_NOT_FOUND"], result["errors"])
         self.assertEqual(0, QueryLog.objects.count())
 
+    def _create_scoped_webapp_a(self, slug, scopes):
+        return Webapp.objects.create(
+            name=slug,
+            slug=slug,
+            subdomain=slug,
+            url="http://example.com",
+            workspace=self.WORKSPACE_A,
+            created_by=self.USER,
+            is_public=False,
+            allowed_operations=scopes,
+        )
+
+    def _create_pipeline_b_version(self):
+        return PipelineVersion.objects.create(
+            pipeline=Pipeline.objects.get(code="pb"),
+            version_number=1,
+            zipfile=b"some_bytes",
+        )
+
+    def test_cannot_stop_a_run_of_other_workspace(self):
+        """The user may stop runs in workspace B, but the web app is confined to A."""
+        version = self._create_pipeline_b_version()
+        run = PipelineRun.objects.create(
+            user=self.USER,
+            pipeline=version.pipeline,
+            pipeline_version=version,
+            run_id="run-b",
+            trigger_mode=PipelineRunTrigger.MANUAL,
+            execution_date=timezone.now(),
+            state=PipelineRunState.RUNNING,
+        )
+        webapp = self._create_scoped_webapp_a(
+            "run-app-a", [Webapp.OperationScope.PIPELINES_RUN]
+        )
+        session = self._create_session(webapp, self.USER)
+
+        response = self._graphql_post(
+            "run-app-a",
+            f'mutation {{ stopPipeline(input: {{runId: "{run.id}"}}) {{ success errors }} }}',
+            session.session_key,
+        )
+
+        self.assertEqual(
+            json.loads(response.content)["data"]["stopPipeline"],
+            {"success": False, "errors": ["PIPELINE_NOT_FOUND"]},
+        )
+        run.refresh_from_db()
+        self.assertEqual(run.state, PipelineRunState.RUNNING)
+
+    def test_cannot_read_a_pipeline_version_of_other_workspace(self):
+        version = self._create_pipeline_b_version()
+        session = self._create_session(self.WEBAPP_A, self.USER)
+
+        response = self._graphql_post(
+            "app-a",
+            f'query {{ pipelineVersion(id: "{version.id}") {{ versionNumber }} }}',
+            session.session_key,
+        )
+
+        self.assertIsNone(json.loads(response.content)["data"]["pipelineVersion"])
+
     def test_non_proxy_graphql_unaffected(self):
         """Hitting the main /graphql/ endpoint (no webapp subdomain) with
         the same user should not be wrapped in WebappUser. The user keeps
