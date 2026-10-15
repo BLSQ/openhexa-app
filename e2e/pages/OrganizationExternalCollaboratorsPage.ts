@@ -1,6 +1,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 
 import { organizationPaths } from "../config/environment";
+import { toast } from "../helpers/toast";
 import { WorkspaceRole } from "./WorkspaceSettingsPage";
 
 export type OrganizationRole = "Owner" | "Admin" | "Member";
@@ -34,7 +35,7 @@ export class OrganizationExternalCollaboratorsPage {
   }
 
   private toast(text: string): Locator {
-    return this.page.getByText(text, { exact: true });
+    return toast(this.page, text);
   }
 
   async goto() {

@@ -1,6 +1,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 
 import { workspacePaths } from "../config/environment";
+import { toast } from "../helpers/toast";
 
 export type WebappType = "iFrame" | "Static";
 
@@ -121,7 +122,7 @@ export class WorkspaceWebappsPage {
   }
 
   private toast(text: string): Locator {
-    return this.page.getByText(text, { exact: true });
+    return toast(this.page, text);
   }
 
   // --- general -------------------------------------------------------------

@@ -169,9 +169,13 @@ test.describe("Pipeline AI assistant", () => {
   }) => {
     const pipelines = new WorkspacePipelinesPage(page);
     const assistant = new PipelineAssistantPanel(page);
-    // Questions that need no tools, so each turn is short.
-    const first = "Reply with only the word ALPHA. Do not propose any change.";
-    const second = "Reply with only the word BRAVO. Do not propose any change.";
+    // Questions that need no tools, so each turn is short. Each names a
+    // different subject -- about the pipeline, or the agent refuses it as
+    // off-topic -- so the conversations get names that differ.
+    const first =
+      "I am reviewing this pipeline's logging. Reply with only the word ALPHA. Do not propose any change.";
+    const second =
+      "I am reviewing this pipeline's parameters. Reply with only the word BRAVO. Do not propose any change.";
 
     const code = await pipelines.createWithSource(
       uniqueName("e2e-assistant"),
@@ -185,11 +189,7 @@ test.describe("Pipeline AI assistant", () => {
     const firstName = await test.step("the first conversation is named", async () => {
       await assistant.send(first);
       await expect(assistant.message("ALPHA")).toBeVisible({ timeout: 120_000 });
-      // The name is written by a separate agent once the first turn is in.
-      await expect(assistant.conversationName).toHaveText(/\S/, {
-        timeout: 60_000,
-      });
-      return (await assistant.conversationName.innerText()).trim();
+      return await assistant.readConversationName();
     });
 
     await test.step("a new conversation starts empty", async () => {
@@ -210,9 +210,7 @@ test.describe("Pipeline AI assistant", () => {
       await expect(assistant.heading).toBeVisible();
       await assistant.historyButton.click();
       await expect(assistant.historyEntries).toHaveCount(2);
-      await expect(
-        assistant.historyEntries.filter({ hasText: firstName }),
-      ).toBeVisible();
+      await expect(assistant.historyEntry(firstName)).toBeVisible();
     });
   });
 });

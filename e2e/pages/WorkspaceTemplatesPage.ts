@@ -1,6 +1,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 
 import { workspacePaths } from "../config/environment";
+import { toast } from "../helpers/toast";
 
 const templatesPath = workspacePaths.home.replace(/\/$/, "/templates/");
 
@@ -21,7 +22,7 @@ export class WorkspaceTemplatesPage {
   }
 
   private toast(text: string | RegExp): Locator {
-    return this.page.getByText(text);
+    return toast(this.page, text, { exact: false });
   }
 
   /** The description is a rich-text editor without a name of its own. */
