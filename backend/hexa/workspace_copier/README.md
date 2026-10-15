@@ -32,7 +32,7 @@ order (see `orchestrator.WORKSPACE_COPIERS`):
 | `connections` | `ConnectionsCopier`       | connections + secret fields                                                                        |
 | `pipelines`   | `PipelinesCopier`         | pipelines + versions<br>Notes: The `.ipynb` file is copied for notebook pipelines<br>Schedules are not copied to avoid them running immediately after a copy. This allows a human to validate the copied pipeline and schedule it manually.
 | `datasets`    | `DatasetsCopier`          | datasets **owned** by the workspace                                                                |
-| `webapps`     | `WebappsCopier`           | web apps + **every** version<br>Notes: A static web app's git history is replayed commit by commit (as diffs), then the target commit matching the source's *published* one is published — it is not necessarily the latest. Commit messages are kept when the target supports `updateWebapp(commitMessage)`; authors and dates are not (the first commit is always titled "Initial content").<br>Iframe web apps are recreated from their URL. Superset web apps are skipped with a warning: their Superset instance is server-specific.<br>Subdomains, custom domains, favorites and the "powered by" setting are not copied, so public web app URLs change.<br>Commits that saved unchanged content are recreated too, so the version count matches.<br>Files over 10 MiB can't be read through the API: such a web app fails and is left for manual handling. A replay that fails part-way (including timeouts) deletes the half-built target web app so a re-run retries it; if only the publishing step fails (or the published version is not on `main`), the web app is kept and reported as failed so the right version can be published by hand |
+| `webapps`     | `WebappsCopier`           | web apps<br>Notes: Static web apps are copied **on the same server only** (both server URLs blank — see [Same-server copy](#same-server-copy)): Forgejo clones the repository into the target organization itself (`POST /repos/migrate`), so every commit, branch, author and date is kept, there is no file size limit, and the commit shas are unchanged — the published version carries over as-is. The copy keeps the source repository's visibility; branch protection and the git proxy collaborator are applied again. If the clone fails Forgejo removes it; if the row then cannot be saved the repository is deleted, so a re-run retries it.<br>Across servers, static web apps are skipped with a warning.<br>Iframe web apps are recreated from their URL. Superset web apps are skipped with a warning.<br>Subdomains, custom domains, favorites and the "powered by" setting are not copied, so public web app URLs change. |
 
 Template pipelines are **not** in this registry — they are server-wide, not a
 per-workspace resource, so they are copied by a separate flow (see
@@ -146,6 +146,26 @@ When `--target-workspace-slug` is set:
 - every resource copier skips what already exists (pipelines by code, connections by slug, files by key + size, web apps by name), so only the missing pieces are filled in;
 - if the slug does **not** exist on the target, the run exists early with a clear message;
 - `--target-organization` and `--target-workspace-name` are no longer required or taken into account.
+
+#### Same-server copy
+
+Leaving both server URLs blank copies between two workspaces of the server running the command, through the ORM. Only the web app copier supports it for now: the other copiers are skipped with a warning. The target must already exist (`--target-workspace-slug`), since creating a workspace provisions its database and bucket:
+
+```
+./manage.py copy_workspace \
+	--source-workspace-slug my-workspace \
+	--target-workspace-slug my-workspace-ab12 \
+	--resources webapps
+```
+
+Forgejo refuses to clone from private network addresses by default, itself included. The server's Forgejo needs the host of `GIT_SERVER_URL` in its allow-list (`forgejo` in `docker-compose.yaml`):
+
+```
+[migrations]
+ALLOWED_DOMAINS = <host of GIT_SERVER_URL>   # env: FORGEJO__migrations__ALLOWED_DOMAINS
+```
+
+Without it, each static web app fails with a message naming this setting.
 
 ### Django Admin:
 

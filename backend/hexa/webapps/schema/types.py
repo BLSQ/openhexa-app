@@ -1,6 +1,5 @@
 from ariadne import ObjectType, UnionType
 
-from hexa.git.exceptions import GitError
 from hexa.git.forgejo import ForgejoAPIError
 from hexa.user_management.utils import is_two_factor_pending
 from hexa.utils.base64_image_encode_decode import encode_base64_image
@@ -115,10 +114,8 @@ def resolve_versions(webapp: Webapp, info, page=None, per_page=None, **kwargs):
     git_webapp = GitWebapp.objects.get(pk=webapp.pk)
     try:
         return git_webapp.get_versions(page=page, per_page=per_page)
-    except ForgejoAPIError as e:
-        # An empty page would read as the end of the history, and the Forgejo
-        # message carries the internal git server URL.
-        raise GitError("Could not load the web app versions") from e
+    except ForgejoAPIError:
+        return {"items": [], "page": page or 1}
 
 
 @webapp_object.field("commitDiff")
@@ -143,8 +140,8 @@ def resolve_files(
         return git_webapp.get_files(
             ref=ref, include_binary_content=include_binary_content
         )
-    except ForgejoAPIError as e:
-        raise GitError("Could not load the web app files") from e
+    except ForgejoAPIError:
+        return []
 
 
 @webapp_permissions.field("update")

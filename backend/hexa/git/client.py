@@ -50,6 +50,27 @@ class GitClient(ABC):
         ...
 
     @abstractmethod
+    def get_repository(self, org_slug: str, repo_name: str) -> dict:
+        ...
+
+    @abstractmethod
+    def delete_repository(self, org_slug: str, repo_name: str) -> None:
+        ...
+
+    @abstractmethod
+    def migrate_repository(
+        self,
+        *,
+        source_org_slug: str,
+        source_repo_name: str,
+        target_org_slug: str,
+        target_repo_name: str,
+        private: bool,
+    ) -> dict:
+        """Clone a repository of this server into a new one, keeping its full history."""
+        ...
+
+    @abstractmethod
     def get_files_tree(
         self, repo_name: str, ref: str = "main", *, org_slug: str | None = None
     ) -> list[dict]:
