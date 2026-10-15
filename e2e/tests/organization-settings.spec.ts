@@ -3,6 +3,8 @@ import { expect, test } from "@playwright/test";
 import { organization, organizationPaths } from "../config/environment";
 import { OrganizationSettingsPage } from "../pages/OrganizationSettingsPage";
 
+const AI_DOCS_URL = "https://docs.openhexa.com/ai/";
+
 test.describe("Organization settings", () => {
   let settings: OrganizationSettingsPage;
 
@@ -47,6 +49,26 @@ test.describe("Organization settings", () => {
     await expect(settings.aiAssistantCard.getByText("Enabled")).toBeVisible();
     await expect(settings.aiAssistantCard.getByText("Provider")).toBeVisible();
     await expect(settings.aiAssistantCard.getByRole("switch")).toHaveCount(1);
+  });
+
+  test("the AI Assistant card links to the documentation on AI", async ({
+    page,
+  }) => {
+    await expect(settings.aiAssistantIntro).toContainText(
+      "The assistant helps members create and edit pipelines, web apps and SQL queries from inside their workspaces. Learn how AI is used in OpenHEXA, what it can access and which models it runs on.",
+    );
+    await expect(settings.aiDocsLink).toHaveAttribute("href", AI_DOCS_URL);
+    await expect(settings.aiDocsLink).toHaveAttribute("target", "_blank");
+
+    // It opens in a new tab, which must land on the page rather than a 404.
+    const [docs] = await Promise.all([
+      page.context().waitForEvent("page"),
+      settings.aiDocsLink.click(),
+    ]);
+    await docs.waitForLoadState();
+    await expect(docs).toHaveURL(AI_DOCS_URL);
+    await expect(docs).toHaveTitle(/^AI in OpenHEXA/);
+    await docs.close();
   });
 
   test("Edit opens the General form prefilled and Cancel discards it", async () => {
