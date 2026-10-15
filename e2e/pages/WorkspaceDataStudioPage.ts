@@ -1,6 +1,7 @@
 import { Locator, Page, expect } from "@playwright/test";
 
-import { workspacePaths } from "../config/environment";
+import { workspace, workspacePaths } from "../config/environment";
+import { graphql } from "../helpers/graphql";
 
 export type Sharing = "Private" | "Workspace";
 
@@ -228,6 +229,38 @@ export class WorkspaceDataStudioPage {
     await this.saveDialog.getByRole("button", { name: "Save query" }).click();
     await this.page.waitForURL(/\/data-studio\/queries\/[^/]+\/?$/);
     return this.page.url().replace(/\/$/, "").split("/queries/")[1];
+  }
+
+  /** Creates a query through the API, for a test that is not about the editor. */
+  async createWithApi(
+    sql: string,
+    details: {
+      name: string;
+      description?: string;
+      visibility: "PRIVATE" | "WORKSPACE";
+    },
+  ): Promise<{ id: string; slug: string }> {
+    await this.page.goto(workspacePaths.savedQueries);
+    const data = await graphql(
+      this.page,
+      `mutation ($input: CreateSavedQueryInput!) {
+        createSavedQuery(input: $input) { success errors savedQuery { id slug } }
+      }`,
+      { input: { workspaceSlug: workspace.slug, content: sql, ...details } },
+    );
+    expect(data.createSavedQuery.success, JSON.stringify(data)).toBe(true);
+    return data.createSavedQuery.savedQuery;
+  }
+
+  async deleteWithApi(id: string) {
+    await this.page.goto(workspacePaths.savedQueries);
+    await graphql(
+      this.page,
+      `mutation ($input: DeleteSavedQueryInput!) {
+        deleteSavedQuery(input: $input) { success errors }
+      }`,
+      { input: { id } },
+    );
   }
 
   async gotoQuery(slug: string) {

@@ -1,10 +1,7 @@
-import { Locator, Page, expect } from "@playwright/test";
+import { Page, expect } from "@playwright/test";
 
-import {
-  AssistantPanel,
-  TURN_TIMEOUT,
-  proposeThenExplainPrompt,
-} from "./AssistantPanel";
+import { AssistantPanel, proposeThenExplainPrompt } from "./AssistantPanel";
+import { CreateWithAIDialog } from "./CreateWithAIDialog";
 
 /** What `ASSISTANT_PIPELINE_SOURCE` logs before the assistant changes it. */
 export const ORIGINAL_LOG_MESSAGE = "E2E-ORIGINAL-MESSAGE";
@@ -61,55 +58,9 @@ export class PipelineAssistantPanel extends AssistantPanel {
 }
 
 /** The "Create with AI" path of the pipelines page's Create dialog. */
-export class CreatePipelineWithAIDialog {
-  constructor(private readonly page: Page) {}
-
-  get openButton(): Locator {
-    return this.page.getByRole("button", { name: "Create", exact: true });
-  }
-
-  get dialog(): Locator {
-    return this.page.getByRole("dialog");
-  }
-
-  get title(): Locator {
-    return this.dialog.getByRole("heading", { name: "Create with AI" });
-  }
-
-  /** The method card's name also carries its description. */
-  get methodButton(): Locator {
-    return this.dialog.getByRole("button", { name: /^Create with AI/ });
-  }
-
-  get promptInput(): Locator {
-    return this.dialog.getByRole("textbox");
-  }
-
-  get submitButton(): Locator {
-    return this.dialog.getByRole("button", { name: "Create", exact: true });
-  }
-
-  step(label: string): Locator {
-    return this.dialog.getByText(label);
-  }
-
-  async open() {
-    await this.openButton.click();
-    await this.methodButton.click();
-    await expect(this.title).toBeVisible();
-  }
-
-  /** Sends the prompt; the dialog then redirects to the new pipeline's code. */
-  async submit(prompt: string) {
-    await this.promptInput.fill(prompt);
-    await this.submitButton.click();
-  }
-
+export class CreatePipelineWithAIDialog extends CreateWithAIDialog {
   /** Waits for the redirect to the new pipeline's Code tab. Returns its code. */
-  async waitForPipeline(): Promise<string> {
-    await this.page.waitForURL(/\/pipelines\/[^/]+\/code\/?$/, {
-      timeout: TURN_TIMEOUT,
-    });
-    return this.page.url().replace(/\/code\/?$/, "").split("/pipelines/")[1];
+  waitForPipeline(): Promise<string> {
+    return this.waitForEditor("pipelines");
   }
 }

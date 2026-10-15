@@ -103,7 +103,7 @@ E2E_BASE_URL=https://app.openhexa.org E2E_ORGANIZATION_ID=... npm test
 | `fixtures/cleanup.ts` | Registers undo steps that run in reverse at teardown, pass or fail |
 | `fixtures/disposableWorkspace.ts` | A uniquely named workspace, archived again in teardown |
 | `fixtures/visitors.ts` | Pages for an anonymous visitor and for the outsider account |
-| `helpers/` | Native-confirm handling, unique names, grid-load waiting, the newest toast, and GraphQL calls made as the signed-in user, for setting up data a test is not about |
+| `helpers/` | Native-confirm handling, unique names, grid-load waiting, the newest toast, GraphQL calls made as the signed-in user, for setting up data a test is not about, and an MCP client of the suite's own |
 | `pages/` | Page objects — the only place selectors live |
 | `tests/` | Specs |
 
@@ -141,6 +141,7 @@ Covered so far:
 | `organization-settings.spec.ts` | The General, AI Assistant and Usage & Limits cards; the AI card's link to the documentation on AI |
 | `organization-members.spec.ts` | The members list; inviting an address, resending the invitation and deleting it |
 | `user-menu.spec.ts` | The user menu's links (Account settings, MCP, Documentation); the profile name, access tokens and two-factor dialog |
+| `mcp-connections.spec.ts` | An MCP client of the suite's own authorized with the tools and workspace picked on the consent screen; what its token may list and call; the connection on the account page, widened there, then revoked |
 | `outsider.spec.ts` | Everything seen through the outsider account: being added to a workspace and listed as an external collaborator; the interface language; what a workspace Viewer, Editor and Admin are offered; the organization changing a collaborator's roles, converting them to a member, and removing them |
 | `workspace-navigation.spec.ts` | The workspace home page; every sidebar section; the global search finding a table and a new pipeline; the retired /pipelines and /notebooks pages leading to the workspaces |
 | `workspace-lifecycle.spec.ts` | Creating a workspace and archiving it again |
@@ -155,7 +156,7 @@ Covered so far:
 | `workspace-templates.spec.ts` | Publishing a pipeline as a template, its pages, building a pipeline from it through the catalogue, upgrading that pipeline to a new template version, and deleting the template |
 | `workspace-pipeline-runs.spec.ts` | A run with typed parameters, its file and database table outputs, its messages arriving while it runs, and stopping it |
 | `workspace-pipeline-assistant.spec.ts` | Creating a pipeline with AI and landing in its editor with the conversation; on a pipeline's code, a proposal that cannot be resolved while the agent is still writing, then dismissed or published as a new version; separate conversations, named and switched between from the history |
-| `workspace-webapp-assistant.spec.ts` | The AI assistant on a static app's code: a proposal that cannot be resolved while the agent is still writing, then dismissed or saved; a second request adding to a pending proposal; a proposal deleting a file |
+| `workspace-webapp-assistant.spec.ts` | Creating a static app with AI, reading a saved query, and landing in its editor with the conversation; the assistant on a static app's code: a proposal that cannot be resolved while the agent is still writing, then dismissed or saved; a second request adding to a pending proposal; a proposal deleting a file |
 | `workspace-static-webapps.spec.ts` | A static app's code, history, rollback, name, subdomain, icon and deletion; who can open it when private or public, and its API access |
 | `workspace-database.spec.ts` | The database's table list and a table's rows; a table written by a pipeline run, then deleted |
 | `workspace-notebooks.spec.ts` | JupyterHub starting the user's server and framing JupyterLab |
@@ -224,12 +225,21 @@ assert on their values, so reloading that data means updating the expectations.
   or dismissed once the agent's turn has ended; the prompt asks for a long
   answer after the proposal, so the turn stays open long enough to check that
   both are refused until then.
-- **A pipeline created with AI is cleaned up by its requested name.** Its code
-  is its name slugified, so the prompt asks for an exact lowercase, hyphenated
-  name and cleanup is registered under it before the agent runs. While the agent
-  works, the dialog holds the page with a `beforeunload` prompt, which cleanup
-  accepts. The editing specs skip the agent for setup and create their pipeline
-  with a known `pipeline.py` through the API.
+- **A pipeline or web app created with AI is cleaned up by its requested
+  name.** Its code or slug is its name slugified, so the prompt asks for an
+  exact lowercase, hyphenated name and cleanup is registered under it before
+  the agent runs. While the agent works, the dialog holds the page with a
+  `beforeunload` prompt, which cleanup accepts. The editing specs skip the agent
+  for setup and create their pipeline with a known `pipeline.py` through the
+  API. The web app the agent builds reads the database through a saved query the
+  test creates beforehand, shared with the workspace, and the prompt tells the
+  agent to reuse it rather than write its own, which would be left behind.
+- **The MCP spec registers an OAuth client of its own** through dynamic client
+  registration, which leaves an application record behind: nothing lets a user
+  delete one, so it is named uniquely. The client's requests go through a
+  cookie-less request context, so only its token authenticates them. After
+  consent, the backend's success page fetches the client's redirect URI; the
+  test answers that request with a route and reads the code off it.
 - **The interface language belongs to the account, not the browser.**
   Switching it changes every session of that user at once, which is why the
   language test runs as the outsider and resets the language through the API
