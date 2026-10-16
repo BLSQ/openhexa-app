@@ -170,7 +170,13 @@ class PreparedQuery:
         """
         sql_text = sanitize_sql(text)
         statements = [
-            s for s in sqlparse.parse(sql_text) if str(s).strip().rstrip(";").strip()
+            s
+            for s in sqlparse.parse(sql_text)
+            if any(
+                not _is_blank(token)
+                and not (token.ttype is tokens.Punctuation and token.value == ";")
+                for token in s.flatten()
+            )
         ]
         if len(statements) > 1:
             raise MultipleStatementsError(
