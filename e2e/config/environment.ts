@@ -50,6 +50,27 @@ export const outsiderCredentials =
     : null;
 
 /**
+ * A mailbox the suite can read: a Mailgun receiving domain that stores every
+ * message sent to it, queried with a read-only account key. Only the key is
+ * secret; the domain and API host are the ones set up for the suite. Tests
+ * that read email are skipped when the key is not set.
+ */
+export const mailgun = process.env.E2E_MAILGUN_API_KEY
+  ? {
+      apiKey: process.env.E2E_MAILGUN_API_KEY,
+      apiBase: process.env.E2E_MAILGUN_API_BASE ?? "https://api.eu.mailgun.net",
+      domain: process.env.E2E_MAIL_DOMAIN ?? "e2e-testing.openhexa.org",
+      /**
+       * A permanent account on the mailbox domain, member of the test workspace,
+       * that pipeline run reports are sent to. The suite never signs in as it.
+       */
+      reportRecipient:
+        process.env.E2E_RECIPIENT_EMAIL ??
+        `pipeline-reports@${process.env.E2E_MAIL_DOMAIN ?? "e2e-testing.openhexa.org"}`,
+    }
+  : null;
+
+/**
  * The organization the suite navigates. It is a dedicated, otherwise-unused
  * organization on the target environment, so its name and short name are stable
  * enough to assert on.
