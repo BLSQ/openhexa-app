@@ -14,6 +14,8 @@ export type Email = {
   receivedAt: Date;
   /** Every absolute URL in the plain-text body, in order. */
   links: URL[];
+  /** Mailgun's handle on the stored message. */
+  storageKey: string;
 };
 
 /** How long an email gets to arrive. Delivery takes seconds; the events API can lag a little more. */
@@ -40,6 +42,9 @@ export function mailboxAddress(prefix: string): string {
  * invitation is told apart from the first.
  */
 export class Mailbox {
+  /** Storage keys `waitForEmail` has already handed out. */
+  private readonly delivered = new Set<string>();
+
   private constructor(
     private readonly api: APIRequestContext,
     private readonly domain: string,
@@ -99,8 +104,11 @@ export class Mailbox {
 
   /**
    * Waits for an email to this address, sent after `since`, with a matching
-   * subject if one is given, and returns the first that qualifies. On timeout
-   * it names the subjects that did arrive, so a failure reads like a finding.
+   * subject if one is given, and returns the first that qualifies. An email
+   * is handed out once: the start time has a margin for clock skew, so a
+   * second code or a resent invitation requested right after the first is
+   * told apart from it. On timeout it names the subjects that did arrive, so
+   * a failure reads like a finding.
    */
   async waitForEmail(
     to: string,
@@ -110,9 +118,12 @@ export class Mailbox {
     const deadline = Date.now() + timeout;
     let seen: Email[] = [];
     while (Date.now() < deadline) {
-      seen = await this.emailsSince(to, since);
+      seen = (await this.emailsSince(to, since)).filter(
+        (email) => !this.delivered.has(email.storageKey),
+      );
       const match = seen.find((email) => matches(email.subject, subject));
       if (match) {
+        this.delivered.add(match.storageKey);
         return match;
       }
       await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
@@ -145,6 +156,7 @@ export class Mailbox {
       html: message["body-html"] ?? "",
       receivedAt,
       links: linksIn(text),
+      storageKey,
     };
   }
 
