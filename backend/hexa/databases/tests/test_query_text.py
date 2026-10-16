@@ -84,19 +84,19 @@ class StatementCountTest(unittest.TestCase):
                     PreparedQuery.from_text(query)
 
     def test_ignores_comment_only_statements(self):
-        for query in [
-            "SELECT 1;\n-- SELECT 2;",
-            "SELECT 1;\n-- SELECT 2;\n-- SELECT 3;\n",
-            "SELECT 1;\n/* SELECT 2; */",
-            "SELECT 1;\n/* SELECT 2; */ ; -- SELECT 3;",
-            "-- SELECT 2;\nSELECT 1;\n-- SELECT 3;",
+        for query, body in [
+            ("SELECT 1;\n-- SELECT 2;", "SELECT 1"),
+            ("SELECT 1;\n-- SELECT 2;\n-- SELECT 3;\n", "SELECT 1"),
+            ("SELECT 1;\n/* SELECT 2; */", "SELECT 1"),
+            ("SELECT 1;\n/* SELECT 2; */ ; -- SELECT 3;", "SELECT 1"),
+            # A comment before the statement belongs to it, so it stays in the body.
+            ("-- SELECT 2;\nSELECT 1;\n-- SELECT 3;", "-- SELECT 2;\nSELECT 1"),
         ]:
             with self.subTest(query=query):
                 prepared = PreparedQuery.from_text(query)
                 self.assertEqual(prepared.sql, query)
                 self.assertTrue(prepared.is_wrappable)
-                self.assertIn("SELECT 1", prepared.body)
-                self.assertNotIn("SELECT 1;", prepared.body)
+                self.assertEqual(prepared.body, body)
 
     def test_comment_only_input_has_no_executable_statement(self):
         for query in ["-- SELECT 1;", "/* SELECT 1; */", "; /* comment */ ;"]:

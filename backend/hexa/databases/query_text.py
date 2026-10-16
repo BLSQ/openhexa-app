@@ -121,6 +121,19 @@ def _is_blank(token: Token) -> bool:
     return token.is_whitespace or token.ttype in tokens.Comment
 
 
+def _is_comment_only(statement: Statement) -> bool:
+    """Whether ``statement`` holds nothing but comments, blanks and ``;``.
+
+    sqlparse splits on every ``;``, so a commented-out query after the real one
+    (``SELECT 1; -- SELECT 2;``) comes back as a statement of its own. PostgreSQL
+    has nothing to execute there, so it must not count as a second statement.
+    """
+    return all(
+        _is_blank(token) or (token.ttype is tokens.Punctuation and token.value == ";")
+        for token in statement.flatten()
+    )
+
+
 def _without_trailing_separator(statement: Statement) -> str:
     """The statement's text with its trailing ``;`` removed.
 
@@ -169,15 +182,7 @@ class PreparedQuery:
         from being run before the query.
         """
         sql_text = sanitize_sql(text)
-        statements = [
-            s
-            for s in sqlparse.parse(sql_text)
-            if any(
-                not _is_blank(token)
-                and not (token.ttype is tokens.Punctuation and token.value == ";")
-                for token in s.flatten()
-            )
-        ]
+        statements = [s for s in sqlparse.parse(sql_text) if not _is_comment_only(s)]
         if len(statements) > 1:
             raise MultipleStatementsError(
                 "Only a single SQL statement can be executed."
