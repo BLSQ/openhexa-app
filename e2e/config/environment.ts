@@ -62,11 +62,13 @@ export const mailgun = process.env.E2E_MAILGUN_API_KEY
       domain: process.env.E2E_MAIL_DOMAIN ?? "e2e-testing.openhexa.org",
       /**
        * A permanent account on the mailbox domain, member of the test workspace,
-       * that pipeline run reports are sent to. The suite never signs in as it.
+       * that pipeline run reports are sent to. The suite never signs in as it,
+       * and picks it as a recipient by the display name it registered with.
        */
       reportRecipient:
         process.env.E2E_RECIPIENT_EMAIL ??
         `pipeline-reports@${process.env.E2E_MAIL_DOMAIN ?? "e2e-testing.openhexa.org"}`,
+      reportRecipientName: process.env.E2E_RECIPIENT_NAME ?? "Pipeline Reports",
     }
   : null;
 
