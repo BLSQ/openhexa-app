@@ -82,7 +82,40 @@ If a pending proposed version exists (shown under "Pending Proposed Version"), t
 Never respond with only text when a code change is requested.
 """
 
-_CREATE_WEBAPP = """
+# The call nearly every database-backed web app makes. Its shape is spelled out
+# because a model that does not look it up guesses `executeSavedQuery(slug:)`
+# and a `results` field, neither of which exists, and the proxy refuses the
+# query. Kept apart from the prose so a test can validate it against the
+# schema and the DATABASE_READ scope.
+SAVED_QUERY_GQL = """query($input: ExecuteSavedQueryInput!) {
+  executeSavedQuery(input: $input) {
+    success errors columns rows rowCount
+    pageInfo { hasNextPage endCursor }
+  }
+}"""
+
+_SAVED_QUERY_CALL = f"""
+Call `executeSavedQuery` exactly like this — the argument is an `input` object, and each row is a JSON object keyed by column name, not an array:
+```js
+const res = await fetch("/graphql/", {{
+  method: "POST",
+  headers: {{ "Content-Type": "application/json" }},
+  body: JSON.stringify({{
+    query: `{SAVED_QUERY_GQL}`,
+    variables: {{ input: {{ slug: "my-query", perPage: 100 }} }},
+  }}),
+}});
+const {{ data, errors }} = await res.json();
+if (errors) throw new Error(errors[0].message);
+const result = data.executeSavedQuery;
+if (!result.success) throw new Error(result.errors.join(", "));
+result.rows.forEach((row) => console.log(row[result.columns[0]]));
+```
+`perPage` is capped server-side; to read more rows, pass `after: pageInfo.endCursor` in the next call while `hasNextPage` is true. The proxy refuses any field that is not covered by the web app's scopes, so for any other API call, read `get_help_or_doc(topic="static-webapps")` before writing the query rather than guessing its shape.
+"""
+
+_CREATE_WEBAPP = (
+    """
 # Your task
 You are tasked with creating a new static web app (HTML/CSS/JavaScript files) for the user.
 - From the user's description, extract:
@@ -101,8 +134,11 @@ When the web app should show data from the workspace database, it can only run a
 - Otherwise inspect the schema with `get_db_schema` and `get_db_table_schema`, then call `create_saved_query` with `visibility` set to `WORKSPACE`: a web app runs as a workspace service account and cannot see PRIVATE queries.
 - Pass `DATABASE_READ` in `allowed_operations` when creating the web app.
 """
+    + _SAVED_QUERY_CALL
+)
 
-_EDIT_WEBAPP = """
+_EDIT_WEBAPP = (
+    """
 # Your task
 You are helping the user modify an existing OpenHEXA static web app (HTML/CSS/JavaScript files).
 - The web app metadata and current file list are pre-loaded in your context below.
@@ -125,9 +161,12 @@ A web app cannot send SQL of its own: through the proxy it can only run a saved 
 - Call `list_saved_queries` first and `get_saved_query` to read the SQL of a candidate; reuse an existing query when one returns what the web app needs.
 - Otherwise inspect the schema with `get_db_schema` and `get_db_table_schema`, then call `create_saved_query` with `visibility` set to `WORKSPACE`: a web app runs as a workspace service account and cannot see PRIVATE queries. Use `update_saved_query` to adjust the SQL of a query the web app already relies on, keeping its slug stable.
 - Reference the query by its `slug` in the web app code, and remind the user to enable the `DATABASE_READ` scope in the web app settings if it is not already.
-
+"""
+    + _SAVED_QUERY_CALL
+    + """
 Never respond with only text when a code change is requested.
 """
+)
 
 _WEBAPP_FILES_DOC = """
 # Web app files
