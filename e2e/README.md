@@ -31,6 +31,16 @@ workspace in it. The tests that check what such a user is refused are skipped
 without it. The suite also switches this account's interface language, so that
 the main account's never changes under the tests running alongside.
 
+`E2E_MAILGUN_API_KEY` is optional too: a read-only key of the Mailgun account
+that receives mail for `e2e-testing.openhexa.org`. Every address on that domain
+is an inbox the suite can read, so the tests that follow an invitation link,
+reset a password, enter a two-factor code or check a pipeline's run report are
+skipped without it. The domain and API host (`E2E_MAIL_DOMAIN`,
+`E2E_MAILGUN_API_BASE`) default to the ones set up for the suite, as do the
+address and display name of the account that pipeline run reports are sent to
+(`E2E_RECIPIENT_EMAIL`, `E2E_RECIPIENT_NAME`): a permanent Viewer of the test
+workspace the suite never signs in as.
+
 ## Running
 
 ```bash
@@ -103,7 +113,8 @@ E2E_BASE_URL=https://app.openhexa.org E2E_ORGANIZATION_ID=... npm test
 | `fixtures/cleanup.ts` | Registers undo steps that run in reverse at teardown, pass or fail |
 | `fixtures/disposableWorkspace.ts` | A uniquely named workspace, archived again in teardown |
 | `fixtures/visitors.ts` | Pages for an anonymous visitor and for the outsider account |
-| `helpers/` | Native-confirm handling, unique names, grid-load waiting, the newest toast, GraphQL calls made as the signed-in user, for setting up data a test is not about, and an MCP client of the suite's own |
+| `fixtures/mailbox.ts` | The suite's mailbox, opened for the test and closed after it |
+| `helpers/` | Native-confirm handling, unique names, grid-load waiting, the newest toast, GraphQL calls made as the signed-in user, for setting up data a test is not about, an MCP client of the suite's own, and the mailbox: the emails sent to an address, read back from Mailgun |
 | `pages/` | Page objects — the only place selectors live |
 | `tests/` | Specs |
 
@@ -136,6 +147,7 @@ Covered so far:
 | Spec | What it exercises |
 | --- | --- |
 | `authentication.spec.ts` | A wrong password refused; a protected page sending a visitor to sign in and back; signing out; requesting a password reset; the sign-up page, and registration needing an invitation |
+| `account-lifecycle.spec.ts` | With the mailbox, a throwaway account through everything that reaches a user by email: invited to the organization and registering from the (resent) link; added to the organization and to a workspace as an existing account; resetting its password; two-factor authentication enabled with a code, asked for at the next sign-in, and disabled; the self sign-up link |
 | `organization-navigation.spec.ts` | The sidebar and every organization route |
 | `organization-workspaces.spec.ts` | The organization's workspaces as cards and as a table, searched; tagging a workspace |
 | `organization-settings.spec.ts` | The General, AI Assistant and Usage & Limits cards; the AI card's link to the documentation on AI |
@@ -145,7 +157,7 @@ Covered so far:
 | `outsider.spec.ts` | Everything seen through the outsider account: being added to a workspace and listed as an external collaborator; the interface language; what a workspace Viewer, Editor and Admin are offered; the organization changing a collaborator's roles, converting them to a member, and removing them |
 | `workspace-navigation.spec.ts` | The workspace home page; every sidebar section; the global search finding a table and a new pipeline; the retired /pipelines and /notebooks pages leading to the workspaces |
 | `workspace-lifecycle.spec.ts` | Creating a workspace and archiving it again |
-| `workspace-settings.spec.ts` | In a temporary workspace: its name, countries and configuration, regenerating its database passwords, and a pipeline run that reads the configuration and writes to the database |
+| `workspace-settings.spec.ts` | In a temporary workspace: its name, countries and configuration, regenerating its database passwords, and a pipeline run that reads the configuration and writes to the database; with the mailbox, inviting an address without an account: the email, the resent one, the organization listing it, and deleting it |
 | `workspace-files.spec.ts` | Creating a folder, uploading a file, deleting both; browsing into a folder, searching it, downloading and the breadcrumb back; uploading a whole folder; an accented file name and a 5 MB file round-tripping |
 | `workspace-datasets.spec.ts` | Creating a dataset and a version, removing both; a file's preview, column profile and download, and picking an earlier version; renaming a dataset and sharing it with the organization (as the organization's dataset list shows); sharing it with another workspace, which reads it, then revoking that |
 | `workspace-connections.spec.ts` | Creating and deleting one connection of each type; testing a PostgreSQL connection to the workspace's own database (failing, then passing), keeping its password hidden, and a pipeline run querying it through a connection parameter |
@@ -155,6 +167,7 @@ Covered so far:
 | `workspace-pipeline-sources.spec.ts` | A pipeline created from a notebook in the workspace's files, and run; a multi-task pipeline's task graph |
 | `workspace-templates.spec.ts` | Publishing a pipeline as a template, its pages, building a pipeline from it through the catalogue, upgrading that pipeline to a new template version, and deleting the template |
 | `workspace-pipeline-runs.spec.ts` | A run with typed parameters, its file and database table outputs, its messages arriving while it runs, and stopping it |
+| `workspace-pipeline-notifications.spec.ts` | With the mailbox, the run reports a recipient is emailed: none for a success at level Error, one for a failure, and one for a success at level All, each linking to its run |
 | `workspace-pipeline-assistant.spec.ts` | Creating a pipeline with AI and landing in its editor with the conversation; on a pipeline's code, a proposal that cannot be resolved while the agent is still writing, then dismissed or published as a new version; separate conversations, named and switched between from the history |
 | `workspace-webapp-assistant.spec.ts` | Creating a static app with AI, reading a saved query, and landing in its editor with the conversation; the assistant on a static app's code: a proposal that cannot be resolved while the agent is still writing, then dismissed or saved; a second request adding to a pending proposal; a proposal deleting a file |
 | `workspace-static-webapps.spec.ts` | A static app's code, history, rollback, name, subdomain, icon and deletion; who can open it when private or public, and its API access |
@@ -262,11 +275,30 @@ assert on their values, so reloading that data means updating the expectations.
   the test renamed it before failing.
 - **Saving a query needs the git server**: each saved query gets a repository,
   and creating one fails ("the query history is unavailable") when it is down.
+- **Every address on the mailbox domain is an inbox.** `mailboxAddress("e2e-x")`
+  gives a test one of its own, so nothing is shared between tests; `mailbox.waitForEmail`
+  polls Mailgun for mail to it sent after a start time the test captures just
+  before acting, and hands each email out once, so a resend or a second code
+  is told apart from the first. Mail arrives within seconds, but Mailgun's
+  events index is eventually consistent: a query made right after an event
+  can miss it, so a "nothing else arrived" check polls until the list settles.
+  Links are read from the HTML part, as a mail client offers them.
+- **The lifecycle spec leaves one account behind per run**, `e2e-user-…@` the
+  mailbox domain, removed from the organization and the workspace: nothing in
+  the app deletes an account. Purge them from the Django admin by that suffix
+  now and then. Everything else only opens the registration form.
+- **A two-factor code is single-use and emailed at most once a minute.** Each
+  step that needs one waits out django-otp's cooldown before asking, which is
+  why that test takes a couple of minutes.
+- **Run reports are sent by the pipelines runner** after the run's page shows
+  its verdict, to a permanent recipient account; an `Error`-level recipient is
+  not written to for a success, so that case is checked by reading the list of
+  reports rather than by waiting for one not to arrive.
 
 ## CI
 
 `.github/workflows/e2e.yml` runs the suite on demand (`workflow_dispatch`) and
-nightly. It needs two repository secrets, plus two optional ones:
+nightly. It needs two repository secrets, plus three optional ones:
 
 | Secret | Value |
 | --- | --- |
@@ -274,5 +306,6 @@ nightly. It needs two repository secrets, plus two optional ones:
 | `E2E_PASSWORD` | Its password |
 | `E2E_OUTSIDER_EMAIL` | Optional: an account without access to the test workspace |
 | `E2E_OUTSIDER_PASSWORD` | Its password |
+| `E2E_MAILGUN_API_KEY` | Optional: a read-only key of the Mailgun account receiving mail for the mailbox domain |
 
 The HTML report and any failure traces are uploaded as a build artifact.
