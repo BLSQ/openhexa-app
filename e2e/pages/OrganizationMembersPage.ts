@@ -18,11 +18,16 @@ export class OrganizationMembersPage {
     return this.page.getByRole("button", { name: "Invite member" });
   }
 
-  /** A member's row; the user cell shows the email under the name. */
+  /**
+   * A member's row; the user cell shows the email under the name. A pending
+   * invitation's row shows the email too, over "Invited by …", so that one
+   * is ruled out.
+   */
   row(email: string): Locator {
     return this.page
       .getByRole("row")
-      .filter({ has: this.page.getByText(email, { exact: true }) });
+      .filter({ has: this.page.getByText(email, { exact: true }) })
+      .filter({ hasNot: this.page.getByText(/^Invited by/) });
   }
 
   /** The row's "Organization Role" cell. */
@@ -36,11 +41,12 @@ export class OrganizationMembersPage {
     });
   }
 
-  /** A pending invitation's row; its first cell holds the email. */
+  /** A pending invitation's row; its first cell holds the email over "Invited by …". */
   invitationRow(email: string): Locator {
     return this.page
       .getByRole("row")
-      .filter({ has: this.page.getByRole("cell", { name: email }) });
+      .filter({ has: this.page.getByText(email, { exact: true }) })
+      .filter({ has: this.page.getByText(/^Invited by/) });
   }
 
   private dialog(title: string): Locator {
@@ -92,8 +98,16 @@ export class OrganizationMembersPage {
     await this.remove(email);
   }
 
-  /** Invites an address with no workspace roles. */
-  async invite(email: string, role: OrganizationRole) {
+  /**
+   * Invites an address with no workspace roles. An address without an account
+   * gets a pending invitation; one with an account becomes a member at once,
+   * which `existing` says to expect instead.
+   */
+  async invite(
+    email: string,
+    role: OrganizationRole,
+    { existing = false }: { existing?: boolean } = {},
+  ) {
     // The dialog clears its form whenever the page's organization query
     // settles, which wipes an address typed before then.
     await waitForGrid(this.page);
@@ -106,7 +120,11 @@ export class OrganizationMembersPage {
     await dialog.getByPlaceholder("Enter email address").fill(email);
     await dialog.getByRole("button", { name: "Invite Member" }).click();
     await expect(this.toast("Invitation sent!")).toBeVisible();
-    await expect(this.invitationRow(email)).toBeVisible();
+    if (existing) {
+      await this.search(email);
+    } else {
+      await expect(this.invitationRow(email)).toBeVisible();
+    }
   }
 
   /** The resend and delete buttons are bare icons, in that order. */

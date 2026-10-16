@@ -91,6 +91,56 @@ export class AccountSettingsPage {
     });
   }
 
+  get disableTwoFactorButton(): Locator {
+    return this.twoFactorStatus.getByRole("button", { name: "Disable" });
+  }
+
+  get disableTwoFactorDialog(): Locator {
+    return this.page.getByRole("dialog").filter({
+      has: this.page.getByRole("heading", {
+        name: "Disable Two-Factor Authentication",
+      }),
+    });
+  }
+
+  /** Confirms the enable dialog, which emails a code and then asks for it. */
+  async startEnablingTwoFactor() {
+    await this.enableTwoFactorButton.click();
+    await this.enableTwoFactorDialog
+      .getByRole("button", { name: "Enable" })
+      .click();
+    await expect(this.enableTwoFactorDialog.getByTestId("token-input")).toBeVisible();
+  }
+
+  /** Enters the emailed code; the page reloads with 2FA on. */
+  async confirmTwoFactorCode(code: string) {
+    await this.enableTwoFactorDialog.getByTestId("token-input").fill(code);
+    await this.enableTwoFactorDialog
+      .getByRole("button", { name: "Confirm" })
+      .click();
+    await expect(this.twoFactorStatus).toContainText("Currently enabled");
+  }
+
+  /** Confirms the disable dialog, which emails a code and then asks for it. */
+  async startDisablingTwoFactor() {
+    await this.disableTwoFactorButton.click();
+    await this.disableTwoFactorDialog
+      .getByRole("button", { name: "Disable" })
+      .click();
+    await expect(
+      this.disableTwoFactorDialog.getByPlaceholder("123456"),
+    ).toBeVisible();
+  }
+
+  /** Enters the emailed code; the page reloads with 2FA off. */
+  async confirmDisableTwoFactorCode(code: string) {
+    await this.disableTwoFactorDialog.getByPlaceholder("123456").fill(code);
+    await this.disableTwoFactorDialog
+      .getByRole("button", { name: "Disable" })
+      .click();
+    await expect(this.twoFactorStatus).toContainText("Currently disabled");
+  }
+
   // --- access tokens -------------------------------------------------------
 
   /** A workspace's row, by the workspace's name. */

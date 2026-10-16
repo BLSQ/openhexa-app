@@ -1,4 +1,4 @@
-import { Page, expect } from "@playwright/test";
+import { Locator, Page, expect } from "@playwright/test";
 
 export class LoginPage {
   constructor(private readonly page: Page) {}
@@ -30,6 +30,26 @@ export class LoginPage {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
     await this.submitButton.click();
+  }
+
+  // --- two-factor ----------------------------------------------------------
+
+  /** Shown instead of the credentials once an account with 2FA has entered them. */
+  get otpPrompt(): Locator {
+    return this.page.getByText(
+      "Enter the OTP code you received in your mailbox.",
+    );
+  }
+
+  get otpInput(): Locator {
+    return this.page.getByTestId("token");
+  }
+
+  /** Types the emailed code and finishes signing in. */
+  async submitOtp(code: string) {
+    await this.otpInput.fill(code);
+    await this.submitButton.click();
+    await expect(this.page).not.toHaveURL(/\/login/);
   }
 
   get signUpLink() {
