@@ -9,6 +9,9 @@ class AssistantConfig(CoreAppConfig):
     name = "hexa.assistant"
     label = "assistant"
 
+    # The gateway authenticates its callers itself, by workspace token.
+    ANONYMOUS_URLS = ["assistant:gateway_chat_completions"]
+
     def ready(self):
         super().ready()
         if os.environ.get("LOGFIRE_SEND_TO_LOGFIRE", "false").lower() == "true":
