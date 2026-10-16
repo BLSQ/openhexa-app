@@ -18,7 +18,7 @@ from hexa.core.models.soft_delete import (
     SoftDeletedModel,
     SoftDeleteQuerySet,
 )
-from hexa.user_management.models import User
+from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import Workspace
 
 CONVERSATION_NAME_MAX_LENGTH = 50
@@ -211,3 +211,63 @@ class ToolInvocation(Base):
 
     def __str__(self):
         return f"ToolInvocation({self.id}, tool={self.tool_name})"
+
+
+class AiUsage(Base):
+    """A model call made on the organization's AI credentials outside the app's
+    own agents: what the AI tooling of its notebook servers (Jupyternaut) reports
+    through the telemetry endpoint, see `hexa.assistant.telemetry`.
+
+    The app's agents keep their usage on the messages of a conversation; the
+    organization's monthly AI cost sums both.
+    """
+
+    organization = models.ForeignKey(
+        Organization, on_delete=models.CASCADE, related_name="ai_usages"
+    )
+    workspace = models.ForeignKey(
+        Workspace,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ai_usages",
+    )
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    # The tool that made the call, as it names itself (OpenTelemetry's
+    # service.name): "jupyternaut".
+    source = models.CharField(max_length=50)
+    model = models.CharField(max_length=100)
+    # Input tokens include the prompt-cache ones, as genai_prices counts them.
+    input_tokens = models.PositiveIntegerField(default=0)
+    cache_read_tokens = models.PositiveIntegerField(default=0)
+    cache_write_tokens = models.PositiveIntegerField(default=0)
+    output_tokens = models.PositiveIntegerField(default=0)
+    # In dollars; None when the model has no known price.
+    cost = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
+    # When the call ended, per the reporting tool. Telemetry arrives in batches,
+    # so this is not created_at.
+    occurred_at = models.DateTimeField()
+    # The call's own id (litellm's call id), so that telemetry a tool sends
+    # again after a failed delivery is not counted twice.
+    external_id = models.CharField(max_length=200, null=True, blank=True)
+
+    class Meta:
+        ordering = ["-occurred_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source", "external_id"],
+                condition=models.Q(external_id__isnull=False),
+                name="assistant_ai_usage_unique_external_id",
+            )
+        ]
+        indexes = [
+            # Covers Organization.get_monthly_ai_cost().
+            models.Index(
+                fields=["organization", "occurred_at"],
+                include=["cost"],
+                name="asst_ai_usage_org_time_idx",
+            ),
+        ]
+
+    def __str__(self):
+        return f"AiUsage({self.id}, source={self.source}, model={self.model})"
