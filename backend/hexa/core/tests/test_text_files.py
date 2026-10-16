@@ -3,6 +3,18 @@ from django.test import SimpleTestCase
 from hexa.core.text_files import GrepOutputMode, PathPattern, TextFiles
 
 
+class _ReadLog(dict):
+    """A file mapping that records which contents were read, like a lazy source would."""
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.reads = []
+
+    def __getitem__(self, path):
+        self.reads.append(path)
+        return super().__getitem__(path)
+
+
 class PathPatternTest(SimpleTestCase):
     def test_star_stays_in_directory(self):
         self.assertTrue(PathPattern("*.js").matches("app.js"))
@@ -13,6 +25,9 @@ class PathPatternTest(SimpleTestCase):
         self.assertTrue(pattern.matches("src/main.ts"))
         self.assertTrue(pattern.matches("src/lib/util.ts"))
         self.assertFalse(pattern.matches("main.ts"))
+
+    def test_matches_hidden_files(self):
+        self.assertTrue(PathPattern("**/*.js").matches(".config/app.js"))
 
     def test_braces_expand_alternatives(self):
         pattern = PathPattern("**/*.{html,css}")
@@ -94,6 +109,28 @@ class GrepTest(SimpleTestCase):
         result = self.files.grep("a", offset=10)
         self.assertEqual(result["files"], [])
         self.assertIn("No entries at offset 10", result["notice"])
+
+    def test_line_anchors(self):
+        self.assertEqual(self.files.grep(r"^function")["files"], ["app.js"])
+        self.assertEqual(self.files.grep(r"\Afunction")["files"], ["app.js"])
+
+    def test_match_across_lines_is_not_reported(self):
+        self.assertEqual(TextFiles({"f.txt": "a\nb\n"}).grep(r"a\sb")["files"], [])
+
+    def test_stops_reading_once_page_is_filled(self):
+        files = _ReadLog({f"{i}.txt": "match" for i in range(10)})
+        result = TextFiles(files).grep("match", head_limit=2)
+        self.assertEqual(result["files"], ["0.txt", "1.txt"])
+        self.assertTrue(result["truncated"])
+        self.assertEqual(files.reads, ["0.txt", "1.txt", "2.txt"])
+
+    def test_count_reads_every_file(self):
+        files = _ReadLog({f"{i}.txt": "match" for i in range(10)})
+        result = TextFiles(files).grep(
+            "match", output_mode=GrepOutputMode.COUNT, head_limit=2
+        )
+        self.assertEqual(result["total"], 10)
+        self.assertEqual(len(files.reads), 10)
 
     def test_invalid_regex_returns_error(self):
         self.assertIn("Invalid regular expression", self.files.grep("(")["error"])

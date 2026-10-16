@@ -5,11 +5,12 @@ how to drive.
 """
 
 import re
-from collections.abc import Mapping
+from abc import ABC, abstractmethod
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from enum import StrEnum
 from functools import cached_property
-from pathlib import PurePosixPath
+from glob import translate as translate_glob
 
 GLOB_LIMIT = 100
 GREP_HEAD_LIMIT = 250
@@ -52,28 +53,31 @@ class TextFiles:
         """Search file contents line by line with a Python regular expression.
 
         `head_limit` and `offset` page through the entries of the chosen mode: file
-        paths, output lines, or per-file counts. The `count` total covers every match.
+        paths, output lines, or per-file counts. Files are read lazily and the search
+        stops once the page is filled, except in `count` mode, whose total covers every
+        match.
         """
         try:
-            regex = re.compile(pattern, re.IGNORECASE if ignore_case else 0)
+            # MULTILINE keeps `^` and `$` anchored to lines in the whole-text prefilter.
+            regex = re.compile(
+                pattern, re.MULTILINE | (re.IGNORECASE if ignore_case else 0)
+            )
         except re.error as e:
             return {"error": f"Invalid regular expression {pattern!r}: {e}"}
 
-        hits = [
-            hit
-            for path in self._paths(glob)
-            if (hit := _FileHits.search(path, self._files[path], regex))
-        ]
-        entries = [entry for hit in hits for entry in hit.entries(output_mode, context)]
-        page = entries[offset : offset + head_limit]
+        mode = _GREP_MODES[output_mode]
+        limit = offset + head_limit
+        entries: list = []
+        for hit in self._hits(regex, glob):
+            entries.extend(mode.entries(hit, context))
+            # One entry past the page is enough to know the result is truncated.
+            if mode.stops_early and len(entries) > limit:
+                break
 
-        result = {
-            **_render(output_mode, page),
-            "truncated": offset + head_limit < len(entries),
-        }
-        if output_mode == GrepOutputMode.COUNT:
-            result["total"] = sum(len(hit.indexes) for hit in hits)
+        page = entries[offset:limit]
+        result = {**mode.render(page, entries), "truncated": len(entries) > limit}
         if entries and not page:
+            # An empty page means the loop never stopped early, so the count is exact.
             result[
                 "notice"
             ] = f"No entries at offset {offset}: there are {len(entries)} in total."
@@ -129,6 +133,18 @@ class TextFiles:
         path_pattern = PathPattern(pattern)
         return sorted(p for p in self._files if path_pattern.matches(p))
 
+    def _hits(self, regex: re.Pattern, glob: str | None) -> Iterator["_FileHits"]:
+        # A whole-text search runs in C and rules out most files without splitting them
+        # into lines. `\A` and `\Z` anchor to each line in the per-line pass but to the
+        # whole text here, so such patterns skip this shortcut.
+        prefilter = not re.search(r"\\[AZ]", regex.pattern)
+        for path in self._paths(glob):
+            text = self._files[path]
+            if prefilter and not regex.search(text):
+                continue
+            if hit := _FileHits.search(path, text, regex):
+                yield hit
+
 
 @dataclass(frozen=True)
 class PathPattern:
@@ -139,15 +155,20 @@ class PathPattern:
     pattern: str
 
     def matches(self, path: str) -> bool:
-        return any(PurePosixPath(path).full_match(p) for p in self._alternatives)
+        return self._regex.match(path) is not None
 
     @cached_property
-    def _alternatives(self) -> list[str]:
-        return self._expand_braces(self.pattern)
+    def _regex(self) -> re.Pattern:
+        return re.compile(
+            "|".join(
+                translate_glob(alternative, recursive=True, include_hidden=True)
+                for alternative in self._expand_braces(self.pattern)
+            )
+        )
 
     @classmethod
     def _expand_braces(cls, pattern: str) -> list[str]:
-        # pathlib's matcher has no brace support, but `*.{js,css}` is the idiom models reach for.
+        # glob.translate has no brace support, but `*.{js,css}` is the idiom models reach for.
         match = re.search(r"\{([^{}]*)\}", pattern)
         if match is None:
             return [pattern]
@@ -171,16 +192,7 @@ class _FileHits:
         indexes = [i for i, line in enumerate(lines) if regex.search(line)]
         return cls(path, lines, indexes) if indexes else None
 
-    def entries(self, output_mode: GrepOutputMode, context: int) -> list:
-        match output_mode:
-            case GrepOutputMode.CONTENT:
-                return self._content_lines(context)
-            case GrepOutputMode.COUNT:
-                return [(self.path, len(self.indexes))]
-            case _:
-                return [self.path]
-
-    def _content_lines(self, context: int) -> list[str]:
+    def content_lines(self, context: int) -> list[str]:
         """ripgrep-style: `path:N:line` for matches, `path-N-line` for context, `--` between gaps."""
         hit_set = set(self.indexes)
         output: list[str] = []
@@ -198,14 +210,53 @@ class _FileHits:
         return output
 
 
-def _render(output_mode: GrepOutputMode, page: list) -> dict:
-    match output_mode:
-        case GrepOutputMode.CONTENT:
-            return {"content": "\n".join(page)}
-        case GrepOutputMode.COUNT:
-            return {"counts": dict(page)}
-        case _:
-            return {"files": page}
+class _GrepMode(ABC):
+    """How one output mode turns file hits into entries, and a page of them into a result."""
+
+    # Whether the search can stop once the page is filled, sparing reads of later files.
+    stops_early = True
+
+    @abstractmethod
+    def entries(self, hit: _FileHits, context: int) -> list:
+        ...
+
+    @abstractmethod
+    def render(self, page: list, entries: list) -> dict:
+        ...
+
+
+class _FilesWithMatches(_GrepMode):
+    def entries(self, hit, context):
+        return [hit.path]
+
+    def render(self, page, entries):
+        return {"files": page}
+
+
+class _Content(_GrepMode):
+    def entries(self, hit, context):
+        return hit.content_lines(context)
+
+    def render(self, page, entries):
+        return {"content": "\n".join(page)}
+
+
+class _Count(_GrepMode):
+    # The total covers every match, so every file must be searched.
+    stops_early = False
+
+    def entries(self, hit, context):
+        return [(hit.path, len(hit.indexes))]
+
+    def render(self, page, entries):
+        return {"counts": dict(page), "total": sum(count for _, count in entries)}
+
+
+_GREP_MODES: dict[GrepOutputMode, _GrepMode] = {
+    GrepOutputMode.FILES_WITH_MATCHES: _FilesWithMatches(),
+    GrepOutputMode.CONTENT: _Content(),
+    GrepOutputMode.COUNT: _Count(),
+}
 
 
 def _split_lines(text: str) -> list[str]:
