@@ -259,8 +259,8 @@ class ToolInvocationAdmin(admin.ModelAdmin):
 
 @admin.register(AiUsage)
 class AiUsageAdmin(admin.ModelAdmin):
-    """Usage reported by the AI tooling of the notebook servers. Read-only:
-    the rows come from telemetry.
+    """Usage of the gateway by the AI tooling of the notebook servers. Read-only:
+    the rows are written as the calls run.
     """
 
     list_display = (

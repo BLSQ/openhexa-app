@@ -11,6 +11,7 @@ class AgentKey(StrEnum):
     EDIT_WEBAPP = "edit_webapp"
     GENERATE_SQL = "generate_sql"
     NAMING = "naming"
-    # Not an agent of the app: the AI tooling inside notebook servers (Jupyter AI,
-    # Claude Code), whose model follows the same precedence rules.
+    # Not an agent of the app: the AI tooling inside notebook servers
+    # (Jupyternaut), served by the gateway on a model that follows the same
+    # precedence rules.
     NOTEBOOKS = "notebooks"

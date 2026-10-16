@@ -11,6 +11,4 @@ urlpatterns = [
     path("authenticate/", views.authenticate, name="authenticate"),
     path("default-credentials/", views.default_credentials, name="default-credentials"),
     path("credentials/", views.credentials, name="credentials"),
-    # OTLP/HTTP: the exporters append /v1/<signal> to their endpoint, no slash.
-    path("telemetry/v1/<slug:signal>", views.telemetry_view, name="telemetry"),
 ]
