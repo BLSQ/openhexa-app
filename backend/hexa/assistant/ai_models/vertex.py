@@ -9,6 +9,7 @@ for the region of the model it is about to run.
 """
 
 from collections.abc import Callable
+from datetime import datetime
 from functools import cache
 
 import google.auth
@@ -43,6 +44,18 @@ def _google_credentials():
         scopes=["https://www.googleapis.com/auth/cloud-platform"]
     )
     return credentials
+
+
+def access_token() -> tuple[str, datetime]:
+    """A bearer token for our Vertex project, and when it expires (naive UTC).
+
+    For clients that cannot hold our credentials, such as the AI tooling inside
+    notebook servers. Always refreshed: the cached token may be about to expire,
+    and those clients have no way to renew it.
+    """
+    credentials = _google_credentials()
+    credentials.refresh(GoogleAuthRequest())
+    return credentials.token, credentials.expiry
 
 
 def _vertex_openai(region: str) -> Provider:
