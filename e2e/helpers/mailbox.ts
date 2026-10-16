@@ -8,11 +8,13 @@ export type Email = {
   subject: string;
   from: string;
   to: string;
-  /** The plain-text body, where the links are easiest to find. */
   text: string;
   html: string;
   receivedAt: Date;
-  /** Every absolute URL in the plain-text body, in order. */
+  /**
+   * The links a mail client would offer: the HTML part's anchors, or, for a
+   * text-only email, every absolute URL in the body, in order.
+   */
   links: URL[];
   /** Mailgun's handle on the stored message. */
   storageKey: string;
@@ -148,14 +150,15 @@ export class Mailbox {
     }
     const message = await response.json();
     const text: string = message["body-plain"] ?? "";
+    const html: string = message["body-html"] ?? "";
     return {
       subject: message.subject ?? "",
       from: message.from ?? message.sender ?? "",
       to: message.recipients ?? "",
       text,
-      html: message["body-html"] ?? "",
+      html,
       receivedAt,
-      links: linksIn(text),
+      links: html ? anchorsIn(html) : linksIn(text),
       storageKey,
     };
   }
@@ -172,6 +175,19 @@ function matches(subject: string, expected?: string | RegExp): boolean {
   return typeof expected === "string"
     ? subject === expected
     : expected.test(subject);
+}
+
+function anchorsIn(html: string): URL[] {
+  const links: URL[] = [];
+  for (const match of html.matchAll(/href="([^"]+)"/g)) {
+    try {
+      // Attribute values are HTML-escaped: `&amp;` between query parameters.
+      links.push(new URL(match[1].replace(/&amp;/g, "&")));
+    } catch {
+      // A mailto: or anchor-only href is not a link the suite follows.
+    }
+  }
+  return links;
 }
 
 function linksIn(text: string): URL[] {

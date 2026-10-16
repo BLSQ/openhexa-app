@@ -21,6 +21,17 @@ export class OrganizationExternalCollaboratorsPage {
       .filter({ has: this.page.getByText(email, { exact: true }) });
   }
 
+  /**
+   * A row of the page's "Pending Direct Workspace Invitations" grid: an
+   * invitation into one workspace, sent to an email without an account.
+   */
+  pendingInvitationRow(email: string): Locator {
+    return this.page
+      .getByRole("row")
+      .filter({ has: this.page.getByText(email, { exact: true }) })
+      .filter({ has: this.page.getByText(/^Invited by/) });
+  }
+
   /** A badge in the row's "Workspace Roles" column. */
   workspaceRole(email: string, workspaceName: string, role: WorkspaceRole) {
     return this.row(email).getByText(`${workspaceName} · ${role}`, {

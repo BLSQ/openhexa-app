@@ -1,12 +1,18 @@
 import { mergeTests } from "@playwright/test";
 
+import { credentials, mailgun, workspace } from "../config/environment";
 import { test as cleanupTest } from "../fixtures/cleanup";
 import { expect, test as disposableTest } from "../fixtures/disposableWorkspace";
+import { test as mailboxTest } from "../fixtures/mailbox";
+import { test as visitorsTest } from "../fixtures/visitors";
 import { uniqueName } from "../helpers/confirm";
+import { linkTo, mailboxAddress } from "../helpers/mailbox";
+import { OrganizationExternalCollaboratorsPage } from "../pages/OrganizationExternalCollaboratorsPage";
+import { RegisterPage } from "../pages/RegisterPage";
 import { WorkspacePipelinesPage } from "../pages/WorkspacePipelinesPage";
 import { WorkspaceSettingsPage } from "../pages/WorkspaceSettingsPage";
 
-const test = mergeTests(cleanupTest, disposableTest);
+const test = mergeTests(cleanupTest, disposableTest, mailboxTest, visitorsTest);
 
 const CONFIG_MARKER = "E2E-CONFIG";
 const DATABASE_MARKER = "E2E-DATABASE-WRITTEN";
@@ -80,6 +86,73 @@ test.describe("Workspace settings", () => {
       await expect(page.getByText(new RegExp(`${CONFIG_MARKER} .*${configValue}`))).toBeVisible();
       // Written with the password regenerated above.
       await expect(page.getByText(DATABASE_MARKER)).toBeVisible();
+    });
+  });
+
+  test("an address without an account is invited by email, resent to, and the invitation deleted", async ({
+    page,
+    anonymousPage,
+    cleanup,
+    mailbox,
+  }) => {
+    test.skip(
+      !mailgun,
+      "Needs E2E_MAILGUN_API_KEY for a mailbox the suite can read",
+    );
+    const settings = new WorkspaceSettingsPage(page);
+    const collaborators = new OrganizationExternalCollaboratorsPage(page);
+    // The register page turns a signed-in visitor away, so it is a stranger who opens the link.
+    const register = new RegisterPage(anonymousPage);
+    // Only the invitation is exercised: registering would leave an account behind.
+    const address = mailboxAddress("e2e-wsinvite");
+    cleanup.add(`workspace invitation for ${address}`, () =>
+      settings.deleteInvitationIfPresent(workspace.slug, address),
+    );
+
+    let since = new Date();
+    await settings.goto(workspace.slug);
+    await settings.addMember(address, "Viewer");
+    await expect(settings.invitationRow(address)).toContainText("Viewer");
+    await expect(settings.invitationRow(address)).toContainText("Pending");
+
+    const invitation = await mailbox.waitForEmail(address, {
+      since,
+      subject: `You've been invited to join the workspace ${workspace.name} on OpenHEXA`,
+    });
+    expect(invitation.text).toContain(credentials.email);
+    const link = linkTo(invitation, "/register");
+    expect(link.searchParams.get("email")).toBe(address);
+
+    await test.step("the organization lists it as a direct workspace invitation", async () => {
+      await collaborators.goto();
+      await expect(collaborators.pendingInvitationRow(address)).toContainText(
+        "Viewer",
+      );
+    });
+
+    await test.step("resending issues a new link", async () => {
+      since = new Date();
+      await settings.goto(workspace.slug);
+      await settings.resendInvitation(address);
+      const resent = await mailbox.waitForEmail(address, {
+        since,
+        subject: invitation.subject,
+      });
+      expect(linkTo(resent, "/register").searchParams.get("token")).not.toBe(
+        link.searchParams.get("token"),
+      );
+    });
+
+    await test.step("the link opens the registration form for that address", async () => {
+      await register.open(link);
+      await expect(register.emailInput).toHaveValue(address);
+    });
+
+    await test.step("deleting it empties the list", async () => {
+      await settings.goto(workspace.slug);
+      await settings.deleteInvitation(address);
+      await page.reload();
+      await expect(settings.invitationRow(address)).toHaveCount(0);
     });
   });
 });
