@@ -112,16 +112,74 @@ export class WorkspaceSettingsPage {
     await this.addMemberDialog
       .locator('select[name="role"]')
       .selectOption({ label: role });
-    await this.addMemberDialog.getByRole("button", { name: "Invite" }).click();
+    // The picker's own button is named after its value, "Invite new user: …".
+    await this.addMemberDialog
+      .getByRole("button", { name: "Invite", exact: true })
+      .click();
     await expect(
       this.page.getByText("Member invited successfully", { exact: true }),
     ).toBeVisible();
   }
 
+  /** A member's row; a pending invitation's row shows the email too, over "Invited by …". */
   memberRow(email: string): Locator {
     return this.page
       .getByRole("row")
-      .filter({ has: this.page.getByText(email, { exact: true }) });
+      .filter({ has: this.page.getByText(email, { exact: true }) })
+      .filter({ hasNot: this.page.getByText(/^Invited by/) });
+  }
+
+  // --- invitations ---------------------------------------------------------
+
+  /** A row of the "Pending & Declined invitations" grid, by the invited email. */
+  invitationRow(email: string): Locator {
+    return this.page
+      .getByRole("row")
+      .filter({ has: this.page.getByText(email, { exact: true }) })
+      .filter({ has: this.page.getByText(/^Invited by/) });
+  }
+
+  private invitationDialog(title: string): Locator {
+    return this.page.getByRole("dialog").filter({
+      has: this.page.getByRole("heading", { name: title }),
+    });
+  }
+
+  /** The resend and delete buttons are bare icons, in that order. */
+  private invitationAction(email: string, action: "resend" | "delete"): Locator {
+    return this.invitationRow(email)
+      .getByRole("button")
+      .nth(action === "resend" ? 0 : 1);
+  }
+
+  async resendInvitation(email: string) {
+    await this.invitationAction(email, "resend").click();
+    await this.invitationDialog("Resend invitation")
+      .getByRole("button", { name: "Resend" })
+      .click();
+    await expect(
+      this.page.getByText("Invitation resent", { exact: true }),
+    ).toBeVisible();
+  }
+
+  async deleteInvitation(email: string) {
+    await this.invitationAction(email, "delete").click();
+    await this.invitationDialog("Delete invitation")
+      .getByRole("button", { name: "Delete" })
+      .click();
+    await expect(
+      this.page.getByText("Invitation deleted", { exact: true }),
+    ).toBeVisible();
+    await expect(this.invitationRow(email)).toHaveCount(0);
+  }
+
+  async deleteInvitationIfPresent(workspaceSlug: string, email: string) {
+    await this.goto(workspaceSlug);
+    await this.page.waitForLoadState("networkidle");
+    if ((await this.invitationRow(email).count()) === 0) {
+      return;
+    }
+    await this.deleteInvitation(email);
   }
 
   /** The row's role cell, e.g. "Editor". */
