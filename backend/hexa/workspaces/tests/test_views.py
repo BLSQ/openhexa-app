@@ -150,11 +150,7 @@ class ViewsTest(TestCase):
         )
 
     def test_workspace_for_notebooks_credentials_ai_env(self):
-        ai_env = {
-            "HEXA_AI_PROVIDER": "anthropic",
-            "HEXA_AI_MODEL": "claude-sonnet-4-6",
-            "HEXA_AI_ANTHROPIC_API_KEY": "sk-ant-test",
-        }
+        ai_env = {"HEXA_AI_PROVIDER": "openhexa", "HEXA_AI_MODEL": "claude-sonnet-4-6"}
         self.client.force_login(self.USER_JULIA)
         with patch(
             "hexa.workspaces.views.notebooks_ai_env", return_value=ai_env

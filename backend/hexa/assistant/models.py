@@ -180,8 +180,8 @@ class ToolInvocation(Base):
 
 class AiUsage(Base):
     """A model call made on the organization's AI credentials outside the app's
-    own agents: what the AI tooling of its notebook servers (Jupyternaut) reports
-    through the telemetry endpoint, see `hexa.assistant.telemetry`.
+    own agents: what the gateway runs for the AI tooling of its notebook
+    servers, see `hexa.assistant.gateway`.
 
     The app's agents keep their usage on the messages of a conversation; the
     organization's monthly AI cost sums both.
@@ -198,8 +198,7 @@ class AiUsage(Base):
         related_name="ai_usages",
     )
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    # The tool that made the call, as it names itself (OpenTelemetry's
-    # service.name): "jupyternaut".
+    # Who the call was run for: "notebooks" for the gateway.
     source = models.CharField(max_length=50)
     model = models.CharField(max_length=100)
     # Input tokens include the prompt-cache ones, as genai_prices counts them.
@@ -209,11 +208,9 @@ class AiUsage(Base):
     output_tokens = models.PositiveIntegerField(default=0)
     # In dollars; None when the model has no known price.
     cost = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
-    # When the call ended, per the reporting tool. Telemetry arrives in batches,
-    # so this is not created_at.
+    # When the call ended.
     occurred_at = models.DateTimeField()
-    # The call's own id (litellm's call id), so that telemetry a tool sends
-    # again after a failed delivery is not counted twice.
+    # The call's own id (the completion id the gateway answered with).
     external_id = models.CharField(max_length=200, null=True, blank=True)
 
     class Meta:
