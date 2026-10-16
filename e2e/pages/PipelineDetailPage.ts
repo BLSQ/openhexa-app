@@ -185,10 +185,19 @@ export class PipelineDetailPage {
       .filter({ has: this.page.getByRole("cell", { name: displayName, exact: true }) });
   }
 
-  /** Adds the first member the picker offers, and returns their name. */
-  async addRecipient(level: NotificationLevel): Promise<string> {
+  /**
+   * Adds a member as recipient and returns their display name: the member
+   * with this name (the picker shows names only), or the first one offered.
+   */
+  async addRecipient(
+    level: NotificationLevel,
+    displayName?: string,
+  ): Promise<string> {
     await this.page.getByRole("combobox", { name: "Select member" }).click();
-    const option = this.page.getByRole("option").first();
+    const options = this.page.getByRole("option");
+    const option = displayName
+      ? options.filter({ hasText: displayName }).first()
+      : options.first();
     const name = (await option.innerText()).trim().split("\n")[0];
     await option.click();
     await this.page

@@ -43,9 +43,9 @@ export const HOLDING_MARKER = "E2E-HOLDING";
 
 /**
  * A pipeline for exercising runs: typed parameters it logs back, an optional
- * hold that keeps it running (and logging) for a while, and an optional
- * `output` under which it writes a CSV file and a database table and records
- * both as run outputs.
+ * hold that keeps it running (and logging) for a while, an optional `output`
+ * under which it writes a CSV file and a database table and records both as
+ * run outputs, and a `fail` switch that makes the run end in failure.
  */
 export const RUN_PIPELINE_SOURCE = `import time
 
@@ -60,12 +60,15 @@ from sqlalchemy import create_engine
 @parameter("shout", name="Shout", type=bool, default=False, required=False)
 @parameter("hold", name="Hold seconds", type=int, default=0, required=False)
 @parameter("output", name="Output name", type=str, required=False)
-def e2e_run(rows, label, shout, hold, output):
+@parameter("fail", name="Fail", type=bool, default=False, required=False)
+def e2e_run(rows, label, shout, hold, output, fail):
     text = label.upper() if shout else label
     current_run.log_info(f"${PARAMETERS_MARKER} rows={rows} label={text}")
     for second in range(0, hold or 0, 5):
         current_run.log_info(f"${HOLDING_MARKER} {second}s")
         time.sleep(5)
+    if fail:
+        raise RuntimeError("E2E-FAILED on purpose")
     if output:
         frame = pd.DataFrame({"n": range(rows), "label": [text] * rows})
         path = f"{workspace.files_path}/{output}.csv"
