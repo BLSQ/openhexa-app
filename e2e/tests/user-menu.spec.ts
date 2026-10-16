@@ -133,7 +133,8 @@ test.describe("Account settings", () => {
     page,
   }) => {
     // Only opened and cancelled: enabling it would lock the shared test account
-    // behind a one-time code sent by email.
+    // behind a one-time code sent by email. account-lifecycle.spec.ts enables
+    // it on a throwaway account and reads the code.
     const account = new AccountSettingsPage(page);
     await account.goto();
     await expect(account.twoFactorStatus).toContainText("Currently disabled");

@@ -19,7 +19,8 @@ test.describe("Organization members", () => {
     cleanup,
   }) => {
     const members = new OrganizationMembersPage(page);
-    // A reserved domain: nothing is delivered, and nobody can accept it.
+    // A reserved domain: nothing is delivered, and nobody can accept it. The
+    // delivered, accepted variant lives in account-lifecycle.spec.ts.
     const email = `${uniqueName("e2e-invite")}@example.com`;
     cleanup.add(`invitation for ${email}`, () =>
       members.deleteInvitationIfPresent(email),

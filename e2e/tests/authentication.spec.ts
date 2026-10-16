@@ -51,6 +51,7 @@ test.describe("Authentication", () => {
 
     await login.goto();
     // An address without an account, on a reserved domain: nothing is sent.
+    // A reset that is received and completed is in account-lifecycle.spec.ts.
     await login.requestPasswordReset(`${uniqueName("e2e-reset")}@example.com`);
   });
 
