@@ -19,7 +19,8 @@ def workspace_token_authentication_middleware(get_response):
         except KeyError:
             return get_response(request)  # No Authorization header
         except ValueError:
-            logger.exception("workspace authentication error")
+            # Not "<type> <token>": another scheme, such as the bare token the
+            # notebooks telemetry endpoint accepts. Not ours to resolve.
             return get_response(request)
 
         if auth_type.lower() == "bearer":

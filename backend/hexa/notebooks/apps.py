@@ -7,4 +7,5 @@ class NotebooksConfig(CoreAppConfig):
 
     ANONYMOUS_URLS = [
         "notebooks:credentials",
+        "notebooks:telemetry",
     ]

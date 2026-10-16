@@ -481,17 +481,24 @@ class Organization(Base, SoftDeletedModel):
         )
 
     def get_monthly_ai_cost(self) -> float:
-        """Sum AI assistant cost (USD) for the current calendar month across the organization's workspaces."""
-        from hexa.assistant.models import Message
+        """Sum AI cost (USD) for the current calendar month across the
+        organization's workspaces: the app's agents and the AI tooling of the
+        notebook servers.
+        """
+        from hexa.assistant.models import AiUsage, Message
 
         today = timezone.now().date()
         month_start = today.replace(day=1)
-        total = Message.objects.filter(
+        conversations = Message.objects.filter(
             conversation__workspace__organization=self,
             role=Message.Role.ASSISTANT,
             created_at__date__gte=month_start,
         ).aggregate(total=Sum("cost"))["total"]
-        return float(round(total or 0, ndigits=2))
+        notebooks = AiUsage.objects.filter(
+            organization=self,
+            occurred_at__date__gte=month_start,
+        ).aggregate(total=Sum("cost"))["total"]
+        return float(round((conversations or 0) + (notebooks or 0), ndigits=2))
 
     @property
     def is_frozen(self) -> bool:
