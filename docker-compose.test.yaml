@@ -7,6 +7,14 @@ services:
     # Tests patch the forgejo client, so there is no need to boot the git server.
     depends_on: !override
       - db
+    # A worktree's .env points to the main checkout's database server; tests
+    # must always use the throwaway one below.
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=${POSTGRES_DB}
+      - WORKSPACES_DATABASE_HOST=db
+      - WORKSPACES_DATABASE_PORT=5432
 
   db:
     command: postgres -c fsync=off -c synchronous_commit=off -c full_page_writes=off
@@ -23,7 +31,8 @@ services:
 
 networks:
   # Private, project-managed network instead of the shared external `openhexa`
-  # one, so the test app cannot resolve `db` to the development database.
+  # one, so the test app cannot resolve `db` to the development database. Named
+  # after the project so that worktrees can run their tests concurrently.
   openhexa:
-    name: openhexa-test
+    name: ${COMPOSE_PROJECT_NAME}
     external: false

@@ -7,8 +7,11 @@
 .DEFAULT_GOAL := help
 
 COMPOSE := docker compose
+# Set in the .env of worktrees created by scripts/worktree.sh
+PROJECT := $(shell sed -n 's/^COMPOSE_PROJECT_NAME=//p' .env 2>/dev/null)
 # Throwaway in-memory database in its own project, so it never touches the dev stack
-COMPOSE_TEST := docker compose -p openhexa-test -f docker-compose.yaml -f docker-compose.test.yaml
+COMPOSE_TEST := docker compose -p $(or $(PROJECT),openhexa)-test -f docker-compose.yaml -f docker-compose.test.yaml
+WORKTREE := scripts/worktree.sh
 NPM := npm --prefix frontend
 
 .PHONY: help h \
@@ -16,7 +19,8 @@ NPM := npm --prefix frontend
 	tb tests_backend tbc tests_backend_coverage tbclean tests_backend_clean \
 	lb lint_backend mk makemigrations m migrate fx fixtures db database s shell \
 	if install_frontend rf run_frontend tf tests_frontend lf lint_frontend cg codegen i18n \
-	t tests l lint
+	dev t tests l lint \
+	worktree worktree-reset-db worktree-remove
 
 h help: ## Show this help
 	@awk 'BEGIN { FS = ":.*## " } \
@@ -88,6 +92,22 @@ i18n: ## Extract the frontend translation strings
 
 ##@ All
 
+dev: ## Apply the migrations, run the backend in the background and the frontend
+	$(COMPOSE) run --rm app migrate
+	$(COMPOSE) up -d
+	$(NPM) run dev
+
 t tests: tests_backend tests_frontend ## Run the backend and frontend tests
 
 l lint: lint_backend lint_frontend ## Lint the backend and frontend code
+
+##@ Extra checkouts, to run several branches at once (see the README)
+
+worktree: ## Create the next extra checkout (../openhexa-app-N) and open it in the IDE it is run from
+	$(WORKTREE) new
+
+worktree-reset-db: ## Reset an extra checkout's database from the main one (asks which, from the main checkout)
+	$(WORKTREE) db
+
+worktree-remove: ## Remove an extra checkout, its containers and database (asks which, from the main checkout)
+	$(WORKTREE) remove

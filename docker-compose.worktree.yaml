@@ -1,0 +1,51 @@
+# Layered on top of docker-compose.yaml by worktrees created with
+# scripts/worktree.sh (through COMPOSE_FILE in the worktree's .env). It is
+# referenced from the main checkout, so worktrees of branches that predate it
+# work too.
+#
+# A worktree only runs the app and its workers. It reuses the database server,
+# the git server and the mail catcher of the main checkout's stack through the
+# host, so it does not duplicate the multi-GB postgres volume: the worktree gets
+# its own copy of the app database on the shared server instead.
+x-worktree: &worktree
+  image: !reset null
+  extra_hosts:
+    # Built into Docker Desktop, needed on Linux.
+    - "host.docker.internal:host-gateway"
+
+services:
+  app:
+    <<: *worktree
+    depends_on: !reset []
+    ports: !override
+      - "${BASE_PORT}:8000"
+
+  dataset_worker:
+    <<: *worktree
+    depends_on: !reset []
+
+  workspace_copy_worker:
+    <<: *worktree
+    depends_on: !reset []
+
+  pipelines_runner:
+    <<: *worktree
+    depends_on: !reset []
+
+  pipelines_scheduler:
+    <<: *worktree
+    depends_on: !reset []
+
+  db:
+    profiles: ["main-only"]
+  forgejo:
+    profiles: ["main-only"]
+  git_proxy:
+    profiles: ["main-only"]
+  mailhog:
+    profiles: ["main-only"]
+
+networks:
+  openhexa:
+    name: ${COMPOSE_PROJECT_NAME}
+    external: false

@@ -275,6 +275,40 @@ The new-account notification emails land in MailHog. If login fails with an `iss
 the `/etc/hosts` entry and that port `8080` is published, so the issuer is `http://mock-oidc:8080/default`
 from both the browser and the backend.
 
+## Working on several branches at once
+
+To run two branches side by side, each in its own IDE window, create an extra checkout (a git worktree) once:
+
+```sh
+make worktree            # creates ../openhexa-app-2 (then -3, ...)
+```
+
+In the new window, switch branches (`git checkout -b HEXA-1234-...`) as usual, and run `make dev` (migrations,
+backend in the background, frontend) or `make rbl` and `make rf`: `../openhexa-app-2` is served on
+http://openhexa-app-2.localhost:3020, next to the main one on http://localhost:3000.
+
+```sh
+make worktree-reset-db   # reset an extra checkout's database from the main one
+make worktree-remove     # remove an extra checkout, its containers and its database
+```
+
+If you run from the terminal of PyCharm (or another JetBrains IDE), VS Code or Cursor, it opens the new checkout in a new
+window of that IDE.
+
+How it works:
+
+- Extra checkout `N` runs its backend on `8000 + 10N` and its frontend on `3000 + 10N`, on the hostname
+  `openhexa-app-N.localhost`, so that its login cookies do not clash with the other checkouts (cookies ignore the port).
+  Browsers resolve `*.localhost` to your machine without any `/etc/hosts` entry.
+- Its `.env` is generated from the main checkout's `.env`, and its PyCharm settings are copied from the main
+  checkout's `.idea`.
+- Its database is a copy of the main `hexa-app` database, `hexa-app-N` on the same postgres server; `make m` there
+  migrates that copy only.
+- Only the app runs there (`docker-compose.worktree.yaml`, compose project `openhexa-app-N`), starting from the
+  main checkout's docker images. It uses the postgres server, Forgejo and MailHog of the main checkout, which must
+  be running (`make rbl` there), and the same workspace files: deleting a workspace in an extra checkout deletes
+  its database and files for the main checkout too.
+
 ## Analytics
 We use [Mixpanel](https://mixpanel.com/home/) to track users and their actions. If you want to enable it, set the `MIXPANEL_TOKEN` environment variable with the token from your Mixpanel project and restart the application.
 
