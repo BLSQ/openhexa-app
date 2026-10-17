@@ -1065,6 +1065,7 @@ input ExecuteSavedQueryInput {
   after: String                # the previous page's endCursor
   before: String               # the next page's startCursor
   includeTotalItems: Boolean
+  parameters: JSON             # Parameter values (name -> value) for parameterized queries
 }
 
 input QueryResultOrderBy {
@@ -1103,6 +1104,8 @@ enum ExecuteSQLError {
   INVALID_ORDER_BY
   INVALID_CURSOR
   INVALID_PAGINATION
+  INVALID_PARAMETERS
+  TEMPLATE_ERROR
 }
 ```
 
@@ -1141,6 +1144,83 @@ for another query or ordering, and `INVALID_PAGINATION` for arguments that
 contradict each other, such as `page` together with a cursor, or `after` with
 `before`.
 
+#### Query templating
+
+Saved queries can declare parameters, allowing web apps to apply dynamic filters
+without changing the underlying SQL query. You define parameter placeholders in
+the SQL using `{{ parameter_name }}` and specify each parameter's name and type:
+
+```sql
+SELECT district, period, cases
+FROM malaria_indicators
+WHERE district = ANY({{ districts }})
+  AND period >= {{ start_date }}
+```
+
+```json
+[
+  { "name": "districts",  "type": "STRING", "multiple": true, "required": true },
+  { "name": "start_date", "type": "DATE",   "default": "2026-01-01" }
+]
+```
+
+Parameters are defined using the `parameters` argument on the `createSavedQuery`
+and `updateSavedQuery` GraphQL mutations, or through the `create_saved_query`
+and `update_saved_query` MCP tools.
+
+In your web app, pass parameter values by name alongside any sorting and pagination
+options:
+
+```js
+{ input: { slug: "malaria-by-district", parameters: { districts: ["Dakar", "Thiès"] }, orderBy: [{ column: "period", direction: "DESC" }], perPage: 50 } }
+```
+
+If a parameter is omitted, it falls back to its default value (for example, `start_date`
+above defaults to `"2026-01-01"`). Supported types are `STRING`, `INTEGER`, `FLOAT`,
+`BOOLEAN`, and `DATE` (an ISO `YYYY-MM-DD` string), and any type can optionally accept
+lists with `"multiple": true`.
+
+The API returns `INVALID_PARAMETERS` if a required parameter is missing, if you provide
+an unrecognized parameter name, or if a value has the wrong type (such as passing a string
+like `"10"` for an `INTEGER`). If the template cannot be rendered with the provided values,
+the API returns `TEMPLATE_ERROR`.
+
+**Parameter values are safely bound at execution time.** They are handled by the database
+driver as query parameters rather than concatenated directly into SQL text. Keep these
+guidelines in mind when designing queries:
+
+- **Filter against lists with `= ANY`, and exclude lists with `<> ALL`:**
+
+    ```sql
+    WHERE district = ANY({{ districts }})     -- keep these districts
+    WHERE district <> ALL({{ districts }})    -- exclude these districts
+    ```
+
+    PostgreSQL internally translates `IN` lists into `= ANY(array)`, and `= ANY` is the
+    syntax that accepts parameterized arrays. This also safely supports empty lists: if a
+    user clears a multi-select filter and the app passes `districts: []`, the condition
+    simply matches zero rows instead of causing a SQL syntax error. Avoid writing
+    `IN ({{ districts }})`, which causes a PostgreSQL type error (`operator does not exist: text = text[]`).
+
+- **Parameters represent data values, not SQL identifiers.** Parameters cannot be used for
+    column names or sorting clauses (for example, `ORDER BY {{ sort }}` treats the value as
+    a constant). Instead, manage sorting and pagination through the GraphQL query arguments
+    (`orderBy`, `perPage`, `page`, and cursors), and omit `ORDER BY`, `LIMIT`, and `OFFSET`
+    from the saved SQL query.
+
+- **Do not place placeholders inside quotes.**
+    Writing `WHERE name LIKE '{{ q }}%'` treats the placeholder as literal text. Instead,
+    write `WHERE name LIKE {{ q }}` and add any wildcards directly in the parameter value
+    passed by the web app (for example, `{ q: "dak%" }`).
+
+- **Parameter definitions cannot be queried dynamically by web apps.** Because web apps
+    operating under `DATABASE_READ` cannot read saved query metadata, specify the expected
+    parameter names and types in your frontend code alongside the query slug.
+
+Pagination cursors are tied to the parameter values used when they were generated. If you
+attempt to paginate using a cursor with different parameter values, the API returns `INVALID_CURSOR`.
+
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -1161,6 +1241,8 @@ contradict each other, such as `page` together with a cursor, or `after` with
 
   <script>
     const SAVED_QUERY_SLUG = "my-saved-query";
+    // Omit this or pass {} if the query does not declare parameters.
+    const QUERY_PARAMETERS = {};
 
     async function gql(query, variables) {
       const res = await fetch("/graphql/", {
@@ -1183,7 +1265,7 @@ contradict each other, such as `page` together with a cursor, or `after` with
             pageInfo { hasNextPage }
           }
         }
-      `, { input: { slug: SAVED_QUERY_SLUG, perPage: 100 } });
+      `, { input: { slug: SAVED_QUERY_SLUG, perPage: 100, parameters: QUERY_PARAMETERS } });
 
       if (!result.success) {
         out.textContent = "Error: " + result.errors.join(", ");

@@ -360,3 +360,26 @@ def count_statement(prepared: PreparedQuery) -> PreparedQuery:
         body="",
         params=params,
     )
+
+
+def to_psycopg2(rendered) -> PreparedQuery:
+    """Convert a `RenderedQuery` into a `PreparedQuery` for psycopg2 execution.
+
+    Replaces template placeholder tokens with psycopg2 `%s` placeholders and
+    escapes literal `%` characters to `%%` for psycopg2 string formatting.
+    Validates that the rendered text contains only a single statement.
+    """
+    prepared = PreparedQuery.from_text(rendered.sql)
+    if not rendered.params:
+        return prepared
+
+    def convert(text: str) -> str:
+        # Escape literal '%' characters before replacing tokens with '%s' to avoid double-escaping placeholders.
+        return text.replace("%", "%%").replace(rendered.token, "%s")
+
+    return replace(
+        prepared,
+        sql=convert(prepared.sql),
+        body=convert(prepared.body),
+        params=list(rendered.params),
+    )
