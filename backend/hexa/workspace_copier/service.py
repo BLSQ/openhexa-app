@@ -30,6 +30,11 @@ from hexa.workspace_copier.templates import copy_templates
 from hexa.workspace_copier.transport import GraphQLError, build_client
 from hexa.workspaces.models import Workspace
 
+LOCAL_TARGET_NEEDS_SLUG = (
+    "target: copying to the local server needs an existing workspace, give its "
+    "slug as the target workspace slug."
+)
+
 
 class CredentialError(GraphQLError):
     """One or both endpoints failed pre-flight verification.
@@ -70,13 +75,9 @@ def _build_target(
 ) -> Endpoint:
     if workspace_slug:
         return _build_existing_target(url, token, workspace_slug)
-    if url:
-        client = build_client(url, token, label="target")
-        return Endpoint.remote(
-            client, organization_id=organization_id, workspace_name=workspace_name
-        )
-    return Endpoint.local(
-        organization_id=organization_id, workspace_name=workspace_name
+    client = build_client(url, token, label="target")
+    return Endpoint.remote(
+        client, organization_id=organization_id, workspace_name=workspace_name
     )
 
 
@@ -154,16 +155,22 @@ def _verify_endpoints(
         "source",
         lambda: _build_source(source_url, source_token, source_slug),
     )
-    target, target_err = _verify_side(
-        "target",
-        lambda: _build_target(
-            target_url,
-            target_token,
-            target_organization_id,
-            target_workspace_name,
-            target_workspace_slug,
-        ),
-    )
+    if not target_url and not target_workspace_slug:
+        # Creating a workspace provisions a database and a bucket on behalf of a
+        # user; the local path does not do that yet, so it copies into an
+        # existing workspace.
+        target, target_err = None, LOCAL_TARGET_NEEDS_SLUG
+    else:
+        target, target_err = _verify_side(
+            "target",
+            lambda: _build_target(
+                target_url,
+                target_token,
+                target_organization_id,
+                target_workspace_name,
+                target_workspace_slug,
+            ),
+        )
     errors = [e for e in (source_err, target_err) if e]
     if errors:
         raise CredentialError(errors)

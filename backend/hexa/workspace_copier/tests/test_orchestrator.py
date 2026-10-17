@@ -1,8 +1,9 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from django.test import SimpleTestCase
 
 from hexa.workspace_copier import orchestrator
+from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.options import CopyOptions
 from hexa.workspace_copier.orchestrator import (
     WORKSPACE_COPIERS,
@@ -15,11 +16,12 @@ from hexa.workspace_copier.results import CopyResult
 
 
 class FakeCopier(ResourceCopier):
-    def __init__(self, name, *, mandatory=False, depends_on=()):
+    def __init__(self, name, *, mandatory=False, depends_on=(), supports_local=False):
         self.name = name
         self.label = name
         self.mandatory = mandatory
         self.depends_on = depends_on
+        self.supports_local = supports_local
         self.calls = []
         self.options = {}
 
@@ -33,6 +35,10 @@ class FakeCopier(ResourceCopier):
 class FailingCopier(FakeCopier):
     def copy(self, source, target, result, reporter, *, options=CopyOptions()):
         raise RuntimeError("boom")
+
+
+def _remote():
+    return Endpoint.remote(MagicMock(), "ws")
 
 
 class ResolveSelectionTest(SimpleTestCase):
@@ -50,6 +56,24 @@ class ResolveSelectionTest(SimpleTestCase):
         # order matches registry (workspace appears before pipelines)
         self.assertLess(names.index("workspace"), names.index("pipelines"))
 
+    def test_registry_order(self):
+        self.assertEqual(
+            [c.name for c in WORKSPACE_COPIERS],
+            [
+                "workspace",
+                "files",
+                "database",
+                "connections",
+                "pipelines",
+                "datasets",
+                "webapps",
+            ],
+        )
+
+    def test_webapps_can_be_selected_alone(self):
+        selected = _resolve_selection(WORKSPACE_COPIERS, {"webapps"})
+        self.assertEqual([c.name for c in selected], ["workspace", "webapps"])
+
     def test_unknown_names_are_ignored(self):
         selected = _resolve_selection(WORKSPACE_COPIERS, {"does-not-exist"})
         self.assertEqual([c.name for c in selected], ["workspace"])
@@ -63,7 +87,7 @@ class CopyWorkspaceTest(SimpleTestCase):
             FakeCopier("pipelines", depends_on=("files",)),
         ]
         with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
-            result = copy_workspace(object(), object(), NullReporter())
+            result = copy_workspace(_remote(), _remote(), NullReporter())
         ran = [w for w in result.warnings if w.startswith("ran:")]
         self.assertEqual(ran, ["ran:workspace", "ran:files", "ran:pipelines"])
 
@@ -75,7 +99,7 @@ class CopyWorkspaceTest(SimpleTestCase):
         ]
         with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
             result = copy_workspace(
-                object(), object(), NullReporter(), resources={"pipelines"}
+                _remote(), _remote(), NullReporter(), resources={"pipelines"}
             )
         self.assertTrue(
             any("dependency 'files' not selected" in w for w in result.warnings)
@@ -87,7 +111,7 @@ class CopyWorkspaceTest(SimpleTestCase):
         fakes = [FakeCopier("workspace", mandatory=True), FakeCopier("datasets")]
         options = CopyOptions(all_dataset_versions=True)
         with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
-            copy_workspace(object(), object(), NullReporter(), options=options)
+            copy_workspace(_remote(), _remote(), NullReporter(), options=options)
         self.assertTrue(all(f.options is options for f in fakes))
 
     def test_no_warning_when_dependency_selected(self):
@@ -98,7 +122,7 @@ class CopyWorkspaceTest(SimpleTestCase):
         ]
         with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
             result = copy_workspace(
-                object(), object(), NullReporter(), resources={"files", "pipelines"}
+                _remote(), _remote(), NullReporter(), resources={"files", "pipelines"}
             )
         self.assertFalse(any("not selected" in w for w in result.warnings))
 
@@ -109,6 +133,24 @@ class CopyWorkspaceTest(SimpleTestCase):
             patch.object(orchestrator, "WORKSPACE_COPIERS", fakes),
             self.assertRaises(RuntimeError),
         ):
-            copy_workspace(object(), object(), NullReporter(), result=result)
+            copy_workspace(_remote(), _remote(), NullReporter(), result=result)
         self.assertIn("ran:workspace", result.warnings)
         self.assertIsNotNone(result.started_at)
+
+    def test_copier_without_local_support_is_skipped_in_a_local_run(self):
+        fakes = [
+            FakeCopier("workspace", mandatory=True, supports_local=True),
+            FakeCopier("files"),
+            FakeCopier("webapps", supports_local=True),
+        ]
+        with patch.object(orchestrator, "WORKSPACE_COPIERS", fakes):
+            result = copy_workspace(
+                Endpoint.local("src"), Endpoint.local("tgt"), NullReporter()
+            )
+        ran = [w for w in result.warnings if w.startswith("ran:")]
+        self.assertEqual(ran, ["ran:workspace", "ran:webapps"])
+        self.assertTrue(any(w.startswith("files: skipped") for w in result.warnings))
+
+    def test_database_copier_runs_in_a_local_run(self):
+        database = next(c for c in WORKSPACE_COPIERS if c.name == "database")
+        self.assertTrue(database.supports_local)

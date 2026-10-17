@@ -7,6 +7,7 @@ from django.test import SimpleTestCase
 from hexa.workspace_copier.endpoints import Endpoint
 from hexa.workspace_copier.progress import NullReporter
 from hexa.workspace_copier.service import (
+    LOCAL_TARGET_NEEDS_SLUG,
     CredentialError,
     _verify_endpoints,
     _verify_side,
@@ -188,6 +189,15 @@ class ExistingTargetTest(SimpleTestCase):
         self.assertTrue(target.is_local)
         self.assertEqual(target.slug, "local-ws")
         self.assertIs(target.workspace, existing)
+
+    @patch("hexa.workspace_copier.service.build_client")
+    def test_local_target_without_existing_workspace_is_refused(self, mock_build):
+        mock_build.side_effect = [MagicMock()]
+
+        with self.assertRaises(CredentialError) as ctx:
+            _verify_endpoints(**_kwargs(target_url=""))
+
+        self.assertEqual(ctx.exception.errors, [LOCAL_TARGET_NEEDS_SLUG])
 
 
 class RunCopyTest(SimpleTestCase):
