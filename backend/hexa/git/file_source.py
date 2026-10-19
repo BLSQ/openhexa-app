@@ -1,25 +1,12 @@
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator
 from functools import cached_property
 
-from hexa.core.text_files import TextFiles
+from hexa.core.text_files import MAX_TEXT_FILE_SIZE, FileSource, TextFiles, decode_text
 from hexa.git.client import GitClient
 from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
 
-# Same ceiling as reading a text file from a workspace bucket.
-MAX_TEXT_FILE_SIZE = 1024 * 1024
 
-
-def decode_text(raw: bytes) -> str | None:
-    """The UTF-8 text of a blob, or None for binary content."""
-    if b"\x00" in raw:
-        return None
-    try:
-        return raw.decode("utf-8")
-    except UnicodeDecodeError:
-        return None
-
-
-class GitFiles(Mapping):
+class GitFileSource(FileSource):
     """The files of a git ref by path, fetched on first access.
 
     Listing costs one tree request; each content is one request, made only when read.
@@ -82,4 +69,6 @@ class GitTextFilesMixin:
     """
 
     def get_text_files(self, ref: str = "main") -> TextFiles:
-        return TextFiles(GitFiles(self.client, self.repository, ref, self.git_org.slug))
+        return TextFiles(
+            GitFileSource(self.client, self.repository, ref, self.git_org.slug)
+        )

@@ -7,5 +7,13 @@ how to drive.
 from .files import TextFiles
 from .grep import GrepOutputMode
 from .path_pattern import PathPattern
+from .source import MAX_TEXT_FILE_SIZE, FileSource, decode_text
 
-__all__ = ["GrepOutputMode", "PathPattern", "TextFiles"]
+__all__ = [
+    "MAX_TEXT_FILE_SIZE",
+    "FileSource",
+    "GrepOutputMode",
+    "PathPattern",
+    "TextFiles",
+    "decode_text",
+]

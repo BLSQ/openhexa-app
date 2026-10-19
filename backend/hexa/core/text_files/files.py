@@ -9,12 +9,13 @@ GLOB_LIMIT = 100
 
 
 class TextFiles:
-    """Text files by path: the common ground of every file source.
+    """Glob, grep and read over files by path: a FileSource, or any mapping that
+    follows its contract (a dict in tests, an Overlay of pending changes).
 
-    It only needs a mapping, so a source can load contents lazily: `glob` touches
-    paths alone, and `grep` reads only the files its `glob` filter keeps, stopping
-    once it has a full page. A file whose content maps to None (binary, too large)
-    is still listed by `glob` but skipped by `grep` and refused by `read`.
+    Sources load contents lazily, so `glob` touches paths alone, and `grep` reads only
+    the files its `glob` filter keeps, stopping once it has a full page. A file whose
+    content is None (binary, too large) is still listed by `glob` but skipped by `grep`
+    and refused by `read`.
     """
 
     def __init__(self, files: Mapping[str, str | None]):

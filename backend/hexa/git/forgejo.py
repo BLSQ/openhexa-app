@@ -4,10 +4,10 @@ from urllib.parse import quote
 import requests
 from django.conf import settings
 
+from hexa.core.text_files import decode_text
 from hexa.git.client import GitClient
 from hexa.git.enums import FileEncoding
 from hexa.git.exceptions import GitError, GitFileNotFound, GitFileTooLarge
-from hexa.git.files import decode_text
 
 MAX_INLINE_BLOB_SIZE = 10 * 1024 * 1024
 

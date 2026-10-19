@@ -1,20 +1,12 @@
 from django.test import SimpleTestCase
 
+from hexa.core.text_files import MAX_TEXT_FILE_SIZE
 from hexa.git.exceptions import GitFileTooLarge
-from hexa.git.files import MAX_TEXT_FILE_SIZE, GitFiles, decode_text
+from hexa.git.file_source import GitFileSource
 from hexa.git.testutils import make_git_client_mock
 
 
-class DecodeTextTest(SimpleTestCase):
-    def test_text(self):
-        self.assertEqual(decode_text("héllo".encode()), "héllo")
-
-    def test_binary(self):
-        self.assertIsNone(decode_text(b"\x89PNG\x00"))
-        self.assertIsNone(decode_text(b"\xff\xfe"))
-
-
-class GitFilesTest(SimpleTestCase):
+class GitFileSourceTest(SimpleTestCase):
     def setUp(self):
         self.client = make_git_client_mock()
         self.client.get_files_tree.return_value = [
@@ -23,7 +15,7 @@ class GitFilesTest(SimpleTestCase):
             {"path": "logo.png", "type": "blob", "size": 4},
             {"path": "big.json", "type": "blob", "size": MAX_TEXT_FILE_SIZE + 1},
         ]
-        self.files = GitFiles(self.client, "repo", "main", "org")
+        self.files = GitFileSource(self.client, "repo", "main", "org")
 
     def test_lists_blobs_without_fetching_contents(self):
         self.assertEqual(sorted(self.files), ["big.json", "logo.png", "src/app.js"])
