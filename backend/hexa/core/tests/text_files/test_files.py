@@ -46,6 +46,10 @@ class TextFilesGrepTest(SimpleTestCase):
         TextFiles(files).grep("a", glob="*.js")
         self.assertEqual(files.reads, ["app.js"])
 
+    def test_skips_unreadable_files(self):
+        files = TextFiles({"app.js": "png", "logo.png": None})
+        self.assertEqual(files.grep("png")["files"], ["app.js"])
+
     def test_stops_reading_once_page_is_filled(self):
         files = _ReadLog({f"{i}.txt": "match" for i in range(10)})
         result = TextFiles(files).grep("match", head_limit=2)
@@ -70,7 +74,22 @@ class TextFilesReadTest(SimpleTestCase):
         self.assertEqual(result["content"], "     2\ttwo")
         self.assertEqual(result["total_lines"], 3)
 
+    def test_unreadable_file(self):
+        files = TextFiles({"logo.png": None})
+        self.assertEqual(
+            files.read("logo.png"), {"error": "Not a readable text file: logo.png"}
+        )
+
     def test_missing_file(self):
         self.assertEqual(
             self.files.read("nope.txt"), {"error": "File not found: nope.txt"}
         )
+
+
+class TextFilesWithChangesTest(SimpleTestCase):
+    def test_reads_through_changes_and_deletions(self):
+        files = TextFiles({"a.js": "old", "b.js": "b"}).with_changes(
+            {"a.js": "new"}, deleted=["b.js"]
+        )
+        self.assertEqual(files.read("a.js")["content"], "new")
+        self.assertEqual(files.glob("**")["paths"], ["a.js"])

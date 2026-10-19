@@ -1,6 +1,7 @@
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 
 from .grep import GREP_HEAD_LIMIT, GrepOutputMode, grep
+from .overlay import Overlay
 from .path_pattern import PathPattern
 from .window import read_window
 
@@ -12,11 +13,18 @@ class TextFiles:
 
     It only needs a mapping, so a source can load contents lazily: `glob` touches
     paths alone, and `grep` reads only the files its `glob` filter keeps, stopping
-    once it has a full page.
+    once it has a full page. A file whose content maps to None (binary, too large)
+    is still listed by `glob` but skipped by `grep` and refused by `read`.
     """
 
-    def __init__(self, files: Mapping[str, str]):
+    def __init__(self, files: Mapping[str, str | None]):
         self._files = files
+
+    def with_changes(
+        self, changes: Mapping[str, str], deleted: Iterable[str] = ()
+    ) -> "TextFiles":
+        """These files as seen through uncommitted changes, e.g. a pending proposal."""
+        return TextFiles(Overlay(self._files, changes, deleted))
 
     def glob(self, pattern: str, limit: int = GLOB_LIMIT) -> dict:
         """Paths matching a glob pattern (see PathPattern), sorted."""
@@ -36,7 +44,11 @@ class TextFiles:
     ) -> dict:
         """Search file contents (see grep.grep), restricted to paths matching `glob`."""
         return grep(
-            ((path, self._files[path]) for path in self._paths(glob)),
+            (
+                (path, text)
+                for path in self._paths(glob)
+                if (text := self._files[path]) is not None
+            ),
             pattern,
             output_mode=output_mode,
             ignore_case=ignore_case,
@@ -58,8 +70,11 @@ class TextFiles:
         """A window of a file's lines (see window.read_window)."""
         if path not in self._files:
             return {"error": f"File not found: {path}"}
+        text = self._files[path]
+        if text is None:
+            return {"error": f"Not a readable text file: {path}"}
         return read_window(
-            self._files[path],
+            text,
             start_line,
             end_line,
             line_numbers=line_numbers,
