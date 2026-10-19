@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.agents.proposals import (
     nothing_to_delete_error,
+    pending_proposal,
     resolve_commit_message,
     resolve_deleted_paths,
 )
@@ -49,18 +50,7 @@ def propose_pipeline_version(
 
     # If there's a pending (unresolved) proposal, use it as the base so chained
     # edits accumulate correctly instead of being rebased onto the saved version.
-    pending = None
-    if conversation is not None:
-        pending = (
-            ToolInvocation.objects.filter(
-                message__conversation=conversation,
-                tool_name="propose_pipeline_version",
-                success=True,
-                proposal_pending=True,
-            )
-            .order_by("-created_at")
-            .first()
-        )
+    pending = pending_proposal(conversation, "propose_pipeline_version")
 
     if pending and pending.tool_output:
         for f in pending.tool_output.get("files", []):
@@ -168,16 +158,7 @@ class EditPipelineAgent(BaseAgent):
 
         lines.append(f"Current version: {current_version.version_name}")
 
-        pending = (
-            ToolInvocation.objects.filter(
-                message__conversation=self.conversation,
-                tool_name="propose_pipeline_version",
-                success=True,
-                proposal_pending=True,
-            )
-            .order_by("-created_at")
-            .first()
-        )
+        pending = pending_proposal(self.conversation, "propose_pipeline_version")
 
         if pending and pending.tool_output:
             proposed_files = pending.tool_output.get("files", [])

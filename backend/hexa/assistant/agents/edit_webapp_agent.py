@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from hexa.assistant.agents.base import BaseAgent
 from hexa.assistant.agents.proposals import (
     nothing_to_delete_error,
+    pending_proposal,
     resolve_commit_message,
     resolve_deleted_paths,
 )
@@ -92,18 +93,7 @@ def propose_webapp_version(
     current_files: dict[str, str] = {}
     deleted_paths: set[str] = set()
 
-    pending = None
-    if conversation is not None:
-        pending = (
-            ToolInvocation.objects.filter(
-                message__conversation=conversation,
-                tool_name="propose_webapp_version",
-                success=True,
-                proposal_pending=True,
-            )
-            .order_by("-created_at")
-            .first()
-        )
+    pending = pending_proposal(conversation, "propose_webapp_version")
 
     repo_files = None
     if pending and pending.tool_output:
@@ -230,16 +220,7 @@ class EditWebappAgent(BaseAgent):
         if webapp.description:
             lines.append(f"Description: {webapp.description}")
 
-        pending = (
-            ToolInvocation.objects.filter(
-                message__conversation=self.conversation,
-                tool_name="propose_webapp_version",
-                success=True,
-                proposal_pending=True,
-            )
-            .order_by("-created_at")
-            .first()
-        )
+        pending = pending_proposal(self.conversation, "propose_webapp_version")
 
         if pending and pending.tool_output:
             proposed_files = pending.tool_output.get("files", [])

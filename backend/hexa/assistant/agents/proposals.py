@@ -1,5 +1,25 @@
 """Helpers shared by the tools that stage file changes for the user to review."""
 
+from hexa.assistant.models import Conversation, ToolInvocation
+
+
+def pending_proposal(
+    conversation: Conversation | None, tool_name: str
+) -> ToolInvocation | None:
+    """The latest successful proposal of `tool_name` still awaiting the user's decision."""
+    if conversation is None:
+        return None
+    return (
+        ToolInvocation.objects.filter(
+            message__conversation=conversation,
+            tool_name=tool_name,
+            success=True,
+            proposal_pending=True,
+        )
+        .order_by("-created_at")
+        .first()
+    )
+
 
 def resolve_deleted_paths(
     requested: list[str], known_paths: set[str]
