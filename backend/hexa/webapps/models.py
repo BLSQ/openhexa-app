@@ -19,6 +19,7 @@ from hexa.core.models.soft_delete import (
 )
 from hexa.git.enums import FileEncoding
 from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
+from hexa.git.files import GitTextFilesMixin
 from hexa.git.mixins import GitOrg, GitRepoMixin
 from hexa.git.naming import build_repo_name
 from hexa.shortcuts.mixins import ShortcutableMixin
@@ -250,7 +251,7 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         return f"<Webapp: {self.name}>"
 
 
-class GitWebapp(Webapp, GitRepoMixin):
+class GitWebapp(Webapp, GitRepoMixin, GitTextFilesMixin):
     published_commit = models.CharField(max_length=64, blank=True, null=True)
 
     class Meta:

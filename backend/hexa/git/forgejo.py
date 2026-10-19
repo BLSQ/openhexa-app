@@ -7,6 +7,7 @@ from django.conf import settings
 from hexa.git.client import GitClient
 from hexa.git.enums import FileEncoding
 from hexa.git.exceptions import GitError, GitFileNotFound, GitFileTooLarge
+from hexa.git.files import decode_text
 
 MAX_INLINE_BLOB_SIZE = 10 * 1024 * 1024
 
@@ -381,15 +382,9 @@ class ForgejoClient(GitClient):
             except GitFileTooLarge as e:
                 nodes.append({**too_large_node, "size": e.size})
                 continue
-            content: str
-            encoding: FileEncoding
-            if b"\x00" not in raw:
-                try:
-                    content = raw.decode("utf-8")
-                    encoding = FileEncoding.TEXT
-                except UnicodeDecodeError:
-                    content = base64.b64encode(raw).decode("ascii")
-                    encoding = FileEncoding.BASE64
+            text = decode_text(raw)
+            if text is not None:
+                content, encoding = text, FileEncoding.TEXT
             else:
                 content = base64.b64encode(raw).decode("ascii")
                 encoding = FileEncoding.BASE64
