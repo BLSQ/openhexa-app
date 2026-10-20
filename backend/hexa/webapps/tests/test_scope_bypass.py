@@ -510,7 +510,7 @@ class MutationResultBypassTest(ScopeBypassTestCase):
             }}
             """,
         )
-        self._assert_refused(response, "PipelineRun.pipeline")
+        self._assert_refused(response, "Pipeline.workspace")
         self.assertFalse(PipelineRun.objects.filter(pipeline=pipeline).exists())
 
     def test_create_dataset_result_cannot_reach_workspace_secrets(self):

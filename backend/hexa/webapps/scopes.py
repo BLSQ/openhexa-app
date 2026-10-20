@@ -39,6 +39,7 @@ _USER = {
     },
     "Avatar": {"initials", "color"},
 }
+_TAG = {"Tag": {"id", "name"}}
 _BUCKET_OBJECT = {
     "BucketObject": {"key", "name", "path", "size", "updatedAt", "type"},
 }
@@ -53,16 +54,71 @@ _PIPELINE_RUN = _merge(
             "duration",
             "outputs",
             "triggerMode",
+            "run_id",
+            "code",
+            "config",
+            "messages",
+            "logs",
+            "hasErrorMessages",
+            "timeout",
+            "enableDebugLogs",
+            "sendMailNotifications",
+            "user",
+            "stoppedBy",
+            "pipeline",
+            "datasetVersions",
         },
+        "PipelineRunMessage": {"message", "priority", "timestamp"},
         "GenericOutput": {"name", "type", "uri"},
-        # Only the name: `rows` and `sample` would read the database.
-        "DatabaseTable": {"name"},
+        # Table metadata only: `rows` and `sample` would read the table's content.
+        "DatabaseTable": {"name", "count", "columns"},
+        "TableColumn": {"name", "type"},
     },
 )
 _DATASET = {
-    "Dataset": {"id", "slug", "name", "description", "createdAt", "updatedAt"},
-    "DatasetVersion": {"id", "name", "description", "changelog", "createdAt"},
-    "DatasetVersionFile": {"id", "filename", "contentType", "size", "createdAt"},
+    "Dataset": {
+        "id",
+        "slug",
+        "name",
+        "description",
+        "createdAt",
+        "updatedAt",
+        "attributes",
+        "targetId",
+    },
+    "DatasetVersion": {
+        "id",
+        "name",
+        "description",
+        "changelog",
+        "createdAt",
+        "attributes",
+        "targetId",
+    },
+    "DatasetVersionFile": {
+        "id",
+        "filename",
+        "contentType",
+        "size",
+        "createdAt",
+        "rows",
+        "columns",
+        "properties",
+        "attributes",
+        "targetId",
+    },
+    "DatasetLink": {"id", "dataset", "createdAt", "isPinned"},
+    "MetadataAttribute": {
+        "id",
+        "key",
+        "label",
+        "value",
+        "system",
+        "createdAt",
+        "updatedAt",
+        "createdBy",
+        "updatedBy",
+    },
 }
 _PAGE = {"items", "pageNumber", "totalPages", "totalItems"}
 
@@ -80,6 +136,7 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
     Scope.USER_READ: ScopeGrant(
         fields=_merge(
             _USER,
+            _TAG,
             {
                 "Query": {"me", "workspace"},
                 "Me": {"user", "features", "permissions"},
@@ -101,11 +158,34 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                     "updatedAt",
                     "createdBy",
                     "currentMembership",
+                    "permissions",
+                    "tags",
+                    "pipelineTags",
+                    "webappsEnabled",
                 },
-                # Only the viewer's own role, not the membership's other links.
-                "WorkspaceMembership": {"role"},
+                # Resolved through `has_perm`, so they reflect what the web app itself
+                # may do, not only the viewer's role.
+                "WorkspacePermissions": {
+                    "update",
+                    "delete",
+                    "manageMembers",
+                    "manageTags",
+                    "createConnection",
+                    "launchNotebookServer",
+                    "deleteDatabaseTable",
+                    "generateToken",
+                    "createSavedQuery",
+                    "createDataset",
+                    "createObject",
+                    "deleteObject",
+                    "downloadObject",
+                    "createPipelineTemplateVersion",
+                    "createPipeline",
+                },
+                # Only the viewer's own membership, not its links to other objects.
+                "WorkspaceMembership": {"id", "role", "createdAt", "updatedAt"},
                 "Country": {"code", "alpha3", "name", "flag"},
-                "Organization": {"id", "name", "shortName"},
+                "Organization": {"id", "name", "shortName", "type", "url", "logo"},
             },
         ),
         # Read by the `me.permissions` flags; no AccessMod mutation is reachable.
@@ -118,6 +198,8 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
     ),
     Scope.PIPELINES_READ: ScopeGrant(
         fields=_merge(
+            _USER,
+            _TAG,
             _PIPELINE_RUN,
             {
                 "Query": {
@@ -129,6 +211,7 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                 },
                 "PipelinesPage": _PAGE,
                 "PipelineRunPage": _PAGE,
+                "PipelineVersionPage": _PAGE,
                 "Pipeline": {
                     "id",
                     "code",
@@ -142,10 +225,25 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                     "currentVersion",
                     "runs",
                     "permissions",
+                    "versions",
+                    "scheduledPipelineVersion",
+                    "config",
+                    "tags",
+                    "notebookPath",
+                    "webhookEnabled",
+                    "autoUpdateFromTemplate",
+                    "hasNewTemplateVersions",
                 },
                 # Resolved through `has_perm`, so they tell whether the web app itself
-                # (viewer's role and the web app's scopes) may run or stop the pipeline.
-                "PipelinePermissions": {"run", "stopPipeline"},
+                # (viewer's role and the web app's scopes) may act on the pipeline.
+                "PipelinePermissions": {
+                    "run",
+                    "stopPipeline",
+                    "update",
+                    "delete",
+                    "schedule",
+                    "createVersion",
+                },
                 "PipelineRun": {"version"},
                 "PipelineVersion": {
                     "id",
@@ -155,7 +253,17 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                     "createdAt",
                     "isLatestVersion",
                     "parameters",
+                    "name",
+                    "number",
+                    "user",
+                    "pipeline",
+                    "timeout",
+                    "config",
+                    "externalLink",
+                    "permissions",
+                    "missingScheduleParameters",
                 },
+                "PipelineVersionPermissions": {"update", "delete"},
                 "PipelineParameter": {
                     "code",
                     "name",
@@ -167,7 +275,13 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                     "required",
                     "widget",
                     "directory",
+                    "connection",
+                    "choicesFromFile",
+                    "disables",
+                    "disableWhen",
                 },
+                "PipelineParameterChoicesFromFile": {"path", "format", "column"},
+                "Workspace": {"pipelineLastRunStatuses"},
             },
         ),
         permissions=frozenset({"pipelines.view_pipeline_version"}),
@@ -190,7 +304,7 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                 "Query": {"getFileByPath", "readFileContent"},
                 "Mutation": {"prepareObjectDownload"},
                 "Workspace": {"bucket"},
-                "Bucket": {"object", "objects"},
+                "Bucket": {"name", "object", "objects"},
                 "BucketObjectPage": {
                     "items",
                     "pageNumber",
@@ -240,13 +354,26 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                 "Dataset": {
                     "createdBy",
                     "versions",
+                    "version",
                     "latestVersion",
                     "links",
                     "sharedWithOrganization",
+                    "permissions",
                 },
-                "DatasetVersion": {"createdBy", "dataset", "files", "fileByName"},
-                "DatasetVersionFile": {"downloadUrl"},
-                "DatasetLink": {"id", "dataset", "createdAt", "isPinned"},
+                "DatasetVersion": {
+                    "createdBy",
+                    "dataset",
+                    "files",
+                    "fileByName",
+                    "permissions",
+                },
+                "DatasetVersionFile": {"downloadUrl", "fileSample", "createdBy"},
+                "DatasetFileSample": {"sample", "status", "statusReason"},
+                "DatasetLink": {"createdBy", "permissions"},
+                # Resolved through `has_perm`, like `PipelinePermissions`.
+                "DatasetPermissions": {"update", "delete", "createVersion"},
+                "DatasetVersionPermissions": {"update", "delete", "download"},
+                "DatasetLinkPermissions": {"delete", "pin"},
                 # Only reachable through `Query.workspace`, i.e. with USER_READ too.
                 "Workspace": {"slug", "name", "datasets"},
             },
@@ -264,7 +391,7 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                     "updateDatasetVersion",
                     "createDatasetVersionFile",
                 },
-                "CreateDatasetResult": {"success", "errors", "dataset"},
+                "CreateDatasetResult": {"success", "errors", "dataset", "link"},
                 "UpdateDatasetResult": {"success", "errors", "dataset"},
                 "CreateDatasetVersionResult": {"success", "errors", "version"},
                 "UpdateDatasetVersionResult": {"success", "errors", "version"},
@@ -318,6 +445,19 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
 }
 
 
+def ungrantable_fields(denied: Iterable[str]) -> set[str]:
+    """The `denied` fields that no scope grants, so enabling scopes cannot fix them."""
+    return {
+        type_field
+        for type_field in denied
+        if not any(
+            type_field.partition(".")[2]
+            in grant.fields.get(type_field.partition(".")[0], ())
+            for grant in SCOPE_GRANTS.values()
+        )
+    }
+
+
 @dataclass
 class ScopeCheck:
     operations: set[str] = field(default_factory=set)
@@ -335,7 +475,8 @@ class WebappScopePolicy:
     """
 
     def __init__(self, scopes: Iterable[str]):
-        grants = [SCOPE_GRANTS[s] for s in scopes if s in SCOPE_GRANTS]
+        self._scopes = frozenset(scopes)
+        grants = [SCOPE_GRANTS[s] for s in self._scopes if s in SCOPE_GRANTS]
         self._allowed = _merge(*(grant.fields for grant in grants))
         self._permissions = frozenset().union(*(grant.permissions for grant in grants))
 
@@ -346,6 +487,30 @@ class WebappScopePolicy:
 
     def allows_permission(self, perm: str) -> bool:
         return perm in self._permissions
+
+    def missing_scopes(self, denied: Iterable[str]) -> set[str]:
+        """Scopes, not enabled yet, that would grant the `denied` fields.
+
+        Shared fields such as `User.email` are granted by several scopes, so the
+        scopes are picked greedily to suggest a small set rather than all of them.
+        """
+        coverage = {
+            scope: {
+                type_field
+                for type_field in denied
+                if type_field.partition(".")[2]
+                in grant.fields.get(type_field.partition(".")[0], ())
+            }
+            for scope, grant in SCOPE_GRANTS.items()
+            if scope not in self._scopes
+        }
+        uncovered = set().union(*coverage.values())
+        missing = set()
+        while uncovered:
+            best = max(sorted(coverage), key=lambda s: len(coverage[s] & uncovered))
+            missing.add(best)
+            uncovered -= coverage[best]
+        return missing
 
     def check(self, document: DocumentNode) -> ScopeCheck:
         """We use graphql-core's validator as a typed tree walker: it visits
