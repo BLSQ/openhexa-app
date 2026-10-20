@@ -1,5 +1,14 @@
 # Changelog
 
+## [5.20.1](https://github.com/BLSQ/openhexa-app/compare/5.20.0...5.20.1) (2026-10-20)
+
+
+### Bug Fixes
+
+* graphql proxy more lenient (HEXA-1790) ([#2153](https://github.com/BLSQ/openhexa-app/issues/2153)) ([d46da5d](https://github.com/BLSQ/openhexa-app/commit/d46da5d73de7cbdbae7abf89f71deffb91628680))
+* prevent  sql editor from treating comments as additional statements(HEXA-1802) ([#2149](https://github.com/BLSQ/openhexa-app/issues/2149)) ([b88ccbd](https://github.com/BLSQ/openhexa-app/commit/b88ccbdf89cfbe17134d686db47056c14963361f))
+* webapps scopes revised - non graphql proxy related (HEXA-1790) ([#2122](https://github.com/BLSQ/openhexa-app/issues/2122)) ([afb12bd](https://github.com/BLSQ/openhexa-app/commit/afb12bda470b42b304b78e9d59e191b83c8eb282))
+
 ## [5.20.0](https://github.com/BLSQ/openhexa-app/compare/5.19.1...5.20.0) (2026-10-14)
 
 
