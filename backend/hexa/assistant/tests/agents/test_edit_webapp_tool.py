@@ -1,13 +1,18 @@
 from unittest.mock import MagicMock, patch
 
-from hexa.assistant.agents.edit_webapp_agent import (
-    FilePatch,
-    ProposedFile,
-    propose_webapp_version,
-)
 from hexa.assistant.instructions import InstructionSet
 from hexa.assistant.models import Conversation, Message, ToolInvocation
+from hexa.assistant.tools.proposals import working_files
+from hexa.assistant.tools.webapps import (
+    FilePatch,
+    ProposedFile,
+    glob_webapp_files,
+    grep_webapp_files,
+    propose_webapp_version,
+    read_webapp_file,
+)
 from hexa.core.test import TestCase
+from hexa.core.text_files import TextFiles
 from hexa.git.enums import FileEncoding
 from hexa.user_management.models import User
 from hexa.webapps.models import GitWebapp
@@ -232,7 +237,7 @@ class ProposeWebappChangesToolTest(TestCase):
         self.assertNotIn("logo.png", files)
 
 
-class ProposeWebappChangesWithPendingProposalTest(TestCase):
+class _PendingProposalTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(
@@ -272,6 +277,8 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
             },
         )
 
+
+class ProposeWebappChangesWithPendingProposalTest(_PendingProposalTestCase):
     def test_pending_proposal_is_used_as_base_instead_of_live_files(self):
         conversation = self._make_conversation()
         pending_files = [
@@ -390,3 +397,63 @@ class ProposeWebappChangesWithPendingProposalTest(TestCase):
         self.assertEqual(
             result["commit_message"], "Add a dark theme toggle and persist the choice"
         )
+
+
+class WorkingFilesTest(_PendingProposalTestCase):
+    saved = TextFiles(
+        {"index.html": "<h1>Saved</h1>", "old.js": "old()", "logo.png": None}
+    )
+
+    def _working_files(self, conversation):
+        return working_files(self.saved, conversation, "propose_webapp_version")
+
+    def test_without_pending_proposal_is_the_saved_version(self):
+        files = self._working_files(self._make_conversation())
+        self.assertEqual(files.read("index.html")["content"], "<h1>Saved</h1>")
+
+    def test_pending_proposal_overrides_and_deletes_saved_files(self):
+        conversation = self._make_conversation()
+        self._make_pending_invocation(
+            conversation,
+            [{"path": "index.html", "content": "<h1>Proposed</h1>"}],
+            deleted_paths=["old.js"],
+        )
+        files = self._working_files(conversation)
+        self.assertEqual(files.read("index.html")["content"], "<h1>Proposed</h1>")
+        self.assertEqual(files.glob("**")["paths"], ["index.html", "logo.png"])
+
+
+class WebappFileToolsTest(_PendingProposalTestCase):
+    def setUp(self):
+        self.webapp = MagicMock(spec=GitWebapp)
+        self.webapp.get_text_files.return_value = TextFiles(
+            {
+                "index.html": "<h1>Saved</h1>",
+                "app.js": "function saved() {}",
+                "old.js": "old()",
+            }
+        )
+        self.conversation = self._make_conversation()
+        self._make_pending_invocation(
+            self.conversation,
+            [{"path": "app.js", "content": "function proposed() {}"}],
+            deleted_paths=["old.js"],
+        )
+
+    def test_glob_sees_the_pending_proposal(self):
+        result = glob_webapp_files(self.webapp, "*.js", self.conversation)
+        self.assertEqual(result["paths"], ["app.js"])
+
+    def test_grep_sees_the_pending_proposal(self):
+        result = grep_webapp_files(
+            self.webapp,
+            "function",
+            output_mode="content",
+            conversation=self.conversation,
+        )
+        self.assertEqual(result["content"], "app.js:1:function proposed() {}")
+
+    def test_read_numbers_lines_of_the_pending_proposal(self):
+        result = read_webapp_file(self.webapp, "app.js", conversation=self.conversation)
+        self.assertEqual(result["content"], "     1\tfunction proposed() {}")
+        self.assertEqual(result["total_lines"], 1)

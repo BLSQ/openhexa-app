@@ -159,7 +159,7 @@ class EditWebappAgentExtraInstructionsTest(AgentTestCase):
         self.assertIn("index.html", instructions)
         self.assertIn("style.css", instructions)
         self.assertIn("<h1>Hi</h1>", instructions)
-        self.assertIn("get_static_webapp_file", instructions)
+        self.assertIn("read_webapp_file", instructions)
 
     def test_binary_files_marked_in_manifest(self):
         self.mock_forgejo.return_value.get_repository_files.return_value = [

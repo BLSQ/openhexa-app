@@ -1,6 +1,7 @@
 """Helpers shared by the tools that stage file changes for the user to review."""
 
 from hexa.assistant.models import Conversation, ToolInvocation
+from hexa.core.text_files import TextFiles
 
 
 def pending_proposal(
@@ -18,6 +19,22 @@ def pending_proposal(
         )
         .order_by("-created_at")
         .first()
+    )
+
+
+def working_files(
+    files: TextFiles, conversation: Conversation | None, tool_name: str
+) -> TextFiles:
+    """`files` as the agent works on them: seen through the pending proposal of
+    `tool_name`, if there is one, so reads match what the next proposal builds on.
+    """
+    pending = pending_proposal(conversation, tool_name)
+    if pending is None or not pending.tool_output:
+        return files
+    proposed = pending.tool_output
+    return files.with_changes(
+        {f["path"]: f["content"] for f in proposed.get("files", [])},
+        proposed.get("deleted_paths", []),
     )
 
 
