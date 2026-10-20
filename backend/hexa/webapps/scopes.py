@@ -138,7 +138,7 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
             _USER,
             _TAG,
             {
-                "Query": {"me", "workspace"},
+                "Query": {"me", "workspace", "countries", "country", "boundaries"},
                 "Me": {"user", "features", "permissions"},
                 "FeatureFlag": {"code", "config"},
                 "MePermissions": {
@@ -184,7 +184,17 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                 },
                 # Only the viewer's own membership, not its links to other objects.
                 "WorkspaceMembership": {"id", "role", "createdAt", "updatedAt"},
-                "Country": {"code", "alpha3", "name", "flag"},
+                "Country": {"code", "alpha3", "name", "flag", "whoInfo"},
+                "WHOInfo": {"region", "defaultCRS", "simplifiedExtent"},
+                "WHORegion": {"code", "name"},
+                "WHOBoundary": {
+                    "id",
+                    "name",
+                    "country",
+                    "administrative_level",
+                    "parent",
+                    "extent",
+                },
                 "Organization": {"id", "name", "shortName", "type", "url", "logo"},
             },
         ),
@@ -208,6 +218,9 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                     "pipelineByCode",
                     "pipelineRun",
                     "pipelineVersion",
+                    # Reads a bucket file without FILES_READ, but only the file and
+                    # column the pipeline's own code sets for a parameter.
+                    "pipelineParameterChoices",
                 },
                 "PipelinesPage": _PAGE,
                 "PipelineRunPage": _PAGE,
@@ -243,7 +256,9 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
                     "delete",
                     "schedule",
                     "createVersion",
+                    "createTemplateVersion",
                 },
+                "CreateTemplateVersionPermission": {"isAllowed", "reasons"},
                 "PipelineRun": {"version"},
                 "PipelineVersion": {
                     "id",
@@ -343,7 +358,15 @@ SCOPE_GRANTS: dict[str, ScopeGrant] = {
             _USER,
             _DATASET,
             {
-                "Query": {"dataset", "datasets", "datasetVersion", "datasetLink"},
+                "Query": {
+                    "dataset",
+                    "datasets",
+                    "datasetVersion",
+                    "datasetLink",
+                    # Shortcuts to objects the entry points above already reach.
+                    "datasetLinkBySlug",
+                    "datasetVersionFile",
+                },
                 "DatasetPage": _PAGE,
                 "DatasetVersionPage": _PAGE,
                 "DatasetVersionFilePage": _PAGE,

@@ -64,11 +64,11 @@ By default a static webapp has an empty `allowed_operations` list, which means i
 
 | Scope | Entry points |
 |---|---|
-| `USER_READ` | `me`, `workspace` |
-| `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion` |
+| `USER_READ` | `me`, `workspace`, `countries`, `country`, `boundaries` |
+| `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion`, `pipelineParameterChoices` |
 | `PIPELINES_RUN` | `runPipeline`, `stopPipeline` |
 | `FILES_READ` | `getFileByPath`, `readFileContent`, `prepareObjectDownload` |
-| `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
+| `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink`, `datasetLinkBySlug`, `datasetVersionFile` |
 | `DATABASE_READ` | `executeSavedQuery` |
 
 Each scope also covers the fields of the objects these entry points return, as shown in the schema of the [examples](#example-webapps) below. Links back up to a workspace, such as `Pipeline.workspace`, `Dataset.workspace` or `DatasetLink.workspace`, are not covered by any scope.

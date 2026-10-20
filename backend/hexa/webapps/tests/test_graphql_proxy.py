@@ -233,6 +233,27 @@ class WebappScopePolicyTest(SimpleTestCase):
                 [scope.USER_READ, scope.FILES_READ],
                 'query { workspace(slug: "w") { bucket { name } } }',
             ),
+            (
+                [scope.USER_READ],
+                "query { countries { code whoInfo { region { code name } defaultCRS "
+                'simplifiedExtent } } boundaries(country_code: "BE", level: "1") '
+                "{ id name parent extent administrative_level country { code } } }",
+            ),
+            (
+                [scope.DATASETS_READ],
+                'query { datasetLinkBySlug(workspaceSlug: "w", datasetSlug: "d") '
+                '{ dataset { name } } datasetVersionFile(id: "abc") { filename } }',
+            ),
+            (
+                [scope.PIPELINES_READ],
+                'query { pipelineParameterChoices(pipelineVersionId: "abc", '
+                'parameterCode: "country") }',
+            ),
+            (
+                [scope.PIPELINES_READ],
+                'query { pipeline(id: "abc") { permissions { createTemplateVersion '
+                "{ isAllowed reasons } } } }",
+            ),
         ]:
             with self.subTest(query=query):
                 self.assertEqual(self._denied(scopes, query), set())
@@ -568,6 +589,32 @@ class GraphQLProxyMiddlewareTest(TestCase):
         data = json.loads(response.content)
         self.assertEqual(data["data"]["dataset"]["id"], str(dataset.id))
         self.assertEqual(data["data"]["dataset"]["name"], "Webapp Read")
+
+    def test_dataset_shortcuts_return_data(self):
+        dataset = Dataset.objects.create_if_has_perm(
+            principal=self.USER,
+            workspace=self.WORKSPACE,
+            name="Shortcut",
+            description="",
+        )
+        version = DatasetVersion.objects.create_if_has_perm(
+            principal=self.USER, dataset=dataset, name="v1", changelog=None
+        )
+        file = DatasetVersionFile.objects.create_if_has_perm(
+            principal=self.USER,
+            dataset_version=version,
+            uri="data.csv",
+            content_type="text/csv",
+        )
+        data = self._post_with_scopes(
+            "dataset-shortcuts-app",
+            [Webapp.OperationScope.DATASETS_READ],
+            f'query {{ datasetLinkBySlug(workspaceSlug: "{self.WORKSPACE.slug}", '
+            f'datasetSlug: "{dataset.slug}") {{ dataset {{ name }} }} '
+            f'datasetVersionFile(id: "{file.id}") {{ filename }} }}',
+        )
+        self.assertEqual(data["datasetLinkBySlug"]["dataset"]["name"], "Shortcut")
+        self.assertEqual(data["datasetVersionFile"]["filename"], "data.csv")
 
     def test_allowed_create_dataset_mutation_returns_data(self):
         webapp = self._create_scoped_webapp(

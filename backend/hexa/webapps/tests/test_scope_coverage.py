@@ -58,7 +58,6 @@ NEVER_GRANTED = {
         "sourceTemplate",
         "newTemplateVersions",
     },
-    "PipelinePermissions": {"createTemplateVersion"},
     # Pipeline source code.
     "PipelineVersion": {"zipfile", "files", "dag", "templateVersion"},
     # Table content is only readable through DATABASE_READ's saved queries.
@@ -71,7 +70,6 @@ NEVER_GRANTED = {
         "assistantMonthlyLimitExceeded",
         "assistantTotalCost",
     },
-    "Country": {"whoInfo"},
 }
 
 
