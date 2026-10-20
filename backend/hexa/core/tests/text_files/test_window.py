@@ -1,6 +1,6 @@
 from django.test import SimpleTestCase
 
-from hexa.core.text_files.window import read_window
+from hexa.core.text_files.window import ReadOptions, read_window
 
 TEXT = "one\ntwo\nthree\nfour\n"
 
@@ -18,17 +18,17 @@ class ReadWindowTest(SimpleTestCase):
         )
 
     def test_window_with_line_numbers(self):
-        result = read_window(TEXT, 2, 3, line_numbers=True)
+        result = read_window(TEXT, 2, 3, ReadOptions(line_numbers=True))
         self.assertEqual(result["content"], "     2\ttwo\n     3\tthree")
 
     def test_max_lines_returns_partial_view(self):
-        result = read_window(TEXT, max_lines=2)
+        result = read_window(TEXT, options=ReadOptions(max_lines=2))
         self.assertEqual(result["content"], "one\ntwo")
         self.assertEqual(result["end_line"], 2)
         self.assertIn("PARTIAL view: lines 1-2 of 4", result["notice"])
 
     def test_max_line_chars_clips(self):
-        result = read_window("abcdef", max_line_chars=3)
+        result = read_window("abcdef", options=ReadOptions(max_line_chars=3))
         self.assertEqual(result["content"], "abc… [3 more characters]")
 
     def test_empty_text(self):

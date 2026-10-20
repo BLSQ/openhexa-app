@@ -3,7 +3,7 @@ from collections.abc import Iterable, Mapping
 from .grep import GREP_HEAD_LIMIT, GrepOutputMode, grep
 from .overlay import Overlay
 from .path_pattern import PathPattern
-from .window import read_window
+from .window import ReadOptions, read_window
 
 GLOB_LIMIT = 100
 
@@ -63,10 +63,7 @@ class TextFiles:
         path: str,
         start_line: int | None = None,
         end_line: int | None = None,
-        *,
-        line_numbers: bool = False,
-        max_lines: int | None = None,
-        max_line_chars: int | None = None,
+        options: ReadOptions = ReadOptions(),
     ) -> dict:
         """A window of a file's lines (see window.read_window)."""
         if path not in self._files:
@@ -74,14 +71,7 @@ class TextFiles:
         text = self._files[path]
         if text is None:
             return {"error": f"Not a readable text file: {path}"}
-        return read_window(
-            text,
-            start_line,
-            end_line,
-            line_numbers=line_numbers,
-            max_lines=max_lines,
-            max_line_chars=max_line_chars,
-        )
+        return read_window(text, start_line, end_line, options)
 
     def _paths(self, pattern: str | None) -> list[str]:
         if pattern is None:

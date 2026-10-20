@@ -1,6 +1,6 @@
 from django.test import SimpleTestCase
 
-from hexa.core.text_files import GrepOutputMode, TextFiles
+from hexa.core.text_files import GrepOutputMode, ReadOptions, TextFiles
 
 
 class _ReadLog(dict):
@@ -70,7 +70,7 @@ class TextFilesReadTest(SimpleTestCase):
     files = TextFiles({"f.txt": "one\ntwo\nthree\n"})
 
     def test_reads_window(self):
-        result = self.files.read("f.txt", 2, 2, line_numbers=True)
+        result = self.files.read("f.txt", 2, 2, ReadOptions(line_numbers=True))
         self.assertEqual(result["content"], "     2\ttwo")
         self.assertEqual(result["total_lines"], 3)
 

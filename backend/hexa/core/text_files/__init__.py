@@ -5,15 +5,19 @@ how to drive.
 """
 
 from .files import TextFiles
-from .grep import GrepOutputMode
+from .grep import GREP_HEAD_LIMIT, GrepOutputMode
 from .path_pattern import PathPattern
 from .source import MAX_TEXT_FILE_SIZE, FileSource, decode_text
+from .window import AGENT_READ, ReadOptions
 
 __all__ = [
+    "AGENT_READ",
+    "GREP_HEAD_LIMIT",
     "MAX_TEXT_FILE_SIZE",
     "FileSource",
     "GrepOutputMode",
     "PathPattern",
+    "ReadOptions",
     "TextFiles",
     "decode_text",
 ]
