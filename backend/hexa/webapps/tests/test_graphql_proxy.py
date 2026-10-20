@@ -2,6 +2,7 @@ import json
 from unittest.mock import patch
 
 from django.contrib.sessions.backends.db import SessionStore
+from django.core.cache import cache
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
 from django_otp.plugins.otp_email.models import EmailDevice
@@ -333,6 +334,10 @@ class GraphQLProxyMiddlewareTest(TestCase):
             created_by=cls.USER,
             is_public=True,
         )
+
+    def setUp(self):
+        # The Sentry denial throttle lives in the cache, which outlives a test.
+        cache.clear()
 
     def _create_webapp_session(self, webapp, user):
         session = SessionStore()
@@ -1193,6 +1198,36 @@ class GraphQLProxyMiddlewareTest(TestCase):
         self.assertEqual(
             context["missing_scopes"], [Webapp.OperationScope.DATASETS_READ]
         )
+
+    @patch("hexa.webapps.graphql_proxy.sentry_sdk")
+    def test_repeated_denial_is_reported_once(self, mock_sentry):
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        for query in [
+            "mutation { runPipeline(input: {}) { success } }",
+            "mutation { runPipeline(input: {}) { success } }",
+            "mutation { stopPipeline(input: {}) { success } }",
+        ]:
+            response = self._graphql_post(
+                "private-app", query, session_key=session.session_key
+            )
+            self.assertEqual(response.status_code, 403)
+        self.assertEqual(mock_sentry.capture_message.call_count, 2)
+
+    @patch("hexa.webapps.graphql_proxy.sentry_sdk")
+    def test_denial_on_preview_host_is_not_reported(self, mock_sentry):
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        preview_host = f"{session.session_key}.{WEBAPPS_DOMAIN}"
+        self.client.cookies[WEBAPP_SESSION_COOKIE] = session.session_key
+        response = self.client.post(
+            "/graphql/",
+            data=json.dumps(
+                {"query": "mutation { runPipeline(input: {}) { success } }"}
+            ),
+            content_type="application/json",
+            HTTP_HOST=preview_host,
+        )
+        self.assertEqual(response.status_code, 403)
+        mock_sentry.capture_message.assert_not_called()
 
     @patch("hexa.webapps.graphql_proxy.sentry_sdk")
     def test_allowed_query_is_not_reported_to_sentry(self, mock_sentry):

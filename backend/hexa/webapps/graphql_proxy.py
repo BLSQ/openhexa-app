@@ -1,8 +1,10 @@
+import hashlib
 import json
 
 import sentry_sdk
 from ariadne_django.views import GraphQLView
 from django.conf import settings
+from django.core.cache import cache
 from django.http import HttpRequest, JsonResponse
 from graphql import GraphQLError
 from graphql import parse as gql_parse
@@ -15,6 +17,8 @@ from hexa.webapps.utils import is_local_dev_origin, is_preview_host
 
 _graphql_view = GraphQLView.as_view(schema=schema)
 
+SENTRY_DENIAL_REPORT_INTERVAL = 60 * 60
+
 
 def _check_origin(request: HttpRequest) -> bool:
     origin = request.META.get("HTTP_ORIGIN", "")
@@ -24,6 +28,21 @@ def _check_origin(request: HttpRequest) -> bool:
         return True
     request_origin = f"{settings.SCHEME}://{request.get_host()}"
     return origin.rstrip("/") == request_origin.rstrip("/")
+
+
+def _should_report_denial(
+    request: HttpRequest, webapp: Webapp, denied: list[str]
+) -> bool:
+    # Preview hosts serve web apps under development, where denials are part of
+    # writing the queries rather than a live web app breaking.
+    if is_preview_host(request.get_host()):
+        return False
+    # A broken web app is denied on every request of every viewer, so each web app
+    # and set of fields is reported at most once per interval. No shared cache is
+    # configured, so the limit holds per process: an upper bound, not an exact count.
+    fields_hash = hashlib.sha256(",".join(denied).encode()).hexdigest()
+    key = f"webapp-graphql-denied:{webapp.id}:{fields_hash}"
+    return cache.add(key, True, timeout=SENTRY_DENIAL_REPORT_INTERVAL)
 
 
 def _report_denied_to_sentry(
@@ -116,7 +135,8 @@ def handle_graphql_proxy(request: HttpRequest, webapp: Webapp):
                 "disallowed_operations": denied,
             },
         )
-        _report_denied_to_sentry(webapp, denied, missing_scopes)
+        if _should_report_denial(request, webapp, denied):
+            _report_denied_to_sentry(webapp, denied, missing_scopes)
         message = f"Fields not allowed: {', '.join(denied)}"
         if missing_scopes:
             message += f". Enable scope(s): {', '.join(missing_scopes)}"
