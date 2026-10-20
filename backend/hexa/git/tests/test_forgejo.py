@@ -1,16 +1,37 @@
 import base64
+import io
 import json
 import re
+import zipfile
 
 import responses
 from django.test import TestCase, override_settings
 
 from hexa.git.exceptions import GitFileNotFound, GitFileTooLarge
-from hexa.git.forgejo import ForgejoAPIError, ForgejoClient, get_forgejo_client
+from hexa.git.forgejo import (
+    MAX_INLINE_BLOB_SIZE,
+    ForgejoAPIError,
+    ForgejoClient,
+    get_forgejo_client,
+)
 
 FORGEJO_URL = "http://forgejo-test:3000"
 USERNAME = "testuser"
 PASSWORD = "testpass"
+
+ARCHIVE_URL = f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/archive/main.zip"
+
+
+def _zip(files: dict[str, bytes]) -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        for path, content in files.items():
+            archive.writestr(f"my-repo/{path}", content)
+    return buffer.getvalue()
+
+
+def _archive_unavailable():
+    responses.get(ARCHIVE_URL, status=404)
 
 
 class ForgejoClientCreateRepositoryTest(TestCase):
@@ -1000,6 +1021,7 @@ class ForgejoClientFileEncodingTest(TestCase):
 
     @responses.activate
     def test_get_repository_files_marks_text_files_as_text(self):
+        _archive_unavailable()
         responses.get(
             f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/git/trees/main",
             json={"sha": "abc", "tree": [{"path": "index.html", "type": "blob"}]},
@@ -1020,6 +1042,7 @@ class ForgejoClientFileEncodingTest(TestCase):
 
     @responses.activate
     def test_get_repository_files_marks_binary_files_as_base64(self):
+        _archive_unavailable()
         # PNG header contains a NULL byte, treated as binary
         png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
         responses.get(
@@ -1042,6 +1065,7 @@ class ForgejoClientFileEncodingTest(TestCase):
 
     @responses.activate
     def test_get_repository_files_lists_too_large_blob_without_content(self):
+        _archive_unavailable()
         responses.get(
             f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/git/trees/main",
             json={
@@ -1105,6 +1129,7 @@ class ForgejoClientFileEncodingTest(TestCase):
 
     @responses.activate
     def test_get_repository_files_invalid_utf8_marked_base64(self):
+        _archive_unavailable()
         # \xff is not valid as a UTF-8 lead byte, decoding fails and fallback to binary
         raw = b"\xff\xfe\xfd"
         responses.get(
@@ -1124,6 +1149,73 @@ class ForgejoClientFileEncodingTest(TestCase):
         self.assertEqual(len(files), 1)
         self.assertEqual(files[0]["encoding"], "BASE64")
         self.assertEqual(base64.b64decode(files[0]["content"]), raw)
+
+
+class ForgejoClientRepositoryArchiveTest(TestCase):
+    TREE_URL = f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/git/trees/main"
+
+    def _tree(self, *entries):
+        responses.get(self.TREE_URL, json={"sha": "abc", "tree": list(entries)})
+
+    @responses.activate
+    def test_fetches_every_file_in_one_archive_request(self):
+        self._tree(
+            {"path": "css", "type": "tree"},
+            {"path": "index.html", "type": "blob", "size": 11},
+            {"path": "css/app.css", "type": "blob", "size": 7},
+            {"path": "pixel.png", "type": "blob", "size": 5},
+        )
+        responses.get(
+            ARCHIVE_URL,
+            body=_zip(
+                {
+                    "index.html": b"<h1>hi</h1>",
+                    "css/app.css": b"body {}",
+                    "pixel.png": b"\x89PNG\x00",
+                }
+            ),
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        by_path = {f["path"]: f for f in client.get_repository_files("my-repo")}
+
+        self.assertEqual(len(responses.calls), 2)
+        self.assertEqual(by_path["css"]["type"], "directory")
+        self.assertEqual(by_path["index.html"]["content"], "<h1>hi</h1>")
+        self.assertEqual(by_path["css/app.css"]["encoding"], "TEXT")
+        self.assertEqual(by_path["pixel.png"]["encoding"], "BASE64")
+
+    @responses.activate
+    def test_falls_back_to_one_request_per_file_without_archive(self):
+        self._tree({"path": "index.html", "type": "blob", "size": 11})
+        _archive_unavailable()
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/index.html",
+            json={"content": base64.b64encode(b"<h1>hi</h1>").decode("ascii")},
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        with self.assertLogs("hexa.git.forgejo", level="WARNING"):
+            files = client.get_repository_files("my-repo")
+
+        self.assertEqual(files[0]["content"], "<h1>hi</h1>")
+
+    @responses.activate
+    def test_skips_the_archive_for_a_repository_over_the_size_limit(self):
+        self._tree(
+            {"path": "index.html", "type": "blob", "size": 11},
+            {"path": "data.json", "type": "blob", "size": MAX_INLINE_BLOB_SIZE},
+        )
+        responses.get(
+            f"{FORGEJO_URL}/api/v1/repos/{USERNAME}/my-repo/contents/index.html",
+            json={"content": base64.b64encode(b"<h1>hi</h1>").decode("ascii")},
+        )
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        files = client.get_repository_files("my-repo")
+
+        self.assertNotIn(ARCHIVE_URL, [call.request.url for call in responses.calls])
+        self.assertTrue({f["path"]: f for f in files}["data.json"]["too_large"])
 
 
 class ForgejoClientGetCommitTest(TestCase):
