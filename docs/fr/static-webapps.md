@@ -51,7 +51,7 @@ Les webapps statiques privées peuvent appeler l'API GraphQL de la plateforme de
 - **Endpoint** : `POST /graphql/` sur l'URL de la webapp elle-même (même origine). Par exemple, une webapp servie sur `https://my-webapp.webapps.example.com/` appelle `https://my-webapp.webapps.example.com/graphql/`.
 - **Authentification** : gérée par la session de la webapp — le cookie de session du navigateur est attaché automatiquement. N'envoyez pas d'en-tête `Authorization` ; n'embarquez pas de token dans votre code.
 - **Vérification d'origine** : seules les requêtes dont l'`Origin` correspond à celle de la webapp sont autorisées. Les appels cross-site sont rejetés.
-- **Limité par scopes** : chaque webapp déclare une liste `allowed_operations`. Chaque champ sélectionné par une requête est vérifié par rapport à ces scopes, y compris les champs imbriqués et ceux des fragments. Si un champ n'est pas couvert, toute la requête renvoie un `403` qui nomme les champs refusés, par exemple `Fields not allowed: Workspace.connections`.
+- **Limité par scopes** : chaque webapp déclare une liste `allowed_operations`. Chaque champ sélectionné par une requête est vérifié par rapport à ces scopes, y compris les champs imbriqués et ceux des fragments. Si un champ n'est pas couvert, toute la requête renvoie un `403` qui nomme les champs refusés et, lorsqu'un scope les couvre, les scopes à activer, par exemple `Fields not allowed: Workspace.datasets. Enable scope(s): DATASETS_READ`. Les champs qu'aucun scope ne couvre, comme `Workspace.connections`, sont listés sans suggestion.
 - **Rôle de l'utilisateur, restreint par les scopes** : la webapp agit au nom de l'utilisateur qui la consulte, mais ne peut utiliser que ce que permettent à la fois son rôle dans le workspace et les scopes de la webapp. Les identifiants (mots de passe de base de données, secrets de connexion, tokens) ne sont jamais accessibles à une webapp.
 - **Uniquement son propre point d'accès** : l'API principale d'OpenHEXA refuse les requêtes provenant des pages de webapps. Appelez toujours `/graphql/` sur l'URL de la webapp elle-même.
 - **Corps JSON** : identique à n'importe quel POST GraphQL — `{"query": "...", "variables": {...}}`.
@@ -64,11 +64,11 @@ Par défaut, une webapp statique a une liste `allowed_operations` vide, ce qui s
 
 | Scope | Points d'entrée |
 |---|---|
-| `USER_READ` | `me`, `workspace` |
-| `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion` |
+| `USER_READ` | `me`, `workspace`, `countries`, `country`, `boundaries` |
+| `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion`, `pipelineParameterChoices` |
 | `PIPELINES_RUN` | `runPipeline`, `stopPipeline` |
 | `FILES_READ` | `getFileByPath`, `readFileContent`, `prepareObjectDownload` |
-| `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
+| `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink`, `datasetLinkBySlug`, `datasetVersionFile` |
 | `DATABASE_READ` | `executeSavedQuery` |
 
 Chaque scope couvre aussi les champs des objets renvoyés par ces points d'entrée, comme le montre le schéma des [exemples](#exemples-de-webapps) ci-dessous. Les liens qui remontent vers un workspace, comme `Pipeline.workspace`, `Dataset.workspace` ou `DatasetLink.workspace`, ne sont couverts par aucun scope.
@@ -77,6 +77,7 @@ Certains champs nécessitent un second scope :
 
 - Lister les fichiers via `workspace { bucket { objects } }` nécessite `USER_READ` et `FILES_READ`.
 - Lister les jeux de données via `workspace { datasets }` nécessite `USER_READ` et `DATASETS_READ`.
+- Lire les versions de jeux de données produites par une exécution via `pipelineRun { datasetVersions }` nécessite `PIPELINES_READ` et `DATASETS_READ`.
 
 Les champs d'introspection `__typename`, `__schema`, `__type` sont toujours autorisés.
 

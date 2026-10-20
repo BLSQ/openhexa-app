@@ -51,7 +51,7 @@ Private static webapps can call the platform's GraphQL API from their JavaScript
 - **Endpoint**: `POST /graphql/` on the webapp's own URL (same-origin). For example, a webapp served at `https://my-webapp.webapps.example.com/` calls `https://my-webapp.webapps.example.com/graphql/`.
 - **Authentication**: handled by the webapp session — the user's browser session cookie is attached automatically. Do not send `Authorization` headers; do not embed tokens in your code.
 - **Origin check**: only requests whose `Origin` matches the webapp's own origin are allowed. Cross-site calls are rejected.
-- **Scope-gated**: each webapp declares an `allowed_operations` list. Every field a query selects is checked against those scopes, including nested fields and fields inside fragments. If any field is not covered, the whole request returns a `403` naming the refused fields, for example `Fields not allowed: Workspace.connections`.
+- **Scope-gated**: each webapp declares an `allowed_operations` list. Every field a query selects is checked against those scopes, including nested fields and fields inside fragments. If any field is not covered, the whole request returns a `403` naming the refused fields and, when a scope would grant them, the scopes to enable, for example `Fields not allowed: Workspace.datasets. Enable scope(s): DATASETS_READ`. Fields no scope covers, such as `Workspace.connections`, are listed without a hint.
 - **Viewer's role, narrowed by scopes**: the webapp acts as the viewing user, but can only use what both the user's workspace role and the webapp's scopes allow. Credentials (database passwords, connection secrets, tokens) are never available to a webapp.
 - **Own endpoint only**: the main OpenHEXA API refuses requests coming from webapp pages. Always call `/graphql/` on the webapp's own URL.
 - **JSON body**: same as any GraphQL POST — `{"query": "...", "variables": {...}}`.
@@ -64,11 +64,11 @@ By default a static webapp has an empty `allowed_operations` list, which means i
 
 | Scope | Entry points |
 |---|---|
-| `USER_READ` | `me`, `workspace` |
-| `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion` |
+| `USER_READ` | `me`, `workspace`, `countries`, `country`, `boundaries` |
+| `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion`, `pipelineParameterChoices` |
 | `PIPELINES_RUN` | `runPipeline`, `stopPipeline` |
 | `FILES_READ` | `getFileByPath`, `readFileContent`, `prepareObjectDownload` |
-| `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
+| `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink`, `datasetLinkBySlug`, `datasetVersionFile` |
 | `DATABASE_READ` | `executeSavedQuery` |
 
 Each scope also covers the fields of the objects these entry points return, as shown in the schema of the [examples](#example-webapps) below. Links back up to a workspace, such as `Pipeline.workspace`, `Dataset.workspace` or `DatasetLink.workspace`, are not covered by any scope.
@@ -77,6 +77,7 @@ Some fields need a second scope:
 
 - Listing files through `workspace { bucket { objects } }` needs `USER_READ` and `FILES_READ`.
 - Listing datasets through `workspace { datasets }` needs `USER_READ` and `DATASETS_READ`.
+- Reading the dataset versions a run produced through `pipelineRun { datasetVersions }` needs `PIPELINES_READ` and `DATASETS_READ`.
 
 Introspection fields `__typename`, `__schema`, `__type` are always allowed.
 
