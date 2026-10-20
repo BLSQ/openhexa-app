@@ -195,6 +195,89 @@ class WebappScopePolicyTest(SimpleTestCase):
             with self.subTest(query=query):
                 self.assertEqual(self._denied(scopes, query), set())
 
+    def test_widened_fields_are_allowed(self):
+        scope = Webapp.OperationScope
+        for scopes, query in [
+            (
+                [scope.DATASETS_READ],
+                'query { datasetVersion(id: "abc") { attributes { key value } '
+                "permissions { download } files { items { rows columns properties "
+                "createdBy { email } fileSample { sample status } } } } }",
+            ),
+            (
+                [scope.DATASETS_READ],
+                'query { dataset(id: "abc") { targetId permissions { update } '
+                "links { items { createdBy { email } permissions { pin } } } } }",
+            ),
+            (
+                [scope.PIPELINES_READ],
+                'query { pipeline(id: "abc") { tags { name } config '
+                "versions { items { name user { email } permissions { update } } } "
+                "runs { items { logs config messages { message priority } "
+                "user { email } stoppedBy { email } "
+                "outputs { ... on DatabaseTable { name count columns { name type } } } "
+                "} } } }",
+            ),
+            (
+                [scope.PIPELINES_READ, scope.DATASETS_READ],
+                'query { pipelineRun(id: "abc") { datasetVersions { name dataset { slug } } } }',
+            ),
+            (
+                [scope.USER_READ],
+                'query { workspace(slug: "w") { tags { name } webappsEnabled '
+                "permissions { createDataset } currentMembership { id role } "
+                "organization { type url logo } } }",
+            ),
+            (
+                [scope.USER_READ, scope.FILES_READ],
+                'query { workspace(slug: "w") { bucket { name } } }',
+            ),
+        ]:
+            with self.subTest(query=query):
+                self.assertEqual(self._denied(scopes, query), set())
+
+    def test_sensitive_fields_stay_denied(self):
+        all_scopes = list(SCOPE_GRANTS)
+        for query, field in [
+            (
+                'query { workspace(slug: "w") { connections { slug } } }',
+                "Workspace.connections",
+            ),
+            (
+                'query { workspace(slug: "w") { configuration } }',
+                "Workspace.configuration",
+            ),
+            ('query { pipeline(id: "abc") { webhookUrl } }', "Pipeline.webhookUrl"),
+            (
+                'query { pipelineVersion(id: "abc") { zipfile } }',
+                "PipelineVersion.zipfile",
+            ),
+            (
+                'query { dataset(id: "abc") { workspace { slug } } }',
+                "Dataset.workspace",
+            ),
+            (
+                'query { pipelineRun(id: "abc") { outputs { ... on DatabaseTable { rows { items } } } } }',
+                "DatabaseTable.rows",
+            ),
+        ]:
+            with self.subTest(field=field):
+                self.assertIn(field, self._denied(all_scopes, query))
+
+    def test_missing_scopes_suggests_a_small_set(self):
+        policy = WebappScopePolicy([Webapp.OperationScope.USER_READ])
+        self.assertEqual(
+            policy.missing_scopes(
+                {"Workspace.datasets", "DatasetLink.dataset", "Dataset.name"}
+            ),
+            {Webapp.OperationScope.DATASETS_READ},
+        )
+        self.assertEqual(
+            WebappScopePolicy([]).missing_scopes({"Query.me", "User.email"}),
+            {Webapp.OperationScope.USER_READ},
+        )
+        self.assertEqual(policy.missing_scopes({"Workspace.connections"}), set())
+
     def test_every_listed_field_exists_in_the_schema(self):
         """A typo would silently take a field away from web apps."""
         for scope, grant in SCOPE_GRANTS.items():
@@ -1042,8 +1125,116 @@ class GraphQLProxyMiddlewareTest(TestCase):
         data = json.loads(response.content)
         self.assertEqual(
             data["errors"][0]["message"],
-            "Fields not allowed: Me.user, Query.me, User.email",
+            "Fields not allowed: Me.user, Query.me, User.email. Enable scope(s): USER_READ",
         )
+
+    @patch("hexa.webapps.graphql_proxy.sentry_sdk")
+    def test_denied_query_is_reported_to_sentry(self, mock_sentry):
+        scope = mock_sentry.new_scope.return_value.__enter__.return_value
+        webapp = self._create_scoped_webapp(
+            "sentry-app", [Webapp.OperationScope.USER_READ]
+        )
+        session = self._create_webapp_session(webapp, self.USER)
+        response = self._graphql_post(
+            "sentry-app",
+            f'query {{ workspace(slug: "{self.WORKSPACE.slug}") '
+            "{ datasets { items { dataset { name } } } } }",
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            json.loads(response.content)["errors"][0]["message"],
+            "Fields not allowed: Dataset.name, DatasetLink.dataset, "
+            "DatasetLinkPage.items, Workspace.datasets. Enable scope(s): DATASETS_READ",
+        )
+        denied = [
+            "Dataset.name",
+            "DatasetLink.dataset",
+            "DatasetLinkPage.items",
+            "Workspace.datasets",
+        ]
+        scope.set_tag.assert_any_call("webapp_id", str(webapp.id))
+        scope.set_tag.assert_any_call("workspace_slug", self.WORKSPACE.slug)
+        scope.set_tag.assert_any_call("webapp_is_public", False)
+        scope.set_tag.assert_any_call("denial_kind", "missing_scope")
+        scope.set_context.assert_called_once_with(
+            "webapp_graphql_denied",
+            {
+                "denied_fields": denied,
+                "ungrantable_fields": [],
+                "enabled_scopes": [Webapp.OperationScope.USER_READ],
+                "missing_scopes": [Webapp.OperationScope.DATASETS_READ],
+            },
+        )
+        self.assertEqual(
+            scope.fingerprint, ["webapp-graphql-denied", str(webapp.id), *denied]
+        )
+        mock_sentry.capture_message.assert_called_once_with(
+            f"Webapp GraphQL fields not allowed: {', '.join(denied)}",
+            level="warning",
+        )
+
+    @patch("hexa.webapps.graphql_proxy.sentry_sdk")
+    def test_ungrantable_fields_are_reported_apart(self, mock_sentry):
+        scope = mock_sentry.new_scope.return_value.__enter__.return_value
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        response = self._graphql_post(
+            "private-app",
+            f'query {{ workspace(slug: "{self.WORKSPACE.slug}") '
+            "{ connections { slug } datasets { totalItems } } }",
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 403)
+        scope.set_tag.assert_any_call("denial_kind", "not_grantable")
+        [(_, context), _] = scope.set_context.call_args
+        self.assertEqual(
+            context["ungrantable_fields"], ["Connection.slug", "Workspace.connections"]
+        )
+        self.assertEqual(
+            context["missing_scopes"], [Webapp.OperationScope.DATASETS_READ]
+        )
+
+    @patch("hexa.webapps.graphql_proxy.sentry_sdk")
+    def test_allowed_query_is_not_reported_to_sentry(self, mock_sentry):
+        session = self._create_webapp_session(self.WEBAPP_PRIVATE, self.USER)
+        response = self._graphql_post(
+            "private-app",
+            "query { me { user { email } } }",
+            session_key=session.session_key,
+        )
+        self.assertEqual(response.status_code, 200)
+        mock_sentry.capture_message.assert_not_called()
+
+    @patch("hexa.datasets.schema.types.generate_download_url")
+    def test_dataset_files_listed_through_the_workspace(
+        self, mock_generate_download_url
+    ):
+        """The query of a live web app that the field-level check broke."""
+        mock_generate_download_url.return_value = "https://signed.example.com/data.csv"
+        dataset = Dataset.objects.create_if_has_perm(
+            principal=self.USER, workspace=self.WORKSPACE, name="Linked", description=""
+        )
+        version = DatasetVersion.objects.create_if_has_perm(
+            principal=self.USER, dataset=dataset, name="v1", changelog=None
+        )
+        DatasetVersionFile.objects.create_if_has_perm(
+            principal=self.USER,
+            dataset_version=version,
+            uri="data.csv",
+            content_type="text/csv",
+        )
+        data = self._post_with_scopes(
+            "workspace-datasets-app",
+            [Webapp.OperationScope.USER_READ, Webapp.OperationScope.DATASETS_READ],
+            f'query {{ workspace(slug: "{self.WORKSPACE.slug}") {{ datasets {{ items {{ '
+            "dataset { name slug latestVersion { name createdAt files { items { "
+            "filename contentType size rows downloadUrl } } } } } } } }",
+        )
+        [link] = data["workspace"]["datasets"]["items"]
+        self.assertEqual(link["dataset"]["name"], "Linked")
+        [file] = link["dataset"]["latestVersion"]["files"]["items"]
+        self.assertEqual(file["filename"], "data.csv")
+        self.assertEqual(file["downloadUrl"], "https://signed.example.com/data.csv")
 
 
 @override_settings(WEBAPPS_DOMAIN=WEBAPPS_DOMAIN)
