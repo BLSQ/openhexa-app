@@ -302,6 +302,7 @@ const ResultsMap = ({ features }: ResultsMapProps) => {
     <Map
       ref={mapRef}
       mapStyle={BASEMAP_STYLE}
+      attributionControl={false}
       initialViewState={{ bounds, fitBoundsOptions: FIT_OPTIONS }}
       style={{ height: "100%", width: "100%" }}
       interactiveLayerIds={INTERACTIVE_LAYER_IDS}
