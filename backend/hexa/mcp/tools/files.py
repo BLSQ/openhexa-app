@@ -1,3 +1,5 @@
+import time
+
 from hexa.core.text_files import (
     AGENT_READ,
     GREP_HEAD_LIMIT,
@@ -11,6 +13,11 @@ from hexa.mcp.protocol import tool
 from hexa.workspaces.models import Workspace
 
 from ._graphql import execute_graphql
+
+# Every file grep searches is a full download; past these one call would hold a worker
+# for minutes and outlast the proxy timeout.
+GREP_MAX_DOWNLOAD_BYTES = 50 * 1024 * 1024
+GREP_TIMEOUT_SECONDS = 20
 
 
 def _bucket_files(user, workspace_slug: str, prefix: str):
@@ -29,10 +36,11 @@ def _bucket_files(user, workspace_slug: str, prefix: str):
 
 def _with_listing_notice(result: dict, source: BucketFileSource) -> dict:
     if source.truncated:
-        result["notice"] = (
+        notice = (
             f"Only the first {MAX_LISTED_FILES} files of the bucket were considered. "
             "Pass a prefix to narrow the search."
         )
+        result["notice"] = " ".join(filter(None, [result.get("notice"), notice]))
     return result
 
 
@@ -86,10 +94,14 @@ def grep_files(
     EXPENSIVE: every file searched is downloaded in full. Keep `glob` (required, e.g. `scripts/**/*.py`) and `prefix` as narrow as possible, and prefer list_files or glob_files when the file name is enough. Text files over 1 MB are skipped.
 
     Patterns match within a single line; escape regex metacharacters. output_mode: `files_with_matches` (default) lists matching paths, which stops downloading once a page is full; `content` returns matching lines as `path:line:text`, with `context` lines around each match; `count` returns matches per file and their total, and downloads every file matching `glob`. head_limit and offset page through the entries; `truncated` tells there are more.
+
+    A search stops after downloading 50 MB or running 20 seconds, and returns what it found so far with a notice.
     """
     source, error = _bucket_files(user, workspace_slug, prefix)
     if error:
         return error
+    # Started before the listing, which walks the bucket on the first access.
+    deadline = time.monotonic() + GREP_TIMEOUT_SECONDS
     result = TextFiles(source).grep(
         pattern,
         glob=glob,
@@ -98,6 +110,8 @@ def grep_files(
         context=context,
         head_limit=head_limit,
         offset=offset,
+        should_stop=lambda: source.bytes_read >= GREP_MAX_DOWNLOAD_BYTES
+        or time.monotonic() >= deadline,
     )
     return _with_listing_notice(result, source)
 

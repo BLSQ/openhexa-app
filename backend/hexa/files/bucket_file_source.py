@@ -1,7 +1,7 @@
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from functools import cached_property
 
-from hexa.core.text_files import MAX_TEXT_FILE_SIZE, FileSource, decode_text
+from hexa.core.text_files import MAX_TEXT_FILE_SIZE, decode_text
 
 from .backends.base import Storage
 from .backends.exceptions import NotFound
@@ -12,28 +12,28 @@ MAX_LISTED_FILES = 5000
 _LIST_PAGE_SIZE = 1000
 
 
-class BucketFileSource(FileSource):
+class BucketFileSource(Mapping):
     """The files of a workspace bucket under `prefix`, downloaded on first access.
 
     Listing walks the directories, one request per directory and page, up to
     MAX_LISTED_FILES (`truncated` tells when it stopped there). Each content is a full
-    download, made only when read: searching a bucket is far costlier than a repository.
-    Hidden, binary and oversized files are skipped or map to None, as in `list_files`.
+    download, made on every read and not kept: a search reads each file once, and
+    holding a bucket's worth of contents would exhaust the worker's memory. `bytes_read`
+    lets callers budget those downloads. Hidden, binary and oversized files are skipped
+    or map to None, as in `list_files`.
     """
 
     def __init__(self, storage: Storage, bucket_name: str, prefix: str = ""):
         self._storage = storage
         self._bucket_name = bucket_name
         self._prefix = prefix
-        self._contents: dict[str, str | None] = {}
         self.truncated = False
+        self.bytes_read = 0
 
     def __getitem__(self, path: str) -> str | None:
         if path not in self._sizes:
             raise KeyError(path)
-        if path not in self._contents:
-            self._contents[path] = self._fetch(path)
-        return self._contents[path]
+        return self._fetch(path)
 
     def __contains__(self, path: object) -> bool:
         return path in self._sizes
@@ -82,4 +82,5 @@ class BucketFileSource(FileSource):
             raw = self._storage.read_object(self._bucket_name, path)
         except NotFound:
             raise KeyError(path)
+        self.bytes_read += len(raw)
         return decode_text(raw)

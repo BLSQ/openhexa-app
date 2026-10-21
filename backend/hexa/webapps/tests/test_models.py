@@ -828,6 +828,62 @@ class GitWebappModelTest(TestCase):
 
         self.assertEqual(webapp.published_commit, self.INITIAL_SHA)
 
+    def test_get_text_files(self):
+        webapp = GitWebapp.create_if_has_perm(
+            principal=self.user_admin,
+            workspace=self.workspace,
+            name="Text Files App",
+            created_by=self.user_admin,
+            webapp_type=Webapp.WebappType.STATIC,
+        )
+        big_bundle = "x" * (2 * 1024 * 1024)
+        self.mock_git_client.get_repository_files.return_value = [
+            {"path": "js", "type": "directory", "content": None, "encoding": None},
+            {
+                "path": "index.html",
+                "type": "file",
+                "content": "<h1>Hi</h1>",
+                "encoding": "TEXT",
+            },
+            {
+                "path": "js/bundle.js",
+                "type": "file",
+                "content": big_bundle,
+                "encoding": "TEXT",
+            },
+            {
+                "path": "logo.png",
+                "type": "file",
+                "content": "iVBORw0",
+                "encoding": "BASE64",
+            },
+            {
+                "path": "video.mp4",
+                "type": "file",
+                "content": None,
+                "encoding": None,
+                "too_large": True,
+            },
+        ]
+
+        files = webapp.get_text_files()
+
+        self.mock_git_client.get_repository_files.assert_called_once_with(
+            webapp.repository, "main", org_slug=webapp.git_org.slug
+        )
+        self.assertEqual(
+            files.glob("**")["paths"],
+            ["index.html", "js/bundle.js", "logo.png", "video.mp4"],
+        )
+        self.assertEqual(files.read("index.html")["content"], "<h1>Hi</h1>")
+        self.assertEqual(files.grep("x", glob="js/*")["files"], ["js/bundle.js"])
+        self.assertEqual(
+            files.read("logo.png"), {"error": "Not a readable text file: logo.png"}
+        )
+        self.assertEqual(
+            files.read("video.mp4"), {"error": "Not a readable text file: video.mp4"}
+        )
+
     def test_multi_table_inheritance(self):
         git_webapp = GitWebapp.create_if_has_perm(
             principal=self.user_admin,

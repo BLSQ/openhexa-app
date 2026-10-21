@@ -236,6 +236,42 @@ class GrepFilesTest(_BucketTestCase):
             )
         read.assert_called_once()
 
+    @patch("hexa.mcp.tools.files.GREP_MAX_DOWNLOAD_BYTES", 1)
+    def test_grep_files_stops_at_the_download_budget(self):
+        result = grep_files(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            pattern="def",
+            glob="**/*.py",
+            output_mode="count",
+        )
+        self.assertEqual(result["counts"], {"scripts/clean.py": 1})
+        self.assertTrue(result["truncated"])
+        self.assertIn("stopped after 1 of 2 files", result["notice"])
+
+    @patch("hexa.mcp.tools.files.GREP_TIMEOUT_SECONDS", 0)
+    def test_grep_files_stops_at_the_timeout(self):
+        result = grep_files(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            pattern="def",
+            glob="**/*.py",
+        )
+        self.assertEqual(result["files"], [])
+        self.assertIn("stopped after 0 of 2 files", result["notice"])
+
+    @patch("hexa.files.bucket_file_source.MAX_LISTED_FILES", 2)
+    @patch("hexa.mcp.tools.files.GREP_MAX_DOWNLOAD_BYTES", 1)
+    def test_grep_files_keeps_both_notices(self):
+        result = grep_files(
+            user=self.USER_ADMIN,
+            workspace_slug=self.WORKSPACE.slug,
+            pattern="a",
+            glob="**",
+        )
+        self.assertIn("Search stopped", result["notice"])
+        self.assertIn("Only the first", result["notice"])
+
     def test_grep_files_no_access(self):
         result = grep_files(
             user=self.USER_OUTSIDER,
