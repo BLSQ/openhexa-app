@@ -413,7 +413,7 @@ pandas==2.3.0
     #   openhexa-toolbox
 pathspec==1.0.4
     # via black
-pip-tools==7.5.3
+pip-tools==7.6.2
     # via -r requirements.in
 platformdirs==4.3.8
     # via black
