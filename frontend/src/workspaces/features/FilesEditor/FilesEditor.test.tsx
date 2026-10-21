@@ -10,8 +10,7 @@ import { FilesEditor_FileFragment } from "./FilesEditor.generated";
 import { FileEncoding, FileType } from "graphql/types";
 import { NavigationAbortedError } from "core/hooks/useNavigationWarning";
 import mockRouter from "next-router-mock";
-import { TestApp } from "core/helpers/testutils";
-import { Cookies } from "react-cookie";
+import { clearCookies, TestApp } from "core/helpers/testutils";
 
 const mockFiles: FilesEditor_FileFragment[] = [
   {
@@ -88,10 +87,7 @@ jest.mock("core/components/CodeMirrorClient/CodeMirrorClient", () => {
 });
 
 describe("FilesEditor", () => {
-  beforeEach(() => {
-    // Clear cookies between tests to prevent state leaking
-    new Cookies().remove("files-editor-panel-open");
-  });
+  beforeEach(clearCookies);
 
   afterEach(() => {
     cleanup();
@@ -110,34 +106,88 @@ describe("FilesEditor", () => {
     expect(screen.getByText("root")).toBeInTheDocument();
   });
 
-  it("shows toggle button for the file panel", () => {
+  it("collapses and reopens the file panel from its toggle", async () => {
     render(
       <TestApp>
         <FilesEditor name="Test Project" files={mockFiles} />
       </TestApp>,
     );
 
-    const toggleButton = screen.getByLabelText("Toggle file panel");
-    expect(toggleButton).toBeInTheDocument();
+    const toggle = screen.getByRole("button", { name: "File list" });
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+
+    fireEvent.click(toggle);
+    await waitFor(() => {
+      expect(toggle).toHaveAttribute("aria-expanded", "false");
+    });
+    expect(screen.getByRole("separator")).toHaveAttribute("aria-valuenow", "0");
+
+    fireEvent.click(toggle);
+    await waitFor(() => {
+      expect(toggle).toHaveAttribute("aria-expanded", "true");
+    });
   });
 
-  it("toggles panel state when toggle button is clicked", async () => {
+  it("keeps the file panel at a fixed width and truncates long names", () => {
+    const longName = `${"very_long_file_name_".repeat(10)}.py`;
+    const longDirName = "a_directory_with_a_name_that_never_seems_to_end";
     render(
       <TestApp>
-        <FilesEditor name="Test Project" files={mockFiles} />
+        <FilesEditor
+          name="Test Project"
+          files={[
+            {
+              ...mockFiles[0],
+              id: "10",
+              name: longDirName,
+              path: `/${longDirName}`,
+            },
+            {
+              ...mockFiles[1],
+              id: "11",
+              name: longName,
+              path: `/${longName}`,
+              parentId: null,
+            },
+          ]}
+        />
       </TestApp>,
     );
 
-    const toggleButton = screen.getByLabelText("Toggle file panel");
-    const filePanel = screen.getByTestId("files-panel");
+    expect(screen.getByRole("separator")).toHaveAttribute(
+      "aria-valuenow",
+      "240",
+    );
+    for (const name of [longName, longDirName]) {
+      const label = screen.getByText(name);
+      expect(label).toHaveClass("truncate");
+      expect(label).toHaveAttribute("title", name);
+    }
+  });
 
-    expect(filePanel).toBeInTheDocument();
+  it("truncates a long name in the editor header", () => {
+    const longName = `${"very_long_file_name_".repeat(10)}.py`;
+    render(
+      <TestApp>
+        <FilesEditor
+          name="Test Project"
+          files={[
+            {
+              ...mockFiles[1],
+              name: longName,
+              path: `/${longName}`,
+              parentId: null,
+            },
+          ]}
+        />
+      </TestApp>,
+    );
 
-    fireEvent.click(toggleButton);
+    fireEvent.click(screen.getByText(longName));
 
-    await waitFor(() => {
-      expect(screen.queryByTestId("files-panel")).not.toBeInTheDocument();
-    });
+    const headerLabels = screen.getAllByTitle(longName);
+    expect(headerLabels).toHaveLength(2);
+    headerLabels.forEach((label) => expect(label).toHaveClass("truncate"));
   });
 
   it("expands directory nodes when clicked", () => {
