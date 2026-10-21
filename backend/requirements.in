@@ -45,7 +45,7 @@ google-auth
 google-cloud-iam
 
 # meta
-pip-tools==7.5.3
+pip-tools==7.6.2
 
 # development
 coverage[toml]

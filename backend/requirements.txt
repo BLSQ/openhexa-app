@@ -67,7 +67,7 @@ botocore==1.40.76
     #   s3transfer
 build==1.2.2.post1
     # via pip-tools
-certifi==2025.6.15
+certifi==2026.10.19
     # via
     #   fiona
     #   httpcore
@@ -413,7 +413,7 @@ pandas==2.3.0
     #   openhexa-toolbox
 pathspec==1.0.4
     # via black
-pip-tools==7.5.3
+pip-tools==7.6.2
     # via -r requirements.in
 platformdirs==4.3.8
     # via black
