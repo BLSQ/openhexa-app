@@ -55,7 +55,9 @@ const SchemaTableRow = ({
             <ChevronRightIcon className="h-3 w-3 text-gray-400" />
           )}
           <TableCellsIcon className="h-3.5 w-3.5 text-gray-400 group-hover:text-blue-600" />
-          <span className="flex-1 truncate text-gray-700">{name}</span>
+          <span className="flex-1 truncate text-gray-700" title={name}>
+            {name}
+          </span>
         </button>
         <button
           onClick={() => onInsert(name)}
