@@ -180,7 +180,7 @@ filetype==1.2.0
     # via -r requirements.in
 fiona==1.10.1
     # via openhexa-toolbox
-genai-prices==0.1.10
+genai-prices==0.1.13
     # via
     #   -r requirements.in
     #   pydantic-ai-slim
