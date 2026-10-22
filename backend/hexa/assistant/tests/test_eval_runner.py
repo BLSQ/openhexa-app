@@ -7,7 +7,7 @@ from pathlib import Path
 from django.core.management import call_command
 from django.core.management.base import CommandError, OutputWrapper
 from django.test import SimpleTestCase, override_settings
-from pydantic_evals import Case, Dataset
+from pydantic_evals import Case, Dataset, increment_eval_metric
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 
 from hexa.assistant.agents.create_pipeline_agent import CreatePipelineAgent
@@ -360,3 +360,60 @@ class CaseSpreadTest(SimpleTestCase):
     def test_silent_for_a_single_run(self):
         """With repeat=1 there is nothing to aggregate; the table says it all."""
         self.assertEqual("", self._summary({"solo": [1.0]}, repeat=1))
+
+
+class TotalCostTest(SimpleTestCase):
+    """The run total the built-in report only shows as a per-run average."""
+
+    def _totals(self, usage: dict[str, dict | None], repeat: int = 1) -> str:
+        async def task(inputs: str) -> str:
+            metrics = usage[inputs]
+            if metrics is None:
+                raise RuntimeError("the agent crashed")
+            for name, value in metrics.items():
+                increment_eval_metric(name, value)
+            return inputs
+
+        dataset = Dataset(
+            name="totals-test", cases=[Case(name=k, inputs=k) for k in usage]
+        )
+        report = dataset.evaluate_sync(
+            task, repeat=repeat, progress=False, max_concurrency=1
+        )
+        command = Command()
+        command.stdout = OutputWrapper(StringIO())
+        command._print_totals(report)
+        return command.stdout._out.getvalue()
+
+    def _row(self, out: str, label: str) -> list[str]:
+        """The cells of one row of the box, without the border."""
+        line = next(line for line in out.splitlines() if f"│ {label} " in line)
+        return line.strip("│ ").split()
+
+    def test_is_a_box_titled_totals(self):
+        out = self._totals({"a": {"cost": 0.5}})
+        self.assertIn("Totals", out.splitlines()[0])
+
+    def test_sums_cost_and_usage_across_runs(self):
+        run = {"cost": 0.5, "requests": 4, "input_tokens": 1500, "output_tokens": 200}
+        out = self._totals({"a": run, "b": run}, repeat=2)
+        self.assertEqual(["runs", "4"], self._row(out, "runs"))
+        self.assertEqual(["requests", "16"], self._row(out, "requests"))
+        self.assertEqual(["input", "tokens", "6,000"], self._row(out, "input tokens"))
+        self.assertEqual(["output", "tokens", "800"], self._row(out, "output tokens"))
+        self.assertEqual(["cost", "$2.00"], self._row(out, "cost"))
+
+    def test_unpriced_runs_are_called_out(self):
+        """A model genai-prices cannot price must not read as a free run."""
+        out = self._totals({"a": {"cost": 0.5}, "b": {"requests": 3}})
+        self.assertIn("$0.50", self._row(out, "cost"))
+        self.assertIn("1 run(s) had no cost recorded", out)
+
+    def test_no_cost_at_all_is_unavailable_not_zero(self):
+        out = self._totals({"a": {"requests": 3}})
+        self.assertIn("unavailable", self._row(out, "cost"))
+
+    def test_errored_runs_are_flagged_as_missing(self):
+        out = self._totals({"a": {"cost": 0.5}, "b": None})
+        self.assertEqual("1", self._row(out, "runs")[1])
+        self.assertIn("1 errored run(s) not included", out)
