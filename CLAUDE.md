@@ -4,9 +4,36 @@
 
 Follow these guidelines when writing code:
 
--   **Comments**: Do not write comments that merely restate what the code does. Only add comments when explaining _why_ something is done a certain way, not _what_ it does.
+-   **Comments**: Only add comments when explaining _why_ something is done a certain way, not _what_ it does. Avoid redundant comments that merely restate self-evident code.
 -   **Imports**: Place imports at the top of the file. Do not use inline/dynamic imports inside functions or methods unless strictly necessary (e.g., to break a circular import or to defer an optional/expensive dependency).
+-   **Django admin**: Put administrator-specific rules in `admin.py` (such as custom forms, `readonly_fields`, or permission methods) rather than placing guards or validation on models whose sole purpose is restricting the admin interface.
+-   **Docstrings**: Keep docstrings concise and helpful. Explain the purpose of a function or class, and document non-obvious rules, assumptions, or exceptions.
 -   **Documentation**: The docs are maintained in English (`docs/en/`) and French (`docs/fr/`). Any change to a page in one language must be applied to its counterpart in the other in the same change — never update only one side.
+
+### Writing comments
+
+Write comments to help other developers understand the context behind non-obvious code. If someone working on the codebase might wonder why something was written a specific way, or might accidentally break it during a refactor, a brief comment is helpful.
+
+Leave these uncommented:
+
+-   Self-explanatory code, fields, or arguments (e.g., standard model fields or query options).
+-   Standard framework or library options doing their normal job (e.g., `encoder=DjangoJSONEncoder`).
+-   GraphQL schema definitions where the name already makes the meaning clear (e.g., error codes like `PERMISSION_DENIED` or `INVALID_PARAMETERS`).
+-   Broad architecture or product design discussions; link to the relevant ticket or documentation instead.
+
+Aim to keep comments concise and focused.
+
+### Writing docstrings
+
+State clearly what the code does. Add the _why_ or practical usage details when they are not obvious from the signature.
+
+-   **Functions and methods**: A single clear line is often enough. For more complex logic, add a brief description of key arguments, return values, or edge cases that callers need to know about.
+-   **Modules**: Provide a high-level summary of the module's role, its main entry points, and an overview of data flow or security boundaries where helpful.
+
+Avoid unnecessary filler:
+
+-   Do not repeat information already apparent from parameter names and types.
+-   Avoid redundant descriptions of what the code deliberately does not do unless it directly prevents common pitfalls.
 
 ## Common Development Commands
 

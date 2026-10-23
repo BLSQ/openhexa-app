@@ -157,6 +157,65 @@ the third by `views`:
   concurrent exports per worker; excess callers get an immediate **429** rather than queueing.
   It is per process, not a global cap (that is the per-role Postgres `CONNECTION LIMIT`).
 
+## Query templating
+
+Saved queries can declare parameters (`SavedQuery.parameters`), turning their SQL
+into templates that `templating.py` renders before execution. This allows web
+applications and API callers to filter query results dynamically while keeping the
+underlying SQL query defined and managed in the Data Studio.
+
+### Security and parameter binding
+
+Template SQL is authored by workspace members, but runtime parameter values come
+from client applications. To prevent SQL injection, parameter values are never
+interpolated directly into SQL text. Instead:
+
+1. `templating.py` renders the template with neutral placeholder tokens and collects
+   the parameter values in order.
+2. `hexa.databases.query_text.to_psycopg2` converts the tokens into psycopg2 `%s`
+   placeholders and returns a `PreparedQuery` with the values attached.
+3. The database driver binds the values safely at execution time.
+
+Keeping driver-specific formatting out of `templating.py` ensures template rendering
+remains database-agnostic. Driver requirements — such as psycopg2's `%s` syntax and
+escaping literal `%` characters to `%%` for psycopg2's string formatting — live in the
+`databases` module.
+
+### Pagination and sorting
+
+Template authors do not need to manage `ORDER BY`, `LIMIT`, or `OFFSET` in their SQL.
+`executeSavedQuery` applies sorting and pagination wrappers to the prepared statement
+after template rendering, binding pagination arguments after the template values.
+
+- Pagination cursors are fingerprinted using the parameterized statement and the bound
+  parameter values (see `pagination.statement_text`). This ensures cursors remain valid
+  across requests with identical parameters, but are safely rejected if parameters change.
+- `QueryLog` audit records store the original template SQL and the bound parameter
+  values in `parameters`. Storing the template and values separately preserves the exact
+  execution context without needing to reconstruct interpolated SQL.
+
+### Design details
+
+- **No raw SQL escape hatches:** The templating engine does not provide `sqlsafe` filters
+  or `Markup` bypasses. Parameter values can only be bound as query parameters, ensuring
+  they cannot alter SQL syntax.
+- **List parameters bind as arrays:** Parameters with `multiple=True` bind as native
+  PostgreSQL arrays and are used with `= ANY(...)` (or `<> ALL(...)`). This avoids
+  dynamically expanding `IN (...)` clauses and handles empty lists gracefully without
+  causing SQL syntax errors.
+- **Immediate errors for undefined variables:** The Jinja `finalize` hook explicitly
+  checks for `Undefined` instances, ensuring undeclared variables and sandbox violations
+  raise immediate template errors rather than causing driver-level adaptation errors later.
+- **Order preservation:** Using `@pass_context` on `finalize` prevents Jinja from
+  optimizing constant expressions at compile time, guaranteeing that collected parameter
+  values stay in sync with their placeholder positions.
+- **Validation and normalization on save:** Parameters are validated and normalized when
+  queries are created or updated via the API (`create_if_has_perm`, `update_if_has_perm`).
+  Normalization fills in default values for optional properties (`multiple`, `required`,
+  `default`, `help`), ensuring stored definitions always match GraphQL non-null field requirements.
+- **Template snippets:** Features like `{% include %}` and `{% import %}` are currently
+  rejected during validation until a dedicated snippet loader and snippet model are introduced.
+
 ## Resource lifecycle
 
 The slot and connection outlive the view call — the response keeps consuming rows after the

@@ -16,6 +16,7 @@ _OVERVIEW = {
         "Create a web app: create_static_webapp with HTML/CSS/JS files",
         "Save a SQL query: get_db_schema -> get_db_table_schema -> create_saved_query",
         "Reuse a SQL query: list_saved_queries -> get_saved_query (full SQL content)",
+        "Let a web app filter a SQL query: create_saved_query / update_saved_query with parameters (see the static-webapps doc)",
     ],
     "tips": [
         "Start with list_workspaces to discover available workspaces",
