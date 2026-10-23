@@ -1,12 +1,18 @@
 import base64
+import io
+import logging
+import zipfile
 from urllib.parse import quote
 
 import requests
 from django.conf import settings
 
+from hexa.core.text_files import decode_text
 from hexa.git.client import GitClient
 from hexa.git.enums import FileEncoding
 from hexa.git.exceptions import GitError, GitFileNotFound, GitFileTooLarge
+
+logger = logging.getLogger(__name__)
 
 MAX_INLINE_BLOB_SIZE = 10 * 1024 * 1024
 
@@ -342,6 +348,7 @@ class ForgejoClient(GitClient):
         Blobs too large to read carry too_large=True and no content.
         """
         tree = self.get_files_tree(repo_name, ref, org_slug=org_slug)
+        archived = self._archive_contents(repo_name, ref, org_slug, tree)
         nodes: list[dict] = []
 
         for entry in tree:
@@ -376,20 +383,16 @@ class ForgejoClient(GitClient):
                 nodes.append(too_large_node)
                 continue
 
-            try:
-                raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
-            except GitFileTooLarge as e:
-                nodes.append({**too_large_node, "size": e.size})
-                continue
-            content: str
-            encoding: FileEncoding
-            if b"\x00" not in raw:
+            raw = archived.get(path)
+            if raw is None:
                 try:
-                    content = raw.decode("utf-8")
-                    encoding = FileEncoding.TEXT
-                except UnicodeDecodeError:
-                    content = base64.b64encode(raw).decode("ascii")
-                    encoding = FileEncoding.BASE64
+                    raw = self.get_file(repo_name, path, ref, org_slug=org_slug)
+                except GitFileTooLarge as e:
+                    nodes.append({**too_large_node, "size": e.size})
+                    continue
+            text = decode_text(raw)
+            if text is not None:
+                content, encoding = text, FileEncoding.TEXT
             else:
                 content = base64.b64encode(raw).decode("ascii")
                 encoding = FileEncoding.BASE64
@@ -406,6 +409,42 @@ class ForgejoClient(GitClient):
             )
 
         return nodes
+
+    def _archive_contents(
+        self, repo_name: str, ref: str, org_slug: str | None, tree: list[dict]
+    ) -> dict[str, bytes]:
+        """Every blob of `ref` by path, from one archive download instead of one request
+        per file, or nothing when the caller should fetch files one by one.
+
+        An archive holds every file, so it is only used when the whole repository fits
+        under MAX_INLINE_BLOB_SIZE: a large blob must not be downloaded only to be skipped.
+        """
+        sizes = [e.get("size") or 0 for e in tree if e.get("type") == "blob"]
+        if not sizes or sum(sizes) > MAX_INLINE_BLOB_SIZE:
+            return {}
+        org_slug = org_slug or self._username
+        try:
+            response = self._request(
+                "GET",
+                f"/repos/{org_slug}/{repo_name}/archive/{quote(ref, safe='')}.zip",
+            )
+            with zipfile.ZipFile(io.BytesIO(response.content)) as archive:
+                # Entries sit under a top-level `<repo>/` directory.
+                return {
+                    name.split("/", 1)[1]: archive.read(name)
+                    for name in archive.namelist()
+                    if "/" in name and not name.endswith("/")
+                }
+        except (ForgejoAPIError, zipfile.BadZipFile):
+            # Archives can be disabled on the server; per-file requests still work.
+            logger.warning(
+                "Archive of %s/%s@%s unavailable, fetching files one by one",
+                org_slug,
+                repo_name,
+                ref,
+                exc_info=True,
+            )
+            return {}
 
     def get_commit(self, org_slug: str, repo_name: str, sha: str) -> dict:
         response = self._request(

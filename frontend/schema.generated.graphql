@@ -484,8 +484,11 @@ enum AssistantToolName {
   get_help_or_doc
   get_pipeline
   get_saved_query
-  get_static_webapp_file
   get_workspace
+  glob_files
+  glob_webapp_files
+  grep_files
+  grep_webapp_files
   list_connections
   list_datasets
   list_files
@@ -495,6 +498,7 @@ enum AssistantToolName {
   propose_pipeline_version
   propose_webapp_version
   read_file
+  read_webapp_file
   update_saved_query
 }
 

@@ -530,8 +530,11 @@ export enum AssistantToolName {
   GetHelpOrDoc = 'get_help_or_doc',
   GetPipeline = 'get_pipeline',
   GetSavedQuery = 'get_saved_query',
-  GetStaticWebappFile = 'get_static_webapp_file',
   GetWorkspace = 'get_workspace',
+  GlobFiles = 'glob_files',
+  GlobWebappFiles = 'glob_webapp_files',
+  GrepFiles = 'grep_files',
+  GrepWebappFiles = 'grep_webapp_files',
   ListConnections = 'list_connections',
   ListDatasets = 'list_datasets',
   ListFiles = 'list_files',
@@ -541,6 +544,7 @@ export enum AssistantToolName {
   ProposePipelineVersion = 'propose_pipeline_version',
   ProposeWebappVersion = 'propose_webapp_version',
   ReadFile = 'read_file',
+  ReadWebappFile = 'read_webapp_file',
   UpdateSavedQuery = 'update_saved_query'
 }
 

@@ -17,6 +17,9 @@ from hexa.workspaces.models import WorkspaceMembership, WorkspaceMembershipRole
 from hexa.workspaces.tests.testutils import create_workspace
 
 migration = importlib.import_module("hexa.mcp.migrations.0002_mcp_connection")
+file_search_migration = importlib.import_module(
+    "hexa.mcp.migrations.0003_grant_file_search_tools"
+)
 
 
 class BackfillConnectionsTest(TestCase):
@@ -141,3 +144,57 @@ class BackfillConnectionsTest(TestCase):
         self.backfill()
 
         self.assertEqual(1, MCPConnection.objects.filter(user=self.USER).count())
+
+
+class GrantFileSearchToolsTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.APPLICATION = Application.objects.create(
+            name="Claude",
+            client_id="file-search-test-client",
+            client_type=Application.CLIENT_PUBLIC,
+            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+        )
+
+    def connection(self, email, tools):
+        user = User.objects.create_user(email, "password")
+        return MCPConnection.objects.create(
+            user=user, application=self.APPLICATION, tools=tools
+        )
+
+    def tools_after(self, step, connection):
+        step(global_apps, None)
+        connection.refresh_from_db()
+        return connection.tools
+
+    def test_list_files_grants_glob_files_only(self):
+        connection = self.connection("lister@openhexa.org", ["list_files"])
+        self.assertEqual(
+            self.tools_after(file_search_migration.grant_file_search_tools, connection),
+            ["glob_files", "list_files"],
+        )
+
+    def test_read_file_grants_grep_files(self):
+        connection = self.connection("reader@openhexa.org", ["list_files", "read_file"])
+        self.assertEqual(
+            self.tools_after(file_search_migration.grant_file_search_tools, connection),
+            ["glob_files", "grep_files", "list_files", "read_file"],
+        )
+
+    def test_connection_without_file_tools_is_unchanged(self):
+        connection = self.connection("other@openhexa.org", ["list_pipelines"])
+        self.assertEqual(
+            self.tools_after(file_search_migration.grant_file_search_tools, connection),
+            ["list_pipelines"],
+        )
+
+    def test_reverse_revokes_the_new_tools(self):
+        connection = self.connection(
+            "revoked@openhexa.org", ["glob_files", "grep_files", "read_file"]
+        )
+        self.assertEqual(
+            self.tools_after(
+                file_search_migration.revoke_file_search_tools, connection
+            ),
+            ["read_file"],
+        )
