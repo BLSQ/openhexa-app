@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.20.3](https://github.com/BLSQ/openhexa-app/compare/5.20.2...5.20.3) (2026-10-24)
+
+
+### Bug Fixes
+
+* long filenames hide the code section (HEXA-1856) ([#2160](https://github.com/BLSQ/openhexa-app/issues/2160)) ([a19b224](https://github.com/BLSQ/openhexa-app/commit/a19b224107e590b5451355862ef0e7578ccc2ca9))
+* space issue in combobox (HEXA-1857)([#2157](https://github.com/BLSQ/openhexa-app/issues/2157)) ([7a7f183](https://github.com/BLSQ/openhexa-app/commit/7a7f183112b17bec7039433980f889833d968d2b))
+
 ## [5.20.2](https://github.com/BLSQ/openhexa-app/compare/5.20.1...5.20.2) (2026-10-21)
 
 
