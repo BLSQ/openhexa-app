@@ -114,6 +114,8 @@ write_env() { # dir n
   # Pipeline containers reach the backend through the host
   env_set "$env" INTERNAL_BASE_URL "http://host.docker.internal:$backend_port"
   env_set "$env" WEBAPPS_DOMAIN "webapps.$host:$backend_port"
+  # So that web apps also show when the frontend is opened on localhost
+  env_set "$env" WEBAPPS_ADDITIONAL_FRAME_ANCESTORS "http://localhost:$frontend_port"
   env_set "$env" DATABASE_HOST host.docker.internal
   env_set "$env" DATABASE_PORT "$MAIN_DB_PORT"
   env_set "$env" DATABASE_NAME "$(env_get "$MAIN_DIR/.env" DATABASE_NAME)-$n"
