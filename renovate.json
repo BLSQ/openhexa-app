@@ -9,6 +9,9 @@
   "patch": {
     "automerge": true
   },
+  "minor": {
+    "automerge": true
+  },
   "prConcurrentLimit": 5,
   "pip_requirements": {
     "enabled": false

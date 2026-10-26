@@ -39,19 +39,21 @@ Chaque webapp obtient un sous-domaine sous le domaine webapps du workspace — p
 
 ## Public ou privé
 
-- **Privé** (par défaut) : seuls les membres authentifiés du workspace peuvent voir la webapp. C'est le cookie de session du navigateur qui autorise les requêtes, donc les webapps statiques privées peuvent aussi appeler l'API GraphQL d'OpenHEXA directement (voir ci-dessous).
+- **Privé** (par défaut) : seuls les membres authentifiés du workspace peuvent voir la webapp. Les webapps statiques privées peuvent aussi appeler l'API GraphQL d'OpenHEXA via un point d'accès sur leur propre URL (voir ci-dessous).
 - **Public** : n'importe qui ayant l'URL peut consulter la webapp. Les webapps publiques **ne peuvent pas** appeler le proxy GraphQL — si vous avez besoin d'exposer des données du workspace publiquement, générez un export statique depuis un pipeline et servez-le comme un fichier dans la webapp.
 
 ## Appeler l'API GraphQL d'OpenHEXA
 
-Les webapps statiques privées peuvent appeler l'API GraphQL de la plateforme directement depuis leur code JavaScript pour lire les données du workspace et lancer des pipelines. Le reste de cette page couvre cette API en détail — les webapps publiques et iframe ne peuvent pas utiliser ce point d'accès.
+Les webapps statiques privées peuvent appeler l'API GraphQL de la plateforme depuis leur code JavaScript, via un point d'accès sur leur propre URL, pour lire les données du workspace et lancer des pipelines. Le reste de cette page couvre cette API en détail — les webapps publiques et iframe ne peuvent pas utiliser ce point d'accès.
 
 ### Comment ça fonctionne
 
 - **Endpoint** : `POST /graphql/` sur l'URL de la webapp elle-même (même origine). Par exemple, une webapp servie sur `https://my-webapp.webapps.example.com/` appelle `https://my-webapp.webapps.example.com/graphql/`.
 - **Authentification** : gérée par la session de la webapp — le cookie de session du navigateur est attaché automatiquement. N'envoyez pas d'en-tête `Authorization` ; n'embarquez pas de token dans votre code.
 - **Vérification d'origine** : seules les requêtes dont l'`Origin` correspond à celle de la webapp sont autorisées. Les appels cross-site sont rejetés.
-- **Limité par scopes** : chaque webapp déclare une liste `allowed_operations`. Seuls les champs GraphQL de premier niveau couverts par ces scopes sont autorisés ; tout le reste renvoie un `403`.
+- **Limité par scopes** : chaque webapp déclare une liste `allowed_operations`. Chaque champ sélectionné par une requête est vérifié par rapport à ces scopes, y compris les champs imbriqués et ceux des fragments. Si un champ n'est pas couvert, toute la requête renvoie un `403` qui nomme les champs refusés et, lorsqu'un scope les couvre, les scopes à activer, par exemple `Fields not allowed: Workspace.datasets. Enable scope(s): DATASETS_READ`. Les champs qu'aucun scope ne couvre, comme `Workspace.connections`, sont listés sans suggestion.
+- **Rôle de l'utilisateur, restreint par les scopes** : la webapp agit au nom de l'utilisateur qui la consulte, mais ne peut utiliser que ce que permettent à la fois son rôle dans le workspace et les scopes de la webapp. Les identifiants (mots de passe de base de données, secrets de connexion, tokens) ne sont jamais accessibles à une webapp.
+- **Uniquement son propre point d'accès** : l'API principale d'OpenHEXA refuse les requêtes provenant des pages de webapps. Appelez toujours `/graphql/` sur l'URL de la webapp elle-même.
 - **Corps JSON** : identique à n'importe quel POST GraphQL — `{"query": "...", "variables": {...}}`.
 
 ## Activer l'API sur une webapp
@@ -60,14 +62,22 @@ Par défaut, une webapp statique a une liste `allowed_operations` vide, ce qui s
 
 ## Référence des scopes
 
-| Scope | Ce qu'il accorde |
+| Scope | Points d'entrée |
 |---|---|
-| `USER_READ` | `me`, `workspace` |
-| `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion` |
+| `USER_READ` | `me`, `workspace`, `countries`, `country`, `boundaries` |
+| `PIPELINES_READ` | `pipeline`, `pipelines`, `pipelineByCode`, `pipelineRun`, `pipelineVersion`, `pipelineParameterChoices` |
 | `PIPELINES_RUN` | `runPipeline`, `stopPipeline` |
 | `FILES_READ` | `getFileByPath`, `readFileContent`, `prepareObjectDownload` |
-| `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink` |
+| `DATASETS_READ` | `dataset`, `datasets`, `datasetVersion`, `datasetLink`, `datasetLinkBySlug`, `datasetVersionFile` |
 | `DATABASE_READ` | `executeSavedQuery` |
+
+Chaque scope couvre aussi les champs des objets renvoyés par ces points d'entrée, comme le montre le schéma des [exemples](#exemples-de-webapps) ci-dessous. Les liens qui remontent vers un workspace, comme `Pipeline.workspace`, `Dataset.workspace` ou `DatasetLink.workspace`, ne sont couverts par aucun scope.
+
+Certains champs nécessitent un second scope :
+
+- Lister les fichiers via `workspace { bucket { objects } }` nécessite `USER_READ` et `FILES_READ`.
+- Lister les jeux de données via `workspace { datasets }` nécessite `USER_READ` et `DATASETS_READ`.
+- Lire les versions de jeux de données produites par une exécution via `pipelineRun { datasetVersions }` nécessite `PIPELINES_READ` et `DATASETS_READ`.
 
 Les champs d'introspection `__typename`, `__schema`, `__type` sont toujours autorisés.
 
@@ -79,6 +89,32 @@ Les champs d'introspection `__typename`, `__schema`, `__type` sont toujours auto
     un membre du workspace, désignée par son slug. Le SQL n'est jamais renvoyé :
     la webapp peut exécuter la requête, pas la lire ni la modifier. Les requêtes
     s'exécutent avec le rôle de base de données en lecture seule.
+
+!!! note "Les fichiers du bucket et les fichiers de jeux de données se lisent différemment"
+
+    Les fichiers du **bucket du workspace** et ceux d'une **version de jeu de
+    données** sont stockés séparément, et aucune des deux API ne peut lire
+    l'autre :
+
+    - **Fichiers du bucket** (scope `FILES_READ`) : lisez le contenu avec
+      `readFileContent`, ou obtenez un lien de téléchargement avec
+      `prepareObjectDownload`. Les deux prennent un chemin dans le bucket du
+      workspace.
+    - **Fichiers de jeux de données** (scope `DATASETS_READ`) : retrouvez le
+      fichier depuis sa version (`datasetVersion.files` ou
+      `datasetVersion.fileByName`), puis faites un `fetch()` de son
+      `downloadUrl` pour le contenu complet, ou lisez `fileSample` pour un court
+      aperçu des lignes. Passer un fichier de jeu de données à
+      `readFileContent` ou `prepareObjectDownload` échoue.
+
+    Voir [Lire un fichier de jeu de données](#user_read-datasets_read-lire-un-fichier-de-jeu-de-donnees)
+    pour un exemple complet.
+
+## Explorer le schéma
+
+Le moyen le plus rapide de concevoir les requêtes d'une webapp est le playground GraphQL interactif sur <https://app.openhexa.org/graphql/> (ou `/graphql/` sur votre propre installation).
+
+Notez que le playground affiche le schéma **complet**, pas seulement ce que le proxy de la webapp autorise. Une requête qui fonctionne dans le playground peut quand même renvoyer un `403` depuis une webapp si l'un des champs qu'elle sélectionne, au premier niveau ou imbriqué, n'est pas couvert par les [scopes](#reference-des-scopes) de la webapp. Le `403` nomme les champs refusés : vérifiez-le avant de copier la requête dans le code de la webapp.
 
 ## Le global `window.OPENHEXA`
 
@@ -149,6 +185,47 @@ Chaque exemple ci-dessous est un `index.html` complet que vous pouvez déposer d
 
 Affiche l'utilisateur courant et le workspace au chargement.
 
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  me: Me!
+  workspace(slug: String!): Workspace
+}
+
+type Me {
+  user: User
+  features: [FeatureFlag!]!
+  permissions: MePermissions!
+}
+
+type User {
+  id: UUID!
+  email: String!
+  firstName: String
+  lastName: String
+  displayName: String!
+  language: String!
+  avatar: Avatar!
+}
+
+type Workspace {
+  slug: String!
+  name: String!
+  description: String
+  countries: [Country!]!
+  organization: Organization
+  createdAt: DateTime!
+  updatedAt: DateTime
+  createdBy: User!
+}
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -196,6 +273,46 @@ Affiche l'utilisateur courant et le workspace au chargement.
 ### PIPELINES_READ — Lister les pipelines
 
 Liste tous les pipelines du workspace.
+
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  pipelines(
+    workspaceSlug: String
+    name: String
+    search: String
+    tags: [String!]
+    functionalType: PipelineFunctionalType
+    lastRunStates: [PipelineRunStatus!]
+    page: Int
+    perPage: Int
+    orderBy: PipelineOrderBy
+  ): PipelinesPage!
+}
+
+type PipelinesPage {
+  items: [Pipeline!]!
+  pageNumber: Int!
+  totalPages: Int!
+  totalItems: Int!
+}
+
+type Pipeline {
+  id: UUID!
+  code: String!
+  name: String
+  description: String
+  schedule: String
+  currentVersion: PipelineVersion
+  type: PipelineType!
+}
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
@@ -253,6 +370,60 @@ Liste tous les pipelines du workspace.
 ### PIPELINES_READ + PIPELINES_RUN — Choisir un pipeline et le lancer
 
 Charge la liste des pipelines à l'ouverture de la page, vous laisse en choisir un dans une liste déroulante, et le lance avec une configuration JSON. Interroge le statut jusqu'à la fin de l'exécution. Nécessite à la fois `PIPELINES_READ` (pour lister) et `PIPELINES_RUN` (pour lancer).
+
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  pipelines(workspaceSlug: String, page: Int, perPage: Int): PipelinesPage!
+  pipeline(id: UUID!): Pipeline
+  pipelineRun(id: UUID!): PipelineRun
+}
+
+type Mutation {
+  runPipeline(input: RunPipelineInput): RunPipelineResult!
+  stopPipeline(input: StopPipelineInput!): StopPipelineResult!
+}
+
+input RunPipelineInput {
+  id: UUID!
+  versionId: UUID
+  config: JSON!
+  sendMailNotifications: Boolean
+  enableDebugLogs: Boolean
+}
+
+input StopPipelineInput {
+  runId: UUID!
+}
+
+type RunPipelineResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+  run: PipelineRun
+}
+
+type StopPipelineResult {
+  success: Boolean!
+  errors: [PipelineError!]!
+}
+
+type PipelineRun {
+  id: UUID!
+  status: PipelineRunStatus!
+  progress: Int!
+  executionDate: DateTime
+  duration: Int
+  outputs: [PipelineRunOutput!]!
+}
+
+union PipelineRunOutput = BucketObject | GenericOutput | DatabaseTable
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
@@ -359,6 +530,57 @@ Charge la liste des pipelines à l'ouverture de la page, vous laisse en choisir 
 ### USER_READ + FILES_READ — Choisir un CSV dans le bucket du workspace et l'afficher
 
 Liste les fichiers CSV du bucket au chargement de la page, vous laisse en choisir un dans une liste déroulante, et affiche les 100 premières lignes dans un tableau. Nécessite à la fois `USER_READ` (pour lister les fichiers via `workspace.bucket.objects`) et `FILES_READ` (pour lire le contenu).
+
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  getFileByPath(workspaceSlug: String!, path: String!): BucketObject
+  readFileContent(
+    workspaceSlug: String!
+    filePath: String!
+    startLine: Int
+    endLine: Int
+  ): ReadFileContentResult!
+}
+
+type Mutation {
+  prepareObjectDownload(input: PrepareObjectDownloadInput!): PrepareObjectDownloadResult!
+}
+
+input PrepareObjectDownloadInput {
+  workspaceSlug: String!
+  objectKey: String!
+  forceAttachment: Boolean = true
+}
+
+type BucketObject {
+  key: String!
+  name: String!
+  path: String!
+  size: BigInt
+  updatedAt: DateTime
+  type: BucketObjectType!
+}
+
+type ReadFileContentResult {
+  success: Boolean!
+  errors: [ReadFileContentError!]!
+  content: String
+  size: Int
+}
+
+type PrepareObjectDownloadResult {
+  success: Boolean!
+  downloadUrl: URL
+  errors: [PrepareObjectDownloadError!]!
+}
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
@@ -469,9 +691,114 @@ Liste les fichiers CSV du bucket au chargement de la page, vous laisse en choisi
 </html>
 ```
 
-### DATASETS_READ — Lister les jeux de données
+### USER_READ + DATASETS_READ — Lister les jeux de données
 
-Liste les jeux de données visibles depuis le workspace, avec leur dernière version.
+Liste les jeux de données visibles depuis le workspace, avec leur dernière version. Nécessite à la fois `USER_READ` (la liste vient de `workspace.datasets`) et `DATASETS_READ` (pour lire les jeux de données eux-mêmes).
+
+<details markdown="1">
+<summary>Schéma</summary>
+
+```graphql
+type Query {
+  # `query` filtre sur le nom du jeu de données (sans tenir compte de la casse), pas sur son slug.
+  datasets(query: String, page: Int = 1, perPage: Int = 15): DatasetPage!
+  dataset(id: ID!): Dataset
+  datasetVersion(id: ID!): DatasetVersion
+  datasetLink(id: ID!): DatasetLink
+}
+
+type Workspace {
+  # Jeux de données du workspace, y compris ceux partagés avec lui.
+  datasets(pinned: Boolean, query: String, page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+}
+
+type DatasetLinkPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetLink!]!
+}
+
+type DatasetLink {
+  id: ID!
+  isPinned: Boolean!
+  dataset: Dataset!
+  workspace: Workspace!
+}
+
+type DatasetPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [Dataset!]!
+}
+
+type Dataset {
+  id: ID!
+  slug: String!
+  name: String!
+  description: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  createdBy: User
+  workspace: Workspace
+  versions(page: Int = 1, perPage: Int = 15): DatasetVersionPage!
+  latestVersion: DatasetVersion
+  links(page: Int = 1, perPage: Int = 15): DatasetLinkPage!
+}
+
+type DatasetVersionPage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetVersion!]!
+}
+
+type DatasetVersion {
+  id: ID!
+  name: String!
+  changelog: String
+  createdAt: DateTime!
+  createdBy: User
+  dataset: Dataset!
+  files(page: Int = 1, perPage: Int = 15): DatasetVersionFilePage!
+  fileByName(name: String!): DatasetVersionFile
+}
+
+type DatasetVersionFilePage {
+  totalPages: Int!
+  totalItems: Int!
+  pageNumber: Int!
+  items: [DatasetVersionFile!]!
+}
+
+type DatasetVersionFile {
+  id: ID!
+  filename: String!
+  contentType: String!
+  size: BigInt!
+  createdAt: DateTime!
+  # Renseignés une fois le fichier analysé (CSV, Parquet, Excel) ; null sinon.
+  rows: Int
+  columns: [String!]
+  fileSample: DatasetFileSample
+  # URL signée à courte durée de vie vers le contenu du fichier. Null si
+  # l'utilisateur ne peut pas télécharger cette version. `attachment: false`
+  # sert le fichier directement au lieu d'un téléchargement.
+  downloadUrl(attachment: Boolean = true): String
+}
+
+type DatasetFileSample {
+  # Premières lignes du fichier, sous forme de liste d'objets { colonne: valeur }.
+  sample: JSON
+  status: FileSampleStatus!  # PROCESSING, FINISHED ou FAILED
+  statusReason: String
+}
+```
+
+[Parcourir le schéma complet dans le playground →](https://app.openhexa.org/graphql/)
+
+</details>
 
 ```html
 <!DOCTYPE html>
@@ -530,6 +857,190 @@ Liste les jeux de données visibles depuis le workspace, avec leur dernière ver
         list.appendChild(li);
       }
     })();
+  </script>
+</body>
+</html>
+```
+
+### USER_READ + DATASETS_READ — Lire un fichier de jeu de données
+
+Vous laisse choisir un jeu de données, puis l'un des fichiers CSV de sa dernière version, et affiche les 100 premières lignes dans un tableau. Nécessite `USER_READ` (pour lister les jeux de données via `workspace.datasets`) et `DATASETS_READ` (pour lister les fichiers de la version et obtenir leur URL de téléchargement). Utilise le [schéma ci-dessus](#user_read-datasets_read-lister-les-jeux-de-donnees).
+
+Les fichiers de jeux de données ne sont **pas** dans le bucket du workspace : `readFileContent` et `prepareObjectDownload` ne peuvent donc pas les lire. Demandez plutôt à GraphQL le `downloadUrl` du fichier, puis faites-en un `fetch()` :
+
+- L'URL est signée et expire au bout d'une dizaine de minutes. Demandez-la juste avant le téléchargement plutôt qu'au chargement de la page.
+- Elle pointe vers le service de stockage, pas vers le point d'entrée `/graphql/` de la webapp : faites le `fetch()` telle quelle, sans en-têtes supplémentaires.
+- Elle vaut `null` si l'utilisateur n'a pas le droit de télécharger cette version du jeu de données.
+
+Pour un simple aperçu, évitez le téléchargement et lisez `fileSample { status sample }`. `sample` est déjà découpé en une liste de lignes `{ colonne: valeur }`, et est disponible une fois que `status` vaut `FINISHED`.
+
+**Quand la webapp affiche toujours le même jeu de données**, codez en dur l'`id` du jeu de données et lisez-le avec `dataset(id:)`, qui ne nécessite que `DATASETS_READ`. Une webapp ne peut pas retrouver un jeu de données par son slug, et `datasets(query:)` filtre sur le nom : lui passer un slug ne renvoie rien. Lire `latestVersion` garde l'application à jour quand une nouvelle version est publiée :
+
+```js
+const DATASET_ID = "<id du jeu de données>";
+const FILE_NAME = "mon_fichier.csv";
+
+const { dataset } = await gql(`
+  query($id: ID!, $name: String!) {
+    dataset(id: $id) {
+      latestVersion {
+        fileByName(name: $name) { downloadUrl(attachment: false) }
+      }
+    }
+  }
+`, { id: DATASET_ID, name: FILE_NAME });
+
+const url = dataset?.latestVersion?.fileByName?.downloadUrl;
+if (!url) throw new Error("Fichier introuvable, ou vous n'avez pas le droit de le télécharger.");
+const csv = await (await fetch(url)).text();
+```
+
+L'exemple complet ci-dessous laisse plutôt l'utilisateur choisir le jeu de données :
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Aperçu d'un fichier de jeu de données</title>
+  <script src="[[ BASE_URL ]]/webapps/dev.js"></script>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+    label { display: block; margin: 0.75rem 0 0.25rem; font-weight: 500; }
+    select { width: 100%; padding: 0.4rem; box-sizing: border-box; font-family: inherit; }
+    button { margin-top: 0.75rem; padding: 0.5rem 1rem; }
+    button[disabled] { opacity: 0.5; cursor: not-allowed; }
+    table { border-collapse: collapse; margin-top: 1rem; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 0.3rem 0.5rem; font-size: 0.9rem; }
+    th { background: #f5f5f5; }
+    #status { margin-top: 1rem; color: #b91c1c; }
+  </style>
+</head>
+<body>
+  <h1>Aperçu d'un fichier de jeu de données</h1>
+
+  <label>Jeu de données
+    <select id="dataset" disabled onchange="loadFiles()"><option>Chargement…</option></select>
+  </label>
+  <label>Fichier
+    <select id="file" disabled></select>
+  </label>
+  <button id="loadBtn" disabled onclick="load()">Charger</button>
+
+  <p id="status"></p>
+  <div id="table"></div>
+
+  <script>
+    const { workspaceSlug } = window.OPENHEXA;
+    let versionId = null;
+
+    async function gql(query, variables = {}) {
+      const res = await fetch("/graphql/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, variables }),
+      });
+      const json = await res.json();
+      if (json.errors) throw new Error(json.errors.map(e => e.message).join("; "));
+      return json.data;
+    }
+
+    // 1. Liste les jeux de données du workspace.
+    (async () => {
+      const { workspace } = await gql(`
+        query($slug: String!) {
+          workspace(slug: $slug) {
+            datasets(page: 1, perPage: 50) {
+              items { dataset { id name } }
+            }
+          }
+        }
+      `, { slug: workspaceSlug });
+
+      const select = document.getElementById("dataset");
+      select.innerHTML = '<option value="">Choisissez un jeu de données…</option>' + workspace.datasets.items
+        .map(({ dataset }) => `<option value="${dataset.id}">${dataset.name}</option>`)
+        .join("");
+      select.disabled = false;
+    })();
+
+    // 2. Liste les fichiers CSV de la dernière version du jeu de données.
+    async function loadFiles() {
+      const datasetId = document.getElementById("dataset").value;
+      const fileSelect = document.getElementById("file");
+      const loadBtn = document.getElementById("loadBtn");
+      const status = document.getElementById("status");
+      fileSelect.innerHTML = "";
+      fileSelect.disabled = loadBtn.disabled = true;
+      status.textContent = "";
+      document.getElementById("table").innerHTML = "";
+      if (!datasetId) return;
+
+      const { dataset } = await gql(`
+        query($id: ID!) {
+          dataset(id: $id) {
+            latestVersion {
+              id name
+              files(page: 1, perPage: 50) { items { filename size } }
+            }
+          }
+        }
+      `, { id: datasetId });
+
+      const version = dataset.latestVersion;
+      if (!version) {
+        status.textContent = "Ce jeu de données n'a pas encore de version.";
+        return;
+      }
+      versionId = version.id;
+      const csvFiles = version.files.items.filter(f => f.filename.toLowerCase().endsWith(".csv"));
+      if (!csvFiles.length) {
+        status.textContent = `La version ${version.name} ne contient aucun fichier CSV.`;
+        return;
+      }
+      fileSelect.innerHTML = csvFiles
+        .map(f => `<option value="${f.filename}">${f.filename}</option>`)
+        .join("");
+      fileSelect.disabled = loadBtn.disabled = false;
+    }
+
+    // 3. Obtient une URL de téléchargement fraîche pour le fichier choisi, le télécharge et l'affiche.
+    async function load() {
+      const filename = document.getElementById("file").value;
+      const status = document.getElementById("status");
+      const out = document.getElementById("table");
+      status.textContent = "";
+      out.innerHTML = "";
+
+      const { datasetVersion } = await gql(`
+        query($id: ID!, $name: String!) {
+          datasetVersion(id: $id) {
+            fileByName(name: $name) { downloadUrl(attachment: false) }
+          }
+        }
+      `, { id: versionId, name: filename });
+
+      const url = datasetVersion.fileByName?.downloadUrl;
+      if (!url) {
+        status.textContent = "Vous n'avez pas le droit de télécharger ce fichier.";
+        return;
+      }
+      const res = await fetch(url);
+      if (!res.ok) {
+        status.textContent = `Échec du téléchargement (${res.status}).`;
+        return;
+      }
+
+      const rows = (await res.text()).trim().split("\n").slice(0, 101).map(l => l.split(","));
+      const [header, ...body] = rows;
+      out.innerHTML = [
+        "<table><thead><tr>",
+        header.map(h => `<th>${h}</th>`).join(""),
+        "</tr></thead><tbody>",
+        body.map(r => "<tr>" + r.map(c => `<td>${c}</td>`).join("") + "</tr>").join(""),
+        "</tbody></table>",
+      ].join("");
+    }
   </script>
 </body>
 </html>

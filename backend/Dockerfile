@@ -14,7 +14,7 @@ WORKDIR /code
 
 # Upgrade pip and install requirements
 RUN --mount=type=cache,target=/root/.cache \
-    pip install --upgrade pip setuptools==78.0.2
+    pip install --upgrade pip==26.2.2 setuptools==78.0.2
 
 # Install project dependencies from requirements.txt
 COPY requirements.txt /code/

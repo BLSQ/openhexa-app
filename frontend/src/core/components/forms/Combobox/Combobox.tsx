@@ -157,6 +157,11 @@ function Combobox<T extends { [key: string]: any }>(props: ComboboxProps<T>) {
                   autoComplete="off"
                   placeholder={placeholder}
                   aria-describedby={error ? "combobox-error" : undefined}
+                  // The input is nested in the ComboboxButton, whose keydown handler
+                  // calls preventDefault on Space, which would swallow typed spaces.
+                  onKeyDown={(event) => {
+                    if (event.key === " ") event.stopPropagation();
+                  }}
                 />
               </UIComboboxInput>
             </div>

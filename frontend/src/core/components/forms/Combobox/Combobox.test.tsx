@@ -38,6 +38,29 @@ const options = [
 ];
 
 describe("Combobox", () => {
+  it("allows typing spaces in the input", async () => {
+    const onInputChange = jest.fn();
+
+    render(
+      <ComboboxWrapper
+        onChange={jest.fn()}
+        value={null}
+        onInputChange={onInputChange}
+        displayValue={(value) => value?.label ?? ""}
+      >
+        {options.map((option) => (
+          <Combobox.CheckOption key={option.id} value={option}>
+            {option.label}
+          </Combobox.CheckOption>
+        ))}
+      </ComboboxWrapper>,
+    );
+    const comboboxInput = screen.getByTestId("combobox-input");
+    await userEvent.type(comboboxInput, "Option 2");
+
+    expect(comboboxInput).toHaveValue("Option 2");
+  });
+
   it("renders", async () => {
     const onChange = jest.fn();
     const onInputChange = jest.fn();

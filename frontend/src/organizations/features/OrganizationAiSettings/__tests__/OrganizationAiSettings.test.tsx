@@ -94,6 +94,27 @@ describe("OrganizationAiSettings", () => {
     ]);
   });
 
+  it("always links to the AI documentation page", () => {
+    mockAiLabels(false);
+
+    render(
+      <TestApp>
+        <OrganizationAiSettings
+          organization={buildOrganization({
+            enabled: false,
+            provider: AiProvider.Anthropic,
+          })}
+        />
+      </TestApp>,
+    );
+
+    const link = screen.getByRole("link", {
+      name: "Learn how AI is used in OpenHEXA",
+    });
+    expect(link).toHaveAttribute("href", "https://docs.openhexa.com/ai/");
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
   it("offers both Managed and Anthropic providers on a managed instance", async () => {
     mockAiLabels(true);
     const user = userEvent.setup();

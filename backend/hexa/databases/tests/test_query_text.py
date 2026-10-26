@@ -75,11 +75,37 @@ class StatementCountTest(unittest.TestCase):
             "SET statement_timeout = 0 /* ; */ ; SELECT pg_sleep(3)",
             "SELECT $tag$ x $tag$; SELECT pg_sleep(3)",
             "SELECT 'a;b'; SELECT pg_sleep(3)",
+            "SELECT 1; -- ignored query\nSELECT 2;",
+            "SELECT 1; /* ignored query */ SELECT 2;",
         ]
         for query in rejected:
             with self.subTest(query=query):
                 with self.assertRaises(MultipleStatementsError):
                     PreparedQuery.from_text(query)
+
+    def test_ignores_comment_only_statements(self):
+        for query, body in [
+            ("SELECT 1;\n-- SELECT 2;", "SELECT 1"),
+            ("SELECT 1;\n-- SELECT 2;\n-- SELECT 3;\n", "SELECT 1"),
+            ("SELECT 1;\n/* SELECT 2; */", "SELECT 1"),
+            ("SELECT 1;\n/* SELECT 2; */ ; -- SELECT 3;", "SELECT 1"),
+            # A comment before the statement belongs to it, so it stays in the body.
+            ("-- SELECT 2;\nSELECT 1;\n-- SELECT 3;", "-- SELECT 2;\nSELECT 1"),
+        ]:
+            with self.subTest(query=query):
+                prepared = PreparedQuery.from_text(query)
+                self.assertEqual(prepared.sql, query)
+                self.assertTrue(prepared.is_wrappable)
+                self.assertEqual(prepared.body, body)
+
+    def test_comment_only_input_has_no_executable_statement(self):
+        for query in ["-- SELECT 1;", "/* SELECT 1; */", "; /* comment */ ;"]:
+            with self.subTest(query=query):
+                prepared = PreparedQuery.from_text(query)
+                self.assertEqual(prepared.sql, query)
+                self.assertFalse(prepared.is_wrappable)
+                self.assertFalse(prepared.is_explain)
+                self.assertEqual(prepared.body, "")
 
     def test_counts_the_statements_of_the_query_it_returns(self):
         # The count has to be reached on the cleaned text, because that is the

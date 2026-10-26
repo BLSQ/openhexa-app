@@ -72,6 +72,52 @@ class TestWebappUserFiltering(TestCase):
         self.assertEqual(self.webapp_user.pk, self.REAL_USER.pk)
         self.assertEqual(self.webapp_user.email, self.REAL_USER.email)
 
+    def _webapp_user(self, user, scopes):
+        webapp = Webapp(workspace=self.WORKSPACE_A, allowed_operations=scopes)
+        return WebappUser.from_user(user, webapp)
+
+    def test_credential_permissions_are_refused_whatever_the_scopes(self):
+        self.assertTrue(
+            self.REAL_USER.has_perm(
+                "databases.view_database_credentials", self.WORKSPACE_A
+            )
+        )
+        all_scopes = list(Webapp.OperationScope)
+        for user in [self.REAL_USER, self.SUPERUSER]:
+            webapp_user = self._webapp_user(user, all_scopes)
+            for perm in [
+                "databases.view_database_credentials",
+                "workspaces.update_connection",
+                "workspaces.generate_workspace_token",
+            ]:
+                with self.subTest(user=user.email, perm=perm):
+                    self.assertFalse(webapp_user.has_perm(perm, self.WORKSPACE_A))
+
+    def test_permission_needs_a_scope_granting_it(self):
+        self.assertFalse(
+            self._webapp_user(
+                self.REAL_USER, [Webapp.OperationScope.USER_READ]
+            ).has_perm("files.download_object", self.WORKSPACE_A)
+        )
+        self.assertTrue(
+            self._webapp_user(
+                self.REAL_USER, [Webapp.OperationScope.FILES_READ]
+            ).has_perm("files.download_object", self.WORKSPACE_A)
+        )
+
+    def test_scope_does_not_grant_what_the_viewer_lacks(self):
+        viewer = User.objects.create_user("viewer@bluesquarehub.com", "password")
+        WorkspaceMembership.objects.create(
+            user=viewer,
+            workspace=self.WORKSPACE_A,
+            role=WorkspaceMembershipRole.VIEWER,
+        )
+        self.assertFalse(
+            self._webapp_user(viewer, [Webapp.OperationScope.FILES_WRITE]).has_perm(
+                "files.create_object", self.WORKSPACE_A
+            )
+        )
+
     def test_workspaces_scoped_to_webapp_workspace(self):
         workspaces = Workspace.objects.filter_for_user(self.webapp_user)
         self.assertEqual(list(workspaces), [self.WORKSPACE_A])

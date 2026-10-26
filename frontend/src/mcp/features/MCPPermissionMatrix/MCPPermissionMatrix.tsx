@@ -91,13 +91,13 @@ const LevelSelector = ({
 }) => (
   <div
     role="radiogroup"
-    className="grid shrink-0 grid-cols-3 gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5"
+    className="grid shrink-0 grid-cols-[repeat(3,1fr)] gap-0.5 rounded-lg border border-gray-200 bg-gray-50 p-0.5"
   >
     {options.map((option) => (
       <label
         key={option.level}
         className={clsx(
-          "w-24 rounded-md px-2 py-1 text-center text-xs font-medium whitespace-nowrap transition-colors",
+          "min-w-24 rounded-md px-2 py-1 text-center text-xs font-medium whitespace-nowrap transition-colors",
           value === option.level
             ? "bg-blue-600 text-white shadow-sm"
             : option.unavailable

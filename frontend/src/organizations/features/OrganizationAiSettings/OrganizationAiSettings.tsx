@@ -4,7 +4,8 @@ import { OnSaveFn } from "core/components/DataCard/FormSection";
 import TextProperty from "core/components/DataCard/TextProperty";
 import SimpleSelectProperty from "core/components/DataCard/SimpleSelectProperty";
 import SwitchProperty from "core/components/DataCard/SwitchProperty";
-import { useTranslation } from "next-i18next";
+import Link from "core/components/Link";
+import { Trans, useTranslation } from "next-i18next";
 import { useState } from "react";
 import { AiLabel, AiModel, AiProvider } from "graphql/types";
 import {
@@ -12,6 +13,7 @@ import {
   useAiLabelsQuery,
 } from "organizations/graphql/queries.generated";
 import { useUpdateOrganizationAiSettingsMutation } from "organizations/graphql/mutations.generated";
+import { AI_DOCS_URL } from "assistant/features/AIDisclaimer";
 
 const MODELS: Record<string, string[]> = {
   [AiProvider.Anthropic]: ["", AiModel.Opus, AiModel.Sonnet, AiModel.Haiku],
@@ -85,6 +87,16 @@ const OrganizationAiSettings = ({
         collapsible={false}
         displayMode={DescriptionListDisplayMode.LABEL_ABOVE}
       >
+        <div className="text-sm text-gray-500">
+          <Trans>
+            The assistant helps members create and edit pipelines, web apps and
+            SQL queries from inside their workspaces.{" "}
+            <Link href={AI_DOCS_URL} target="_blank">
+              Learn how AI is used in OpenHEXA
+            </Link>
+            , what it can access and which models it runs on.
+          </Trans>
+        </div>
         <SwitchProperty
           id="enableAI"
           label={t("Enabled")}

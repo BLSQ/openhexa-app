@@ -1,6 +1,8 @@
 import json
+from collections.abc import Callable
 from urllib.parse import urlencode
 
+import sentry_sdk
 from django.conf import settings
 from django.contrib.sessions.backends.db import SessionStore
 from django.contrib.sessions.models import Session
@@ -13,6 +15,7 @@ from django.http import (
     HttpResponseRedirect,
     JsonResponse,
 )
+from django.http.response import HttpResponseBase
 from django.template.loader import render_to_string
 from django.utils import timezone
 
@@ -23,6 +26,8 @@ from hexa.webapps.models import GitWebapp, SupersetWebapp, Webapp, WebappUser
 from hexa.webapps.utils import (
     PREVIEW_KEY_RE,
     extract_webapp_subdomain,
+    is_file_transfer_path,
+    is_webapp_origin,
     powered_by_url,
     webapp_host_url,
 )
@@ -39,12 +44,12 @@ PREVIEW_KEYS_FIELD = "webapp_preview_keys"
 POWERED_BY_BANNER_HEIGHT = "2.25rem"
 
 
-def _webapp_not_found():
+def _webapp_not_found() -> HttpResponse:
     html = render_to_string("webapps/404.html")
     return HttpResponse(html, status=404)
 
 
-def _set_csp_frame_ancestors(response):
+def _set_csp_frame_ancestors(response: HttpResponseBase) -> None:
     frame_ancestors = f"'self' {settings.BASE_URL}"
     if hasattr(settings, "NEW_FRONTEND_DOMAIN"):
         frame_ancestors += f" {settings.NEW_FRONTEND_DOMAIN}"
@@ -53,13 +58,13 @@ def _set_csp_frame_ancestors(response):
     response["Referrer-Policy"] = "no-referrer"
 
 
-def _cache_control(webapp):
+def _cache_control(webapp: Webapp) -> str:
     """Revalidate on every request; the ETag decides whether a body comes back."""
     scope = "public" if webapp.is_public else "private"
     return f"{scope}, no-cache"
 
 
-def _serve_static_webapp(webapp, request):
+def _serve_static_webapp(webapp: Webapp, request: HttpRequest) -> HttpResponseBase:
     try:
         git_webapp = GitWebapp.objects.get(pk=webapp.pk)
     except GitWebapp.DoesNotExist:
@@ -85,7 +90,9 @@ def _serve_static_webapp(webapp, request):
     return response
 
 
-def _serve_iframe_webapp(webapp, show_powered_by=False, banner_url=None):
+def _serve_iframe_webapp(
+    webapp: Webapp, show_powered_by: bool = False, banner_url: str | None = None
+) -> HttpResponse:
     html = render_to_string(
         "webapps/embed.html",
         {
@@ -98,7 +105,9 @@ def _serve_iframe_webapp(webapp, show_powered_by=False, banner_url=None):
     return HttpResponse(html)
 
 
-def _inject_powered_by_banner(response, banner_url):
+def _inject_powered_by_banner(
+    response: HttpResponseBase, banner_url: str
+) -> HttpResponseBase:
     content_type = response.get("Content-Type", "")
     if "text/html" not in content_type:
         return response
@@ -123,7 +132,9 @@ def _inject_powered_by_banner(response, banner_url):
     return response
 
 
-def _inject_openhexa_context(response, webapp):
+def _inject_openhexa_context(
+    response: HttpResponseBase, webapp: Webapp
+) -> HttpResponseBase:
     """Inject `window.OPENHEXA = {...}` into HTML responses so webapp JS knows its workspace."""
     content_type = response.get("Content-Type", "")
     if "text/html" not in content_type:
@@ -147,7 +158,9 @@ def _inject_openhexa_context(response, webapp):
     return response
 
 
-def _dispatch_webapp_response(request, webapp, show_powered_by=False):
+def _dispatch_webapp_response(
+    request: HttpRequest, webapp: Webapp, show_powered_by: bool = False
+) -> HttpResponseBase:
     if webapp.type == Webapp.WebappType.STATIC:
         response = _serve_static_webapp(webapp, request)
         response = _inject_openhexa_context(response, webapp)
@@ -168,14 +181,14 @@ def _dispatch_webapp_response(request, webapp, show_powered_by=False):
     return response
 
 
-def _serve_superset_webapp(request, webapp):
+def _serve_superset_webapp(request: HttpRequest, webapp: Webapp) -> HttpResponse:
     superset_webapp = SupersetWebapp.objects.select_related("superset_dashboard").get(
         pk=webapp.pk
     )
     return view_superset_dashboard(request, superset_webapp.superset_dashboard.id)
 
 
-def _build_auth_token_url(request, webapp):
+def _build_auth_token_url(request: HttpRequest, webapp: Webapp) -> str:
     query = request.GET.copy()
     query.pop("auth_token", None)
     clean_path = request.path
@@ -185,7 +198,7 @@ def _build_auth_token_url(request, webapp):
     return f"{settings.BASE_URL}/webapps/{webapp.pk}/auth-token/?{urlencode({'next': current_url})}"
 
 
-def _validate_auth_token(request, webapp):
+def _validate_auth_token(request: HttpRequest, webapp: Webapp) -> User | HttpResponse:
     """Validate the auth_token and return the authenticated user, or an error response."""
     token = request.GET.get("auth_token")
     signer = TimestampSigner()
@@ -208,7 +221,7 @@ def _validate_auth_token(request, webapp):
     return user
 
 
-def _create_webapp_session(webapp, user):
+def _create_webapp_session(webapp: Webapp, user: User) -> SessionStore:
     session = SessionStore()
     session.set_expiry(WEBAPP_SESSION_MAX_AGE)
     session[SESSION_USER_ID] = str(user.pk)
@@ -217,7 +230,7 @@ def _create_webapp_session(webapp, user):
     return session
 
 
-def _preview_session_is_valid(session_key, webapp, user):
+def _preview_session_is_valid(session_key: str, webapp: Webapp, user: User) -> bool:
     if not Session.objects.filter(
         session_key=session_key, expire_date__gt=timezone.now()
     ).exists():
@@ -228,7 +241,9 @@ def _preview_session_is_valid(session_key, webapp, user):
     ) == str(user.pk)
 
 
-def get_or_create_preview_session_key(request, webapp, user):
+def get_or_create_preview_session_key(
+    request: HttpRequest, webapp: Webapp, user: User
+) -> str:
     """Return a webapp preview session key for (user, webapp), reusing the
     current one until it expires.
     """
@@ -245,14 +260,14 @@ def get_or_create_preview_session_key(request, webapp, user):
     return session.session_key
 
 
-def get_or_create_preview_url(request, webapp, user):
+def get_or_create_preview_url(request: HttpRequest, webapp: Webapp, user: User) -> str:
     """Preview URL for (user, webapp): the (rotating) session key as the first
     DNS label of the webapp host, so it authenticates without a cookie.
     """
     return webapp_host_url(get_or_create_preview_session_key(request, webapp, user))
 
 
-def _check_webapp_session(request, webapp):
+def _check_webapp_session(request: HttpRequest, webapp: Webapp) -> WebappUser | None:
     session_key = request.COOKIES.get(WEBAPP_SESSION_COOKIE)
     if not session_key:
         return None
@@ -273,7 +288,7 @@ def _check_webapp_session(request, webapp):
     return request.user
 
 
-def _webapp_from_session_key(session_key):
+def _webapp_from_session_key(session_key: str) -> Webapp | None:
     """Return the webapp referenced by a preview session whose key matches the
     given DNS label, or None. The session key travels in the hostname so the
     iframe can authenticate without a third-party cookie.
@@ -289,7 +304,9 @@ def _webapp_from_session_key(session_key):
         return None
 
 
-def _handle_webapp_request(request, webapp, *, request_has_user=True):
+def _handle_webapp_request(
+    request: HttpRequest, webapp: Webapp, *, request_has_user: bool = True
+) -> HttpResponseBase:
     """Shared auth + serve logic for both webapp middlewares."""
     if request.path.startswith("/graphql/"):
         if webapp.is_public:
@@ -348,7 +365,46 @@ def _handle_webapp_request(request, webapp, *, request_has_user=True):
     return response
 
 
-def webapp_subdomain_middleware(get_response):
+def webapp_origin_middleware(
+    get_response: Callable[[HttpRequest], HttpResponseBase],
+) -> Callable[[HttpRequest], HttpResponseBase]:
+    """Refuses requests that a webapp page sends to the main host.
+
+    Webapp pages reach OpenHEXA through their same-origin GraphQL proxy, which
+    enforces its scopes. A request from a webapp origin to the main host would
+    instead carry the viewer's session cookie without scope checking:
+    CORS keeps the page from reading the response, but not from sending a write.
+    The token-authenticated file transfer URLs are the exception; we let them go
+    through as they might need access for filesystem-storage backends.
+    """
+
+    def middleware(request: HttpRequest):
+        origin = request.META.get("HTTP_ORIGIN", "")
+        if (
+            not is_webapp_origin(origin)
+            or extract_webapp_subdomain(request.get_host())
+            or is_file_transfer_path(request.path)
+        ):
+            return get_response(request)
+
+        # Reported so that a webapp relying on the main host shows up instead of
+        # just failing in its viewers' browsers.
+        with sentry_sdk.new_scope() as scope:
+            scope.set_tag("webapp_origin", origin)
+            sentry_sdk.capture_message(
+                "Refused a webapp request to the main host", level="warning"
+            )
+        return JsonResponse(
+            {"errors": [{"message": "Webapps must call their own /graphql/ endpoint"}]},
+            status=403,
+        )
+
+    return middleware
+
+
+def webapp_subdomain_middleware(
+    get_response: Callable[[HttpRequest], HttpResponseBase],
+) -> Callable[[HttpRequest], HttpResponseBase]:
     """Intercepts requests to webapp subdomains (e.g. my-app.webapps.openhexa.org)
     and serves the webapp content directly, bypassing the normal Django URL routing.
 
@@ -367,7 +423,7 @@ def webapp_subdomain_middleware(get_response):
        is valid for 1 hour.
     """
 
-    def middleware(request: HttpRequest):
+    def middleware(request: HttpRequest) -> HttpResponseBase:
         subdomain = extract_webapp_subdomain(request.get_host())
         if not subdomain:
             return get_response(request)
@@ -387,12 +443,14 @@ def webapp_subdomain_middleware(get_response):
     return middleware
 
 
-def custom_domain_middleware(get_response):
+def custom_domain_middleware(
+    get_response: Callable[[HttpRequest], HttpResponseBase],
+) -> Callable[[HttpRequest], HttpResponseBase]:
     """Intercepts requests arriving on a webapp's custom domain and serves the webapp
     content directly bypassing normal Django URL routing.
     """
 
-    def middleware(request: HttpRequest):
+    def middleware(request: HttpRequest) -> HttpResponseBase:
         host = request.META.get("HTTP_HOST", "").split(":")[0].lower()
 
         # Skip the DB query for known OpenHEXA hosts — only custom domains are unusual

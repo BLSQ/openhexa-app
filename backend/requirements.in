@@ -35,7 +35,7 @@ uvicorn
 dhis2.py
 
 # connector_s3
-boto3==1.40.76
+boto3==1.43.114
 moto[s3]
 
 # connector_airflow
@@ -45,7 +45,7 @@ google-auth
 google-cloud-iam
 
 # meta
-pip-tools==7.5.3
+pip-tools==7.6.2
 
 # development
 coverage[toml]
@@ -74,7 +74,7 @@ openpyxl
 regex
 
 #toolbox
-openhexa-toolbox==2.11.3
+openhexa-toolbox==2.11.4
 
 #sdk
 openhexa-sdk==2.22.7
@@ -91,7 +91,7 @@ azure-identity
 # AI assistant
 pydantic-ai-slim[anthropic,google,openai]==2.55.0
 pydantic-evals==2.55.0
-genai-prices==0.1.10
+genai-prices==0.1.13
 anthropic[vertex]
 logfire==4.30.0
 vcrpy

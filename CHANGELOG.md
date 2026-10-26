@@ -1,5 +1,47 @@
 # Changelog
 
+## [5.20.2](https://github.com/BLSQ/openhexa-app/compare/5.20.1...5.20.2) (2026-10-21)
+
+
+### Miscellaneous Chores
+
+* release 5.20.2 ([8ebd7e7](https://github.com/BLSQ/openhexa-app/commit/8ebd7e73fa33a66171101487e5dce71dc3566203))
+
+## [5.20.1](https://github.com/BLSQ/openhexa-app/compare/5.20.0...5.20.1) (2026-10-20)
+
+
+### Bug Fixes
+
+* graphql proxy more lenient (HEXA-1790) ([#2153](https://github.com/BLSQ/openhexa-app/issues/2153)) ([d46da5d](https://github.com/BLSQ/openhexa-app/commit/d46da5d73de7cbdbae7abf89f71deffb91628680))
+* prevent  sql editor from treating comments as additional statements(HEXA-1802) ([#2149](https://github.com/BLSQ/openhexa-app/issues/2149)) ([b88ccbd](https://github.com/BLSQ/openhexa-app/commit/b88ccbdf89cfbe17134d686db47056c14963361f))
+* webapps scopes revised - non graphql proxy related (HEXA-1790) ([#2122](https://github.com/BLSQ/openhexa-app/issues/2122)) ([afb12bd](https://github.com/BLSQ/openhexa-app/commit/afb12bda470b42b304b78e9d59e191b83c8eb282))
+
+## [5.20.0](https://github.com/BLSQ/openhexa-app/compare/5.19.1...5.20.0) (2026-10-14)
+
+
+### Features
+
+* creating web application with assistant ([#2101](https://github.com/BLSQ/openhexa-app/issues/2101)) ([79ca186](https://github.com/BLSQ/openhexa-app/commit/79ca1864efddff3b7600f2e88a5e41e5762f35bf))
+* database copying support for workspace copier(HEXA-1717) ([#2094](https://github.com/BLSQ/openhexa-app/issues/2094)) ([8a4183f](https://github.com/BLSQ/openhexa-app/commit/8a4183fc4f39ac7567ee0cd1ec6f723b96949745))
+* deterministic evals for pipeline creation ([#2063](https://github.com/BLSQ/openhexa-app/issues/2063)) ([74876cd](https://github.com/BLSQ/openhexa-app/commit/74876cd53dc87df52316986091ec7d593a0581c9))
+* make the MCP tools access permission more granular (HEXA-1744) ([#2076](https://github.com/BLSQ/openhexa-app/issues/2076)) ([509a0ee](https://github.com/BLSQ/openhexa-app/commit/509a0ee83a06418d1307bc52311e74fb051a5d9a))
+* Saved queries pagination and ordering (part one of HEXA-1793) ([#2074](https://github.com/BLSQ/openhexa-app/issues/2074)) ([18ddcaf](https://github.com/BLSQ/openhexa-app/commit/18ddcaf7d586d9ffb4244ea537cbfb36f5c1bb11))
+* webapps scopes revised (HEXA-1790) ([#2105](https://github.com/BLSQ/openhexa-app/issues/2105)) ([8942b02](https://github.com/BLSQ/openhexa-app/commit/8942b0264d2e4dc2c0757529b249458e1cc51141))
+* workspace copier, copy optional connection secrets (HEXA-1719) ([#2088](https://github.com/BLSQ/openhexa-app/issues/2088)) ([1277895](https://github.com/BLSQ/openhexa-app/commit/12778956ea4620aa929da455d1afda404568a9c5))
+* workspace copy moved to async job ([#2108](https://github.com/BLSQ/openhexa-app/issues/2108)) ([eccdcb1](https://github.com/BLSQ/openhexa-app/commit/eccdcb114056a51ed4dcf48f7a9c3d6d1b9473f2))
+
+
+### Bug Fixes
+
+* accept null tags in pipeline mutations ([#2133](https://github.com/BLSQ/openhexa-app/issues/2133)) ([2cdf7fe](https://github.com/BLSQ/openhexa-app/commit/2cdf7fee32fc16035bd2702ba5c98a7a793fb448))
+* iframe webapps for static webapps (HEXA-1820) ([#2107](https://github.com/BLSQ/openhexa-app/issues/2107)) ([fc16b1e](https://github.com/BLSQ/openhexa-app/commit/fc16b1e9c9cd52c8ac127e1f1a3c79f844c911d2))
+* improve PR digest (HEXA-1812) ([#2119](https://github.com/BLSQ/openhexa-app/issues/2119)) ([d3ae1ee](https://github.com/BLSQ/openhexa-app/commit/d3ae1eeea1446c726f0d04b5191f8173b3ec028f))
+* JSON formatting in FE ([#2134](https://github.com/BLSQ/openhexa-app/issues/2134)) ([ee97a09](https://github.com/BLSQ/openhexa-app/commit/ee97a09615a9880d91c8275126879811c5eae905))
+* only make the saved query name clickable in the list (HEXA-1821) ([#2120](https://github.com/BLSQ/openhexa-app/issues/2120)) ([48316d7](https://github.com/BLSQ/openhexa-app/commit/48316d7a2d8401c079db7cbd7b1b897f6a17dd05))
+* show an info message when the pipeline DAG is empty (HEXA-1827)- [#2123](https://github.com/BLSQ/openhexa-app/issues/2123) ([e7222ff](https://github.com/BLSQ/openhexa-app/commit/e7222ff4fd812a876598834f8470153a1a563d25))
+* update the docs to nudge users/AI to use the new IASO Client (HEXA-1810) ([#2141](https://github.com/BLSQ/openhexa-app/issues/2141)) ([cffa6dd](https://github.com/BLSQ/openhexa-app/commit/cffa6dd8b5431cdf7b5fb4fa197c2220e140a4ce))
+* webapp access issue for users with 2-FA (HEXA-1831) ([#2121](https://github.com/BLSQ/openhexa-app/issues/2121)) ([733810d](https://github.com/BLSQ/openhexa-app/commit/733810dd990e1d975ce00cc5ce23911b0461c0e9))
+
 ## [5.19.1](https://github.com/BLSQ/openhexa-app/compare/5.19.0...5.19.1) (2026-10-07)
 
 
