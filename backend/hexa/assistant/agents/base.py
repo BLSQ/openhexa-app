@@ -567,20 +567,16 @@ class BaseAgent:
         message and the conversation are still written meanwhile: they go once
         every reader runs on the table.
         """
-        await AiUsage.objects.acreate(
+        await AiUsage.arecord(
+            built_model,
+            usage,
+            source=AiUsage.Source.CONVERSATION,
+            cost=cost,
             organization_id=self._organization_id,
             workspace_id=self.conversation.workspace_id,
             user_id=self.conversation.user_id,
             conversation_id=self.conversation.id,
             message_id=message.id if message else None,
-            source=AiUsage.Source.CONVERSATION,
-            provider=built_model.provider_id,
-            model_name=built_model.api_name,
-            input_tokens=usage.input_tokens or 0,
-            cache_read_tokens=usage.cache_read_tokens or 0,
-            cache_write_tokens=usage.cache_write_tokens or 0,
-            output_tokens=usage.output_tokens or 0,
-            cost=cost,
         )
 
     async def _resolve_naming_task(

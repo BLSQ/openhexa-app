@@ -1,4 +1,7 @@
+import logging
+from decimal import Decimal
 from functools import cached_property
+from typing import TYPE_CHECKING
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -16,6 +19,13 @@ from hexa.core.models.soft_delete import (
 )
 from hexa.user_management.models import Organization, User
 from hexa.workspaces.models import Workspace
+
+if TYPE_CHECKING:
+    from pydantic_ai.usage import RequestUsage, RunUsage
+
+    from hexa.assistant.ai_models.built_model import BuiltModel
+
+logger = logging.getLogger(__name__)
 
 CONVERSATION_NAME_MAX_LENGTH = 50
 
@@ -247,3 +257,46 @@ class AiUsage(Base):
 
     def __str__(self):
         return f"AiUsage({self.id}, source={self.source}, model={self.model_name})"
+
+    @classmethod
+    async def arecord(
+        cls,
+        built_model: "BuiltModel",
+        usage: "RunUsage | RequestUsage",
+        *,
+        source: str,
+        cost: Decimal | None,
+        organization_id,
+        workspace_id=None,
+        user_id=None,
+        conversation_id=None,
+        message_id=None,
+        external_id: str | None = None,
+    ) -> "AiUsage | None":
+        """Charge one run of `built_model` to an organization.
+
+        Never fails the caller: the model already ran and its answer is on its
+        way, so a charge that cannot be written is logged instead.
+        """
+        try:
+            return await cls.objects.acreate(
+                organization_id=organization_id,
+                workspace_id=workspace_id,
+                user_id=user_id,
+                conversation_id=conversation_id,
+                message_id=message_id,
+                source=source,
+                provider=built_model.provider_id[:50],
+                model_name=built_model.api_name[:100],
+                input_tokens=usage.input_tokens or 0,
+                cache_read_tokens=usage.cache_read_tokens or 0,
+                cache_write_tokens=usage.cache_write_tokens or 0,
+                output_tokens=usage.output_tokens or 0,
+                cost=cost,
+                external_id=external_id,
+            )
+        except Exception:
+            logger.exception(
+                "Could not record the %s usage of %s", source, built_model.api_name
+            )
+            return None
