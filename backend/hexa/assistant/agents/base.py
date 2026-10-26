@@ -52,7 +52,7 @@ from hexa.assistant.tool_binding import bind_context
 from hexa.assistant.types import TextSegment, ToolSegment
 from hexa.core.sse import format_sse
 from hexa.mcp.tools.workspaces import get_workspace
-from hexa.workspaces.models import Workspace, is_default_workspace_description
+from hexa.workspaces.models import is_default_workspace_description
 
 logger = logging.getLogger(__name__)
 
@@ -172,6 +172,8 @@ class BaseAgent:
         self, conversation: Conversation, builder: AiModelBuilder | None = None
     ):
         self.conversation = conversation
+        # Read now, synchronously, for the usage rows the async run writes.
+        self._organization_id = conversation.workspace.organization_id
         self._builder = builder or AiModelBuilder.from_conversation(conversation)
         self._built_model: BuiltModel = self._builder.build_for_agent(
             self.agent_key, self.default_model
@@ -565,11 +567,8 @@ class BaseAgent:
         message and the conversation are still written meanwhile: they go once
         every reader runs on the table.
         """
-        organization_id = await Workspace.objects.values_list(
-            "organization_id", flat=True
-        ).aget(pk=self.conversation.workspace_id)
         await AiUsage.objects.acreate(
-            organization_id=organization_id,
+            organization_id=self._organization_id,
             workspace_id=self.conversation.workspace_id,
             user_id=self.conversation.user_id,
             conversation_id=self.conversation.id,
