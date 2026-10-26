@@ -121,6 +121,7 @@ window.OPENHEXA = Object.freeze({
   workspaceSlug: "my-workspace",   // slug of the workspace owning this webapp
   webappSlug: "my-webapp",         // this webapp's own slug
   isPublic: false,                 // true for public webapps
+  url: "https://app.openhexa.org/workspaces/my-workspace/webapps/my-webapp", // page of this webapp in OpenHEXA
 });
 ```
 

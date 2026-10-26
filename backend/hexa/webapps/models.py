@@ -218,6 +218,10 @@ class Webapp(Base, SoftDeletedModel, ShortcutableMixin):
         return webapp_host_url(self.subdomain)
 
     @property
+    def openhexa_url(self):
+        return f"{settings.NEW_FRONTEND_DOMAIN}/workspaces/{self.workspace.slug}/webapps/{self.slug}"
+
+    @property
     def points_to_openhexa_webapp(self):
         if self.type != self.WebappType.IFRAME or not self.url:
             return False

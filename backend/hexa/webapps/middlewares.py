@@ -144,6 +144,7 @@ def _inject_openhexa_context(
         "workspaceSlug": webapp.workspace.slug,
         "webappSlug": webapp.slug,
         "isPublic": webapp.is_public,
+        "url": webapp.openhexa_url,
     }
     snippet = f"<script>window.OPENHEXA=Object.freeze({json.dumps(context)});</script>"
 

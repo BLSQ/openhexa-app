@@ -224,6 +224,7 @@ class DevLocalViewsTest(TestCase):
             },
         )
         self.assertEqual(response.status_code, 200)
+        self.assertIn(self.WEBAPP.openhexa_url, response.content.decode())
 
         preview_key = self.client.session[PREVIEW_KEYS_FIELD][str(self.WEBAPP.pk)]
         self.assertTrue(Session.objects.filter(session_key=preview_key).exists())
