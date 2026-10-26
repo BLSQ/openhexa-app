@@ -16,7 +16,11 @@ import type {
   MapRef,
   ViewStateChangeEvent,
 } from "react-map-gl/maplibre";
-import Map, { NavigationControl, Popup } from "react-map-gl/maplibre";
+import Map, {
+  AttributionControl,
+  NavigationControl,
+  Popup,
+} from "react-map-gl/maplibre";
 import { stringifyCellValue } from "./cellValue";
 import { featuresBounds, MapBounds, MapFeature } from "./map";
 
@@ -302,6 +306,7 @@ const ResultsMap = ({ features }: ResultsMapProps) => {
     <Map
       ref={mapRef}
       mapStyle={BASEMAP_STYLE}
+      attributionControl={false}
       initialViewState={{ bounds, fitBoundsOptions: FIT_OPTIONS }}
       style={{ height: "100%", width: "100%" }}
       interactiveLayerIds={INTERACTIVE_LAYER_IDS}
@@ -313,6 +318,7 @@ const ResultsMap = ({ features }: ResultsMapProps) => {
       cursor={hovering ? "pointer" : "grab"}
     >
       <NavigationControl position="top-left" showCompass={false} />
+      <AttributionControl position="bottom-left" compact />
       {selection && (
         <Popup
           longitude={selection.longitude}
