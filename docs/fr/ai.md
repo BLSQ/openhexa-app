@@ -26,7 +26,7 @@ Un modèle léger attribue également un titre court et automatique à chaque co
 
 L'assistant fonctionne avec des consignes dédiées pour chaque tâche et décline les demandes sans rapport avec OpenHEXA. Il ne peut pas lancer de pipelines, exécuter de requêtes SQL de sa propre initiative, modifier des permissions ni agir en dehors du workspace actif.
 
-Chaque utilisateur dispose d'un budget d'utilisation mensuel fixé par l'instance. Une fois cette limite atteinte, l'assistant est suspendu jusqu'au début du mois suivant.
+Chaque organisation dispose d'un budget IA mensuel fixé par son abonnement. Une fois ce budget atteint, les fonctionnalités IA sont suspendues pour toute l'organisation jusqu'au début du mois suivant.
 
 ### Le serveur MCP
 

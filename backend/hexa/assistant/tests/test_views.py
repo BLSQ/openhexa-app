@@ -1,7 +1,6 @@
 import asyncio
 import json
 import uuid
-from decimal import Decimal
 from unittest.mock import patch
 
 from django.urls import reverse
@@ -83,31 +82,16 @@ class StreamAssistantMessageViewTest(TestCase):
         response = _post(self.client, uuid.uuid4())
         self.assertEqual(response.status_code, 404)
 
-    # --- Monthly limit ---
-
-    def test_monthly_limit_exceeded_returns_429(self):
-        self.client.force_login(self.user)
-        with patch(
-            "hexa.assistant.views.Conversation.get_monthly_cost_for_user",
-            return_value=Decimal("999"),
-        ):
-            response = _post(self.client, self.conversation.id)
-        self.assertEqual(response.status_code, 429)
+    # --- Organization AI budget ---
 
     def test_organization_ai_budget_exceeded_returns_403(self):
         org = Organization.objects.create(name="Budget Org", short_name="BORG")
         self.workspace.organization = org
         self.workspace.save()
         self.client.force_login(self.user)
-        with (
-            patch(
-                "hexa.assistant.views.Conversation.get_monthly_cost_for_user",
-                return_value=Decimal("0"),
-            ),
-            patch(
-                "hexa.user_management.models.Organization.is_ai_budget_limit_reached",
-                return_value=True,
-            ),
+        with patch(
+            "hexa.user_management.models.Organization.is_ai_budget_limit_reached",
+            return_value=True,
         ):
             response = _post(self.client, self.conversation.id)
         self.assertEqual(response.status_code, 403)

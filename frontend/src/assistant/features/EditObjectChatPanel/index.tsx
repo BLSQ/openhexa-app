@@ -42,7 +42,6 @@ type Props = {
   linkedObjectType: LinkedObjectType;
   workspaceSlug: string;
   proposalToolName: string;
-  monthlyLimitExceeded: boolean;
   onProposedFiles: (
     files: unknown[] | null,
     toolInvocationId?: string,
@@ -62,7 +61,6 @@ export default function EditObjectChatPanel({
   linkedObjectType,
   workspaceSlug,
   proposalToolName,
-  monthlyLimitExceeded,
   onProposedFiles,
   conversations,
   activeConversationId,
@@ -245,7 +243,6 @@ export default function EditObjectChatPanel({
         <div className="flex-1 min-h-0">
           <ChatPane
             conversationId={activeConversationId}
-            monthlyLimitExceeded={monthlyLimitExceeded}
             createConversation={
               activeConversationId ? undefined : handleCreateConversation
             }

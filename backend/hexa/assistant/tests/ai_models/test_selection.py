@@ -309,7 +309,7 @@ class CatalogPricingTest(SimpleTestCase):
     """Every model we ship has to be priceable.
 
     An unpriceable model costs nothing as far as we can tell, so its usage never
-    counts towards ASSISTANT_MONTHLY_LIMIT and the cap silently stops applying.
+    counts towards the organization's AI budget and the cap silently stops applying.
     That is invisible in production, so catch a bad default here.
     """
 

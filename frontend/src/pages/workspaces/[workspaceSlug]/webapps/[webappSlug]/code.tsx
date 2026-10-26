@@ -178,7 +178,6 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
     source?.__typename === "GitSource" ? source.repositoryUrl : null;
   const isViewingPublished =
     !selectedVersion || selectedVersion.id === publishedVersionId;
-  const monthlyLimitExceeded = data?.me?.assistantMonthlyLimitExceeded ?? false;
 
   const handlePublish = async () => {
     if (!selectedVersion || isPublishing) return;
@@ -280,7 +279,6 @@ const WorkspaceWebappCodePage: NextPageWithLayout = (props: Props) => {
                 <WebappEditChatPanel
                   webappId={webapp.id}
                   workspaceSlug={workspaceSlug}
-                  monthlyLimitExceeded={monthlyLimitExceeded}
                   onProposedFiles={handleProposedFiles}
                   conversations={conversations}
                   activeConversationId={activeConversationId}

@@ -26,7 +26,7 @@ A lightweight model also automatically gives each conversation a short title.
 
 The assistant runs with dedicated system instructions for each task and declines requests unrelated to OpenHEXA. It cannot run pipelines, execute SQL on its own initiative, modify permissions, or access anything outside the active workspace.
 
-Each user has a monthly usage budget configured by the instance. When this limit is reached, access to the assistant is paused until the start of the next month.
+Each organization has a monthly AI budget set by its subscription. When this budget is reached, the AI features are paused for the whole organization until the start of the next month.
 
 ### The MCP server
 

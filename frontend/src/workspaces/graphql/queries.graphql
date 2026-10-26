@@ -92,9 +92,6 @@ query WorkspaceDataStudioPage($workspaceSlug: String!) {
     }
     ...WorkspaceLayout_workspace
   }
-  me {
-    assistantMonthlyLimitExceeded
-  }
 }
 
 query WorkspaceSavedQueriesPage(
@@ -252,9 +249,6 @@ query WorkspacePipelineCodePage(
       createdAt
       updatedAt
     }
-  }
-  me {
-    assistantMonthlyLimitExceeded
   }
 }
 
@@ -971,9 +965,6 @@ query WorkspaceWebappPage($workspaceSlug: String!, $webappSlug: String!) {
       createdAt
       updatedAt
     }
-  }
-  me {
-    assistantMonthlyLimitExceeded
   }
 }
 

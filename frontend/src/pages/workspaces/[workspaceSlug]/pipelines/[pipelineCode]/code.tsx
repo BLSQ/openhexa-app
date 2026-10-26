@@ -190,7 +190,6 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
   };
 
   const versionToShow = versionData?.pipelineVersion ?? pipeline.currentVersion;
-  const monthlyLimitExceeded = data?.me?.assistantMonthlyLimitExceeded ?? false;
 
   return (
     <Page title={pipeline.name ?? t("Pipeline Code")}>
@@ -268,7 +267,6 @@ const WorkspacePipelineCodePage: NextPageWithLayout = (props: Props) => {
                 <PipelineEditChatPanel
                   pipelineId={pipeline.id}
                   workspaceSlug={workspaceSlug}
-                  monthlyLimitExceeded={monthlyLimitExceeded}
                   onProposedFiles={handleProposedFiles}
                   conversations={conversations}
                   activeConversationId={activeConversationId}

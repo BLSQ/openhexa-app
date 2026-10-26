@@ -64,12 +64,7 @@ NEVER_GRANTED = {
     "DatabaseTable": {"rows", "sample"},
     "DatasetVersionFile": {"uri"},
     "User": {"lastLogin", "dateJoined", "analyticsEnabled"},
-    "Me": {
-        "hasTwoFactorEnabled",
-        "assistantMonthlyCost",
-        "assistantMonthlyLimitExceeded",
-        "assistantTotalCost",
-    },
+    "Me": {"hasTwoFactorEnabled"},
 }
 
 
