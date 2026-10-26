@@ -81,8 +81,8 @@ def credentials(request: HttpRequest, workspace_slug: str = None) -> HttpRespons
             user=request.user, workspace=workspace, membership=membership
         ).sign()
         pg_application_name = f"notebook /user/{request.user.email}/{workspace_slug}"
-        # Credentials for the AI tooling of the notebook image (Jupyter AI,
-        # Claude Code, Gemini CLI).
+        # The way to the AI gateway for the image's Jupyter AI, see
+        # hexa.assistant.notebooks.env.
         ai_env = notebooks_ai_env(workspace.organization)
     else:
         return JsonResponse(
