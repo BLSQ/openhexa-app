@@ -259,25 +259,30 @@ class ToolInvocationAdmin(admin.ModelAdmin):
 
 @admin.register(AiUsage)
 class AiUsageAdmin(admin.ModelAdmin):
-    """Usage of the gateway by the AI tooling of the notebook servers. Read-only:
-    the rows are written as the calls run.
-    """
+    """Read-only: the rows are written as the calls run."""
 
     list_display = (
-        "occurred_at",
+        "created_at",
         "organization",
         "workspace",
         "user",
         "source",
-        "model",
+        "provider",
+        "model_name",
         "input_tokens",
         "output_tokens",
         "cost_display",
     )
-    list_filter = ("source", "model")
-    search_fields = ("organization__name", "workspace__name", "user__email", "model")
+    list_filter = ("source", "provider", "model_name")
+    search_fields = (
+        "organization__name",
+        "workspace__name",
+        "user__email",
+        "model_name",
+    )
     list_select_related = ("organization", "workspace", "user")
-    date_hierarchy = "occurred_at"
+    raw_id_fields = ("conversation", "message")
+    date_hierarchy = "created_at"
     readonly_fields = [
         field.name for field in AiUsage._meta.fields if field.name != "id"
     ]
