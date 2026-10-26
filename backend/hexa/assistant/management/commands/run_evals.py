@@ -36,6 +36,7 @@ from statistics import mean
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.db import DEFAULT_DB_ALIAS, connections
+from pydantic_evals.reporting import EvaluationReport
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -43,6 +44,7 @@ from rich.table import Table
 from hexa.assistant.ai_models.backends import backend_for
 from hexa.assistant.ai_models.ids import ModelId
 from hexa.assistant.ai_models.selection import ModelSelector
+from hexa.assistant.evals.core import CONVERSATION_COST_METRIC
 from hexa.assistant.evals.core.dataset import (
     DatasetError,
     experiment_metadata,
@@ -224,7 +226,7 @@ class Command(BaseCommand):
         )
         return dataset, metadata
 
-    def _print_case_spread(self, report) -> None:
+    def _print_case_spread(self, report: EvaluationReport) -> None:
         """Per-case mean and spread across repeats.
 
         pydantic-evals prints one row per repeat and a single grand average, so
@@ -279,18 +281,31 @@ class Command(BaseCommand):
             )
             self.stdout.write(line.rstrip())
 
-    def _print_totals(self, report) -> None:
+    def _print_totals(self, report: EvaluationReport) -> None:
         """What the run spent in total, as a box under the report table.
 
-        pydantic-evals reads cost and token usage off each run's model request
-        spans, but its report only averages them. A run that raised carries no
-        metrics, so its spend is missing from the totals and the box says so.
+        pydantic-evals reads request and token counts off each run's model
+        request spans, but its report only averages them. The cost is the one
+        the task records from Conversation.cost, priced the way the app bills
+        it, rather than the span-derived `cost` metric. A run that raised
+        carries no metrics, so its spend is missing from the totals and the box
+        says so.
         """
         runs = report.cases
-        costs = [run.metrics["cost"] for run in runs if "cost" in run.metrics]
+        costs = [
+            run.metrics[CONVERSATION_COST_METRIC]
+            for run in runs
+            if CONVERSATION_COST_METRIC in run.metrics
+        ]
 
         def total(metric: str) -> str:
             return f"{int(sum(run.metrics.get(metric, 0) for run in runs)):,}"
+
+        def money(amount: float) -> str:
+            # A run that cost a fraction of a cent must not read as a free one.
+            if 0 < amount < 0.005:
+                return "<$0.01"
+            return f"${amount:.2f}"
 
         rows = [
             (
@@ -305,7 +320,7 @@ class Command(BaseCommand):
             ("output tokens", total("output_tokens"), ""),
             (
                 "cost",
-                f"${sum(costs):.2f}" if costs else "unavailable",
+                money(sum(costs)) if costs else "unavailable",
                 f"{len(runs) - len(costs)} run(s) had no cost recorded"
                 if len(costs) < len(runs)
                 else "",

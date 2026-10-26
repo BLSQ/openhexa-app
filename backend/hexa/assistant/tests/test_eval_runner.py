@@ -12,6 +12,7 @@ from pydantic_evals.evaluators import Evaluator, EvaluatorContext
 
 from hexa.assistant.agents.create_pipeline_agent import CreatePipelineAgent
 from hexa.assistant.ai_models.backends import ManagedBackend
+from hexa.assistant.evals.core import CONVERSATION_COST_METRIC
 from hexa.assistant.evals.core.dataset import (
     DatasetError,
     dataset_hash,
@@ -365,6 +366,8 @@ class CaseSpreadTest(SimpleTestCase):
 class TotalCostTest(SimpleTestCase):
     """The run total the built-in report only shows as a per-run average."""
 
+    COST = CONVERSATION_COST_METRIC
+
     def _totals(self, usage: dict[str, dict | None], repeat: int = 1) -> str:
         async def task(inputs: str) -> str:
             metrics = usage[inputs]
@@ -391,11 +394,16 @@ class TotalCostTest(SimpleTestCase):
         return line.strip("│ ").split()
 
     def test_is_a_box_titled_totals(self):
-        out = self._totals({"a": {"cost": 0.5}})
+        out = self._totals({"a": {self.COST: 0.5}})
         self.assertIn("Totals", out.splitlines()[0])
 
     def test_sums_cost_and_usage_across_runs(self):
-        run = {"cost": 0.5, "requests": 4, "input_tokens": 1500, "output_tokens": 200}
+        run = {
+            self.COST: 0.5,
+            "requests": 4,
+            "input_tokens": 1500,
+            "output_tokens": 200,
+        }
         out = self._totals({"a": run, "b": run}, repeat=2)
         self.assertEqual(["runs", "4"], self._row(out, "runs"))
         self.assertEqual(["requests", "16"], self._row(out, "requests"))
@@ -403,9 +411,18 @@ class TotalCostTest(SimpleTestCase):
         self.assertEqual(["output", "tokens", "800"], self._row(out, "output tokens"))
         self.assertEqual(["cost", "$2.00"], self._row(out, "cost"))
 
+    def test_sums_the_cost_the_app_billed_not_the_span_derived_one(self):
+        """pydantic-evals' own `cost` metric is priced by genai-prices alone."""
+        out = self._totals({"a": {self.COST: 0.5, "cost": 0.9}})
+        self.assertEqual(["cost", "$0.50"], self._row(out, "cost"))
+
+    def test_a_fraction_of_a_cent_is_not_shown_as_free(self):
+        out = self._totals({"a": {self.COST: 0.004}})
+        self.assertEqual(["cost", "<$0.01"], self._row(out, "cost"))
+
     def test_unpriced_runs_are_called_out(self):
-        """A model genai-prices cannot price must not read as a free run."""
-        out = self._totals({"a": {"cost": 0.5}, "b": {"requests": 3}})
+        """A model the app cannot price must not read as a free run."""
+        out = self._totals({"a": {self.COST: 0.5}, "b": {"requests": 3}})
         self.assertIn("$0.50", self._row(out, "cost"))
         self.assertIn("1 run(s) had no cost recorded", out)
 
@@ -414,6 +431,6 @@ class TotalCostTest(SimpleTestCase):
         self.assertIn("unavailable", self._row(out, "cost"))
 
     def test_errored_runs_are_flagged_as_missing(self):
-        out = self._totals({"a": {"cost": 0.5}, "b": None})
+        out = self._totals({"a": {self.COST: 0.5}, "b": None})
         self.assertEqual("1", self._row(out, "runs")[1])
         self.assertIn("1 errored run(s) not included", out)

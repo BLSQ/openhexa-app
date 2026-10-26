@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from hexa.assistant.evals.fixtures import (
     PROFILES,
     STANDARD_WORKSPACE,
@@ -6,7 +8,9 @@ from hexa.assistant.evals.fixtures import (
 from hexa.assistant.evals.suites.pipeline_create.task import (
     EVAL_CONVERSATION_NAME,
     _build_world,
+    _conversation_cost,
 )
+from hexa.assistant.models import Conversation, Message
 from hexa.core.test import TestCase
 from hexa.mcp.tools.connections import list_connections
 from hexa.mcp.tools.datasets import list_datasets
@@ -111,3 +115,41 @@ class EvalConversationTest(TestCase):
         ai_settings = conversation.workspace.organization.ai_settings
         self.assertIsNone(ai_settings.model)
         self.assertFalse(ai_settings.has_api_key)
+
+
+class ConversationCostTest(TestCase):
+    """The cost the task reports is the one the app billed the conversation."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.USER = User.objects.create_user(
+            "eval-cost@openhexa.org", "password", is_superuser=True
+        )
+
+    def _reply(self, conversation: Conversation, cost: Decimal | None) -> Message:
+        return Message.objects.create(
+            conversation=conversation,
+            role=Message.Role.ASSISTANT,
+            content=[],
+            cost=cost,
+        )
+
+    def test_sums_the_cost_of_the_replies(self):
+        _, conversation = _build_world(STANDARD_WORKSPACE)
+        self._reply(conversation, Decimal("0.25"))
+        self._reply(conversation, Decimal("0.5"))
+
+        self.assertEqual(Decimal("0.75"), _conversation_cost(conversation))
+
+    def test_is_unknown_when_a_reply_went_unpriced(self):
+        """A partial total would read as a cheap run, not an unknown one."""
+        _, conversation = _build_world(STANDARD_WORKSPACE)
+        self._reply(conversation, Decimal("0.25"))
+        self._reply(conversation, None)
+
+        self.assertIsNone(_conversation_cost(conversation))
+
+    def test_is_unknown_without_any_reply(self):
+        _, conversation = _build_world(STANDARD_WORKSPACE)
+
+        self.assertIsNone(_conversation_cost(conversation))
