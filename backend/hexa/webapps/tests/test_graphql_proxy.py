@@ -706,6 +706,34 @@ class GraphQLProxyMiddlewareTest(TestCase):
             data["readFileContent"], {"success": True, "errors": [], "content": "hello"}
         )
 
+    @patch("hexa.files.schema.queries.storage")
+    def test_allowed_read_file_content_query_returns_line_window(self, mock_storage):
+        mock_storage.get_bucket_object.return_value = StorageObject(
+            key="a.txt",
+            name="a.txt",
+            path="a.txt",
+            size=6,
+            updated_at=None,
+            type="file",
+        )
+        mock_storage.read_object.return_value = b"a\nb\nc\n"
+        data = self._post_with_scopes(
+            "read-file-window-app",
+            [Webapp.OperationScope.FILES_READ],
+            f'query {{ readFileContent(workspaceSlug: "{self.WORKSPACE.slug}", filePath: "a.txt", '
+            "startLine: 2, endLine: 2) { content startLine endLine totalLines notice } }",
+        )
+        self.assertEqual(
+            data["readFileContent"],
+            {
+                "content": "b\n",
+                "startLine": 2,
+                "endLine": 2,
+                "totalLines": 3,
+                "notice": None,
+            },
+        )
+
     @patch("hexa.files.schema.mutations.storage")
     def test_allowed_prepare_object_download_mutation_returns_url(self, mock_storage):
         mock_storage.generate_download_url.return_value = (
