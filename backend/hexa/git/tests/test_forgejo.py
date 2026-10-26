@@ -1186,6 +1186,18 @@ class ForgejoClientRepositoryArchiveTest(TestCase):
         self.assertEqual(by_path["pixel.png"]["encoding"], "BASE64")
 
     @responses.activate
+    def test_reuses_a_tree_the_caller_already_has(self):
+        responses.get(ARCHIVE_URL, body=_zip({"index.html": b"<h1>hi</h1>"}))
+
+        client = ForgejoClient(url=FORGEJO_URL, username=USERNAME, password=PASSWORD)
+        files = client.get_repository_files(
+            "my-repo", tree=[{"path": "index.html", "type": "blob", "size": 11}]
+        )
+
+        self.assertEqual(len(responses.calls), 1)
+        self.assertEqual(files[0]["content"], "<h1>hi</h1>")
+
+    @responses.activate
     def test_falls_back_to_one_request_per_file_without_archive(self):
         self._tree({"path": "index.html", "type": "blob", "size": 11})
         _archive_unavailable()

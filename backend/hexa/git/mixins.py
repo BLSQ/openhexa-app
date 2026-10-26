@@ -6,8 +6,8 @@ from django.db import models
 
 from hexa.core.text_files import TextFiles
 from hexa.git.client import GitClient
-from hexa.git.enums import FileEncoding
 from hexa.git.forgejo import ForgejoAPIError, get_forgejo_client
+from hexa.git.repo_file_source import GitRepoFileSource
 from hexa.user_management.models import User
 
 logger = logging.getLogger(__name__)
@@ -55,15 +55,9 @@ class GitRepoMixin(models.Model):
         whatever a proposal can patch can be read first.
         """
         return TextFiles(
-            {
-                entry["path"]: entry["content"]
-                if entry["encoding"] == FileEncoding.TEXT
-                else None
-                for entry in self.client.get_repository_files(
-                    self.repository, ref, org_slug=self.git_org.slug
-                )
-                if entry["type"] == "file"
-            }
+            GitRepoFileSource(
+                self.client, self.repository, ref, org_slug=self.git_org.slug
+            )
         )
 
     def get_commit_diff(self, sha: str) -> dict:
