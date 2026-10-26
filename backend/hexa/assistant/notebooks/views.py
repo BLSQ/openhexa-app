@@ -28,8 +28,10 @@ async def _record_gateway_usage(
     completion: gateway.Completion, *, organization, workspace, user
 ) -> None:
     """Charge a completion to the organization. Never fails the response: it
-    is already (being) sent.
+    is already (being) sent. Nothing is charged when the model never answered.
     """
+    if completion.response is None:
+        return
     try:
         usage = completion.usage
         await AiUsage.objects.acreate(
@@ -54,14 +56,20 @@ async def _stream_completion(completion: gateway.Completion, attributes: dict, r
     with tracer.start_as_current_span(
         "notebooks chat completion", attributes=attributes
     ):
+        stream = completion.stream()
         try:
-            async for event in completion.stream():
+            async for event in stream:
                 yield event
         except Exception:
             logger.exception("gateway: completion %s failed", completion.id)
             yield gateway.error_event("The model request failed")
-            return
-    await record()
+        finally:
+            # Also when the client disconnects (this generator is then closed
+            # at a yield, which does not close the one it iterates) or the
+            # model fails: the tokens consumed so far are billed to us, so they
+            # are charged to the organization.
+            await stream.aclose()
+            await record()
 
 
 async def gateway_chat_completions(request: HttpRequest) -> HttpResponse:

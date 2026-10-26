@@ -14,7 +14,7 @@ from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 from hexa.assistant.ai_models import BuiltModel
 from hexa.assistant.exceptions import AssistantException
 from hexa.assistant.models import AiUsage
-from hexa.assistant.notebooks import gateway
+from hexa.assistant.notebooks import gateway, views
 from hexa.core.test import TestCase
 from hexa.core.test.utils import collect_async_stream
 from hexa.user_management.models import AiSettings, User
@@ -411,7 +411,40 @@ class GatewayViewTest(TestCase):
         self.assertEqual(response.status_code, 502)
         self.assertEqual(AiUsage.objects.count(), 0)
 
+        # Mid-stream, the provider billed us for what it sent before failing.
         events = self.stream({"messages": self.MESSAGES}, _failing_model())
         self.assertEqual(events[-1]["error"]["type"], "server_error")
         self.assertNotIn("[DONE]", events)
-        self.assertEqual(AiUsage.objects.count(), 0)
+        self.assertEqual(
+            "".join(c["choices"][0]["delta"].get("content") or "" for c in events[:-1]),
+            "partial ",
+        )
+        self.assertGreater(AiUsage.objects.get().output_tokens, 0)
+
+    def test_charges_what_a_disconnected_client_consumed(self):
+        """Jupyternaut's Stop button closes the response mid-stream; the
+        tokens the model produced until then are charged all the same.
+        """
+        completion = gateway.Completion(
+            _built(_text_model("one two three four five")),
+            gateway.parse_chat_request({"messages": self.MESSAGES, "stream": True}),
+        )
+
+        async def record():
+            await views._record_gateway_usage(
+                completion,
+                organization=self.ORGANIZATION,
+                workspace=self.WORKSPACE,
+                user=self.USER,
+            )
+
+        async def read_two_chunks_then_leave():
+            stream = views._stream_completion(completion, {}, record)
+            await anext(stream)
+            await anext(stream)
+            await stream.aclose()
+
+        async_to_sync(read_two_chunks_then_leave)()
+        usage = AiUsage.objects.get()
+        self.assertEqual(usage.source, AiUsage.Source.NOTEBOOK)
+        self.assertGreater(usage.output_tokens, 0)

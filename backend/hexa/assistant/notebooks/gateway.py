@@ -361,18 +361,22 @@ class Completion:
             self.request.model_settings(),
             self.request.request_parameters,
         ) as streamed:
-            async for event in streamed:
-                if isinstance(event, ai.PartStartEvent) and isinstance(
-                    event.part, ai.TextPart
-                ):
-                    if event.part.content:
-                        yield self._chunk({"content": event.part.content})
-                elif isinstance(event, ai.PartDeltaEvent) and isinstance(
-                    event.delta, ai.TextPartDelta
-                ):
-                    if event.delta.content_delta:
-                        yield self._chunk({"content": event.delta.content_delta})
-            self.response = streamed.get()
+            try:
+                async for event in streamed:
+                    if isinstance(event, ai.PartStartEvent) and isinstance(
+                        event.part, ai.TextPart
+                    ):
+                        if event.part.content:
+                            yield self._chunk({"content": event.part.content})
+                    elif isinstance(event, ai.PartDeltaEvent) and isinstance(
+                        event.delta, ai.TextPartDelta
+                    ):
+                        if event.delta.content_delta:
+                            yield self._chunk({"content": event.delta.content_delta})
+            finally:
+                # Whatever the provider sent is billed, even when the client
+                # left or the stream broke before the end.
+                self.response = streamed.get()
 
         tool_calls = [
             _tool_call_json(i, part) for i, part in enumerate(self.response.tool_calls)
