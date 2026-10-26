@@ -8,7 +8,7 @@ from .files import TextFiles
 from .grep import GREP_HEAD_LIMIT, GrepOutputMode
 from .path_pattern import PathPattern
 from .source import MAX_TEXT_FILE_SIZE, decode_text
-from .window import AGENT_READ, ReadOptions
+from .window import AGENT_READ, ReadOptions, read_window
 
 __all__ = [
     "AGENT_READ",
@@ -19,4 +19,5 @@ __all__ = [
     "ReadOptions",
     "TextFiles",
     "decode_text",
+    "read_window",
 ]

@@ -2764,6 +2764,70 @@ type GitSource {
   repositoryUrl: String!
 }
 
+enum GlobFilesError {
+  INVALID_PATH
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+type GlobFilesResult {
+  errors: [GlobFilesError!]!
+  notice: String
+
+  """Matching paths, sorted, at most 100."""
+  paths: [String!]
+  success: Boolean!
+
+  """True when more paths match than were returned."""
+  truncated: Boolean
+}
+
+type GrepFileCount {
+  count: Int!
+  path: String!
+}
+
+enum GrepFilesError {
+  INVALID_PATH
+  INVALID_PATTERN
+  NOT_FOUND
+  PERMISSION_DENIED
+}
+
+type GrepFilesResult {
+  """With outputMode CONTENT."""
+  content: String
+
+  """With outputMode COUNT."""
+  counts: [GrepFileCount!]
+  errors: [GrepFilesError!]!
+
+  """With outputMode FILES_WITH_MATCHES."""
+  files: [String!]
+  notice: String
+  success: Boolean!
+
+  """With outputMode COUNT: matches across all files."""
+  total: Int
+
+  """
+  True when there are more entries past headLimit, or the search stopped early.
+  """
+  truncated: Boolean
+}
+
+"""How grepFiles reports its matches."""
+enum GrepOutputMode {
+  """Matching lines as `path:line:text`, context lines as `path-line-text`."""
+  CONTENT
+
+  """Number of matches per file, and their total."""
+  COUNT
+
+  """Paths of the files that match."""
+  FILES_WITH_MATCHES
+}
+
 """IASO connection object"""
 type IASOConnection implements Connection {
   createdAt: DateTime!
@@ -4375,6 +4439,21 @@ type Query {
   """Get a file by its path within a workspace."""
   getFileByPath(path: String!, workspaceSlug: String!): BucketObject
 
+  """
+  Find files in a workspace's bucket by path pattern, e.g. `**/*.csv`: `*` stays within a
+  directory and `**` spans any depth. prefix narrows the listing to one directory.
+  Hidden files are skipped.
+  """
+  globFiles(pattern: String!, prefix: String, workspaceSlug: String!): GlobFilesResult!
+
+  """
+  Search the text files of a workspace's bucket matching `glob` with a Python regular
+  expression. Every file searched is downloaded: a search stops after 50 MB or 20 seconds
+  and returns what it found with a notice. Files over 1 MB are skipped. headLimit and
+  offset page through the entries.
+  """
+  grepFiles(context: Int = 0, glob: String!, headLimit: Int, ignoreCase: Boolean = false, offset: Int = 0, outputMode: GrepOutputMode = FILES_WITH_MATCHES, pattern: String!, prefix: String, workspaceSlug: String!): GrepFilesResult!
+
   """The consent context for a pending authorization, by OAuth client id."""
   mcpAuthorizationRequest(clientId: String!): MCPAuthorizationRequest
 
@@ -4427,8 +4506,14 @@ type Query {
   """Retrieves a page of pipelines ordered by relevant name."""
   pipelines(functionalType: PipelineFunctionalType, lastRunStates: [PipelineRunStatus!], name: String, orderBy: PipelineOrderBy, page: Int, perPage: Int, search: String, tags: [String!], workspaceSlug: String): PipelinesPage!
 
-  """Read the text content of a file from a workspace's bucket."""
-  readFileContent(endLine: Int, filePath: String!, startLine: Int, workspaceSlug: String!): ReadFileContentResult!
+  """
+  Read the text content of a file from a workspace's bucket. startLine and endLine
+  (1-indexed, inclusive) select a window. lineNumbers prefixes each line with its number
+  and returns at most 2000 lines, clipping lines over 2000 characters. A full read is
+  limited to 1 MB files; a windowed read (a line range or lineNumbers) to 10 MB files,
+  and without lineNumbers to a 1 MB window.
+  """
+  readFileContent(endLine: Int, filePath: String!, lineNumbers: Boolean = false, startLine: Int, workspaceSlug: String!): ReadFileContentResult!
   readWebappFile(endLine: Int, path: String!, startLine: Int, webappSlug: String!, workspaceSlug: String!): ReadWebappFileResult!
 
   """
@@ -4496,9 +4581,21 @@ enum ReadFileContentError {
 
 type ReadFileContentResult {
   content: String
+
+  """Last line of the returned window (inclusive)."""
+  endLine: Int
   errors: [ReadFileContentError!]!
+
+  """Set when the window is partial or empty, telling how to read on."""
+  notice: String
   size: Int
+
+  """First line of the returned window (1-indexed)."""
+  startLine: Int
   success: Boolean!
+
+  """Number of lines in the whole file."""
+  totalLines: Int
 }
 
 """Represents the error message for reading a web app file."""

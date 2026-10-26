@@ -168,7 +168,7 @@ class _BucketTestCase(MCPTestCase):
             "data/raw.csv": b"a,b\n",
         }.items():
             storage.save_object(self.WORKSPACE.bucket_name, key, BytesIO(content))
-        patcher = patch("hexa.mcp.tools.files.storage", storage)
+        patcher = patch("hexa.files.schema.queries.storage", storage)
         patcher.start()
         self.addCleanup(patcher.stop)
 
@@ -181,10 +181,8 @@ class GlobFilesTest(_BucketTestCase):
         result = glob_files(
             user=self.USER_ADMIN, workspace_slug=self.WORKSPACE.slug, pattern="**/*.py"
         )
-        self.assertEqual(
-            result,
-            {"paths": ["scripts/clean.py", "scripts/load.py"], "truncated": False},
-        )
+        self.assertEqual(result["paths"], ["scripts/clean.py", "scripts/load.py"])
+        self.assertFalse(result["truncated"])
 
     def test_glob_files_under_prefix(self):
         result = glob_files(
@@ -199,7 +197,8 @@ class GlobFilesTest(_BucketTestCase):
         result = glob_files(
             user=self.USER_OUTSIDER, workspace_slug=self.WORKSPACE.slug, pattern="**"
         )
-        self.assertEqual(result, {"error": "Workspace not found"})
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["NOT_FOUND"])
 
     def test_glob_files_unsafe_prefix(self):
         result = glob_files(
@@ -208,7 +207,8 @@ class GlobFilesTest(_BucketTestCase):
             pattern="**",
             prefix="../",
         )
-        self.assertEqual(result, {"error": "Invalid prefix"})
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["INVALID_PATH"])
 
 
 class GrepFilesTest(_BucketTestCase):
@@ -236,7 +236,7 @@ class GrepFilesTest(_BucketTestCase):
             )
         read.assert_called_once()
 
-    @patch("hexa.mcp.tools.files.GREP_MAX_DOWNLOAD_BYTES", 1)
+    @patch("hexa.files.schema.queries.GREP_MAX_DOWNLOAD_BYTES", 1)
     def test_grep_files_stops_at_the_download_budget(self):
         result = grep_files(
             user=self.USER_ADMIN,
@@ -249,7 +249,7 @@ class GrepFilesTest(_BucketTestCase):
         self.assertTrue(result["truncated"])
         self.assertIn("stopped after 1 of 2 files", result["notice"])
 
-    @patch("hexa.mcp.tools.files.GREP_TIMEOUT_SECONDS", 0)
+    @patch("hexa.files.schema.queries.GREP_TIMEOUT_SECONDS", 0)
     def test_grep_files_stops_at_the_timeout(self):
         result = grep_files(
             user=self.USER_ADMIN,
@@ -261,7 +261,7 @@ class GrepFilesTest(_BucketTestCase):
         self.assertIn("stopped after 0 of 2 files", result["notice"])
 
     @patch("hexa.files.bucket_file_source.MAX_LISTED_FILES", 2)
-    @patch("hexa.mcp.tools.files.GREP_MAX_DOWNLOAD_BYTES", 1)
+    @patch("hexa.files.schema.queries.GREP_MAX_DOWNLOAD_BYTES", 1)
     def test_grep_files_keeps_both_notices(self):
         result = grep_files(
             user=self.USER_ADMIN,
@@ -279,7 +279,8 @@ class GrepFilesTest(_BucketTestCase):
             pattern="def",
             glob="**",
         )
-        self.assertEqual(result, {"error": "Workspace not found"})
+        self.assertFalse(result["success"])
+        self.assertEqual(result["errors"], ["NOT_FOUND"])
 
 
 class ReadFileWithLineNumbersTest(MCPTestCase):
@@ -303,4 +304,4 @@ class ReadFileWithLineNumbersTest(MCPTestCase):
         )
         self.assertTrue(result["success"])
         self.assertEqual(result["content"], "     2\tline2\n     3\tline3")
-        self.assertEqual(result["total_lines"], 3)
+        self.assertEqual(result["totalLines"], 3)

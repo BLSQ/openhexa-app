@@ -2744,6 +2744,63 @@ export type GitSource = {
   repositoryUrl: Scalars['String']['output'];
 };
 
+export enum GlobFilesError {
+  InvalidPath = 'INVALID_PATH',
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type GlobFilesResult = {
+  __typename?: 'GlobFilesResult';
+  errors: Array<GlobFilesError>;
+  notice?: Maybe<Scalars['String']['output']>;
+  /** Matching paths, sorted, at most 100. */
+  paths?: Maybe<Array<Scalars['String']['output']>>;
+  success: Scalars['Boolean']['output'];
+  /** True when more paths match than were returned. */
+  truncated?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type GrepFileCount = {
+  __typename?: 'GrepFileCount';
+  count: Scalars['Int']['output'];
+  path: Scalars['String']['output'];
+};
+
+export enum GrepFilesError {
+  InvalidPath = 'INVALID_PATH',
+  InvalidPattern = 'INVALID_PATTERN',
+  NotFound = 'NOT_FOUND',
+  PermissionDenied = 'PERMISSION_DENIED'
+}
+
+export type GrepFilesResult = {
+  __typename?: 'GrepFilesResult';
+  /** With outputMode CONTENT. */
+  content?: Maybe<Scalars['String']['output']>;
+  /** With outputMode COUNT. */
+  counts?: Maybe<Array<GrepFileCount>>;
+  errors: Array<GrepFilesError>;
+  /** With outputMode FILES_WITH_MATCHES. */
+  files?: Maybe<Array<Scalars['String']['output']>>;
+  notice?: Maybe<Scalars['String']['output']>;
+  success: Scalars['Boolean']['output'];
+  /** With outputMode COUNT: matches across all files. */
+  total?: Maybe<Scalars['Int']['output']>;
+  /** True when there are more entries past headLimit, or the search stopped early. */
+  truncated?: Maybe<Scalars['Boolean']['output']>;
+};
+
+/** How grepFiles reports its matches. */
+export enum GrepOutputMode {
+  /** Matching lines as `path:line:text`, context lines as `path-line-text`. */
+  Content = 'CONTENT',
+  /** Number of matches per file, and their total. */
+  Count = 'COUNT',
+  /** Paths of the files that match. */
+  FilesWithMatches = 'FILES_WITH_MATCHES'
+}
+
 /** IASO connection object */
 export type IasoConnection = Connection & {
   __typename?: 'IASOConnection';
@@ -4996,6 +5053,19 @@ export type Query = {
   executeSavedQuery: ExecuteSqlResult;
   /** Get a file by its path within a workspace. */
   getFileByPath?: Maybe<BucketObject>;
+  /**
+   * Find files in a workspace's bucket by path pattern, e.g. `**\/*.csv`: `*` stays within a
+   * directory and `**` spans any depth. prefix narrows the listing to one directory.
+   * Hidden files are skipped.
+   */
+  globFiles: GlobFilesResult;
+  /**
+   * Search the text files of a workspace's bucket matching `glob` with a Python regular
+   * expression. Every file searched is downloaded: a search stops after 50 MB or 20 seconds
+   * and returns what it found with a notice. Files over 1 MB are skipped. headLimit and
+   * offset page through the entries.
+   */
+  grepFiles: GrepFilesResult;
   /** The consent context for a pending authorization, by OAuth client id. */
   mcpAuthorizationRequest?: Maybe<McpAuthorizationRequest>;
   /** The MCP clients the current user has connected. */
@@ -5035,7 +5105,13 @@ export type Query = {
   pipelineVersion?: Maybe<PipelineVersion>;
   /** Retrieves a page of pipelines ordered by relevant name. */
   pipelines: PipelinesPage;
-  /** Read the text content of a file from a workspace's bucket. */
+  /**
+   * Read the text content of a file from a workspace's bucket. startLine and endLine
+   * (1-indexed, inclusive) select a window. lineNumbers prefixes each line with its number
+   * and returns at most 2000 lines, clipping lines over 2000 characters. A full read is
+   * limited to 1 MB files; a windowed read (a line range or lineNumbers) to 10 MB files,
+   * and without lineNumbers to a 1 MB window.
+   */
   readFileContent: ReadFileContentResult;
   readWebappFile: ReadWebappFileResult;
   /** Retrieves a saved query by its id. When a workspace slug is given, the lookup is scoped to that workspace. */
@@ -5207,6 +5283,26 @@ export type QueryGetFileByPathArgs = {
 };
 
 
+export type QueryGlobFilesArgs = {
+  pattern: Scalars['String']['input'];
+  prefix?: InputMaybe<Scalars['String']['input']>;
+  workspaceSlug: Scalars['String']['input'];
+};
+
+
+export type QueryGrepFilesArgs = {
+  context?: InputMaybe<Scalars['Int']['input']>;
+  glob: Scalars['String']['input'];
+  headLimit?: InputMaybe<Scalars['Int']['input']>;
+  ignoreCase?: InputMaybe<Scalars['Boolean']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  outputMode?: InputMaybe<GrepOutputMode>;
+  pattern: Scalars['String']['input'];
+  prefix?: InputMaybe<Scalars['String']['input']>;
+  workspaceSlug: Scalars['String']['input'];
+};
+
+
 export type QueryMcpAuthorizationRequestArgs = {
   clientId: Scalars['String']['input'];
 };
@@ -5293,6 +5389,7 @@ export type QueryPipelinesArgs = {
 export type QueryReadFileContentArgs = {
   endLine?: InputMaybe<Scalars['Int']['input']>;
   filePath: Scalars['String']['input'];
+  lineNumbers?: InputMaybe<Scalars['Boolean']['input']>;
   startLine?: InputMaybe<Scalars['Int']['input']>;
   workspaceSlug: Scalars['String']['input'];
 };
@@ -5454,9 +5551,17 @@ export enum ReadFileContentError {
 export type ReadFileContentResult = {
   __typename?: 'ReadFileContentResult';
   content?: Maybe<Scalars['String']['output']>;
+  /** Last line of the returned window (inclusive). */
+  endLine?: Maybe<Scalars['Int']['output']>;
   errors: Array<ReadFileContentError>;
+  /** Set when the window is partial or empty, telling how to read on. */
+  notice?: Maybe<Scalars['String']['output']>;
   size?: Maybe<Scalars['Int']['output']>;
+  /** First line of the returned window (1-indexed). */
+  startLine?: Maybe<Scalars['Int']['output']>;
   success: Scalars['Boolean']['output'];
+  /** Number of lines in the whole file. */
+  totalLines?: Maybe<Scalars['Int']['output']>;
 };
 
 /** Represents the error message for reading a web app file. */
