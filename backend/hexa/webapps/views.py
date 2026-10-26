@@ -290,6 +290,7 @@ def dev_auth(request):
                     ),
                     "workspaceSlug": webapp.workspace.slug,
                     "webappSlug": webapp.slug,
+                    "url": webapp.openhexa_url,
                 },
                 "target_origin": "*" if is_opaque else origin,
             },

@@ -67,6 +67,7 @@ class WebappCompressionTest(TestCase):
         # compression — the decompressed payload is the fully rewritten HTML.
         self.assertIn(b"x" * 500, body)
         self.assertIn(b"window.OPENHEXA", body)
+        self.assertIn(b"/workspaces/gzip-workspace/webapps/gzip-public", body)
         self.assertIn(b"Powered by", body)
 
     @patch("hexa.webapps.views.get_forgejo_client")
