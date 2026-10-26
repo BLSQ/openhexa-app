@@ -179,13 +179,16 @@ class ToolInvocation(Base):
 
 
 class AiUsage(Base):
-    """A model call made on the organization's AI credentials outside the app's
-    own agents: what the gateway runs for the AI tooling of its notebook
-    servers, see `hexa.assistant.notebooks.gateway`.
+    """One model call charged to an organization, whatever ran it: an agent
+    answering in a conversation, the naming agent, or the gateway serving the
+    AI tooling of a notebook server (`hexa.assistant.notebooks.gateway`).
 
-    The app's agents keep their usage on the messages of a conversation; the
-    organization's monthly AI cost sums both.
+    The organization's monthly AI cost is a sum over this table.
     """
+
+    class Source(models.TextChoices):
+        CONVERSATION = "conversation", "Conversation"
+        NOTEBOOK = "notebook", "Notebook"
 
     organization = models.ForeignKey(
         Organization, on_delete=models.CASCADE, related_name="ai_usages"
@@ -193,28 +196,50 @@ class AiUsage(Base):
     workspace = models.ForeignKey(
         Workspace,
         on_delete=models.SET_NULL,
-        null=True,
+        null=True,  # could be NULL for org-level AI usage
         blank=True,
         related_name="ai_usages",
     )
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    # Who the call was run for: "notebooks" for the gateway.
-    source = models.CharField(max_length=50)
-    model = models.CharField(max_length=100)
-    # Input tokens include the prompt-cache ones, as genai_prices counts them.
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,  # NULL for system-triggered AI usage
+        blank=True,
+    )
+
+    source = models.CharField(max_length=50, choices=Source.choices)
+    provider = models.CharField(max_length=50)
+    model_name = models.CharField(max_length=100)
+
+    # pydantic-ai's convention (and priced by genai_prices): the input total
+    # includes the cache read and write tokens (which are also given apart)
     input_tokens = models.PositiveIntegerField(default=0)
     cache_read_tokens = models.PositiveIntegerField(default=0)
     cache_write_tokens = models.PositiveIntegerField(default=0)
     output_tokens = models.PositiveIntegerField(default=0)
     # In dollars; None when the model has no known price.
     cost = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
-    # When the call ended.
-    occurred_at = models.DateTimeField()
-    # The call's own id (the completion id the gateway answered with).
+
+    # Tracing and admin only: where did the AI usage come from?
+    # A message, a conversation (e.g. naming agent) or external (e.g. notebooks)
+    conversation = models.ForeignKey(
+        Conversation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ai_usages",
+    )
+    message = models.ForeignKey(
+        Message,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ai_usages",
+    )
     external_id = models.CharField(max_length=200, null=True, blank=True)
 
     class Meta:
-        ordering = ["-occurred_at"]
+        ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
                 fields=["source", "external_id"],
@@ -223,13 +248,11 @@ class AiUsage(Base):
             )
         ]
         indexes = [
-            # Covers Organization.get_monthly_ai_cost().
-            models.Index(
-                fields=["organization", "occurred_at"],
-                include=["cost"],
-                name="asst_ai_usage_org_time_idx",
-            ),
+            models.Index(fields=["organization", "created_at"]),
+            models.Index(fields=["user", "created_at"]),
+            models.Index(fields=["source"]),
+            models.Index(fields=["provider", "model_name"]),
         ]
 
     def __str__(self):
-        return f"AiUsage({self.id}, source={self.source}, model={self.model})"
+        return f"AiUsage({self.id}, source={self.source}, model={self.model_name})"
