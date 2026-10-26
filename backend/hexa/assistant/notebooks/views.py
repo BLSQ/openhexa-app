@@ -26,29 +26,22 @@ def _gateway_error(status: int, message: str, error_type: str) -> JsonResponse:
 async def _record_gateway_usage(
     completion: gateway.Completion, *, organization, workspace, user
 ) -> None:
-    """Charge a completion to the organization. Never fails the response: it
-    is already (being) sent. Nothing is charged when the model never answered.
+    """Charge a completion to the organization. Nothing is charged when the
+    model never answered.
     """
     if completion.response is None:
         return
-    try:
-        usage = completion.usage
-        await AiUsage.objects.acreate(
-            organization=organization,
-            workspace=workspace,
-            user=user,
-            source=AiUsage.Source.NOTEBOOK,
-            provider=completion.built_model.provider_id[:50],
-            model_name=completion.model_name[:100],
-            input_tokens=usage.input_tokens,
-            cache_read_tokens=usage.cache_read_tokens,
-            cache_write_tokens=usage.cache_write_tokens,
-            output_tokens=usage.output_tokens,
-            cost=completion.built_model.calculate_cost(usage),
-            external_id=completion.id,
-        )
-    except Exception:
-        logger.exception("Could not record the usage of completion %s", completion.id)
+    usage = completion.usage
+    await AiUsage.arecord(
+        completion.built_model,
+        usage,
+        source=AiUsage.Source.NOTEBOOK,
+        cost=completion.built_model.calculate_cost(usage),
+        organization_id=organization.id,
+        workspace_id=workspace.id,
+        user_id=user.id,
+        external_id=completion.id,
+    )
 
 
 async def _stream_completion(completion: gateway.Completion, attributes: dict, record):
