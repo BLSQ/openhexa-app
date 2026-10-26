@@ -20,15 +20,23 @@ without AI behave as before.
 
 import logging
 
-from hexa.assistant.ai_models.backends import backend_for
-from hexa.assistant.ai_models.selection import ModelSelector
+from hexa.assistant.ai_models import AiModelBuilder, BuiltModel
 from hexa.assistant.exceptions import AssistantException
 from hexa.assistant.keys import AgentKey
-from hexa.user_management.models import Organization
+from hexa.user_management.models import AiSettings, Organization
 
 logger = logging.getLogger(__name__)
 
 GATEWAY_PROVIDER = "openhexa"
+
+
+def notebooks_model(ai_settings: AiSettings) -> BuiltModel:
+    """The model the gateway runs for the notebooks of an organization.
+
+    Raises `AssistantException` when there is none, or it cannot be built with
+    the credentials at hand.
+    """
+    return AiModelBuilder(ai_settings).build_for_agent(AgentKey.NOTEBOOKS, None)
 
 
 def notebooks_ai_env(organization: Organization) -> dict[str, str]:
@@ -37,14 +45,18 @@ def notebooks_ai_env(organization: Organization) -> dict[str, str]:
     if not ai_settings.enabled:
         return {}
     try:
-        model_id = ModelSelector(backend_for(ai_settings)).for_agent(
-            AgentKey.NOTEBOOKS, None
-        )
-    except AssistantException:
+        # Built, not merely selected: what the gateway could not build, the
+        # server is better off not offering.
+        built_model = notebooks_model(ai_settings)
+    except AssistantException as e:
         logger.warning(
-            "No model is configured for the notebooks of %r organizations; the "
-            "notebook AI tooling is not configured",
+            "No model for the notebooks of %r organizations, their notebook AI "
+            "tooling is not configured: %s",
             ai_settings.provider,
+            e,
         )
         return {}
-    return {"HEXA_AI_PROVIDER": GATEWAY_PROVIDER, "HEXA_AI_MODEL": model_id.name}
+    return {
+        "HEXA_AI_PROVIDER": GATEWAY_PROVIDER,
+        "HEXA_AI_MODEL": built_model.api_name,
+    }

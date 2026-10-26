@@ -5,11 +5,10 @@ from asgiref.sync import sync_to_async
 from django.http import HttpRequest, HttpResponse, HttpResponseNotAllowed, JsonResponse
 from opentelemetry import trace
 
-from hexa.assistant.ai_models import AiModelBuilder
 from hexa.assistant.exceptions import AssistantException
-from hexa.assistant.keys import AgentKey
 from hexa.assistant.models import AiUsage
 from hexa.assistant.notebooks import gateway
+from hexa.assistant.notebooks.env import notebooks_model
 from hexa.core.sse import sse_response
 
 logger = logging.getLogger(__name__)
@@ -106,11 +105,7 @@ async def gateway_chat_completions(request: HttpRequest) -> HttpResponse:
         return _gateway_error(400, str(e), "invalid_request_error")
 
     try:
-        built_model = await sync_to_async(
-            lambda: AiModelBuilder(ai_settings).build_for_agent(
-                AgentKey.NOTEBOOKS, None
-            )
-        )()
+        built_model = await sync_to_async(notebooks_model)(ai_settings)
     except AssistantException as e:
         logger.error("gateway: no model for organization %s: %s", organization.slug, e)
         return _gateway_error(503, "No model is available", "server_error")
