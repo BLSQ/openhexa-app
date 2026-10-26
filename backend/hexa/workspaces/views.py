@@ -6,7 +6,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from hexa.assistant.notebooks import notebooks_ai_env
+from hexa.assistant.notebooks.env import notebooks_ai_env
 from hexa.databases.api import get_db_server_credentials
 from hexa.files import storage
 from hexa.pipelines.models import PipelineRun

@@ -11,10 +11,10 @@ from genai_prices.types import Usage
 from pydantic_ai import messages as ai
 from pydantic_ai.models.function import AgentInfo, DeltaToolCall, FunctionModel
 
-from hexa.assistant import gateway
 from hexa.assistant.ai_models import BuiltModel
 from hexa.assistant.exceptions import AssistantException
 from hexa.assistant.models import AiUsage
+from hexa.assistant.notebooks import gateway
 from hexa.core.test import TestCase
 from hexa.core.test.utils import collect_async_stream
 from hexa.user_management.models import AiSettings, User
@@ -23,7 +23,7 @@ from hexa.workspaces.models import WorkspaceMembership, WorkspaceMembershipRole
 from hexa.workspaces.tests.testutils import create_workspace
 
 URL = "/assistant/gateway/v1/chat/completions"
-BUILD = "hexa.assistant.views.AiModelBuilder.build_for_agent"
+BUILD = "hexa.assistant.notebooks.views.AiModelBuilder.build_for_agent"
 PNG = base64.b64encode(b"\x89PNG\r\n\x1a\n").decode()
 
 
