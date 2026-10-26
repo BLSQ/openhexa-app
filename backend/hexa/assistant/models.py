@@ -125,20 +125,11 @@ class Message(Base):
     class Meta:
         ordering = ["-created_at"]
         indexes = [
-            # Covers two queries:
-            # 1. Organization.get_monthly_ai_cost(): nested loop over the organization's
-            #    conversations, filtering by role='assistant' and created_at range, reading
-            #    cost from INCLUDE.
-            # 2. conversation.messages.filter(role="assistant").last() in mutations.py,
-            #    which needs (conversation, role) as the leading columns.
             models.Index(
                 fields=["conversation", "role", "-created_at"],
                 include=["cost"],
                 name="assistant_message_cost_idx",
             ),
-            # Covers paginated message listing: conversation.messages.all() ordered by -created_at.
-            # assistant_message_cost_idx cannot serve this efficiently because role sits between
-            # conversation and created_at, preventing ordered reads without a sort.
             models.Index(
                 fields=["conversation", "-created_at"],
                 name="asst_msg_pagination_idx",

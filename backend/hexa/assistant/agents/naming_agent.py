@@ -5,7 +5,7 @@ from typing import NamedTuple
 from pydantic_ai import Agent, AgentRetries, ModelRetry, RunUsage
 from pydantic_ai.output import TextOutput
 
-from hexa.assistant.ai_models import AiModelBuilder
+from hexa.assistant.ai_models import AiModelBuilder, BuiltModel
 from hexa.assistant.keys import AgentKey
 from hexa.assistant.models import CONVERSATION_NAME_MAX_LENGTH
 from hexa.user_management.models import AiSettings
@@ -58,6 +58,7 @@ class NamingResult(NamedTuple):
     title: str
     usage: RunUsage
     cost: Decimal | None
+    built_model: BuiltModel
 
 
 class NamingAgent:
@@ -108,5 +109,8 @@ class NamingAgent:
             )
             title = trim_title(fallback)
         return NamingResult(
-            title=title, usage=usage, cost=self.built_model.calculate_cost(usage)
+            title=title,
+            usage=usage,
+            cost=self.built_model.calculate_cost(usage),
+            built_model=self.built_model,
         )
