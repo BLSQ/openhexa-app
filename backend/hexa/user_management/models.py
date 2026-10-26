@@ -487,16 +487,19 @@ class Organization(Base, SoftDeletedModel):
         """
         from hexa.assistant.models import AiUsage, Message
 
-        today = timezone.now().date()
-        month_start = today.replace(day=1)
+        now = timezone.now()
+        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        next_month_start = (month_start + timedelta(days=32)).replace(day=1)
         conversations = Message.objects.filter(
             conversation__workspace__organization=self,
             role=Message.Role.ASSISTANT,
-            created_at__date__gte=month_start,
+            created_at__gte=month_start,
+            created_at__lt=next_month_start,
         ).aggregate(total=Sum("cost"))["total"]
         notebooks = AiUsage.objects.filter(
             organization=self,
-            occurred_at__date__gte=month_start,
+            created_at__gte=month_start,
+            created_at__lt=next_month_start,
         ).aggregate(total=Sum("cost"))["total"]
         return float(round((conversations or 0) + (notebooks or 0), ndigits=2))
 

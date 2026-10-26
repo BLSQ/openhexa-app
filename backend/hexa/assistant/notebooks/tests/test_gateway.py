@@ -308,7 +308,10 @@ class GatewayViewTest(TestCase):
             (usage.organization, usage.workspace, usage.user),
             (self.ORGANIZATION, self.WORKSPACE, self.USER),
         )
-        self.assertEqual((usage.source, usage.model), ("notebooks", "claude-opus-4-6"))
+        self.assertEqual(
+            (usage.source, usage.provider, usage.model_name),
+            (AiUsage.Source.NOTEBOOK, "google-vertex", "claude-opus-4-6"),
+        )
         self.assertGreater(usage.input_tokens, 0)
         self.assertGreater(usage.output_tokens, 0)
         expected = genai_prices.calc_price(

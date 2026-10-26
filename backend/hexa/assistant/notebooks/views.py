@@ -3,7 +3,6 @@ import logging
 
 from asgiref.sync import sync_to_async
 from django.http import HttpRequest, HttpResponse, HttpResponseNotAllowed, JsonResponse
-from django.utils import timezone
 from opentelemetry import trace
 
 from hexa.assistant.ai_models import AiModelBuilder
@@ -15,9 +14,6 @@ from hexa.core.sse import sse_response
 
 logger = logging.getLogger(__name__)
 tracer = trace.get_tracer("hexa.assistant.notebooks.gateway")
-
-# What the gateway's usage rows name as their source.
-GATEWAY_USAGE_SOURCE = "notebooks"
 
 
 def _gateway_error(status: int, message: str, error_type: str) -> JsonResponse:
@@ -40,14 +36,14 @@ async def _record_gateway_usage(
             organization=organization,
             workspace=workspace,
             user=user,
-            source=GATEWAY_USAGE_SOURCE,
-            model=completion.model_name[:100],
+            source=AiUsage.Source.NOTEBOOK,
+            provider=completion.built_model.provider_id[:50],
+            model_name=completion.model_name[:100],
             input_tokens=usage.input_tokens,
             cache_read_tokens=usage.cache_read_tokens,
             cache_write_tokens=usage.cache_write_tokens,
             output_tokens=usage.output_tokens,
             cost=completion.built_model.calculate_cost(usage),
-            occurred_at=timezone.now(),
             external_id=completion.id,
         )
     except Exception:
